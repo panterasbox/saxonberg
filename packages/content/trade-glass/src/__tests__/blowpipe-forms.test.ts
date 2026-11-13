@@ -8,7 +8,6 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Glass from "@saxonberg/server/mud/platform/idea/material/Glass";
 import type Material from "@saxonberg/server/mud/lib/material/Material";
-import Form from "@saxonberg/server/mud/platform/idea/Form";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
@@ -21,12 +20,13 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { ShapePlan, ShapeRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import Gather from "../thing/Gather";
 import Blowpipe from "../thing/Blowpipe";
+import { CraftingApi } from "@saxonberg/server/mud/api/crafting";
 
 class TestHand extends SensorMixin(ContainerMixin(Idea)) {
   static _mixinName = "BlowpipeFormsTestHand";
 }
 
-const BOTTLE_FORM = "/trade/glass/idea/form/_test/bottle";
+const BOTTLE_FORM = "/trade/glass/forms/_test/bottle";
 const BOTTLE = "/trade/glass/thing/bottle";
 
 let seq = 0;
@@ -61,15 +61,14 @@ describe("⭐ the blowpipe blows the forms its row lists", () => {
   let actor: Stuff;
   beforeEach(() => {
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => {
-      const f = new Form();
-      f.key = "bottle";
-      f.setFormClass("closed");
-      f.capacityL = 0.75;
-      f.product = BOTTLE;
-      f.discipline = "glasswork";
-      return f;
-    }, BOTTLE_FORM);
+    // The form document, as the blowpipe citing it would have loaded it.
+    CraftingApi.forms().remember(
+      BOTTLE_FORM,
+      CraftingApi.forms().parse(
+        { key: "bottle", formClass: "closed", capacityL: 0.75, product: BOTTLE, discipline: "glasswork" },
+        BOTTLE_FORM,
+      ),
+    );
     actor = makeStuff(() => new TestHand()) as unknown as Stuff;
   });
   afterEach(() => StuffApi.clearAll());

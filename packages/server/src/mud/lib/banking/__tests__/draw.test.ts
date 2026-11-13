@@ -49,7 +49,9 @@ describe("BankingApi.payDraw", () => {
         BankingApi.defaultCustodianBank(),
         "", BankingApi.compactCurrency()),
     );
-    await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(200, BankingApi.compactCurrency()));
+    expect(
+      await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(200, BankingApi.compactCurrency())),
+    ).toEqual({ ok: true });
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(300);
     expect(BankingApi.balanceOf(primary).minor).toBe(200);
     const rows = await BankingApi.entriesFor(primary);
@@ -67,17 +69,19 @@ describe("BankingApi.payDraw", () => {
         BankingApi.defaultCustodianBank(),
         "", BankingApi.compactCurrency()),
     );
-    await expect(
-      BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(51, BankingApi.compactCurrency())),
-    ).rejects.toThrow(/holds less than/);
+    // C32 — a reason the verb words, never a sentence it pattern-matches.
+    expect(
+      await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(51, BankingApi.compactCurrency())),
+    ).toEqual({ ok: false, reason: "business-short" });
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(50);
   });
 
   it("refuses when the proprietor has no account", async () => {
     await BankingApi.mint(BIZ_ACCT, Money.of(500, BankingApi.compactCurrency()));
-    await expect(
-      BankingApi.payDraw(BIZ_ACCT, "/platform/agent/Avatar/nobody", Money.of(10, BankingApi.compactCurrency())),
-    ).rejects.toThrow(/no account/);
+    expect(
+      await BankingApi.payDraw(BIZ_ACCT, "/platform/agent/Avatar/nobody", Money.of(10, BankingApi.compactCurrency())),
+    ).toEqual({ ok: false, reason: "no-account" });
+    expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(500);
   });
 
   it("⭐ payWage is solvency-checked like payDraw (economic bootstrap D3 — the asymmetry is gone)", async () => {

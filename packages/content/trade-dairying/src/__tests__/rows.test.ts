@@ -89,19 +89,23 @@ describe('the dairying rows', () => {
   });
 
   it('no fraction speaks a number — the cut is a judgement', () => {
-    const schedules = parsed.filter((p) => p.file.includes('/fractionation/'));
+    const schedules = parsed.filter((p) => p.file.includes('/fraction-schedules/'));
     expect(schedules.length).toBe(2);
     for (const { row } of schedules) {
-      for (const f of (row as { data: { fractions: Array<{ character: string }> } }).data.fractions) {
+      for (const f of (row as { fractions: Array<{ character: string }> }).fractions) {
         expect(f.character).not.toMatch(/\d/);
       }
     }
   });
 
-  it('the pack ships no verb, no controller, no Api and no logic singleton', () => {
-    expect(existsSync(join(PACK, 'content', 'trade', 'dairying', 'cmd'))).toBe(false);
-    expect(existsSync(join(PACK, 'src', 'idea'))).toBe(false);
-    const src = readdirSync(join(PACK, 'src')).filter((d) => d !== '__tests__');
-    expect(src).toEqual(['thing']);
+  it('the pack ships ONE verb — `churn` (controller-liquidity W18) — and no Api and no logic singleton', () => {
+    const views = readdirSync(join(PACK, 'content', 'trade', 'dairying', 'cmd', 'crafting'));
+    expect(views).toEqual(['churn.yaml']);
+    expect(readdirSync(join(PACK, 'src', 'idea', 'cmd', 'crafting')).filter((f) => f.endsWith('.ts'))).toEqual([
+      'ChurnController.ts',
+    ]);
+    const src = readdirSync(join(PACK, 'src')).filter((d) => d !== '__tests__').sort();
+    expect(src).toEqual(['idea', 'thing']);
+    expect(existsSync(join(PACK, 'src', 'idea', 'api'))).toBe(false);
   });
 });

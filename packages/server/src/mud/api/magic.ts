@@ -25,8 +25,10 @@
  * See `docs/subsystems/magic.md`.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
+import { TemplatePaths } from '../lib/paths';
 import { HotReloadApi } from './hot-reload';
 import { MagicLogic } from '../platform/idea/api/MagicLogic';
 import type {
@@ -69,6 +71,13 @@ function logic(): MagicLogic {
 }
 
 export class MagicApi {
+  /**
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
+   */
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.spellCatalogue];
+
+
   /**
    * One authored spell descriptor by id, or `null`. The read a
    * *consumer of a spell* needs — a spellbook resolving what it teaches,

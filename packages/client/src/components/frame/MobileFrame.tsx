@@ -29,7 +29,7 @@
  * this codebase keeps warning about: an unpin that forgot the glance
  * key, a glance row that is not on the shelf, and a `list` that cannot
  * say which is true. Choosing what rides the bar is therefore
- * *reordering*, which is what `cockpit shelf first` exists for.
+ * *reordering*, which is what `client-shelf first` exists for.
  *
  * ## What is reused, and what is absent
  *
@@ -262,7 +262,7 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
         <Glance data-testid="glance-line">
           {glance.length === 0 ? (
             // ⚠ The empty shelf is a state a player can actually reach
-            // (`cockpit shelf unpin` each row), so it says so rather
+            // (`client-shelf unpin` each row), so it says so rather
             // than rendering an unexplained gap.
             <Empty>nothing pinned</Empty>
           ) : (

@@ -29,13 +29,11 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { AlterFacts, AlterRefusal } from '@saxonberg/server/mud/lib/slot/Wearable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { measurementsOf } from '../../../thing/CuttingTool';
 
-const TOPIC = 'act.deed';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface AlterModel extends CommandModel {
   kit?: MqlManyResult;
@@ -43,13 +41,13 @@ interface AlterModel extends CommandModel {
   for?: MqlOneResult;
 }
 
+/**
+ * ⭐ The fit, the direction and the seam budget are the garment's
+ * (`Wearable.alterPlanFor` — controller-liquidity W11); this controller
+ * picks the best kit bound and words the plan.
+ */
 export default class AlterController extends ManualBuildController<AlterModel> {
-  static readonly BASE_MS_KEY = 'tailoring.alter.baseMs';
-  static readonly BASE_MS = 25 * 60 * 1000;
-  /** How much of a unit of allowance one act of letting out spends. */
-  static readonly ALLOWANCE_PER_ACT = 1;
-
-  execute(model: AlterModel, context: CommandContext): void {
+  async execute(model: AlterModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const garment = model.garment?.stuff ?? null;
     if (!garment || !MixinApi.isWearable(garment)) {
@@ -57,85 +55,38 @@ export default class AlterController extends ManualBuildController<AlterModel> {
       return;
     }
     const subject = model.for?.stuff ?? giver;
-    const measured = measurementsOf(subject);
-    if (!measured) {
-      this.declineStep(
-        context,
-        Mml.compose`There is nobody there to fit it to.`,
-        'no-subject',
-      );
+    const plan = garment.alterPlanFor(giver, subject, this.bestInstrument(model.kit, 'mending'));
+    if (!plan.ok) {
+      this.declineStep(context, AlterController.refusalWords(plan, garment), plan.reason);
       return;
     }
-
-    const fit = garment.fitOn(subject);
-    if (fit.measurable && fit.distance < 0.02) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(garment)} already fits. There is nothing to do to it.`,
-        'already-fits',
-      );
-      return;
-    }
-
-    // ⚠⚠ CONSERVATION. Letting out needs cloth that must already be
-    // folded into the seams; taking in is just cutting and is always
-    // available.
-    const lettingOut = fit.tightness > 0;
-    const allowance = MixinApi.isWearable(garment)
-      ? garment.getSeamAllowance()
-      : 0;
-    if (lettingOut && allowance < AlterController.ALLOWANCE_PER_ACT) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(garment)} was cut close. There is nothing folded in the seams to let out — and nothing anywhere makes cloth out of nothing.`,
-        'no-allowance',
-      );
-      return;
-    }
-
-    const instrument = this.bestInstrument(model.kit, 'mending');
-    const durationMs = this.paceMs(
-      dial(AlterController.BASE_MS_KEY, AlterController.BASE_MS),
-      instrument as Stuff | null,
-      ['mending'],
-    );
-
-    this.engageStep(context, {
-      durationMs,
-      effortW: 250,
-      beginSelf: lettingOut
-        ? Mml.compose`You unpick the seams of ${Mml.thing(garment)} and start letting it out.`
-        : Mml.compose`You pin ${Mml.thing(garment)} in and start taking it up.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} works over a garment with pins.`,
-      onComplete: () => {
-        if (!MixinApi.isWearable(garment)) return;
-        garment.setCutTo(measured.bodyPlan, measured.stature, measured.girth);
-        if (lettingOut) {
-          garment.setSeamAllowance(
-            allowance - AlterController.ALLOWANCE_PER_ACT,
-          );
-        }
-        if (giver.isDestroyed()) return;
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            lettingOut
-              ? Mml.compose`It sits properly again, and there is less in the seams than there was.`
-              : Mml.compose`It sits properly again, and there is a little more folded inside than there was.`,
-          )
-          .send();
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (f: AlterFacts) =>
+        f.lettingOut
+          ? Mml.compose`You unpick the seams of ${Mml.thing(garment)} and start letting it out.`
+          : Mml.compose`You pin ${Mml.thing(garment)} in and start taking it up.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} works over a garment with pins.`,
+      onRefused: () => Mml.compose`The alteration came to nothing.`,
+      onDone: (f: AlterFacts) => ({
+        self: f.lettingOut
+          ? Mml.compose`It sits properly again, and there is less in the seams than there was.`
+          : Mml.compose`It sits properly again, and there is a little more folded inside than there was.`,
+      }),
     });
   }
-}
 
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static refusalWords(r: AlterRefusal, garment: Stuff): Composed {
+    switch (r.reason) {
+      case 'no-subject':
+        return Mml.compose`There is nobody there to fit it to.`;
+      case 'already-fits':
+        return Mml.compose`${Mml.thing(garment)} already fits. There is nothing to do to it.`;
+      case 'no-allowance':
+        return Mml.compose`${Mml.thing(garment)} was cut close. There is nothing folded in the seams to let out — and nothing anywhere makes cloth out of nothing.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
   }
 }

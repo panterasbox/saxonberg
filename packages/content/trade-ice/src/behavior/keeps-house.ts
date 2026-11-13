@@ -15,6 +15,7 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 export const brain = class KeepsHouseBrain {
   static label = 'keeps-house';
@@ -37,7 +38,7 @@ export const brain = class KeepsHouseBrain {
     if (!store || !MixinApi.isStore(store)) return;
     const word = String(ctx.config.stack ?? 'stack');
     const giver = host as unknown as CommandGiver;
-    await giver.forceCommand(`measure stock ${word}`);
+    await giver.forceCommand(`measure stock ${CommandLineApi.word(word)}`);
     const sodden = store.getLines().some((l) => l.role === 'packing' && (l.state.saturation ?? 0) >= 0.8);
     if (sodden) {
       await giver.forceCommand('get 1 sawdust');

@@ -1,5 +1,5 @@
-# A dorm room's door, off the corridor. The key gate is the class's; the
-# prose is the hall's.
+# A dorm room's way in, off the corridor. The door in it is the warren's
+# (`thing/dorm-door`, boundary build); the prose is the hall's.
 class: /world/terminus/eternal/duncan-hall/idea/DormDoor
 data:
   messageOut: "{{ mover }} lets themselves in."

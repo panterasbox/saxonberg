@@ -1,6 +1,8 @@
 # The floor bottle of soda water — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: mixer:soda-water
   shortDescription: "bottle of soda water"
   keywords: [soda, soda-water, fizz, bottle, mixer, water, "bottle of soda water"]

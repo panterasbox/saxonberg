@@ -36,7 +36,11 @@
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
 import { Channel } from '../../lib/social/Channel';
-import type { ChannelAnonymity } from '../../lib/social/Channel';
+import type {
+  ChannelAnonymity,
+  ChannelRefusalReason,
+} from '../../lib/social/Channel';
+import type { ActRefusal } from '../../lib/craft/ActPlan';
 import type { GroupRole } from '../../lib/social/Group';
 import { AdHocChannel } from '../../lib/social/AdHocChannel';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -95,6 +99,16 @@ function historyCap(): number {
  * would be a hole.
  */
 const CHAT_SPOILERS = { tags: 'spoiler' } as const;
+
+/** A channel act's answer: the channel acted on, or the refusal. */
+export type ChannelActResult =
+  | { ok: true; channel: Channel }
+  | ActRefusal<ChannelRefusalReason>;
+
+/** A history read's answer: the ring, or the refusal. */
+export type ChannelHistoryResult =
+  | { ok: true; frames: readonly MessageFrame[] }
+  | ActRefusal<ChannelRefusalReason>;
 
 export interface ChannelSubscription {
   tunedIn: boolean;
@@ -257,16 +271,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       }
       if (await subjects.isAudienceMember(actor, subj)) persistent.push(c);
     }
-    const memberKey = actor.getTemplatePath() ?? '';
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
-      if (ad.members.has(actor)) adHoc.push(ad);
-      else if (
-        memberKey &&
-        [...ad.members].some((m) => m.getTemplatePath() === memberKey)
-      ) {
-        adHoc.push(ad);
-      }
+      if (this.isAdHocMember(actor, ad)) adHoc.push(ad);
     }
     return { persistent, adHoc };
   }
@@ -465,8 +472,78 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     if (ring.length > historyCap()) ring.shift();
   }
 
-  public historyFor(channelId: string): readonly MessageFrame[] {
-    return this.history.get(channelId) ?? [];
+  /**
+   * ⭐ The history ring of a channel, for a READER (controller-liquidity
+   * D9): an ad-hoc handle's members, a persistent channel's audience.
+   * Fail-closed — an unknown id or a channel with no Subject refuses.
+   * `channelId` is a persistent channel's `_id` (or its name) or an
+   * ad-hoc handle.
+   */
+  public async historyFor(
+    reader: Stuff,
+    channelId: string,
+  ): Promise<ChannelHistoryResult> {
+    const ad = this.byHandle.get(channelId);
+    if (ad) {
+      if (!this.isAdHocMember(reader, ad)) {
+        return { ok: false, reason: 'not-member' };
+      }
+      return { ok: true, frames: this.history.get(channelId) ?? [] };
+    }
+    const map = await this.ensureNameCache();
+    const c =
+      [...map.values()].find((x) => x._id === channelId) ??
+      map.get(channelId.toLowerCase()) ??
+      null;
+    if (!c) return { ok: false, reason: 'no-such-channel' };
+    const subject = await this.subjectFor(c);
+    if (!subject) return { ok: false, reason: 'no-subject' };
+    const subjects = await this.requireSubjects();
+    if (!(await subjects.isAudienceMember(reader, subject))) {
+      return { ok: false, reason: 'not-member' };
+    }
+    return { ok: true, frames: this.history.get(c._id ?? c.name) ?? [] };
+  }
+
+  /**
+   * Is `actor` in this ad-hoc channel — the live body, or the same
+   * PERSON stood back up (keyed on `getIdentityPath()`: every player
+   * shares one lineage, so a template-path match admitted everyone).
+   */
+  private isAdHocMember(actor: Stuff, ad: AdHocChannel): boolean {
+    if (ad.members.has(actor)) return true;
+    const key = actor.getIdentityPath() ?? '';
+    return key !== '' && [...ad.members].some((m) => m.getIdentityPath() === key);
+  }
+
+  /**
+   * ⭐ May `actor` GOVERN this channel — rename it, set its anonymity,
+   * disband it (controller-liquidity D9: the gate lives on what it
+   * protects, so a replaced controller cannot skip it)? Only a
+   * player-created channel, and only its Subject's owner or the holder
+   * of the `owner` role of its audience group (a party's captain, who
+   * may not be its founder). Fail-closed: no Subject, or an actor who is
+   * not a player and owns no group, refuses.
+   */
+  private async governRefusal(
+    actor: Stuff,
+    c: Channel,
+  ): Promise<ActRefusal<ChannelRefusalReason> | null> {
+    if (c.kind !== 'player-created') {
+      return { ok: false, reason: 'not-player-created' };
+    }
+    const subject = await this.subjectFor(c);
+    if (!subject) return { ok: false, reason: 'no-subject' };
+    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
+    if (playerId && subject.getOwner() === playerId) return null;
+    if (!subject.isOpen()) {
+      const keys = [playerId, actor.getIdentityPath() ?? ''].filter((k) => k);
+      for (const key of keys) {
+        const role = await GroupApi.roleOf(key, subject.getGroupRef());
+        if (role === 'owner') return null;
+      }
+    }
+    return { ok: false, reason: 'not-owner' };
   }
 
   // --- Subscription (mapped onto the per-subject store) -------------
@@ -637,16 +714,22 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   /**
    * Attach a chat surface to an existing Subject (`chat on <subject>`).
-   * Only the Subject owner may attach. The channel takes the Subject's
-   * title as its name.
+   * Only the Subject owner may attach — asked here, of the actor
+   * (controller-liquidity D9). The channel takes the Subject's title as
+   * its name.
    */
   public async attachChatToSubject(
+    actor: Stuff,
     subject: Subject,
     procedure: 'open' | 'ordered' = 'open',
-  ): Promise<Channel> {
+  ): Promise<ChannelActResult> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'attachChatToSubject');
+    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
+    if (!playerId || subject.getOwner() !== playerId) {
+      return { ok: false, reason: 'not-owner' };
+    }
     const subjects = await this.requireSubjects();
     const surface = procedure === 'open' ? 'open-chat' : 'ordered-chat';
     if (subject.hasManifestation(surface)) {
@@ -657,7 +740,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       if (existing) {
         const map = await this.ensureNameCache();
         map.set(existing.name.toLowerCase(), existing);
-        return existing;
+        return { ok: true, channel: existing };
       }
     }
     const c = new Channel();
@@ -669,15 +752,21 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     await subjects.addManifestation(subject, surface, c._id!);
     const map = await this.ensureNameCache();
     map.set(c.name.toLowerCase(), c);
-    return c;
+    return { ok: true, channel: c };
   }
 
-  public async disbandPlayerChannel(name: string): Promise<boolean> {
+  /** `actor` ends a player-created channel it governs ({@link governRefusal}). */
+  public async disbandPlayerChannel(
+    actor: Stuff,
+    name: string,
+  ): Promise<ChannelActResult> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'disbandPlayerChannel');
     const c = await this.resolveByName(name);
-    if (!c) return false;
+    if (!c) return { ok: false, reason: 'no-such-channel' };
+    const refused = await this.governRefusal(actor, c);
+    if (refused) return refused;
     if (c.subject) {
       const subjects = await this.requireSubjects();
       const subj = await subjects.resolveById(c.subject);
@@ -687,40 +776,48 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const map = await this.ensureNameCache();
     map.delete(name.toLowerCase());
     if (c._id) this.history.delete(c._id);
-    return true;
+    return { ok: true, channel: c };
   }
 
   /**
    * Set whether a channel permits anonymous posts — the owner's call,
-   * gated upstream in the controller exactly as `disband` is.
+   * asked here of the actor exactly as `disband` asks it
+   * ({@link governRefusal}).
    */
   public async setAnonymity(
+    actor: Stuff,
     name: string,
     anonymity: ChannelAnonymity,
-  ): Promise<Channel> {
+  ): Promise<ChannelActResult> {
     // Sandbox needs-a-guard: field-visible shared state.
     SecurityApi.assertFieldMutation(this, 'setAnonymity');
     const c = await this.resolveByName(name);
-    if (!c) throw new Error(`No channel '${name}'.`);
+    if (!c) return { ok: false, reason: 'no-such-channel' };
+    const refused = await this.governRefusal(actor, c);
+    if (refused) return refused;
     c.anonymity = anonymity;
     await c.save();
-    return c;
+    return { ok: true, channel: c };
   }
 
+  /** `actor` renames a channel it governs ({@link governRefusal}). */
   public async renamePlayerChannel(
+    actor: Stuff,
     oldName: string,
     newName: string,
-  ): Promise<Channel> {
+  ): Promise<ChannelActResult> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'renamePlayerChannel');
-    if (RESERVED_NAMES.has(newName.toLowerCase())) {
-      throw new Error(`Reserved name '${newName}' — pick another.`);
-    }
     const c = await this.resolveByName(oldName);
-    if (!c) throw new Error(`No channel '${oldName}'.`);
+    if (!c) return { ok: false, reason: 'no-such-channel' };
+    const refused = await this.governRefusal(actor, c);
+    if (refused) return refused;
+    if (RESERVED_NAMES.has(newName.toLowerCase())) {
+      return { ok: false, reason: 'reserved-name' };
+    }
     const clash = await this.resolveByName(newName);
-    if (clash) throw new Error(`Channel '${newName}' already exists.`);
+    if (clash) return { ok: false, reason: 'name-taken' };
     c.name = newName;
     await c.save();
     // Rename the Subject handle (and its backing group) to match.
@@ -732,7 +829,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const map = await this.ensureNameCache();
     map.delete(oldName.toLowerCase());
     map.set(newName.toLowerCase(), c);
-    return c;
+    return { ok: true, channel: c };
   }
 
   /**

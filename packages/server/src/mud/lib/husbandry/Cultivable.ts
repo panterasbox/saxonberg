@@ -217,8 +217,17 @@ export function CultivableMixin<
       const self = this as unknown as Stuff & Soil & Cultivable;
       if (req.part) {
         const r = self.resolvePartFor(req.part);
-        if (!r.ok) {
-          return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+        if (r.ok === false) {
+          const { part, ground } = r.facts;
+          return {
+            ok: false,
+            reason: r.reason,
+            facts: {
+              part,
+              ground,
+              detail: `${part.getPresentation()} is not a part of ${ground.getPresentation()}`,
+            },
+          };
         }
       }
       const growing = (self.getPlants() as Stuff[]).filter(
@@ -236,7 +245,7 @@ export function CultivableMixin<
         };
       }
       // The part was the ground's to check; the plant answers for itself.
-      return plant.harvestPlanFor({ ...req, typed: "", part: null });
+      return plant.harvestPlanFor({ ...req, part: null });
     }
 
     /** See {@link Cultivable.plantPlanFor}. */

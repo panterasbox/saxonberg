@@ -3,4 +3,4 @@
 extends: /stuff/idea/material/wood/oak
 data:
   name: pit-soaked oak
-  smells: [{ aroma: /base-library/aromas/tan-liquor, strength: 100 }, { aroma: /base-library/aromas/wet-hide, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/tannin/tan-liquor, strength: 100 }, { aroma: /base-library/aromas/hide/wet-hide, strength: 60 }]

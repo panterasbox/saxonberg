@@ -67,53 +67,24 @@ export default class UnlockController extends CommandController<UnlockModel> {
       return;
     }
 
-    // ⭐⭐ **Observable state first, the secret second** — see
-    // `LockController` for the reasoning. A character can SEE that a
-    // door is not locked, so saying so to anybody leaks nothing; the
-    // KEY is the secret.
-    if (!lockable.isLocked()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`It is already unlocked.`)
-        .send();
+    // ⭐⭐ The door decides (controller-liquidity D9): `unlock(by)` asks
+    // the visible state first and the keyway second, so a replaced
+    // controller or a script meets the same order. This controller words
+    // the refusal.
+    const answer = lockable.unlock(commandGiver);
+    if (!answer.ok) {
+      const line =
+        answer.reason === 'no-key'
+          ? Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`
+          : Mml.compose`It is already unlocked.`;
+      MessageApi.scene(commandGiver).topic('act.deed').toSelf(line).send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'already-unlocked',
-        detail: 'already unlocked',
+        reason: answer.reason,
+        detail: answer.reason === 'no-key' ? 'no key that fits' : 'already unlocked',
       });
       return;
     }
-
-    // ⭐⭐⭐ **The authority, and it did not exist.** This controller
-    // checked no key, no credential and no title, so conferring `unlock`
-    // over the old boolean mixin would have let any player alive open
-    // the university gate. The door answers for itself now: `opensFor`
-    // is a synchronous scan of the mover's reachable wallet (implant
-    // keychain, then a carried physical `Key` — never one lying on the
-    // floor).
-    //
-    // ⚠ The bolt's STATE and the keyway's AUTHORITY are deliberately two
-    // calls. `unlock()` moves the bolt and asks nobody; this is the ask.
-    // ⭐ And this is the verb's whole point: a key-holder already walks
-    // through a locked door, so unlocking is what you do to let everyone
-    // ELSE through.
-    if (!lockable.opensFor(commandGiver)) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(
-          Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'no-key',
-        detail: 'no key that fits',
-      });
-      return;
-    }
-
-
-    lockable.unlock();
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

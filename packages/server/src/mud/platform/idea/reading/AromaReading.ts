@@ -17,7 +17,6 @@ import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { PerceptionApi } from '../../../api/perception';
 import { Quantity } from '../../../lib/quantity';
-import { Aroma } from '../../../lib/perception/Aroma';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -69,7 +68,7 @@ export default class AromaReading extends Reading {
     let body = Mml.compose``;
     for (const [i, n] of signal.notes.entries()) {
       const figure = this.bracketed(Quantity.of(n.ou, 'OU'), band, seed + i);
-      body = Mml.compose`${body}  ${Aroma.phraseOf(n.aroma)}: ${figure}\n`;
+      body = Mml.compose`${body}  ${PerceptionApi.aromas().phraseOf(n.aroma)}: ${figure}\n`;
     }
     this.report(context, body);
   }
@@ -84,8 +83,8 @@ export default class AromaReading extends Reading {
           ? modality.signalAt(target as Stuff & Container)
           : null;
     const first = read();
-    for (const note of first?.notes ?? []) Aroma.resolve(note.aroma);
-    await Aroma.settling();
+    for (const note of first?.notes ?? []) PerceptionApi.aromas().resolve(note.aroma);
+    await PerceptionApi.aromas().settling();
     return read() ?? Smell.ZERO;
   }
 

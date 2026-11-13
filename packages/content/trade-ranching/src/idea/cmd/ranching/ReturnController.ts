@@ -21,112 +21,46 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import HerdRegistry from '../../HerdRegistry';
-import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
-import type Livestock from '../../../agent/Livestock';
+import { RANCHING_TOPIC } from './DraftController';
+import Livestock from '../../../agent/Livestock';
 
 interface ReturnModel extends CommandModel {
   target?: MqlOneResult;
 }
 
+/**
+ * ⭐⭐ **The head turns itself in** (controller-liquidity W10):
+ * `Livestock.returnToHerd` folds what it became into the record and goes.
+ * This file is the words.
+ */
 export default class ReturnController extends CommandController<ReturnModel> {
   async execute(model: ReturnModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const target = model.target?.stuff as Livestock | undefined;
+    const target = model.target?.stuff ?? null;
     if (!target) {
       this.decline(context, Mml.compose`Return what?`, 'no-target');
       return;
     }
-    const herdId = target.getHerdId?.() ?? '';
-    const index = target.getHeadIndex?.() ?? -1;
-    if (!herdId || index < 0) {
-      // ⭐ A legal state, not an error. D19's base case is the
-      // individual: a pet, a single milk cow and a working ox were never
-      // in a tally, and there is nothing for them to go back TO.
+    // ⭐ A legal state, not an error (D19): a pet, a single milk cow and a
+    // working ox were never in a tally, and there is nothing to go back TO.
+    const out = target instanceof Livestock ? await target.returnToHerd() : ({ ok: false, reason: 'not-drafted' } as const);
+    if (!out.ok) {
       this.decline(
         context,
-        Mml.compose`${Mml.thing(target as unknown as Stuff)} is not out of anybody's herd. It is just itself.`,
-        'not-drafted',
+        out.reason === 'not-drafted'
+          ? Mml.compose`${Mml.thing(target)} is not out of anybody's herd. It is just itself.`
+          : Mml.compose`The book does not have it out.`,
+        out.reason,
       );
       return;
     }
-
-    const registry = await this.registry();
-    const flesh = target.getReserve('flesh');
-    const driedOffAt = await this.driedOffStamps(registry, herdId, index, target);
-    const ok = await registry.returnHead(herdId, index, {
-      flesh: flesh ? round1(flesh.current.rawValue()) : undefined,
-      // ⭐ When that flesh was true (cover build D10): the fed windows
-      // after it are what the head goes through while it is in the book.
-      ...(StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
-        ? { fleshAt: WorldClockApi.getNow().rawValue() }
-        : {}),
-      handling: round2(target.getHandling()),
-      ageDays: round1(target.getAgeDays()),
-      ...(driedOffAt ? { driedOffAt } : {}),
-    });
-    if (!ok) {
-      this.decline(
-        context,
-        Mml.compose`The book does not have it out.`,
-        'not-in-book',
-      );
-      return;
-    }
-
-    const read = target.stockmanRead();
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
-      .toSelf(
-        Mml.compose`You turn number ${index} back in with the rest and write it up: ${read}.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} turns one back in with the rest.`,
-      )
+      .toSelf(Mml.compose`You turn number ${out.index} back in with the rest and write it up: ${out.read}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} turns one back in with the rest.`)
       .send();
-
-    // ⚠ The object goes; the record stays. Destructing LAST, after the
-    // write has landed, so a failed write leaves the animal standing
-    // rather than deleting a head nobody wrote down.
-    StuffApi.destruct(target as unknown as Stuff);
-  }
-
-  /**
-   * ⭐ (dairy D12) When each `expire` tap that is dried off went dry — the
-   * dry period counts from the RETURN. A stamp already in the record and
-   * still inside its rest is kept, so turning her in twice does not
-   * restart the clock; one past its rest is replaced.
-   */
-  private async driedOffStamps(
-    registry: HerdRegistry,
-    herdId: string,
-    index: number,
-    target: Livestock,
-  ): Promise<Record<string, number> | null> {
-    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
-    const nowS = WorldClockApi.getNow().rawValue();
-    const prior = (await registry.overlayFor(herdId, index))?.driedOffAt ?? {};
-    const out: Record<string, number> = {};
-    for (const tap of target.taps()) {
-      if (tap.behaviour !== 'expire' || !target.isDriedOff(tap.key)) continue;
-      const was = prior[tap.key];
-      const rest = (tap.restDays ?? 0) * 86_400;
-      out[tap.key] = typeof was === 'number' && nowS - was < rest ? was : nowS;
-    }
-    return Object.keys(out).length > 0 ? out : null;
-  }
-
-  protected async registry(): Promise<HerdRegistry> {
-    // ⭐ `singleton` IS the get-or-create: its first act is this exact
-    // index read, and it clones only on a miss. A resident pre-check in
-    // front of it is the same lookup written twice.
-    return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
   }
 
   protected decline(
@@ -137,12 +71,4 @@ export default class ReturnController extends CommandController<ReturnModel> {
     MessageApi.scene(context.commandGiver).topic(RANCHING_TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
-
-function round1(v: number): number {
-  return Math.round(v * 10) / 10;
-}
-
-function round2(v: number): number {
-  return Math.round(v * 100) / 100;
 }

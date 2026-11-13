@@ -301,7 +301,7 @@ suite('⭐⭐ 2. the five new recipes are installed', () => {
       'grain-wash-mash',
       'vat-whisky',
     ]) {
-      const r = await say(k, `order ${step}`);
+      const r = await say(k, `order "${step}"`);
       expect(
         refusedFor(r),
         `order ${step}: the recipe is not installed — a rows-only pack ` +
@@ -477,7 +477,7 @@ suite.skipIf(!isOwnedTestWorld())(
       const oneWord = await say(k, 'close cask');
       understood(oneWord, 'close cask');
 
-      const twoWord = await say(k, 'close plain cask');
+      const twoWord = await say(k, 'close "plain cask"');
       const note = (
         twoWord.notes as Array<{ kind?: string; reason?: string }>
       ).find((n) => n.kind === 'command-rejected');

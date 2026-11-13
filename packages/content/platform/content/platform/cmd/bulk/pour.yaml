@@ -47,6 +47,8 @@ args:
     # What is poured need not hold bulk: an ingredient goes into a build
     # whole. The TARGET says what it will take, in its own words.
     requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustNotBeShutAway
   - name: target
     type: object
     required: false

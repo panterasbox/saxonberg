@@ -1,7 +1,7 @@
 # Dark rum wash — the fermented molasses, ready for the still (sugar D8).
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/molasses, strength: 300 }, { aroma: /base-library/aromas/alcohol, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/sugar/molasses, strength: 300 }, { aroma: /base-library/aromas/alcohol, strength: 100 }]
   tastes: [{ type: sweet, amount: 15 }, { type: sour, amount: 3 }]
   name: dark rum wash
   keywords: [wash, rum, "dark rum wash"]

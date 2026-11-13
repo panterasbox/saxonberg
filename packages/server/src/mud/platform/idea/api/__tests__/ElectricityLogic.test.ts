@@ -30,6 +30,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
+import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -164,7 +165,10 @@ function traumaOf(c: Creature): Trauma | undefined {
 }
 
 describe('ElectricityLogic — the conduction walk', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => StuffApi.clearAll());
 
   it('two bodies co-immersed in a live pool BOTH take current (faction-blind)', () => {

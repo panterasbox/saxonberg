@@ -93,6 +93,8 @@ function register(path: string, gov: string): ShipRegister {
   reg.setRegisterOwner('/platform');
   reg.setRegisterPrefix(`/platform/ships/${gov}`);
   reg.setRegisterKind(SHIP_ENTRY_KIND);
+  // The government dictionary loads with the register (D7); this suite fakes
+  // its reads, so the load is not waited for — only kept from leaking.
   reg.setGovernment(gov);
   return reg;
 }

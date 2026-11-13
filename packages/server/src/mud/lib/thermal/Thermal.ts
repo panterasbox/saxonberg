@@ -76,6 +76,7 @@ import {
   TrajectoryLog,
   type Breakpoint,
 } from "../Trajectory";
+import { MaterialApi } from '../../api/material';
 
 // ⭐ The latent-heat accumulator for a freezing bulk pool, declared from the
 // folder that owns the phase engine (the five-extender pattern — `ThermalDose`
@@ -649,6 +650,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** See {@link Thermal.getKineticRecord}. */
     public kineticRecord: KineticRecordData | null = null;
+
+    /**
+     * The restore door for the kinetic record (load-on-use W8): the material
+     * the good WAS when its record began keeps running its changes, so it
+     * loads with the good.
+     */
+    public setKineticRecord(value: KineticRecordData | null): Promise<void> | undefined {
+      this.kineticRecord = value ?? null;
+      return MaterialApi.materials().ensureCited([this.kineticRecord?.origin]);
+    }
 
     /** Game-second the coats were last looked at for a fuse (runtime). */
     public coatsCheckedS = 0;
@@ -1478,7 +1489,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (current === null) return null;
       const rec = this.kineticRecord;
       return rec !== null && rec.origin !== null && rec.origin !== current.getTemplatePath()
-        ? StuffApi.findByTemplatePath<Material>(rec.origin) ?? current
+        ? MaterialApi.materials().need(rec.origin)
         : current;
     }
 
@@ -1776,7 +1787,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         reducing: rec.isReducing(thermalDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.6)),
       });
       if (out === null) return "none";
-      const mat = StuffApi.findByTemplatePath<Material>(out.materialPath);
+      const mat = MaterialApi.materials().peek(out.materialPath);
       // ⚠ A rung naming a material that does not resolve is a CONTENT error,
       // and it throws (B105): it was logged and skipped, which left the piece
       // recorded as having reached the rung and never changed by it.
@@ -2516,7 +2527,7 @@ function concentrateIfReached(
     }
   }
   if (into === mat.getTemplatePath()) return;
-  const next = StuffApi.findByTemplatePath<Material>(into);
+  const next = MaterialApi.materials().peek(into);
   if (!next) return;
   const { boilHeldS: _h, boilCheckedS: _c, ...rest } = payload;
   v.setBulkMaterial(aff, next);
@@ -2537,7 +2548,7 @@ function purifyIfHeld(
 ): void {
   if (!MixinApi.hasSolution(mat) || mat.getPurifiedByBoiling() === '') return;
   if (heldS === null || heldS < THERMAL_DEFAULTS.PURIFY_HOLD_S) return;
-  const into = StuffApi.findByTemplatePath<Material>(
+  const into = MaterialApi.materials().peek(
     mat.getPurifiedByBoiling(),
   );
   if (!into) return;
@@ -2840,7 +2851,7 @@ function crystallizeIfOver(
   const payload: BulkPayload = v.getBulkPayload(aff) ?? {};
   const held = payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
   if (!(held > solubility + 1e-9)) return false;
-  const product = StuffApi.findByTemplatePath<Material>(into.product);
+  const product = MaterialApi.materials().peek(into.product);
   if (!product) return false;
 
   // ⭐ Where the crystals go, checked before the liquor changes (B105): a
@@ -2865,7 +2876,7 @@ function crystallizeIfOver(
   v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
   v.setBulkPayload(aff, liquorPayload);
   if (!concentrating) {
-    const residue = StuffApi.findByTemplatePath<Material>(into.residue);
+    const residue = MaterialApi.materials().peek(into.residue);
     if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
     if (MixinApi.isMould(v) && liquorL > 0) {
       const below = v.drainsInto();

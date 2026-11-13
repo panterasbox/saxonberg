@@ -271,7 +271,7 @@ describe('the Journey', () => {
     const aborts = watchAborts();
     await start(ctx);
     await tick(1);
-    ctx.driver.unhitch();
+    ctx.driver.unhitch(ctx.driver);
     await tick(1);
     expect(aborts).toEqual(['vehicle-disabled']);
     // And it stopped where it got to, like every other abort.
@@ -399,7 +399,7 @@ describe('the Journey under fault', () => {
     // guard a corpse keeps its wagon rolling.
     const ctx = await setup();
     // Swap in a driver that can die, hitched to the same rig.
-    ctx.driver.unhitch();
+    ctx.driver.unhitch(ctx.driver);
     const living = makeStuff(() => new LivingDriver());
     ContainmentApi.move(living as never, ctx.road.rooms.get(P(0))! as never);
     living.hitch(ctx.rig as never);
@@ -423,7 +423,7 @@ describe('the Journey under fault', () => {
     await start(ctx);
     await tick(2);
 
-    ctx.driver.unhitch();
+    ctx.driver.unhitch(ctx.driver);
     await tick(6);
 
     expect(aborts).toContain('vehicle-disabled');

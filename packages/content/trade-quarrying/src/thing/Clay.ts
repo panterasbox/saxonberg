@@ -135,7 +135,7 @@ export interface ClayShares {
 function sharesOf(entries: readonly CompositionEntry[]): ClayShares {
   const out: ClayShares = { clayMineral: 0, opener: 0, iron: 0, lime: 0, organic: 0 };
   for (const e of entries) {
-    const m = StuffApi.findByTemplatePath<Material>(e.materialPath) ?? null;
+    const m = MaterialApi.materials().peek(e.materialPath) ?? null;
     if (m === null) continue;
     if (m.hasTag('clay-mineral')) out.clayMineral += e.fraction;
     else if (m.hasTag('silica') || m.hasTag('grog') || m.hasTag('breeze')) out.opener += e.fraction;

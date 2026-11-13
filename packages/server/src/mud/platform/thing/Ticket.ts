@@ -35,4 +35,10 @@ export default class Ticket extends Sheet {
   public getNumber(): number {
     return this.number;
   }
+
+  /** Stamp the point this ticket claims a place at, and its number. */
+  public setClaim(pointPath: string, number: number): void {
+    this.pointPath = pointPath;
+    this.number = number;
+  }
 }

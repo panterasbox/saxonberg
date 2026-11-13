@@ -4,7 +4,8 @@
  * ⭐⭐ **Input and output** (controllers-are-io D11): the target says what
  * the word means (`placementFor`, `PlacementOffers`) and which slot would take
  * the item (`SlottedMixin.openSlotFor`, `seatInSlot`); `ContainmentApi.move`
- * is the one primitive. The YAML's `prepositions` on the `target` field land
+ * is the one primitive. ⭐ The whole route and its refusals are
+ * `ContainmentApi.putPlanFor` (controller-liquidity W8) — this words them. The YAML's `prepositions` on the `target` field land
  * the consumed preposition on `model.target.prep`.
  *
  * With no preposition typed, the target's only offer is taken. A target
@@ -53,13 +54,9 @@ import type {
 } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
-import type { Placing } from '../../../../lib/spatial/Placing';
-import type { Slotted } from '../../../../lib/slot/Slotted';
-import type { Slottable } from '../../../../lib/slot/Slottable';
-import type { PlacementChoice, PlacementOffer } from '../../../../lib/spatial/PlacementOffers';
-import { ContainmentApi } from '../../../../api/containment';
+import { Placements } from '../../../../lib/spatial/Placement';
+import { ContainmentApi, type PlaceRefusal } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -110,14 +107,14 @@ export default class PutController extends CommandController<PutModel> {
     // restacks what it split (the ceramics drive: `put` had no count).
     const quantity = model.item.quantity;
     if (!quantity || !MixinApi.isStackable(item)) {
-      this.putOne(item, target, prep, context);
+      await this.putOne(item, target, prep, context);
       return;
     }
     await StackableApi.applyQuantity<Stuff>(
       [item],
       quantity,
       async (operand) =>
-        this.putOne(operand, target, prep, context)
+        (await this.putOne(operand, target, prep, context))
           ? { ok: true, payload: operand }
           : { ok: false, reason: 'refused' },
       { field: 'item', query: model.item.raw },
@@ -125,170 +122,24 @@ export default class PutController extends CommandController<PutModel> {
   }
 
   /** Put ONE item (or one split-off stack) into the target; `true` when it went. */
-  private putOne(item: Stuff, target: Stuff, prep: string | undefined, context: CommandContext): boolean {
+  private async putOne(item: Stuff, target: Stuff, prep: string | undefined, context: CommandContext): Promise<boolean> {
     const giver = context.commandGiver;
-
-    // ⭐ The slot rule stays first: a slot is more specific than a container,
-    // so an item that fits an open slot goes in the slot.
-    const slot = MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
-    let offer: PlacementOffer | null = null;
-    if (slot === null) {
-      const choice: PlacementChoice =
-        MixinApi.isPlacing(target) || MixinApi.isContainer(target)
-          ? target.placementFor(prep)
-          : { ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) };
-      if (!choice.ok) {
-        const takes = choice.takes;
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(
-            choice.got !== undefined
-              ? Mml.compose`You can't put things ${choice.got} ${Mml.thing(target)} — it takes ${joinOr(takes)}.`
-              : Mml.compose`Put it ${joinOr(takes)} ${Mml.thing(target)}?`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: choice.reason,
-          detail:
-            choice.got !== undefined
-              ? `target takes ${takes.join('|')}; got '${choice.got}'`
-              : `target accepts ${takes.join(', ')}`,
-        });
-        return false;
-      }
-      offer = choice.offer;
+    // ⭐ Where it would go, and every refusal before any write, is the
+    // world's (`ContainmentApi.putPlanFor` — the slot, the interior, the
+    // region; controller-liquidity W8). This words it.
+    const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, { prep, by: giver });
+    if (!plan.ok) {
+      PutController.refused(item, target, plan, context);
+      return false;
     }
-
-    if (offer === null) {
-      if (!MixinApi.isContainer(target)) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(
-            Mml.compose`${Mml.thing(item)} would fit ${Mml.thing(target)}, but there is nowhere in it for that to sit.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'slot-host-not-container',
-          detail: 'a slot host must also hold its occupant',
-        });
-        return false;
-      }
-    } else if (offer.kind === 'zero') {
-      // ⭐ Region zero is the container's own interior. A shut lid
-      // refuses HERE, at the verb — never in `ContainmentApi.move`,
-      // which brains and restocks legitimately use to move goods into
-      // closed cupboards. And the target stays BOUND: a region you can
-      // name and be refused from teaches; one that vanishes reads as a
-      // bug.
-      if (MixinApi.isSealable(target) && !target.isOpen()) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(Mml.compose`${Mml.thing(target)} is shut.`)
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'shut',
-          detail: `${target.getPresentation()} is closed`,
-        });
-        return false;
-      }
-      // ⭐ A container that says what it is FOR refuses here, in its own
-      // words — *"Only a pump goes in a well."*, *"A hive is not a
-      // cupboard."* The same hook `ContainmentApi.move` asserts, asked
-      // FIRST: unasked, a veto surfaced as a thrown ContainmentError and
-      // `put bucket in well` — the most natural thing to type at a well —
-      // answered with an error instead of a sentence.
-      const veto = MixinApi.isContainer(target)
-        ? target.canAddContainable?.(item as Stuff & Containable)
-        : undefined;
-      if (veto && !veto.ok) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(
-            veto.reason
-              ? Mml.fromMarkup(veto.reason)
-              : Mml.compose`${Mml.thing(item)} won't go in ${Mml.thing(target)}.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'refused-by-container',
-          detail: `host rejected item (${veto.reason ?? ''})`,
-        });
-        return false;
-      }
-    } else {
-      const veto = (target as Stuff & Placing).canPlace(
-        item as Stuff & Containable,
-        offer.name,
-      );
-      if (!veto.ok) {
-        const word = offer.words[0] ?? offer.name;
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(
-            veto.reason === 'shut'
-              ? Mml.compose`${Mml.thing(target)} is shut.`
-              : Mml.compose`${Mml.thing(item)} won't go ${word} ${Mml.thing(target)}.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: veto.reason === 'shut' ? 'shut' : 'cannot-rest',
-          detail: `host rejected item (${veto.reason})`,
-        });
-        return false;
-      }
+    const done = await plan.onComplete();
+    if (!done.ok) {
+      PutController.refused(item, target, done, context);
+      return false;
     }
+    const { route, named } = done.facts;
 
-    // **Leaving your inventory means leaving your body first** — the
-    // same release gate `remove`/`unwield`/`drop` run. Without it this
-    // verb both bypasses a curse and leaves a phantom slot occupant
-    // behind (see `Slotted.tryReleaseFromSlots`).
-    if (MixinApi.isSlotted(giver) && MixinApi.isSlottable(item)) {
-      const release = giver.tryReleaseFromSlots(item);
-      if (!release.released) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(
-            release.dumpedTau > 0
-              ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'cursed-will-not-release',
-          detail: `${item.getPresentation()} refuses release`,
-        });
-        return false;
-      }
-    }
-
-    // ⚠ Named BEFORE the move (GetController's rule): a stack that arrives
-    // where its like already is MERGES into it and is destroyed — a heap of
-    // sawdust put on a stack that already holds sawdust (the storage-and-ice
-    // drive) — and a late-bound reference to a destroyed thing broke the
-    // scene's template.
-    const named = item.getPresentation();
-
-    // ⭐ `ContainmentApi.move` is the one primitive: custody and the
-    // placement pair are derived in it, and a feeder hears who filled it on
-    // its own hook. A slot is that move and then the occupancy.
-    if (offer === null) {
-      (target as unknown as Stuff & Slotted).seatInSlot(
-        item as Stuff & Containable & Slottable,
-        slot!,
-      );
-    } else if (offer.kind === 'zero') {
-      ContainmentApi.move(item as Stuff & Containable, target as Stuff & Container);
-    } else {
-      ContainmentApi.move(item as Stuff & Containable, target as Stuff & Placing, offer.name);
-    }
-
-    if (offer === null) {
+    if (route.kind === 'slot') {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
@@ -305,12 +156,14 @@ export default class PutController extends CommandController<PutModel> {
     // template on the row, rendered per audience with the agreement
     // variables `EmoteGrammar` already binds. That is what lets `from`
     // say *hang* where `on` says *put*, with no code here knowing the
-    // difference. A member with no live row falls back to the shipped
-    // sentence, so a cold catalogue still speaks English.
+    // difference. The member is resident with its host (documents D7).
+    // ⚠ The name was read BEFORE the move: a stack that arrives where its
+    // like already is MERGES into it and is destroyed.
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
-    const member = ContainmentApi.placement(offer.name);
-    const template = member?.getProse() ?? '';
-    const word = offer.words[0] ?? offer.name;
+    const name = route.kind === 'zero' ? Placements.IN : route.name;
+    const member = ContainmentApi.placements().need(name);
+    const template = member.getProse();
+    const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {
       scene
@@ -343,10 +196,68 @@ export default class PutController extends CommandController<PutModel> {
       .send();
     return true;
   }
-}
 
-/** `a`, `a or b`, `a, b or c` — the roster in a refusal. */
-function joinOr(words: readonly string[]): string {
-  if (words.length <= 1) return words[0] ?? '';
-  return `${words.slice(0, -1).join(', ')} or ${words[words.length - 1]}`;
+  /** The words for a refused put, and its note. */
+  protected static refused(item: Stuff, target: Stuff, r: PlaceRefusal, context: CommandContext): void {
+    const giver = context.commandGiver;
+    let line: Mml;
+    let detail: string;
+    switch (r.reason) {
+      case 'wrong-preposition':
+      case 'preposition-ambiguous': {
+        const { takes, got } = r.facts;
+        // ⚠ A target that offers nothing at all (a person — you do not
+        // put things IN the bartender) has no list to give (finalize: the
+        // line read *"it takes ."*).
+        line =
+          takes.length === 0
+            ? Mml.compose`You can't put things ${got ?? 'in'} ${Mml.thing(target)}.`
+            : got !== undefined
+              ? Mml.compose`You can't put things ${got} ${Mml.thing(target)} — it takes ${PutController.joinOr(takes)}.`
+              : Mml.compose`Put it ${PutController.joinOr(takes)} ${Mml.thing(target)}?`;
+        detail =
+          got !== undefined
+            ? `target takes ${takes.join('|')}; got '${got}'`
+            : `target accepts ${takes.join(', ')}`;
+        break;
+      }
+      case 'slot-host-not-container':
+        line = Mml.compose`${Mml.thing(item)} would fit ${Mml.thing(target)}, but there is nowhere in it for that to sit.`;
+        detail = 'a slot host must also hold its occupant';
+        break;
+      case 'shut':
+        line = Mml.compose`${Mml.thing(target)} is shut.`;
+        detail = `${target.getPresentation()} is closed`;
+        break;
+      case 'refused-by-container':
+        line = r.facts.said
+          ? Mml.fromMarkup(r.facts.said)
+          : Mml.compose`${Mml.thing(item)} won't go in ${Mml.thing(target)}.`;
+        detail = `host rejected item (${r.facts.said ?? ''})`;
+        break;
+      case 'cannot-rest':
+        line = Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
+        detail = `host rejected item (${r.facts.why})`;
+        break;
+      case 'cursed-will-not-release':
+        line =
+          r.facts.dumpedTau > 0
+            ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
+            : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`;
+        detail = `${item.getPresentation()} refuses release`;
+        break;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+    MessageApi.scene(giver).topic('sense.survey').toSelf(line).send();
+    context.note({ kind: 'controller-rejected', reason: r.reason, detail });
+  }
+
+  /** `a`, `a or b`, `a, b or c` — the roster in a refusal. */
+  protected static joinOr(words: readonly string[]): string {
+    if (words.length <= 1) return words[0] ?? '';
+    return `${words.slice(0, -1).join(', ')} or ${words[words.length - 1]}`;
+  }
 }

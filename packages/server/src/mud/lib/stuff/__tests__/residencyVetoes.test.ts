@@ -21,7 +21,7 @@ import { Shadowing } from '../../security/decorators';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import TopicCatalogue from '../../../platform/idea/TopicCatalogue';
+import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const IDLE: EvictionContext = { idleMs: 9_000_000_000, reason: 'idle' };
@@ -149,8 +149,8 @@ describe('residency veto roster', () => {
     expect(exit.canEvict(IDLE)).toEqual({ ok: true });
   });
 
-  it('Registry singleton (TopicCatalogue) vetoes', () => {
-    const cat = makeStuff(() => new TopicCatalogue());
+  it('Registry singleton (RecipeCatalogue) vetoes', () => {
+    const cat = makeStuff(() => new RecipeCatalogue());
     expect(cat.canEvict(IDLE).ok).toBe(false);
   });
 });

@@ -17,6 +17,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { StuffApi } from '../../../api/stuff';
 import { MagicApi } from '../../../api/magic';
 import { ZoneApi } from '../../../api/zone';
 import { BiomeApi } from '../../../api/biome';
@@ -52,6 +53,9 @@ function traveller(massKg: number): Stuff & Container {
 
 describe('MagicApi.relocationCost — m·g·Δh, and nothing else', () => {
   beforeEach(() => {
+    // MagicApi's declared need (the spell dictionary) — resident, as after
+    // the first cast; relocation reads no spell, the gate loads it anyway.
+    vi.spyOn(StuffApi, 'ready').mockResolvedValue(undefined);
     installV1QuantityMarshallers();
     elevations.clear();
     vi.spyOn(ZoneApi, 'elevationFor').mockImplementation(

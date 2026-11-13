@@ -320,7 +320,7 @@ export function packBrainShapeOk(source: string): boolean {
 // the branch with master merged; the `floorplan:` schema's deletion (the
 // plan's fields moved onto their owners) and master's merged sweeps were
 // not isolated.
-const ORPHAN_DATA_KEY_CEILING = 306;
+const ORPHAN_DATA_KEY_CEILING = 72; // documents path identity: the Topic facet keys (and the other families' data) left the template tree as documents. Was 306.
 
 
 function main(): void {

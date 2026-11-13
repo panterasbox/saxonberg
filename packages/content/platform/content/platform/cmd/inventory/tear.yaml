@@ -28,12 +28,12 @@ args:
   - name: thing
     type: object
     required: true
-    greedy: true
     scope: ["inventory", "reachable"]
     requires: [TearableMixin]
   # A positional number's validators see the raw string — the controller
   # parses it (`lift`'s precedent).
   - name: page
+    prepositionRequired: true
     type: number
     required: false
     prepositions: [page]

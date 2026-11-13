@@ -37,22 +37,19 @@
  * canBeNamedBy(hand, by)`, overridden by each rule's holder — `Crafted`
  * (its maker, once, while it has none: *"name jug Mother's jug"*),
  * `Assembled` (the hand whose reforge took its name, repair D18) and
- * `Bonded` (the person it has chosen). This controller narrows on no
- * class to pick a rule; it only words the refusal by what was refused and
- * runs the act — and an animal's naming is also its PROMOTION (below).
+ * `Bonded` (the person it has chosen). ⭐ And the act is the thing's too
+ * (controller-liquidity W8): `Named.takeName(name, by)`, which `Bonded`
+ * overrides with the promotion. This controller narrows on no class; it
+ * words what the thing answered.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Named } from '../../../../lib/description/Named';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { SecurityApi } from '../../../../api/security';
-import { PersistableApi } from '../../../../api/persistable';
-import { PlayerApi } from '../../../../api/player';
+import type { NameRefusalReason } from '../../../../lib/description/Named';
 
 const TOPIC = 'act.deed';
 
@@ -66,60 +63,33 @@ export default class NameController extends CommandController<NameModel> {
     const actor = context.commandGiver;
     const target = model.target?.stuff;
     const wanted = (model.animalName ?? '').trim();
-    const hand = actor.getIdentityPath() ?? '';
     // ⚠ The view's arg takes anything (`requires: any`), so the check is
     // here: a thing that bears no name at all (a pail) is refused in its
     // own words.
     if (!target || !MixinApi.isNamed(target)) {
-      this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
+      this.refuse(context, TOPIC, NameController.refusalLine('not-nameable'), 'not-nameable');
       return;
     }
-    const animal = MixinApi.isBonded(target);
-    if (animal) {
-      if (!wanted) {
-        this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
-        return;
-      }
-      if (target.getName()) {
-        this.refuse(context, TOPIC, `It already has a name.`, 'already-named');
-        return;
-      }
-      // ⚠ Every gate, one sentence. "It has not chosen you" is the honest
-      // description of any failure — the bond, the following, the earned
-      // home — and the remedy for all of them is the same: spend more time
-      // with it. The animal answers (`Bonded.canBeNamedBy`).
-      if (!target.canBeNamedBy(hand, actor)) {
-        this.refuse(context, TOPIC, `It has not chosen you.`, 'not-chosen');
-        return;
-      }
-      await this.promote(target, wanted, context);
+    const answer = await target.takeName(wanted, actor);
+    if (!answer.ok) {
+      this.refuse(context, TOPIC, NameController.refusalLine(answer.reason), answer.reason);
       return;
     }
-    if (!target.canBeNamedBy(hand, actor)) {
-      this.refuse(context, TOPIC, `That isn't something you can name.`, 'not-nameable');
+    if (answer.facts.promoted) {
+      // ⚠ The `handle` form, not the default `concise`: the ref is
+      // late-bound and the animal is ALREADY named by the time the scene
+      // renders, so the ordinary identity read "You name Mouse Mouse"
+      // (found live). The handle chain is keyword → job → species and never
+      // the name, so this is "the cat" both before and after.
+      const it = Mml.actor(target, { form: 'handle' });
+      MessageApi.scene(actor)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You name ${it} ${wanted}.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} names ${it} ${wanted}.`)
+        .send();
       return;
     }
-    if (!wanted) {
-      this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
-      return;
-    }
-    await this.nameThing(target, wanted, context);
-  }
-
-  /** A made thing takes its name; the host that keeps it is captured. */
-  private async nameThing(
-    thing: Stuff & Named,
-    wanted: string,
-    context: CommandContext,
-  ): Promise<void> {
-    const actor = context.commandGiver;
-    thing.setName(wanted);
-    try {
-      await PersistableApi.captureHostOf(thing);
-    } catch (err) {
-      console.warn('NameController: capture after naming failed:', err);
-    }
-    const it = Mml.thing(thing, { form: 'handle' });
+    const it = Mml.thing(target, { form: 'handle' });
     MessageApi.scene(actor)
       .topic(TOPIC)
       .toSelf(Mml.compose`You give ${it} its name: ${wanted}. It will answer to it.`)
@@ -127,71 +97,25 @@ export default class NameController extends CommandController<NameModel> {
       .send();
   }
 
-  /** ⭐⭐ An animal's naming is its promotion — identity and durability together. */
-  private async promote(
-    animal: Stuff & Named,
-    wanted: string,
-    context: CommandContext,
-  ): Promise<void> {
-    const actor = context.commandGiver;
-    // ⚠ Partial name defence — a connected player's name may not be
-    // taken. The live-`Cast` half wants a name index nobody has built;
-    // the naming slate owns the real defence (Defence B).
-    const clash = PlayerApi.connectedAvatars().some(
-      (a) => (a.getName() ?? '').toLowerCase() === wanted.toLowerCase(),
-    );
-    if (clash) {
-      this.refuse(context, TOPIC, `Somebody already goes by that name.`, 'name-taken');
-      return;
-    }
-
-    // ── the promotion, in order ──
-    animal.setName(wanted);
-
-    if (MixinApi.isChattel(animal)) {
-      await animal.stampChattel(actor);
-    }
-    if (MixinApi.isPersistable(animal)) {
-      // The key BEFORE the place: the place write stamps the residency
-      // pin onto the chattel row, and the pin is `(scope, key)`.
-      animal.setPersistenceKey(SecurityApi.uuid(), true);
-    }
-    if (MixinApi.isChattel(animal)) {
-      await animal.setChattelPlace(PersistableApi.placeIdOf(animal));
-    }
-    if (MixinApi.isPersistable(animal)) {
-      await PersistableApi.capture(animal);
-    }
-
-    // ⭐ Witnessed: everybody who can PERCEIVE it learns the name, so a
-    // neighbour can return it to you later. This is the second route home.
-    //
-    // ⚠ `MessageApi.getSensors` is the same set the scene below reaches —
-    // the `introduce` shape exactly. This was a private `witnesses()`
-    // walking `room.getContents()`, which is both bespoke and wrong: the
-    // room's contents include the saucer and the food, and it would have
-    // called `learnIdentityOf` on the crockery.
-    const room = MixinApi.isContainable(animal) ? animal.getContainer() : null;
-    if (room) {
-      for (const witness of MessageApi.getSensors(room)) {
-        if (witness.stuffId === animal.stuffId) continue;
-        if (MixinApi.isBeliefStore(witness)) {
-          witness.learnIdentityOf(animal, wanted);
-        }
+  /** The sentence for each refusal. */
+  protected static refusalLine(reason: NameRefusalReason): string {
+    switch (reason) {
+      case 'not-nameable':
+        return `That isn't something you can name.`;
+      case 'no-name-given':
+        return `Name it what?`;
+      case 'already-named':
+        return `It already has a name.`;
+      // ⚠ Every gate, one sentence: the remedy for all of them is the same
+      // — spend more time with it.
+      case 'not-chosen':
+        return `It has not chosen you.`;
+      case 'name-taken':
+        return `Somebody already goes by that name.`;
+      default: {
+        const never: never = reason;
+        return never;
       }
     }
-
-    // ⚠ The `handle` form, not the default `concise`: the ref is late-bound
-    // and the animal is ALREADY named by the time the scene renders, so the
-    // ordinary identity read "You name Mouse Mouse" (found live). The handle
-    // chain is keyword → job → species and never the name, so this is "the
-    // cat" both before and after — which is what the sentence means.
-    const it = Mml.actor(animal, { form: 'handle' });
-    MessageApi.scene(actor)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You name ${it} ${wanted}.`)
-      .toPeers(Mml.compose`${Mml.actor(actor)} names ${it} ${wanted}.`)
-      .send();
   }
-
 }

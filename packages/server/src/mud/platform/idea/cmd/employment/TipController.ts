@@ -4,7 +4,7 @@
  * Two routes, never the bar's books. **Cash** (default): drop coin in the
  * tip jar — off every ledger (anonymous, the under-the-counter take), the
  * on-shift bartender collects it later. **EFT** (`--eft`, or the automatic
- * fallback when the patron is short of coin): a direct transfer to the
+ * fallback when the patron is short of coin — only then, C46): a direct transfer to the
  * on-shift server's account — recorded income on the *server's* ledger, but
  * the bar's account is untouched (never the bar's P&L). The patron is never
  * blocked from tipping; the cash/EFT choice is the anonymous-vs-recorded
@@ -13,7 +13,8 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import { BankingApi, Money } from '../../../../api/banking';
+import { BankingApi, Money, SettleRefused } from '../../../../api/banking';
+import type { SettleRefusalReason } from '../../../../api/banking';
 import type { Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
 import { MessageApi } from '../../../../api/message';
@@ -74,8 +75,14 @@ export default class TipController extends CommandController<TipModel> {
           .toPeers(Mml.compose`${Mml.actor(giver)} drops a tip in the jar.`)
           .send();
         return;
-      } catch {
-        // Short of coin — fall through to the EFT tip (the auto-fallback).
+      } catch (err) {
+        // ⭐ Short of coin — and only that — falls through to the EFT tip
+        // (the auto-fallback; C46: any failure used to). Anything else the
+        // settlement refused is said, by its reason, never its exception text.
+        if (!(err instanceof SettleRefused)) throw err;
+        if (err.reason !== 'insufficient-coin') {
+          return this.refuse(context, TOPIC, TipController.cashRefusal(err.reason), err.reason, model.amount);
+        }
       }
     }
 
@@ -140,15 +147,34 @@ export default class TipController extends CommandController<TipModel> {
         .toPeers(Mml.compose`${Mml.actor(giver)} tips ${Mml.actor(recipient)}.`)
         .send();
     } catch (err) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'tip-refused',
-        detail: model.amount,
-      });
+      // The transfer refused (a frozen account, short funds): one sentence,
+      // the exception's text kept to the note's detail (C46).
+      return this.refuse(
+        context,
+        TOPIC,
+        'The transfer did not go through.',
+        'tip-refused',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+
+  /** Why the jar would not take the coin, in words (every reason but short-of-coin). */
+  protected static cashRefusal(reason: SettleRefusalReason): string {
+    switch (reason) {
+      case 'insufficient-coin':
+      case 'inexact-cash':
+        return 'You have not the coin for that.';
+      case 'no-payer':
+      case 'cannot-hold-coin':
+        return 'You have nothing to hold coin in.';
+      case 'needs-payee':
+      case 'splits-exceed':
+        return 'The jar will not take it.';
+      default: {
+        const unworded: never = reason;
+        throw new Error(`TipController: no words for ${String(unworded)}`);
+      }
     }
   }
 }

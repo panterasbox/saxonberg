@@ -33,7 +33,6 @@ args: &turnable
     required: true
     scope: ["here", "peers", "person"]
     requires: TurnableMixin
-    greedy: true
     validators:
       - /lib/command/validators/canReach
 subcommands:

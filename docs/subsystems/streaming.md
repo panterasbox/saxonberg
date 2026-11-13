@@ -41,10 +41,15 @@ semantic difference:
   account). `tune off <target>` stops; bare `tune` lists; `tune
   list`/`who`/`history` behave platform-agnostically.
 
-Both live at `platform/idea/cmd/stream/` over one `StreamApi`: `WatchController`,
-and `tune`'s one controller per subcommand over `TuneControllerBase`
-(`TuneOff`/`TuneList`/`TuneWho`/`TuneHistory`, and `TuneInController` for the
-fallthrough — bare `tune`, follow, post; controllers-are-io D9).
+Both live at `platform/idea/cmd/stream/` over one `StreamApi`: `watch`'s
+controllers over `WatchControllerBase` (`WatchHorizon`/`WatchOff` for the
+subcommands; `WatchStream` and `WatchOn` for the two shapes `watch <target>`
+and `watch <target> on <screen>`, each its own view — controller-liquidity
+W7a), and `tune`'s one controller per subcommand over `TuneControllerBase`
+(`TuneOff`/`TuneList`/`TuneWho`/`TuneHistory`; bare `tune` is `TuneList`), and
+two more shapes of the verb, each its own view — `tune <target>`
+(`TuneFollowController`) and `tune <target> <message>` (`TunePostController`;
+controller-liquidity W7a).
 
 ## The target grammar — opt, not prefix
 

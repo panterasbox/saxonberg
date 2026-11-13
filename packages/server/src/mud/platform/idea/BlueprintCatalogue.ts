@@ -2,7 +2,7 @@
  * BlueprintCatalogue — singleton Idea owning the runtime blueprint index.
  *
  * Lives at `/platform/idea/BlueprintCatalogue` (the singleton-in-`obj/` convention,
- * sibling to `RecipeCatalogue` / `TopicCatalogue`). Two layers feed it
+ * sibling to `RecipeCatalogue` / `SoulCatalogue`). Two layers feed it
  * (content-packs wave 2, D10):
  *
  *   - the **derived skeleton** — one `concrete` {@link Blueprint} Document
@@ -209,7 +209,7 @@ export default class BlueprintCatalogue extends BlueprintCatalogueBase {
     if (this.bySignature == null) this.bySignature = new Map();
   }
 
-  /** Singleton refusal (mirrors RecipeCatalogue / TopicCatalogue). */
+  /** Singleton refusal (mirrors RecipeCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,

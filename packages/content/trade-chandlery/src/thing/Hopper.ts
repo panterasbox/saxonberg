@@ -20,10 +20,10 @@
 import Vat from '@saxonberg/server/mud/platform/thing/Vat';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
-import MaturationProfileRef from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Percolating } from '@saxonberg/server/mud/lib/material/Percolating';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -33,7 +33,7 @@ import { ContentsTitle } from '@saxonberg/server/mud/lib/chattel/ContentsTitle';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 
 /** The profile a hopper of water and ash runs. */
-const LEACH = 'lye-leach';
+const LEACH = '/trade/chandlery/maturation-profiles/lye-leach';
 
 export default class Hopper extends ContainerMixin(Vat) {
   /**
@@ -50,7 +50,7 @@ export default class Hopper extends ContainerMixin(Vat) {
     });
     if (ash.length === 0) return null;
     this.leach(ash);
-    return MaturationProfileRef.byKey(LEACH);
+    return BulkableApi.maturationProfiles().need(LEACH);
   }
 
   /**

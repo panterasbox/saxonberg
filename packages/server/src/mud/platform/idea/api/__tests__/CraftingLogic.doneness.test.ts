@@ -270,6 +270,7 @@ describe('the working stamps the doneness it earned', () => {
     const { doseS, scorchS } = doseOf(out);
     const recipe = Recipe.fromData(
       store.recipes!.find((r) => r.recipeId === 'proper-sear')!,
+      '/test/recipes/proper-sear',
     );
     expect(doseS).toBeCloseTo(
       ThermalDose.wantedDoseS(recipe.getRequiresHeatK(), recipe.getHoldS()),

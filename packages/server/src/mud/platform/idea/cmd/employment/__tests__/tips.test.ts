@@ -12,7 +12,7 @@ import TipController from '../TipController';
 import CollectController from '../CollectController';
 import TipJar from '../../../../thing/TipJar';
 import Coin from '../../../../thing/Coin';
-import { EmploymentApi } from '../../../../../api/employment';
+import { EmploymentApi, type BusinessStuff } from '../../../../../api/employment';
 import { BankingApi, Money } from '../../../../../api/banking';
 import { EmployedMixin } from '../../../../../lib/employment/Employed';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -65,7 +65,15 @@ class Bartender extends EmployedMixin(
   isFulfilling(): boolean {
     return true;
   }
+  // ⭐ On shift for the bar's house only (the jar's gate, C45).
+  onShiftAt = '/test/house/bar';
+  isOnShiftFor(organizationPath: string): boolean {
+    return organizationPath === this.onShiftAt;
+  }
 }
+
+/** The house that keeps the jar — what `TipJar.houseOf` derives. */
+const BAR_HOUSE = { getIdentityPath: () => '/test/house/bar' } as unknown as BusinessStuff;
 
 function makeContext(giver: Stuff, location: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
@@ -117,6 +125,9 @@ describe('tips — the tip jar', () => {
     installV1QuantityMarshallers();
     installBankingHarness();
     stubCoinClone();
+    vi.spyOn(EmploymentApi, 'operatorsAt').mockImplementation((here) =>
+      here instanceof Place ? [BAR_HOUSE] : [],
+    );
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -229,6 +240,23 @@ describe('tips — the tip jar', () => {
     expect(coinIn(jar)).toBe(4);
   });
 
+  it('⭐ D9: the JAR refuses a hand on shift for another house — called direct', async () => {
+    const { bartender, jar } = scene();
+    giveCoin(jar, 6);
+    bartender.onShiftAt = '/test/house/smithy';
+    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'not-on-shift' });
+    expect(coinIn(jar)).toBe(6);
+    bartender.onShiftAt = '/test/house/bar';
+    expect(jar.collectBy(bartender)).toEqual({ ok: true, facts: { took: 6 } });
+  });
+
+  it('⭐ a jar no house keeps is nobody\'s to empty (fail closed)', async () => {
+    const { bartender, jar } = scene();
+    vi.mocked(EmploymentApi.operatorsAt).mockReturnValue([]);
+    expect(jar.houseOf()).toBeNull();
+    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'no-house' });
+  });
+
   it('the jar is a container that shows what it holds', async () => {
     const { loc, patron, jar } = scene();
     giveCoin(patron, 10);
@@ -263,5 +291,27 @@ describe('tips — the tip jar', () => {
     const maraAcct = await BankingApi.primaryAccountIdOf(MARA);
     expect(maraAcct).not.toBeNull();
     expect(BankingApi.balanceOf(maraAcct!).minor).toBe(9);
+  });
+
+  it('⭐ C46: short of coin, and only then, the tip falls through to the account transfer', async () => {
+    const { loc, patron, bartender, jar } = scene();
+    const patronAcct = await asGiver(patron, () =>
+      BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()),
+    );
+    await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
+    await BankingApi.mint(patronAcct, Money.of(50, BankingApi.compactCurrency()), "harness");
+    giveCoin(patron, 2);
+
+    await asGiver(patron, () =>
+      makeStuff(() => new TipController()).execute(
+        { amount: '7' } as never,
+        makeContext(patron, loc, 'tip'),
+      ),
+    );
+
+    expect(coinIn(jar)).toBe(0);
+    expect(coinIn(patron)).toBe(2);
+    const maraAcct = await BankingApi.primaryAccountIdOf(MARA);
+    expect(BankingApi.balanceOf(maraAcct!).minor).toBe(7);
   });
 });

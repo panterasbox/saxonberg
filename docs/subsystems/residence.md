@@ -152,14 +152,20 @@ placeholder — so the edge reads honestly before it's been walked:
   `canTraverse` off `DormWarren.floorReachable(n)` (the real move path checks
   `canTraverse` before `resolveDestination`).
 - **`DormDoor`** — one per provisioned unit, an exit `unit-<pos>` on its
-  floor corridor. **The door checks a key, not identity**: `canTraverse(mover)`
-  builds the unit's `Lock` (`{keyway, pin-tumbler}` — the keyway a *synchronous*
-  lookup off `DormWarren.keywayOf(unitKey)`, a cache refreshed from the durable
-  parcel keyway) and admits whoever **presents a matching key** —
-  `opensFor(mover, lock)`, a sync reachable-wallet scan over the mover's
-  implant keychain + any carried physical `Key` (a master ring passes the same
-  way). No verb, no unlock step — you carry your key (or it's in your implant)
-  and walk through. An empty keyway (unprovisioned / re-keyed) opens for no one.
+  floor corridor; since the boundary build (2026-11) it keeps only its
+  deferred destination. ⭐ **The lock is the DOOR the warren hangs in the
+  way**: `CirculationWarren.hangEntryDoor` mints ONE `thing/dorm-door`
+  (bolted, `closesBehind` — on a latch) whose sides are the corridor's
+  `unit-<pos>` and the room's way out, keyed to the unit (the keyway a
+  *synchronous* lookup off `DormWarren.keywayOf(unitKey)`, a cache refreshed
+  from the durable parcel keyway) and free from inside (`freeFrom` the
+  room). **The door checks a key, not identity**: `Exit.canTraverse` admits
+  whoever **presents a matching key** — `opensFor(mover)`, a sync
+  reachable-wallet scan over the mover's implant keychain + any carried
+  physical `Key` (a master ring passes the same way) — and the latch shuts
+  it behind them. No unlock step — you carry your key (or it's in your
+  implant) and walk through; leaving needs no key. An empty keyway
+  (unprovisioned / re-keyed) opens for no one.
   (There is **no `enter` verb** — a bare verb was a cold-OS surface; deleted;
   the old leaseholder-identity gate was superseded by the key.)
   `computeDestination()` → `DormWarren.admit(unitKey)` (the deferred fault-in).
@@ -180,8 +186,8 @@ unitKey)`** → wires the return leg → caches.
 > [smallholding.md](./smallholding.md). `ensureFloor(n)`
 clones the corridor, wires `down` to the floor below (lobby for n=1, else
 `ensureFloor(n-1)`, `keepLiveDestination` between clones), installs the `up`
-`FloorStairExit`, and clones the `DormDoor`s for the units whose slot is on
-floor n.
+`FloorStairExit`, and clones the `DormDoor` ways (and hangs their doors)
+for the units whose slot is on floor n.
 
 ### Reap (residency dormancy)
 
@@ -224,8 +230,11 @@ is dead metal until a new lease re-issues one. The lease is *authority* (the
 right to a key); the **key is access** (bearer possession) — lend it, lose it,
 it just works.
 
-**Authorization** is at `execute()`, and only there:
-`HallController.mayProvision` admits a holder of a position at the college
+**Authorization** is on the warren, not the verb: `LettingWarren.mayLetFor`
+(the residence pack's `lib/`, which `DormWarren` and Seznick House's
+`BuildingWarren` both extend — controller-liquidity W13) is asked by
+`let` and `endLet` themselves, so a replaced controller cannot skip it. For
+the dorm it admits a holder of a position at the college
 (`duncan-hall/idea/college` — Katie's `hall-manager`, read off the authored
 roster) **or** a member of the committee over the hall, and refuses anyone
 else with the seat named. There is **no credential arm and no view
@@ -348,7 +357,9 @@ pick.)
 **Entry is just walking** — there is no `enter` verb. You climb the stairwell
 to your floor's corridor and go through your own door; it opens for whoever
 **presents a matching key** (the sync `opensFor` scan over your implant
-keychain + carried physical key) and blocks the keyless.
+keychain + carried physical key) and blocks the keyless. From inside it
+opens with no key (`freeFrom`), and it latches behind you
+(`closesBehind`).
 
 `unprovision <player>` (`duncan-hall` content namespace, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
@@ -413,13 +424,13 @@ risk this shape carries and the reason the live drive walks these paths.
   Known gap: no admit-time self-heal for pre-build tenants (the Warren
   has no clean view of the mover) — a re-provision stamps them.
 
-- **The `open <door>` verb + auto-close-behind door tightening** — v1 folds
-  the lock into the `DormDoor` `Exit` gate (a follower could tail a
-  holder through an opened door); a `SealableMixin(Boundary)` fixture + the
-  close-behind tightening are deferred.
-- **Manual `lock`/`unlock` verbs** (leaving your door open for a friend) — v1
-  is auto-locked doors gated by key possession; the manual verbs are a
-  follow-on.
+- ~~**The `open <door>` verb + auto-close-behind door tightening**~~ —
+  shipped by the boundary build (2026-11): the dorm door is a real `Door`
+  in the way, latched (`closesBehind`), so a follower no longer tails a
+  holder through.
+- ~~**Manual `lock`/`unlock` verbs**~~ (leaving your door open for a
+  friend) — the door is a `Lockable` boundary now; `unlock` from inside
+  needs no key (`freeFrom`). See [boundary.md § Doors](./boundary.md#doors).
 - **Keycard / electronic locks as a live second technology** — the `keycard`
   `LockType` exists in the vocabulary but no door uses it yet (a
   downtown/corporate build); dorm doors are `pin-tumbler` brass.
@@ -489,3 +500,18 @@ the class, the slot spec landed as data.
 
 A dorm room is itself an **archetype** — a bedsit, the
 [furnishing](./furnishing.md) four collapsed into one room.
+
+## History — one letting sequence (controller-liquidity W13, 2026-11)
+
+`provision`/`unprovision` (Duncan Hall) and `lease`/`unlease` (Seznick
+House) were four near-twin controllers in two packs, each carrying the whole
+let sequence and its own copy of who may let (`HallController`,
+`LettingController`). The dorm's end-let had lost the storage eviction on the
+way — a student's goods were destructed with the room (defect C4). The
+sequence moved onto `LettingWarren` (`residence/src/lib/`): mint the unit
+parcel at the lowest free slot, grant it, key it fresh, hand over the key;
+at the end, the tenant's goods to STORAGE (intact, titled, recoverable), the
+shell reverted, the slot freed. Each building supplies only policy hooks
+(the letting organization, where units hang, the ascent gate — `Ascent`, the
+ladder's condition read — the domicile). The four verbs keep their words.
+Build range `14af1e8ba..726c1f195`.

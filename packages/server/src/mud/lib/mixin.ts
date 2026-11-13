@@ -21,6 +21,21 @@
 export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstract new (...args: any[]) => T);
 
 /**
+ * ⭐ The constraint for a mixin that NESTS another mixin call — `class
+ * SoilableMixin extends WashableMixin(Base)` — or that `override`s a member
+ * its base declares. One construct signature (the handbook's mixin
+ * constraint), not {@link MixinConstructor}'s union: when the outer `TBase` is the union,
+ * TypeScript drops the inner mixin's members from the class and refuses
+ * every `override` ("does not extend another class") — the W7c Creature
+ * chain collapsed on it. ⚠ Its base must be a concrete class (every host
+ * of these is). ⚠ `super` is then typed as the
+ * constraint: a member only a deeper base has is reached through
+ * `Base.prototype` (controller-liquidity W7, build).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type NestingConstructor<T = object> = new (...args: any[]) => T;
+
+/**
  * What ONE field declares about itself.
  *
  * `static fieldMeta` inverts the old arrangement. Field metadata used to
@@ -375,7 +390,6 @@ export const Mixins = {
   Voyaging: 'VoyagingMixin',
   // A written thing whose reading writes `charted` claims (a chart).
   Charted: 'ChartedMixin',
-  DoorBearing: 'DoorBearingMixin',
   Adornable: 'AdornableMixin',
   Adornment: 'AdornmentMixin',
   AmbientLit: 'AmbientLitMixin',
@@ -510,6 +524,9 @@ export const Mixins = {
   // *This Idea can read a named water for a place* — the seam the water
   // pack's reach catalogue and seas implement (the GroundSource shape).
   WaterSource: 'WaterSourceMixin',
+  // *This Idea knows the realm's ways* — the seam the transport pack's lane
+  // catalogue implements (controller-liquidity W21; the WaterSource shape).
+  WayIndex: 'WayIndexMixin',
   // *This ground can be cleared, drained and limed — and it REVERTS.*
   // ⭐ Promoted out of `trade-farming` by the extraction build: you ditch
   // a road, a yard and a quarry, so improvement acts on GROUND and farming
@@ -729,6 +746,26 @@ export const Mixins = {
   TravelNode: 'TravelNodeMixin',
   Cuttable: 'CuttableMixin',
   CutPlanner: 'CutPlannerMixin',
+  // ⭐ The cutting acts that are not `cut` (controller-liquidity D14).
+  Rivable: 'RivableMixin',
+  Butcherable: 'ButcherableMixin',
+  // ⭐ A thing you can read — screens, marks, books (controller-liquidity W8).
+  Readable: 'ReadableMixin',
+  // ⭐ Water in reach (controller-liquidity W8; the way into it is
+  // `Shore.wayIntoWater` since W17).
+  WaterDrawable: 'WaterDrawableMixin',
+  // ⭐ A craft that lets go an anchor, and water a boat is launched into or
+  // recovered from — protocols (controller-liquidity W8).
+  Anchoring: 'AnchoringMixin',
+  Launchable: 'LaunchableMixin',
+  // ⭐ The acts behind `heat`, `wash` and `sweep` — protocols, one act each
+  // over several hosts (controller-liquidity W7c; `stir`'s `Agitated`
+  // retired in W18 — one host, so a method on the build).
+  Heated: 'HeatedMixin',
+  Washable: 'WashableMixin',
+  Sweepable: 'SweepableMixin',
+  // ⭐ A piece can be taken from it — `sample` (controller-liquidity W7c).
+  Sampleable: 'SampleableMixin',
   // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
   // a thing draws, the generator that makes it, who may write a name.
   Powered: 'PoweredMixin',
@@ -970,6 +1007,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // generic sentence, because the useful information is what a launcher
   // IS, not that this thing is not one.
   LauncherMixin: "{} doesn't shoot anything",
+  // `fight assess` reads a combatant (controller-liquidity W15).
+  CombatantMixin: "{} isn't someone you could fight",
 
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
@@ -1027,6 +1066,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   WaterPlaceMixin: "{} isn't a water you can be in",
   WaterColumnMixin: "{} doesn't grow a water column",
   WaterSourceMixin: "{} can't read a water",
+  WayIndexMixin: "{} doesn't know the ways",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",
@@ -1124,6 +1164,16 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   KneadVesselMixin: "{} isn't something you could knead in",
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
+  RivableMixin: "{} isn't wood you could rive",
+  ButcherableMixin: "{} isn't a carcass",
+  ReadableMixin: "there is nothing written on {}",
+  WaterDrawableMixin: "there is no water to be had from {}",
+  AnchoringMixin: "{} has no anchor to let go",
+  LaunchableMixin: "{} isn't water you could put a boat into",
+  HeatedMixin: "{} isn't something you take to the fire — to warm it, set it on one (`put … on hearth`)",
+  WashableMixin: "{} can't be washed",
+  SweepableMixin: "{} isn't something you could sweep",
+  SampleableMixin: "{} is not matter you could take a piece of",
   PourTargetMixin: "you can't pour anything into {}",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",

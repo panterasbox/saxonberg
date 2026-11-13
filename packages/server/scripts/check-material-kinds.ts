@@ -44,7 +44,7 @@ import {
 } from './pack-roots';
 
 /** Arm (d)'s ceiling: composed capability fields no row has authored yet. */
-export const DATA_GAP_CEILING = 6057;
+export const DATA_GAP_CEILING = 6054; // controller-liquidity W15 merge: −3, re-pinned at the merged floor (sulfurous iron's `castTemplate` among them).
 
 const GATE = 'check-material-kinds';
 const LIB = join(MUD, 'lib', 'material');

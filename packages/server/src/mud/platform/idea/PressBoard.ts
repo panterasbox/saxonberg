@@ -2,7 +2,7 @@
  * PressBoard — singleton Idea owning the runtime news-ticker window.
  *
  * Lives at `/platform/idea/PressBoard` (the singleton-in-`obj/` convention,
- * sibling to `RecipeCatalogue` / `TopicCatalogue`).
+ * sibling to `RecipeCatalogue` / `SoulCatalogue`).
  *
  * **The source of truth is now the document tree** — every
  * `kind: 'release'` {@link StoredDocument} — rather than a collection of
@@ -35,6 +35,8 @@ const PressBoardBase = Idea;
 const TICKER_WINDOW_FALLBACK = 30;
 /** Pin cap when AppSettings isn't warmed. */
 const MAX_PINS_FALLBACK = 3;
+/** How many rows the warm reads per window slot (retracted/expired rows are filtered on read). */
+const WARM_OVERFETCH = 4;
 
 /** Read a positive-integer AppSetting, falling back on any failure. */
 function settingInt(key: string, fallback: number): number {
@@ -113,8 +115,8 @@ export default class PressBoard extends PressBoardBase {
   }
 
   /**
-   * (Re)build the cache from the document tree — every `kind: 'release'`
-   * document, the live working set; `recentWindow()` does the
+   * (Re)build the cache from the document tree — the pinned releases and
+   * the newest ones, read by key; `recentWindow()` does the
    * retract/expiry filtering and the pin/length capping on read.
    * Soft-retracted releases stay cached (still reachable by id), they just
    * drop out of the window. Low-volume staff feed; a recency-bounded warm
@@ -129,7 +131,22 @@ export default class PressBoard extends PressBoardBase {
    * rather than trusting the `kind` tag.
    */
   public async warm(): Promise<void> {
-    const docs = await DocumentApi.listOfKind(RELEASE_DOCUMENT_KIND);
+    // ⭐ Two bounded, ordered reads by the release card — the pins and the
+    // newest — never the whole kind. Each over-fetches its cap so retracted
+    // and expired rows (filtered on read) do not shorten the window.
+    const window = settingInt(AppSettingKeys.pressTickerWindow, TICKER_WINDOW_FALLBACK);
+    const maxPins = settingInt(AppSettingKeys.pressMaxPins, MAX_PINS_FALLBACK);
+    const [pins, newest] = await Promise.all([
+      DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'pinned', {
+        eq: true,
+        limit: maxPins * WARM_OVERFETCH,
+      }),
+      DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+        order: 'desc',
+        limit: window * WARM_OVERFETCH,
+      }),
+    ]);
+    const docs = [...pins, ...newest];
     const cache = new Map<string, Release>();
     for (const doc of docs) {
       const release = Release.fromDocument(doc);
@@ -147,7 +164,7 @@ export default class PressBoard extends PressBoardBase {
     if (this.cache === null) this.cache = new Map();
   }
 
-  /** Singleton refusal (mirrors RecipeCatalogue / TopicCatalogue). */
+  /** Singleton refusal (mirrors RecipeCatalogue / SoulCatalogue). */
   public canDestruct(): VetoResult {
     return {
       ok: false,

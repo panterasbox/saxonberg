@@ -5,7 +5,7 @@
 # safe.
 class: /platform/idea/material/Flesh
 data:
-  smells: [{ aroma: /base-library/aromas/offal, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/flesh/offal, strength: 100 }]
   name: casing
   keywords: [casing, casings, skin]
   density: 1050

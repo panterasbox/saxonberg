@@ -1,5 +1,5 @@
 # The plaster tub (ceramics W7) — burnt gypsum and water stirred to a slurry
-# (`stir tub`) that has a quarter of an hour in it before it sets. Pour it
+# (`stir tub` — a slurry, a few minutes' stirring) that has a quarter of an hour in it before it sets. Pour it
 # into a case while it still pours.
 class: /platform/thing/CompoundingVessel
 data:

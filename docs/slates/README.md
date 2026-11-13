@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**423 slates.** 148 greenfield · 118 continuations · 71 waves · 86 tails.
+**427 slates.** 151 greenfield · 118 continuations · 71 waves · 87 tails.
 
-## ⭐ Greenfield — nothing shipped yet (148)
+## ⭐ Greenfield — nothing shipped yet (151)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -94,6 +94,7 @@ respect.
 | [eternal-university-drafts](./builds/eternal-university-drafts-slate.md) | the campus districts and roads (Eternal Way · Silver Street · Limbo Lane · the Quad) … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [expressive-acts](./builds/expressive-acts-slate.md) | acts declared by properties (`performs:` on an emote) · the twenty-act starter set and eleven manner words · emote packs and the two-layer opt-in · the polity's mapping … |
+| [failure-model](./builds/failure-model-slate.md) | the throwables conversation: who is at fault decides the channel (refuse · skip · throw) · when a refusal may be thrown · where error classes live · what reaches the player, the wizard and a script · the `return null` census (absorbs silent-write-census) · content errors at load, not use · floating promises · pack-extensible reasons |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [feedback](./builds/feedback-slate.md) | the one fixed axis (template + engagement) · the solicited experience prompt at engagement termination · a template as a |
 | [festival](./builds/festival-slate.md) | the show (measured and judged classes, the schedule, the judge, the ribbon as a deed) · the showground that buds for the event's window · the festival row and who may declare one · the kit … |
@@ -132,6 +133,7 @@ respect.
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [moderation](./builds/moderation-slate.md) | everything in § 19 (the go-live list) · the raid dial's shape · what the mod queue shows · channel domains … |
 | [mountain](./builds/mountain-slate.md) | the horizon feature split out of `Structure` · the mountain as rising ground (elevation bands on the zone, the biome by altitude) · mountain weather (lapse rate, orographic rain, rain shadow) · the body at height (thin air, cold, altitude sickness) … |
+| [mql-lists](./builds/mql-lists-slate.md) | naming several things in one argument (`get apple and pear`) · how a view declares a list · lists and quoting — greedy object args are gone (controller-liquidity), so this is real design |
 | [newbie-wilds](./builds/newbie-wilds-slate.md) | the area zone + room map (threshold · crossroads hub · shared hunting woods · the wolfshead's lair … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
@@ -153,6 +155,7 @@ respect.
 | [privacy](./builds/privacy-slate.md) | the privacy surface and its flagging lint · spoiler privilege earned by publication · the install-and-eval trail · the operator residual … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [radioactivity](./builds/radioactivity-slate.md) | radiation as the eighth channel, its fold attenuation through matter by decay mode · dose vs contamination · dose as a body stock, radiation sickness in phases over the `marrow` reserve, seeded long-term risk · contamination as a decaying toxin burden (effective half-life) … |
+| [reading](./builds/reading-slate.md) | the conversation not yet had: languages in a text game · scrolls and spellbooks against their mundane counterparts · newspapers, pamphlets and the printing design · reading what is written on a surface |
 | [real-world-anchors](./builds/real-world-anchors-slate.md) | a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and its note on how we differ … |
 | [recipes](./builds/recipes-slate.md) | the honesty audit of cooking and baking (first, and gating) · declared intent on every cook · your own recipe written into your book · nearest-recipe distance and the deviation each kind expresses … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
@@ -210,7 +213,6 @@ are the named remainders.
 | [base-class-narrowing](./builds/base-class-narrowing-slate.md) | everything under § Deferred, with destinations — chiefly `Persona`'s 60 empty biographies, the `Extra` taxonomy, the structure tier, the `Staged` split, and the two content burn-downs (362 rows with no details; 38 species with no appearance). |
 | [bathroom](./builds/bathroom-slate.md) | the washing/cleanliness state · the mirror self-recognition read · the interior lock as a consequence · the closed restroom archetype set + district skins … |
 | [biome-normalization](./builds/biome-normalization-slate.md) | the granularity doctrine (what a biome is a claim about, and the test that decides it) · splitting the three jobs — atmospheric field · sky exposure · sensory dressing … |
-| [boundary](./builds/boundary-slate.md) | the `Boundary` edge object every way between two places shares · the exit as that edge's SIDE · door↔exit references retired · the four overlapping models of today folded into it … |
 | [call](./builds/call-slate.md) | the whole push-at-range column (dispatch, the turnout, the hue and cry) and the brain-fact eligibility it needs · the addressed posting (`claimMode` gains `addressed`; the resolver already takes a handed-in set) · a `critical` need that REFUSES a call — importance flows one way today and the reverse needs a criterion and an appeal (the lens 7 question below) · the mob's rule, if it turns out to need one (§ *the mob is an employer*) … |
 | [campus-grounds](./builds/campus-grounds-slate.md) | the four labs (assay · fermentation · agronomy · medical) + the observatory … |
 | [capability-magic](./builds/capability-magic-slate.md) | Part I — derived physical capacity (baseline × condition, per-part muscle mass as the strength baseline, the attribute readings vitals.md still defers) · conditioning as a bounded, bidirectional channel · the CHA / INT dissolution (derived presence + learned social skill) · the `Transform` primitive's Api (polymorph is its own build) … |
@@ -233,6 +235,7 @@ are the named remainders.
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint, and whether one issuer mints every currency or each gets its own · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · the money-changer's mechanics (rate source, settlement, the `convert` seam) … |
 | [dairy](./builds/dairy-slate.md) | staffing the twice-a-day tap · NPC buyers · whey to pigs · calving as the lactation's cause … |
 | [daves-bar](./builds/daves-bar-slate.md) | the succession arc (Augie recognizes the heir; the house tablet is the clipboard) · tabs (`TabMixin` was RETIRED — zero credit until designed for real) + customer records (regular; 86'd exists only for the armed-patron rule) · the NPC task repertoire + the shift-change ritual (till · receipts … |
+| [documents-path-identity](./builds/documents-path-identity-slate.md) | the five material-adjacent families → documents (Cleanser · MaturationProfile · FractionSchedule · Fabric · Dyestuff) — the recipe shipped with !560 |
 | [delivery](./builds/delivery-slate.md) | providers + coverage + metering as ONE substrate (⚠ reconcile with the two shipped shapes) · ⭐ anchors + catchment-vs-delivery (**specified 2026-09-24, § Anchors — the last foot**; the node/prefix/pointer fork RESOLVED — an anchor claims a node and the string is the relation; the zone fallthrough DECLINED; carvable as a wave, needs no structure tier) · per-service off-grid + service grades · the delivery overlay + trunking (Q5) … |
 | [destructive-distillation](./builds/destructive-distillation-slate.md) | Stage B — the first plastic (a thermoset from coal-tar phenol) · the `Law` extension from crosslinking to the polymer family. (Stage A — the retort, the condenser, wood tar → pitch, coal tar, coke, ⭐⭐ coal gas and the gasometer — shipped; see the head of this block.) ⚠ Stage B is gated on the epoch on-ramp (→ inquiry-slate); the retort itself never was — it is knowledge-by-TRADITION. See § *The on-ramp blocks the plastic and nothing else* — resolved 2026-10-06. |
 | [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · harvest-method depletion (take the leaves / pull the root) · the method ladder + field drying · biome-authored tables with derived, depleting stock (character authored, quantity measured) … |
@@ -395,7 +398,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (86)
+## Tails — small and opportunistic (87)
 
 | slate | left |
 |---|---|
@@ -410,6 +413,7 @@ are the named remainders.
 | [automata](./tails/automata-slate.md) | the consult verb + context assembly · the mode model (`{trigger, recipe, voice}`) · the trigger set and its rate caps · the overnight digest + the decaying pyramid … |
 | [autopsy](./tails/autopsy-slate.md) | the post-mortem `Operation` row + **evidence as its stake** · the **interior-injury** reading channel · **per-channel readability** · who may open a corpse … |
 | [belief-recall-forgets-the-absent](./tails/belief-recall-forgets-the-absent-slate.md) | decide what the liveness collection is FOR · scope it to that. |
+| [boundary](./tails/boundary-slate.md) | the gangway as a minted boundary · the opening read by clearances (size and carrying) · the compass rose reading `WayRecord` (map-slate) · `water` as a channel when it has a reader … |
 | [broadcast-ready](./builds/broadcast-ready-slate.md) | the deferred seams (§ below — the registry, the money and community cards, the wiki article of the day, `stream start <show>`, Kick on the show, alerts in the lower third, pop-out across connections, the deep-link page) · the owner's rehearsal items · the crawl's in-world news (press, chronicle — only welcomes ride it today) · the `saxonberg.gg` domain … |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
 | [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). ⭐ **And the SUBJECT body has the same shape** (`lookAtTarget` cards and `meta({ carded })` exactly as `lookAtLocation` does) — which puts the **drill-in** on this list; see below. The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. ⭐⭐ **And it is now a BLOCKER, 2026-10-02** — every new card body client-vocabulary-slate wants (image-first, list-of-images, a pack-shipped view) is built on the assumption that the card is a *superset* of the prose, and it is not. ⭐ Cheaper than this slate implies, too: `prose` already arrives at the client — `store/cardFeedSlice.ts:211` reads `c.prose` to decide *visibility* and never renders it. **The data is on the wire and in the store; this is a client render, not a protocol change.** |
@@ -479,7 +483,7 @@ are the named remainders.
 | [thermal](./tails/thermal-slate.md) | the generic hot-object radiant read · the indoor room-ambient convection bump · microclimates beyond the campfire (sun-spot / shade-spot) · sauna / steam room content … |
 | [tourism-and-sport](./tails/tourism-and-sport-slate.md) | the **district demand profile** (a district needs a *taste*) |
 | [value-object-statics](./tails/value-object-statics-slate.md) | `GroundCharacter.forZone` / `resolve` (a finder returning its own class that is not a `Document`; a null-model static) · the unruled async lookups `CirculationWarren.conditionOf` / `admitFor`, `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 → `AppApi.settingInt` (a behaviour change to `SandboxLogic`) … |
-| [vocabularies-to-rows](./builds/vocabularies-to-rows-slate.md) | `MATURATION_MECHANISMS` (→ material decomposition) · `DISPLAY_KINDS` + `DISPLAY_PAIRINGS` (→ display manifestation) · `DirtKind` as a document, not an Idea · touch and hearing (the absorbed non-visual-senses design, → senses slate) … |
+| [vocabularies-to-rows](./builds/vocabularies-to-rows-slate.md) | `MATURATION_MECHANISMS` (→ material decomposition) · `DISPLAY_KINDS` + `DISPLAY_PAIRINGS` (→ display manifestation) · touch and hearing (the absorbed non-visual-senses design, → senses slate) … |
 | [washer-at-the-ford](./tails/washer-at-the-ford-slate.md) | whom she names (the dying now, or the recently dead) · the index of who is dying · how she says it. |
 | [water-design-pack](./tails/water-design-pack.md) | the bathroom's modelled function (`bathe`, gated on water availability — waits on room-condition) · "running water" as a residence-ladder rung feature (waits on the residence-ladder pack) · ⭐⭐ **plumbing the city** — every tap names its main, and a tap served by TWO mains (§ below, opened by the pump build 2026-10-10) |
 | [wiki](./tails/wiki-slate.md) | the level-3 source embed · the rest of the transclusion palette (page-card) · the diegetic narrative front · anonymous pre-auth read (Q5) … |

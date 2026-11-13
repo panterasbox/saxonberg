@@ -144,14 +144,7 @@ describe('a greedy field fed SEVERAL tokens is free text', () => {
   });
 });
 
-describe('⭐ a TRAILING greedy OBJECT field is a name, so a lone quoted token unquotes', () => {
-  /**
-   * Found driving the rubber build in a browser: `buy "rubber boots"`
-   * bought them and the next `get "latex cup"` / `look "rubber boots"`
-   * answered *"unexpected character '\"' at position 0"* — `get` and
-   * `look` are trailing greedy object fields, whose value goes to MQL,
-   * which has no use for a quote mark. The type is what says NAME.
-   */
+describe('⭐ an OBJECT field is a name: one word, or one quoted token (controller-liquidity D3)', () => {
   const GET = `
 verbs: [get]
 controller: /platform/idea/cmd/inventory/GetController
@@ -160,7 +153,6 @@ args:
   - name: targets
     type: objects
     required: true
-    greedy: true
 `;
 
   it('binds the unquoted phrase', () => {
@@ -168,23 +160,17 @@ args:
     expect(JSON.stringify(bind('get "latex cup"', GET).targets)).not.toContain('\\"');
   });
 
-  it('⭐ …and inside a LONGER object span too: `get "plant pot" from kiln` (ceramics drive C, run 35)', () => {
-    const targets = JSON.stringify(bind('get "plant pot" from kiln', GET).targets);
-    expect(targets).toContain('plant pot from kiln');
-    expect(targets).not.toContain('\\"');
-  });
-
   it('⭐ and with `from` an argument of its own, the name and the source part', () => {
     const GET_FROM = `${GET}  - name: source
     type: object
     required: false
-    greedy: true
     prepositions: [from]
+    prepositionRequired: true
 `;
-    const m = bind('get "plant pot" from the brick kiln', GET_FROM);
+    const m = bind('get "plant pot" from the "brick kiln"', GET_FROM);
     expect(JSON.stringify(m.targets)).toContain('plant pot');
     expect(JSON.stringify(m.targets)).not.toContain('kiln');
-    expect(JSON.stringify(m.source)).toContain('the brick kiln');
+    expect(JSON.stringify(m.source)).toContain('brick kiln');
   });
 
   it('while a trailing STRING field still keeps its quotes (`say`)', () => {

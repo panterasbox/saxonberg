@@ -3,7 +3,7 @@
 # spreads and absorbs a blow). The material a hide jerkin is cut from.
 class: /platform/idea/material/HideHorn
 data:
-  smells: [{ aroma: /base-library/aromas/leather, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/hide/leather, strength: 60 }]
   name: leather
   keywords: [hide, leather]
   appearance: supple tanned leather

@@ -58,7 +58,7 @@ describe("CardArea", () => {
     render(<CardArea units={0} onSendCommand={(t) => sent.push(t)} />);
     expect(screen.queryAllByTestId("card-grid")).toHaveLength(0);
     fireEvent.click(screen.getByTestId("glance-chip"));
-    expect(sent).toEqual(['cockpit card grow "who a"']);
+    expect(sent).toEqual(['client-card grow "who a"']);
   });
 
   it("minimized and medium cards are not in the area (the tray and the terminal column hold them)", () => {

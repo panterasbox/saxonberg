@@ -256,9 +256,9 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expectNote(lift, 'controller-rejected', { reason: 'too-heavy-to-lift' });
   }, 180_000);
 
-  it('…and cross-cutting: `fell bole` yields a length of green oak timber and the bole says what is left', async () => {
-    await act(f, 'fell bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 1);
-    await act(f, 'fell bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 2);
+  it('…and cross-cutting: `cut bole` (D14 — it was `fell bole`) yields a length of green oak timber and the bole says what is left', async () => {
+    await act(f, 'cut bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 1);
+    await act(f, 'cut bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 2);
     const timber = await f.query('me:i:[keyword.timber]', { fields: ['bulkMaterial', 'mass'] });
     expect(timber).toHaveLength(2);
     expect((timber[0] as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);

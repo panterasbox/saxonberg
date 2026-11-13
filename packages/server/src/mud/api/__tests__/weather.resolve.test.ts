@@ -33,6 +33,7 @@ import {
   type ClimateLean,
   type WeatherType,
 } from '../../lib/weather/WeatherType';
+import { standAddressIndex } from '../../lib/address/__tests__/address-index';
 
 const SEG = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
@@ -82,7 +83,11 @@ function indoorRoom(): TestLocation {
 }
 
 function installRegistry(): AddressRegistry {
-  return makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry');
+  // The suite's beforeEach already stood the (empty) index in.
+  return (
+    StuffApi.findByTemplatePath<AddressRegistry>('/platform/idea/AddressRegistry') ??
+    makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry')
+  );
 }
 
 /**
@@ -96,6 +101,7 @@ const SUMMER = 100 * 86_400 + 15 * 3600;
 
 describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
   beforeEach(() => {
+    standAddressIndex(); // load-on-use W5: an empty index, no store behind it
     installV1QuantityMarshallers();
     BiomeApi.invalidateRootBiomeCache();
     installRootBiome();

@@ -32,6 +32,8 @@ import {
   type Doc,
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
+import { standMaterials } from "@saxonberg/server/mud/lib/material/__tests__/materials";
+import { rememberDisciplines } from "@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures";
 
 const PH = TemplateApplier.templatePath;
 // The rows this stand-up reads live across the packs (content-packs
@@ -69,6 +71,7 @@ const DOOR = "/world/terminus/university-avenue/thing/campus-gate-door";
 // authoring fault, and `lint:census` resolves the field at build time), so
 // every store that clones this room needs it.
 const PAVING = "/world/terminus/university-avenue/thing/crossing-paving";
+const GRANITE = "/stuff/idea/material/rock/granite";
 
 // The curated realized set: only the flavorful touchables survive as Stuff
 // (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
@@ -187,6 +190,14 @@ describe("University Avenue crossing standup (real seeds)", () => {
     StuffApi.clearAll();
     installStore(docs());
     await AppSettings.warm();
+    // The discipline dictionary is CraftingApi's need — the boot stands it
+    // in a running world; Gus's body reads it when a conditioning band
+    // crosses at standup, so the suite stands it as the boot would.
+    await rememberDisciplines();
+    // The paving's granite is a constituent (`_materialPath`), loaded with
+    // the paving from the content store in a running world; this store
+    // carries no material rows, so the suite stands it in, blank.
+    standMaterials([GRANITE]);
   });
   afterEach(() => {
     AppSettings._resetForTesting();
@@ -226,14 +237,14 @@ describe("University Avenue crossing standup (real seeds)", () => {
     await StuffApi.singleton(CROSSING);
     const crossing = StuffApi.findByTemplatePath(CROSSING)!;
     const north = exitsOf(crossing).get("north") as unknown as {
-      getDoor(): { isLocked(): boolean } | null;
+      getBoundary(): { isLocked(): boolean } | null;
       canTraverse(
         mover: Stuff & Containable,
         mode?: string,
       ): Promise<{ ok: boolean; gate?: string }>;
     };
     expect(north).toBeTruthy();
-    expect(north.getDoor()?.isLocked()).toBe(true);
+    expect(north.getBoundary()?.isLocked()).toBe(true);
     const mover = {} as unknown as Stuff & Containable;
     const guard = await north.canTraverse(mover);
     expect(guard.ok).toBe(false);

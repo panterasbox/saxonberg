@@ -52,67 +52,67 @@ export default class UnwindController extends ManualBuildController<UnwindModel>
       typeof model.count === 'number' && Number.isFinite(model.count) ? model.count : null;
     const plan = await target.planUnwind(giver, tool, count);
     if (!plan.ok) {
-      this.declineStep(context, refusalWords(plan), plan.reason);
+      this.declineStep(context, UnwindController.refusalWords(plan), plan.reason);
       return;
     }
-    await this.engagePlan(context, landing(giver, plan), {
+    await this.engagePlan(context, UnwindController.landing(giver, plan), {
       beginSelf: (b) =>
         Mml.compose`You drop a handful of cocoons into the hot water, find the ends with a twig, and gather ${String(b.count)} of them into one thread.`,
       beginPeers: () => Mml.compose`Somebody bends over a basin, reeling silk off cocoons.`,
-      onRefused: refusalWords,
+      onRefused: (r: UnwindRefusal) => UnwindController.refusalWords(r),
       onDone: (d) => ({
         self: Mml.compose`You wind off a skein of raw silk. ${d.skein ? d.skein.threadLine() : ''} You fish the pupae out of the water.`,
         peers: Mml.compose`Somebody lifts a skein of raw silk off the reel.`,
       }),
     });
   }
-}
 
-/** ⭐ The words for a refused reeling — every reason, exhaustively. */
-function refusalWords(out: UnwindRefusal): ReturnType<typeof Mml.compose> {
-  switch (out.reason) {
-    case 'pierced':
-      return Mml.compose`There is nothing to reel off a pierced cocoon — the thread is cut. It will spin.`;
-    case 'not-stifled':
-      return Mml.compose`The moths are still alive in them. Stifle them first, or they will break the thread as you reel.`;
-    case 'too-few':
-      // ⭐ The refusal says what lifts it (the browser walk bought ten and
-      // was told only "not enough").
-      return Mml.compose`There are not enough cocoons there to keep a thread going — a reeling takes about forty.`;
-    case 'no-reel':
-      return Mml.compose`You want a reel to wind the thread onto.`;
-    case 'no-heat':
-      return Mml.compose`They want hot water to loosen the gum, and there is no fire here.`;
-    default: {
-      const never: never = out;
-      return never;
+  /** ⭐ The words for a refused reeling — every reason, exhaustively. */
+  protected static refusalWords(out: UnwindRefusal): ReturnType<typeof Mml.compose> {
+    switch (out.reason) {
+      case 'pierced':
+        return Mml.compose`There is nothing to reel off a pierced cocoon — the thread is cut. It will spin.`;
+      case 'not-stifled':
+        return Mml.compose`The moths are still alive in them. Stifle them first, or they will break the thread as you reel.`;
+      case 'too-few':
+        // ⭐ The refusal says what lifts it (the browser walk bought ten and
+        // was told only "not enough").
+        return Mml.compose`There are not enough cocoons there to keep a thread going — a reeling takes about forty.`;
+      case 'no-reel':
+        return Mml.compose`You want a reel to wind the thread onto.`;
+      case 'no-heat':
+        return Mml.compose`They want hot water to loosen the gum, and there is no fire here.`;
+      default: {
+        const never: never = out;
+        return never;
+      }
     }
   }
-}
 
-/**
- * The plan, with the credit THE COCOONS named landed on the reeler.
- * ⚠ The actor may have logged out mid-reel; the work still lands, only the
- * telling and the crediting need a listener.
- */
-function landing(
-  giver: Stuff,
-  plan: WorkPlan<UnwindBegin, UnwindDone, UnwindRefusal>,
-): WorkPlan<UnwindBegin, UnwindDone, UnwindRefusal> {
-  return {
-    ...plan,
-    onComplete: async () => {
-      const out = await plan.onComplete();
-      if (!out.ok || giver.isDestroyed()) return out;
-      const credit = out.facts.credit;
-      if (credit && MixinApi.isAdvancing(giver)) {
-        await giver.creditDeed({
-          discipline: credit.discipline,
-          difficulty: credit.difficulty,
-          outcome: 'success',
-        });
-      }
-      return out;
-    },
-  };
+  /**
+   * The plan, with the credit THE COCOONS named landed on the reeler.
+   * ⚠ The actor may have logged out mid-reel; the work still lands, only the
+   * telling and the crediting need a listener.
+   */
+  protected static landing(
+    giver: Stuff,
+    plan: WorkPlan<UnwindBegin, UnwindDone, UnwindRefusal>,
+  ): WorkPlan<UnwindBegin, UnwindDone, UnwindRefusal> {
+    return {
+      ...plan,
+      onComplete: async () => {
+        const out = await plan.onComplete();
+        if (!out.ok || giver.isDestroyed()) return out;
+        const credit = out.facts.credit;
+        if (credit && MixinApi.isAdvancing(giver)) {
+          await giver.creditDeed({
+            discipline: credit.discipline,
+            difficulty: credit.difficulty,
+            outcome: 'success',
+          });
+        }
+        return out;
+      },
+    };
+  }
 }

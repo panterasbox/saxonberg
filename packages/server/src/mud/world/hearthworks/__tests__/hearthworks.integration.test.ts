@@ -122,7 +122,14 @@ async function occupy(room: Location): Promise<void> {
 
 describe('The Hearthworks — the fire demonstrators', () => {
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  // ⚠ The occupants' interactives outlive `StuffApi.clearAll()` (the
+  // connection manager is not a Stuff), and the fire tick fans out over
+  // every occupied room — so a scene left standing would be ticked by the
+  // next test, reading materials the registry clear took away.
+  afterEach(() => {
+    ConnectionManager.get().clearAll();
+    StuffApi.clearAll();
+  });
 
   it('the woodshed: a lit log spreads to a dry neighbour, a wet one resists', async () => {
     const zone = makeStuff(() => new CartesianZone());

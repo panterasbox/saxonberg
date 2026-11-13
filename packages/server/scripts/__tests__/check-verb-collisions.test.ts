@@ -49,7 +49,9 @@ function tree(views: Array<{ pack: string; where: string; verbs: string[] }>): s
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, `v${i}.yaml`),
-      `verbs: [${v.verbs.join(", ")}]\ncontroller: /x/Y\n`,
+      // A distinct controller per view: two views of ONE controller are one
+      // act's shapes, which the gate passes.
+      `verbs: [${v.verbs.join(", ")}]\ncontroller: /x/Y${i}\n`,
     );
   }
   return root;
@@ -167,11 +169,37 @@ args:
     expect(collisionsIn(claimsIn(allViews(shapes([one, two])))).has("pour")).toBe(true);
   });
 
-  it("a view with subcommands is never proved disjoint", () => {
+  it("⭐ a subcommand view beside a shape that needs a word is disjoint — its words win by precedence (W7a)", () => {
     const subs = `verbs: [throw]
 controller: /x/S
 subcommands:
   far: { args: [] }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([THROW_TO, subs])))).has("throw")).toBe(false);
+  });
+
+  it("⚠ …but not when the shape binds the EMPTY line too", () => {
+    const subs = `verbs: [throw]
+controller: /x/S
+subcommands:
+  far: { args: [] }
+`;
+    const bare = `verbs: [throw]
+controller: /x/B
+args:
+  - { name: item, type: object, required: false }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([bare, subs])))).has("throw")).toBe(true);
+  });
+
+  it("a FALLTHROUGH subcommand view is never proved disjoint", () => {
+    const subs = `verbs: [throw]
+controller: /x/S
+fallthrough: true
+subcommands:
+  far: { args: [] }
+args:
+  - { name: item, type: object, required: true }
 `;
     expect(collisionsIn(claimsIn(allViews(shapes([THROW_TO, subs])))).has("throw")).toBe(true);
   });
@@ -186,11 +214,42 @@ describe("⭐ the live tree", () => {
     expect([...collisionsIn(claims).keys()]).toEqual([]);
   });
 
-  it("⚠⚠ `watch` is claimed ONCE — the shadowing is gone", () => {
+  it("⚠⚠ `watch` is claimed only by the stream views — the shadowing is gone", () => {
     // The regression this whole gate exists for. `cmd/work/watch.yaml`
     // was deleted; standing a post accrues from presence and has no verb.
+    // The stream verb's own views (its subcommands and two shapes, W7a) are
+    // the only claimants.
     const watchers = claimsIn(allViews()).filter((c) => c.verb === "watch");
-    expect(watchers).toHaveLength(1);
-    expect(watchers[0]!.file).toContain("stream");
+    expect(watchers).toHaveLength(3);
+    expect(watchers.every((w) => w.file.includes("/cmd/stream/"))).toBe(true);
   });
 });
+
+describe("controller-liquidity W7 — the shapes the dispatcher can tell apart", () => {
+  const view = (body: string) => body;
+  it("two views of ONE controller are one act's shapes — not a collision", () => {
+    const root = shapes([
+      view(`verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: string, required: true }\n`),
+      view(`verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: fire, type: object, required: true }\n  - { name: setting, type: string, required: true }\n`),
+    ]);
+    expect(collisionsIn(claimsIn(allViews(root))).size).toBe(0);
+  });
+
+  it("⭐ first words that cannot meet — an `enum` word against a preposition-only read", () => {
+    const READ = `verbs: [draught]\ncontroller: /x/Read\nargs:\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
+    const SET = `verbs: [draught]\ncontroller: /x/Set\nargs:\n  - { name: setting, type: enum, required: true, values: [wide, low] }\n  - { name: fire, type: object, required: false, prepositions: [at], prepositionRequired: true }\n`;
+    expect(collisionsIn(claimsIn(allViews(shapes([READ, SET])))).size).toBe(0);
+    // An enum list that holds the preposition meets the read.
+    const BAD = SET.replace("values: [wide, low]", "values: [wide, at]");
+    expect([...collisionsIn(claimsIn(allViews(shapes([READ, BAD])))).keys()]).toEqual(["draught"]);
+  });
+
+  it("a bare view beside a fallthrough view whose own arg is required — bare reads, a word posts", () => {
+    const BARE = `verbs: [press]\ncontroller: /x/Read\n`;
+    const POST = `verbs: [press]\ncontroller: /x/Post\nfallthrough: true\nsubcommands:\n  post: {}\nargs:\n  - { name: headline, type: string, required: true, greedy: true }\n`;
+    expect(collisionsIn(claimsIn(allViews(shapes([BARE, POST])))).size).toBe(0);
+    const LOOSE = POST.replace("required: true, greedy", "required: false, greedy");
+    expect([...collisionsIn(claimsIn(allViews(shapes([BARE, LOOSE])))).keys()]).toEqual(["press"]);
+  });
+});
+

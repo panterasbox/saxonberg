@@ -171,31 +171,29 @@ export default class CloneController extends CommandController<CloneModel> {
 
     // 2. Clone (× count). The instance may place itself while it is
     // created (a fixture's `seatIn`).
+    // ⚠ C28: a copy whose placement fails still EXISTS — it is reported
+    // with its id, as the first copy's is, never left unplaced in silence.
+    const unplaced: string[] = [];
     for (let i = 1; i < count; i++) {
       // Copies 2..N: clone + place, compactly reported; the first copy
       // below keeps the full reporting shape.
+      let extra: Stuff;
       try {
-        const extra = await StuffApi.clone(path);
-        if (MixinApi.isContainable(extra)) {
-          const placement = this.resolvePlacement(
-            model,
-            giver,
-            extra as Stuff & Containable,
-            context,
-          );
-          if (!('error' in placement) && placement.dest !== null) {
-            ContainmentApi.move(extra as Stuff & Containable, placement.dest);
-          }
-        }
+        extra = await StuffApi.clone(path);
       } catch (err) {
         return this.fail(
           context,
           `stopped at copy ${i + 1}/${count}: ${(err as Error).message}`,
         );
       }
+      const failed = this.placeCopy(model, giver, extra, context);
+      if (failed !== null) unplaced.push(`${extra.stuffId} (${failed})`);
     }
     if (count > 1) {
       this.tell(context, `\nminted ${count - 1} additional cop${count - 1 === 1 ? 'y' : 'ies'} of ${path}\n`);
+    }
+    if (unplaced.length > 0) {
+      this.tell(context, `\nleft unplaced: ${unplaced.join(', ')}\n`);
     }
     let cloned: Stuff;
     try {
@@ -335,6 +333,7 @@ export default class CloneController extends CommandController<CloneModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const minted: Stuff[] = [];
+    const unplaced: string[] = [];
     for (let i = 0; i < count; i++) {
       let copy: Stuff;
       try {
@@ -346,21 +345,8 @@ export default class CloneController extends CommandController<CloneModel> {
         return this.fail(context, (err as Error).message, 'seed-refused');
       }
       minted.push(copy);
-      if (MixinApi.isContainable(copy)) {
-        const placement = this.resolvePlacement(
-          model,
-          giver,
-          copy as Stuff & Containable,
-          context,
-        );
-        if (!('error' in placement) && placement.dest !== null) {
-          try {
-            ContainmentApi.move(copy as Stuff & Containable, placement.dest);
-          } catch {
-            // the copy exists; placement failure is surfaced below
-          }
-        }
-      }
+      const failed = this.placeCopy(model, giver, copy, context);
+      if (failed !== null) unplaced.push(`${copy.stuffId} (${failed})`);
     }
     const name = live.getPresentation();
     this.tell(
@@ -369,6 +355,37 @@ export default class CloneController extends CommandController<CloneModel> {
         ? `\nseeded a copy of ${name} (${minted[0]!.stuffId}) — circle-born; it dies with the circle\n`
         : `\nseeded ${count} copies of ${name} — circle-born; they die with the circle\n`,
     );
+    if (unplaced.length > 0) {
+      this.tell(context, `\nleft unplaced: ${unplaced.join(', ')}\n`);
+    }
+  }
+
+  /**
+   * Land one extra copy by the ordinary precedence. Null when it was
+   * placed (or placed itself); else why not — the copy exists either way,
+   * and the caller reports it by id (C28).
+   */
+  private placeCopy(
+    model: CloneModel,
+    giver: Stuff,
+    copy: Stuff,
+    context: CommandContext,
+  ): string | null {
+    if (!MixinApi.isContainable(copy)) return 'not Containable';
+    const placement = this.resolvePlacement(
+      model,
+      giver,
+      copy as Stuff & Containable,
+      context,
+    );
+    if ('error' in placement) return placement.error;
+    if (placement.dest === null) return null;
+    try {
+      ContainmentApi.move(copy as Stuff & Containable, placement.dest);
+    } catch (err) {
+      return (err as Error).message;
+    }
+    return null;
   }
 
   private tell(context: CommandContext, text: string): void {

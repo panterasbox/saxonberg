@@ -355,7 +355,8 @@ merged into harbors). `Ship` composes `DurableMixin(FacedMixin(...))`:
   (Hobb's, 12) caulks her sound, charges the water already in at the old
   rate, and credits **seamanship**. The residence pack's
   `MaintainController` carries both word sets (a house is puttied, a hull
-  is caulked). `survey` aboard reads her like a building.
+  is caulked). `analyze rooms` aboard reads her like a building (the shell line), and
+`analyze condition <ship>` from the quay says why her hull is as it is.
 
 ## The bilge, the pump well, `measure bilge`
 
@@ -548,7 +549,7 @@ file's header.
   `api/expanse.ts` (`standUpCraft`); `platform/idea/api/TestHarnessLogic.ts` (`stageShip`);
   controllers `cmd/work/CharterController`, `cmd/retail/RentController`,
   `cmd/device/BailController`, `cmd/civics/TitleTransferController` (the shares
-  form), `cmd/system/TestHarnessController` (`ship`), the `course`/`anchor`
+  form), `cmd/system/TestHarnessShipController` (`ship`), the `course`/`anchor`
   helm gate, `cmd/perception/LocateController`.
 - Transport pack: `src/thing/{HullBook,Boat}.ts`; tests `HullBook.test`,
   `Boat.float.test`, `Boat.leak.test`.

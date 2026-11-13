@@ -57,7 +57,7 @@ import { StrataMixin, type Strata, type MixinCtor } from '@saxonberg/content-gro
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { StratumBand } from '@saxonberg/content-ground/src/idea/Deposit';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
-import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { NestingConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -224,7 +224,7 @@ function bandOf(viewer: Stuff): CompetenceBandName {
 }
 
 export function OpenWorkingMixin<
-  TBase extends MixinConstructor<Stuff & Container>,
+  TBase extends NestingConstructor<Stuff & Container>,
 >(Base: TBase): TBase & MixinCtor<OpenWorking> {
   class OpenWorkingMixin extends StrataMixin(Base) {
     static _mixinName: string = OPEN_WORKING_MIXIN;
@@ -523,10 +523,10 @@ export function OpenWorkingMixin<
           // ⭐ (cleanliness D6) Earth muddies; rock dusts.
           soils: face.earth
             ? [
-                { kind: 'mud', amount: 0.2, where: 'hands' },
-                { kind: 'mud', amount: 0.15, where: 'feet' },
+                { kind: '/platform/dirt/mud', amount: 0.2, where: 'hands' },
+                { kind: '/platform/dirt/mud', amount: 0.15, where: 'feet' },
               ]
-            : [{ kind: 'dust', amount: 0.15, where: 'hands' }],
+            : [{ kind: '/trade/mining/dirt/dust', amount: 0.15, where: 'hands' }],
           credit: {
             discipline: QUARRYING,
             // ⭐ Difficulty is the ROCK's, read at the moment of the act: a

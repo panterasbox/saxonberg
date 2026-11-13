@@ -14,7 +14,6 @@
 # which is why it was always the expensive one.
 # The sword's blade — the old `sword` recipe's signature, moved to the part
 # that IS the sword (repair D17). The whole is raised by `fit sword`.
-recipeId: sword-blade
 name: Sword Blade
 keywords: [sword-blade, "sword blade"]
 inputSlots:

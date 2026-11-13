@@ -27,7 +27,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
+import Stock from '../../../../thing/Stock';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -106,8 +106,8 @@ function bloom(massKg: number, slagFraction: number, carbon: number): Bloom {
 }
 
 /** A pig, as the smelt makes one when the charge ran. */
-function pig(): Ingot {
-  const p = makeStuff(() => new Ingot());
+function pig(): Stock {
+  const p = makeStuff(() => new Stock());
   stampTemplatePathForTest(p, PIG);
   p.setMaterial(material(CAST_IRON));
   p.setMass(Quantity.of(1, 'kg'));
@@ -140,7 +140,7 @@ beforeEach(async () => {
   }).getMockImplementation();
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path === IRON_BAR || path === STEEL_BAR) {
-      const bar = makeStuff(() => new Ingot());
+      const bar = makeStuff(() => new Stock());
       stampTemplatePathForTest(bar, path);
       bar.setMaterial(material(path === STEEL_BAR ? STEEL : IRON));
       return bar as never;
@@ -269,8 +269,8 @@ describe('⚠⚠ cast iron refuses, and the refusal says what it is', () => {
 });
 
 describe('⭐⭐ quench on an un-worked hot piece is a HEAT TREATMENT', () => {
-  function bar(materialPath: string, carbon: number): Ingot {
-    const i = makeStuff(() => new Ingot());
+  function bar(materialPath: string, carbon: number): Stock {
+    const i = makeStuff(() => new Stock());
     stampTemplatePathForTest(i, materialPath === STEEL ? STEEL_BAR : IRON_BAR);
     i.setMaterial(material(materialPath));
     i.setMass(Quantity.of(0.5, 'kg'));

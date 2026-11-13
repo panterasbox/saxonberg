@@ -24,6 +24,7 @@ import { PlayerApi } from '../../../../api/player';
 import type { Forums } from '../../../../lib/forum/Forums';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Subject from '../../../../lib/forum/Subject';
+import { BoardRefusal } from '../../../../lib/forum/Board';
 
 export interface ForumModel extends CommandModel {
   board?: string;
@@ -101,6 +102,20 @@ export abstract class ForumControllerBase extends CommandController<ForumModel> 
     if (!subject) return null;
     return { board, subject };
   }
+  /**
+   * Word a forum write that threw: a {@link BoardRefusal} keeps its own
+   * reason (the gate is the forum logic's — controller-liquidity D9);
+   * anything else is `fallback`.
+   */
+  protected failFrom(
+    context: CommandContext,
+    err: unknown,
+    fallback: string,
+  ): void {
+    const reason = err instanceof BoardRefusal ? err.reason : fallback;
+    return this.fail(context, (err as Error).message, reason);
+  }
+
   protected fail(context: CommandContext, detail: string, reason: string): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });

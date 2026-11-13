@@ -147,7 +147,7 @@ credential is shared:
 Both are thin over the one gated `GitApi`; both derive the actor from
 context and hold no authz beyond their entry gate.
 
-- **The `git` verb** — `content/platform/cmd/system/git.yaml` + `GitController`
+- **The `git` verb** — `content/platform/cmd/system/git.yaml` + `Git<Sub>Controller` (over `GitControllerBase`)
   (category `system`, AuthorMixin-afforded, **no validator** — the
   per-path gate in `GitLogic` is the authority). Subcommands `status`
   (default) / `diff` / `log` / `publish -m <msg> [--dry-run]` /

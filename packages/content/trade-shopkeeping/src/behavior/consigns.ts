@@ -87,6 +87,7 @@ import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { CommandLineApi } from '@saxonberg/server/mud/api/command-line';
 
 
 const DEFAULT_BATCH = 6;
@@ -226,7 +227,7 @@ export const brain = class {
     for (const good of goods) {
       const kw = keywordOf(good);
       if (!kw) continue;
-      await hand.forceCommand(`get 1 ${kw}`);
+      await hand.forceCommand(`get 1 ${CommandLineApi.word(kw)}`);
       // A lift that declined (too heavy, not there) leaves the good where
       // it was — stop rather than grind through the rest; the next beat
       // starts from what the hand can carry.
@@ -291,7 +292,7 @@ export const brain = class {
         const kw = keywordOf(good);
         if (!kw) continue;
         const ask = askFor(ctx.config, good);
-        await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${CommandLineApi.word(kw)} --ask ${ask}`);
       }
     } finally {
       // Home again, on its own feet. ⚠ In a `finally` for the reason the

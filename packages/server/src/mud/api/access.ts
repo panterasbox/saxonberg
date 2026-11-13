@@ -96,7 +96,8 @@ export type TreeAction =
   | 'broadcast'
   | 'teleport'
   | 'clone'
-  | 'reload';
+  | 'reload'
+  | 'eval';
 
 /**
  * The source-tree actions {@link AccessApi.sourceWriteRefusal} asks about —
@@ -235,18 +236,23 @@ export class AccessApi {
 
   /**
    * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
-   * from the `'wizards'` group. Gated to the `WizardController` (the
-   * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
-   * — string-keyed to avoid a value-level static-import cycle. The
+   * from the `'wizards'` group. Gated to `WizardGrantController` and
+   * `WizardRevokeController` (the `wizard grant/revoke` verb, one
+   * controller per subcommand) via string-keyed `FromModule` policies —
+   * string-keyed to avoid a value-level static-import cycle. Each
    * controller is cloned per execution, and `FromModule` matches it by
    * its class module id (code provenance), so the cloned instance is
-   * admitted directly. The *authority* (the giver's archwizard status) is
+   * admitted directly. ⚠ Named exactly — never `includeSubclasses` on
+   * their base: a subclass anybody authors would inherit the entry. The *authority* (the giver's archwizard status) is
    * enforced by the verb's `requiresArchwizard` validator; this method is
    * the structurally single entry to the membership write. Returns true
    * iff membership changed.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule('/platform/idea/cmd/author/WizardController')
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/WizardGrantController'),
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/WizardRevokeController')
+    )
   )
   public static async setWizardMembership(
     playerId: string,

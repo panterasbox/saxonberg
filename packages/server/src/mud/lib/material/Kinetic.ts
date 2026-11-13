@@ -33,13 +33,13 @@ export function KineticMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       // ── How it changes at a temperature — a firing is one rule ──
       // ⭐ Measured facts like the boiling point: what a kiln, a larder and
       // a cane field teach you.
-      kinetics: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      kinetics: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
       // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
       // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
       formTemplates: { persistent: true, authorable: true },
       // ⭐ How the matter sets by DRAINING (dairy D9b) — a timed set, so it
       // is kinetics (decomposition W0; it sat beside the freezing point).
-      drainSetting: { persistent: true, authorable: true },
+      drainSetting: { persistent: true, authorable: true, ref: 'identity:constituent' },
     };
 
     // ⭐⭐ How this substance changes over time at a rate set by temperature

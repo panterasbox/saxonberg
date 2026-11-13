@@ -13,7 +13,7 @@
 # waiting for the station that casts them — a later rung with its own
 # mould. What a player learns here is that more fuel is not more better,
 # which is the whole of the carbon decision.
-class: /platform/thing/Ingot
+class: /trade/smithing/thing/Stock
 data:
   shortDescription: pig of cast iron
   keywords: [pig, cast-iron, "cast iron", iron, ingot]

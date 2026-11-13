@@ -61,4 +61,4 @@ data:
   # which is the reason the hook is on `Oven` and not on `Firebox`, where
   # a retort's placed items are its PRODUCTS and the hook would have
   # needed a guard.
-  placements: [on]
+  placements: [/platform/placements/on]

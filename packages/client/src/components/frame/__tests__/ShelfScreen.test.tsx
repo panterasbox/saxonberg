@@ -77,7 +77,7 @@ describe('ShelfScreen', () => {
 
   /*
    * ⚠ Absent BY DESIGN — they are not shelf rows at all, and
-   * `cockpit shelf unpin identity` refusing with "unknown shelf row" is
+   * `client-shelf unpin identity` refusing with "unknown shelf row" is
    * a stronger guarantee than a rule in this file.
    */
   it('⚠ offers no identity or connection row', () => {
@@ -93,18 +93,18 @@ describe('ShelfScreen', () => {
    * ⭐ Every affordance is a command, and NOTHING mutates locally. The
    * server writes `cockpit.shelf` and pushes it back.
    */
-  it('⭐ every affordance sends cockpit shelf, and mutates nothing locally', () => {
+  it('⭐ every affordance sends client-shelf, and mutates nothing locally', () => {
     setShelf(['play']);
     const sent: string[] = [];
     render(<ShelfScreen onClose={() => {}} onCommandClick={(c) => sent.push(c)} />);
 
     const before = useStore.getState().clientState['cockpit.shelf'];
-    for (const cmd of commands()) expect(cmd).toMatch(/^cockpit shelf /);
+    for (const cmd of commands()) expect(cmd).toMatch(/^client-shelf /);
 
     fireEvent.click(
       within(screen.getByTestId('catalogue-row-coin')).getByText('to bar'),
     );
-    expect(sent).toEqual(['cockpit shelf first coin']);
+    expect(sent).toEqual(['client-shelf first coin']);
     // ⚠ The store is untouched — the screen asked, it did not decide.
     expect(useStore.getState().clientState['cockpit.shelf']).toBe(before);
   });
@@ -120,7 +120,7 @@ describe('ShelfScreen', () => {
     fireEvent.click(
       within(screen.getByTestId('catalogue-row-play')).getByText('unpin'),
     );
-    expect(sent).toEqual(['cockpit shelf pin coin', 'cockpit shelf unpin play']);
+    expect(sent).toEqual(['client-shelf pin coin', 'client-shelf unpin play']);
   });
 
   /*
@@ -133,6 +133,6 @@ describe('ShelfScreen', () => {
     const row = screen.getByTestId('catalogue-row-docket');
     expect(
       within(row).getByText('to bar').getAttribute('data-command'),
-    ).toBe('cockpit shelf first docket');
+    ).toBe('client-shelf first docket');
   });
 });

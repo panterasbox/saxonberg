@@ -85,6 +85,8 @@ const BIOME_ANCESTRY_DEPTH_CAP = 32;
 
 /** Cached root biome instance. Cleared on HMR. */
 let rootBiomeCache: Biome | null = null;
+/** A suite's stand-in for the default wall when it has made no root (`@TestOnly`, load-on-use W8). */
+let defaultEnclosureStandIn: (() => string) | null = null;
 
 const BiomeApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/biome#BiomeApi'),
@@ -169,6 +171,21 @@ export class BiomeLogic extends ApiLogic {
   @CallSecurity(BiomeApiCallers)
   public getRootBiome(): Biome {
     return rootBiome();
+  }
+
+  /** See {@link BiomeApi.defaultEnclosureMaterial}. */
+  @CallSecurity(BiomeApiCallers)
+  public defaultEnclosureMaterial(): string {
+    if (rootBiomeCache === null && findBiomeByPath(ROOT_BIOME_PATH) === null && defaultEnclosureStandIn) {
+      return defaultEnclosureStandIn();
+    }
+    return rootBiome().getEnclosureMaterial();
+  }
+
+  /** See {@link BiomeApi.standDefaultEnclosureForTesting}. */
+  @CallSecurity(BiomeApiCallers)
+  public setDefaultEnclosureStandIn(provider: () => string): void {
+    defaultEnclosureStandIn = provider;
   }
 
   /** See {@link BiomeApi.invalidateRootBiomeCache}. */

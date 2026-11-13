@@ -33,6 +33,7 @@ import CredentialWalletUpdate from "../../platform/idea/CredentialWalletUpdate";
 import ForumsUpdate from "../../platform/idea/ForumsUpdate";
 import CalendarUpdate from "../../platform/idea/CalendarUpdate";
 import { MessageApi } from "../../api/message";
+import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import {
@@ -73,7 +74,6 @@ import type {
 import { DEFAULT_ROUTING } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
 import type Interactive from "../../platform/idea/Interactive";
-import type TopicCatalogue from "../../platform/idea/TopicCatalogue";
 import { TemplatePathPrefixes } from "../paths";
 import { EstateMixin } from "../chattel/Estate";
 import type { FieldMeta } from "../mixin";
@@ -298,6 +298,8 @@ export default abstract class Avatar extends AvatarBase {
        * everyone opens nothing else.
        */
       "platform/cmd/system/press.yaml",
+      // ⭐ Bare `press` — the read — is a shape of its own (W7a).
+      "platform/cmd/system/press-read.yaml",
       "platform/cmd/system/clear.yaml",
       "platform/cmd/system/affordances.yaml",
       "platform/cmd/author/player.yaml",
@@ -343,6 +345,10 @@ export default abstract class Avatar extends AvatarBase {
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
       "platform/cmd/stream/tune.yaml",
+      // ⭐ `tune <target>` and `tune <target> <message>` — two more shapes,
+      // AFTER `tune.yaml` so its subcommand words are tried first (W7a).
+      "platform/cmd/stream/tune-follow.yaml",
+      "platform/cmd/stream/tune-post.yaml",
       // ⭐ `fit`'s RAISE arm builds a thing made of parts, and its hand rung
       // (a wedge, a friction fit) has no instrument — so it is the
       // person's. Afforded by the parts it was not: a
@@ -1046,9 +1052,9 @@ export default abstract class Avatar extends AvatarBase {
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
-    const catalogue = StuffApi.findByTemplatePath<TopicCatalogue>(
-      "/platform/idea/TopicCatalogue",
-    );
+    // The client's topic snapshot: the vocabulary loads with the pipeline
+    // (documents D13), so session entry waits out the same first warm.
+    await MessageApi.topicsWarming();
     const portraitUrl = await this.getPortraitUrl();
     /*
      * ⭐ The record layer's backfill — what this player was told, from
@@ -1083,7 +1089,7 @@ export default abstract class Avatar extends AvatarBase {
         portraitUrl,
         isGuest: this.getIsGuest(),
       },
-      topicCatalogue: catalogue?.getSnapshot() ?? [],
+      topicCatalogue: MessageApi.topics().snapshot(),
 
       // Which topics are reactable, so the client stops keeping its own
       // copy of the answer. Its copy had already drifted — `act.combat`

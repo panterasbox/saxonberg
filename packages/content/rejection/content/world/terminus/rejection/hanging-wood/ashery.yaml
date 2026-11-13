@@ -36,8 +36,8 @@ data:
     # ⭐ Its own kiln for the calcining (potash D16), so the ashery and the
     # glasshouse never wait on each other.
     - /stuff/thing/Kiln
-    # ⭐ The pit is raked out with a broom — `sweep` is the broom's verb
-    # (found by the drive: an ashery with no broom could not be swept).
+    # The broom keeps the yard's floor (`sweep`); the pit's ash is RAKED
+    # out (`rake pit` — controller-liquidity W18 split raking from sweeping).
     - /stuff/thing/gear/broom
   cast:
     - /world/terminus/rejection/agent/ash-burner

@@ -261,6 +261,32 @@ describe("the credit ladder", () => {
     expect(BankingApi.balanceOf(shopAccount).minor).toBe(shop2 + 200);
   });
 
+  it("⭐ #128: the sales tax stays with the shop — a creditor's share is of what is left, so the remit never overdraws", async () => {
+    await BankingApi.mint(bankAccount, zm(50), "harness");
+    await completeTerms(2);
+    const granted = await ContractApi.issueLoan({ borrower: shop as never, counter: bankCounter, principalMinor: 100, rung: 1 });
+    if (!granted.ok) throw new Error("not granted");
+    withRows({ [AppSettingKeys.bankingSalesTaxRate]: "0.9" });
+    const patronAcct = await BankingApi.ensureVenueAccount(PATRON, BankingApi.defaultCustodianBank(), "", BankingApi.compactCurrency());
+    await BankingApi.mint(patronAcct, zm(1000), "harness");
+    const patron = cardHolder(PATRON, patronAcct);
+    // The shop has spent the advance: it holds nothing when the sale lands.
+    const keeper = cardHolder("/test/credit/keeper", shopAccount);
+    const spend: Charge = { amount: zm(BankingApi.balanceOf(shopAccount).minor), reason: "stock", presented: true, payeeAccountId: "acct-supplier", category: "terms" };
+    await as(keeper, () => BankingApi.settle(spend, { kind: "credential" }));
+    expect(BankingApi.balanceOf(shopAccount).minor).toBe(0);
+    const owed0 = (await ContractApi.contractById(granted.contractId))?.owedMinor ?? 0;
+    // The bank's quarter of 200 left the shop 150 against a 180 tax, and
+    // the remit hit the floor: the sale threw a controller-error. The tax is
+    // kept first; the bank takes its quarter of the 20 left.
+    const paid = await as(patron, () => EmploymentApi.settleSale(SHOP_COUNTER, 200, 200, "a purchase"));
+    expect(paid).not.toBeNull();
+    const row = await ContractApi.contractById(granted.contractId);
+    expect(row?.owedMinor).toBe(owed0 - 5);
+    expect(BankingApi.balanceOf(shopAccount).minor).toBe(200 - 180 - 5);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
+  });
+
   it("⭐ accrual is stamp-forward: 100 at five per cent over 0, ½, 1 and 2 game-years", async () => {
     await BankingApi.mint(bankAccount, zm(50), "harness");
     await completeTerms(2);

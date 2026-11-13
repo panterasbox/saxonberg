@@ -156,7 +156,7 @@ async function arrive(re: RegExp, budgetMs = 180_000): Promise<string> {
  */
 async function lighten(): Promise<void> {
   for (const w of ['saw', 'marker', 'scraper', 'block', 'block', 'block', 'rod', 'rod', 'worm', 'glowcap']) {
-    if (new RegExp(w, 'i').test(await carried())) await k.cmd(`drop ${w}`);
+    if (new RegExp(w, 'i').test(await carried())) await k.cmd(`drop "${w}"`);
   }
   await k.drainProse();
 }
@@ -254,7 +254,7 @@ beforeAll(async () => {
   // ⚠ Run 2: the founder may not `clone` fishing tackle (it is the
   // trade's title); a rod is bought, as anyone gets one.
   const store = await Session.open(handle, { startLocation: GENERAL_STORE });
-  for (const good of ['rod', 'worm']) expectOk(await store.cmd(`buy ${good}`));
+  for (const good of ['rod', 'worm']) expectOk(await store.cmd(`buy "${good}"`));
   store.close();
   k = await Session.open(handle, { startLocation: SHORE });
   // ⭐ Noon: every outdoor reading here is made in daylight.

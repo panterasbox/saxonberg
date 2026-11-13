@@ -30,6 +30,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -130,7 +132,7 @@ function garment(
   material: Material,
   slots: string[],
   massKg: number,
-  form = 'woven',
+  form = fabricPath('woven'),
 ): TestGarment {
   const g = makeStuff(() => new TestGarment());
   g.setMaterial(material);
@@ -143,23 +145,24 @@ function garment(
 describe('derived `clo` — physics, never an authored number', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
       weaveDensity: 0.75,
       drape: 0.6,
     });
-    Construction.registerFabric({
+    rememberFabric({
       key: 'knit',
       layerBand: 0,
       loft: 0.45,
       weaveDensity: 0.35,
       drape: 0.8,
     });
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -187,7 +190,7 @@ describe('derived `clo` — physics, never an authored number', () => {
     // the figure below is the derivation's, filed against textiles, and
     // the coat still offers what it is worth. Pinned so a change to the
     // derivation that moves it is seen.
-    Construction.registerFabric({
+    rememberFabric({
       key: 'felted',
       layerBand: 1,
       loft: 0.6,
@@ -195,8 +198,8 @@ describe('derived `clo` — physics, never an authored number', () => {
       drape: 0.3,
     });
     dressableBody();
-    const greatcoat = garment(wool(), ['torso'], 3.5, 'felted');
-    const tweed = garment(wool(), ['torso'], 1.1, 'woven');
+    const greatcoat = garment(wool(), ['torso'], 3.5, fabricPath('felted'));
+    const tweed = garment(wool(), ['torso'], 1.1, fabricPath('woven'));
     const clo = greatcoat.getClo().rawValue();
     expect(clo).toBeCloseTo(0.431, 2);
     expect(clo).toBeGreaterThan(tweed.getClo().rawValue() * 3);
@@ -220,8 +223,8 @@ describe('derived `clo` — physics, never an authored number', () => {
     // a knit trap air, and air is the insulator; the same wool woven
     // flat insulates less.
     dressableBody();
-    const knitted = garment(wool(), ['torso'], 1.0, 'knit');
-    const woven = garment(wool(), ['torso'], 1.0, 'woven');
+    const knitted = garment(wool(), ['torso'], 1.0, fabricPath('knit'));
+    const woven = garment(wool(), ['torso'], 1.0, fabricPath('woven'));
     expect(knitted.getClo().rawValue()).toBeGreaterThan(
       woven.getClo().rawValue(),
     );
@@ -243,7 +246,7 @@ describe('derived `clo` — physics, never an authored number', () => {
 describe('wet cloth is a different object', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -252,7 +255,7 @@ describe('wet cloth is a different object', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -301,7 +304,7 @@ describe('wet cloth is a different object', () => {
 describe('the covering stack orders itself', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -310,7 +313,7 @@ describe('the covering stack orders itself', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -391,7 +394,7 @@ describe('the covering stack orders itself', () => {
 describe('per-part thermal — the consumer `getSlotsCovering` never had', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -400,7 +403,7 @@ describe('per-part thermal — the consumer `getSlotsCovering` never had', () =>
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -449,14 +452,14 @@ describe('per-part thermal — the consumer `getSlotsCovering` never had', () =>
 describe('windproofing — no `shell` role word', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
       weaveDensity: 0.9,
       drape: 0.6,
     });
-    Construction.registerFabric({
+    rememberFabric({
       key: 'knit',
       layerBand: 0,
       loft: 0.45,
@@ -465,16 +468,16 @@ describe('windproofing — no `shell` role word', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
   it('⭐ a close weave breaks the wind and an open one does not', () => {
     // The dense oiled thing simply IS a shell. Nobody authors that.
     const wovenBody = dressableBody();
-    wovenBody.occupyAll(garment(wool(), ['torso'], 1.0, 'woven'), ['torso']);
+    wovenBody.occupyAll(garment(wool(), ['torso'], 1.0, fabricPath('woven')), ['torso']);
     const knitBody = dressableBody();
-    knitBody.occupyAll(garment(wool(), ['torso'], 1.0, 'knit'), ['torso']);
+    knitBody.occupyAll(garment(wool(), ['torso'], 1.0, fabricPath('knit')), ['torso']);
     expect(wovenBody.windproofing()).toBeGreaterThan(knitBody.windproofing());
   });
 
@@ -482,15 +485,15 @@ describe('windproofing — no `shell` role word', () => {
     // A jumper under an open coat does not break a wind, which is the
     // whole reason you put the coat on.
     const body = dressableBody();
-    body.occupyAll(garment(wool(), ['torso'], 1.0, 'woven'), ['torso']);
+    body.occupyAll(garment(wool(), ['torso'], 1.0, fabricPath('woven')), ['torso']);
     const shelteredByWeave = body.windproofing();
-    body.occupyAll(garment(wool(), ['torso'], 0.8, 'knit'), ['torso']);
+    body.occupyAll(garment(wool(), ['torso'], 0.8, fabricPath('knit')), ['torso']);
     expect(body.windproofing()).toBeLessThan(shelteredByWeave);
   });
 
   it('a soaked shell stops working', () => {
     const body = dressableBody();
-    const shell = garment(wool(), ['torso'], 1.0, 'woven');
+    const shell = garment(wool(), ['torso'], 1.0, fabricPath('woven'));
     body.occupyAll(shell, ['torso']);
     const dry = body.windproofing();
     shell.wet(1);
@@ -505,7 +508,7 @@ describe('windproofing — no `shell` role word', () => {
 describe('fit consequences ride SHIPPED mechanisms', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -514,7 +517,7 @@ describe('fit consequences ride SHIPPED mechanisms', () => {
     });
   });
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 

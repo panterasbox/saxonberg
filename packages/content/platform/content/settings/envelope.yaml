@@ -12,13 +12,8 @@
 # words over the 154 content rows that already carry a real thermal
 # conductivity — and these four numbers are the universe's, not any room's.
 settings:
-  # What a room is built of when neither its row nor its class says.
-  # Granite: the shipped row authors k = 2.9 W/(m·K), ρ = 2750, c = 790 —
-  # real granite, not a stand-in. Over 0.3 m with the air films below it
-  # gives ~3.7 W/m²K: a stone building, slow to warm and slow to cool,
-  # and genuinely harder to heat than a timber one.
-  - key: enclosure.defaultMaterial
-    value: "/stuff/idea/material/rock/granite"
+  # (What a room is built of when neither its row nor its class says is
+  # the root biome's `_enclosureMaterial` now — content, load-on-use W8.)
 
   # How thick that fabric is, in metres.
   - key: enclosure.defaultThicknessM

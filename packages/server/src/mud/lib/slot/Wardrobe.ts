@@ -40,6 +40,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandContributions } from '../../api/command';
 
 export interface Wardrobe {
   /** The keywords of one named set, innermost-first. Empty if unknown. */
@@ -61,6 +62,17 @@ export function WardrobeMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class WardrobeMixin extends Base implements Wardrobe {
     static _mixinName = 'WardrobeMixin';
+    /**
+     * ⭐ The `outfit` verb is the wardrobe's own (controller-liquidity
+     * W16): it was `equip set …`, afforded by the garments; an outfit is
+     * kept on the body whether or not anything wearable is carried, so
+     * the keeper affords it, to itself.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['platform/cmd/inventory/outfit.yaml'],
+      peers: [],
+      environment: [],
+    };
     static fieldMeta: FieldMeta = {
       wardrobes: { persistent: true },
     };

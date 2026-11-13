@@ -5,7 +5,6 @@
 # refusal, no warning, because blood on the floor is what actually
 # happens. So a pudding is something you only get if you came prepared,
 # which is a choice rather than a chore.
-recipeId: black-pudding
 name: Black pudding
 keywords: ["black-pudding", pudding, "blood pudding", black]
 discipline: butchery

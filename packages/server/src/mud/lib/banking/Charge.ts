@@ -46,6 +46,15 @@ export interface Charge {
   splits?: RemittanceSplit[];
   /** The P&L line the main leg rolls up into (default `sales`). */
   category?: PnlCategory;
+  /**
+   * The part of the amount that is the payee's taxable revenue — the sales
+   * tax on it is remitted from the payee's account after the sale lands, so
+   * `settle` keeps that tax with the payee: a creditor's repayment share is
+   * taken from what is left, and a charge whose own splits leave the payee
+   * less than the tax is refused (`splits-exceed`) before any leg posts.
+   * Absent = nothing to keep (issue #128).
+   */
+  taxableMinor?: number;
 }
 
 /**
@@ -66,4 +75,35 @@ export interface SettlementReceipt {
   corpoKey?: string;
   /** The `bank_ledger` transaction the legs rode — the link a contract event records (economic bootstrap D12). */
   txId?: string;
+}
+
+/**
+ * ⭐ Why a settlement did not clear, as a reason a caller can switch on
+ * (controller-liquidity W7c, C46): `tip` falls back to the account transfer
+ * only when the payer is short of coin, and used to fall back on ANY
+ * failure because the only signal was a thrown sentence.
+ *  - `no-payer` — nobody is acting.
+ *  - `cannot-hold-coin` — the payer is not a container (cash method).
+ *  - `insufficient-coin` — not enough coin in hand.
+ *  - `needs-payee` — cash with no receiver and no account to bridge to.
+ *  - `splits-exceed` — the riders are more than the charge.
+ *  - `inexact-cash` — the coin in hand cannot make the exact amount.
+ */
+export type SettleRefusalReason =
+  | "no-payer"
+  | "cannot-hold-coin"
+  | "insufficient-coin"
+  | "needs-payee"
+  | "splits-exceed"
+  | "inexact-cash";
+
+/** A settlement refused before any leg posted — its reason, and the old sentence as the message. */
+export class SettleRefused extends Error {
+  constructor(
+    public readonly reason: SettleRefusalReason,
+    message: string,
+  ) {
+    super(message);
+    this.name = "SettleRefused";
+  }
 }

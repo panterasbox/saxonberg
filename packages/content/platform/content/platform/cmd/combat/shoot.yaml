@@ -24,7 +24,7 @@ help: |
 examples:
   - cmd: shoot the wolf
     note: With whatever launcher you are holding
-  - cmd: shoot the bandit with the flintlock musket
+  - cmd: 'shoot the bandit with the "flintlock musket"'
     note: Naming the launcher when you carry two
 validators:
   - /lib/command/validators/requiresAnimate

@@ -72,6 +72,7 @@ import {
 } from "@saxonberg/content-arcana/src/lib/ManaPowered";
 import type { AetherHosted } from "@saxonberg/server/mud/lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "@saxonberg/server/mud/lib/credential/CredentialWallet";
+import type { ActOutcome, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 
 /**
  * The mixin marker, for `MixinApi.isActive` narrowing. A pack cannot add
@@ -130,6 +131,8 @@ export interface FastTravel {
   setDirectionality(value: Directionality): void;
   isDeparture(): boolean;
   isArrival(): boolean;
+  /** Record this node on `traveller`'s identity-bound travel credential (`register`). */
+  registerFor(traveller: Stuff): ActOutcome<RegisterDone> | RegisterRefusal;
 
   getRoutes(): ReadonlyMap<string, TravelRoute>;
   hasRoute(ref: string): boolean;
@@ -175,6 +178,13 @@ export interface FastTravel {
 
   getSurcharge(): number;
   setSurcharge(value: number): void;
+}
+
+/** Why a node will not record itself on a traveller's credential — worded by `register`. */
+export type RegisterRefusal = ActRefusal<"not-arrival" | "no-credential" | "no-identity">;
+/** A registration: whether the credential already held this node. */
+export interface RegisterDone {
+  already: boolean;
 }
 
 /** "11:00" → { hour: 11, minute: 0 }; pass-through for an object pattern. */
@@ -276,6 +286,32 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       return (
         this._directionality === "arrival" || this._directionality === "both"
       );
+    }
+
+    /**
+     * ⭐ **Record this node on `traveller`'s travel credential** (the
+     * `register` verb's act, controller-liquidity W12). Clearance is bound
+     * to the traveller's IDENTITY — the born-with, aether-hosted wallet —
+     * never to a carried, transferable card, so the write targets their own
+     * hosted wallet. A departures-only terminal has nothing to register.
+     */
+    registerFor(traveller: Stuff): ActOutcome<RegisterDone> | RegisterRefusal {
+      if (!this.isArrival()) return { ok: false, reason: "not-arrival" };
+      const holder = MixinApi.isAether(traveller)
+        ? (traveller
+            .getHostedUpdates()
+            .find(
+              (s): s is Stuff & AetherHosted & CredentialWallet =>
+                MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+            ) ?? null)
+        : null;
+      if (holder === null) return { ok: false, reason: "no-credential" };
+      const ref = (this as unknown as Stuff).getTemplatePath();
+      if (!ref) return { ok: false, reason: "no-identity" };
+      const cred = holder.ensureCredential("travel");
+      if (cred.isRegistered(ref)) return { ok: true, facts: { already: true } };
+      cred.register(ref);
+      return { ok: true, facts: { already: false } };
     }
 
     /* ── status seam (inert in v1) ──────────────────────────────── */

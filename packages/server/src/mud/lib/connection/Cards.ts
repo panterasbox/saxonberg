@@ -119,7 +119,7 @@ export type CardPayloadKind =
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
-  /** Human label — what `cockpit card list` prints and a waiting card says. */
+  /** Human label — what `client-card list` prints and a waiting card says. */
   readonly label: string;
   readonly source: CardSource;
   /**

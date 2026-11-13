@@ -267,8 +267,8 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
     expect(arch!.memberIds.sort()).toEqual(["/platform/agent/Avatar/boss1", "/platform/agent/Avatar/boss2"]);
   });
 
-  it("setWizardMembership is narrow-entry gated (rejects a non-WizardController caller)", () => {
-    // The facade carries FromController(WizardController); a call from
+  it("setWizardMembership is narrow-entry gated (rejects a caller other than the wizard grant/revoke controllers)", () => {
+    // The facade carries FromModule(WizardGrantController | WizardRevokeController); a call from
     // this test module (not the controller) is denied synchronously.
     expect(() => AccessApi.setWizardMembership("alice", true)).toThrow(
       SecurityError,

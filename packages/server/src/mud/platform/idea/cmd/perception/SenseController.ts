@@ -44,6 +44,7 @@ import { Mml } from '../../../../api/mml';
 import { PerceptionApi } from '../../../../api/perception';
 import { SENSE_CHANNELS, type SenseChannel } from '../../../../lib/description/Perceiver';
 import type Exit from '../../../../lib/boundary/Exit';
+import { Placement } from '../../../../lib/spatial/Placement';
 
 /**
  * The `senseStripAugmenter`'s `filter` is `SenseChannel`-typed —
@@ -272,7 +273,7 @@ export default class SenseController extends CommandController<SenseModel> {
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
         const heading =
-          ContainmentApi.placement(member)?.getHeading() || 'With it';
+          ContainmentApi.placements().need(member).getHeading() || 'With it';
         body = Mml.compose`${body}── ${heading}: ${list}.`;
       }
     }
@@ -286,14 +287,15 @@ export default class SenseController extends CommandController<SenseModel> {
     if (exits.length === 0) return null;
     const parts = exits.map((exit) => {
       const tagged = Mml.exit(exit);
-      const door = exit.getDoor();
+      const door = exit.getBoundary();
       if (!door) return tagged;
-      // ⭐ One word, from the door — see `Door.stateWord`. This read
-      // said `closed` about a LOCKED door, in two controllers, until a
-      // lens pass caught it.
-      const state = door.stateWord();
+      // ⭐ One word, from the way — see `Exit.wayState`. This read said
+      // `closed` about a LOCKED door, in two controllers, until a lens
+      // pass caught it. A window is named, not stated: it is never a way
+      // a body takes.
       const doorLink = Mml.thing(door);
-      return Mml.compose`${tagged} (${doorLink}, ${state})`;
+      if (exit.wayState() === 'window') return Mml.compose`${tagged} (${doorLink})`;
+      return Mml.compose`${tagged} (${doorLink}, ${door.stateWord()})`;
     });
     const joined = Mml.list(parts);
     return Mml.compose`── Obvious exits: ${joined}.`;

@@ -20,7 +20,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import Food from '../../../platform/idea/material/Food';
 import { StuffApi } from '../../../api/stuff';
@@ -39,6 +39,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { TemplatePaths } from '../../paths';
+import { rememberProfile } from './profiles';
 
 const MUST = '/stuff/idea/material/_test/cap-must';
 const WINE = '/stuff/idea/material/_test/cap-wine';
@@ -61,7 +62,7 @@ function material(path: string, tags: string[], sugar = 0): void {
 }
 
 function profile(): void {
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('cap-test');
     p.setMechanism('microbial');

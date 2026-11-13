@@ -33,6 +33,7 @@ import type { VetoResult } from '../errors';
 import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 
 /**
  * ⭐ What a thing can be SEALED with — a gummed flap, a blob
@@ -62,6 +63,28 @@ const sealAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 /**
+ * ⭐ Why it will not open as asked (controller-liquidity W7c) — the `open`
+ * verb words each.
+ *  - `cannot-open` — it refuses this person (`canOpen`); `why` is its own words.
+ *  - `already-open` — it is open.
+ *  - `no-setting` — a setting was named and it is open or shut, nothing between.
+ *  - `bad-setting` — a throttled gate, and the setting named is not one.
+ */
+export type OpenRefusal =
+  | ActRefusal<'cannot-open', { why: string | null }>
+  | ActRefusal<'already-open'>
+  | ActRefusal<'no-setting'>
+  | ActRefusal<'bad-setting'>;
+
+/** What opening it came to: opened, or (a throttled gate) set to an amount. */
+export type OpenFacts =
+  | { kind: 'opened'; thing: Stuff }
+  | { kind: 'set'; thing: Stuff; shut: boolean; words: string };
+
+/** What `openPlanFor` answers — an instant plan (`durationMs: 0`), or why not. */
+export type OpenAnswer = ActPlan<OpenFacts, OpenFacts, OpenRefusal> | OpenRefusal;
+
+/**
  * Public shape added by SealableMixin. `isOpen()` (predicate getter) /
  * `setOpen()` (noun setter) is the inter-Stuff contract surface;
  * `open()` / `close()` are the action-shaped mutators most callers
@@ -80,6 +103,19 @@ export interface Sealable {
    * the refusal it returns — the mixin decides, the controller says it.
    */
   canOpen(by: Stuff): VetoResult;
+  /**
+   * ⭐ `open <it> [to <setting>]` — one act (controller-liquidity W7c): the
+   * thing decides. A door opens (or is already open, or refuses this
+   * person); a throttled gate (`ThrottleableMixin`) opens by the amount
+   * named. Opening is the touch that springs an interact-hazard.
+   */
+  openPlanFor(by: Stuff, setting: string | null): OpenAnswer;
+  /**
+   * @hook May `by` close this now? The default says yes; a fixed grating
+   * says no (boundary build — it is always open). The `close` verb asks it
+   * first and renders the refusal, as `open` does `canOpen`.
+   */
+  canClose(by: Stuff): VetoResult;
   /** ⭐ The seal on it (`''` · `gum` · `wax`) — paper D11. */
   getSeal(): SealKind;
   /** ⭐ Has the seal been broken since it was set? */
@@ -183,6 +219,31 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** May `by` open this? A plain sealable always says yes. */
     canOpen(_by: Stuff): VetoResult {
+      return { ok: true };
+    }
+
+    /** @hook See {@link Sealable.openPlanFor}. Open or shut — a setting is refused. */
+    openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
+      const may = this.canOpen(by);
+      if (!may.ok) return { ok: false, reason: 'cannot-open', facts: { why: may.reason ?? null } };
+      if (setting !== null) return { ok: false, reason: 'no-setting' };
+      if (this.isOpen()) return { ok: false, reason: 'already-open' };
+      const thing = this as unknown as Stuff;
+      const facts: OpenFacts = { kind: 'opened', thing };
+      return {
+        ok: true, durationMs: 0, effortW: 0, facts,
+        onComplete: () => {
+          this.open(by);
+          // ⭐ Opening it is the touch that springs an interact-hazard (a
+          // trapped chest); the hazard decides, and a plain chest is a no-op.
+          if (MixinApi.isHazard(thing)) thing.resolveInteract(by);
+          return { ok: true, facts };
+        },
+      };
+    }
+
+    /** May `by` close this? A plain sealable always says yes. */
+    canClose(_by: Stuff): VetoResult {
       return { ok: true };
     }
   };

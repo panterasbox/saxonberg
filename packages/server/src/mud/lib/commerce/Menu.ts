@@ -18,7 +18,8 @@
  */
 
 import Good from '../stuff/Good';
-import { PricedOfferMixin, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
+import { PricedOfferMixin, type Offering, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
+import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import { ContainmentApi } from '../../api/containment';
 import { EmploymentApi } from '../../api/employment';
 import { MixinApi } from '../../api/mixin';
@@ -52,7 +53,12 @@ export default class CommerceMenu extends CommerceMenuBase {
   };
 
 
-  /** Recipe ids this menu offers (references the `recipes` collection). */
+  /**
+   * The recipes this menu offers, by **document path**
+   * (`/trade/hospitality/recipes/martini`) — an authored citation names the
+   * path (the census lint checks each one ships). An order is matched by the
+   * recipe's word, which is the path's leaf.
+   */
   public offeredRecipes: string[] = [];
 
   // `prices` + `priceFor(recipeId)` are inherited from PricedOfferMixin
@@ -66,14 +72,35 @@ export default class CommerceMenu extends CommerceMenuBase {
     this.offeredRecipes = [...value];
   }
 
+  /** Whether the menu offers the recipe whose word (path leaf) is `recipeId`. */
   hasOfferedRecipe(recipeId: string): boolean {
-    return this.offeredRecipes.includes(recipeId);
+    return this.offeredRecipes.some((p) => leafOf(p) === recipeId);
   }
 
-  addOfferedRecipe(recipeId: string): void {
-    if (!this.offeredRecipes.includes(recipeId)) {
-      this.offeredRecipes.push(recipeId);
+  /** Offer the recipe at `path`. */
+  addOfferedRecipe(path: string): void {
+    if (!this.offeredRecipes.includes(path)) {
+      this.offeredRecipes.push(path);
     }
+  }
+
+  /**
+   * ⭐ The recipes on the menu. Reading a recipe source marks each one
+   * *known-of* for the reader — a chronicle claim (idempotent: re-reading
+   * doesn't duplicate). Known-of lets you attempt the manual build; making
+   * it is the deed (the ladder).
+   */
+  override async offerings(reader: Stuff): Promise<readonly Offering[]> {
+    const offered = await CraftingApi.offeredRecipes(this);
+    if (MixinApi.isPersona(reader)) {
+      for (const recipe of offered) {
+        await reader.recordChronicleOnce(
+          RecipeKnowledge.knownKey(recipe.recipeId),
+          RecipeKnowledge.knownEntry(recipe.name),
+        );
+      }
+    }
+    return offered.map((r) => ({ kind: 'recipe' as const, recipeId: r.recipeId, name: r.name }));
   }
 
   /**
@@ -84,7 +111,7 @@ export default class CommerceMenu extends CommerceMenuBase {
   async resolveOrder(keyword: string): Promise<string | null> {
     const view = await CraftingApi.lookupRecipe(keyword);
     if (!view) return null;
-    return this.offeredRecipes.includes(view.recipeId) ? view.recipeId : null;
+    return this.hasOfferedRecipe(view.recipeId) ? view.recipeId : null;
   }
 
   /**
@@ -156,6 +183,11 @@ export default class CommerceMenu extends CommerceMenuBase {
   override getLong(): string {
     const base = super.getLong();
     if (this.offeredRecipes.length === 0) return base;
-    return `${base} It lists: ${this.offeredRecipes.join(', ')}.`;
+    return `${base} It lists: ${this.offeredRecipes.map(leafOf).join(', ')}.`;
   }
+}
+
+/** A recipe's word: its path's last segment. */
+function leafOf(path: string): string {
+  return path.slice(path.lastIndexOf('/') + 1);
 }

@@ -26,4 +26,4 @@ data:
       - { part: grip, template: /trade/carpentry/thing/handle, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
       - { part: pommel, template: /trade/smithing/thing/pommel, count: 1, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: hilting, method: peened, members: [blade, guard, grip], fastener: pommel }
+      - { key: hilting, method: /platform/joints/peened, members: [blade, guard, grip], fastener: pommel }

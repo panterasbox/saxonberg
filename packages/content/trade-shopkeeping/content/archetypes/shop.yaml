@@ -8,9 +8,8 @@
 # No `industry:` — shopkeeping derives no recipe rows. Selling is not
 # making; what a shop needs is a counter, somewhere to put goods it does
 # not own, light to read a price by, and somebody behind it.
-archetypeId: shop
 label: a shop
-surveyScope: space
+roomsScope: space
 capabilities:
   - { key: counter, needs: { presence: counter }, default: /trade/shopkeeping/thing/counter }
   - { key: shelf, needs: { presence: shelf }, default: /trade/shopkeeping/thing/consignment-shelf }

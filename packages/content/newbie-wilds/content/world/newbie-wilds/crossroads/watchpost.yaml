@@ -24,7 +24,7 @@ data:
 
     Someone stands watch at the far edge, where the road resumes into the trees, eyes working the clearing. There is cover everywhere — the split trunk, the bracken, the deadfall — for anyone minded to `hide` and go on unnoticed, or to wait. In the bracken by your feet, half-buried, a folded roll of oilcloth someone left behind.
 
-    East, the way back to the treeline and the crossroads beyond.
+    West, the way back to the treeline and the crossroads beyond.
   coords:
     x: 1
     y: 1
@@ -35,7 +35,7 @@ data:
       description: |
         A pine split top to root by old lightning, the halves leaned apart into a black wedge of shadow; bracken and deadfall banked around the base. Cover enough to lose a person in, if the person holds still.
   exits:
-    east:
+    west:
       destination: /world/newbie-wilds/crossroads/treeline
   # The sentry keeps the ground; the trap kit waits in the bracken. Both
   # cloned fresh at standup.

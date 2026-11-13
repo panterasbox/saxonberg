@@ -21,4 +21,7 @@ args:
     type: object
     scope: ["$focus", "reachable"]
     required: false
+    # ⭐ The pilot standing with you, bound by the view (the controller
+    # used to hunt for one itself — controller-liquidity W12).
+    default: "reachable:[class.Pilot]"
     requires: ChartedMixin

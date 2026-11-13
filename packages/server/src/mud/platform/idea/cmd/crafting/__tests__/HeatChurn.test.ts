@@ -1,8 +1,10 @@
 /**
- * The two widened arms of the kitchen's work verbs (dairy D5, D6): `heat`
- * SETS a plain vessel on the lit fire in reach so its contents really
- * warm, and `stir` works a vessel that is `HandWorkedMixin` — while the
- * build arms of both are exactly as they were.
+ * The kitchen's work verbs as one act each (controller-liquidity W7c):
+ * `heat` takes a `HeatedMixin` thing to the fire — a build latches, an
+ * instrument held in the flame is sterilized — and a plain vessel is no
+ * longer set on the fire by it (that is `put … on`, dairy D6's act now);
+ * `stir` is the build's alone (W18): a build records its method, and a
+ * churn is NOT stirred — it is `churn`ed, the dairying pack's verb.
  */
 
 import '../../../../../../test-bootstrap';
@@ -35,6 +37,8 @@ import { ManualBuildMixin } from '../../../../../lib/craft/ManualBuild';
 import { ToolMixin } from '../../../../../lib/craft/Tool';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
 import { HandWorkedMixin, type HandWorkFacts } from '../../../../../lib/craft/HandWorked';
+import { HeatedMixin } from '../../../../../lib/fire/Heated';
+import { SoilableMixin } from '../../../../../lib/cleanliness/Soilable';
 import type { ActOutcome } from '../../../../../lib/craft/ActPlan';
 import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -65,6 +69,9 @@ class TestActor extends ThermalMixin(
 
 /** A cook pot's shape: a build host + a tool, and NOT bulkable. */
 class TestPot extends ManualBuildMixin(ToolMixin(Good)) {}
+
+/** An instrument kept clean — a surgical kit's shape. */
+class TestKit extends HeatedMixin(SoilableMixin(ToolMixin(Good))) {}
 
 const heatCmd = CommandDefinition.fromYaml(
   'verbs: [heat]\ncontroller: x\ndescription: d\n',
@@ -174,33 +181,40 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('⭐ heat — the placing arm (dairy D6)', () => {
-  it('a vat beside a lit hearth is SET ON it, and reads the fire', async () => {
-    const hearth = await stand('hearth');
+describe('⭐ heat — one act on what is Heated (W7c)', () => {
+  it('a vat is not Heated: refused, and NOT set on the fire (that is `put`)', async () => {
+    await stand('hearth');
     const v = vat();
     await ContainmentApi.move(v as never, room as never);
+    expect(MixinApi.isHeated(v)).toBe(false);
     const ctx = await run(() => new HeatController(), 'heat', 'target', v);
-    expect(refusal(ctx)).toBeNull();
-    const placement = v.getPlacement();
-    expect(placement?.name).toBe('on');
-    expect((placement?.host as Stuff | undefined)?.stuffId).toBe(hearth.stuffId);
-  });
-
-  it('beside a cold hearth it declines with the fire line', async () => {
-    await stand('cold-hearth');
-    const v = vat();
-    await ContainmentApi.move(v as never, room as never);
-    const ctx = await run(() => new HeatController(), 'heat', 'target', v);
-    expect(refusal(ctx)).toBe('no-fire-to-set-on');
+    expect(refusal(ctx)).toBe('no-vessel');
     expect(v.getPlacement()).toBeNull();
   });
 
-  it('a fire you cannot set things on (a forge) declines the same way', async () => {
-    await stand('forge');
-    const v = vat();
-    await ContainmentApi.move(v as never, room as never);
-    const ctx = await run(() => new HeatController(), 'heat', 'target', v);
-    expect(refusal(ctx)).toBe('no-fire-to-set-on');
+  it('beside a cold hearth a build is refused for want of heat', async () => {
+    await stand('cold-hearth');
+    seq += 1;
+    const pot = makeStuffAtPath(() => new TestPot(), `/stuff/thing/vessel/_heatpot-${seq}`) as TestPot;
+    await ContainmentApi.move(pot as never, room as never);
+    const ctx = await run(() => new HeatController(), 'heat', 'target', pot);
+    expect(refusal(ctx)).toBe('insufficient-heat');
+    expect(pot.getHeatedToK()).toBe(0);
+  });
+
+  it('an instrument held in the flame takes a dry heat (the kit arm)', async () => {
+    await stand('hearth');
+    const kit = makeStuff(() => new TestKit());
+    await ContainmentApi.move(kit as never, room as never);
+    expect(MixinApi.isHeated(kit)).toBe(true);
+    const plan = kit.heatPlanFor(actor as unknown as Stuff);
+    expect(plan.ok).toBe(true);
+    if (plan.ok !== true) return;
+    expect(plan.facts.manner).toBe('hold');
+    const done = await plan.onComplete();
+    expect(done.ok).toBe(true);
+    if (done.ok) expect(done.facts.sterile).toBe(true);
+    expect(kit.cleanTier()).toBe('sterile');
   });
 
   it('a build vessel still latches — the build arm is untouched', async () => {
@@ -220,8 +234,8 @@ describe('⭐ heat — the placing arm (dairy D6)', () => {
   });
 });
 
-describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
-  it('a hand-worked vessel is worked, and says what came of it', async () => {
+describe('⭐ `stir` is the build\'s alone (controller-liquidity W18)', () => {
+  it('a hand-worked churn is not stirred — `churn` is its verb', async () => {
     await stand('hearth');
     const calls: string[] = [];
     class TestChurn extends HandWorkedMixin(BulkableMixin(Good)) {
@@ -233,11 +247,11 @@ describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
     const churn = makeStuff(() => new TestChurn());
     await ContainmentApi.move(churn as never, room as never);
     const ctx = await run(() => new StirController(), 'stir', 'vessel', churn);
-    expect(refusal(ctx)).toBeNull();
-    expect(calls).toEqual(['worked']);
+    expect(refusal(ctx)).toBe('no-vessel');
+    expect(calls).toEqual([]);
   });
 
-  it('a vessel that is neither a build nor hand-worked is refused', async () => {
+  it('a vessel that is not a build is refused', async () => {
     await stand('hearth');
     const v = vat();
     await ContainmentApi.move(v as never, room as never);

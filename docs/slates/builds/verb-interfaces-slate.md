@@ -51,7 +51,7 @@ bandage is not a verb but **time in water at 100 °C**. The derivable model:
   liquid is held at that liquid's temperature for as long as it is in it —
   the wet-heat stamp (`Soilable.holdAtHeat(K, s, {wet: true})`) and the
   kill law — applied by the vessel's own thermal reconcile, not by a verb.
-- So the bandage is `put … in pot`, the pot set on the fire (or `heat pot`),
+- So the bandage is `put … in pot`, the pot set on the fire (`put pot on <hearth>`),
   time passes, `get bandage`: disinfected, because it sat in boiling water.
   A copper boil-wash, a dye bath, a pot of stew with a bone in it — the same
   rule.

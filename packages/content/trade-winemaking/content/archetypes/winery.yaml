@@ -1,7 +1,7 @@
 # The WINERY archetype (fermentation W8+): what a winery NEEDS, as
 # capability slots — the hospitality precedent, one trade over. A
 # second winery anywhere satisfies this from ANY rows (D8: trade =
-# mechanism, locality = expression); reported by `survey`, never
+# mechanism, locality = expression); reported by `analyze rooms`, never
 # enforced.
 #
 # `industry` is deliberately null: winemaking shares the `fermenting`
@@ -14,7 +14,6 @@
 # — the `order` surface, not a capability the kernel checks over
 # contents — and inventing a need kind for it would make a checklist
 # tidy at the price of a fake mechanic (the bathroom rule).
-archetypeId: winery
 label: a winery
 capabilities:
   - { key: crush, needs: { tool: press }, default: /trade/winemaking/thing/press }

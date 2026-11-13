@@ -2,7 +2,6 @@
 # last, so a cobbler can make what a re-soling wants rather than only fit
 # what somebody else made. `sew sole` with a needle at hand: tailoring's
 # verb runs it, and the sole credits the trade that made it, leatherwork.
-recipeId: sole
 name: Leather Sole
 keywords: [sole, soles]
 inputSlots:

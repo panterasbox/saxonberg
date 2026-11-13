@@ -17,7 +17,6 @@
  * each read (HMR-safe, no cached instance).
  */
 
-import { StuffApi } from '../../api/stuff';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Construction } from './Construction';
 import { Channels } from './Channel';
@@ -37,9 +36,6 @@ export interface Constructed {
   setConstruction(value: Construction): void;
 }
 
-/** The fabric roster's row — registers the textile forms when it stands. */
-const FABRIC_CATALOGUE_PATH = '/platform/idea/FabricCatalogue';
-
 export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConstructedMixin extends Base implements Constructed {
     static _mixinName = 'ConstructedMixin';
@@ -58,11 +54,12 @@ export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     async setConstructionForm(value: string): Promise<void> {
-      // ⭐ A form word this process has not met warms the fabric roster
-      // once (the scan sweep — the catalogue is not booted): a row that
-      // cites `woven` loads what woven IS. Still an invariant afterwards.
-      if (value !== '' && !Construction.isForm(value)) {
-        await StuffApi.singleton(FABRIC_CATALOGUE_PATH).catch(() => null);
+      // ⭐ A fabric is a document cited by path (load-on-use W2): it loads
+      // with what cites it, so every sync read of the form finds it. A
+      // path that names no fabric document throws here, loudly. A resident
+      // one sets at once (no await), as a kernel word does.
+      if (value.startsWith('/') && !MaterialApi.fabrics().has(value)) {
+        await MaterialApi.fabrics().ensure(value);
       }
       if (value !== '' && !Construction.isForm(value)) {
         throw new RangeError(

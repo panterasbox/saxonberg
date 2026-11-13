@@ -17,10 +17,10 @@
  *    that keep a record are its `dependentPersistables`, so capturing the
  *    warren captures them) / `teardown` / `revert`;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
- *    serial), who is told when the population changes (`reconcile`), what
- *    a copied way needs from the copy (`fitExit` — a house hands its
- *    keyed doors their keyway), and the address a woken room is stamped
- *    with (`addressFor`). A room that must finish itself against its
+ *    serial), who is told when the population changes (`reconcile`), and
+ *    the address a woken room is stamped with (`addressFor`). A house's
+ *    keyed doors are hung by the house itself after the wake
+ *    (`HoldingWarren.hangKeyedDoors`). A room that must finish itself against its
  *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
  *    hook.
  *
@@ -443,31 +443,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
           wheelPassable: way.wheelPassable,
           edgeMinutes: way.edgeMinutes,
         },
-        (exit) => this.fitExit(exit),
       );
     }
-  }
-
-  /**
-   * A copied way inside the copy, before it is bound — what it needs from
-   * the copy it belongs to. A house hands its keyed doors the holding (the
-   * keyway is the parcel's); an unfitted keyed door opens for nobody.
-   *
-   * @hook Default: nothing.
-   */
-  protected fitExit(_exit: Exit): void {
-    /* nothing to fit */
-  }
-
-  /**
-   * Who owes the upkeep of what this warren is, as a tenure term
-   * (`owner-all`, `landlord-shell` …) — what `survey` tells a holder.
-   *
-   * @hook Default: none — a mine's workings and a ship's rooms are owed
-   *   by nobody's tenure (a holding answers its term).
-   */
-  public getUpkeepTerm(): string | null {
-    return null;
   }
 
   /** The live room for a leaf, or null. */

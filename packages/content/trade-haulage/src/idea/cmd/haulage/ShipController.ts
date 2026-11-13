@@ -100,7 +100,7 @@ export default class ShipController extends CommandController<ShipModel> {
     if (raw.length === 0) {
       return this.fail(context, 'Ship it where?', 'no-destination');
     }
-    const destination = AddressApi.resolvePlace(
+    const destination = await AddressApi.resolvePlace(
       raw,
       giver,
       context.location?.getTemplatePath() ?? '',

@@ -36,10 +36,12 @@ import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { DocumentNotResidentError } from '../errors';
 import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
 import { ParcelApi } from '../../api/parcel';
 import { GrammarApi } from '../../api/grammar';
+import { Placements } from '../spatial/Placement';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
 /**
@@ -206,30 +208,31 @@ export interface ArchetypeData {
    * ⚠ **Where this archetype is REPORTED, which is not the same question
    * as where it is checked.**
    *
-   * `survey` reports every industry-less archetype in the room you stand
-   * in. That was right while the industry-less archetypes were the four
-   * furnishing ones; the moment a corridor, a depot, a rig, a coach and a
-   * livery join them, five extra lines land on every `survey` in the
-   * game — in every bedroom, for every player.
+   * `analyze rooms` reports every industry-less archetype in the room you
+   * stand in (the retired `survey`, controller-liquidity W17). That was
+   * right while the industry-less archetypes were the four furnishing
+   * ones; the moment a corridor, a depot, a rig, a coach and a livery join
+   * them, five extra lines land on every reading in the game — in every
+   * bedroom, for every player.
    *
    * | value | reported |
    * |---|---|
    * | `space` | the room you stand in (today's behaviour, the default) |
    * | `corridor` | the rooms of the corridor zone you stand in, at once — and never from a room that is not in one |
-   * | `off-room` | never from a room. A rig and a coach are surveyed by naming them |
+   * | `off-room` | never from a room. A rig and a coach are read by naming them |
    *
    * ⭐ The corridor space set is resolved **by zone**, not by lane, so the
    * kernel controller stays free of any pack import and the shipped
    * `valley-road` zone is READ rather than extended.
    */
-  surveyScope: SurveyScope;
+  roomsScope: RoomsScope;
   capabilities: CapabilitySlot[];
 }
 
-/** See {@link ArchetypeData.surveyScope}. */
-export const SURVEY_SCOPES = ['space', 'corridor', 'off-room'] as const;
+/** See {@link ArchetypeData.roomsScope}. */
+export const ROOMS_SCOPES = ['space', 'corridor', 'off-room'] as const;
 
-export type SurveyScope = (typeof SURVEY_SCOPES)[number];
+export type RoomsScope = (typeof ROOMS_SCOPES)[number];
 
 const NEED_KEYS = [
   'tool',
@@ -292,14 +295,18 @@ export class Archetype {
   private constructor(private readonly data: ArchetypeData) {}
 
   static fromDocument(doc: StoredDocument): Archetype {
-    return Archetype.fromData(doc.getData());
+    return Archetype.fromData(doc.getData(), doc.getPath());
   }
 
-  /** The same validation over a bare `data` object (the pack reader's use). */
-  static fromData(data: Record<string, unknown>): Archetype {
-    const id = data.archetypeId;
-    if (typeof id !== 'string' || id.length === 0) {
-      throw new Error("archetype: 'archetypeId' must be a non-empty string");
+  /**
+   * The same validation over a bare `data` object at `path` (the pack
+   * reader's use). ⭐ The archetype's id is its path's LEAF — the path is its
+   * only name.
+   */
+  static fromData(data: Record<string, unknown>, path: string): Archetype {
+    const id = path.slice(path.lastIndexOf('/') + 1);
+    if (id.length === 0) {
+      throw new Error(`archetype: document at '${path}' has no leaf to be its id`);
     }
     const label = typeof data.label === 'string' && data.label.length > 0 ? data.label : id;
     // Optional: a room archetype derives nothing (no recipes make a
@@ -323,18 +330,18 @@ export class Archetype {
       typeof rawOnto === 'string' ? rawOnto : VENUE_PATH;
 
     // Where it is REPORTED. Absent ⇒ today's behaviour.
-    const rawScope = data.surveyScope;
+    const rawScope = data.roomsScope;
     if (
       rawScope !== undefined &&
-      !SURVEY_SCOPES.includes(rawScope as SurveyScope)
+      !ROOMS_SCOPES.includes(rawScope as RoomsScope)
     ) {
       fail(
         id,
-        `'surveyScope', when present, must be one of ${SURVEY_SCOPES.join(' | ')}`,
+        `'roomsScope', when present, must be one of ${ROOMS_SCOPES.join(' | ')}`,
       );
     }
-    const surveyScope =
-      typeof rawScope === 'string' ? (rawScope as SurveyScope) : 'space';
+    const roomsScope =
+      typeof rawScope === 'string' ? (rawScope as RoomsScope) : 'space';
 
     const rawCaps = data.capabilities ?? [];
     if (!Array.isArray(rawCaps)) fail(id, "'capabilities' must be a list");
@@ -357,7 +364,7 @@ export class Archetype {
       label,
       industry,
       materializesOnto,
-      surveyScope,
+      roomsScope,
       capabilities,
     });
   }
@@ -367,8 +374,8 @@ export class Archetype {
   getIndustry(): string | null { return this.data.industry; }
   /** See {@link ArchetypeData.materializesOnto}. */
   getMaterializesOnto(): string { return this.data.materializesOnto; }
-  /** See {@link ArchetypeData.surveyScope}. */
-  getSurveyScope(): SurveyScope { return this.data.surveyScope; }
+  /** See {@link ArchetypeData.roomsScope}. */
+  getRoomsScope(): RoomsScope { return this.data.roomsScope; }
   getCapabilities(): readonly CapabilitySlot[] { return this.data.capabilities; }
 
   /** A stable identity for a need, so a derived row merges with an authored one. */
@@ -437,8 +444,12 @@ export class Archetype {
     // down; skipping the walk is the whole of "industry is optional".
     const industry = this.getIndustry();
     if (industry === null) return order.map((k) => rows.get(k)!);
-    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH) ?? null;
-    for (const r of recipes?.allRecipes() ?? []) {
+    // ⭐ The industry's recipes come from the recipe dictionary, which
+    // whatever asks (`analyze rooms`, the scaffold) loaded before asking — a miss
+    // throws rather than deriving an empty floor.
+    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH);
+    if (!recipes) throw new DocumentNotResidentError('recipe', RECIPES_PATH);
+    for (const r of recipes.allRecipes()) {
       if (r.getDiscipline() !== industry) continue;
       for (const cap of r.getToolCapabilities()) add({ tool: cap }, r.getRecipeId());
       const heat = r.getRequiresHeatK();
@@ -449,7 +460,7 @@ export class Archetype {
 
   /**
    * **Does this space answer the archetype?** — the third derived read,
-   * and the one a person asks (`survey`).
+   * and the one a person asks (`analyze rooms`).
    *
    * Evaluated over the union of one or more spaces' direct contents AND
    * their fixtures, so a holding answers as a whole (a kitchen counter
@@ -555,7 +566,7 @@ function satisfyingItem(
     // not a work surface; a hook is a `Placing` host and is not one
     // either. What a bench claims is that you can set things ON it.
     const hit = pool.find(
-      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes('on'),
+      (i) => MixinApi.isPlacing(i) && i.getPlacements().includes(Placements.ON),
     );
     return hit ? hit.getPresentation() : null;
   }

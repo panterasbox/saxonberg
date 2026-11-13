@@ -12,7 +12,8 @@ import type { SplitBegin, SplitDone, SplitRefusal, SplitWorkable, WorkPlan } fro
  * ⭐ **A thing too big or too aggregated to use, and dividing it.**
  *
  * Named because the pattern already had a second member before this build:
- * `fell bole` cross-cuts a felled trunk a length at a time under a verb
+ * `fell bole` cross-cut a felled trunk a length at a time (it is `cut bole`
+ * since controller-liquidity D14) under a verb
  * that means something else, as its own view admits (*"Fell a standard with
  * an axe, or cross-cut a felled one"*). A `Stackable` is the third
  * candidate. So the mandate is deliberately wider than stone:

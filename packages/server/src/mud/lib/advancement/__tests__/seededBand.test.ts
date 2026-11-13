@@ -25,6 +25,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from './discipline-fixtures';
 import { Idea } from '../../stuff/Idea';
 import { AdvancementMixin } from '../Advancement';
 import { PersonaMixin } from '../../character/Persona';
@@ -51,8 +52,9 @@ interface Row {
 
 let rows: Row[] = [];
 
-beforeEach(() => {
+beforeEach(async () => {
   StuffApi.clearAll();
+  await rememberDisciplines();
   rows = [];
   // ⚠ Both competence reads short-circuit to the FLOOR when the store is
   // not connected — which is the honest answer in production and makes

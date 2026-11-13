@@ -6,7 +6,12 @@
  * *completion*; an interrupted study learns nothing (the `CastActivity`
  * contract).
  *
- * Three decisions are visible here, and each is load-bearing:
+ * ⭐ **The book plans the study** (`Spellbook.studyPlanFor`,
+ * controller-liquidity W13): the comprehension floor, the defective copy,
+ * the savings curve and the claim at completion are the book's rules now.
+ * This controller runs the plan as a `StudyActivity` and tells it.
+ *
+ * Three decisions the plan carries, each load-bearing:
  *
  * - **The claim is minted, the deed never is** (D13). Reading writes a
  *   chronicle claim and NO Transcript entry, so competence is untouched.
@@ -25,26 +30,12 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { MagicApi } from '@saxonberg/server/mud/api/magic';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StudyActivity } from '@saxonberg/server/mud/lib/magic/StudyActivity';
-import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
-import { Fade } from '@saxonberg/server/mud/lib/magic/Fade';
-import { MagicGrid } from '@saxonberg/server/mud/lib/magic/Grid';
-import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type Spellbook from '../../../thing/Spellbook';
+import Spellbook from '../../../thing/Spellbook';
 
 const TOPIC = 'act.deed';
-/** Metabolic watts of taking a working on board. */
-const STUDY_EFFORT_W = 150;
-
-/** Game-ms a full study from nothing takes, at ordinary book quality. */
-const FULL_STUDY_MS = 20 * 60 * 1000;
-/** Floor so a trivial top-up still takes a beat rather than zero time. */
-const MIN_STUDY_MS = 30 * 1000;
-/** How much a grade band above `poor` speeds a refresh. */
-const QUALITY_SPEEDUP_PER_BAND = 0.12;
 
 interface StudyModel extends CommandModel {
   target: MqlOneResult;
@@ -53,7 +44,7 @@ interface StudyModel extends CommandModel {
 export default class StudyController extends CommandController<StudyModel> {
   async execute(model: StudyModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const book = (model.target?.stuff ?? null) as Spellbook | null;
+    const book = model.target?.stuff ?? null;
 
     if (!book) {
       const raw = model.target?.raw ?? '';
@@ -65,124 +56,46 @@ export default class StudyController extends CommandController<StudyModel> {
       return;
     }
 
-    const spellPath = book.getTeachesSpellPath?.() ?? '';
-    if (!spellPath) {
-      MessageApi.scene(actor)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`There is no working set out in ${Mml.thing(book)} to take on board.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'teaches-nothing',
-        detail: 'not a spellbook',
-      });
+    const plan = book instanceof Spellbook ? await book.studyPlanFor(actor) : null;
+    if (plan === null || !plan.ok) {
+      const reason = plan?.reason ?? 'teaches-nothing';
+      const said =
+        reason === 'unknown-spell'
+          ? Mml.compose`The pages set out a working the world no longer answers to.`
+          : reason === 'no-mind'
+            ? Mml.compose`You have no mind to hold a working in.`
+            : Mml.compose`There is no working set out in ${Mml.thing(book)} to take on board.`;
+      MessageApi.scene(actor).topic(TOPIC).toSelf(said).send();
+      context.note(
+        reason === 'no-mind'
+          ? { kind: 'mixin-missing', mixin: 'MemorizedMixin' }
+          : { kind: 'controller-rejected', reason, detail: reason },
+      );
+      return;
+    }
+    if (!MixinApi.isEngaged(actor)) {
+      MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.compose`You have no mind to hold a working in.`).send();
+      context.note({ kind: 'mixin-missing', mixin: 'EngagedMixin' });
       return;
     }
 
-    const spell = MagicApi.spellAt(spellPath);
-    if (!spell) {
-      MessageApi.scene(actor)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`The pages set out a working the world no longer answers to.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'unknown-spell',
-        detail: spellPath,
-      });
-      return;
-    }
-
-    if (!MixinApi.isMemorized(actor) || !MixinApi.isEngaged(actor)) {
-      MessageApi.scene(actor)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You have no mind to hold a working in.`)
-        .send();
-      context.note({ kind: 'mixin-missing', mixin: 'MemorizedMixin' });
-      return;
-    }
-
-    // ── The comprehension floor (D14) ──
-    //
-    // Set BELOW the casting floor, so the gap is a read-ahead window: a
-    // band where you can take a working on board and not yet execute it,
-    // which gives practice a visible target.
-    const adv = MixinApi.isAdvancing(actor) ? actor : null;
-    const [verbBand, nounBand] = await Promise.all([
-      adv?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
-        CompetenceBand.FLOOR,
-      adv?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
-        CompetenceBand.FLOOR,
-    ]);
-    const limiting =
-      CompetenceBand.rank(verbBand) <= CompetenceBand.rank(nounBand)
-        ? verbBand
-        : nounBand;
-    const authoredFloor = book.getComprehensionBand?.() ?? '';
-    const floor = CompetenceBand.isBand(authoredFloor)
-      ? authoredFloor
-      : spell.castingProfile.requiredBand;
-    // ⚠ Reading above the floor does NOT refuse. It produces a copy the
-    // reader believes is correct — honest, legible, and recoverable.
-    const defective = !CompetenceBand.atOrAbove(limiting, floor);
-
-    const held = actor.getMemorizedSpell(spellPath);
-    const sharpness = held?.sharpness ?? 0;
-    // The savings curve: a nearly-sharp working comes back quickly.
-    const quality = MixinApi.isGraded(book) ? book.getGrade().getOrdinal() : 1;
-    const speed = 1 + QUALITY_SPEEDUP_PER_BAND * quality;
-    const durationMs = Math.max(
-      MIN_STUDY_MS,
-      (FULL_STUDY_MS * Fade.refreshFraction(sharpness)) / speed,
-    );
-
-    const complexity = Fade.complexityOf(
-      spell.effects.length,
-      CompetenceBand.rank(spell.castingProfile.requiredBand),
-    );
-
+    const { spellName, defective } = plan.facts;
     const activity = new StudyActivity({
       actor,
-      spellPath,
-      durationMs,
-      // Study is light work — half a walk — but it is work, and a long
-      // session of it costs the body something.
-      effortW: STUDY_EFFORT_W,
+      spellPath: plan.facts.spellPath,
+      durationMs: plan.durationMs,
+      effortW: plan.effortW,
       onComplete: (): void => {
-        actor.memorize({
-          spellPath,
-          defective,
-          verb: spell.verb,
-          noun: spell.noun,
-          complexity,
-        });
-        // The CLAIM, never a deed — competence is untouched, and a
-        // Transcript entry here would be evidence of practice that did
-        // not happen.
-        if (MixinApi.isPersona(actor)) {
-          void actor
-            .recordChronicleOnce(
-              SpellKnowledge.knownKey(spellPath),
-              SpellKnowledge.knownEntry(spell.name),
-            )
-            .catch(() => {});
-        }
+        void plan.onComplete();
         MessageApi.scene(actor)
           .topic(TOPIC)
           .toSelf(
             defective
-              ? // Deliberately confident prose: the reader does NOT know
-                // the copy is bad. That is the whole point of D14 —
-                // half-understanding is worse than none precisely
-                // because you don't know you're wrong. The efficiency
-                // will tell them, on every cast, which is the legible
-                // signal.
-                Mml.compose`You close the book with ${spell.name} fixed in your head.`
-              : Mml.compose`${spell.name} settles into place, clear and whole.`,
+              ? // Deliberately confident prose: the reader does NOT know the
+                // copy is bad (D14). The efficiency will tell them, on every
+                // cast, which is the legible signal.
+                Mml.compose`You close the book with ${spellName} fixed in your head.`
+              : Mml.compose`${spellName} settles into place, clear and whole.`,
           )
           .send();
       },

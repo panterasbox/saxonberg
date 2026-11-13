@@ -3,8 +3,8 @@
 # still it gives turpentine and leaves rosin.
 class: /platform/idea/material/Oil
 data:
-  smells: [{ aroma: /base-library/aromas/pine, strength: 800 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/wood/resin/pine, strength: 800 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 1000 }]
   name: pine gum
   keywords: ["pine gum", gum, resin, oleoresin]
   appearance: a thick, cloudy, honey-colored resin that strings off a stick

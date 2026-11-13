@@ -1,5 +1,11 @@
 # Mana economy design pack — mana as its own conserved quantity
 
+> ⭐⭐⭐ **2026-11-11 → Part 13: the field settled with the owner** — mana is
+> primordial charge in crustal rock (zone grades + seeded deposits), moving
+> by contact down level differences like warmth; one partition rule for
+> every phase change; fishery-shaped depletion; the performance rules; the
+> warmth metaphor and eight demonstrations.
+>
 > **Status: PARTIAL** — the `arcane-science.md` edit landed 2026-08-11 and
 > the TPA buys and resells mana →
 > [fasttravel.md](../../subsystems/fasttravel.md). **2026-09-21 cluster
@@ -1357,10 +1363,289 @@ By Part 11c's rule (capacity borrowed from the real dielectric constant):
 - **The vocabulary** (stores, conduits, specifications, places, acts) is in spellbook § 7a and the size
   build's requirements.
 
+## Part 13 — ⭐⭐⭐ The field, settled: where mana is, how it moves, how a player learns it (2026-11-11) **[the owner: "this fits"]**
+
+Captured from a conversation with the owner after controller-liquidity merged. It started as *"we
+have a design that works like moisture but I don't know what that means for content"*. Each answer
+below survived an owner challenge, and the challenges are kept because they are why the answers have
+the shape they do. It refines Part 11c (*mana behaves like moisture*). The "place's field" in 11c is
+now stated precisely: **it is a level of matter, never a property of empty space.**
+
+### 13a. Where mana is: in rock, and only because of matter
+
+> **The owner:** *"the place is made of space, it's a vacuum unless you fill it with something —
+> what are we filling it with?"* … *"if it doesn't come from space, it comes from matter. matter means
+> a Tangible Thing. so what is the thing that's radiating the mana?"*
+
+- **The source is the ground.** Every Location already mints a floor Thing at `postRegister`, with its
+  material set by the ground pack's five-rung ladder ([ground.md](../../subsystems/ground.md)). That
+  rock holds **primordial** mana: nobody makes it (decision 3), and the world's total was fixed when
+  the rock formed (decision 1). It leaks out slowly into whatever touches it.
+- **Primordial sources are solid, and that is derived, not chosen.** A liquid source flows away and
+  mixes until it matches its surroundings. A gas holds almost nothing (capacity ≈ 1). Only rock stays
+  put over geological time, so only rock can still hold the original endowment. Anything else can be a
+  **temporary** source (a pail of spring water, a whale carcass) that gives its charge back as it sits.
+- **Every rock holds mana, in proportion.** How much a rock *can* hold is its capacity (the dielectric
+  constant, Part 11c). How much it *does* hold is its **grade**, seeded by geology the way ore grade
+  already is ([mining.md](../../subsystems/mining.md)'s Deposit field). Country rock is low-capacity,
+  so a weak background. A titanate seam is high-capacity, so a strong peak. That is *why* the peaks
+  are seams.
+- **Why the crust and not the core.** *(The owner: "why is it at the surface at all instead of
+  concentrated at the planet's core?")* Mana doesn't sink. It is carried by matter, and gravity acts
+  on the carrier. When the young planet separated, dense iron sank and light oxide and silicate melts
+  floated. By the separation rule (13d, *a separation partitions charge by capacity*), the iron took
+  little (low capacity) and the oxides took most of it. **The core is nearly empty and the crust holds
+  it.** That is exactly why Earth's uranium and thorium sit in the crust and not the core.
+- **Space has almost none. Meteorites carry other worlds' endowment.** *(The owner: "this means
+  there's no natural mana in space?")*
+  - Empty space has almost no matter to carry charge, and **a vacuum does not conduct**, so space is an
+    insulating shell. A planet is a sealed mana thermos, which is why it still holds its endowment.
+  - Every rocky body separated the same way and has its own crustal grade (the
+    [worlds design](./worlds-slate.md) authors each world's).
+  - Celestial mana arrives as **matter**: a meteorite is a piece of another body's crust, falling with
+    its own charge. ⭐ The **strike site** is a node, and meteoric iron the classic blade, now with a
+    derivable reason. *(The owner: "I like the meteorite idea.")*
+  - ⚠ **The "celestial" node kind (Axis 1) is reinterpreted.** Mana cannot cross space at a distance
+    (decision 6: nonlocality is energy-only), so a conjunction cannot *beam* mana. A celestial node is
+    either a **strike site** or **a source whose flow the sky modulates by ordinary means**: tides
+    pushing water through a seam, the calendar timing a flow.
+
+### 13b. How it moves: one rule, no toggle
+
+> **The owner:** *"water can't both be radiating and absorbing mana — you have to decide or have some
+> toggle switch that different bodies set to in or out."*
+
+**There is no toggle, because every body both gives and takes all the time. The net flow runs from the
+higher level to the lower, exactly as heat does.**
+
+```
+net flow between two touching bodies = conductance × (level_A − level_B)
+level of a body                      = its charge per kg ÷ its capacity
+equilibrium charge                   = level × capacity
+```
+
+- **Water at the seam** takes charge (the seam is higher). **The same water downstream** gives it to
+  the lower banks. The direction comes from the two levels at that moment.
+- **Things settle to the same level, not the same charge.** A titanate and a quartz pebble side by
+  side reach one level, and the titanate holds many times the charge. That is why water (≈ 80) and
+  titanates are the good stores.
+- **The rate is the contact's conductance**, which is *mana conductivity*, the second material field
+  already on record (decision 6). Silver and doped iron are fast; wax, glass and vacuum are almost nil.
+  The time constant is capacity ÷ conductance. Two consequences follow:
+  - a gem sealed in a vacuum flask keeps its charge anywhere: **the mana thermos**, an industrial-epoch
+    store;
+  - **a binding is cut by grounding**, which the bestiary already decided
+    ([bestiary-slate](./bestiary-slate.md)).
+- **It moves by contact, never by radiation** (decision 6). The ground touches everything in a place
+  (the walls, the water running through it, whatever is set on the floor), so the place's level is the
+  ground's.
+- ⚠ **Not geothermal.** The heat analogy describes how mana *flows*, not where it comes from. Nothing
+  generates mana; the endowment has only been redistributing since the rock formed.
+
+### 13c. Sources: there is no "ambient", only sources at two scales
+
+> **The owner:** *"temperature is moved by an energy source — it's not actually ambient."*
+
+| | diffuse source | concentrated source (a node) |
+|---|---|---|
+| what it is physically | a region's country rock, weakly graded | an ore body: a seam, often a titanate |
+| authored as | **one grade on a zone or locality's ground**, inherited down through the zone field inheritance that already ships (`zone.lookupField`); default 0, so the ordinary world needs no edit | **a seeded deposit** on the ground, mining's Deposit shape: data on the ground, never a loose Tangible, until somebody hews it |
+| inflow and recovery | large and fast (a whole region) | set by kind; a seam never refills |
+
+- **The authoring story, all of it:** *paint* grades on a few zones (which regions run high), *drop*
+  deposits for the peaks, and everything else derives (water, ore, crops, beasts, a caster's recovery).
+  An author never writes charge onto an item. *(The owner: "some areas just want the background field
+  without having to author a big massive underground lump" — answered by the zone grade.)*
+- **A mana spring is ordinary water.** *(The owner: "is it the water or what?")* The water is the
+  **carrier, never the source**. A spring is water whose path underground passes through a charged
+  seam. The seam is the source, the spring is where its charge comes out, and the creek is that charge
+  thinning downstream (the watershed's existing dilution). That is real mineral-spring hydrology. A
+  holy well blessed for some other reason is the bespoke case, with its own row; it is not the default.
+- **Lost mana returns to the ground it touches.** Gas cannot hold it, so anything boiled, burned or
+  smelted off goes into the contacting ground. Over the years the ground around refineries and
+  smelters rises. Conservation decides this; no taste is involved.
+
+### 13d. Phases: one quantity, three rules, across every RGO
+
+> **The owner:** *"solid matter in all forms, particulate and lumped, liquid matter, and gas if it
+> exists — and how phase changes work exactly: condensation or crystallization."*
+
+Mana is carried by matter (decision 4), so "mana in a phase" means what the **charge** does when its
+carrier is lumped, particulate, liquid or gas, and when the carrier changes form. The quantity is
+**specific charge** (per kg), capped by capacity:
+
+| form | where the number lives |
+|---|---|
+| lumped solid (an ingot, a log, a cake of black salts) | a stamp on the instance, like moisture and freshness |
+| particulate (ore heap, flour, ash, sand) | the same stamp, per stack (`Stackable`) |
+| liquid (spring water, lye, oil, molten metal) | one more field on `BulkPayload` (bulk.md: *subsystems declare their own fields onto it*) |
+| gas (steam, smoke, fume) | **nowhere** (rule 3) |
+
+1. **Conserved by mass.** A split keeps the charge per kg; a merge or mix takes the mass-weighted
+   average.
+2. **Any separation partitions charge by capacity.** This is the real segregation coefficient, the
+   law behind zone refining. One function covers every process:
+
+   | process | the charge | the real analogue |
+   |---|---|---|
+   | melting / freezing | carried across; any excess over the new phase's capacity is released | latent change |
+   | **crystallization** (salt from brine, potash in the iron pot) | the crystal takes *k ×* the liquor's concentration. **Recrystallizing strips it or concentrates it** (decision 7: a skilled trade) | zone refining, recrystallization |
+   | evaporation / boiling down | vapor carries almost none, so **the residue concentrates** | non-volatile solutes |
+   | **condensation / distillation** | the condensate comes out nearly clean; **the still keeps the mana** | distillation purifies |
+   | burning | ash keeps it, smoke carries the loss | Part 11d's potash row |
+   | dissolving | into solution up to the solvent's capacity; the rest stays in the solid | solubility |
+   | smelting | metal against slag by capacity; the doped conductivity fixed at this event | Part 11c |
+
+3. **Gas is the loss channel, never a store.** Its capacity is about 1, so anything a separation sends
+   to vapor or smoke goes back into the contacting ground (13c). It needs no gas state and no
+   atmosphere inventory.
+
+- **Lumped and particulate differ only in speed.** The settling time scales as **size²** (diffusion):
+  a powder takes the level in hours and a lump in years. Grind magic ore and it charges fast and leaks
+  fast. Milling, sintering and casting change the time constant, never the charge.
+- **Capacity is one number per material**, with an optional per-phase override where phase matters
+  (ice is not water).
+
+### 13e. Depletion and ownership **[the owner: "sure"]**
+
+- **A node depletes against its inflow and recovers by its kind** — the fishery's shape
+  ([fishing.md](../../subsystems/fishing.md): *only `drawn` is state, recovery by half-life*):
+  - **geological seams are finite** (mining frontiers, ghost towns);
+  - **springs recover at their flow**;
+  - **biotic sources recover at regrowth**;
+  - **celestial sources follow the sky** (13a).
+- **A diffuse source depletes too**, by the same math. Its recovery is simply fast, so one person's
+  draw is noise. A whole industry drawing on one district **can** outrun it: the district's level sags,
+  and its crops and beasts feel it. That needs no special case. *(This closes a conservation hole: a
+  "background that never depletes" would have been mana from nothing.)*
+- **Ownership: nodes follow parcel title.** Deposits are already land
+  ([parcel.md](../../subsystems/parcel.md)), so rent and monopoly come out of the land market with no
+  new governance machinery. This answers Open question 6's griefer worry: a seam is somebody's land,
+  not a commons anyone can ruin.
+- **The engine measures; the polity imposes** ([measurement.md](../../measurement.md)). A node
+  publishes its inflow and its drawn amount as a gauge (layer 1). A quota is a law the polity passes
+  (tier C), never an engine rule.
+
+### 13f. Creatures: the field sets where bound beasts thrive
+
+- **A bound creature's upkeep is its binding's mana draw**, met by the level of the ground it lives on
+  and by what it eats (biomagnification, 11c). **Off-field it weakens; it does not die.** Lens 1
+  decides this: *the reserve drains when draw exceeds uptake* is derivable, while *it dies when it
+  leaves* is a rule someone set.
+- **Ranges, territories and migrations emerge from the field.** No author places "the wyrm in the
+  gorge"; a strong node draws it. A hunter who lures a beast off its ground fights a weaker beast
+  (lens 3b). Hunting it pays because the apex creature is the richest store.
+- "Seek the field" is one more option in the agent's single deliberation beat
+  ([behavior.md](../../subsystems/behavior.md)), reading the neighbor gradient in the place levels.
+
+### 13g. ⭐⭐ Performance: rules, not tuning
+
+> **The owner:** *"we also need to be wary of performance."*
+
+Mana touches every place, every material and every creature. That is the same shape as the potash
+drive's stall (2026-11-11, controller-liquidity: `look` walked the whole light graph once per listed
+thing), so these are **design rules**:
+
+1. **Compile, never walk at read time.**
+   - A place's level is the zone grade (one inherited, cached lookup) plus Σ weight × strength over a
+     short per-place list of nearby deposits, usually 1–3.
+   - A read is a couple of terms. Nothing walks the location graph from sources when something is read.
+2. **Closed-form settling.** `q(t) = q_eq + (q₀ − q_eq)·e^(−Δt/τ)` is one multiply per read, however
+   long since the last one. No integration over elapsed history: the slow shore reads (2–18 s in that
+   day's drives) were exactly that smell.
+3. **Settle at events, never on a tick.** Charge changes only when a thing arrives, is drawn, is
+   crafted or changes phase. A million inert things cost zero.
+4. **A source depletes in closed form.** Strength = base − drawn·e^(−t/τ). Drawing is one O(1) event
+   on the node, and nothing recompiles.
+5. **A guard test from day one,** in the shape of `look-light-held.test.ts`: one read must cost the
+   same however many sources and things exist.
+6. ⚠ **Springs do not build on the watershed's read path until its slow reads are fixed.** The
+   `WatercourseCatalogue.readWaterNow` cost was measured at 2–18 s (37 s peak).
+
+### 13h. ⭐⭐ The metaphor, and how the content teaches it
+
+> **The owner:** *"this is kind of a complicated model with all the different flow rates … we need to
+> do our best to give them metaphors they can relate to and good examples in the content that
+> demonstrate the physics in a legible way."*
+
+**Mana behaves like warmth.** Every rule above has a kitchen equivalent players learned as children:
+
+| the rule | what the player already knows |
+|---|---|
+| level: flows from high to low | a hot mug in a cold room cools; a cold spoon in tea warms |
+| capacity | a hearthstone holds heat all night; a leaf is cold a second after the fire |
+| settling time ∝ size² | a cracker cools at once; a roast stays hot for an hour |
+| conductance | a metal pan handle burns you; a wooden one doesn't |
+| vacuum / insulator | the thermos keeps tea hot all day |
+| grounding (silver cuts a binding) | grab cold iron and it pulls the warmth out of your hand |
+| separation partitions | boil brine dry and the salt stays in the pot |
+| loss returns to the ground | the ground around a forge is warm all winter |
+| depletion and recovery | a well drawn hard runs low and fills again overnight |
+| seams and the crust | the warm rocks are near the surface; you don't dig to the core |
+| meteorites | a coal carried in from someone else's hearth |
+
+- **The register (lens 3a).** The fiction speaks in warmth words: the ground *runs high*, a stone
+  *holds* well, a spring is *full* or *drawn down*, silver *drinks* it. Low instrument rungs answer in
+  words and bands, **never a number** (the potash egg test's register). The numbers stay the engine's.
+  Charge is invisible to ordinary senses (Part 12).
+- **Where it's taught:**
+  - the first screen of `help mana` is the table above (*the first screen is the syllabus*,
+    measurement.md);
+  - the university teaches it in the arcane-science course, and the demonstrations live out in the
+    world;
+  - the instrument ladder (dowsing rod, then electroscope, then meter) gains finer bands with
+    competence. Competence resolves detail, never access
+    ([instrumentation.md](../../subsystems/instrumentation.md)).
+
+**Eight demonstrations, one rule each, placed in content that already exists:**
+
+1. **Two pails at the Confluence** *(level, dilution)*: water drawn at the spring reads *full*; a pail
+   from the creek a mile down reads *thin*.
+2. **The assayer's windowsill** *(capacity)*: a titanate and a quartz pebble left a week on the seam
+   ledge read *equally high*. The titanate runs a lamp for a month, the quartz for an evening.
+3. **The jeweler's two stands** *(conductance, insulation)*: a charged gem on silver is empty by
+   morning, on glass it keeps, and sealed in a vacuum flask it keeps anywhere.
+4. **The still** *(partition)*: mash from spring-fed barley. The spirit comes off *clean*, and the
+   still's residue is the richest thing in the distillery (trade-distilling ships the still).
+5. **The smelter town** *(loss returns)*: a dowser's survey of the same field, years apart, shows the
+   ground rising downwind of the works.
+6. **The tired spring** *(depletion)*: after a dry week of the whole village drawing it reads *drawn
+   down*, and after a rested week it is full again. Its gauge lets the parish decide whether to ration.
+7. **The strike site** *(meteorites)*: a crater with a skystone, and a smith who makes the one blade in
+   the realm that conducts like silver.
+8. **The lured wyrm** *(off-field weakening)*: a hunter's tale, and then a hunt that tests it.
+
+### 13i. The lens pass
+
+| lens | verdict |
+|---|---|
+| 1 pedagogy | ✅ Dielectric capacity, level-driven flow, partition coefficients, diffusion time ∝ size², crustal differentiation and biomagnification are all real physics. The Discipline is field physics, taught through warmth. |
+| 2 creative expression | ✅ The ordinary place costs nothing (grade 0). A realm paints a few zone grades and seeds a few deposits. Ley lines or a holy well are a new node kind or a bespoke row, not an engine change. |
+| 3a immersion | ✅ Warmth words; no number below the top instrument rung; charge is invisible to ordinary senses. |
+| 3b participation | ✅ Dowsers selling surveys, bids on high ground, luring a beast off its ground, a district that sags under its own industry, recrystallizers and still-masters as trades. |
+| 4 values | ✅ Decided above: seams finite; nodes are owned land; quotas belong to the polity. |
+| 5 continuity | ✅ The physics doesn't depend on the epoch. The *instrument* climbs (rod, electroscope, meter) and answers the same `measure mana`. The vacuum flask arrives with glass-blowing. |
+| 6 economy | ✅ Demand existed first (caster recovery, device stores). Charged goods are produced by residence time. The extractor pays in time, the landholder collects rent. |
+| 7 governance | Only through title (parcel) and polity quotas (tier C). The engine judges no person. |
+
+### 13j. What this closes, and what it leaves
+
+- **Closes** Open question 1 (what sets a place's mana density) and 11f's *"does the place's field
+  deplete"*, and turns Open question 6 into a decision (seams finite; the griefer is answered by
+  title, not by making seams indestructible).
+- **Leaves:**
+  - the coefficients (Open question 8, deferred to a running game);
+  - Open question 7 (mana vs electrical conductivity). The demonstrations use silver, which favors
+    *correlated* for the classic conductors; *independent* remains possible for exotic materials;
+  - the grade map itself: **how much charge the world started with, and where, is authorship and
+    taste** (lens 2), never derivation;
+  - the rune × verb × effect fit (11e).
+
 ## Open questions
 
-1. **What is the ambient mana density of an ordinary place, and what sets
-   it?** Uniform baseline with rare rich sites, or a field with structure
+1. ✅ **What is the ambient mana density of an ordinary place, and what sets
+   it? — ANSWERED by Part 13** (a zone grade on the ground plus seeded
+   deposits; there is no "ambient", only sources). Original framing: Uniform baseline with rare rich sites, or a field with structure
    (depth, geology, ley-like gradients)? *Lean: uniform-low baseline plus
    authored rich sites* — cheapest, and it makes deposits content rather than
    simulation.
@@ -1380,7 +1665,10 @@ By Part 11c's rule (capacity borrowed from the real dielectric constant):
    brute fact of the postulate?** *Lean: brute fact* — the postulate is
    already one impossible thing, and asking why it is one-way is like asking
    why charge is conserved.
-6. ⭐ **Can a deposit be exhausted permanently, or only drawn down?** Decision
+6. ✅ **DECIDED in Part 13e: geological seams are finite, and nodes are
+   owned land (parcel title), so the griefer is answered by title rather
+   than by making seams indestructible.** Original framing:
+   ⭐ **Can a deposit be exhausted permanently, or only drawn down?** Decision
    3 makes mana unmanufacturable, so a *dead* deposit is dead forever — which
    is real (aquifers, oil fields) and gives prospecting genuine stakes, but it
    also means a griefer or a careless neighbour can destroy a shared asset

@@ -1,7 +1,7 @@
 verbs: [fell]
 category: forestry
 controller: /trade/forestry/idea/cmd/forestry/FellController
-description: "Fell a standard with an axe, or cross-cut a felled one"
+description: "Fell a standard with an axe"
 help: |
   `fell oak` takes an oak down out of the stand you are standing in. It
   is work: it takes game time, it costs endurance, and it needs a felling
@@ -10,8 +10,10 @@ help: |
 
   What comes down is the whole tree: a bole on the ground, far too much
   for any one back, logs off the crown beside it, and a seed in your
-  hand. `fell bole` cross-cuts the trunk, one length of green timber at
-  a time, until there is nothing left of it but the butt and the brash.
+  hand. The trunk is cross-cut with `cut bole` (a felling axe in reach),
+  one length of green timber at a time, until there is nothing left of
+  it but the butt and the brash — ⚠ it was `fell bole` until the
+  controller-liquidity build; a bole is cut, not felled.
 
   A planted standard is felled where it stands (`fell sapling`); a
   young one comes away whole and carryable. A stand runs out — the
@@ -22,8 +24,6 @@ examples:
     note: Take a standard oak down out of the stand here
   - cmd: fell
     note: Fell whatever stands here thickest
-  - cmd: fell bole
-    note: Cross-cut a length of timber off a felled trunk
   - cmd: fell ash with axe
     note: Name the instrument
 validators:
@@ -33,13 +33,13 @@ validators:
 args:
   # ⚠ POLYMORPHIC, so `requires: any` — DECLARED, and it gates nothing
   # (the `boil.yaml` shape, and `lint:arg-kinds`' own word for it).
-  # Three things can stand in this slot and they share no mixin: a bole
-  # on the floor (cross-cut), a planted standard in a panel (felled
-  # where it stands), or a bare species word that binds NOTHING, because
-  # the stand is the ROOM and a room is not a bindable target — `fell
-  # oak` lands as `{ stuff: null, raw: 'oak' }` and the controller reads
-  # `raw` as the species against the room's stand. Naming a mixin would
-  # refuse two of the three at the binder; an alternation deletes a
+  # Two things can stand in this slot and they share no mixin: a planted
+  # standard in a panel (felled where it stands), or a bare species word
+  # that binds NOTHING, because the stand is the ROOM and a room is not a
+  # bindable target — `fell oak` lands as `{ stuff: null, raw: 'oak' }`
+  # and the controller reads `raw` as the species against the room's
+  # stand (a bole is `cut` now — controller-liquidity D14). Naming a mixin
+  # would refuse one of the two at the binder; an alternation deletes a
   # check. The controller narrows and refuses in its own words.
   - name: target
     type: object

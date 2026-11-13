@@ -54,7 +54,7 @@ async function lookFor(page: Page, what: string, matching: RegExp, timeout = 30_
   await expect
     .poll(
       async () => {
-        await runCommand(page, `look ${what}`);
+        await runCommand(page, `look "${what}"`);
         body = (await cards(page)).reverse().find((c) => matching.test(c)) ?? '';
         return body;
       },
@@ -126,7 +126,7 @@ test.describe('the water-supply build, in a browser', () => {
     test.setTimeout(300_000);
     const w = await openWorldAs(browser, 'water-walk-works', { startLocation: BANK });
     try {
-      const refused = await sayAwaiting(w.page, 'open pump-house door', /locked|key|won't|does not open/i);
+      const refused = await sayAwaiting(w.page, 'open "pump-house door"', /locked|key|won't|does not open/i);
       expect(refused).not.toMatch(NOT_UNDERSTOOD);
     } finally {
       await w.close();

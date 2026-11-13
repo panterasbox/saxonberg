@@ -15,6 +15,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import { Character } from '../../character/Character';
 import Place from '../../stuff/Place';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -43,6 +44,7 @@ import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
 import { buildMode } from '../../locomotion/__tests__/test-helpers';
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 class TestLocation extends Place {}
 /** A bowl: holds a bulk interior AND things (the fish). */
@@ -148,9 +150,13 @@ describe('RespirationMixin — the crisis core', () => {
     StuffApi.unregister(reg);
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
+    // The swimming band stands on the discipline dictionary (D11).
+    await rememberDisciplines();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+
+    await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
     installV1QuantityMarshallers();
     // ⭐ Every death mints a corpse now, and the mint clones an authored
     // row that a unit world has no store for. See the helper.
@@ -475,6 +481,9 @@ describe('RespirationMixin — the crisis core', () => {
     // Hauled out: air again.
     read.mockRestore();
     ContainmentApi.move(c, room('air'));
+    // The move's own re-check (onMoved) is fire-and-forget and now awaits
+    // the swimming band's dictionary: let it land before the explicit one.
+    await settle();
     await c.reassess();
     tick(40);
     expect(c.isDying()).toBe(false);

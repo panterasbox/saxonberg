@@ -921,34 +921,14 @@ describe('Avatar', () => {
       });
     });
 
-    it('welcome-scene payload carries topicCatalogue from the singleton', async () => {
+    it('welcome-scene payload carries the topic snapshot', async () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');
-      const { default: TopicCatalogue } = await import('../idea/TopicCatalogue');
-      const TemplateMod = await import('../../lib/stuff/Template');
-
-      // Stub the mongo read with one authored topic descriptor.
-      vi.spyOn(TemplateMod.Template, 'findDescendants').mockImplementation(
-        async () =>
-          [
-            {
-              path: '/platform/idea/Topic/world',
-              data: {
-                topic: 'world',
-                family: '',
-                label: 'World',
-                description: 'In-world events.',
-              },
-            },
-          ] as unknown as InstanceType<typeof TemplateMod.Template>[],
-      );
-
-      const cat = makeStuff(() => new TopicCatalogue());
-      const stampTpl = await import(
-        '../../lib/security/__tests__/test-setup'
-      );
-      stampTpl.stampTemplatePathForTest(cat, '/platform/idea/TopicCatalogue');
-      await cat.onCreate();
+      // One authored topic, as the vocabulary's warm would leave it (a spy,
+      // so the next test's scenes still see the whole vocabulary).
+      vi.spyOn(MessageApi.topics(), 'snapshot').mockReturnValue([
+        { topic: 'world', family: '', label: 'World', description: 'In-world events.' } as never,
+      ]);
 
       const avatar = makeAvatar('enter-5');
       vi.spyOn(avatar, 'getContainer').mockReturnValue({

@@ -42,7 +42,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 | `splice <rope> to <rope>` / `splice` at a pole | `platform/cmd/crafting/splice.yaml` | `Spliceable.spliceBy` |
 | `coil <rope>` | `platform/cmd/inventory/coil.yaml` | `Rope.coilPlan` |
 | `climb down` / `climb up` | `platform/cmd/movement/climb.yaml` | the enablement walk finds the rope / its end |
-| `belay <person> [with <rope>]`, `belay off` | `platform/cmd/movement/belay.yaml` | `Rope.belayFor` → `BelayEngagement` |
+| `belay <person> [with <rope>]`; off the belay = `untie <rope>` | `platform/cmd/movement/belay.yaml` | `Rope.belayFor` → `BelayEngagement`; `Rope.untieBy` ends it (climber stays tied) |
 | `twist <yarn | strands> [--yarns n] [--length m] [--mark c]` | `trade/cordage/cmd/cordage/twist.yaml` | `RopeJack.twistPlan` |
 | `turn jack` / `turn back jack` | the kernel `turn` (`TurnableMixin`) | `RopeJack.turnBy` → `WheelEngagement` |
 | `dip <rope> in <tar tub>` | the kernel `dip` | `GlazeTub` lays a pitch coat |
@@ -56,7 +56,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
   1.15 t. Effective = breaking × the weakest knot (`strength × dressing`) ×
   (1 − chafe) × (1 − rot). Words: a child · a man · a man and his load · a
   horse · an ox and more.
-- **Knots** are platform `Joint` rows (`bowline` .6, `clove-hitch` .6,
+- **Knots** are platform `joint` documents (`/platform/joints/<word>`; `bowline` .6, `clove-hitch` .6,
   `sheet-bend` .5, `reef-knot` .45, `splice` .9 and never untied). Dressing
   is the tier's `ropework` band at tie-time (untrained/novice .8, competent
   .9, proficient+ 1.0) and is credited. The reef knot fails as **`spilled`**

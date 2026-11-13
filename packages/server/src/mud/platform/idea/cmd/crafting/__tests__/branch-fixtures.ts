@@ -7,6 +7,7 @@
  * clock advance).
  */
 
+import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
 import { vi } from 'vitest';
 import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../../../lib/fire/Burner';
@@ -367,6 +368,12 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     ) {
       return realClone(path) as never;
     }
+    // The address index builds on its first question (load-on-use W5); a
+    // fixture world has no locality rows, so the index it builds is empty.
+    if (path === '/platform/idea/AddressRegistry') {
+      const { default: AddressRegistry } = await import('../../../AddressRegistry');
+      return makeStuffAtPath(() => new AddressRegistry(), path) as never;
+    }
     if (path === KNIFE_T || path === '/stuff/thing/arms/fire-poker') {
       return makeStuff(() => new TestKnife()) as never;
     }
@@ -394,6 +401,9 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
   // the helper's pass-through captures THIS mock as its real clone — the
   // two stubs compose instead of racing for the same spy.
   installCorpseMintStub();
+  // A credit refreshes conferrals, which reads the discipline dictionary —
+  // resident as a character's first band read leaves it (documents D11).
+  await rememberDisciplines();
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),

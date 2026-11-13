@@ -207,13 +207,21 @@ const REPO_ROOT = resolve(SERVER_ROOT, '../..');
  * `CommandController` spreads the giver's contents into a candidate list.
  * The fourth is the one it already held (`AssayController`).
  */
-export const BESPOKE_RESOLUTION_CEILING = 4;
+export const BESPOKE_RESOLUTION_CEILING = 1; // controller-liquidity W13: pinned to the measured floor.
 
 /**
  * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
  * W0). Pinned at this gate's own W0 count; may fall, never rise.
  */
-export const SELF_RESOLUTION_CEILING = 110; // the merge with vocabularies-to-rows: smell no longer looks a source up by id
+// ⚠ 107 → 108 (controller-liquidity W4, D8c) — a RISE, with its caller
+// audit: the one new site is `CommandController.pickByWords`, the base's
+// answer to an object's `ActChoices` by the player's words (`admits` = the
+// object's own choices; it addresses nothing the object did not offer). Its
+// one caller is `HarvestController.choose` (`stand-or-labeled`), replacing
+// `Growing.harvestPlanFor`'s substring match on `typed` — resolution moved
+// OUT of the model into MQL. No controller surface the gate protects grew.
+// 108 → 105 (green after W2/W4/W6): sites W2 and W6 moved onto the model.
+export const SELF_RESOLUTION_CEILING = 79; // load-on-use W3: −1 (the dye act no longer stands its dyestuff catalogue up by hand). // controller-liquidity W13: −12 (pinned to the measured floor with every lane's tree in), the stalls fixture is a bound arg; the warrens let themselves. // controller-liquidity W11: −1 (the print view binds what it prints). // controller-liquidity W12: −4 (the pilot, the hole, the gather bound by their views). // controller-liquidity W10: −7 (draft, return, breed, plow, mill). // controller-liquidity W7: −1.
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =

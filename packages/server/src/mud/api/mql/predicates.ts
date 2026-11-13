@@ -96,16 +96,23 @@ function isMine(target: Stuff, giver: Stuff & CommandGiver): boolean {
   return owner?.kind === 'player' && owner.templatePath === me;
 }
 
+/**
+ * ⭐ Here — the giver's PLACE itself, or a thing standing in it, or in the
+ * vessel the giver sits in (controller-liquidity D7: `here` is the place,
+ * walking up past a boat; the passenger beside you in it is here too).
+ */
 function isHere(target: Stuff, giver: Stuff & CommandGiver): boolean {
   if (!MixinApi.isContainable(giver)) return false;
-  const env = giver.getContainer();
-  if (!env) return false;
-  if (target.stuffId === env.stuffId) return true;
-  if (MixinApi.isContainable(target)) {
-    const targetEnv = target.getContainer();
-    return !!targetEnv && targetEnv.stuffId === env.stuffId;
-  }
-  return false;
+  const place = giver.getEnclosingPlace();
+  if (!place) return false;
+  if (target.stuffId === place.stuffId) return true;
+  if (!MixinApi.isContainable(target)) return false;
+  const targetEnv = target.getContainer();
+  if (!targetEnv) return false;
+  return (
+    targetEnv.stuffId === place.stuffId ||
+    targetEnv.stuffId === giver.getContainer()?.stuffId
+  );
 }
 
 /**
@@ -169,6 +176,29 @@ function isCarried(target: Stuff): boolean {
 }
 
 /**
+ * ⭐ Held — in hand (controller-liquidity D5): in one of a BODY's slots
+ * that accepts a Wieldable, or carried loose in its contents in no slot —
+ * today's carrying model, where nothing loose on a body is anywhere but
+ * to hand (size-slate § 9 retunes this with the carrying flip). A coupe
+ * in a rack is not held: a rack is not a body.
+ */
+function isHeld(target: Stuff): boolean {
+  if (!MixinApi.isContainable(target)) return false;
+  const holder = target.getContainer();
+  if (!holder || !holder.isAgent()) return false;
+  if (!MixinApi.isSlotted(holder)) return true;
+  let slotted = false;
+  for (const [slot, occupants] of holder.getAllOccupants()) {
+    for (const o of occupants) {
+      if ((o as unknown as Stuff).stuffId !== target.stuffId) continue;
+      slotted = true;
+      if ((holder.getSlotSpec(slot)?.accepts ?? '').includes('Wieldable')) return true;
+    }
+  }
+  return !slotted;
+}
+
+/**
  * The full predicate registry. Lookups are case-sensitive (lower-
  * case keys); the resolver lowercases inputs to match.
  */
@@ -181,6 +211,7 @@ export const MQL_PREDICATES: Readonly<Record<string, MqlPredicate>> = {
   loose: { check: isLoose },
   worn: { check: isWorn },
   carried: { check: isCarried },
+  held: { check: isHeld },
 };
 
 /**

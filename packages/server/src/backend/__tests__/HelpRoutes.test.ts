@@ -13,6 +13,7 @@
  * tests assert only that the route wires query → HelpApi → JSON.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import express, { type Express } from "express";
 import session from "express-session";
@@ -27,6 +28,7 @@ import type {
 } from "@saxonberg/types";
 import { HelpRoutes } from "../HelpRoutes";
 import { HelpApi } from "../../mud/api/help";
+import { StuffApi } from "../../mud/api/stuff";
 
 function makeApp(): Express {
   const app = express();
@@ -85,6 +87,8 @@ const SEARCH: HelpSearchResult = {
 
 describe("HelpRoutes", () => {
   beforeEach(() => {
+    // The rulebook's load (W5c's one door) — resident, as after first use.
+    vi.spyOn(StuffApi, "ready").mockResolvedValue();
     vi.spyOn(HelpApi, "index").mockReturnValue(INDEX);
     vi.spyOn(HelpApi, "listKind").mockReturnValue(KIND_LIST);
     vi.spyOn(HelpApi, "search").mockReturnValue(SEARCH);

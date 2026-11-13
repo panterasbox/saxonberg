@@ -26,7 +26,8 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import GroundCharacter, { TEXTURE_MATERIALS } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 
@@ -63,6 +64,9 @@ describe('marking fields on a tract', () => {
     scale = 'field';
     use = 'agricultural';
     covered = true;
+    // The soils a field can become, blank: a new field loads its texture's
+    // material by `ensure` (load-on-use D2 c) from the content store.
+    standMaterials(Object.values(TEXTURE_MATERIALS));
     clone = vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       if (path !== '/trade/farming/thing/field') throw new Error(`no row ${path}`);
       return makeStuffAtPath(() => new Field(), path);

@@ -27,6 +27,10 @@ import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { standBlankConditions } from './conditions';
+
+// load-on-use W6: the rows these bodies' cascades cite, there and blank.
+beforeEach(() => standBlankConditions('/platform/idea/Condition/circulation/hypovolemic-shock'));
 
 const HOUR = 3600;
 const BASE = 2_000_000;

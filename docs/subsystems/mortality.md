@@ -727,12 +727,12 @@ Two properties the diminishment must keep, and a service's must too:
 
   > **⚠ HISTORICAL — closed by `ConditionCatalogue`.** This paragraph used
   > to say "no Condition Idea is live at any path today," which was true
-  > when written and is not any more: a self-warming `onCreate` now
-  > stands every authored row up as a live singleton at boot, so
-  > `findByTemplatePath` resolves `recovering` (and every other condition)
-  > from the first frame. See vitals.md § Conditions for the full account
-  > — this doc's degrade-to-the-path-leaf fallback is now dead code on the
-  > happy path, kept only as the not-found floor.
+  > when written and is not any more: the condition roster is
+  > `ConditionApi`'s declared `needs`, stood at boot (load-on-use W10), so
+  > `ConditionApi.conditions().need` resolves `recovering` (and every
+  > other condition) by the time anyone can be hurt. See vitals.md
+  > § Conditions for the full account — the degrade-to-the-path-leaf
+  > fallback is gone; a cold read is loud.
 
 The competitive axis is therefore *how little you are diminished*, and it
 needs no engine work: content calls `reembody`, gets the body back, and

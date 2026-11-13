@@ -9,6 +9,12 @@ data:
   programmePath: /world/terminus/mayfield-row/seznick-house/unit-programme
   corridorTemplate: /world/terminus/mayfield-row/seznick-house/corridor
   lobbyPath: /world/terminus/mayfield-row/seznick-house/lobby
+  # Who lets the flats (Walter's agency), the domicile a let stamps, and
+  # the branch a unit's leaf hangs off (`…/units/f1-u1`) — the let is the
+  # building's own act (`LettingWarren`).
+  agencyPath: /world/terminus/mayfield-row/idea/agency
+  domicile: terminus/mayfield-row/seznick-house
+  unitsBranch: units
   parentExtent: /world/terminus/mayfield-row/seznick-house
   capacityKey: mayfield.unitCap
   defaultCapacity: 8

@@ -14,7 +14,7 @@
  * distinct `u` leaf so dorm tooling never misreads a unit extent).
  */
 
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { LettingWarren } from '../lib/LettingWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -39,16 +39,21 @@ const PASSAGE_KIND = '/platform/idea/exits/passage';
 const STAIR_KIND = '/platform/idea/exits/passage';
 const UPSTAIRS_KIND = '/system/residence/idea/exits/upstairs';
 const FRONT_DOOR_KIND = '/system/residence/idea/exits/front-door';
+/** The door a unit's front way carries (boundary build, D6) — bolted, keyed to the unit. */
+const FRONT_DOOR_ROW = '/system/residence/thing/boundaries/keyed-door';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const BuildingWarrenBase = SingletonMixin(CirculationWarren);
+const BuildingWarrenBase = SingletonMixin(LettingWarren);
 
 export default class BuildingWarren extends BuildingWarrenBase {
   static fieldMeta: FieldMeta = {
-    ...CirculationWarren.fieldMeta,
+    ...LettingWarren.fieldMeta,
     programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    agencyPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    domicile: { persistent: true, authorable: true },
+    unitsBranch: { persistent: true, authorable: true },
     corridorTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
     lobbyPath: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
@@ -58,6 +63,15 @@ export default class BuildingWarren extends BuildingWarrenBase {
 
   /** The corridor row every minted floor clones from. */
   public corridorTemplate: string = '';
+
+  /** The letting agency — the Organization whose staff let the units (D9). */
+  public agencyPath: string = '';
+
+  /** The address a let stamps as the tenant's domicile. */
+  public domicile: string = '';
+
+  /** The branch unit leaves hang off under the building's extent (`units`). */
+  public unitsBranch: string = '';
 
   /** The building's authored ground-floor landing. */
   public lobbyPath: string = '';
@@ -73,6 +87,48 @@ export default class BuildingWarren extends BuildingWarrenBase {
 
   public setProgrammePath(value: string): void {
     this.programmePath = value;
+  }
+
+  public getAgencyPath(): string {
+    return this.agencyPath;
+  }
+
+  public setAgencyPath(value: string): void {
+    this.agencyPath = value;
+  }
+
+  public getDomicile(): string {
+    return this.domicile;
+  }
+
+  public setDomicile(value: string): void {
+    this.domicile = value;
+  }
+
+  public getUnitsBranch(): string {
+    return this.unitsBranch;
+  }
+
+  public setUnitsBranch(value: string): void {
+    this.unitsBranch = value.replace(/^\/+|\/+$/g, '');
+  }
+
+  // ─────────────── LettingWarren policy hooks ─────────────────────────
+
+  protected lettingOrganizationPath(): string {
+    return this.agencyPath;
+  }
+
+  protected domicileAddress(): string {
+    return this.domicile;
+  }
+
+  protected unitBranch(): string {
+    return this.unitsBranch;
+  }
+
+  protected programmeRowPath(): string {
+    return this.programmePath;
   }
 
   public getCorridorTemplate(): string {
@@ -177,14 +233,20 @@ export default class BuildingWarren extends BuildingWarrenBase {
     if (!m) return null;
     const dir = `unit-${m[2]}`;
     const existing = corridor.getExit(dir);
-    if (existing) return existing as unknown as Exit;
+    if (existing) {
+      await this.hangEntryDoor(key, FRONT_DOOR_ROW, existing as unknown as Exit);
+      return existing as unknown as Exit;
+    }
     const entryRow = await HoldingWarren.entryRowOf(this.programmePath);
-    const door = await corridor.installExit<FrontDoorExit>(
+    const edge = await corridor.installExit<FrontDoorExit>(
       FRONT_DOOR_KIND,
       { direction: dir, source: corridor, destinationPath: entryRow },
       (e) => e.configureFrontDoor(this, key),
     );
-    return door as unknown as Exit;
+    // ⭐ The unit's front door is ONE door (boundary build): this edge is
+    // its corridor side; the entry room's `out` is its inside.
+    await this.hangEntryDoor(key, FRONT_DOOR_ROW, edge as unknown as Exit);
+    return edge as unknown as Exit;
   }
 
   /** Wire the unit's way OUT: the entry room's `out` back to its
@@ -200,14 +262,17 @@ export default class BuildingWarren extends BuildingWarrenBase {
     const corridor = await this.ensureNode(node);
     if (!corridor) return;
     const entryEx = entry as ExitableContainer;
-    if (entryEx.getExit('out')) return;
-    await entryEx.installExit(PASSAGE_KIND, {
-      direction: 'out',
-      source: entry,
-      destination: corridor as ExitableContainer,
-      keepLiveDestination: true,
-      oneWay: true,
-    });
+    const out =
+      (entryEx.getExit('out') as unknown as Exit | undefined) ??
+      (await entryEx.installExit(PASSAGE_KIND, {
+        direction: 'out',
+        source: entry,
+        destination: corridor as ExitableContainer,
+        keepLiveDestination: true,
+        oneWay: true,
+      }));
+    // The inside of the front door: free (no key to leave your own home).
+    await this.hangEntryDoor(key, FRONT_DOOR_ROW, out, entry as unknown as Stuff);
   }
 
   // ─────────────── Warren policy hooks ────────────────────────────

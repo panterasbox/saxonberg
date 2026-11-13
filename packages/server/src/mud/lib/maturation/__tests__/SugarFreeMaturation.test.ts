@@ -29,13 +29,14 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const DAY = 86_400;
 const BASE = 20_000_000;
@@ -74,7 +75,7 @@ function standFixtures(): void {
     m.setTags(['fibre', 'ruined']);
     return m;
   }, RUINED);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-ret');
     p.setInputCategory('test-ret');
@@ -131,7 +132,7 @@ describe('a sugar-free ferment', () => {
     const pit = makePit();
     fillWithStraw(pit);
     expect(pit.getMaturationPhase()).toBe('active');
-    expect(pit.getMaturationProfileKey()).toBe('test-ret');
+    expect(pit.getMaturationProfile()?.getKey()).toBe('test-ret');
     // The readouts are honest about there being no alcohol in this.
     expect(pit.getStartingSugarGPerL()).toBe(0);
     expect(pit.getAbvPercent()).toBe(0);
@@ -176,6 +177,6 @@ describe('a sugar-free ferment', () => {
     pit.setBulkMaterial('interior', fibre);
     pit.setBulkAmount('interior', Quantity.of(20, 'L'));
     expect(pit.getMaturationPhase()).toBe('idle');
-    expect(pit.getMaturationProfileKey()).toBe('');
+    expect(pit.getMaturationProfilePath()).toBe('');
   });
 });

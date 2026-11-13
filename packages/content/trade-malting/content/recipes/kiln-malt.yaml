@@ -48,7 +48,6 @@
 # enzymes the floor spent five days making are destroyed. A peat fire is
 # a COOL, smoky, smouldering fire, which is precisely why it works for
 # this and why the band is not relaxed.
-recipeId: kiln-malt
 name: Kiln malt
 keywords: [kiln, "kiln malt"]
 discipline: malting

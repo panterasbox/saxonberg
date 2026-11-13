@@ -145,7 +145,7 @@ describe('a card lives on one axis: pinned or not', () => {
    * ⚠⚠ Found by DRIVING. Two `who` cards can be open at once (`who` and
    * `who --here` are different commands, so different cards), and
    * resolving the pin by catalogue name first meant both cards' controls
-   * sent `cockpit card pin who` — **two controls, identical labels,
+   * sent `client-card pin who` — **two controls, identical labels,
    * acting on one thing.** The KEY is the card's identity and is unique
    * by construction, so it resolves first.
    */

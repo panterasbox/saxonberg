@@ -37,6 +37,10 @@ import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standRootBiome } from '../../biome/__tests__/root-biome';
+
+// load-on-use W8: the universe's default walls are the root biome's.
+beforeEach(() => void standRootBiome());
 
 const BIOME_K = 290;
 const INDOOR = '/stuff/idea/biome/_cc/indoor';
@@ -104,6 +108,7 @@ describe('ClimateControl — Thing ≡ Location', () => {
   afterEach(() => StuffApi.clearAll());
   beforeEach(() => {
     StuffApi.clearAll();
+    standRootBiome(); // after the clear (load-on-use W8)
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     nowS = 1000;

@@ -27,6 +27,8 @@ import { StuffApi } from '../../api/stuff';
 import type Material from '../../lib/material/Material';
 import type { CoatLayer } from '../../lib/material/Faced';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { MaterialApi } from '../../api/material';
+import type { CommandContributions } from '../../api/command';
 
 /** Three rags and more stacked together is a heap. */
 const HEAP_AT = 3;
@@ -47,6 +49,16 @@ const OILY_IGNITION_K = 420;
 export default class Rag extends SelfHeatingMixin(
   CombustibleMixin(ThermalMixin(ReservedMixin(WetMixin(StackableMixin(Good))))),
 ) {
+  /**
+   * ⭐ A rag in hand rubs a thing dry (`dry <thing> with <rag>`) — the
+   * second shape of `dry`, afforded by the cloth you rub with, as a towel
+   * affords it (controller-liquidity W15: the drive found `dry … with rag`
+   * an unknown shape once W7c split `dry`, where it had been the one view).
+   */
+  static commandContributions: CommandContributions = {
+    environment: ['platform/cmd/crafting/dry-rub.yaml'],
+  };
+
   /**
    * ⭐ A HEAP is the oily rags lying together — this stack and every other
    * oily rag in the same place, three and more (a rag is dipped one at a
@@ -74,7 +86,7 @@ export default class Rag extends SelfHeatingMixin(
   public oilCoats(): CoatLayer[] {
     return this.getCoats('outside').filter((c) => {
       if (c.state !== 'wet') return false;
-      const m = StuffApi.findByTemplatePath<Material>(c.material);
+      const m = MaterialApi.materials().peek(c.material);
       return m && MixinApi.hasKinetic(m)
         ? m.getKinetics()?.airSet()?.getSets() === 'oxidation'
         : false;

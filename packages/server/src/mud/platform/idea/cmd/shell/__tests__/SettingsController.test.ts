@@ -1,12 +1,16 @@
 /**
- * SettingsController tests — exercise each subcommand against a
+ * Settings controller tests (one controller per subcommand) — exercise each subcommand against a
  * test host that composes `EnvironmentMixin` + a feature mixin
  * declaring sample settings.
  */
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import SettingsController from '../SettingsController';
+import SettingsListController from '../SettingsListController';
+import SettingsGetController from '../SettingsGetController';
+import SettingsSetController from '../SettingsSetController';
+import SettingsUnsetController from '../SettingsUnsetController';
+import SettingsDescribeController from '../SettingsDescribeController';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import {
   EnvironmentMixin,
@@ -106,16 +110,24 @@ function makeContext(host: Host, location: Place): CommandContext {
   });
 }
 
-describe('SettingsController', () => {
+describe('Settings controllers', () => {
   let host: Host;
   let location: Location;
-  let controller: SettingsController;
+  let controller: { execute: (model: CommandModel, ctx: CommandContext) => unknown };
 
   beforeEach(() => {
     location = makeStuff(() => new Location());
     host = makeStuff(() => new Host());
     ContainmentApi.move(host, location);
-    controller = makeStuff(() => new SettingsController());
+    // ⭐ The view's routing: each subcommand names its own controller;
+    // bare `settings` is the list's.
+    const bySub = { list: SettingsListController, get: SettingsGetController, set: SettingsSetController, unset: SettingsUnsetController, describe: SettingsDescribeController } as const;
+    controller = {
+      execute: (model, ctx) =>
+        makeStuff(
+          () => new bySub[(model.subcommand ?? 'list') as keyof typeof bySub](),
+        ).execute(model, ctx),
+    };
   });
 
   describe('list', () => {

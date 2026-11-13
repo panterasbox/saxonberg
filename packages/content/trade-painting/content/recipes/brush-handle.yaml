@@ -1,6 +1,5 @@
 # A brush handle — turned or whittled from a piece of seasoned wood, with a
 # socket cut for the knot (paint D11).
-recipeId: brush-handle
 name: Brush handle
 keywords: ["brush-handle", handle]
 inputSlots:

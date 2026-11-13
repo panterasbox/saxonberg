@@ -17,6 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Exit from '../Exit';
 import { ParcelApi } from '../../../api/parcel';
 import { StuffApi } from '../../../api/stuff';
+import { BoundaryApi } from '../../../api/boundary';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import Location from '../../location/Location';
 import Door from '../../../platform/thing/Door';
@@ -106,9 +107,9 @@ describe('an exit into draft content', () => {
           direction: 'north',
           source: source as never,
           destinationPath: DRAFT,
-          door,
         }),
     );
+    BoundaryApi.attach(door, exit);
 
     const guard = (await exit.canTraverse({} as never));
     expect(guard.gate).toBe('unpublished');

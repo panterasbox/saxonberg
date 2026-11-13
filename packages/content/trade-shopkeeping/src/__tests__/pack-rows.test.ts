@@ -69,6 +69,10 @@ describe('the pack ships rows that reach its classes', () => {
       .filter((f) => f.endsWith('.ts') && !f.includes('__tests__'))
       // A brain is named by a row's `behaviors[].brain`, not by `class:`.
       .filter((f) => !relative(SRC, f).startsWith('behavior'))
+      // A subcommand family's `*ControllerBase` is only ever inherited (one
+      // controller per subcommand over a base per noun, controller-liquidity
+      // D13) — no row names it, as no row names the kernel's.
+      .filter((f) => !f.endsWith('ControllerBase.ts'))
       .map((f) => `${ROOT}/${relative(SRC, f).replace(/\.ts$/, '')}`);
     for (const c of classes) {
       expect(named.has(c), `${c} is shipped but no row names it`).toBe(true);

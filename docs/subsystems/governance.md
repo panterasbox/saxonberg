@@ -178,10 +178,10 @@ collapse the tier.)
 - **Gated mutations** — `assign` / `vacate` carry the string-keyed
   `FromModule('/platform/idea/cmd/governance/OfficeController')` narrow-entry
   (string-keyed to avoid a static-import cycle — the
-  `AccessApi.setWizardMembership`/`WizardController` precedent). The
+  `AccessApi.setWizardMembership`/`wizard grant` precedent). The
   **authority** is the `requiresFoundingAuthority` subcommand-level
   validator's job (see "The verb" below), not re-checked at the Api (the
-  controller-gate + validator-authority split, the `WizardController`
+  controller-gate + validator-authority split, the `wizard grant`/`revoke`
   contract).
 
 Gated checks derive the acting principal from execution context

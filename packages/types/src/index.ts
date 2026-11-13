@@ -598,6 +598,12 @@ export interface CommandRejectedNote {
      */
     | 'needs-input';
   detail?: string;
+  /**
+   * ⭐ A line that WOULD run — the quote hint's fitted form (`buy "dog
+   * loaf"`, controller-liquidity D3). The shell's prose offers it as a
+   * link the player can tap; a script reads it here.
+   */
+  suggestion?: string;
 }
 
 /**
@@ -1315,15 +1321,33 @@ export interface Whereabouts {
   jurisdiction: string | null;
 }
 
-/** One perceivable way out. */
-export interface WhereaboutsExit {
+/**
+ * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
+ * nothing stands in it, or what does is open; `shut`; `locked`; `window` —
+ * it shows the far side and passes no body.
+ */
+export type WayState = 'open' | 'shut' | 'locked' | 'window';
+
+/**
+ * ⭐ One perceivable way out — the ONE shape every screen reads (the
+ * navigator, the room card's chips, the phone bar). The `exits`
+ * subscription and the whereabouts push both emit it, so they cannot
+ * disagree about a way.
+ */
+export interface WayRecord {
+  /** What the player types to cross it (`go <direction>`). */
   direction: string;
-  /** Where it leads, by name, when the destination has one. */
-  destination?: string;
-  /** ⭐ It leaves this zone's coordinate frame — a list entry, not a compass arm. */
+  state: WayState;
+  /** ⭐ It leaves this zone's coordinate frame — a threshold, a list entry not a compass arm. */
   crossesZone: boolean;
-  door?: { name: string; open: boolean };
+  /** Where it leads, by name — the whereabouts producer only (the navigator earns it by standing here). */
+  destination?: string;
+  /** The boundary standing in it, when there is one. */
+  boundary?: { stuffId: string; name: string; primaryKeyword?: string };
 }
+
+/** A whereabouts exit — a {@link WayRecord}. */
+export type WhereaboutsExit = WayRecord;
 
 /**
  * ⭐ What a terminal card shows (client-surface D6): a view by name (the
@@ -1626,7 +1650,7 @@ export interface CardTouchedEnvelope {
 }
 
 /**
- * ⭐ A card's shape or place changed — every `cockpit card` action reports
+ * ⭐ A card's shape or place changed — every `client-card` action reports
  * here (client-surface D8). The client renders; the server decides.
  */
 export interface CardArrangedEnvelope {
@@ -1652,7 +1676,7 @@ export interface CardClosedEnvelope {
 
 /**
  * The pin override took. Mirrored from the server, never set
- * optimistically: `cockpit card pin` is a real command the server may
+ * optimistically: `client-card pin` is a real command the server may
  * refuse, and a local toggle would show a pin that is not there.
  */
 export interface CardPinnedEnvelope {
@@ -1970,42 +1994,8 @@ export interface StuffDetailRecord extends StuffRefRecord {
   exits?: StuffExitRecord[];
 }
 
-/**
- * Wire shape for a single obvious exit. Direction is what the
- * player types to traverse (`go <direction>`). When the exit
- * passes through a `Door` (or any Boundary that acts as a door),
- * the door's identity + open/closed state ride along so clients
- * can annotate the exit inline ("south (the front doors, open)")
- * without a second round-trip — mirroring how the look prose
- * surfaces the door via `formatExits`.
- */
-export interface StuffExitRecord {
-  direction: string;
-  door?: StuffExitDoor;
-}
-
-/**
- * Wire-side door projection embedded in `StuffExitRecord.door`.
- * Carries the door's `stuffId` (so a click affordance can resolve
- * its display name from the stuff registry / send `look` against
- * the canonical keyword), the display name for inline rendering,
- * and the current open/closed state for the user-facing
- * annotation.
- */
-export interface StuffExitDoor {
-  stuffId: string;
-  displayName: string;
-  open: boolean;
-  /**
-   * Door's `primaryKeyword` when set — the canonical disambiguator
-   * the server resolves cleanly. Click affordances prefer this
-   * over `displayName` so a door named "the front doors" routes
-   * to `look doors` instead of the unwieldy / parse-rejected
-   * `look the front doors`. Optional because not every Door has
-   * one (Perceptible's primaryKeyword is fail-soft).
-   */
-  primaryKeyword?: string;
-}
+/** A room card's exit — a {@link WayRecord}. */
+export type StuffExitRecord = WayRecord;
 
 /**
  * What the `self` card puts on the wire — the viewer's own figures, as
@@ -3536,7 +3526,7 @@ export const DEFAULT_COCKPIT_MODE: CockpitMode = "explore";
 /**
  * The **arrangement axis** — savable card arrangements *inside* a mode.
  * These are the shipped defaults; a player composes and names their own
- * with `cockpit layout save <name>`, so this is a floor, not a closed
+ * with `client-layout save <name>`, so this is a floor, not a closed
  * vocabulary. The first entry of each list is that mode's default
  * arrangement, the one you land in on entry.
  *

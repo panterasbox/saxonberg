@@ -16,7 +16,7 @@
  *
  * **Store vs ring.** Structured, attributed diagnostics live in the
  * `diagnostics` collection (behind {@link DiagnosticLogic}); the raw,
- * unattributed console ring lives on the backend {@link ConsoleTap}
+ * unattributed console ring lives on the backend `ConsoleTap`
  * singleton and is wizard-read-only. `list`/`clear` read the store;
  * `rawTail` reads the ring; the pure taxonomy helpers
  * (`pathToChannel`/`expandSubscription`/`matches`) are re-exported from
@@ -43,7 +43,6 @@ import type {
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { DiagnosticLogic } from '../platform/idea/api/DiagnosticLogic';
-import { ConsoleTap } from '../../backend/ConsoleTap';
 import {
   DiagnosticChannel,
   type SubscribeContext,
@@ -140,12 +139,16 @@ export class DiagnosticApi {
   }
 
   /**
-   * Newest-first tail of the raw console ring (the {@link ConsoleTap}).
-   * Unattributed engine output — **wizard-tier**; the caller (the `errors
-   * raw` controller) enforces the wizard gate before calling.
+   * Newest-first tail of the raw console ring (the `ConsoleTap`).
+   * Unattributed engine output, other players' lines included — the
+   * Prime Minister's read. The reader is the acting principal, derived
+   * from the dispatched context; the gate is the logic's
+   * (controller-liquidity D9). `null` = refused (not the PM).
    */
-  public static rawTail(filter: RawConsoleFilter = {}): RawConsoleLine[] {
-    return ConsoleTap.get().tail(filter);
+  public static async rawTail(
+    filter: RawConsoleFilter = {}
+  ): Promise<RawConsoleLine[] | null> {
+    return logic().rawTail(filter);
   }
 
   /**

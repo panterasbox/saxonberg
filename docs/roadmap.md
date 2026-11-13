@@ -89,6 +89,21 @@ that shapes every slate.
 ---
 
 
+## ⭐ Shipped: controller liquidity (2026-11)
+
+Every controller does one act, and the act's rule is on the model
+([command-spec.md](./subsystems/command-spec.md) § The remedy ladder,
+[perception.md](./subsystems/perception.md)): a name with a space in it is
+quoted (`buy "dog loaf"`) and greedy is prose only; a closed word list is
+`type: enum`; a command is `verb target` or `verb subcommand target`, never
+deeper (`client-layout|card|shelf|style`, `outfit`, `stream-rotation`); a
+multi-act controller became protocol mixins or one controller per form (two
+new words, `spud` and `paste`); permissions moved onto the methods that
+write; reach is one walk (`PerceptionApi.reach`); `survey` retired into
+`analyze rooms` and `measure paint`. What it left: the loose ends of size →
+[size-slate](./slates/builds/size-slate.md), list grammar →
+[mql-lists-slate](./slates/builds/mql-lists-slate.md).
+
 ## ⭐ Shipped: controllers are input and output (2026-11)
 
 The command chain, end to end ([command-routing.md](./subsystems/command-routing.md),

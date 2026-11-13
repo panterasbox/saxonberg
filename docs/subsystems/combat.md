@@ -18,8 +18,10 @@ winning blow (killing them is the separate, interruptible **coup**), who is
 to **blame** for a death is derived from an append-only ledger (a consented
 duel is lawful; an imposed lethal attack on the unwilling is a crime), and
 every exchange **advances** the fighter (combat `Discipline`s + a costed
-`assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
-graph, join/merge, focus-fire, the `defend` family, fleeing, and the party
+`fight assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
+graph, join/merge, focus-fire, the `defend` family (one act the fighter
+decides — `Combatant.defend`: cover up, stay a coup, or interpose;
+controller-liquidity W7c), fleeing, and the party
 friend/foe seam (see [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)
 + [party.md](./party.md)); the client card and NPC-vs-NPC crews are later.
 Design surface lives in
@@ -803,8 +805,9 @@ auto-harvested by `DisciplineCatalogue`): `melee-combat` (skill) and
 side's** own `ActSignature` (self-credit; difficulty from the target's
 poise band, outcome from the exchange result; `blades` additionally
 credited on an edge/point instrument) via `creditSignature`,
-fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
-mid-fight branch: assessing your opponent delegates to `actor.assessCombat` —
+fire-and-forget. **`fight assess <foe>`** (`FightAssessController`; it was
+`assess`'s mid-fight branch until controller-liquidity W7b — `assess` is the
+medical examination now, in a fight or out) delegates to `actor.assessCombat` —
 a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
 that mints a combat signature and returns the opponent's banded tactical
 state (poise / flags / armed / condition). Bands, never numbers.
@@ -923,7 +926,7 @@ beats blind aggression, aggression beats a feinter.
 and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
 true band and the feint's **tell**. Two surfaces carry the fogged read:
 the **free** `fight` status opponent line (`actor.perceiveCombat` — no cost,
-no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
+no side-effects), and the **costed** `fight assess` (`Combatant.assessCombat`
 wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
 The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
 and whether a defender bites a feint, so "the fog says open" and "I bit the
@@ -1093,7 +1096,7 @@ Named at their sites; nothing inherited:
   `CombatCard` (and the contextual gambit affordances — terse verbs afforded
   only in a fight — that supersede the static ones). Party formation-roles
   **landed** — the combat-formations build (see
-  [combat-formations.md](./combat-formations.md)): `CombatFormation` Idea
+  [combat-formations.md](./combat-formations.md)): `formation` document
   presets over a total party-face resolution chain, the three hooks
   (allocation / interception / coup governance), the `command` Discipline,
   and the `party adopt` / `fight finish` surface.

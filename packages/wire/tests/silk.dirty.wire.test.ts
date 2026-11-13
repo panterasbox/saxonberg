@@ -268,8 +268,8 @@ suite('⭐ 2. buy in — leaf at the house, the kit in town', () => {
     const s = await at(STORE);
     try {
       for (const thing of ['imported', 'cheap', 'tray', 'reel', 'brush']) {
-        const r = await say(s, `buy ${thing}`);
-        expect(refusedFor(r), `buy ${thing}`).toBeNull();
+        const r = await say(s, `buy "${thing}"`);
+        expect(refusedFor(r), `buy "${thing}"`).toBeNull();
       }
       const kit = await names(s, 'me:i');
       expect(kit).toMatch(/imported silkworm eggs/i);

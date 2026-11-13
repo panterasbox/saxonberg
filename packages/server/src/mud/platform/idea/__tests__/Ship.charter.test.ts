@@ -27,6 +27,8 @@ import CharterBook from '../../thing/CharterBook';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
+import { rememberShippedJoints } from '../../../lib/craft/__tests__/joint-fixtures';
+import { Placements } from '../../../lib/spatial/Placement';
 
 /**
  * ⭐ The charter and the master's helm: only her master
@@ -92,8 +94,6 @@ function bollardOn(room: Stuff & Container): Bollard {
 
 
 
-/** The knot catalogue a rope's knot is warmed from — one row, the clove hitch. */
-const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 /**
  * ⭐ A line of hers: a real rope flaked down on her BITTS — a
@@ -107,7 +107,7 @@ function lineOn(room: Stuff & Container, length = 30): Rope {
   }
   const l = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
   l.setLengthM(length);
-  ContainmentApi.move(l, bitts, 'on');
+  ContainmentApi.move(l, bitts, Placements.ON);
   return l;
 }
 
@@ -124,6 +124,7 @@ function newShip(): Ship {
 }
 
 beforeEach(() => {
+  rememberShippedJoints();
   StuffApi.clearAll();
   rooms.clear();
   told = [];
@@ -135,7 +136,6 @@ beforeEach(() => {
   rooms.set(SHIP, ship as unknown as Stuff);
   installV1QuantityMarshallers();
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
-    if (p === TemplatePaths.jointCatalogue) return KNOTS;
     const s = rooms.get(p);
     if (!s) throw new Error(`no fixture ${p}`);
     return s;
@@ -198,6 +198,15 @@ describe('⭐ only her master takes the helm (P12)', () => {
     expect(ship.mayBeSteeredBy(person('/test/stranger'))).toBe(false);
     expect(ship.mayBeSteeredBy(person('/test/master', { positionKey: 'master', onShift: false }))).toBe(true);
     expect(ship.mayBeSteeredBy(person('/test/lookout', { positionKey: 'lookout', onShift: true }))).toBe(false);
+  });
+
+  it('⭐ W8: `anchor` asks her — a stranger is refused at her helm, the master is told she is not under way', async () => {
+    expect(MixinApi.isAnchoring(ship)).toBe(true);
+    expect(await ship.anchorPlanFor(person('/test/stranger'))).toEqual({ ok: false, reason: 'not-her-master' });
+    const master = person('/test/master', { positionKey: 'master', onShift: false });
+    if (ship.getCourse() === null) {
+      expect(await ship.anchorPlanFor(master)).toEqual({ ok: false, reason: 'not-under-way' });
+    }
   });
 
   it('⭐ chartered, the charterer takes her helm and answers for her; nobody else does', async () => {

@@ -34,10 +34,10 @@ import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /** The liquor a block of raw sugar dissolves into. */
-const RAW_LIQUOR = '/trade/sugar/idea/material/raw-liquor';
-const SKIMMINGS = '/trade/sugar/idea/material/skimmings';
 /** Sucrose's own density: what a kilogram of it adds to the volume. */
 const SUGAR_KG_PER_L = 1.6;
 /** The share of the liquor a skim lifts off with the scum. */
@@ -52,14 +52,47 @@ declare module '@saxonberg/server/mud/lib/bulk/Bulkable' {
   }
 }
 
-/** What a temper or a skim did, or why it did not. */
+/**
+ * What a temper or a skim did, or why it did not — a reason and the
+ * facts, never a sentence (controller-liquidity W10): the `temper` and
+ * `skim` controllers write the words.
+ */
+export type SugarRefusalReason =
+  | 'no-liquor'
+  | 'not-lime'
+  | 'no-pail'
+  | 'already-skimmed'
+  | 'pail-full'
+  | 'no-skimmings';
 export type SugarActResult =
-  | { ok: true; line: string }
-  | { ok: false; reason: string; line: string };
+  | { ok: true; facts: { limed?: number } }
+  | { ok: false; reason: SugarRefusalReason };
 
 const VERBS = ['trade/sugar/cmd/sugar/temper.yaml', 'trade/sugar/cmd/sugar/skim.yaml'];
 
 export default class Copper extends ContainerMixin(Vat) {
+  static fieldMeta: FieldMeta = {
+    // The liquor a fresh charge of sugar boils into. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    boilsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+    // What the scum skims off as. Authored on the row, loaded with it (load-on-use W8:
+    // a class's material is content, not a constant).
+    skimsTo: { persistent: true, authorable: true, ref: 'identity:constituent' },
+  };
+  /** The liquor a fresh charge of sugar boils into. */
+  protected boilsTo = '';
+  public setBoilsTo(value: string): void {
+    this.boilsTo = typeof value === 'string' ? value : '';
+  }
+
+  /** What the scum skims off as. */
+  protected skimsTo = '';
+  public setSkimsTo(value: string): void {
+    this.skimsTo = typeof value === 'string' ? value : '';
+  }
+
+
+
   static commandContributions: CommandContributions = {
     self: [],
     environment: VERBS,
@@ -98,7 +131,7 @@ export default class Copper extends ContainerMixin(Vat) {
     const solids = (solidsBefore * litres + kg) / after;
     const fresh = held === null || !MixinApi.hasSolution(held) || held.getSolidsKgPerL() <= 0;
     if (fresh) {
-      const liquor = StuffApi.findByTemplatePath<Material>(RAW_LIQUOR);
+      const liquor = MaterialApi.materials().need(this.boilsTo);
       if (liquor) this.setBulkMaterial('interior', liquor);
     }
     this.setBulkAmount('interior', Quantity.of(after, 'L'));
@@ -117,10 +150,10 @@ export default class Copper extends ContainerMixin(Vat) {
   /** Lime into the liquor — one lump. */
   public temper(lime: Stuff): SugarActResult {
     if (!this.holdsLiquor()) {
-      return { ok: false, reason: 'no-liquor', line: 'There is no liquor in the copper to temper.' };
+      return { ok: false, reason: 'no-liquor' };
     }
     if (!isLime(lime)) {
-      return { ok: false, reason: 'not-lime', line: 'That is not lime.' };
+      return { ok: false, reason: 'not-lime' };
     }
     const payload = this.getBulkPayload('interior') ?? {};
     const limed = (payload.limed ?? 0) + 1;
@@ -131,35 +164,29 @@ export default class Copper extends ContainerMixin(Vat) {
       void StuffApi.destruct(lime);
     }
     this.regrade();
-    return {
-      ok: true,
-      line:
-        limed === 1
-          ? 'The lime goes in; the liquor clouds, and a grey scum starts to rise.'
-          : 'More lime goes in. The liquor darkens — that is too much.',
-    };
+    return { ok: true, facts: { limed } };
   }
 
   /** The scum lifted into `pail`. */
   public skim(pail: Stuff): SugarActResult {
     if (!this.holdsLiquor()) {
-      return { ok: false, reason: 'no-liquor', line: 'There is nothing in the copper to skim.' };
+      return { ok: false, reason: 'no-liquor' };
     }
     if (!MixinApi.isBulkable(pail) || pail === (this as unknown as Stuff)) {
-      return { ok: false, reason: 'no-pail', line: 'You need something to skim it into.' };
+      return { ok: false, reason: 'no-pail' };
     }
     const payload = this.getBulkPayload('interior') ?? {};
     if (payload.skimmed) {
-      return { ok: false, reason: 'already-skimmed', line: 'It is skimmed clean already.' };
+      return { ok: false, reason: 'already-skimmed' };
     }
     const into = pail.getBulkMaterial('interior');
-    if (into !== null && into.getTemplatePath() !== SKIMMINGS) {
-      return { ok: false, reason: 'pail-full', line: 'That already has something else in it.' };
+    if (into !== null && into.getTemplatePath() !== this.skimsTo) {
+      return { ok: false, reason: 'pail-full' };
     }
     const lift = this.getBulkAmount('interior').rawValue() * SKIM_SHARE;
-    const skimmings = StuffApi.findByTemplatePath<Material>(SKIMMINGS);
+    const skimmings = MaterialApi.materials().need(this.skimsTo);
     if (!skimmings) {
-      return { ok: false, reason: 'no-skimmings', line: 'The scum will not come away.' };
+      return { ok: false, reason: 'no-skimmings' };
     }
     this.debitBulk('interior', lift);
     const had = pail.getBulkAmount('interior').rawValue();
@@ -167,7 +194,7 @@ export default class Copper extends ContainerMixin(Vat) {
     pail.setBulkAmount('interior', Quantity.of(had + lift, 'L'));
     this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), skimmed: true });
     this.regrade();
-    return { ok: true, line: 'You lift the scum off into the pail, and the liquor runs clear beneath it.' };
+    return { ok: true, facts: {} };
   }
 
   /**

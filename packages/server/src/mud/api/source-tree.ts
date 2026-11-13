@@ -48,6 +48,48 @@ export interface DirEntry {
   isDir: boolean;
 }
 
+/** One line {@link SourceTreeApi.search} matched. */
+export interface SearchMatch {
+  absolutePath: string;
+  /** 1-based. */
+  line: number;
+  text: string;
+}
+
+/** Bounds and flags for {@link SourceTreeApi.search}; every limit has a default. */
+export interface SearchOptions {
+  recursive?: boolean;
+  ignoreCase?: boolean;
+  /** Stop after this many matches (default 200). */
+  maxMatches?: number;
+  /** Stop after reading this many characters (default 8 MiB). */
+  maxBytes?: number;
+  /** Stop after this many milliseconds (default 2000). */
+  deadlineMs?: number;
+}
+
+/** A pattern refused before it runs: invalid, or shaped to run without bound. */
+export type SearchRefusal = {
+  ok: false;
+  reason: 'bad-pattern' | 'unsafe-pattern';
+  detail: string;
+};
+
+/** {@link SourceTreeApi.compilePattern}'s answer. */
+export type SearchPattern = { ok: true; regex: RegExp } | SearchRefusal;
+
+/**
+ * {@link SourceTreeApi.search}'s answer: the matches, and which limit
+ * stopped the walk (`null` = it finished).
+ */
+export type SearchResult =
+  | {
+      ok: true;
+      matches: SearchMatch[];
+      truncated: 'matches' | 'bytes' | 'deadline' | null;
+    }
+  | SearchRefusal;
+
 const LOGIC_PATH = '/platform/idea/api/source-tree';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/SourceTreeLogic', import.meta.url)
@@ -254,6 +296,32 @@ export class SourceTreeApi {
 
   public static async list(absolutePath: string): Promise<DirEntry[]> {
     return logic().list(absolutePath);
+  }
+
+  /**
+   * Search the file (or the directory, one level or with `recursive` the
+   * whole subtree) at `absolutePath` for `pattern`, line by line. ⭐ The
+   * limits are the search's own (controller-liquidity D9): an unsafe
+   * pattern is refused before it runs, and the walk stops at a match cap,
+   * a byte budget or a deadline, saying which.
+   */
+  public static async search(
+    absolutePath: string,
+    pattern: string,
+    opts: SearchOptions = {},
+  ): Promise<SearchResult> {
+    return logic().search(absolutePath, pattern, opts);
+  }
+
+  /**
+   * Compile a search pattern under the same safety rule `search` applies
+   * (the content tree's grep matches rows, not files, and uses this).
+   */
+  public static compilePattern(
+    pattern: string,
+    ignoreCase = false,
+  ): SearchPattern {
+    return logic().compilePattern(pattern, ignoreCase);
   }
 
   public static async write(

@@ -68,20 +68,6 @@ const CLERK_PATH = "/world/terminus/registry/clerk";
 async function wireFromSeeds(): Promise<void> {
   makeStuffAtPath(() => new AddressRegistry(), "/platform/idea/AddressRegistry");
 
-  for (const file of LOCALITY_SEEDS) {
-    const data = seedData(file);
-    const loc = makeStuffAtPath(() => {
-      const l = new Locality();
-      l.setName(String(data.name ?? ""));
-      l.setAddress(String(data._address ?? ""));
-      l.setGovernmentKey(
-        typeof data._governmentKey === "string" ? data._governmentKey : null
-      );
-      return l;
-    }, `/obj/Locality/${file.split("/").pop()!.replace(".yaml", "")}`);
-    AddressApi.registerLocality(loc);
-  }
-
   const governments = GOVERNMENT_SEEDS.map((file) => seedData(file));
   vi.spyOn(Template, "findDescendants").mockImplementation(
     async (basePath: string) => {
@@ -106,6 +92,21 @@ async function wireFromSeeds(): Promise<void> {
     "/platform/idea/GovernmentCatalogue"
   );
   await cat.onCreate();
+  // After the dictionary: a locality's government setter loads it
+  // (documents D7), so it must already be standing in a suite.
+  for (const file of LOCALITY_SEEDS) {
+    const data = seedData(file);
+    const loc = makeStuffAtPath(() => {
+      const l = new Locality();
+      l.setName(String(data.name ?? ""));
+      l.setAddress(String(data._address ?? ""));
+      l.setGovernmentKey(
+        typeof data._governmentKey === "string" ? data._governmentKey : null
+      );
+      return l;
+    }, `/obj/Locality/${file.split("/").pop()!.replace(".yaml", "")}`);
+    AddressApi.registerLocality(loc);
+  }
 }
 
 describe("the civics flagship (authored seeds, end-to-end)", () => {
@@ -119,11 +120,11 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     vi.restoreAllMocks();
   });
 
-  it("a dorm address resolves the three-deep chain", () => {
+  it("a dorm address resolves the three-deep chain", async () => {
     // The address the duncan-hall room seeds declare.
     const dorm = seedData("world/terminus/eternal/duncan-hall/location/dormroom.yaml");
     expect(dorm._address).toBe("terminus/city/campus/duncan-hall");
-    const chain = GovernmentApi.governmentChainAt(String(dorm._address));
+    const chain = await GovernmentApi.governmentChainAt(String(dorm._address));
     expect(chain.map((g) => g.key)).toEqual([
       "eternal-university",
       "terminus-city",
@@ -136,18 +137,18 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     ]);
   });
 
-  it("the terminal resolves [city, realm] — sparse inheritance on real content", () => {
+  it("the terminal resolves [city, realm] — sparse inheritance on real content", async () => {
     const gate = seedData("world/terminus/terminal/location/arrival-gate.yaml");
     expect(gate._address).toBe("terminus/city/arrival-gate");
-    const chain = GovernmentApi.governmentChainAt(String(gate._address));
+    const chain = await GovernmentApi.governmentChainAt(String(gate._address));
     expect(chain.map((g) => g.key)).toEqual(["terminus-city", "terminus-realm"]);
   });
 
-  it("the Registry office sits under the city, and its exits pair with the gate", () => {
+  it("the Registry office sits under the city, and its exits pair with the gate", async () => {
     const office = seedData("world/terminus/registry/office.yaml");
     expect(office._address).toBe("terminus/city/civic/registry");
     expect(
-      GovernmentApi.governmentAt(String(office._address))?.key
+      (await GovernmentApi.governmentAt(String(office._address)))?.key
     ).toBe("terminus-city");
     // The cross-zone exit pair, declared on both sides.
     const exits = office.exits as Record<string, { destination: string }>;
@@ -189,7 +190,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     expect(works.holder).toBeNull();
   });
 
-  it("the clerk's authored domicile resolves [city, realm]", () => {
+  it("the clerk's authored domicile resolves [city, realm]", async () => {
     const clerkSeed = seedData("world/terminus/registry/clerk.yaml");
     const clerk = makeStuffAtPath(() => {
       const n = new NPC();
@@ -202,7 +203,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     ]);
   });
 
-  it("the city's treasury and departments point at shipped substrate paths", () => {
+  it("the city's treasury and departments point at shipped substrate paths", async () => {
     const city = GovernmentApi.getGovernment("terminus-city")!;
     expect(city.treasury).toBe("/world/terminus/budget");
     expect(city.departments).toEqual(["/world/terminus/registry/business"]);
@@ -213,8 +214,8 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     ).toEqual([]);
   });
 
-  it("the narnia roster stays untouched — no shipped government keys", () => {
-    expect(GovernmentApi.governmentChainAt("narnia/castle/closet")).toEqual(
+  it("the narnia roster stays untouched — no shipped government keys", async () => {
+    expect(await GovernmentApi.governmentChainAt("narnia/castle/closet")).toEqual(
       []
     );
     // And the shipped narnia Locality seeds declare no government.

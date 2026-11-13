@@ -25,6 +25,7 @@
  * Operational reference: `docs/subsystems/bulk.md`.
  */
 
+import type { ApiNeed } from './security';
 import type {
   EmptyResultNote,
   QuantityClampedNote,
@@ -45,6 +46,9 @@ import { HotReloadApi } from './hot-reload';
 import { BulkableLogic } from '../platform/idea/api/BulkableLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import PumpMechanismCatalogue from '../platform/idea/PumpMechanismCatalogue';
+import MaturationProfileCatalogue from '../platform/idea/MaturationProfileCatalogue';
+import FractionScheduleCatalogue from '../platform/idea/FractionScheduleCatalogue';
 
 /**
  * The note kinds `transfer` ever emits — reused from stack's set.
@@ -143,6 +147,50 @@ function logic(): BulkableLogic {
 }
 
 export class BulkableApi {
+  /**
+   * ⭐ What this Api's reads stand on — every maturation profile and fraction
+   * schedule (a vessel's charge is matched to one by a sync tag read), stood
+   * by the boot routine, so no vessel readies them.
+   */
+  static readonly needs: readonly ApiNeed[] = [
+    () => BulkableApi.maturationProfiles().ensureAll(),
+    () => BulkableApi.fractionSchedules().ensureAll(),
+  ];
+
+  /**
+   * ⭐ The pump mechanisms — how a displacement machine moves its fluid
+   * (`suction` pulls and so meets the atmosphere's wall; `force` pushes),
+   * any pack's `content/pump-mechanisms/`, served by
+   * {@link PumpMechanismCatalogue}. A pump's `mechanism` setter loads its
+   * own; the pumping reads it resident.
+   */
+  public static pumpMechanisms(): PumpMechanismCatalogue {
+    return StuffApi.singletonSync(
+      '/platform/idea/PumpMechanismCatalogue',
+      () => new PumpMechanismCatalogue(),
+    );
+  }
+
+  /**
+   * ⭐ The maturation profiles — how a must ripens, a wheel cures, a bed
+   * malts — any pack's `content/maturation-profiles/`, served by
+   * {@link MaturationProfileCatalogue}. A `MaturingMixin` host loads the
+   * kind in `onCreate` and holds its profile's PATH.
+   */
+  public static maturationProfiles(): MaturationProfileCatalogue {
+    return StuffApi.singletonSync('/platform/idea/MaturationProfileCatalogue', () => new MaturationProfileCatalogue());
+  }
+
+  /**
+   * ⭐ The fraction schedules — how a still's run or a column divides —
+   * any pack's `content/fraction-schedules/`, served by
+   * {@link FractionScheduleCatalogue}. A `FractionatingMixin` host loads
+   * the kind in `onCreate` and holds its schedule's PATH.
+   */
+  public static fractionSchedules(): FractionScheduleCatalogue {
+    return StuffApi.singletonSync('/platform/idea/FractionScheduleCatalogue', () => new FractionScheduleCatalogue());
+  }
+
   /**
    * Resolve a holder's bulk slot handle for a verb. Pass the bound
    * argument's `via` (`model.field.via`) — HOW it was named: its

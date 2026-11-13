@@ -7,7 +7,6 @@ import { LightSourceMixin } from '../../lib/perception/LightSource';
 import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
 import Good from '../../lib/stuff/Good';
-import { BoundaryApi } from '../../api/boundary';
 import { ContainmentApi } from '../../api/containment';
 import { VisionModality } from '../idea/modalities/VisionModality';
 import { MAX_HOPS } from '../../lib/perception/Modality';
@@ -24,6 +23,25 @@ const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
 class Candle extends LightSourceMixin(Good) {}
+
+const OPPOSITE: Record<string, string> = { north: 'south', east: 'west' };
+
+/**
+ * ⭐ A window between two rooms is a way with the window as its boundary:
+ * an exit pair, the pane attached to both sides (boundary build, 2026-11 —
+ * it used to hang as an anchor fixture on each room).
+ */
+async function glaze(
+  glass: Window,
+  a: Location,
+  b: Location,
+  direction = 'north',
+): Promise<void> {
+  await a.addBidirectionalExit(b, direction, {
+    boundary: glass,
+    opposite: OPPOSITE[direction],
+  });
+}
 
 /**
  * Phase 4 critical integration tests. The propagation walk's
@@ -61,16 +79,12 @@ describe('Window — multi-room propagation integration', () => {
     return { roomA, roomB };
   }
 
-  it('open window: candle in A leaks into B via the LightConduit', async () => {
+  it('open window: candle in A leaks into B through the pane', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
     const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     window.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -87,11 +101,7 @@ describe('Window — multi-room propagation integration', () => {
     const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     // Window starts closed.
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -109,11 +119,7 @@ describe('Window — multi-room propagation integration', () => {
     const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(0.5);
     window.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -128,11 +134,7 @@ describe('Window — multi-room propagation integration', () => {
     window.setBaseTransmissivity(1);
     window.setDirectionalOverrides({ aToB: 1, bToA: 0 });
     window.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const lampA = makeStuff(() => new Candle());
     lampA.setEmittedFlux(50);
@@ -165,19 +167,11 @@ describe('Window — multi-room propagation integration', () => {
     const wAB = await StuffApi.create(() => new Window());
     wAB.setBaseTransmissivity(1);
     wAB.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: wAB,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(wAB, roomA, roomB);
     const wBC = await StuffApi.create(() => new Window());
     wBC.setBaseTransmissivity(1);
     wBC.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: wBC,
-      hostA: roomB,
-      hostB: roomC,
-    });
+    await glaze(wBC, roomB, roomC);
 
     // Lamp in C. lightAt(A) is depth-2: A → wAB → B → wBC → C. Each
     // hop is depth + 1, so C is depth 2 — within budget. Read should
@@ -201,11 +195,7 @@ describe('Window — multi-room propagation integration', () => {
     const wCD = await StuffApi.create(() => new Window());
     wCD.setBaseTransmissivity(1);
     wCD.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: wCD,
-      hostA: roomC,
-      hostB: roomD,
-    });
+    await glaze(wCD, roomC, roomD);
     ContainmentApi.move(lamp, roomD);
 
     // From A: depth 0 = A, 1 = B, 2 = C. C reads its own walk at
@@ -224,11 +214,7 @@ describe('Window — multi-room propagation integration', () => {
     window.setBaseTransmissivity(1);
     window.setGlazing(Colour.of(1, 0.1, 0.1)); // red glass
     window.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
@@ -269,13 +255,13 @@ describe('Window — multi-room propagation integration', () => {
     red.setBaseTransmissivity(1);
     red.setGlazing(Colour.of(1, 0.1, 0.1));
     red.open();
-    BoundaryApi.attachExistingBoundary({ boundary: red, hostA: roomA, hostB: roomB });
+    await glaze(red, roomA, roomB);
 
     const blue = await StuffApi.create(() => new Window());
     blue.setBaseTransmissivity(1);
     blue.setGlazing(Colour.of(0.1, 0.1, 1));
     blue.open();
-    BoundaryApi.attachExistingBoundary({ boundary: blue, hostA: roomC, hostB: roomB });
+    await glaze(blue, roomC, roomB, 'east');
 
     const lampA = makeStuff(() => new Candle());
     lampA.setEmittedFlux(40);
@@ -291,23 +277,21 @@ describe('Window — multi-room propagation integration', () => {
     expect(b.colour.g).toBeLessThan(0.3);
   });
 
-  it('BoundaryApi.destruct cleanly removes the leak', async () => {
+  it('removing the way cleanly removes the leak', async () => {
     const { roomA, roomB } = setupTwoRoomsAcrossZones();
     const window = await StuffApi.create(() => new Window());
     window.setBaseTransmissivity(1);
     window.open();
-    BoundaryApi.attachExistingBoundary({
-      boundary: window,
-      hostA: roomA,
-      hostB: roomB,
-    });
+    await glaze(window, roomA, roomB);
 
     const lamp = makeStuff(() => new Candle());
     lamp.setEmittedFlux(60);
     ContainmentApi.move(lamp, roomA);
 
     expect(vision().lightAt(roomB).intensity.rawValue()).toBe(60);
-    BoundaryApi.destruct(window);
+    roomA.removeExit('north');
+    roomB.removeExit('south');
+    expect(window.getSides()).toEqual([null, null]);
     expect(vision().lightAt(roomB)).toBe(Light.ZERO);
   });
 });

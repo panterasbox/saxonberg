@@ -12,6 +12,10 @@ help: |
   A dressed wound reads as "bleeding controlled" but hides how bad it
   really is behind the dressing. To know whether it has clotted, an
   expert can judge through it — otherwise `undress` it and look.
+
+  `assess` examines a body, in a fight or out of one. To read the one
+  you are fighting — guard, arms, footing — at the cost of an exchange,
+  `fight assess <foe>`.
 examples:
   - cmd: assess
     note: Check your own condition

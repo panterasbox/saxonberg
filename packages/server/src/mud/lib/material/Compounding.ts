@@ -10,10 +10,16 @@
  * (`productMaterial`), exactly as a mould names a cast's shape, and the
  * inputs decide what is IN it.
  *
- * The verb follows the state of the matter: `knead` a plastic mass, `stir`
- * a slurry, powder or liquid — one act, and this mixin is the kernel's
- * default knead vessel (`KneadVesselMixin`): both verbs ask its
- * `kneadPlanFor`, and both end at {@link compound}.
+ * ⭐ The WORK follows the state of the matter (owner, 2026-11-10;
+ * controller-liquidity W19): a stiff mass — plastic clay, raw rubber, a
+ * putty — is `knead`ed, a quarter-hour's heavy work; anything runny — a
+ * slurry, a paint, a glaze, a wash, a powder — is `stir`red, a few light
+ * minutes. {@link Compounding.workVerb} reads it off the contents (the
+ * materials' `plastic`/`elastomer` tags against the free water in the
+ * belly), and it is the ROUTING: `knead` asks {@link kneadPlanFor}, `stir`
+ * asks {@link stirPlanFor}, and each refuses `wrong-work` pointing at the
+ * other. Both end at {@link compound}. This mixin is the kernel's default
+ * knead vessel (`KneadVesselMixin`) and affords `stir` itself.
  *
  * ```yaml
  * class: /platform/thing/CompoundingVessel
@@ -35,7 +41,7 @@
  * the sulfur you weighed in.
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -45,16 +51,16 @@ import { MixinApi } from '../../api/mixin';
 import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
-import type { ActDone } from '../craft/ActPlan';
+import type { ActDone, ActPlan } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
-import type { KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel } from '../craft/KneadVessel';
+import type { KneadBegin, KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel, KneadWork } from '../craft/KneadVessel';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
 /**
  * Stirring a slurry, a powder or a liquid even, game-ms — a few minutes and
  * light work, where kneading a plastic mass is a long, heavy job. The state
- * of the matter is the verb the player chose (`stir` vs `knead`).
+ * of the matter decides which (`workVerb`), never the word typed.
  */
 const STIR_MS = 2 * 60 * 1000;
 /**
@@ -63,6 +69,23 @@ const STIR_MS = 2 * 60 * 1000;
  * carries it past the liquid limit (~50 % on the dry clay) into a slip.
  */
 const SLAKE_RATIO = 0.4;
+
+/** ⭐ Every reason working a compound (by `knead` or `stir`) is refused. */
+export type CompoundRefusal = Extract<
+  KneadRefusal,
+  { reason: 'empty' | 'wrong-work' | 'came-empty' | 'already-compounded' | 'mint-failed' }
+>;
+
+/**
+ * Working a compound — the same plan for both verbs, the work named in the
+ * begin facts. A {@link KneadPlan} by shape, so `knead` engages it as its
+ * own.
+ */
+export type CompoundPlan = ActPlan<
+  Extract<KneadBegin, { kind: 'compound' }>,
+  Extract<KneadFacts, { kind: 'compounded' }>,
+  CompoundRefusal
+>;
 
 /** What compounding came to. */
 export type CompoundOutcome =
@@ -86,23 +109,32 @@ export interface Compounding extends KneadVessel {
    */
   chargeContributions(): BuildContribution[];
   /**
-   * ⭐ What the WORK is, read off what is in the vessel (B101): a deformable
-   * solid mass — plastic clay, raw rubber — is `knead`ed (long and heavy);
-   * powders, granules and liquids are `stir`red (a few light minutes). The
-   * verb a player types must match it; the matter decides, never the word.
+   * ⭐ What the WORK is, read off what is in the vessel (B101, W19): a
+   * deformable solid mass — plastic clay, raw rubber — is `knead`ed (long
+   * and heavy); powders, granules and liquids — a slurry, a paint — are
+   * `stir`red (a few light minutes). The ONE predicate both verbs route by.
    */
-  workVerb(): 'knead' | 'stir';
-  /** The refusal for working it with the wrong verb, or `null` when `verb` is the work. */
-  workRefusal(verb: string | undefined): KneadRefusal | null;
+  workVerb(): KneadWork;
+  /**
+   * ⭐ `knead`'s plan of this vessel's compound — refused `wrong-work`
+   * (`work: 'stir'`) when what is in it is runny. (Typed as the knead
+   * protocol's: a composer — the temper pit — plans a tread here.)
+   */
+  kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal>;
+  /**
+   * ⭐ `stir`'s plan of this vessel's compound (W19) — refused `wrong-work`
+   * (`work: 'knead'`) when what is in it is stiff.
+   */
+  stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal>;
   /**
    * ⭐ Compound what is in the vessel into ONE product through the one
-   * mint (`CraftingApi.mintFromBuild({ charge })`) — the end of a `knead`
-   * or a `stir`. What came of it is the outcome; the words are the
+   * mint (`CraftingApi.mintFromBuild({ charge })`) — the end of a
+   * `knead`. What came of it is the outcome; the words are the
    * controller's ({@link Compounding.landed}).
    */
   compound(by: Stuff): Promise<CompoundOutcome>;
-  /** What a compounding outcome lands as, for the `verb` that worked it. */
-  landed(out: CompoundOutcome, verb: string): ActDone<KneadFacts, KneadRefusal>;
+  /** What a compounding outcome lands as, for the work that worked it. */
+  landed(out: CompoundOutcome, verb: KneadWork): ActDone<Extract<KneadFacts, { kind: 'compounded' }>, CompoundRefusal>;
   /**
    * @hook What the product IS made of, beyond its material — read off the
    * charge BEFORE the mint consumes it, written onto a bulk product's
@@ -112,21 +144,21 @@ export interface Compounding extends KneadVessel {
   payloadFor(charge: readonly BuildContribution[]): BulkPayload | null;
 }
 
-export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: TBase) {
   // ⭐ A compounding vessel is a knead VESSEL (`KneadVesselMixin`): it binds
   // as `knead`'s vessel and affords it. ⚠ NOT a dip bath: only a tub of
   // something that lays a coat is one — that is `GlazeTub`, its own kind
   // (B101: the temper pit and the batch pot afforded `dip` and declined it).
+  // ⭐ And it is `stir`red when what is in it is runny (W19): the matter's
+  // `workVerb` routes the two verbs.
   class CompoundingMixin extends KneadVesselMixin(Base) implements Compounding {
     static _mixinName = 'CompoundingMixin';
 
     /**
-     * ⭐ The vessel affords `stir` — and `knead` by what it is
-     * (`KneadVesselMixin`). Which of the two the work IS is the contents'
-     * (`workVerb`); a coat bath (`GlazeTub`) adds `dip`.
-     * Environment and peers: a tub you stand at, a bucket on the bench. A
-     * static on the CLASS — a row's `commandContributions:` is dead
-     * silently.
+     * ⭐ The vessel affords `stir` as well as `knead` (by what it is,
+     * `KneadVesselMixin`) — which of the two its contents want is
+     * `workVerb`'s. A tub you stand at, a pot on the bench. A static on the
+     * CLASS — a row's `commandContributions:` is dead silently.
      */
     static commandContributions: CommandContributions = {
       environment: ['platform/cmd/crafting/stir.yaml'],
@@ -134,7 +166,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     };
 
     static fieldMeta: FieldMeta = {
-      productMaterial: { persistent: true, authorable: true },
+      productMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
       productTemplate: { persistent: true, authorable: true },
     };
 
@@ -192,40 +224,51 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       return out;
     }
 
-    /**
-     * ⭐ The kernel's default knead: work what is in the vessel into one
-     * product — asked by `knead` and by `stir` alike (`req.verb`), the word
-     * following the state of the matter. The narration reads the outcome;
-     * the mint is {@link compound}'s.
-     */
+    /** ⭐ The kernel's default knead: a stiff compound, worked by hand. */
     public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+      return this.workPlan(req, 'knead');
+    }
+
+    /** ⭐ A runny compound, stirred (W19). */
+    public async stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal> {
+      return this.workPlan(req, 'stir');
+    }
+
+    /**
+     * Work what is in the vessel into one product by `work` — refused
+     * `wrong-work` when the matter wants the other (B101: stirring clay was
+     * a two-minute shortcut past a quarter-hour of kneading, and kneading a
+     * paint pot is nonsense). The narration reads the outcome; the mint is
+     * {@link compound}'s.
+     */
+    private workPlan(req: KneadRequest, work: KneadWork): CompoundPlan | CompoundRefusal {
       const self = this as unknown as Stuff & Container;
       const any = self.getContents().some((c) => MixinApi.isTangible(c)) ||
         (MixinApi.isBulkable(self) && self.hasInteriorBulk() &&
           self.getBulkAmount('interior').rawValue() > 0);
       if (!any) return { ok: false, reason: 'empty', facts: { wants: 'anything' } };
-      // ⭐ The matter decides the work (B101): stirring clay was a two-minute
-      // shortcut past a quarter-hour of kneading.
-      const wrong = this.workRefusal(req.verb);
-      if (wrong !== null) return wrong;
-      const verb = req.verb ?? this.workVerb();
+      const wants = this.workVerb();
+      if (wants !== work) return { ok: false, reason: 'wrong-work', facts: { work: wants } };
       const giver = req.actor;
       return {
         ok: true,
-        durationMs: verb === 'knead' ? KNEAD_MS : STIR_MS,
-        effortW: verb === 'knead' ? 380 : 150,
-        facts: { kind: 'compound', verb },
-        onComplete: async () => this.landed(await this.compound(giver), verb),
+        durationMs: work === 'knead' ? KNEAD_MS : STIR_MS,
+        effortW: work === 'knead' ? 380 : 150,
+        facts: { kind: 'compound', verb: work },
+        onComplete: async () => this.landed(await this.compound(giver), work),
       };
     }
 
-    public landed(out: CompoundOutcome, verb: string): ActDone<KneadFacts, KneadRefusal> {
+    public landed(
+      out: CompoundOutcome,
+      verb: KneadWork,
+    ): ActDone<Extract<KneadFacts, { kind: 'compounded' }>, CompoundRefusal> {
       if (out.ok) return { ok: true, facts: { kind: 'compounded', product: out.product } };
       if (out.reason === 'empty') return { ok: false, reason: 'came-empty', facts: { verb } };
       return { ok: false, reason: out.reason };
     }
 
-    public workVerb(): 'knead' | 'stir' {
+    public workVerb(): KneadWork {
       const self = this as unknown as Stuff & Container;
       let plasticKg = 0;
       for (const c of self.getContents()) {
@@ -259,12 +302,6 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       // Water itself is all water; a mixture is what its composition says.
       if (held.hasTag('water')) return slot.getMassKg();
       return MixinApi.hasMixture(held) ? slot.getMassKg() * held.waterShare() : 0;
-    }
-
-    public workRefusal(verb: string | undefined): KneadRefusal | null {
-      const work = this.workVerb();
-      if (verb === undefined || verb === work) return null;
-      return { ok: false, reason: 'wrong-work', facts: { work } };
     }
 
     /**

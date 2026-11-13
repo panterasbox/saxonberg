@@ -6,6 +6,8 @@
 # `extends:` this and names its main in `connectsTo:`.
 class: /platform/thing/PipeRun
 data:
+  # What the run carries (load-on-use W8: a class's material is content).
+  carries: /stuff/idea/material/bulk/water
   shortDescription: service pipe
   keywords: [run, "service run", "service pipe", plumbing, pipes]
   register: definite
@@ -22,4 +24,4 @@ data:
     parts:
       - { part: pipe, template: /trade/plumbing/thing/lead-pipe, count: 4, role: structural, plural: lengths }
     joints:
-      - { key: wiping, method: wiped, members: [pipe] }
+      - { key: wiping, method: /trade/plumbing/joints/wiped, members: [pipe] }

@@ -16,6 +16,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { matchesDocumentQuery } from '../../document/__tests__/document-query';
 import Material from '../../material/Material';
 import Stockpile from '../../../platform/thing/Stockpile';
 import IceBlock from '../../../platform/thing/IceBlock';
@@ -107,7 +108,8 @@ beforeEach(() => {
   vi.spyOn(PersistApi, 'find').mockImplementation(async (col: string, q: Record<string, unknown>) =>
     col !== Collections.Documents
       ? []
-      : [...docs.values()].filter((d) => Object.entries(q).every(([k, v]) => d[k] === v)),
+      // The shared matcher: a document listing is a path-range query (W0).
+      : [...docs.values()].filter((d) => matchesDocumentQuery(d, q)),
   );
   vi.spyOn(PersistApi, 'save').mockImplementation(async (col: string, doc: Record<string, unknown>) => {
     const key = (doc._id as string | undefined) ?? `id-${id++}`;

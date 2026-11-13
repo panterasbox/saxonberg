@@ -6,7 +6,7 @@
 # respects.
 class: /platform/idea/material/Spirit
 data:
-  smells: [{ aroma: /base-library/aromas/spirit, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/alcohol/spirit, strength: 800 }]
   burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: neutral spirit
@@ -22,6 +22,6 @@ data:
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "neutral-spirit"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/spirits
+  cleanser: /platform/cleansers/spirits
   autoignitionTemperature: 636
   heatOfCombustion: 27

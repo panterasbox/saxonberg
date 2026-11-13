@@ -8,9 +8,10 @@
  * until the sulfur is milled through. The verb is dumb; the VESSEL plans.
  * A baker's trough plans a dough (its build buffer becomes matter); a
  * mixing vessel plans a blend by mass (`CompoundingMixin`, the kernel's
- * default, ceramics R1) — and `stir` asks that same plan of it, the act
- * named by the state of the matter; a temper pit plans water to the window
- * and the tread.
+ * default, ceramics R1) — while what is in it is STIFF; a runny compound
+ * (a paint, a glaze slurry) is `stir`red instead, and `knead` is refused
+ * `wrong-work` pointing there (the matter's `workVerb`, controller-
+ * liquidity W19); a temper pit plans water to the window and the tread.
  *
  * The composer implements `kneadPlanFor` — an {@link ActPlan}, an
  * {@link ActRefusal}, or `null` when this vessel has nothing to say (the
@@ -30,23 +31,23 @@ const KNEADING = ['platform/cmd/crafting/knead.yaml'];
 export interface KneadRequest {
   /** Who is kneading. */
   actor: Stuff;
-  /**
-   * The word the act was asked by — `knead`, or `stir` for a slurry, a
-   * powder or a liquid — for the vessel's narration. Absent = `knead`.
-   */
-  verb?: string;
 }
 
-/** What the matter in a vessel wants doing to it — `knead` or `stir`. */
+/**
+ * What the matter in a vessel wants doing to it — kneaded (stiff: a long,
+ * heavy job) or stirred (runny: a few light minutes). ⭐ The MATTER's,
+ * never the word (B101): the verb typed must be this one, or the act is
+ * refused `wrong-work` pointing at the other (W19).
+ */
 export type KneadWork = 'knead' | 'stir';
 
-/** ⭐ Every reason a knead (or a compounding `stir`) is refused. */
+/** ⭐ Every reason a knead is refused. */
 export type KneadRefusal =
   /** Nothing in the vessel; `wants` names what should go in. */
   | ActRefusal<'empty', { wants: 'anything' | 'clay' }>
   /** The trough's build is empty — flour and water first. */
   | ActRefusal<'empty-build'>
-  /** The matter wants the other work (B101). */
+  /** ⭐ The matter wants the other work (B101, W19): `work` names it. */
   | ActRefusal<'wrong-work', { work: KneadWork }>
   /** Ice is set in the pit. */
   | ActRefusal<'frozen', { ice: Stuff }>
@@ -55,7 +56,7 @@ export type KneadRefusal =
   /** The pit holds no water to temper with. */
   | ActRefusal<'no-water'>
   /** At completion: there was nothing in it after all. */
-  | ActRefusal<'came-empty', { verb: string }>
+  | ActRefusal<'came-empty', { verb: KneadWork }>
   /** At completion: it is one even mass already. */
   | ActRefusal<'already-compounded'>
   /** At completion: the mint failed — a fault in the books. */
@@ -65,8 +66,8 @@ export type KneadRefusal =
 
 /** What the begin words need. */
 export type KneadBegin =
-  /** A compounding vessel worked by `verb` (`knead`, `stir`, …). */
-  | { kind: 'compound'; verb: string }
+  /** A compounding vessel worked as its matter wants (`knead` or `stir`). */
+  | { kind: 'compound'; verb: KneadWork }
   /** Clay trodden in a temper pit. */
   | { kind: 'tread' }
   /** A dough worked in a trough. */

@@ -11,9 +11,8 @@
 # `coldStorage` has no default and is EXPECTED to go unmet in most homes:
 # cold is a property of a SPACE (a cellar) or of an insulated, closable
 # holder, and the shipped larder is neither — it is a cupboard. That is a
-# gap the survey names, not a bug to paper over; it is also the reason to
+# gap `analyze rooms` names, not a bug to paper over; it is also the reason to
 # want a cold box later.
-archetypeId: kitchen
 label: a kitchen
 capabilities:
   - { key: heat, needs: { heatK: 373 }, default: /stuff/thing/fixture/range }

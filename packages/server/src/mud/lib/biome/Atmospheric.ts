@@ -32,6 +32,7 @@
  */
 
 import { SecurityApi } from '../../api/security';
+import { DocumentNotResidentError } from '../errors';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type Place from '../stuff/Place';
@@ -76,6 +77,8 @@ import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
 import type Structure from '../structure/Structure';
+import { Placements } from '../spatial/Placement';
+import { MaterialApi } from '../../api/material';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -394,7 +397,7 @@ export interface Atmospheric {
    * A getter over the two fields that already exist, so a reader can
    * ask *how cold is it in here* without reaching into
    * `_temperature` — which is a field, and fields are not the
-   * contract between Stuff. Sync because the archetype survey and the
+   * contract between Stuff. Sync because the archetype read and the
    * thermal reconcile both ask on a hot path.
    */
   getOwnTemperatureK(): number | null;
@@ -489,8 +492,8 @@ export function AtmosphericMixin<
       _detailGravities: { persistent: true, authorable: true },
       _detailAtmospheres: { persistent: true, authorable: true },
       _weatherPin: { persistent: true, authorable: true },
-      enclosure: { persistent: true, authorable: true },
-      roof: { persistent: true, authorable: true },
+      enclosure: { persistent: true, authorable: true, ref: 'identity:constituent' },
+      roof: { persistent: true, authorable: true, ref: 'identity:constituent' },
       envelopeTemperatureK: { persistent: true, runtimeState: true },
       envelopeClockStamp: { persistent: true, runtimeState: true },
       envelopeOutsideK: { persistent: true, runtimeState: true },
@@ -658,10 +661,7 @@ export function AtmosphericMixin<
      */
     public enclosureDefaults(): EnclosureDefaults | 'none' {
       return {
-        materialPath: envelopeDialStr(
-          AppSettingKeys.enclosureDefaultMaterial,
-          '/stuff/idea/material/rock/granite',
-        ),
+        materialPath: BiomeApi.defaultEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
@@ -688,9 +688,17 @@ export function AtmosphericMixin<
 
     // ---------- biome reference ----------
 
+    /**
+     * The biome this place cites — loaded with the place (`_biomePath` is a
+     * constituent; its parents load by `extends:`). Read cold, it throws
+     * naming the path (load-on-use W7): a place under a biome nothing
+     * loaded is an engine defect, never a place with no sky.
+     */
     public getBiome(): Biome | null {
       if (this._biomePath === null) return null;
-      return BiomeApi.findByPath(this._biomePath);
+      const biome = BiomeApi.findByPath(this._biomePath);
+      if (!biome) throw new DocumentNotResidentError('biome', this._biomePath);
+      return biome;
     }
 
     public setBiome(value: Biome | null): void {
@@ -748,7 +756,7 @@ export function AtmosphericMixin<
      * the one seam that says where a scope's occupants are.
      *
      * @hook Override where the class's air is a PLACEMENT rather than a
-     *   containment — `Chamber` answers `getPlaced('in')`. Never branch on
+     *   containment — `Chamber` answers `getPlaced(Placements.IN)`. Never branch on
      *   `isPlacing` here: the class whose air is a placement is the class
      *   that says so.
      */
@@ -1129,9 +1137,9 @@ export function AtmosphericMixin<
       // ⭐ The five guards are `ExitableMixin.getObviousNeighbours`'
       // now — this file's own comment said they were copied from the
       // light walk, which is the whole argument for not having a copy.
-      // `open-only`: an opening is a doorway you can stand in, so a
-      // doored exit counts when the door is open.
-      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
+      // `open`: an opening is a doorway you can stand in, so a way with
+      // a door counts when the door is open (a window never does).
+      for (const { dest } of self.getObviousNeighbours({ through: 'open' })) {
         if (this.isThreshold(dest)) exterior += 1;
         else interior += 1;
       }
@@ -1153,7 +1161,7 @@ export function AtmosphericMixin<
     public setWeatherPin(value: WeatherPin | null): void {
       SecurityApi.assertNotFromEval(
         'setWeatherPin',
-        'testharness weather pin <kind>',
+        'testharness weather-pin <kind>',
       );
       this._weatherPin = value;
     }
@@ -1203,7 +1211,7 @@ export function AtmosphericMixin<
       // template with many live clones, throw on resolve, or land on
       // something reaped mid-walk, and a neighbour going wrong must
       // not take the temperature down.
-      for (const { dest } of self.getObviousNeighbours({ doors: 'open-only' })) {
+      for (const { dest } of self.getObviousNeighbours({ through: 'open' })) {
         if (this.isThreshold(dest)) open += 1;
       }
       return open;
@@ -1251,7 +1259,7 @@ export function AtmosphericMixin<
      *
      *   1. the scope's own `fabric:` spec;
      *   2. its class's {@link enclosureDefaults} hook, whose terminal here
-     *      is the universe default (`enclosure.defaultMaterial`), and which
+     *      is the universe default (the root biome's `_enclosureMaterial`), and which
      *      a `Vessel` overrides with its own material because it IS
      *      matter.
      *
@@ -1330,8 +1338,10 @@ export function AtmosphericMixin<
           ? spec.thicknessM
           : defaults.thicknessM;
       const thicknessM = authored > 0 ? authored : 0.3;
-      const material =
-        StuffApi.findByTemplatePath<Material>(materialPath) ?? null;
+      // Every layer's material loads with what names it (load-on-use W8): an
+      // authored layer is a constituent of the place, the default is the
+      // root biome's, a class's own is its row's field — cold is loud.
+      const material = materialPath ? MaterialApi.materials().need(materialPath) : null;
       // ⭐ Beer–Lambert (D5): e^(−α·t); a material with no α is opaque.
       const alpha =
         material !== null && MixinApi.hasOptics(material)
@@ -1351,10 +1361,7 @@ export function AtmosphericMixin<
     /** The universe default — what a part with nothing authored is made of. */
     private static universeEnclosure(): EnclosureDefaults {
       return {
-        materialPath: envelopeDialStr(
-          AppSettingKeys.enclosureDefaultMaterial,
-          '/stuff/idea/material/rock/granite',
-        ),
+        materialPath: BiomeApi.defaultEnclosureMaterial(),
         thicknessM: envelopeDial(
           AppSettingKeys.enclosureDefaultThicknessM,
           0.3,
@@ -1452,7 +1459,7 @@ export function AtmosphericMixin<
         return this._exposure;
       }
       const neighbours = MixinApi.isExitable(self)
-        ? self.getObviousNeighbours({ doors: 'all' })
+        ? self.getObviousNeighbours({ through: 'all' })
         : [];
       let key = head;
       for (const n of neighbours) key += `|${(n.dest as Stuff).stuffId}`;
@@ -1522,7 +1529,7 @@ export function AtmosphericMixin<
           if (!vertical) wallsShared += 1;
           continue;
         }
-        if (vertical || exit.getDoor() !== null) continue;
+        if (vertical || exit.getBoundary() !== null) continue;
         // ⚠ A doorless exit to another ENCLOSED place is not an opening:
         // the face stays a solid exterior wall, as it always has.
         // ⚠ Only a DECLARED place has open sides: an undeclared interior
@@ -1774,8 +1781,9 @@ export function AtmosphericMixin<
       const vThis = this.getVolume()?.rawValue() ?? 0;
       const vFar = n.getVolume()?.rawValue() ?? 0;
       if (!(vThis > 0) || !(vFar > 0)) return 0;
-      const door = face.exit?.getDoor() ?? null;
-      const open = door === null || door.isOpen();
+      // An open doorway mixes the air; a shut door — or glass — conducts.
+      const boundary = face.exit?.getBoundary() ?? null;
+      const open = boundary === null || (boundary.isOpen() && boundary.passesBodiesWhenOpen());
       if (open) {
         return envelopeDial(AppSettingKeys.envelopeOpeningUPerM3, 6) * Math.min(vThis, vFar);
       }
@@ -2463,12 +2471,3 @@ function envelopeDial(key: string, fallback: number): number {
   }
 }
 
-/** String AppSetting read with a seeded-literal fallback (pre-warm safe). */
-function envelopeDialStr(key: string, fallback: string): string {
-  try {
-    const raw = AppApi.setting(key);
-    return raw == null || raw === '' ? fallback : raw;
-  } catch {
-    return fallback;
-  }
-}

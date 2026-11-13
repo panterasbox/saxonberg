@@ -9,7 +9,7 @@
  *
  * The killick decides nothing about the river: the boat and its water do.
  * It is the instrument that affords the verb, to whoever sits in the boat
- * that carries it; the boat lets it go (`Boat.letGoAnchor`).
+ * that carries it; the boat lets it go (`Boat.anchorPlanFor`).
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';

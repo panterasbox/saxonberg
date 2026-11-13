@@ -16,7 +16,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { SenseChannel } from '../../description/Perceiver';
 
 const DIRT = [
-  { key: 'sweat', adjective: 'sweat-stained', form: 'film', answersTo: ['surfactant'], odor: { aroma: '/base-library/aromas/stale-sweat', ouPerLoad: 40 } },
+  { key: 'sweat', adjective: 'sweat-stained', form: 'film', answersTo: ['surfactant'], odor: { aroma: '/base-library/aromas/sweat/stale-sweat', ouPerLoad: 40 } },
   { key: 'mud', adjective: 'muddy', form: 'film', answersTo: ['surfactant'] },
 ];
 
@@ -37,16 +37,16 @@ const describeFor = (host: Stuff, filter?: SenseChannel[]): string =>
 describe('dirt smells', () => {
   it('⭐ a sweat-soaked shirt smells of stale sweat; mud has no nose', () => {
     const shirt = makeStuff(() => new Garment());
-    shirt.soil('mud', 0.8, null);
+    shirt.soil('/platform/dirt/mud', 0.8, null);
     expect(shirt.soilOdor()).toEqual([]);
-    shirt.soil('sweat', 0.5, null);
-    expect(shirt.soilOdor()).toEqual([{ aroma: '/base-library/aromas/stale-sweat', ou: 20 }]);
+    shirt.soil('/platform/dirt/sweat', 0.5, null);
+    expect(shirt.soilOdor()).toEqual([{ aroma: '/base-library/aromas/sweat/stale-sweat', ou: 20 }]);
   });
 
   it('the description is for sight: `smell` adds nothing of the marks', () => {
     const shirt = makeStuff(() => new Garment());
-    shirt.soil('mud', 0.5, null);
-    shirt.soil('sweat', 0.5, null);
+    shirt.soil('/platform/dirt/mud', 0.5, null);
+    shirt.soil('/platform/dirt/sweat', 0.5, null);
     const smell = describeFor(shirt, ['smell']);
     expect(smell).not.toMatch(/muddy/);
     expect(smell).not.toMatch(/stale sweat/);

@@ -1,0 +1,16 @@
+# Manure — the byre's, on the milker's hands and the stalls' floor. It
+# carries what lives in a gut, so it seeds a surface it touches.
+key: manure
+adjective: dung-spattered
+form: film
+answersTo:
+- surfactant
+- alkali-mild
+- alkali-strong
+waterLifts: 0.6
+brushLifts: 0.2
+contaminates:
+  e-coli: 0.3
+odor:
+  aroma: /base-library/aromas/dung
+  ouPerLoad: 800

@@ -219,6 +219,7 @@ beforeEach(async () => {
     b.setCorpoKey('goodkin');
     return b;
   }, BANK);
+  // The setter loads the corpo dictionary; settle it here, never as a stray rejection.
   ContainmentApi.move(bank as never, hall as never);
 
   house = business(HOUSE, [COUNTER]);

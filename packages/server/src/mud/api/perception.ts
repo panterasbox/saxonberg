@@ -18,7 +18,7 @@
  * by the modality's own `name` to keep `modalityByName` O(1) on hot
  * paths (every `filterMessage`, every single-sense validator);
  * tag invalidation rides on `Events.StuffCreated`/`Events.StuffDestructed`
- * filtered to the prefix — same shape as the `TopicCatalogue` HMR pattern.
+ * filtered to the prefix — the template-event HMR pattern.
  *
  * Thin, security-gated forwarding shell: the dispatch + caches live in
  * the hot-reloadable {@link PerceptionLogic} singleton at
@@ -31,7 +31,10 @@ import type { SenseChannel } from '../lib/description/Perceiver';
 import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
 import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
+import type { ReachDepth } from './command';
 import type { Sensor } from '../lib/message/Sensor';
+import type { LightBand } from '../lib/perception/Light';
+import type Exit from '../lib/boundary/Exit';
 import { Modality } from '../lib/perception/Modality';
 import type { Percept } from '../lib/perception/Modality';
 import { StuffApi } from './stuff';
@@ -39,6 +42,7 @@ import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { PerceptionLogic } from '../platform/idea/api/PerceptionLogic';
 import { fileURLToPath } from 'url';
+import AromaCatalogue from '../platform/idea/AromaCatalogue';
 
 /**
  * The depth of an active detection act (D5). `broad` = a whole-room
@@ -47,6 +51,40 @@ import { fileURLToPath } from 'url';
  * Each maps to a dial-backed attention bonus in {@link PerceptionApi.resolveSearch}.
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
+
+/**
+ * Which pool a reached thing belongs to (see {@link PerceptionApi.reach}) —
+ * MQL's pools exactly: `self` the actor; `attached` what is on the person
+ * without being carried (slot occupants, the apps an implant hosts);
+ * `inventory` what it carries at the rung; `here` the surface of the place
+ * and of the vessel it sits in (the place itself, its ways and their
+ * doors, the buildings whose landing it is, open ground seen across a
+ * way); `peers` what stands there with it, fixtures included; `around`
+ * the holders themselves — the place and the vessel the actor sits in —
+ * which MQL's `here` names and which is NOT reach (a hand is in the room,
+ * not on it: `canReach` skips this pool). MQL's `person` is
+ * `self`+`attached`+`inventory`, `here` is `around`+`here`, `reachable`
+ * is all six.
+ */
+export type ReachPool = 'self' | 'attached' | 'inventory' | 'around' | 'here' | 'peers';
+
+/** One thing to hand, and the pool it is in. */
+export interface Reached {
+  stuff: Stuff;
+  pool: ReachPool;
+}
+
+/** The options of {@link PerceptionApi.reach}. */
+export interface ReachOptions {
+  /** The rung (`top` · `open` · `deep`); default `open`. */
+  depth?: ReachDepth;
+  /** A further holder to reach into (a command's location), beside the
+   *  place and the vessel the actor sits in. */
+  location?: Stuff | null;
+  /** Compute only these pools (an `inventory` scope never walks the
+   *  room). Default: all of them. */
+  pools?: readonly ReachPool[];
+}
 
 /** One thing in view beyond the room (maritime R4). */
 export interface HorizonSighting {
@@ -92,6 +130,35 @@ export interface HorizonView {
   atSea: boolean;
 }
 
+/**
+ * ⭐ What one deliberate look took in (controller-liquidity W8) — the
+ * answer {@link PerceptionApi.observe} hands back after it has written
+ * everything the look teaches. The controller words this; it never
+ * observes again.
+ *
+ * A PLACE observed from inside fills `band` · `dark` · `indistinct` ·
+ * `seen` · `exits` · `hints`; a THING fills `holds` · `found` · `hints`.
+ * The fields the other case does not use are empty, never absent.
+ */
+export interface Observation {
+  /** The light at the place as this viewer perceives it; `null` for a thing, or when vision cannot be read. */
+  band: LightBand | null;
+  /** The place is too dark to describe — its prose and its people are withheld. */
+  dark: boolean;
+  /** The place offers nothing to perceive at all (no name, no prose, no ways out, nothing seen); nothing was learned. */
+  indistinct: boolean;
+  /** What the viewer sees here — the place's listing, honest fog applied. Empty for a thing. */
+  seen: Stuff[];
+  /** The ways out this viewer may know about — the same list the map was told. */
+  exits: readonly Exit[];
+  /** What the viewer may see a thing holding, read BEFORE the close look; `null` for a non-container. */
+  holds: VisibleContents | null;
+  /** What the close look turned up — newly discovered, already recorded. */
+  found: Stuff[];
+  /** Concealed things the viewer nearly perceives — their tells may be told, never their names. */
+  hints: Stuff[];
+}
+
 const LOGIC_PATH = '/platform/idea/api/perception';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/PerceptionLogic', import.meta.url)
@@ -110,6 +177,16 @@ function logic(): PerceptionLogic {
 }
 
 export class PerceptionApi {
+  /**
+   * ⭐ The aromas — every smell a nose can read, a tree any pack extends
+   * (the folder is the tree), served by {@link AromaCatalogue}: `ensure`
+   * loads one with its parents, `resolve` reads one (starting its load if
+   * cold), `settling` is what `smell`/`taste`/`analyze` wait out.
+   */
+  public static aromas(): AromaCatalogue {
+    return StuffApi.singletonSync('/platform/idea/AromaCatalogue', () => new AromaCatalogue());
+  }
+
   /**
    * Resolve a modality singleton by its canonical name. Throws when
    * not found — every consumer should know which modality it's
@@ -242,6 +319,32 @@ export class PerceptionApi {
   }
 
   /**
+   * ⭐⭐ **The perception moment of a deliberate look** (controller-
+   * liquidity W8) — everything a `look` writes to the world, in one call,
+   * so a player rewriting the verb copies none of it:
+   *
+   * 1. warms the viewer's senses ({@link preloadForSenseGate}) — the
+   *    boot link that keeps a fresh world from describing every room at
+   *    midnight;
+   * 2. a THING settles what has been happening to it since it was last
+   *    looked at (`Soilable.reconcileAiring` — cleanliness D21);
+   * 3. a PLACE (the viewer's own container) reads its light, resolves
+   *    what the viewer sees there, and — unless nothing at all is
+   *    perceivable — tells the body (`Perceiver.learnSurroundings`, the
+   *    `seen` channel; in the dark the ways out only, never the people);
+   * 4. a PERSON looked at is tracked (`BeliefStore.learnIdentityOf`);
+   * 5. a CONTAINER with contents gets the close look — the `glance`
+   *    {@link resolveSearch}, which records each discovery — after what
+   *    it visibly holds was read.
+   *
+   * ⚠ A glance records DISCOVERY, never a `searched` map claim: only a
+   * deliberate going-over makes absences evidence (location-graph § 4).
+   */
+  public static observe(actor: Stuff, target: Stuff): Promise<Observation> {
+    return logic().observe(actor, target);
+  }
+
+  /**
    * The concealment gate — does `target` resolve for `viewer` at all?
    *
    * `true` when the target isn't concealable or its concealment level is
@@ -278,6 +381,23 @@ export class PerceptionApi {
   }
 
   /**
+   * ⭐⭐⭐ **Everything `actor` can lay hands on right now, each tagged with
+   * its pool — the one definition of reach** (controller-liquidity W20;
+   * the owner: *"I just don't want two different algos for the same
+   * thing"*). {@link canReach} and {@link reachableAmong} are membership
+   * in it (every pool but `around` — what holds you is named, not
+   * touched); MQL's `person` · `inventory` · `here` · `peers` · `reachable`
+   * pools are filters over it. Ordered as MQL breaks ties: the person,
+   * then the place's surface, then what stands there.
+   *
+   * Reach is not perception — nothing here is filtered by what the actor
+   * perceives; a caller that needs both asks both.
+   */
+  public static reach(actor: Stuff, opts?: ReachOptions): Reached[] {
+    return logic().reach(actor, opts);
+  }
+
+  /**
    * **Can the actor physically reach the target right now?**
    *
    * ⭐ The one definition of reach. It used to exist twice — once
@@ -289,39 +409,29 @@ export class PerceptionApi {
    * of one world concept is one too many; verbs, cards and anything
    * later ask here.
    *
-   * Reach is satisfied by any of:
-   *
-   *   - the target IS the actor;
-   *   - it is in the actor's own contents (inventory);
-   *   - it is in the actor's location's contents (peers, dropped
-   *     things, detached doors);
-   *   - it is a door attached to one of the location's obvious exits —
-   *     ⚠ attached doors live in NO container, so containment alone
-   *     never finds them;
-   *   - it IS one of the location's obvious exits — a direction binds
-   *     the way itself (`open north`, `go north`).
+   * ⭐ It is membership in {@link reach} — the set MQL's `reachable`
+   * pool is a view of (controller-liquidity W20). Until W20 it was a
+   * second assembly of the same holders, fixtures, ways and doors, and
+   * the two drifted (MQL offered a hidden way's door; this did not
+   * count the place, the hosted apps or the buildings whose landing it
+   * is). Now there is one list: what MQL's `reachable` resolves is
+   * `canReach`-true but the room and vessel that hold you (the `around`
+   * pool), and nothing else is (`reach.sameSet.test.ts`).
    *
    * ⚠ **Reach is not perception.** A thing can be reachable and
    * unperceived (dark room) or perceived and unreachable (across a
    * chasm). Callers that need both ask both.
    *
-   * ⚠ **And it is not the `reachable` MQL seed either**, which the
-   * antipattern doc's "hand-rolled reachability walk" rule would
-   * otherwise point at. That seed emits a **candidate set for keyword
-   * SEARCH** — attention-scored, keyword-bearing, ordered
-   * on-person-first. This is a **membership predicate** on a Stuff
-   * that is already resolved, it counts attached doors (which the
-   * search pool has no reason to), and it
-   * runs per-arg on every dispatch and per-refresh on every card.
-   * Answering it by resolving the whole room and testing for inclusion
-   * would be the wrong shape and the wrong cost.
+   * At the default rung (`open`) it descends every open vessel you carry
+   * and one level into open things here; never into a shut thing.
    *
-   * @param opts.location defaults to the actor's own container.
+   * @param opts.location a further holder beside the place and the vessel.
+   * @param opts.depth the rung (`top` · `open` · `deep`); default `open`.
    */
   public static canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): boolean {
     return logic().canReach(actor, target, opts);
   }
@@ -340,7 +450,7 @@ export class PerceptionApi {
   public static reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): Stuff[] {
     return logic().reachableAmong(actor, candidates, opts);
   }

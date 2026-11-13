@@ -15,7 +15,7 @@ import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
 import { FixtureMixin } from "../../../../../lib/stuff/Fixture";
-import { HeldGoodsMixin } from "../../../../../lib/retail/HeldGoods";
+import { HeldGoodsMixin, type HoldRefusal } from "../../../../../lib/retail/HeldGoods";
 import Ticket from "../../../../thing/Ticket";
 import Weapon from "../../../../thing/equipment/Weapon";
 import Shield from "../../../../thing/equipment/Shield";
@@ -49,13 +49,21 @@ import {
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
 
 // The coat check is a composition of kernel mixins; the instanceable class
-// ships in `/trade/hospitality`. The composition line IS the fixture.
+// ships in `/trade/hospitality`. The composition line IS the fixture, and
+// `accepts` is the pack class's (a check rack holds discrete weapons).
 class CheckRack extends PersistableMixin(
   HeldGoodsMixin(FixtureMixin(DetailedMixin(Vessel))),
 ) {
   async onCreate(): Promise<void> {
     await super.onCreate();
     await this.seatSelf();
+  }
+  accepts(item: Stuff): HoldRefusal | null {
+    if (!MixinApi.isWieldable(item) || !item.isWeapon()) {
+      return { ok: false, reason: "not-a-weapon" };
+    }
+    if (MixinApi.isStackable(item)) return { ok: false, reason: "fungible" };
+    return super.accepts(item);
   }
 }
 
@@ -257,5 +265,37 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "not-a-weapon" }),
     );
+  });
+
+  it("a good that is not wieldable is refused, not a TypeError (C61)", async () => {
+    const { loc, rack, patron } = scene();
+    const slip = makeStuff(() => new Ticket());
+    slip.setKeywords(["slip"]);
+    ContainmentApi.move(slip as never, patron as never);
+    const note = vi.fn();
+    const c = ctx(patron, loc, rack, "check");
+    (c as unknown as { note: unknown }).note = note;
+    await asOwner(patron, () =>
+      makeStuff(() => new RackCheckController()).execute(
+        { thing: { stuff: slip as never, raw: "slip" }, rack: { stuff: rack as never, raw: "rack" } },
+        c,
+      ),
+    );
+    expect(slip.getContainer()).toBe(patron);
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "not-a-weapon" }),
+    );
+  });
+
+  it("the rack refuses a direct check-in with no controller in the way", async () => {
+    const { rack, patron } = scene();
+    const shield = makeStuff(() => new Shield());
+    ContainmentApi.move(shield as never, patron as never);
+    const answer = await asOwner(patron, () =>
+      rack.checkIn(shield as never, patron as never),
+    );
+    expect(answer).toEqual({ ok: false, reason: "not-a-weapon" });
+    expect(shield.getContainer()).toBe(patron);
+    expect(rack.countHeld("/platform/agent/Avatar/patron")).toBe(0);
   });
 });

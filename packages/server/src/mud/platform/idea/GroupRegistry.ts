@@ -150,7 +150,7 @@ export default class GroupRegistry extends GroupRegistryBase {
     return this.managedRef;
   }
 
-  /** Internal — contacts-provider reference for `ContactsController.fireChange`. */
+  /** Internal — contacts-provider reference for the contacts controllers' `fireChange`. */
   public contacts(): ContactsGroupProvider {
     if (!this.contactsRef) {
       throw new Error('GroupRegistry: not yet initialized');

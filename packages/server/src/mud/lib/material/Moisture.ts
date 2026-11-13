@@ -596,6 +596,15 @@ export interface Moist {
    */
   dryingRatePerHour(): number | undefined;
   /**
+   * ⭐ How long, in game-hours, until this reaches the `dried` band in the
+   * air it is exposed to NOW — `0` when it is dry already, `null` when it
+   * will not dry here (enclosed, or the air will not take the water). A
+   * forecast: the closed form of the same exponential the clock integrates,
+   * at this moment's air (controller-liquidity W7c: `dry`'s prospect, which
+   * the verb used to compute itself).
+   */
+  hoursToDry(): number | null;
+  /**
    * @hook The sentence `look` adds about this thing's water (cured, dried,
    * soaked), or `null` for none. Default: the cure state's own phrase. A
    * host whose own reading speaks for its water (a board's seasoning)
@@ -722,6 +731,26 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     public waterPhrase(): string | null {
       return Moisture.phraseFor(this.getWaterState()) || null;
+    }
+
+    public hoursToDry(): number | null {
+      const self = this as unknown as Stuff;
+      const driedAt = dial(AppSettingKeys.cureBandDriedAt, WATER_DEFAULTS.BAND_DRIED_AT);
+      const moisture = this.getMoisture();
+      if (moisture <= driedAt) return 0;
+      const scope = exposedScopeOf(self);
+      const exposure = exposureOf(self);
+      if (scope === null || exposure <= 0) return null;
+      const air = BiomeApi.airFor(scope);
+      const factor = air.evaporationFactor();
+      const equilibrium = Moisture.equilibriumMoisture(air.humidityPct);
+      if (factor <= 0 || equilibrium >= driedAt) return null;
+      const base = this.dryingRatePerHour() ?? dial(AppSettingKeys.cureDryingPerHour, WATER_DEFAULTS.DRYING_PER_HOUR);
+      const k = base * exposure * factor;
+      if (!(k > 0)) return null;
+      const hours = Math.log((moisture - equilibrium) / (driedAt - equilibrium)) / k;
+      if (!Number.isFinite(hours) || hours <= 0) return 0;
+      return hours;
     }
 
     // ---------- writes ----------

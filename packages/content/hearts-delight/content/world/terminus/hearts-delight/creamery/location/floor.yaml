@@ -28,10 +28,12 @@ data:
   exits:
     northeast:
       destination: /world/terminus/hearts-delight/location/valley-gate
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 4
     down:
       destination: /world/terminus/hearts-delight/creamery/location/cheese-room
+      door: /world/terminus/hearts-delight/creamery/thing/cellar-hatch
       media: [ground]
       edgeMinutes: 1
   # Hung, not set down: a lamp lights a room fixture-side, and one left
@@ -67,7 +69,7 @@ data:
       keywords: [windows, window, light, shutters]
       description: |
         High, north-facing and louvred, so the light comes in and the sun does not.
-    trap:
-      keywords: [trap, steps, hatch]
+    steps:
+      keywords: [steps, "stone steps"]
       description: |
-        A wooden hatch propped open over stone steps. The air coming up them is cold.
+        Stone steps under the hatch, worn hollow in the middle, going down into the cold.

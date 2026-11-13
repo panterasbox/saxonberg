@@ -21,6 +21,7 @@ import { installCorpseMintStub } from "../../mortality/__tests__/corpse-mint-tes
 import { TemplatePaths } from "../../paths";
 import requiresConscious from "../../command/validators/requiresConscious";
 import type { CommandContext } from "../../../api/command";
+import { shippedConditionPaths, standBlankConditions } from "../../vitals/__tests__/conditions";
 
 const COLLAPSE_CONDITION_PATH = TemplatePaths.metabolismCollapse;
 const SCALE = 12;
@@ -52,7 +53,10 @@ function consciousGate(c: Creature): string | undefined {
 const STARVATION = "/platform/idea/Condition/metabolism/starvation";
 
 describe("MetabolicMixin cascade — reserves → conditions", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // load-on-use W6: the cascade LANDS its afflictions — blank rows, not the
+  // shipped progression (what this suite proved before the roster stopped booting).
+  standBlankConditions(...shippedConditionPaths());
     installV1QuantityMarshallers();
     // ⭐ Every death mints a corpse now, and the mint clones an authored
     // row that a unit world has no store for. See the helper.

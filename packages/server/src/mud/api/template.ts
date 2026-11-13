@@ -53,6 +53,20 @@ function logic(): TemplateLogic {
 }
 
 /** One key the applier will put on an instance, and how. */
+/**
+ * What a gated template write answers: the rows it wrote or deleted, or
+ * the refusal and the row it refused on — `access-denied` (no title),
+ * `no-template`, `has-descendants` (a folder that still holds rows),
+ * `extended` (another row names it as `extends:`).
+ */
+export type TemplateWrite =
+  | { ok: true; paths: string[] }
+  | {
+      ok: false;
+      reason: 'access-denied' | 'no-template' | 'has-descendants' | 'extended';
+      path: string;
+    };
+
 export interface FillField {
   field: string;
   /** Which of the applier's three phases handles it. */
@@ -105,6 +119,59 @@ export class TemplateApi {
     spec: TemplateSpec,
   ): Promise<string> {
     return logic().saveTemplate(path, spec);
+  }
+
+  /**
+   * {@link saveTemplate} as the ACTING principal (derived from the
+   * dispatched context, never passed): refuses `access-denied` unless it
+   * may write at `path` (a live Zone there: the zone-mutation role;
+   * else the covering title, `AccessApi.canAtPath`). The in-world
+   * authoring verbs write through this — the gate is the write's
+   * (controller-liquidity D9). A save error still throws `TemplateError`.
+   */
+  public static async writeTemplate(
+    path: string,
+    spec: TemplateSpec,
+  ): Promise<TemplateWrite> {
+    return logic().writeTemplate(path, spec);
+  }
+
+  /**
+   * Make a FOLDER at `path` as the acting principal — {@link writeTemplate}
+   * of the content tree's folder row (a `FolderZone`), so no verb carries
+   * the tree's rule for what a folder is (controller-liquidity W8:
+   * `mkdir` named the class itself).
+   */
+  public static async makeFolder(
+    path: string,
+    data: Record<string, unknown> = {},
+  ): Promise<TemplateWrite> {
+    return logic().makeFolder(path, data);
+  }
+
+  /**
+   * Move the row at `src` to `dst` as the acting principal — title over both ends, and
+   * every refusal (no row, a parent with descendants or extenders) before
+   * the first write, so a refused move leaves nothing behind.
+   */
+  public static async move(
+    src: string,
+    dst: string,
+  ): Promise<TemplateWrite> {
+    return logic().move(src, dst);
+  }
+
+  /**
+   * Delete the row at `path` — and with `recursive`, every row under it —
+   * as the acting principal. Title is asked of every row it would delete, and a row
+   * outside the subtree extending one inside refuses, before the first
+   * delete.
+   */
+  public static async deleteSubtree(
+    path: string,
+    recursive = false,
+  ): Promise<TemplateWrite> {
+    return logic().deleteSubtree(path, recursive);
   }
 
   /**

@@ -58,7 +58,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../quantity';
 import { WEATHER_DEFAULTS } from '../weather/WeatherType';
 import { AppSettingKeys } from '../config/AppSettings';
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import { Mixins, type NestingConstructor, type FieldMeta } from '../mixin';
 import { UNBOUNDED_CAPACITY, type SlotSpec } from '../slot/Slotted';
 import { Postures } from '../slot/Postured';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -83,6 +83,14 @@ import {
   type GroundMaterialClass,
 } from './GroundKind';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
+import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
+
+/** A floor's sweep with a broom, real ms; bare hands take three times as long. */
+const FLOOR_SWEEP_MS = 8000;
+/** What sweeping a floor costs, W. */
+const FLOOR_SWEEP_W = 250;
+import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -113,10 +121,10 @@ const CLEANING_METHODS: Record<GroundKind, CleaningMethod> = {
 };
 
 /** The debris kinds a floor gathers and a sweep takes up (D15, D17). */
-const DEBRIS_KINDS = new Set(['crumbs', 'manure', 'soot', 'ash', 'flour']);
+const DEBRIS_KINDS: ReadonlySet<string> = new Set([DirtKinds.CRUMBS, DirtKinds.MANURE, DirtKinds.SOOT, DirtKinds.ASH, DirtKinds.FLOUR]);
 
 /** The films a strewn absorbent drinks up, swept with it (D15). */
-const ABSORBED_KINDS = new Set(['blood', 'grease', 'milk']);
+const ABSORBED_KINDS: ReadonlySet<string> = new Set([DirtKinds.BLOOD, DirtKinds.GREASE, DirtKinds.MILK]);
 
 /** Kilograms in a heap per unit of load swept (D15). */
 const SWEPT_KG_PER_LOAD = 2;
@@ -451,13 +459,39 @@ function snowAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 }
 
 export function FloorMixin<
-  TBase extends MixinConstructor<
+  TBase extends NestingConstructor<
     Stuff & Tangible & Slotted & Bulkable & Adornment & Visible
   >,
 >(Base: TBase) {
   // Declared-then-returned (the Slotted / Stand shape).
-  class FloorMixin extends Base implements Floor {
+  // ⭐ A floor is swept (`SweepableMixin`, controller-liquidity W7c): `sweep`
+  // asks it the plan; what a broom takes up is the floor's `sweepInto`.
+  class FloorMixin extends SweepableMixin(Base) implements Floor {
     static _mixinName = FLOOR_MIXIN;
+
+    /**
+     * @hook ⭐ `sweep`: a broom does it properly; bare hands take three
+     * times as long. A floor that takes no soil has nothing a broom could
+     * take up.
+     */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      if (!this.takesSoil()) return { ok: false, reason: 'nothing-to-sweep' };
+      return {
+        ok: true,
+        durationMs: FLOOR_SWEEP_MS * (req.broom ? 1 : 3),
+        effortW: FLOOR_SWEEP_W,
+        facts: { tool: req.broom ? 'broom' : 'hands' },
+        onComplete: async () => {
+          const { kg, kinds, heap } = await this.sweepInto(req.actor);
+          if (heap !== null && MixinApi.isAdvancing(req.actor)) {
+            // The deed `analyze cleanliness` reads (B57).
+            void req.actor.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+          }
+          // Nothing worth a heap is nothing taken up (a heap is minted past 0.01 kg).
+          return { ok: true, facts: { kg: heap === null ? 0 : kg, kinds, taken: heap === null ? [] : [heap] } };
+        },
+      };
+    }
 
     /** The derived reading, rendered into the host's `look`. */
     static markupAugmenters: MarkupAugmenter[] = [floorAugmenter, snowAugmenter];
@@ -517,7 +551,7 @@ export function FloorMixin<
       const room = this.hostOf() as unknown as Stuff | null;
       if (room && MixinApi.isAtmospheric(room)) {
         for (const c of BiomeApi.resolveAtmosphereContentsFor(room)) {
-          const m = StuffApi.findByTemplatePath<Material>(c.type);
+          const m = MaterialApi.materials().peek(c.type);
           if (!m?.hasTag('dust')) continue;
           room.drawAtmosphereContent(c.type, Infinity);
           const dust = c.type.split('/').pop() ?? 'dust';
@@ -531,6 +565,12 @@ export function FloorMixin<
 
     /** What is strewn on the floor (cleanliness D15), or `null`. */
     public strewn: { materialPath: string; kg: number } | null = null;
+
+    /** The restore door for what is strewn (load-on-use W8): its material loads with the floor. */
+    public setStrewn(value: { materialPath: string; kg: number } | null): Promise<void> | undefined {
+      this.strewn = value ?? null;
+      return MaterialApi.materials().ensureCited([this.strewn?.materialPath]);
+    }
     /** ⭐ A byre's stalls: the herd book whose head foul it (D20). */
     public stalls: { herdbook: string } | null = null;
     /** Game-seconds the stalls were last reconciled; `0` = never. */
@@ -644,10 +684,8 @@ export function FloorMixin<
       const own = super.getMaterial(detailKey);
       if (own) return own;
       if (!this.underfootMaterialPath) return null;
-      return (
-        StuffApi.findByTemplatePath<Material>(this.underfootMaterialPath) ??
-        null
-      );
+      // Stamped by `resolveUnderfoot`, which loads it (load-on-use W8).
+      return MaterialApi.materials().need(this.underfootMaterialPath);
     }
 
     /**
@@ -889,7 +927,7 @@ export function FloorMixin<
       );
       const head = typeof book?.getTally === 'function' ? book.getTally() : 0;
       if (head > 0 && days > 0 && MixinApi.isSoilable(self)) {
-        self.soil('manure', head * days * MANURE_PER_HEAD_DAY);
+        self.soil(DirtKinds.MANURE, head * days * MANURE_PER_HEAD_DAY);
       }
     }
 
@@ -943,7 +981,7 @@ export function FloorMixin<
       if (kind === 'mire') amount = 0.2;
       else if ((kind === 'earth' || kind === 'loose') && wet) amount = 0.1;
       if (amount <= 0) return;
-      mover.soilFrom([{ kind: 'mud', amount, where: 'feet' }]);
+      mover.soilFrom([{ kind: DirtKinds.MUD, amount, where: 'feet' }]);
     }
 
     /**
@@ -1130,7 +1168,9 @@ export function FloorMixin<
      * cannot forget them.
      */
     public getKeywords(viewer?: Stuff): string[] {
-      const own = super.getKeywords(viewer);
+      // Through the base's prototype: `NestingConstructor` types `super` as
+      // the constraint, which declares no keywords (Perceptible's, beneath).
+      const own = (Base.prototype as { getKeywords(viewer?: Stuff): string[] }).getKeywords.call(this, viewer);
       const seen = new Set(own.map((k: string) => k.toLowerCase()));
       const out = [...own];
       for (const word of FLOOR_KEYWORDS) {

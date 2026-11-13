@@ -10,6 +10,6 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [feet]
   # Canvas is linen woven heavy and close; the sole is the same cloth stiffened.
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fair
   mass: 0.6

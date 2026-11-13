@@ -26,7 +26,7 @@ through the real chokepoints.
 
 Source: `obj/Government.ts`, `obj/GovernmentCatalogue.ts`,
 `platform/idea/api/GovernmentLogic.ts`, `api/government.ts`,
-`cmd/civics/government.yaml` + `platform/idea/cmd/civics/GovernmentController.ts`.
+`cmd/civics/government.yaml` + `platform/idea/cmd/civics/Government{List,Residency}Controller.ts` (over `GovernmentControllerBase`).
 The meta-side committee concept lives on **`CompactApi`**
 (`api/compact.ts`) — see [access.md](./access.md) § The committee.
 
@@ -74,9 +74,15 @@ ref:
   is what a buyer, a builder or a magistrate takes, and a second polity
   declares its own by rows alone.
 
-`GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`, manifest-warmed) is
-the corpo-recipe data-cache: one boot query, sync reads, defensive
-copies, cold-state-empty, singleton destruct/evict refusals. Like the
+`GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`) is
+the corpo-recipe data-cache — a **lazy dictionary**: one query on first
+use, sync reads, defensive copies, singleton destruct/evict refusals.
+⭐ **Stood at boot as `GovernmentApi`'s declared `needs`** (with the
+address registry; load-on-use W10 — no pack `boot:` line, and no setter or
+act readies it: `Locality.setGovernmentKey`, `ShipRegister.setGovernment`
+and `Branded.setBrand` are plain setters). `GovernmentLogic`'s sync reads
+throw `DocumentNotResidentError` if it is ever cold.
+`GovernmentApi.governmentAt` / `governmentChainAt` are async. Like the
 corpo catalogue it has **no auto-invalidate** on template churn beyond
 HMR re-clone — a CMS edit to a Government template needs
 `dest /platform/idea/GovernmentCatalogue`.
@@ -102,7 +108,7 @@ dedupe preserving the most-local position, resolve to descriptors.
 
 | read | sync? | semantics |
 |---|---|---|
-| `governmentAt(address)` / `governmentChainAt(address)` | sync | trie + in-memory catalogue (the `coveringLocalityOf` fast-path doctrine) |
+| `governmentAt(address)` / `governmentChainAt(address)` | async (load-on-use W10; the gate awaits the Api's `needs`) | trie + in-memory catalogue (the `coveringLocalityOf` fast-path doctrine) |
 | `subjectTo(scope)` | async | the chain over where the scope IS — what binds a visitor (the full resolve walk's zone step awaits) |
 | `residentOf(character)` | sync | the chain over the **domicile** — membership standing (the future franchise/petition/services hook) |
 | `domicileAddressOf(character)` | sync | the residence seam's face |
@@ -310,3 +316,10 @@ the giver may rig where they hold (`AccessApi.can` write), or on ground
 under a government's jurisdiction (`GovernmentApi.governmentAt(address)`
 non-null) that nobody privately holds (`ParcelApi.ownerOf` null).
 Refused on another owner's property and on ungoverned ground.
+
+## History
+
+- 2026-11-09 — documents path identity: `GovernmentCatalogue` left the boot
+  list and loads on reach through `GovernmentApi.ready()` (since load-on-use
+  W10, at boot as `GovernmentApi`'s `needs`). See git log for the
+  `reqs/documents-path-identity` branch.

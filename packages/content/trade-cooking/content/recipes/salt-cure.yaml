@@ -6,7 +6,6 @@
 # it does not kill it, and it does not dry anything either — so a
 # contaminated cut cured today is a contaminated cut in a season, which is
 # the lesson the drive turns on. Drying is a separate act and they stack.
-recipeId: salt-cure
 name: Salt-cured cut
 keywords: ["salt-cure", "cure", "salted", "salt"]
 discipline: cooking

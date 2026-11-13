@@ -1,0 +1,19 @@
+# Slipped — two pieces of GREEN clay joined with slip (liquid clay), the
+# surfaces scored and pressed together: a handle to a jug, a spout to a pot
+# (ceramics W4). Done at leather-hard and nowhere else — too soft and it
+# sags off, too dry and the slip will not take. Fired, it is one piece of
+# pottery: it never comes apart again except by breaking.
+#
+# ⭐ A handle much wetter than its body shrinks more as they dry, and the
+# join cracks (`green.joinMismatch`).
+key: slip
+label: slipped
+portability: hand
+instrument: ''
+competence: null
+reversible: never
+strength: 0.6
+structuralRecovery: 0.0
+fastenerRecovery: 0.0
+tightenable: false
+failure: parted

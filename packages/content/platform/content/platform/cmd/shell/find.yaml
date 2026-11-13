@@ -15,7 +15,6 @@ args:
   - name: query
     type: objects
     required: true
-    greedy: true
     # Match `focus`'s scope chain: drill into the current focus first
     # (so `find apple` while focused on the bookcase searches inside
     # the bookcase), then fall back to `reachable` for fresh selection.

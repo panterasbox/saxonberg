@@ -6,7 +6,7 @@
  * to fix — 45 emitted topics with no authored descriptor — was invisible
  * precisely because everything that *examined* topics examined
  * hand-built examples that were correct by construction. These tests
- * read the platform pack's `content/platform/idea/Topic/` and the shipped `TOPIC_ROOTS`, so they fail
+ * read the platform pack's `content/topics/` and the shipped `TOPIC_ROOTS`, so they fail
  * when the corpus drifts, not when a fixture does.
  */
 
@@ -18,7 +18,7 @@ import YAML from 'yaml';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SEEDS = join(HERE, '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'platform', 'idea', 'Topic');
+const SEEDS = join(HERE, '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'topics');
 
 interface SeedData {
   topic?: string;
@@ -40,7 +40,8 @@ function loadCorpus(): Map<string, SeedData> {
     const parsed = YAML.parse(readFileSync(join(SEEDS, file), 'utf8')) as {
       data?: SeedData;
     };
-    out.set(file.slice(0, -'.yaml'.length), parsed.data ?? {});
+    // A topic is a document: the file IS its data.
+    out.set(file.slice(0, -'.yaml'.length), (parsed as unknown as Record<string, unknown>) ?? {});
   }
   return out;
 }

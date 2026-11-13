@@ -83,6 +83,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { MarkupAugmenter } from '../../api/mml';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** The player-facing spoilage band (presentation, never a raw number). */
 export type FreshnessBand = 'fresh' | 'tainted' | 'spoiled' | 'rotten';
@@ -1171,7 +1172,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
         if (self.isDestroyed()) return;
         const floor = MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
         const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0.2;
-        if (floor && MixinApi.isSoilable(floor)) floor.soil('crumbs', Math.min(1, kg * 0.5));
+        if (floor && MixinApi.isSoilable(floor)) floor.soil(DirtKinds.CRUMBS, Math.min(1, kg * 0.5));
         void (async () => {
           await StuffApi.destruct(self);
           await PersistableApi.captureHostOf(room).catch(() => {});

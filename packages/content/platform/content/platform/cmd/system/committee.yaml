@@ -1,6 +1,6 @@
 verbs: [committee]
 category: system
-controller: /platform/idea/cmd/system/CommitteeController
+controller: /platform/idea/cmd/system/CommitteeShowController
 description: "Who administers this subdivision — the committee of record"
 help: |
   Every subdivision of the world's content is administered by its
@@ -20,6 +20,7 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   show:
+    controller: /platform/idea/cmd/system/CommitteeShowController
     description: "Show the committee here (or over an explicit path)"
     help: |
       The committee of record — the title-holding group — over where
@@ -32,6 +33,7 @@ subcommands:
         type: string
         required: false
   channel:
+    controller: /platform/idea/cmd/system/CommitteeChannelController
     description: "Ensure + show this committee's chat channel"
     help: |
       Resolve the committee over where you stand and ensure its chat

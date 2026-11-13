@@ -15,8 +15,8 @@
  * ⭐ Which means the VERB is real input here, not decoration. A gauntlet
  * is wearable and wieldable both; `wear gauntlet` puts it on, `wield
  * gauntlet` takes it up, and bare `equip` prefers the worn reading. See
- * {@link EquipControllerBase.claimAs}. `equip set` / `equip sets` are
- * their own controllers over this base.
+ * {@link EquipControllerBase.claimAs}. The `outfit` verb's three
+ * controllers (`wear`/`save`/`list`) are their own, over this base.
  *
  * ⭐⭐ **The reason the verb exists is ORDERING, not keystrokes.**
  * `wear`'s own help used to say *"a light thing will not go on OVER a
@@ -50,12 +50,13 @@
  * second two-hander — and silently omitting it is worse than any
  * refusal. One line for what went on, one for what did not and why.
  *
- * Grammar (`cmd/inventory/{equip,wear,wield}.yaml`):
+ * Grammar (`cmd/inventory/{equip,wear,wield,outfit}.yaml`):
  *   equip                      everything you carry, inside-out
  *   equip <thing>              one thing, worn or wielded
  *   equip <thing> --from <box> reach into a container you can see
- *   equip set <name>           a saved set   (`--save` to record one)
- *   equip sets                 list them
+ *   outfit wear <name>         a saved outfit
+ *   outfit save <name>         record what is on as an outfit
+ *   outfit list                list them
  *   wear <wearable>            precise: this goes ON
  *   wield <wieldable>          precise: this goes IN HAND
  */
@@ -69,8 +70,6 @@ import { Mml } from '../../../../api/mml';
 import { SpeciesApi } from '../../../../api/species';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { ContainmentApi } from '../../../../api/containment';
-import { AppApi } from '../../../../api/app';
-import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { DressingStep } from '../../../../lib/slot/DressingStep';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
@@ -87,10 +86,8 @@ export interface EquipModel extends CommandModel {
   target?: MqlOneResult;
   /** `--from <container>`: the wardrobe, the chest, the pack. */
   from?: MqlOneResult;
-  /** `equip set <name>` / `equip sets`. */
+  /** `outfit wear <name>` / `outfit save <name>`. */
   name?: string;
-  /** `--save`: record what is on right now under `<name>`. */
-  save?: boolean;
 }
 
 /**
@@ -106,6 +103,8 @@ export type EquipMode = 'wear' | 'wield' | 'either';
 
 /** Why a candidate was passed over — the skip report's vocabulary. */
 type SkipReason =
+  /** ⭐ Already on you (C43 — it was reported as an occupied slot). */
+  | 'worn'
   | 'fit'
   | 'layer'
   | 'slot-full'
@@ -120,6 +119,7 @@ type SkipReason =
   | 'cannot-grip';
 
 const SKIP_PHRASE: Record<SkipReason, string> = {
+  worn: 'you already have it on',
   fit: 'not cut for you',
   layer: "won't go on over what you have on",
   'slot-full': 'nowhere left to put it',
@@ -138,17 +138,6 @@ function layerDepthOf(item: Stuff): number {
   const construction = item.getConstruction();
   if (!construction || !construction.isCovering()) return 0;
   return construction.getLayerDepth();
-}
-
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) && n >= 0 ? n : fallback;
-  } catch {
-    return fallback;
-  }
 }
 
 export abstract class EquipControllerBase extends CommandController<EquipModel> {
@@ -208,17 +197,6 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
      * told which of the two just happened rather than a word that covers
      * both and says neither.
      */
-    // ⭐ Already on: say so. (Found by the drive once `wear` actually put
-    // things on — a second `wear apron` threw inside the dressing step's
-    // completion, "candidate already in slot 'torso'".)
-    if ([...giver.wornStack()].includes(one as never)) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You already have ${Mml.thing(one)} on.`)
-        .send();
-      context.note({ kind: 'controller-rejected', reason: 'already-worn', detail: one.getPresentation() });
-      return;
-    }
     const held = EquipControllerBase.claimAs(one, mode) === 'wield';
     await this.engage(one, context, giver, () => {
       EquipControllerBase.put(one, giver, mode);
@@ -300,7 +278,14 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     context: CommandContext,
     giver: Stuff & Slotted & Attired,
   ): Promise<void> {
-    const remaining = pool.filter((c) => this.equippable(c));
+    // ⭐ What is already on your body is not "to put on" (C44): pooled, a
+    // worn coat or a wielded sword came back as *"You leave X — nowhere
+    // left to put it"*, its own slot reading as full.
+    const remaining = pool.filter(
+      (c) =>
+        this.equippable(c) &&
+        !(MixinApi.isSlottable(c) && c.getOccupiedHost()?.stuffId === giver.stuffId),
+    );
     if (remaining.length === 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -495,6 +480,10 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     giver: Stuff & Slotted & Attired,
     mode: EquipMode,
   ): SkipReason | null {
+    // ⭐ Already on: the FIRST gate (C43). Asked after the slot gate it was
+    // unreachable — a worn thing's own slot reads as occupied — and the
+    // player was told *"Your torso is occupied"* about the apron on it.
+    if (giver.wornStack().some((w) => w.stuffId === item.stuffId)) return 'worn';
     const as = EquipControllerBase.claimAs(item, mode);
     if (as === null) return 'no-slots';
     const plan = SpeciesApi.tryGetBodyPlanPath(giver);
@@ -509,11 +498,8 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     // hand is not covering anything, so neither fit nor the ladder has
     // anything to say about it.
     if (as === 'wear' && MixinApi.isWearable(item)) {
-      const fit = item.fitOn(giver);
-      const refuseAbove = dial(AppSettingKeys.textilesFitRefuseAbove, 0.35);
-      if (fit.measurable && (fit.wrongBody || fit.distance > refuseAbove)) {
-        return 'fit';
-      }
+      // The garment obeys the fit dial (`FitReading.refused`).
+      if (item.fitOn(giver).refused) return 'fit';
       if (giver.wouldLayerViolate(item)) return 'layer';
     }
     for (const slot of slots) if (giver.isSlotFull(slot)) return 'slot-full';
@@ -587,6 +573,14 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     context: CommandContext,
     giver: Stuff & Slotted & Attired,
   ): void {
+    if (reason === 'worn') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You already have ${Mml.thing(item)} on.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'already-worn', detail: item.getPresentation() });
+      return;
+    }
     if (reason === 'slot-full') {
       const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
       const as = EquipControllerBase.claimAs(item, mode);
@@ -733,10 +727,19 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     }
     // ⭐ Draw only what is being asked for: the named thing, or every
     // equippable in there for the bare form.
+    //
+    // ⭐⭐ And only what could go on (controller-liquidity D10, C42): every
+    // refusal before every write. A piece the body refuses outright — no
+    // slot for it, the wrong fit, a hand that cannot grip — stays in the
+    // wardrobe; it used to come out into your hands and THEN be refused.
+    // A piece blocked only by ORDER (the layer under it, a slot a lower
+    // layer frees) still comes out, because the ladder dresses it next.
+    const mode = this.mode();
     const wanted = (source.getContents() as Stuff[]).filter((c) => {
       if (!this.equippable(c)) return false;
-      if (!model.target?.stuff) return true;
-      return c === model.target.stuff;
+      if (model.target?.stuff && c !== model.target.stuff) return false;
+      const skip = EquipControllerBase.canEquip(c, giver, mode);
+      return skip === null || (!model.target?.stuff && (skip === 'layer' || skip === 'slot-full'));
     });
     for (const item of wanted) {
       if (MixinApi.isContainable(item)) {

@@ -450,7 +450,9 @@ recommendations.
 The Zone subsystem was carved out of `lib/spatial/` (the historical
 home, retired) as part of the
 spatial+boundary substrate build that shipped declarative-content
-field shapes (`coords`, `focus`, `exits`, `attachedHosts`). The
+field shapes (`coords`, `focus`, `exits`, and the since-retired
+`attachedHosts` — the boundary build, 2026-11, attaches a window
+through the exits that author it). The
 field-inheritance walk was drafted as `ZoneApi.resolveZoneField` in
 the requirements/plan docs but moved to instance methods on `Zone`
 during implementation review — the override-on-subclass extension

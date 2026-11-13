@@ -25,4 +25,4 @@ data:
   # it has to be, or the gas could not leave. ⭐ Which is why a gas
   # arriving here is PASSED ON rather than held.
   closure: liquidTight
-  placements: [on]
+  placements: [/platform/placements/on]

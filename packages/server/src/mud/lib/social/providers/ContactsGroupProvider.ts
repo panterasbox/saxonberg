@@ -51,7 +51,7 @@ export class ContactsGroupProvider implements GroupProvider {
    */
   async roleOf(memberKey: string, id: string): Promise<GroupRole | null> {
     const members = await this.members(id);
-    const present = members.some((s) => s.getTemplatePath() === memberKey);
+    const present = members.some((s) => s.getIdentityPath() === memberKey);
     return present ? 'member' : null;
   }
 
@@ -110,7 +110,7 @@ export class ContactsGroupProvider implements GroupProvider {
 
   /**
    * Notify subscribed listeners that an owner's `label`-list changed.
-   * The `ContactsController`'s mutation verbs call this on every CRUD.
+   * The `contacts` mutation controllers call this on every CRUD.
    */
   fireChange(ownerPlayerId: string, label: string): void {
     const id = `${ownerPlayerId}:${label}`;

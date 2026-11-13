@@ -26,24 +26,14 @@ import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/c
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
-import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import TextileStock from '../../../thing/TextileStock';
+import TextileWork, {
+  type ScutchBegin,
+  type ScutchDone,
+  type TextileRefusal,
+} from '../../../lib/TextileWork';
 
-const TOPIC = 'act.deed';
-
-const LINE_ROW = '/trade/textiles/thing/line';
-const TOW_ROW = '/trade/textiles/thing/tow';
-const SHIVE_ROW = '/trade/textiles/thing/shive';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface ScutchModel extends CommandModel {
   board?: MqlManyResult;
@@ -51,220 +41,65 @@ interface ScutchModel extends CommandModel {
   hard?: boolean;
 }
 
+/**
+ * ⭐ The fibre gate, the charge, the split into line/tow/shive, the band,
+ * the dust and the mint are the stock's (`TextileWork.scutchPlan` —
+ * controller-liquidity W11); this controller words the plan.
+ */
 export default class ScutchController extends ManualBuildController<ScutchModel> {
-  /**
-   * ⭐ Durations are DIALS, read the `sharpenDurationMs` way rather
-   * than the `HAMMER_MS` way — so the bottleneck is tunable in settings
-   * and assertable by a bench without a recompile. The literals here
-   * are the seeded fallbacks, not the source of truth.
-   */
-  static readonly BASE_MS_KEY = 'textiles.scutch.baseMs';
-  static readonly BASE_MS = 20 * 60 * 1000;
-  /**
-   * Litres of retted fibre one act works. ⚠ LITRES: the bulk substrate
-   * is volumetric throughout, and the first draft here said kg — which
-   * typechecked as a number and would have debited the wrong quantity
-   * silently.
-   */
-  static readonly CHARGE_L_KEY = 'textiles.scutch.chargeLitres';
-  static readonly CHARGE_L = 4;
-
   async execute(model: ScutchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const source = model.source?.stuff ?? null;
-    if (!source || !MixinApi.isBulkable(source)) {
+    if (!source) {
       this.declineStep(context, Mml.compose`Scutch what?`, 'no-source');
       return;
     }
-    const slot = BulkableApi.slotFor(source, undefined);
-    const material = slot?.getMaterial() ?? null;
-    if (!slot || slot.isEmpty() || !material) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(source)} is empty.`,
-        'nothing-to-work',
-      );
+    const plan = await new TextileWork(giver, this.bestInstrument(model.board, 'scutching')).scutchPlan(source, {
+      hard: model.hard === true,
+      room: context.location ?? null,
+    });
+    if (!plan.ok) {
+      this.declineStep(context, ScutchController.refusalWords(plan, source), plan.reason);
       return;
     }
-
-    // ⚠⚠ The chain's ENTRY POINT is the fibre, and the gate says so: a
-    // `fibre` material is what scutching works on, whatever produced it.
-    // Naming the flax row here would be the one line that stops wool
-    // ever plugging in.
-    if (!material.hasTag('fibre')) {
-      const straw = material.hasTag('fibre-stock');
-      this.declineStep(
-        context,
-        straw
-          ? Mml.compose`That is still straw. It wants a pit and a fortnight before it wants a knife.`
-          : Mml.compose`${Mml.thing(source)} holds nothing you could work into a fibre.`,
-        straw ? 'not-retted' : 'not-fibre',
-      );
-      return;
-    }
-    // ⚠ The over-ret, and the refusal is the whole failure mode: there
-    // is no path from here back into the chain.
-    if (material.hasTag('spoiled')) {
-      this.declineStep(
-        context,
-        Mml.compose`It has gone past. Grey, slimy and short — there is nothing in there to save.`,
-        'over-retted',
-      );
-      return;
-    }
-
-    const charge = Math.min(
-      slot.available(),
-      dial(ScutchController.CHARGE_L_KEY, ScutchController.CHARGE_L),
-    );
-    if (charge <= 0) {
-      this.declineStep(context, Mml.compose`There is not enough there to work.`, 'too-little');
-      return;
-    }
-
-    const hard = model.hard === true;
-    const band = bandOf(source);
-    // ⚠ Working it harder BREAKS fibre: more line out, one band down.
-    const outBand = hard ? stepDown(band) : band;
-    // ⚠ Worked harder: MORE line out of the same straw, and shorter.
-    const lineUnits = Math.max(1, Math.round(charge * (hard ? 0.75 : 0.5)));
-    const towUnits = Math.max(0, Math.round(charge * (hard ? 0.15 : 0.4)));
-    // ⭐ Most of a flax stem is boon. You throw away the majority of what
-    // you grew, and the minority is worth more than the crop.
-    const shiveUnits = Math.max(1, Math.round(charge * 0.75));
-
-    const instrument = this.bestInstrument(model.board, 'scutching');
-    const durationMs = this.paceMs(
-      dial(ScutchController.BASE_MS_KEY, ScutchController.BASE_MS),
-      instrument as Stuff | null,
-      ['scutching'],
-    );
-
-    this.engageStep(context, {
-      durationMs,
-      effortW: 400,
-      beginSelf: hard
-        ? Mml.compose`You set to ${Mml.thing(source)} hard, beating the boon out of it.`
-        : Mml.compose`You work ${Mml.thing(source)} steadily against the board.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} works a bundle of flax against a scutching board.`,
-      onComplete: () => {
-        void finish(context, source, slot, charge, outBand, {
-          line: lineUnits,
-          tow: towUnits,
-          shive: shiveUnits,
-          hard,
-        }, material);
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: (b: ScutchBegin) =>
+        b.hard
+          ? Mml.compose`You set to ${Mml.thing(b.source)} hard, beating the boon out of it.`
+          : Mml.compose`You work ${Mml.thing(b.source)} steadily against the board.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} works a bundle of flax against a scutching board.`,
+      onRefused: (r: TextileRefusal) => ScutchController.refusalWords(r, source),
+      onDone: (f: ScutchDone) => ScutchController.doneWords(giver, f),
     });
   }
-}
 
-async function finish(
-  context: CommandContext,
-  source: Stuff,
-  slot: { debit(litres: number): void },
-  charge: number,
-  band: string,
-  out: { line: number; tow: number; shive: number; hard: boolean },
-  fibre: Material | null,
-): Promise<void> {
-  const giver = context.commandGiver;
-  // ⚠⚠ A module function, never `this.<method>`: a controller is one
-  // ephemeral clone per execution and is destructed the moment `execute`
-  // returns, while this runs after an engaged step. A completion calling
-  // back into it would run on a destroyed Stuff and the proxy would
-  // answer with a silent no-op — the straw would go in and no fibre
-  // would ever come out. The mining acts shipped that bug once.
-  const watching = !giver.isDestroyed();
-  try {
-    slot.debit(charge);
-  } catch {
-    /* the source went away mid-step; the mint below is still honest */
-  }
-
-  // ⭐ (cleanliness D22) Scutching beats the woody shive off the fibre and
-  // fills a shut room with flax dust — which, like a mill's flour, flashes
-  // on a spark if it is let build.
-  const room = context.location ?? null;
-  if (room && MixinApi.isAtmospheric(room) && charge > 0) {
-    room.addAtmosphereContent('/stuff/idea/material/gas/flax-dust', charge * 10);
-  }
-  if (watching && MixinApi.isHygienic(giver)) {
-    giver.soilFrom([{ kind: 'dust', amount: 0.15, where: 'hands' }]);
-  }
-
-  const made: string[] = [];
-  for (const [row, units, label] of [
-    [LINE_ROW, out.line, 'line'],
-    [TOW_ROW, out.tow, 'tow'],
-    [SHIVE_ROW, out.shive, 'shive'],
-  ] as const) {
-    if (units <= 0) continue;
-    try {
-      const stock = await StuffApi.clone<Stuff>(row);
-      if (MixinApi.isStackable(stock)) stock.setQuantity(units);
-      // ⭐ The grade rides `CraftedMixin` — the same stamp the harvest
-      // put on the sheaf, carried one more step by the shipped
-      // weakest-link rule and nothing else.
-      if (MixinApi.isGraded(stock)) stock.setGrade(Grade.of(band));
-      // ⭐ Line and tow are the fiber that was retted (cordage D14): a
-      // hemp sheaf scutches into hemp line, never flax.
-      if (stock instanceof TextileStock && row !== SHIVE_ROW) stock.adoptFibre(fibre);
-      if (MixinApi.isContainable(stock) && MixinApi.isContainer(giver)) {
-        ContainmentApi.move(stock as Stuff & Containable, giver as Stuff & Container);
-      }
-      made.push(`${units} of ${label}`);
-    } catch (err) {
-      console.warn(`ScutchController: could not mint '${row}':`, err);
+  protected static refusalWords(r: TextileRefusal, source: Stuff): Composed {
+    switch (r.reason) {
+      case 'nothing-to-work':
+        return Mml.compose`${Mml.thing(source)} is empty.`;
+      case 'not-retted':
+        return Mml.compose`That is still straw. It wants a pit and a fortnight before it wants a knife.`;
+      case 'not-fibre':
+        return Mml.compose`${Mml.thing(source)} holds nothing you could work into a fibre.`;
+      case 'over-retted':
+        return Mml.compose`It has gone past. Grey, slimy and short — there is nothing in there to save.`;
+      case 'too-little':
+        return Mml.compose`There is not enough there to work.`;
+      case 'not-made':
+        return Mml.compose`Nothing comes of it, and you stop before the straw is wasted.`;
+      default:
+        return Mml.compose`You cannot scutch that.`;
     }
   }
 
-  if (!watching) return;
-  MessageApi.scene(giver)
-    .topic(TOPIC)
-    .toSelf(
-      out.hard
-        ? Mml.compose`The boon flies. You get ${made.join(', ')} — more line than a gentle hand would, and shorter.`
-        : Mml.compose`The boon falls away. You get ${made.join(', ')}.`,
-    )
-    .toPeers(Mml.compose`${Mml.actor(giver)} finishes a bundle of flax.`)
-    .send();
-}
-
-/** Numeric AppSetting read with the seeded-literal fallback. */
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static doneWords(giver: Stuff, f: ScutchDone): { self: Composed; peers: Composed } | null {
+    if (f.kind === 'gone') return null;
+    const made = f.made.map((m) => `${m.units} of ${m.label}`).join(', ');
+    return {
+      self: f.hard
+        ? Mml.compose`The boon flies. You get ${made} — more line than a gentle hand would, and shorter.`
+        : Mml.compose`The boon falls away. You get ${made}.`,
+      peers: Mml.compose`${Mml.actor(giver)} finishes a bundle of flax.`,
+    };
   }
-}
-
-/**
- * The band a source carries, or the neutral middle.
- *
- * ⚠⚠ **Validated, because `Grade.of` THROWS on anything else** — and a
- * live drive found what that costs. A `Graded` host whose `gradeBand`
- * is somehow unset reads back `undefined`; `Grade.of(undefined)` raises
- * a `RangeError`; the raise lands inside the try/catch that wraps the
- * whole mint, so the fibre was already consumed, nothing was made, and
- * the actor was told nothing at all. A spinner watched her line vanish
- * eight times in a row with no message and no error a player could see.
- *
- * Carrying a grade is a NICETY; making the thing is the point. So a
- * band that cannot be read falls back to the middle rather than taking
- * the product down with it.
- */
-function bandOf(source: Stuff): string {
-  const raw = MixinApi.isGraded(source) ? source.getGradeBand() : '';
-  return Grade.isBand(raw) ? raw : 'fair';
-}
-
-/** One band down, floored at the bottom of the scale. */
-function stepDown(band: string): string {
-  const i = (GRADE_BANDS as readonly string[]).indexOf(band);
-  return GRADE_BANDS[Math.max(0, (i < 0 ? 1 : i) - 1)]!;
 }

@@ -1,5 +1,5 @@
 /**
- * CommitteeController — the `committee` verb over a spied CompactApi:
+ * The `committee` controllers (show / channel) — the `committee` verb over a spied CompactApi:
  * bare show (group/subdivision/members/channel-link), explicit path
  * arg, the no-committee rejection, and `channel` (ensure + name /
  * no-committee rejection).
@@ -7,7 +7,8 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import CommitteeController from "../CommitteeController";
+import CommitteeShowController from "../CommitteeShowController";
+import CommitteeChannelController from "../CommitteeChannelController";
 import { CompactApi } from "../../../../../api/compact";
 import { MessageApi } from "../../../../../api/message";
 import { StuffApi } from "../../../../../api/stuff";
@@ -59,7 +60,12 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, "committee-verb.test", () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new CommitteeController()).execute(
+    // The view's routing: bare `committee` is the show's controller.
+    const ctrl =
+      model.subcommand === "channel"
+        ? makeStuff(() => new CommitteeChannelController())
+        : makeStuff(() => new CommitteeShowController());
+    return ctrl.execute(
       model as never,
       context
     );
@@ -73,7 +79,7 @@ const COMMITTEE = {
   subdivisionPath: "/world/terminus/registry",
 };
 
-describe("CommitteeController", () => {
+describe("committee controllers", () => {
   let giver: Stuff;
   let room: Stuff;
 

@@ -7,6 +7,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { standShippedConditions } from "../../vitals/__tests__/conditions";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
 import Species from "../../../platform/idea/species/Species";
@@ -64,7 +65,9 @@ function advance(c: TestCharacter, gameSec: number): void {
 const gameNow = (): number => WorldClockApi.getNow().rawValue();
 
 describe("SustainedEffect — the modifier condition kind", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // The condition rows the boot stands (load-on-use W10).
+    await standShippedConditions();
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     real = 100000;

@@ -3,24 +3,27 @@ import { openWorldAs, sendUntil } from './helpers';
 
 /**
  * The summoned/right-column cockpit panes that live entirely in the
- * client: the Settings card (opened from the rail) and the `who` card. Single-avatar, no server
+ * client: the Settings panel (opened from the top bar) and the `who` card. Single-avatar, no server
  * round-trip beyond the welcome snapshot, so immune to lounge churn.
  */
 
-test('settings are a card: the rail opens it with `settings`, close is a command', async ({
+test('settings: the top bar toggles master\'s settings panel, and its ✕ closes it', async ({
   browser,
 }) => {
+  // ⚠ Since B42 (e0d4e6ae7) the rail keeps only the modes, and Settings is
+  // master's top-bar button toggling master's settings PANEL again — not a
+  // card in the feed, so it is not closed by `client-card close`.
   const { page, close } = await openWorldAs(browser, 'pane-settings', {
     contextOptions: { viewport: { width: 1440, height: 790 } },
   });
   try {
-    const card = page.locator('[data-card-kind="settings"]');
-    await expect(card).toHaveCount(0);
-    await page.getByTestId('rail-settings').click();
-    await expect(card).toBeVisible();
-    await expect(card.getByText('Preferences')).toBeVisible();
-    await card.getByLabel('cockpit card close settings').click();
-    await expect(card).toHaveCount(0);
+    const panel = page.locator('aside[aria-label="Settings"]');
+    await expect(panel).toHaveCount(0);
+    await page.getByLabel('Toggle settings card').click();
+    await expect(panel).toBeVisible();
+    await expect(panel.getByText('Preferences')).toBeVisible();
+    await panel.getByLabel('Close settings').click();
+    await expect(panel).toHaveCount(0);
   } finally {
     await close();
   }

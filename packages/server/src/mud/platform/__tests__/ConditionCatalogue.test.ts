@@ -25,11 +25,12 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import ConditionCatalogue from '../idea/ConditionCatalogue';
+import { ConditionApi } from '../../api/condition';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../../lib/paths';
 import Condition from '../idea/Condition';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -64,8 +65,8 @@ function authoredConditionSeeds(): { path: string; cls: string }[] {
 }
 
 describe('the roster warm', () => {
-  it('onCreate stands up Condition rows and skips folder rows', async () => {
-    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+  it('the warm stands up Condition rows by infix and skips folder rows', async () => {
+    vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
       { path: '/platform/idea/Condition/metabolism', class: '/platform/idea/FolderZone' },
       { path: '/platform/idea/Condition/metabolism/alcohol', class: '/platform/idea/Condition' },
       { path: '/platform/idea/Condition/thermal/hypothermia', class: '/platform/idea/Condition' },
@@ -77,7 +78,8 @@ describe('the roster warm', () => {
     });
 
     const catalogue = makeStuff(() => new ConditionCatalogue());
-    await catalogue.onCreate();
+    await catalogue.warm();
+    expect(Template.findByPathInfix).toHaveBeenCalledWith('/idea/Condition/');
     expect(stood).toEqual([
       '/platform/idea/Condition/metabolism/alcohol',
       '/platform/idea/Condition/thermal/hypothermia',
@@ -85,7 +87,7 @@ describe('the roster warm', () => {
   });
 
   it('tolerates one failed standup and continues (the MaterialCatalogue shape)', async () => {
-    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+    vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
       { path: '/platform/idea/Condition/metabolism/bad', class: '/platform/idea/Condition' },
       { path: '/platform/idea/Condition/metabolism/good', class: '/platform/idea/Condition' },
     ] as unknown as Template[]);
@@ -98,17 +100,14 @@ describe('the roster warm', () => {
     expect(await catalogue.warm()).toBe(1);
   });
 
-  it('the platform pack boots it eagerly, after materials (the wiring assert)', () => {
+  it('nothing boots it — the roster loads with the first body (load-on-use W6)', () => {
     const src = readFileSync(
       fileURLToPath(
         new URL('../../../../../content/platform/pack.yaml', import.meta.url),
       ),
       'utf-8',
     );
-    expect(src).toMatch(/template: \/platform\/idea\/ConditionCatalogue/);
-    expect(src).toMatch(
-      /ConditionCatalogue.*dependsOn: \[\/platform\/idea\/MaterialCatalogue\]/,
-    );
+    expect(src).not.toMatch(/ConditionCatalogue/);
   });
 });
 
@@ -143,4 +142,30 @@ describe('⭐ the real-seed coverage — driven off the seed files, not a mock',
       expect(seeded, `${p} is fabricated by a fixture`).toContain(p);
     }
   });
+});
+
+describe('the doors (load-on-use W0)', () => {
+  it('need throws cold naming the path; peek answers null; a live row is found', () => {
+    const catalogue = makeStuff(() => new ConditionCatalogue());
+    expect(() => catalogue.need('/platform/idea/Condition/nowhere')).toThrow(
+      /condition '\/platform\/idea\/Condition\/nowhere' was read but is not resident/,
+    );
+    expect(catalogue.peek('/platform/idea/Condition/nowhere')).toBeNull();
+    const c = makeStuff(() => new Condition());
+    stampTemplatePathForTest(c, '/platform/idea/Condition/sting');
+    expect(catalogue.need('/platform/idea/Condition/sting')).toBe(c);
+  });
+
+  it('the roster reads every live condition, in path order', () => {
+    const b = makeStuff(() => new Condition());
+    stampTemplatePathForTest(b, '/platform/idea/Condition/b');
+    const a = makeStuff(() => new Condition());
+    stampTemplatePathForTest(a, '/platform/idea/Condition/a');
+    // The suite's harness stood the roster (`ConditionApi.standRosterForTesting`).
+    expect(ConditionApi.conditions().roster().map((c) => c.getTemplatePath())).toEqual([
+      '/platform/idea/Condition/a',
+      '/platform/idea/Condition/b',
+    ]);
+  });
+
 });

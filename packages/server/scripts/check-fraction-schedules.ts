@@ -55,8 +55,8 @@ import { CONTENT, walkYamlFiles } from './pack-roots';
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 
-/** The infix every fractionation row sits under (the catalogue's own warm key). */
-const PATH_INFIX = '/idea/fractionation/';
+/** The dir every fraction-schedule DOCUMENT sits in (load-on-use W4). */
+const PATH_INFIX = '/content/fraction-schedules/';
 
 interface Finding {
   file: string;
@@ -82,7 +82,8 @@ for (const file of walkYamlFiles(CONTENT)) {
     });
     continue;
   }
-  const data = parsed?.data;
+  // A document: the file IS the data (no `data:` wrapper, no `class:`).
+  const data = parsed as Record<string, unknown> | null;
   if (!data || typeof data !== 'object') continue;
   // A fractionation row is one that declares spans. Anything else under
   // the infix is somebody else's business.
@@ -92,7 +93,7 @@ for (const file of walkYamlFiles(CONTENT)) {
 
   const separation = String(data.separation ?? 'cuts');
   const product = String(data.productMaterial ?? '');
-  const key = String(data.key ?? relative(CONTENT, file));
+  const key = String(relative(CONTENT, file).split('/').pop()?.replace(/\.yaml$/, '') ?? file);
 
   if (separation !== 'cuts' && separation !== 'fractions') {
     findings.push({

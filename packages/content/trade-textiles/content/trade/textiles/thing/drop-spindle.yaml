@@ -10,9 +10,8 @@ data:
   shortDescription: drop spindle
   # ⭐ `"drop spindle"` — the SPACED form, and the reachability sweep is
   # why. The shelf prints *"drop spindle (2)"* and `Stock.resolveBuy` →
-  # `Perceptible.hasKeyword` is an exact `includes`, so until `buy.thing`
-  # went greedy the phrase never reached this list at all (the binder cut
-  # it to `drop`). Now it arrives whole — and a hyphen-only keyword
+  # `Perceptible.hasKeyword` is an exact `includes`, and `buy "drop
+  # spindle"` (quoted — controller-liquidity D3) arrives whole: a hyphen-only keyword
   # answers *"the shelf is bare of 'drop spindle'"*, which is a FALSE
   # refusal about a thing standing right there.
   # ⚠ No `whorl` any more: the whorl is a PART now, its own row, and a
@@ -36,4 +35,4 @@ data:
       - { part: spindle-shaft, template: /trade/textiles/thing/spindle-shaft, count: 1, role: structural, material: /stuff/idea/material/wood/oak }
       - { part: whorl, template: /trade/textiles/thing/whorl, count: 1, role: structural, material: /stuff/idea/material/rock/slate }
     joints:
-      - { key: seating, method: friction, members: [spindle-shaft, whorl] }
+      - { key: seating, method: /platform/joints/friction, members: [spindle-shaft, whorl] }

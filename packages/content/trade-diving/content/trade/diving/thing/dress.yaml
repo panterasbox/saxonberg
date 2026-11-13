@@ -12,6 +12,6 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso, legs]
   _materialPath: /stuff/idea/material/textile/rubberized-cloth
-  constructionForm: woven
+  constructionForm: /platform/fabrics/woven
   gradeBand: fine
   mass: 8

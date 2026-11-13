@@ -1,61 +1,40 @@
 /**
- * BoundaryApi — the public surface for installing and tearing down the
- * `Boundary` runtime triple (boundary + anchorA + anchorB).
+ * BoundaryApi — wiring a boundary to the ways it stands in.
  *
- * Why an Api: Boundary creation needs to construct two anchors, register
- * them in `StuffApi`, wire each anchor's side and back-reference, and
- * call `addFixture` on each host atomically. Doing that ad-hoc at every
- * call site is the kind of "raw setEnvironment + addContainable" rule
- * `docs/antipatterns.md` flags. The `Api` mediates the invariant.
+ * ⭐ A `Boundary` (a door, a window, a curtain) is ONE object; each place's
+ * exit is a SIDE of it. Attaching is the one two-object act — the boundary
+ * takes the exit as a side and the exit records its boundary — so it is
+ * orchestration and lives here; everything a boundary does after that is a
+ * method on it (`door.lock()`, `boundary.transmissivity(…)`).
  *
- * Two entry points:
- *   - `attachExistingBoundary({ boundary, hostA, hostB })` — the seed
- *     authoring path. Boundary is template-loaded (`Window`, `Door`)
- *     and the caller already holds the instance; the Api just installs
- *     the per-side anchors.
- *   - `create({ factory, hostA, hostB })` — convenience that combines
- *     `StuffApi.create(factory)` with `attachExistingBoundary`. Useful
- *     in tests and in code paths that programmatically build a
- *     boundary without a template.
+ *   - `attach(boundary, ...sides)` — take each exit as a side. Refuses a
+ *     third side, an exit already on another boundary, and the same exit
+ *     twice. Idempotent for a side already attached.
+ *   - `detach(...sides)` — let each exit go; the boundary keeps its other
+ *     side. `detach(...boundary.getSides())` frees both.
+ *   - `mintKeyway()` — a fresh keyway for a lock.
  *
- * `destruct(boundary)` is the symmetric teardown: routes through
- * `StuffApi.destruct` so the proxy / shadow / lifecycle machinery
- * runs, and the Boundary's own `onDestruct` chain detaches and
- * destructs the anchors.
+ * The anchor pair this Api used to install (`attachExistingBoundary`,
+ * `create`) retired with the boundary build (2026-11): a side IS the
+ * place's presence of the boundary, so nothing needs a fixture.
  *
- * Thin, security-gated forwarding shell: the install / teardown logic
- * lives in the hot-reloadable {@link BoundaryLogic} singleton at
- * `/platform/idea/api/boundary`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /platform/idea/api/boundary` reloads it.
+ * Thin, security-gated forwarding shell over the hot-reloadable
+ * {@link BoundaryLogic} singleton at `/platform/idea/api/boundary`.
  */
 
-import type { Stuff } from '../lib/stuff/Stuff';
 import type { Boundary } from '../lib/boundary/Boundary';
-import type { Adornable } from '../lib/boundary/Adornable';
+import type Exit from '../lib/boundary/Exit';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BoundaryLogic } from '../platform/idea/api/BoundaryLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export interface AttachExistingBoundaryOptions<T extends Boundary = Boundary> {
-  boundary: T;
-  hostA: Stuff & Adornable;
-  hostB: Stuff & Adornable;
-}
-
-export interface CreateBoundaryOptions<T extends Boundary = Boundary> {
-  factory: () => T;
-  hostA: Stuff & Adornable;
-  hostB: Stuff & Adornable;
-}
-
 const LOGIC_PATH = '/platform/idea/api/boundary';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/BoundaryLogic', import.meta.url)
 );
 
-/** Resolve the HMR-able BoundaryLogic singleton (sync). */
 function logic(): BoundaryLogic {
   return StuffApi.singletonSync(
     LOGIC_PATH,
@@ -68,58 +47,16 @@ function logic(): BoundaryLogic {
 }
 
 export class BoundaryApi {
-  /**
-   * Install an already-constructed Boundary on two hosts: create the
-   * two `BoundaryAnchor`s, wire `boundary.anchorA`/`anchorB`, and
-   * call each host's `addFixture(anchor)`. Returns the boundary for
-   * fluent chaining.
-   *
-   * Rejects when the boundary already has anchors wired (use
-   * `destruct` first to migrate). Rejects `hostA === hostB`
-   * (a Boundary connecting a room to itself has no use case in v1
-   * and would confuse the `getOtherHost` walk).
-   */
-  public static attachExistingBoundary<T extends Boundary>(
-    opts: AttachExistingBoundaryOptions<T>
-  ): T {
-    return logic().attachExistingBoundary(opts);
+  /** Take each exit as a side of `boundary`. See the file header. */
+  public static attach<T extends Boundary>(boundary: T, ...sides: Exit[]): T {
+    return logic().attach(boundary, sides);
   }
 
-  /**
-   * Convenience: clone-or-construct a Boundary via `StuffApi.create`
-   * (the canonical async creation path) and install it on two hosts
-   * in one call. Mirrors the "factory + two endpoints" shape of
-   * `Exitable.addBidirectionalExit`.
-   */
-  public static async create<T extends Boundary>(
-    opts: CreateBoundaryOptions<T>
-  ): Promise<T> {
-    return logic().create(opts);
+  /** Let each exit go from whatever boundary it is a side of. */
+  public static detach(...sides: Exit[]): void {
+    logic().detach(sides);
   }
 
-  /**
-   * Tear down a Boundary and its anchors. Routes through
-   * `StuffApi.destruct` so the proxy / shadow lifecycle runs; the
-   * Boundary's own `onDestruct` detaches the anchors from each
-   * host's `getFixtures()` and destructs them.
-   */
-  public static destruct(boundary: Boundary): void {
-    logic().destruct(boundary);
-  }
-
-  /**
-   * Mint a fresh, opaque keyway token — the identity of one lock. A
-   * **re-key is simply a new keyway**: every key cut against the old one
-   * stops fitting, because fitting is string equality on this token and
-   * nothing else.
-   *
-   * ⭐ Minting is the Api's and issuing is the LOCK's. `mintKeyway`
-   * produces a token from nowhere (it reaches `SecurityApi.uuid`), which
-   * is an act on the world; `new Lock(keyway, tech).issueKeyTo(holder)`
-   * and `.opensFor(mover)` are the lock answering about itself, and stay
-   * instance methods. That line is why one moved here and the others did
-   * not.
-   */
   public static mintKeyway(): string {
     return logic().mintKeyway();
   }

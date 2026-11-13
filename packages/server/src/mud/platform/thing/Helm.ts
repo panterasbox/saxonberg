@@ -13,6 +13,8 @@ import type { CommandContributions } from '../../api/command';
 
 const STEERING = [
   'platform/cmd/movement/course.yaml',
+  // The bare read and the steer are two shapes of `course` (W7a).
+  'platform/cmd/movement/course-steer.yaml',
   'platform/cmd/movement/anchor.yaml',
   'platform/cmd/social/hail.yaml',
 ];

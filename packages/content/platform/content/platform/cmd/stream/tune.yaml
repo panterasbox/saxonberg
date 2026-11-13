@@ -1,9 +1,12 @@
 verbs: [tune]
 category: stream
 # ⭐ One controller per subcommand (controllers-are-io D9); the verb-level
-# controller is the fallthrough's — bare `tune`, `tune <target>` and
-# `tune <target> <message>`.
-controller: /platform/idea/cmd/stream/TuneInController
+# controller is bare `tune`'s — the list. `tune <target>` and `tune <target>
+# <message>` are two more SHAPES of the verb, each its own view and
+# controller (`tune-follow.yaml`, `tune-post.yaml`, controller-liquidity
+# W7a): a first word that is none of the subcommands below is handed to
+# them.
+controller: /platform/idea/cmd/stream/TuneListController
 description: "Follow a livestream's chat (Twitch / YouTube / Kick) in your console; post (Twitch)"
 help: |
   Follow a livestream's chat into your console and read it alongside the
@@ -29,7 +32,6 @@ help: |
   follows the chat too).
 validators:
   - /lib/command/validators/requiresAnimate
-fallthrough: true
 options:
   twitch:
     type: boolean
@@ -68,15 +70,3 @@ subcommands:
       - name: target
         type: string
         required: true
-args:
-  # Fallthrough (`tune <target> [message]`): target is required WHEN a
-  # non-subcommand token is present; bare `tune` (zero tokens) skips the
-  # fallthrough entirely and lands on the controller's list path. The
-  # trailing greedy message is optional — present = post, absent = follow.
-  - name: target
-    type: string
-    required: true
-  - name: message
-    type: string
-    required: false
-    greedy: true

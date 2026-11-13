@@ -1,4 +1,3 @@
-blueprintId: campfire
 name: Campfire
 kind: concrete
 baseClass: Thing

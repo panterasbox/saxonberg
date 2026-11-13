@@ -14,6 +14,7 @@
 import "../../../../../../test-bootstrap";
 import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
 import TreatController from '../TreatController';
 import UndressController from '../UndressController';
 import Bandage from '../../../../thing/Bandage';
@@ -38,6 +39,8 @@ import type { Trauma } from '../../../Condition';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
+import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -89,11 +92,16 @@ function woundOf(c: Creature): Trauma {
   return c.getConditions().find((x) => x.kind === 'trauma') as Trauma;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+
+  await standShippedConditions(); // load-on-use W6: the shipped roster, as a world loads it with the body
+  // A credit or a band read stands on the discipline dictionary (D11).
+  await rememberDisciplines();
   installV1QuantityMarshallers();
   fakeMongo();
   WorldClockApi._setNowProviderForTesting(() => 100);
   stubScene();
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -261,6 +269,27 @@ describe('UndressController — the clot gate', () => {
     const w = woundOf(medic);
     expect(w.dressed).toBe(false);
     expect(w.bleeding).toBeFalsy(); // clotted → safe
+  });
+
+  it('the body answers directly: nothing dressed refuses; two dressed is a choice (W8)', async () => {
+    const { medic, room } = medicWith(
+      makeStuff(() => new Bandage()),
+      '/platform/agent/Avatar/undress-c',
+      2
+    );
+    expect(medic.undressWound()).toEqual({ ok: false, reason: 'no-dressing' });
+    await makeStuff(() => new TreatController()).execute({}, ctxFor(medic, room));
+    const first = woundOf(medic);
+    const second = { ...first, part: 'body.head', severity: 0.5 } as Trauma;
+    (medic.getConditions() as Trauma[]).push(second);
+    const answer = medic.undressWound();
+    expect(answer.ok).toBe('choose');
+    if (answer.ok !== 'choose') return;
+    expect(answer.facts.preferred).toBe(first);
+    const done = medic.undressWound(answer.facts.preferred);
+    expect(done.ok).toBe(true);
+    expect(first.dressed).toBe(false);
+    expect(second.dressed).toBe(true);
   });
 });
 

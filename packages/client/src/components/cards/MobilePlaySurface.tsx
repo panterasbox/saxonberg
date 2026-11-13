@@ -120,9 +120,9 @@ export function PinnedChipRow({
         return (
           <Chip
             key={card.instanceId}
-            aria-label={`cockpit card unpin ${ref}`}
-            title={`Click to send: cockpit card unpin ${ref}`}
-            onClick={() => onSendCommand(`cockpit card unpin ${ref}`)}
+            aria-label={`client-card unpin ${ref}`}
+            title={`Click to send: client-card unpin ${ref}`}
+            onClick={() => onSendCommand(`client-card unpin ${ref}`)}
           >
             ⚲ {name}
           </Chip>

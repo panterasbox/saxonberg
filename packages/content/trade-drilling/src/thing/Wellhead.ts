@@ -95,6 +95,8 @@ import BodyRegister, {
 } from '@saxonberg/content-ground/src/idea/BodyRegister';
 import { BoreRegistry, BORE_REGISTRY_PATH } from '../idea/BoreRegistry';
 import type { DrillingOutfit } from '../idea/DrillingOutfit';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 
 /**
  * Swings a metre costs in rock of {@link REFERENCE_MPA} hardness.
@@ -174,6 +176,38 @@ const FLOW_L_PER_HOUR_PER_ATM = 300;
  * remedy.
  */
 const LINING_MPA = 120;
+
+
+/** Endurance one swing costs a fresh body, in percentage points. */
+const SWING_COST = 7;
+/** How long running one string of tube down the hole takes, game-ms. */
+const LINE_MS = 45_000;
+/** Endurance lining costs a fresh body, in percentage points. */
+const LINE_COST = 11;
+/** The one row a hole is lined with. ⚠ Never `casing`. */
+const LINER_ROW = '/trade/drilling/thing/liner';
+
+/** Why the beam will not swing — the ground's reasons, worded by the verb. */
+export type SwingRefusal = ActRefusal<'no-bill' | 'wants-lining' | 'wants-bailing'>;
+/** One stroke, landed: how deep, whether a yard came, and what is in it. */
+export interface SwingDone {
+  deepened: boolean;
+  depthM: number;
+  /** The depth before the stroke — what a stroke that buys no yard reports. */
+  beforeM: number;
+  /** Strokes banked toward the next yard, and how many it wants. */
+  bank: number;
+  needed: number;
+  /** Something stands in the hole at the new depth (a fluid). */
+  struck: boolean;
+}
+
+/** Why the hole will not take tube now. */
+export type LineRefusal = ActRefusal<'lined-to-depth' | 'no-liner' | 'not-a-liner'>;
+/** The lining, landed: the depth the hole holds to now. */
+export interface LineDone {
+  linedToM: number;
+}
 
 /** What the hole owes for its next metre. */
 export interface CutCost {
@@ -407,6 +441,98 @@ export default class Wellhead
     const bill = await this.cutBill();
     if (bill === null || bill.wantsLinerBeyondM === null) return false;
     return this.depthM + 1 > bill.wantsLinerBeyondM && this.linedToM < bill.wantsLinerBeyondM;
+  }
+
+  // ---------- ⭐⭐ the acts at the hole (controller-liquidity W12) ----------
+
+  /**
+   * ⭐⭐ **One stroke of the beam** — the `bore` verb's act, planned by the
+   * hole it deepens. The refusals are the ground's (no column written
+   * down, soft wet rock that wants lining, a bit swimming in standing
+   * water); the stroke banks toward the next metre and credits the
+   * LABOUR discipline to whoever swung, which is this body whether it is
+   * a player's or a hired hand's. ⚠ The owner never earns the skill they
+   * bought — siting is theirs (`Bailer.spudPlanFor`), the beam is not.
+   */
+  public async swingPlan(by: Stuff): Promise<ActPlan<undefined, SwingDone, SwingRefusal> | SwingRefusal> {
+    await this.reconcileRig();
+    const bill = await this.cutBill();
+    if (bill === null) return { ok: false, reason: 'no-bill' };
+    if (await this.wantsLining()) return { ok: false, reason: 'wants-lining' };
+    if (this.sumpL > 0 && (await this.headAtm()) <= 0) return { ok: false, reason: 'wants-bailing' };
+    const durationMs = await this.swingMs();
+    return {
+      ok: true,
+      durationMs,
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(SWING_COST, durationMs / 1000) : 0,
+      facts: undefined,
+      onComplete: () => this.landSwing(by, bill.swingsPerMetre),
+    };
+  }
+
+  /** The stroke, landed — banked, logged, and credited to the hand. */
+  private async landSwing(by: Stuff, needed: number): Promise<{ ok: true; facts: SwingDone }> {
+    const beforeM = this.depthM;
+    // ⚠ The hand may have left mid-stroke (a logout). Banking the swing
+    // anyway would be worse than nothing — the work is the body's.
+    if (by.isDestroyed()) {
+      return { ok: true, facts: { deepened: false, depthM: beforeM, beforeM, bank: this.swingBank, needed, struck: false } };
+    }
+    const result = await this.bankSwing(1);
+    const struck = result.deepened ? (await this.fluidAtDepth(result.depthM)) !== null : false;
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({
+        discipline: MINING,
+        difficulty: 'standard',
+        outcome: result.deepened ? 'success' : 'partial',
+      });
+    }
+    return {
+      ok: true,
+      facts: { deepened: result.deepened, depthM: result.depthM, beforeM, bank: result.bank, needed, struck },
+    };
+  }
+
+  /**
+   * ⭐ **Can `liner` line this hole?** A length of well liner, and nothing
+   * else — the view used to bind whatever was first in your pack and the
+   * act destroyed it (C8).
+   */
+  public canLine(liner: Stuff | null): LineRefusal | null {
+    if (liner === null) return { ok: false, reason: 'no-liner' };
+    if (liner.getTemplatePath() !== LINER_ROW) return { ok: false, reason: 'not-a-liner' };
+    return null;
+  }
+
+  /**
+   * ⭐ **Run tube down the hole** — the `line` verb's act. Buys nothing
+   * but the ability to keep going: the hole holds to its depth, and the
+   * tube is in the ground for good.
+   */
+  public async linePlan(by: Stuff, liner: Stuff | null): Promise<ActPlan<undefined, LineDone, LineRefusal> | LineRefusal> {
+    await this.reconcileRig();
+    if (this.depthM <= this.linedToM) return { ok: false, reason: 'lined-to-depth' };
+    const refused = this.canLine(liner);
+    if (refused !== null) return refused;
+    const tube = liner as Stuff;
+    const toDepth = this.depthM;
+    return {
+      ok: true,
+      durationMs: LINE_MS,
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(LINE_COST, LINE_MS / 1000) : 0,
+      facts: undefined,
+      onComplete: async () => {
+        if (tube.isDestroyed()) return { ok: false, reason: 'no-liner' };
+        // ⚠ The crew may have deepened the hole while the tube went down,
+        // which is fine — line to what it is now.
+        this.linedToM = Math.max(toDepth, this.linedToM);
+        await StuffApi.destruct(tube);
+        if (MixinApi.isAdvancing(by)) {
+          await by.creditDeed({ discipline: MINING, difficulty: 'standard', outcome: 'success' });
+        }
+        return { ok: true, facts: { linedToM: this.linedToM } };
+      },
+    };
   }
 
   // ---------- ⭐ the bank ----------
@@ -687,7 +813,7 @@ export default class Wellhead
     const alreadyOut =
       register === null ? this.drawnL : await register.drawnFrom(ref);
     const left = Math.max(0, deposit.capacityOf(body) - alreadyOut);
-    const material = StuffApi.findByTemplatePath<Material>(body.fluid) ?? null;
+    const material = MaterialApi.materials().need(body.fluid);
     if (material === null) return;
 
     let litres = Math.min(wanted, left);
@@ -716,7 +842,7 @@ export default class Wellhead
   private async sumpMaterial(): Promise<Material | null> {
     const body = await this.bodyHere();
     if (body === null) return null;
-    return StuffApi.findByTemplatePath<Material>(body.fluid) ?? null;
+    return MaterialApi.materials().need(body.fluid);
   }
 
   /**

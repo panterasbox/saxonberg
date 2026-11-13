@@ -18,8 +18,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../../retail/BuyController";
 import ShelfConsignController from "../../retail/ShelfConsignController";
 import ShelfReclaimController from "../../retail/ShelfReclaimController";
-import WalletController from "../WalletController";
-import HouseController from "../HouseController";
+import WalletUseController from "../WalletUseController";
+import HouseRosterController from "../HouseRosterController";
 import JobQuitController from "../../work/JobQuitController";
 import { PlayerApi } from "../../../../../api/player";
 import StockBase from "../../../../../lib/retail/Stock";
@@ -208,7 +208,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
 
 async function walletUse(giver: TestGiver, loc: Place, corpo: string): Promise<CommandContext> {
   const c = ctx(giver, loc, null, `wallet use ${corpo}`);
-  const controller = makeStuff(() => new WalletController());
+  const controller = makeStuff(() => new WalletUseController());
   await asOwner(giver, () =>
     controller.execute({ subcommand: "use", corpo } as never, c),
   );
@@ -487,7 +487,7 @@ describe("the house account in the wallet (D6)", () => {
     // giver is refused on the SEAT, on any subcommand of the house app.
     const c = ctx(pat, loc, null, "house roster");
     await asOwner(pat, () =>
-      makeStuff(() => new HouseController()).execute({ subcommand: "roster" } as never, c),
+      makeStuff(() => new HouseRosterController()).execute({ subcommand: "roster" } as never, c),
     );
     expect(rejections(c)).toEqual(["not-staff"]);
   });

@@ -43,10 +43,16 @@ export abstract class PartyControllerBase extends CommandController<PartyModel> 
     return giver;
   }
 
-  /** A durable member ref: an Avatar's playerId, else a templatePath. */
+  /**
+   * A durable member ref, the one the party keys its roster on
+   * (`PartyMember.partyMemberId`): an Avatar's playerId, else the PERSON
+   * (`getIdentityPath()` — never the lineage every clone of a row shares,
+   * controller-liquidity D11).
+   */
   protected refOf(stuff: Stuff): string {
+    if (MixinApi.isPartyMember(stuff)) return stuff.partyMemberId();
     if (PlayerApi.isAvatarStuff(stuff)) return stuff.getPlayerId() ?? "";
-    return stuff.getTemplatePath() ?? "";
+    return stuff.getIdentityPath() ?? "";
   }
 
   protected reasonText(reason: string): string {

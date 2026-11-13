@@ -8,7 +8,7 @@
 # already evaluates over the union of many spaces — so this is one
 # archetype reported across all of a way's rooms at once.
 #
-# `surveyScope: corridor` is what makes that happen, and it is also what
+# `roomsScope: corridor` is what makes that happen, and it is also what
 # keeps this line out of every bedroom in the game: it reports only where
 # you are standing outdoors ON A LANE, and then over that lane's whole
 # length.
@@ -36,9 +36,8 @@
 # light is lux. The proof that the needs vocabulary already reaches this
 # domain is that it was already being used for it — the mining
 # archetype's `haulage: { presence: pony }`.
-archetypeId: corridor
 label: a way
-surveyScope: corridor
+roomsScope: corridor
 capabilities:
   # The road house. Rovere's is already designed in Heart's Delight and
   # waiting for a road to be on; until it is built, this reports missing,

@@ -53,6 +53,7 @@ afterEach(() => {
 
 function scroll(): Scroll {
   const s = makeStuff(() => new Scroll());
+  // The fixture never reads the spell dictionary; drop the setter's load (no store here).
   s.setCarriedSpellPath('/test/spell');
   s.markText = 'words';
   return s;

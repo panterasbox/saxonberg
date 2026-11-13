@@ -247,6 +247,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       const resolution = await attempt(() => AddressApi.resolveFor(place));
       const address = resolution?.address ?? null;
+      // The sync chain read stands on the index the awaited `resolveFor`
+      // built (`AddressApi.needs`, load-on-use W5).
       const localities = address
         ? AddressApi.coverageChainOf(address)
             .map((l) => ({ name: l.getName(), address: l.getAddress() }))
@@ -262,15 +264,25 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ The perception-gated list: a concealed exit is not here.
       const here = place.getZone();
+      // ⭐ The same `WayRecord` the room card's `exits` subscription emits
+      // (boundary build), plus where the way leads — this push resolves it.
       const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
         ? place.obviousExitsFor(viewer).map((exit) => {
-            const dest = exit.getDestination();
-            const door = exit.getDoor();
+            // ⚠ A deferred way (a berth, a holding's front door) has no
+            // destination until someone crosses it, and `getDestination`
+            // THREW for it — `map` on the bank died with *destination not
+            // materialized* (the boundary browser walk). Resolve as before,
+            // and fall back to what is standing.
+            let dest: Stuff | null;
+            try {
+              dest = exit.getDestination();
+            } catch {
+              dest = exit.peekDestination();
+            }
             return {
-              direction: exit.getDirection(),
+              ...exit.wayRecord(),
               ...(dest ? { destination: dest.getPresentation() } : {}),
               crossesZone: !!dest && dest.getZone() !== here,
-              ...(door ? { door: { name: door.getPresentation(), open: door.isOpen() } } : {}),
             };
           })
         : [];
@@ -279,7 +291,9 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await attempt(() => WeatherApi.sampleFor(place))
         : undefined;
       const day = await attempt(() => CelestialApi.isDayAt(place));
-      const government = address ? await attempt(() => GovernmentApi.governmentAt(address)) : undefined;
+      const government = address
+        ? await attempt(() => GovernmentApi.governmentAt(address))
+        : undefined;
 
       return {
         place: { stuffId: place.stuffId, name: place.getPresentation() },
@@ -315,16 +329,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `look` (enumerate without binding focus). Discovery wiring
      * is `look`'s — perception, not focus management.
      *
-     * `survey` rides here too and belongs here: it is the same actor-side
-     * question as `look`, asked of the PLACE rather than of the things
-     * in it. It has to be an actor-side affordance because a verb is
-     * afforded by a CLASS and no class is common to every residential
-     * room — and it is a platform verb rather than the residence pack's
-     * because the archetype substrate it reads is venue-generic (a bar
-     * surveys as readily as a bedsit) and the kernel may not import a
-     * pack. The holding half is read through the WarrenMember back-ref
-     * by shape.
-     *
      * The four single-sense verbs (`smell` / `listen` / `feel` /
      * `taste`) and the gestalt `sense` ride the same actor-side
      * bucket — they're perception verbs in the contact family,
@@ -342,6 +346,10 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         // the stream form refuses anybody without a client, in words.
         // It moved here from Avatar, which is a perceiver too.
         'platform/cmd/stream/watch.yaml',
+        // The stream forms are two more shapes, AFTER `watch.yaml` so
+        // `horizon` and `off` are tried first (controller-liquidity W7a).
+        'platform/cmd/stream/watch-stream.yaml',
+        'platform/cmd/stream/watch-on.yaml',
         'platform/cmd/perception/scry.yaml',
         'platform/cmd/perception/locate.yaml',
         'platform/cmd/shell/find.yaml',
@@ -350,7 +358,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/perception/feel.yaml',
         'platform/cmd/perception/sense.yaml',
         'platform/cmd/perception/assess.yaml',
-        'platform/cmd/perception/survey.yaml',
         'platform/cmd/perception/search.yaml',
         'platform/cmd/perception/hide.yaml',
         'platform/cmd/perception/unhide.yaml',

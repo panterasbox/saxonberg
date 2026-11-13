@@ -41,12 +41,15 @@
  *
  * ## The two surfaces, and which is which
  *
- * - `isLocked()` / `setLocked()` / `lock()` / `unlock()` — **the bolt.**
- *   State, no authority. The Exit family and the provisioning
- *   controllers move it directly.
+ * - `isLocked()` / `setLocked()` — **the bolt.** State, no authority:
+ *   the authoring setter (the TemplateApplier's `set<Field>` dispatch),
+ *   the Exit family and the provisioning acts move it directly.
+ * - `lock(by)` / `unlock(by)` — **the act.** ⭐ The keyway is asked HERE
+ *   (controller-liquidity D9), so every caller of the act meets it, not
+ *   only the `lock` verb; the controller words the refusal.
  * - `opensFor(mover)` — **the authority.** Does this mover present a key
- *   that fits? The verb controllers ask this before touching the bolt,
- *   and `Exit.canTraverse` asks it before refusing passage.
+ *   that fits? `lock`/`unlock` ask it, and `Exit.canTraverse` asks it
+ *   before refusing passage.
  *
  * ⭐ `getLock()` is a **policy seam**: it builds the value object from
  * this host's own fields, and a subclass whose keyway lives somewhere
@@ -62,17 +65,31 @@
 import { Lock, type LockType } from '../lock/Lock';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+
+/**
+ * Why a `lock`/`unlock` act was refused. ⭐ The ORDER is the method's
+ * (controller-liquidity D9): the visible state first — a character can SEE
+ * a thrown bolt — and the secret (does your key fit?) only once the act
+ * would otherwise go through.
+ */
+export type LockRefusalReason = 'already-locked' | 'already-unlocked' | 'no-key';
+
+/** The answer to `lock(by)` / `unlock(by)`. */
+export type LockAnswer = ActOutcome | ActRefusal<LockRefusalReason>;
 
 /**
  * Public shape added by LockableMixin. `isLocked()` / `setLocked()` is
- * the bolt's inter-Stuff contract surface; `lock()` / `unlock()` are its
- * action-shaped mutators; `opensFor()` and `getLock()` are the keyway's.
+ * the bolt's inter-Stuff contract surface; `lock(by)` / `unlock(by)` are
+ * its acts, which ask the keyway; `opensFor()` and `getLock()` are the keyway's.
  */
 export interface Lockable {
   isLocked(): boolean;
   setLocked(value: boolean): void;
-  lock(): void;
-  unlock(): void;
+  /** Throw the bolt as `by` — refuses `already-locked`, then `no-key`. */
+  lock(by: Stuff): LockAnswer;
+  /** Withdraw the bolt as `by` — refuses `already-unlocked`, then `no-key`. */
+  unlock(by: Stuff): LockAnswer;
   /** The lock this thing carries — keyway + technology. */
   getLock(): Lock;
   /** Whether `mover` presents a key that fits this lock. */
@@ -115,20 +132,14 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The bolt. Backing storage; access via `isLocked()`/`setLocked()`.
      *
-     * ⭐⭐ Initialized from {@link boltedByDefault} rather than from a
-     * literal, and the reason is a security regression this would
-     * otherwise have shipped: the keyed-door family
-     * (`KeyedDoorExit`/`FrontDoorExit`/`DormDoor`) has been
-     * *permanently* locked for its whole life, so composing a mixin
-     * whose bolt defaulted to `false` would have thrown every dorm room
-     * and every holding in the realm open to anybody who walked past.
-     *
-     * ⚠ It must be a FIELD DEFAULT and not a `postRegister` write: the
-     * Hydrator reflects a persisted `locked` in after construction, so
-     * a default is overridden by what the player last did while a
-     * lifecycle write would re-bolt the door on every boot.
+     * ⭐ Unbolted unless the row says `locked: true` — a keyed door's row
+     * does (`/system/residence/thing/boundaries/keyed-door`, the dorm
+     * door). The `boltedByDefault` hook this used to read lost its last
+     * overrider when the keyed-exit classes became rows (boundary build),
+     * and was removed (`lint:unconsumed-seams`). A persisted `locked`
+     * hydrates over this default, so the player's last act survives.
      */
-    private _locked: boolean = this.boltedByDefault();
+    private _locked: boolean = false;
 
     /**
      * The lock's identity. ⚠ Empty by default, and an empty keyway opens
@@ -139,20 +150,6 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The lock technology a key must match. */
     private _lockTechnology: LockType = 'pin-tumbler';
-
-    /**
-     * Whether this kind of thing starts out bolted.
-     *
-     * ⭐ A plain `Door` does not — an authored row says `locked: true`
-     * when it means it. A door whose whole existence is a lock (the
-     * keyed-exit family) does. **Override** — read once, at
-     * construction, before any persisted value is hydrated over it.
-     *
-     * @hook
-     */
-    protected boltedByDefault(): boolean {
-      return false;
-    }
 
     /** Predicate getter — is the bolt thrown? */
     isLocked(): boolean {
@@ -173,14 +170,26 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._locked = value;
     }
 
-    /** Throw the bolt. Idempotent. ⚠ State only — no key is consulted. */
-    lock(): void {
-      this._locked = true;
+    /**
+     * Throw the bolt, as `by`. ⭐⭐ **The authority lives here, not in the
+     * verb** (controller-liquidity D9): a replaced `lock` controller, a
+     * brain or a script meets the same keyway. Visible state first
+     * (`already-locked` — anybody can see a thrown bolt), the secret second
+     * (`no-key` — asked only once the act would otherwise go through).
+     */
+    lock(by: Stuff): LockAnswer {
+      if (this.isLocked()) return { ok: false, reason: 'already-locked' };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      this.setLocked(true);
+      return { ok: true, facts: undefined };
     }
 
-    /** Withdraw the bolt. Idempotent. ⚠ State only — no key is consulted. */
-    unlock(): void {
-      this._locked = false;
+    /** Withdraw the bolt, as `by`. The same order as {@link lock}. */
+    unlock(by: Stuff): LockAnswer {
+      if (!this.isLocked()) return { ok: false, reason: 'already-unlocked' };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      this.setLocked(false);
+      return { ok: true, facts: undefined };
     }
 
     getKeyway(): string {

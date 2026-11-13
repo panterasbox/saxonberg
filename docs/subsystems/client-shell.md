@@ -70,7 +70,7 @@ removed* — you are logged in as somebody, and the bus is alive. The
 shelf is everything else, and everything else is negotiable.
 
 ⭐ **Identity and connection cannot be unpinned — not by a rule, but
-because they are not shelf rows at all.** `cockpit shelf unpin identity`
+because they are not shelf rows at all.** `client-shelf unpin identity`
 refuses with *unknown shelf row*, which is a stronger guarantee than a
 protection rule somebody could edit away.
 
@@ -167,7 +167,7 @@ The one line that decides every *is this client or server* question in
 the chrome.
 
 `cockpit.shelf` is **identical on both form factors** — same rows, same
-order, same `cockpit shelf` verb, same catalogue. What a viewport
+order, same `client-shelf` verb, same catalogue. What a viewport
 decides is only *disclosure*: whether the shelf renders inline in the
 bar (desktop, wrapping) or behind a pull-down (mobile, two-up).
 
@@ -331,7 +331,7 @@ key, a glance row that is not on the shelf, a `list` output that cannot
 say which is true. One ordered list has one answer.
 
 The consequence is that **choosing what rides the bar is *reordering***,
-which is what [`cockpit shelf first`](./cockpit.md) exists for.
+which is what [`client-shelf first`](./cockpit.md) exists for.
 `GLANCE_ROWS = 3` is a client constant and has to be — the server does
 not know how wide a bar is. A shorter shelf simply shows what it has; an
 empty one says *nothing pinned* rather than leaving an unexplained gap.
@@ -382,7 +382,7 @@ not `chip`.
 glance-line as its own named section — *three fit on the bar without
 pulling down; everything else is one drag away* — above the full
 catalogue with each row's state and reason. Every affordance sends a
-`cockpit shelf …` command and **mutates nothing locally**; `to bar`
+`client-shelf …` command and **mutates nothing locally**; `to bar`
 sends `first`, which pins an unpinned row at the head so *"put this on
 my bar"* stays one tap.
 
@@ -400,7 +400,7 @@ make *"each with its reason"* true of the markup and false of the
 surface.
 
 ⚠ **Identity and connection are absent from the chooser by design.**
-They are not shelf rows at all; `cockpit shelf unpin identity` refuses
+They are not shelf rows at all; `client-shelf unpin identity` refuses
 with *unknown shelf row*, and that refusal is a stronger guarantee than
 a rule in a component somebody could edit.
 
@@ -829,7 +829,7 @@ not by the wire.**
 
 ### The `＋ widget` menu, and pinning
 
-Clicking a catalogue entry sends `cockpit shelf pin <row>` /
+Clicking a catalogue entry sends `client-shelf pin <row>` /
 `unpin <row>` and mutates nothing locally; the server writes
 `cockpit.shelf` and pushes it back. Hovering previews the identical
 string in the status bar — the same constant, so preview and send cannot
@@ -921,7 +921,7 @@ replaces it is the command sheet.
 the bar is three regions: the **shelf** figures at the left
 (`data-testid="status-shelf"`), the preview in the middle, and the
 **tray** at the right (`data-testid="tray"`) — the cards the player
-minimized, each a chip whose click sends `cockpit card restore <card>`
+minimized, each a chip whose click sends `client-card restore <card>`
 and whose hover previews it. Char-gen's bar is the preview alone. The
 preview region still never shows a frame count or a `here:` readout.
 
@@ -1483,7 +1483,7 @@ hedges* — a room description carries no engineering stamp, because
 breaking the fiction to report an engineering fact is the wrong trade in
 the one place the game is supposed to be a world; if a thing cannot be
 described yet, it is not in the room yet. And *commands refuse honestly*
-in the machine voice (`cockpit style theme default` naming the three it
+in the machine voice (`client-style theme default` naming the three it
 does know), not through a hatched widget.
 
 ⭐ **Derive every figure from the data that produces it.** A count beside
@@ -1623,7 +1623,7 @@ Three of this doc's own conventions do real work there:
   control's label, its `aria-label` and its payload are the card's own
   `key` — the normalized command that produced it — so the preview and
   the send are literally the same string. The pin sends
-  `cockpit card pin <id>` and mirrors the server's answer rather than
+  `client-card pin <id>` and mirrors the server's answer rather than
   toggling locally.
 - **A section that does not apply is absent, not hatched.** The card's
   action row renders only subject-afforded verbs, so on an ordinary

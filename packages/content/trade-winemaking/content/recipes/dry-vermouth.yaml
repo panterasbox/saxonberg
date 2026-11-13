@@ -2,7 +2,6 @@
 # and a botanical (W6): fortification takes neutral spirit as a REAL
 # input, so the vintner buys from the distiller — the B2B relationship
 # falls out of the chemistry, never authored (D7).
-recipeId: dry-vermouth
 name: Dry vermouth
 keywords: [dry-vermouth, vermouth]
 discipline: fermenting

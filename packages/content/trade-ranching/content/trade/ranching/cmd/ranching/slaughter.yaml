@@ -30,3 +30,14 @@ args:
     # is refused silently, and a refusal you cannot hear is not a refusal.
     # The species' empty yield is what says no, and it says which no.
     requires: HandlingMixin
+  # ⭐ THE EDGE — declared, not hunted for (`lint:controller-resolution`).
+  # A blade is a CONSTRUCTION (`bladed`), not a capability — the kitchen's
+  # `butcher` reads it the same way — so the binder hands over every
+  # constructed thing in reach and the controller reads the form (C19).
+  - name: blade
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.ConstructedMixin]"
+    scope: ["reachable"]
+    requires: [ConstructedMixin]

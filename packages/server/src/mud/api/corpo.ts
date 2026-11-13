@@ -18,10 +18,12 @@
  * surface is read-only canon + mark resolution.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { CorpoDescriptor } from "../platform/idea/corpo/Corpo";
 import type { BrandDescriptor } from "../platform/idea/corpo/Brand";
 import { StuffApi } from "./stuff";
+import { TemplatePaths } from "../lib/paths";
 import { HotReloadApi } from "./hot-reload";
 import { CorpoLogic } from "../platform/idea/api/CorpoLogic";
 import { fileURLToPath } from "url";
@@ -48,6 +50,12 @@ function logic(): CorpoLogic {
 
 export class CorpoApi {
   /**
+   * ⭐ What this Api's reads stand on — stood ONCE at boot with every Api's
+   * needs (`AppBootstrap`, load-on-use W10), so no caller ever readies it.
+   */
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.corpoCatalogue];
+
+  /**
    * Resolve a brand `key` to its owning corpo. An independent brand
    * (`owner === ''`) and an unknown key both resolve to `null` — the
    * legible absence of a corpo mark.
@@ -69,6 +77,7 @@ export class CorpoApi {
   public static brandOf(obj: Stuff): BrandDescriptor | null {
     return logic().brandOf(obj);
   }
+
 
   /** The authored descriptor for brand `key`, or `null`. */
   public static getBrand(brandKey: string): BrandDescriptor | null {

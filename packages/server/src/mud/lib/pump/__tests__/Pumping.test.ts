@@ -47,6 +47,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { SpatialZone } from '../../zone/SpatialZone';
+import { BulkableApi } from '../../../api/bulk';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -57,22 +58,23 @@ type Doc = Record<string, unknown> & {
 
 const SEA_LEVEL_PA = 101_325;
 const G = 9.81;
-const SUCTION = '/platform/idea/PumpMechanism/suction';
-const FORCE = '/platform/idea/PumpMechanism/force';
-const DRAWS = '/platform/idea/PumpMechanism/diaphragm';
+const SUCTION = '/platform/pump-mechanisms/suction';
+const FORCE = '/platform/pump-mechanisms/force';
+const DRAWS = '/platform/pump-mechanisms/diaphragm';
 const WATER = '/stuff/idea/material/bulk/water';
 
-const MECHANISM_ROWS: Doc[] = [
-  { path: SUCTION, class: '/platform/idea/PumpMechanism', data: { name: 'suction', pulls: true } },
-  { path: FORCE, class: '/platform/idea/PumpMechanism', data: { name: 'force', pulls: false } },
+/** The mechanism documents, kept as a pump that cites them would have loaded them. */
+function rememberMechanisms(): void {
+  BulkableApi.pumpMechanisms().remember(SUCTION, BulkableApi.pumpMechanisms().parse({ name: 'suction', pulls: true }, SUCTION));
+  BulkableApi.pumpMechanisms().remember(FORCE, BulkableApi.pumpMechanisms().parse({ name: 'force', pulls: false }, FORCE));
   // ⭐ A third mechanism nobody wrote code for — it pulls, so it meets the wall.
-  { path: DRAWS, class: '/platform/idea/PumpMechanism', data: { name: 'diaphragm', pulls: true } },
-];
+  BulkableApi.pumpMechanisms().remember(DRAWS, BulkableApi.pumpMechanisms().parse({ name: 'diaphragm', pulls: true }, DRAWS));
+}
 
 function installInMemoryStore(initial: Doc[] = []): void {
+  rememberMechanisms();
   const store: Doc[] = [
     ...(EXIT_KIND_TEST_ROWS as unknown as Doc[]),
-    ...MECHANISM_ROWS,
     ...initial,
   ].map((d, i) => ({ ...d, _id: String(i + 1) }));
   const save = vi.fn(async (_c: string, doc: Doc) => doc._id ?? '1');

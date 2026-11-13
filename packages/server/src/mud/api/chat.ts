@@ -19,8 +19,11 @@ import type { ChannelAnonymity } from '../lib/social/Channel';
 import type Subject from '../lib/forum/Subject';
 import type { AdHocChannel } from '../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../platform/idea/ChannelCatalogue';
-import type { ChannelSubscription } from '../platform/idea/ChannelCatalogue';
-import type { MessageFrame } from '@saxonberg/types';
+import type {
+  ChannelActResult,
+  ChannelHistoryResult,
+  ChannelSubscription,
+} from '../platform/idea/ChannelCatalogue';
 import { ChatLogic } from '../platform/idea/api/ChatLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -62,38 +65,58 @@ export class ChatApi {
     return logic().createBoundChannel(owner, name, groupRef);
   }
 
+  /** `actor` lights a chat surface on a Subject it owns. */
   static async attachChatToSubject(
+    actor: Stuff,
     subject: Subject,
     procedure?: 'open' | 'ordered',
-  ): Promise<Channel> {
-    return logic().attachChatToSubject(subject, procedure);
+  ): Promise<ChannelActResult> {
+    return logic().attachChatToSubject(actor, subject, procedure);
   }
 
-  static async disbandPlayerChannel(name: string): Promise<boolean> {
-    return logic().disbandPlayerChannel(name);
+  /**
+   * `actor` ends a player-created channel it governs — the Subject's
+   * owner, or the owner of its audience group (a party's captain). The
+   * gate is the catalogue's (controller-liquidity D9).
+   */
+  static async disbandPlayerChannel(
+    actor: Stuff,
+    name: string,
+  ): Promise<ChannelActResult> {
+    return logic().disbandPlayerChannel(actor, name);
   }
 
   /**
    * Set whether a channel permits anonymous posts. ⭐ The owner's call
    * about their own space — a values question a community gets to
-   * answer, and the one visible change this build ships.
+   * answer. Refused unless `actor` governs the channel.
    */
   static async setAnonymity(
+    actor: Stuff,
     name: string,
     anonymity: ChannelAnonymity,
-  ): Promise<Channel> {
-    return logic().setAnonymity(name, anonymity);
+  ): Promise<ChannelActResult> {
+    return logic().setAnonymity(actor, name, anonymity);
   }
 
+  /** `actor` renames a channel it governs. */
   static async renamePlayerChannel(
+    actor: Stuff,
     oldName: string,
     newName: string,
-  ): Promise<Channel> {
-    return logic().renamePlayerChannel(oldName, newName);
+  ): Promise<ChannelActResult> {
+    return logic().renamePlayerChannel(actor, oldName, newName);
   }
 
-  static async historyFor(channelId: string): Promise<readonly MessageFrame[]> {
-    return logic().historyFor(channelId);
+  /**
+   * A channel's history ring, for `reader` — refused unless the reader
+   * is in its audience (an ad-hoc handle's members).
+   */
+  static async historyFor(
+    reader: Stuff,
+    channelId: string,
+  ): Promise<ChannelHistoryResult> {
+    return logic().historyFor(reader, channelId);
   }
 
   static async promoteAdHocToManaged(

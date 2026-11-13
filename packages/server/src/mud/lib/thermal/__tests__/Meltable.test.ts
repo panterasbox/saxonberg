@@ -83,7 +83,12 @@ function floorIn(room: TestRoom): Floor {
 
 describe('phase change — melt (solid → molten pool)', () => {
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  afterEach(async () => {
+    // Drain the act's async tail before the world is cleared (load-on-use
+    // W8: a read of a cleared material is loud).
+    for (let i = 0; i < 6; i++) await flush();
+    StuffApi.clearAll();
+  });
 
   it('holds a latent-heat plateau, then flows to a molten pool in the Floor', () => {
     const room = makeStuff(() => new TestRoom());
@@ -132,7 +137,12 @@ describe('phase change — melt (solid → molten pool)', () => {
 
 describe('phase change — boil + freeze (ice → water → steam)', () => {
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  afterEach(async () => {
+    // Drain the act's async tail before the world is cleared (load-on-use
+    // W8: a read of a cleared material is loud).
+    for (let i = 0; i < 6; i++) await flush();
+    StuffApi.clearAll();
+  });
 
   function waterFlask(tempK: number): { flask: Flask; room: TestRoom } {
     const room = makeStuff(() => new TestRoom());
@@ -180,8 +190,10 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
       const { flask, room } = waterFlask(150); // far below 273 K → ice
       if (MixinApi.isThermal(flask)) flask.reconcilePhase();
       expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
-      await flush();
-      await flush();
+      // Let the freeze's async tail finish INSIDE the test: the world is
+      // cleared after it, and a read of a cleared material is loud now
+      // (load-on-use W8).
+      for (let i = 0; i < 6; i++) await flush();
       expect(cloneSpy).toHaveBeenCalledWith('/stuff/thing/Casting');
       // A cast solid of the frozen water dropped into the scope.
       const cast = room
@@ -204,7 +216,12 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
 
 describe('⭐ where a melt goes (B105) — found before the solid is gone', () => {
   beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
+  afterEach(async () => {
+    // Drain the act's async tail before the world is cleared (load-on-use
+    // W8: a read of a cleared material is loud).
+    for (let i = 0; i < 6; i++) await flush();
+    StuffApi.clearAll();
+  });
 
   /** Ice at its melting point, heated until it melts (or throws). */
   function iceIn(where: (Stuff & { getContents(): unknown }) | null): Ingot {

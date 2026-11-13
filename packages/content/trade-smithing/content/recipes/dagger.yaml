@@ -10,7 +10,6 @@
 # and the difference is worth about 20 % of every blow you land.
 # A hand-span of blade out of one bar — the cheapest real weapon there
 # is, and the reason a dagger is what everybody carries.
-recipeId: dagger
 name: Dagger
 keywords: [dagger]
 inputSlots:

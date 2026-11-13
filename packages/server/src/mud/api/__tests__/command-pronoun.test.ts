@@ -205,7 +205,6 @@ describe('Dispatcher pronoun-memory integration', () => {
         '  - name: targets',
         '    type: objects',
         '    required: true',
-        '    greedy: true',
         '    scope: peers',
       ].join('\n'),
       '<test>'

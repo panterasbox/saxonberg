@@ -10,7 +10,6 @@
 # ⭐ It is a real product and not a failure state. Cast iron is what a
 # pot, a stove plate and a cannon are made of; the station that casts
 # them is a later rung, and a pig is the stock waiting for it.
-recipeId: cast-pig-iron
 name: Overcharge a Bloomery
 keywords: [pig, cast-iron, "cast iron", overcharge]
 inputSlots:

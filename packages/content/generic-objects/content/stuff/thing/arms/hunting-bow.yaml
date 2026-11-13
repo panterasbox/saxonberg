@@ -44,5 +44,5 @@ data:
       - { part: nock, plural: nocks, template: /stuff/thing/arms/nock, count: 2, role: structural, material: /stuff/idea/material/organic/horn }
       - { part: bowstring, template: /trade/textiles/thing/bowstring, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
     joints:
-      - { key: nocking, method: glued, members: [bowstave, nock] }
-      - { key: stringing, method: friction, members: [bowstave, bowstring] }
+      - { key: nocking, method: /platform/joints/glued, members: [bowstave, nock] }
+      - { key: stringing, method: /platform/joints/friction, members: [bowstave, bowstring] }

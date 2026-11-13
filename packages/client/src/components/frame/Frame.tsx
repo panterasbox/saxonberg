@@ -31,7 +31,7 @@
  *
  * ⭐ **Identity and connection cannot be unpinned** — not because a
  * rule protects them, but because they are not shelf rows at all.
- * `cockpit shelf unpin identity` refuses with "unknown shelf row",
+ * `client-shelf unpin identity` refuses with "unknown shelf row",
  * which is a stronger guarantee than a rule somebody could edit.
  *
  * The seal is the real Saxonberg mark (`components/frame/Seal.tsx`),

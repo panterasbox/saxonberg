@@ -18,6 +18,7 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../../lib/quantity';
+import { MaterialApi } from '../../api/material';
 
 /** A heap's kilograms as litres of compost on the midden. */
 const LITRES_PER_KG = 1.5;
@@ -48,8 +49,8 @@ export default class Midden extends Receptacle {
     const cap = this.getBulkCapacity('interior')?.rawValue() ?? Infinity;
     const litres = Math.min(kg * LITRES_PER_KG, Math.max(0, cap - held));
     if (!(litres > 0)) return { ok: false, reason: 'midden-full' };
-    const compost = StuffApi.findByTemplatePath<Material>(COMPOST);
-    if (compost) this.setBulkMaterial('interior', compost);
+    // The act names its material, and loads it (load-on-use D2 c).
+    this.setBulkMaterial('interior', await MaterialApi.materials().ensure(COMPOST));
     this.setBulkAmount('interior', Quantity.of(held + litres, 'L'));
     const name = item.getPresentation();
     await StuffApi.destruct(item);

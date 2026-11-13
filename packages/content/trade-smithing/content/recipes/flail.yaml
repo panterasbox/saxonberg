@@ -2,7 +2,6 @@
 # RIVETED through a staple at the top of the haft. Run by `fit flail`:
 # a hammer for the rivet and a smith's novice band, because a rivet
 # peened wrong is a ball that leaves on the backswing.
-recipeId: flail
 name: Flail
 keywords: [flail]
 inputSlots:

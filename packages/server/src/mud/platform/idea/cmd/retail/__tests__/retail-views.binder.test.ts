@@ -70,69 +70,67 @@ function bind(text: string, verb: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-describe('buy — a good whose name is a phrase', () => {
-  it('⭐ `buy dog loaf` binds the WHOLE phrase to `thing`', () => {
-    expect(bind('buy dog loaf', 'buy').thing).toBe('dog loaf');
-  });
+function refuse(text: string, verb: string): Record<string, unknown> {
+  const parsed = CommandLineApi.parsePipeline(text).commands[0]!;
+  const r = CommandApi.assemble(parsed, view(verb), ctx);
+  if ('model' in r) throw new Error(`"${text}" bound: ${JSON.stringify(r.model)}`);
+  return r as unknown as Record<string, unknown>;
+}
 
-  it('⭐ `buy "dog loaf"` — the quoted form — binds the same thing', () => {
+/**
+ * ⭐⭐ controller-liquidity D3/W5: a good's name is a PHRASE, and a phrase
+ * is QUOTED. The slot binds one word; `buy dog loaf` is refused with the
+ * quoted line (`buy "dog loaf"`) for the player to tap — never cut in half
+ * and handed to the counter slot, which binds only behind `from`.
+ */
+describe('buy — a good whose name is a phrase is quoted', () => {
+  it('⭐ `buy "dog loaf"` binds the whole phrase to `thing`', () => {
     expect(bind('buy "dog loaf"', 'buy').thing).toBe('dog loaf');
   });
 
-  it('`buy orange seed` binds, the counter prose\'s own promise', () => {
-    expect(bind('buy orange seed', 'buy').thing).toBe('orange seed');
+  it('⭐ `buy dog loaf` is refused, and the refusal carries the quoted line', () => {
+    const r = refuse('buy dog loaf', 'buy');
+    expect(r.quoteLine).toBe('buy "dog loaf"');
+    expect(r.quoteHint).toMatch(/quote a name with a space in it/);
   });
 
-  it('`buy mana cell` binds — three words would too', () => {
-    expect(bind('buy mana cell', 'buy').thing).toBe('mana cell');
-    expect(bind('buy small brass lamp', 'buy').thing).toBe('small brass lamp');
+  it('three words quote the same way', () => {
+    expect(bind('buy "small brass lamp"', 'buy').thing).toBe('small brass lamp');
+    expect(refuse('buy small brass lamp', 'buy').quoteLine).toBe('buy "small brass lamp"');
   });
 
   it('`buy torch` — the one-word form — is unchanged', () => {
     expect(bind('buy torch', 'buy').thing).toBe('torch');
   });
 
-  it('⭐ the greedy slice STOPS at `from`, so the counter still binds', () => {
-    const m = bind('buy dog loaf from counter', 'buy');
+  it('a leading article folds away — `buy the loaf`', () => {
+    expect(bind('buy the loaf', 'buy').thing).toBe('loaf');
+  });
+
+  it('⭐ the counter binds behind `from`, phrase and ordinal and all', () => {
+    const m = bind('buy "dog loaf" from counter', 'buy');
     expect(m.thing).toBe('dog loaf');
     expect(m.counter).toBe('counter');
+    expect(bind('buy torch from the second counter', 'buy').counter).toBe('second counter');
+    expect(bind('buy torch from the counter', 'buy').counter).toBe('counter');
   });
 
-  it('⭐ and the counter may be a PHRASE too — the help says it can', () => {
-    const m = bind('buy dog loaf from the second counter', 'buy');
-    expect(m.thing).toBe('dog loaf');
-    expect(m.counter).toBe('the second counter');
-  });
-
-  it('⚠ `buy torch from the counter` — one article — used to be a shape error', () => {
-    expect(bind('buy torch from the counter', 'buy').counter).toBe('the counter');
-  });
-
-  it('⚠ a bare good leaves `counter` to its MQL default, not to word two', () => {
-    const m = bind('buy dog loaf', 'buy');
-    expect(m.counter).toBe('reachable:[mixin.ForSaleMixin]');
-  });
-
-  it('`purchase` — the alias — binds identically', () => {
-    expect(bind('purchase dog loaf', 'buy').thing).toBe('dog loaf');
+  it('⚠ a bare good leaves `counter` to its MQL default, never to word two', () => {
+    expect(bind('buy loaf', 'buy').counter).toBe('reachable:[mixin.ForSaleMixin]');
+    expect(refuse('buy dog loaf', 'buy').quoteLine).toBe('buy "dog loaf"');
   });
 });
 
 describe('shelf reclaim — the same shape, the same answer', () => {
-  it('`shelf reclaim dog loaf` binds the whole phrase', () => {
-    expect(bind('shelf reclaim dog loaf', 'shelf').thing).toBe('dog loaf');
+  it('`shelf reclaim "dog loaf"` binds the whole phrase; bare is refused with the hint', () => {
+    expect(bind('shelf reclaim "dog loaf"', 'shelf').thing).toBe('dog loaf');
+    expect(refuse('shelf reclaim dog loaf', 'shelf').quoteLine).toBe('shelf reclaim "dog loaf"');
   });
 
-  it('the slice stops at `from`, so the shelf still binds — phrase and all', () => {
-    const m = bind('shelf reclaim lantern from the second shelf', 'shelf');
-    expect(m.thing).toBe('lantern');
-    expect(m.shelf).toBe('the second shelf');
-  });
-
-  it('`shelf reclaim dog loaf from the second shelf` binds BOTH phrases', () => {
-    const m = bind('shelf reclaim dog loaf from the second shelf', 'shelf');
+  it('the shelf binds behind `from`', () => {
+    const m = bind('shelf reclaim "dog loaf" from the second shelf', 'shelf');
     expect(m.thing).toBe('dog loaf');
-    expect(m.shelf).toBe('the second shelf');
+    expect(m.shelf).toBe('second shelf');
   });
 
   it('a bare good leaves `shelf` to its default', () => {
@@ -185,9 +183,9 @@ describe('the book is the operand — shelf / rack / house / job', () => {
   });
 
   it('`job claim 3fa on the depot board` binds the id and the named board; bare `job` takes the board in reach', () => {
-    const m = bindAt('job claim 3fa on the depot board', 'work', 'job');
+    const m = bindAt('job claim 3fa on the "depot board"', 'work', 'job');
     expect(m.id).toBe('3fa');
-    expect(m.board).toBe('the depot board');
+    expect(m.board).toBe('depot board');
     expect(bindAt('job', 'work', 'job').board).toBe('reachable:[class.JobBoard]');
   });
 

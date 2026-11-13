@@ -20,6 +20,9 @@ enclosure:                              # the walls — a sawdust-filled double 
 roof: { material: /stuff/idea/material/glass/glass, thicknessM: 0.004 }
 ```
 
+⭐ **A window onto the sky is enclosure** — glass as a layer here; a
+window onto another place is a way's boundary, [boundary.md § Window](./boundary.md#window)'s.
+
 Author a real material and a thickness; the physics is the material row's.
 There is no U-value, no "insulated", no "roofed" — `lint:envelope` clause
 (e) keeps the spec closed. An awning is `enclosure: none` + a canvas roof;
@@ -30,7 +33,7 @@ or `null` when the row says nothing. The repair build's building upkeep
 seeds its layer state from them: do not reshape them without telling it.
 
 ⭐ **The rung ladder** is row → class hook → universe. `enclosureDefaults()`
-answers the universe default (`enclosure.defaultMaterial`, granite 0.3 m);
+answers the universe default (the root biome row's `_enclosureMaterial`, granite 0.3 m — content since load-on-use round two, MR !575);
 `roofDefaults()` answers `null` on a `Location` — **undeclared** — and a
 class that knows its own construction declares it: a ROOM (`Room`, `Hall`
 and their kept twins — roofed in its walls, `location.md` § The room rung),
@@ -78,8 +81,8 @@ it answers her while she stands and lies at that landing, else `null`). Derived,
 from the room's side). A closet holds air; a neighbor's parlor is another
 structure's member; a sailed ship's berth has nothing alongside; a member
 courtyard open to the sky is a landing of its own building. The landed
-structures enter the room's `here` pool, so `look cottage`, `survey
-cottage` and `paint cottage` bind from the lane with no new MQL seed.
+structures enter the room's `here` pool, so `look cottage`, `measure
+paint cottage` and `paint cottage` bind from the lane with no new MQL seed.
 
 ⭐ **A structure is not always a building** (paint D1, split in review):
 

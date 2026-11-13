@@ -16,6 +16,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
+import { rememberShippedDirt } from './soil-fixtures';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -23,6 +24,7 @@ const atGameSeconds = (g: number): void => {
 };
 
 beforeEach(() => {
+  rememberShippedDirt();
   installV1QuantityMarshallers();
   atGameSeconds(10_000);
 });
@@ -68,7 +70,7 @@ describe('the tiers are derived (D14)', () => {
   it('a deposit undoes it — a boiled bandage dropped in the mud is dirty', () => {
     const b = makeStuff(() => new Bandage());
     b.recordHeat(373, 300);
-    b.soil('mud', 3);
+    b.soil('/platform/dirt/mud', 3);
     expect(b.cleanTier()).toBe('dirty');
   });
 

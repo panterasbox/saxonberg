@@ -69,12 +69,11 @@ import { MaterialApi } from '../../api/material';
 import { GrammarApi } from '../../api/grammar';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import { TemplatePaths } from '../paths';
 import { WorldClockApi } from '../../api/worldclock';
 import { BiomeApi } from '../../api/biome';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
-import type JointCatalogue from '../../platform/idea/JointCatalogue';
-import type { JointDescriptor } from '../../platform/idea/Joint';
+import { type JointDescriptor } from './Joint';
+import { CraftingApi } from '../../api/crafting';
 
 // ---------------------------------------------------------------- the bill
 
@@ -252,7 +251,7 @@ export interface Assembled {
   /** True when this thing has a bill or a parts record — it IS made of parts. */
   getBill(): Bill | null;
   /** Set (or clear — `null`, a thing of one piece) the bill. */
-  setBill(value: unknown): void;
+  setBill(value: unknown): Promise<void> | undefined;
   /** The parts record (materialized from the bill first, for a found thing). */
   getParts(): PartLine[];
   getJoints(): JointState[];
@@ -394,42 +393,24 @@ const WARP_SLACK_PER_SHRINKAGE = 6;
  */
 const CUP_SLACK_PER_SHRINKAGE = WARP_SLACK_PER_SHRINKAGE;
 
-/** The default a joint is read at when its row is not (yet) warm. */
 /** A whole this wet (wetness `0..1`) wets its glue lines through. */
 const GLUE_WET_AT = 0.5;
 /** Tension a glue that does not resist the damp at all loses per damp game day. */
 const GLUE_DAMP_SLACK_PER_DAY = 0.5;
 
-const JOINT_DEFAULT: Pick<JointDescriptor, 'strength' | 'failure'> = {
-  strength: 0.5,
-  failure: 'parted',
-};
-
 /**
- * The joint row for `method`, synchronously — the wear route and the look
- * cannot wait. ⭐ Loads on first use (the scan sweep's rule: a dictionary
- * warms when an act first needs it, never at boot): a cold catalogue is
- * stood up and warmed in the background, and this one read answers from
- * the defaults. Every read that DECIDES something — a joint made, fitted,
- * repaired or taken apart — goes through `CraftingLogic`, which awaits the
- * warm catalogue first, so only a wear figure or a label can read cold.
+ * The joint document at `method` (a path), synchronously — the wear route
+ * and the look cannot wait. ⭐ Resident by construction (documents D7): the
+ * bill's and the joints' setters loaded every joint this assembly cites, so
+ * a miss is `DocumentNotResidentError` — never a read from the defaults.
  */
-function jointRow(method: string): JointDescriptor | null {
-  const cat = StuffApi.findByTemplatePath<JointCatalogue>(
-    TemplatePaths.jointCatalogue,
-  );
-  if (!cat) {
-    void StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue)
-      .then((c) => c.allWarmed())
-      .catch((err: unknown) => console.warn('Assembled: joint catalogue load failed:', err));
-    return null;
-  }
-  return cat.peek(method);
+function jointRow(method: string): JointDescriptor {
+  return CraftingApi.joints().need(method);
 }
 
 function materialAt(path: string): Material | null {
   if (!path) return null;
-  return StuffApi.findByTemplatePath<Material>(path) ?? null;
+  return MaterialApi.materials().peek(path) ?? null;
 }
 
 function constructionOf(form: string | undefined): Construction | null {
@@ -504,7 +485,7 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   const joints = host.getJoints().filter((j) => !j.members.some((m) => wanted.some((w) => w.part === m)));
   const methods = [
     ...new Set(
-      joints.map((j) => jointRow(j.method)?.label ?? j.method).filter((m) => m),
+      joints.map((j) => jointRow(j.method).label).filter((m) => m),
     ),
   ];
   // Nothing seated yet (a jug whose one line is the handle it wants) has no
@@ -533,7 +514,7 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   for (const j of host.slackJoints()) {
     // ⭐ Say WHY when the cause is a cupped member under a flat joint —
     // the lesson is the quartered board, and the look is where it is read.
-    const cupped = jointRow(j.method)?.needsFlat
+    const cupped = jointRow(j.method).needsFlat
       ? j.members
           .map((m) => lines.find((l) => l.part === m))
           .find((l) => l?.cupped)
@@ -571,7 +552,7 @@ function failureWordFor(host: Assembled, line: PartLine): string {
   if (line.role === 'wear') return 'worn through';
   for (const j of host.getJoints()) {
     if (j.members.includes(line.part)) {
-      const f = jointRow(j.method)?.failure ?? JOINT_DEFAULT.failure;
+      const f = jointRow(j.method).failure;
       // `slack` is a JOINT word; a member that failed in a slack-prone
       // joint has sprung.
       return f === 'slack' ? 'sprung' : f === 'parted' ? 'broken' : f;
@@ -674,11 +655,16 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       return (who ? who.getPresentation() : null) ?? this.hands[path] ?? null;
     }
 
-    /** Validating setter — the applier's phase 1 prefers `set<Field>`. */
-    setBill(value: unknown): void {
+    /**
+     * Validating setter — the applier's phase 1 prefers `set<Field>`. A
+     * malformed bill throws here; ⭐ the returned promise loads every joint
+     * the bill names (by path) and the applier awaits it, so a kind is live
+     * only when its joints are, and a path with no joint fails the clone.
+     */
+    setBill(value: unknown): Promise<void> | undefined {
       if (value === null || value === undefined) {
         this.bill = null;
-        return;
+        return undefined;
       }
       const v = value as { parts?: unknown; joints?: unknown };
       if (!Array.isArray(v.parts) || !v.parts.every(isBillPart)) {
@@ -699,6 +685,24 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         parts: (v.parts as BillPart[]).map((p) => ({ ...p })),
         joints,
       };
+      // The joints load with the kind: the applier awaits this.
+      return joints.length > 0
+        ? Promise.all(joints.map((j) => CraftingApi.joints().ensure(j.method))).then(() => undefined)
+        : undefined;
+    }
+
+    /**
+     * The restore door for the joints an assembly CARRIES (runtime state):
+     * each joint's document loads with it, so a restored assembly reads its
+     * wear and its look synchronously. Runtime writes go through
+     * `recordAssembly`, inside an act that held the bill's joints.
+     */
+    async setJoints(value: JointState[]): Promise<void> {
+      const joints = Array.isArray(value) ? value : [];
+      for (const j of joints) await CraftingApi.joints().ensure(j.method);
+      // …and the glue each line was made with (load-on-use W8).
+      await MaterialApi.materials().ensureCitedIn(joints);
+      this.joints = joints.map((j) => ({ ...j, members: [...j.members] }));
     }
 
 
@@ -756,7 +760,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const now = WorldClockApi.getNow().rawValue();
       let n = 0;
       for (const j of this.joints) {
-        if (jointRow(j.method)?.takes !== 'glue') continue;
+        if (jointRow(j.method).takes !== 'glue') continue;
         j.glue = glue;
         j.setProgress = 0;
         j.glueStampS = now;
@@ -823,7 +827,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         const a = glueMat && MixinApi.hasCoating(glueMat) ? glueMat.getAdhesive() : null;
         if (a) return a.strength * Math.max(0.2, j.setProgress ?? 1);
       }
-      return jointRow(j.method)?.strength ?? JOINT_DEFAULT.strength;
+      return jointRow(j.method).strength;
     }
 
     getLine(part: string): PartLine | null {
@@ -847,7 +851,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private seatFlatJoints(): void {
       for (const j of this.joints) {
-        if (!jointRow(j.method)?.needsFlat) continue;
+        if (!jointRow(j.method).needsFlat) continue;
         for (const name of j.members) {
           const line = this.parts.find((l) => l.part === name);
           if (!line?.cupped) continue;

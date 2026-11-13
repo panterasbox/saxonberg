@@ -39,6 +39,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { ChattelOwner } from '@saxonberg/server/mud/lib/chattel/ChattelRecord';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** What a boiled-dry lye leaves. */
 const BLACK_SALTS = '/trade/potash/idea/material/black-salts';
@@ -104,7 +105,12 @@ export default class IronPot extends IronPotBase {
       this.setBulkAmount('interior', Quantity.of(0, 'L'));
       this.setBulkMaterial('interior', null);
       this.setBulkPayload('interior', null);
-      void this.setCake(kg, owner);
+      // Fired from a sync reconcile: a cake that cannot set (its row will not
+      // load) is said loudly, never left to reject unheard — an unhandled
+      // rejection ends the process.
+      this.setCake(kg, owner).catch((err: unknown) => {
+        console.error('IronPot: the black salts did not set:', err);
+      });
     } finally {
       this.boiling = false;
     }
@@ -116,11 +122,9 @@ export default class IronPot extends IronPotBase {
    * somebody READS the pot, and that onlooker is never its owner.
    */
   private async setCake(alkaliKg: number, owner: ChattelOwner | null): Promise<void> {
-    const material = StuffApi.findByTemplatePath<Material>(BLACK_SALTS);
-    if (!material) {
-      console.warn(`IronPot: no material at '${BLACK_SALTS}' — the salts are lost`);
-      return;
-    }
+    // The act names its material, and loads it (load-on-use D2 c) — a
+    // missing row throws here rather than losing the salts quietly.
+    const material = await MaterialApi.materials().ensure(BLACK_SALTS);
     const self = this as unknown as Stuff;
     const grade: Grade | null = MixinApi.isGraded(self) ? self.getGrade() : null;
     const cake = await this.castInto({ material, massKg: alkaliKg / PURITY, payload: null, stampMaterial: true, madeBy: owner });

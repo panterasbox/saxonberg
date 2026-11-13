@@ -27,11 +27,11 @@
  * Provides:
  * - contents: Set<Stuff & Containable> (host-internal storage)
  * - fixtures: Set<Stuff & Adornment> (host-internal, non-portable
- *   attached Stuff: wall sconces, ceiling lamps, BoundaryAnchors)
+ *   attached Stuff: wall sconces, ceiling lamps, floors)
  * - addContainable(), removeContainable(), hasContainable()
  * - getContents()
  * - addFixture(), removeFixture(), hasFixture(), getFixtures(),
- *   getFixtureBoundaries(), getFixtureLightSources() (from AdornableMixin)
+ *   getFixtureLightSources() (from AdornableMixin)
  */
 
 import { Stuff } from './Stuff';
@@ -54,6 +54,7 @@ import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
+import { Placements } from '../spatial/Placement';
 
 /**
  * ⭐ The Place's own say in what its floor is, without authoring a floor
@@ -608,7 +609,7 @@ export default class Place extends PlaceBase {
    * `ExitableMixin.onDestruct` super-chains here after handling the
    * exit-side teardown. We chain to super in turn so
    * `AdornableMixin.onDestruct` (fixture teardown — wall sconces,
-   * BoundaryAnchors) runs before the chain bottoms out at `Stuff`
+   * floors) runs before the chain bottoms out at `Stuff`
    * (which has no `onDestruct` of its own).
    */
   public override onDestruct(): void {

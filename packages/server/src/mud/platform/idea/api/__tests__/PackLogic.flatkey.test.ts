@@ -65,7 +65,7 @@ describe('a path-keyed document kind is not a flat namespace (name-bank)', () =>
   });
 });
 
-describe('flat-key over a document kind (emote)', () => {
+describe('a typed word over a document kind (emote)', () => {
   it('two packs shipping the same verb: the second claimant fails pre-write, the first applies', async () => {
     const grin = { verb: 'grin', grammar: { slots: {}, template: 'grins' } };
     const a = writePack('a', [], { root: '/a' });
@@ -103,5 +103,30 @@ describe('flat-key over a document kind (emote)', () => {
     await PackApi.install([a]);
     await expect(PackApi.sync('beta', b, [a, b])).rejects.toThrow(/'grin'.*alpha|alpha.*'grin'/);
     expect(rowsOfKind('emote').map((r) => r.sourcePack)).toEqual(['alpha']);
+  });
+
+  it('⭐ a pack synced live from a directory (no siblings) is checked against the STORE, naming both claimants', async () => {
+    const grin = { grammar: { slots: {}, template: 'grins' } };
+    const a = writePack('alpha', [], { root: '/alpha' });
+    writeDocumentFile(a, 'emotes', 'grin', grin);
+    await PackApi.install([a]);
+    expect(rowsOfKind('emote')[0]!.keys).toEqual({ word: 'grin' });
+    const b = writePack('beta', [], { root: '/beta' });
+    writeDocumentFile(b, 'emotes', 'grin', grin);
+    await expect(PackApi.sync('beta', b)).rejects.toThrow(
+      /beta.*'grin'.*\/alpha\/emotes\/grin.*alpha/,
+    );
+    expect(rowsOfKind('emote').map((r) => r.sourcePack)).toEqual(['alpha']);
+  });
+
+  it('a different word under another root installs beside it — only a typed WORD is unique', async () => {
+    const grin = { grammar: { slots: {}, template: 'grins' } };
+    const a = writePack('alpha', [], { root: '/alpha' });
+    writeDocumentFile(a, 'emotes', 'grin', grin);
+    await PackApi.install([a]);
+    const b = writePack('beta', [], { root: '/beta' });
+    writeDocumentFile(b, 'emotes', 'smirk', grin);
+    const r = await PackApi.sync('beta', b);
+    expect(r.inserted).toEqual(['/emotes/smirk']);
   });
 });

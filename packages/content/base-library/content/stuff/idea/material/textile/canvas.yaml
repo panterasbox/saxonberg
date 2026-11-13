@@ -10,7 +10,7 @@
 # vitriol list names cellulose, so acid still eats a canvas awning.
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/straw, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/green/straw, strength: 3 }]
   name: canvas
   keywords: [canvas, sailcloth, duck]
   appearance: striped canvas

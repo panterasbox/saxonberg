@@ -36,6 +36,7 @@ import type { AnyActRefusal } from '../../../../lib/craft/ActPlan';
 import type { WorkLanding, WorkPlan, Workable } from '../../../../lib/ground/Workable';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { MaterialApi } from '../../../../api/material';
 
 /** The topic both acts narrate on. */
 export const WORK_TOPIC = 'act.deed';
@@ -148,7 +149,12 @@ function landing<B, F, X extends AnyActRefusal>(
       const out = await plan.onComplete();
       if (!out.ok || giver.isDestroyed()) return out;
       const soils = out.facts.soils;
-      if (soils && soils.length > 0 && MixinApi.isHygienic(giver)) giver.soilFrom(soils);
+      if (soils && soils.length > 0 && MixinApi.isHygienic(giver)) {
+        // The act lands the dirt it names: a pack's own kind (rock dust)
+        // loads here, so the deposit's later sync reads find it (D7).
+        for (const sp of soils) await MaterialApi.dirtKinds().ensure(sp.kind);
+        giver.soilFrom(soils);
+      }
       const credit = out.facts.credit;
       if (credit && MixinApi.isAdvancing(giver)) {
         await giver.creditDeed({

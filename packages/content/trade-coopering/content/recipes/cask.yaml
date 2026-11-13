@@ -1,7 +1,6 @@
 # Cask, raised from its parts — `fit cask`. Thirty staves in a truss,
 # two heads crozed in, six hoops driven down.
 # ⭐⭐ A PROFICIENT cooper's product: the tight cask that holds liquor (tight-hooped). A hand short of that band is refused NAMING the band — and can still make the other two.
-recipeId: cask
 name: Cask
 keywords: [cask, "tight cask"]
 inputSlots:

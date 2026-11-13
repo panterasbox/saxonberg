@@ -23,8 +23,6 @@ import type { FieldMeta } from '../../../../../lib/mixin';
 import { PlacingMixin } from '../../../../../lib/spatial/Placing';
 import { SealableMixin } from '../../../../../lib/spatial/Sealable';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
-import Placement from '../../../Placement';
-import PlacementCatalogue from '../../../PlacementCatalogue';
 import { Template } from '../../../../../lib/stuff/Template';
 import { vi } from 'vitest';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -47,6 +45,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { Placements } from '../../../../../lib/spatial/Placement';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -162,37 +161,9 @@ function one(stuff: Stuff | null, raw: string, prep?: string): MqlOneResult {
  * is correct behaviour and is asserted on its own below, but it is not
  * what a booted world does.
  */
-function warmCatalogue(): PlacementCatalogue {
-  const rows = [
-    { name: 'on', prepositions: ['on', 'onto'], encloses: false,
-      prose: '{{ actor }} put{{ s }} {{ item }} on {{ host }}.' },
-    { name: 'in', prepositions: ['in', 'into'], encloses: true,
-      prose: '{{ actor }} put{{ s }} {{ item }} in {{ host }}.' },
-    { name: 'from', prepositions: ['from', 'on'], encloses: false,
-      prose: '{{ actor }} hang{{ s }} {{ item }} from {{ host }}.' },
-  ];
-  vi.spyOn(Template, 'findByPathInfix').mockResolvedValue(
-    rows.map((r) => ({
-      path: `/platform/idea/Placement/${r.name}`,
-      class: '/platform/idea/Placement',
-    })) as unknown as Template[],
-  );
-  vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
-    Placement as unknown as never,
-  );
-  vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
-    const row = rows.find((r) => path.endsWith(`/${r.name}`))!;
-    const m = makeStuff(() => new Placement());
-    m.name = row.name;
-    m.prepositions = row.prepositions;
-    m.encloses = row.encloses;
-    m.prose = row.prose;
-    return m as never;
-  });
-  return makeStuffAtPath(
-    () => new PlacementCatalogue(),
-    '/platform/idea/PlacementCatalogue',
-  );
+async function warmCatalogue(): Promise<void> {
+  // The kernel's ways of sitting are resident — the test bootstrap stands
+  // in for every place's onCreate (documents D7).
 }
 
 let pathCounter = 0;
@@ -520,7 +491,7 @@ describe('PutController — in/on dispatch', () => {
     }, freshPath('/test/put-tableB'));
     ContainmentApi.move(tableA, loc);
     ContainmentApi.move(tableB, loc);
-    ContainmentApi.move(apple, tableA, 'on');
+    ContainmentApi.move(apple, tableA, Placements.ON);
     expect(apple.getContainer()).toBe(loc);
     expect((apple.getPlacement()?.host ?? null)).toBe(tableA);
 
@@ -558,7 +529,7 @@ describe('PutController — in/on dispatch', () => {
     });
     ContainmentApi.move(table, loc);
     ContainmentApi.move(chest, loc);
-    ContainmentApi.move(apple, table, 'on');
+    ContainmentApi.move(apple, table, Placements.ON);
     expect((apple.getPlacement()?.host ?? null)).toBe(table);
     // Move apple to giver's inventory so the controller path can run.
     ContainmentApi.move(apple, giver);
@@ -605,13 +576,12 @@ describe('PutController — put over N placements', () => {
   }
 
   it('⭐ `put X on hook` resolves `from` through the member\'s SECONDARY word, and the prose says HANG', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const hook = makeStuffAtPath(() => {
       const h = new TestSurface();
       h.setName('hook');
-      h.setPlacements(['from']);
+      h.setPlacements([Placements.FROM]);
       return h;
     }, freshPath('/test/put-hook'));
     ContainmentApi.move(hook, loc);
@@ -624,7 +594,7 @@ describe('PutController — put over N placements', () => {
     );
 
     // The player typed `on`; the world hung it FROM.
-    expect(apple.getPlacement()?.name).toBe('from');
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
     expect(apple.getPlacement()?.host).toBe(hook);
     expect(apple.getContainer()).toBe(loc);
     expect(
@@ -633,13 +603,12 @@ describe('PutController — put over N placements', () => {
   });
 
   it('a typed word nobody offers is refused, and the refusal NAMES what the host takes', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const hook = makeStuffAtPath(() => {
       const h = new TestSurface();
       h.setName('hook');
-      h.setPlacements(['from']);
+      h.setPlacements([Placements.FROM]);
       return h;
     }, freshPath('/test/put-hook-refuse'));
     ContainmentApi.move(hook, loc);
@@ -661,8 +630,7 @@ describe('PutController — put over N placements', () => {
   });
 
   it('⚠ region zero into a SHUT container is refused, says shut, and the target stays BOUND', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const chest = makeStuff(() => {
       const c = new TestSealedChest();
@@ -704,21 +672,47 @@ describe('PutController — put over N placements', () => {
     expect(apple.getContainer()).toBe(chest);
   });
 
+  it('⭐ the world answers `put` with no controller in the way (W8)', async () => {
+    await warmCatalogue();
+    const { loc, giver, apple } = scene();
+    const chest = makeStuff(() => {
+      const c = new TestSealedChest();
+      c.setName('chest');
+      c.setOpen(false);
+      return c;
+    });
+    ContainmentApi.move(chest, loc);
+    expect(ContainmentApi.putPlanFor(apple, chest, { prep: 'in', by: giver })).toEqual({
+      ok: false,
+      reason: 'shut',
+    });
+    expect(apple.getContainer()).toBe(giver);
+    chest.setOpen(true);
+    const plan = ContainmentApi.putPlanFor(apple, chest, { prep: 'in', by: giver });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+    expect(plan.facts.route).toEqual({ kind: 'zero' });
+    // Nothing moved until the plan ran.
+    expect(apple.getContainer()).toBe(giver);
+    const done = await plan.onComplete();
+    expect(done.ok).toBe(true);
+    expect(apple.getContainer()).toBe(chest);
+  });
+
   it('⭐ an ENCLOSING member on a shut host is refused by canPlace, and opening lifts it', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const compartment = makeStuffAtPath(() => {
       const c = new TestCompartment();
       c.setName('compartment');
-      c.setPlacements(['in']);
+      c.setPlacements([Placements.IN]);
       c.setOpen(false);
       return c;
     }, freshPath('/test/put-compartment'));
     ContainmentApi.move(compartment, loc);
 
     // The mixin's own veto, directly: `in` encloses, the host is shut.
-    expect(compartment.canPlace(apple, 'in')).toEqual({
+    expect(compartment.canPlace(apple, Placements.IN)).toEqual({
       ok: false,
       reason: 'shut',
     });
@@ -736,44 +730,42 @@ describe('PutController — put over N placements', () => {
     ).toBe('shut');
 
     compartment.setOpen(true);
-    expect(compartment.canPlace(apple, 'in')).toEqual({ ok: true });
+    expect(compartment.canPlace(apple, Placements.IN)).toEqual({ ok: true });
     await controller.execute(
       makeModel(one(apple, 'apple'), one(compartment, 'compartment', 'in')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe('in');
+    expect(apple.getPlacement()?.name).toBe(Placements.IN);
   });
 
   it('a non-enclosing member on a shut host is UNAFFECTED — the hook is on the outside', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const box = makeStuffAtPath(() => {
       const b = new TestCompartment();
       b.setName('box');
-      b.setPlacements(['from']);
+      b.setPlacements([Placements.FROM]);
       b.setOpen(false);
       return b;
     }, freshPath('/test/put-shut-hook'));
     ContainmentApi.move(box, loc);
 
-    expect(box.canPlace(apple, 'from')).toEqual({ ok: true });
+    expect(box.canPlace(apple, Placements.FROM)).toEqual({ ok: true });
     const controller = makeStuff(() => new PutController());
     await controller.execute(
       makeModel(one(apple, 'apple'), one(box, 'box', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe('from');
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
   it('a host offering TWO members with no word typed is ambiguous, and names both', async () => {
-    const catalogue = warmCatalogue();
-    await catalogue.warm();
+    await warmCatalogue();
     const { loc, giver, apple } = scene();
     const rack = makeStuffAtPath(() => {
       const r = new TestSurface();
       r.setName('rack');
-      r.setPlacements(['on', 'from']);
+      r.setPlacements([Placements.ON, Placements.FROM]);
       return r;
     }, freshPath('/test/put-two-members'));
     ContainmentApi.move(rack, loc);
@@ -799,7 +791,7 @@ describe('PutController — put over N placements', () => {
       makeModel(one(apple, 'apple'), one(rack, 'rack', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe('from');
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
   it('⭐ a host whose member has NO live row is still addressable by its own name', async () => {
@@ -809,7 +801,7 @@ describe('PutController — put over N placements', () => {
     const peg = makeStuffAtPath(() => {
       const p = new TestSurface();
       p.setName('peg');
-      p.setPlacements(['from']);
+      p.setPlacements([Placements.FROM]);
       return p;
     }, freshPath('/test/put-cold-member'));
     ContainmentApi.move(peg, loc);
@@ -819,7 +811,7 @@ describe('PutController — put over N placements', () => {
       makeModel(one(apple, 'apple'), one(peg, 'peg', 'from')),
       makeContext(giver, loc),
     );
-    expect(apple.getPlacement()?.name).toBe('from');
+    expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 });
 
@@ -868,7 +860,7 @@ describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub`
     it('placementFor: a typed word, the only offer, or which of them', () => {
       const desk = makeStuff(() => new TestDeskWithDrawer());
       expect(desk.placementFor('in')).toMatchObject({ ok: true, offer: { kind: 'zero' } });
-      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: 'on' } });
+      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: Placements.ON } });
       expect(desk.placementFor(undefined)).toMatchObject({ ok: false, reason: 'preposition-ambiguous' });
       expect(desk.placementFor('over')).toMatchObject({ ok: false, reason: 'wrong-preposition', got: 'over' });
       const chest = makeStuff(() => new TestChest());

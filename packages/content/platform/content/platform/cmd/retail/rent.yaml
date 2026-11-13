@@ -37,12 +37,12 @@ args:
   - name: boat
     type: object
     required: true
-    greedy: true
     scope: ["here", "peers", "person"]
     requires: [SmallCraftMixin]
   # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
   # ⚠ `greedy: true` — "2 days" is two tokens and one span.
   - name: days
+    prepositionRequired: true
     type: string
     required: false
     greedy: true
@@ -53,9 +53,9 @@ args:
   # narrows `instanceof HireBook` because what it needs — its rates and its
   # page — is the class's data.
   - name: book
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [at]
     default: "reachable:[class.HireBook]"
     scope: ["here", "peers", "person"]

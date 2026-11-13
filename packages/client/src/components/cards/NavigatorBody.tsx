@@ -127,14 +127,20 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
 
   const go = (exit: WhereaboutsExit, label: string): React.ReactElement => {
     const command = `go ${exit.direction}`;
-    const door = exit.door ? ` — through ${exit.door.name}${exit.door.open ? "" : " (closed)"}` : "";
+    // ⭐ One wire shape (`WayRecord`, boundary build): the way's state and
+    // what stands in it. A window shows the far side and is never a way a
+    // body takes, so its arm does not send `go`.
+    const through = exit.boundary
+      ? ` — through ${exit.boundary.name}${exit.state === "open" ? "" : ` (${exit.state})`}`
+      : exit.state === "locked" ? " (locked)" : "";
     return (
       <Arm
         key={exit.direction}
         type="button"
-        $door={exit.door !== undefined && !exit.door.open}
+        disabled={exit.state === "window"}
+        $door={exit.state !== "open"}
         data-testid={`nav-exit-${exit.direction}`}
-        title={`${command}${exit.destination ? ` → ${exit.destination}` : ""}${door}`}
+        title={`${command}${exit.destination ? ` → ${exit.destination}` : ""}${through}`}
         aria-label={command}
         onClick={() => onSendCommand(command)}
         onMouseEnter={() => preview(command)}

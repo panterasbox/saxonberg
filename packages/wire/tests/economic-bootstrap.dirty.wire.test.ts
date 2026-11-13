@@ -386,8 +386,8 @@ describe('7. the ladder, from the counter', () => {
       expectOk(await wizard.cmd(`goto /world/terminus/market/square`));
       // The stall holds it (the terms line itself was read at step 2; the
       // customer's own crates from the last round come first in reach).
-      expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
-      expect(await wizard.prose(`buy oranges from ${stem}`)).toMatch(/You buy/);
+      expect(await wizard.prose(`look "${stem}"`)).toMatch(/crate of oranges/);
+      expect(await wizard.prose(`buy oranges from "${stem}"`)).toMatch(/You buy/);
     }
     // Lent, now: the advance lands and the paper stands on both books.
     const lent = await a.cmd('bank borrow 20 --for stock');
@@ -432,13 +432,13 @@ describe('9. a borrower stops trading', () => {
     await walk(a, 'north', 'southwest');
     expect(await a.prose('look')).toMatch(/square/i);
     // On THEIR stall — `stall` alone binds the produce stalls first.
-    expect(await a.prose(`put oranges in ${stem}`)).toMatch(/You put|You place/);
+    expect(await a.prose(`put oranges in "${stem}"`)).toMatch(/You put|You place/);
     expectOk(await wizard.cmd('goto /world/terminus/market/square'));
-    expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
+    expect(await wizard.prose(`look "${stem}"`)).toMatch(/crate of oranges/);
     // The horizon collapsed to now; the next read of the book reveals it.
     expectOk(await founder.cmd('config reserve.defaultHorizonGameDays 0'));
     await a.prose('house book');
-    expect(await until(async () => !/crate of oranges/.test(await wizard.prose(`look ${stem}`)), 30_000)).toBe(true);
+    expect(await until(async () => !/crate of oranges/.test(await wizard.prose(`look "${stem}"`)), 30_000)).toBe(true);
     // The horizon back FIRST: the dashboard's read reconciles every open
     // loan, and at zero it would default the general store's too.
     expectOk(await founder.cmd('config reserve.defaultHorizonGameDays 30'));
@@ -476,7 +476,7 @@ describe('10. a player goes dormant', () => {
     // The stall: the operator brought current on a customer's approach
     // reads the keeper's clock and hangs the sign — nobody is served.
     const stem = aName.toLowerCase();
-    const refused = await wizard.cmd(`buy oranges from ${stem}`);
+    const refused = await wizard.cmd(`buy oranges from "${stem}"`);
     expectNote(refused, 'controller-rejected', { reason: 'unattended' });
     // Back: the balance whole, the freeze lifted by presence — and the
     // seat VACATED: the chart could not wait, and a return does not
@@ -505,7 +505,7 @@ describe('11. a player escheats', () => {
     // The next touch: a customer approaches the stall — the operator is
     // brought current, its keeper's clock read, and the estate passes.
     expectOk(await wizard.cmd('goto /world/terminus/market/square'));
-    await wizard.cmd(`buy oranges from ${stem}`);
+    await wizard.cmd(`buy oranges from "${stem}"`);
     const stall = new RegExp(`${stem}'s stall`, 'i');
     expect(await until(async () => !stall.test(await wizard.prose('look')), 60_000)).toBe(true);
     // The unclaimed row is the last act of the passing; wait for it.

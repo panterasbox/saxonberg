@@ -18,8 +18,8 @@
  * source of truth.
  *
  * Reorder is up/down buttons (drag is fiddly in this stack and adds a dep;
- * order = precedence either way): "up" issues `notify <ref> --above
- * <prev>`, "down" issues `notify <ref> --below <next>`.
+ * order = precedence either way): "up" issues `notify move <ref> --above
+ * <prev>`, "down" issues `notify move <ref> --below <next>`.
  */
 
 import React, { useEffect } from "react";
@@ -282,7 +282,7 @@ export const SocialNotificationsPanel: React.FC<
       <FieldLabel>{fieldLabel}</FieldLabel>
       {options.map((opt) =>
         cmdButton(
-          `notify ${rule.groupRef} --${flag} ${opt}`,
+          `notify set ${rule.groupRef} --${flag} ${opt}`,
           opt,
           current === opt,
           `${flag}-${opt}`,
@@ -296,7 +296,7 @@ export const SocialNotificationsPanel: React.FC<
     if (!ref) return;
     // Any field option materializes the rule with defaults; `--render
     // name` is the custom default, so this is a default-preserving create.
-    onCommandClick(`notify ${ref} --render name`);
+    onCommandClick(`notify set ${ref} --render name`);
     setAddRef("");
   };
 
@@ -320,13 +320,13 @@ export const SocialNotificationsPanel: React.FC<
             <Row data-testid={`rule-${rule.groupRef}`} key={rule.groupRef}>
               <RowHead>
                 {cmdButton(
-                  `notify ${rule.groupRef} --above ${rules[i - 1]?.groupRef ?? ""}`,
+                  `notify move ${rule.groupRef} --above ${rules[i - 1]?.groupRef ?? ""}`,
                   "▲",
                   false,
                   `up-${rule.groupRef}`,
                 )}
                 {cmdButton(
-                  `notify ${rule.groupRef} --below ${rules[i + 1]?.groupRef ?? ""}`,
+                  `notify move ${rule.groupRef} --below ${rules[i + 1]?.groupRef ?? ""}`,
                   "▼",
                   false,
                   `down-${rule.groupRef}`,
@@ -338,7 +338,7 @@ export const SocialNotificationsPanel: React.FC<
                 {rule.reserved && <ReservedTag>(default)</ReservedTag>}
                 <Spacer />
                 {cmdButton(
-                  `notify ${rule.groupRef} --remove`,
+                  `notify remove ${rule.groupRef}`,
                   "remove",
                   false,
                   `remove-${rule.groupRef}`,
@@ -352,14 +352,14 @@ export const SocialNotificationsPanel: React.FC<
                     key={tok}
                     $color={paletteColor(tok)}
                     $active={rule.color === tok}
-                    data-testid={`notify ${rule.groupRef} --color ${tok}`}
+                    data-testid={`notify set ${rule.groupRef} --color ${tok}`}
                     aria-label={`color ${tok}`}
                     onMouseEnter={() =>
-                      onCommandPreview(`notify ${rule.groupRef} --color ${tok}`)
+                      onCommandPreview(`notify set ${rule.groupRef} --color ${tok}`)
                     }
                     onMouseLeave={() => onCommandPreview(null)}
                     onClick={() =>
-                      onCommandClick(`notify ${rule.groupRef} --color ${tok}`)
+                      onCommandClick(`notify set ${rule.groupRef} --color ${tok}`)
                     }
                   />
                 ))}
@@ -376,13 +376,13 @@ export const SocialNotificationsPanel: React.FC<
               <Field>
                 <FieldLabel>boost</FieldLabel>
                 {cmdButton(
-                  `notify ${rule.groupRef} --boost`,
+                  `notify set ${rule.groupRef} --boost`,
                   "on",
                   rule.boostInDense,
                   `boost-on`,
                 )}
                 {cmdButton(
-                  `notify ${rule.groupRef} --no-boost`,
+                  `notify set ${rule.groupRef} --no-boost`,
                   "off",
                   !rule.boostInDense,
                   `boost-off`,
@@ -428,7 +428,7 @@ export const SocialNotificationsPanel: React.FC<
               data-testid="social-add-button"
               onMouseEnter={() =>
                 addRef.trim() &&
-                onCommandPreview(`notify ${addRef.trim()} --render name`)
+                onCommandPreview(`notify set ${addRef.trim()} --render name`)
               }
               onMouseLeave={() => onCommandPreview(null)}
               onClick={submitAdd}

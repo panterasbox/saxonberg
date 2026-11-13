@@ -53,6 +53,7 @@ import {
   stampTemplatePathForTest,
 } from "../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 /** An energized locus standing in for the arcane library's SparkLocus, the same way. */
@@ -225,6 +226,7 @@ describe("The Practicum — the magic demonstrators", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();

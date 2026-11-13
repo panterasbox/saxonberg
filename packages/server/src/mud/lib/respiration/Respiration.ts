@@ -57,6 +57,7 @@ import { TemplatePaths } from '../paths';
 import type { CommandContributions } from '../../api/command';
 import type { RespirationCause } from './RespirationDrain';
 import { RespirationDrain, RespirationRecovery, RespirationTread } from './RespirationDrain';
+import { MaterialApi } from '../../api/material';
 
 /**
  * Every respiration dial as a module const-object (the
@@ -275,6 +276,9 @@ function respirationDial(key: string, fallback: number): number {
  */
 type RespirationHost = Stuff & Vitals & Organism;
 
+/** ⭐ Why a body cannot float — a closed set the verbs word (controller-liquidity W8). */
+export type FloatRefusalReason = 'not-at-surface' | 'cannot-float' | 'too-heavy';
+
 export interface Respiration {
   /** Game-time (seconds) of the last drain/recovery tick; 0 = unseeded. */
   respirationClockStamp: number;
@@ -312,7 +316,7 @@ export interface Respiration {
   /** Lying back on the water at no cost (`float`). */
   isFloating(): boolean;
   /** Float on your back — or refuse, in words, when you cannot. */
-  float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }>;
+  float(): Promise<{ ok: true } | { ok: false; reason: FloatRefusalReason; line: string }>;
   /**
    * ⭐ How long swimming `meters` straight up (or down) takes this body,
    * in REAL seconds: its swimming, and its weight in the water — ballast
@@ -753,7 +757,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (contents.length === 0) return;
       for (const c of contents) {
         if (!(c.amount > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        const material = MaterialApi.materials().peek(c.type);
         if (!material) continue;
         for (const toxin of MixinApi.hasToxicity(material) ? material.getToxicity() : []) {
           if (!(toxin.amount > 0)) continue;
@@ -1353,7 +1357,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 'passive';
     }
 
-    public async float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }> {
+    public async float(): Promise<{ ok: true } | { ok: false; reason: FloatRefusalReason; line: string }> {
       const self = this as unknown as Stuff;
       const medium = BiomeApi.mediumFor(self);
       if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) {

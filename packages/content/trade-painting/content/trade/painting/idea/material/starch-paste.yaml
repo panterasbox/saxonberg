@@ -1,7 +1,7 @@
 # starch paste — flour and water stirred smooth: a weak, cheap paste for paper and cloth, ruined by any damp.
 class: /platform/idea/material/Glue
 data:
-  smells: [{ aroma: /base-library/aromas/flour, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/grain/flour, strength: 3 }]
   name: starch paste
   keywords: ["starch paste", paste, "flour paste"]
   appearance: a smooth grey-white paste

@@ -147,7 +147,7 @@ async function cloneInto(
   count = 1,
 ): Promise<void> {
   await cloneHere(where, path, count);
-  const got = await say(s, `get ${count} ${keyword}`);
+  const got = await say(s, `get ${count} "${keyword}"`);
   expect(got, `get ${keyword}: ${got}`).toMatch(/you pick up/i);
 }
 
@@ -180,7 +180,7 @@ async function buyOne(s: Session, item: string): Promise<void> {
   // ⛔ One restock day at most (soak-harness census): a shelf that needs
   // longer is a span, and the step fails here rather than walking days.
   for (let attempt = 0; attempt < 2; attempt++) {
-    const said = await say(s, `buy ${item}`);
+    const said = await say(s, `buy "${item}"`);
     if (/you buy/i.test(said)) return;
     expect(said, `buy ${item}: ${said}`).toMatch(/bare|none of it/i);
     if (attempt > 0) break;

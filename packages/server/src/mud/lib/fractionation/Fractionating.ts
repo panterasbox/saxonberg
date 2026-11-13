@@ -88,8 +88,11 @@ import { DissolvedToxins } from '../metabolism/DissolvedToxins';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import { Concentration } from '../bulk/Concentration';
 import { Grade } from '../craft/Grade';
-import FractionSchedule, { type FractionSpec } from './FractionSchedule';
+import type FractionSchedule from './FractionSchedule';
+import type { FractionSpec } from './FractionSchedule';
+import { BulkableApi } from '../../api/bulk';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
+import { MaterialApi } from '../../api/material';
 
 /** Where a run has got to. */
 export type RunPhase = 'idle' | 'charged' | 'running' | 'spent';
@@ -239,7 +242,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       chargeL: { persistent: true, runtimeState: true },
       drawnL: { persistent: true, runtimeState: true },
       runPhase: { persistent: true, runtimeState: true },
-      runScheduleKey: { persistent: true, runtimeState: true },
+      runSchedulePath: { persistent: true, runtimeState: true },
       runMaterialPath: { persistent: true, runtimeState: true },
       runMaker: { persistent: true, runtimeState: true },
       runChargeBand: { persistent: true, runtimeState: true },
@@ -278,7 +281,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
     /** The phase. */
     public runPhase: RunPhase = 'idle';
     /** The matched schedule's key; `''` = none. */
-    public runScheduleKey = '';
+    public runSchedulePath = '';
     /** The interior material path the run is keyed to (change ⇒ new charge). */
     public runMaterialPath: string | null = null;
     /** Who charged it — stamped onto every draw's payload. */
@@ -315,7 +318,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         }
 
         if (this.runPhase === 'charged') {
-          const schedule = FractionSchedule.byKey(this.runScheduleKey);
+          const schedule = this.runSchedule();
           if (schedule && this.readyToRun(schedule)) {
             this.beginRun(schedule, amount);
           }
@@ -323,7 +326,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         }
 
         if (this.runPhase === 'running') {
-          const schedule = FractionSchedule.byKey(this.runScheduleKey);
+          const schedule = this.runSchedule();
           if (!schedule) return;
           // ⭐ The residue swap, amount-triggered exactly as the lees
           // split is: the draw that crosses the floor converts what is
@@ -348,7 +351,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       this.chargeL = 0;
       this.drawnL = 0;
       this.runPhase = 'idle';
-      this.runScheduleKey = '';
+      this.runSchedulePath = '';
       this.runMaterialPath = null;
       this.runMaker = '';
       this.runChargeBand = '';
@@ -364,12 +367,12 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
     protected startCharge(path: string, amount: number): void {
       this.resetRun();
       this.runMaterialPath = path;
-      const material = StuffApi.findByTemplatePath<Material>(path);
+      const material = MaterialApi.materials().peek(path);
       if (!material) return;
-      const schedule = FractionSchedule.forMaterial(material);
+      const schedule = BulkableApi.fractionSchedules().forMaterial(material);
       if (!schedule) return;
       this.chargeL = amount;
-      this.runScheduleKey = schedule.getKey();
+      this.runSchedulePath = schedule.getPath();
       this.runPhase = 'charged';
       this.chargedAtS = fractionNowSeconds() ?? 0;
       this.runResidueFraction = schedule.getResidueShare()
@@ -432,7 +435,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         this.runPhase = 'running';
         return;
       }
-      const product = StuffApi.findByTemplatePath<Material>(
+      const product = MaterialApi.materials().peek(
         schedule.getProductMaterial(),
       );
       if (!product) {
@@ -461,7 +464,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       this.runPhase = 'spent';
       const residuePath = schedule.getResidueMaterial();
       if (!residuePath) return;
-      const residue = StuffApi.findByTemplatePath<Material>(residuePath);
+      const residue = MaterialApi.materials().peek(residuePath);
       if (!residue) return;
       this.runMaterialPath = residuePath;
       self.setBulkMaterial('interior', residue);
@@ -594,13 +597,24 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getRunSchedule(): FractionSchedule | null {
       this.reconcileRun();
-      return FractionSchedule.byKey(this.runScheduleKey);
+      return this.runSchedule();
     }
+
+    /** The schedule this run follows, unreconciled — read cold, it throws naming the path. */
+    private runSchedule(): FractionSchedule | null {
+      return this.runSchedulePath ? BulkableApi.fractionSchedules().need(this.runSchedulePath) : null;
+    }
+
+    /** The schedule this run follows, by path (BulkableApi's, stood at boot). */
+    public setRunSchedulePath(value: string): void {
+      this.runSchedulePath = typeof value === 'string' ? value : '';
+    }
+
 
     public readFraction(viewer: Stuff): FractionSpec | null {
       this.reconcileRun();
       if (this.runPhase !== 'running') return null;
-      const schedule = FractionSchedule.byKey(this.runScheduleKey);
+      const schedule = this.runSchedule();
       if (!schedule) return null;
       const blur =
         schedule.getReadBlur() *
@@ -672,7 +686,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         this.runPhase === 'running' &&
         !this._reconcilingRun
       ) {
-        const schedule = FractionSchedule.byKey(this.runScheduleKey);
+        const schedule = this.runSchedule();
         if (schedule && schedule.getSeparation() === 'fractions') {
           const spec = this.fractionAtL(schedule, this.drawnL);
           if (spec) return schedule.materialFor(spec);
@@ -700,7 +714,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (affordance !== 'interior') return amount;
       this.reconcileRun();
       if (this.runPhase !== 'running') return amount;
-      const schedule = FractionSchedule.byKey(this.runScheduleKey);
+      const schedule = this.runSchedule();
       if (!schedule) return amount;
       const floor = this.residueFloorL(schedule);
       let ceiling = Math.max(0, amount - floor);
@@ -774,7 +788,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
       if (affordance !== 'interior') return base;
       this.reconcileRun();
       if (this.runPhase !== 'running' || this.chargeL <= 0) return base;
-      const schedule = FractionSchedule.byKey(this.runScheduleKey);
+      const schedule = this.runSchedule();
       if (!schedule) return base;
       const span = Math.max(0, litres);
       const fractions = this.effectiveFractions(schedule);

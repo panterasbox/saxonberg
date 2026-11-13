@@ -6,26 +6,26 @@
  * primitive other content extends, grooving ice is one trade's gesture
  * with a plain word of its own. (`score` was taken by the platform.)
  *
- * ⭐ The sheet decides (`IceSheet.cutPlan({verb: 'groove'})`); the words
- * are this controller's (controllers-are-io D4).
+ * ⭐ The sheet decides (`IceSheet.groovePlan` — its own method,
+ * controller-liquidity D14); the words are this controller's (controllers-are-io D4).
  */
 
 import { IceActController } from '../../../lib/IceActController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { GrooveDone, GrooveRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
+import type { GrooveDone, GrooveRefusal } from '@saxonberg/content-water/src/thing/IceSheet';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 export default class GrooveController extends IceActController<'groove'> {
-  protected verb(): 'groove' {
-    return 'groove';
+  protected planOn(sheet: IceSheet, actor: Stuff, tool: Stuff, patch: string | null): ActPlan<undefined, GrooveDone, GrooveRefusal> {
+    return sheet.groovePlan(actor, tool, patch);
   }
   protected capability(): string {
     return 'marking';
   }
   protected refusalWords(out: GrooveRefusal): string {
     switch (out.reason) {
-      case 'not-cuttable':
-        return 'There is no ice here to work.';
       case 'not-on-ice':
         return 'You cannot work the ice from the water.';
       case 'no-horse':

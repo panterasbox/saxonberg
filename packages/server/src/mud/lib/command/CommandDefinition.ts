@@ -36,8 +36,13 @@ import type {
   CommandValidator,
   ExampleDefinition,
   MixinRequirement,
+  ModelData,
+  FieldDefinition,
 } from '../../api/command';
-import { CommandApi, SUBCOMMAND_FIELD } from '../../api/command';
+import {
+  CommandApi,
+  SUBCOMMAND_FIELD,
+} from '../../api/command';
 
 /**
  * Resolve a raw `controller:` spec value to the `/`-rooted mud template
@@ -236,7 +241,7 @@ export class CommandDefinition {
     for (const [, opt] of Object.entries(this.payload)) {
       normaliseOptionScope(opt);
     }
-    for (const [, sub] of Object.entries(this.subcommands)) {
+    for (const [, sub] of this.allSubcommands()) {
       sub.options = normaliseOptions(sub.options);
       for (const a of sub.args ?? []) normalisePositionalScope(a);
       for (const [, opt] of Object.entries(sub.options ?? {})) {
@@ -284,8 +289,8 @@ export class CommandDefinition {
         );
       }
       const missing: string[] = [];
-      for (const [name, sub] of Object.entries(this.subcommands)) {
-        if (!sub.controller) missing.push(name);
+      for (const [key, st] of this.allSubcommands()) {
+        if (!st.controller) missing.push(key);
       }
       if (missing.length > 0) {
         throw new Error(
@@ -302,22 +307,28 @@ export class CommandDefinition {
     }
 
     if (hasSubcommands) {
-      Object.entries(this.subcommands).forEach(([name, sub]) => {
+      for (const [name, sub] of this.allSubcommands()) {
+        validateStanzaShape(sub, this.filePath, name);
         validateArgOrdering(sub.args, this.filePath, name);
         for (const a of sub.args ?? []) {
           validateCardinality(a, this.filePath, name);
+          validateGrammar(a, this.filePath, name);
         }
-        for (const [, opt] of Object.entries(sub.options ?? {})) {
+        for (const [optName, opt] of Object.entries(sub.options ?? {})) {
           validateCardinality(opt, this.filePath, name);
+          validateGrammar(opt, this.filePath, `${name} --${optName}`);
         }
-      });
+      }
     }
 
-    for (const [, opt] of Object.entries(this.verbOptions)) {
+    for (const a of this.args) validateGrammar(a, this.filePath, 'args');
+    for (const [optName, opt] of Object.entries(this.verbOptions)) {
       validateCardinality(opt, this.filePath, 'verbOptions');
+      validateGrammar(opt, this.filePath, `--${optName}`);
     }
-    for (const [, opt] of Object.entries(this.payload)) {
+    for (const [optName, opt] of Object.entries(this.payload)) {
       validateCardinality(opt, this.filePath, 'payload');
+      validateGrammar(opt, this.filePath, `payload ${optName}`);
     }
 
     validateFieldNameUniqueness(this);
@@ -345,8 +356,7 @@ export class CommandDefinition {
    * for declared subcommands).
    */
   controllerForSubcommand(name: string): string | undefined {
-    const sub = this.subcommands[name];
-    const raw = sub?.controller ?? this.controller;
+    const raw = this.subcommands[name]?.controller ?? this.controller;
     if (raw === undefined) return undefined;
     return resolveController(raw, this.filePath);
   }
@@ -361,6 +371,15 @@ export class CommandDefinition {
 
   getSubcommandNames(): string[] {
     return Object.keys(this.subcommands);
+  }
+
+  /**
+   * Every subcommand stanza, keyed by its word. ⛔ One level only: a
+   * command is `verb target` or `verb subcommand target`, never deeper
+   * (owner rule 2026-11-10; `validate()` refuses a nested stanza).
+   */
+  allSubcommands(): Array<[string, SubcommandDefinition]> {
+    return Object.entries(this.subcommands);
   }
 
   hasVerb(verb: string): boolean {
@@ -387,9 +406,12 @@ export class CommandDefinition {
    */
   getOptions(scope: 'verb' | string): Record<string, OptionDefinition> {
     if (scope === 'verb') return this.verbOptions;
-    const sub = this.subcommands[scope];
-    if (!sub?.options) return this.verbOptions;
-    return { ...this.verbOptions, ...sub.options };
+    return { ...this.verbOptions, ...(this.subcommands[scope]?.options ?? {}) };
+  }
+
+  /** The options a subcommand stanza declares (not the verb's). */
+  getSubcommandOptions(name: string): Record<string, OptionDefinition> {
+    return this.subcommands[name]?.options ?? {};
   }
 
   /**
@@ -425,13 +447,15 @@ export class CommandDefinition {
     for (const [, def] of Object.entries(this.payload)) {
       names.add(def.field ?? optionFieldName(this.payload, def));
     }
-    for (const sub of Object.values(this.subcommands)) {
+    for (const [, sub] of this.allSubcommands()) {
       for (const a of sub.args ?? []) names.add(a.name);
       for (const [, def] of Object.entries(sub.options ?? {})) {
         names.add(def.field ?? optionFieldName(sub.options ?? {}, def));
       }
     }
-    if (this.hasSubcommands()) names.add(SUBCOMMAND_FIELD);
+    if (this.hasSubcommands()) {
+      names.add(SUBCOMMAND_FIELD);
+    }
     return names;
   }
 
@@ -460,7 +484,7 @@ export class CommandDefinition {
     for (const a of this.args) take(a.requires);
     for (const o of Object.values(this.verbOptions)) take(o.requires);
     for (const o of Object.values(this.payload)) take(o.requires);
-    for (const sub of Object.values(this.subcommands)) {
+    for (const [, sub] of this.allSubcommands()) {
       for (const a of sub.args ?? []) take(a.requires);
       for (const o of Object.values(sub.options ?? {})) take(o.requires);
     }
@@ -486,65 +510,86 @@ export class CommandDefinition {
   /**
    * Multi-line help text — verb header, aliases, then per-syntax /
    * per-subcommand lines.
+   *
+   * ⭐ `siblings` — the other views of the same WORD (`throw … at`,
+   * `throw … to` beside `throw`). With none, this view renders alone;
+   * with some, they merge — every shape under one Syntax block (each with
+   * its own description and options), every view's prose, every
+   * subcommand tree and every example (controller-liquidity W1; before
+   * it, the last view registered won and the other shapes were never
+   * shown).
    */
-  getHelpText(): string {
+  getHelpText(siblings: readonly CommandDefinition[] = []): string {
+    const defs: readonly CommandDefinition[] = [this, ...siblings];
+    const merged = defs.length > 1;
+    const verb = this.getPrimaryVerb();
     const lines: string[] = [];
 
-    lines.push(`${this.getPrimaryVerb().toUpperCase()}: ${this.description}`);
+    lines.push(`${verb.toUpperCase()}: ${this.description}`);
     lines.push('');
 
-    if (this.defaultAliases.length > 0) {
-      lines.push(`Aliases: ${this.defaultAliases.map((a) => a.name).join(', ')}`);
+    const aliases = [...new Set(defs.flatMap((d) => d.defaultAliases.map((a) => a.name)))];
+    if (aliases.length > 0) {
+      lines.push(`Aliases: ${aliases.join(', ')}`);
       lines.push('');
     }
 
-    if (!this.hasSubcommands()) {
+    const flat = defs.filter((d) => !d.hasSubcommands());
+    if (flat.length > 0) {
       lines.push('Syntax:');
-      const rendered = renderArgs(this.args);
-      const usage = rendered
-        ? `${this.getPrimaryVerb()} ${rendered}`
-        : this.getPrimaryVerb();
-      lines.push(`  ${usage}`);
-      const optionLines = renderOptionLines(this.verbOptions, '  ');
-      if (optionLines.length > 0) {
-        lines.push('Options:');
-        optionLines.forEach((l) => lines.push(l));
+      for (const d of flat) {
+        const rendered = renderArgs(d.args);
+        lines.push(`  ${rendered ? `${verb} ${rendered}` : verb}`);
+        if (merged && d.description) lines.push(`    ${d.description}`);
+        const optionLines = renderOptionLines(d.verbOptions, merged ? '    ' : '  ');
+        if (optionLines.length > 0) {
+          if (!merged) lines.push('Options:');
+          optionLines.forEach((l) => lines.push(l));
+        }
+      }
+      if (defs.some((d) => d.usesDurations())) {
+        lines.push(DURATION_FORMS);
       }
       lines.push('');
     }
 
-    // Authored verb-level prose, below the synthesized syntax.
-    if (this.help) {
-      lines.push(this.help.trimEnd());
-      lines.push('');
+    // Authored prose, below the synthesized syntax — every view's, once.
+    const prose = new Set<string>();
+    for (const d of defs) {
+      if (d.help && !prose.has(d.help)) {
+        prose.add(d.help);
+        lines.push(d.help.trimEnd());
+        lines.push('');
+      }
     }
 
-    if (this.hasSubcommands()) {
+    for (const d of defs.filter((x) => x.hasSubcommands())) {
       lines.push('Subcommands:');
-      Object.entries(this.subcommands).forEach(([name, sub]) => {
-        const rendered = renderArgs(sub?.args);
-        const usage = rendered
-          ? `${this.getPrimaryVerb()} ${name} ${rendered}`
-          : `${this.getPrimaryVerb()} ${name}`;
-        lines.push(`  ${usage}`);
-        if (sub?.description) {
-          lines.push(`    ${sub.description}`);
-        }
-        if (sub?.help) {
-          for (const line of sub.help.trimEnd().split('\n')) {
-            lines.push(line ? `    ${line}` : '');
+      const walk = (
+        level: Record<string, SubcommandDefinition>,
+        indent: string
+      ): void => {
+        for (const [name, sub] of Object.entries(level)) {
+          const rendered = renderArgs(sub.args);
+          lines.push(`${indent}${verb} ${name}${rendered ? ` ${rendered}` : ''}`);
+          const body = `${indent}  `;
+          if (sub.description) lines.push(`${body}${sub.description}`);
+          if (sub.help) {
+            for (const line of sub.help.trimEnd().split('\n')) {
+              lines.push(line ? `${body}${line}` : '');
+            }
           }
+          renderOptionLines(sub.options, body).forEach((l) => lines.push(l));
+          renderExampleLines(sub.examples, body).forEach((l) => lines.push(l));
         }
-        renderOptionLines(sub?.options, '    ').forEach((l) => lines.push(l));
-        renderExampleLines(sub?.examples, '    ').forEach((l) => lines.push(l));
-      });
+      };
+      walk(d.subcommands, '  ');
+      if (d.usesDurations()) lines.push(DURATION_FORMS);
       lines.push('');
-    }
 
-    // Verb-level options on a subcommanded verb bind before the
-    // subcommand word — surface them after the subcommand list.
-    if (this.hasSubcommands()) {
-      const optionLines = renderOptionLines(this.verbOptions, '  ');
+      // Verb-level options on a subcommanded verb bind before the
+      // subcommand word — surface them after the subcommand list.
+      const optionLines = renderOptionLines(d.verbOptions, '  ');
       if (optionLines.length > 0) {
         lines.push('Options:');
         optionLines.forEach((l) => lines.push(l));
@@ -553,7 +598,10 @@ export class CommandDefinition {
     }
 
     // Verb-level examples close the entry.
-    const exampleLines = renderExampleLines(this.examples, '  ');
+    const exampleLines = renderExampleLines(
+      defs.flatMap((d) => d.examples),
+      '  '
+    );
     if (exampleLines.length > 0) {
       lines.push('Examples:');
       exampleLines.forEach((l) => lines.push(l));
@@ -562,7 +610,88 @@ export class CommandDefinition {
 
     return lines.join('\n');
   }
+
+  /**
+   * ⭐ Read a written duration into MILLISECONDS (controller-liquidity D1):
+   * `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours` ·
+   * `1 hour 30 minutes`. A unit is required — a bare number is not a
+   * duration (`90` could be seconds or minutes, and the view refuses to
+   * guess). Null for anything else.
+   */
+  static parseDuration(text: string): number | null {
+    const t = text.trim().toLowerCase();
+    if (t.length === 0) return null;
+    const re = /(\d+(?:\.\d+)?)\s*([a-z]+)\s*/y;
+    let total = 0;
+    let at = 0;
+    while (at < t.length) {
+      re.lastIndex = at;
+      const m = re.exec(t);
+      if (m === null) return null;
+      const unit = DURATION_UNITS[m[2]!];
+      if (unit === undefined) return null;
+      total += Number(m[1]) * unit;
+      at = re.lastIndex;
+    }
+    if (at !== t.length || at === 0) return null;
+    return Math.round(total);
+  }
+
+  /**
+   * Whether a word is a duration UNIT (`s`, `seconds`, `hour` …) — the
+   * binder lets a `type: duration` slot take `2 hours` as two tokens.
+   */
+  static isDurationUnit(word: string): boolean {
+    return DURATION_UNITS[word.toLowerCase()] !== undefined;
+  }
+
+  /**
+   * The canonical spelling an enum slot's `values:` gives a typed word
+   * (case-insensitive), or undefined when the word is not one of them.
+   */
+  static matchValue(values: readonly string[], raw: string): string | undefined {
+    const w = raw.trim().toLowerCase();
+    return values.find((v) => v.toLowerCase() === w);
+  }
+
+  /** Whether any slot of this view is a `type: duration`. */
+  private usesDurations(): boolean {
+    const isDuration = (f: { type?: string }): boolean => f.type === 'duration';
+    if (this.args.some(isDuration)) return true;
+    if (Object.values(this.verbOptions).some(isDuration)) return true;
+    return this.allSubcommands().some(
+      ([, sub]) =>
+        (sub.args ?? []).some(isDuration) ||
+        Object.values(sub.options ?? {}).some(isDuration)
+    );
+  }
 }
+
+/** Milliseconds per written duration unit. */
+const DURATION_UNITS: Readonly<Record<string, number>> = {
+  s: 1_000,
+  sec: 1_000,
+  secs: 1_000,
+  second: 1_000,
+  seconds: 1_000,
+  m: 60_000,
+  min: 60_000,
+  mins: 60_000,
+  minute: 60_000,
+  minutes: 60_000,
+  h: 3_600_000,
+  hr: 3_600_000,
+  hrs: 3_600_000,
+  hour: 3_600_000,
+  hours: 3_600_000,
+  d: 86_400_000,
+  day: 86_400_000,
+  days: 86_400_000,
+};
+
+/** The help line a view with a `type: duration` slot carries. */
+const DURATION_FORMS =
+  '  A duration is written 90s, 15m, 2h, 1h30m, 3d, 90 seconds or 2 hours.';
 
 /* ────────────────────── helpers ────────────────────── */
 
@@ -598,7 +727,14 @@ function renderOptionLines(
   if (entries.length === 0) return [];
   const forms = entries.map(([name, def]) => {
     const flag = def.short ? `-${def.short}, --${name}` : `--${name}`;
-    const val = def.type === 'boolean' ? '' : ` <${def.field ?? name}>`;
+    const val =
+      def.type === 'boolean'
+        ? ''
+        : def.type === 'enum' && def.values
+          ? ` <${def.values.join('|')}>`
+          : def.type === 'duration'
+            ? ` <duration>`
+            : ` <${def.field ?? name}>`;
     return { form: `${flag}${val}`, desc: def.description ?? '' };
   });
   const width = Math.max(...forms.map((f) => f.form.length));
@@ -680,11 +816,13 @@ function renderArgs(args: PositionalDefinition[] | undefined): string {
         const required = def.required === true || (def.greedy === true && def.required !== false);
         return required ? phrase : `[${phrase}]`;
       }
+      const label =
+        def.type === 'enum' && def.values ? def.values.join('|') : def.name;
       const core = def.greedy
-        ? `<${def.name}...>`
+        ? `<${label}...>`
         : def.required
-          ? `<${def.name}>`
-          : `[${def.name}]`;
+          ? `<${label}>`
+          : `[${label}]`;
       const preps =
         def.prepositions && def.prepositions.length > 0
           ? `[${def.prepositions.join('|')}] `
@@ -900,6 +1038,94 @@ function validateCardinality(
 }
 
 /**
+ * ⛔ A subcommand stanza is a LEAF (owner rule 2026-11-10): a command is
+ * `verb target` or `verb subcommand target`, never deeper. A non-diegetic
+ * verb that wants a second word takes a hyphenated compound NAME
+ * (`client-layout save <name>`), never a nested stanza. The schema
+ * refuses the key too; this is the same rule for a view built in code.
+ */
+function validateStanzaShape(
+  sub: SubcommandDefinition,
+  filePath: string,
+  key: string
+): void {
+  const raw = sub as SubcommandDefinition & { subcommands?: unknown; fallthrough?: unknown };
+  if (raw.subcommands !== undefined) {
+    throw new Error(
+      `Command definition ${filePath}: subcommand "${key}" declares subcommands: — a command is \`verb subcommand target\`, never deeper`
+    );
+  }
+  if (raw.fallthrough !== undefined) {
+    throw new Error(
+      `Command definition ${filePath}: subcommand "${key}" declares fallthrough: — fallthrough is a verb-level key`
+    );
+  }
+}
+
+/**
+ * ⭐ The grammar keys a slot may carry (D1, D4): a `type: enum` slot
+ * REQUIRES `values:` and every other type REFUSES it (owner ruling
+ * 2026-11-10); the list is non-empty, unique (case-insensitively), with
+ * any `default:` among it; a `duration`'s default must read; `depth:`
+ * only on an object slot.
+ */
+function validateGrammar(
+  field: Pick<FieldDefinition, 'type' | 'values' | 'depth'> & {
+    name?: string;
+    default?: unknown;
+  },
+  filePath: string,
+  where: string
+): void {
+  const label = `${filePath} (${where}${field.name ? `.${field.name}` : ''})`;
+  if (field.type === 'enum' && field.values === undefined) {
+    throw new Error(`${label}: type: enum needs values: (the closed word list)`);
+  }
+  if (field.values !== undefined) {
+    if (field.type !== 'enum') {
+      throw new Error(
+        `${label}: values: is only valid on a type: enum slot (got type=${field.type ?? 'string'})`
+      );
+    }
+    if (field.values.length === 0) {
+      throw new Error(`${label}: values: must list at least one word`);
+    }
+    const seen = new Set<string>();
+    for (const v of field.values) {
+      const k = v.toLowerCase();
+      if (seen.has(k)) throw new Error(`${label}: values: lists "${v}" twice`);
+      seen.add(k);
+    }
+    if (
+      typeof field.default === 'string' &&
+      !field.default.startsWith('$') &&
+      CommandDefinition.matchValue(field.values, field.default) === undefined
+    ) {
+      throw new Error(
+        `${label}: default "${field.default}" is not one of values: ${field.values.join(', ')}`
+      );
+    }
+  }
+  if (
+    field.type === 'duration' &&
+    typeof field.default === 'string' &&
+    !field.default.startsWith('$') &&
+    CommandDefinition.parseDuration(field.default) === null
+  ) {
+    throw new Error(`${label}: default "${field.default}" is not a duration`);
+  }
+  if (
+    field.depth !== undefined &&
+    field.type !== 'object' &&
+    field.type !== 'objects'
+  ) {
+    throw new Error(
+      `${label}: depth: is only valid on an object / objects slot (got type=${field.type ?? 'undefined'})`
+    );
+  }
+}
+
+/**
  * `--async` / `--sync` / `--strict` / `--loose` are reserved framework flags (parsed ahead of
  * per-command option binding — see `CommandLogic.assemble`). A command
  * that declared an option, option-`field`, or positional named `async`
@@ -911,26 +1137,33 @@ function validateReservedFlagNames(def: CommandDefinition): void {
   // ⭐ `--strict` / `--loose` (the per-invocation `onFiltered` override,
   // controllers-are-io D23) are reserved the same way.
   const RESERVED = new Set(['async', 'sync', 'strict', 'loose']);
+  // ⭐ `--top` / `--open` / `--deep` (the per-invocation reach rung,
+  // controller-liquidity D4) are reserved as option NAMES — the token the
+  // binder intercepts. A model FIELD may still be called `open` (a
+  // board's open audience binds `--public` onto `field: open`): a field is
+  // a key, never a token.
+  const RESERVED_TOKENS = new Set([...RESERVED, 'top', 'open', 'deep']);
+  const refuse = (name: string, where: string): never => {
+    throw new Error(
+      `name "${name}" is a reserved framework flag (--async / --sync / --strict / --loose / --top / --open / --deep) and cannot be used as ${where} in ${def.filePath}`
+    );
+  };
   const check = (name: string | undefined, where: string): void => {
-    if (name !== undefined && RESERVED.has(name)) {
-      throw new Error(
-        `name "${name}" is a reserved framework flag (--async / --sync / --strict / --loose) and cannot be used as ${where} in ${def.filePath}`
-      );
-    }
+    if (name !== undefined && RESERVED.has(name)) refuse(name, where);
   };
   const checkOptions = (
     opts: Record<string, OptionDefinition>,
     where: string
   ): void => {
     for (const [name, opt] of Object.entries(opts)) {
-      check(name, `an option name (${where})`);
+      if (RESERVED_TOKENS.has(name)) refuse(name, `an option name (${where})`);
       check(opt.field, `an option field (${where})`);
     }
   };
   for (const a of def.args) check(a.name, 'a positional arg');
   checkOptions(def.verbOptions, 'verb');
   checkOptions(def.payload, 'payload');
-  for (const [subName, sub] of Object.entries(def.subcommands)) {
+  for (const [subName, sub] of def.allSubcommands()) {
     checkOptions(sub.options ?? {}, `subcommand "${subName}"`);
     for (const a of sub.args ?? []) check(a.name, `subcommand "${subName}" arg`);
   }
@@ -942,13 +1175,13 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
       for (const n of names) {
         if (n === SUBCOMMAND_FIELD) {
           throw new Error(
-            `field name "${SUBCOMMAND_FIELD}" is reserved when subcommands are declared (${label}, ${def.filePath})`
+            `field name "${n}" is reserved when subcommands are declared (${label}, ${def.filePath})`
           );
         }
       }
     };
     collide('verb-scoped option', Object.keys(def.verbOptions));
-    for (const [subName, sub] of Object.entries(def.subcommands)) {
+    for (const [subName, sub] of def.allSubcommands()) {
       collide(`subcommand "${subName}" option`, Object.keys(sub.options ?? {}));
       collide(
         `subcommand "${subName}" arg`,
@@ -1013,7 +1246,7 @@ function validateFieldNameUniqueness(def: CommandDefinition): void {
     }
   }
 
-  for (const [subName, sub] of Object.entries(def.subcommands)) {
+  for (const [subName, sub] of def.allSubcommands()) {
     const subOptionNames = new Set<string>();
     for (const [name, opt] of Object.entries(sub.options ?? {})) {
       subOptionNames.add(opt.field ?? name);

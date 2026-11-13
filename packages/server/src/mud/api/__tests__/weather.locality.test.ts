@@ -7,7 +7,7 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 import { WeatherApi } from '../weather';
 import { AddressApi } from '../address';
 import { WorldClockApi } from '../worldclock';
@@ -20,6 +20,10 @@ import {
   WEATHER_DEFAULTS,
   type WeatherType,
 } from '../../lib/weather/WeatherType';
+import { standAddressIndex } from '../../lib/address/__tests__/address-index';
+
+// load-on-use W5: an empty address index, no store behind it.
+beforeEach(() => standAddressIndex());
 
 const SEG = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 

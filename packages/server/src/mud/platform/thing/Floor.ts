@@ -50,6 +50,7 @@ import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Material from '../../lib/material/Material';
 import { StuffApi } from '../../api/stuff';
+import { MaterialApi } from '../../api/material';
 
 // FloorMixin is OUTERMOST: its `getMaterial` / `getKeywords` /
 // `getSlotNames` overrides have to see the composed stack's answers
@@ -111,7 +112,7 @@ export default class Floor extends FloorBase {
     if (phrase) lines.push(`It is ${phrase}.`);
     const strewn = this.getStrewn();
     if (strewn) {
-      const m = StuffApi.findByTemplatePath<Material>(strewn.materialPath);
+      const m = MaterialApi.materials().peek(strewn.materialPath);
       lines.push(`${capitalise(m?.getAppearance() || m?.getName() || 'something')} is strewn over it.`);
     }
     if (this.hasPests()) lines.push('Something has been at the crumbs.');

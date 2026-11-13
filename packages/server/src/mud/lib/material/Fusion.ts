@@ -56,7 +56,7 @@ export function FusionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       castTemplate: { persistent: true, authorable: true },
       // ⭐ (ceramics S12, S17) The cure set and the chill arrows — how the
       // matter sets, never the mould's business.
-      chillsTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      chillsTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
       ruinedByFreezing: { persistent: true, authorable: true },
     };
 

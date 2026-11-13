@@ -147,6 +147,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this.corpoKey;
     }
 
+    /** The bank's corpo (CorpoApi's dictionary is stood at boot). */
     public setCorpoKey(value: string): void {
       this.corpoKey = value;
     }

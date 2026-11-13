@@ -3,7 +3,7 @@
 # Its own category so the wash profile, not the ale's, takes it.
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/mash, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/grain/mash, strength: 300 }]
   tastes: [{ type: sweet, amount: 90 }]
   name: distiller's wort
   keywords: [wort, "distiller's", distiller]

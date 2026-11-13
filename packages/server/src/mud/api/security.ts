@@ -122,6 +122,15 @@ type TestOnlyStub = {
  * gate the corresponding `ShadowApi` operation on the host method.
  * Omitted ops default to Public.
  */
+/**
+ * One thing an Api's reads stand on (`static readonly needs`): a
+ * catalogue's singleton path, or a loader for a catalogue that has no row
+ * (a `singletonSync` one) — e.g. `() => BulkableApi.maturationProfiles().ensureAll()`.
+ * A loader must be idempotent (a cached promise). ⭐ The boot readies every
+ * Api's needs once (`AppBootstrap`), so no class ever readies one by hand.
+ */
+export type ApiNeed = string | (() => Promise<unknown>);
+
 export interface ShadowSecuritySpec {
   attach?: SecurityPolicy;
   detach?: SecurityPolicy;
@@ -634,6 +643,20 @@ export class SecurityApi {
     if ((original as { _callSecWrapped?: boolean })._callSecWrapped) {
       return;
     }
+    // ⭐ An Api's declared `needs` (the dictionaries its reads stand on):
+    // the boot readies them all once (`AppBootstrap`); an ASYNC static also
+    // awaits them here, which is a resolved promise after boot and the
+    // load itself in a harness that never booted.
+    const needs = (cls as { needs?: readonly ApiNeed[] }).needs;
+    const awaitsNeeds =
+      Array.isArray(needs) && needs.length > 0 && original.constructor.name === 'AsyncFunction';
+    const body = awaitsNeeds
+      ? function (this: unknown, ...args: unknown[]): unknown {
+          const load = SecurityApi.#needsLoader;
+          const loading = load ? load(needs) : null;
+          return loading ? loading.then(() => original.apply(this, args)) : original.apply(this, args);
+        }
+      : original;
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
@@ -642,13 +665,13 @@ export class SecurityApi {
         return allowed.then((ok) => {
           if (!ok) SecurityApi.#denyStatic(cls, methodName, policy);
           return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
-            original.apply(this, args)
+            body.apply(this, args)
           );
         });
       }
       if (!allowed) SecurityApi.#denyStatic(cls, methodName, policy);
       return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
-        original.apply(this, args)
+        body.apply(this, args)
       );
     };
     Object.defineProperty(wrapped, 'name', {
@@ -973,6 +996,23 @@ export class SecurityApi {
   }
 
   static #shadowApi: ShadowApiLike | null = null;
+
+  /**
+   * The loader an Api's declared `needs` are awaited through (the same
+   * door as `StuffApi.ready`) — late-bound for the ShadowApi reason:
+   * `stuff.ts` decorates itself through this module. Only async statics
+   * await it, so it never needs a synchronous fast path.
+   */
+  static #needsLoader: ((needs: readonly ApiNeed[]) => Promise<unknown> | null) | null = null;
+
+  /**
+   * Slot for the boot wiring to hand the needs loader to the gate
+   * (`BootstrapManager.installFrameworkWiring`); idempotent.
+   * @internal
+   */
+  public static _registerNeedsLoader(load: (needs: readonly ApiNeed[]) => Promise<unknown> | null): void {
+    SecurityApi.#needsLoader = load;
+  }
 
   /** The unwrapped per-dispatch pair — see {@link ShadowGateEntries}. */
   static #shadowGate: ShadowGateEntries | null = null;

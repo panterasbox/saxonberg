@@ -1,7 +1,7 @@
 # fish glue — boiled from fish skins: slow to set, very strong, the clearest glue there is, and the damp undoes it.
 class: /platform/idea/material/Glue
 data:
-  smells: [{ aroma: /base-library/aromas/fish, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/flesh/fish, strength: 800 }]
   name: fish glue
   keywords: ["fish glue", glue, isinglass]
   appearance: a clear, faintly golden glue with an unmistakable smell of the harbor

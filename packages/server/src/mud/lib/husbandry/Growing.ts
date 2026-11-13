@@ -48,7 +48,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Soil } from './Soil';
+import type { AmendAnswer, AmendRequest, PartChoices, Soil } from './Soil';
 import type { Difficulty } from '../advancement/ActSignature';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -67,7 +67,7 @@ import { ContainmentApi } from '../../api/containment';
 import { PersistableApi } from '../../api/persistable';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Grade, type GradeBand } from '../craft/Grade';
-import type { ActDone, ActPlan } from '../craft/ActPlan';
+import type { ActChoices, ActDone, ActPlan } from '../craft/ActPlan';
 import type { Tooled } from '../craft/Tool';
 import type { Containable } from '../spatial/Containable';
 import Place from '../stuff/Place';
@@ -331,8 +331,13 @@ function ramp(x: number, lo: number, hi: number): number {
 export interface HarvestRequest {
   /** Who cuts. */
   by: Stuff;
-  /** What they called it — a labeled plant is cut when named by its label. */
-  typed: string;
+  /**
+   * ⭐ This plant was picked out of a harvest's {@link HarvestChoices}: it
+   * is cut as named, and no stand is put in its place. (It replaced `typed`
+   * — the plant read the player's words to tell a labeled plant from its
+   * stand, which is resolution hiding in the model; controller-liquidity D8.)
+   */
+  chosen?: boolean;
   /** `--at <part>`: which part of a divided field. */
   part: (Stuff & Soil) | null;
   /** The instrument the view's default bound, or the one named. */
@@ -342,7 +347,6 @@ export interface HarvestRequest {
 /** Why a harvest was refused — the note's reason, and the switch's census. */
 export type HarvestReason =
   | 'nothing-growing'
-  | 'part-unnamed'
   | 'not-a-part-here'
   | 'nothing-sown-there'
   | 'not-harvestable'
@@ -365,8 +369,8 @@ export interface HarvestRefusal {
     subject?: Stuff;
     /** A part of the ground the refusal is about. */
     part?: Stuff;
-    /** The ground's own sentence, when it refused (`resolvePartFor`). */
-    line?: string;
+    /** The ground `part` is not a part of (`not-a-part-here` from the ground). */
+    ground?: Stuff;
     /** The stage in the words the plant is read in. */
     stageWord?: string;
   };
@@ -398,10 +402,34 @@ export type HarvestDone =
       standing: number;
     };
 
-/** What a harvest answers: a plan (a pick is `durationMs: 0`), or no. */
+/**
+ * ⭐ A harvest the plant will not guess at (controller-liquidity D8) — the
+ * controller picks, refuses with the list, or asks, then asks again with the
+ * pick (`part` for the ground's parts; the chosen plant itself, `chosen`, for
+ * a stand):
+ *
+ *  - `part-unnamed` — the ground is marked into fields and none was named
+ *    (the ground's {@link PartChoices}).
+ *  - `stand-or-labeled` — a labeled plant was named at a part where a stand
+ *    of its kind roots: was the plant meant, or the crop? `preferred` is the
+ *    stand (the word names both; a label names one).
+ *  - `ripe-elsewhere` — the stand named is not ready and one of its kind in
+ *    the same bed is: `preferred` is the ripe one (the sugar drive's
+ *    cutters, refused seventy-eight times while ripe cane stood beside them).
+ */
+export type HarvestChoices =
+  | PartChoices
+  | ActChoices<
+      Stuff & Growing,
+      'stand-or-labeled' | 'ripe-elsewhere',
+      { preferred: Stuff & Growing }
+    >;
+
+/** What a harvest answers: a plan (a pick is `durationMs: 0`), a no, or a choice. */
 export type HarvestAnswer =
   | ActPlan<HarvestBegin, HarvestDone, HarvestRefusal>
-  | HarvestRefusal;
+  | HarvestRefusal
+  | HarvestChoices;
 
 /** Felt cost of one swath, percentage points of a fresh body (D5). */
 const SWATH_FELT_COST = 6;
@@ -706,6 +734,27 @@ export interface Growing {
   waterHeadroomL(): number;
   /** Points of nitrogen the ground under this plant can still take. */
   nutrientHeadroom(): number;
+  /**
+   * Whether this plant keeps a root zone of its own — the pocket of ground
+   * watered round ONE plant in a field (field population D6). Default
+   * `false`; a labeled `Plant` answers.
+   */
+  hasRootZone(): boolean;
+  /** Whether feed aimed at this plant goes into its own root zone. Default `false`. */
+  rootZoneFeeds(): boolean;
+  /**
+   * How hard bringing this plant's water back is right now — the
+   * `horticulture` difficulty `water` credits. Default `standard`.
+   */
+  careDifficulty(): Difficulty;
+  /**
+   * ⭐ `water` / `feed` aimed at this plant (controller-liquidity W8): the
+   * ground it stands in takes it — on a divided field the ground of its
+   * kind's stand in the part named (the ground says which, or refuses) —
+   * so this resolves where, and delegates to that ground's
+   * {@link Soil.amendPlanFor}.
+   */
+  amendPlanFor(req: AmendRequest): Promise<AmendAnswer>;
   /**
    * ⭐ The read at `band` — see {@link CropRead}. With a `seed` it also
    * carries the moisture and nutrient as that reader takes them.
@@ -1577,22 +1626,32 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       // (field population, the final drive): the binder handed us the
       // labeled plant standing in that patch, which "wheat" names as well
       // as it names the stand, and the trial plant was cut instead of the
-      // crop. A labeled plant is cut when it is named by its label
-      // (`harvest trial`) — the rule `sample` and `label` already keep.
-      if (!named.isAreaCrop() && part && MixinApi.isLabelled(named)) {
-        const label = named.getLabel().toLowerCase();
-        const typed = req.typed.toLowerCase();
-        const byLabel = label !== '' && label.split(/\s+/).some((w) => typed.includes(w));
+      // crop. An UNLABELED individual cannot be told from the stand, so the
+      // stand is meant; a labeled one may have been named by its label
+      // (`harvest trial`), and which was meant is the player's words — the
+      // controller's to read, so the plant answers the two as a choice.
+      if (!req.chosen && !named.isAreaCrop() && part && MixinApi.isLabelled(named)) {
         const here = MixinApi.isContainable(req.by) ? req.by.getContainer() : null;
         const ground = here && MixinApi.isSoil(here) ? here : part;
-        const there = byLabel ? null : ground.rootedAreaCrop(part);
-        if (there && there.isSameKindAs(named)) stand = there;
+        const there = ground.rootedAreaCrop(part);
+        if (there && there.isSameKindAs(named)) {
+          if (named.getLabel() === '') {
+            stand = there;
+          } else {
+            return {
+              ok: 'choose',
+              reason: 'stand-or-labeled',
+              choices: [there, named],
+              facts: { preferred: there },
+            };
+          }
+        }
       }
       const holder = MixinApi.isContainable(stand) ? stand.getContainer() : null;
       if (stand.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
-        // ⭐ The GROUND says which part, or refuses in its own words.
+        // ⭐ The GROUND says which part, or answers its parts as a choice.
         const r = holder.harvestPartFor({ stand, part });
-        if (!r.ok) return r;
+        if (r.ok !== true) return r;
         stand = r.stand;
       } else if (part && part !== stand.getBed()) {
         return {
@@ -1610,8 +1669,20 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       // the first match, and it refused "has not filled its set" while
       // ripe cane stood beside it (the sugar drive: an estate's cutters,
       // seventy-eight times). Only the same KIND, rooted in the same bed,
-      // is a substitute.
-      const plant = stand.isHarvestable() ? stand : (stand.ripeSibling() ?? stand);
+      // is a substitute — and it is offered, not taken: the controller
+      // picks it (the shipped one does) or asks.
+      if (!req.chosen && !stand.isHarvestable()) {
+        const ripe = stand.ripeSibling();
+        if (ripe) {
+          return {
+            ok: 'choose',
+            reason: 'ripe-elsewhere',
+            choices: [ripe, stand],
+            facts: { preferred: ripe },
+          };
+        }
+      }
+      const plant = stand;
       const cropPath = plant.getHarvestTemplatePath();
       if (!cropPath) {
         return {
@@ -1872,6 +1943,43 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public nutrientHeadroom(): number {
       return this.getBed()?.soilNutrientHeadroom() ?? 0;
+    }
+
+    public hasRootZone(): boolean {
+      return false;
+    }
+
+    public rootZoneFeeds(): boolean {
+      return false;
+    }
+
+    public careDifficulty(): Difficulty {
+      return 'standard';
+    }
+
+    /** See {@link Growing.amendPlanFor}. */
+    public async amendPlanFor(req: AmendRequest): Promise<AmendAnswer> {
+      const self = this as unknown as Stuff & Growing;
+      const zone = this.rootZoneFeeds() ? self : null;
+      const holder = MixinApi.isContainable(self) ? self.getContainer() : null;
+      // ⭐ A field crop: the GROUND says which part, or refuses.
+      if (this.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+        const r = holder.resolvePartFor(req.part);
+        if (r.ok !== true) return r;
+        const plant = r.part ? this.standIn(r.part) : self;
+        const ground = plant?.getBed() ?? r.part ?? holder;
+        return ground.amendPlanFor({ ...req, part: r.part, aimed: { plant, zone } });
+      }
+      const bed = this.getBed();
+      if (req.part && req.part !== bed) {
+        return { ok: false, reason: 'not-standing-at', facts: { plant: self, part: req.part } };
+      }
+      if (!bed) {
+        return req.amend === 'water'
+          ? { ok: false, reason: 'not-rooted', facts: { plant: self } }
+          : { ok: false, reason: 'not-cultivable', facts: { target: req.target } };
+      }
+      return bed.amendPlanFor({ ...req, part: null, aimed: { plant: self, zone } });
     }
 
     public readFor(band: CompetenceBandName, seed?: number): CropRead {

@@ -38,6 +38,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { WayIndexMixin } from '@saxonberg/server/mud/lib/location/WayIndex';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -53,6 +54,10 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import { LANE_PATH_PREFIX, type LaneDescriptor, type LaneEdge } from './Lane';
 import { SERVICE_ROUTE_PATH_PREFIX } from './ServiceRoute';
 import { Route } from '../lib/journey/Route';
+import type { RoutePlan, TravelProfileSpec } from '@saxonberg/server/mud/api/navigation';
+import type { ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 
 /** The catalogue singleton's own template path. */
 export const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
@@ -105,7 +110,47 @@ interface CompiledIndex {
   problems: string[];
 }
 
-export default class LaneCatalogue extends Idea {
+/** What a journey is asked for: from where, to what name, by which lane, in what. */
+export interface JourneyRequest {
+  /** The origin room. */
+  here: Stuff;
+  /** The destination as typed. */
+  named: string;
+  /** The path of a reachable thing the name bound, when it bound one. */
+  bound: string | null;
+  /** `via <lane>`, when named. */
+  via: string | null;
+  /** How the vehicle travels — the VEHICLE's mode, never the lane's (D13). */
+  profile: TravelProfileSpec;
+}
+
+/** A journey planned: the route, and what the way is called. */
+export interface JourneyPlan {
+  ok: true;
+  route: Route;
+  /** The lane names the trip crosses, in words. */
+  wayName: string;
+}
+
+/** ⭐ Every reason a journey will not plan — worded by `journey`. */
+export type JourneyRefusal =
+  | ActRefusal<'nowhere'>
+  | ActRefusal<'open-water', { sea: string }>
+  | ActRefusal<'already-there'>
+  | ActRefusal<'no-destination', { named: string; stops: string[] }>
+  | ActRefusal<'no-lane', { via: string }>
+  | ActRefusal<'not-on-lane', { lane: string | null }>
+  | ActRefusal<
+      'no-way',
+      {
+        /** The router's own reason (`budget`, `graph-cold`, `unknown-*`, …) — the envelope note's. */
+        why: string;
+        breakAt: { node: string; dir: string; needs: readonly string[] } | null;
+        lane: string | null;
+      }
+    >;
+
+export default class LaneCatalogue extends WayIndexMixin(Idea) {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<CompiledIndex> | null = null;
 
@@ -130,6 +175,133 @@ export default class LaneCatalogue extends Idea {
   /** Drop the compiled graph; the next read rebuilds. Fired by HMR. */
   public invalidateCache(): void {
     this.loading = null;
+  }
+
+  /* ─────────────────────────── a journey ─────────────────────────── */
+
+  /**
+   * ⭐ **Plan a journey** (the `journey` verb's act, controller-liquidity
+   * W12): which place the name means, which lane, and the route — the
+   * rules that used to live in the verb.
+   *
+   * The name resolves to **the stops on the roads that run from here** (a
+   * journey's destination is a NODE ON A LANE, never a Locality — `ship`'s
+   * answer is the wrong unit here), else a durable path. A place across
+   * open water is not on any road, and the refusal says `course` knows it.
+   *
+   * ⭐ Three ways to plan, and which applies is a fact about the lane:
+   * an AUTHORED lane (`edges:`) IS its own graph; a named INDUCED lane
+   * restricts the search to its node set (asserted after the search — the
+   * honest refusal is *the lane does not join them*, not *there is no
+   * way*); no lane named plans over the mode's whole graph and the lanes
+   * crossed become the LABEL. ⚠ No auto-replan: blocked means blocked.
+   */
+  public async planJourney(req: JourneyRequest): Promise<JourneyPlan | JourneyRefusal> {
+    const here = req.here.getTemplatePath() ?? '';
+    if (here === '') return { ok: false, reason: 'nowhere' };
+    const there = await this.placeNamed(req.named, req.bound, here);
+    if (there === '') {
+      const sea = await LaneCatalogue.seaNodeNamed(req.named, req.here);
+      if (sea !== null) return { ok: false, reason: 'open-water', facts: { sea } };
+    }
+    if (there === here) return { ok: false, reason: 'already-there' };
+    if (there === '') {
+      return { ok: false, reason: 'no-destination', facts: { named: req.named, stops: await this.stopsFrom(here) } };
+    }
+    let lane: CompiledLane | null = null;
+    if (req.via) {
+      const named = await this.laneOf(req.via.trim());
+      lane = named && named.nodes.includes(here) ? named : null;
+      if (lane === null) return { ok: false, reason: 'no-lane', facts: { via: req.via } };
+    }
+    const budget = dial('navigation.attendedSearchBudget', 400);
+    const outcome =
+      lane && lane.authored
+        ? NavigationApi.routeOverEdges(LaneCatalogue.edgesOf(lane), here, there, budget)
+        : await NavigationApi.routeBetween(here, there, req.profile, {}, budget);
+    if (!outcome.ok) {
+      return {
+        ok: false,
+        reason: 'no-way',
+        facts: { why: outcome.reason, breakAt: outcome.breakAt ?? null, lane: lane?.name ?? null },
+      };
+    }
+    const plans =
+      lane && !lane.authored
+        ? outcome.plans.filter((p: RoutePlan) => p.nodes.every((n: string) => lane.adjacency.has(n)))
+        : outcome.plans;
+    if (plans.length === 0) return { ok: false, reason: 'not-on-lane', facts: { lane: lane?.name ?? null } };
+    // ⭐ The first plan: `journey` is a commitment to go, and `route` is
+    // where a person sees the incomparable ones side by side.
+    const plan = plans[0]!;
+    const label = lane ? lane.key : (await this.laneLabelFor(plan.nodes)).join(', ');
+    const laneStops = lane ? lane.stops : [];
+    const stops = plan.nodes.filter((n: string) => laneStops.length === 0 || laneStops.includes(n));
+    const route = Route.computed(label.length > 0 ? label : 'the way', plan.nodes, stops);
+    const crossed = lane ? [lane.name] : await this.laneNamesFor(plan.nodes);
+    return { ok: true, route, wayName: crossed.length > 0 ? crossed.join(', then ') : 'the way' };
+  }
+
+  /**
+   * A place the player named, as a durable path: a reachable thing the
+   * name bound, else a stop on a road from here (two spellings of one
+   * name agree), else a literal path, else `''`.
+   */
+  private async placeNamed(named: string, bound: string | null, here: string): Promise<string> {
+    if (bound) return bound;
+    const want = LaneCatalogue.normalizePlace(named);
+    if (want.length > 0) {
+      for (const lane of await this.lanesAt(here)) {
+        const match = lane.nodes.find((n) => LaneCatalogue.normalizePlace(LaneCatalogue.leafOf(n)) === want);
+        if (match) return match;
+      }
+    }
+    return named.startsWith('/') ? named : '';
+  }
+
+  /** Every stop the roads from here reach — what a refused journey offers. */
+  private async stopsFrom(here: string): Promise<string[]> {
+    const out = new Set<string>();
+    for (const lane of await this.lanesAt(here)) {
+      for (const n of lane.nodes) if (n !== here) out.add(LaneCatalogue.leafOf(n));
+    }
+    return [...out].sort();
+  }
+
+  /**
+   * The name of a place across open water answering to `named`, asked of
+   * the SEAS this place looks out over (its `horizon`), each by its own
+   * nodes — never a scan of every node row. A sea you cannot see from
+   * here is not one you would name.
+   */
+  private static async seaNodeNamed(named: string, here: Stuff): Promise<string | null> {
+    if (!(here instanceof Place)) return null;
+    const horizon = here.getHorizon() ?? here.getZone()?.peekField<string[]>('horizon') ?? null;
+    for (const path of horizon ?? []) {
+      const sea = await StuffApi.singleton<Stuff>(path).catch(() => null);
+      if (!(sea instanceof Expanse)) continue;
+      const node = await sea.nodeByKeyword(named);
+      if (node !== null) return node.getName();
+    }
+    return null;
+  }
+
+  /** An authored lane's declared edges, as a graph the router can plan. */
+  private static edgesOf(lane: CompiledLane): Array<{ from: string; to: string }> {
+    const out: Array<{ from: string; to: string }> = [];
+    for (const [from, tos] of lane.adjacency) for (const to of tos) out.push({ from, to });
+    return out;
+  }
+
+  /** A place name two spellings agree on: lowercase, no leading article, spaces = hyphens. */
+  private static normalizePlace(raw: string): string {
+    return raw.trim().toLowerCase().replace(/^the\s+/, '').replace(/[\s-]+/g, ' ').trim();
+  }
+
+  /** The last path segment, spaced. */
+  private static leafOf(path: string): string {
+    const leaf = path.split('/').filter(Boolean).pop() ?? path;
+    return leaf.replace(/-/g, ' ');
   }
 
   /* ─────────────────────────── reads ─────────────────────────── */
@@ -165,6 +337,18 @@ export default class LaneCatalogue extends Idea {
    */
   public async lanesAt(path: string): Promise<CompiledLane[]> {
     return [...((await this.index()).byNode.get(path) ?? [])];
+  }
+
+  /**
+   * ⭐ The kernel's `WayIndex` question (controller-liquidity W21): every
+   * place along every lane through `placePath` — the union, so a
+   * crossroads answers both ways. `analyze rooms` asks it for a
+   * `roomsScope: corridor` archetype.
+   */
+  public override async waysideOf(placePath: string): Promise<string[]> {
+    const out = new Set<string>();
+    for (const lane of await this.lanesAt(placePath)) for (const n of lane.nodes) out.add(n);
+    return [...out];
   }
 
   /**

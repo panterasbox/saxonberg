@@ -31,6 +31,7 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials } from '../../lib/material/__tests__/materials';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import Vat from '../thing/Vat';
@@ -96,15 +97,14 @@ function roomArchetypeDocs(): StoredDocument[] {
       // Hand-parsed rather than YAML-loaded: these rows are flat, and the
       // point of reading the REAL files is that the shipped archetypes are
       // what is under test, not a fixture that agrees with them.
-      return raw;
+      return { raw, id: f.slice(0, -'.yaml'.length) };
     })
-    .map((raw) => parseArchetype(raw));
+    .map(({ raw, id }) => parseArchetype(raw, id));
 }
 
 /** A deliberately tiny reader for the four flat archetype rows. */
-function parseArchetype(raw: string): StoredDocument {
+function parseArchetype(raw: string, id: string): StoredDocument {
   const lines = raw.split('\n').filter((l) => !l.trimStart().startsWith('#'));
-  const idLine = lines.find((l) => l.startsWith('archetypeId:'))!;
   const labelLine = lines.find((l) => l.startsWith('label:'))!;
   const capabilities = lines
     .filter((l) => l.trimStart().startsWith('- { key:'))
@@ -122,12 +122,11 @@ function parseArchetype(raw: string): StoredDocument {
       return { key, needs: { [nk!]: nv }, default: dflt };
     });
   const data = {
-    archetypeId: idLine.slice('archetypeId:'.length).trim(),
     label: labelLine.slice('label:'.length).trim(),
     capabilities,
   };
   return {
-    getPath: () => `/generic-objects/archetypes/${data.archetypeId}`,
+    getPath: () => `/generic-objects/archetypes/${id}`,
     getData: () => data as Record<string, unknown>,
     getKind: () => 'archetype',
   } as unknown as StoredDocument;
@@ -178,6 +177,10 @@ function tap(): UnboundedReceptacle {
   };
   authored.interiorBulk = true;
   authored.interiorMaterial = '/stuff/idea/material/bulk/water';
+  // The field is a constituent (`identity:constituent`): the applier loads
+  // its material with the row. Writing it by name skips that door, so the
+  // material is stood in here.
+  standMaterials(['/stuff/idea/material/bulk/water']);
   t.setShortDescription('a cold tap');
   return t;
 }
@@ -207,7 +210,12 @@ describe('archetype satisfaction', () => {
     );
     await catalogue.warm();
   });
-  afterEach(() => {
+  afterEach(async () => {
+    // ⚠ A move restamps a Thermal arrival in the background (it awaits the
+    // scope's ambient, then reads the tap's water for evaporation). Let it
+    // land before the registry — and the water with it — is cleared, or
+    // it reads a material this teardown just took away.
+    await new Promise((r) => setTimeout(r, 0));
     vi.restoreAllMocks();
     StuffApi.clearAll();
   });
@@ -377,10 +385,13 @@ describe('archetype satisfaction', () => {
       }
     };
     walk(root);
+    // `RoomsReading` gathers and words it (`analyze rooms`; the read sat on
+    // `Place` from W17 until controller-liquidity W21 moved it off every
+    // location); still reported, never spent.
     expect(hits.sort()).toEqual([
       'lib/archetype/Archetype.ts',
       'platform/__tests__/ArchetypeSatisfaction.test.ts',
-      'platform/idea/cmd/perception/SurveyController.ts',
+      'platform/idea/reading/RoomsReading.ts',
     ]);
   });
 });
@@ -404,7 +415,7 @@ describe('the fermentation venue archetypes', () => {
       const raw = YAML.parse(
         readFileSync(join(PACKS, pack, 'content', 'archetypes', `${id}.yaml`), 'utf8'),
       ) as Record<string, unknown>;
-      const archetype = Archetype.fromData(raw);
+      const archetype = Archetype.fromData(raw, `/${pack}/archetypes/${id}`);
       expect(archetype.getArchetypeId()).toBe(id);
       // industry stays null — the shared `fermenting` discipline would
       // cross-derive the sibling trade's tools (the authored-residue rule).
@@ -423,7 +434,7 @@ describe('the fermentation venue archetypes', () => {
       archetypeId: 'vessel-probe',
       label: 'a probe',
       capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
-    });
+    }, '/test/archetypes/vessel-probe');
     const room = makeStuff(() => new Locale());
     const bare = archetype.satisfies(room);
     expect(bare.satisfied).toBe(false);

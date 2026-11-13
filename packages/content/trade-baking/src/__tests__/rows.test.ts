@@ -28,7 +28,8 @@ function row(file: string): Record<string, unknown> {
     class?: string;
     data?: Record<string, unknown>;
   };
-  return { __class: doc.class, ...(doc.data ?? {}) };
+  // A document (load-on-use W4) has no `class:` and no `data:` wrapper.
+  return { __class: doc.class, ...(doc.data ?? (doc as Record<string, unknown>)) };
 }
 function recipe(name: string): Record<string, unknown> {
   return YAML.parse(
@@ -78,10 +79,10 @@ describe('the five materials, and why there are exactly five', () => {
 
 describe('⭐ the proof is a real ferment on the shipped substrate', () => {
   const profile = () =>
-    row(join(BAKING, 'idea', 'maturation', 'bread-dough.yaml'));
+    row(join(PACK, 'content', 'maturation-profiles', 'bread-dough.yaml'));
 
   it('it rides MaturationProfile, matching the dough by TAG', () => {
-    expect(profile().__class).toBe('/platform/idea/maturation/MaturationProfile');
+    expect(profile().__class).toBeUndefined(); // a document, not a row
     expect(profile().inputCategory).toBe('dough');
     expect((row(join(MATS, 'dough.yaml')).tags as string[])).toContain('dough');
   });
@@ -113,7 +114,7 @@ describe('⭐ the proof is a real ferment on the shipped substrate', () => {
   });
 
   it('the levain is a CULTURE and needier than a barm', () => {
-    const l = row(join(BAKING, 'idea', 'maturation', 'levain-culture.yaml'));
+    const l = row(join(PACK, 'content', 'maturation-profiles', 'levain-culture.yaml'));
     expect(l.kind).toBe('culture');
     expect(l.strain).toBe('sourdough');
     // A sourdough starter is famously needier than the brewer's twelve
@@ -278,7 +279,7 @@ describe('the two concepts', () => {
     // AC 19: a reader must be able to predict the bread box before ever
     // putting a loaf in one.
     const body = String(
-      row(join(BAKING, 'idea', 'HelpConcept', 'retrogradation.yaml')).body,
+      (YAML.parse(readFileSync(join(PACK, 'content', 'concepts', 'retrogradation.yaml'), 'utf-8')) as { body: string }).body,
     ).toLowerCase();
     expect(body).toContain('counter');
     expect(body).toContain('cold');
@@ -291,18 +292,18 @@ describe('the two concepts', () => {
 
   it('⭐ `gluten` explains why barley cannot make a loaf', () => {
     const body = String(
-      row(join(BAKING, 'idea', 'HelpConcept', 'gluten.yaml')).body,
+      (YAML.parse(readFileSync(join(PACK, 'content', 'concepts', 'gluten.yaml'), 'utf-8')) as { body: string }).body,
     ).toLowerCase();
     expect(body).toContain('barley');
     expect(body).toContain('sheet');
     expect(body).toContain('flat');
   });
 
-  it('both are HelpConcept rows, harvested by class', () => {
+  it('both are help-concept DOCUMENTS (the file is the data), harvested by kind', () => {
     for (const k of ['gluten', 'retrogradation']) {
-      const c = row(join(BAKING, 'idea', 'HelpConcept', `${k}.yaml`));
-      expect(c.__class).toBe('/platform/idea/HelpConcept');
-      expect(c.key).toBe(k);
+      const c = YAML.parse(readFileSync(join(PACK, 'content', 'concepts', `${k}.yaml`), 'utf-8')) as Record<string, unknown>;
+      expect(c.class).toBeUndefined();
+      expect(typeof c.title).toBe('string');
     }
   });
 });

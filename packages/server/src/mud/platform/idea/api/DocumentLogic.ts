@@ -8,7 +8,11 @@ import { AccessApi } from "../../../api/access";
 import { ParcelApi } from "../../../api/parcel";
 import { ProvenanceApi } from "../../../api/provenance";
 import { ExecutionContextApi } from "../../../api/execution-context";
-import { StoredDocument } from "../../../lib/document/StoredDocument";
+import {
+  DocumentRefusal,
+  StoredDocument,
+  type DocumentKeyQuery,
+} from "../../../lib/document/StoredDocument";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Publisher } from "../../../lib/press/Publisher";
@@ -19,6 +23,7 @@ import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,
+  DOCUMENT_KINDS,
   type DeclaredDocumentKind,
 } from '../../../lib/document/DocumentKinds';
 import { createHash } from 'node:crypto';
@@ -30,6 +35,8 @@ import {
   type EditionRequest,
   type EditionTeaching,
 } from '../../../lib/document/Edition';
+import type { ServesDocuments } from '../../../lib/document/DocumentCatalogue';
+import { StuffApi } from '../../../api/stuff';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -93,12 +100,63 @@ async function readImpl(path: string): Promise<StoredDocument | null> {
   return StoredDocument.findByPath(path);
 }
 
+/** The upper bound of a path subtree range: every path under `p/` sorts below it. */
+const PATH_RANGE_END = '\uffff';
+
+/** The path range a subtree `prefix/…` occupies — served by the unique path index. */
+function subtreeRange(prefix: string): { $gte: string; $lt: string } {
+  const under = prefix.endsWith('/') ? prefix : `${prefix}/`;
+  return { $gte: under, $lt: under + PATH_RANGE_END };
+}
+
+/**
+ * Every document whose path is `prefix` or lies under `prefix/` — a range
+ * over the unique path index, never a collection scan.
+ */
+async function documentsUnder(prefix: string): Promise<StoredDocument[]> {
+  const bare = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+  return StoredDocument.find<StoredDocument>({
+    $or: [{ path: bare }, { path: subtreeRange(prefix) }],
+  });
+}
+
 async function listImpl(prefix: string): Promise<StoredDocument[]> {
-  return StoredDocument.findByPrefix(prefix);
+  return documentsUnder(prefix);
 }
 
 async function listOfKindImpl(kind: string): Promise<StoredDocument[]> {
   return StoredDocument.findByKind(kind);
+}
+
+/**
+ * ⭐ Documents of `kind` found by one key of their catalogue card. One
+ * query shape, served by the `{kind, 'keys.$**'}` wildcard index:
+ * equality, or an inclusive range, on `keys.<key>`; an ordered read with no
+ * bound still constrains the key (`$exists`) so the sort runs on the index
+ * (and a document with no value for the key is not returned); a prefix is a
+ * path range, never a regex.
+ */
+async function findByKeyImpl(
+  kind: string,
+  key: string,
+  q: DocumentKeyQuery,
+): Promise<StoredDocument[]> {
+  const field = `keys.${key}`;
+  let cond: unknown;
+  if (q.eq !== undefined) {
+    cond = q.eq;
+  } else {
+    const range: Record<string, unknown> = {};
+    if (q.min !== undefined) range.$gte = q.min;
+    if (q.max !== undefined) range.$lte = q.max;
+    cond = Object.keys(range).length > 0 ? range : { $exists: true };
+  }
+  const query: Record<string, unknown> = { kind, [field]: cond };
+  if (q.prefix) query.path = subtreeRange(q.prefix);
+  const options: { sort?: Record<string, 1 | -1>; limit?: number } = {};
+  if (q.order) options.sort = { [field]: q.order === 'asc' ? 1 : -1 };
+  if (q.limit !== undefined) options.limit = q.limit;
+  return StoredDocument.find<StoredDocument>(query, options);
 }
 
 /**
@@ -493,7 +551,7 @@ async function readMapsImpl(
   const base = prefix.length > 0
     ? `${owner}/${MAPS_DIR}/${prefix}`
     : `${owner}/${MAPS_DIR}`;
-  const rows = await StoredDocument.findByPrefix(base);
+  const rows = await documentsUnder(base);
   return rows
     .filter((d) => d.kind === 'map')
     .map((d) => ({ path: d.path, data: d.data as Record<string, unknown> }));
@@ -596,7 +654,7 @@ async function saveImpl(
 ): Promise<void> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new Error(denial);
+  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
 
   const existing = await StoredDocument.findByPath(path);
 
@@ -614,7 +672,7 @@ async function saveImpl(
   // Persist (find-or-create). Owner = the acting author's durable path.
   const doc = existing ?? new StoredDocument();
   doc.path = path;
-  doc.owner = actor?.getTemplatePath() ?? "";
+  doc.owner = actor?.getIdentityPath() ?? "";
   doc.kind = kind;
   doc.data = data;
   await doc.save();
@@ -626,6 +684,29 @@ async function saveImpl(
 
   // Go-live: a command view reaches the dispatcher without a restart.
   if (kind === COMMAND_VIEW_KIND) await CommandApi.reload(path);
+  forgetEdited(kind, path);
+}
+
+/**
+ * The catalogue serving `kind` — the one map from a document kind to the
+ * singleton that serves it (documents W5d). A kind read by path alone has
+ * none.
+ */
+function catalogueForImpl(kind: string): ServesDocuments | null {
+  // By the kind's declared path, never by importing every domain Api into
+  // the document store (a hub every module reaches would cycle). A
+  // catalogue nothing has stood up holds nothing to forget.
+  const path = (DOCUMENT_KINDS as Record<string, { catalogue?: string }>)[kind]?.catalogue;
+  return path ? (StuffApi.findByTemplatePath(path) as unknown as ServesDocuments | null) : null;
+}
+
+/**
+ * ⭐ The CMS edit reaches the cache (documents D16): the value class's
+ * memory of the edited path is dropped, so the next use re-reads it — the
+ * installer's go-live, for one path. A topic re-warms its vocabulary.
+ */
+function forgetEdited(kind: string, path: string): void {
+  catalogueForImpl(kind)?.forget([path]);
 }
 
 /** The document kind a command view is stored under. */
@@ -634,10 +715,12 @@ const COMMAND_VIEW_KIND = "command-view";
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new Error(denial);
+  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
+  const kind = doc.kind;
   await doc.delete();
+  forgetEdited(kind, path);
   return true;
 }
 
@@ -738,6 +821,20 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'berth-roll':
     case 'berth-book':
     case 'aroma':
+    case 'pump-mechanism':
+    case 'form':
+    case 'joint':
+    case 'dirt':
+    case 'cleanser':
+    case 'fabric':
+    case 'dyestuff':
+    case 'maturation-profile':
+    case 'fraction-schedule':
+    case 'operation':
+    case 'help-concept':
+    case 'formation':
+    case 'placement':
+    case 'topic':
     case 'standby-reason':
     case 'lower-third-panel':
     case 'stream-token': // ⛔ a credential is never paper
@@ -769,7 +866,7 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
   const sourceDoc = await StoredDocument.findByPath(source);
   const owner =
     sourceDoc?.getOwner() ??
-    (await StoredDocument.findByPrefix(`${source}/`)).find((d) => d.getOwner() !== '')?.getOwner() ??
+    (await documentsUnder(`${source}/`)).find((d) => d.getOwner() !== '')?.getOwner() ??
     '';
   if (owner === '') {
     throw new TypeError(`DocumentApi.freezeEdition: ${source} names no document to print from`);
@@ -802,10 +899,18 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
  * `public` filter is the anonymous web's), else a paper of the reader's own
  * whose title does. Never a search of anyone else's papers.
  */
+/** How many of the newest releases `callUp` searches by word. */
+const CALL_UP_RELEASE_WINDOW = 200;
+
 async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
   const w = word.trim().toLowerCase();
   if (w === '') return null;
-  const releases = (await StoredDocument.findByKind(RELEASE_DOCUMENT_KIND))
+  // Newest first by the release card's `publishedAt`, over a bounded page
+  // — the word picks the most recent match, never a scan of every release.
+  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+    order: 'desc',
+    limit: CALL_UP_RELEASE_WINDOW,
+  }))
     .map((d) => Release.fromDocument(d))
     .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
     .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))
@@ -814,7 +919,7 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
   if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
   const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
   if (key === '') return null;
-  for (const d of await StoredDocument.findByPrefix(`/home/${key}/`)) {
+  for (const d of await documentsUnder(`/home/${key}/`)) {
     const pages = await pagesOfImpl(d.getPath());
     if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
   }
@@ -847,10 +952,26 @@ export class DocumentLogic extends ApiLogic {
     return listImpl(prefix);
   }
 
+  /** See {@link DocumentApi.catalogueFor}. */
+  @CallSecurity(DocumentApiCallers)
+  public catalogueFor(kind: string): ServesDocuments | null {
+    return catalogueForImpl(kind);
+  }
+
   /** See {@link DocumentApi.listOfKind}. */
   @CallSecurity(DocumentApiCallers)
   public async listOfKind(kind: string): Promise<StoredDocument[]> {
     return listOfKindImpl(kind);
+  }
+
+  /** See {@link DocumentApi.findByKey}. */
+  @CallSecurity(DocumentApiCallers)
+  public async findByKey(
+    kind: string,
+    key: string,
+    q: DocumentKeyQuery = {},
+  ): Promise<StoredDocument[]> {
+    return findByKeyImpl(kind, key, q);
   }
 
   /**

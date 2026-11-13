@@ -29,12 +29,13 @@
  * boundary.
  */
 
+import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
-import type Placement from '../platform/idea/Placement';
 import type { Warren } from '../lib/location/Warren';
+import type { ActPlan } from '../lib/craft/ActPlan';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { HotReloadApi } from './hot-reload';
@@ -43,6 +44,8 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
+import { Placements } from '../lib/spatial/Placement';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
 // ContainmentApi).
@@ -103,7 +106,65 @@ export type MergeOnArrivalHook = (
 /**
  * Static API for containment and movement operations.
  */
+/**
+ * Where a `put` goes (controller-liquidity W8): an open SLOT the item fits (a
+ * slot is more specific than a container), the container's own interior
+ * (region zero), or a placement region the host offers (`on`, `from`, …).
+ */
+export type PutRoute =
+  | { kind: 'slot'; slot: string }
+  | { kind: 'zero' }
+  | { kind: 'region'; name: string; word: string };
+
+/**
+ * ⭐ Every reason a `put` will not go — the closed union `put` words.
+ * `wrong-preposition` / `preposition-ambiguous`: the word against what the
+ * host offers (`takes`, and what was typed); `slot-host-not-container`: the
+ * item fits a slot on something with nowhere for it to sit; `shut`;
+ * `refused-by-container`: the container says what it is for (`said` is its
+ * own sentence — `canAddContainable`'s veto); `cannot-rest`: the region
+ * will not hold it; `cursed-will-not-release`: it will not leave the
+ * putter's body.
+ */
+export type PlaceRefusal =
+  | {
+      ok: false;
+      reason: 'wrong-preposition' | 'preposition-ambiguous';
+      facts: { takes: readonly string[]; got?: string };
+    }
+  | { ok: false; reason: 'slot-host-not-container'; facts?: undefined }
+  | { ok: false; reason: 'shut'; facts?: undefined }
+  | { ok: false; reason: 'refused-by-container'; facts: { said: string | null } }
+  | { ok: false; reason: 'cannot-rest'; facts: { word: string; why: string } }
+  | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } };
+
+/**
+ * A `put` that will go: the route, and the move at once (`durationMs: 0`).
+ * The completion lets the item go from the putter's body first (the release
+ * gate a curse can refuse), then moves it; `named` is the item's name read
+ * before the move (a stack that lands on its like merges and is gone).
+ */
+export type PutPlan = ActPlan<
+  { route: PutRoute },
+  { route: PutRoute; named: string },
+  PlaceRefusal
+>;
+
 export class ContainmentApi {
+  /** ⭐ The kernel's placement words, stood by the boot routine (no host readies them). */
+  static readonly needs: readonly ApiNeed[] = [() => ContainmentApi.placements().ensureKernel()];
+
+  /**
+   * ⭐ The placements — the ways a thing sits in its container (`on` a
+   * desk, `in` a drawer, `from` a hook), any pack's `content/placements/`,
+   * served by {@link PlacementCatalogue}. Every place loads the kernel's;
+   * a host's `placements` setter loads its own; a typed `put X on Y` is
+   * resolved against the host's own.
+   */
+  public static placements(): PlacementCatalogue {
+    return StuffApi.singletonSync('/platform/idea/PlacementCatalogue', () => new PlacementCatalogue());
+  }
+
   /**
    * Install (or replace) the merge-on-arrival hook. Called once by
    * `StackableApi` at module load. The `_` prefix marks it
@@ -119,7 +180,8 @@ export class ContainmentApi {
    * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
    * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
    * a placing host (into the host's environment, with the placement pair);
-   * `move(item, loft, 'in')` names the placement when a host offers more
+   * `move(item, loft, Placements.IN)` names the placement (by path, or a
+   * typed word the host resolves) when a host offers more
    * than one. `null` detaches it.
    *
    * Everything a move implies beyond geometry is DERIVED here, so no
@@ -151,6 +213,26 @@ export class ContainmentApi {
     placement?: string,
   ): void {
     logic().move(item, to, placement);
+  }
+
+  /**
+   * ⭐ **`put` asked of the world** (controller-liquidity W8): where `item`
+   * would go in or on `target` for the word `prep`, and every refusal
+   * before any write — the slot rule first (a slot is more specific than a
+   * container), the word against the host's offers, a shut lid (refused
+   * HERE, never in `move`, which brains and restocks use to fill closed
+   * cupboards), the container's own say, the region's `canPlace`. The plan's
+   * completion releases the item from `by`'s body and moves it.
+   *
+   * Orchestration across three hosts (the putter, the item, the target), so
+   * it is the Api's — the one movement case the act convention routes here.
+   */
+  public static putPlanFor(
+    item: ContainableStuff,
+    target: Stuff,
+    opts: { prep?: string; by: Stuff },
+  ): PutPlan | PlaceRefusal {
+    return logic().putPlanFor(item, target, opts);
   }
 
   /**
@@ -248,33 +330,6 @@ export class ContainmentApi {
   // had no business being a free Api function.
 
 
-  /**
-   * ⭐ The one **synchronous** door onto the ways-of-sitting vocabulary
-   * — the live `Placement` member called `name`, or `null` when no
-   * installed pack ships it.
-   *
-   * Sync because every reader is on a dispatch path: `put` resolving a
-   * typed preposition, `look` labelling a drill-in list, a Containable
-   * asking whether its member encloses. Null is the shipped default
-   * everywhere, so a cold catalogue degrades to "the behaviour before
-   * the vocabulary" rather than to a broken verb — and the catalogue
-   * warms lazily on the first async miss.
-   *
-   * ⚠ A `lib/` mixin calls THIS, never the catalogue: the roster is a
-   * platform singleton and `lib/` may not reach into `platform/`.
-   */
-  public static placement(name: string): Placement | null {
-    return logic().placement(name);
-  }
-
-  /**
-   * The member a typed preposition names — `onto` → `on`, `from` →
-   * `from`. A member's primary word always wins its own key.
-   */
-  public static placementForWord(word: string): Placement | null {
-    return logic().placementForWord(word);
-  }
-
   // The old `findReachable` / `findHostedUpdate` finders were removed:
   // the reachable walk now lives in MQL's `reachable` seed
   //
@@ -286,9 +341,9 @@ export class ContainmentApi {
   // should have left open in the first place. Deleting a finder is only
   // half the job — the other half is making the replacement findable
   // from where the callers are.
-  // (api/mql/scope-walk.ts `candidatesForReachable` — self → own hosted
-  // updates → slot occupants → carried → location → peers, on-person
-  // first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
+  // (`PerceptionApi.reach`, filtered by api/mql/scope-walk.ts
+  // `candidatesForReachable` — self → own hosted updates → slot occupants
+  // → carried → the place's surface → peers, on-person first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
   // …)` and narrow locally; identity-bound (own-attunement) reads scan
   // `actor.getHostedUpdates()` directly.
 

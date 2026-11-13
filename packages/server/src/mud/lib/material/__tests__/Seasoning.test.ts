@@ -26,6 +26,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import { Placements } from '../../spatial/Placement';
 
 class Yard extends Place {
   static _mixinName = 'SeasoningTestYard';
@@ -57,7 +58,7 @@ function advanceGameDays(d: number): void {
 function stack(material: string, fraction = 0): Timber {
   const t = makeStuff(() => new Timber());
   t.setMaterial(StuffApi.findByTemplatePath<Wood>(material)!);
-  ContainmentApi.move(t as never, rack as never, 'on');
+  ContainmentApi.move(t as never, rack as never, Placements.ON);
   t.setSeasonedFraction(fraction);
   return t;
 }
@@ -89,7 +90,7 @@ beforeEach(() => {
   rack = makeStuff(() => {
     const r = new Stickers();
     r.setMass(Quantity.of(10, 'kg'));
-    r.setPlacements(['on']);
+    r.setPlacements([Placements.ON]);
     r.setAirExposure(1);
     return r;
   }) as unknown as Stickers;

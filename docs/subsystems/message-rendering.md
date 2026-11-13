@@ -168,7 +168,7 @@ review gates this: grep `from '.*api/mml/'` to audit.
 If a consumer needs something currently only exposed in the subdir
 (a type, a helper), re-export it from `api/mml.ts` — don't reach in.
 
-### Topic literals + TopicCatalogue
+### Topic literals + the topic documents
 
 The `MessageApi.Topics` constant tree was **retired**. Topic strings
 are emitted as dotted-path literals at call sites:
@@ -179,10 +179,11 @@ MessageApi.scene(speaker)
   …
 ```
 
-The authored source of truth for the topic vocabulary lives on
-per-topic YAML leaf Ideas under `seeds/lib/messaging/Topic/`. The
-`TopicCatalogue` singleton self-loads them at boot and the snapshot
-ships to clients in the welcome payload. See
+The authored source of truth for the topic vocabulary is one `topic`
+document per key under the platform pack's `content/topics/`. The
+message pipeline loads them on the first scene (`lib/message/Topic.ts`,
+dispatch queued in order behind that one warm) and the snapshot ships to
+clients in the welcome payload. See
 [topics.md](./topics.md). Keeping a parallel constant tree in code
 was duplication; literals + the YAML catalogue is one source of truth.
 
@@ -467,7 +468,7 @@ Three themes ship, registered in `themes/index.ts`:
 ⚠ **`default` is retired and NOT aliased.** It stopped naming anything
 the moment there were two grounds — the design doc calls the dark ground
 Ink and so does the verb. `pickTheme('default')` falls through to Ink
-like any other unknown string, and `cockpit style theme default` refuses
+like any other unknown string, and `client-style theme default` refuses
 outright. (The S2 precedent: no playerbase to protect, the demo wipes
 nightly, and an alias keeps a dead vocabulary alive for nobody.)
 
@@ -856,21 +857,23 @@ categories are:
 shape is **bounded** — the engine recognizes a fixed set of keys; no
 `position`, no `z-index`, no global escape hatches.
 
-### `cockpit style`
+### `client-style`
 
-`StyleController` (`mud/platform/idea/cmd/shell/StyleController.ts`) is the
-player's surface for editing the overlay. Settings:
+The `Style*Controller`s (`mud/platform/idea/cmd/shell/`, over
+`ClientStyleControllerBase`, one per nested stanza) are the player's surface for
+editing the overlay. Settings:
 
 | Usage | Effect |
 |---|---|
-| `cockpit style show` | Print current overlay as readable JSON |
-| `cockpit style theme <name>` | `ink` \| `marble` \| `high-contrast` |
-| `cockpit style channel <key> color <value>` | Per-channel chip color |
-| `cockpit style channel <key> clear` | Drop all overlay rules for the channel |
-| `cockpit style mention self on\|off` | Own-name highlight toggle |
-| `cockpit style plain on\|off` | Global plain-mode toggle |
-| `cockpit style plain channel <key> on\|off` | Per-channel plain-mode |
-| `cockpit style reset` | Clear overlay to `{}` |
+| `client-style show` | Print current overlay as readable JSON |
+| `client-style theme <name>` | `ink` \| `marble` \| `high-contrast` |
+| `client-style channel <key> color <value>` | Per-channel chip color |
+| `client-style channel <key> clear` | Drop all overlay rules for the channel |
+| `client-style mention on\|off` | Own-name highlight toggle |
+| `client-style plain on\|off` | Global plain-mode toggle |
+| `client-style plain-channel <key> on\|off` | Per-channel plain-mode |
+| `client-style links words\|ids` | What a click names its target by |
+| `client-style reset` | Clear overlay to `{}` |
 
 ⚠ **`style` was a standalone verb and is not any more.** It was absorbed
 into the one `cockpit` verb along with `layout` and `mode`, because all
@@ -878,13 +881,13 @@ three wrote the same `cockpit.*` clientState keyspace — see
 [cockpit.md](./cockpit.md). It is not kept as an alias: one name per
 thing.
 
-⚠ The settings above are **not** command subcommands. `cockpit style` is
-already the subcommand and subcommands are one level deep framework-wide,
-so they ride positional slots and `StyleController` dispatches on them —
-which is why it carries an explicit `default:` that refuses an unknown
-setting. Without it, `cockpit style bogus` would silently succeed.
+⭐ The settings above are subcommands of `client-style`, one controller
+each (controller-liquidity W7b nested them under `cockpit`; W16 made
+`client-style` a verb — see [cockpit.md](./cockpit.md)); every closed word is a `type: enum` slot,
+so `client-style bogus` or `client-style theme default` is refused by
+the binder, naming the set, before any controller runs.
 
-The controller travels with
+The verb travels with
 `HasInteractiveMixin.commandContributions.self`, so wherever the mixin
 composes the verb appears.
 
@@ -959,7 +962,7 @@ sweep distilled them to:
   Scene composer, `Mml.compose`, VocalMixin, Sensor pipeline).
 - [response-envelope.md](./response-envelope.md) — `frameId` ordering
   primitive shared by both channels.
-- [topics.md](./topics.md) — `TopicCatalogue` (authored source of
+- [topics.md](./topics.md) — the `topic` documents (authored source of
   truth for topic descriptors after `MessageApi.Topics` retirement).
 - [connection.md](./connection.md) — `HasInteractiveMixin`,
   `_clientState` storage, welcome-payload snapshot,

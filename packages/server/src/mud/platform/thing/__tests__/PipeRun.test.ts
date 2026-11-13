@@ -72,6 +72,7 @@ function run(material: Metal, opts: { unlaid?: boolean } = {}): PipeRun {
   return makeStuff(() => {
     const p = new PipeRun();
     p.setMaterial(material);
+    p.setCarries('/stuff/idea/material/bulk/water'); // its row's `carries:` (load-on-use W8)
     if (opts.unlaid) {
       (p as unknown as { setBill(b: unknown): void }).setBill({
         parts: [{ part: 'pipe', template: '/test/thing/lead-pipe', count: 2, role: 'structural' }],

@@ -250,7 +250,7 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
 
 - **Kind A — afflictions** (`Condition` in `platform/idea/Condition.ts`):
   identity-bearing authored content as `Condition extends Idea` templates, resolved
-  by `findByTemplatePath` like Materials/Species. The instance record is
+  through `ConditionApi.conditions().need(path)` (loud when cold) like Materials. The instance record is
   `{ kind: 'affliction', templatePath, stage, elapsed }`; behavior lives
   on the Idea. The vitals build shipped **zero content**; the
   [metabolism](./metabolism.md) build adds the first authored conditions
@@ -272,16 +272,25 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > end-to-end pass read one back through the client. The consequence is
   > that **authored `Condition` behavior is inert**: signs, names,
   > progression and `toxinBehavior` are all read off an object that isn't
-  > there. ✅ **`ConditionCatalogue` closed it** — a self-warming
-  > `onCreate` stands every authored row up as a live singleton, so
-  > the sync resolve-on-read seams hit from the first frame. ⭐ The
-  > durable lesson is the one the banner keeps: the reads all
-  > `?.`-chained past a null, **so CI was green over a dead subsystem**.
-  > ⚠ Still open: `ConditionCatalogue.warm()` selects by the
-  > `/platform/idea/Condition` path prefix + the exact kernel class, not
-  > by *`extends Condition` wherever it lives* (the `MaterialCatalogue`
-  > filter) — so a capability pack cannot ship a condition row of its own
-  > today; the `trade-medicine` pack ships none for that reason.
+  > there. ✅ **`ConditionCatalogue` closed it**, and since load-on-use
+  > round two it is a `singletonSync` door (`ConditionApi.conditions()` — no
+  > `onCreate`, no row, no boot line) whose `ensureRoster()` is
+  > `ConditionApi`'s declared `needs`, so `AppBootstrap` stands every
+  > condition row up once, at boot (load-on-use W10; no body's `onCreate`
+  > readies it) — so the sync seams a scheduler
+  > tick or an `inflict` reaches (which cannot wait) always find their row.
+  > The roster is every root's `/idea/Condition/` infix filtered to rows
+  > whose class extends `Condition`, so **a capability pack may now ship a
+  > condition row of its own** with no line anywhere. A cold read throws
+  > `DocumentNotResidentError('condition', path)`; a toxin or pathogen KEY
+  > with no row is read with `peek` (an honest "no behavior"); `assess`'s
+  > path-leaf fallback is gone. ⭐ The durable lesson is the one the banner
+  > keeps: the reads all `?.`-chained past a null, **so CI was green over a
+  > dead subsystem**. Suites stand rows with
+  > `lib/vitals/__tests__/conditions.ts` (`standShippedConditions` /
+  > `standBlankConditions`); `test-bootstrap` calls the `@TestOnly`
+  > `ConditionApi.standRosterForTesting()` so the Api's `needs` never
+  > reach for a store.
 - **Kind B — trauma** (the `Trauma` value in `platform/idea/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
@@ -494,3 +503,14 @@ The transition driver this doc deferred now exists — see
 - **The material fork slices** (`MATERIAL_FORK_SLICES`) + the gated
   `adoptMaterialState`. They are fork-only, and the *absence* of a
   `mergeSlice_` is what makes a corpse un-reanimatable.
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** The condition roster
+  left the boot: `ConditionCatalogue` became the `singletonSync` door
+  `ConditionApi.conditions()` (`ensure`/`need`/`peek`/`ensureRoster`/
+  `roster`), every body's and contaminable provision's `onCreate` loaded it
+  (until W10 in the same review: the roster is now `ConditionApi`'s
+  `needs`, stood at boot),
+  the warm selects by infix + class so a pack may ship a condition, and the
+  sync reads throw on a cold row (§ Conditions, kind A).

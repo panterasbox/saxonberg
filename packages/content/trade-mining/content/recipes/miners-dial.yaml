@@ -2,7 +2,6 @@
 # compass in gimbals over a clinometer is the most exacting thing the
 # trade makes, and it is exacting because a survey that is wrong sends a
 # heading into the wrong ground.
-recipeId: miners-dial
 name: Miner's Dial
 keywords: [dial, miners-dial]
 # ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole
@@ -12,7 +11,7 @@ keywords: [dial, miners-dial]
 # Hot iron, steel and copper are what an anvil actually works, and they
 # are what carries the tag.
 inputSlots:
-  - { slot: body, category: forgeable, minGrade: good, kind: item, count: 1 }
+  - { slot: body, category: forgeable, minGrade: fine, kind: item, count: 1 }
   - { slot: case, category: wood, minGrade: fair, kind: item, count: 1 }
 toolCapabilities: [striking, anvil]
 outputTemplate: /trade/mining/thing/miners-dial

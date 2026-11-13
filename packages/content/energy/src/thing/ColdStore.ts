@@ -43,6 +43,9 @@ const ColdStoreBase = ClimateControlMixin(
 
 export default class ColdStore extends ColdStoreBase {
   static fieldMeta: FieldMeta = {
+    // The panel its walls are made of when the row authors no `enclosure:`
+    // — authored on the row, loaded with it (load-on-use W8: content).
+    wallMaterial: { persistent: true, authorable: true, ref: 'identity:constituent' },
     // The authored interior volume (m³) the envelope runs on — a cause.
     interiorVolumeM3: { persistent: true, authorable: true },
   };
@@ -78,7 +81,13 @@ export default class ColdStore extends ColdStoreBase {
    * fridge holds less than a thick walk-in, for free.
    */
   public enclosureDefaults(): EnclosureDefaults {
-    return { materialPath: '/stuff/idea/material/wood/pine', thicknessM: 0.08 };
+    return { materialPath: this.wallMaterial, thicknessM: 0.08 };
+  }
+
+  /** The panel material its row authors (`wallMaterial:`). */
+  protected wallMaterial = '';
+  public setWallMaterial(value: string): void {
+    this.wallMaterial = typeof value === 'string' ? value : '';
   }
 
   /**
@@ -88,7 +97,7 @@ export default class ColdStore extends ColdStoreBase {
   public roofDefaults(): RoofSpec | null {
     const walls = this.getEnclosure();
     if (walls !== null && walls !== 'none') return walls;
-    return { material: '/stuff/idea/material/wood/pine', thicknessM: 0.08 };
+    return { material: this.wallMaterial, thicknessM: 0.08 };
   }
 
   /** The live state sentence, read off the host. */

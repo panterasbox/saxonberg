@@ -13,5 +13,5 @@ data:
   interiorAmount: 0.75
   closure: sealed
   gradeBand: fair
-  _brandKey: hollis-cane
+  brand: hollis-cane
   materialTags: ["spirit", "rum"]

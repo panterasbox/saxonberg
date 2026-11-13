@@ -8,6 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { standShippedConditions } from "../../vitals/__tests__/conditions";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
 import Species from "../../../platform/idea/species/Species";
@@ -52,7 +53,9 @@ function advance(c: TestCharacter, gameSec: number, chunkSec = 3000): void {
 }
 
 describe("CasterMixin — the anatomical faculty", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // The condition rows the boot stands (load-on-use W10).
+    await standShippedConditions();
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     real = 100000;

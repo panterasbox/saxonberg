@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import { rememberShippedJoints } from "@saxonberg/server/mud/lib/craft/__tests__/joint-fixtures";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { Construction } from "@saxonberg/server/mud/lib/material/Construction";
@@ -31,6 +32,13 @@ import type { Burner } from "@saxonberg/server/mud/lib/fire/Burner";
 import type { LightSource } from "@saxonberg/server/mud/lib/perception/LightSource";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { standAddressIndex } from "@saxonberg/server/mud/lib/address/__tests__/address-index";
+// ⚠ Loaded up front: the counter clones its hives concurrently, and a pack
+// class first imported by two clones at once can be read mid-evaluation
+// by the test module runner ("available exports: ") — a harness quirk, not
+// the world's (a running world loads it once, at first use).
+import "../../../trade-apiculture/src/thing/Hive";
+import { standMaterials } from "@saxonberg/server/mud/lib/material/__tests__/materials";
 
 const PH = TemplateApplier.templatePath;
 const STORE_DIR = fileURLToPath(
@@ -87,10 +95,6 @@ const COOKING_SRC = fileURLToPath(new URL("../../../trade-cooking/src", import.m
 const HAULAGE_SRC = fileURLToPath(new URL("../../../trade-haulage/src", import.meta.url));
 const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import.meta.url));
 const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
-/** The commons' fabric-construction rows — `woven`, `knit`, `felted`. */
-const FABRIC_DIR = fileURLToPath(
-  new URL("../../../base-library/content/stuff/idea/fabric/", import.meta.url),
-);
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -369,6 +373,9 @@ vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {
   beforeEach(async () => {
+    standAddressIndex(); // load-on-use W5: an empty index, no store behind it
+  // The joints the goods' bills name, as cloning them would load them.
+  rememberShippedJoints();
     StuffApi.clearAll();
     const goods = readdirSync(`${STORE_DIR}thing/`)
       .filter((f) => f.endsWith(".yaml"))
@@ -404,12 +411,25 @@ describe("general-store standup (real seeds)", () => {
       ...APIARY_LINES,
     ];
     const shelfPaths = [...new Set([...enumerated, ...stocked])];
-    installStore([
+    const docs = [
       { path: PH, class: PH, data: {} },
       seedDoc("counter"),
       ...goods,
       ...shelfPaths.map(objDoc),
-    ]);
+    ];
+    installStore(docs);
+    // The materials the stocked rows cite — loaded with each good in a
+    // world (constituents, load-on-use W8); this store has no material
+    // rows, so they stand in blank, as the cold read answered before.
+    const cited = new Set<string>();
+    const walk = (v: unknown): void => {
+      if (typeof v === "string") {
+        if (v.includes("/idea/material/")) cited.add(v);
+      } else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") Object.values(v).forEach(walk);
+    };
+    for (const d of docs) walk(d.data);
+    standMaterials([...cited]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
     ModuleApi.registerPackSource(APICULTURE_SRC, "/trade/apiculture");
@@ -421,34 +441,10 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
     ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
     ModuleApi.registerPackSource(CERAMICS_SRC, "/trade/ceramics");
-    // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
-    // here.** `woven` / `knit` / `felted` are registered at boot by
-    // `FabricCatalogue` from `base-library`'s rows, and this harness
-    // stands rows up without it, so the moment the shelf started stocking
-    // CLOTH (apiculture's veil and gloves, which are ordinary clothing by
-    // design) every standup assertion died on `unknown form 'woven'`.
-    // The armour line never caught it because `plate` and `padded` are
-    // kernel forms.
-    //
-    // ⚠ The first fix registered `woven` ALONE, with a comment naming all
-    // three — and the reachability sweep's shelf lines added a knit
-    // hoodie, so the standup died again on `unknown form 'knit'`. One
-    // hand-written form out of three, beside a comment that knew there
-    // were three. Reading the rows is what makes that unrepeatable: a
-    // fourth form is a row and this harness picks it up.
-    for (const f of readdirSync(FABRIC_DIR).filter((n) => n.endsWith('.yaml'))) {
-      const row = YAML.parse(readFileSync(`${FABRIC_DIR}${f}`, 'utf-8')) as {
-        data?: Record<string, number | string>;
-      };
-      const d = row.data ?? {};
-      Construction.registerFabric({
-        key: String(d.key),
-        layerBand: Number(d.layerBand ?? 0),
-        loft: Number(d.loft ?? 0),
-        weaveDensity: Number(d.weaveDensity ?? 0),
-        drape: Number(d.drape ?? 0),
-      });
-    }
+    // ⚠⚠ The FABRIC forms (`woven`, `knit`, `felted`) are platform
+    // documents now (load-on-use W2), resident in every suite from the
+    // shipped files (`test-bootstrap`'s `rememberKernelDocuments`) — the
+    // same way a running world loads them with the garment that cites them.
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

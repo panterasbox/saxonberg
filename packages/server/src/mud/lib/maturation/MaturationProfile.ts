@@ -15,20 +15,17 @@
  * (bottle/cask conditioning — the second ferment happens SEALED, which
  * is what sparkling and real ale ARE, P5/P9).
  *
- * Reference data, the Material/Species shape: a singleton Idea per row,
- * stood up whole at boot by `MaturationProfileCatalogue.onCreate` (the roster warm that
- * closes the reference-Ideas-inert-at-boot gap), read by SYNC seams.
- * Rows live under any root's `idea/maturation/` subtree — the kernel keeps
- * no list of roots.
+ * ⭐ A `maturation-profile` DOCUMENT (load-on-use W4): named by its path
+ * (`/trade/winemaking/maturation-profiles/red-wine`), read by
+ * `MaturationProfileCatalogue` (`BulkableApi.maturationProfiles()`) into
+ * this value. A vessel holds the profile's PATH and reads it with `need`;
+ * a `MaturingMixin` host loads the whole kind once per process in
+ * `onCreate`, which is what lets the sync tag match run. The setters are
+ * the document's validation — the catalogue's `parse` applies the data
+ * through them.
  */
 
-import { Idea } from '../stuff/Idea';
-import { SingletonMixin } from '../stuff/Singleton';
-import { StuffApi } from '../../api/stuff';
 import type Material from '../material/Material';
-import type { FieldMeta } from '../mixin';
-import type { VetoResult } from '../errors';
-import type { EvictionContext } from '../stuff/Stuff';
 import {
   CompositionShare,
   type CompositionShareSpec,
@@ -192,18 +189,17 @@ export const MATURATION_LINES: Record<
   },
 };
 
-export default class MaturationProfile extends SingletonMixin(Idea) {
-  /** The class every profile row names — what the boot warm filters by. */
-  static readonly CLASS_PATH = '/platform/idea/maturation/MaturationProfile';
+export default class MaturationProfile {
+  /** @param path the document's path — the profile's only identity. */
+  constructor(private path = '') {}
 
-
-  /**
-   * Residency veto — profile reference data resolved by SYNC reads
-   * (the ferment reconcile); the only standup is the `MaturationProfileCatalogue.onCreate`
-   * roster warm, so a culled profile would stall every batch silently.
-   */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'ferment profile singleton; never culled' };
+  /** The document's path (`/…/maturation-profiles/red-wine`). */
+  getPath(): string {
+    return this.path;
+  }
+  /** Name the document this value was read from (the catalogue, a fixture). */
+  setPath(value: string): void {
+    this.path = value;
   }
 
   /** The profile's stable key (e.g. `red-wine`). */
@@ -371,40 +367,11 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    */
   public offGas: { material: string; litresPerDay: number } | null = null;
 
-  static fieldMeta: FieldMeta = {
-    key: { persistent: true, authorable: true },
-    inputCategory: { persistent: true, authorable: true },
-    stallBelowK: { persistent: true, authorable: true },
-    happyK: { persistent: true, authorable: true },
-    damageAboveK: { persistent: true, authorable: true },
-    ratePerDay: { persistent: true, authorable: true },
-    productMaterial: { persistent: true, authorable: true },
-    productFraction: { persistent: true, authorable: true },
-    turnedMaterial: { persistent: true, authorable: true },
-    turnDays: { persistent: true, authorable: true },
-    sealedOnly: { persistent: true, authorable: true },
-    productAtFraction: { persistent: true, authorable: true },
-    kind: { persistent: true, authorable: true },
-    mechanism: { persistent: true, authorable: true },
-    strain: { persistent: true, authorable: true },
-    requiresStrain: { persistent: true, authorable: true },
-    wildStrain: { persistent: true, authorable: true },
-    spontaneousLagDays: { persistent: true, authorable: true },
-    killK: { persistent: true, authorable: true },
-    stallAboveK: { persistent: true, authorable: true },
-    leesFraction: { persistent: true, authorable: true },
-    leesMaterial: { persistent: true, authorable: true },
-    starveDays: { persistent: true, authorable: true },
-    transforms: { persistent: true, authorable: true },
-    scaldAboveK: { persistent: true, authorable: true },
-    leesShare: { persistent: true, authorable: true },
-    offGas: { persistent: true, authorable: true },
-  };
-
   // ── the inter-Stuff contract (methods, never fields) ──
 
+  /** The profile's word — an authored key, else its document's leaf (`red-wine`). */
   getKey(): string {
-    return this.key;
+    return this.key || this.path.slice(this.path.lastIndexOf('/') + 1);
   }
   setKey(value: string): void {
     if (!value || value.trim().length === 0) {
@@ -496,6 +463,10 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     this.turnDays = value;
   }
 
+  setProductAtFraction(value: number): void {
+    this.productAtFraction = value;
+  }
+
   /** The conversion at which the product exists; `1` = at the end only. */
   getProductAtFraction(): number {
     const p = this.productAtFraction;
@@ -535,6 +506,10 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     return this.mechanism === 'microbial'
       ? { material: '/stuff/idea/material/gas/carbon-dioxide', litresPerDay: 5000 }
       : null;
+  }
+
+  setOffGas(value: { material: string; litresPerDay: number } | null): void {
+    this.offGas = value;
   }
 
   getMechanism(): MaturationMechanism {
@@ -717,81 +692,49 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     const x = 1 - (tempK - damage) / DAMAGE_RAMP_K;
     return x < 0 ? 0 : x > 1 ? 1 : x;
   }
-  // ── the roster queries (statics on the owning class — no Api: a
-  // stateless glob over the live population needs no gate, no logic
-  // singleton, and no cache to invalidate; `MaturationProfileCatalogue`'s
-  // onCreate is what stands the population up at boot) ──
-
-  /** Every live profile, sorted by key — found by the branch segment. */
-  private static all(): MaturationProfile[] {
-    return StuffApi.findByPathGlob<MaturationProfile>('/**/idea/maturation/**')
-      .filter((p): p is MaturationProfile => p instanceof MaturationProfile)
-      .sort((a, b) => a.getKey().localeCompare(b.getKey()));
-  }
-
   /**
-   * Where each key's profile was last found. ⚠ Not a cache to invalidate:
-   * every hit is re-resolved by its path and re-checked, and a miss walks
-   * the roster as before. The walk is a glob over the WHOLE population, and
-   * a maturing vessel asks on every read — a salt pan over a lit hearth
-   * asked thousands of times in one clock advance and wedged the server
-   * for minutes (the ceramics drive, run 25).
+   * Put a document's authored data onto this value, field by field through
+   * the setters — which are the validation (a malformed document throws
+   * naming the field). The catalogue's `parse`.
    */
-  private static readonly foundAt = new Map<string, string>();
-
-  /** The live profile with `key`, or `null`. */
-  static byKey(key: string): MaturationProfile | null {
-    if (!key) return null;
-    const path = MaturationProfile.foundAt.get(key);
-    if (path !== undefined) {
-      const hit = StuffApi.findByTemplatePath<MaturationProfile>(path);
-      if (hit instanceof MaturationProfile && !hit.isDestroyed() && hit.getKey() === key) return hit;
-      MaturationProfile.foundAt.delete(key);
+  applyData(data: Record<string, unknown>): void {
+    for (const field of AUTHORED_FIELDS) {
+      if (!(field in data)) continue;
+      const setter = `set${field[0]!.toUpperCase()}${field.slice(1)}` as keyof this;
+      (this[setter] as (v: unknown) => void).call(this, data[field]);
     }
-    const found = MaturationProfile.all().find((p) => p.getKey() === key) ?? null;
-    const at = found?.getTemplatePath();
-    if (at) MaturationProfile.foundAt.set(key, at);
-    return found;
-  }
-
-  /**
-   * The **culture** profile pitching `strain`, or `null` — the keyed
-   * read behind a pitch check. A caller narrowing `all()` itself would
-   * be reading the whole roster to answer one question about one strain.
-   */
-  static cultureForStrain(strain: string): MaturationProfile | null {
-    if (!strain) return null;
-    return (
-      MaturationProfile.all().find(
-        (p) => p.getKind() === 'culture' && p.getStrain() === strain,
-      ) ?? null
-    );
-  }
-
-  /**
-   * The profile matching `material` — matched by the must's TAGS
-   * against each profile's `inputCategory`. Two matching profiles is
-   * an AUTHORING error, surfaced as a warning and resolved
-   * deterministically (lowest key wins) — never a roll. `null` when
-   * nothing matches (the vat stays idle).
-   * @internal the profile lookup for a material — reached only by this module’s tests.
-   *
-   */
-  static forMaterial(material: Material): MaturationProfile | null {
-    const matches = MaturationProfile.all().filter((p) => {
-      const category = p.getInputCategory();
-      return category.length > 0 && material.hasTag(category);
-    });
-    if (matches.length > 1) {
-      console.warn(
-        `MaturationProfile.forMaterial: material '${material.getTemplatePath()}' matches ` +
-          `${matches.length} profiles (${matches.map((p) => p.getKey()).join(', ')}) — ` +
-          `authoring error; using '${matches[0]!.getKey()}'`,
-      );
-    }
-    return matches[0] ?? null;
   }
 }
+
+/** The fields a profile document may author, in the order they apply. */
+const AUTHORED_FIELDS = [
+  'inputCategory',
+  'stallBelowK',
+  'happyK',
+  'damageAboveK',
+  'ratePerDay',
+  'productMaterial',
+  'productFraction',
+  'turnedMaterial',
+  'turnDays',
+  'sealedOnly',
+  'productAtFraction',
+  'kind',
+  'mechanism',
+  'strain',
+  'requiresStrain',
+  'wildStrain',
+  'spontaneousLagDays',
+  'killK',
+  'stallAboveK',
+  'leesFraction',
+  'leesMaterial',
+  'starveDays',
+  'transforms',
+  'scaldAboveK',
+  'leesShare',
+  'offGas',
+] as const;
 
 function requireFiniteK(site: string, value: number): number {
   if (!Number.isFinite(value) || value <= 0) {

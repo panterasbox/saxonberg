@@ -94,6 +94,13 @@ describe("AccessApi.canAtPath", () => {
     expect(await AccessApi.canAtPath(alice, "write-document", "/home/bob/scripts/a")).toBe(false);
   });
 
+  it("⭐ the self-home ROOT /home/<self> is the player's own (controller-liquidity D9, lifted from eval)", async () => {
+    await bootRegistry();
+    const alice = makeAvatar("alice");
+    expect(await AccessApi.canAtPath(alice, "eval", "/home/alice")).toBe(true);
+    expect(await AccessApi.canAtPath(alice, "eval", "/home/bob")).toBe(false);
+  });
+
   it("an untitled path admits nobody — there is no state default (content-packs wave 3)", async () => {
     await bootRegistry();
     const alice = makeAvatar("alice");

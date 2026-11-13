@@ -18,6 +18,7 @@ import WaterExpanse from '../idea/WaterExpanse';
 import WaterBand from '../idea/WaterBand';
 import FisheryRegistry from '../idea/FisheryRegistry';
 import Pilot from '../agent/Pilot';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import DepthReading from '../idea/reading/DepthReading';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 
@@ -244,4 +245,18 @@ describe('the pilot', () => {
     const claims = record.mock.calls[0]![2];
     expect(claims[0]).toMatchObject({ kind: 'band', channel: 'told', toldBy: '/test/pilot', where: 'ten miles south of the bar' });
   });
+
+  it('⭐ the claims are asked before the coin — a buyer with no map is never charged (C27)', async () => {
+    const pilot = makeStuffAtPath(() => new Pilot(), '/test/pilot-c27');
+    pilot.setOf(SEA);
+    pilot.setEntries([{ kind: 'band', path: `${SEA}/westerlies`, name: 'the Westerlies' }]);
+    pilot.setFee(500);
+    const noMap = { keepsMaps: () => false } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isCartographer').mockImplementation(((x: unknown) => x === noMap) as never);
+    const settle = vi.spyOn(BankingApi, 'settle');
+    const out = await pilot.sellWaterTo(noMap);
+    expect(out).toMatchObject({ ok: false, reason: 'nothing-to-tell' });
+    expect(settle).not.toHaveBeenCalled();
+  });
 });
+

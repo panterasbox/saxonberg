@@ -1,0 +1,10 @@
+# A TRACK — the long walk over open ground (boundary build, 2026-11-10).
+# An ordinary way joins two ADJACENT cells of its zone through their shared
+# face; a track runs on along its direction across cells nobody has
+# authored, to a place that lies that way — a remote claim, the lane up the
+# valley — climbing as the ground does. Nothing hangs in it (a door needs a
+# face). Its `edgeMinutes` is the walk; name it on an exit as
+# `kind: /platform/idea/exits/track`, on both ends.
+class: /platform/idea/Exit
+data:
+  spansGround: true

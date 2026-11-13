@@ -5,9 +5,10 @@
  *
  * Conceptually, a scope identifies a SET of search candidates, each
  * of which carries the keywords the object answers to and optional
- * sub-feature attribution. The `here` neighborhood is the location
- * itself, its doors and its exits; peers are what stands in it. Other
- * neighborhoods are simpler.
+ * sub-feature attribution. WHICH things the giver's reach pools hold
+ * (`here` · `peers` · `inventory` · `person` · `reachable`) is
+ * `PerceptionApi.reach`'s, the one definition `canReach` reads too; this
+ * file builds and scores their candidates.
  *
  * Score returned by {@link scoreCandidate} is the keyword tier
  * ({@link TIER_PHRASE} and below) — one list, the object's own; the
@@ -15,12 +16,11 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Container } from '../../lib/spatial/Container';
 import { GrammarApi } from '../grammar';
 import { MixinApi } from '../mixin';
-import { PerceptionApi } from '../perception';
-import Place from '../../lib/stuff/Place';
+import { PerceptionApi, type ReachPool } from '../perception';
 import type { MqlMatch, MqlMatchVia } from './types';
+import type { ReachDepth } from '../command';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -55,227 +55,104 @@ export interface ScopeFacet {
 }
 
 /**
- * Build the candidate pool for the `here` neighborhood (req §11.2):
- *
- * 1. The location itself (its details are its own keywords — see
- *    {@link candidateFor}).
- * 2. Doors associated with the location's exits.
- * 3. Each Exit the viewer can see — the exit itself, by its direction
- *    and keywords.
- *
- * Peers (the location's contents) live in their own seed —
- * {@link candidatesForPeers}. `here` is the location's own surface,
- * not the room's inhabitants.
+ * ⭐⭐ **MQL's reach pools are FILTERS over `PerceptionApi.reach`** — the
+ * one definition of what the giver can lay hands on (controller-liquidity
+ * W20), the same list `canReach` / `reachableAmong` test membership in.
+ * Which things are in a pool is decided there and only there; this file
+ * turns each into a candidate (the perception gate, the keyword face,
+ * the facets) in the order `reach` emits — the person, then the place's
+ * surface, then what stands there. `reach` computes only the pools asked
+ * for, so `inventory` never walks the room.
  */
-export function candidatesForHere(
-  location: Stuff,
-  viewer: Stuff,
+function candidatesFromReach(
+  giver: Stuff,
+  pools: readonly ReachPool[],
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
-
-  pushDirect(out, location, viewer, attention);
-
-  if (MixinApi.isExitable(location)) {
-    const seenDoors = new Set<string>();
-    for (const door of location.getExitDoors()) {
-      if (seenDoors.has(door.stuffId)) continue;
-      seenDoors.add(door.stuffId);
-      pushDirect(out, door, viewer, attention);
-    }
-    // ⭐ Each exit the VIEWER can see is a candidate in its own right
-    //: its `stuff` IS the way, read like every other
-    // candidate through its Perceptible face — the name and keywords are
-    // the EXIT's (`Exit.getKeywords`: authored + direction + short forms),
-    // never built here. `obviousExitsFor(viewer)` so a
-    // hidden way stays hidden and synthesized exits (an `ExitableVessel`'s
-    // `out`, a Cartesian zone's cardinals) appear like explicit ones.
-    // `look north` describes the way; `open north` reaches its door
-    // through `MqlApi.effectiveTarget`; `go north` crosses it.
-    for (const exit of location.obviousExitsFor(viewer)) {
-      pushDirect(out, exit, viewer, attention);
-    }
-    // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
-    // structure is an Idea, never in a room, so it enters the pool from
-    // where it meets the weather — `look cottage` from the lane, `paint
-    // hesper` from the quay — with no new seed.
-    if (location instanceof Place) {
-      for (const structure of location.landedStructuresNow()) {
-        pushDirect(out, structure, viewer, attention);
-      }
-    }
-    // ⭐ A place read from where it is reached (tracts build D30): open
-    // ground through an exit binds by its own name from this side, so
-    // `look upper bench` from the yard needs no new seed. Only the place
-    // — never what stands in it — and only when it is loaded already.
-    const seenPlaces = new Set<string>();
-    for (const exit of location.obviousExitsFor(viewer)) {
-      const far = exit.peekDestination();
-      if (!far || far === location || !far.isPlace()) continue;
-      if (!(far as Stuff & Place).isSeenAcrossExit()) continue;
-      if (seenPlaces.has(far.stuffId)) continue;
-      seenPlaces.add(far.stuffId);
-      pushDirect(out, far, viewer, attention);
-    }
+  for (const r of PerceptionApi.reach(giver, { depth: depth ?? 'open', pools })) {
+    pushDirect(out, r.stuff, giver, attention);
   }
-
   return out;
 }
 
 /**
- * Build the candidate pool for the giver's inventory.
- *
- * v1 covers the items themselves; details on inventory items are
- * deferred (typical inventory item descriptions are short, and the
- * keyword matcher already handles the common case).
+ * The `here` pool — the surface of the place the giver is in, and of the
+ * vessel it sits in when that is not the place: the place itself, the
+ * doors of the ways it can see, those ways (an `ExitableVessel`'s `out`,
+ * a Cartesian zone's cardinals included), the buildings whose landing it
+ * is, open ground seen across a way. Never what stands there (`peers`).
+ */
+export function candidatesForHere(giver: Stuff, attention?: number): ScopeCandidate[] {
+  return candidatesFromReach(giver, ['around', 'here'], attention);
+}
+
+/**
+ * The giver's inventory — what it carries, at the reach rung: `top` its
+ * own contents, `open` (the default) and inside the open vessels among
+ * them, all the way down; `deep` everything, shut or not.
  */
 export function candidatesForInventory(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
-  if (!MixinApi.isContainer(giver)) return [];
-  const out: ScopeCandidate[] = [];
-  for (const item of giver.getContents()) {
-    pushDirect(out, item, giver, attention);
-  }
-  return out;
+  return candidatesFromReach(giver, ['inventory'], attention, depth);
 }
 
 /**
- * Build the candidate pool for the giver's peers — the contents of
- * the giver's location, excluding the giver itself. Each peer
- * contributes one candidate (its details are among its keywords).
- *
- * Fixtures count as peers. A wall sconce, a neon sign, a mounted TV is
- * an object standing in the room with you, even though it rides the
- * room's `getFixtures()` rather than its `getContents()` — and it is
- * `peers`, not `here`, precisely because `here` is the surface you
- * never pick up (the room, its details, its exits and their doors)
- * while a fixture is a thing a person hangs and takes down. Without
- * this every fixture in the game is unnameable by every verb: `look
- * sconce` finds nothing, `switch sconce on` finds nothing, and a lamp a
- * player hung cannot be taken back down.
+ * The giver's peers — what stands in the place with it, and in the vessel
+ * it sits in (the passenger beside you in a shut coach), one level into
+ * open things there; fixtures included, because a sconce is a thing a
+ * person hangs and takes down while `here` is the surface you never pick
+ * up. Never the giver itself.
  */
 export function candidatesForPeers(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
-  if (!MixinApi.isContainable(giver)) return [];
-  const env = giver.getContainer();
-  if (!env || !MixinApi.isContainer(env)) return [];
-  const out: ScopeCandidate[] = [];
-  for (const item of env.getContents()) {
-    if (item.stuffId === giver.stuffId) continue;
-    pushDirect(out, item, giver, attention);
-    // One level into an OPEN container standing in the room — the glass
-    // rack's coupes, the floor stock's kegs, a crate's limes. The pool
-    // this scope offers must agree with what `PerceptionApi.canReach`
-    // grants, so both ask `MixinApi.isOpenContainer` rather than each
-    // carrying its own notion of "exposed".
-    if (MixinApi.isOpenContainer(item)) {
-      for (const inner of item.getContents()) {
-        pushDirect(out, inner, giver, attention);
-      }
-    }
-  }
-  if (MixinApi.isAdornable(env)) {
-    for (const fixture of env.getFixtures()) {
-      pushDirect(out, fixture, giver, attention);
-    }
-  }
-  return out;
+  return candidatesFromReach(giver, ['peers'], attention, depth);
 }
 
-
 /**
- * Build the candidate pool for `reachable` — the union of the giver,
- * `here`, `peers`, and `inventory` pools. Lets a single seed name
- * "everything reachable from the giver right now" so it composes
- * mid-chain (e.g., `online:reachable`) where the comma-union form
- * can't.
- *
- * The giver itself is in the pool: you can reach yourself, and
- * scope-walked queries for the giver's own keywords (`look bob`
- * when you are bob) need to find it. Pronouns (`me`) and the
- * sub-pools (`here`, `peers`, `inventory`) all keep their stricter
- * meanings.
- *
- * Duplicates across the sub-pools are tolerated; the resolver's
- * `finalize` step dedupes by stuffId before reporting matches.
- */
-/**
- * The **on-person** pool — everything the giver carries *as* their
- * person, and nothing of the room's: self → own attunement-hosted
- * updates → installed slot occupants (+ each attuned occupant's
- * hosted updates) → carried inventory (+ each carried attuned host's
- * hosted updates). The `person` seed's pool, and the on-person half
- * of `reachable`. Bearer-semantics consumers (a presented key, a
- * payment credential, a hosted comms/forums app) anchor here so a
- * matching item lying on the floor never counts as "presented".
+ * The **on-person** pool — the giver, what is attached to it (slot
+ * occupants, the apps an implant hosts) and what it carries; nothing of
+ * the room's. The `person` seed's pool. Bearer-semantics consumers (a
+ * presented key, a payment credential, a hosted comms app) anchor here so
+ * a matching item lying on the floor never counts as "presented".
  */
 export function candidatesForPerson(
   giver: Stuff,
   attention?: number,
+  depth?: ReachDepth,
 ): ScopeCandidate[] {
-  const out: ScopeCandidate[] = [];
-  pushDirect(out, giver, giver, attention);
-  pushHostedUpdates(out, giver, giver, attention);
-  if (MixinApi.isSlotted(giver)) {
-    for (const occupants of giver.getAllOccupants().values()) {
-      for (const occ of occupants) {
-        pushDirect(out, occ, giver, attention);
-        pushHostedUpdates(out, occ, giver, attention);
-      }
-    }
-  }
-  for (const c of candidatesForInventory(giver, attention)) out.push(c);
-  if (MixinApi.isContainer(giver)) {
-    for (const item of giver.getContents()) {
-      pushHostedUpdates(out, item, giver, attention);
-    }
-  }
-  return out;
-}
-
-export function candidatesForReachable(
-  giver: Stuff,
-  attention?: number,
-): ScopeCandidate[] {
-  // ⭐ Its light is walked once per place by the resolution that calls it
-  // (`MqlLogic` runs every resolution as a steady read).
-  //
-  // ON-PERSON-FIRST emission order (the former `findReachable`
-  // contract, now the seed's): the whole `person` pool, then the
-  // surrounding location, then peers. First-match consumers (`.find`
-  // over the pool) and tie-broken keyword targeting both prefer your
-  // own gear over the floor's.
-  const out = candidatesForPerson(giver, attention);
-  if (MixinApi.isContainable(giver)) {
-    const env = giver.getContainer();
-    if (env) {
-      for (const c of candidatesForHere(env, giver, attention)) out.push(c);
-    }
-  }
-  for (const c of candidatesForPeers(giver, attention)) out.push(c);
-  return out;
+  return candidatesFromReach(giver, ['self', 'attached', 'inventory'], attention, depth);
 }
 
 /**
- * Emit `host`'s attunement-hosted updates (the aether apps plugged
- * into an `AetherMixin` host) as reachable candidates for `viewer`.
- * Skips the viewer itself (defensive — no self-recursion).
+ * `reachable` — everything the giver can lay hands on, and the place and
+ * vessel that hold it (`around`, named but not touched): all six pools,
+ * person first (first-match consumers and tie-broken keyword targeting
+ * prefer your own gear over the floor's). Composes mid-chain
+ * (`online:reachable`) where the comma-union form can't. The giver is in
+ * it: `look bob` when you are bob finds you. Duplicates across pools are
+ * tolerated; the resolver's `finalize` dedupes.
  */
-function pushHostedUpdates(
-  out: ScopeCandidate[],
-  host: Stuff,
-  viewer: Stuff | null,
+export function candidatesForReachable(
+  giver: Stuff,
   attention?: number,
-): void {
-  if (!MixinApi.isAether(host)) return;
-  for (const u of host.getHostedUpdates()) {
-    if (u === viewer) continue;
-    pushDirect(out, u, viewer, attention);
-  }
+  depth?: ReachDepth,
+): ScopeCandidate[] {
+  // ⭐ Its light is walked once per place by the resolution that calls it
+  // (`MqlLogic` runs every resolution as a steady read).
+  return candidatesFromReach(
+    giver,
+    ['self', 'attached', 'inventory', 'around', 'here', 'peers'],
+    attention,
+    depth,
+  );
 }
 
 /**

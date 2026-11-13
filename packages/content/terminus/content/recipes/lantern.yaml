@@ -12,7 +12,6 @@
 # lantern row, and a trade pack's recipe naming one town's row would
 # dangle the day that town is not installed. The discipline is still
 # the tinsmith's.
-recipeId: lantern
 name: Lantern
 keywords: [lantern]
 inputSlots:

@@ -16,6 +16,7 @@ import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 
 let seq = 0;
 
@@ -59,7 +60,10 @@ function coat(c: Creature, material: Fiber): Garment {
 type Rained = Creature & { exposeToRain(d: number): void; getWetness(): number };
 
 describe('the outer layer sheds the rain', () => {
-  beforeEach(() => installV1QuantityMarshallers());
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+  });
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();

@@ -15,16 +15,13 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import { CraftingApi } from '../../../../api/crafting';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { RecipeKnowledge } from '../../../../lib/craft/RecipeKnowledge';
 import Menu from '../../../../lib/commerce/Menu';
-import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
-import { Currency } from '../../../../lib/banking/Currency';
-import { MixinApi } from '../../../../api/mixin';
 import { BankingApi } from '../../../../api/banking';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { PricedOffer } from '../../../../lib/commerce/PricedOffer';
 
 const TOPIC = 'act.deed';
 
@@ -48,20 +45,20 @@ export default class MenuController extends CommandController<MenuModel> {
     // compose rather than one shadowing the other.
     const blocks: string[] = [];
 
-    // ⭐ Bound by the view, not hunted for here.
-    // ⭐ Bound by the view, not hunted for here.
-    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
-    const serviceKeys = tariff?.serviceKeys() ?? [];
-    if (tariff && serviceKeys.length > 0) {
-      const rows = serviceKeys
-        .sort()
-        .map((k) => {
-          const price = tariff.priceFor(k);
+    // ⭐ Bound by the view, not hunted for here; what each board offers
+    // is the board's (`PricedOffer.offerings`) — this words it.
+    const tariff = (model.counter?.stuff ?? null) as (Stuff & PricedOffer) | null;
+    const services = tariff
+      ? (await tariff.offerings(giver)).filter((o) => o.kind === 'service')
+      : [];
+    if (services.length > 0) {
+      const rows = services
+        .map((o) => {
           const money =
-            price != null && price > 0
-              ? Money.of(price, BankingApi.compactCurrency()).render()
+            o.price != null && o.price > 0
+              ? Money.of(o.price, BankingApi.compactCurrency()).render()
               : 'no charge';
-          return `  ${k} — ${money}`;
+          return `  ${o.key} — ${money}`;
         })
         .join('\n');
       blocks.push(
@@ -69,25 +66,13 @@ export default class MenuController extends CommandController<MenuModel> {
       );
     }
 
-    const menu = resolveMenu(model, context);
+    const menu = MenuController.menuOf(model);
     if (menu) {
-      const offered = await CraftingApi.offeredRecipes(menu);
-      if (offered.length === 0) {
+      const recipes = (await menu.offerings(giver)).filter((o) => o.kind === 'recipe');
+      if (recipes.length === 0) {
         blocks.push(Mml.escape('The menu is blank.'));
       } else {
-        // Reading a recipe source marks it *known-of* — a chronicle claim
-        // (idempotent: re-reading the menu doesn't duplicate). Known-of
-        // lets you attempt the manual build; making it is the deed (the
-        // ladder).
-        if (MixinApi.isPersona(giver)) {
-          for (const recipe of offered) {
-            await giver.recordChronicleOnce(
-              RecipeKnowledge.knownKey(recipe.recipeId),
-              RecipeKnowledge.knownEntry(recipe.name),
-            );
-          }
-        }
-        const lines = offered.map((r) => `  ${r.name}`).join('\n');
+        const lines = recipes.map((r) => `  ${r.name}`).join('\n');
         blocks.push(
           `${Mml.strong('On the menu:').toString()}\n${Mml.escape(lines)}`,
         );
@@ -108,11 +93,11 @@ export default class MenuController extends CommandController<MenuModel> {
       .toSelf(Mml.fromMarkup(blocks.join('\n\n')))
       .send();
   }
-}
 
-/** The named target (already MQL-bound), else the affording / reachable menu. */
-function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
-  const named = model.target?.stuff;
-  if (named instanceof Menu) return named;
-  return (model.menu?.stuff ?? null) as Menu | null;
+  /** The named menu (already MQL-bound), else the affording / reachable one. */
+  protected static menuOf(model: MenuModel): Menu | null {
+    const named = model.target?.stuff;
+    if (named instanceof Menu) return named;
+    return (model.menu?.stuff ?? null) as Menu | null;
+  }
 }

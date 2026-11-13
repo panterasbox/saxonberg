@@ -16,16 +16,25 @@ import { standUp, tearDown, at, vessel, TestPail } from './world';
 
 const mat = (p: string): Material => StuffApi.findByTemplatePath<Material>(p)!;
 const churn = (tempK: number): Churn =>
-  vessel(() => new Churn(), 8, tempK, { material: mat(MAT.cream), litres: 2 });
+  vessel(() => Object.assign(new Churn(), { churnsTo: '/trade/dairying/idea/material/churned-cream' }) /* its row's fields (load-on-use W8) */, 8, tempK, { material: mat(MAT.cream), litres: 2 });
 
 describe('the churn', () => {
   beforeEach(standUp);
   afterEach(tearDown);
 
+  it('⭐ `churn` is its own verb (W18): the churn affords it and plans the working', async () => {
+    at(0);
+    const c = churn(287);
+    expect(Churn.commandContributions.environment).toEqual(['trade/dairying/cmd/crafting/churn.yaml']);
+    const plan = c.handWorkPlan();
+    expect(plan.durationMs).toBe(8000);
+    expect(await plan.onComplete()).toEqual({ ok: true, facts: { result: 'came' } });
+  });
+
   it('cream at a cool-room warmth breaks; buttermilk draws off; butter stays', () => {
     at(0);
     const c = churn(287);
-    // ⭐ The churn answers what came of it; `stir` words it (D4).
+    // ⭐ The churn answers what came of it; `churn` words it (D4).
     expect(c.workByHand()?.facts.result).toBe('came');
     // ⭐ Broken: the churning schedule is running, and what the next litre
     // drawn IS (the read a pour stamps a jug with) is the buttermilk.
@@ -66,7 +75,7 @@ describe('the churn', () => {
 
   it('only cream churns', () => {
     at(0);
-    const c = vessel(() => new Churn(), 8, 287, { material: mat(MAT.milk), litres: 2 });
+    const c = vessel(() => Object.assign(new Churn(), { churnsTo: '/trade/dairying/idea/material/churned-cream' }) /* its row's fields (load-on-use W8) */, 8, 287, { material: mat(MAT.milk), litres: 2 });
     expect(c.workByHand()?.facts.result).toBe('not-cream');
     expect(c.getBulkMaterialPath('interior')).toBe(MAT.milk);
   });

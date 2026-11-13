@@ -14,7 +14,7 @@
 # separate. See docs/subsystems/soil.md and docs/subsystems/spoilage.md.
 class: /platform/idea/material/EdibleHerb
 data:
-  smells: [{ aroma: /base-library/aromas/hay, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/green/hay, strength: 20 }]
   name: hay
   keywords: [herbage, hay, fodder, forage, grass]
   appearance: dry stems and leaf, still faintly green, smelling of summer

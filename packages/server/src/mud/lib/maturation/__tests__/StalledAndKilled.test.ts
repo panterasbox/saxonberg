@@ -29,7 +29,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
+import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import { MATURATION_LINES } from '../MaturationProfile';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -38,6 +38,7 @@ import { Mml } from '../../../api/mml';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 const BASE = 40_000_000;
 let now = BASE;
@@ -65,7 +66,7 @@ function standFixtures(): void {
     m.setTags(['wine']);
     return m;
   }, WINE);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-brew');
     p.setInputCategory('test-brew');

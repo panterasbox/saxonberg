@@ -25,10 +25,10 @@ args:
   - name: thing
     type: object
     required: true
-    greedy: true
     scope: ["inventory", "reachable"]
     requires: [SealableMixin]
   - name: seal
+    prepositionRequired: true
     type: string
     required: false
     prepositions: [with]

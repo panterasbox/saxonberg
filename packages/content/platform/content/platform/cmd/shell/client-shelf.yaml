@@ -1,0 +1,78 @@
+# ⭐ A NON-DIEGETIC verb, so its name is a hyphenated compound
+# (controller-liquidity W16, owner rule 2026-11-10): what was `client-shelf
+# <action>` is its own verb, because a command is `verb target` or `verb
+# subcommand target`, never deeper. Every `client-…` verb reaches the
+# interpreter un-prefixed from a scoped bar.
+verbs: [client-shelf]
+category: shell
+controller: /platform/idea/cmd/shell/ClientShelfListController
+description: "Choose which figures ride the top bar's widget shelf."
+help: |
+  The shelf is the row of figures across your top bar. You choose what is
+  on it. (Not the shop's `shelf` — that one is goods on consignment.)
+
+    client-shelf list          the whole catalogue, and what is pinned
+    client-shelf pin <row>     add a figure, at the end
+    client-shelf unpin <row>   take one off
+    client-shelf first <row>   move it to the front
+
+  Rows: play, renown, skill, body, make, coin, status, time, online,
+  docket.
+
+  The shelf has an order, and `first` is how you change it. On a narrow
+  screen only the head of the shelf rides the bar — the rest is one
+  pull-down away — so putting a figure first is how you choose what you
+  can see without reaching for it. `first` on a row that is not pinned
+  puts it on the shelf, at the front: asking for it on your bar is one
+  intention, not two commands.
+
+  Most of them will not be showing you a number. That is not a fault — a
+  figure the server cannot stand behind renders as hatched, with the
+  reason it is not there, rather than as a confident guess. `make` reads
+  at the account level: it sums what every character on your account has
+  built, so it is the same figure whichever of them you are playing.
+
+  Identity and connection are not on this list. They are not widgets —
+  they are the two things that must be true at a glance, so they cannot
+  be unpinned.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: client-shelf list
+    note: Print the catalogue and what is currently pinned
+  - cmd: client-shelf unpin coin
+    note: Take a row off the shelf
+  - cmd: client-shelf pin coin
+    note: Put it back, at the end
+  - cmd: client-shelf first coin
+    note: Move it to the front (pinning it there if it was off)
+# `row`'s `values:` IS `SHELF_ROW_IDS` in @saxonberg/types — a test pins
+# the two together. Bare `client-shelf` lists.
+subcommands:
+  list:
+    controller: /platform/idea/cmd/shell/ClientShelfListController
+    description: "The whole catalogue, and what is pinned"
+  pin:
+    controller: /platform/idea/cmd/shell/ClientShelfPinController
+    description: "Add a figure, at the end"
+    args:
+      - name: row
+        type: enum
+        required: true
+        values: &shelfRows [play, renown, skill, body, make, coin, status, time, online, docket]
+  unpin:
+    controller: /platform/idea/cmd/shell/ClientShelfUnpinController
+    description: "Take one off"
+    args:
+      - name: row
+        type: enum
+        required: true
+        values: *shelfRows
+  first:
+    controller: /platform/idea/cmd/shell/ClientShelfFirstController
+    description: "Move it to the front (pinning it there if it was off)"
+    args:
+      - name: row
+        type: enum
+        required: true
+        values: *shelfRows

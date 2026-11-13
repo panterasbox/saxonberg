@@ -14,10 +14,15 @@
 # either is how a live dispatch bug gets shipped.
 #
 # ⚠ There is no `journey stop`: stopping is the shipped `cancel`.
+#
+# ⭐ Two SHAPES, each its own view and controller (controller-liquidity
+# W7a): bare `journey` reads the trip (this view, `JourneyStatusController`);
+# `journey to <place> [via <lane>]` is `journey-to.yaml`'s
+# (`JourneyController`).
 verbs: [journey]
 category: movement
-controller: /system/transport/idea/cmd/movement/JourneyController
-description: "Take a vehicle along a lane to somewhere, or read the trip you are on."
+controller: /system/transport/idea/cmd/movement/JourneyStatusController
+description: "Read the trip you are on."
 help: |
   Order a trip, or read the one you are on.
 
@@ -50,19 +55,3 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
-args:
-  - name: destination
-    type: string
-    required: false
-    greedy: true
-    prepositions: [to]
-  # ⚠ An ARG with a preposition, not an option. `journey to the depot via
-  # spine` reads the way somebody would say it — and the greedy
-  # destination swallows everything up to the next preposition, so a
-  # bare `via` with nothing to bind it to is a parse error ("unexpected
-  # bareword 'via' after query"). Found by driving, on a help example
-  # this file was already advertising.
-  - name: via
-    type: string
-    required: false
-    prepositions: [via]

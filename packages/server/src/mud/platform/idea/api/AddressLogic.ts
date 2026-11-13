@@ -4,6 +4,7 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
+import { DocumentNotResidentError } from '../../../lib/errors';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../../lib/mixin';
@@ -103,9 +104,9 @@ async function resolveAddressString(scope: Stuff): Promise<{
 /**
  * Resolve the Registry without forcing a clone. Module-level cache
  * mirrors the access pattern — it survives the logic singleton's
- * `dest`/recreate and is cleared by the reload seam. Returns `null` in
- * a test harness without a live Registry; the public methods treat
- * that as "no coverage" (null Locality), never a throw.
+ * `dest`/recreate and is cleared by the reload seam. `null` before the
+ * index is built: only the write doors (a locality registering itself)
+ * may treat that as nothing to do — the rebuild picks the locality up.
  */
 let registryRef: AddressRegistry | null = null;
 function lookupRegistry(): AddressRegistry | null {
@@ -113,6 +114,18 @@ function lookupRegistry(): AddressRegistry | null {
   const reg = StuffApi.findByTemplatePath<AddressRegistry>(REGISTRY_PATH);
   if (reg) registryRef = reg;
   return reg ?? null;
+}
+
+/**
+ * ⭐ The index every READ asks (load-on-use W5): it builds on the first
+ * address question — `AddressApi.needs`, awaited before every async static;
+ * a sync caller's parent awaits `StuffApi.ready(AddressApi)`. Read before
+ * that, it throws naming the index — never "no locality covers this".
+ */
+function registry(): AddressRegistry {
+  const reg = lookupRegistry();
+  if (!reg) throw new DocumentNotResidentError('address-index', REGISTRY_PATH);
+  return reg;
 }
 
 /**
@@ -140,7 +153,7 @@ export class AddressLogic extends ApiLogic {
   ): Promise<Locality | null> {
     const r = await resolveAddressString(scope);
     if (r.address === null) return null;
-    return lookupRegistry()?.coveringLocalityOf(r.address) ?? null;
+    return registry().coveringLocalityOf(r.address);
   }
 
   /** See {@link AddressApi.resolveFor}. */
@@ -150,7 +163,7 @@ export class AddressLogic extends ApiLogic {
     if (r.address === null) {
       return { locality: null, address: null, source: 'none' };
     }
-    const locality = lookupRegistry()?.coveringLocalityOf(r.address) ?? null;
+    const locality = registry().coveringLocalityOf(r.address);
     return { locality, address: r.address, source: r.source };
   }
 
@@ -170,7 +183,7 @@ export class AddressLogic extends ApiLogic {
         coverageChain: [],
       };
     }
-    const chain = lookupRegistry()?.coverageChainOf(r.address) ?? [];
+    const chain = registry().coverageChainOf(r.address);
     return {
       locality: chain[0] ?? null,
       address: r.address,
@@ -187,19 +200,19 @@ export class AddressLogic extends ApiLogic {
   /** See {@link AddressApi.coveringLocalityOf}. Sync fast-path. */
   @CallSecurity(AddressApiCallers)
   public coveringLocalityOf(address: string): Locality | null {
-    return lookupRegistry()?.coveringLocalityOf(address) ?? null;
+    return registry().coveringLocalityOf(address);
   }
 
   /** See {@link AddressApi.coverageChainOf}. Sync fast-path. */
   @CallSecurity(AddressApiCallers)
   public coverageChainOf(address: string): Locality[] {
-    return lookupRegistry()?.coverageChainOf(address) ?? [];
+    return registry().coverageChainOf(address);
   }
 
   /** See {@link AddressApi.findByAddress}. Exact-match. */
   @CallSecurity(AddressApiCallers)
   public findByAddress(address: string): Locality | null {
-    return lookupRegistry()?.findByExactAddress(address) ?? null;
+    return registry().findByExactAddress(address);
   }
 
   /** See {@link AddressApi.resolvePlace}. */
@@ -219,10 +232,10 @@ export class AddressLogic extends ApiLogic {
     const reachable = hit?.getTemplatePath() ?? '';
     if (reachable.length > 0) return reachable;
     // 3. A place by the name it is known by — the ordinary remote case.
-    const named = lookupRegistry()?.findByName(trimmed) ?? null;
+    const named = registry().findByName(trimmed);
     if (named) return named.getTemplatePath() ?? '';
     // 4. …or by its address in the namespace (`terminus/rejection`).
-    const addressed = lookupRegistry()?.findByExactAddress(trimmed) ?? null;
+    const addressed = registry().findByExactAddress(trimmed);
     if (addressed) return addressed.getTemplatePath() ?? '';
     // 5. A durable path, for anything the four above cannot name.
     return trimmed.startsWith('/') ? trimmed : '';
@@ -231,7 +244,7 @@ export class AddressLogic extends ApiLogic {
   /** See {@link AddressApi.findLocalityByName}. */
   @CallSecurity(AddressApiCallers)
   public findLocalityByName(name: string): Locality | null {
-    return lookupRegistry()?.findByName(name) ?? null;
+    return registry().findByName(name);
   }
 
   /** See {@link AddressApi.findByPath}. */

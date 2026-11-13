@@ -3,7 +3,7 @@
 # the growers buy it back for the nitrogen — and grappa distils from it.
 class: /platform/idea/material/Residue
 data:
-  smells: [{ aroma: /base-library/aromas/grape, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/fruit/grape, strength: 300 }]
   name: pomace
   keywords: [marc, pomace]
   appearance: "a pressed cake of grape skins and stems"

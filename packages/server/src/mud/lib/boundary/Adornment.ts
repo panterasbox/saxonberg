@@ -4,7 +4,7 @@
  *
  * A fixture is a non-portable Stuff that sits in `getFixtures()`
  * rather than `getContents()` of its host Container. Wall sconces,
- * ceiling lamps, and BoundaryAnchors are the canonical users.
+ * ceiling lamps and floors are the canonical users.
  *
  * Composing AdornmentMixin adds the `adornedTo` back-reference (which
  * Adornable updates as part of `addFixture` / `removeFixture`) and
@@ -28,12 +28,21 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Adornable } from './Adornable';
 import { SlottableMixin } from '../slot/Slottable';
+import { MixinApi } from '../../api/mixin';
 
 /** Public shape added by AdornmentMixin. */
 export interface Adornment {
   getAdornedTo(): (Stuff & Adornable) | null;
   setAdornedTo(host: (Stuff & Adornable) | null): void;
   getMountSlot(): string | null;
+  /**
+   * ⭐ May `by` take this fixture down? Two ways in, and only two: they hold
+   * title to the good itself (their lamp, on anyone's wall), or write
+   * authority over what it is hung on (the venue keeper rearranging their
+   * own neon). A detached fixture is anybody's to pick up. (controller-
+   * liquidity W8 — `get` decided it.)
+   */
+  mayTakeDown(by: Stuff): Promise<boolean>;
 }
 
 export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
@@ -138,6 +147,24 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
      * owner-persisted anyway and comes back on the wall. A fixture of a
      * destroyed host falls through to `super` and culls with it.
      */
+    /**
+     * See {@link Adornment.mayTakeDown}. `ChattelApi.ownerOf` answers for an
+     * unstamped authored fixture too — the covering parcel's owner — so the
+     * neon sign never matches the title arm and falls to the authority arm,
+     * which is exactly the intent.
+     */
+    public async mayTakeDown(by: Stuff): Promise<boolean> {
+      const host = this.adornedTo;
+      if (!host) return true;
+      const self = this as unknown as Stuff;
+      const owner = MixinApi.isChattel(self) ? await self.chattelOwner() : null;
+      if (owner?.kind === 'player' && owner.templatePath === by.getIdentityPath()) return true;
+      // ⚠ Loaded at use: the access facade's import graph reaches back
+      // under this mixin (it sits beneath `Thing`).
+      const { AccessApi } = await import('../../api/access');
+      return AccessApi.can(by, 'write', host as unknown as Stuff);
+    }
+
     public canEvict(context: EvictionContext): VetoResult {
       const host = this.adornedTo;
       if (host && !host.isDestroyed()) {

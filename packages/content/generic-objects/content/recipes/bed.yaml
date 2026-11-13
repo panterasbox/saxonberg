@@ -2,7 +2,6 @@
 # `fit bed`. The same nesting as the armchair: the bedstead is a frame
 # (legs, rails, pegs) with its own record, the mattress a tailor's
 # assembly with its own, and the mattress is the part that wears out.
-recipeId: bed
 name: Bed
 keywords: [bed]
 inputSlots:

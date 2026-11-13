@@ -31,10 +31,11 @@
  *
  * ## Rows, not code
  *
- * Reference data in the {@link MaturationProfile} shape: a singleton Idea
- * per row under any root's `idea/fractionation/` subtree, warmed by
- * `FractionScheduleCatalogue`, matched to a charge by the charge
- * material's TAGS against `inputCategory`. A second feedstock — a
+ * A `fraction-schedule` DOCUMENT (load-on-use W4) in the
+ * {@link MaturationProfile} shape: named by its path under any pack's
+ * `content/fraction-schedules/`, read by `FractionScheduleCatalogue`
+ * (`BulkableApi.fractionSchedules()`) into this value, matched to a charge
+ * by the charge material's TAGS against `inputCategory`. A second feedstock — a
  * rectification, a wine for brandy, a crude oil — is rows and more
  * boundaries, with nothing in `lib/` to change. Nothing in this file says
  * the word whiskey.
@@ -42,9 +43,6 @@
  * See `docs/subsystems/fractionation.md`.
  */
 
-import { Idea } from '../stuff/Idea';
-import { SingletonMixin } from '../stuff/Singleton';
-import { StuffApi } from '../../api/stuff';
 import type Material from '../material/Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { Grade } from '../craft/Grade';
@@ -52,9 +50,6 @@ import {
   CompositionShare,
   type CompositionShareSpec,
 } from '../material/CompositionShare';
-import type { FieldMeta } from '../mixin';
-import type { VetoResult } from '../errors';
-import type { EvictionContext } from '../stuff/Stuff';
 
 /**
  * One fraction of a run — a span of the charge, and what comes off over
@@ -159,8 +154,20 @@ export interface FractionSpec {
  */
 export type Separation = 'cuts' | 'fractions';
 
-export default class FractionSchedule extends SingletonMixin(Idea) {
-  /** Stable key — what a host records to re-find its schedule. */
+export default class FractionSchedule {
+  /** @param path the document's path — the schedule's only identity. */
+  constructor(private path = '') {}
+
+  /** The document's path (`/…/fraction-schedules/whiskey-wash`) — what a host records. */
+  getPath(): string {
+    return this.path;
+  }
+  /** Name the document this value was read from (the catalogue, a fixture). */
+  setPath(value: string): void {
+    this.path = value;
+  }
+
+  /** An authored word; empty for a document (its leaf is the key). */
   public key = '';
   /**
    * The TAG the charge material must carry for this schedule to match
@@ -222,37 +229,11 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
    */
   public residueShare: CompositionShareSpec | null = null;
 
-  static fieldMeta: FieldMeta = {
-    key: { persistent: true, authorable: true },
-    inputCategory: { persistent: true, authorable: true },
-    separation: { persistent: true, authorable: true },
-    discipline: { persistent: true, authorable: true },
-    requiresHeatK: { persistent: true, authorable: true },
-    productMaterial: { persistent: true, authorable: true },
-    residueMaterial: { persistent: true, authorable: true },
-    readBlur: { persistent: true, authorable: true },
-    gradeStretch: { persistent: true, authorable: true },
-    fractions: { persistent: true, authorable: true },
-    restDays: { persistent: true, authorable: true },
-    residueShare: { persistent: true, authorable: true },
-  };
-
-  /** Residency veto — reference data; a culled row matches nothing. */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'reference row; never culled' };
-  }
-
-  public canDestruct(): VetoResult {
-    return {
-      ok: false,
-      reason: 'FractionSchedule is reference data; never destructed',
-    };
-  }
-
   // ── the inter-Stuff contract (methods, never fields) ──
 
+  /** The schedule's word — an authored key, else its document's leaf. */
   getKey(): string {
-    return this.key;
+    return this.key || this.path.slice(this.path.lastIndexOf('/') + 1);
   }
   setKey(value: string): void {
     if (!value || value.trim().length === 0) {
@@ -531,44 +512,29 @@ export default class FractionSchedule extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⚠ Private: the whole-table read is an internal walk, never author
-   * surface (`lint:whole-table`). Callers ask a question
-   * ({@link byKey}, {@link forMaterial}), never for the roster.
+   * Put a document's authored data onto this value, field by field through
+   * the setters — which are the validation. The catalogue's `parse`.
    */
-  private static all(): FractionSchedule[] {
-    return StuffApi.findByPathGlob<FractionSchedule>(
-      '/**/idea/fractionation/**',
-    )
-      .filter((s): s is FractionSchedule => s instanceof FractionSchedule)
-      .sort((a, b) => a.getKey().localeCompare(b.getKey()));
-  }
-
-  /** The live schedule with `key`, or `null`. */
-  static byKey(key: string): FractionSchedule | null {
-    if (!key) return null;
-    return FractionSchedule.all().find((s) => s.getKey() === key) ?? null;
-  }
-
-  /**
-   * The schedule matching `material` — by the charge's TAGS against each
-   * schedule's `inputCategory`. Two matches is an AUTHORING error,
-   * surfaced as a warning and resolved deterministically (lowest key
-   * wins) — never a roll. `null` ⇒ the host holds matter it cannot run,
-   * which is the correct answer for a still full of water.
-   */
-  static forMaterial(material: Material): FractionSchedule | null {
-    const matches = FractionSchedule.all().filter((s) => {
-      const category = s.getInputCategory();
-      return category.length > 0 && material.hasTag(category);
-    });
-    if (matches.length > 1) {
-      console.warn(
-        `FractionSchedule.forMaterial: material '${material.getTemplatePath()}' ` +
-          `matches ${matches.length} schedules ` +
-          `(${matches.map((s) => s.getKey()).join(', ')}) — authoring error; ` +
-          `using '${matches[0]!.getKey()}'`,
-      );
+  applyData(data: Record<string, unknown>): void {
+    for (const field of AUTHORED_FIELDS) {
+      if (!(field in data)) continue;
+      const setter = `set${field[0]!.toUpperCase()}${field.slice(1)}` as keyof this;
+      (this[setter] as (v: unknown) => void).call(this, data[field]);
     }
-    return matches[0] ?? null;
   }
 }
+
+/** The fields a schedule document may author, in the order they apply. */
+const AUTHORED_FIELDS = [
+  'inputCategory',
+  'separation',
+  'discipline',
+  'requiresHeatK',
+  'productMaterial',
+  'residueMaterial',
+  'readBlur',
+  'gradeStretch',
+  'fractions',
+  'restDays',
+  'residueShare',
+] as const;

@@ -190,14 +190,18 @@ test refuses a venue's). It carries what drives it:
   refused becalmed or on water narrower than three hull lengths.
 - **The killick** affords `anchor`: it holds in slack water (the boat's spot
   becomes a stop) and drags in quick. The boat lets it go
-  (`SmallCraft.letGoAnchor`). ⚠ An affordance from something in the boat
+  (`Anchoring.anchorPlanFor`, the protocol a ship answers `anchor` through
+  too). ⚠ An affordance from something in the boat
   beside you survives the boat being carried (the browser walk found
   `anchor` gone once she was launched — a moving container dropped what its
   insides afforded each other).
 - **Lining**: throw a boat's bow line (`/platform/thing/bow-line`) to somebody on the bank; as they walk
   the bank the boat comes along beside them.
-- `launch` / `recover` ask the water mod's warrens (the river's and the
-  sea's): a bank's edge, a ship's side on a river or at sea.
+- `launch` / `recover` ask the water that answers them — the kernel
+  protocol `LaunchableMixin` (`launchPlaceFor` / `recoverPlaceFor`,
+  controller-liquidity W8), composed by the water mod's river and sea
+  warrens: a bank's edge, a ship's side on a river or at sea. The boat
+  narrows on `MixinApi.isLaunchable`, never on the water mod's classes.
 
 ⭐ **Who may import whom (W16 — no duck typing).** A mod imports, typed,
 only the mods it declares as dependencies; anything else crosses through

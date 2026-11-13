@@ -31,7 +31,7 @@ data:
       - { part: smoker-bellows, template: /trade/apiculture/thing/bellows, count: 1, role: wear, material: /stuff/idea/material/organic/leather }
       - { part: rivet, plural: rivets, template: /trade/smithing/thing/rivet, count: 2, role: fastener, material: /stuff/idea/material/element/iron }
     joints:
-      - { key: mounting, method: riveted, members: [smoker-bellows, canister], fastener: rivet }
+      - { key: mounting, method: /platform/joints/riveted, members: [smoker-bellows, canister], fastener: rivet }
   # ⭐ One hand — the other one is lifting frames. `hand:right` is the
   # one-handed convention every shipped tool and weapon uses.
   slotClaims:

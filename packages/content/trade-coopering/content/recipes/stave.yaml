@@ -2,7 +2,6 @@
 # stave`. The cooper's first rung, and the reason the cooper buys billets
 # from the wood rather than boards from the mill: a riven stave holds
 # liquor and a sawn one weeps.
-recipeId: stave
 name: Stave
 keywords: [stave, staves]
 inputSlots:

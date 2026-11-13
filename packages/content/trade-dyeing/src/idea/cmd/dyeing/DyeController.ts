@@ -42,283 +42,94 @@
  * which is visible in whether your bolts stack.
  */
 
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { DyeApplication } from '@saxonberg/server/mud/lib/material/Dyed';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
-import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import Dyestuff from '../../Dyestuff';
+import DyeBath, { type DyeBathRefusal, type DyeDone } from '../../../lib/DyeBath';
 
-const TOPIC = 'act.deed';
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface DyeModel extends CommandModel {
   target: MqlOneResult;
   bath?: MqlManyResult;
 }
 
-/** The dyestuff roster's row (`trade-dyeing`'s own). */
-const DYESTUFF_CATALOGUE_PATH = '/trade/dyeing/idea/dyestuff-catalogue';
 
+/**
+ * ⭐ The two chemistries — refusal, bond, depth, fastness, the bath's
+ * exhaust — are the bath's (`DyeBath.dyePlanFor` — controller-liquidity
+ * W11); this controller narrows the bound vessels to a bath and words the
+ * plan.
+ */
 export default class DyeController extends ManualBuildController<DyeModel> {
-  static readonly BASE_MS_KEY = 'dyeing.dye.baseMs';
-  static readonly BASE_MS = 45 * 60 * 1000;
-  /** How much a band of competence adds to the bond, `0..1`. */
-  static readonly FASTNESS_PER_BAND_KEY = 'dyeing.fastnessPerBand';
-  static readonly FASTNESS_PER_BAND = 0.06;
-  /** How much of the bath a first dip takes. The exhaust. */
-  static readonly EXHAUST_KEY = 'dyeing.exhaustFraction';
-  static readonly EXHAUST = 0.5;
-
   async execute(model: DyeModel, context: CommandContext): Promise<void> {
-    // ⭐ The dyestuff dictionary warms on first use (the scan sweep): the
-    // catalogue's own creation stands the roster up — nothing boots it.
-    await StuffApi.singleton(DYESTUFF_CATALOGUE_PATH).catch(() => null);
     const giver = context.commandGiver;
     const target = model.target?.stuff ?? null;
     if (!target || !MixinApi.isDyed(target)) {
       this.declineStep(context, Mml.compose`Dye what?`, 'no-target');
       return;
     }
-    const bath = this.findBath(model.bath);
-    if (!bath || !MixinApi.isBulkable(bath)) {
+    const bath = await DyeController.findBath(model.bath);
+    if (!bath) {
       this.declineStep(context, Mml.compose`There is no bath here to dip it in.`, 'no-bath');
       return;
     }
-    const slot = BulkableApi.slotFor(bath, undefined);
-    const material = slot?.getMaterial() ?? null;
-    if (!slot || slot.isEmpty() || !material) {
-      this.declineStep(context, Mml.compose`${Mml.thing(bath)} is empty.`, 'empty-bath');
+    const plan = await new DyeBath(bath).dyePlanFor(giver, target);
+    if (!plan.ok) {
+      this.declineStep(context, DyeController.refusalWords(plan, target, bath), plan.reason);
       return;
     }
-
-    // ⚠⚠ The chain's second entry point: `dye` takes a dyestuff
-    // MATERIAL, never a crop. Madder-the-plant is farming's;
-    // madder-the-dyestuff is what this consumes, and where it came
-    // from — a bed or a retort — is upstream and none of dyeing's
-    // business. ⭐ That is the seam a synthetic walks through.
-    const dyestuff = Dyestuff.forMaterial(material.getTemplatePath() ?? '');
-    if (!dyestuff) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(bath)} holds nothing that will colour anything.`,
-        'not-a-dyestuff',
-      );
-      return;
-    }
-
-    const pending = pendingMordant(target);
-    const chemistry = dyestuff.getChemistry();
-
-    // ⚠⚠ A mordant applied to a VAT dye is REFUSED, not silently
-    // ignored. The point is that dyeing is two chemistries.
-    if (chemistry === 'vat' && pending) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(target)} has been mordanted, and ${Mml.thing(bath)} is a vat. The alum is wasted — a reduction vat wants the cloth bare.`,
-        'mordant-on-vat',
-      );
-      return;
-    }
-
-    const shade = dyestuff.shadeFor(chemistry === 'vat' ? '' : (pending ?? ''));
-    if (!shade) {
-      this.declineStep(
-        context,
-        Mml.compose`Nothing happens worth speaking of. That mordant and that dye do not answer to each other.`,
-        'no-shade',
-      );
-      return;
-    }
-
-    const fibre = fibreOf(target);
-    // ⭐⭐⭐ Cellulose does not hold metal ions. A plant fibre needs a
-    // TANNIN pre-mordant before a metal one will bind at all — which is
-    // why linen was worn undyed and wool was the coloured cloth, and
-    // why the launch palette is honestly muted.
-    const cellulose = fibre?.hasTag('cellulose') ?? false;
-    const tanninFirst = hasTannin(target);
-    // ⭐ And GUM holds nothing either: raw silk still in its sericin takes a
-    // dye thinly and loosely, whichever chemistry — which is why silk is
-    // boiled off before it is dyed (silk W4).
-    const gummed = fibre?.hasTag('gummed') ?? false;
-    const bondPenalty =
-      gummed || (chemistry === 'mordant' && cellulose && !tanninFirst && pending !== 'tannin')
-        ? 0.5
-        : 1;
-
-    const band = await competenceOf(giver);
-    const fastness = clamp01(
-      shade.fastness * bondPenalty +
-        CompetenceBand.rank(band) *
-          dial(
-            DyeController.FASTNESS_PER_BAND_KEY,
-            DyeController.FASTNESS_PER_BAND,
-          ),
-    );
-    // ⭐ The bath EXHAUSTS for a mordant dye (first dip deep, second
-    // paler) and ACCUMULATES for a vat dye (each dip builds depth).
-    // Two chemistries, two opposite bath behaviours, one verb.
-    const available = slot.available();
-    const capacity = slot.getCapacity()?.rawValue() ?? available;
-    const fullness = capacity > 0 ? Math.min(1, available / capacity) : 1;
-    // ⭐⭐ The bond penalty pays in DEPTH as well as fastness (silk W4):
-    // dye that does not bind is not in the cloth to be seen. Before this
-    // the penalty touched fastness only, so un-tannined linen took as deep
-    // a shade as wool and the textiles doc's "saturation is a thing wool
-    // brings" had no mechanism.
-    const strength =
-      chemistry === 'vat'
-        ? clamp01((0.35 + priorDepth(target, dyestuff.getKey())) * bondPenalty)
-        : clamp01(fullness * dial(DyeController.EXHAUST_KEY, DyeController.EXHAUST) * 1.6 * bondPenalty);
-
-    this.engageStep(context, {
-      durationMs: dial(DyeController.BASE_MS_KEY, DyeController.BASE_MS),
-      effortW: 250,
-      beginSelf: Mml.compose`You work ${Mml.thing(target)} down into ${Mml.thing(bath)}.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} works something down into a dye bath.`,
-      onComplete: () => {
-        if (!MixinApi.isDyed(target)) return;
-        // The mordant entry is CONSUMED into the application it decided.
-        if (pending) dropPendingMordant(target);
-        /*
-         * ⭐⭐ The shade's POSITION travels onto the cloth, exactly as
-         * its `fastness` does. The kernel `DyedMixin` folds the stack
-         * subtractively from these, which is what makes overdyeing
-         * arithmetic — and it must be copied rather than looked up,
-         * because the kernel may not reach into a pack for a row.
-         */
-        target.applyDye({
-          dyestuff: dyestuff.getMaterialPath(),
-          mordant: chemistry === 'vat' ? '' : (pending ?? ''),
-          strength,
-          transmitR: shade.transmitR,
-          transmitG: shade.transmitG,
-          transmitB: shade.transmitB,
-        });
-        target.setFastness(fastness);
-        // The mordant bath exhausts; a vat is fed, not spent.
-        if (chemistry === 'mordant') {
-          try {
-            slot.debit(available * dial(DyeController.EXHAUST_KEY, DyeController.EXHAUST));
-          } catch {
-            /* the bath went away mid-step */
-          }
-        }
-        if (giver.isDestroyed()) return;
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            chemistry === 'vat'
-              ? Mml.compose`You draw ${Mml.thing(target)} out yellow-green. As the air takes it, the colour walks up through jade to a deep, even blue.`
-              : gummed
-                ? Mml.compose`${Mml.thing(target)} comes up ${shade.colour}, thin and patchy. It is still in its gum — the dye sits on it rather than in it. It wanted boiling off first.`
-                : bondPenalty < 1
-                  ? Mml.compose`${Mml.thing(target)} comes up ${shade.colour}, and thinner than it ought to be. Cellulose will not hold a metal on its own — it wanted tannin first.`
-                  : Mml.compose`${Mml.thing(target)} comes up ${shade.colour}.`,
-          )
-          .toPeers(Mml.compose`${Mml.actor(giver)} lifts something dripping out of a bath.`)
-          .send();
-      },
+    await this.engagePlan(context, plan, {
+      beginSelf: () => Mml.compose`You work ${Mml.thing(target)} down into ${Mml.thing(bath)}.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} works something down into a dye bath.`,
+      onRefused: () => Mml.compose`The dip came to nothing.`,
+      onDone: (f: DyeDone) => DyeController.doneWords(giver, target, f),
     });
   }
 
   /**
-   * The bath — a NARROWING over what the binder bound, not a search.
-   * `dye.yaml` declares `bath` with a `[mixin.BulkableMixin]` default, so
-   * bare `dye` arrives with every reachable vessel and the only question
-   * left is what is IN it (`lint:controller-resolution`). A NAMED bath is taken
-   * as named, so the decline below can say what is wrong with it.
+   * The bath — a NARROWING over what the binder bound, not a search: a
+   * NAMED bath is taken as named, so the refusal can say what is wrong
+   * with it; bare, the first vessel in reach with dyestuff in it.
    */
-  private findBath(bound: MqlManyResult | undefined): Stuff | null {
+  protected static async findBath(bound: MqlManyResult | undefined): Promise<Stuff | null> {
     const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
     if (candidates.length === 0) return null;
     if (bound?.prep !== undefined) return candidates[0]!;
-    for (const c of candidates) {
-      if (!MixinApi.isBulkable(c)) continue;
-      const slot = BulkableApi.slotFor(c, undefined);
-      const mat = slot?.getMaterial();
-      if (mat && Dyestuff.forMaterial(mat.getTemplatePath() ?? '')) return c;
-    }
+    for (const c of candidates) if ((await new DyeBath(c).dyestuff()) !== null) return c;
     return null;
   }
-}
 
-/** The mordant key waiting on the cloth (a zero-strength entry), or null. */
-function pendingMordant(target: Stuff): string | null {
-  if (!MixinApi.isDyed(target)) return null;
-  const stack = target.getDyeStack();
-  const last = stack[stack.length - 1];
-  return last && last.strength === 0 ? last.mordant : null;
-}
-
-/** Has this cloth ever had a tannin bath? The cellulose enabler. */
-function hasTannin(target: Stuff): boolean {
-  if (!MixinApi.isDyed(target)) return false;
-  return target.getDyeStack().some((a) => a.mordant === 'tannin');
-}
-
-/**
- * Drop the trailing zero-strength mordant entry — it is spent.
- *
- * ⚠ Typed against the real {@link DyeApplication} rather than a
- * hand-written `{dyestuff, mordant, strength}`. The spread below
- * carried the colour triple through at runtime either way, but a
- * structural type that omits it is a trap: the next person to touch
- * this would have no way to see that the fields exist.
- */
-function dropPendingMordant(
-  target: Stuff & {
-    getDyeStack(): readonly DyeApplication[];
-    setDyeStack(v: DyeApplication[]): void;
-  },
-): void {
-  const stack = [...target.getDyeStack()];
-  stack.pop();
-  target.setDyeStack(stack.map((a) => ({ ...a })));
-}
-
-/** ⭐ A vat dye ACCUMULATES: each dip builds on the last. */
-function priorDepth(target: Stuff, _key: string): number {
-  if (!MixinApi.isDyed(target)) return 0;
-  let depth = 0;
-  for (const a of target.getDyeStack()) depth = Math.max(depth, a.strength);
-  return depth * 0.5;
-}
-
-/** The fibre a thing is made of, for the cellulose question. */
-function fibreOf(target: Stuff): Material | null {
-  return MixinApi.isTangible(target) ? target.getMaterial() : null;
-}
-
-async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {
-  if (!MixinApi.isAdvancing(giver)) return 'untrained';
-  try {
-    return await giver.competenceBandFor('dyeing');
-  } catch {
-    return 'untrained';
+  protected static refusalWords(r: DyeBathRefusal, target: Stuff, bath: Stuff): Composed {
+    switch (r.reason) {
+      case 'empty-bath':
+        return Mml.compose`${Mml.thing(bath)} is empty.`;
+      case 'not-a-dyestuff':
+        return Mml.compose`${Mml.thing(bath)} holds nothing that will colour anything.`;
+      case 'mordant-on-vat':
+        return Mml.compose`${Mml.thing(target)} has been mordanted, and ${Mml.thing(bath)} is a vat. The alum is wasted — a reduction vat wants the cloth bare.`;
+      case 'no-shade':
+        return Mml.compose`Nothing happens worth speaking of. That mordant and that dye do not answer to each other.`;
+      default:
+        return Mml.compose`That bath will not dye anything.`;
+    }
   }
-}
 
-function clamp01(x: number): number {
-  return x < 0 ? 0 : x > 1 ? 1 : x;
-}
-
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
+  protected static doneWords(giver: Stuff, target: Stuff, f: DyeDone): { self: Composed; peers: Composed } | null {
+    if (f.kind === 'gone') return null;
+    return {
+      self:
+        f.chemistry === 'vat'
+          ? Mml.compose`You draw ${Mml.thing(target)} out yellow-green. As the air takes it, the colour walks up through jade to a deep, even blue.`
+          : f.gummed
+            ? Mml.compose`${Mml.thing(target)} comes up ${f.colour}, thin and patchy. It is still in its gum — the dye sits on it rather than in it. It wanted boiling off first.`
+            : f.thin
+              ? Mml.compose`${Mml.thing(target)} comes up ${f.colour}, and thinner than it ought to be. Cellulose will not hold a metal on its own — it wanted tannin first.`
+              : Mml.compose`${Mml.thing(target)} comes up ${f.colour}.`,
+      peers: Mml.compose`${Mml.actor(giver)} lifts something dripping out of a bath.`,
+    };
   }
 }

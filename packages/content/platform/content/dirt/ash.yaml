@@ -1,0 +1,9 @@
+# Ash — from tending a fire and raking a grate.
+key: ash
+adjective: ashy
+form: film
+answersTo:
+- surfactant
+- alkali-mild
+waterLifts: 0.6
+brushLifts: 0.8

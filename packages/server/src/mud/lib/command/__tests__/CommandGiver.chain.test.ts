@@ -105,3 +105,102 @@ describe('two views of one verb', () => {
     expect(ctx.getNotes().some((n) => n.kind === 'validator-failed')).toBe(true);
   });
 });
+
+/**
+ * ⭐ A view's subcommands not knowing a word hands the line to the verb's
+ * next SHAPE (controller-liquidity W7a): `watch horizon` is one view's
+ * subcommand, `watch shroud` another view's shape.
+ */
+describe('a subcommand view beside a shape view', () => {
+  let world: MqlWorld;
+  let ran: CommandDefinition[];
+
+  const subs = (): CommandDefinition =>
+    CommandDefinition.fromYaml(
+      `
+verbs: [peerish]
+description: subcommand view
+subcommands:
+  horizon:
+    controller: NoopController
+`,
+      '<test>',
+    );
+  const shape = (): CommandDefinition =>
+    CommandDefinition.fromYaml(
+      `
+verbs: [peerish]
+controller: NoopController
+description: shape view
+args:
+  - name: target
+    type: string
+    required: true
+`,
+      '<test>',
+    );
+
+  const run = async (
+    views: CommandDefinition[],
+    line: string,
+  ): Promise<ReturnType<typeof CommandApi.createCommandContext>> => {
+    const giver = world.giver as unknown as Stuff & {
+      getAffordances(): Affordance[];
+      _executeOne(c: CommandDefinition): Promise<void>;
+      _runChain(p: unknown, o: unknown): Promise<ReturnType<typeof CommandApi.createCommandContext>>;
+    };
+    vi.spyOn(giver, 'getAffordances').mockReturnValue(
+      views.map((command) => ({ command, source: giver, bucket: 'self' }) as Affordance),
+    );
+    vi.spyOn(giver, '_executeOne').mockImplementation(async (c: CommandDefinition) => {
+      ran.push(c);
+    });
+    const parsed = CommandLineApi.parsePipeline(line).commands[0]!;
+    const outer = CommandApi.createCommandContext({
+      commandGiver: world.giver,
+      location: world.location as never,
+      commandText: line,
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'peerish',
+      command: views[0]!,
+    });
+    return giver._runChain(parsed, outer);
+  };
+
+  beforeEach(() => {
+    ran = [];
+    world = makeWorld();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('the subcommand word runs the subcommand view', async () => {
+    const a = subs();
+    const b = shape();
+    await run([a, b], 'peerish horizon');
+    expect(ran).toEqual([a]);
+  });
+
+  it('⭐ a word the subcommands do not know runs the next shape', async () => {
+    const a = subs();
+    const b = shape();
+    await run([a, b], 'peerish shroud');
+    expect(ran).toEqual([b]);
+  });
+
+  it('⭐ the subcommand view is tried first wherever its host listed it', async () => {
+    const a = subs();
+    const b = shape();
+    await run([b, a], 'peerish horizon');
+    expect(ran).toEqual([a]);
+  });
+
+  it('the LAST view still refuses an unknown word, naming the valid ones', async () => {
+    const a = subs();
+    const ctx = await run([a], 'peerish shroud');
+    expect(ran).toEqual([]);
+    expect(
+      ctx.getNotes().some((n) => (n as { reason?: string }).reason === 'unknown-subcommand'),
+    ).toBe(true);
+  });
+});

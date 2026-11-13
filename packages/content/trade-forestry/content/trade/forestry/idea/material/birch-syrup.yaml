@@ -26,7 +26,7 @@ class: /platform/idea/material/Syrup
 # including its own strength, for a jar bought rather than boiled.
 extends: /stuff/idea/material/food/birch-sap
 data:
-  smells: [{ aroma: /base-library/aromas/caramel, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/sugar/caramel, strength: 200 }]
   name: birch syrup
   keywords: [birch-syrup, syrup, birch]
   appearance: dark as treacle, almost savoury at the edge

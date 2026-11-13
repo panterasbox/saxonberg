@@ -29,9 +29,9 @@ args:
     scope: [inventory]
     requires: [ContainableMixin]
   - name: counter
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [to, at]
     default: "reachable:[mixin.ConsignmentShelfMixin]"
     scope: ["here", "peers", "person"]

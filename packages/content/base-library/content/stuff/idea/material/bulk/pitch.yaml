@@ -8,8 +8,8 @@
 # it.
 class: /platform/idea/material/CoatingOil
 data:
-  smells: [{ aroma: /base-library/aromas/pitch, strength: 300 }]
-  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/tar/pitch, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 1500 }]
   name: pitch
   keywords: [pitch]
   # ⚠ Not "brittle": `lint:descriptors` reserves that word for the

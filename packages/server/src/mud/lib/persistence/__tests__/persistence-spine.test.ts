@@ -52,6 +52,7 @@ import type { FieldMeta } from "../../mixin";
 import { SoilableMixin } from "../../cleanliness/Soilable";
 import { AdornmentMixin } from "../../boundary/Adornment";
 import { AdornableMixin } from "../../boundary/Adornable";
+import { rememberShippedDirt } from '../../cleanliness/__tests__/soil-fixtures';
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */
 
@@ -235,6 +236,7 @@ async function mockClone(path: string): Promise<Stuff> {
 let snapshots: Record<string, unknown>[];
 
 beforeEach(() => {
+  rememberShippedDirt();
   StuffApi.clearAll(); // isolate the Stuff registry between tests
   snapshots = [];
 
@@ -1153,8 +1155,8 @@ describe("the fixture-state slice (cleanliness D31b)", () => {
     const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept");
     const floor = makeStuffAtPath(() => new SoilPlate(), "/world/kept-floor");
     room.addFixture(floor, "floor");
-    floor.soil("mud", 0.5);
-    floor.soil("blood", 0.2);
+    floor.soil("/platform/dirt/mud", 0.5);
+    floor.soil("/platform/dirt/blood", 0.2);
 
     await PersistableApi.capture(room);
 
@@ -1166,8 +1168,8 @@ describe("the fixture-state slice (cleanliness D31b)", () => {
     reborn.addFixture(fresh, "floor");
     expect(fresh.soilBand()).toBe("clean");
     await PersistableApi.materialize(reborn);
-    expect(fresh.soilLoad("mud")).toBeCloseTo(0.5, 4);
-    expect(fresh.soilLoad("blood")).toBeCloseTo(0.2, 4);
+    expect(fresh.soilLoad("/platform/dirt/mud")).toBeCloseTo(0.5, 4);
+    expect(fresh.soilLoad("/platform/dirt/blood")).toBeCloseTo(0.2, 4);
   });
 
   it("a fixture that persists itself is skipped (it keeps its own record)", async () => {
@@ -1175,7 +1177,7 @@ describe("the fixture-state slice (cleanliness D31b)", () => {
     const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept2");
     const sheet = makeStuffAtPath(() => new SelfKeptPlate(), "/world/kept2-sheet");
     room.addFixture(sheet, "floor");
-    sheet.soil("mud", 0.5);
+    sheet.soil("/platform/dirt/mud", 0.5);
     await PersistableApi.capture(room);
     const rec = snapshots.find((s) => s.scope === "/world/kept2") as {
       state: Record<string, { fixtures?: unknown }>;
@@ -1189,7 +1191,7 @@ describe("the fixture-state slice (cleanliness D31b)", () => {
     const room = makeStuffAtPath(() => new KeptRoom(), "/world/kept3");
     const floor = makeStuffAtPath(() => new SoilPlate(), "/world/kept3-floor");
     room.addFixture(floor, "floor");
-    floor.soil("crumbs", 0.4);
+    floor.soil("/platform/dirt/crumbs", 0.4);
     await PersistableApi.captureHostOf(floor);
     expect(snapshots.some((s) => s.scope === "/world/kept3")).toBe(true);
   });

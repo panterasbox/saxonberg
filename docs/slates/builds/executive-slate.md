@@ -15,7 +15,9 @@
 > logged, sunsetting overrides · the **civil service as public charters**
 > (the same primitive as the corpos') · the **reports** the branch owes
 > (the faucet/sink statement · the census · the docket · the log digest) ·
-> the agent-session principal · the fiat-phase handover record
+> the agent-session principal · the fiat-phase handover record · ⭐ **dockets** (Part 8: how a
+> player reaches each office — bugs to engineering via GitLab, typos to the content's author,
+> ideas to the legislature, complaints to the courts; one filing shape for all)
 > **Size:** a build (the log + the tiers are Stage A and small; charters
 > and reports ride the institutions and bootstrap builds)
 
@@ -315,6 +317,79 @@ the founder's operator tier sunsets, the log is the archive, and nothing
 about how the branch works has to change — only who holds the seats.
 
 ---
+
+# Part 8 — How a player reaches the branch: dockets **[DECIDED 2026-11-10 — the owner, except where marked]**
+
+The owner: *"bug reporting and other kinds of instruments we need to give the player to communicate
+directly with management. management for us is the executive most of the time so that might also
+mean talking more about the structure of the branch and its offices."* And: *"we're actually gonna
+need to wire up quite a bit new shit to make all this work so everything is on the record and
+codified."*
+
+## ⭐⭐⭐ "Management" is narrower here than in a company
+
+A request goes to **whoever has authority over what it asks for**, not to management by default:
+
+| the player wants… | it is… | goes to |
+|---|---|---|
+| "this is broken" | an administrative fault | the executive: **engineering** (Art. V §6, *programming the machine*) |
+| "how do I…?" | a service request | the executive: **public service** (help) |
+| "this person is misbehaving" | an enforcement matter | the executive: **order**, the mod committee ([moderation § 13](./moderation-slate.md)) |
+| "the game should do X" | a **policy** request | ⭐ **the legislature**: Art. V §3, the executive *executes only what the legislature has authorized*, so a feature request is a **petition**, a bill in waiting on the deliberation surface (Art. V §8) |
+| "an official treated me wrongly" | a complaint about administration | ⭐ **the courts' spirit face** (Art. VI §2, *that an act was fair*); for a bad administration as a whole, **confidence** (Art. V §2) |
+| "a typo in this room" | a content fault | ⭐ **the content's author or committee**, through the authorship ledger ([provenance.md](../../subsystems/provenance.md)), not management at all |
+
+The LPMud triad (`bug`, `typo`, `idea`) maps onto it and each routes somewhere different: a bug to
+engineering, a typo to whoever wrote the room, an idea to the legislature. Players author the world,
+so the room's author gets the typo.
+
+⛔ **No ombudsman.** Considered and dropped. The owner: *"the legislature for us is just every single
+player counted three ways, the model isn't the same as the nordics."* A Nordic ombudsman is a
+representative parliament's officer; a legislature of every player has no officer class to host one.
+Complaints about administration go to the courts.
+
+## ⭐⭐⭐ One substrate: the docket
+
+Art. VI runs *"one process at every scale"*: a filing with its argument, a response by a deadline,
+an outcome on the record. **Every office keeps a docket of that shape**, and every filing carries:
+
+- the filer, the office addressed, the kind;
+- **what the filer attaches, from their own frame store only** (the report's consent rule,
+  moderation § 13);
+- a **service standard**: how long the office has to respond, so a neglected docket is visible;
+- **public or private** (security bugs and harassment reports are private);
+- the outcome, written to the executive log (Part 1).
+
+Bug reports, moderation reports, petitions, complaints, appeals and court cases all ride one record.
+This is Part 6's *"the docket"* report given its intake.
+
+## Bugs **[DECIDED]**
+
+- **Engineering's docket is GitLab issues, for now.** The owner: *"we'll use gitlab issues for now
+  even though I hate it. most bug tracking doesnt matter anymore because the only ones that interact
+  with any of it are agents."* A player's filing is mirrored to an issue; security issues stay
+  private. The soak lane already files there.
+- ⭐ **Filed for an agent to read.** Since agents triage, a filing arrives **structured, with its
+  context attached automatically**: where the player was, what they typed, the diagnostics around it
+  ([diagnostics.md](../../subsystems/diagnostics.md)). An agent can triage with no back-and-forth.
+- **A confirmed bug earns labor standing** (the owner: *"sure sounds workable"*). Only bugs
+  engineering confirms, and **disclosing an exploit is rewarded over using it**; using one is
+  conduct.
+
+## The offices at launch **[LEAN]**
+
+Art. V §4: *"a civil service of chartered institutions, each with a bounded mandate."* Each is a
+charter (Part 4) with its own docket, all held by the founder default at launch:
+**engineering** (bugs, the build cycle, deploys) · **order** (the mod committee, holds and
+enforcement; [moderation § 14a](./moderation-slate.md)) · **public service** (help, onboarding,
+later player volunteers like the MUD "newbie helpers") · the **central bank** and the **press
+office** (already exist) · the **treasury** (the Compact budget, where all real money goes;
+[sponsorship § 11.4](./sponsorship-slate.md)).
+
+## The verbs **[LATER]**
+
+The owner: *"we'll have to deal with later after everything is figured out but probably one or two
+verbs with a buncha subcommands."*
 
 # Open questions
 

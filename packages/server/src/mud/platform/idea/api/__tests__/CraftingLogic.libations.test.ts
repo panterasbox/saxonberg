@@ -679,7 +679,7 @@ describe('the well — an unnamed pour takes the rail, a named one takes the bra
     expect(before.rail).toBeGreaterThan(0);
   });
 
-  // ⭐ The mark lives on the BOTTLE (`_brandKey`), not on the liquid —
+  // ⭐ The mark lives on the BOTTLE (`brand`), not on the liquid —
   // which is the whole point of private label: Old Hollis and Veshko's
   // unbranded rail hold the same material. This test used to pass because
   // the matcher read the MATERIAL's display name, so a material called

@@ -1,6 +1,8 @@
 # The floor bottle of tonic water — 1 L, at target in the bottling stock.
 class: /platform/thing/Bottle
 data:
+  # What it is made of (load-on-use W8: authored, not a constructor default).
+  _materialPath: /stuff/idea/material/glass/glass
   censusKey: mixer:tonic
   shortDescription: "bottle of tonic water"
   keywords: [tonic, tonic-water, bottle, mixer, water, "bottle of tonic water"]

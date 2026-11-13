@@ -1,4 +1,3 @@
-blueprintId: floor
 name: Floor
 kind: composition
 baseClass: Thing

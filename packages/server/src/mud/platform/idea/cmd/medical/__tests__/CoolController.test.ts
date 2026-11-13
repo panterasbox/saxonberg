@@ -144,4 +144,23 @@ describe('CoolController', () => {
       expect.objectContaining({ reason: 'nothing-to-cool' }),
     );
   });
+
+  it('⭐ the BODY decides (element token) — refuses with the actor, from a direct call', () => {
+    const room = makeStuff(() => new Place());
+    const me = makeStuff(() => new Creature());
+    ContainmentApi.move(me, room);
+    expect(me.treatmentPlanFor({ by: me, element: 'cooling' })).toEqual({ ok: false, reason: 'nothing-to-cool' });
+    expect(me.treatmentPlanFor({ by: me, element: 'warmth' })).toEqual({ ok: false, reason: 'nothing-to-warm' });
+    expect(me.treatmentPlanFor({ by: me, element: 'rinse' })).toEqual({ ok: false, reason: 'nothing-to-rinse' });
+  });
+
+  it('⭐ the SOURCE answers for its water (WaterDrawable) — a jug with water, an empty one not', async () => {
+    const room = makeStuff(() => new Place());
+    const me = makeStuff(() => new Creature());
+    ContainmentApi.move(me, room);
+    const jug = waterJug();
+    await expect(jug.drawWaterFor(me)).resolves.toMatchObject({ ok: true, facts: { source: jug } });
+    jug.setInteriorAmount(Quantity.of(0, 'L'));
+    await expect(jug.drawWaterFor(me)).resolves.toEqual({ ok: false, reason: 'no-water' });
+  });
 });

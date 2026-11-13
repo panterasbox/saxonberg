@@ -18,24 +18,19 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Postures } from '@saxonberg/server/mud/lib/slot/Postured';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { HARM_DEFAULTS } from '@saxonberg/server/mud/platform/idea/Condition';
-import {
-  OperationEngagement,
-  OperationPatientHold,
-} from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
-import type OperationCatalogue from '@saxonberg/server/mud/platform/idea/OperationCatalogue';
-import type { OperationDescriptor } from '@saxonberg/server/mud/platform/idea/Operation';
+import { OperationEngagement } from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
+import { type OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Vitals } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
 const TOPIC = 'act.deed';
 
@@ -65,12 +60,9 @@ export default class OperateController extends CommandController<OperateModel> {
     if (!model.kit?.stuff) {
       return this.fail(context, "You need a surgeon's kit to operate.", 'no-kit');
     }
-    // ⭐ The operation dictionary warms on first use (the scan sweep): the
-    // singleton's own creation indexes the roster — nothing boots it.
-    const catalogue = await StuffApi.singleton<OperationCatalogue>(
-      TemplatePaths.operationCatalogue,
-    ).catch(() => null);
-    const ops = catalogue?.allOperations() ?? [];
+    // ⭐ The operation dictionary loads on first use (scan-sweep ruling 1):
+    // one indexed read of the kind — nothing boots it.
+    const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
 
     // Pick the operation: named, else the most urgent applicable.
@@ -194,12 +186,7 @@ export default class OperateController extends CommandController<OperateModel> {
 
     const onAbort = (): void => {
       debitRest();
-      if (match.wound) {
-        match.wound.severity += HARM_DEFAULTS.OPERATION_ABORT_WORSEN;
-        match.wound.openSince = WorldClockApi.getNow().rawValue();
-        match.wound.careQuality = undefined;
-        match.wound.dressed = false;
-      }
+      if (match.wound) body.leaveWoundOpen(match.wound, HARM_DEFAULTS.OPERATION_ABORT_WORSEN);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`The operation is interrupted — the wound is left open, worse than before.`)
@@ -210,25 +197,19 @@ export default class OperateController extends CommandController<OperateModel> {
       onComplete();
       return;
     }
+    // ⭐ The operation holds the patient still itself (a conscious one may
+    // thrash free, which ends it — C38), and frees them when it finishes.
     const engagement = new OperationEngagement({
       surgeon: giver as unknown as Stuff & Engaged,
       durationMs: Math.max(100, durationS * 1000),
       onComplete,
       onAbort,
+      patient: MixinApi.isEngaged(target) ? (target as unknown as Stuff & Engaged) : null,
+      patientCancelable: conscious,
     });
     const result = SchedulerApi.start(engagement);
     if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
       context.note(result.note);
-      // Hold the patient still (a conscious one may thrash free).
-      if (MixinApi.isEngaged(target) && target !== (giver as unknown as Stuff)) {
-        SchedulerApi.start(
-          new OperationPatientHold({
-            patient: target as unknown as Stuff & Engaged,
-            cancelable: conscious,
-            onAbort: () => {},
-          }),
-        );
-      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(

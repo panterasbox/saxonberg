@@ -79,7 +79,12 @@ describe('the spawn sweep stamps a BUC band on what it mints', () => {
     ]);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(TestWand as never);
     // Every clone hands back a fresh wand we keep a handle on.
-    vi.spyOn(StuffApi, 'clone').mockImplementation(async () => {
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
+      // A wand that carries a spell loads the spell dictionary (W5a/W5c):
+      // that clone is the dictionary, not a mint.
+      if (path === '/platform/idea/SpellCatalogue') {
+        return makeStuffAtPath(() => new Good(), path) as unknown as Stuff;
+      }
       const w = makeStuff(() => new TestWand());
       stampTemplatePathForTest(w, `${WAND_PATH}-minted-${seq++}`);
       w.setCensusKey('wand');

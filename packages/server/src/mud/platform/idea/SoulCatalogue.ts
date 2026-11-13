@@ -1,7 +1,7 @@
 /**
  * SoulCatalogue — singleton Idea that owns the runtime verb→Emote cache.
  *
- * Lives at `/platform/idea/SoulCatalogue`, sibling to `/platform/idea/TopicCatalogue` and
+ * Lives at `/platform/idea/SoulCatalogue`, sibling to `/platform/idea/RecipeCatalogue` and
  * `/platform/idea/EventRegistry` per the singleton-in-`obj/` convention. The
  * source of truth is the `documents` collection, `kind: 'emote'` — rows
  * the `expression` content pack installs (and an author mints at
@@ -73,6 +73,17 @@ export interface EmoteSpec {
   /** Signed renown valence (esteem + / notoriety −; default 0). */
   valence?: number;
 }
+
+/**
+ * What `edit` takes: any field of the spec, and the grammar as a PARTIAL —
+ * the named keys merge over the row's, so a new template keeps the slots
+ * (controller-liquidity C72: `soul edit <verb> template …` used to wipe
+ * them). `grammar.slots`, when given, replaces the slot list whole: its
+ * order is the binding order, and a merge would reorder it.
+ */
+export type EmotePatch = Omit<Partial<EmoteSpec>, 'grammar'> & {
+  grammar?: Partial<Emote['grammar']>;
+};
 
 export default class SoulCatalogue extends SoulCatalogueBase {
   /**
@@ -180,8 +191,13 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const map = await this.ensureCache();
     const existing = map.get(verb.toLowerCase());
     if (!existing) return false;
+    // ⚠ Write FIRST, then the cache: the write is title-gated, and a
+    // refused write must leave the live catalogue as it was.
+    const data = existing.toData();
+    if (flag) data.disabled = true;
+    else delete data.disabled;
+    await DocumentApi.save(existing.path, EMOTE_KIND, data);
     existing.disabled = flag;
-    await DocumentApi.save(existing.path, EMOTE_KIND, existing.toData());
     map.set(existing.verb, existing);
     this.bySearchTerm = buildSearchIndex(map);
     return true;
@@ -289,14 +305,16 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   }
 
   /**
-   * Edit a single field on an existing emote. The `template` /
-   * `slots` / `verbForm` fields are nested inside `grammar` — pass the
-   * whole grammar object to replace it. Returns the updated Emote.
+   * Edit fields on an existing emote. The grammar MERGES (see
+   * {@link EmotePatch}); every other given field replaces. The edited row
+   * is validated as a whole (`Emote.fromData`) and written BEFORE the
+   * cache changes, so a refused or malformed edit leaves the live
+   * catalogue untouched. Returns the updated Emote.
    */
   @CallSecurity(SoulApiCallers)
   public async edit(
     verb: string,
-    patch: Partial<EmoteSpec>,
+    patch: EmotePatch,
   ): Promise<Emote> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
@@ -311,19 +329,23 @@ export default class SoulCatalogue extends SoulCatalogueBase {
         `Cannot rename the verb; delete and re-mint to change the canonical name.`,
       );
     }
+    const data = existing.toData();
     if (patch.searchTerms !== undefined) {
-      existing.searchTerms = patch.searchTerms.map((a) => a.toLowerCase());
+      data.searchTerms = patch.searchTerms.map((a) => a.toLowerCase());
     }
-    if (patch.grammar !== undefined) existing.grammar = patch.grammar;
-    if (patch.echo !== undefined) existing.echo = patch.echo;
-    if (patch.emoji !== undefined) existing.emoji = patch.emoji;
-    if (patch.tags !== undefined) existing.tags = patch.tags;
-    if (patch.valence !== undefined) existing.valence = patch.valence;
+    if (patch.grammar !== undefined) {
+      data.grammar = { ...existing.grammar, ...patch.grammar };
+    }
+    if (patch.echo !== undefined) data.echo = patch.echo;
+    if (patch.emoji !== undefined) data.emoji = patch.emoji;
+    if (patch.tags !== undefined) data.tags = patch.tags;
+    if (patch.valence !== undefined) data.valence = patch.valence;
+    const next = Emote.fromData(data, existing.path);
 
-    await DocumentApi.save(existing.path, EMOTE_KIND, existing.toData());
-    map.set(existing.verb, existing);
+    await DocumentApi.save(next.path, EMOTE_KIND, next.toData());
+    map.set(next.verb, next);
     this.bySearchTerm = buildSearchIndex(map);
-    return existing;
+    return next;
   }
 
   @CallSecurity(SoulApiCallers)
@@ -334,16 +356,17 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const map = await this.ensureCache();
     const existing = map.get(verb.toLowerCase());
     if (!existing) return false;
+    // The gated delete first; the cache follows only a delete that landed.
+    await DocumentApi.delete(existing.path);
     map.delete(existing.verb);
     this.bySearchTerm = buildSearchIndex(map);
-    await DocumentApi.delete(existing.path);
     return true;
   }
 
   /**
    * Singleton refusal — `Application` resolves us lazily via
    * `findByTemplatePath` and assumes we stay live for the process
-   * lifetime. Mirrors `TopicCatalogue.canDestruct`.
+   * lifetime. Mirrors `RecipeCatalogue.canDestruct`.
    */
   public canDestruct(): VetoResult {
     return {

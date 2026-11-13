@@ -50,6 +50,11 @@ export default class HayBale extends SelfHeatingMixin(Provision) {
     return this.baledMoistureFraction;
   }
 
+  /** Stamped by the cut (`Field.mowPlanFor`): the field's wetness, into the barn. */
+  public setBaledMoistureFraction(value: number): void {
+    this.baledMoistureFraction = Math.min(1, Math.max(0, value));
+  }
+
   /**
    * ⭐ The microbes' heat: nothing below the safe line, exactly the peak at
    * the dangerous line (normalized against the BAND, so the two authored

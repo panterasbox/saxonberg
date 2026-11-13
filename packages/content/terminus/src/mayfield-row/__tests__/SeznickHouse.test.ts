@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
 import Walter from '../agent/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
-import { AGENCY_PATH } from '../idea/cmd/LeaseController';
+const AGENCY_PATH = '/world/terminus/mayfield-row/idea/agency';
 import OrganizationEntity from '@saxonberg/server/mud/platform/idea/Organization';
 import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -115,7 +115,10 @@ function seedDomain(): void {
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
   add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
-  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+  add('/system/residence/idea/exits/keyed-door', '/platform/idea/Exit');
+  // The doors the warrens hang (boundary build, D6).
+  add('/system/residence/thing/boundaries/keyed-door', '/platform/thing/Door', { shortDescription: 'door', keywords: ['door'], locked: true, closesBehind: true });
+  add('/system/residence/thing/boundaries/lot-gate', '/platform/thing/Door', { shortDescription: 'gate', keywords: ['gate'], open: true });
 
   add(BUILDING, '/system/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,
@@ -124,6 +127,11 @@ function seedDomain(): void {
     parentExtent: HOUSE,
     capacityKey: 'mayfield.unitCap',
     defaultCapacity: 3,
+    // Who lets, the domicile and the unit branch (the row authors them —
+    // controller-liquidity W13).
+    agencyPath: AGENCY_PATH,
+    domicile: 'terminus/mayfield-row/seznick-house',
+    unitsBranch: 'units',
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
   // ⭐ The unit's plan, the programme's own (harbors review 3; no

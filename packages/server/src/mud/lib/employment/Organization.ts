@@ -159,6 +159,13 @@ export interface Organization {
     applicant: Stuff,
     positionKey: string,
   ): Promise<ApplicationVerdict>;
+  /**
+   * ⭐⭐ `applicant` asks for `positionKey` and is taken on if the house
+   * would take them — {@link considerApplicant} and the hire as ONE act
+   * (controller-liquidity D9, C83), so no caller can hire past the
+   * criteria. `appoint` stays the house's own act.
+   */
+  apply(applicant: Stuff, positionKey: string): Promise<ApplicationVerdict>;
   /** The roster (schedule) value object. */
   getRoster(): Roster;
   /** The roster assignments in list order. */
@@ -680,6 +687,19 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
         }
       }
       return { ok: true };
+    }
+
+    /** See {@link Organization.apply}. Sealed: the criteria ARE the gate. */
+    @Final
+    @Unshadowable
+    public async apply(
+      applicant: Stuff,
+      positionKey: string,
+    ): Promise<ApplicationVerdict> {
+      const verdict = await this.considerApplicant(applicant, positionKey);
+      if (!verdict.ok) return verdict;
+      const hired = await this.appoint(applicant, positionKey);
+      return hired ? verdict : { ok: false, kind: 'not-employable' };
     }
 
     /** Every actor holding `positionKey` here (durable templatePaths). */

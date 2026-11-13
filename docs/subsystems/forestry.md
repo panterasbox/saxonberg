@@ -168,15 +168,16 @@ full stand on a small cell run its ground dry in a dry month.
 ## `fell` — one act, and the bole
 
 `trade/forestry/cmd/forestry/fell.yaml` + `FellController extends
-ManualBuildController` (the kernel's engaged-act base; the endurance
-spend is three lines inline). `FELL_MS = 30 000` game-ms (2.5 real s at
+ManualBuildController` (the kernel's engaged-act base; the endurance is
+spent in the completion, when the tree comes down — never before the
+engagement could refuse, controller-liquidity C12). `FELL_MS = 30 000` game-ms (2.5 real s at
 12×), `FELL_COST = 10`; `CROSSCUT_MS = 15 000`, `CROSSCUT_COST = 5`.
 
 **The target is polymorphic, so the view declares `requires: any`** (the
 `heat.yaml` shape — declared, gating nothing; `lint:arg-kinds` refuses an
-object arg with no `requires`). Three things can stand in the slot and
-share no mixin: a `Bole` on the floor (cross-cut), a growing `Plant`
-(felled where it stands), or a bare species word that binds NOTHING —
+object arg with no `requires`). Two things can stand in the slot and
+share no mixin: a growing `Plant` (felled where it stands), or a bare
+species word that binds NOTHING —
 the stand is the ROOM, and a room is not a bindable target, so `fell oak`
 lands as `{ stuff: null, raw: 'oak' }` and `raw` is read against the
 stand. ⭐ **The word wins when the stand knows it**: after the first
@@ -200,11 +201,15 @@ with `lengthsLeft`; mass = the species' wood density × 0.9 m³, oak ≈
 675 kg; *can't-budge is emergent from mass, never a flag* — `get bole`
 refuses `too-heavy-to-lift`), four logs off the crown beside it
 (`Firewood`, the species' wood), and a seed in hand. **Cross-cutting is a
-second act on the bole**: `fell bole` takes one length of green timber
-(24 kg, the bole's wood) per engagement until nothing is left but the
-butt and the brash, and the bole is destructed. The bole **affords its
-own cross-cut** (`commandContributions.self`), so a bole dragged to the
-yard is still a bole there. The bole on the ground IS the seam
+second act on the bole, and it is a CUT**: `cut bole` (a felling axe
+among the bound tools) takes one length of green timber (24 kg, the
+bole's wood) per engagement until nothing is left but the butt and the
+brash, and the bole is destructed — `Bole.cutPlan`, the kernel `cut`'s
+protocol (controller-liquidity D14 retired `fell bole`; `fell` on a bole
+refuses and names `cut`). The bole **affords its own cross-cut**
+(`commandContributions.peers` names `cut.yaml`), so a bole dragged to the
+yard is still a bole there. It answers the froe (`RivableMixin`) and the
+saw (`Bole.sawPlanFor` — a method on the bole, its one host, since controller-liquidity W17) the same way: one length off it per act. The bole on the ground IS the seam
 `trade-sawing` attaches to (boards, not lengths) and what the transport
 pack's sledge and dray exist to move.
 
@@ -543,3 +548,12 @@ mass — of the stand entry's `brashMaterialPath` (`<wood>-brash` rows
 `extends:` the wood with three times its ash and a richer alkali), else the
 wood itself. The Hanging Wood's ride stands beech and pine beside oak and
 ash. See [potash.md](potash.md).
+
+## History — controller liquidity (MR !561, 2026-11)
+
+`fell` decided between a standard, a planted tree and a bole in its
+controller. It is one act on two hosts now — `FellableMixin`
+(`trade-forestry/src/lib/`, W11 `fa6bf074d`) on the stand and on a planted
+tree — and a bole is crosscut with `cut` (`Cuttable`; `fell bole` retired,
+D14). The sawmill asks a `Bole` by class (`Bole.sawPlanFor`; the one-host
+`SawableMixin` folded in W17), and `rive` is the kernel `RivableMixin`.

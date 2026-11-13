@@ -69,3 +69,29 @@ export class DetachedError extends Error {
     this.name = 'DetachedError';
   }
 }
+
+/**
+ * ⭐⭐ **A cited document (or vocabulary) was read synchronously and is not
+ * resident — an ENGINE DEFECT, never a player-facing refusal.**
+ *
+ * The rule it guards (documents path identity, D7): whatever a resident
+ * thing cites is resident too, *by construction* — an authored citation
+ * loads through its field's awaited setter, restored state through the same
+ * setters, a runtime write in an act that already holds the document, and a
+ * class's own built-in citations in its `onCreate`. A synchronous read that
+ * finds the document missing means one of those mechanisms was skipped, and
+ * this throw names the kind and the path so the gap is found, loudly, rather
+ * than read as "nothing there". Nothing catches it to degrade.
+ */
+export class DocumentNotResidentError extends Error {
+  constructor(
+    public readonly kind: string,
+    public readonly path: string,
+  ) {
+    super(
+      `${kind} '${path}' was read but is not resident — whatever cites it ` +
+        `should have loaded it (an engine defect, not a missing row)`,
+    );
+    this.name = 'DocumentNotResidentError';
+  }
+}

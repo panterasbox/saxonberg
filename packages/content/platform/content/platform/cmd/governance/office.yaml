@@ -1,6 +1,6 @@
 verbs: [office]
 category: governance
-controller: /platform/idea/cmd/governance/OfficeController
+controller: /platform/idea/cmd/governance/OfficeListController
 description: "Inspect government offices; the founder hands seats off"
 help: |
   The seats of government — a fixed apparatus of named offices, each held
@@ -23,6 +23,7 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   assign:
+    controller: /platform/idea/cmd/governance/OfficeAssignController
     description: "Hand an office to a player (founder-only)"
     help: |
       Set a player as the explicit holder of an office, replacing whoever
@@ -44,6 +45,7 @@ subcommands:
         type: string
         required: true
   vacate:
+    controller: /platform/idea/cmd/governance/OfficeVacateController
     description: "Revert an office to the founder (founder-only)"
     help: |
       Clear an office's explicit holder; the seat reverts to the founder
@@ -58,6 +60,7 @@ subcommands:
         type: string
         required: true
   list:
+    controller: /platform/idea/cmd/governance/OfficeListController
     description: "Show the public roster of offices and holders"
     help: |
       List every office with its branch, origin, and current holder. Public

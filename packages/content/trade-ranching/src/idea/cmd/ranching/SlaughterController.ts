@@ -60,198 +60,98 @@ import type {
   CommandContext,
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { SlaughterRefusal } from '@saxonberg/server/mud/lib/species/Organism';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ConditionApi } from '@saxonberg/server/mud/api/condition';
-import { SpeciesApi } from '@saxonberg/server/mud/api/species';
-import HerdRegistry from '../../HerdRegistry';
-import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
+import { RANCHING_TOPIC } from './DraftController';
 import { STOCKMANSHIP } from './HandleController';
-import Livestock from '../../../agent/Livestock';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface SlaughterModel extends CommandModel {
   target?: MqlOneResult;
+  /** ⭐ The edge — declared by the view, not hunted for. */
+  blade?: MqlManyResult;
 }
 
+/**
+ * ⭐⭐ **The animal answers** (controller-liquidity W10): whether it may be
+ * slaughtered — alive, known, not somebody, not named, worth the killing,
+ * and (a herd's head) yours to cull — and the kill itself, with the book
+ * written after it, are `Organism.slaughterRefusal` / `slaughter`. This
+ * file binds the edge and writes the words.
+ */
 export default class SlaughterController extends CommandController<SlaughterModel> {
   async execute(model: SlaughterModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const animal = model.target?.stuff;
-
     if (!animal) {
-      this.decline(
-        context,
-        Mml.compose`You don't see any '${model.target?.raw ?? ''}' here.`,
-        'no-target',
-      );
+      this.decline(context, Mml.compose`You don't see any '${model.target?.raw ?? ''}' here.`, 'no-target');
       return;
     }
-
-    if (!MixinApi.isOrganism(animal) || !animal.isAlive()) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(animal)} is not something you slaughter.`,
-        'not-an-animal',
-      );
+    if (!MixinApi.isOrganism(animal)) {
+      this.decline(context, SlaughterController.refusalWords('not-an-animal', animal), 'not-an-animal');
       return;
     }
-
-    // ⚠⚠ **Warm the species before asking it anything.** A `Species` Idea
-    // is not resident at boot and `SpeciesApi.isSentient` answers FALSE
-    // for one that is not — the reference-Ideas-inert-at-boot trap, which
-    // has recurred three times and which the kitchen's `butcher` already
-    // guards against for exactly this reason. Without it the sentience
-    // refusal fails OPEN.
-    await SpeciesApi.preloadAnatomy(animal);
-    const species = animal.getSpecies();
-    if (!species) {
-      this.decline(
-        context,
-        Mml.compose`You cannot make out what ${Mml.thing(animal)} is, and you are not putting a knife into that.`,
-        'unidentified-species',
-      );
+    const refusal = await animal.slaughterRefusal(giver);
+    if (refusal !== null && refusal !== 'not-keeper') {
+      this.decline(context, SlaughterController.refusalWords(refusal, animal), refusal);
       return;
     }
-
-    if (SpeciesApi.isSentient(animal)) {
-      this.decline(
-        context,
-        Mml.compose`You put the knife away. Whatever ${Mml.thing(animal)} is, it is somebody.`,
-        'sentient',
-      );
+    // ⭐ An edge, or no kill (C19): a blade is a CONSTRUCTION, the same
+    // read the kitchen's `butcher` makes of what the view hands over.
+    const blades = model.blade?.stuff ?? [];
+    if (!blades.some((b) => MixinApi.isConstructed(b) && b.getConstructionForm() === 'bladed')) {
+      this.decline(context, Mml.compose`You would need an edge for that — a knife, something bladed.`, 'no-blade');
       return;
     }
-
-    // ⭐⭐ **A named animal is refused, and the refusal is the design.**
-    // `Livestock` is not `Named`; a `KeptAnimal` is, and a name arrives
-    // only when a player gives one to an animal that chose to follow
-    // them. So this cannot fire on a head out of the herdbook and always
-    // fires on the dog you called Moss.
-    if (MixinApi.isNamed(animal) && (animal.getName() ?? '') !== '') {
-      this.decline(
-        context,
-        Mml.compose`That is ${Mml.thing(animal)}. You named it, and it is not meat.`,
-        'named-animal',
-      );
+    if (refusal === 'not-keeper') {
+      this.decline(context, SlaughterController.refusalWords(refusal, animal), refusal);
       return;
     }
-
-    // ⭐ The species' own answer, and an empty yield is authored rather
-    // than missing: *there is nothing here worth cutting.* This is what
-    // refuses the working collie without anybody writing a list of
-    // animals you may not eat.
-    if (species.getButcheryYield().length === 0) {
-      this.decline(
-        context,
-        Mml.compose`There is nothing on ${Mml.thing(animal)} worth the killing.`,
-        'no-yield',
-      );
-      return;
-    }
-
-    // ⚠ Read the record's half BEFORE the kill. Afterwards there is no
-    // object left to ask.
-    // ⚠⚠ These three were `typeof animal.getX === 'function'`, which is
-    // the duck-typing antipattern CLAUDE.md names outright — and it did
-    // not type-check either (`animal` is `Stuff & Organism`), so the
-    // whole block was invisible to `tsc` behind a shape test. Narrow
-    // properly: the herdbook half is `Livestock`'s own (a pack CLASS, so
-    // `instanceof`, exactly as the kitchen reads `body instanceof
-    // Corpse`), and handling is the KERNEL's `HandlingMixin`, which has a
-    // registered predicate.
-    const herdId = animal instanceof Livestock ? (animal.getHerdId() ?? '') : '';
-    const index =
-      animal instanceof Livestock ? (animal.getHeadIndex() ?? -1) : -1;
-    const flesh = MixinApi.isReserved(animal)
-      ? animal.getReserve('flesh')?.current.rawValue()
-      : undefined;
-    const handling = MixinApi.isHandling(animal)
-      ? animal.getHandling()
-      : undefined;
     const presentation = animal.getPresentation();
-
-    // ⭐ ONE lethal call, and it is the same one a fight makes. Everything
-    // a death does — the body, the ledger row, the deed, the engagements
-    // it cancels — happens there and happens once.
-    // ⭐ (cleanliness D6) The kill bloodies the one who makes it — with the
-    // ANIMAL's blood, read while it still has a body to read it from.
-    if (MixinApi.isHygienic(giver)) {
-      giver.soilFrom(
-        [
-          { kind: 'blood', amount: 0.4, where: 'hands' },
-          { kind: 'blood', amount: 0.3, where: 'apron' },
-          { kind: 'blood', amount: 0.2, where: 'floor' },
-        ],
-        animal,
-      );
+    const done = await animal.slaughter(giver);
+    // ⚠ The animal is dead and the body stands; an over-counted herd is
+    // recoverable, so the failed write is noted, not thrown.
+    if (done.recordFailed !== null) {
+      context.note({ kind: 'controller-rejected', reason: 'book-write-failed', detail: done.recordFailed });
     }
-
-    await ConditionApi.die(animal, 'slaughtered');
-
-    if (herdId && index >= 0) {
-      try {
-        const registry = await this.registry();
-        const wrote = await registry.returnHead(herdId, index, {
-          note: 'slaughtered',
-          ...(flesh !== undefined ? { flesh } : {}),
-          ...(handling !== undefined ? { handling } : {}),
-        });
-        if (wrote) {
-          const back = await registry.read(herdId);
-          if (back) {
-            await registry.update({
-              ...back,
-              tally: Math.max(0, back.tally - 1),
-            });
-          }
-        }
-      } catch (err) {
-        // ⚠ The animal is already dead and the body is already standing
-        // there. An over-counted herd is recoverable; a thrown command on
-        // top of a completed kill is not useful to anybody.
-        console.warn('SlaughterController: the book write failed:', err);
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'book-write-failed',
-          detail: `${herdId}/${String(index)} stays drafted`,
-        });
-      }
-    }
-
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
-      .toSelf(
-        Mml.compose`It is quick. ${presentation} goes down where it stood, and what is left is a body.`,
-      )
+      .toSelf(Mml.compose`It is quick. ${presentation} goes down where it stood, and what is left is a body.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} slaughters ${presentation}.`)
       .send();
-
     if (MixinApi.isAdvancing(giver)) {
-      await giver.creditDeed({
-        discipline: STOCKMANSHIP,
-        difficulty: 'standard',
-        outcome: 'success',
-      });
+      await giver.creditDeed({ discipline: STOCKMANSHIP, difficulty: 'standard', outcome: 'success' });
     }
   }
 
-  protected async registry(): Promise<HerdRegistry> {
-    return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+  protected static refusalWords(reason: SlaughterRefusal, animal: Stuff): Composed {
+    switch (reason) {
+      case 'not-an-animal':
+        return Mml.compose`${Mml.thing(animal)} is not something you slaughter.`;
+      case 'unidentified-species':
+        return Mml.compose`You cannot make out what ${Mml.thing(animal)} is, and you are not putting a knife into that.`;
+      case 'sentient':
+        return Mml.compose`You put the knife away. Whatever ${Mml.thing(animal)} is, it is somebody.`;
+      case 'named-animal':
+        return Mml.compose`That is ${Mml.thing(animal)}. You named it, and it is not meat.`;
+      case 'no-yield':
+        return Mml.compose`There is nothing on ${Mml.thing(animal)} worth the killing.`;
+      case 'not-keeper':
+        return Mml.compose`${animal.getPresentation()} is out of somebody's herd, and it is not yours to cull.`;
+      default: {
+        const never: never = reason;
+        return Mml.compose`${String(never)}`;
+      }
+    }
   }
 
-  protected decline(
-    context: CommandContext,
-    prose: ReturnType<typeof Mml.compose>,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(RANCHING_TOPIC)
-      .toSelf(prose)
-      .send();
+  protected decline(context: CommandContext, prose: Composed, reason: string): void {
+    MessageApi.scene(context.commandGiver).topic(RANCHING_TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
 }

@@ -75,8 +75,7 @@ export default class OfferController extends CommandController<OfferModel> {
     // warms what it is about to read (the nine-caller precedent); it is
     // idempotent and cheap after the first.
     await SpeciesApi.preloadAnatomy(animal);
-    const refusal = animal.wouldEat(food);
-    if (refusal === 'not-edible') {
+    if (!animal.canEat(food)) {
       this.say(context, actor, `It won't eat that.`, 'not-edible');
       return;
     }
@@ -110,13 +109,15 @@ export default class OfferController extends CommandController<OfferModel> {
     // animal close enough to sniff it — a wild one is not, so its food
     // went on the floor above and the brain decides later. See the class
     // doc.
-    if (refusal) {
+    // ⚠ The note says `refused` and nothing more (C49): every note reaches
+    // the wire, and the animal never tells you WHY.
+    if (!animal.wouldEat(food)) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.actor(animal)} sniffs at it and turns away.`)
         .toPeers(Mml.compose`${Mml.actor(animal)} sniffs at what ${Mml.actor(actor)} offers and turns away.`)
         .send();
-      context.note({ kind: 'controller-rejected', reason: refusal, detail: '' });
+      context.note({ kind: 'controller-rejected', reason: 'refused', detail: '' });
       return;
     }
 
@@ -159,7 +160,7 @@ export default class OfferController extends CommandController<OfferModel> {
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.actor(animal)} sniffs at it and turns away.`)
         .send();
-      context.note({ kind: 'controller-rejected', reason: 'not-hungry', detail: '' });
+      context.note({ kind: 'controller-rejected', reason: 'refused', detail: '' });
       return;
     }
 

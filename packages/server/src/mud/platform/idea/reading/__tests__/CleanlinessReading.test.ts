@@ -14,6 +14,7 @@ import { driveAnalyze } from './drive';
 import CleanlinessReading from '../CleanlinessReading';
 import Location from '../../../../lib/location/Location';
 import Rug from '../../../thing/Rug';
+import Floor from '../../../thing/Floor';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -31,6 +32,7 @@ import { CommandApi, type CommandContext } from '../../../../api/command';
 import type Interactive from '../../Interactive';
 import type { CompetenceBandName } from '../../../../lib/advancement/CompetenceBand';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { rememberShippedDirt } from '../../../../lib/cleanliness/__tests__/soil-fixtures';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -75,6 +77,7 @@ describe('analyze cleanliness', () => {
   let avatar: FakeAvatar;
 
   beforeEach(() => {
+  rememberShippedDirt();
     StuffApi.clearAll();
     vi.spyOn(AppApi, 'setting').mockReturnValue('');
     installDirtKinds(DIRT as Record<string, unknown>[]);
@@ -90,9 +93,9 @@ describe('analyze cleanliness', () => {
 
   function rug(): Rug {
     const r = makeStuff(() => new Rug());
-    r.soil('grease', 0.6, null);
-    r.soil('blood', 0.4, null);
-    r.setSoilSet('blood', '', true);
+    r.soil('/platform/dirt/grease', 0.6, null);
+    r.soil('/platform/dirt/blood', 0.4, null);
+    r.setSoilSet('/platform/dirt/blood', '', true);
     ContainmentApi.move(r, room);
     return r;
   }
@@ -130,5 +133,14 @@ describe('analyze cleanliness', () => {
 
   it('⛔ never the microbes', async () => {
     expect(await read(rug(), 'expert')).not.toMatch(/germ|microb|bacteri|pathogen/i);
+  });
+
+  it('⭐ a floor says how it is kept — the line the retired `survey` carried', async () => {
+    const f = makeStuff(() => new Floor());
+    vi.spyOn(f, 'getGroundKind').mockReturnValue('earth');
+    f.soil('/platform/dirt/grease', 0.6, null);
+    const body = await read(f, 'untrained');
+    expect(body).toMatch(/It is .*greasy/);
+    expect(body).toMatch(/To strew and sweep it would see to it\./);
   });
 });

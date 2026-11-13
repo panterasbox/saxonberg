@@ -184,7 +184,10 @@ function installStore(): void {
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
   add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
-  add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
+  add('/system/residence/idea/exits/keyed-door', '/platform/idea/Exit');
+  // The doors the warrens hang (boundary build, D6).
+  add('/system/residence/thing/boundaries/keyed-door', '/platform/thing/Door', { shortDescription: 'door', keywords: ['door'], locked: true, closesBehind: true });
+  add('/system/residence/thing/boundaries/lot-gate', '/platform/thing/Door', { shortDescription: 'gate', keywords: ['gate'], open: true });
 
   // A one-room plan, the programme's own (harbors review 3; no blueprint
   // row): its extent is the room's row.
@@ -478,6 +481,21 @@ describe('title', () => {
     expect(await ParcelEvent.findByExtent(LOT2)).toHaveLength(0);
     const owner = await ParcelApi.ownerOf(LOT2);
     expect(owner?.kind).toBe('group');
+  });
+
+  it('⭐ a lot the registry would refuse takes NO money (controller-liquidity C1)', async () => {
+    // A lot far outside the residential band: `subdivide` would throw, and
+    // the sale used to settle first. The book asks the registry before the
+    // money leg now.
+    StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!.setAreaM2(10_000_000);
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+
+    const ctx = await run(buyer, room, model('buy', 'lot 2'));
+
+    expect(reasons(ctx)).toContain('zoning');
+    expect(settled).toHaveLength(0);
+    expect(await ParcelEvent.findByExtent(LOT2)).toHaveLength(0);
   });
 
   it('the same lot cannot be sold twice', async () => {

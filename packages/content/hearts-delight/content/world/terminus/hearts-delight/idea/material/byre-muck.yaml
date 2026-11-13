@@ -3,4 +3,4 @@
 class: /platform/idea/material/Residue
 data:
   name: byre muck
-  smells: [{ aroma: /base-library/aromas/dung, strength: 150 }, { aroma: /base-library/aromas/cattle, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/dung, strength: 150 }, { aroma: /base-library/aromas/animal/cattle, strength: 60 }]

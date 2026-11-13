@@ -130,10 +130,16 @@ YIELDS the piece (`Clay.yieldPieces`).
 
 - **A form** (`lib/craft/FormSpec.ts`) is a class (open · closed · flat ·
   block · cone) × a capacity × a proportion (tall · squat · wide · narrow).
-  Words are `/platform/idea/Form` rows (`<root>/idea/form/<word>`: `key`,
-  `formClass`, `capacityL`, `proportion`, `product`, `seats`, `greenScale`,
-  `discipline`), loaded by path from the instrument's `forms:` list — nothing
-  scans. `tall jug holding 3 pints`, `open vessel holding 2 litres`; an
+  Words are `form` documents (a pack's `content/forms/<word>.yaml`, stored
+  at `<pack root>/forms/<word>` — `/trade/ceramics/forms/mug`: `formClass`,
+  `capacityL`, `proportion`, `product`, `seats`, `greenScale`,
+  `discipline`; the word is the path's leaf unless a `key:` says
+  otherwise), cited by path in the instrument's `forms:` list — nothing
+  scans. The `forms` setter awaits `CraftingApi.forms().ensure` per path, so the sync
+  read (`CraftingApi.forms().need`) under `shape` always finds them; a typed word is
+  resolved against that list, so two instruments may each know a
+  `brick`. (They were `Form` Idea rows under `<root>/idea/form/` until the
+  documents path identity build, 2026-11-09.) `tall jug holding 3 pints`, `open vessel holding 2 litres`; an
   unknown word is refused naming the five classes.
 - ⭐ **The instrument is a kernel `FormingMixin`** (`lib/craft/Forming.ts`,
   made general in review, 2026-10-28): it owns the words, the class check,
@@ -318,7 +324,7 @@ face) and the floor refuses *at the water*. The valley's first pit
 |---|---|
 | weathering ground | open (no roof, no walls) — heaps lie out the winter here; the brickmaster |
 | clay pit | the working; three quarry spades |
-| old pit | the pond; the **old moulding table**, its mould cut before the statute (`idea/form/old-brick`, `greenScale` 1.6 — a brick off it measures *off standard*) |
+| old pit | the pond; the **old moulding table**, its mould cut before the statute (`/world/terminus/hearts-delight/forms/old-brick`, `greenScale` 1.6 — a brick off it measures *off standard*) |
 | temper yard | the temper pit (a world row: the blend is CALLED the Delight's alluvial clay, which a trade row may not name — R4), pails, starting heaps of breeze and sand |
 | moulding shed | two brick tables; the gauging rod (`measure size`); the two moulders |
 | hacks | `enclosure: none`, a canvas `roof:` — rain kept off, the field's air (a frost still reaches a wet brick) |
@@ -334,7 +340,8 @@ floors are the alluvial clay, unworked outdoors and beaten in the sheds
 **Glazes are mixing, not recipes (R1).** Each tub is a kernel `GlazeTub`
 (a `CompoundingVessel` that is also a coat BATH — B101) whose
 `productMaterial` is its glaze (`glaze/ash`, `glaze/lead`, the slip): put
-ash (or lead) in with a little clay and water, `stir tub`, and the slurry is
+ash (or lead) in with a little clay and water, `stir tub` (a slurry — a few
+minutes' stirring; controller-liquidity W19), and the slurry is
 that glaze by the vessel's name and its make-up by what was weighed. Then
 `dip` a pot in it. A bath with less left than the pot's skin takes coats
 nothing (`bath-too-low`).
@@ -342,8 +349,9 @@ nothing (`bath-too-low`).
 ⭐ **The work is the matter's (B101).** A compounding vessel says whether its
 contents are KNEADED (a deformable mass: plastic clay, raw rubber; a quarter
 game-hour, heavy) or STIRRED (powders, granules, liquids; two light minutes),
-from what is in it (`workVerb`), and the wrong verb is refused, naming the
-right one. Stirring the temper used to be a two-minute shortcut past the
+from what is in it (`workVerb`): `knead` a stiff mass, `stir` a runny one,
+and the wrong verb is refused, naming the right one (`wrong-work`,
+controller-liquidity W19). Stirring the temper used to be a two-minute shortcut past the
 kneading. The *vessel* names the glaze — there is no
 dominant-flux naming. Salt glaze is the chamber-vapor path with any salt a
 player brings (the Delight potter is an earthenware potter).
@@ -459,7 +467,7 @@ The moulding half of the build lives in [mould.md](./mould.md); what is
 ceramics' here:
 
 - **Plaster** — `rock/gypsum` burns to `mineral/plaster` by the one heat
-  rule (~420 K for an hour; the foundry's core oven); `stir` it with water in
+  rule (~420 K for an hour; the foundry's core oven); `knead` it with water in
   the **plaster tub** and the slurry (`plaster-slurry`, a `kinetics:` set of 15
   minutes → `cast-plaster`) poured into the two-piece **plaster case**, a
   model pressed in before it sets, cures into a **plaster mould** with the
@@ -567,3 +575,6 @@ shell weathering (only if wall spalling is built).
   shipped with the soak harness (2026-10-30): each blocking drive stages its
   span steps' outcomes, and its `.soak.dirty` twin keeps the spans —
   [testing.md § The soak lane](../testing.md).
+- **2026-11-09 (documents path identity):** the forms became `form` documents
+  at `content/forms/`, cited by path. See git log for the
+  `reqs/documents-path-identity` branch.

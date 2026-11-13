@@ -14,6 +14,9 @@
 > ([credit.md](../../subsystems/credit.md)), chain of title
 > ([chattel.md](../../subsystems/chattel.md)), the relay ([streaming.md](../../subsystems/streaming.md)),
 > staging's recall ([staging](./staging-slate.md)).
+> ⭐ **Holds and sentences (2026-11-10, § 14a):** mods are the executive and impose HOLDS; lasting
+> deprivations are SENTENCES that need a case; holds last until the weekly court day (the stream,
+> always public, the audience an advisory jury).
 > **Left:** everything in § 19 (the go-live list) · the raid dial's shape · what the mod queue shows ·
 > channel domains · mod tiers · rehabilitation's own conversation · the re-entry ladder (§ 9, general)
 > · Kick's moderation events (unverified). [prison-slate](./prison-slate.md) — whose guardrail this
@@ -313,6 +316,71 @@ tamper-proof mod log."*
 - **An appeal may challenge the remedy as well as the verdict** (§ 16a) — the public log is what
   makes disparity visible.
 
+## 14a. ⭐⭐⭐ Holds and sentences — the executive acts, the court decides **[DECIDED 2026-11-10 — the owner, except where marked]**
+
+The owner: *"these mod committees … are they an arm of the executive or the judiciary? initially
+I'd say executive and they're basically law enforcement … but the fact that some kind of sentence
+is immediately imposed makes me feel like they're judiciary and maybe our model for the courts is
+lacking."*
+
+**The answer: the mod committee is the executive, and its instant act is never the sentence.**
+
+- **The Compact already places it.** An enforcement institution is chartered by the legislature
+  and reviewable by the judiciary (Art. V §5); human enforcement is for judgment calls code cannot
+  make, and is *"bounded, recorded, recusal-gated, and subject to review"* (Art. V §7). The
+  judiciary is one process at every scale (Art. VI), and removing something is a deprivation that
+  demands more process, not less (Art. VI §7).
+- **What felt judicial is administrative adjudication.** Agencies impose penalties in-house and
+  courts review them (traffic tickets, license suspensions); *SEC v. Jarkesy* (2024) drew the US
+  line at penalties that resemble traditional punishment, which need a jury. A referee shows a red
+  card instantly; a disciplinary body decides the suspension. Same line here.
+- **A HOLD is executive.** Delete, mute, eject, a temporary ban: it stops the harm and decides
+  nothing final. It acts first and is cited after (§ 6), and it is **the lightest measure that
+  stops the harm** (bail's rule): mute them where they caused trouble rather than ban them
+  realm-wide.
+- **A SENTENCE is judicial.** A lasting deprivation needs a **case** (Art. VI) that the moderator
+  brings. **[LEAN]** The line: anything over a day, or anything touching the account, the network,
+  possessions or the franchise. Prison (§ 16) is always a sentence.
+- ⭐ **Habeas corpus as a rule: holds expire.** A hold over the line stands **until the next court
+  day** (below), with a **two-week backstop** **[LEAN]**; past it the hold lapses unless the case is
+  heard. Nobody sits under an executive sanction indefinitely without a court.
+- **The court has no enforcers of its own.** As the US Marshals carry out court orders, the mod
+  committee carries out a verdict: the hold becomes the sentence.
+- **Pleas.** The moderator files the case with a proposed sentence; the accused may accept it on the
+  spot and be done. Only contested cases go to court day. A no-show is judged on the record
+  (Art. VI §1).
+- **Panels scale with severity** **[LEAN]**: one judge for a ban appeal, a sortition for a permanent
+  ban or prison. Art. VI's two faces (verification by a competence pool, spirit by citizens) are the
+  "different kinds of courts."
+- **Why it holds up:** speed deters more than severity (certainty and swiftness, since Beccaria), so
+  holds carry deterrence and sentences can afford to be slow; separating the arresting officer from
+  the judge is the cheapest check on *"mods protect their friends"*; review disciplines the
+  moderator, and each seat's **reversal rate** belongs in the public log (§ 12, which already names
+  seats).
+
+### Court day — the weekly stream **[DECIDED — the owner]**
+
+The owner: *"I plan to livestream every week so I'd probably deal with my 'caseload' then and let
+the audience weigh in. we'd need to be able to hold people at least that long."*
+
+- **Contested cases are heard on the weekly stream.** The operator is the judge, a pool of one
+  (Art. VI §3); **the audience is an advisory jury** (US civil procedure's advisory jury: the judge
+  may seat one and still decide alone), its vote recorded as advice. When due process is ratified
+  (Art. VI §5) the vote binds and the pool becomes a sortition: the stream format survives
+  unchanged.
+- ⭐ **Always public.** The owner: *"always public, how many layers of anonymity do we really
+  need."* A contested hearing names the accused's **character or handle, never the real person**
+  (conduct rule 4). Open court is the classic check on the judge, and making a contest public is
+  part of what it costs. Holds and pleas stay in the unnamed public log (§ 12); contesting is the
+  choice that puts a person on the stand.
+- **Channel moderators later are the same shape one level down:** each organization's enforcers are
+  its executive (§ 4); the realm keeps **one** judiciary.
+
+**Where it starts:** one mod committee and the operator as a pool of one, but with the shape in
+place from day one: every action classed as a hold or a sentence, holds that expire, anything past
+the line recorded as a case labeled *"reviewed by the operator."* Growing means widening the jury
+pool and adding courts, never rebuilding.
+
 ## 15. ⭐⭐⭐ The conduct code — one text, every place we gather **[DECIDED]**
 
 *"We need [a written code] for sure … it needs to be uniform across our socials, Twitch, Discord,
@@ -488,6 +556,9 @@ accounts (a sanction on an external id suffices first).
 - **Channel domains** — nested Subjects; which organization owns them.
 - **Targeting's spelling** — MQL or bespoke.
 - **Kick's moderation events** — verify before promising automation.
+- **Dose's licensing** (deferred from controller-liquidity, 2026-11-11) — `dose` treats
+  *competent in medicine* as *licensed*, which judges a PERSON: lens 7 wants the criterion,
+  the appeal and the entrenchment tier named. Today it is a Competence band and nothing else.
 - **Rehabilitation** — its own conversation ([prison-slate](./prison-slate.md) § 12). The prison
   conversation itself is done (prison-slate, rewritten 11-07).
 

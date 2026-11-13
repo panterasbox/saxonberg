@@ -68,10 +68,10 @@ beforeAll(async () => {
   // `environment` bucket flows up the containment chain, not to a sibling
   // in the room). So the clinicians pick up their kit first.
   for (const item of ['syringe', 'suture kit', 'prescription pad', 'surgical kit']) {
-    await doctor.cmd(`get ${item}`);
+    await doctor.cmd(`get "${item}"`);
   }
   for (const item of ['syringe', 'prescription pad', 'surgical kit']) {
-    await nurse.cmd(`get ${item}`);
+    await nurse.cmd(`get "${item}"`);
   }
 }, 300_000);
 
@@ -198,8 +198,8 @@ suite('the profession boundary', () => {
     // afforded and the refusal is a COMPETENCE refusal that names why —
     // not merely "no kit". (The named-refusal wording is also proven by
     // the trade-medicine instruments unit test.)
-    await nurse.cmd('get surgical kit');
-    await nurse.cmd('get prescription pad');
+    await nurse.cmd('get "surgical kit"');
+    await nurse.cmd('get "prescription pad"');
     await patient.cmd('lie down');
     const op = (await (await nurse.cmd('operate patient for extraction')).said()).toLowerCase();
     // A nurse cannot operate: either the refusal names the skill/medicine,

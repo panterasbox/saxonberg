@@ -6,22 +6,36 @@ summary: >-
   The third path-addressed tree: kind-tagged documents, from press releases
   to command views.
 purpose: |
-  The document store — one row per path, each tagged with a kind from the
-  closed `DocumentKinds` vocabulary: `msh` scripts, `release` bulletins, and
-  the pack-installed kinds (`emote`, `recipe`, `name-bank`, `blueprint`,
-  `command-view`). Writes are gated by parcel title at the path
-  (`AccessApi.canAtPath`); the `command-view` kind additionally needs code-
-  trust.
+  The document store — one row per path, each tagged with a kind. The
+  pack-installable kinds are the closed `DocumentKinds` vocabulary: what
+  packs AUTHOR (emotes, recipes, archetypes, blueprints, name banks, aromas,
+  command views, msh scripts) and what the world FILES at runtime (press
+  releases, water rights, maps, herds, fisheries, bodies, bore logs, bills
+  of lading, warehouse receipts, instruments, rate cards, editions, ship
+  register entries, berth rolls and books). Writes are gated by parcel title
+  at the path (`AccessApi.canAtPath`); the `command-view` kind additionally
+  needs code-trust.
+
+  ⭐ A document's PATH is its only identity. Every document also carries a
+  **catalogue card** (`keys`) its kind derives from its data — the keys it
+  can be FOUND by besides its path (a release's `publishedAt`, a typed-word
+  kind's `word`) — served by one wildcard index whatever the kind's shape.
 
   Releases live here rather than in a collection of their own: they are
   owner-scoped content with a place, and nobody queries them across
   jurisdictions.
 invariants:
   - >-
-    One document per path — enforced at the write (find-or-create), NOT by
-    a unique index. See the `path` index's note.
+    One document per path — enforced by the unique `path` index, and at
+    every write (find-or-create).
   - >-
-    `kind` is always a member of the closed `DocumentKinds` vocabulary.
+    `keys` is DERIVED from `data` by the kind's declaration on every write
+    (`StoredDocument.cardOf`, called by `StoredDocument.save` and by the
+    pack installer) and never authored, so it cannot drift from the value
+    it repeats.
+  - >-
+    A pack-installed row's `kind` is a member of the closed `DocumentKinds`
+    vocabulary; a runtime-filed kind outside it carries an empty card.
   - >-
     A write is authorized by parcel title over the path; there is no
     author tier.
@@ -48,16 +62,26 @@ reset:
     you were there
 indexes:
   - keys: { path: 1 }
+    unique: true
     why: |
-      `path` serves find-or-create and the prefix walk — the two shapes
-      every read of this tree takes.
+      `path` is the identity — find-or-create, the read by path, and the
+      prefix walk (a range over the index, never a scan) all take it.
 
-      ⚠ Deliberately NOT unique even though one document per path IS the
-      invariant: this collection predates the release move, and a unique
-      index that a live row violates fails at BOOT — the worst possible
-      moment and the hardest place to see why. The invariant is enforced at
-      the write instead, where a violation is visible and fixable.
+      Unique since 2026-11 (the path-identity build): two documents at one
+      path is the defect the store exists to make impossible. ⚠ A database
+      that predates it may hold a non-unique `path_1`; the build then logs
+      *NOT built* and continues. Dev databases are dropped, not migrated.
   - keys: { kind: 1 }
     why: |
       `kind` serves the warm-window rebuild that replaced the retired
       `bulletins` scan, and every per-kind installer read.
+  - keys: { kind: 1, keys.$**: 1 }
+    why: |
+      ⭐ The catalogue card — one compound wildcard index serves every key
+      every kind declares, whatever its shape: equality (a typed word's
+      `keys.word`), a range, and an ORDER (`keys.publishedAt` descending —
+      the press, newest first). A wildcard keys each card field natively,
+      so a sort is a real index order; an attribute array (`[{k, v}]`)
+      would sort by the array's extreme element and read the press in the
+      wrong order the moment a release carried a second key. Kind first,
+      so every key read is equality on kind.

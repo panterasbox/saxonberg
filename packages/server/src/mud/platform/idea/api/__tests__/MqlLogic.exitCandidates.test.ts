@@ -63,7 +63,7 @@ describe('an exit binds as itself', () => {
     door = await StuffApi.create(() => new Door());
     door.setShortDescription('iron gate');
     door.setKeywords(['gate']);
-    await here.addBidirectionalExit(there, 'north', { door });
+    await here.addBidirectionalExit(there, 'north', { boundary: door });
 
     mover = makeStuff(() => new TestMover());
     mover.setName('Alice');
@@ -125,7 +125,7 @@ describe('an exit binds as itself', () => {
     const exit = north();
     expect(exit.getPresentation()).toBe('north');
     const said = exit.getLongFor(mover as never);
-    expect(said).toMatch(/^A way north; the iron gate is (closed|open)\.$/);
+    expect(said).toMatch(/^A way north, through the iron gate \((closed|open)\)\.$/);
     expect(said).not.toMatch(/There/);
   });
 

@@ -11,7 +11,7 @@
  * work; the default has nothing to say, `null`) and affords the verb. What
  * this mixin owns is what they share:
  *
- *  - its words (`forms:` — `Form` rows loaded by path when asked; nothing
+ *  - its words (`forms:` — `form` documents by path, loaded by the setter; nothing
  *    scans) and the classes it makes (`formClasses`, a hook);
  *  - the mass it works (`formingMass`, a hook — each composer finds its own
  *    by its own class: clay in the hands or the room, the gather on the pipe);
@@ -34,7 +34,7 @@ import { FormGrammar, ParsedForm } from './FormSpec';
 import type { BeyondHandRefusal, ShapePlan, ShapeRefusal, ShapeRequest } from './Shapeable';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import Form from '../../platform/idea/Form';
+import { CraftingApi } from '../../api/crafting';
 
 const SHAPING = ['platform/cmd/crafting/shape.yaml'];
 
@@ -102,8 +102,17 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       formTemplates: { persistent: true, authorable: true },
     };
 
-    /** The Form rows this instrument makes, by path. */
+    /** The `form` documents this instrument makes, by path. */
     public forms: string[] = [];
+
+    /**
+     * ⭐ Loads every form the row names, so an instrument is live only when
+     * its words are (documents D7); a path with no form fails here.
+     */
+    public async setForms(paths: string[]): Promise<void> {
+      for (const p of paths) await CraftingApi.forms().ensure(p);
+      this.forms = [...paths];
+    }
     /** Fallback products by form class, when a word names none. */
     public formTemplates: Partial<Record<FormClass, string>> = {};
 
@@ -163,20 +172,13 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     }
 
     /**
-     * The words it knows, loaded by path. ⚠ A listed row that will not load
-     * is an authoring error and is NOT skipped quietly — an instrument that
-     * silently forgot a word reads as a player's mistake.
+     * The words it knows. ⚠ A listed path that will not load is an authoring
+     * error, refused at the `forms` setter — never skipped quietly; an
+     * instrument that silently forgot a word reads as a player's mistake.
      */
     protected async formWords(): Promise<FormWord[]> {
-      const out: FormWord[] = [];
-      for (const path of this.forms) {
-        const row = await StuffApi.singleton<Stuff>(path);
-        if (!(row instanceof Form)) {
-          throw new TypeError(`FormingMixin: '${path}' is not a Form row`);
-        }
-        out.push(row.toWord());
-      }
-      return out;
+      // Resident with the instrument (its `forms` setter loaded them).
+      return this.forms.map((path) => CraftingApi.forms().need(path));
     }
 
     /**

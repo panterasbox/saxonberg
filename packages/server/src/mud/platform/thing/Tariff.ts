@@ -39,6 +39,7 @@ import {
   type OrderDone,
   type OrderRefusal,
   type OrderRequest,
+  type Offering,
 } from '../../lib/commerce/PricedOffer';
 import { CraftingApi, NOBODY_TO_WORK, type Fault } from '../../api/crafting';
 import { ConditionApi } from '../../api/condition';
@@ -311,6 +312,13 @@ export default class Tariff extends TariffBase {
   /** Every priced key that names a real service. */
   public serviceKeys(): string[] {
     return this.pricedKeys().filter((k) => this.serviceFor(k) !== null);
+  }
+
+  /** ⭐ The services this house does, in key order, each at its price. */
+  public override async offerings(_reader: Stuff): Promise<readonly Offering[]> {
+    return this.serviceKeys()
+      .sort()
+      .map((key) => ({ kind: 'service' as const, key, price: this.priceFor(key) }));
   }
 
   // ── the house's own, where the slate stands (cleanliness B48) ──

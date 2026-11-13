@@ -98,7 +98,7 @@ export function CompositionMixin<TBase extends MixinConstructor>(Base: TBase) {
       // and for the same reason. THAT a piece has a composition figure is
       // public (a reader should see that the number exists to be
       // measured); what it IS is what `analyze chemistry` earns.
-      makeup: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      makeup: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
     };
 
     /**

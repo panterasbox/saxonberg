@@ -15,7 +15,7 @@
  * carries and olive oil (463) does not.
  */
 
-import { Aroma, type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
+import { type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
 import '@saxonberg/server/test-bootstrap';
 import { chargeHot } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
@@ -61,6 +61,7 @@ import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import CookPot from '../thing/CookPot';
 import { BlendIdentity } from '@saxonberg/server/mud/lib/craft/BlendIdentity';
 import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
+import { PerceptionApi } from '@saxonberg/server/mud/api/perception';
 
 const ROOT = '/trade/cooking';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -152,6 +153,9 @@ function contentRows(): Row[] {
     ...yamlDir('base-library', 'stuff/idea/material/element', '/stuff/idea/material/element'),
     ...yamlDir('base-library', 'stuff/idea/material/organic', '/stuff/idea/material/organic'),
     ...yamlDir('base-library', 'stuff/idea/material/wood', '/stuff/idea/material/wood'),
+    // The sacks' jute — a constituent, loaded with the sack from the
+    // content store (load-on-use door a), so the store carries the row.
+    ...yamlDir('base-library', 'stuff/idea/material/textile', '/stuff/idea/material/textile'),
     ...yamlDir('generic-objects', 'stuff/thing/items', '/stuff/thing/items'),
     ...yamlDir('generic-objects', 'stuff/thing/cutlery', '/stuff/thing/cutlery'),
     ...yamlDir('generic-objects', 'stuff/thing/fixture', '/stuff/thing/fixture'),
@@ -249,9 +253,9 @@ beforeAll(async () => {
       data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
     }));
   while (pending.length > 0) {
-    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const i = pending.findIndex((p) => !p.data.parent || PerceptionApi.aromas().resolveKnown(p.data.parent));
     const [next] = pending.splice(i, 1);
-    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+    PerceptionApi.aromas().remember(next!.word, next!.data, next!.data.parent ? PerceptionApi.aromas().resolveKnown(next!.data.parent) : null);
   }
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
     kind === 'recipe' ? recipeDocs() : [],

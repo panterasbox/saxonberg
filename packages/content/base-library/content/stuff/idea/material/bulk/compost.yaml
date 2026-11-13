@@ -11,7 +11,7 @@
 # the whole lesson phase 2 is after.
 class: /platform/idea/material/Soil
 data:
-  smells: [{ aroma: /base-library/aromas/compost, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/earth/compost, strength: 100 }]
   name: compost
   keywords: [humus, compost, muck, manure]
   appearance: crumbly black compost

@@ -1,5 +1,6 @@
 import "../../../../test-bootstrap";
 import { StuffApi } from '../../../api/stuff';
+import { BoundaryApi } from '../../../api/boundary';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import { LockableMixin } from '../Lockable';
 import Exit from '../Exit';
@@ -16,6 +17,7 @@ import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import {
   makeStuff,
+  makeStuffAtPath,
   seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 
@@ -38,15 +40,22 @@ describe('LockableMixin', () => {
     expect(s.isLocked()).toBe(false);
   });
 
-  it('lock() and unlock() flip state idempotently', async () => {
+  it('⭐ lock(by)/unlock(by): visible state first, the keyway second (D9)', async () => {
     const s = makeStuff(() => new TestLockable());
-    s.lock();
-    expect(s.isLocked()).toBe(true);
-    s.lock();
-    expect(s.isLocked()).toBe(true);
-    s.unlock();
+    s.setKeyway('front');
+    const stranger = makeStuff(() => new TestMover());
+    const holder = makeStuff(() => new TestMover());
+    holder.ensureCredential('key').addKey('front', 'pin-tumbler');
+    // Unlocked: unlocking says so to anybody — a character can see it.
+    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'already-unlocked' });
+    // The secret is asked only once the act would go through.
+    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'no-key' });
     expect(s.isLocked()).toBe(false);
-    s.unlock();
+    expect(s.lock(holder).ok).toBe(true);
+    expect(s.isLocked()).toBe(true);
+    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'already-locked' });
+    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'no-key' });
+    expect(s.unlock(holder).ok).toBe(true);
     expect(s.isLocked()).toBe(false);
   });
 
@@ -102,9 +111,9 @@ describe('Exit.canTraverse — locked gate', () => {
           direction: 'north',
           source: locA,
           destination: locA,
-          door,
         })
     );
+    BoundaryApi.attach(door, exit);
     const result = (await exit.canTraverse(mover));
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
@@ -126,9 +135,9 @@ describe('Exit.canTraverse — locked gate', () => {
           direction: 'north',
           source: locA,
           destination: locA,
-          door,
         })
     );
+    BoundaryApi.attach(door, exit);
     const result = (await exit.canTraverse(mover));
     expect(result.gate).toBe('locked');
   });
@@ -144,9 +153,9 @@ describe('Exit.canTraverse — locked gate', () => {
           direction: 'north',
           source: locA,
           destinationPath: '/zone/never-loaded',
-          door,
         })
     );
+    BoundaryApi.attach(door, exit);
     // Spy proves the destination getter is never touched during the veto.
     let resolved = false;
     const spy = exit as unknown as { getDestination(): unknown };
@@ -173,9 +182,9 @@ describe('Exit.canTraverse — locked gate', () => {
           direction: 'north',
           source: locA,
           destination: locA,
-          door,
         })
     );
+    BoundaryApi.attach(door, exit);
     expect((await exit.canTraverse(mover))).toEqual({ ok: true });
   });
 });
@@ -216,15 +225,16 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
   }
 
   function exitWith(door: Door): Exit {
-    return makeStuff(
+    const exit = makeStuff(
       () =>
         new Exit({
           direction: 'north',
           source: locA,
           destination: locA,
-          door,
         }),
     );
+    BoundaryApi.attach(door, exit);
+    return exit;
   }
 
   it('⭐⭐ a key-holder walks through a LOCKED door without unlocking it', async () => {
@@ -260,7 +270,7 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
     // The capability the old keyed-exit model could not express at all:
     // leaving your own door open for everybody else.
     const door = await keyedDoor();
-    door.unlock();
+    door.setLocked(false);
     expect((await exitWith(door).canTraverse(mover)).ok).toBe(true);
   });
 
@@ -288,6 +298,50 @@ describe('Exit.canTraverse — the keyway, not just the bolt', () => {
         authorable: true,
       });
     }
+  });
+});
+
+/**
+ * ⭐ `Door.freeFrom` — the side that opens with no key. One door, two
+ * sides: the free side is read off where the MOVER stands, never off which
+ * exit it asked (owner's call, 2026-11-09).
+ */
+describe('Door.freeFrom — the thumb-turn side', () => {
+  let inside: Location;
+  let outside: Location;
+  let mover: TestMover;
+  let door: Door;
+
+  beforeEach(async () => {
+    seedKernelContentStore();
+    const zone = makeStuff(() => new CartesianZone());
+    inside = makeStuffAtPath(() => new Location(), '/test/house/hall');
+    outside = makeStuffAtPath(() => new Location(), '/test/house/street');
+    zone.addLocation(inside, 0, 0, 0);
+    zone.addLocation(outside, 0, 1, 0);
+    door = await StuffApi.create(() => new Door());
+    door.setShortDescription('front door');
+    door.setKeyway('kw-house');
+    door.setLocked(true);
+    door.setOpen(true);
+    door.setFreeFrom(inside.getIdentityPath());
+    await inside.addBidirectionalExit(outside, 'north', { boundary: door });
+    mover = makeStuff(() => new TestMover());
+    mover.setName('Guest');
+  });
+
+  it('⭐ a mover standing in the free place passes the locked door with no key', async () => {
+    ContainmentApi.move(mover, inside);
+    const result = await inside.getExit('north')!.canTraverse(mover);
+    expect(result.ok, `refused: ${result.reason ?? ''}`).toBe(true);
+    expect(door.isLocked()).toBe(true);
+  });
+
+  it('⛔ a mover on the other side still needs the key', async () => {
+    ContainmentApi.move(mover, outside);
+    const result = await outside.getExit('south')!.canTraverse(mover);
+    expect(result.ok).toBe(false);
+    expect(result.gate).toBe('locked');
   });
 });
 

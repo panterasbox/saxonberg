@@ -2,7 +2,7 @@
 # Sour-sweet, thin, a drink and a baker's liquid.
 class: /platform/idea/material/Drink
 data:
-  smells: [{ aroma: /base-library/aromas/yoghurt, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/sour/yoghurt, strength: 100 }]
   name: "buttermilk"
   keywords: [buttermilk]
   appearance: thin, white and flecked
@@ -20,4 +20,4 @@ data:
   tags: ["food", "dairy", "liquid", "perishable", "buttermilk"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/sour-milk
+  cleanser: /platform/cleansers/sour-milk

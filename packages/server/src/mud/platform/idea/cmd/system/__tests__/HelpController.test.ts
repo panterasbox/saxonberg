@@ -1,5 +1,6 @@
 /**
- * HelpController — every form renders off the index through HelpApi, on
+ * The `help` controllers (HelpTopicController for bare + topic, and one
+ * per subcommand) — every form renders off the index through HelpApi, on
  * the `shell.result` topic.
  *
  * Covers: bare `help` landing; fallthrough `help look`; legacy `help verb
@@ -11,7 +12,10 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { HelpTopic } from "@saxonberg/types";
-import HelpController from "../HelpController";
+import HelpTopicController from "../HelpTopicController";
+import HelpVerbController from "../HelpVerbController";
+import HelpApiController from "../HelpApiController";
+import HelpSearchController from "../HelpSearchController";
 import { CommandApi, type CommandModel } from "../../../../../api/command";
 import type { CommandContext } from "../../../../../api/command";
 import type { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -39,7 +43,7 @@ function topic(id: string, body: string): HelpTopic {
   };
 }
 
-describe("HelpController", () => {
+describe("help controllers", () => {
   let topicName: string | undefined;
   let selfBody: unknown;
 
@@ -61,7 +65,7 @@ describe("HelpController", () => {
       b.send = () => {};
       return b as never;
     });
-    vi.spyOn(HelpApi, "ready").mockResolvedValue();
+    vi.spyOn(StuffApi, "ready").mockResolvedValue();
     vi.spyOn(HelpApi, "index").mockReturnValue({
       entries: [],
       categories: [
@@ -117,7 +121,17 @@ describe("HelpController", () => {
   });
 
   async function run(model: Partial<CommandModel>): Promise<{ topic?: string; body: string }> {
-    const ctrl = makeStuff(() => new HelpController());
+    // ⭐ The view's routing: each subcommand names its own controller;
+    // bare `help` and `help <word>` are the topic controller's.
+    const Ctrl =
+      model.subcommand === "verb"
+        ? HelpVerbController
+        : model.subcommand === "api"
+          ? HelpApiController
+          : model.subcommand === "search"
+            ? HelpSearchController
+            : HelpTopicController;
+    const ctrl = makeStuff(() => new Ctrl());
     const ctx = CommandApi.createCommandContext({
       commandGiver: {} as never,
       location: null,
@@ -199,7 +213,7 @@ describe("HelpController", () => {
   });
 
   it("an unknown command emits a controller-rejected note", async () => {
-    const ctrl = makeStuff(() => new HelpController());
+    const ctrl = makeStuff(() => new HelpTopicController());
     const notes: { kind: string }[] = [];
     const ctx = CommandApi.createCommandContext({
       commandGiver: {} as never,

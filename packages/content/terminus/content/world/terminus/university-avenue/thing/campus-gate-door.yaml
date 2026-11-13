@@ -5,6 +5,7 @@
 # Keys are a future model; for now the gate is permanently locked and Gus
 # soft-walls it in dialogue ("the gate's for the gown, not yet").
 class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
 data:
   shortDescription: university gate
   keywords: [gate, university]

@@ -303,7 +303,7 @@ In the player path, `actor === target === avatar` (the
 `commandGiver`), so the privacy check passes by construction. The
 check earns its keep against programmatic writes from feature code.
 
-YAML coercion: `SettingsController.executeSet` coerces the string
+YAML coercion: `SettingsSetController` coerces the string
 value to the declared `SettingTypes.X`. Numbers fail loudly on
 non-numeric input; booleans accept `true`/`yes`/`1` and
 `false`/`no`/`0`; enums pass through to schema validation; `Struct`

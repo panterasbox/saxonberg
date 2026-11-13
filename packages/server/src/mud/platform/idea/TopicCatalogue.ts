@@ -1,42 +1,32 @@
 /**
- * TopicCatalogue — singleton Idea that owns the runtime topic
- * descriptor cache.
+ * TopicCatalogue — the singleton that serves the message vocabulary,
+ * reached as `MessageApi.topics()`: the `topic` documents (a document since
+ * the path-identity build): one per dotted key, at
+ * `/platform/topics/<dotted.key>`, carrying a label, a description and the
+ * six attention facets the client renders and the router routes by.
  *
- * Lives at `/platform/idea/TopicCatalogue`, sibling to `/platform/idea/EventRegistry`
- * per the singleton-in-`obj/` convention. The cache is transient
- * instance state; the source of truth lives on the per-topic
- * `Topic` template documents under `/platform/idea/Topic/` in the
- * `content` collection. The catalogue loads its descriptors
- * directly from those template docs — Topic templates are pure
- * data (`topic` / `family` / `label` / `description`), so there's
- * no need to clone them as live Stuff instances at boot.
+ * ⭐ Named by code, not by a holder: ~1,200 emitters write
+ * `.topic('combat.hit')`. So no host can carry the load (documents D7's
+ * mechanisms 1–4), and the message pipeline loads it itself — the one
+ * engine-machinery exception (D13, the owner's "queue is fine"): the
+ * dictionary warms on the FIRST scene of the process ({@link TopicCatalogue.warm},
+ * one read of the kind), `Scene.send` queues its dispatch IN ORDER behind
+ * that warm while it is cold, and session entry awaits the same warm before
+ * it sends the client its snapshot. Never booted.
  *
- * Lookups walk a three-tier resolution chain so the accessor
- * never returns "not found":
+ * Resolution is three-tier (unchanged): an authored descriptor; else the
+ * nearest authored ancestor's, labelled with the leaf; else a derived
+ * default — which is an authoring omission and records a diagnostic once
+ * per key. A synchronous read while the dictionary is cold throws
+ * `DocumentNotResidentError` (unreachable through `Scene.send`).
  *
- *   1. Cache hit — return the authored descriptor verbatim.
- *   2. Family-inherited — walk the dotted-path family chain looking
- *      for an authored ancestor; derive a descriptor that inherits
- *      the family's description.
- *   3. Derived default — titlecased last segment as the label,
- *      `'(no description)'`, family = path prefix.
- *
- * `onCreate` warms the cache from mongo via
- * `Template.findDescendants`. Descriptor edits land at next boot;
- * a future `invalidateCache` admin verb (currently unused but
- * left in place) would let authors trigger a refresh in-process.
- *
- * Not a persisted record. The seed YAML is `{ class: /platform/idea/TopicCatalogue,
- * data: {} }` — there's no field state worth round-tripping. The
- * cache is rebuilt on demand by reading Template docs.
  */
 
-import { DiagnosticApi } from '../../api/diagnostics';
-import { PersistApi } from '../../api/persist';
-import { Collections } from '../../lib/persistence/Collections';
 import { Idea } from '../../lib/stuff/Idea';
-import { Template } from '../../lib/stuff/Template';
-import Topic from './Topic';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { VetoResult } from '../../lib/errors';
+import { DocumentNotResidentError } from '../../lib/errors';
 import type {
   TopicDescriptor,
   TopicAddress,
@@ -45,12 +35,6 @@ import type {
   TopicAudience,
   TopicAffordance,
 } from '@saxonberg/types';
-import { TOPIC_ROOTS } from '@saxonberg/types';
-import type { VetoResult } from '../../lib/errors';
-import type { EvictionContext } from '../../lib/stuff/Stuff';
-
-import type { BoundaryRole } from '../../lib/security/BoundaryRole';
-const TopicCatalogueBase = Idea;
 
 /** The six facets, as a unit — the slice every tier must produce. */
 type TopicFacets = Pick<
@@ -84,238 +68,120 @@ const AFFORDANCES: readonly TopicAffordance[] = [
   'permanent',
 ];
 
-export default class TopicCatalogue extends TopicCatalogueBase {
-  /**
-   * a seeded reference catalogue the engine reads to answer *what exists in the world* — every one of these was a verb that simply died inside a circle (`help`, `spells`, `recipes`/`craft`, `studio`, `competence`, `government`): a player standing in their own circle could not read the rulebook.
-   *
-   * ⭐ Declared, not enumerated. This was one of twenty-seven
-   * template-path strings in `api/security.ts`, listed there
-   * *"because each is a singleton rather than a class of many"* —
-   * which a static on the class makes irrelevant. See
-   * `lib/security/BoundaryRole.ts`.
-   */
+/** Where the vocabulary lives — the `topic` documents' prefix. */
+const TOPIC_PREFIX = '/platform/topics/';
+
+/**
+ * The topic dictionary — see the module header.
+ *
+ */
+export default class TopicCatalogue extends Idea {
+  /** A reference catalogue everyone reads (the commons). */
   static boundaryRole: BoundaryRole = 'commons';
 
+  // `#` (CLAUDE.md special case 3): the vocabulary is the class's own and
+  // must outlive any instance (a re-stood catalogue reads the same words).
+  /** Authored descriptors by dotted key; `null` until warmed. */
+  static #dict: Map<string, TopicDescriptor> | null = null;
+  /** The keys flagged `communicative`. */
+  static #communicative: Set<string> = new Set();
+  /** The warm in flight, if one is. */
+  static #loading: Promise<void> | null = null;
+  /** Keys already reported as unauthored (once per key). */
+  static #derivedReported = new Set<string>();
 
-  /**
-   * Residency veto - a load-bearing process-lifetime singleton is
-   * never culled by the self-eviction sweep.
-   */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'system singleton; never culled' };
-  }
-  /**
-   * Transient runtime cache. `null` means "not built yet"; built
-   * lazily on first access by scanning every Topic instance under
-   * `Topic.TEMPLATE_PATH_PREFIX`. HMR invalidation drops it back to
-   * `null` so the next access rebuilds.
-   *
-   * TypeScript `private` per the domain-code default — the mixin
-   * proxy receiver can't reach `#`-private slots.
-   */
-  private cache: Map<string, TopicDescriptor> | null = null;
-
-  /**
-   * Topics flagged `communicative: true` in their template data — the
-   * say/whisper/shout/emote/chat acts that generate renown when heard
-   * (NOT dm / narration / system). Built alongside {@link cache}; the
-   * `SensorMixin.onMessage` reception gate consults it via
-   * `MessageApi.isCommunicative`.
-   */
-  private communicative: Set<string> = new Set();
-
-  /**
-   * Lookup contract: ALWAYS returns a populated descriptor.
-   *
-   *   1. Cache hit (authored) — return verbatim.
-   *   2. Family-inherited — walk the dotted-path family chain for
-   *      the first authored ancestor, derive an entry inheriting its
-   *      description. `label` becomes
-   *      `<family-label> (<leaf-titlecased>)`.
-   *   3. Derived default — titlecased last segment, no description.
-   */
-  public getDescriptor(topic: string): TopicDescriptor {
-    this.ensureCache();
-    const cached = this.cache!.get(topic);
-    if (cached) return cached;
-    const inherited = this.resolveInherited(topic);
-    if (inherited) return inherited;
-    return this.deriveFallback(topic);
+  /** Whether the dictionary is resident. */
+  public isWarm(): boolean {
+    return TopicCatalogue.#dict !== null;
   }
 
   /**
-   * Flat array of every authored descriptor. Used by the wire push.
-   * Inherited / derived shapes are NOT in the snapshot — the client
-   * runs the same three-tier resolution against the cached snapshot.
+   * The warm in flight — started if the dictionary is cold — or `null` when
+   * it is already resident. `Scene.send` queues behind this.
    */
-  public getSnapshot(): TopicDescriptor[] {
-    this.ensureCache();
-    return [...this.cache!.values()];
+  public warming(): Promise<void> | null {
+    if (TopicCatalogue.#dict !== null) return null;
+    return this.warm();
+  }
+
+  /** Read every `topic` document into the dictionary (one indexed read; memoized). */
+  public warm(): Promise<void> {
+    if (TopicCatalogue.#dict !== null) return Promise.resolve();
+    return (TopicCatalogue.#loading ??= (async () => {
+      const docs = await (await import('../../api/document')).DocumentApi.listOfKind('topic');
+      this.install(docs.map((d) => ({ path: d.getPath(), data: d.getData() })));
+    })().finally(() => {
+      TopicCatalogue.#loading = null;
+    }));
   }
 
   /**
-   * Drop the cached map. Next access rebuilds from the live Topic
-   * instances. Fired by HMR subscriptions on `Events.StuffCreated`
-   * / `Events.StuffDestructed` for paths under
-   * `Topic.TEMPLATE_PATH_PREFIX`.
+   * Install the dictionary from documents — the warm's tail, and the one way
+   * a unit fixture (or the test bootstrap) stands the vocabulary up.
    */
-  public invalidateCache(): void {
-    this.cache = null;
-    this.communicative = new Set();
-  }
-
-  /**
-   * Whether `topic` is a communication act (the data-driven
-   * `communicative` flag). Consulted on the message hot path by the
-   * renown reception gate; `false` for any topic not flagged (dm,
-   * narration, system, …) and before the cache is warmed.
-   */
-  public isCommunicative(topic: string): boolean {
-    this.ensureCache();
-    return this.communicative.has(topic);
-  }
-
-  /**
-   * Post-registration setup: warm the cache from the `domain`
-   * collection. One mongo query at boot, then the public surface
-   * is sync.
-   */
-  public override async onCreate(_context?: unknown): Promise<void> {
-    await this.loadCacheFromTemplates();
-  }
-
-  /**
-   * Singleton refusal. Mirrors `EventRegistry.canDestruct` — the
-   * Application resolves us lazily via `findByTemplatePath` and
-   * assumes we stay live for the process lifetime.
-   */
-  public canDestruct(): VetoResult {
-    return {
-      ok: false,
-      reason:
-        'TopicCatalogue is a system singleton and cannot be destructed; ' +
-        'use forceDestruct (admin-gated) if you really mean it',
-    };
-  }
-
-  private ensureCache(): void {
-    if (this.cache !== null) return;
-    // Cache was never warmed (onCreate wasn't awaited, e.g. in
-    // a unit test that doesn't go through the clone pipeline).
-    // Start with an empty cache — the fallback / derived-default
-    // tiers still produce a usable descriptor.
-    this.cache = new Map();
-  }
-
-  /**
-   * Read every `Topic` template under
-   * `Topic.TEMPLATE_PATH_PREFIX` directly from the `domain`
-   * collection and populate the cache. Skips the runtime Stuff
-   * layer entirely — Topic instances have no behavior worth
-   * cloning, only data the catalogue cares about.
-   */
-  /**
-   * ⚠⚠ **Drop topic rows whose root is not a real root.**
-   *
-   * The seeder is **insert-only**: deleting a seed FILE does nothing to
-   * the row it already wrote. So the taxonomy replacement left every
-   * pre-existing database holding BOTH vocabularies — measured on the
-   * build-1 dev database at the first boot after the change: 126 topic
-   * rows, 89 of them retired. `lint:topics` cannot see this, because it
-   * reads seed files and the stale rows are only in mongo.
-   *
-   * Pruning at boot rather than shipping a migration script is
-   * deliberate: this repo already has a migration script that has never
-   * been run, and a hazard that depends on somebody remembering is a
-   * hazard. Topic rows are pure reference data fully derived from
-   * seeds, so deleting an unrecognized one costs nothing and it comes
-   * straight back if a seed still declares it.
-   *
-   * Scope is narrow on purpose — **root validity only**. It cannot
-   * catch a stale row under a *valid* root (a future rename of
-   * `sense.weather` would leave one behind), and widening it to "any
-   * key not in the shipped seed set" would need the file list, which
-   * the mudlib cannot read. Pack-added leaves always sit under a core
-   * root, so they are never at risk.
-   */
-  private async pruneRetiredRoots(templates: Template[]): Promise<void> {
-    const roots = new Set<string>(TOPIC_ROOTS);
-    const stale = templates.filter((tpl) => {
-      const key = tpl.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
-      return !roots.has(key.split('.')[0] ?? key);
-    });
-    if (stale.length === 0) return;
-    // No database, nothing to prune — and `deleteMany` would throw.
-    // Unit tests warm the catalogue from stubbed templates with no
-    // connection behind them, which is exactly this case.
-    if (!PersistApi.isConnected()) return;
-    await PersistApi.deleteMany(Collections.Content, {
-      path: { $in: stale.map((t) => t.path) },
-    });
-    console.log(
-      `TopicCatalogue: pruned ${stale.length} topic row(s) outside the ` +
-        `${TOPIC_ROOTS.length} roots (retired vocabulary)`,
-    );
-  }
-
-  private async loadCacheFromTemplates(): Promise<void> {
-    let templates = await Template.findDescendants(
-      Topic.TEMPLATE_PATH_PREFIX,
-    );
-    await this.pruneRetiredRoots(templates);
-    templates = await Template.findDescendants(Topic.TEMPLATE_PATH_PREFIX);
+  public install(docs: ReadonlyArray<{ path: string; data: Record<string, unknown> }>): void {
     const map = new Map<string, TopicDescriptor>();
     const communicative = new Set<string>();
-    for (const tpl of templates) {
-      const data = tpl.data as
-        | {
-            topic?: unknown;
-            family?: unknown;
-            label?: unknown;
-            description?: unknown;
-            communicative?: unknown;
-            address?: unknown;
-            actor?: unknown;
-            weight?: unknown;
-            audience?: unknown;
-            durable?: unknown;
-          }
-        | undefined;
-      if (!data || typeof data.topic !== 'string') continue;
-      if (data.communicative === true) communicative.add(data.topic);
-      const family = typeof data.family === 'string' ? data.family : '';
-      map.set(data.topic, {
-        topic: data.topic,
-        family,
-        label:
-          typeof data.label === 'string' && data.label.length > 0
-            ? data.label
-            : data.topic,
-        description:
-          typeof data.description === 'string' ? data.description : '',
-        // Facets are authored in `data:` alongside `communicative`,
-        // and fall back to the family-prefix derivation when a seed
-        // has not been given one — so the contract "every descriptor
-        // carries all five" holds even mid-migration.
-        ...TopicCatalogue.readFacets(data),
+    for (const { path, data } of docs) {
+      const topic = this.keyOf(path);
+      if (!topic) continue;
+      if (data.communicative === true) communicative.add(topic);
+      map.set(topic, {
+        topic,
+        family: typeof data.family === 'string' ? data.family : '',
+        label: typeof data.label === 'string' && data.label.length > 0 ? data.label : topic,
+        description: typeof data.description === 'string' ? data.description : '',
+        ...this.readFacets(data),
       });
     }
-    this.cache = map;
-    this.communicative = communicative;
+    TopicCatalogue.#dict = map;
+    TopicCatalogue.#communicative = communicative;
   }
 
-  /**
-   * Walk the dotted-path family chain (top-down: drop one segment at
-   * a time) looking for an authored ancestor. Returns an inherited
-   * descriptor or `null`.
-   */
-  private resolveInherited(topic: string): TopicDescriptor | null {
-    if (this.cache === null) return null;
+  /** Forget the dictionary (a go-live re-reads on the next warm). */
+  public invalidate(): void {
+    TopicCatalogue.#dict = null;
+    TopicCatalogue.#communicative = new Set();
+  }
+
+  /** The dotted key a topic document is stored under (its path's leaf). */
+  public keyOf(path: string): string {
+    return path.startsWith(TOPIC_PREFIX) ? path.slice(TOPIC_PREFIX.length) : path.slice(path.lastIndexOf('/') + 1);
+  }
+
+  /** The descriptor for `topic` — authored, inherited, or derived (with a diagnostic). */
+  public descriptor(topic: string): TopicDescriptor {
+    const dict = this.resident();
+    const cached = dict.get(topic);
+    if (cached) return cached;
+    return this.resolveInherited(dict, topic) ?? this.deriveFallback(topic);
+  }
+
+  /** Every authored descriptor — the client's snapshot. */
+  public snapshot(): TopicDescriptor[] {
+    return [...this.resident().values()];
+  }
+
+  /** Whether `topic` is a communication act (the authored `communicative` flag). */
+  public isCommunicative(topic: string): boolean {
+    this.resident();
+    return TopicCatalogue.#communicative.has(topic);
+  }
+
+  private resident(): Map<string, TopicDescriptor> {
+    if (TopicCatalogue.#dict === null) throw new DocumentNotResidentError('topic', TOPIC_PREFIX);
+    return TopicCatalogue.#dict;
+  }
+
+  private resolveInherited(
+    dict: Map<string, TopicDescriptor>,
+    topic: string,
+  ): TopicDescriptor | null {
     const segments = topic.split('.');
     if (segments.length < 2) return null;
     for (let i = segments.length - 1; i >= 1; i--) {
       const ancestorPath = segments.slice(0, i).join('.');
-      const ancestor = this.cache.get(ancestorPath);
+      const ancestor = dict.get(ancestorPath);
       if (ancestor) {
         const leaf = segments[segments.length - 1] ?? '';
         return {
@@ -323,9 +189,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           family: ancestorPath,
           label: `${ancestor.label} (${titleCase(leaf)})`,
           description: ancestor.description,
-          // A leaf inherits its ancestor's attention shape along with
-          // its prose — a child of `speech.channel` is chatter for the
-          // same reason its parent is.
+          // A leaf inherits its ancestor's attention shape along with its prose.
           address: ancestor.address,
           actor: ancestor.actor,
           weight: ancestor.weight,
@@ -338,22 +202,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
     return null;
   }
 
-  /**
-   * Resolve the five facets for one topic: **authored values win, and
-   * {@link FACET_FLOOR} backstops the rest.**
-   *
-   * ⚠ There is deliberately NO family-prefix derivation here. That
-   * derivation lives in `scripts/derive-topic-facets.ts` and is baked
-   * into the seeds, so the seed file is the single source of truth. A
-   * second derivation at read time would be a second taxonomy
-   * describing what the first already knows — and the two drifted
-   * within an hour of both existing, which is how this comment came to
-   * be written.
-   *
-   * Static because all three resolution tiers need it and only one of
-   * them has an authored `data` block to read from.
-   */
-  private static readFacets(
+  private readFacets(
     data:
       | {
           address?: unknown;
@@ -386,49 +235,23 @@ export default class TopicCatalogue extends TopicCatalogueBase {
   }
 
   /**
-   * ⚠ **Reaching the derived tier is a defect, and it now says so.**
-   *
-   * Deriving a descriptor means a topic is being emitted that nobody
-   * authored. The derivation reads like a real descriptor, which is
-   * exactly why this went unnoticed for so long: when the totality gate
-   * was first run, **45 of the 105 emitted topics had no authored
-   * descriptor at all**.
-   *
-   * Reporting rather than throwing is deliberate — an unauthored topic
-   * is an authoring omission, not a runtime fault, and failing the frame
-   * would punish the player for the author's miss. The frame renders
-   * exactly as before; the omission just stops being invisible.
-   *
-   * Fires **once per key**. A chatty topic would otherwise write a
-   * diagnostic row per frame and bury the store under one mistake.
-   */
-  private reportUnauthored(topic: string): void {
-    if (this.derivedReported.has(topic)) return;
-    this.derivedReported.add(topic);
-    void DiagnosticApi.record({
-      path: null,
-      channel: 'topic.unauthored',
-      severity: 'warning',
-      message:
-        `Topic '${topic}' is emitted but has no authored descriptor, ` +
-        `so it resolved to a derived default. Add a seed under ` +
-        `/platform/idea/Topic/, or route the emitter to an existing topic.`,
-    });
-  }
-
-  /**
-   * Keys already reported by {@link reportUnauthored} — the once-per-key
-   * guard. Transient like the cache itself.
-   */
-  private readonly derivedReported = new Set<string>();
-
-  /**
-   * Last-resort derived descriptor. Pure structural derivation: the
-   * last segment titlecased becomes the label, no description, the
-   * path prefix becomes the family.
+   * ⚠ Reaching the derived tier is a defect, and it says so — once per key:
+   * a topic is being emitted that nobody authored. Reported, not thrown:
+   * failing the frame would punish the player for the author's miss.
    */
   private deriveFallback(topic: string): TopicDescriptor {
-    this.reportUnauthored(topic);
+    if (!TopicCatalogue.#derivedReported.has(topic)) {
+      TopicCatalogue.#derivedReported.add(topic);
+      void import('../../api/diagnostics').then(({ DiagnosticApi }) => DiagnosticApi.record({
+        path: null,
+        channel: 'topic.unauthored',
+        severity: 'warning',
+        message:
+          `Topic '${topic}' is emitted but has no authored descriptor, ` +
+          `so it resolved to a derived default. Add a document under ` +
+          `${TOPIC_PREFIX}, or route the emitter to an existing topic.`,
+      })).catch(() => {});
+    }
     const segments = topic.split('.');
     const leaf = segments[segments.length - 1] ?? topic;
     const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';
@@ -437,8 +260,24 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       family,
       label: titleCase(leaf),
       description: '(no description)',
-      ...TopicCatalogue.readFacets(undefined),
+      ...this.readFacets(undefined),
     };
+  }
+
+  /** Forget the vocabulary (an edited topic re-reads on the next warm). */
+  public forget(_paths?: readonly string[]): void {
+    void _paths;
+    this.invalidate();
+  }
+
+  /** Residency veto — the vocabulary is never culled. */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'the topic catalogue; never culled' };
+  }
+
+  /** Singleton refusal. */
+  public canDestruct(): VetoResult {
+    return { ok: false, reason: 'the topic catalogue is a system singleton' };
   }
 }
 

@@ -4,7 +4,6 @@ import Window from '../thing/Window';
 import { Boundary } from '../../lib/boundary/Boundary';
 import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
-import { BoundaryApi } from '../../api/boundary';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ProxyApi } from '../../api/proxy';
@@ -13,7 +12,6 @@ import {
   makeStuff,
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
-import type { LightConduit, LineOfSight } from '../../lib/boundary/Conduit';
 import { Colour } from '../../lib/perception/Colour';
 
 describe('Window', () => {
@@ -39,16 +37,16 @@ describe('Window', () => {
     const w = await StuffApi.create(() => new Window());
     w.setBaseTransmissivity(0.7);
     w.setDirectionalOverrides({ aToB: 1, bToA: 0.3 });
-    expect(w.transmissivity('A', 'B')).toBe(0);
-    expect(w.transmissivity('B', 'A')).toBe(0);
+    expect(w.transmissivity('light', 'A', 'B')).toBe(0);
+    expect(w.transmissivity('light', 'B', 'A')).toBe(0);
   });
 
   it('symmetric: transmissivity returns base in both directions when open', async () => {
     const w = await StuffApi.create(() => new Window());
     w.open();
     w.setBaseTransmissivity(0.6);
-    expect(w.transmissivity('A', 'B')).toBe(0.6);
-    expect(w.transmissivity('B', 'A')).toBe(0.6);
+    expect(w.transmissivity('light', 'A', 'B')).toBe(0.6);
+    expect(w.transmissivity('light', 'B', 'A')).toBe(0.6);
   });
 
   it('one-way glass: aToB=1, bToA=0', async () => {
@@ -56,10 +54,10 @@ describe('Window', () => {
     w.open();
     w.setBaseTransmissivity(1);
     w.setDirectionalOverrides({ aToB: 1, bToA: 0 });
-    expect(w.transmissivity('A', 'B')).toBe(1);
-    expect(w.transmissivity('B', 'A')).toBe(0);
-    expect(w.canSeeThrough('A', 'B')).toBe(true);
-    expect(w.canSeeThrough('B', 'A')).toBe(false);
+    expect(w.transmissivity('light', 'A', 'B')).toBe(1);
+    expect(w.transmissivity('light', 'B', 'A')).toBe(0);
+    expect(w.transmissivity('sight', 'A', 'B')).toBe(1);
+    expect(w.transmissivity('sight', 'B', 'A')).toBe(0);
   });
 
   it('rejects out-of-range transmissivity / overrides', async () => {
@@ -69,21 +67,19 @@ describe('Window', () => {
     expect(() => w.setDirectionalOverrides({ aToB: 2 })).toThrow(RangeError);
   });
 
-  it('getConduits returns a light + sight + smell + sound quadruple', async () => {
+  it('⭐ never passes a body; light, sight, smell and sound read the glass', async () => {
     const w = await StuffApi.create(() => new Window());
-    const conduits = w.getConduits();
-    const kinds = conduits.map((c) => c.conduitKind).sort();
-    expect(kinds).toEqual(['light', 'sight', 'smell', 'sound']);
-
     w.open();
     w.setBaseTransmissivity(0.5);
-    const light = conduits.find((c) => c.conduitKind === 'light') as LightConduit;
-    const sight = conduits.find((c) => c.conduitKind === 'sight') as LineOfSight;
-    expect(light.transmissivity('A', 'B')).toBe(0.5);
-    expect(sight.canSeeThrough('A', 'B')).toBe(true);
+    expect(w.passesBodiesWhenOpen()).toBe(false);
+    expect(w.transmissivity('movement', 'A', 'B')).toBe(0);
+    for (const ch of ['light', 'sight', 'smell', 'sound'] as const) {
+      expect(w.transmissivity(ch, 'A', 'B'), ch).toBe(0.5);
+    }
     w.close();
-    expect(light.transmissivity('A', 'B')).toBe(0);
-    expect(sight.canSeeThrough('A', 'B')).toBe(false);
+    for (const ch of ['light', 'sight', 'smell', 'sound'] as const) {
+      expect(w.transmissivity(ch, 'A', 'B'), ch).toBe(0);
+    }
   });
 
   it('hydrates configuration via the TemplateApplier (scalar fields)', async () => {
@@ -132,7 +128,7 @@ describe('Window', () => {
     expect(w.getDirectionalOverrides()).toBeNull();
   });
 
-  it('attachExistingBoundary plus destruct round-trip', async () => {
+  it('⭐ one-way glass reads by SIDE: what flows into each place', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const a = makeStuff(() => new Location());
     const b = makeStuff(() => new Location());
@@ -140,13 +136,15 @@ describe('Window', () => {
     zone.addLocation(b, 0, 1, 0);
 
     const w = await StuffApi.create(() => new Window());
-    BoundaryApi.attachExistingBoundary({ boundary: w, hostA: a, hostB: b });
-    expect(a.getFixtureBoundaries()).toEqual([w]);
-    expect(b.getFixtureBoundaries()).toEqual([w]);
-
-    BoundaryApi.destruct(w);
-    expect(a.getFixtureBoundaries()).toEqual([]);
-    expect(b.getFixtureBoundaries()).toEqual([]);
+    w.open();
+    w.setDirectionalOverrides({ aToB: 1, bToA: 0 });
+    await a.addBidirectionalExit(b, 'north', { boundary: w });
+    const north = a.getExit('north')!; // side A
+    const south = b.getExit('south')!; // side B
+    expect(w.sideOf(north)).toBe('A');
+    // Into B (south's place) flows A→B; into A flows B→A.
+    expect(w.transmissivityInto('sight', south)).toBe(1);
+    expect(w.transmissivityInto('sight', north)).toBe(0);
   });
 });
 
@@ -203,14 +201,10 @@ describe('Window.lightTransmittance — glaze, tint, shut (W0)', () => {
     expect(c.b).toBe(1);
   });
 
-  it('the LightConduit exposes transmittanceColour', async () => {
+  it('transmittanceColour answers the glazing', async () => {
     const w = await StuffApi.create(() => new Window());
     w.open();
     w.setGlazing(Colour.of(1, 0.1, 0.1));
-    const conduit = w
-      .getConduits()
-      .find((c) => c.conduitKind === 'light') as LightConduit;
-    expect(conduit.transmittanceColour).toBeDefined();
-    expect(conduit.transmittanceColour!('A', 'B').nearestTag()).toBe('red');
+    expect(w.transmittanceColour('A', 'B').nearestTag()).toBe('red');
   });
 });

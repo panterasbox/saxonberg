@@ -19,6 +19,7 @@ import { Mml } from '../../../../api/mml';
 import { PLANT_SLOT } from '../../../../lib/husbandry/Cultivable';
 import type { PlantBegin, PlantDone, PlantRefusal } from '../../../../lib/husbandry/Plantable';
 import type { ActPlan } from '../../../../lib/craft/ActPlan';
+import type { PartChoices } from '../../../../lib/husbandry/Soil';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 const TOPIC = 'act.deed';
@@ -73,7 +74,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
     // ⭐ No pot named, or soil-bearing GROUND named: the ground is asked.
     const ground: Stuff | null =
       target ?? (MixinApi.isContainable(giver) ? giver.getContainer() : null);
-    let plan: ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal;
+    let plan: ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal | PartChoices;
     if (
       ground &&
       MixinApi.isSoil(ground) &&
@@ -90,12 +91,12 @@ export default class PlantController extends EngagedActController<PlantModel> {
         context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
         return;
       }
-      const drill = model.drill?.stuff ?? null;
+      // ⭐ The ground decides what it is sown with (a drill's capability).
       plan = await ground.sowPlanFor({
         by: giver,
         seed,
         part: patch && MixinApi.isSoil(patch) ? patch : null,
-        drill: drill && MixinApi.isTool(drill) && drill.hasCapability('drilling') ? drill : null,
+        drill: model.drill?.stuff ?? null,
       });
     } else if (!target) {
       plan = { ok: false, reason: 'no-ground', facts: {} };
@@ -109,6 +110,13 @@ export default class PlantController extends EngagedActController<PlantModel> {
       return;
     } else {
       plan = await target.plantPlanFor({ by: giver, seed });
+    }
+    if (plan.ok === 'choose') {
+      // ⭐ The ground answered its fields (controller-liquidity D8): this
+      // controller refuses with the list; an asking one would prompt.
+      const line = this.partLine(plan);
+      this.decline(context, Mml.fromMarkup(line), plan.reason, line);
+      return;
     }
     if (!plan.ok) {
       PlantController.say(this, context, plan);
@@ -171,8 +179,12 @@ export default class PlantController extends EngagedActController<PlantModel> {
         return Mml.compose`Nothing may be grown on this ground — it is zoned for ${f.zoned!.summary}.`;
       case 'not-held':
         return Mml.compose`This is not your ground to sow.`;
-      case 'part-unnamed':
-      case 'not-a-part-here':
+      case 'not-a-part-here': {
+        const what = f.part!.presentationPhrase().definite();
+        return Mml.fromMarkup(
+          `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${f.target!.presentationPhrase().definite()}.`,
+        );
+      }
       case 'ground-refuses-sowing':
         return Mml.fromMarkup(f.line!);
       case 'other-crop-stands':

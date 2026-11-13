@@ -242,20 +242,24 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           MixinApi.isPersistable(live) && live.isPersistenceKeyExplicit()
             ? (live.getPersistenceKey() ?? undefined)
             : undefined;
-        entries.push(
-          key
-            ? {
-                ...entry,
-                templatePath: live.getTemplatePath() ?? entry.templatePath,
-                key,
-                state: {},
-              }
-            : {
-                ...entry,
-                templatePath: live.getTemplatePath() ?? entry.templatePath,
-                state: ctx.captureState(live),
-              },
-        );
+        if (key) {
+          entries.push({
+            ...entry,
+            templatePath: live.getTemplatePath() ?? entry.templatePath,
+            key,
+            state: {},
+          });
+          continue;
+        }
+        // Where it rests NOW — the entry's was written when it was placed.
+        const { rests: _was, ...kept } = entry;
+        const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
+        entries.push({
+          ...kept,
+          templatePath: live.getTemplatePath() ?? entry.templatePath,
+          state: ctx.captureState(live),
+          ...(rests ? { rests } : {}),
+        });
       }
       return {
         entries,

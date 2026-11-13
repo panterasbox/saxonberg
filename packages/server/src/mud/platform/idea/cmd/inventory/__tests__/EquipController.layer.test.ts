@@ -8,10 +8,11 @@
  */
 
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
-import EquipSetController from '../EquipSetController';
-import EquipSetsController from '../EquipSetsController';
+import OutfitWearController from '../OutfitWearController';
+import OutfitSaveController from '../OutfitSaveController';
+import OutfitListController from '../OutfitListController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { WardrobeMixin } from '../../../../../lib/slot/Wardrobe';
@@ -42,6 +43,12 @@ import { WorldClockApi } from '../../../../../api/worldclock';
 import { SchedulerApi } from '../../../../../api/scheduler';
 import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 /*
  * ⭐⭐ DRESSING IS DURATIVE NOW, so this suite has to reckon with time.
@@ -176,7 +183,7 @@ function model(target: TestGarment): Parameters<WearController['execute']>[0] {
 
 describe('the ladder refusal', () => {
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -187,7 +194,7 @@ describe('the ladder refusal', () => {
   } {
     installV1QuantityMarshallers();
     standUpScheduler();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -202,7 +209,7 @@ describe('the ladder refusal', () => {
 
   it('⚠⚠ the garment goes ON though the controller is gone when the step lands', async () => {
     const { body, planPath, location } = setup();
-    const shirt = garment(planPath, 'woven', 'shirt');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt, body);
     await equipLikeDispatch(model(shirt), context(body, location));
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
@@ -210,8 +217,8 @@ describe('the ladder refusal', () => {
 
   it('⚠⚠ a whole kit dresses through, piece after piece, with the controller gone', async () => {
     const { body, planPath, location } = setup();
-    const shirt = garment(planPath, 'woven', 'shirt');
-    const coat = garment(planPath, 'woven', 'coat');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
+    const coat = garment(planPath, fabricPath('woven'), 'coat');
     ContainmentApi.move(shirt, body);
     ContainmentApi.move(coat, body);
     await equipLikeDispatch(
@@ -225,7 +232,7 @@ describe('the ladder refusal', () => {
   it('⚠ refuses a shirt OVER plate, and names what is in the way', async () => {
     const { body, planPath, location } = setup();
     const cuirass = garment(planPath, 'plate', 'cuirass');
-    const shirt = garment(planPath, 'woven', 'shirt');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
     ContainmentApi.move(cuirass, body);
     ContainmentApi.move(shirt, body);
     body.occupyAll(cuirass, ['torso']);
@@ -245,8 +252,8 @@ describe('the ladder refusal', () => {
 
   it('⭐ does NOT refuse a coat over a shirt — that is the player\'s call', async () => {
     const { body, planPath, location } = setup();
-    const shirt = garment(planPath, 'woven', 'shirt');
-    const coat = garment(planPath, 'woven', 'coat');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
+    const coat = garment(planPath, fabricPath('woven'), 'coat');
     ContainmentApi.move(shirt, body);
     ContainmentApi.move(coat, body);
     body.occupyAll(shirt, ['torso']);
@@ -262,7 +269,7 @@ describe('the ladder refusal', () => {
 
   it('plate OVER a shirt is fine — the ladder only forbids the inversion', async () => {
     const { body, planPath, location } = setup();
-    const shirt = garment(planPath, 'woven', 'shirt');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
     const cuirass = garment(planPath, 'plate', 'cuirass');
     ContainmentApi.move(shirt, body);
     ContainmentApi.move(cuirass, body);
@@ -280,14 +287,14 @@ describe('the ladder refusal', () => {
 
 describe('the impossible fit', () => {
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
   it("⚠ refuses a garment cut for a body unlike yours, with a `fit-impossible` note", async () => {
     installV1QuantityMarshallers();
     standUpScheduler();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -325,7 +332,7 @@ describe('the impossible fit', () => {
 
     // Cut for a halfling — and both are the same body plan, so slot
     // matching alone would have let it straight on.
-    const coat = garment(planPath, 'woven', 'coat');
+    const coat = garment(planPath, fabricPath('woven'), 'coat');
     coat.setCutTo(planPath, 1.05, Math.sqrt(38 / 1.05));
     ContainmentApi.move(coat, big);
 
@@ -342,9 +349,9 @@ describe('the impossible fit', () => {
   });
 });
 
-describe('the wardrobe stanza — getting dressed is one command', () => {
+describe('the outfit verb — getting dressed is one command', () => {
   afterEach(() => {
-    Construction.clearFabrics();
+    forgetFabrics();
     StuffApi.clearAll();
   });
 
@@ -357,7 +364,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
   } {
     installV1QuantityMarshallers();
     standUpScheduler();
-    Construction.registerFabric({
+    rememberFabric({
       key: 'woven',
       layerBand: 0,
       loft: 0.1,
@@ -367,8 +374,8 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const { body, planPath } = bodyAndPlanPath();
     const location = makeStuff(() => new Place());
     ContainmentApi.move(body, location);
-    const shirt = garment(planPath, 'woven', 'shirt');
-    const coat = garment(planPath, 'woven', 'coat');
+    const shirt = garment(planPath, fabricPath('woven'), 'shirt');
+    const coat = garment(planPath, fabricPath('woven'), 'coat');
     ContainmentApi.move(shirt, body);
     ContainmentApi.move(coat, body);
     return { body, planPath, location, shirt, coat };
@@ -382,28 +389,32 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const ctx = context(body, location);
     const sub = (model as { subcommand?: string }).subcommand;
     await makeStuff(() =>
-      sub === 'sets' ? new EquipSetsController() : new EquipSetController(),
+      sub === 'list'
+        ? new OutfitListController()
+        : sub === 'save'
+          ? new OutfitSaveController()
+          : new OutfitWearController(),
     ).execute(model as never, ctx);
     await settle();
     return ctx;
   }
 
-  it('⭐ `--save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
+  it('⭐ `outfit save` captures the worn stack in WEAR ORDER (innermost first)', async () => {
     const { body, location, shirt, coat } = dressed();
     body.occupyAll(shirt, ['torso']);
     body.occupyAll(coat, ['torso']);
 
-    await run(body, location, { subcommand: 'set', name: 'daily', save: true });
+    await run(body, location, { subcommand: 'save', name: 'daily' });
     // Worn shirt-then-coat, so the saved order is shirt-then-coat —
     // which is exactly the order a replay must dress in.
     expect(body.getWardrobe('daily')).toEqual(['shirt', 'coat']);
   });
 
-  it('replays the set in one command, innermost-first', async () => {
+  it('replays the outfit in one command, innermost-first', async () => {
     const { body, location, shirt, coat } = dressed();
     body.setWardrobe('daily', ['shirt', 'coat']);
 
-    await run(body, location, { subcommand: 'set', name: 'daily' });
+    await run(body, location, { subcommand: 'wear', name: 'daily' });
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
     expect(body.getOccupants('torso').has(coat)).toBe(true);
     // …and the ladder is satisfied: the coat went on second, so it is
@@ -417,7 +428,7 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     const { body, location, shirt } = dressed();
     body.setWardrobe('daily', ['shirt', 'hat-i-sold', 'coat']);
 
-    const ctx = await run(body, location, { subcommand: 'set', name: 'daily' });
+    const ctx = await run(body, location, { subcommand: 'wear', name: 'daily' });
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
     // No rejection note — a partial dress is a success with a caveat.
     expect(
@@ -425,23 +436,22 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     ).toBe(false);
   });
 
-  it('an unknown set is refused by name', async () => {
+  it('an unknown outfit is refused by name', async () => {
     const { body, location } = dressed();
-    const ctx = await run(body, location, { subcommand: 'set', name: 'nope' });
+    const ctx = await run(body, location, { subcommand: 'wear', name: 'nope' });
     const rejection = ctx
       .getNotes()
       .find((n) => n.kind === 'controller-rejected') as
       | { reason?: string }
       | undefined;
-    expect(rejection?.reason).toBe('unknown-set');
+    expect(rejection?.reason).toBe('unknown-outfit');
   });
 
-  it('`--save` with nothing on refuses rather than saving an empty set', async () => {
+  it('`outfit save` with nothing on refuses rather than saving an empty outfit', async () => {
     const { body, location } = dressed();
     const ctx = await run(body, location, {
-      subcommand: 'set',
+      subcommand: 'save',
       name: 'empty',
-      save: true,
     });
     const rejection = ctx
       .getNotes()
@@ -452,10 +462,10 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     expect(body.getWardrobeNames()).toEqual([]);
   });
 
-  it('`wear sets` lists what is saved', async () => {
+  it('`outfit list` lists what is saved', async () => {
     const { body, location } = dressed();
     body.setWardrobe('daily', ['shirt', 'coat']);
-    const ctx = await run(body, location, { subcommand: 'sets' });
+    const ctx = await run(body, location, { subcommand: 'list' });
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(false);

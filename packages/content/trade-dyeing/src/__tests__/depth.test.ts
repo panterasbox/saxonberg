@@ -30,7 +30,10 @@ import {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import DyeController from '../idea/cmd/dyeing/DyeController';
-import Dyestuff from '../idea/Dyestuff';
+import Dyestuff from '../lib/Dyestuff';
+import DyestuffCatalogue from '../idea/DyestuffCatalogue';
+import DyeBath from '../lib/DyeBath';
+import MordantController from '../idea/cmd/dyeing/MordantController';
 
 class Cloth extends DyedMixin(Good) {
   static _mixinName = 'DepthTestCloth';
@@ -87,7 +90,7 @@ async function dye(c: Cloth, b: Bath): Promise<number> {
     { target: { stuff: c, raw: 'cloth' }, bath: { stuff: [b], raw: '' } } as never,
     ctx,
   );
-  await completeStep(DyeController.BASE_MS * 2);
+  await completeStep(DyeBath.DYE_BASE_MS * 2);
   const top = c.getDyeStack().at(-1)!;
   return top.strength;
 }
@@ -98,16 +101,13 @@ beforeEach(async () => {
   room = makeStuff(() => new Place());
   dyer = makeStuff(() => new TestActor());
   ContainmentApi.move(dyer as never, room as never);
-  makeStuffAtPath(() => {
-    const d = new Dyestuff();
-    d.setKey('madder');
-    d.setMaterialPath(MADDER);
-    d.setChemistry('mordant');
-    d.setShades([
+  // The dyestuff DOCUMENT, resident as `dye` would leave it (load-on-use W3).
+  StuffApi.singletonSync('/trade/dyeing/idea/DyestuffCatalogue', () => new DyestuffCatalogue()).remember(
+    '/trade/dyeing/dyestuffs/madder',
+    new Dyestuff('/trade/dyeing/dyestuffs/madder', MADDER, 'mordant', [
       { mordant: 'alum', colour: 'a clear red', fastness: 0.8, transmitR: 0.9, transmitG: 0.2, transmitB: 0.2 },
-    ]);
-    return d;
-  }, '/trade/dyeing/idea/dyestuff/madder');
+    ]),
+  );
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const chain = {
       topic: () => chain,
@@ -140,5 +140,52 @@ describe('dye depth pays the bond penalty', () => {
     const raw = await dye(cloth('rawSilk'), bath());
     expect(raw).toBeCloseTo(silk / 2, 6);
     expect(sent.join(' ')).toMatch(/still in its gum/);
+  });
+});
+
+describe('⭐ C9 — the mordant is the bath, and a dose is spent (controller-liquidity W11)', () => {
+  const ALUM = '/trade/dyeing/idea/material/alum';
+  function alumBath(litres: number): Bath {
+    const b = makeStuff(() => new Bath());
+    (b as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    b.setInteriorCapacity(Quantity.of(20, 'L'));
+    b.setBulkMaterial('interior', material(ALUM, 'alum', ['mordant', 'mineral', 'brightening']));
+    b.setBulkAmount('interior', Quantity.of(litres, 'L'));
+    ContainmentApi.move(b, room as never);
+    return b;
+  }
+  function bare(): Cloth {
+    const c = makeStuff(() => new Cloth());
+    c.setMaterial(material(fibres.silk.path, 'silk', fibres.silk.tags));
+    ContainmentApi.move(c, dyer as never);
+    return c;
+  }
+  async function mordant(c: Cloth, b: Bath, named = false): Promise<CommandContext> {
+    const ctx = makeContext(dyer as unknown as Stuff, room as unknown as Stuff, 'mordant');
+    await makeStuff(() => new MordantController()).execute(
+      { target: { stuff: c, raw: 'cloth' }, bath: { stuff: [b], raw: '', ...(named ? { prep: 'in' } : {}) } } as never,
+      ctx,
+    );
+    await completeStep(DyeBath.MORDANT_BASE_MS * 2);
+    return ctx;
+  }
+
+  it('an alum bath lays alum on the cloth and gives up a dose', async () => {
+    const c = bare();
+    const b = alumBath(5);
+    await mordant(c, b);
+    expect(c.getDyeStack().at(-1)).toMatchObject({ mordant: 'alum', strength: 0, dyestuff: ALUM });
+    expect(b.getBulkAmount('interior').rawValue()).toBeCloseTo(5 - DyeBath.MORDANT_DOSE_L, 6);
+  });
+
+  it('a madder bath is not a mordant; a dry tub cannot take a piece', async () => {
+    const c = bare();
+    // Bare, a madder bath is not chosen at all; named, it says why.
+    expect((await mordant(c, bath())).getNotes().map((n) => (n as { reason?: string }).reason)).toContain('no-bath');
+    const notes = (await mordant(c, bath(), true)).getNotes().map((n) => (n as { reason?: string }).reason);
+    expect(notes).toContain('not-a-mordant');
+    const thin = (await mordant(c, alumBath(0.5))).getNotes().map((n) => (n as { reason?: string }).reason);
+    expect(thin).toContain('too-little');
+    expect(c.getDyeStack()).toHaveLength(0);
   });
 });

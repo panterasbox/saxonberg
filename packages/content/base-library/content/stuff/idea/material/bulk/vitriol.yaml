@@ -13,7 +13,7 @@
 # vitriol, and the covering fold reads exactly that off this one list.
 class: /platform/idea/material/Acid
 data:
-  smells: [{ aroma: /base-library/aromas/vitriol, strength: 3000 }]
+  smells: [{ aroma: /base-library/aromas/sulfur/vitriol, strength: 3000 }]
   name: vitriol
   keywords: [vitriol, acid]
   appearance: oily, faintly fuming acid
@@ -33,7 +33,7 @@ data:
   ph: 0
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
-  cleanser: /platform/idea/Cleanser/vitriol
+  cleanser: /platform/cleansers/vitriol
   # ⭐ (rubber build) No coarse `organic`: rubber and ebonite ARE organic,
   # and acid does not eat them — so the list names what it really attacks.
   # `once-living` is the biological-origin tag every caught row carries;

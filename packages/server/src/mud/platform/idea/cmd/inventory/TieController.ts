@@ -4,7 +4,7 @@
  * renders.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
+import { TieControllerBase } from './TieControllerBase';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -18,7 +18,7 @@ interface TieModel extends CommandModel {
   knot?: string;
 }
 
-export default class TieController extends CommandController<TieModel> {
+export default class TieController extends TieControllerBase<TieModel> {
   async execute(model: TieModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver as unknown as Stuff;
     const gear = model.gear?.stuff ?? null;
@@ -29,7 +29,7 @@ export default class TieController extends CommandController<TieModel> {
     if (load === null) return this.refuse(context, 'act.deed', 'Tie it to what?', 'no-load');
     const knot = (model.knot ?? '').trim();
     const out = await gear.tieTo(giver, load, knot === '' ? null : knot);
-    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
+    if (!out.ok) return this.declineTie(context, out, giver);
     const scene = MessageApi.scene(giver).topic('act.deed').toSelf(Mml.compose`${out.line}`);
     if (out.peers) scene.toPeers(Mml.compose`${Mml.actor(giver)} ${out.peers}`);
     scene.send();

@@ -53,8 +53,14 @@ import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixi
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const VEHICULAR_MIXIN = 'VehicularMixin';
 
-/** The command view every vehicle contributes. */
-const JOURNEY_VIEW = 'system/transport/cmd/movement/journey.yaml';
+/**
+ * The command views every vehicle contributes — the two shapes of
+ * `journey`, the bare read first (controller-liquidity W7a).
+ */
+const JOURNEY_VIEWS = [
+  'system/transport/cmd/movement/journey.yaml',
+  'system/transport/cmd/movement/journey-to.yaml',
+];
 
 /** What a vehicle affords, whatever it is made of. */
 export interface Vehicular {
@@ -126,8 +132,8 @@ export function VehicularMixin<TBase extends MixinConstructor<Stuff>>(
      * it, and neither should have to guess which.
      */
     static commandContributions: CommandContributions = {
-      peers: [JOURNEY_VIEW],
-      environment: [JOURNEY_VIEW],
+      peers: [...JOURNEY_VIEWS],
+      environment: [...JOURNEY_VIEWS],
     };
 
     /**

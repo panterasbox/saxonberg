@@ -39,7 +39,7 @@ style: Volk is the well rail, made in volume, everywhere; premium is
 independent *by count*; and a corpo *buying* an independent brand — the
 label stays, the capital changes — falls out of the split as a future
 mechanic for free. **No per-corpo mixins**: a mixin that only sets a key is
-what a template row does (`_brandKey:`); ethos behaviour belongs on the
+what a template row does (`brand:`); ethos behaviour belongs on the
 corpo's business (pricing, the approval vector) or on the material, never
 on the bottle. The corpo packs stay data packs.
 
@@ -95,14 +95,17 @@ precedent.
 The advancement-precedent three singletons:
 
 - **`CorpoCatalogue`** (`obj/CorpoCatalogue.ts`, `/platform/idea/CorpoCatalogue`) — the
-  read-only **data-cache** singleton (`Idea`). At boot
+  read-only **data-cache** singleton (`Idea`), a **lazy dictionary**. Its
   `onCreate` scans the `Corpo` and `Brand` leaf templates from the
   `domain` collection into two descriptor maps keyed by `key`, then builds a
   derived **portfolio index** (corpo key → owned brand keys) — the "portfolio
   is the forward edge" projection as a cheap precomputed inverted index. A
   *Catalogue* (holds authored data), not a Registry (holds code) — per the
-  [grouping.md](./grouping.md) convention. Warmed by the platform
-  pack's `boot:` entry (`/platform/idea/CorpoCatalogue`, `sync-read`). Singleton-destruct refusal.
+  [grouping.md](./grouping.md) convention. ⭐ No pack `boot:` entry
+  (documents path identity, 2026-11-09); it is `CorpoApi`'s declared
+  `needs`, stood once at boot by `AppBootstrap` (load-on-use W10), and `CorpoLogic`'s sync reads throw
+  `DocumentNotResidentError` when it is cold rather than answering empty.
+  Singleton-destruct refusal.
 - **`CorpoLogic`** (`platform/idea/api/CorpoLogic.ts`, `/platform/idea/api/corpo`) — the gated
   logic singleton. Reads only the in-memory catalogue (no per-owner Mongo →
   **no connection guard**, unlike `AdvancementLogic`). Internals are
@@ -128,16 +131,21 @@ The advancement-precedent three singletons:
 ## The mark: `BrandedMixin`
 
 `lib/corpo/Branded.ts` is the per-product mark. A branded Stuff carries the
-durable `_brandKey` of one `Brand`; `getBrand()` / `getCorpo()` resolve on
-**each call** through `CorpoApi` (HMR-safe — no cached instance, the
-`Material` cross-ref precedent). An empty `_brandKey` is unbranded; a brand
-whose `owner` is empty resolves to a `null` corpo.
+durable key of one `Brand` in its **`brand`** field (renamed from
+`_brandKey`, 2026-11, so the applier's `set<Field>` door is `setBrand`);
+`getBrand()` / `getCorpo()` resolve on **each call** through `CorpoApi`
+(HMR-safe — no cached instance, the `Material` cross-ref precedent). An
+empty `brand` is unbranded; a brand whose `owner` is empty resolves to a
+`null` corpo. ⭐ **Resident from boot**: the brand dictionary is
+`CorpoApi`'s declared `needs` (and the government dictionary
+`GovernmentApi`'s), stood once by `AppBootstrap` (load-on-use W10), so
+`setBrand` is a plain setter and every sync read above finds it.
 
 Two surfaces beyond the accessors:
 
 - **MQL visibility** — `static subscribableFields` projects two flat fields,
   `brand` and `corpo` (the corpo key is `null` for an independent), keyed on
-  `_brandKey`. The method-derived live-query projection seam `Tangible` uses
+  `brand`. The method-derived live-query projection seam `Tangible` uses
   for `bulkMaterial` — **not** a redundant `PropertiedMixin` prop (the
   inter-Stuff method-only contract).
 - **In-world perception** — `static markupAugmenters` appends a *derived*
@@ -155,7 +163,7 @@ Things, the kernel's `KeptAnimal` and ranching's `Livestock`. It is
 which is not a question about a person. (It was on `Creature` between the
 ranching and base-class-narrowing builds — see
 [ranching.md](./ranching.md).) The working bottle is `/platform/thing/Bottle` (a Graded,
-Bulkable, Sealable, Circulating receptacle — libations); its `_brandKey`
+Bulkable, Sealable, Circulating receptacle — libations); its `brand`
 is the mark. The mark-only `BrandedBottle` proof class and its two demo
 rows were retired in the libations drain — every shipped branded thing
 is now a real bottle in a trade or corpo pack.
@@ -186,7 +194,7 @@ The rule, decided at the libations review: **a corpo pack ships the
 `Corpo` row, its `Brand` rows and its organization chart — never a
 product and never a trade locality.** A bottle of Volk is a product of
 the distilling *process*; the only thing "corpo" about it is one field
-(`_brandKey`) pointing at a Brand row, which is exactly what the corpo
+(`brand`) pointing at a Brand row, which is exactly what the corpo
 pack supplies. So a corpo-owned producer — Veshko's distillery yard,
 Hollis's bottling floor — lives in its **trade** pack as an outfit
 (Business + Stock + hand + floor) whose `parentOrganization` points *up*
@@ -282,3 +290,10 @@ it is authored, so the branch's tellers stay the branch's.
 - [grouping.md](./grouping.md) — the catalogue (data) vs registry (code)
   naming convention
 - [collections.md](./collections.md) — the method-only mixin surface
+
+## History
+
+- 2026-11-09 — documents path identity: `CorpoCatalogue` left the boot list
+  (it loaded on reach through `CorpoApi.ready()`; since load-on-use W10 it
+  stands at boot as `CorpoApi`'s `needs`), and `Branded._brandKey`
+  became `brand`. See git log for the `reqs/documents-path-identity` branch.

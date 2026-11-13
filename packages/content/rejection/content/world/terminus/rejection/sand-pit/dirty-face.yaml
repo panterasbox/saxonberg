@@ -12,7 +12,7 @@ data:
   ambientColorTemperature: 5800
   longDescription: |
     The eastern end of the pit, where the sand runs ochre and rust-streaked, iron all through it. It digs the same as the clean sand and melts the same — but what it makes comes out green, and nothing you do at the furnace will take the colour out.
-  coords: { x: 2, y: 0, z: 0 }
+  coords: { x: 1, y: 0, z: 0 }
   faceRunM: 20
   props:
     - /trade/quarrying/thing/spade

@@ -678,7 +678,7 @@ flight — a death (`ConditionApi.die` → `divideBody` mints a shade and
 moves the sockets to it), a `passage` reembody, a sandbox crossing — the
 envelope goes to the destroyed body's inert proxy and the client never
 gets a dispatch-response. Found by the soak-harness drive (2026-10-30):
-a runner whose dying window ran out during `testharness clock advance`.
+a runner whose dying window ran out during `testharness clock-advance`.
 The fix is to re-resolve the live holder through `ctx.interactive`
 before sending, or to hand the in-flight context to the replacement.
 

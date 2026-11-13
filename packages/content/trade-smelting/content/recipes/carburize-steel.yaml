@@ -8,7 +8,6 @@
 #
 # ⚠ Nothing selects this recipe either. Charging a BAR rather than ore is
 # what carburizes; the row is where the act sits on the ladder.
-recipeId: carburize-steel
 name: Carburize a Bar
 keywords: [steel, carburize, case, bar]
 inputSlots:

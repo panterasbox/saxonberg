@@ -34,144 +34,46 @@
  * Until then, water is the one thing this verb knows.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult, MqlManyResult } from '../../../../api/mql';
-import { MessageApi } from '../../../../api/message';
-import { MixinApi } from '../../../../api/mixin';
+import { ElementTreatmentControllerBase, type ElementTreatmentModel } from './ElementTreatmentControllerBase';
+import type { CommandContext } from '../../../../api/command';
+import type { MqlManyResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Vitals } from '../../../../lib/vitals/Vitals';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
-import type { Trauma } from '../../Condition';
-import { BulkableApi } from '../../../../api/bulk';
 
-// The same topic `treat` and `wash` speak — rinsing is a deed done to a
-// body, not a category of its own. (`lint:topics` refuses a key nothing
-// authored, which is how a muted-by-default channel gets caught.)
-const TOPIC = 'act.deed';
-
-interface RinseModel extends CommandModel {
-  patient?: MqlOneResult;
+interface RinseModel extends ElementTreatmentModel {
   water?: MqlManyResult;
 }
 
-export default class RinseController extends CommandController<RinseModel> {
+export default class RinseController extends ElementTreatmentControllerBase<RinseModel> {
   async execute(model: RinseModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
     // Default to yourself — the overwhelmingly common case is that the
     // thing eating you is on you.
-    const named = model.patient?.stuff as Stuff | undefined;
-    const target: Stuff = named ?? (giver as unknown as Stuff);
-    const self = named === undefined;
-    if (!MixinApi.isVitals(target)) {
-      return this.fail(context, 'There is nothing there to rinse.', 'no-body');
-    }
+    const patient = this.patientOf(model, context, 'There is nothing there to rinse.');
+    if (!patient) return;
+    const { target, self } = patient;
 
     // ⭐ Water in reach, before anything else — the refusal a player can
     // act on ("find water") comes before the one they cannot ("you have
-    // no caustic"), and before the fight-opening side of anything.
-    const water = await this.findWater(model.water, context);
-    if (typeof water === 'string') return this.fail(context, water, 'frozen');
-    if (water === null) {
-      return this.fail(
-        context,
-        'There is no water here to rinse with.',
-        'no-water',
-      );
+    // no caustic"). The source answers (`WaterDrawable`).
+    const water = await RinseController.firstWater(model.water, giver as unknown as Stuff);
+    if (water === 'frozen') {
+      return this.fail(context, 'The water is frozen over; you would need a hole.', 'frozen');
+    }
+    if (water !== 'found') {
+      return this.fail(context, 'There is no water here to rinse with.', 'no-water');
     }
 
-    const active = (target as Stuff & Vitals)
-      .getConditions()
-      .filter(
-        (c): c is Trauma =>
-          c.kind === 'trauma' && c.type === 'caustic' && c.agentActive === true,
-      );
-
-    if (active.length === 0) {
-      const who = self ? 'You have' : 'They have';
-      return this.fail(
-        context,
-        `${who} nothing on them that water would help.`,
-        'nothing-to-rinse',
-      );
-    }
-
-    // ⭐ `resolve` on a caustic means *remove the cause*, not *arrest the
-    // bleed* — the same interface, a different act, which is the whole
-    // reason `TraumaBehavior.resolve` is on the table rather than in the
-    // verb.
-    for (const wound of active) {
-      TRAUMA_BEHAVIOR.caustic.resolve(target as Stuff & Vitals, wound);
-    }
-
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        self
-          ? Mml.compose`You sluice the water over it until the burning stops. It still hurts — but it has stopped getting worse.`
-          : Mml.compose`You sluice water over ${Mml.thing(target)} until the burning stops.`,
-      )
-      .toPeers(
-        self
-          ? Mml.compose`${Mml.actor(giver)} sluices water over themselves.`
-          : Mml.compose`${Mml.actor(giver)} sluices water over ${Mml.thing(target)}.`,
-      )
-      .send();
-  }
-
-  /**
-   * The first of the binder-resolved reachable vessels whose matter is
-   * tagged `water` — a jug as good as a basin. The `WashController` read,
-   * repeated rather than shared: a `BulkableApi.findWater(bound)` would
-   * be an Api static taking a world object, the OO antipattern
-   * `lint:object-verbs` holds at zero.
-   */
-  private async findWater(
-    bound: MqlManyResult | undefined,
-    context: CommandContext,
-  ): Promise<Stuff | string | null> {
-    let frozen: string | null = null;
-    // ⭐ A NARROWING, not a search — `rinse.yaml` declares `water` with a
-    // `[mixin.BulkableMixin]` default, so what arrives is every reachable
-    // vessel and the only question left is what is IN it, which no
-    // predicate asks (`lint:controller-resolution`). The same read `wash` makes.
-    for (const c of bound?.stuff ?? []) {
-      // ⭐ A shore's water through the shore's one answer (cleanliness
-      // D13): open water, a hole in the ice, or the frozen refusal.
-      if (MixinApi.isShore(c)) {
-        const pick = c.waterFor();
-        if ('refusal' in pick) continue;
-        await c.settleWater(pick.key);
-        const drawn = c.drawAt(pick.key, context.location ?? c);
-        if ('draw' in drawn) return c;
-        if (drawn.refusal === 'frozen') frozen = drawn.line;
-        continue;
-      }
-      if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
-      await BulkableApi.slotFor(c, undefined)?.settle();
-      const slot = BulkableApi.slotFor(c, undefined);
-      if (!slot || slot.isEmpty()) continue;
-      const m = slot.getMaterial();
-      if (m?.hasTag('water')) return c;
-    }
-    return frozen;
-  }
-
-  private fail(
-    context: CommandContext,
-    line: string,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .toSelf(Mml.fromMarkup(Mml.escape(line)))
-      .send();
-    context.note({
-      kind: 'controller-rejected',
-      reason,
-      detail: line,
+    // ⭐ The body knows which caustic is still working; rinsing removes
+    // the cause (`TraumaBehavior.resolve` on a caustic), not the wound.
+    await this.treatWith(context, target, 'rinse', `${self ? 'You have' : 'They have'} nothing on them that water would help.`, {
+      self: self
+        ? Mml.compose`You sluice the water over it until the burning stops. It still hurts — but it has stopped getting worse.`
+        : Mml.compose`You sluice water over ${Mml.thing(target)} until the burning stops.`,
+      peers: self
+        ? Mml.compose`${Mml.actor(giver)} sluices water over themselves.`
+        : Mml.compose`${Mml.actor(giver)} sluices water over ${Mml.thing(target)}.`,
     });
   }
 }

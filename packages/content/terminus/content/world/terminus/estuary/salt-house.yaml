@@ -35,10 +35,7 @@ data:
     A low shed the length of four carts, open at the far end, with a fire-bed running most of the way down it and a rack of iron bars over the fire. The roof timbers are white with salt and the air tastes of it.
 
     Somebody's tally is scratched into the doorpost in fives.
-  coords:
-    x: 1
-    y: 1
-    z: 0
+  coords: { x: 1, y: -1, z: 0 }
   props:
     - /trade/quarrying/thing/brine-hearth
     # ⭐ (ceramics W8) The pan stands ON its bittern tub, so the liquor a

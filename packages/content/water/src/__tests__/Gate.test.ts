@@ -59,7 +59,7 @@ describe('the water through a gate', () => {
 describe('⭐ the lock is the gate', () => {
   it('a padlocked gate refuses anybody without its key', () => {
     const g = gate();
-    g.lock();
+    g.setLocked(true);
     const stranger = makeStuff(() => new Good());
     expect(g.canOpen(stranger)).toEqual({ ok: false, reason: "It's padlocked shut." });
     vi.spyOn(g, 'opensFor').mockReturnValue(true);
@@ -121,7 +121,7 @@ describe('⭐⭐ the rota is the turn list (D21)', () => {
   it('⚠ a padlocked turnout stays shut for a keyless turn, and the log says so', async () => {
     const g = gate();
     rostered(g, [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [22, 4] }]);
-    g.lock();
+    g.setLocked(true);
     await g.reconcileScheduled(now);
     now += DAY;
     await g.reconcileScheduled(now);

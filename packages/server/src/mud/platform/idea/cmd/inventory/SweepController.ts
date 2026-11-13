@@ -2,25 +2,34 @@
  * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, the
  * byre's mucking out included — cleanliness D15, D18, D20.
  *
- * ⭐ Dumb over the things it sweeps: the FLOOR decides what a broom takes
- * up (`FloorMixin.sweepUp` — everything on an earth floor, only the debris
- * on a scrubbed one) and what it is heaped into (`sweepsInto`: sweepings,
- * or the byre's muck); the HEARTH decides what is in its grate
- * (`Burner.takeAsh`) and its flue (`Flued.sweepFlue`). This file picks the
- * target, engages the hands and mints the heap.
+ * ⭐ One act, two hosts, one result (`SweepableMixin`, controller-liquidity
+ * W7c, slimmed in W18): the FLOOR decides what a broom takes up
+ * (`FloorMixin.sweepInto` — everything on an earth floor, only the debris
+ * on a scrubbed one) and what it is heaped into (sweepings, or the byre's
+ * muck); a flued fire, with a brush to hand, its chimney
+ * (`Flued.sweepChimney`). Either way so many kg of these kinds came up,
+ * and some of it is in the sweeper's hands. How long it takes is the
+ * thing's. This file finds what is to hand, engages the plan and says what
+ * came up.
+ *
+ * ⚠ A grate is RAKED (`rake`, W18) — a fire that is not flued is not
+ * swept, and the refusal says so.
+ *
+ * ⭐ No target — or one that is not swept itself — sweeps the floor you
+ * stand on: `sweep`, `sweep byre`.
  */
 
 import { ManualBuildController } from '../crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { ActWords } from '../../../../lib/command/EngagedActController';
+import type { SweepBegin, SweepFacts, SweepRefusal } from '../../../../lib/cleanliness/Sweepable';
 import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { MaterialApi } from '../../../../api/material';
 
-const TOPIC = 'act.deed';
-/** A floor's sweep with a broom; bare hands take three times as long. */
-const SWEEP_MS = 8000;
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface SweepModel extends CommandModel {
   target?: MqlOneResult;
@@ -32,132 +41,86 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     const giver = context.commandGiver;
     const brush = this.bestInstrument(model.tool, 'flue-brushing') !== null;
     const broom = this.bestInstrument(model.tool, 'sweeping') !== null;
-    const target = model.target?.stuff ?? null;
+    const named = model.target?.stuff ?? null;
     const room = context.location ?? null;
-
-    // ⭐ Any fire's grate is raked — a pit, a brazier, a hearth (found by the
-    // potash drive: an ash pit, having no flue, was swept as FLOOR and its
-    // ash could never come out). Only a flued one takes the brush.
-    if (target !== null && (MixinApi.isFlued(target) || MixinApi.isBurner(target))) {
-      return this.sweepHearth(target, brush && MixinApi.isFlued(target), room, context);
-    }
-    const floor =
-      target !== null && MixinApi.isFloor(target)
-        ? target
-        : room && MixinApi.isAdornable(room)
-          ? (room.getFloor() as unknown as Stuff | null)
-          : null;
-    if (floor === null || !MixinApi.isFloor(floor)) {
+    const floor = room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+    // A fire that is not flued has nothing to sweep (its grate is raked);
+    // anything else that is not swept itself — the byre you stand in —
+    // means the floor underfoot.
+    const unflued = named !== null && !MixinApi.isSweepable(named) && MixinApi.isBurner(named);
+    const target = named !== null && MixinApi.isSweepable(named) ? named : unflued ? null : floor;
+    const plan =
+      target !== null && MixinApi.isSweepable(target)
+        ? target.sweepPlanFor({ actor: giver, broom, brush })
+        : null;
+    if (target === null || plan === null) {
       this.declineStep(
         context,
-        target
-          ? Mml.compose`You can't sweep ${Mml.thing(target)}.`
+        unflued && named !== null
+          ? Mml.compose`${Mml.thing(named)} has no flue to sweep. Its grate is raked — rake it.`
           : Mml.compose`There is no floor here to sweep.`,
-        'no-floor',
+        unflued ? 'not-sweepable' : 'no-floor',
       );
       return;
     }
-    if (!floor.takesSoil()) {
-      this.declineStep(context, Mml.compose`There is nothing here a broom could take up.`, 'nothing-to-sweep');
+    if (!plan.ok) {
+      this.declineStep(context, SweepController.refusalWords(plan), plan.reason);
       return;
     }
-    this.engageStep(context, {
-      durationMs: SWEEP_MS * (broom ? 1 : 3),
-      effortW: 250,
-      beginSelf: broom
-        ? Mml.compose`You set to with the broom.`
-        : Mml.compose`You get down and sweep with your hands.`,
-      onComplete: () => {
-        void SweepController.finishFloor(giver, floor);
+    await this.engagePlan(context, plan, SweepController.sweepWords(target, giver));
+  }
+
+  /** ⭐ The words for a sweep of `target` (D4). */
+  protected static sweepWords(target: Stuff, giver: Stuff): ActWords<SweepBegin, SweepFacts, SweepRefusal> {
+    return {
+      beginSelf: (b) => {
+        switch (b.tool) {
+          case 'broom':
+            return Mml.compose`You set to on ${Mml.thing(target)} with the broom.`;
+          case 'brush':
+            return Mml.compose`You work the brush up into ${Mml.thing(target)}, rod by rod.`;
+          case 'hands':
+            return Mml.compose`You get down and sweep ${Mml.thing(target)} with your hands.`;
+          default: {
+            const never: never = b.tool;
+            return never;
+          }
+        }
       },
-    });
+      onRefused: (r) => SweepController.refusalWords(r),
+      onDone: (f) => SweepController.doneWords(f, target, giver),
+    };
   }
 
-  /**
-   * ⚠ STATIC, as everything an engaged step's completion calls must be:
-   * the controller clone is destructed when `execute` returns (found by
-   * the drive — the sweep finished on a dead proxy and took nothing up).
-   */
-  private static async finishFloor(giver: Stuff, floor: Stuff): Promise<void> {
-    if (!MixinApi.isFloor(floor)) return;
-    // ⭐ The sweep is the floor's (`sweepInto`): this words what it did.
-    const { kinds, heap } = await floor.sweepInto(giver);
-    if (giver.isDestroyed()) return;
-    if (!heap) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You sweep, and there is nothing worth the name to take up.`).send();
-      return;
+  /** What came up, in words — a floor's and a flue's alike. */
+  protected static doneWords(f: SweepFacts, target: Stuff, giver: Stuff): { self: Composed; peers?: Composed } {
+    if (!(f.kg > 0.05) && f.taken.length === 0) {
+      return { self: Mml.compose`You sweep ${Mml.thing(target)}, and there is nothing worth the name to take up.` };
     }
-    const what = Object.keys(kinds).slice(0, 3).join(', ');
-    if (MixinApi.isAdvancing(giver)) {
-      // The deed `analyze cleanliness` reads (B57).
-      void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
-    }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You sweep the floor clean${what ? ` of ${what}` : ''}, into ${Mml.thing(heap)}.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the floor.`)
-      .send();
+    // A dirt kind is named by its path; the sentence says its word.
+    const what = Object.keys(f.kinds).slice(0, 3).map((k) => MaterialApi.dirtKinds().wordOf(k)).join(', ');
+    const of = what ? ` of ${what}` : '';
+    const first = f.taken[0];
+    return {
+      self:
+        first !== undefined
+          ? Mml.compose`You sweep ${Mml.thing(target)} clean${of}, and take it up: ${Mml.thing(first)}.`
+          : Mml.compose`You sweep ${Mml.thing(target)} clean${of}. It comes down where it will.`,
+      peers: Mml.compose`${Mml.actor(giver)} sweeps ${Mml.thing(target)}.`,
+    };
   }
 
-  /** A hearth: its grate raked of ash, or — with a brush — its flue swept. */
-  private sweepHearth(
-    hearth: Stuff,
-    brush: boolean,
-    room: Stuff | null,
-    context: CommandContext,
-  ): void {
-    const giver = context.commandGiver;
-    if (!MixinApi.isFlued(hearth) && !MixinApi.isBurner(hearth)) return;
-    this.engageStep(context, {
-      durationMs: SWEEP_MS * (brush ? 3 : 1),
-      effortW: brush ? 400 : 200,
-      beginSelf: brush
-        ? Mml.compose`You work the brush up into ${Mml.thing(hearth)}'s flue, rod by rod.`
-        : Mml.compose`You rake out the grate of ${Mml.thing(hearth)}.`,
-      onComplete: () => {
-        void SweepController.finishHearth(giver, hearth, brush);
-      },
-    });
-  }
-
-  /** ⚠ STATIC (completions run on a destructed controller). */
-  private static async finishHearth(giver: Stuff, hearth: Stuff, brush: boolean): Promise<void> {
-    if (brush && MixinApi.isFlued(hearth)) {
-      // ⭐ The chimney's own act: soot onto the floor and your hands.
-      const { sootKg, taken } = await hearth.sweepChimney(giver);
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          taken.length > 0
-            ? Mml.compose`Soot comes down the flue in a black fall, and you gather the finest of it up: ${Mml.thing(taken[0]!)}. The chimney is clear.`
-            : sootKg > 0.05
-              ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
-              : Mml.compose`A little soot comes down. The flue was clean enough.`,
-        )
-        .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the chimney.`)
-        .send();
-      return;
+  /** ⭐ Every reason, exhaustively. */
+  protected static refusalWords(r: SweepRefusal): Composed {
+    switch (r.reason) {
+      case 'nothing-to-sweep':
+        return Mml.compose`There is nothing here a broom could take up.`;
+      case 'no-brush':
+        return Mml.compose`A chimney is swept with a flue brush, and you have none to hand. (Its grate is raked — rake it.)`;
+      default: {
+        const never: never = r;
+        return never;
+      }
     }
-    if (!MixinApi.isBurner(hearth)) return;
-    // ⭐ The grate's own act: the ash into your hands, the hearth owner's.
-    const { ash } = await hearth.rakeGrate(giver);
-    const first = ash[0];
-    if (!first) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`)
-        .send();
-      return;
-    }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        ash.length === 1
-          ? Mml.compose`You rake the grate out into ${Mml.thing(first)}.`
-          : Mml.compose`You rake the grate out into ${String(ash.length)} heaps of ash.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} rakes out the grate.`)
-      .send();
   }
 }
-

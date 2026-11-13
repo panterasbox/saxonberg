@@ -14,6 +14,7 @@ import DormRoom from '../location/DormRoom';
 import Desk from '../thing/Desk';
 import ProvisionController from '../idea/cmd/ProvisionController';
 import UnprovisionController from '../idea/cmd/UnprovisionController';
+import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import RemodelController from '../idea/cmd/RemodelController';
 import DormThemes from '../idea/DormThemes';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
@@ -89,6 +90,8 @@ function seedDomain(): void {
   domain.push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
   add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
+  // The door the warren hangs in each room's way (boundary build, D6).
+  add('/world/terminus/eternal/duncan-hall/thing/dorm-door', '/platform/thing/Door', { shortDescription: 'dorm-room door', keywords: ['door'], locked: true, closesBehind: true });
   add('/stuff/idea/exits/stair', '/platform/idea/Exit');
 
   add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
@@ -505,6 +508,9 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     // delete record + retire slot.
     const op = makeAvatar('op');
     const ctx = ctxFor(op, 'unprovision');
+    // ⭐ C4 (controller-liquidity W13): the tenant's goods go to storage
+    // BEFORE the room is dropped — the dorm's end-let used to skip it.
+    const evict = vi.spyOn(ChattelApi, 'evictToStorage');
     await run(
       makeStuff(() => new UnprovisionController()),
       op,
@@ -512,6 +518,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();
+    expect(evict).toHaveBeenCalledWith(`${DormRoom.SCOPE}#${k1}`);
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(0); // record cleared
     expect(await ParcelApi.hasUseGrant(k1, '/platform/agent/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed

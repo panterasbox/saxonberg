@@ -32,10 +32,6 @@ import type { Leg } from '../../../lib/location/Traversal';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
-import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
-import type { Boundary } from '../../../lib/boundary/Boundary';
-import type { Conduit } from '../../../lib/boundary/Conduit';
-import type { SoundConduit } from '../../../lib/boundary/SoundConduit';
 
 interface LinearAccumulator {
   /** Sum of linear amplitudes (10^(dB/10)) across all contributing sources. */
@@ -79,17 +75,6 @@ function mergeAttenuated(
   }
 }
 
-function isSoundConduit(c: Conduit): c is SoundConduit {
-  return c.conduitKind === 'sound';
-}
-
-function findSoundConduit(boundary: Boundary): SoundConduit | null {
-  for (const c of boundary.getConduits()) {
-    if (isSoundConduit(c)) return c;
-  }
-  return null;
-}
-
 
 /**
  * ⭐ One copy, on the host that owns the field:
@@ -122,7 +107,7 @@ function rootAmbientLinear(): number {
 
 /**
  * ⭐ The legs out of `loc`, in the order this walk has always taken
- * them: boundary conduits (d) first, then doorless obvious exits (e).
+ * them: ways with a boundary (d) first, then open ways (e).
  * Each carries its own transmissivity, which `fold` applies per child
  * — ⚠ unlike light, which collects them and caps them as one.
  */
@@ -130,30 +115,24 @@ function soundLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
   const out: Array<Leg<Stuff & Container>> = [];
 
   // (d) Cross-boundary propagation.
-  if (MixinApi.isAdornable(loc)) {
-    for (const fx of loc.getFixtures()) {
-      if (!BoundaryAnchor.is(fx)) continue;
-      const anchor = fx;
-      const boundary = anchor.getBoundary();
-      if (!boundary) continue;
-      const otherHost = anchor.getOtherHost();
-      if (!otherHost) continue;
-      const conduit = findSoundConduit(boundary);
-      if (!conduit) continue;
-      const otherSide = boundary.getOtherSide(anchor);
-      const tau = conduit.transmissivity(otherSide, anchor.getSide());
-      if (!(tau > 0)) continue;
-      out.push({ node: otherHost as unknown as Stuff & Container, tau });
-    }
+  if (!MixinApi.isExitable(loc)) return out;
+  const ways = loc.getObviousNeighbours({ through: 'all' });
+
+  // (d) Through a boundary — each side's own fraction (boundary build:
+  // read off the place's ways, not the retired anchor fixtures).
+  for (const { exit, dest } of ways) {
+    const boundary = exit.getBoundary();
+    if (!boundary) continue;
+    const tau = boundary.transmissivityInto('sound', exit);
+    if (!(tau > 0)) continue;
+    out.push({ node: dest, tau });
   }
 
-  // (e) Cross-exit propagation. Doored exits skip — the boundary walk
-  // handles those. The hazard guards are
+  // (e) Through an open way. The hazard guards are
   // `ExitableMixin.getObviousNeighbours`' now, in one copy.
-  if (MixinApi.isExitable(loc)) {
-    for (const { dest } of loc.getObviousNeighbours()) {
-      out.push({ node: dest, tau: EXIT_TAU });
-    }
+  for (const { exit, dest } of ways) {
+    if (exit.getBoundary()) continue;
+    out.push({ node: dest, tau: EXIT_TAU });
   }
 
   return out;

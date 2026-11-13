@@ -1,0 +1,10 @@
+#!/bin/sh
+# PostToolUse(Bash): in a review round, a push ends the turn — the next
+# comment is the owner's. Only fires while `.build-phase` says `review`.
+cmd=$(jq -r '.tool_input.command // ""')
+root=${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+phase=$(cat "$root/.build-phase" 2>/dev/null | tr -d '[:space:]')
+if [ "$phase" = "review" ] && printf '%s' "$cmd" | grep -Eq '(^|[;&| ])git +push([;&| ]|$)'; then
+  jq -n '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:"REVIEW ROUND: the fix is pushed. Report to the user NOW (what changed, what you checked) and STOP — the next comment is theirs. Do not start the full suite, lint:family, a drive, or any further work."}}'
+fi
+exit 0

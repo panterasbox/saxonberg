@@ -48,8 +48,14 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 import type { SpeciesStanding } from '../lib/FisheryRead';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { ActOutcome, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+
+/** Why a trap cannot be laid — worded by `lay`. */
+export type LayRefusal = ActRefusal<'already-set' | 'not-held' | 'no-water'>;
 import Waters, { WATERS_PATH } from '../idea/Waters';
 import Fish from '../agent/Fish';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 const TrapBase = BulkableMixin(ContainerMixin(Tool));
 
@@ -134,6 +140,31 @@ export default class Trap extends PullableMixin(TrapBase) {
     this.setReach = reachRef;
     this.setBy = byKey;
     this.fixedInPlace = true;
+  }
+
+  /**
+   * ⭐ **Lay this trap in the water at `room`** (the `lay` verb's act): out
+   * of `by`'s hand, into the place, stamped with when, where (`reachRef`)
+   * and by whom. A trap with an interior fills with the water it lies in —
+   * `waterPath`, the reach's OWN water (salt off a sea, fouled where the
+   * reach is fouled), never fresh water whatever the reach (C13) — which
+   * is what keeps a keepnet's fish alive (B8).
+   */
+  public layIn(by: Stuff, room: Stuff, reachRef: string, waterPath: string): ActOutcome<undefined> | LayRefusal {
+    if (this.isSet()) return { ok: false, reason: 'already-set' };
+    if ((this.getContainer() as Stuff | null) !== by) return { ok: false, reason: 'not-held' };
+    if (!MixinApi.isContainer(room)) return { ok: false, reason: 'no-water' };
+    ContainmentApi.move(this as unknown as Stuff & Containable, room as Stuff & Container);
+    this.markSet(WorldClockApi.getNow().rawValue(), reachRef, by.getIdentityPath() ?? '');
+    if (this.hasInteriorBulk()) {
+      const capacity = this.getInteriorCapacity();
+      const water = MaterialApi.materials().need(waterPath); // loaded by the act (`LayController`)
+      if (capacity !== null) {
+        this.setBulkMaterial('interior', water);
+        this.setBulkAmount('interior', capacity);
+      }
+    }
+    return { ok: true, facts: undefined };
   }
 
   /** Clear the set: back in a hand. */

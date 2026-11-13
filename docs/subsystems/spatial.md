@@ -26,11 +26,11 @@ Sibling docs cover related ground without overlap:
   Movement narration sits on top of this.
 - [prose.md](./prose.md) — the Liquid templating used by
   `Exit.messageOut` / `messageIn` and the Mobile default settings.
-- [light.md](./light.md) — the Light & Boundary subsystem that
-  layers on top of this one. `Door` is now a `Boundary` (closed
-  doors block light, not just movement); `Adornable` composed onto
-  `Location` and `ExitableVessel` is what hosts `BoundaryAnchor`
-  fixtures.
+- [light.md](./light.md) — the Light subsystem that layers on top
+  of this one; a closed door blocks light, not just movement, because
+  a way's `Boundary` gates every channel ([boundary.md](./boundary.md)).
+  `Adornable` composed onto `Location` and `ExitableVessel` hosts
+  fixtures (sconces, the floor).
 - [properties.md](./properties.md), [mixins.md](./mixins.md) — the
   general mechanics that let mixins carry persistent fields.
 
@@ -50,7 +50,7 @@ substrate in `lib/spatial/`:
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
-| `Placement` | singleton Idea | A **way of sitting**, as a row: `on` · `in` · `from`. Rows under any root; warmed by `PlacementCatalogue`. |
+| `Placement` | document value class | A **way of sitting**, as a `placement` document: `on` · `in` · `from`. Any pack ships one under `content/placements/`; a host cites it by path. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
 | `SealableMixin` | mixin | Binary `open` state (predicate `isOpen()`). Used by `Door` and `Window`; reusable for chests, trapdoors, envelopes. Generic, stays in `lib/spatial/`. |
 | `ContainmentApi` | static API | The single public surface for moving Stuff between containers. |
@@ -70,13 +70,12 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
   ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Containable)
   │     ├── Good                    (Chattel + Concealable)            ← portable matter: owned, hidden
-  │     ├── Boundary                (Visible + Perceptible)            ← see light.md
-  │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
-  │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
-  │     ├── BoundaryAnchor          (Adornment)                         ← see light.md
+  │     ├── Boundary                (Sealable; two weak sides = the exits)  ← see boundary.md
+  │     │     ├── Window            (Soilable; passes all but a body)
+  │     │     └── Door              (Lockable; all five channels)
   │     └── Holder                  (Container) — holds, and is held
   │           └── Vessel            (Chattel + Concealable) — a holder that is a Good
-  │                 └── ExitableVessel  (Atmospheric + DoorBearing + Exitable + Adornable)
+  │                 └── ExitableVessel  (Atmospheric + Exitable + Adornable; its own Sealable is its door)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -189,9 +188,8 @@ the right answer — see [state-model.md § Stamped-on-Stuff Fields](./state-mod
 A `Stuff & Containable` whose `environment === null` is **detached**
 — not in any container, not anywhere in the world. Detachment comes
 up in three normal situations: a Stuff just constructed via
-`StuffApi.create` but not yet placed; a door that has been removed
-from its Boundary anchor; an item whose container was destroyed
-mid-frame.
+`StuffApi.create` but not yet placed; a door taken down out of its way;
+an item whose container was destroyed mid-frame.
 
 Detachment is a normal state, not an error. Subsystems that walk
 container chains, route messages, or compute perception MUST handle
@@ -370,17 +368,23 @@ the throw, with a control class that must register cleanly.
    refuses to answer. Put a `Fitting` or a `Chamber` in its contents
    instead (that is how a boot works), or write the class.
 
-### The `Placement` vocabulary — a member is a ROW
+### The `Placement` vocabulary — a member is a DOCUMENT
 
-`platform/idea/Placement.ts`, warmed by `PlacementCatalogue` (the
-`ReadingCatalogue` self-warming shape, boot entry in the platform
-pack). Rows live at `<root>/idea/Placement/<name>` under **any** root,
-so a capability pack ships a way of sitting with no kernel edit.
+`lib/spatial/Placement.ts`, a value class over the `placement` document
+kind (a document since the path-identity build, 2026-11 — it was a
+singleton Idea warmed at boot by `PlacementCatalogue`, which is deleted).
+Any pack ships one at `content/placements/<name>.yaml`, stored at
+`<pack root>/placements/<name>`, so a capability pack ships a way of
+sitting with no kernel edit. ⭐ **The path is its only name**: a host
+cites the ways it offers by path (`placements: [/platform/placements/from]`),
+`ContentPlacement` persists the path, and the kernel's own three are the
+constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
+(`/platform/placements/on|in|from`).
 
 | field | read by |
 |---|---|
-| `name` | the catalogue index; `PlacingMixin.getPlacements()` |
-| `prepositions` (primary first) | `resolvePlacement`, `put`'s offers |
+| (the path; its leaf is `getName()`) | `PlacingMixin.getPlacements()`, the wire's `placement` field |
+| `prepositions` (primary first) | `resolvePlacement`, `put`'s offers; the primary is the kind's typed word |
 | `encloses` | `Containable.getEnclosingScope`, `canPlace` |
 | `prose` (one Liquid template) | `put`, `dry` |
 | `heading` | the `look` / `sense` drill-in |
@@ -392,18 +396,38 @@ true`** — the only one), `from` (`[from, on]`).
 hook` reaches a `from`-only host and gets told *"You hang the ham from
 the hook"* — the world teaching the word without a tutorial. A
 member's PRIMARY word always wins its own key
-(`lint:placement-words` refuses two members claiming one primary).
+(`lint:placement-words` refuses two members claiming one primary, over
+every pack's `content/placements/`; and because `placement` declares its
+primary preposition as a typed word, the installer refuses a second pack
+claiming one, naming both — [content-packs.md](./content-packs.md)).
 
-⚠ **A cold catalogue degrades to the shipped behaviour, never to
-silence.** A member with no live row answers to its own name
-everywhere, so the worst case is *the model before the vocabulary*
-rather than an unaddressable host. The consequence: a member's
-SECONDARY words are its row's claim, so `put ham on hook` needs the
-roster warm.
+⭐ **A typed word is resolved against the HOST's own placements**, the
+way a form word is resolved against a wheel's `forms:` — so there is no
+global placement dictionary to search.
+
+⭐⭐ **Resident by construction — there is no cold case.**
+`ContainmentApi.move` is synchronous and stays so, so every reader
+beneath it (`Containable.getEnclosingScope`, `PlacementOffers`,
+`Placing.canPlace`/`wordsFor`/`resolvePlacement`, the MQL `placed`
+projection, `put`/`dry`/`look`/`sense`) calls `ContainmentApi.placements().need(path)`,
+which throws `DocumentNotResidentError` for a path nothing loaded (an
+engine defect, never a refusal and never a default). What loads them:
+
+- **the boot**: `ContainmentApi`'s declared `needs` is
+  `placements().ensureKernel()` — one prefix read of
+  `/platform/placements/`, stood by `AppBootstrap` before the manifest
+  (load-on-use W10; `Place.onCreate` loaded it until then) — so the
+  engine's own `move(item, desk, Placements.ON)` and every container's
+  inside always find theirs;
+- **`PlacingMixin.setPlacements`** returns the load of every path it is
+  given, which the template applier awaits (authored rows and restores
+  alike);
+- **the persistence restore pass** awaits `ContainmentApi.placements().ensure` for each
+  restored item's `ContentPlacement`.
 
 ### The cost of a new way of sitting
 
-> **One row, plus one word on every verb whose argument accepts a
+> **One document, plus one word on every verb whose argument accepts a
 > placement host.**
 
 Today that is `put` and `dry`, and
@@ -441,6 +465,18 @@ hosts, which would constrain several identical tables in one hall.
   `PerceptionLogic.canReach`, by `Thermal`'s **holder** read
   (`ambientScopeOf` → `enclosingCoolbox`: what you are IN outranks the
   room), and as the **step** of `Thermal`'s **air** walk.
+- ⭐ `getEnclosingPlace()` — **the place I am in**: the first container up
+  my chain that is a Place (past a boat, a cart, a bed; at most eight
+  hops), else my immediate container. MQL's `here`, the room a sound is
+  heard in (`Scene`) and the room a horizon is seen from read it
+  (controller-liquidity D7).
+- ⭐ `reachRefusal(actor)` — the innermost shut lid between me and the
+  actor, as `{reason: 'enclosed-shut', facts: {by}}`, or `null`. The verb's
+  question; MQL addresses through lids ([perception.md](./perception.md)).
+- On `Container`: ⭐ `getReachableContents(rung)` — the per-container
+  reach walk (`top` · `open` · `deep`), the step under
+  `PerceptionApi.reach` — the one list `canReach` and the MQL pools read
+  ([perception.md](./perception.md)).
 
 ⭐ Its two readers ask different questions, and the difference is one
 step:
@@ -459,7 +495,8 @@ read is a walk and not a second step. See
 **The pair IS persisted**, by the container's slice.
 `ContentPlacement { hostIndex?, placement? }` in
 `lib/persistence/PersistenceSlice.ts` records the host's **index
-within the same contents list** plus the member name;
+within the same contents list** plus the member's **path**
+(`/platform/placements/on`);
 `PersistableLogic`'s placement pass re-`place`s on restore. (An older
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
@@ -570,7 +607,7 @@ Three subscribable fields carry it (the projection seam is
 
 | field | mixin | on | read |
 |---|---|---|---|
-| `placement` | `Containable` | `REF_FIELDS` | the member name (`on`/`in`/`from`) this item sits under, or omitted when loose |
+| `placement` | `Containable` | `REF_FIELDS` | the member's own word — its path's leaf (`on`/`in`/`from`) — this item sits under, or omitted when loose |
 | `holds` | `Container` **and** `Placing` | `REF_FIELDS` | `true` — this thing is itself a holder. A capability, not a count (`static`, never fires), true for an empty container; a thing composing both reads one `holds` |
 | `placed` | `Placing` | `DETAIL_FIELDS` | the items placed on this host, grouped by member with the member's own `Placement.getHeading()` — the card half of `look`'s drill-in prose |
 
@@ -638,8 +675,8 @@ it offers**, with the heading off the member's own row:
 ```
 
 So a hook says *Hanging from it* where a shelf says *On it*, with
-nothing in `look` or `sense` knowing the difference. A member with no
-live row falls back to `With it`.
+nothing in `look` or `sense` knowing the difference. A member whose
+document authors no `heading` falls back to `With it`.
 
 ### The concrete hosts
 
@@ -693,7 +730,8 @@ order:
 - **region zero** — the container's own interior — when the target is
   a plain Container and not a body. It is NOT a member (a chest has no
   compartments, it just holds things), but it borrows its words and
-  its prose from the `in` row when the catalogue has one. That is what
+  its prose from the `in` document (`Placements.IN`, resident with every
+  place). That is what
   makes *one region and many regions are the same thing* literal.
 - **one per member** the target's row offers (`placements:`).
 
@@ -732,16 +770,16 @@ documented in [location.md](./location.md). The base Zone hierarchy
 ## Exits, Doors, Adornable, ExitableVessel
 
 Moved out of `lib/spatial/` and into `lib/boundary/`. The full
-architectural reference for these — exits, doors (now `Boundary`
-subclasses), the `Adornable` / `Adornment` fixture surface, and
-`ExitableVessel` (which composes `DoorBearing` and migrates the
-vessel-door's `(vessel, env)` Boundary anchor pair on `setDoor` /
-`onMoved`) — lives in [boundary.md](./boundary.md). Spatial keeps
+architectural reference for these — exits, the one `Boundary` each
+way's two exits are the sides of (doors, windows, curtains, gates),
+the `Adornable` / `Adornment` fixture surface, and `ExitableVessel`
+(whose synthesized `in` / `out` carry no boundary — its own `Sealable`
+is its door) — lives in [boundary.md](./boundary.md). Spatial keeps
 the containers; boundary holds what connects them.
 
 Locations and `ExitableVessel`s compose `AdornableMixin` so their
-`getFixtures()` collection can host `BoundaryAnchor`s; that is
-the only Boundary detail that lives in this doc. (A bare `Vessel`
+`getFixtures()` collection can host fixtures; that is the only
+boundary-subsystem detail that lives in this doc. (A bare `Vessel`
 is **not** Adornable — fixtures are an `ExitableVessel` concern.)
 ## Locomotion: `MobileMixin`
 
@@ -1177,3 +1215,13 @@ move and then the occupancy. `ContainmentApi.move` stays the one primitive.
 ⭐ The witnesses are told the other end of the move, a second argument and never
 a search of the frame: a feeder notes who filled it (`from`), a tanpit lifts a
 hide for the hand it went to (`to`). A forwarder forwards both.
+
+## History — placements became documents (2026-11-09)
+
+Documents path identity: the `Placement` vocabulary moved from singleton
+Ideas warmed at boot by `PlacementCatalogue` (deleted, with its boot line
+and the `ContainmentApi.placement*` statics) to `placement` documents
+cited by path, resident by construction (`Place.onCreate` — since
+load-on-use W10 the boot, as `ContainmentApi`'s `needs` — the
+`placements` setter, the restore pass). See git log for the
+`reqs/documents-path-identity` branch.

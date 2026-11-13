@@ -141,6 +141,18 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
     expect(log.getTemperature().rawValue()).toBe(1000);
   });
 
+  it('⭐ W8: `ignitePlanFor` refuses at completion, from a direct call', async () => {
+    const log = firewood({ massKg: 1 });
+    log.wet(1);
+    const plan = await log.ignitePlanFor(log as never);
+    expect(plan.durationMs).toBe(0);
+    expect(await plan.onComplete()).toEqual({ ok: false, reason: 'too-wet' });
+    expect(await (await log.extinguishPlanFor(log as never)).onComplete()).toEqual({
+      ok: false,
+      reason: 'not-burning',
+    });
+  });
+
   it('the ignite verb refuses a soaked object (too wet to catch)', () => {
     const log = firewood({ massKg: 1 });
     log.wet(1);

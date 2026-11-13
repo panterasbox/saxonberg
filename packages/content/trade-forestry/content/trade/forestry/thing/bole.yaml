@@ -5,7 +5,7 @@
 # into pocketable pieces: it drops ONE bole on the room floor — mass =
 # the species' wood density × 0.9 m³ (oak ≈ 675 kg; can't-budge is
 # emergent from mass, never a flag) — and cross-cutting is a SECOND act
-# on that object: `fell bole` takes one length of green timber off it
+# on that object: `cut bole` takes one length of green timber off it
 # per engagement until `lengthsLeft` reaches zero, at which point the
 # butt and brash are the wood's again. What a forester with an axe gets
 # from a tree is six mine-grade lengths; what a sawyer will get from the

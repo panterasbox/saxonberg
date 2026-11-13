@@ -28,11 +28,15 @@ inherits a 10 m cap that is physically false — the lesson stops being a
 law and becomes a lie. So:
 
 - a pump row names its **mechanism** (`mechanism:
-  /platform/idea/PumpMechanism/suction`) and never whether it has a
+  /platform/pump-mechanisms/suction`) and never whether it has a
   ceiling;
-- a mechanism is a **row** (`platform/idea/PumpMechanism`, `pulls:
+- a mechanism is a **document** (`content/pump-mechanisms/<word>.yaml`, `lib/pump/PumpMechanism`, `pulls:
   true|false`) — `suction` and `force` ship; a third (`centrifugal`,
-  `sucker-rod`) is a row with `pulls:` set honestly and no code;
+  `sucker-rod`) is a file with `pulls:` set honestly and no code. It is
+  resident whenever its pump is: the `mechanism` setter awaits
+  `BulkableApi.pumpMechanisms().ensure(path)`, so the sync read beneath the stroke is
+  `BulkableApi.pumpMechanisms().need(path)` and a miss throws `DocumentNotResidentError`
+  ([document-store.md](./document-store.md));
 - the ceiling is **arithmetic over the place**:
   `BiomeApi.suctionHeadFor(scope, fluidDensity?)` = `P_here / (ρ_fluid·g)`
   — ≈ 10.33 m of water at sea level, less on a hill (pressure falls with
@@ -101,8 +105,9 @@ ship's and a boat's hull is one kernel substrate, `lib/expanse/Bilge.ts`
 `pump` — one view (`platform/cmd/device/pump.yaml`), `requires:
 PumpableMixin|PumpSourceMixin` (the two protocols above; until
 controllers-are-io D8a it was `any`, because a furnace, a well and a
-wellhead shared no mixin), `greedy: true` (*"pump village well"* fell through
-the shape without it — found by driving). `PumpController` narrows:
+wellhead shared no mixin); a two-word name is quoted (`pump "village
+well"` — the `greedy: true` that once caught it retired with
+controller-liquidity D3). `PumpController` narrows:
 protocol → work it; pump source → the pump set in it, or *"Nothing is set
 in the well to work."*; anything else → *"There is nothing to pump on the chair."* A spell is an engagement on the hands with `effortW` derived from
 the work (`ρ·g·h·Q/η_pump`, over the shipped `exertion.efficiency`,
@@ -249,3 +254,7 @@ the running-hour wear until a keeper exists.
 Re-drive: `WIRE_BOOT=1 WIRE_PORT=<worktree's> npx vitest run
 tests/drilling.dirty.wire.test.ts tests/pump.dirty.wire.test.ts` from
 `packages/wire` — the two share one world without taking each other's kit.
+
+Documents path identity, 2026-11-09: pump mechanisms moved from Idea
+rows to `pump-mechanism` documents at `content/pump-mechanisms/`, cited
+by path. See git log for the `reqs/documents-path-identity` branch.

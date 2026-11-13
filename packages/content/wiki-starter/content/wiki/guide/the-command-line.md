@@ -25,6 +25,9 @@ sentence says which. `throw` is the clearest case:
 - `throw line to Mara` is a toss meant to be caught;
 - `throw flask at the wolf` is meant to hit, and starts a fight.
 
+- `dry shirt with towel` rubs it dry now; `dry shirt on rack` hangs it up
+  and the air does the rest.
+
 The words decide the act. The game never guesses which one you meant.
 
 A *manner* of doing something is an option, not a new verb.
@@ -37,6 +40,22 @@ A verb that works on the world (cutting, digging, harvesting, sweeping)
 looks around you first. A verb that works on what you hold looks in your
 hands first. A name is just one more word a thing answers to, so the
 fullest match wins: `look hesper` finds the ship, not her deck.
+
+## Names of more than one word {#names}
+
+A name of one word goes in bare: `buy loaf`, `get flower`. A name with a
+space in it goes in quotes: `buy "dog loaf"`, `look "brass lantern"`. A
+leading *the* or *a* is fine either way (`eat the apple`). If you leave
+the quotes off, the reply says there were too many words and shows you
+the quoted form. Words you are *saying* or *writing* — `say`, `dm`, a
+post — never need quotes.
+
+Some slots take one of a fixed set of words, like a fire's draught:
+`help <verb>` lists them, and a word not on the list is refused with the
+list.
+
+`here` is the place you are in, even when you are sitting in a boat or
+lying in a bed: `look here` on the river describes the river.
 
 ## Saying which one: `verb@source` {#verb-at-source}
 

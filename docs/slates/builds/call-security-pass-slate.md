@@ -3,7 +3,7 @@
 > **Status: UNBUILT** — written at the close of the Api OO sweep
 > (MR !228, 2026-09-02), which merged with a knowingly permissive gate
 > posture. Nothing here is built.
-> **Left:** the `@Audited` permit-and-watch rail (+ the one
+> **Left:** ⭐ `ActsAs(n)`, the actor-claim gate (PRIORITY) · the `@Audited` permit-and-watch rail (+ the one
 > `audit_events` collection, raised deliberately) · re-gating the ~35
 > ungated-and-sealed mutators · the `FromMixin`-marker question (bless as
 > the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) ·
@@ -12,6 +12,11 @@
 > pack-contributed gate participants · interface-based admission · the
 > enumerated pass over every call-security site · the acceptance shape
 > **Size:** a build
+> ⭐⭐ **PRIORITY (owner, 2026-11-10): the `by` claim — `ActsAs(n)` (§ The
+> actor claim, below) goes FIRST.** Controller-liquidity (MR !561) made
+> controllers player-replaceable; a replaced controller can no longer skip
+> a protective gate, but it can still LIE to one. This pass ships before
+> players share replacement controllers with each other.
 
 > Written at the close of the Api OO sweep (MR !228, 2026-09-02), which
 > deliberately merged with a known-permissive gate posture. This slate
@@ -171,6 +176,78 @@ chain summary, commandId/causingCommandId, timestamp}` into an
   every `forceX` use → `MudlogApi`. This rail is the PERMIT side. One
   audit build should carry both (cluster pass 2026-09-21).
 
+## ⭐⭐ The actor claim — `by` is the honor system (PRIORITY, 2026-11-10)
+
+**The pattern.** Controller-liquidity (MR !561, D9 — call-security.md
+§ *The method asks who*) moved every gate that protects someone else onto
+the model method it protects, with the actor as an argument:
+`takeName(name, by)`, `Lockable.lock(by)`, `LettingWarren.let(..., by)`,
+`DonationBank.keptBy`, the wiki reader's ceiling, `Organization.apply`,
+`HerdRegistry.mayKeep`, `PlatBook.sell(extent, buyer, desk)`, the chat and
+forum writes, and the rest of W3's list. So no controller can SKIP the gate.
+But `by` is a claim: whoever holds a reference to the object can call
+`takeName(name, <someone else>)`, and the method believes them. *Possession
+is capability.*
+
+**Why it is urgent now.** Before liquidity, the only code calling these
+methods was the kernel's and the packs' reviewed controllers, so `by` was
+honest because the callers were. Liquidity's purpose is that a player can
+adopt a controller someone else wrote, through the CMS alternate controller.
+A malicious or careless replacement can pass `by = <the archwizard>` to read
+a hidden wiki revision, `by = <the owner>` to rename their pet or let their
+room, and so on. The owner, 2026-11-10: *"it's basically the honor system
+that 'by' is who they say it is. but we have an actual call stack we can
+inspect … you have to think about what wizards and content authors are able
+to do with their tools here."*
+
+**Who can lie today.** A player typing a command: no (the controller fills
+`by` from the giver). Any code: yes. That means a controller (replaceable),
+an NPC brain, pack `src/`, and a wizard's `eval`.
+
+**What exists, and why it does not fit.** `SelfSubject(n)` and the
+participant contracts (`FromClass`/`FromMixin` + `where`) prove that an
+argument IS the calling object. Here the caller is a controller acting FOR
+a person, so the subject never calls its own method. What does fit is the
+**execution context's root principal**, the giver the command runs as. W3
+already reads it there instead of trusting an argument for `errors raw`
+(`DiagnosticLogic.rawTail`) and Tier C config (`AppLogic.setSetting`).
+
+**The primitive to add: `ActsAs(argIndex)`.** Argument *n* must be the
+acting principal. It compares by the raw identity stamp, never the
+overridable `getIdentityPath()` (the § *identity-path rule* in
+call-security.md). Who passes:
+- a player's command: the giver;
+- an NPC acting through its brain: it is its own giver (`forceCommand`);
+- a wizard's `eval`: it runs as the wizard, so it may act as itself and
+  nobody else (and stays parcel-sandboxed);
+- scheduled completions: they run under `ScheduleApi`'s `runRoot` with the
+  command's attribution. ⚠ **Verify first** that the PRINCIPAL travels with
+  the completion, not only `causingCommandId`; if it does not, this is the
+  first fix.
+
+Engine callers with no person behind them (a sweep, a boot step, the
+residency tick) need an explicit, named system-principal arm, never a
+silent pass.
+
+**Scope: the protective gates only.** Apply it to the methods that protect
+ANOTHER person, their things, their privacy, or the polity's settings:
+W3's set (roughly 30 sites; the `lint:controller-gates` header and the
+controller-liquidity plan's Appendix D list them) plus any `takeName`-shaped
+write about someone else's property. Do NOT apply it to every method taking
+an actor. A `by` used only for wording, effort or pace (how hard *you*
+work) can only fool its own caller: the "does the subject bound the spoof"
+test in call-security.md. That gives ActsAs a census and a ratchet of its
+own: count the protective `by` parameters with no `ActsAs`, drive the count
+to 0, then hold it.
+
+**Cost.** One context read per check, not a stack walk, so it is cheap.
+Keep any stack-proof variant off hot paths; `reachableAmong` exists because
+a per-candidate stack capture once took 96.5% of server CPU.
+
+**Order within the pass.** ActsAs first (it closes the liquidity hole),
+then the audit rail, which can SAMPLE ActsAs refusals as its first producer,
+then the ungated+sealed set.
+
 ## Future gate primitives to design (not yet built)
 
 1. **`FromTemplateMethod`** — ✅ *shipped by the world-scan build
@@ -191,6 +268,13 @@ chain summary, commandId/causingCommandId, timestamp}` into an
    content developers need alternative implementations: decide whether
    the mechanism is the `_mixinName` marker (status quo, spoof-shaped),
    a registered interface vocabulary, or per-pack conferral via (3).
+5. **The consent gate** (deferred from controller-liquidity, 2026-11-11)
+   — the predicate that decides, BEFORE the act, whether one body may do
+   a thing to another (`bleed` first: `Vitals.drawBlood(litres, by)`
+   takes the actor and writes the accountability record when `by ≠ self`,
+   but nothing asks consent first). The compulsion-gate security build's;
+   the audit rail above is its compensating control for *possession is
+   capability*.
 
 ## Where everything lives (orientation for the pass)
 

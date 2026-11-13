@@ -900,7 +900,8 @@ one bed: a ripe stand at the lane end is no substitute for the middle's.
 Only an area crop answers to its field's words (`Plant.getKeywords`).
 
 **The act names its part.** `water`, `feed`, `plant`, `harvest`, `sample`
-and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
+and `label` take `at <field>` (optional, `SoilMixin`; a two-word field is
+quoted — `at "the barley field"`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
 `part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
@@ -921,6 +922,12 @@ Its vigor is the stand's plus a SEEDED variation
 same plant*. `look stem` reads like a pot plant plus *"Its roots …"* and
 *"Taken from the top end of the upper bench."* (`specimenNoun` on the
 row names it).
+
+⭐ Both acts are the PLANT's since controller-liquidity W7c —
+`Plant.samplePiece` (the `Sampleable` protocol) and `Plant.labelBy` (the
+`Labelled` act), over one `standAt` read; the controllers bind and word.
+⚠ `at` on a label names only a part of a field now: a label with "at" in
+it is quoted (`label vial "meet at noon"`).
 
 **The labeled plant.** `label <crop> [text] at <field>` mints an UNCUT
 individual at the part (`_fromStand`), keyworded by its label (a
@@ -982,7 +989,7 @@ of it) and spends itself (`spendSeed`).
 because the controller is destructed when `execute` returns.
 `HarvestWordedController` overrides all three and is the doctrine's exemplar: the
 same harvest in other words. See
-[command-spec.md § Alternate controllers](./command-spec.md#-alternate-controllers--the-same-act-in-other-words).
+[command-spec.md § The liquidity contract](./command-spec.md#-the-liquidity-contract--any-controller-can-be-replaced).
 
 ⚠ A crop's maker is the person, `getIdentityPath()`: every player body shares a
 lineage path, and a crop marked with it was marked by nobody.

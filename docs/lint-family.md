@@ -257,7 +257,7 @@ at **339, three below where the build found it.**
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 339** (opened at 563; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 334** (opened at 563; 339 → 334 in load-on-use round two, when the profile and schedule lookups moved onto their catalogues; the 2026-09 sweep drove it down, and see the worked example above — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by
@@ -343,14 +343,14 @@ are its view-side twins (moved out of `check-verb-collisions`).
 
 | gate | what it counts | W0 ceiling | falls in | at merge |
 |---|---|---|---|---|
-| ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 | schema 0; category **0, hard** (`CATEGORY_REQUIRED`) |
+| ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir; and ⛔ **depth** — no subcommand stanza declares `subcommands:` (a command is `verb subcommand target`, never deeper; owner rule 2026-11-10, controller-liquidity W16) | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 / W16 | schema 0; category **0, hard** (`CATEGORY_REQUIRED`); nested **0, hard** (a structural zero — no ceiling) |
 | `lint:contribution-keys` | every string key in a class's `static commandContributions` (a same-file `const` list, bare or spread, is read where it is declared) names a view under some pack's `content/` — `commandViews()`; a list held in an imported const is counted as unreadable | added at `/finalize` (2026-11-07): **0** of 645 keys over 364 views (the audit had deleted the retired `scrub.yaml` keys) | — | **0** |
-| `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 | **539**; undefined **0** |
-| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 | **318** |
-| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **1176**; durations **100** |
-| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 | **232** |
-| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 | hunts **4**; self **111** |
-| `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 | **40** |
+| `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 | **483**; undefined **0** (W14) |
+| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 | **138** (W14) |
+| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **633**; durations **38** (W14) |
+| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 | **63** (W14) |
+| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 | hunts **1**; self **80** (W14) |
+| `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 | **41** (W14; a stated +1 at W7c for `CombatantMixin`) |
 | `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 | **0** |
 | `lint:one-word` | (a) a view with > 1 `verbs:` entry; (b) a controller named by views of different verbs; (c) a `defaultAliases:` name declared twice / equal to a verb / a builtin | (a) **65** views, 77 extra words (W7: 62 — `hire`, `handoff`, `unconsign` went with the flat views); (b) **4** (Equip, Unequip, Descend, Profile); (c) **0** | W6 | (a) **0**; (b) **0**; (c) **0** |
 | `lint:subcommand-words` | a subcommand word that is also a flat verb with a DIFFERENT controller (informational — D9 scopes it by noun); ⛔ a subcommand word equal to a script builtin | pairs **47** (W7: 46 — `fight defend` → `DefendController`); builtin **6** (`reserve`/`treasury`/`equip`/`alias`/`settings`/`var set`) | W7 | pairs **42**; builtin **6** |
@@ -447,7 +447,20 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
 - **`lint:census`** — every template-path-valued field in every shipped
   row resolves to a real row, and `clone()`'s `asTemplatePath` channel
   stays retired. A path naming no row cannot be edited, addressed or
-  zoned.
+  zoned. Clause **(f)** reads every field a `fieldMeta` declares on the
+  identity axis and resolves it on every row, and refuses a constituent
+  CYCLE — ⭐ narrowed by load-on-use round two to cycles that **leave the
+  Material family** (a melt and its freeze cite each other, and
+  `ensureConstituent` never awaits a load in flight, so such a pair waits
+  on nothing; the old prose was stricter than the runtime). Clause **(g)**
+  checks fields that name DOCUMENTS by path (`DOCUMENT_PATH_FIELDS`; since
+  round two `cleanser` and the path-shaped values of `constructionForm`).
+  ⭐ Clause **(h)** (round two) checks the other direction: a row a
+  material-citing DOCUMENT names — a maturation profile's product, a
+  schedule's spans, a dyestuff's material (`DOCUMENT_ROW_CITATIONS`) —
+  is a row some pack ships, so a misspelled `redd` fails before merge.
+  Clause **(c)** exempts a `TemplatePaths` catalogue an Api stands up by
+  `singletonSync` (it has no row by design).
 - **`lint:untitled`** — every shipped template path under a claimed
   root lies within some pack's `requires.title` claim. The title roots
   are **derived** from the claims themselves, so a new root needs no
@@ -1005,19 +1018,19 @@ to — which is the one structural thing this gate does differently from
   `commandContributions` static, or declares `unreachable:`. A **zero
   invariant**. Opened at 15; W2 of the sweep drove it to 0 and deleted the
   constant.
-- **Arm G — grammar.** Two shapes, two ratchets:
+- **Arm G — grammar.** One ratchet now:
   - the **phrase shape** — a `string` positional followed by an optional
     `object` carrying a `default`, where the binder gives word two of a
     two-word name to the trailing slot and throws that slot's default
     away. `buy dog loaf` bound `thing = "dog"` and then refused the
     player in the name of a counter they had never mentioned. 9 → 6.
-  - the **article shape** — an `object`/`objects` arg declaring
-    `prepositions:` and not greedy, so it takes exactly one token and
-    `from the second counter` is *"too many arguments"*.
-    `command-spec.md:507-515` already called this *"THE ARTICLE DEFECT…
-    every object arg a player may put an article in front of needs
-    [greedy], INCLUDING plural and prepositional ones"*, with 45 views
-    carrying it for that reason — and **106** that do not. Ceiling 106.
+  - ⛔ the **article shape** (an `object`/`objects` arg declaring
+    `prepositions:` and not greedy; ceiling 110) was **retired by
+    controller-liquidity W1** with the rule it enforced. Its premise —
+    *every object arg a player may put an article in front of needs
+    `greedy`* — is reversed (D3): the binder folds a leading article
+    before an object slot's one word, a multi-word name is quoted, and
+    `lint:greedy-object` ratchets greedy object args DOWN to zero.
 - **Arm R — rows.** Every `thing`-branch row is reached by one of five
   mechanisms, or declares `unreachable:`. A **zero invariant**. Opened at
   45; W3 drove it to 0.
@@ -1341,6 +1354,48 @@ drive: over the wire `wear` had never put anything on. The gate counts
 kernel and pack controller; ceiling = the census (8), may only fall. The
 fix is to resolve what the completion needs before engaging, or call a
 module function or a `static`.
+
+⚠⚠ **It read one FORM, and three completions hid in the others**
+(controller-liquidity W0, 2026-11-09). The regex matched only the inline
+block-bodied `onComplete: (…) => {`, so a hoisted `const onComplete = () =>
+this.x()` passed as `onComplete,` (`SearchController` — a timed `search`
+never resolved and never recorded `searched`), the same passed as
+`onComplete: <name>` (`TeleportController` — an engaged anchored cast never
+arrived) and a completion passed in as a PARAMETER (`TransfuseController.
+runOrEngage(…, () => { this.credit(); … })` — the blood moved and nothing
+else happened) all sat at a green 0. The gate is an AST walk now (D12): the
+inline closure (block or expression), the method shorthand, a named
+reference resolved to its `const`/`function` in the same file, a parameter
+resolved to the arrow every caller in the file passes at that position, and
+a bound `this.<method>` reference — over `onComplete`, `onRefused` and
+`onDone`. The three sites became `protected static` word methods reached
+through `this.constructor` (so a worded replacement's override still runs),
+and the ceiling stayed **0**. ⭐ The convention: *word methods are
+`protected static`; a completion closes over values and the class, never
+over `this`.*
+
+### The controller-liquidity censuses (2026-11-09)
+
+Opened at W0 of controller-liquidity on the tree it lands on (up to date
+with `origin/master`), each from the `check-controller-functions` template
+with a fixture test that sees it FAIL. Census, then ratchet.
+
+| gate | what it counts | W0 ceiling | falls in | at merge |
+|---|---|---|---|---|
+| `lint:greedy-object` | `greedy: true` on a `type: object\|objects` arg, top level and in every subcommand stanza, across `commandViews()` (prose `type: string` greedy is NOT counted — it stays) | **133** (107 object + 26 objects, 93 views) | W5 | **0**, and the schema refuses the key (`command.schema.json`'s `if greedy then type: string`) — a hard invariant |
+| `lint:multi-act` | one finding per controller module (bases included) showing (a) a `switch`/comparison on `model.subcommand`, (b) a dispatch on a positional's typed word (`switch (model.x)` with word cases, `model.x[.raw] === '…'`), or (c) ≥ 2 `if` arms that test one target by `MixinApi.isX`/`instanceof` and then call DIFFERENT mutators on it (a read — `get`/`is`/`has`/`can`/`describe`/… — is input, not an act) | **41** (subcommand 15 · arg-word 6 · target-kind 22, two modules showing two; the survey's 75 is a reading classifier's, this a syntax census) | W7–W13 | **6**; the `subcommand` arm **0**. ⚠ W14 corrected the classifier: `''` is a presence test, not a word (Read/Tear/WriteOn, −3). Each remaining site is one act, named in the gate's header |
+| `lint:controller-gates` | in a controller (comments stripped): `AccessApi.can*` · `CompactApi.holdsOffice` · `AppApi.seatFor` · `.isAudienceMemberOf` · `.isFulfilling` · `.opensFor` · `.considerApplicant` · `.mayMove` · `.mayKeep` · `getOwner() !== … getPlayerId()` — a permission decided in a controller. The view's `requires*` validators are not counted | **44** (`AccessApi.can*` 28) | W3 | **10** — every one a verb's door onto a primitive the world must call ungated (the author verbs, `title subdivide`/`transfer`, `broadcast`), named in the gate's header |
+| `lint:lineage-keys` | AST over all mud code: a zero-arg `getTemplatePath()` as the VALUE (through `??`/`\|\|`/a conditional/`await`) of a property, variable or assignment whose name is a person-word (`holder · maker · owner · member · party · receiver · recipient · by · author · keeper` as the whole name or its first/last camelCase word), or compared with one. An identity-first fallback (`getIdentityPath() ?? getTemplatePath()`) and a template path passed INTO a lookup are not counted; structural reads are exempted in the script with a reason each (FloorplanWarren · ShipWarren plan owners, `LotGateExit.holderPath`, a business/publisher party, a diagnostic label) | **7** | W3 | **0** (a hard invariant) |
+| `lint:completion-this` (extended) | every form a completion can be written in (above) | **0** | — | **0** |
+
+⚠ **What `lint:lineage-keys` cannot see**, said here so nobody reads its
+zero as the disease cured: a template path passed POSITIONALLY into a
+person slot (`CraftingLogic`'s `maker.getTemplatePath()` argument,
+`MineWarren.promote(cell, giver.getTemplatePath())`), returned from a
+helper (`PartyControllerBase`, `DriftController`), or held under a
+non-person name (`referent`, `tplPath`). Those are D11's confirmed list and
+W3 switches them by hand; `MineWarren` taking a `ParcelOwner` puts the
+mining pair where `lint:person-keys` sees them.
 
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
@@ -1722,7 +1777,9 @@ configured**.
   stating **neither** `mass` nor `_materialPath` is matter made of
   nothing, weighing nothing — and it fails closed and silent: `getMass()`
   answers 0 kg and no test anywhere says a word. Census-then-ratchet,
-  **ceiling 242** across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
+  **ceiling 210** today (242 at landing, 224 after the boundary build,
+  210 when load-on-use round two made the bottle and potion rows author
+  the glass a constructor used to set), first measured across 83 classes (`Seed` 24, `Stock` 17, `Receptacle`
   15, `SpiritBottle` 15, `Crate` 12, `Bottle` 11); writing the masses is
   content work row by row, and what the gate buys is that the number
   cannot grow while nobody has time for it.
@@ -1962,9 +2019,10 @@ authors `_defaultTemperature`.** Under the sky the temperature is
 derived — latitude, elevation, continentality, offset — and a flat
 number on an outdoor biome would override the climate for every room
 that cites it, in every season. The honest tool for *this place is warm
-for its latitude* is the zone's `climateOffsetK`. (The runtime half:
-`BiomeCatalogue.warm()` now COUNTS a row that fails to stand up and
-files an author diagnostic for it, rather than a `console.warn`.)
+for its latitude* is the zone's `climateOffsetK`. (The runtime half was `BiomeCatalogue.warm()` counting a row that
+failed to stand up; the catalogue was deleted by load-on-use round two —
+a biome loads as its place's constituent, a cold read throws naming the
+path, and a row whose class does not load is `lint:census` (f)'s.)
 
 ### ⭐⭐ `lint:boot-entries` + `lint:template-scans` — load on use (the scan sweep, 2026-10)
 
@@ -1974,7 +2032,9 @@ searching the template table, and never at boot unless the reason is
 written down and holds.** Two gates hold the two ways round it.
 
 - **`lint:boot-entries`** reads every pack's manifest `boot:` list. (a)
-  The total is a ceiling (128 at landing, 79 when the sweep shipped). (b) Every entry has a
+  The total is a ceiling (128 at landing, 79 when the sweep shipped, 75
+  before load-on-use round two, **69** after it —
+  the material, biome, condition, address, profile and schedule lines). (b) Every entry has a
   `reason`. (c) An entry whose template is CONTENT (`/world/`,
   `/trade/`, `/corpo/`, `/compact/`) must cite `unobserved-economy` —
   the houses whose NPCs act with nobody present are the only content
@@ -2248,3 +2308,18 @@ rule an AUTHORING rule?** A player cannot fix it, it cannot vary at run
 time, and the person who needs to hear about it is reading a YAML file
 right now. When all three are true, the home is build time and named by
 file — not a constructor, and not a setter.
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** Census clause (h)
+  added and (f) narrowed (§ `lint:census`); clause (c) exempts
+  `singletonSync` catalogues. Ceilings moved: `BOOT_ENTRY_CEILING` 75 → 69,
+  `LIB_STATICS_CEILING` 340 → 334, `COMMONS_CEILING` 30 → 36 (the
+  material, condition, cleanser, fabric, dyestuff and fraction-schedule
+  catalogues are commons, each with its caller audit in the gate),
+  `ON_CREATE_CEILING` 80 → 78, `MASS_CEILING` 224 → 210,
+  `SELF_RESOLUTION_CEILING` (controller-resolution) 80 → 79.
+  `lint:fraction-schedules` reads `content/fraction-schedules/`.
+  In its review (W10, every Api's `static needs` stood at boot) seven
+  hosts stopped readying an Api's dictionary in `onCreate`:
+  `ON_CREATE_CEILING` 78 → 71, `ON_CREATE_LOADING_CEILING` 32 → 25.

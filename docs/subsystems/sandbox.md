@@ -286,8 +286,8 @@ layer), `WorldClockRegistry` schedules (host-keyed + birth-scoped),
 `OfficeRegistry`/`GroupRegistry` (boot-only). Watch-list (derived
 caches whose input is the template tree — inherit the tree's
 containment): `EmploymentLogic.operatorIndex`,
-`ScriptLogic.RESOLVE_CACHE`, `TopicCatalogue`/`CorpoCatalogue`
-template-scan caches.
+`ScriptLogic.RESOLVE_CACHE`, the `CorpoCatalogue`
+template-scan cache.
 
 **Exempt bases and the framework method set (as built).** Two base
 classes register via `_registerBoundaryExemptBase` at boot wiring:
@@ -318,7 +318,7 @@ static boundaryRole: BoundaryRole = 'commons';
 | role | the claim it makes | members |
 |---|---|---|
 | `place` | *I am where my path says, or where my `jurisdictionHost()` is.* **The default — nothing declares it.** | rooms, goods, bodies, **exits** |
-| `commons` | *Nobody holds title to me as a thing; I am shared vocabulary every body reads.* | `Species` `BodyPlan` `Clade` `LocomotionMode` `Material` `Modality` `Condition` `CombatFormation` `Zone` `Locality` + the 13 seeded catalogues |
+| `commons` | *Nobody holds title to me as a thing; I am shared vocabulary every body reads.* | `Species` `BodyPlan` `Clade` `LocomotionMode` `Material` `Modality` `Condition` `Zone` `Locality` + the 13 seeded catalogues |
 | `infrastructure` | *I am not a world object at all.* | `ApiLogic` `Interactive` `TemplateApplier` + the 12 registries |
 
 ⚠⚠ **This replaced thirty-nine hand-maintained entries** — twelve
@@ -888,7 +888,7 @@ answer from their own fields without dispatching further.
 an enumerated list of seeded singletons — `HelpCatalogue`,
 `SpellCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
 `DisciplineCatalogue`, `GovernmentCatalogue`, beside the pre-existing
-`TopicCatalogue` / `SoulCatalogue` / `CorpoCatalogue` / … Each is
+`SoulCatalogue` / `CorpoCatalogue` / … Each is
 authored content the engine reads to answer "what exists in the
 world", never player-mutable at runtime, REFUSE'd at the PM layer
 besides. They are enumerated rather than based because each is a

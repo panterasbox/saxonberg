@@ -9,6 +9,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { rememberDisciplines } from "../../../../../lib/advancement/__tests__/discipline-fixtures";
 import PracticeController from "../PracticeController";
 import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
@@ -49,7 +50,9 @@ function captureBody(): void {
 
 let note: ReturnType<typeof vi.fn>;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // A credit or a band read stands on the discipline dictionary (D11).
+  await rememberDisciplines();
   store = new Map();
   idCounter = 0;
   const pm = PersistenceManager.get();
@@ -138,6 +141,17 @@ describe("PracticeController", () => {
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected" })
+    );
+    expect(store.size).toBe(0);
+  });
+
+  it("C84: a body with no Transcript is REFUSED, never a silent no-op", async () => {
+    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-none-advancing");
+    const ctrl = makeStuff(() => new PracticeController());
+    await ctrl.execute({ discipline: "darts" } as PracticeArgs, ctxFor(actor));
+
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "controller-rejected", reason: "not-advancing" })
     );
     expect(store.size).toBe(0);
   });

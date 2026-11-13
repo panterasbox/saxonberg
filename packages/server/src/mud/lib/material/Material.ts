@@ -42,8 +42,8 @@ import type { VetoResult } from '../errors';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
-import type Cleanser from '../../platform/idea/Cleanser';
-import type { CleanserDescriptor } from '../../platform/idea/Cleanser';
+import { MaterialApi } from '../../api/material';
+import type { CleanserDescriptor } from '../cleanliness/Cleanser';
 import type { BoundaryRole } from '../security/BoundaryRole';
 
 export type { ChillArrow } from './Fusion';
@@ -283,7 +283,7 @@ export default class Material extends SingletonMixin(
     // ⭐ What it washes as — a role many substances play (soap, lye, sand,
     // spirit, vinegar), not one physics, so it is not a capability
     // (material decomposition W2a census).
-    cleanser: { persistent: true, authorable: true, ref: 'identity:constituent' },
+    cleanser: { persistent: true, authorable: true },
 
     // ── Measured: what working with it teaches you ──
     density: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('kg/m³') },
@@ -365,21 +365,25 @@ export default class Material extends SingletonMixin(
 
   /**
    * ⭐ The CLEANSER this material is (cleanliness B50) — a bar of soap, a
-   * flask of lye: the `Cleanser` row a wash reads. Named by the material,
-   * so the row loads WITH it (`identity:constituent`) and the wash asks the
-   * thing in hand what it is — never a search of the cleanser rows by tag.
+   * flask of lye: the `cleanser` document a wash reads. Named by the
+   * material, so the document loads WITH it (the setter returns the load,
+   * the applier awaits it — load-on-use W1) and the wash asks the thing in
+   * hand what it is — never a search of the cleansers by tag.
    * `''` = not a cleanser.
    */
   protected cleanser = '';
   /** The cleanser this material acts as, as the wash reads it — or `null`. */
   public getCleanser(): CleanserDescriptor | null {
     if (!this.cleanser) return null;
-    return StuffApi.findByTemplatePath<Cleanser>(this.cleanser)?.descriptor() ?? null;
+    return MaterialApi.cleansers().need(this.cleanser);
   }
   public getCleanserPath(): string {
     return this.cleanser;
   }
-  public setCleanser(value: string): void {
+  /** Name the cleanser document this material is — and load it (D7: the setter returns its load). */
+  public setCleanser(value: string): Promise<void> {
     this.cleanser = typeof value === 'string' ? value : '';
+    if (!this.cleanser) return Promise.resolve();
+    return MaterialApi.cleansers().ensure(this.cleanser).then(() => undefined);
   }
 }

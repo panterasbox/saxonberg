@@ -3,7 +3,7 @@
 # square's produce stalls to whoever stands in the square.
 verbs: [stall]
 category: retail
-controller: /world/terminus/market/idea/cmd/StallController
+controller: /world/terminus/market/idea/cmd/StallRentController
 description: "Rent a market stall of your own, or give it up"
 help: |
   `stall rent` (or just `stall`) takes the next free pitch on the
@@ -30,8 +30,44 @@ examples:
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
+# Bare `stall` rents, so the verb-level controller is the rent's — and
+# `fallthrough` with a top-level `square` arg is how the bare form binds
+# its fixture (the zero-token fallthrough fills a `default:`; `job`'s shape).
+fallthrough: true
+args:
+  # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+  # shape): the stalls fixture that manages the pitches.
+  - name: square
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[class.MarketStalls]"
+    scope: ["here", "peers", "person"]
+    requires: [TangibleMixin]
 subcommands:
   rent:
+    controller: /world/terminus/market/idea/cmd/StallRentController
     description: "Rent a stall (or open the one you hold)"
+    args:
+      # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+      # shape): the stalls fixture that manages the pitches.
+      - name: square
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.MarketStalls]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]
   give-up:
+    controller: /world/terminus/market/idea/cmd/StallGiveUpController
     description: "Pack your stall away; what is on it comes back to you"
+    args:
+      # ⭐ WHICH SQUARE, declared rather than hunted for (the title desk's
+      # shape): the stalls fixture that manages the pitches.
+      - name: square
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.MarketStalls]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]

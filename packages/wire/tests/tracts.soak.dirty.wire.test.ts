@@ -162,7 +162,7 @@ afterAll(() => {
 suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
   it('a farmstead bought, a field marked, the seedbed staged, wheat sown', async () => {
     p = await goTo(farmer, STORE);
-    await doing(p, 'buy seed wheat');
+    await doing(p, 'buy "seed wheat"');
     await doing(p, 'buy sickle');
     p.close();
     p = await goTo(farmer, REALTY);
@@ -175,7 +175,7 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     await doing(p, 'mark wheat field as half');
     let said = '';
     for (let i = 0; i < 6 && !/ploughed for the season/i.test(said); i++) {
-      said = (await act(p, 'plow at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
+      said = (await act(p, 'plow at the "wheat field"')).said + ' ' + (await read(p, 'look at the "wheat field"'));
     }
     expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
     await doing(p, 'plant wheat --at "the wheat field"');

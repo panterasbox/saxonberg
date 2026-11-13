@@ -16,6 +16,5 @@ args:
   - name: forme
     type: object
     required: true
-    greedy: true
     scope: ["inventory", "reachable"]
     requires: any

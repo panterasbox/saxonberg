@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { standShippedConditions } from "../../vitals/__tests__/conditions";
 import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
@@ -140,7 +141,9 @@ function advanceAll(cs: TestCharacter[], gameSec: number, chunk = 3000): void {
 }
 
 describe('AC10 — mana recovery spends satiation and hydration', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // The condition rows the boot stands (load-on-use W10).
+    await standShippedConditions();
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     real = 100000;

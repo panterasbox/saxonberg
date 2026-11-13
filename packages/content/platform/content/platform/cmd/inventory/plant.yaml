@@ -21,9 +21,9 @@ help: |
   On ground marked into fields, say which: `plant wheat --at "the gate end"`
   fills that field, cast by cast, until it is sown edge to edge.
 examples:
-  - cmd: plant the seed in the small pot
+  - cmd: 'plant the seed in the "small pot"'
     note: Start a plant growing
-  - cmd: plant lily seed into pot
+  - cmd: 'plant "lily seed" into pot'
     note: Same thing, either preposition
   - cmd: plant wheat
     note: Broadcast seed over the field you are standing in

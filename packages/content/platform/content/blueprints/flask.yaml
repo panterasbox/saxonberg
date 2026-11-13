@@ -1,4 +1,3 @@
-blueprintId: flask
 name: Flask
 kind: concrete
 baseClass: Thing

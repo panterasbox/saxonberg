@@ -64,11 +64,12 @@ export const TemplatePaths = {
   subjectCatalogue: "/platform/idea/SubjectCatalogue",
   soulCatalogue: "/platform/idea/SoulCatalogue",
   disciplineCatalogue: "/platform/idea/DisciplineCatalogue",
-  operationCatalogue: "/platform/idea/OperationCatalogue",
-  jointCatalogue: "/platform/idea/JointCatalogue",
   corpoCatalogue: "/platform/idea/CorpoCatalogue",
   conditionCatalogue: "/platform/idea/ConditionCatalogue",
+  materialCatalogue: "/platform/idea/MaterialCatalogue",
   governmentCatalogue: "/platform/idea/GovernmentCatalogue",
+  spellCatalogue: "/platform/idea/SpellCatalogue",
+  recipeCatalogue: "/platform/idea/RecipeCatalogue",
   helpCatalogue: "/platform/idea/HelpCatalogue",
   pressBoard: "/platform/idea/PressBoard",
 
@@ -83,9 +84,6 @@ export const TemplatePaths = {
   // Persistence infra (declared as `static templatePath` on these classes).
   quantityMarshaller: "/platform/idea/persistence/QuantityMarshaller",
   encryptedStringMarshaller: "/platform/idea/persistence/EncryptedStringMarshaller",
-
-  /** The per-side proxy a Boundary pre-mints two of. */
-  boundaryAnchor: "/platform/thing/BoundaryAnchor",
 
   // Exit kinds — every exit in the world is a clone of a ROW.
   /**

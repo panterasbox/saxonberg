@@ -2,7 +2,6 @@
 # from the mining trade, row and recipe: the miner buys a haft from
 # somebody who makes only hafts, or carves one. One piece of wood and an
 # edge — the by-hand rung, run by `carve`.
-recipeId: pick-haft
 name: Pick Haft
 keywords: [haft, pick-haft]
 inputSlots:

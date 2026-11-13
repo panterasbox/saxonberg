@@ -21,6 +21,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
+import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import { Idea } from '../../stuff/Idea';
 import { EmployedMixin } from '../Employed';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -82,8 +83,9 @@ function employ(
 }
 
 describe('⭐ isFulfilling — on shift, in a fulfilling seat, where the house operates', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     StuffApi.clearAll();
+    await rememberDisciplines();
     seedBusiness();
     bar = makeStuffAtPath(() => new Room(), BAR);
     smithy = makeStuffAtPath(() => new Room(), SMITHY);

@@ -27,6 +27,7 @@ import { StuffApi } from '../../api/stuff';
 // `pH` and `salinityPpt` by WaterChemistry's.
 import '../supply/WaterChemistry';
 import type {} from '../cleanliness/WaterHardness';
+import { MaterialApi } from '../../api/material';
 
 /** What a source slot reads its water through — the shore's own surface. */
 export interface SourceSlotPlace {
@@ -77,7 +78,9 @@ export class SourceSlot extends BulkSlot {
 
   public override getMaterial(): Material | null {
     const path = this.getMaterialPath();
-    return path === null ? null : (StuffApi.findByTemplatePath<Material>(path) ?? null);
+    // A water draw is the reach's own read (its `Shore`), resident with the
+    // reach (load-on-use W8) — cold means a load was skipped.
+    return path === null ? null : MaterialApi.materials().need(path);
   }
 
   /** As much as you like — a river is not a vessel. */

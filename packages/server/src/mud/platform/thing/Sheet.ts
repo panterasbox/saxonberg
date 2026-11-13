@@ -36,6 +36,7 @@ import { StackableMixin } from '../../lib/stuff/Stackable';
 import { FoldableMixin } from '../../lib/slot/Foldable';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';
 import type { FieldMeta } from '../../lib/mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
@@ -44,6 +45,7 @@ import { ContainmentApi } from '../../api/containment';
 import { DocumentApi } from '../../api/document';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
+import { MaterialApi } from '../../api/material';
 
 /** The formats a sheet folds through. */
 export const SHEET_FORMATS = ['sheet', 'folio', 'quarto', 'octavo'] as const;
@@ -71,6 +73,17 @@ const SheetBase = TearableMixin(
 );
 
 export default class Sheet extends SheetBase {
+  /**
+   * ⭐ A sheet affords `paste` — carried or at your feet (controller-
+   * liquidity W7c): pasting a label is afforded by what is pasted, the way
+   * `fit` is afforded by the parts (it was `fit`'s head until then).
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    peers: ['platform/cmd/crafting/paste.yaml'],
+    environment: ['platform/cmd/crafting/paste.yaml'],
+  };
+
   static fieldMeta: FieldMeta = {
     boundTo: { persistent: true, authorable: true, stackIdentity: true },
     page: { persistent: true, authorable: true, stackIdentity: true },
@@ -168,7 +181,7 @@ export default class Sheet extends SheetBase {
   }
 
   /** @hook The words, with each hand named as this reader knows its writer. */
-  public override readFor(viewer: Stuff): string {
+  public override textFor(viewer: Stuff): string {
     const shown = this.getMarkText();
     // The ink ran, or it burnt: what the reading fails at, it fails at whole.
     if (this.passages.length === 0 || shown !== this.markText) return shown;
@@ -296,7 +309,7 @@ export default class Sheet extends SheetBase {
     this.reconcileThermal();
     return this.getCoats('outside').some((c) => {
       if (c.state !== 'set') return false;
-      const m = StuffApi.findByTemplatePath<Material>(c.material);
+      const m = MaterialApi.materials().peek(c.material);
       return m?.hasTag('size') === true;
     });
   }

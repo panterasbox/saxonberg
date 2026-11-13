@@ -172,11 +172,10 @@ export function makeStuffAtPath<T extends Stuff>(
  * The async twin of {@link makeStuffAtPath}: registers AND runs
  * `onCreate`, which is what a real clone does.
  *
- * ⭐ Needed since a `Boundary` mints its two anchors there (they are
- * clones of `/platform/thing/BoundaryAnchor` now). A `Door` built with
- * the sync helper has no anchor pair and cannot be installed — which is
- * the honest consequence, not a test bug: nothing in the world is built
- * that way any more.
+ * Use it for any class whose `onCreate` does real work (a vessel mints
+ * its `in`/`out` exits there). (It was added for the boundary anchors a
+ * `Boundary` used to mint at `onCreate`; those retired with the boundary
+ * build, 2026-11.)
  */
 export async function makeStuffAtPathAsync<T extends Stuff>(
   factory: () => T,

@@ -23,4 +23,4 @@ data:
       - { part: upper, plural: uppers, template: /trade/tailoring/thing/boot-upper, count: 2, role: structural, material: /stuff/idea/material/organic/leather }
       - { part: sole, plural: soles, template: /trade/tanning/thing/sole, count: 2, role: wear, material: /stuff/idea/material/organic/leather }
     joints:
-      - { key: welting, method: stitched, members: [upper, sole] }
+      - { key: welting, method: /trade/tailoring/joints/stitched, members: [upper, sole] }

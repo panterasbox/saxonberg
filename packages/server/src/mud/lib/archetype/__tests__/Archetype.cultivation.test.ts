@@ -32,12 +32,12 @@ const FARM = Archetype.fromData({
   archetypeId: 'test-farm',
   label: 'a farm',
   capabilities: [{ key: 'ground', needs: { cultivation: 'field' } }],
-});
+}, '/test/archetypes/test-farm');
 const GARDEN = Archetype.fromData({
   archetypeId: 'test-garden',
   label: 'a garden',
   capabilities: [{ key: 'ground', needs: { cultivation: 'bed' } }],
-});
+}, '/test/archetypes/test-garden');
 
 describe('Archetype — the cultivation need', () => {
   afterEach(() => vi.restoreAllMocks());

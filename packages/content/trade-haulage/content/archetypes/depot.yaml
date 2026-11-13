@@ -5,9 +5,8 @@
 # not a new kind of place, it is four known things standing together. A
 # depot missing one reports the gap and functions anyway — reported,
 # never enforced.
-archetypeId: depot
 label: a depot
-surveyScope: space
+roomsScope: space
 capabilities:
   # The counter — an attendant queue, so one clerk serves one customer
   # and everybody else is free to mill.

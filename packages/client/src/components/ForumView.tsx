@@ -799,7 +799,7 @@ export function ForumView({
         {boards.length === 0 && (
           <Meta>
             No boards yet. Create one with `forum make &lt;name&gt;` (add
-            `--open` so anyone can join).
+            `--public` so anyone can join).
           </Meta>
         )}
         {[...boards]

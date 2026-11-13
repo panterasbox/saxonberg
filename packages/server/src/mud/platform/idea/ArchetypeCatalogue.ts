@@ -10,7 +10,7 @@
  *
  * Read-only reference surface (an archetype is public knowledge — the
  * floor an industry states), so methods are ungated — the
- * `TopicCatalogue` precedent.
+ * `SoulCatalogue` precedent.
  *
  * Not a persisted record — the seed YAML is `{ class:
  * /platform/idea/ArchetypeCatalogue, data: {} }`.
@@ -19,7 +19,7 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { Archetype } from '../../lib/archetype/Archetype';
 import { DocumentApi } from '../../api/document';
-import type { VetoResult } from '../../lib/errors';
+import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 const ArchetypeCatalogueBase = Idea;
@@ -46,6 +46,8 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
   }
 
   public override async onCreate(_context?: unknown): Promise<void> {
+    // An industry archetype's floor derives from its industry's recipes
+    // (CraftingApi's dictionary, stood at boot).
     await this.warm();
   }
 
@@ -66,7 +68,11 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
   }
 
   private ensureCache(): void {
-    if (this.cache === null) this.cache = new Map();
+    // Never "empty": reached only through `StuffApi.singleton`, whose
+    // `onCreate` warms it. A cold sync read is an engine defect.
+    if (this.cache === null) {
+      throw new DocumentNotResidentError('archetype', '/platform/idea/ArchetypeCatalogue');
+    }
   }
 
   /** Singleton refusal (mirrors RecipeCatalogue). */

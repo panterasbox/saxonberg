@@ -71,7 +71,7 @@ describe("SocialNotificationsPanel", () => {
     const onCommandClick = vi.fn();
     renderPanel({ onCommandPreview, onCommandClick });
 
-    const cmd = `notify ${FRIENDS} --color teal`;
+    const cmd = `notify set ${FRIENDS} --color teal`;
     const swatch = screen.getByTestId(cmd);
     fireEvent.mouseEnter(swatch);
     expect(onCommandPreview).toHaveBeenCalledWith(cmd);
@@ -81,13 +81,13 @@ describe("SocialNotificationsPanel", () => {
     expect(onCommandClick).toHaveBeenCalledWith(cmd);
   });
 
-  it("a surface button issues notify <ref> --message full", () => {
+  it("a surface button issues notify set <ref> --message full", () => {
     seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
-    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --message full`));
+    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --message full`));
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify ${FRIENDS} --message full`,
+      `notify set ${FRIENDS} --message full`,
     );
   });
 
@@ -95,10 +95,10 @@ describe("SocialNotificationsPanel", () => {
     seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
-    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --boost`));
-    expect(onCommandClick).toHaveBeenCalledWith(`notify ${FRIENDS} --boost`);
-    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --no-boost`));
-    expect(onCommandClick).toHaveBeenCalledWith(`notify ${FRIENDS} --no-boost`);
+    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${FRIENDS} --boost`);
+    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --no-boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${FRIENDS} --no-boost`);
   });
 
   it("reorder up issues --above the previous row", () => {
@@ -109,9 +109,9 @@ describe("SocialNotificationsPanel", () => {
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
     // The up button on the everyone-else row anchors above friends.
-    fireEvent.click(screen.getByTestId(`notify everyone-else --above ${FRIENDS}`));
+    fireEvent.click(screen.getByTestId(`notify move everyone-else --above ${FRIENDS}`));
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify everyone-else --above ${FRIENDS}`,
+      `notify move everyone-else --above ${FRIENDS}`,
     );
   });
 
@@ -123,10 +123,10 @@ describe("SocialNotificationsPanel", () => {
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
     fireEvent.click(
-      screen.getByTestId(`notify ${FRIENDS} --below everyone-else`),
+      screen.getByTestId(`notify move ${FRIENDS} --below everyone-else`),
     );
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify ${FRIENDS} --below everyone-else`,
+      `notify move ${FRIENDS} --below everyone-else`,
     );
   });
 
@@ -139,7 +139,7 @@ describe("SocialNotificationsPanel", () => {
     });
     fireEvent.click(screen.getByTestId("social-add-button"));
     expect(onCommandClick).toHaveBeenCalledWith(
-      "notify managed:fighter-guild --render name",
+      "notify set managed:fighter-guild --render name",
     );
   });
 

@@ -15,13 +15,15 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import FellController, {
+import FellController, { type FellModel } from '../idea/cmd/forestry/FellController';
+import {
   LOGS_PER_STANDARD,
   BRASH_BUNDLES_PER_STANDARD,
   BRASH_FRACTION_OF_BOLE,
-  type FellModel,
-} from '../idea/cmd/forestry/FellController';
+} from '../lib/Fellable';
+import Standard from '../thing/Standard';
 import Wood from '../location/Wood';
+import CutController from '@saxonberg/server/mud/platform/idea/cmd/crafting/CutController';
 import Bole, { BOLE_LENGTHS } from '../thing/Bole';
 import Panel from '../thing/Panel';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
@@ -358,8 +360,11 @@ describe('fell', () => {
     });
   });
 
-  describe('⭐ the cross-cut', () => {
-    it('`fell bole` ×6 yields six timber of the bole’s wood and destructs the bole', async () => {
+  describe('⭐ the cross-cut is a `cut` (controller-liquidity D14)', () => {
+    const cut = (target: Stuff, tools: Stuff[]) =>
+      ({ target: one(target, 'bole'), tools: { stuff: tools, raw: '' } }) as never;
+
+    it('`cut bole` ×6 yields six timber of the bole’s wood and destructs the bole', async () => {
       const { giver, room } = scene();
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
@@ -368,7 +373,7 @@ describe('fell', () => {
       const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
       for (let i = 0; i < BOLE_LENGTHS; i += 1) {
         const c = ctx(giver, room);
-        await makeStuff(() => new FellController()).execute(model(one(bole, 'bole'), one(axe, 'axe')), c);
+        await makeStuff(() => new CutController()).execute(cut(bole, [axe]), c);
         await settle();
         expect(reasons(c)).not.toContain('bole-spent');
       }
@@ -378,6 +383,33 @@ describe('fell', () => {
       expect(bole.isDestroyed()).toBe(true);
       expect(deeds.filter((d) => d.difficulty === 'easy')).toHaveLength(BOLE_LENGTHS);
       expect(JSON.stringify(giver.received)).toMatch(/the wood can have it back/);
+    });
+
+    it('a bole is cut with a felling axe — a billhook alone refuses', async () => {
+      const { giver, room } = scene();
+      const axe = makeAxe();
+      ContainmentApi.move(axe, giver);
+      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await settle();
+      const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
+      const c = ctx(giver, room);
+      await makeStuff(() => new CutController()).execute(cut(bole, [makeAxe(['cutting'])]), c);
+      expect(reasons(c)).toContain('no-felling-axe');
+      expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
+    });
+
+    it('⚠ `fell bole` no longer cross-cuts — it refuses, and says the new word', async () => {
+      const { giver, room } = scene();
+      const axe = makeAxe();
+      ContainmentApi.move(axe, giver);
+      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await settle();
+      const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
+      const c = ctx(giver, room);
+      await makeStuff(() => new FellController()).execute(model(one(bole, 'bole'), one(axe, 'axe')), c);
+      expect(reasons(c)).toContain('not-a-tree');
+      expect(JSON.stringify(giver.received)).toMatch(/Cross-cut it with/);
+      expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
     });
 
     it('a bole affords its cut with no stand in the room', async () => {
@@ -393,8 +425,9 @@ describe('fell', () => {
         return b;
       }, fresh('/trade/forestry/thing/bole'));
       ContainmentApi.move(bole, room as never);
+      expect(Bole.commandContributions.peers).toContain('platform/cmd/crafting/cut.yaml');
       const c = ctx(giver, room as unknown as Stuff);
-      await makeStuff(() => new FellController()).execute(model(one(bole, 'bole'), one(axe, 'axe')), c);
+      await makeStuff(() => new CutController()).execute(cut(bole, [axe]), c);
       await settle();
       expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS - 1);
       expect(giver.getContents()).toHaveLength(2); // the axe and a timber
@@ -429,7 +462,9 @@ describe('fell', () => {
     }
     function standardIn(panel: Panel, stage: string, opts: { stool?: boolean; standardMaterial?: string } = {}): Plant {
       const p = makeStuffAtPath(() => {
-        const t = new Plant();
+        // ⭐ A standard is its own class now (controller-liquidity W11); a
+        // coppice stool stays a Plant and does not answer the axe.
+        const t = opts.stool ? new Plant() : new Standard();
         t.setShortDescription(opts.stool ? 'hazel stool' : 'oak sapling');
         t.setMaterial(tissue());
         t.setMass(Quantity.of(5, 'kg'));
@@ -512,5 +547,17 @@ describe('fell', () => {
       expect(bole).toBeDefined();
       expect(bole.getMaterial()?.getName()).toBe('oak');
     });
+  });
+});
+
+describe('⭐ the axe has two hosts and they are named (controller-liquidity W11)', () => {
+  it('a planted standard and a sap standard answer the axe; a bare Plant does not', async () => {
+    const { MixinApi } = await import('@saxonberg/server/mud/api/mixin');
+    const { default: SapStandard } = await import('../thing/SapStandard');
+    const { FELLABLE_MIXIN } = await import('../lib/Fellable');
+    expect(MixinApi.isActive(makeStuff(() => new Standard()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new SapStandard()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new Wood()), FELLABLE_MIXIN)).toBe(true);
+    expect(MixinApi.isActive(makeStuff(() => new Plant()), FELLABLE_MIXIN)).toBe(false);
   });
 });

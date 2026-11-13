@@ -78,12 +78,30 @@ no separate edge documents. They are **authored and stored**; their runtime
 *consumption* (prerequisite gating, evidence propagation) is deferred. The
 graph is real and queryable; the estimator just doesn't walk it yet.
 
-`DisciplineCatalogue` (`obj/DisciplineCatalogue.ts`, `/platform/idea/DisciplineCatalogue`,
-bootstrapped) is the `TopicCatalogue` recipe: `Idea`
-warming a `Map<key, DisciplineDescriptor>` in `onCreate` from
-`Template.findDescendants`. Read-only canon — no runtime mutation surface
-this increment. Unlike `TopicCatalogue` there is no derived fallback: a
+`DisciplineCatalogue` (`platform/idea/DisciplineCatalogue.ts`,
+`/platform/idea/DisciplineCatalogue`) is a **lazy dictionary**: an `Idea`
+warming a `Map<key, DisciplineDescriptor>` in `onCreate` from one
+`Template.findByClass` (listed `LAZY_DICT` in `check-template-scans`) —
+the descriptors it keeps (stock, conferrals, specializes) are the data
+every reader needs, so no per-discipline Idea is stood up. Read-only
+canon — no runtime mutation surface. There is no derived fallback: a
 Discipline either exists in the canon or it does not.
+
+⭐⭐ **No pack `boot:` entry; stood at boot as `CraftingApi`'s declared
+`needs`** (documents path identity, 2026-11-09 took it off the boot list;
+load-on-use W10 put it in the Api's `needs` — disciplines have no Api, and
+crafting is where a recipe's discipline is read). Discipline keys
+stay bare and flat (700+ citations across five roots; namespacing arrives
+when a custom discipline needs it — the owner: *"we want a deep skill tree
+in the game"*), so the dictionary stays as `key → descriptor`. No reader
+readies it (W10 deleted `AdvancementMixin`'s and the craft act's
+hand-readying): `bandsForImpl`, `conferredVerbsImpl`, `competenceBandFor`,
+`refreshConferrals`, the sync digest (`competenceDigestCached`) and
+`withConditioning` all read a dictionary resident from boot. A cold read —
+`DisciplineCatalogue.ensureCache`, the mixin's `catalogue()`,
+`Employed.fulfils` — throws `DocumentNotResidentError`; there is no cold
+digest. `refreshConferrals` skips a host with no command stack
+explicitly.
 
 ### ⭐⭐ Prefer SPECIALIZATIONS — the standing preference (2026-09-04)
 
@@ -656,3 +674,9 @@ match a durable `templatePath` through a `ChangeSource`. See
 
 ⚠ **After the write, never before.** A consumer that recomputes must not
 read a ledger missing the row it was just told about.
+
+## History
+
+- 2026-11-09 — documents path identity: the discipline dictionary left
+  the boot list; it loads on a character's first band read and a cold
+  read throws. See git log for the `reqs/documents-path-identity` branch.

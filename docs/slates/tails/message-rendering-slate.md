@@ -126,7 +126,7 @@ emphasis-preserving) → `Mml.flatten`; markdown subset size (lean common
 set) → the "Recognised forms" list; links (restrict to in-world refs /
 gate external URLs) → "Custom URI schemes" (`mudcmd:`/`mudref:`/`mudq:`,
 `http(s)` stripped); reader-override granularity (both global and
-per-channel) → `cockpit style plain` / `cockpit style plain channel`;
+per-channel) → `client-style plain` / `client-style plain-channel` (once `cockpit style …`);
 parse locus (server-authoritative) → `Mml.markdownToMml`. GFM table
 input-sugar shipped in a layout-allowed context, but the wiki's article
 dialect, not a chat channel — see

@@ -30,7 +30,7 @@ data:
     crust on it that has cracked in places. Iron rungs go down one wall.
     The smell at the top is bad enough; a few rungs down it stops, which
     is not the reassurance it seems to be.
-  coords: { x: 0, y: 1, z: -1 }
+  coords: { x: 0, y: 0, z: -1 }
   _atmosphere: stinkdamp
   exits:
     up:

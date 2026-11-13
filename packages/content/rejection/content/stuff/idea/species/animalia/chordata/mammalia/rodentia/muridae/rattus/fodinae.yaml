@@ -7,7 +7,7 @@
 # corners, and nothing in the machinery notices.
 class: /platform/idea/species/Species
 data:
-  smells: [{ aroma: /base-library/aromas/rat, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/animal/rat, strength: 30 }]
   binomial: Rattus fodinae
   commonNames: ["delve rat", "rat"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

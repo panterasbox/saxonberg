@@ -18,23 +18,11 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Vitals } from '../../../../lib/vitals/Vitals';
-import { TRAUMA_BEHAVIOR } from '../../Condition';
-import type { Trauma } from '../../Condition';
 
 const TOPIC = 'act.deed';
 
 interface UndressModel extends CommandModel {
   target?: MqlOneResult;
-}
-
-/** Pick the dressed wound with the highest severity. */
-function pickDressed(target: Stuff & Vitals): Trauma | null {
-  const dressed = target
-    .getConditions()
-    .filter((c): c is Trauma => c.kind === 'trauma' && c.dressed === true);
-  if (dressed.length === 0) return null;
-  return [...dressed].sort((a, b) => b.severity - a.severity)[0]!;
 }
 
 export default class UndressController extends CommandController<UndressModel> {
@@ -63,19 +51,15 @@ export default class UndressController extends CommandController<UndressModel> {
       );
     }
 
-    const wound = pickDressed(target);
-    if (!wound) {
+    // ⭐ The body answers (`Vitals.undressWound`): the wound off, or a
+    // choice of wounds — this controller takes the worst, as it always did.
+    let answer = target.undressWound();
+    if (answer.ok === 'choose') answer = target.undressWound(answer.facts.preferred);
+    if (answer.ok !== true) {
       const who = isSelf ? 'You have' : `${target.getPresentation()} has`;
       return this.fail(context, `${who} no dressed wound.`, 'no-dressing');
     }
-
-    // ⭐ Stitches read differently from a bandage (D8) — capture it before
-    // `reopen` clears the flag.
-    const wasSutured = wound.sutured === true;
-    TRAUMA_BEHAVIOR[wound.type].reopen(target, wound);
-    // A re-opened bleed drains again on the next read (reconcile-on-read).
-
-    const reopened = wound.bleeding === true;
+    const { wound, sutured: wasSutured, reopened } = answer.facts;
     const whose = isSelf ? 'your' : `${target.getPresentation()}'s`;
     const act = wasSutured ? 'take the stitches out of' : 'peel the dressing off';
     const line = reopened

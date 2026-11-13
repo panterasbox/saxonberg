@@ -47,22 +47,22 @@ args:
   - name: surface
     type: object
     required: true
-    greedy: true
     prepositions: [on, onto, in]
     scope: ["inventory", "reachable"]
     requires: [MarkedMixin]
   # ⭐ A page of a book: `write … on notebook page 3`. Its
   # preposition stops the greedy surface's lookahead, as `with` does.
   - name: page
+    prepositionRequired: true
     type: number
     required: false
     prepositions: [page]
   # ⭐ Paint as the medium (paint build D10): optional; its preposition
   # stops the greedy surface's lookahead (`on board with pot`).
   - name: medium
+    prepositionRequired: true
     type: object
     required: false
-    greedy: true
     prepositions: [with, using]
     scope: ["inventory", "reachable"]
     requires: [BulkableMixin]

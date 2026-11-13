@@ -28,6 +28,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity, M2K_PER_W_PER_CLO } from '../quantity';
 import type { CommandContributions } from '../../api/command';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 
 export interface Wearable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];
@@ -121,7 +122,38 @@ export interface Wearable extends Slottable {
    */
   getSeamAllowance(): number;
   setSeamAllowance(value: number): void;
+
+  /**
+   * ⭐ `alter <garment> [for <body>]` — re-cut this garment to `subject`
+   * (controller-liquidity W11, Appendix A): the fit threshold, letting out
+   * vs taking in, and ⚠⚠ CONSERVATION — letting out spends the cloth
+   * folded into the seams, and nothing anywhere makes cloth out of
+   * nothing. `instrument` paces the work (`mending`).
+   */
+  alterPlanFor(actor: Stuff, subject: Stuff, instrument: Stuff | null): AlterPlan | AlterRefusal;
 }
+
+/** ⭐ Every reason a garment refuses `alter` — the controller words each. */
+export type AlterRefusal =
+  /** Nobody measurable to fit it to. */
+  | ActRefusal<'no-subject'>
+  /** It already fits. */
+  | ActRefusal<'already-fits'>
+  /** Cut close: nothing folded in the seams to let out. */
+  | ActRefusal<'no-allowance'>;
+
+/** The alteration's begin and done facts: which way the seams go. */
+export interface AlterFacts {
+  lettingOut: boolean;
+}
+
+/** An alteration. */
+export type AlterPlan = ActPlan<AlterFacts, AlterFacts, never>;
+
+/** A garment within this distance of the body already fits. */
+export const ALTER_FITS_BELOW = 0.02;
+/** Units of seam allowance one act of letting out spends. */
+export const ALTER_ALLOWANCE_PER_ACT = 1;
 
 /**
  * A garment measured against a body — two numbers, one distance, and a
@@ -157,6 +189,14 @@ export interface FitReading {
   wrongBody: boolean;
   /** Whether the measurements resolved at all (a plan-less host). */
   measurable: boolean;
+  /**
+   * ⭐ The fit refuses this body outright — it will not go on: the wrong
+   * body plan, or a distance past `textiles.fit.refuseAbove` (a coat cut
+   * for a halfling fails on a NUMBER). The garment obeys the dial; the
+   * dressing verbs read this (controller-liquidity W8 — `equip` read the
+   * dial itself).
+   */
+  refused: boolean;
 }
 
 /** The neutral reading — a garment nobody can be measured against. */
@@ -168,6 +208,7 @@ const UNMEASURABLE: FitReading = Object.freeze({
   tightness: 0,
   wrongBody: false,
   measurable: false,
+  refused: false,
 });
 
 /** Thermal conductivity of still air, W/(m·K). */
@@ -405,6 +446,45 @@ export function WearableMixin<
         tightness: signed > 0 ? signed : 0,
         wrongBody: !stock && cutPlan !== planPath,
         measurable: true,
+        refused:
+          (!stock && cutPlan !== planPath) ||
+          distance > dial(AppSettingKeys.textilesFitRefuseAbove, 0.35),
+      };
+    }
+
+    public alterPlanFor(
+      _actor: Stuff,
+      subject: Stuff,
+      instrument: Stuff | null,
+    ): AlterPlan | AlterRefusal {
+      const plan = MixinApi.isOrganism(subject) ? subject.getSpecies()?.getBodyPlan() : null;
+      const fit = this.fitOn(subject);
+      if (!plan || !fit.measurable) return { ok: false, reason: 'no-subject' };
+      if (fit.distance < ALTER_FITS_BELOW) return { ok: false, reason: 'already-fits' };
+      // ⚠⚠ Letting out needs cloth already folded into the seams; taking
+      // in is just cutting and is always available.
+      const lettingOut = fit.tightness > 0;
+      const allowance = this.seamAllowance;
+      if (lettingOut && allowance < ALTER_ALLOWANCE_PER_ACT) {
+        return { ok: false, reason: 'no-allowance' };
+      }
+      const baseMs = dial('tailoring.alter.baseMs', 25 * 60 * 1000);
+      const rate =
+        instrument && MixinApi.isTool(instrument) && instrument.hasCapability('mending')
+          ? instrument.capabilityRate('mending')
+          : 1;
+      const bodyPlanPath = plan.getTemplatePath() ?? '';
+      const { statureM, girthIndex } = fit.body;
+      return {
+        ok: true,
+        durationMs: Math.round(baseMs / rate),
+        effortW: 250,
+        facts: { lettingOut },
+        onComplete: () => {
+          this.setCutTo(bodyPlanPath, statureM, girthIndex);
+          if (lettingOut) this.setSeamAllowance(allowance - ALTER_ALLOWANCE_PER_ACT);
+          return { ok: true, facts: { lettingOut } };
+        },
       };
     }
 

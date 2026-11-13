@@ -416,7 +416,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
 
   it('⭐⭐ G18 — `sample` at a face yields a real lump you are carrying', async () => {
     const s = await at(FACE, 'sampler');
-    const r = await s.cmd('sample the north face');
+    const r = await s.cmd('sample the "north face"');
     const said = plain(await r.said());
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/as a sample|note where it came from/i);
@@ -432,7 +432,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
 suite('H19–H23 · the bench', () => {
   it('⚠⚠ H19 — `assay` in the field with no bench REFUSES, naming the want', async () => {
     const s = await at(FACE, 'nobench');
-    await s.cmd('sample the north face');
+    await s.cmd('sample the "north face"');
     expectOk(await s.cmd('get ore'));
     const said = await say(s, 'assay the ore');
     expect(said).not.toMatch(NOT_FOUND);
@@ -461,7 +461,7 @@ suite('H19–H23 · the bench', () => {
       const hand = uniqueHandle('instr-roundtrip');
       let p = await Session.open(hand, { startLocation: FACE });
       open.push(p);
-      const took = await p.cmd('sample the north face');
+      const took = await p.cmd('sample the "north face"');
       expect(plain(await took.said()), 'the face yielded nothing').toMatch(
         /as a sample/i,
       );

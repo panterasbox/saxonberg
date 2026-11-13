@@ -18,6 +18,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { rememberProfile } from './profiles';
 
 class TestWheel extends RipeningMixin(Provision) {
   static _mixinName = 'TestRipeningWheel';
@@ -49,7 +50,7 @@ function standFixtures(): void {
     m.setTags(['food', 'hard-cheese']);
     return m;
   }, HARD);
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-soft-ripening');
     p.setInputCategory('soft-cheese');
@@ -63,7 +64,7 @@ function standFixtures(): void {
     p.setTurnDays(4);
     return p;
   }, '/stuff/idea/ripening-test/idea/maturation/soft');
-  makeStuffAtPath(() => {
+  rememberProfile(() => {
     const p = new MaturationProfile();
     p.setKey('test-hard-ripening');
     p.setInputCategory('hard-cheese');

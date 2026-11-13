@@ -115,6 +115,8 @@ import type { Reserved } from '../../../lib/reserve/Reserved';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';
+import { DocumentNotResidentError } from '../../../lib/errors';
+import { MaterialApi } from '../../../api/material';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
@@ -302,6 +304,7 @@ function dial(key: string, fallback: number): number {
 
 @Unshadowable
 export class MagicLogic extends ApiLogic {
+
   /** See {@link MagicApi.prepareCast}. */
   @CallSecurity(CasterCallers)
   public prepareCast(
@@ -346,7 +349,7 @@ export class MagicLogic extends ApiLogic {
     if (!MixinApi.isArcane(item)) return false;
     const path = item.getCarriedSpellPath();
     if (path.length === 0) return false;
-    const spell = catalogue()?.getSpellAt(path) ?? null;
+    const spell = catalogue().getSpellAt(path) ?? null;
     if (!spell) return false;
     const band = MixinApi.isBlessable(item)
       ? item.getBlessing().getBand()
@@ -380,7 +383,7 @@ export class MagicLogic extends ApiLogic {
   /** See {@link MagicApi.spellAt}. */
   @CallSecurity(MagicApiCallers)
   public spellAt(path: string): SpellDescriptor | null {
-    return catalogue()?.getSpellAt(path) ?? null;
+    return catalogue().getSpellAt(path) ?? null;
   }
 
   /** See {@link MagicApi.spellsView}. */
@@ -412,11 +415,21 @@ export class MagicLogic extends ApiLogic {
 
 // ─────────────────────────── the pipeline ───────────────────────────
 
-function catalogue(): SpellCatalogue | null {
-  return (
-    StuffApi.findByTemplatePath<SpellCatalogue>('/platform/idea/SpellCatalogue') ?? null
-  );
+/**
+ * The spell dictionary — resident by construction (documents D7): an item
+ * that carries a spell and a book that teaches one loaded it with its row;
+ * a caster's session loads it at entry; a verb naming a spell awaits it.
+ * ⚠ A cold read throws, by path — never "no such spell".
+ */
+function catalogue(): SpellCatalogue {
+  const cat = StuffApi.findByTemplatePath<SpellCatalogue>(SPELL_DICTIONARY);
+  if (!cat) throw new DocumentNotResidentError('spell', SPELL_DICTIONARY);
+  return cat;
 }
+
+/** Load the spell dictionary (resolved at once when it is resident). */
+
+const SPELL_DICTIONARY = '/platform/idea/SpellCatalogue';
 
 async function prepareCastImpl(
   caster: Stuff,
@@ -428,7 +441,7 @@ async function prepareCastImpl(
   }
   // A player TYPED this, so it is a name, not a reference — ambiguity
   // here is a disambiguation problem, never a corrupted pointer.
-  const spell = catalogue()?.getSpellNamed(spellId) ?? null;
+  const spell = catalogue().getSpellNamed(spellId) ?? null;
   if (!spell) {
     return { ok: false, refusal: `You know no working called '${spellId}'.` };
   }
@@ -710,7 +723,7 @@ async function resolveCastImpl(
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
   if (!prep.ok) return { ok: false, refusal: prep.refusal, reports: [] };
-  const spell = catalogue()!.getSpellNamed(spellId)!;
+  const spell = catalogue().getSpellNamed(spellId)!;
 
   // Spend — at completion, in the same beat the effects fire (an abort
   // never reaches here). Overchanneling = completing past empty: the
@@ -869,7 +882,7 @@ async function dischargeImpl(
   }
   const spellPath = item.getCarriedSpellPath();
   const spell = spellPath
-    ? (catalogue()?.getSpellAt(spellPath) ?? null)
+    ? (catalogue().getSpellAt(spellPath) ?? null)
     : null;
   if (!spell) {
     return {
@@ -1036,7 +1049,7 @@ function absorbWasteHeat(
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
-  for (const spell of catalogue()?.allSpells() ?? []) {
+  for (const spell of catalogue().allSpells() ?? []) {
     const advc = MixinApi.isAdvancing(caster) ? caster : null;
     const [verbBand, nounBand] = await Promise.all([
       advc?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
@@ -1559,7 +1572,7 @@ async function execAfflict(
   if (!target || !MixinApi.isVitals(target)) {
     return 'The working needs a living mark.';
   }
-  const seed = StuffApi.findByTemplatePath<Condition>(e.conditionPath);
+  const seed = ConditionApi.conditions().need(e.conditionPath);
 
   // **Afflict is magnitude where it HAS one, outcome where it does not.**
   // A seed with `mentalBands` scales its stage below (the resist fold
@@ -1720,8 +1733,9 @@ async function execConjure(
   const materialPath = e.bulkMaterial!.startsWith('/')
     ? e.bulkMaterial!
     : `/stuff/idea/material/bulk/${e.bulkMaterial}`;
-  const material = StuffApi.findByTemplatePath<Material>(materialPath);
-  if (!material) return 'The stuff of it will not come.';
+  // The working names its matter; the cast loads it (load-on-use D2 c) —
+  // a name no row answers throws here rather than fizzling quietly.
+  const material = await MaterialApi.materials().ensure(materialPath);
   const source = await StuffApi.clone<UnboundedReceptacle>(
     '/platform/thing/UnboundedReceptacle',
   );

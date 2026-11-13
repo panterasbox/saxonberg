@@ -1,5 +1,5 @@
 /**
- * GovernmentController — the `government` verb driven as the dispatcher
+ * GovernmentListController / GovernmentResidencyController — the `government` verb driven as the dispatcher
  * would: bare/list renders the subjectTo chain (most local first, seats
  * with holders, the residency command link), the empty chain is honest
  * prose + a structured note, and `residency` renders the domicile line +
@@ -8,7 +8,8 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import GovernmentController from "../GovernmentController";
+import GovernmentListController from "../GovernmentListController";
+import GovernmentResidencyController from "../GovernmentResidencyController";
 import GovernmentCatalogue from "../../../GovernmentCatalogue";
 import Government from "../../../Government";
 import AddressRegistry from "../../../AddressRegistry";
@@ -120,7 +121,13 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, "government-verb.test", () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new GovernmentController()).execute(
+    // One controller per subcommand (controller-liquidity W7a): the
+    // dispatcher picks the stanza's; bare is `list`'s.
+    const Ctrl =
+      model.subcommand === "residency"
+        ? GovernmentResidencyController
+        : GovernmentListController;
+    return makeStuff(() => new Ctrl()).execute(
       model as never,
       context
     );
@@ -140,7 +147,7 @@ async function giverInAddressedRoom(address: string | null): Promise<Stuff> {
   return npc;
 }
 
-describe("GovernmentController", () => {
+describe("government (list / residency controllers)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();

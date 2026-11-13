@@ -13,14 +13,13 @@
  * Slot 2.5 is defensive by design: it skips already-destroyed targets,
  * no-ops on an empty slot, and clears the holder's slot afterwards. That
  * is what makes an UN-migrated site inert — but it is equally what makes
- * a HALF-migrated one silently inert. `Boundary.onDestruct` collects its
- * anchors, calls `detach()` (which nulls both slots), then destructs
- * them. Declare `anchorA`/`anchorB` as `owned` while leaving that body
- * alone and the slots are already null when 2.5 runs: 2.5 no-ops, and
- * the anchors are never destructed at all. No error is raised.
+ * a HALF-migrated one silently inert. (The original case was
+ * `Boundary.onDestruct`, which nulled its anchor slots before destructing
+ * them, so 2.5 found nothing to cascade; the anchors retired with the
+ * boundary build, 2026-11.)
  *
- * So `expect(boundary.getAnchorA()).toBeNull()` passes in BOTH worlds
- * and proves nothing. Every pin below asserts `target.isDestroyed()` —
+ * So a slot-emptiness assertion passes in BOTH worlds and proves
+ * nothing. Every pin below asserts `target.isDestroyed()` —
  * the thing that actually differs. The same trap sits on
  * `Exitable.exits` (`this.exits.clear()`) and `Adornable.fixtureSlots`
  * (`this.fixtureSlots.clear()`).
@@ -68,6 +67,7 @@ import { makeStuff,
 } from '../../security/__tests__/test-setup';
 import { cart, haulingBearer } from '../../slot/__tests__/haulage-fixtures';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { Placements } from '../../spatial/Placement';
 
 // ── Fixtures ────────────────────────────────────────────────────────
 
@@ -134,7 +134,7 @@ describe('reference-lifetime pins', () => {
       const mug = makeStuff(() => new Thing());
       ContainmentApi.move(desk, room);
       ContainmentApi.move(mug, room);
-      ContainmentApi.move(mug, desk, 'on');
+      ContainmentApi.move(mug, desk, Placements.ON);
       expect((mug.getPlacement()?.host ?? null)).toBe(desk);
 
       StuffApi.destruct(desk);
@@ -230,48 +230,39 @@ describe('reference-lifetime pins', () => {
     });
   });
 
-  describe('W6 #2/#6 — Boundary anchors: symmetric AND owned', () => {
-    it('destructing the boundary DESTRUCTS both anchors (the cascade)', async () => {
-      const hostA = makeStuff(() => new Wall());
-      const hostB = makeStuff(() => new Wall());
-      const boundary = await BoundaryApi.create({
-        factory: () => new Boundary(),
-        hostA,
-        hostB,
-      });
-      const a = boundary.getAnchorA();
-      const b = boundary.getAnchorB();
-      expect(a).not.toBeNull();
-      expect(b).not.toBeNull();
+  describe('Boundary sides — weak (the anchors retired with the boundary build)', () => {
+    function sides(): [Exit, Exit] {
+      const room = makeStuff(() => new ExitRoom());
+      const north = makeStuff(
+        () => new Exit({ direction: 'north', source: room, destinationPath: '/x' })
+      );
+      const south = makeStuff(
+        () => new Exit({ direction: 'south', source: room, destinationPath: '/y' })
+      );
+      return [north, south];
+    }
+
+    it('destructing a side clears only ITS slot; the boundary lives on', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      const [north, south] = sides();
+      BoundaryApi.attach(boundary, north, south);
+
+      StuffApi.destruct(asStuff(north));
+
+      expect(boundary.getSides()).toEqual([null, south]);
+      expect(asStuff(south).isDestroyed()).toBe(false);
+      expect(asStuff(boundary).isDestroyed()).toBe(false);
+    });
+
+    it('destructing the boundary does NOT cascade to its sides (it owns neither)', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      const [north, south] = sides();
+      BoundaryApi.attach(boundary, north, south);
 
       StuffApi.destruct(asStuff(boundary));
 
-      // THE CASCADE. `onDestruct` calls `detach()` (which nulls both
-      // slots) and only then destructs the collected anchors — so a
-      // slot-emptiness assertion would pass even if the destructs never
-      // happened. This is the assertion that separates the two worlds.
-      expect(asStuff(a).isDestroyed()).toBe(true);
-      expect(asStuff(b).isDestroyed()).toBe(true);
-    });
-
-    it('destructing an anchor clears only ITS side of the boundary', async () => {
-      const hostA = makeStuff(() => new Wall());
-      const hostB = makeStuff(() => new Wall());
-      const boundary = await BoundaryApi.create({
-        factory: () => new Boundary(),
-        hostA,
-        hostB,
-      });
-      const a = boundary.getAnchorA();
-      const b = boundary.getAnchorB();
-
-      StuffApi.destruct(asStuff(a));
-
-      // The symmetric half (BoundaryAnchor.onDestruct → _clearAnchor).
-      expect(boundary.getAnchorA()).toBeNull();
-      expect(boundary.getAnchorB()).toBe(b);
-      expect(asStuff(b).isDestroyed()).toBe(false);
-      expect(asStuff(boundary).isDestroyed()).toBe(false);
+      expect(asStuff(north).isDestroyed()).toBe(false);
+      expect(asStuff(south).isDestroyed()).toBe(false);
     });
   });
 

@@ -29,6 +29,7 @@ data:
   exits:
     north:
       destination: /world/terminus/hearts-delight/location/millsite
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 2
   props:

@@ -193,7 +193,7 @@ async function act(s: Session, text: string): Promise<CommandResult> {
 }
 
 async function look(s: Session, what = 'here'): Promise<string> {
-  const r = await act(s, `look ${what}`);
+  const r = await act(s, `look "${what}"`);
   return plain(await r.said()).replace(/\s+/g, ' ').toLowerCase();
 }
 
@@ -409,7 +409,7 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     expectOk(await act(k, `goto ${STORE}`));
     await k.drainProse();
     const before = await held(k);
-    const bought = await act(k, 'buy pocket watch');
+    const bought = await act(k, 'buy "pocket watch"');
     expectOk(bought);
     expect(await held(k), 'the watch is in hand').toBe(before + 1);
     expect(await carried(k)).toMatch(/watch/i);
@@ -545,7 +545,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     const baker = k;
 
     const before = await held(baker);
-    const bought = await act(baker, 'buy dog loaf');
+    const bought = await act(baker, 'buy "dog loaf"');
     expectOk(bought);
     expect(await held(baker), 'a dog loaf, bought by its own name').toBe(
       before + 1,
@@ -580,7 +580,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     expectOk(await act(k, `goto ${STORE}`));
     await k.drainProse();
     const before = await held(k);
-    const bought = await act(k, 'buy orange seed');
+    const bought = await act(k, 'buy "orange seed"');
     expectOk(bought);
     expect(await held(k), 'the packet is in hand').toBe(before + 1);
   }, 300_000);
@@ -636,11 +636,11 @@ suite('9–14. a good`s name is a PHRASE', () => {
     expectOk(await act(k, `goto ${BAKERY}`));
     await k.drainProse();
     const baker = k;
-    expectOk(await act(baker, 'buy dog loaf'));
+    expectOk(await act(baker, 'buy "dog loaf"'));
     const consigned = await act(baker, 'shelf consign dog loaf');
     expect(refusedFor(consigned)).not.toBe('unknown-verb');
     if (refusedFor(consigned) === null) {
-      const back = await act(baker, 'shelf reclaim dog loaf');
+      const back = await act(baker, 'shelf reclaim "dog loaf"');
       expect(refusedFor(back)).not.toBe('unknown-verb');
       if (refusedFor(back) === null) {
         expect(await carried(baker), 'the loaf came back').toMatch(/loaf|bread/i);
@@ -740,7 +740,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
 
   it('⭐ 17. a household vat you can buy — dyeing without a dyehouse', async () => {
     const before = await held(k);
-    expectOk(await act(k, 'buy household vat'));
+    expectOk(await act(k, 'buy "household vat"'));
     expect(await held(k), 'the vat is in hand').toBe(before + 1);
     // ⚠ It PRINTS as "dyeing pot" — the row's `shortDescription` — while
     // `household vat` is what its path and half the trade's prose call
@@ -754,7 +754,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
 
   it('⭐ 18. a drop spindle you can buy — spinning without a mill', async () => {
     const before = await held(k);
-    expectOk(await act(k, 'buy drop spindle'));
+    expectOk(await act(k, 'buy "drop spindle"'));
     expect(await held(k), 'the spindle is in hand').toBe(before + 1);
     expect(await carried(k)).toMatch(/spindle/i);
   }, 300_000);

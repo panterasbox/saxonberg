@@ -587,9 +587,9 @@ into this doc as they ship.
   channel is now one surface on.
 - [grouping.md](./grouping.md) — the `GroupApi` facade that chat
   consumes for channel-membership reads via the Subject's `groupRef`.
-- [topics.md](./topics.md) — the `TopicCatalogue` source of truth
+- [topics.md](./topics.md) — the `topic` documents, the source of truth
   for player-facing topic descriptors; `speech.channel` is
-  authored under `seeds/lib/messaging/Topic/`.
+  authored as `content/topics/speech.channel.yaml` in the platform pack.
 - [command-routing.md](./command-routing.md) — Phase 3a and the
   `fallthrough: true` verb-level flag the chat verb relies on.
 - [command-spec.md](./command-spec.md) — the author guide for the

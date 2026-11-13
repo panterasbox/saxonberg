@@ -53,9 +53,9 @@ import type { BulkAffordance, BulkPayload } from '../../lib/bulk/Bulkable';
 import { Quantity } from '../../lib/quantity';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { MaterialApi } from '../../api/material';
 
 /** The fresh water a burst spills. */
-const WATER_PATH = '/stuff/idea/material/bulk/water';
 
 /** A run is sound at or above this condition; below, burst. */
 const SOUND_CONDITION = 0.5;
@@ -96,6 +96,9 @@ export default class PipeRun extends PipeRunBase {
 
   static fieldMeta: FieldMeta = {
     runKind: { persistent: true, authorable: true },
+    // What the run carries — authored on the row, loaded with it
+    // (load-on-use W8: a class's material is content, not a constant).
+    carries: { persistent: true, authorable: true, ref: 'identity:constituent' },
     unlaid: { persistent: true, authorable: true },
     lengthM: { persistent: true, authorable: true },
     connectsTo: { persistent: true, authorable: true, ref: 'identity:relation' },
@@ -111,6 +114,8 @@ export default class PipeRun extends PipeRunBase {
   protected unlaid = false;
   /** How long the run is, m — the water it holds. */
   protected lengthM = 6;
+  /** The material the run carries — its row's `carries:` (a constituent). */
+  protected carries = '';
   /** A service run's main: the supply in the street it connects to. */
   protected connectsTo = '';
   /** When frost was last reconciled, game s. `null` = never. */
@@ -258,8 +263,8 @@ export default class PipeRun extends PipeRunBase {
     }
     if (floor === null) return;
     const slot = BulkableApi.slotFor(floor, undefined);
-    const water = StuffApi.findByTemplatePath<Material>(WATER_PATH) ?? null;
-    if (slot === null || water === null) return;
+    const water = this.carried();
+    if (slot === null) return;
     // ⭐ The burst's water — what stood in the run and what the main pushed
     // through the split before anybody noticed — lies on the floor until it
     // dries. What the surface cannot hold soaks away.
@@ -274,11 +279,26 @@ export default class PipeRun extends PipeRunBase {
    * shipped face law: a lead pipe in soft acid water). Returns the payload
    * a draw carries first, or `null` when nothing stands in it.
    */
+  /**
+   * The material this run carries (`carries:` on its row — water, for every
+   * run shipped). Loaded with the run; a row that authors none is refused.
+   */
+  private carried(): Material {
+    if (!this.carries) {
+      throw new Error(`PipeRun '${this.getTemplatePath() ?? '?'}': its row authors no \`carries:\` material`);
+    }
+    return MaterialApi.materials().need(this.carries);
+  }
+
+  /** Name the material this run carries (its row's `carries:`). */
+  public setCarries(value: string): void {
+    this.carries = typeof value === 'string' ? value : '';
+  }
+
   public standingWater(
     chemistry: { pH: number; hardnessDgh: number; salinityPpt: number } | null,
   ): BulkPayload | null {
-    const water = StuffApi.findByTemplatePath<Material>(WATER_PATH) ?? null;
-    if (water === null) return null;
+    const water = this.carried();
     if (this.isBulkEmpty('interior')) {
       this.setBulkMaterial('interior', water);
       this.setBulkAmount('interior', Quantity.of(this.lengthM * LITRES_PER_M, 'L'));
@@ -305,7 +325,7 @@ export default class PipeRun extends PipeRunBase {
     return this.burstAt !== null && this.getCondition() < SOUND_CONDITION;
   }
 
-  /** What `survey` and `look` say of it, in words. */
+  /** What `look` says of it, in words. */
   public stateWords(): string {
     if (!this.isComplete()) return 'not yet laid — lengths missing';
     if (this.isBurst()) return this.leaked ? 'burst, and has run out across the floor' : 'burst';

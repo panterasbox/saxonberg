@@ -27,7 +27,7 @@ founding requirement (2026-10-18) and it is why the ash row lives in
 |---|---|---|---|
 | fell | `fell beech` | every felling trims **brash** (ten bundles, a fifth of the bole) of the stand entry's `brashMaterialPath` | `FellController.dropStandard` |
 | burn | `stoke brash into pit`, `light pit`, `draught wide` | the **ash pit** is simply a big Burner (`AshPit extends Firebox`) | trade-potash |
-| rake | `sweep pit` (a broom) | the grate rule: kg burnt × `ashFraction`, its alkali by `alkaliShare` → heaps of `fire.ash.heapKg` | `Burner.consumeFuel`, `mintAshHeaps` |
+| rake | `rake pit` (its own verb since controller-liquidity W18; no tool gate) | the grate rule: kg burnt × `ashFraction`, its alkali by `alkaliShare` → heaps of `fire.ash.heapKg` | `Burner.consumeFuel`, `mintAshHeaps` |
 | leach | `put ash in hopper`, `pour pail into hopper` | the liquor PERCOLATES down through the heaps over half a day, each giving up its alkali; heaps leave **spent ash** once it is through; a lye poured back through fresh ash is a second pass | `Ash` (`PercolatingMixin`), `Hopper.leach` |
 | read | `analyze density hopper` (an egg in reach) | the **egg** is the density reading's eye rung; the glass words a lye too | `DensityReading`, `LyeStrength` |
 | boil | `pour pail into pot`, a fire under it | the kernel's latent-heat **plateau**; the pot keeps count of the alkali and casts the cake when dry | `IronPot` |

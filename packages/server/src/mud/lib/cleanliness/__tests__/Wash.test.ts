@@ -15,7 +15,7 @@ import Material from '../../material/Material';
 import Lye from '../../../platform/idea/material/Lye';
 import Fiber from '../../../platform/idea/material/Fiber';
 import { Construction } from '../../material/Construction';
-import type { CleanserDescriptor } from '../../../platform/idea/Cleanser';
+import type { CleanserDescriptor } from '../Cleanser';
 import { Template } from '../../stuff/Template';
 import { TemplatePaths } from '../../paths';
 import { StuffApi } from '../../../api/stuff';
@@ -26,6 +26,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberShippedDirt } from './soil-fixtures';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 
 const DIRT = [
   { key: 'mud', form: 'film', answersTo: ['surfactant', 'alkali-mild', 'abrasive'], waterLifts: 0.7, brushLifts: 0.5 },
@@ -73,67 +75,68 @@ function garment(m: Material | null = null): Garment {
 }
 
 beforeEach(async () => {
+  rememberShippedDirt();
   installV1QuantityMarshallers();
-  Construction.registerFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
-  Construction.registerFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
+  rememberFabric({ key: 'woven', layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
+  rememberFabric({ key: 'felted', layerBand: 1, loft: 0.6, weaveDensity: 0.9, drape: 0.3 });
   installDirtKinds(DIRT as Record<string, unknown>[]);
 });
 afterEach(() => {
   vi.restoreAllMocks();
-  Construction.clearFabrics();
+  forgetFabrics();
   StuffApi.clearAll();
 });
 
 describe('the chemistry (D10)', () => {
   it('⭐ mud comes out in water; grease does not, until soap', () => {
     const g = garment();
-    g.soil('mud', 0.5);
-    g.soil('grease', 0.5);
+    g.soil('/platform/dirt/mud', 0.5);
+    g.soil('/platform/dirt/grease', 0.5);
     g.washSite(spec());
-    expect(g.soilLoad('mud')).toBeLessThan(0.2);
-    expect(g.soilLoad('grease')).toBeGreaterThan(0.45);
+    expect(g.soilLoad('/platform/dirt/mud')).toBeLessThan(0.2);
+    expect(g.soilLoad('/platform/dirt/grease')).toBeGreaterThan(0.45);
     g.washSite(spec({ cleansers: [SOAP], waterK: 323 }));
-    expect(g.soilLoad('grease')).toBeLessThan(0.1);
+    expect(g.soilLoad('/platform/dirt/grease')).toBeLessThan(0.1);
   });
 
   it('⭐⭐ blood: cold lifts it; hot SETS it, and then only a bleach answers', () => {
     const cold = garment();
-    cold.soil('blood', 0.5);
+    cold.soil('/platform/dirt/blood', 0.5);
     cold.washSite(spec({ waterK: 285, cleansers: [SOAP] }));
-    expect(cold.soilLoad('blood')).toBeLessThan(0.15);
+    expect(cold.soilLoad('/platform/dirt/blood')).toBeLessThan(0.15);
 
     const hot = garment();
-    hot.soil('blood', 0.5);
+    hot.soil('/platform/dirt/blood', 0.5);
     const out = hot.washSite(spec({ waterK: 333, cleansers: [SOAP] }));
-    expect(out.setNow).toEqual(['blood']);
-    expect(hot.isSoilSet('blood')).toBe(true);
-    expect(hot.soilLoad('blood')).toBeGreaterThan(0.45);
+    expect(out.setNow).toEqual(['/platform/dirt/blood']);
+    expect(hot.isSoilSet('/platform/dirt/blood')).toBe(true);
+    expect(hot.soilLoad('/platform/dirt/blood')).toBeGreaterThan(0.45);
     hot.washSite(spec({ waterK: 285, cleansers: [SOAP], effort: 3 }));
-    expect(hot.soilLoad('blood')).toBeGreaterThan(0.45);
+    expect(hot.soilLoad('/platform/dirt/blood')).toBeGreaterThan(0.45);
     hot.washSite(spec({ waterK: 285, cleansers: [BLEACH] }));
-    expect(hot.soilLoad('blood')).toBeLessThan(0.15);
+    expect(hot.soilLoad('/platform/dirt/blood')).toBeLessThan(0.15);
   });
 
   it('⭐ AC 9 — soap in hard water washes worse; soda softens it', () => {
     const soft = garment();
     const hard = garment();
     const softened = garment();
-    for (const g of [soft, hard, softened]) g.soil('grease', 0.8);
+    for (const g of [soft, hard, softened]) g.soil('/platform/dirt/grease', 0.8);
     soft.washSite(spec({ hardnessDgh: 4, cleansers: [SOAP] }));
     hard.washSite(spec({ hardnessDgh: 16, cleansers: [SOAP] }));
     softened.washSite(spec({ hardnessDgh: 16, cleansers: [SOAP, SODA] }));
-    expect(hard.soilLoad('grease')).toBeGreaterThan(soft.soilLoad('grease'));
-    expect(softened.soilLoad('grease')).toBeLessThan(hard.soilLoad('grease'));
+    expect(hard.soilLoad('/platform/dirt/grease')).toBeGreaterThan(soft.soilLoad('/platform/dirt/grease'));
+    expect(softened.soilLoad('/platform/dirt/grease')).toBeLessThan(hard.soilLoad('/platform/dirt/grease'));
   });
 
   it('a scrub does more than a wash (time is the third contribution)', () => {
     const a = garment();
     const b = garment();
-    a.soil('mud', 1);
-    b.soil('mud', 1);
+    a.soil('/platform/dirt/mud', 1);
+    b.soil('/platform/dirt/mud', 1);
     a.washSite(spec({ waterK: 283 }));
     b.washSite(spec({ waterK: 283, effort: 3 }));
-    expect(b.soilLoad('mud')).toBeLessThan(a.soilLoad('mud'));
+    expect(b.soilLoad('/platform/dirt/mud')).toBeLessThan(a.soilLoad('/platform/dirt/mud'));
   });
 
   it('the wash is RECORDED for the tiers', () => {
@@ -154,7 +157,7 @@ describe('what washing does to cloth (D10, AC 4–5)', () => {
     const out = jumper.washSite(spec({ waterK: 370 }));
     expect(out.damage).toContain('felted');
     await new Promise((r) => setTimeout(r, 0));
-    expect(jumper.getConstructionForm()).toBe('felted');
+    expect(jumper.getConstructionForm()).toBe(fabricPath('felted'));
     expect((jumper as unknown as { cutToStature: number }).cutToStature).toBeCloseTo(1.75 * 0.85, 3);
   });
 
@@ -209,21 +212,21 @@ describe('what washing does to cloth (D10, AC 4–5)', () => {
 describe('⭐ brush what is loose, wash a film, bleach a stain (B46)', () => {
   it('a brushing takes the dried mud off a coat and leaves the grease for the wash', () => {
     const coat = garment();
-    coat.soil('mud', 0.6);
-    coat.soil('grease', 0.3);
+    coat.soil('/platform/dirt/mud', 0.6);
+    coat.soil('/platform/dirt/grease', 0.3);
     const removed = coat.brushOff(3);
-    expect(removed.mud).toBeGreaterThan(0);
-    expect(coat.soilLoad('mud')).toBeLessThan(0.6);
-    expect(coat.soilLoad('grease')).toBeCloseTo(0.3, 5);
+    expect(removed['/platform/dirt/mud']).toBeGreaterThan(0);
+    expect(coat.soilLoad('/platform/dirt/mud')).toBeLessThan(0.6);
+    expect(coat.soilLoad('/platform/dirt/grease')).toBeCloseTo(0.3, 5);
   });
 
   it('a SET stain gives nothing to a brush', () => {
     const shirt = garment();
-    shirt.soil('blood', 0.5);
+    shirt.soil('/platform/dirt/blood', 0.5);
     shirt.washSite(spec({ waterK: 330 }), '');
-    const before = shirt.soilLoad('blood');
+    const before = shirt.soilLoad('/platform/dirt/blood');
     expect(shirt.brushOff(3).blood).toBeUndefined();
-    expect(shirt.soilLoad('blood')).toBeCloseTo(before, 5);
+    expect(shirt.soilLoad('/platform/dirt/blood')).toBeCloseTo(before, 5);
   });
 });
 

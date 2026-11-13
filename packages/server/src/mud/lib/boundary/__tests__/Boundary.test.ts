@@ -1,201 +1,215 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect, afterEach , beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Boundary } from '../Boundary';
+import Exit from '../Exit';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import PlatformBoundary from '../../../platform/thing/Boundary';
+import Door from '../../../platform/thing/Door';
+import Window from '../../../platform/thing/Window';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
+import { ContainableMixin } from '../../spatial/Containable';
+import { MobileMixin } from '../../spatial/Mobile';
+import { NamedMixin } from '../../description/Named';
+import { Idea } from '../../stuff/Idea';
 import {
   makeStuff,
   seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
 
-describe('Boundary', () => {
+class TestMover extends NamedMixin(MobileMixin(ContainableMixin(Idea))) {}
+
+describe('Boundary — one object, two sides', () => {
+  let zone: CartesianZone;
+  let a: Location;
+  let b: Location;
+
   beforeEach(() => {
     seedKernelContentStore();
+    zone = makeStuff(() => new CartesianZone());
+    a = makeStuff(() => new Location());
+    b = makeStuff(() => new Location());
+    zone.addLocation(a, 0, 0, 0);
+    zone.addLocation(b, 0, 1, 0);
   });
 
   afterEach(() => {
     StuffApi.clearAll();
   });
 
-  it('⭐ mints its anchor pair at registration, adorned to nobody', async () => {
-    // The pair is CLONED (`/platform/thing/BoundaryAnchor`) at
-    // onCreate and lives as long as the boundary does, migrating
-    // between hosts rather than being destroyed and rebuilt. Before
-    // template inheritance they were `createSync`'d at install time.
-    const b = await StuffApi.create(() => new Boundary());
-    expect(b.getAnchorA()).not.toBeNull();
-    expect(b.getAnchorB()).not.toBeNull();
-    expect(b.getAnchorA()!.getSide()).toBe('A');
-    expect(b.getAnchorB()!.getSide()).toBe('B');
-    // Minted, but installed nowhere.
-    expect(b.getAnchorA()!.getAdornedTo()).toBeNull();
-    expect(b.getConduits()).toEqual([]);
-  });
+  function pair(): [Exit, Exit] {
+    const north = makeStuff(() => new Exit({ direction: 'north', source: a, destination: b }));
+    const south = makeStuff(() => new Exit({ direction: 'south', source: b, destination: a }));
+    return [north, south];
+  }
 
   it('is Visible and Perceptible', async () => {
-    const b = await StuffApi.create(() => new Boundary());
-    expect(MixinApi.isVisible(b)).toBe(true);
-    expect(MixinApi.isPerceptible(b)).toBe(true);
+    const boundary = await StuffApi.create(() => new Boundary());
+    expect(MixinApi.isVisible(boundary)).toBe(true);
+    expect(MixinApi.isPerceptible(boundary)).toBe(true);
   });
 
-  it('BoundaryApi.attachExistingBoundary wires anchors on both hosts', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
+  it('starts with no sides', async () => {
     const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-
-    const anchorA = boundary.getAnchorA();
-    const anchorB = boundary.getAnchorB();
-    expect(anchorA).not.toBeNull();
-    expect(anchorB).not.toBeNull();
-    expect(anchorA!.getSide()).toBe('A');
-    expect(anchorB!.getSide()).toBe('B');
-    expect(anchorA!.getBoundary()).toBe(boundary);
-    expect(anchorB!.getBoundary()).toBe(boundary);
-    expect(a.getFixtures()).toContain(anchorA);
-    expect(b.getFixtures()).toContain(anchorB);
-    expect(anchorA!.getAdornedTo()).toBe(a);
-    expect(anchorB!.getAdornedTo()).toBe(b);
+    expect(boundary.getSides()).toEqual([null, null]);
   });
 
-  it('attachExistingBoundary rejects a hostA === hostB install', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
+  it('sides / sideOf / otherSide walk the pair, A attached first', async () => {
     const boundary = await StuffApi.create(() => new Boundary());
-    expect(() =>
-      BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: a })
-    ).toThrow(/must differ/);
+    const [north, south] = pair();
+    BoundaryApi.attach(boundary, north, south);
+
+    expect(boundary.getSides()).toEqual([north, south]);
+    expect(boundary.sideOf(north)).toBe('A');
+    expect(boundary.sideOf(south)).toBe('B');
+    expect(boundary.otherSide(north)).toBe(south);
+    expect(boundary.otherSide(south)).toBe(north);
+    expect(north.getBoundary()).toBe(boundary);
+    expect(south.getBoundary()).toBe(boundary);
+
+    const stranger = makeStuff(() => new Exit({ direction: 'east', source: a, destination: b }));
+    expect(boundary.sideOf(stranger)).toBeNull();
+    expect(boundary.otherSide(stranger)).toBeNull();
   });
 
-  it('attachExistingBoundary rejects re-installing on an already-wired boundary', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    const c = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-    zone.addLocation(c, 1, 0, 0);
-
+  it('otherSide is null while the far side is unbuilt', async () => {
     const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-    expect(() =>
-      BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: c })
-    ).toThrow(/already installed/);
+    const [north] = pair();
+    BoundaryApi.attach(boundary, north);
+    expect(boundary.otherSide(north)).toBeNull();
   });
 
-  it('getOtherSide / getOtherAnchor / getOtherHost walk the pair correctly', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
+  describe('the channel table', () => {
+    it('defaults: all open, nothing shut; a bare boundary is open', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      expect(boundary.isOpen()).toBe(true);
+      expect(boundary.transmissivity('light', 'A', 'B')).toBe(1);
+      expect(boundary.getChannels().shut).toEqual({
+        movement: 0, light: 0, sight: 0, sound: 0, smell: 0,
+      });
+    });
 
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
+    it('merges a partial table over the defaults', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      boundary.setChannels({ open: { sound: 0.4 }, shut: { smell: 0.1 } });
+      const t = boundary.getChannels();
+      expect(t.open).toEqual({ movement: 1, light: 1, sight: 1, sound: 0.4, smell: 1 });
+      expect(t.shut.smell).toBe(0.1);
+      expect(t.shut.light).toBe(0);
+      expect(boundary.transmissivity('sound', 'A', 'B')).toBe(0.4);
+    });
 
-    const anchorA = boundary.getAnchorA()!;
-    const anchorB = boundary.getAnchorB()!;
-    expect(boundary.getOtherSide(anchorA)).toBe('B');
-    expect(boundary.getOtherSide(anchorB)).toBe('A');
-    expect(boundary.getOtherAnchor(anchorA)).toBe(anchorB);
-    expect(boundary.getOtherAnchor(anchorB)).toBe(anchorA);
-    expect(boundary.getOtherHost(a)).toBe(b);
-    expect(boundary.getOtherHost(b)).toBe(a);
+    it('⚠ refuses an unknown channel key — a misspelt `ligth:` must not read as dark', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      expect(() =>
+        boundary.setChannels({ open: { ligth: 0.5 } as never }),
+      ).toThrow(/not a channel/);
+    });
+
+    it('refuses an unknown state', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      expect(() =>
+        boundary.setChannels({ ajar: { light: 0.5 } } as never),
+      ).toThrow(/not a state/);
+    });
+
+    it('refuses a value outside [0, 1]', async () => {
+      const boundary = await StuffApi.create(() => new Boundary());
+      expect(() => boundary.setChannels({ open: { light: 1.5 } })).toThrow(RangeError);
+      expect(() => boundary.setChannels({ shut: { sound: -0.1 } })).toThrow(RangeError);
+    });
+
+    it('a shut door reads its shut table; transmissivityInto reads the far side', async () => {
+      const door = await StuffApi.create(() => new Door());
+      door.setChannels({ shut: { sound: 0.3 } });
+      const [north, south] = pair();
+      BoundaryApi.attach(door, north, south);
+      expect(door.isOpen()).toBe(false);
+      expect(door.transmissivityInto('sound', north)).toBe(0.3);
+      expect(door.transmissivityInto('light', south)).toBe(0);
+      door.setOpen(true);
+      expect(door.transmissivityInto('light', south)).toBe(1);
+    });
   });
 
-  it('detach() removes both anchors from their hosts and KEEPS the pair', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-    const anchorA = boundary.getAnchorA()!;
-    const anchorB = boundary.getAnchorB()!;
-
-    boundary.detach();
-
-    // ⭐ The SLOTS survive: an anchor is the boundary's own per-side
-    // proxy, minted once with it, and detach only drops the host link.
-    // (It used to null the slots and let the next install mint a fresh
-    // pair synchronously — which a clone cannot do.)
-    expect(boundary.getAnchorA()).toBe(anchorA);
-    expect(boundary.getAnchorB()).toBe(anchorB);
-    expect(anchorA.getAdornedTo()).toBeNull();
-    expect(anchorB.getAdornedTo()).toBeNull();
-    expect(a.getFixtures()).not.toContain(anchorA);
-    expect(b.getFixtures()).not.toContain(anchorB);
+  it('getKeywords folds the short description tokens', async () => {
+    const door = await StuffApi.create(() => new Door());
+    door.setShortDescription('heavy oak door');
+    expect(door.getKeywords()).toEqual(expect.arrayContaining(['heavy', 'oak', 'door']));
   });
 
-  it('detach() is idempotent', async () => {
-    const boundary = await StuffApi.create(() => new Boundary());
-    expect(() => boundary.detach()).not.toThrow();
-    expect(() => boundary.detach()).not.toThrow();
+  it('⭐ a fixed grating refuses close', async () => {
+    const grating = await StuffApi.create(() => new PlatformBoundary());
+    grating.setShortDescription('iron grating');
+    grating.setFixed(true);
+    grating.setOpen(true);
+    const mover = makeStuff(() => new TestMover());
+    const veto = grating.canClose(mover);
+    expect(veto).toMatchObject({ ok: false, reason: expect.stringMatching(/fixed open/) });
   });
 
-  it('BoundaryApi.destruct destructs the boundary and its anchors', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
+  describe('Exit.wayState — one word per way', () => {
+    it("a way with no boundary is 'open'", () => {
+      const [north] = pair();
+      expect(north.wayState()).toBe('open');
+    });
 
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-    const anchorA = boundary.getAnchorA()!;
-    const anchorB = boundary.getAnchorB()!;
+    it("a shut door is 'shut', an open one 'open', a locked one 'locked'", async () => {
+      const door = await StuffApi.create(() => new Door());
+      const [north, south] = pair();
+      BoundaryApi.attach(door, north, south);
+      expect(north.wayState()).toBe('shut');
+      door.setOpen(true);
+      expect(north.wayState()).toBe('open');
+      expect(south.wayState()).toBe('open');
+      door.setOpen(false);
+      door.setLocked(true);
+      expect(north.wayState()).toBe('locked');
+      expect(south.wayState()).toBe('locked');
+    });
 
-    BoundaryApi.destruct(boundary);
+    it("a window is 'window', open or shut", async () => {
+      const glass = await StuffApi.create(() => new Window());
+      const [north, south] = pair();
+      BoundaryApi.attach(glass, north, south);
+      expect(north.wayState()).toBe('window');
+      glass.setOpen(true);
+      expect(south.wayState()).toBe('window');
+    });
 
-    expect(boundary.isDestroyed()).toBe(true);
-    expect((anchorA as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
-    expect((anchorB as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
-    expect(a.getFixtures()).toHaveLength(0);
-    expect(b.getFixtures()).toHaveLength(0);
+    it('wayRecord carries the state and the boundary', async () => {
+      const door = await StuffApi.create(() => new Door());
+      door.setShortDescription('oak door');
+      const [north, south] = pair();
+      BoundaryApi.attach(door, north, south);
+      const rec = north.wayRecord();
+      expect(rec.direction).toBe('north');
+      expect(rec.state).toBe('shut');
+      expect(rec.boundary?.stuffId).toBe(door.stuffId);
+    });
   });
 
-  it('Adornable.getFixtureBoundaries dedupes the boundary across anchor walks', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
+  describe('Exit.canTraverse through a window', () => {
+    it('⭐ refuses, open or shut: the window is not a way through', async () => {
+      const glass = await StuffApi.create(() => new Window());
+      glass.setShortDescription('west window');
+      const [north, south] = pair();
+      BoundaryApi.attach(glass, north, south);
+      const mover = makeStuff(() => new TestMover());
+      ContainmentApi.move(mover, a);
 
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
+      const shut = await north.canTraverse(mover);
+      expect(shut.ok).toBe(false);
+      expect(shut.gate).toBe('door');
+      expect(shut.reason).toMatch(/west window is not a way through\./i);
 
-    expect(a.getFixtureBoundaries()).toEqual([boundary]);
-    expect(b.getFixtureBoundaries()).toEqual([boundary]);
-  });
-
-  it('host destruct walks fixtures and tears down the anchor on that side', async () => {
-    const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new Location());
-    const b = makeStuff(() => new Location());
-    zone.addLocation(a, 0, 0, 0);
-    zone.addLocation(b, 0, 1, 0);
-
-    const boundary = await StuffApi.create(() => new Boundary());
-    BoundaryApi.attachExistingBoundary({ boundary, hostA: a, hostB: b });
-    const anchorA = boundary.getAnchorA()!;
-
-    StuffApi.destruct(a);
-
-    // Anchor on side A is destructed via Adornable.onDestruct.
-    expect((anchorA as unknown as { isDestroyed(): boolean }).isDestroyed()).toBe(true);
-    // The boundary's slot for that side is cleared.
-    expect(boundary.getAnchorA()).toBeNull();
-    // Side B's anchor is intact (host B still alive).
-    expect(boundary.getAnchorB()).not.toBeNull();
+      glass.setOpen(true);
+      const open = await north.canTraverse(mover);
+      expect(open.ok).toBe(false);
+      expect(open.reason).toMatch(/is not a way through/);
+    });
   });
 });

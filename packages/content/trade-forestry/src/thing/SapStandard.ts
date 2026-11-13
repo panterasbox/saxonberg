@@ -1,5 +1,5 @@
 /**
- * SapStandard — **a tree you tap**, and `ProducingMixin(Plant)` is the
+ * SapStandard — **a tree you tap**, and `ProducingMixin(Standard)` is the
  * whole of it.
  *
  * ⭐⭐ In every other respect it is a `Plant`: it grows on the shipped
@@ -11,7 +11,7 @@
  * ⛔ **Not on `Plant` itself.** Every houseplant in the game would then
  * "give something", and a tapless species' silent refusal would be the
  * only thing stopping it. Only sap-bearing species rows name this class;
- * `oak-standard` stays `/platform/thing/Plant`.
+ * `oak-standard` stays a plain `Standard` (it answers the axe, not the spile).
  *
  * ## The spiles, and why over-tapping is the real decision
  *
@@ -47,7 +47,7 @@
  * SILENTLY; `taps.md` records that.
  */
 
-import Plant from '@saxonberg/server/mud/platform/thing/Plant';
+import Standard from './Standard';
 import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -81,7 +81,7 @@ const SPILES_BY_STAGE: Record<string, number> = {
   mature: 2,
 };
 
-const SapStandardBase = ProducingMixin(Plant);
+const SapStandardBase = ProducingMixin(Standard);
 
 export default class SapStandard extends SapStandardBase {
   static fieldMeta: FieldMeta = {

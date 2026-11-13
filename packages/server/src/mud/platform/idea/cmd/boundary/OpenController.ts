@@ -30,7 +30,9 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Sealable } from '../../../../lib/spatial/Sealable';
+import type { Sealable, OpenFacts, OpenRefusal } from '../../../../lib/spatial/Sealable';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 interface OpenModel extends CommandModel {
   target?: MqlOneResult;
@@ -38,7 +40,7 @@ interface OpenModel extends CommandModel {
 }
 
 export default class OpenController extends CommandController<OpenModel> {
-  execute(model: OpenModel, context: CommandContext): void {
+  async execute(model: OpenModel, context: CommandContext): Promise<void> {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
@@ -88,88 +90,50 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    // ⭐ The mixin decides whether this opens for this person (D12): a
-    // locked door does not, a padlocked gate does not for somebody with no
-    // key. The controller only says the refusal it is given.
-    const may = sealable.canOpen(commandGiver);
-    if (!may.ok) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`${may.reason ?? "It won't open."}`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'cannot-open',
-        detail: may.reason ?? 'cannot open',
-      });
-      return;
+    // ⭐ The thing decides (`Sealable.openPlanFor`, controller-liquidity
+    // W7c): whether it opens for this person (a locked door does not), and
+    // — a throttled gate — by how much. The controller words the answer.
+    const setting = (model.setting ?? '').trim();
+    const answer = sealable.openPlanFor(commandGiver, setting === '' ? null : setting);
+    if (!answer.ok) {
+      return this.refuse(context, 'act.deed', OpenController.refusal(answer, answer.facts?.why ?? null), answer.reason);
     }
+    await this.engagePlan(context, answer, {
+      beginSelf: () => Mml.compose``,
+      onRefused: (r) => Mml.compose`${OpenController.refusal(r, null)}`,
+      onDone: (f) => OpenController.done(commandGiver, f),
+    });
+  }
 
-    // ⭐ How far (D12): a throttled gate opens BY an amount; a door is open
-    // or shut, and says so.
-    const settingRaw = (model.setting ?? '').trim();
-    if (settingRaw !== '') {
-      const thing = sealable as unknown as Stuff;
-      if (!MixinApi.isThrottleable(thing)) {
-        MessageApi.scene(commandGiver)
-          .topic('act.deed')
-          .toSelf(Mml.compose`${Mml.thing(thing)} is open or shut — there is nothing between.`)
-          .send();
-        context.note({ kind: 'controller-rejected', reason: 'no-setting', detail: 'open or shut' });
-        return;
+  /** The opening, in words. */
+  protected static done(giver: Stuff, f: OpenFacts): { self: Composed; peers: Composed } {
+    if (f.kind === 'set') {
+      return {
+        self: f.shut ? Mml.compose`You shut ${Mml.thing(f.thing)}.` : Mml.compose`You set ${Mml.thing(f.thing)} ${f.words}.`,
+        peers: Mml.compose`${Mml.actor(giver)} works ${Mml.thing(f.thing)}.`,
+      };
+    }
+    return {
+      self: Mml.compose`You open ${Mml.thing(f.thing)}.`,
+      peers: Mml.compose`${Mml.actor(giver)} opens ${Mml.thing(f.thing)}.`,
+    };
+  }
+
+  /** Why it did not open, in words (`why` — the thing's own refusal, when it gave one). */
+  protected static refusal(r: OpenRefusal, why: string | null): string {
+    switch (r.reason) {
+      case 'cannot-open':
+        return why ?? "It won't open.";
+      case 'already-open':
+        return 'It is already open.';
+      case 'no-setting':
+        return 'It is open or shut — there is nothing between.';
+      case 'bad-setting':
+        return 'How far? A quarter, half, three quarters or full.';
+      default: {
+        const unworded: never = r;
+        throw new Error(`OpenController: no words for ${String(unworded)}`);
       }
-      const worked = thing.workOpening(settingRaw, commandGiver);
-      if (worked === null) {
-        MessageApi.scene(commandGiver)
-          .topic('act.deed')
-          .toSelf(Mml.compose`How far? A quarter, half, three quarters or full.`)
-          .send();
-        context.note({ kind: 'controller-rejected', reason: 'bad-setting', detail: settingRaw });
-        return;
-      }
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(
-          worked.shut
-            ? Mml.compose`You shut ${Mml.thing(thing)}.`
-            : Mml.compose`You set ${Mml.thing(thing)} ${worked.words}.`,
-        )
-        .toPeers(Mml.compose`${Mml.actor(commandGiver)} works ${Mml.thing(thing)}.`)
-        .send();
-      return;
     }
-
-    if (sealable.isOpen()) {
-      MessageApi.scene(commandGiver)
-        .topic('act.deed')
-        .toSelf(Mml.compose`It is already open.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'already-open',
-        detail: 'already open',
-      });
-      return;
-    }
-
-    sealable.open(commandGiver);
-
-    // Interact-hazard (a trapped chest): opening it is the touch that
-    // springs it. The hazard self-resolves — armed + `trigger: interact`
-    // is checked inside `resolveInteract`; a plain chest is a no-op.
-    const opened = sealable as unknown as Stuff;
-    if (MixinApi.isHazard(opened)) {
-      opened.resolveInteract(commandGiver);
-    }
-
-    MessageApi.scene(commandGiver)
-      .topic('act.deed')
-      .toSelf(Mml.compose`You open ${Mml.thing(sealable as unknown as Stuff)}.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} opens ${Mml.thing(sealable as unknown as Stuff)}.`,
-      )
-      .send();
-
-    return;
   }
 }

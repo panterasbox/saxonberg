@@ -39,10 +39,11 @@ function row(abs: string): Record<string, unknown> {
   return YAML.parse(readFileSync(abs, 'utf8')) as Record<string, unknown>;
 }
 function data(abs: string): Record<string, unknown> {
-  return (row(abs).data ?? {}) as Record<string, unknown>;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return (row(abs).data ?? row(abs)) as Record<string, unknown>;
 }
 
-const crude = data(`${FUEL}trade/fuel/idea/fractionation/crude.yaml`);
+const crude = data(`${FUEL}fraction-schedules/crude.yaml`);
 const fractions = crude.fractions as FractionSpec[];
 
 beforeEach(() => {
@@ -105,7 +106,7 @@ describe('⭐⭐⭐ the column separates DIFFERENT SUBSTANCES', () => {
   it('⭐ every shipped `cuts` schedule is untouched by the new field', () => {
     // The default is `cuts`, so a schedule authored before this existed
     // is byte-identical. Asserted over the shipped distilling rows.
-    const dir = `${CONTENT}trade-distilling/content/trade/distilling/idea/fractionation`;
+    const dir = `${CONTENT}trade-distilling/content/fraction-schedules`;
     const files = readdirSync(dir).filter((f) => f.endsWith('.yaml'));
     expect(files.length).toBeGreaterThan(0);
     for (const f of files) {

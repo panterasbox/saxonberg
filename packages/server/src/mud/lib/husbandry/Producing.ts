@@ -91,6 +91,8 @@ import { HARM_DEFAULTS } from '../../platform/idea/Condition';
 import type { WorkDifficulty, WorkLanding, WorkPlan } from '../ground/Workable';
 import type { ActDone, ActRefusal } from '../craft/ActPlan';
 import type { GradeBand } from '../craft/Grade';
+import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -959,12 +961,15 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (!self.isAgent() || !MixinApi.isHygienic(by)) return;
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
       const floor = room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
-      const manure = floor && MixinApi.isSoilable(floor) ? floor.soilLoad('manure', '') : 0;
+      const manure = floor && MixinApi.isSoilable(floor) ? floor.soilLoad(DirtKinds.MANURE, '') : 0;
       const specs: SoilSpec[] = [];
-      if (manure > 0) specs.push({ kind: 'manure', amount: Math.min(0.5, manure * 0.3), where: 'hands' });
+      if (manure > 0) specs.push({ kind: DirtKinds.MANURE, amount: Math.min(0.5, manure * 0.3), where: 'hands' });
       if (shape === 'volume') {
+        // A drawn liquid splashes the apron with what it is — when the
+        // kernel has a dirt of that word (milk is `milk`; sap is no dirt).
         const leaf = (tap.yieldRow ?? '').split('/').pop() ?? '';
-        if (leaf) specs.push({ kind: leaf, amount: 0.1, where: 'apron' });
+        const kind = `/platform/dirt/${leaf}`;
+        if (leaf && MaterialApi.dirtKinds().has(kind)) specs.push({ kind, amount: 0.1, where: 'apron' });
       }
       if (specs.length > 0) by.soilFrom(specs, self);
     }
@@ -1144,7 +1149,7 @@ function defaultTakeMs(shape: 'mass' | 'volume' | 'count'): number {
  * meaning changes with another field's value.
  */
 function yieldMaterial(tap: TapSpec): Material | null {
-  return StuffApi.findByTemplatePath<Material>(tap.yieldRow) ?? null;
+  return MaterialApi.materials().peek(tap.yieldRow) ?? null;
 }
 
 /**

@@ -134,6 +134,14 @@ randomness are legal; this is the **epistemic** one.
 claim, not a live reference**: `sampledAt` is a path *string* and is
 never resolved back to an object. Consumers group by the string.
 
+⭐ **Which piece comes off is the thing's** (`Sampleable.samplePiece`,
+`lib/instrument/Sampleable.ts`, a protocol — controller-liquidity W7c):
+`SampledMixin` composes it (a stack gives a piece, one lump is sampled
+whole), `Plant` overrides (a stem out of a standing crop at the part
+named), the ground's `StrataMixin` answers with the face. The STAMP stays
+the verb's — the answer says which place to stamp with and the `sample`
+controller stamps (`stampSampling` is gated to it).
+
 A bench (`AssayBench`, `trade-mining`) is the water mill's shape applied
 to a reading: you leave samples on it, it works through them over
 game-time, and it **holds nothing of yours** — no engagement, no lease.
@@ -152,13 +160,13 @@ read is ungated and each sample has its own `try/catch`.
 field**, not just an overridden getter: `look` and the inspection card
 render the stored field and consult no getter.
 
-## ⚠⚠ Two things that fail closed and silent
+## ⚠⚠ Two things that failed closed and silent (one is fixed)
 
-**The article defect.** Any object arg a player may put an article in
-front of needs `greedy: true` — **including plural and prepositional
-args**. Without it `assay the ore` binds the literal token `the`, and
-`measure temperature the kettle` trips *"too many arguments"* and dies as
-an unknown shape with everything upstream of it correct.
+**The article defect** — ✅ fixed in the binder (controller-liquidity D3).
+`assay the ore` used to bind the literal token `the`, and the shipped
+workaround was `greedy: true` on every object arg. The binder now folds a
+leading article into the next token, greedy is refused on object args,
+and a name with a space in it is quoted (`assay "iron ore"`).
 
 **A required arg with no default.** `assay` shipped `samples` as
 `required: true`, so the bare form could never bind and a player standing
@@ -190,7 +198,7 @@ that opens with an escaped quote. The rest is: **read the words**.
 - [mining.md](./mining.md) · [soil.md](./soil.md) ·
   [watershed.md](./watershed.md) — packs that ship channels
 - [command-routing.md](./command-routing.md) — the binder, and the
-  `greedy`/`required` rules the article defect turns on
+  `required` rule a missing default turns on
 
 ## The aroma channel (vocabularies-to-rows, 2026-11)
 
@@ -288,3 +296,35 @@ only from the process record. See [cleanliness.md](./cleanliness.md).
 egg. On a `lye` liquor both rungs speak in words (four bands, a novice
 telling three), never a figure; a ferment still reads its gravity. See
 [potash.md](potash.md).
+
+## The `survey` verb retired into three channels (controller-liquidity W17, 2026-11-10)
+
+The owner retired `survey` — *"it isn't worth a verb, and survey doesn't
+sound like what it does"*; the word belongs to land surveying (the mining
+and soil survey ladders keep it). What it reported moved onto this ladder:
+
+- **`rooms`** (`RoomsReading`, platform; `scope: [here]`, eye rung only,
+  **unbanded** — `discipline: ""`, because nothing in it is
+  competence-resolved): `analyze rooms` reads the place you stand in — the
+  room archetypes met and missed and by what, the shell line (the
+  building's condition word and why), and at home the whole holding and
+  who owes the upkeep. A mirror, never a score: no digit reaches it
+  (its suite holds that). The facts are gathered by `RoomsReading.readRooms` (W21 — off `Place`)
+  from the objects that own them; a reader not standing in the place is
+  refused by name (`not-here`), and a corridor archetype's way comes from
+  the realm's `WayIndex` (`ways.indexPath`, the transport pack's lane
+  catalogue) — no index named, no corridor reported.
+- **`condition`** gained a building: on a structure read from its landing,
+  the condition word carries its cause (*the paint has gone; the weather
+  is at what was under it*) — to every band, because a passer-by sees a
+  coat going. The facts are `Structure.readOutside()`.
+- **`paint`** (`PaintReading`, platform; `scope: [subject]`,
+  `subjectRequires: [FacedMixin, DurableMixin]`, an **instrument** rung —
+  `gauging`, *a rule or a gauging rod* — unbanded): `measure paint
+  <building>` says the area to the weather, what it is (*wall and roof*; a
+  ship's *hull* — `Structure.weatherSurface`) and the litres one coat
+  takes. The coat itself is `look`'s.
+
+The floor line `survey` carried is `analyze cleanliness floor`'s: on a
+floor the untrained line adds how it is kept (*To scrub it would see to
+it.*), off `Floor.cleaningMethod()`.

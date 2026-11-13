@@ -47,10 +47,12 @@ describe('arcana — the worn hosts', () => {
 describe('arcana — Potion, the preset Receptacle', () => {
   beforeEach(() => installV1QuantityMarshallers());
 
-  it('a bare Potion is glass, 0.25 L of interior bulk, with the potion keywords', () => {
+  it('a bare Potion is 0.25 L of interior bulk, with the potion keywords — its glass is its row\'s', () => {
     const p = makeStuff(() => new Potion());
     stampTemplatePathForTest(p, `/obj/test/potion-${seq++}`);
-    expect(p._materialPath).toBe('/stuff/idea/material/glass/glass');
+    // load-on-use W8: what a potion is made of is content (its row authors
+    // `_materialPath`), never a constructor constant.
+    expect(p._materialPath).toBeNull();
     expect(p.interiorBulk).toBe(true);
     expect(p.getInteriorCapacity()?.rawValue()).toBeCloseTo(0.25);
     expect(p.getKeywords()).toEqual(expect.arrayContaining(['flask', 'vial', 'potion', 'draught']));

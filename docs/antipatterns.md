@@ -306,10 +306,11 @@ reference pointing the WRONG WAY forces.
 | a `boot:` entry so a species / material / biome is resident | declare the citing field `ref: 'identity:constituent'` — the applier loads it with its holder |
 | `Template.findByClass(Species)` to find "what lives in this reach" | the reach names its species (`stocks:`), each loaded at the read |
 | a pack catalogue that scans `findWhereDataHas('parentExtent')` | `NavigationApi.attachedTo(key, 'institution')` — the graph's record anchors each `parentExtent` at its extent and reads the key's ancestry |
-| a dictionary warmed at boot for a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it |
+| a pack `boot:` entry for a dictionary read by a typed word | `await StuffApi.singleton(CATALOGUE_PATH)` at the verb; its creation warms it — or, when an Api's reads stand on it, the Api's `static needs` (next row) |
+| a class readying its Api's data (`StuffApi.ready(FooApi)`, a setter returning a dictionary load, an `onCreate` that warms a catalogue) | declare it in the Api's `static needs`; the boot stands it (`AppBootstrap`, load-on-use W10 — [call-security.md](./subsystems/call-security.md)) |
 
 ⚠ **What legitimately stays booted:** the engine's wardens and
-registries; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
+registries; every Api's declared `needs`; a catalogue read SYNCHRONOUSLY with no act-shaped async seam
 before the read (the *reader rule* — say so in the entry's reason); and
 the houses whose NPCs act while nobody is present
 (→ `unobserved-economy-slate`). `lint:boot-entries` and
@@ -527,8 +528,9 @@ argument about an object's LIFETIME rather than about whether a person
 could author it:
 
 - ~~Live-ref relational~~ — an `Exit` is a clone of a kind row and the
-  live refs arrive through `bind`; a `BoundaryAnchor` is a clone its
-  boundary mints at `onCreate`.
+  live refs arrive through `bind`; a `BoundaryAnchor` was a clone its
+  boundary minted at `onCreate` (the anchors retired with the boundary
+  build, 2026-11).
 - ~~Dynamically-minted uniques~~ — that is the `asIdentityPath`
   channel, not a reason to skip the row: `Party` clones
   `/platform/idea/Party` with `/platform/idea/party/<uuid>` as its
@@ -543,8 +545,10 @@ ceiling 5):
 - **The connection layer** — per-socket objects with no world identity
   (`Interactive`, `Login`).
 - **A framework seam that takes a FACTORY from its caller** —
-  `BoundaryApi.create`, `PersistableLogic`'s shadow follower. There is
-  no path to look up, because the caller supplies the class.
+  `PersistableLogic`'s shadow follower. There is no path to look up,
+  because the caller supplies the class. (`BoundaryApi.create` was the
+  other until the boundary build, 2026-11, retired it: `BoundaryApi`
+  only attaches now, and every boundary is a cloned row.)
 - **Introspection of a CLASS** — `StudioLogic.readClassDefault`
   constructs an instance to ask the class what its defaults are, so a
   row would be answering a question about itself.
@@ -805,7 +809,7 @@ const instructions = MixinApi.getAllInstructionFields(obj.constructor);
 // method names from field names (e.g., `set` + pascalCase('coords')
 // → `setCoords`). Same convention the Hydrator's two-phase dispatch
 // and `Zone.lookupField` use.
-const suffix = MixinApi.pascalCase('attachedHosts'); // → 'AttachedHosts'
+const suffix = MixinApi.pascalCase('coords'); // → 'Coords'
 ```
 
 ### ContainmentApi (movement & containment)
@@ -1281,8 +1285,8 @@ another `Stuff` from outside its owning class.
 const dir = exit.direction;
 exit.direction = 'north';
 
-// `door` is an accessor pair on Exit (invariant maintenance).
-exit.door = newDoor;
+// `_boundary` is the exit's private slot (the side of its way).
+const door = exit._boundary;
 
 // `name` is a field on something composing NamedMixin.
 if (avatar.name === 'Alice') { ... }
@@ -1308,7 +1312,7 @@ inter-stuff contract layer. Specifically:
 const dir = exit.getDirection();
 exit.setDirection('north');
 
-exit.setDoor(newDoor);
+const door = exit.getBoundary();
 
 if (avatar.getName() === 'Alice') { ... }
 ```
@@ -1316,9 +1320,9 @@ if (avatar.getName() === 'Alice') { ... }
 Methods are what shadows hook, what call-security policies gate, and
 what the host gets to refactor freely behind. Fields and accessor
 pairs stay host-internal — accessors are still the right tool for
-invariant maintenance (e.g., `Door.attachedTo` bookkeeping on the
-`door` accessor), but the public method delegates to them rather
-than exposing them to other Stuff.
+invariant maintenance (e.g., `Location.setCoords` registering the
+room on its zone's grid), but the public method delegates to them
+rather than exposing them to other Stuff.
 
 The Hydrator is a deliberate framework carve-out: it reflects
 directly into persistent fields so it can populate them from
@@ -1590,17 +1594,17 @@ the predicate narrow.
 ### BAD (pre-asserted then verified)
 
 ```ts
-// Asserts `Stuff & Adornable` BEFORE the predicate runs. If the
-// predicate returns false the cast is a lie; if it returns true
-// the cast is redundant. Either way the predicate's narrowing
-// flows nowhere.
-const here = this as unknown as Stuff & Adornable;
-const there = other as unknown as Stuff & Adornable;
+// Asserts `Stuff & Containable` / `Stuff & Container` BEFORE the
+// predicate runs. If the predicate returns false the cast is a lie;
+// if it returns true the cast is redundant. Either way the
+// predicate's narrowing flows nowhere.
+const item = this as unknown as Stuff & Containable;
+const box = other as unknown as Stuff & Container;
 if (
-  MixinApi.isAdornable(here as unknown as Stuff) &&
-  MixinApi.isAdornable(there as unknown as Stuff)
+  MixinApi.isContainable(item as unknown as Stuff) &&
+  MixinApi.isContainer(box as unknown as Stuff)
 ) {
-  BoundaryApi.attachExistingBoundary({ boundary, hostA: here, hostB: there });
+  ContainmentApi.move(item, box);
 }
 ```
 
@@ -1609,13 +1613,9 @@ if (
 ```ts
 const thisStuff = this as unknown as Stuff;
 const otherStuff = other as unknown as Stuff;
-if (MixinApi.isAdornable(thisStuff) && MixinApi.isAdornable(otherStuff)) {
-  // After the predicate, both are narrowed to `Stuff & Adornable`.
-  BoundaryApi.attachExistingBoundary({
-    boundary,
-    hostA: thisStuff,
-    hostB: otherStuff,
-  });
+if (MixinApi.isContainable(thisStuff) && MixinApi.isContainer(otherStuff)) {
+  // After the predicate, each is narrowed to its mixin's interface.
+  ContainmentApi.move(thisStuff, otherStuff);
 }
 ```
 
@@ -2317,12 +2317,12 @@ execute(model, ctx) {
 // CORRECT — validator in the YAML
 // var.yaml
 verbs: [var]
-controller: VarController
+controller: /platform/idea/cmd/shell/VarListController
 validators:
   - /lib/command/validators/requiresEnvironment
-subcommands: …
+subcommands: …   # each names its own controller
 
-// VarController.ts
+// VarListController.ts
 execute(model, ctx) {
   const avatar = ctx.commandGiver as EnvHost;  // validator guarantees this
   // …
@@ -2367,8 +2367,9 @@ no authority.
 controller** (`controller:` on the subcommand in the view, over a shared
 `<Noun>ControllerBase`) — `house appoint` → `HouseAppointController`,
 `wiki edit` → `WikiEditController`. A new subcommanded verb does not
-switch on `model.subcommand` at all. The rule below still holds for the
-few that do (`WalletController`'s three arms).
+switch on `model.subcommand` at all — and since controller-liquidity
+W7 none does: `lint:multi-act`'s `subcommand` arm is a hard 0. The rule
+below is kept for the history of why.
 
 A subcommanded controller's `execute()` should NOT have a
 `default:` case in its subcommand `switch` that emits
@@ -4265,13 +4266,17 @@ so `Atmospheric.getBiome()` (a registry read) answered `null` for every
 room in the game, `isSkyExposed` returned its documented
 false-when-nothing-resolves, and the ground build's drive read *"It is
 oak, laid as boards"* in a wood, a concrete apron and a mine adit.
-⭐ Found 2026-09-24, by driving; `BiomeCatalogue` is the conversion.
+⭐ Found 2026-09-24, by driving; `BiomeCatalogue` was the conversion,
+and load-on-use round two (2026-11-11) went further — the catalogue is
+deleted and a biome loads as its place's constituent.
 
-**The rule:** if a roster is read by path at runtime, warm the ROSTER —
-derived by class over a path infix, never a list somebody has to
-remember to extend. `MaterialCatalogue` and `BiomeCatalogue` are the two
-exemplars; both select every root's subtree and filter on the class, so
-a pack shipping its own row is warmed with nothing to edit.
+**The rule:** if a roster is read by path at runtime, make every row
+reachable — load it with whatever cites it (a constituent field) or, for
+a read that asks for every row, derive the roster by class over a path
+infix, never a list somebody has to remember to extend. The material
+roster (async `MaterialApi.all()` / `findByTag()`) is the exemplar: it
+selects every root's subtree and filters on the class, so a pack shipping
+its own row is found with nothing to edit.
 
 ---
 
@@ -4642,8 +4647,9 @@ one of the three that does. Do not merge them.
 | `ContainmentApi.reachableFrom(actor)` | ✅ | ✅ | ✅ | — | — | — |
 | `reachable:[…]` (MQL, viewer-gated) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-⚠ The seed also reaches **through a passable exit** (`candidatesForPeers`)
-and carries hosted updates; the two code-side pools stop at the room. So
+⚠ The seed also carries the place's surface (its ways, their doors, open
+ground seen across a way — `PerceptionApi.reach`'s `here` pool) and
+hosted updates; the two code-side pools stop at the room. So
 the query is not merely the same set with fog applied — it is a wider
 question, and that is another reason not to treat any of the three as a
 drop-in for another.
@@ -5404,9 +5410,11 @@ fails the rule — it trades one static for a wider surface. **The pattern
 that resolved most bodies: the Api gets the DOOR, the body stays with its
 privates** — the `lib/` static becomes `@internal` *because* there is now
 somewhere visible to call. And not every invisible callable wants a door:
-`Construction.registerFabric` stays `@internal` with none, because its two
-callers are the textile subsystem populating its own vocabulary at boot,
-and a door would advertise a boot seam as author surface.
+`Construction.registerFabric` stayed `@internal` with none, because its two
+callers were the textile subsystem populating its own vocabulary at boot,
+and a door would have advertised a boot seam as author surface (it is
+gone since load-on-use round two: fabrics are documents read through
+`MaterialApi.fabrics()`).
 
 ⚠ Two traps when fixing one:
 
@@ -6140,8 +6148,8 @@ if (!sameVia(m.via, first)) return undefined;
 
 **What happens.** `MqlMatchVia` is an open interface every subsystem
 augments, and `lib/boundary/Exit.ts` augments it with a **live `Exit`**.
-An Exit reaches its `Boundary`, whose `anchorA`/`anchorB` point back at
-it, so the graph has a cycle and `JSON.stringify` throws
+An Exit reaches its `Boundary`, whose `sideA`/`sideB` point back at
+it (`anchorA`/`anchorB` when this was found, before the boundary build), so the graph has a cycle and `JSON.stringify` throws
 `Converting circular structure to JSON`. The caller catches it and
 reports `mql-error`, so a **well-formed query answers "something went
 wrong."**
@@ -6226,8 +6234,9 @@ back into the controller:
 `void SomeApi.slowThing().then((r) => this.tell(context, this.format(r)))`.
 
 **Do:** capture what the continuation needs (the giver, the plain
-values) before `execute` returns. Do the work in module functions that
-touch no instance, and tell the result from a fresh scheduler root:
+values) before `execute` returns. Do the work in `protected static`
+methods reached through `this.constructor` (never module functions —
+`lint:controller-functions`), and tell the result from a fresh scheduler root:
 `ScheduleApi.schedule(0, () => tellGiver(giver, text), { propagateAttribution: false })`.
 
 **Why.** A controller instance is destroyed when its command returns, so
@@ -6384,7 +6393,7 @@ return { ok: false, reason: 'too-green', facts: { moisture } };
 An object PLANS an act (`ActPlan` / `ActRefusal` / `ActOutcome` in
 `lib/craft/ActPlan.ts`): a closed reason union and the facts per protocol,
 no `Mml` anywhere. The words live on the controller, which is the I/O
-layer — `ManualBuildController.engagePlan(context, plan, words)` takes
+layer — `CommandController.engagePlan(context, plan, words)` takes
 `beginSelf`/`beginPeers`/`onRefused`/`onDone`, and the wording switch is
 exhaustive (a `never` arm), so a new reason fails to compile until
 somebody words it. The decision itself (durations, effort, grade, what
@@ -6456,3 +6465,137 @@ list who answers it. Fewer than three implementers is a method on the one
 host. See [mixins.md § protocol mixins](./subsystems/mixins.md) and
 `lint:duck-typing` (controllers-are-io D8).
 
+## A permission decided in a controller
+
+```ts
+// NOT ALLOWED — the gate protects one door
+if (!(await AccessApi.can(giver, 'let', room))) return this.fail(context, …);
+await warren.let(unit, giver);
+
+// CORRECT — the method that writes asks who, with the actor as an argument
+const answer = await warren.let(unit, giver);   // refuses `not-yours` itself
+if (!answer.ok) return this.refuse(context, words(answer.reason), answer.reason);
+```
+
+A gate in a controller protects that controller. Every other caller of the
+same model method — a worded replacement controller, a brain, a script, the
+next verb — walks past it. The permission lives on the method that does the
+read or write, taking `by`, and the controller's copy is deleted
+(controller-liquidity D9; call-security.md § *the method asks who*).
+`lint:controller-gates` counts what is left; each remaining site is a verb's
+door onto a primitive the world itself must call ungated, named in the gate's
+header.
+
+## `greedy: true` on an object arg
+
+```yaml
+# NOT ALLOWED — the slot swallows every word after it
+- name: thing
+  type: object
+  greedy: true
+
+# CORRECT — one word binds bare; a name with a space in it is quoted
+- name: thing
+  type: object        # `buy apple`, `buy the apple`, `buy "dog loaf"`
+```
+
+A greedy object slot made every later word part of the name, so a
+preposition or a second arg after it could never bind, and `the` became a
+thing you could look at. The binder folds a leading article into the next
+token, and words left over refuse with the quote hint (*too many words —
+quote a name with a space in it*). The schema refuses `greedy` on
+`object`/`objects`; greedy stays for PROSE (`say`, `dm`, a forum body).
+`lint:greedy-object` is a hard 0 (controller-liquidity D3, W5).
+
+## A hand-rolled reach walk
+
+```ts
+// NOT ALLOWED — a second definition of "what can I lay hands on"
+const near = [...actor.getContents(), ...room.getContents(), ...exitDoors];
+const ok = near.some((s) => s === target);
+
+// CORRECT — ask the one walk, or membership in it
+const ok = PerceptionApi.canReach(actor, target);
+const reached = PerceptionApi.reach(actor);          // each tagged by its pool
+const hits = PerceptionApi.reachableAmong(actor, candidates);
+```
+
+Reach was written twice (the MQL scope walk and a `reachIds` helper) and the
+two disagreed — on the room itself and on doors of unseen ways. There is one
+list now, `PerceptionApi.reach`, tagged with MQL's pools (`person` ·
+`inventory` · `here` · `peers` · `reachable`; `around` is what holds you —
+named, not touched), and MQL's seeds filter it. Reach is not perception: a
+caller that needs both asks both. A thing behind a shut lid is ADDRESSED by
+MQL (`look me:I:apple`) but not reachable — a verb that puts a hand on it
+declares `mustNotBeShutAway` (`Containable.reachRefusal`). See
+[perception.md](./subsystems/perception.md) (controller-liquidity W20).
+
+## A nested subcommand
+
+```yaml
+# NOT ALLOWED — a subcommand of a subcommand
+verbs: [cockpit]
+subcommands:
+  layout:
+    subcommands:
+      save: { controller: … }
+
+# CORRECT — a command is `verb target` or `verb subcommand target`
+verbs: [client-layout]       # non-diegetic: a hyphenated compound name
+subcommands:
+  save: { controller: ../shell/ClientLayoutSaveController }
+```
+
+Depth is one. A second level is a noun that wants to be its own verb: a
+diegetic one takes a plain word (`equip set save` → `outfit save`), an
+interface or tooling one a compound name (`cockpit layout` →
+`client-layout`, `stream rotation` → `stream-rotation`). The schema and
+`CommandDefinition.validate()` refuse a nested stanza, and the depth half
+of `lint:command-views` is a structural zero (controller-liquidity W16,
+reversing W1's D2). See [command-spec.md § Depth](./subsystems/command-spec.md).
+
+## `values:` on a slot that is not `type: enum`
+
+```yaml
+# NOT ALLOWED — a closed word list wearing a string's type
+- name: setting
+  type: string
+  values: [wide, open, half, low, banked]
+
+# CORRECT — a closed word list is its own type
+- name: setting
+  type: enum
+  values: [wide, open, half, low, banked]
+```
+
+A closed list is a different type from a name: the binder refuses a word
+outside it with the list, `help` prints it, and the quote hint never joins
+words into it (`takesAName` is plain `type === 'string'`). The schema
+requires `values:` on `enum` and refuses it everywhere else; a structured
+client is held to the same list (controller-liquidity W22).
+
+## A controller that decides between acts
+
+```ts
+// NOT ALLOWED — one word, several acts, picked by what the target is
+if (MixinApi.isManualBuild(t)) return this.latchHeat(t);
+if (isTool(t)) return this.sterilize(t);
+return ContainmentApi.move(t, hearth, 'on');   // a third act: setting it on
+
+// CORRECT — one act; each host answers it (a protocol mixin), and the
+// act that was never this word goes to the verb that already does it
+const plan = t.heatPlanFor(actor);   // HeatedMixin: a plan or a refusal; its
+                                     // completion is the host's `takeHeat`
+// `put <pot> on <hearth>` sets a vessel on the fire
+```
+
+A word names one act. When a controller forks on the target's kind, a
+typed word (`switch (model.x)`), or `model.subcommand`, walk the remedy
+ladder: (1) one act over several hosts — a protocol mixin or one planner,
+retiring a stray head into the verb that already does it; (2) a manner —
+an option; (3) subcommands of a noun the player groups the acts under,
+each its own view entry and controller; (4) disjoint shapes of one word,
+each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
+<rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
+facts and a reason; the controller words them. `lint:multi-act` counts what
+is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).

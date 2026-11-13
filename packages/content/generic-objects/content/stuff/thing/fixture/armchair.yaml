@@ -43,4 +43,4 @@ data:
       - { part: seat-frame, template: /trade/carpentry/thing/frame, count: 1, role: structural, material: /stuff/idea/material/wood/ash }
       - { part: cushion, template: /trade/tailoring/thing/cushion, count: 1, role: wear, material: /stuff/idea/material/textile/linen }
     joints:
-      - { key: upholstery, method: seated, members: [cushion, seat-frame] }
+      - { key: upholstery, method: /platform/joints/seated, members: [cushion, seat-frame] }

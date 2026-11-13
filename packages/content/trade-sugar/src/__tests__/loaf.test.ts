@@ -22,7 +22,7 @@ const settle = async (): Promise<void> => {
 };
 
 function loaf(band: string): SugarLoaf {
-  const l = makeStuff(() => new SugarLoaf());
+  const l = makeStuff(() => Object.assign(new SugarLoaf(), { drainsTo: '/trade/sugar/idea/material/molasses' }) /* its row's fields (load-on-use W8) */);
   l.setMass(Quantity.of(6, 'kg'));
   if (MixinApi.isGraded(l)) l.setGrade(Grade.of(band));
   return l;
@@ -47,7 +47,7 @@ describe('a sugar loaf', () => {
   it('will not cut without nips', async () => {
     const l = loaf('fine');
     const actor = makeStuff(() => new Place());
-    const plan = await l.cutPlan({ verb: 'cut', actor, tools: [], raw: null, length: null, options: {} });
+    const plan = await l.cutPlan({ actor, tools: [], part: null, length: null, options: {} });
     expect(plan.ok).toBe(false);
   });
 
@@ -62,7 +62,7 @@ describe('a sugar loaf', () => {
     ContainmentApi.move(l, room);
     const nips = makeStuff(() => new Tool());
     nips.setCapabilities(['nipping']);
-    const plan = await l.cutPlan({ verb: 'cut', actor: room, tools: [nips], raw: null, length: null, options: {} });
+    const plan = await l.cutPlan({ actor: room, tools: [nips], part: null, length: null, options: {} });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
     const done = await plan.onComplete();

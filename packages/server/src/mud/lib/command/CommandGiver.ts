@@ -95,9 +95,15 @@ import type { LogLevel, Note } from '@saxonberg/types';
  * site (the sweep loop in `executeCommand`), so no broader surface
  * is needed.
  */
-function proseForFrameworkNote(note: Note): string | null {
+function proseForFrameworkNote(note: Note): string | Mml | null {
   switch (note.kind) {
     case 'command-rejected': {
+      // ⭐ The quote hint (controller-liquidity D3): the fitted line is a
+      // link — the player taps the form that would have run.
+      if (note.reason === 'bind-failed' && note.suggestion) {
+        const link = Mml.link(`mudcmd:${encodeURIComponent(note.suggestion)}`, note.suggestion);
+        return Mml.compose`Too many words — quote a name with a space in it: ${link}`;
+      }
       // `reason` is enum; pair with `detail` when present.
       const tail = note.detail ? `: ${note.detail}` : '';
       switch (note.reason) {
@@ -271,7 +277,7 @@ function emitDispatchResponse(ctx: CommandContext): void {
       if (prose === null) continue;
       MessageApi.scene(giverAsStuff as Stuff & Sensor)
         .topic('shell.error')
-        .toSelf(Mml.compose`${prose}`)
+        .toSelf(prose instanceof Mml ? prose : Mml.compose`${prose}`)
         .send();
     }
   }
@@ -1223,9 +1229,18 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         scopeSource = picked[0];
       }
       const allMatches = matched.matches;
-      const matches = scopeSource
+      const sourced = scopeSource
         ? allMatches.filter((a) => affordsFrom(a, scopeSource!, giverStuff))
         : allMatches;
+      // ⭐ A view of subcommands (no fallthrough) is tried before the
+      // verb's SHAPES (controller-liquidity W7a, build): its words are
+      // claimed first wherever its host listed it, so `watch horizon` is
+      // never a stream called "horizon", and a word it does not know falls
+      // on to the shapes (below). A stable sort: every other view keeps
+      // its contribution order. `lint:verb-collisions` reads the same rule.
+      const subcommandsFirst = (a: Affordance): number =>
+        a.command.hasSubcommands() && !a.command.fallthrough ? 0 : 1;
+      const matches = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
       // ── ② The chain (unchanged below, but for `scopeSource` riding into
       // `assemble` and each refusal handing to ③ `_otherOffer`).
       if (matches.length === 0) {
@@ -1296,6 +1311,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let firstRefused: CommandContext | undefined;
       /** The first view whose only problem is a missing object — askable. */
       let askable: { command: CommandDefinition; field: string } | undefined;
+      /** ⭐ The first view that would have fit with one name quoted (D3). */
+      let quoteHint: string | undefined;
+      let quoteLine: string | undefined;
       for (const affordance of matches) {
         const command = affordance.command;
         const built = CommandApi.assemble(
@@ -1321,7 +1339,25 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             if (!askable && def && (def.type === 'object' || def.type === 'objects')) {
               askable = { command, field: def.name };
             }
+            if (quoteHint === undefined && built.quoteHint !== undefined) {
+              quoteHint = built.quoteHint;
+              quoteLine = built.quoteLine;
+            }
             continue; // fall through
+          }
+          // ⭐ A word this view's subcommands do not know is a question for
+          // the verb's next SHAPE, when it has one (controller-liquidity
+          // W7a, build): `watch horizon` is `watch.yaml`'s subcommand and
+          // `watch shroud` is `watch-stream.yaml`'s shape, so `watch.yaml`
+          // not knowing `shroud` must not end the line. The LAST view's
+          // unknown word still refuses, naming the valid words — so a verb
+          // with one view is unchanged — and when every later view
+          // shape-fails too, the refusal lists every shape the verb has.
+          if (
+            built.error === 'unknown-subcommand' &&
+            affordance !== matches[matches.length - 1]
+          ) {
+            continue;
           }
           if (firstRefused) return this._otherOffer(parsed, allMatches, firstRefused);
           // Bind / unknown-subcommand errors stop the chain. Emit on
@@ -1369,6 +1405,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           barId: outer.barId,
           // `--strict` / `--loose` on the line (D23).
           ...(built.reservedFiltered ? { filterPolicy: built.reservedFiltered } : {}),
+          // `--top` / `--open` / `--deep` on the line (D4).
+          ...(built.reservedDepth ? { depth: built.reservedDepth } : {}),
         });
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;
@@ -1464,6 +1502,18 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const line = `${CommandLineApi.format(parsed)} ${prep ? `${prep} ` : ''}#${picked.stuffId}`;
         const reparsed = CommandLineApi.parsePipeline(line).commands[0];
         if (reparsed) return this._runChain(reparsed, outer);
+      }
+      // ⭐ Every match returned a shape error, and one of them would have
+      // fit with a multi-word name quoted: say THAT (D3) — it is the
+      // player's actual mistake, and the fix is in the sentence.
+      if (quoteHint !== undefined) {
+        outer.note({
+          kind: 'command-rejected',
+          reason: 'bind-failed',
+          detail: quoteHint,
+          ...(quoteLine !== undefined ? { suggestion: quoteLine } : {}),
+        });
+        return outer;
       }
       // Every match returned a shape error: say every shape the verb has
       // (`throw <item> · throw <item> to <person> · …`), the player's
@@ -1700,7 +1750,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Controller resolution stays synchronous — a subcommand with no
       // resolvable controller rejects here, never detaching a phantom
       // body (and its envelope fires the normal sync way).
-      const sub = (model as { subcommand?: string }).subcommand;
+      const sub = model.subcommand;
       const controllerPath = sub
         ? command.controllerForSubcommand(sub)
         : command.resolvedController;

@@ -33,11 +33,14 @@ describe('the gym archetype', () => {
   afterEach(() => StuffApi.clearAll());
 
   const gym = (): Archetype =>
-    Archetype.fromData(YAML.parse(readFileSync(fileURLToPath(ROW), 'utf-8')));
+    Archetype.fromData(
+      YAML.parse(readFileSync(fileURLToPath(ROW), 'utf-8')),
+      '/test/archetypes/gym',
+    );
   const room = (): Room => makeStuff(() => new Room());
   const fit = (a: Archetype, r: Room) => a.satisfies(r as unknown as Stuff & Container);
 
-  it('is a ROOM archetype — no industry, so survey reports it anywhere', () => {
+  it('is a ROOM archetype — no industry, so `analyze rooms` reports it anywhere', () => {
     const a = gym();
     expect(a.getIndustry()).toBeNull();
     expect(a.getCapabilities().map((c) => c.key)).toEqual(['load', 'mat']);

@@ -189,14 +189,14 @@ describe('a card is born on the server, or not at all', () => {
         // ⭐ client-surface D6/D10: a terminal is a card, opened by
         // `cockpit terminal`; settings are a card, opened by `settings`.
         'mud/platform/idea/cmd/shell/CockpitTerminalController.ts:showInTerminal',
-        'mud/platform/idea/cmd/shell/LayoutController.ts:applyCardArrangement',
-        'mud/platform/idea/cmd/shell/SettingsController.ts:open',
+        'mud/platform/idea/cmd/shell/ClientLayoutRecallController.ts:applyCardArrangement',
+        'mud/platform/idea/cmd/shell/SettingsListController.ts:open',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         // ⭐ broadcast-ready D10: bare `stream` opens the controls card.
         'mud/platform/idea/cmd/stream/StreamController.ts:open',
-        'mud/platform/idea/cmd/system/GitController.ts:open',
-        'mud/platform/idea/cmd/system/HelpController.ts:open',
-        'mud/platform/idea/cmd/system/PressController.ts:open',
+        'mud/platform/idea/cmd/system/GitStatusController.ts:open',
+        'mud/platform/idea/cmd/system/HelpControllerBase.ts:open',
+        'mud/platform/idea/cmd/system/PressReadController.ts:open',
         'mud/platform/idea/cmd/system/WikiControllerBase.ts:open',
       ].sort(),
     );
@@ -281,6 +281,14 @@ describe('a card is born on the server, or not at all', () => {
     );
     // The verb itself gates nothing — bare `press` is the read.
     expect(press).toMatch(/^validators: \[\]$/m);
+    // ⭐ …and the read is its own shape now (controller-liquidity W7a):
+    // it opens the card and gates nothing.
+    const read = readFileSync(
+      join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'platform', 'cmd', 'system', 'press-read.yaml'),
+      'utf8',
+    );
+    expect(read).toMatch(/^validators: \[\]$/m);
+    expect(read).toMatch(/^opens_card: news$/m);
     // …and each publishing subcommand carries the gate itself. Three,
     // asserted as a count: a gate that quietly moved to two of three
     // would be a hole.

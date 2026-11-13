@@ -1,4 +1,3 @@
-blueprintId: unbounded-receptacle
 name: Unbounded Receptacle
 kind: composition
 baseClass: Receptacle

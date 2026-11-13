@@ -19,6 +19,7 @@ import TemperPit from '../thing/TemperPit';
 import ClayVessel from '../thing/ClayVessel';
 import Grog from '../thing/Grog';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 
 class Yard extends Place {}
 
@@ -39,7 +40,7 @@ let clayMat: Alloy;
 let sandMat: Alloy;
 let water: Alloy;
 
-beforeEach(() => {
+beforeEach(async () => {
   installV1QuantityMarshallers();
   const mineral = material('clay-mineral', ['clay-mineral']);
   sandMat = material('sand', ['silica', 'granular']); // the real row's tags
@@ -49,6 +50,8 @@ beforeEach(() => {
     { materialPath: sandMat.getTemplatePath()!, fraction: 0.2 },
   ]);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new Clay())) as never);
+  // A credit refreshes conferrals (documents D11).
+  await rememberDisciplines();
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -138,7 +141,7 @@ describe('the temper pit', () => {
     const p = pit(true);
     await put(p, clayMat, 9, true);
     expect(p.workVerb()).toBe('knead');
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), verb: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(true);
   });
 

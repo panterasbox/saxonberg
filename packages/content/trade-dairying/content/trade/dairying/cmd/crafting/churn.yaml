@@ -1,0 +1,31 @@
+verbs: [churn]
+category: crafting
+controller: /trade/dairying/idea/cmd/crafting/ChurnController
+description: "Work a churn's cream until the butter comes"
+help: |
+  `churn` works the cream in a butter churn — the plunger up and down
+  until it breaks. At the right warmth (cool, not cold) it comes: the
+  sound changes from a slosh to a thump, and there is butter and
+  buttermilk. Too cold and it slops and will not come; too warm and it
+  comes all at once, soft and greasy.
+
+  Pour the buttermilk off (`pour churn into jug`) and the butter is what
+  is left.
+examples:
+  - cmd: churn
+    note: Work the churn you are standing at
+  - cmd: churn churn
+    note: Name it, when there is more than one
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: vessel
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ Bare `churn` works the churn you are at — DECLARED, so the binder
+    # resolves it (`lint:controller-resolution`).
+    default: "reachable:[mixin.HandWorkedMixin]"
+    requires: HandWorkedMixin

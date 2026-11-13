@@ -21,6 +21,7 @@ import {
   unplottedLocations,
   WARREN_PLACED,
   unzonedCoords,
+  wayEdges,
   type Row,
 } from '../check-location-classes';
 
@@ -312,3 +313,63 @@ describe('check-location-classes.unplottedLocations', () => {
     expect(unplottedLocations(rows)).toEqual([]);
   });
 });
+
+describe('check-location-classes.wayEdges — every way inside a zone is true to the grid', () => {
+  const ZONE: Row = { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] };
+  const TRACK = '/platform/idea/exits/track';
+  const room = (name: string, xyz: [number, number, number], exits: Row['exits'] = []): Row => ({
+    file: `p/content/test/x/${name}.yaml`, cls: '/platform/location/Locale', coords: true, exits, xyz,
+  });
+
+  it('adjacent cells through opposite sides pass, door or none', () => {
+    expect(wayEdges([
+      ZONE,
+      room('a', [0, 0, 0], [['north', '/test/x/b']]),
+      room('b', [0, 1, 0], [['south', '/test/x/a', '/thing/door']]),
+    ])).toEqual([]);
+  });
+
+  it('⚠ an ordinary way that skips a cell is caught — and names the track that would be honest', () => {
+    const out = wayEdges([ZONE, room('a', [0, 0, 0], [['north', '/test/x/b']]), room('b', [0, 3, 0])]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('not the cell north');
+    expect(out[0]).toContain(TRACK);
+  });
+
+  it('⚠ a way back that is not the opposite direction is caught', () => {
+    const out = wayEdges([
+      ZONE,
+      room('a', [0, 0, 0], [['north', '/test/x/b']]),
+      room('b', [0, 1, 0], [['southwest', '/test/x/a']]),
+    ]);
+    expect(out.some((l) => l.includes("must be 'south'"))).toBe(true);
+  });
+
+  it('⭐ a track runs on over open ground to a place on its BEARING, at any height', () => {
+    expect(wayEdges([
+      ZONE,
+      room('a', [0, 0, 0], [['southeast', '/test/x/b', undefined, TRACK]]),
+      room('b', [3, -4, 2], [['northwest', '/test/x/a', undefined, TRACK]]),
+    ])).toEqual([]);
+  });
+
+  it('⚠ …but not off its bearing, through a room, or with a door in it', () => {
+    expect(wayEdges([ZONE, room('a', [0, 0, 0], [['east', '/test/x/b', undefined, TRACK]]), room('b', [3, 3, 0])])[0]).toContain('not east');
+    expect(wayEdges([
+      ZONE,
+      room('a', [0, 0, 0], [['east', '/test/x/b', undefined, TRACK]]),
+      room('m', [1, 0, 0]),
+      room('b', [3, 0, 0]),
+    ])[0]).toContain('a room stands in the way');
+    expect(wayEdges([ZONE, room('a', [0, 0, 0], [['east', '/test/x/b', '/thing/door', TRACK]]), room('b', [3, 0, 0])])[0]).toContain('nothing can hang in it');
+  });
+
+  it('across zones a way is a threshold — nothing is checked', () => {
+    expect(wayEdges([
+      ZONE,
+      room('a', [0, 0, 0], [['north', '/test/y/b']]),
+      { file: 'p/content/test/y/b.yaml', cls: '/platform/location/Locale', coords: true, exits: [], xyz: [5, 9, 0] },
+    ])).toEqual([]);
+  });
+});
+

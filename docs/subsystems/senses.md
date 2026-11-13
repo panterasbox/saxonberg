@@ -365,10 +365,10 @@ state queries about the player's own setup, not perceptual events:
 ```
 shell.result.
 ├── alias       AliasController
-├── var         VarController
-├── settings    SettingsController
+├── var         Var*Controller
+├── settings    Settings*Controller
 ├── focus       FocusController
-└── player      PlayerController
+└── player      Player*Controller
 ```
 
 (Plus the pre-existing `shell.result.{author, fs, help, movement}`
@@ -533,26 +533,28 @@ v1 limitation as *"shared verbatim"* — a comment admitting the
 duplication while making another copy of it.
 
 The walks share structural shape (ambient + contents-side emitters +
-fixture-side emitters + cross-boundary via Conduit + cross-exit at base
-transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
+fixture-side emitters + each way's boundary (`getObviousNeighbours
+({ through: 'all' })`, asking the side's boundary `transmissivityInto
+(channel, exit)`) + each open way at `EXIT_TAU`, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
 `visited` set, vacuum scope blocks at the recipient):
 
 - **Vision** (relocated from the retired `LightApi.lightAt`):
   lumen-flux accumulator, sources → `Light` value object with lux
   intensity + flux-weighted color temperature + capped 3-entry
-  source list. Door + Window participate via `LightConduit`.
+  source list. Door + Window answer `transmissivityInto('light', …)`.
 - **Smell**: per-word odor units, one band fainter per hop, every source kept.
-  Door + Window participate via `SmellConduit`. See
+  Door + Window answer `transmissivityInto('smell', …)`. See
   [§ One smell](#one-smell-source-air-nose).
 - **Sound**: linear-amplitude accumulator (`10^(dB/10)` terms)
   converted back to dB at wrap — physically correct merge for
   incoherent sources. Two 60 dB sources sum to ~63 dB (not 120).
-  Door + Window participate via `SoundConduit`. Ambient floor seeds
+  Door + Window answer `transmissivityInto('sound', …)`. Ambient floor seeds
   from the universe-root biome's `_defaultAmbientSoundLevel` (full
   async biome-chain integration deferred).
 
-*Walls are silent.* Sound (and smell) propagate only through Conduits
-(`BoundaryAnchor` fixtures) and doorless exits; two scopes separated by a
+*Walls are silent.* Sound (and smell) propagate only through a place's
+ways — a way's boundary at its own channel fraction, an open way at
+`EXIT_TAU`; two scopes separated by a
 bare wall with no boundary between them are isolated. Cross-wall leak is
 authored as a low-transmissivity boundary, never derived from geometric
 adjacency — a known fidelity loss (real walls leak at low levels) whose
@@ -577,13 +579,23 @@ by its PATH**, a document's only identity (owner, 2026-11-08): a pack ships
 `content/aromas/<word>.yaml` and the installer stores it under the pack's root, so
 base-library's `smoke` is `/base-library/aromas/smoke` and every reference names
 that — `smells: [{ aroma: /base-library/aromas/smoke, strength: 300 }]`, a dirt's
-`odor: { aroma, ouPerLoad }`, an impart's `type:`, another aroma's `parent:`. Two
-packs may each ship a `smoke` and neither is the other; directories under
-`aromas/` are part of the path. Its **word** is the path's last segment, a slug
-read with its hyphens as spaces. Each document's `parent:` is the tree, and an
-aroma takes what it leaves unstated from its parent, so a pack adds one with no
-kernel edit. An aroma loads when something naming it loads: the naming row's
-setter awaits `Aroma.ensure`, which reads the document at that path and fails
+`odor: { aroma, ouPerLoad }`, an impart's `type:`, another pack's aroma `parent:`. Two
+packs may each ship a `smoke` and neither is the other. Its **word** is the
+path's last segment, a slug read with its hyphens as spaces.
+
+⭐ **The folder is the tree** (documents path identity, 2026-11). A child lives in
+its parent's directory — `aromas/smoke/peat-smoke.yaml` is
+`/base-library/aromas/smoke/peat-smoke`, and its parent is the aroma one segment
+up (`Aroma.folderParentOf`); an aroma directly under `aromas/` is a root. An aroma
+takes what it leaves unstated (threshold, discipline, liking) from its parent, so
+a child that inherits everything is the empty mapping `{}`. An explicit `parent:`
+is only for a parent in **another** pack (`data.parent ?? folderParentOf(path)`),
+so a pack adds a child to base-library's tree with no kernel edit. `lint:aromas`
+holds the folder rule: a directory under `aromas/` must itself be an aroma, a
+`parent:` naming an aroma in the same pack is refused (move the file — the folder
+says it), and a `parent:` beside a parent folder is refused (one aroma, one
+parent). An aroma loads when something naming it loads: the naming row's
+setter awaits `PerceptionApi.aromas().ensure`, which reads the document at that path and fails
 loudly if there is none, and a cold read starts the load that `smell`, `taste` and
 `analyze` wait out. `lint:aromas` catches the same at CI.
 
@@ -782,8 +794,8 @@ lib/perception/
 └── (Perception.ts, AmbientLit.ts, Scryable.ts — substrate unchanged)
 
 api/perception.ts                  PerceptionApi (single dispatch surface)
-lib/boundary/SmellConduit.ts       Conduit interface
-lib/boundary/SoundConduit.ts       Conduit interface
+lib/boundary/Conduit.ts            BOUNDARY_CHANNELS vocabulary (the per-channel
+                                   Conduit interfaces retired, boundary build 2026-11)
 seeds/lib/perception/modalities/   Seven seed YAMLs
 ```
 
@@ -902,3 +914,6 @@ three MR-iteration rounds before the final shape; key shifts:
 
 - **2026-11-07 (vocabularies-to-rows):** smell became one model. `SmellSourceMixin`,
   `ppm` on smell and the flat threshold retired. See [§ One smell](#one-smell-source-air-nose).
+- **2026-11-09 (documents path identity):** the aroma library moved into folders;
+  the folder is the tree and `parent:` survives only for a parent in another pack
+  (`lint:aromas` folder rule). See git log for the `reqs/documents-path-identity` branch.

@@ -30,15 +30,22 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '../../../lib/advancement/CompetenceBand';
-import { LIGHT_BANDS } from '../../../lib/perception/Light';
+import {
+  LIGHT_BANDS,
+  LIGHT_BANDS_TOO_DARK_TO_DESCRIBE,
+  type LightBand,
+} from '../../../lib/perception/Light';
 // Type-only — the vision singleton's class is resolved lazily off its
 // registered clone (the RecognitionLogic `canSeeGate` idiom); a *static*
 // value import of a specific modality would drag the whole modality
 // subsystem into this module's eval.
 import type { VisionModality } from '../modalities/VisionModality';
-import type { SearchDepth } from '../../../api/perception';
 import type {
-  HorizonView, HorizonSighting, HorizonTraffic, VisibleContents,
+  ReachOptions, ReachPool, Reached, SearchDepth,
+} from '../../../api/perception';
+import type { ReachDepth } from '../../../api/command';
+import type {
+  HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
@@ -310,155 +317,50 @@ export class PerceptionLogic extends ApiLogic {
     return unseen;
   }
 
+  /** See {@link PerceptionApi.reach}. */
+  @CallSecurity(PerceptionApiCallers)
+  public reach(actor: Stuff, opts?: ReachOptions): Reached[] {
+    return reachOf(actor, opts);
+  }
+
   /** See {@link PerceptionApi.canReach}. */
   @CallSecurity(PerceptionApiCallers)
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): boolean {
-    const id = target.stuffId;
-    if (id === actor.stuffId) return true;
-
-    const location =
-      opts?.location !== undefined
-        ? opts.location
-        : MixinApi.isContainable(actor)
-          ? actor.getContainer()
-          : null;
-
-    // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
-    // open crate standing here, or into the open pouch you are carrying;
-    // a box INSIDE that crate must be opened or taken out first. The
-    // openness test is `MixinApi.isOpenContainer` — the single rule the
-    // `peers` scope walk, `mustBeInLocation` and `VisionModality` also
-    // ask, so what you can name, see and touch can never diverge.
-    //
-    // ⚠ This clause is why reach could not stay flat: with only the two
-    // direct scans below, a coupe standing in a glass rack — or any good
-    // in an open Stock counter, or a lime in a crate — was unreachable
-    // by every verb in the game, and each caller grew its own bespoke
-    // descent instead.
-    // ⭐ And a sibling placed in a region with its OWN air is reached
-    // through that region's lid, not the room's. A thing placed under
-    // an enclosing member (`in`) on a shut host is inside something
-    // shut, even though its container is the room and it is right
-    // there in the contents list — the same lid the `peers` walk and
-    // `gatherMatter` read, asked on the placement rather than the
-    // container. A non-enclosing member (a ham on a hook on a shut
-    // box) is untouched: the hook is on the outside.
-    const enclosedShut = (c: Stuff): boolean => {
-      if (!MixinApi.isContainable(c)) return false;
-      const scope = c.getEnclosingScope();
-      if (scope === null || scope.stuffId === c.getContainer()?.stuffId) {
-        return false;
-      }
-      return MixinApi.isSealable(scope) && !scope.isOpen();
-    };
-
-    const reachesInto = (holder: Stuff): boolean => {
-      if (!MixinApi.isContainer(holder)) return false;
-      for (const c of holder.getContents()) {
-        if (c.stuffId === id) return !enclosedShut(c);
-        if (MixinApi.isOpenContainer(c)) {
-          for (const inner of c.getContents()) {
-            if (inner.stuffId === id) return !enclosedShut(inner);
-          }
-        }
-      }
-      return false;
-    };
-
-    if (MixinApi.isContainer(actor) && reachesInto(actor)) return true;
-    if (location && reachesInto(location)) return true;
-    // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
-    // — so a containment-only test misses every door in the game. This
-    // clause is the entire reason reach could not stay hand-rolled: the
-    // card hold that omitted it released `out-of-reach` on doors the
-    // `open` verb worked on perfectly well.
-    if (location && MixinApi.isExitable(location)) {
-      // ⭐ The ways the ACTOR can see — the list MQL names them from
-      // (`obviousExitsFor`), so what you can name is what you can touch.
-      // Never the physics list (`getObviousExits`), which skips a way whose
-      // far side is not standing: the rope's way down off the Sunken
-      // Delve's lip bound, and was "you can't reach down" (harbors sibling
-      // drives, 2026-11-04).
-      for (const exit of location.obviousExitsFor(actor)) {
-        // ⭐ The way itself (a direction binds the exit)
-        // or the door hung in it.
-        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
-      }
-    }
-    // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
-    // sign lives in `getFixtures()`, in no container — so the two
-    // containment scans above miss it exactly as they missed doors. The
-    // `here` scope offers them; reach must agree, or what you can name is
-    // not what you can touch.
-    if (location && MixinApi.isAdornable(location)) {
-      for (const f of location.getFixtures()) {
-        if (f.stuffId === id) return true;
-      }
-    }
-    return false;
+    if (target.stuffId === actor.stuffId) return true;
+    return reachOf(actor, opts).some(
+      (r) => r.pool !== 'around' && r.stuff.stuffId === target.stuffId,
+    );
   }
 
   /**
    * ⭐⭐ **The same rule, once, for a whole candidate list.**
    *
-   * `canReach` is O(room contents + one level into each open container)
-   * per call AND it is gated, so a caller that asks it per candidate
-   * pays that walk N times and a call-security stack capture N times.
-   * That is quadratic, and it is not theoretical: `get produce` on a
-   * farm floor binds every produce item in the open floor stock —
-   * hundreds — and `GetController` asked `canReach` for each. A live
-   * drive found **96.5% of the whole server's CPU inside
-   * `GetController.executeWholeSet`**, with a trivial HTTP GET taking
-   * 17 seconds behind it.
+   * `canReach` is a walk of everything to hand per call AND it is gated,
+   * so a caller that asks it per candidate pays that walk N times and a
+   * call-security stack capture N times. That is quadratic, and it is
+   * not theoretical: `get produce` on a farm floor binds every produce
+   * item in the open floor stock — hundreds — and `GetController` asked
+   * `canReach` for each. A live drive found **96.5% of the whole
+   * server's CPU inside `GetController.executeWholeSet`**, with a
+   * trivial HTTP GET taking 17 seconds behind it.
    *
    * One walk, one gate, O(1) per candidate afterwards. The RULE is not
-   * duplicated — this is the walk, and `canReach` is the single-target
-   * question asked of the same descent.
+   * duplicated — both read {@link reachOf}.
    */
   @CallSecurity(PerceptionApiCallers)
   public reachableAmong(
     actor: Stuff,
     candidates: readonly Stuff[],
-    opts?: { location?: Stuff | null },
+    opts?: { location?: Stuff | null; depth?: ReachDepth },
   ): Stuff[] {
     if (candidates.length === 0) return [];
-    const location =
-      opts?.location !== undefined
-        ? opts.location
-        : MixinApi.isContainable(actor)
-          ? actor.getContainer()
-          : null;
-
-    // The reachable id set: everything directly in the actor or the
-    // room, plus one level into each open container on either side —
-    // the same descent `canReach` walks, and the same
-    // `MixinApi.isOpenContainer` the `peers` scope asks.
-    const ids = new Set<string>([actor.stuffId]);
-    const collect = (holder: Stuff | null): void => {
-      if (!holder || !MixinApi.isContainer(holder)) return;
-      for (const c of holder.getContents()) {
-        ids.add(c.stuffId);
-        if (MixinApi.isOpenContainer(c)) {
-          for (const inner of c.getContents()) ids.add(inner.stuffId);
-        }
-      }
-    };
-    collect(MixinApi.isContainer(actor) ? actor : null);
-    collect(location);
-    // Attached doors ride their exit, in no container at all.
-    if (location && MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
-        const door = exit.getDoor();
-        if (door) ids.add(door.stuffId);
-      }
-    }
-    // ...and fixtures ride the room's fixture map, likewise uncontained.
-    if (location && MixinApi.isAdornable(location)) {
-      for (const f of location.getFixtures()) ids.add(f.stuffId);
+    const ids = new Set<string>();
+    for (const r of reachOf(actor, opts)) {
+      if (r.pool !== 'around') ids.add(r.stuff.stuffId);
     }
     return candidates.filter((c) => ids.has(c.stuffId));
   }
@@ -594,54 +496,13 @@ export class PerceptionLogic extends ApiLogic {
   /** See {@link PerceptionApi.visibleContentsOf}. */
   @CallSecurity(PerceptionApiCallers)
   public visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
-    const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
-    if (!MixinApi.isContainer(target)) return out;
-    if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-    // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
-    // found the hidden dagger, or whose eye is sharp enough, sees it (the
-    // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
-    // hid a discovered thing again the moment it sat in a listing — and
-    // the room listing reads through here since `look` became one query.
-    const seen = (s: Stuff): boolean =>
-      !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
-    const own = viewer.stuffId === target.stuffId;
-    const person = own || this.isAnotherPerson(viewer, target);
-    const slotted = new Set<string>();
-    if (person && MixinApi.isSlotted(target)) {
-      for (const [slot, occupants] of target.getAllOccupants()) {
-        const spec = target.getSlotSpec(slot);
-        const accepts = spec?.accepts ?? '';
-        const kind = accepts.includes('Wieldable')
-          ? 'held'
-          : accepts.includes('Wearable') || spec?.userFacingDetail
-            ? 'worn'
-            : 'inside';
-        for (const o of occupants) {
-          // ⭐ Once, however many slots it covers (found by the underwater
-          // browser walk: a diving dress claims torso and legs and was
-          // listed as worn twice).
-          if (slotted.has(o.stuffId)) continue;
-          slotted.add(o.stuffId);
-          if (!seen(o)) continue;
-          if (kind === 'held') out.held.push(o);
-          else if (kind === 'worn') out.worn.push(o);
-          else if (own) out.carried.push(o);
-        }
-      }
-    }
-    const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
-    // A person's pockets are theirs to know; a container's contents are
-    // in view of anybody who can see into it.
-    if (own || !person) out.carried.push(...loose);
-    return out;
+    return visibleContentsImpl(viewer, target);
   }
 
   /** See {@link PerceptionApi.isAnotherPerson}. */
   @CallSecurity(PerceptionApiCallers)
   public isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
-    // A PERSON is an agent with slots; a rack is slotted and wears
-    // nothing, so it lists like any container.
-    return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
+    return isAnotherPersonImpl(viewer, target);
   }
 
   /** See {@link PerceptionApi.glance}. */
@@ -654,6 +515,15 @@ export class PerceptionLogic extends ApiLogic {
     return `${point}, some ${Math.round(rangeNm)} miles off`;
   }
 
+
+  /** See {@link PerceptionApi.observe}. */
+  @CallSecurity(PerceptionApiCallers)
+  public async observe(actor: Stuff, target: Stuff): Promise<Observation> {
+    await this.preloadForSenseGate(actor);
+    const place = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (place !== null && target === place) return observePlace(actor, place);
+    return observeThing(actor, target);
+  }
 
   /** See {@link PerceptionApi.resolveSearch}. */
   @CallSecurity(PerceptionApiCallers)
@@ -1220,6 +1090,168 @@ function resolveSearchImpl(
   return found;
 }
 
+/** See {@link PerceptionApi.visibleContentsOf}. */
+function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
+  const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
+  if (!MixinApi.isContainer(target)) return out;
+  if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
+  // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
+  // found the hidden dagger, or whose eye is sharp enough, sees it (the
+  // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
+  // hid a discovered thing again the moment it sat in a listing — and
+  // the room listing reads through here since `look` became one query.
+  const seen = (s: Stuff): boolean =>
+    !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
+  const own = viewer.stuffId === target.stuffId;
+  const person = own || isAnotherPersonImpl(viewer, target);
+  const slotted = new Set<string>();
+  if (person && MixinApi.isSlotted(target)) {
+    for (const [slot, occupants] of target.getAllOccupants()) {
+      const spec = target.getSlotSpec(slot);
+      const accepts = spec?.accepts ?? '';
+      const kind = accepts.includes('Wieldable')
+        ? 'held'
+        : accepts.includes('Wearable') || spec?.userFacingDetail
+          ? 'worn'
+          : 'inside';
+      for (const o of occupants) {
+        // ⭐ Once, however many slots it covers (found by the underwater
+        // browser walk: a diving dress claims torso and legs and was
+        // listed as worn twice).
+        if (slotted.has(o.stuffId)) continue;
+        slotted.add(o.stuffId);
+        if (!seen(o)) continue;
+        if (kind === 'held') out.held.push(o);
+        else if (kind === 'worn') out.worn.push(o);
+        else if (own) out.carried.push(o);
+      }
+    }
+  }
+  const loose = target.getContents().filter((c) => !slotted.has(c.stuffId) && seen(c));
+  // A person's pockets are theirs to know; a container's contents are
+  // in view of anybody who can see into it.
+  if (own || !person) out.carried.push(...loose);
+  return out;
+}
+
+/** See {@link PerceptionApi.isAnotherPerson}. */
+function isAnotherPersonImpl(viewer: Stuff, target: Stuff): boolean {
+  // A PERSON is an agent with slots; a rack is slotted and wears
+  // nothing, so it lists like any container.
+  return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
+}
+
+/* ───────────────────────── the look (controller-liquidity W8) ───────────────────────── */
+
+/**
+ * The room's listing as the viewer sees it — its contents, perceived
+ * (honest fog: a concealed thing the viewer hasn't discovered is absent
+ * from their world), never the room's structure (an adornment routes
+ * through its host), never the viewer. The same query `sense` reads.
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+
+/** An observation that took nothing in. */
+function emptyObservation(): Observation {
+  return {
+    band: null, dark: false, indistinct: false,
+    seen: [], exits: [], holds: null, found: [], hints: [],
+  };
+}
+
+/**
+ * The light band at `place` as `viewer` perceives it (envelope D10 — a
+ * night-sighted species and a human in the same room get different
+ * answers), or `null` when the viewer cannot run vision queries or the
+ * vision singleton is not loaded. `null` degrades to describing the room:
+ * a perception gap must never take `look` down.
+ */
+function perceivedBandImpl(viewer: Stuff, place: Stuff): LightBand | null {
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return null;
+  if (!MixinApi.isContainer(place)) return null;
+  try {
+    const vision = resolveByName('vision') as VisionModality;
+    return vision.perceivedBand(
+      viewer as Stuff & Sensor & Perception,
+      place as unknown as Stuff & Container,
+    );
+  } catch {
+    return null;
+  }
+}
+
+/** See {@link PerceptionApi.observe} — a place observed from inside. */
+async function observePlace(
+  viewer: Stuff,
+  place: Stuff & Container,
+): Promise<Observation> {
+  const band = perceivedBandImpl(viewer, place);
+  const dark = band !== null && LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band);
+  // Lazily: the MQL pipeline's predicates read perception, so a static
+  // import here would close a module cycle through this singleton.
+  const { MqlApi } = await import('../../../api/mql');
+  const seen = MqlApi.resolveMany(ROOM_LISTING, {
+    commandGiver: viewer as never,
+    scope: 'here',
+  }).stuff;
+  // ⭐ Nothing to perceive teaches nothing — the void on a fresh login
+  // writes no map claim and tracks nobody.
+  const indistinct =
+    !MixinApi.isVisible(place) &&
+    !MixinApi.isExitable(place) &&
+    !MixinApi.isNamed(place) &&
+    seen.length === 0;
+  if (indistinct) return { ...emptyObservation(), band, indistinct, seen };
+  // ⭐⭐ The body runs the perception gate, tells whatever it keeps (a map,
+  // a memory, nothing) and hands back the exits this viewer may know about
+  // — the same ones the verb renders, because computing them twice is how
+  // the transcript and the map could ever disagree. In the dark: the ways
+  // out you can feel along a wall for, never the people you cannot see.
+  const exits = MixinApi.isPerceiver(viewer)
+    ? viewer.learnSurroundings(place, dark ? [] : seen)
+    : [];
+  // Passive hints (honest fog): the full contents + every exit (hidden
+  // ones included), narrowed to the close-but-unperceived. Nothing is
+  // nearly seen in a place too dark to describe.
+  let hints: Stuff[] = [];
+  if (!dark) {
+    const candidates: Stuff[] = [...place.getContents()];
+    if (MixinApi.isExitable(place)) {
+      for (const exit of place.getExits().values()) {
+        candidates.push(exit as unknown as Stuff);
+      }
+    }
+    hints = hintsForImpl(viewer, candidates);
+  }
+  return { ...emptyObservation(), band, dark, seen, exits, hints };
+}
+
+/** See {@link PerceptionApi.observe} — a thing looked at. */
+async function observeThing(viewer: Stuff, target: Stuff): Promise<Observation> {
+  // ⭐ (cleanliness D21) What has been happening to it since it was last
+  // looked at — the sun on a line, the fume in a shut room — settles
+  // before it is described.
+  if (MixinApi.isSoilable(target)) await target.reconcileAiring();
+  // A thing that cannot be seen teaches nothing.
+  if (!MixinApi.isVisible(target)) return emptyObservation();
+  // Repeat-perception: a deliberate look at a being tracks it (the same
+  // coalescing stranger-record write the room listing makes).
+  if (MixinApi.isOrganism(target) && MixinApi.isBeliefStore(viewer)) {
+    viewer.learnIdentityOf(target, null);
+  }
+  if (!MixinApi.isContainer(target)) return emptyObservation();
+  // What it visibly holds is read FIRST: the close look below may turn
+  // something up, and that is told as a finding, not folded into the list.
+  const holds = visibleContentsImpl(viewer, target);
+  const contents = [...target.getContents()];
+  if (contents.length === 0) return { ...emptyObservation(), holds };
+  // The close look: the cheap `glance` depth of the active search, which
+  // records each discovery. Then what is still nearly seen.
+  const found = resolveSearchImpl(viewer, contents, 'glance');
+  const hints = hintsForImpl(viewer, contents);
+  return { ...emptyObservation(), holds, found, hints };
+}
+
 /** See {@link PerceptionApi.hintsFor}. */
 function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
   const cutoff = dialNumber(
@@ -1428,10 +1460,158 @@ function horizonAshore(viewer: Stuff): HorizonView {
 
 /** The room `who` stands in — through any vessel (a boat) to the Place. */
 function roomOf(who: Stuff): (Stuff & Container) | null {
-  let cur: Stuff | null = MixinApi.isContainable(who) ? who.getContainer() : null;
-  for (let i = 0; cur !== null && i < 8; i++) {
-    if (cur.isPlace() && MixinApi.isContainer(cur)) return cur;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  if (!MixinApi.isContainable(who)) return null;
+  const place = who.getEnclosingPlace();
+  return place !== null && place.isPlace() ? place : null;
+}
+
+/**
+ * ⭐⭐⭐ **Everything `actor` can lay hands on, each tagged with its pool —
+ * the ONE definition of reach** (controller-liquidity D5, W20). Read by
+ * `canReach` / `reachableAmong` (membership) and by MQL's `person` ·
+ * `inventory` · `here` · `peers` · `reachable` pools (`api/mql/scope-walk`
+ * filters it by pool and builds its candidates from it), so what you can
+ * name is what you can touch — there is no second assembly to drift.
+ *
+ * ⚠ `around` — the holders themselves (the place, the vessel you sit in) —
+ * is in the list because MQL's `here` names them, and is the ONE pool that
+ * is not reach: a hand is IN the room, not on it, so `canReach` and
+ * `reachableAmong` skip it (the vessel is still reached as a `peer` of
+ * the place it stands in).
+ *
+ * Emission order is MQL's tie-break and is kept exactly: the PERSON first
+ * (`self`, then what is `attached` — slot occupants and the apps an
+ * implant hosts — and the `inventory` at the rung), then `here` (the
+ * place's surface, then the vessel's you sit in), then `peers`.
+ *
+ * The holders: the actor's person; the place around it
+ * (`getEnclosingPlace` — in a boat on the river, the river) AND the vessel
+ * it sits in when that is not the place (the passenger beside you in a
+ * shut coach is to hand though the coach's lid is between you and the
+ * road); and `opts.location` when a caller names one. Each holder's
+ * contents are `Container.getReachableContents(rung)` — the per-container
+ * walk underneath. Then what lives in no container at all:
+ *
+ * ⚠ Attached doors ride `exit.getBoundary()` — a containment-only test misses
+ * every door in the game (the card hold that omitted them released
+ * `out-of-reach` on doors `open` worked on perfectly well); and the way
+ * itself binds a direction. The ways — and so their doors — are the ones
+ * the ACTOR can see (`obviousExitsFor`), never the physics list: the
+ * rope's way down off the Sunken Delve's lip bound and was "you can't
+ * reach down" (harbors sibling drives, 2026-11-04), and a hidden way's
+ * door would name the way it hides.
+ *
+ * ⚠ ...and fixtures ride the room's fixture map, likewise uncontained —
+ * `peers`, because a fixture is a thing a person hangs and takes down;
+ * `here` is the surface you never pick up (the place, its ways and their
+ * doors, the buildings whose landing it is, open ground seen across a way).
+ *
+ * ⚠ Reach is not perception: nothing here asks `perceives` (MQL does, per
+ * candidate). `opts.pools` computes only the sections asked for, so an
+ * `inventory` scope never walks the room.
+ */
+function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
+  const rung = opts?.depth ?? 'open';
+  const want = (p: ReachPool): boolean => !opts?.pools || opts.pools.includes(p);
+  const out: Reached[] = [];
+  const push = (stuff: Stuff, pool: ReachPool): void => {
+    if (want(pool)) out.push({ stuff, pool });
+  };
+  // The apps an implant hosts are on the person with it.
+  const pushHosted = (host: Stuff): void => {
+    if (!MixinApi.isAether(host)) return;
+    for (const u of host.getHostedUpdates()) {
+      if (u !== actor) push(u, 'attached');
+    }
+  };
+
+  // ── the person ──
+  if (want('self') || want('attached') || want('inventory')) {
+    push(actor, 'self');
+    pushHosted(actor);
+    if (MixinApi.isSlotted(actor)) {
+      for (const occupants of actor.getAllOccupants().values()) {
+        for (const occ of occupants) {
+          push(occ, 'attached');
+          pushHosted(occ);
+        }
+      }
+    }
+    if (MixinApi.isContainer(actor)) {
+      if (want('inventory')) {
+        for (const item of actor.getReachableContents(rung)) push(item, 'inventory');
+      }
+      if (want('attached')) {
+        for (const item of actor.getContents()) pushHosted(item);
+      }
+    }
   }
-  return null;
+  if (!want('here') && !want('peers')) return out;
+
+  // ── the holders around the person: the place, the vessel, a named one ──
+  if (!MixinApi.isContainable(actor)) return out;
+  const place = actor.getEnclosingPlace();
+  const holders: (Stuff & Container)[] = [];
+  for (const h of [place, actor.getContainer(), opts?.location ?? null]) {
+    if (h && MixinApi.isContainer(h) && !holders.some((x) => x.stuffId === h.stuffId)) {
+      holders.push(h);
+    }
+  }
+
+  if (want('here') || want('around')) {
+    for (const holder of holders) {
+      // What holds you is named (`look here`) but not laid hands on: a
+      // direction binds the WAY, never the room (harbors review 3).
+      push(holder, 'around');
+      if (!MixinApi.isExitable(holder)) continue;
+      const ways = holder.obviousExitsFor(actor);
+      const doors = new Set<string>();
+      for (const way of ways) {
+        const door = way.getBoundary();
+        if (!door || doors.has(door.stuffId)) continue;
+        doors.add(door.stuffId);
+        push(door, 'here');
+      }
+      for (const way of ways) push(way, 'here');
+      // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
+      // structure is an Idea, never in a room, so it is reached from where
+      // it meets the weather — `look cottage` from the lane.
+      if (holder.isPlace()) {
+        for (const s of (holder as unknown as Place).landedStructuresNow()) {
+          push(s as unknown as Stuff, 'here');
+        }
+      }
+      // ⭐ A place read from where it is reached (tracts build D30): open
+      // ground through a way, by its own name from this side — only the
+      // place, never what stands in it, and only when it is loaded.
+      const far = new Set<string>();
+      for (const way of ways) {
+        const there = way.peekDestination();
+        if (!there || there === holder || !there.isPlace()) continue;
+        if (!(there as unknown as Place).isSeenAcrossExit()) continue;
+        if (far.has(there.stuffId)) continue;
+        far.add(there.stuffId);
+        push(there, 'here');
+      }
+    }
+  }
+
+  if (want('peers')) {
+    const seen = new Set<string>([actor.stuffId]);
+    for (const holder of holders) {
+      for (const item of holder.getReachableContents(rung)) {
+        if (seen.has(item.stuffId)) continue;
+        seen.add(item.stuffId);
+        push(item, 'peers');
+      }
+      if (MixinApi.isAdornable(holder)) {
+        for (const fixture of holder.getFixtures()) {
+          if (seen.has(fixture.stuffId)) continue;
+          seen.add(fixture.stuffId);
+          push(fixture, 'peers');
+        }
+      }
+    }
+  }
+  return out;
 }

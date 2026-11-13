@@ -19,15 +19,16 @@
  *
  * | | Verb | What it is |
  * |---|---|---|
- * | the mirror | `survey` — shipped, free, ungated | *what is this place* |
+ * | the mirror | `analyze rooms` — shipped, free, ungated | *what is this place* |
  * | the measurement | `measure <channel>` | instrumented, banded, load-bearing |
  * | the interpretation | `analyze ground` | route-gated synthesis with error bands |
  *
- * ⭐⭐ **`survey` is a MIRROR. The mine's read is a MEASUREMENT.** The
- * geological read is instrument-mediated, competence-banded, and the
+ * ⭐⭐ **`analyze rooms` is a MIRROR. The mine's read is a MEASUREMENT.**
+ * The geological read is instrument-mediated, competence-banded, and the
  * thing a player pays for and acts on — the opposite of a read nothing
- * is gated on. It does not fold into `survey`, and `survey` still works
- * in a working for free.
+ * is gated on. It does not fold into `analyze rooms`, and that still
+ * works in a working for free. (The mirror was the `survey` verb until
+ * controller-liquidity W17; the word went back to the surveyors.)
  *
  * ## What competence buys
  *
@@ -55,6 +56,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { GroundSample } from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** The Discipline every geological read is banded by, and credits. */
 export const GEOLOGY = 'geology';
@@ -162,7 +164,7 @@ export abstract class SurveyReading extends Reading {
     if (!deposit) return null;
     const sample = deposit.sampleAt(this.metresAt(place), await this.seedAt(place));
     const mineral = sample.mineralPath
-      ? StuffApi.findByTemplatePath<Material>(sample.mineralPath) ?? null
+      ? MaterialApi.materials().need(sample.mineralPath)
       : null;
     return { sample, mineral };
   }

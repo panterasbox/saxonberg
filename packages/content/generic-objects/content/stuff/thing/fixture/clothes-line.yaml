@@ -9,6 +9,6 @@ data:
   register: indefinite
   longDescription: A rope strung taut between two posts, with a bag of wooden pegs hung on one of them.
   airExposure: 1
-  placements: [on, from]
+  placements: [/platform/placements/on, /platform/placements/from]
   _materialPath: /stuff/idea/material/textile/linen
   mass: 3

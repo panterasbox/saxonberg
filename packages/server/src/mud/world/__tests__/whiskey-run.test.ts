@@ -29,10 +29,9 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import MaturationProfileRef from '../../lib/maturation/MaturationProfile';
 import CraftVessel from '../../platform/thing/CraftVessel';
-import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
-import FractionSchedule from '../../platform/idea/fractionation/FractionSchedule';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
+import FractionSchedule from '../../lib/fractionation/FractionSchedule';
 import Condition from '../../platform/idea/Condition';
 import Material from '../../lib/material/Material';
 import Drink from '../../platform/idea/material/Drink';
@@ -56,6 +55,7 @@ import {
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../platform/idea/WorldClockRegistry';
 import Still from '../../../../../content/trade-distilling/src/thing/Still';
+import { forgetProfiles, rememberProfile, rememberSchedule } from '../../lib/maturation/__tests__/profiles';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const DISTILLING = join(PACKS, 'trade-distilling');
@@ -72,7 +72,8 @@ function row(pack: string, rel: string): Record<string, unknown> {
   const raw = parse(readFileSync(join(pack, rel), 'utf8')) as {
     data: Record<string, unknown>;
   };
-  return raw.data;
+  // A document (load-on-use W4) has no `data:` wrapper.
+  return raw.data ?? (raw as unknown as Record<string, unknown>);
 }
 
 /** Stand an authored Material row up at its own path — its own KIND. */
@@ -104,11 +105,10 @@ function material(rel: string, path: string): Material {
 function washSchedule(): FractionSchedule {
   const data = row(
     DISTILLING,
-    'content/trade/distilling/idea/fractionation/wash.yaml',
+    'content/fraction-schedules/wash.yaml',
   );
-  return makeStuffAtPath(() => {
+  return rememberSchedule(() => {
     const s = new FractionSchedule();
-    s.setKey(String(data.key));
     s.setInputCategory(String(data.inputCategory));
     s.setDiscipline(String(data.discipline));
     s.setRequiresHeatK(Number(data.requiresHeatK));
@@ -118,7 +118,7 @@ function washSchedule(): FractionSchedule {
     s.setGradeStretch(Number(data.gradeStretch));
     s.setFractions(data.fractions as never);
     return s;
-  }, '/trade/distilling/idea/fractionation/wash');
+  }, '/trade/distilling/fraction-schedules/wash');
 }
 
 /** Stand the authored methanol condition row up. */
@@ -284,6 +284,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   StuffApi.clearAll();
+  forgetProfiles();
 });
 
 describe('⭐⭐ the run, on the shipped rows', () => {
@@ -468,11 +469,10 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
   function agingProfile(): MaturationProfile {
     const data = row(
       DISTILLING,
-      'content/trade/distilling/idea/maturation/whiskey-aging.yaml',
+      'content/maturation-profiles/whiskey-aging.yaml',
     );
-    return makeStuffAtPath(() => {
+    return rememberProfile(() => {
       const p = new MaturationProfile();
-      p.setKey(String(data.key));
       p.setMechanism(data.mechanism as never);
       p.setInputCategory(String(data.inputCategory));
       p.setSealedOnly(data.sealedOnly === true);
@@ -488,7 +488,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
       // have.
       p.productAtFraction = Number(data.productAtFraction ?? 1);
       return p;
-    }, '/trade/distilling/idea/maturation/whiskey-aging');
+    }, '/trade/distilling/maturation-profiles/whiskey-aging');
   }
 
   /** The authored cask row, bunged and in a happy warehouse. */
@@ -633,11 +633,10 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
   function grainSchedule(): FractionSchedule {
     const data = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+      'content/fraction-schedules/grain-wash.yaml',
     );
-    return makeStuffAtPath(() => {
+    return rememberSchedule(() => {
       const s = new FractionSchedule();
-      s.setKey(String(data.key));
       s.setInputCategory(String(data.inputCategory));
       s.setDiscipline(String(data.discipline));
       s.setRequiresHeatK(Number(data.requiresHeatK));
@@ -647,7 +646,7 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
       s.setGradeStretch(Number(data.gradeStretch));
       s.setFractions(data.fractions as never);
       return s;
-    }, '/trade/distilling/idea/fractionation/grain-wash');
+    }, '/trade/distilling/fraction-schedules/grain-wash');
   }
 
   function grainStill(chargeL: number): Still & { testHeatK: number } {
@@ -696,11 +695,11 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
     // whisky and it is four numbers in a row file.
     const malt = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/wash.yaml',
+      'content/fraction-schedules/wash.yaml',
     ).fractions as { key: string; upTo: number }[];
     const grain = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+      'content/fraction-schedules/grain-wash.yaml',
     ).fractions as { key: string; upTo: number }[];
     const span = (f: typeof malt, key: string) => {
       const i = f.findIndex((x) => x.key === key);
@@ -720,11 +719,11 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
       ).find((t) => t.type === 'methanol')?.amount ?? 0;
     const malt = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/wash.yaml',
+      'content/fraction-schedules/wash.yaml',
     ).fractions as Record<string, unknown>[];
     const grain = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+      'content/fraction-schedules/grain-wash.yaml',
     ).fractions as Record<string, unknown>[];
     for (const key of ['foreshots', 'heads', 'hearts']) {
       expect(doseOf(grain, key), key).toBeLessThan(doseOf(malt, key));
@@ -737,7 +736,7 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
     // cheaper, easier spirit must not be a safer-looking trap.
     const grain = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+      'content/fraction-schedules/grain-wash.yaml',
     ).fractions as Record<string, unknown>[];
     const hearts = (
       (grain.find((x) => x.key === 'hearts')!.toxins ?? []) as {
@@ -756,7 +755,7 @@ describe('⭐ grain whisky — a second line, in rows only', () => {
     // carry here would assert a chemistry that is not in the charge.
     const grain = row(
       DISTILLING,
-      'content/trade/distilling/idea/fractionation/grain-wash.yaml',
+      'content/fraction-schedules/grain-wash.yaml',
     ).fractions as { aromaticCarry?: number }[];
     for (const f of grain) {
       expect(f.aromaticCarry ?? 1).toBe(1);
@@ -791,14 +790,11 @@ describe('⚠⚠ no material matches two profiles or two schedules', () => {
         }
         if (!entry.name.endsWith('.yaml')) continue;
         if (!full.includes(infix)) continue;
-        const data = (
-          parse(readFileSync(full, 'utf8')) as {
-            data?: Record<string, unknown>;
-          }
-        ).data;
-        if (!data?.key || !data?.inputCategory) continue;
+        // A DOCUMENT (load-on-use W4): no `data:` wrapper; the leaf is the key.
+        const data = parse(readFileSync(full, 'utf8')) as Record<string, unknown> | null;
+        if (!data?.inputCategory) continue;
         out.push({
-          key: String(data.key),
+          key: entry.name.slice(0, -'.yaml'.length),
           inputCategory: String(data.inputCategory),
         });
       }
@@ -808,8 +804,8 @@ describe('⚠⚠ no material matches two profiles or two schedules', () => {
   }
 
   for (const [what, infix] of [
-    ['maturation profile', '/idea/maturation/'],
-    ['fractionation schedule', '/idea/fractionation/'],
+    ['maturation profile', '/content/maturation-profiles/'],
+    ['fractionation schedule', '/content/fraction-schedules/'],
   ] as const) {
     it(`no tag is claimed by two ${what} rows`, () => {
       const rows = allRows(infix);
@@ -920,7 +916,8 @@ describe('⭐⭐ vatting — the blend requires both lines', () => {
       DISTILLING,
       'content/trade/distilling/thing/still-book.yaml',
     );
-    expect(book.offeredRecipes as string[]).toContain('vat-whisky');
+    // Recipes are cited by path since the documents build (W1).
+    expect(book.offeredRecipes as string[]).toContain('/trade/distilling/recipes/vat-whisky');
     // `standard`, and the hand claims `distilling: proficient` — which is
     // what licenses standard work. No `blending` discipline: a
     // distillery vats its own, and it is the same judgement.

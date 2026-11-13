@@ -44,7 +44,8 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
-import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import GroundCharacter, { TEXTURE_MATERIALS } from '@saxonberg/content-ground/src/idea/GroundCharacter';
+import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
@@ -54,6 +55,7 @@ import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';
 import TranscriptEntry from '@saxonberg/server/mud/lib/advancement/TranscriptEntry';
 import { Competence } from '@saxonberg/server/mud/lib/advancement/Competence';
 import { DerivedStandingCache } from '@saxonberg/server/mud/lib/standing/DerivedStandingCache';
+import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
 
 /** Set a reserve's level, keeping its capacity. */
 function level(host: Reserved, key: string, value: number): void {
@@ -91,8 +93,14 @@ function profile(): GrowthProfileData {
   };
 }
 
-/** `StuffApi.clone` of the field row mints a bare `Field`. */
+/**
+ * `StuffApi.clone` of the field row mints a bare `Field`. ⭐ And the soils
+ * a field can become stand in, blank: `ensureFields` loads the sample's
+ * texture material by `ensure` (load-on-use D2 c) from the content store,
+ * which a suite does not have.
+ */
 function mockFieldClone(): void {
+  standMaterials(Object.values(TEXTURE_MATERIALS));
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path !== '/trade/farming/thing/field') throw new Error(`no row ${path}`);
     return makeStuffAtPath(() => new Field(), path);
@@ -196,7 +204,12 @@ describe('a tract divided into fields', () => {
     const top = field(f, 'top-end');
     expect(top.presentationPhrase().definite()).toBe('the top end');
     expect(top.getKeywords()).toEqual(expect.arrayContaining(['top end', 'top', 'end', 'top-end']));
-    expect(f.soilPartRefusal()).toBe('Which field? Name one: the top end or the lane end.');
+    const r = f.resolvePartFor(null);
+    expect(r.ok === 'choose' && r.choices.map((p) => p.presentationPhrase().definite())).toEqual([
+      'the top end',
+      'the lane end',
+    ]);
+    expect(r.ok === 'choose' && r.facts.noun).toBe('field');
   });
 
   it("⭐ the tract's moisture is the area-weighted mean of its fields", async () => {
@@ -314,6 +327,8 @@ describe('a tract divided into fields', () => {
       top.getVigor();
       clock.mockReturnValue(Quantity.of(base + 20 * DAY, 's'));
 
+      // A band read loads the discipline dictionary; this suite has no store.
+      await rememberDisciplines();
       const rows: Array<Record<string, unknown>> = [];
       DerivedStandingCache._clearAllForTesting();
       vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
@@ -400,7 +415,7 @@ describe('a tract divided into fields', () => {
     expect(f.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(true);
     const p = crop(f, 300);
     expect(p.getBed()).toBe(f);
-    expect(f.soilPartRefusal()).toBeNull();
+    expect(f.resolvePartFor(null)).toEqual({ ok: true, part: null });
   });
 });
 

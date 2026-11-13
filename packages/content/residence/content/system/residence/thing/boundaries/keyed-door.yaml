@@ -1,0 +1,16 @@
+# A holding's keyed door (boundary build, D6) — the door a holding mints
+# for each keyed way of its copied plan, bolted, keyed at wake to the
+# parcel's keyway and free from the inside (`freeFrom`, stamped by the
+# holding). One door, two sides: locked from the yard is locked from the
+# hall.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40
+  shortDescription: door
+  keywords: [door]
+  locked: true
+  # On a latch: shut behind whoever passes, and a key that fits lets you
+  # through without unlocking it (the bolt is the lock gate's).
+  closesBehind: true

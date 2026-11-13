@@ -127,10 +127,23 @@ the Registry (not the stateless logic singleton) so it survives a
 reload of `api/address.ts`; a reload of the Registry re-clones and
 `onCreate` rebuilds idempotently.
 
+⭐ **The index stands at boot as the Api's `needs`** (load-on-use W10;
+round two built it on the first address question).
+`AddressApi.needs = [addressRegistry]` (and `GovernmentApi.needs` carries
+it too), and `AppBootstrap` readies every Api's needs once, before the
+manifest; the security wrapper still awaits them for async statics. Every READ door in `AddressLogic` goes through the
+registry and **throws `DocumentNotResidentError('address-index', …)` when
+it is cold** — the fall-open `?? null` that let a cold index answer "no
+locality" is gone. The write doors (a Locality registering itself before
+the index exists) stay no-ops; the rebuild picks it up. No caller readies it (W10 deleted the hand-readying). Suites have no
+locality rows, so `test-bootstrap` stands an EMPTY index
+(`lib/address/__tests__/address-index.ts`) whenever the registry is needed
+and not live — empty meaning "no locality covers this".
+
 - **`PathTrie.longestPrefix(path)` / `longestPrefixPath(path)`** — the
   additive nearest-ancestor reads (the deepest value-carrying prefix);
   segment-wise, no glob semantics.
-- **Eager roster clone.** Leaf Ideas clone lazily, so a Locality's
+- **Eager roster clone (when the index stands).** Leaf Ideas clone lazily, so a Locality's
   self-registration only fires once something clones it. The Registry's
   `onCreate` therefore eagerly clones every Locality template under
   `<root>/idea/Locality/` so the index is complete even for never-accessed
@@ -148,7 +161,7 @@ reload of `api/address.ts`; a reload of the Registry re-clones and
   system's, the instance is somebody's world). Found by the farmstead
   build; the `hearts-delight` row's own comment records it.
 - **v1 simplification (flagged for the delivery build):** the eager
-  clone-at-boot is trivial for the demonstrative roster; a future
+  clone at first use is trivial for the demonstrative roster; a future
   delivery build with hundreds of Localities may want a lazy/incremental
   scheme.
 
@@ -183,7 +196,7 @@ traceResolveFor(scope): Promise<AddressTrace>          // + provenance + coverag
 coveringLocalityOf(address): Locality | null           // SYNC longest-prefix fast-path
 findByAddress(address): Locality | null                // SYNC exact-match
 findLocalityByName(name): Locality | null              // SYNC, case-insensitive
-resolvePlace(raw, giver, herePath?): string            // the ONE place-naming ladder
+resolvePlace(raw, giver, herePath?): Promise<string>   // the ONE place-naming ladder (async: gated by `needs`)
 findByPath(path): Locality | null                      // SYNC templatePath lookup
 // index lifecycle (Locality self-registration; gated)
 registerLocality / deregisterLocality / rebuildCoverageIndex
@@ -206,7 +219,8 @@ gated `FromModule('/api/address#AddressApi')`) → `AddressRegistry`
   Localities land, weather upgrades to per-Locality by reading the same
   walk, with no weather-specific structure added.
 - **Sync fast-path.** The full walk is async, but
-  `coveringLocalityOf(address)` is a sync longest-prefix lookup: a
+  `coveringLocalityOf(address)` is a sync longest-prefix lookup (it
+  throws if the index has not stood — follow an awaited resolve): a
   consumer resolves the scope's address string once (async, cached on
   its own read path) then does covering lookups synchronously — keeping
   a hot read path (e.g. weather feeding thermal) off the async chain.
@@ -310,3 +324,13 @@ simplification.
 - [ref-shapes.md](../ref-shapes.md) — the identity ref for the `_address`
   declaration.
 - `lib/collections/PathTrie` — the coverage-index machinery.
+
+## History
+
+- **2026-11-11 — load-on-use round two (MR !575).** The address index
+  left the boot: `AddressApi.needs` stands the Registry on the first
+  address question, a cold index throws instead of answering `null`, and
+  `resolvePlace` became async so the job verbs and the haulage `ship`
+  verb are gated by the Api's own `needs` rather than readying it by hand
+  (§ The coverage index). Its review (W10) moved the index to boot, as the
+  Api's `needs`.

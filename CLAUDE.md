@@ -152,7 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, the front door + character select, anonymous-guest path, reconnect machine, the honest-state primitives
-  - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `cockpit shelf` + `first`
+  - [cockpit.md](./docs/subsystems/cockpit.md) — the `cockpit` verb + the non-diegetic `client-layout|card|shelf|style` verbs; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `client-shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
   - [presentation.md](./docs/subsystems/presentation.md) — what a thing is CALLED and which form a sentence needs: the `NounPhrase` (stem · register · count, built through `GrammarApi`), the six late-bound forms (`bare · handle · concise · presence · distinguishing · formal`), ⭐ `bare`/`handle` consult no perception gate — disguise is perceptual, anonymity declarative — the handle chain (authored keyword → job → species), and chat anonymity
@@ -195,7 +195,7 @@ behavior. Read the relevant doc before editing in its area.
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
   - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Placing/Sealable, vessels; **Placement** — where inside its container a thing sits (`on`·`in`·`from`, a row-extensible vocabulary), and the two composition refusals
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
-  - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
+  - [boundary.md](./docs/subsystems/boundary.md) — a way's boundary as ONE object whose sides are the exits (channel table, `freeFrom`, `WayRecord`), the edge rules + `track`s, exits/doors/Adornable, exit-kind templates, locks & keys
   - [location-graph.md](./docs/subsystems/location-graph.md) — the world's shape as a collection, and what a player knows of it: the `location_graph` projection + its invariant lint, `published` on the parcel (draft = a wall, offline = a camera), ⭐⭐ the per-player **map** document (channels `walked` · `seen` · `searched` · `published`, claims append and nothing is corrected) and the evidence firewall — ⛔ the index must never reach a client; ⭐⭐⭐ **routing** (`Traversal` — one walk, parameterized; a plan is a hypothesis that states its assumptions; cost per axis with the renderer selecting; the firewall made STRUCTURAL by an import gate) and the `route` verb
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
   - [light.md](./docs/subsystems/light.md) — Light value object, `signalAt`, AmbientLit, LightSource, per-viewer perception
@@ -241,7 +241,7 @@ behavior. Read the relevant doc before editing in its area.
   - [combat-hooks.md](./docs/subsystems/combat-hooks.md) — wizard-facing combat extension grammar: three `@hook` surfaces, the augment carrier, the influence bridge, species vocabulary
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [energy.md](./docs/subsystems/energy.md) — the `/system/energy` power economy, both epochs: lamp-oil street lighting (a producer + a depleting FuelStore + a civic bill) and the electric grid (a Feeder row → GridCatalogue compiled reachability, the parcel meter — feeder+powerBand, GridPoweredMixin, the sever/splice cut as the one state, `analyze grid`'s derived epoch); the meter is the boundary, poles are sparse LineAccess access points
-  - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
+  - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, maturation-profile documents `BulkableApi` stands at boot, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
   - [mould.md](./docs/subsystems/mould.md) — the container decides the SHAPE of what sets in it: `MouldMixin` and the set site (a mould keeps the solid in its own form, any other vessel drops the material's cast), three consumers — the cheese hoop (drains), the ingot mould and the ice pan (freeze)
   - [fractionation.md](./docs/subsystems/fractionation.md) — ⭐ the sibling of maturation, driven by the VOLUME DRAWN rather than the clock: FractionSchedule rows (ordered spans, each with a character, a grade band, a toxin dose and an `aromaticCarry`), FractionatingMixin's four policy-seam overrides, the blurred optimistic read (*the nose hears what it wants to hear*), and the cut as the skill
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
@@ -301,8 +301,8 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
-  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ `getBiome()` is a REGISTRY read and `BiomeCatalogue` is what warms the roster
-  - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ the article defect (`greedy: true`) and a required arg with no default both fail closed and SILENT
+  - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome Idea, the outward-walking chain resolver, SkyExposed; the instrument rungs are `instrumentation.md`'s now (rows over `Tool`, not classes); ⚠ a biome loads as its place's constituent — there is no biome catalogue
+  - [instrumentation.md](./docs/subsystems/instrumentation.md) — the reading ladder: ⭐⭐⭐ competence resolves DETAIL and never ACCESS; `analyze`/`measure`/`readings`/`sample`/`assay` flat over a `Reading` ROW any pack ships (`<root>/idea/reading/<channel>`), warmed by `ReadingCatalogue` (no Api); the seeded bracket, the instrument CEILING, the bench that keeps nothing of yours; ⚠ a required arg with no default fails closed and SILENT (the article defect is fixed in the binder); `analyze rooms` + `measure paint` took `survey`'s reads
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
@@ -831,11 +831,11 @@ reason.
   (`buy`/`sell`/`rent`/`menu`/`order`, `shelf consign|reclaim`,
   `rack check|reclaim`), harbor (the transport pack's `berth`), device
   ("operating a built object or mechanism" —
-  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
+  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail`/`draught`/`rake` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —
   `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `drive` is the
   vehicle's), fuel (`char`), smelting
-  (`smelt`), forestry (`fell` — a standard, a bole, or a planted tree;
+  (`smelt`), forestry (`fell` — a standard or a planted tree; a bole is `cut`;
   the coppice cut is the platform's `harvest` told its tool by the
   plant), ground and custody (platform), energy, and one category per
   trade pack (`farming`, `fishing`, `sericulture`, `glass`, …). ⭐ **Every view states its `category:`,
@@ -855,10 +855,10 @@ reason.
   than aliased: it belonged to a discipline whose own design had already
   decided the question. ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
-  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`dip`) and
+  (`pour`/`stir`/`knead`/`heat`/`dry`/`paste`/`repair`/`salvage`/`wash`/`dip`) and
   `retail/menu`+`order`, and `do` (shell) runs a script you `def`ined; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
-  `trade-cooking`: `cook`/`plate`/`cure`/`dry`/`smoke`/`butcher`;
+  `trade-cooking`: `cook`/`plate`/`cure`/`smoke`/`butcher`; `trade-dairying`: `churn`; `trade-drilling`: `spud`/`bore`;
   `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
@@ -866,7 +866,13 @@ reason.
   `trade-tanning`: `tan`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `job quit` (work), `house par`/`house stock` (banking) and
-  `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
+  `watch … on <screen>` (stream). The controller-liquidity build added
+  `paste` (crafting), `rake` (device), `outfit` (inventory),
+  `fight assess` (combat), `client-layout`/`client-card`/`client-shelf`/
+  `client-style` (shell), `stream-rotation` (stream), `churn`, `spud`, and the
+  `rooms`/`paint` readings (`analyze rooms`, `measure paint`); it retired
+  `survey`, `equip set`, `char <n>` (`draught`) and `heat <pot>` (`put <pot> on
+  <hearth>`). ⚠ The metal chain's acts are a `mining`
   CATEGORY of their own, and its survey channels are `Reading` ROWS the
   trade ships (`measure strike`/`dip`, `analyze ground`) — the platform's
   `measure`/`analyze` are flat verbs over a channel any pack can add, so
@@ -970,7 +976,7 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Fifteen exist. **Eleven
+absorbs the clones, and templates name that. Sixteen exist. **Twelve
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
@@ -978,7 +984,8 @@ deliberately share their base's name** (the import aliases it as
 `platform/location/Location`,
 `platform/location/Locale`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`,
-`platform/idea/Structure`, `platform/idea/Building` (`Ship` extends the
+`platform/idea/Structure`, `platform/idea/Building`, `platform/thing/Boundary`
+(a way's curtain or grating; `Door` and `Window` extend it) (`Ship` extends the
 `lib/structure/Structure` base directly). **Four are
 real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
 (← `Creature`), which is also the one twin that changed BRANCH — a corpse
@@ -1017,19 +1024,22 @@ good"* and none said *"a movable"*.
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
 `corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
 `instrument/`. ⚠ **No cluster is load-bearing — `material/` included.**
-The warm is `MaterialCatalogue.warm()`: it selects candidates by
-**template-path infix** (`/idea/material/`, every root's subtree) and
-keeps a row whose **`class` extends `Material` wherever it lives** —
-*never an allowlist of roots*, which is exactly how a pack's
+Materials load per row by their doors (a holder's constituent field, an
+act's `ensure`, a restoring setter's `ensureCited` — never at boot); the
+roster's readers are async `MaterialApi.all()` / `findByTag()`, which
+select by **template-path infix** (`/idea/material/`, every root's
+subtree) and keep a row whose **`class` extends `Material` wherever it
+lives** — *never an allowlist of roots*, which is exactly how a pack's
 `/system/arcana/idea/material/PotionMaterial` qualifies. **The kernel
-directory is NOT the filter**, and there is no `MaterialLogic.boot`.
+directory is NOT the filter.**
 
 Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 
-**Three named `lib/` residents that are instanced but never stamped**
-— `BoundaryAnchor`, `SandboxCrossingExit`, `LightningStrike` — stay.
+**Two named `lib/` residents that are instanced but never stamped**
+— `SandboxCrossingExit`, `LightningStrike` — stay (`BoundaryAnchor` retired
+with the boundary build).
 The test is *does an instance carry a template-path stamp*, not *is it
 ever `new`'d*. `Shadow` stays for a different reason: it is a framework
 attachment, riding any Stuff, never template-backed. ⚠ `ExitableVessel`

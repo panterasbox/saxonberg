@@ -67,6 +67,7 @@ import {
   COMPETENCE_BANDS,
   type CompetenceBandName,
 } from '../advancement/CompetenceBand';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** One exertion: metabolic watts held for game-seconds. */
 export interface Exertion {
@@ -249,7 +250,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (excessJ > 0 && MixinApi.isHygienic(self)) {
         const trunk = self.trunkSite();
         const load = excessJ / SWEAT_J_PER_LOAD;
-        if (trunk && load > 0.001) self.soilBodyPart(trunk, 'sweat', load, null, 'inner');
+        if (trunk && load > 0.001) self.soilBodyPart(trunk, DirtKinds.SWEAT, load, null, 'inner');
       }
       const endurance = self.getReserve('endurance');
       if (excessJ > 0 && endurance) {

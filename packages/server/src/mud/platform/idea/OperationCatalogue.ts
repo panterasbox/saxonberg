@@ -1,88 +1,35 @@
 /**
- * OperationCatalogue — the singleton Idea owning the surgical catalogue:
- * the authored `Operation` rows the `operate` verb picks from
- * (clinical-medicine D7).
+ * OperationCatalogue — the singleton that serves the `operation` documents
+ * (what a surgeon can do: `extraction`, `bleed-control`, `amputation`, any
+ * pack's `content/operations/`), reached as `ConditionApi.operations()`.
+ * What an operation IS: `lib/vitals/Operation.ts`.
  *
- * The `DisciplineCatalogue` recipe exactly: warmed at boot by CLASS
- * (`Template.findByClass(Operation.CLASS_PATH)`), so a row shipped under
- * ANY pack root (`/trade/medicine/idea/Operation/…`) is found; a residency
- * veto so it is never culled; a `onCreate` warm, a lazy cold state for
- * unit tests. Read-only canon — no runtime mutation.
- *
- * ⚠ A catalogue nothing boots reads empty forever, so the platform ships
- * `platform/idea/OperationCatalogue.yaml` and `packages/content/platform/
- * pack.yaml` boots it (`role: sync-read`).
+ * ⭐ `operate` reads `all()` — one indexed read the first time a surgeon
+ * operates, never at boot; a surgeon names an operation by its word.
  */
 
-import { Idea } from "../../lib/stuff/Idea";
-import { Template } from "../../lib/stuff/Template";
-import Operation, {
+import { DocumentCatalogue } from "../../lib/document/DocumentCatalogue";
+import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
+import type { BoundaryRole } from "../../lib/security/BoundaryRole";
+import {
   OPERATION_RESOLUTIONS,
+  type AnaesthesiaNeed,
+  type OperationAddresses,
   type OperationDescriptor,
   type OperationResolution,
-  type OperationAddresses,
-  type AnaesthesiaNeed,
-} from "./Operation";
-import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
-import type { VetoResult } from "../../lib/errors";
-import type { EvictionContext } from "../../lib/stuff/Stuff";
+} from "../../lib/vitals/Operation";
 
-const OperationCatalogueBase = Idea;
+export default class OperationCatalogue extends DocumentCatalogue<OperationDescriptor> {
+  /** A reference catalogue everyone reads (the commons). */
+  static boundaryRole: BoundaryRole = "commons";
 
-export default class OperationCatalogue extends OperationCatalogueBase {
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: "system singleton; never culled" };
-  }
+  protected readonly kind = "operation";
 
-  private cache: Map<string, OperationDescriptor> | null = null;
-
-  /** The authored descriptor for `key`, or `null`. */
-  public getOperation(key: string): OperationDescriptor | null {
-    this.ensureCache();
-    return this.cache!.get(key) ?? null;
-  }
-
-  /** Whether `key` names a cataloged operation. */
-  public has(key: string): boolean {
-    this.ensureCache();
-    return this.cache!.has(key);
-  }
-
-  /** Every authored operation (defensive copies). */
-  public allOperations(): OperationDescriptor[] {
-    this.ensureCache();
-    return [...this.cache!.values()].map(cloneDescriptor);
-  }
-
-  public override async onCreate(_context?: unknown): Promise<void> {
-    await this.loadCacheFromTemplates();
-  }
-
-  public invalidateCache(): void {
-    this.cache = null;
-  }
-
-  public canDestruct(): VetoResult {
-    return {
-      ok: false,
-      reason:
-        "OperationCatalogue is a system singleton and cannot be destructed",
-    };
-  }
-
-  private ensureCache(): void {
-    if (this.cache !== null) return;
-    this.cache = new Map();
-  }
-
-  private async loadCacheFromTemplates(): Promise<void> {
-    const templates = await Template.findByClass(Operation.CLASS_PATH);
-    const map = new Map<string, OperationDescriptor>();
-    for (const tpl of templates) {
-      const descriptor = buildDescriptor(tpl.data);
-      if (descriptor) map.set(descriptor.key, descriptor);
-    }
-    this.cache = map;
+  /** Read an operation document at `path` (the installer's validator too). */
+  public parse(data: Record<string, unknown>, path: string): OperationDescriptor {
+    const key = path.slice(path.lastIndexOf("/") + 1);
+    if (!key) throw new Error(`operation '${path}' has no leaf to be its word`);
+    return buildDescriptor(data, key);
   }
 }
 
@@ -110,10 +57,7 @@ function buildAddresses(value: unknown): OperationAddresses {
   return out;
 }
 
-function buildDescriptor(data: unknown): OperationDescriptor | null {
-  if (!data || typeof data !== "object") return null;
-  const d = data as Record<string, unknown>;
-  if (typeof d.key !== "string" || d.key.length === 0) return null;
+function buildDescriptor(d: Record<string, unknown>, key: string): OperationDescriptor {
   const comp = (d.competence ?? {}) as { discipline?: unknown; band?: unknown };
   const band = CompetenceBand.isBand(comp.band) ? comp.band : "competent";
   const resolution: OperationResolution = OPERATION_RESOLUTIONS.includes(
@@ -126,8 +70,8 @@ function buildDescriptor(data: unknown): OperationDescriptor | null {
       ? d.anaesthesia
       : "advised";
   return {
-    key: d.key,
-    label: typeof d.label === "string" && d.label.length > 0 ? d.label : d.key,
+    key,
+    label: typeof d.label === "string" && d.label.length > 0 ? d.label : key,
     addresses: buildAddresses(d.addresses),
     instrument: typeof d.instrument === "string" ? d.instrument : "surgery",
     competence: {
@@ -144,10 +88,3 @@ function buildDescriptor(data: unknown): OperationDescriptor | null {
   };
 }
 
-function cloneDescriptor(d: OperationDescriptor): OperationDescriptor {
-  return {
-    ...d,
-    addresses: { ...d.addresses, traumaTypes: d.addresses.traumaTypes ? [...d.addresses.traumaTypes] : undefined },
-    competence: { ...d.competence },
-  };
-}

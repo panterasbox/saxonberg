@@ -47,7 +47,7 @@ import YAML from "yaml";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { StuffApi } from "../../src/mud/api/stuff";
-import { Aroma, type AromaData } from "../../src/mud/lib/perception/Aroma";
+import type { AromaData } from "../../src/mud/lib/perception/Aroma";
 import { MixinApi } from "../../src/mud/api/mixin";
 import { ContainmentApi } from "../../src/mud/api/containment";
 import { AppSettings } from "../../src/mud/lib/config/AppSettings";
@@ -174,10 +174,10 @@ function primeAromas(): void {
     }
   }
   while (pending.length > 0) {
-    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const i = pending.findIndex((p) => !p.data.parent || PerceptionApi.aromas().resolveKnown(p.data.parent));
     if (i < 0) throw new Error(`aromas with no parent document: ${pending.map((p) => p.word).join(", ")}`);
     const [next] = pending.splice(i, 1);
-    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+    PerceptionApi.aromas().remember(next!.word, next!.data, next!.data.parent ? PerceptionApi.aromas().resolveKnown(next!.data.parent) : null);
   }
 }
 
@@ -320,7 +320,7 @@ describe("perception characterization — every place in the realm", () => {
 
       const smelled = smell().signalAt(loc);
       reading.ou = smelled ? round(smelled.strength.rawValue()) : null;
-      reading.smell = smelled && smelled.dominantAroma ? Aroma.wordOf(smelled.dominantAroma) : null;
+      reading.smell = smelled && smelled.dominantAroma ? PerceptionApi.aromas().wordOf(smelled.dominantAroma) : null;
 
       // ⭐ The gather in WALK ORDER — not sorted. The order is the
       // behaviour being pinned, and `Scene` consumes `out` in it.

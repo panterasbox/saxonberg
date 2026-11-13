@@ -250,7 +250,7 @@ describe('the locality treasury', () => {
       costPerStreetNight: 4,
       supplier: SUPPLIER,
     };
-    vi.spyOn(GovernmentApi, 'governmentChainAt').mockReturnValue([
+    vi.spyOn(GovernmentApi, 'governmentChainAt').mockResolvedValue([
       {
         key: 'testtown',
         name: 'Testtown',

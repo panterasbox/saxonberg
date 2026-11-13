@@ -1,0 +1,17 @@
+# Dry-laid — firebrick set course on course in a furnace's lining with
+# fireclay rubbed into the joints, no mortar to burn out (ceramics D19). A
+# lining is relined brick by brick: `fit lining to <furnace>` with
+# firebricks in reach puts back the ones that burnt through.
+key: dry-laid
+label: dry-laid
+portability: hand
+instrument: ''
+competence:
+  discipline: masonry
+  band: untrained
+reversible: effort
+strength: 0.7
+structuralRecovery: 0.5
+fastenerRecovery: 0.0
+tightenable: false
+failure: parted

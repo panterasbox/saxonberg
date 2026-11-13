@@ -22,4 +22,4 @@ data:
       - { part: handle, template: /trade/painting/thing/brush-handle, count: 1, role: structural, material: /stuff/idea/material/wood/beech }
       - { part: bristles, template: /trade/painting/thing/bristle, count: 1, role: wear, material: /trade/painting/idea/material/hog-bristle }
     joints:
-      - { key: setting, method: glued, members: [handle, bristles] }
+      - { key: setting, method: /platform/joints/glued, members: [handle, bristles] }

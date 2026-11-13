@@ -1,5 +1,6 @@
 /**
- * ConfigController — list / show / set behavior over a warmed AppSettings
+ * The `config` shapes — list / show / set behavior (ConfigListController,
+ * ConfigShowController, ConfigSetController — one controller per shape) over a warmed AppSettings
  * (PersistenceManager stubbed; no MongoDB), plus the developer-gate wiring.
  *
  * Output is captured by spying `Mml.fromMarkup` (it calls through), so we
@@ -11,7 +12,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
-import ConfigController from "../ConfigController";
+import ConfigListController from "../ConfigListController";
+import ConfigShowController from "../ConfigShowController";
+import ConfigSetController from "../ConfigSetController";
 import { AppApi } from "../../../../../api/app";
 import { AppSettings, AppSettingKeys } from "../../../../../lib/config/AppSettings";
 import { MessageApi } from "../../../../../api/message";
@@ -20,9 +23,13 @@ import { PersistenceManager } from "../../../../../../backend/PersistenceManager
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import requiresPrimeMinister from "../../../../../lib/command/validators/requiresPrimeMinister";
 import { CompactApi } from "../../../../../api/compact";
+import { ExecutionContextApi } from "../../../../../api/execution-context";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import { AuthorMixin } from "../../../../../lib/shell/Author";
 import { Idea } from "../../../../../lib/stuff/Idea";
+import { CommandApi } from "../../../../../api/command";
+import { CommandLineApi } from "../../../../../api/command-line";
+import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 
 function stubPM() {
   let findResult: Record<string, unknown>[] = [];
@@ -32,8 +39,7 @@ function stubPM() {
   return { setFindResult: (d: Record<string, unknown>[]) => (findResult = d) };
 }
 
-describe("ConfigController", () => {
-  let ctrl: ConfigController;
+describe("config controllers", () => {
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -54,7 +60,9 @@ describe("ConfigController", () => {
     AppSettings._resetForTesting();
     await AppSettings.warm();
 
-    ctrl = makeStuff(() => new ConfigController());
+    vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(true as never);
+    // The tier rule reads the ACTING principal from the dispatched context.
+    vi.spyOn(ExecutionContextApi, "getActingAuthor").mockReturnValue({} as never);
 
     // Capture rendered markup; let fromMarkup still build a real Mml.
     output = [];
@@ -84,7 +92,14 @@ describe("ConfigController", () => {
     AppSettings._resetForTesting();
   });
 
+  // ⭐ The binder's arity routing: no key lists, a key shows, a key and a
+  // value set (each shape is its own view — see the shapes test below).
   function run(model: Partial<CommandModel & { key: string; value: string }>) {
+    const ctrl = !model.key
+      ? makeStuff(() => new ConfigListController())
+      : model.value === undefined
+        ? makeStuff(() => new ConfigShowController())
+        : makeStuff(() => new ConfigSetController());
     return ctrl.execute(model as never, ctx);
   }
 
@@ -130,9 +145,16 @@ describe("ConfigController", () => {
   });
 
   it("the listing marks a Tier C key with its seat", async () => {
-    await AppApi.setSetting(AppSettingKeys.bankingWithdrawalDailyCap, "500");
+    await AppApi.setSetting(AppSettingKeys.bankingWithdrawalDailyCap, "500", "central-bank-governor");
     await run({});
     expect(output.join("\n")).toContain("banking.withdrawalDailyCap = 500  [C: central-bank-governor]");
+  });
+
+  it("⭐ a direct write by a non-PM is refused on the model, nothing written (D9)", async () => {
+    vi.mocked(CompactApi.holdsOffice).mockResolvedValue(false as never);
+    const r = await AppApi.setSetting(AppSettingKeys.defaultStartLocation, "/x");
+    expect(r).toMatchObject({ ok: false, reason: "not-seated" });
+    expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe("/world/lounge/idea/warren");
   });
 
   it("sets an unregistered key (open namespace) with a soft prose note, status ok", async () => {
@@ -147,13 +169,15 @@ describe("ConfigController", () => {
 });
 
 describe("config verb — the Prime Minister's (wizard-axis D12)", () => {
-  it("config.yaml gates the verb with requiresPrimeMinister, never the wizard axis", () => {
-    const path = fileURLToPath(
-      new URL("../../../../../../../../content/platform/content/platform/cmd/system/config.yaml", import.meta.url),
-    );
-    const view = YAML.parse(readFileSync(path, "utf-8"));
-    expect(view.verbs).toContain("config");
-    expect(view.validators).toEqual(["/lib/command/validators/requiresPrimeMinister"]);
+  it("every config shape gates the verb with requiresPrimeMinister, never the wizard axis", () => {
+    for (const file of ["config.yaml", "config-show.yaml", "config-set.yaml"]) {
+      const path = fileURLToPath(
+        new URL(`../../../../../../../../content/platform/content/platform/cmd/system/${file}`, import.meta.url),
+      );
+      const view = YAML.parse(readFileSync(path, "utf-8"));
+      expect(view.verbs).toContain("config");
+      expect(view.validators).toEqual(["/lib/command/validators/requiresPrimeMinister"]);
+    }
   });
 
   it("a seatless wizard is refused, naming the Prime Minister", async () => {
@@ -172,7 +196,7 @@ describe('⚠⚠ `config` is actually AFFORDED (the binder, not the controller)'
     // parses, the gate rejects a non-wizard, the controller lists and
     // sets. None of it asked the one question that matters — *can
     // anybody type the word* — because the suite loads `config.yaml`
-    // by path and calls `ConfigController` directly, which skips the
+    // by path and calls the controllers directly, which skips the
     // binder. A live drive typed `config freshness.muMaxPerHour 120`
     // as a WIZARD and the world answered "I don't understand
     // 'config'". Same shape as `eat`/`vomit` in this build and
@@ -183,5 +207,56 @@ describe('⚠⚠ `config` is actually AFFORDED (the binder, not the controller)'
       }
     ).commandContributions?.self;
     expect(contributed).toContain('platform/cmd/system/config.yaml');
+    expect(contributed).toContain('platform/cmd/system/config-show.yaml');
+    expect(contributed).toContain('platform/cmd/system/config-set.yaml');
+  });
+});
+
+describe('the three `config` shapes bind by arity (controller-liquidity W7a, rung 4)', () => {
+  function view(file: string): CommandDefinition {
+    const path = fileURLToPath(
+      new URL(`../../../../../../../../content/platform/content/platform/cmd/system/${file}`, import.meta.url),
+    );
+    return CommandDefinition.fromYaml(readFileSync(path, 'utf-8'), `platform/cmd/system/${file}`);
+  }
+  const views = ['config.yaml', 'config-show.yaml', 'config-set.yaml'].map(view);
+
+  /** Which views bind the line — the dispatcher tries each; a shape error moves on. */
+  function binders(line: string): string[] {
+    const parsed = CommandLineApi.parsePipeline(line).commands[0]!;
+    return views
+      .filter((cmd) => {
+        const r = CommandApi.assemble(parsed, cmd, {
+          commandGiver: {} as never,
+          location: {} as never,
+        });
+        if ('error' in r) {
+          // ⭐ Every miss is a SHAPE miss — a bind error would stop the chain.
+          expect(r.error).toBe('shape');
+          return false;
+        }
+        return true;
+      })
+      .map((cmd) => cmd.resolvedController ?? '');
+  }
+
+  it('bare `config` lists', () => {
+    expect(binders('config')).toEqual(['/platform/idea/cmd/system/ConfigListController']);
+  });
+
+  it('`config <key>` shows', () => {
+    expect(binders('config defaultStartLocation')).toEqual([
+      '/platform/idea/cmd/system/ConfigShowController',
+    ]);
+  });
+
+  it('`config <key> <value>` sets', () => {
+    expect(binders('config defaultStartLocation /world/lounge')).toEqual([
+      '/platform/idea/cmd/system/ConfigSetController',
+    ]);
+  });
+
+  it('three words bind nothing', () => {
+    expect(binders('config a b c')).toEqual([]);
   });
 });

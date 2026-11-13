@@ -9,7 +9,7 @@ help: |
 
   You get what is actually there. A better prospector does not get more
   ore from the same rock; he knows where to point. Read the ground with
-  `analyze ground` and the faces with `survey` before you swing.
+  `analyze ground` and the working with `analyze rooms` before you swing.
 
   A face runs out. When it does, drive on.
 

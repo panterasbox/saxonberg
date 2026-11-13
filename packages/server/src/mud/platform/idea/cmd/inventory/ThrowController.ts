@@ -19,6 +19,7 @@ export default class ThrowController extends ThrowControllerBase<ThrowModel> {
     if (room === null || !MixinApi.isContainer(room)) {
       return this.fail(context, "There's nowhere to throw it.", 'no-room');
     }
+    if (!this.letGo(item, context)) return;
     ContainmentApi.move(item as never, room as never);
     MessageApi.scene(giver)
       .topic('act.deed')

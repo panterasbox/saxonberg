@@ -378,7 +378,7 @@ describe('Shelf', () => {
       fireEvent.click(
         within(menu).getByText('COIN').closest('button') as HTMLElement,
       );
-      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf pin coin');
+      expect(onCommandClick).toHaveBeenCalledWith('client-shelf pin coin');
       // ⚠ And nothing moved client-side. The server owns the shelf; a
       // local mutation would falsify the axiom the status bar makes.
       expect(useStore.getState().clientState['cockpit.shelf']).toBeUndefined();
@@ -392,7 +392,7 @@ describe('Shelf', () => {
       fireEvent.click(
         within(menu).getByText('COIN').closest('button') as HTMLElement,
       );
-      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf unpin coin');
+      expect(onCommandClick).toHaveBeenCalledWith('client-shelf unpin coin');
     });
 
     /*
@@ -461,7 +461,7 @@ describe('Shelf', () => {
       const sent = onCommandClick.mock.calls[0]?.[0];
 
       expect(previewed).toBe(sent);
-      expect(sent).toBe('cockpit shelf pin coin');
+      expect(sent).toBe('client-shelf pin coin');
     });
 
     it('mouse-leave stops the preview', () => {

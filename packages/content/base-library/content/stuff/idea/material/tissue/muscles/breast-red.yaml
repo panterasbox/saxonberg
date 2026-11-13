@@ -7,7 +7,7 @@
 # ⚠ Texture is DERIVED from `work`, never authored on the cut.
 class: /platform/idea/material/Muscle
 data:
-  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 60 }]
   name: breast-red
   keywords: [breast, red]
   work: 0.7

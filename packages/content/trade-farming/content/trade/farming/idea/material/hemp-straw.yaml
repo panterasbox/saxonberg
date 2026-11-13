@@ -4,7 +4,7 @@
 # one material is an authoring error).
 class: /platform/idea/material/Fiber
 data:
-  smells: [{ aroma: /base-library/aromas/straw, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/green/straw, strength: 15 }]
   name: hemp straw
   keywords: [hemp, straw, hemp-straw, stalks, hurds]
   appearance: tall grey-green hemp stalks

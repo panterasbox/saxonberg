@@ -25,10 +25,13 @@ args:
   # Bare, the binder hands over every reachable vessel and the controller
   # takes the first holding water — a question about the CONTENTS, which no
   # predicate can ask (`lint:controller-resolution`). Mirrors `rinse` / `wash`.
+  # ⭐ Every water source in reach, the shore's water among them — each
+  # answers for itself whether it gives water now (`WaterDrawableMixin`;
+  # controller-liquidity W8 — a single object here made bare `cool` throw).
   - name: water
-    type: object
+    type: objects
     required: false
     prepositions: [with, in, under]
-    default: "reachable:[mixin.BulkableMixin]"
+    default: "reachable:[mixin.WaterDrawableMixin]"
     scope: ["reachable"]
-    requires: [BulkableMixin]
+    requires: any

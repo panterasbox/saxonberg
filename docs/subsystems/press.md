@@ -196,7 +196,14 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
   retract is soft.
 - `recent(limit?)` — the live ticker window.
 - `archive(query)` — the paged history (`realm`/`kind` filters +
-  `before`/`limit`), filtered in JS over the tree read.
+  `before`/`limit`): ⭐ one ordered read by the release's catalogue card,
+  `DocumentApi.findByKey('release', 'publishedAt', {max: before − 1,
+  order: 'desc', limit: limit × 4})`, newest first off the index; the
+  realm/kind/retraction/`publishedByOwner` filter runs over that page
+  (realm derives from the live publisher, so it cannot be a key — hence
+  the ×4 over-fetch). Never the whole kind.
+- loading one release by id (`edit`, `retract`, a permalink) reads the
+  board's cache, else `findByKey('release', 'releaseId', {eq})`.
 - ⭐ `pressRoom(limit?)` → `PublicReleaseRow[]` — the **anonymous** read.
 - `holdsAnyPublishingPosition(principal)` — the affordance-level boolean
   behind `requiresPublisher`. ⚠ It **selects nothing**, which is what
@@ -213,13 +220,28 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 semantics — `recentWindow()` = pins-first then `publishedAt`-desc,
 excluding retracted and expired, the pin block capped at `press.maxPins`
 and the whole window at `press.tickerWindow`. Soft-retracted releases stay
-cached (reachable by id) and drop out of the window.
+cached (reachable by id) and drop out of the window. ⭐ Its warm is **two
+bounded reads** by the card — `pinned` eq true, and the newest
+`publishedAt` descending, each over-fetching its cap ×4 so filtered rows
+do not shorten the window — never a read of every release. It stays on
+the boot list because `PressApi.recent()` is read synchronously at
+session entry.
+
+A release's card declares three keys (`DocumentKinds`): `publishedAt`
+(the order), `pinned` (the ticker's pins) and `releaseId` (the load by
+id) — each derived from the release's data on write
+([document-store.md](./document-store.md)). The document store's
+`callUp` (an in-game reader naming a release by a word) searches the
+newest 200 by the same ordered read.
 
 ## Publishing — the `press` verb
 
-`cmd/system/press.yaml` + `platform/idea/cmd/system/PressController.ts`.
-Subcommands `post` / `edit <id>` / `retract <id>`, with bare
-`press <headline>` falling through to `post`.
+`cmd/system/press.yaml` + `cmd/system/press-read.yaml`, one controller per
+form over `PressControllerBase` (controller-liquidity W7a). Subcommands
+`post` / `edit <id>` / `retract <id>` (`PressPost`/`PressEdit`/
+`PressRetractController`), with bare `press <headline>` falling through to
+`post`; bare `press` alone is the read (`PressReadController`, its own
+no-arg shape in `press-read.yaml`, ungated, opens the `news` card).
 
 - `--as <organization>` — **required and never defaulted.** Which masthead
   something goes out under is the author's statement; picking one for them
@@ -228,7 +250,7 @@ Subcommands `post` / `edit <id>` / `retract <id>`, with bare
 - `--visibility` — narrows only.
 - `--kind` — `changelog | decision | event | notice | repost`.
 - `--source` — where a `repost`'s substance came from.
-- `--pin`, `--expires` (shell-style `2h` / `7d` / `1h30m`).
+- `--pin`, `--expires` (the view's `type: duration` — `2h` / `7d` / `1h30m`; a bare number is refused, a duration names its unit).
 - ⚠ **No `--realm`.** Derived.
 
 ### ⚠ `requiresPublisher`, and the break it fixes
@@ -419,7 +441,7 @@ publishes without being a news outlet at all.
 | `api/bulletin.ts` / `BulletinApi` | `api/press.ts` / `PressApi` |
 | `platform/idea/api/BulletinLogic.ts` @ `/platform/idea/api/bulletin` | `platform/idea/api/PressLogic.ts` @ `/platform/idea/api/press` |
 | `backend/BulletinRoutes.ts` | `backend/PressRoutes.ts` |
-| `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + `PressController` |
+| `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + the `Press*Controller`s |
 | `BulletinRow` / `BulletinFeedFrame` | `ReleaseRow` / `ReleaseFeedFrame` |
 | `ConnectionEstablishedPayload.bulletinWindow` | `.releaseWindow` |
 | Topic `publication.press` | `publication.press` |
@@ -486,3 +508,10 @@ iff it authors a `feedPath` and the principal holds one of its
 an empty feed, so a business with no masthead publishes nothing. The blood
 window's registrar posts a shortage `notice` to the window's feed through
 the shipped `press` verb. See `employment.md`, `blood.md`.
+
+## History
+
+- 2026-11-09 — documents path identity: the press reads releases by key
+  (`publishedAt` newest first, `pinned`, `releaseId`) over the one
+  wildcard index; no `listOfKind('release')` remains. See git log for the
+  `reqs/documents-path-identity` branch.

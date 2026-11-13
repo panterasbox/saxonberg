@@ -127,6 +127,17 @@ export class CommandLineApi {
   }
 
   /**
+   * ⭐ One value as ONE word of a command line — quoted when it needs to
+   * be (`dog loaf` → `"dog loaf"`, `loaf` → `loaf`). A line a brain or a
+   * controller builds from a thing's keyword names it through this: an
+   * object slot binds one word, and a name with a space in it is quoted
+   * (controller-liquidity D3).
+   */
+  static word(value: string): string {
+    return logic().word(value);
+  }
+
+  /**
    * Apply tokenizer escape processing to a verbatim source slice. Used
    * by the matcher to materialise a greedy field's value: the matcher
    * slices the original input from the end of the last consumed token

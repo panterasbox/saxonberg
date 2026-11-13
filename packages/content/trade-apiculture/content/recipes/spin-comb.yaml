@@ -8,7 +8,6 @@
 # ⚠ The extractor is the whole difference, and it is the only thing that
 # mints the `extracting` capability: a tool nothing asks for fails the
 # gate, and rightly.
-recipeId: spin-comb
 name: Spin comb
 keywords: [spin, extract, comb, honey]
 discipline: apiculture

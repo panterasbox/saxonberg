@@ -6,7 +6,9 @@
  * imports the mod that builds her (the transport mod's `Boat`).
  *
  * Every member has an honest default — a craft that cannot be swamped,
- * carries no anchor, and has no sail — and the boat answers for herself.
+ * carries no kedge, and has no sail — and the boat answers for herself.
+ * ⭐ Letting go her anchor is `AnchoringMixin`'s (controller-liquidity W8),
+ * the protocol a ship answers `anchor` through too.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -19,8 +21,6 @@ export interface SmallCraft {
   capsize(why: string): void;
   /** Does she carry a kedge she can lie to — a killick? (A stop holding her is held by it.) */
   carriesKedge(): boolean;
-  /** Let go her own anchor where she lies, and say what happened; `null` when she carries none. */
-  letGoAnchor(by: Stuff): Promise<{ ok: boolean; line: string } | null>;
   /** Lay a course under sail from her tiller, or her refusal, in words. */
   sailCourse(heading: string, by: Stuff): Promise<{ ok: boolean; line: string }>;
 }
@@ -42,12 +42,6 @@ export function SmallCraftMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     /** @hook A boat with a killick aboard. Default: she carries none. */
     public carriesKedge(): boolean {
       return false;
-    }
-
-    /** @hook A boat lets go her killick. Default: she has nothing to let go. */
-    public async letGoAnchor(by: Stuff): Promise<{ ok: boolean; line: string } | null> {
-      void by;
-      return null;
     }
 
     /** @hook A boat with a sail sails. Default: she has none. */

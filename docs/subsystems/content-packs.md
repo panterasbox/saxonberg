@@ -207,7 +207,8 @@ Inside it, every shipped kind rides **one strategy interface**
 (`KindStrategy<F>`, module-private — the content-pack-units Part C
 interface): the target collection, the record key, the db-key query, the
 rendered row, the hash preimage, the go-live side effect, and an optional
-`flatKeyOf` for kinds whose keys form a flat namespace. One
+`flatKeyOf` / `flatKeysOf` for kinds whose keys (or typed words) form a
+flat namespace. One
 `computeKindPlan` (pure — reads only) and one `applyKindPlan` (the
 writes) drive all three kinds, so the reconcile policy is written once.
 **Dry-run is the planner with the apply half never called** — zero
@@ -224,7 +225,7 @@ which a path-prefix notion of ownership could not:
 | every `content/**/*.yaml` **outside the kind dirs below** | **domain** (the template kind) | reconciled into the `content` collection (stamped). Wave 3 widened the walk from the two enumerated roots (`obj/`, `domain/`) to *everything that is not another kind's directory*: a pack ships a row at the path its file mirrors, wherever in the tree that path lives — `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` → `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE rows; the wiki *pages* beside them are `.md`, a different extension, read by the wiki kind). The non-template dirs are **enumerated by kind** (`nonTemplateDirs()`: `settings`, `subjects`, `descriptor-banks`, `quantity`, and every yaml `DOCUMENT_KINDS` `contentDir`), never guessed. `cmd/` is skipped at **any** depth — a command view has no `class:` and is the command-view document kind |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/descriptor-banks/<key>.yaml` | **descriptor-banks** | reconciled into `descriptor_banks` (stamped), keyed on the basename = the item class; the appearance caches drop on change |
-| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `archetypes/*.yaml` (the venue archetype — libations D11: `{ archetypeId, label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; a flat-key kind gets its natural key from the basename (a disagreeing file fails at `read`); per-kind read validation (what the retired seeders validated) |
+| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `aromas/**/*.yaml`, the metadata families (`dirt/`, `pump-mechanisms/`, `joints/`, `forms/`, `operations/`, `concepts/`, `formations/`, `placements/`, `topics/`, and since load-on-use round two `cleansers/`, `fabrics/`, `maturation-profiles/`, `fraction-schedules/`, `dyestuffs/` — each file IS the data, no `class:`/`data:` wrapper; [document-store.md](./document-store.md)), `archetypes/*.yaml` (the venue archetype — libations D11: `{ label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; the row's `keys` card is derived on the way in (`StoredDocument.cardOf`); ⭐ no kind carries a second name — an emote's verb, a recipe's or archetype's word, a blueprint's id is the path's LEAF, and the files carry no key line; per-kind read validation (what the retired seeders validated) |
 | `content/settings/<section>.yaml` | **settings** | merged into the `app_settings` singleton (**merge-missing**, below) |
 | `content/subjects/<name>.yaml` | **subject** | `forum_subjects` + its channel/board surfaces (**archive-never-reap**, below) |
 | `content/wiki/<ns>/<slug>.md` | **wiki** | submitted through `WikiRegistry` AS the pack (**CAS**, below) — never rows |
@@ -232,14 +233,14 @@ which a path-prefix notion of ownership could not:
 #### `DocumentKinds` — the closed vocabulary
 
 `lib/document/DocumentKinds.ts` declares every pack-installable document
-kind: its `kind` string, its natural key (`verb`, `recipeId`, `key`,
-`blueprintId` — or null for a path-keyed kind), the pack subdir, the
-file extension, and its vanish policy. **Editing it is a platform act**
+kind: its `kind` string, the pack subdir, the file extension, its vanish
+policy, and optionally the `keys` and typed `words` of its catalogue card.
+**Editing it is a platform act**
 (slate A11.5): a pack cannot declare a new kind, because the kind's
 consumer (a catalogue, an engine) is code and the installer needs its
-go-live hook. `PersistenceManager` builds one **unique partial index**
-`{kind, data.<naturalKey>}` per flat-key kind (partial on the kind, so
-path-keyed kinds never collide), and the nightly reset keeps every
+go-live hook. A document's path is its only identity (the `documents`
+path index is unique; there is no `naturalKey` and no per-kind index —
+[document-store.md](./document-store.md)), and the nightly reset keeps every
 declared kind beside releases — without that the world would lose its
 emotes at 04:00. `wiki` is deliberately absent (a page is not a
 document: it has a revision log and a CAS edit path); `settings` and
@@ -249,17 +250,18 @@ document: it has a revision log and a CAS edit path); `settings` and
 kind earns no collection of its own by being *searchable* —
 `SoulCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
 `ArchetypeCatalogue` are derived, in-memory, rebuildable projections
-shaped for their own queries, and the store underneath stays path-keyed
-with one unique partial index per flat-key kind. The honest limit is
+shaped for their own queries — lazy, warmed on first use and never
+booted — and the store underneath stays path-keyed, with one wildcard
+index over every document's derived card. The honest limit is
 cardinality, not principle: hundreds of emotes in memory are free, a
 prose corpus is not, and find-by-content over the wiki and the law is the
 day a real document search is owed.
 
 The **document strategy** is one factory (`documentStrategy(spec, root)`)
-per kind: `dbKeyQuery` — `{kind, path}`, or `{kind, 'data.<naturalKey>'}`
-for a flat-key kind (its identity IS its natural key: a row with that key
-at *any* path is this row, and one this pack did not stamp is refused) —
-and a
+per kind: `dbKeyQuery` — `{kind, path}` for every kind (nothing adopts
+a row at another path; the adopt-by-natural-key rule went with
+`naturalKey`) — a `rowOf` that derives the `keys` card itself (the
+installer writes before any persistence hook is loaded), and a
 **`stampedQuery`** `{kind}` — ⚠ load-bearing: `{sourcePack}` alone over
 `documents` returns every kind the pack ships, and each kind would reap
 the others' rows as its own vanished files. Baselines and conflicts
@@ -509,18 +511,40 @@ phase*) runs under the same step name, and the topic gate (leaves under
 a core root only; the platform pack is exempt because it *authors* the
 root descriptors) runs next, in the same pre-write position.
 
-### The flat-key uniqueness check
+### The flat-key uniqueness check — and typed words
 
 Kinds whose keys form a **flat namespace across the install set** (the
-banks today; later kinds — emote verbs, recipe ids — plug in by giving
-their strategy a `flatKeyOf`) must see each key claimed once. The check
-runs after discovery + content read and **before any pack's writes**: a
-second claimant — cross-pack, or two files in one pack — marks the
-*claiming* pack failed (`failure.step: 'flat-key'`) with an error naming
-the kind, the key, and **both** `(packId, relFile)` pairs; earlier packs
-in the topo order still install. Never first-wins, never silent (A17.2).
-The different-pack-stamp refusal in the reconcile stays as the belt to
-this check's suspenders.
+banks) must see each key claimed once. ⭐ So must every document kind that
+declares **typed `words`** — a word a player types to name a document
+(`emote`, `recipe`, `archetype`: the leaf; `operation`, `help-concept`,
+`formation`, `topic`: the leaf; `placement`: the primary preposition). A
+word means one thing.
+
+The check has two halves, and both run after discovery + content read and
+**before any pack's writes**, in `install` and in `sync`:
+
+- **the install set** (`flatKeyFailures`) — a second claimant, cross-pack
+  or two files in one pack, marks the *claiming* pack failed
+  (`failure.step: 'flat-key'`) with an error naming the kind, the key, and
+  **both** `(packId, relFile)` pairs; earlier packs in the topo order still
+  install;
+- **the store** (`storeWordFailures`, documents D3) — a word a pack ships
+  must not already be claimed by a stored document no pack in this install
+  set ships (the live `sync` of a pack from a directory, whose install set
+  does not hold the packs already installed). One indexed read per kind
+  (`keys.word` `$in` the shipped words); a claimant fails the claiming
+  pack, naming the kind, the word, the file, and the stored path and its
+  `sourcePack`.
+
+Never first-wins, never silent (A17.2). The different-pack-stamp refusal
+in the reconcile stays as the belt to this check's suspenders.
+**`pnpm lint:typed-words`** runs the same check over the shipped packs
+before merge.
+
+⚠ **Not typed-word kinds**, deliberately: `form` (resolved against the
+instrument's own `forms:` list, so two wheels may each know a `brick`),
+`joint`, `aroma`, `dirt`, `pump-mechanism`, `blueprint`, the runtime
+records, and `command-view` (which has `lint:verb-collisions`).
 
 ## The capability rung — a pack ships classes
 ### ⭐ …and where a trade's VOCABULARY lives
@@ -869,10 +893,15 @@ see below):
   pattern); for each deleted path it destructs the orphaned instance.
   The quantity kind uses `reloadTagTables` (diff-apply); a changed bank
   drops its cache. The document kinds' go-live is one module-private
-  switch (`invalidateDocumentKind`): `emote` drops a resident
+  switch (`invalidateDocumentKind`): first, for every kind,
+  `DocumentApi.catalogueFor(kind)?.forget(paths)` drops the changed and deleted
+  paths from that kind's catalogue (an edited dirt kind or joint is
+  re-read on next use); then `topic` drops the topic dictionary (the next
+  scene re-warms), `emote` drops a resident
   `SoulCatalogue`'s cache, `recipe` re-warms a resident
-  `RecipeCatalogue` (its reads are sync), `name-bank` clears
-  `NameBank`'s cache, `blueprint` re-warms the `BlueprintCatalogue`,
+  `RecipeCatalogue` (its reads are sync), `archetype` re-warms a resident
+  `ArchetypeCatalogue`, `name-bank` clears
+  `NameBank`'s cache, `blueprint` invalidates a resident `BlueprintCatalogue`,
   `command-view` reloads each changed view (`CommandApi.reload`) and
   invalidates each deleted one, `msh` needs nothing (scripts resolve by
   path per call). Settings re-warm `AppSettings`; subjects drop the
@@ -895,10 +924,12 @@ see below):
   means claiming); `--export` (serialize the DB row back to the pack's
   **workspace** source file; the conflict stays open until the next
   `sync` observes file == DB, the converged cell, and clears it — the
-  git round-trip). A `sync` of an **unstaffed** pack ends with the
-  staffing prompt (D7): *This pack has no maintainers. You, or who?* —
-  `PromptApi.text`, enter for yourself, a name for somebody else, decline
-  and it stays unstaffed (and `status` says so). `PackApi.staff` adds the
+  git round-trip). A `sync` of an **unstaffed** pack ends by saying
+  so and naming the act (D7): *Staff it with `pack staff <id>` (you) or
+  `pack staff <id> <person>`* — the person an object arg keyed on
+  identity (controller-liquidity W7b; it was a `PromptApi.text` prompt
+  whose typed answer went in as a raw member path and so never matched);
+  left unstaffed, `status` says so. `PackApi.staff` adds the
   member to the maintainers **group**; an organization-maintained pack
   refuses (*appoint through the organization, not the pack*). `--export` writes are workspace-only by construction;
   in a dist deployment the write fails loudly. A text kind exports its
@@ -1092,7 +1123,11 @@ deleted. No resident registry → unbounded (a unit test).
   `errors` list shows a pack's channel to whoever maintains that pack —
   no author tier.
 - **`pack status`** prints the staffing line per pack; **`pack sync`**
-  prompts to staff (above); `PackApi.staff` is the one write.
+  says when a pack is unstaffed and names **`pack staff <packId>
+  [<person>]`** — its own subcommand since controller-liquidity W7b (the
+  person an object arg keyed on `getIdentityPath()`; it used to be a
+  prompt that passed the typed text as the member path, so the member
+  never matched); `PackApi.staff` is the one write.
 
 ### Orphans
 
@@ -1157,6 +1192,37 @@ ceiling and requires every content entry to cite the unobserved economy;
 `lint:instanceable` reads no `boot:` (this paragraph used to say it
 did).
 
+⭐ **No vocabulary catalogue is booted** (documents path identity,
+2026-11-09). Nine `sync-read` lines left the platform pack —
+`TopicCatalogue`, `RecipeCatalogue`, `ArchetypeCatalogue`,
+`BlueprintCatalogue`, `DisciplineCatalogue`, `CorpoCatalogue`,
+`GovernmentCatalogue`, `SpellCatalogue`, `PlacementCatalogue` — because
+each is loaded by whatever reaches it (a citing row's setter, a host's
+`onCreate`, a verb's first async read, the message pipeline's first
+scene for topics). `TopicCatalogue` and `PlacementCatalogue` are deleted
+outright; the rest are lazy dictionaries. ⚠ Since load-on-use W10 the
+ones an Api reads stand at boot as that Api's `static needs` (the
+kernel's `AppBootstrap` loop — still no pack `boot:` line), and no setter,
+`onCreate` or act readies them.
+
+⭐ **And no material-adjacent roster either** (load-on-use round two,
+2026-11-11). Six more lines left the platform pack —
+`MaterialCatalogue`, `BiomeCatalogue` (deleted), `ConditionCatalogue`,
+`AddressRegistry`, `MaturationProfileCatalogue`,
+`FractionScheduleCatalogue` — with `LocationGraphRegistry`'s stale
+`dependsOn` on the material catalogue. A material loads with its holder, a
+relation, the act or the restore door; a biome with its place; the
+conditions, the address index, profiles and schedules as their Api's
+boot `needs` (W10 — round two first loaded them with the first body,
+address question, vat or still). The one
+material-adjacent row still booted is base-library's root
+`/stuff/idea/biome/universe`, the one biome nothing cites. **A pack adds a
+member of any of these families with no boot line**: a material or
+condition row under its own root's `idea/material/` · `idea/Condition/`
+(the roster selects by infix and class), or a document under
+`content/cleansers/`, `content/maturation-profiles/`,
+`content/fraction-schedules/`, `content/fabrics/` or `content/dyestuffs/`.
+
 ## Pack zero — the platform-only boot
 
 **`SAXONBERG_PACKS=platform` is a bootable world**, and it is checked
@@ -1204,7 +1270,7 @@ defined who reviews packs would review itself.
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
 |---|---|---|---|---|---|
-| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 32 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
+| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 30 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue` (the address index, the material/biome/condition rosters and the profile/schedule catalogues load on use since load-on-use round two) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcana** (CAPABILITY — magic's substrate) | platform | default | `/system/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
@@ -1212,7 +1278,7 @@ defined who reviews packs would review itself.
 | **generic-objects** | platform | default | twelve `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** (CAPABILITY — libations) | platform, generic-objects, trade-cooking (the cook-pot recipe's output row) | default | `/trade/smithing` → group `smithing` (PM-owned); `src/idea/cmd/crafting/` ships `forge`/`hammer`/`quench`/`sharpen` (views under `content/trade/smithing/cmd/crafting/`); the anvil and whetstone rows author the verbs they confer | `smithing` | — |
 | **trade-cooking** (CAPABILITY + the pantry, libations; the cooking build) | platform, generic-objects, base-library, distribution, trade-farming (the roster presses olives and stews orchard fruit) | default | `/trade/cooking` → group `cooking` (PM-owned); `src/idea/cmd/crafting/` ships `cook`/`plate`; the `cook-pot` row (over `CookPot extends CraftVessel` — the pot is a member of the dish pool, which is what makes pot-as-last-resort a claim) and the `kitchen` bundle; **fourteen recipes** across the method grid — wet (boiled-roots · root-mash · hearty-stew · stewed-orchard-fruit · clear-broth · simple-syrup), dry (toasted-ration · roasted-roots · hearth-roast · fine-roast) and the fat chain (render-tallow · press-olive-oil · pan-fried-roots · crisp-fried-cutlet); the two fats (`tallow` 478 K · `olive-oil` 463 K) with their crock and bottle; the kitchen sieve and fruit press; the pantry: `sugar`/`salt`/`coffee`/`simple-syrup` materials, the `sack` preset, sacks + a `syrup` floor row, the `syrup-bottle`, the pantry outfit (`pantry-outfit` + `pantry-floor` + a consigning hand) | `cooking` | the pantry floor + outfit (producer) |
-| **trade-medicine** (CAPABILITY — the medical trade: how a body is READ, and the instruments that treat it) | platform | default | `/trade/medicine` → group `medicine` (PM-owned); `src/idea/cmd/perception/` ships the `analyze patient`/`postmortem` controllers (the reading), `src/idea/cmd/medical/` the `splint`/`operate` controllers over `src/thing/` `Splint`/`SurgicalKit` (the Whetstone carried-affordance shape), `src/behavior/nurses.ts` (the physician who practises), and rows for an `antivenin` Material + vial the kernel's `dose` reads; ⭐ competence buys what you SEE and how CLEANLY you treat (careQuality), never the diagnosis; ships **no venue** — a clinic is rows in whatever locality wants one; ships no condition rows (`ConditionCatalogue.warm()` cannot see a pack's — `wound-sepsis` is the platform's) | `medicine` | — |
+| **trade-medicine** (CAPABILITY — the medical trade: how a body is READ, and the instruments that treat it) | platform | default | `/trade/medicine` → group `medicine` (PM-owned); `src/idea/cmd/perception/` ships the `analyze patient`/`postmortem` controllers (the reading), `src/idea/cmd/medical/` the `splint`/`operate` controllers over `src/thing/` `Splint`/`SurgicalKit` (the Whetstone carried-affordance shape), `src/behavior/nurses.ts` (the physician who practises), and rows for an `antivenin` Material + vial the kernel's `dose` reads; ⭐ competence buys what you SEE and how CLEANLY you treat (careQuality), never the diagnosis; ships **no venue** — a clinic is rows in whatever locality wants one; ships no condition rows (`wound-sepsis` is the platform's; since load-on-use round two a pack MAY ship one — `ConditionCatalogue.warm()` selects by the `/idea/Condition/` infix and class) | `medicine` | — |
 | **trade-distilling** (CAPABILITY — libations) | platform, base-library, generic-objects, corpo-veshko, corpo-hollis, distribution | default | `/trade/distilling` → group `distilling` (PM-owned): `src/` ships `SpiritBottle` (a `Bottle` preset in code) and `Still` (the furnace-family station, capability `still` — the distil/compound/brandy/grappa recipes run it daily since fermentation W6); ten spirit materials tagged by category; ten generic floor bottles at target + Crowsfoot (`gradeBand: fine`, the independent Brand row at `/stuff/idea/corpo/Brand/crowsfoot-gin`); two floor outfits with `consigns` hands (→ the **distribution** counter — the cash-and-carry moved out, fermentation D10); the **two corpo-owned yards** as the `location/veshko-yard` locality (the zone that authors `stocks:` — vodka 24, whiskey/rum/gin 12; Volk + the unbranded liquid) and the flat `hollis-*` rows (the bottling floor: `old-hollis` / `hollis-cane` over Veshko's material), each an outfit whose `parentOrganization` points up at its corpo pack — a corpo pack is capital + the mark, never products; the `warehouse` bundle; the `distilling` Discipline; the working still-house (tun, standpipe, wash vats, the still book) + the small still (the homebrew kit's) | `distilling` | the four rooms + the four Businesses (producer — the cash-and-carry's pair moved to `distribution`) |
 | **distribution** (fermentation D10 — the decoupler) | platform, base-library | default | `/trade/distribution` → group `distribution` (PM-owned): the cash-and-carry (hall, racking, counter, Tam Ferrier, the independent Business) moved out of trade-distilling — a distributor is distribution infrastructure, so every producing trade and venue points HERE and the sibling trades share no edges; plus the **malt line** — malt the material is base-library's (the commons — a shared input whose owning trade does not exist yet), the sack row + its par on the counter the honestly-labelled imported-input faucet | `distribution` | the hall + the Business (producer) |
 | **trade-winemaking** · **trade-brewing** (DE-STUBBED — fermentation W4/W5/W8) | platform, base-library, distribution | default | `/trade/<x>` → group `<x>` (PM-owned): the WORKING venues over the kernel ferment — winemaking: the 285 K winery (press, vats, conditioning bottles, the cellar book), crush recipes + pomace, wine/must/vinegar/lees materials, the red/white/sparkling-conditioning/wine-culture profiles, the vermouth fortifications (bought spirit — the B2B); brewing: the 288 K brewhouse + the 279 K cold store (the lager line), mash recipes + spent grain, the ale/lager/cask-conditioning + culture profiles, the cask as a Vat-family conditioning vessel (real ale). Floor faucets RETIRED (the switchover): vessel faucets (`wine-bottle`, `keg`) supply empties and the `cellars` beats make every drop; serving recipes stay. | `<x>` | the floor(s) + outfit (producer) |
@@ -1232,8 +1298,8 @@ defined who reviews packs would review itself.
 | **eternal-university** (the CAMPUS locality, residences D18) | platform, residence | default | `/world/terminus/eternal` homed whole: Duncan Hall (the residence ladder's first rung), Katie + her kit, the dorm rows; parked `src/` registers against the extent so `/world/terminus/eternal/…` class paths are unchanged | `duncan-hall` (enrols Katie) | the dorm-warren (producer) |
 | **hinkley-hills** (the SUBURB locality, residences D18) | platform, residence, trade-farming | default | `/world/terminus/hinkley-hills`: the stop, the lane, the plat and the lots (~24 ha held by the Improvement District until lots sell); lot-1 pre-taken | `hinkley-hills` | the plat-book, the lot-holder (producer) |
 | **residence** (CAPABILITY — title becomes a place, D18) | platform | default | `/system/residence`: the substrate classes the locality packs' residential rows name — PlatBook, PlatWarren, LotGateExit, HoldingWarren, the householder's kit — moved out of the kernel platform tree | — | — |
-| **trade-textiles** (CAPABILITY — the textile chain, textiles B2) | platform, base-library, generic-objects, trade-farming, terminus, distribution | default | `/trade/textiles` → group `textiles` (PM-owned): `src/` ships `RettingPit` + `BleachingGreen` (both `Vat` presets — retting is a real slow bacterial ferment, so `MaturingMixin` models it unchanged and PREPARATION SHIPS WITH ZERO VERBS), `ClothBolt` (⭐⭐ `canMergeWith` narrowed to grade + form + **dye application stack**, so two dye lots do not merge and a dyer's repeatability is visible in the inventory), `TextileStock`, the three tool classes and the three controllers. Rows: the `textiles` Discipline, `rotted-flax` + `bleached-linen`, the retting and bleaching `MaturationProfile`s, ⭐ **its own fabric forms** (`sackcloth`, `fine-woven`) which the kernel never learned exist, line/tow/shive/yarn/bolt, the tool ladder (spindle → wheel at `rate: 3`; hand → broad loom), and the Wharfside mill that **consigns rather than retails** | `textiles` | the mill floor + the Business (producer) |
-| **trade-dyeing** (CAPABILITY — colour, textiles B3) | platform, base-library, trade-farming, trade-textiles, terminus | default | `/trade/dyeing` → group `dyeing` (PM-owned): `src/` ships `Dyestuff` + `DyestuffCatalogue` (the self-warming roster, harvested by path infix so a chemical-industry pack joins it with no edit here), `DyeVat` and `WoadVat` (⭐⭐ **a living thing** — fermentation-shaped, fed, killable), and the `mordant`/`dye` controllers. ⚠⚠ **Two chemistries, not one**: madder and weld are mordant dyes (2 × 4 = eight outcomes, one of which is the un-mordanted FAILURE at fastness 0.02) and woad is a vat dye taking no mordant, its refusal falling out of the shade table rather than a special case | `dyeing` | the catalogue (sync-read), the dyehouse + its Business (producer) |
+| **trade-textiles** (CAPABILITY — the textile chain, textiles B2) | platform, base-library, generic-objects, trade-farming, terminus, distribution | default | `/trade/textiles` → group `textiles` (PM-owned): `src/` ships `RettingPit` + `BleachingGreen` (both `Vat` presets — retting is a real slow bacterial ferment, so `MaturingMixin` models it unchanged and PREPARATION SHIPS WITH ZERO VERBS), `ClothBolt` (⭐⭐ `canMergeWith` narrowed to grade + form + **dye application stack**, so two dye lots do not merge and a dyer's repeatability is visible in the inventory), `TextileStock`, the three tool classes and the three controllers. Rows: the `textiles` Discipline, `rotted-flax` + `bleached-linen`, the retting and bleaching maturation-profile documents, ⭐ **its own fabric documents** (`/trade/textiles/fabrics/sackcloth`, `…/fine-woven`) which the kernel never learned exist, line/tow/shive/yarn/bolt, the tool ladder (spindle → wheel at `rate: 3`; hand → broad loom), and the Wharfside mill that **consigns rather than retails** | `textiles` | the mill floor + the Business (producer) |
+| **trade-dyeing** (CAPABILITY — colour, textiles B3) | platform, base-library, trade-farming, trade-textiles, terminus | default | `/trade/dyeing` → group `dyeing` (PM-owned): `src/` ships `lib/Dyestuff` (the value class) + `DyestuffCatalogue` (a `DocumentCatalogue` over the `dyestuff` kind, found by the derived `material` card — four documents in `content/dyestuffs/`; a chemical-industry pack ships its own with no edit here), `DyeVat` and `WoadVat` (⭐⭐ **a living thing** — fermentation-shaped, fed, killable), and the `mordant`/`dye` controllers. ⚠⚠ **Two chemistries, not one**: madder and weld are mordant dyes (2 × 4 = eight outcomes, one of which is the un-mordanted FAILURE at fastness 0.02) and woad is a vat dye taking no mordant, its refusal falling out of the shade table rather than a special case | `dyeing` | the dyehouse + its Business (producer) |
 | **trade-tailoring** (CAPABILITY — fit, textiles B4) | platform, base-library, generic-objects, trade-textiles, terminus | default | `/trade/tailoring` → group `tailoring` (PM-owned): `src/` ships `CutPieces` (Wearable *before* it is wearable, so the `cutTo` stamp survives cut-today-sew-tomorrow), `CuttingTool` (shears + the cutting table as two rows) and `SewingTool` (a needle-case; extends `MendingTool` so it mends too) — ⚠ the verbs are on the INSTRUMENT, not on the furniture they were wrongly declared on for a whole build — `MeasureBook` (⚠ an OBJECT, not a document — `DOCUMENT_KINDS` is a closed kernel vocabulary a pack may not extend, and a ledger on the counter is the better fit for "it transfers with the shop"), the `sew`/`alter` controllers (⚠ `cut` is the platform's since storage-and-ice — `CuttingTool` is a `CutPlanner` that plans any cloth; see crafting.md § One `cut`) and the `measure figure` stanza controller, plus the `tailors` demonstrator brain. It receives the `leather-jerkin` recipe from `trade-smithing`, ⚠ still unmakeable — its hide has no producer and inventing a faucet is forbidden | `tailoring` | the shop + the Business (producer) |
 | **trade-tanning** (CAPABILITY — the carcass chain's hide leg) | platform, base-library, generic-objects | default | `/trade/tanning` → claims its own extent for the Ministry of Trade: `src/lib/Tanning.ts` is a pack-owned mixin (the hide's tannage clock, reconciled on read against whatever liquor it is standing in), `src/thing/` the `Hide` that composes it and the `Tanpit` that answers `tanLiquorFor`, and `src/idea/cmd/tanning/` the one controller. ⭐⭐ **One verb, and it is a JUDGEMENT rather than a transform** — `tan <hide>` puts a skin in and `get` takes it out; the decision is *when to pull it*, and the pit says so in words rather than a number. It exists because the chain had a **sinkless source**: every butchered animal gave a hide, the hide's own prose said *"it wants to be in a tanpit within the week"*, and there was no tanpit. A second tannery needs zero pack code | `leatherwork` | — |
 | **trade-chandlery** (CAPABILITY — the carcass chain's fat leg) | platform, base-library, generic-objects | default | `/trade/chandlery` → claims its own extent for the Ministry of Trade: `src/thing/Candle.ts` (a `Lamp` that smells of what it is made of) and ⭐ **one controller for one verb** — `dip`, because filling the pot is the first STEP of the only act the pack has and the verb-collision ladder's first rung is *unify* (the `melt` alias that once said so is deleted by controllers-are-io's one view, one word; the view itself is the platform's since ceramics D14). ⭐⭐ The pack IS one empty field: `recipes/candle.yaml` authors **no** `outputMaterial`, so the engine's own *empty ⇒ take the matched input's material* rule dips a honey-smelling taper out of beeswax and a mutton-smelling one out of tallow from the same command. ⚠ **It mints no Discipline deliberately** — the dipping is trivial and what is hard is the *buying*, which is a market judgement; the skill in the chain is upstream (`butchery` got the suet, `apiculture` the wax, `cooking` rendered the tallow). ⚠ Not half of `trade-tanning`: the two noxious trades share a supplier and a LULU zone and nothing else, and their unity is PLACEMENT, never package membership | — | — |
@@ -1530,10 +1596,12 @@ a manifest declares which, so the script still says).
   boot entries moved into terminus; the trade packs no longer depend on
   it. A second venue for a trade is rows in another locality and zero
   pack code.
-- A pack's `src/lib/` base for a family of controllers (terminus's
-  `LettingController`, the University's `HallController`) carries its
-  shared authority read as a **protected** static — `lint:lib-statics` is
-  a ratchet.
+- A pack's `src/lib/` base for a family of controllers carries any
+  shared read as a **protected** static — `lint:lib-statics` is a ratchet.
+  ⚠ The two exemplars that stood here (terminus's `LettingController`, the
+  University's `HallController`) are gone (controller-liquidity W13): who
+  may let is the warren's, `LettingWarren.mayLetFor` in the residence
+  pack's `lib/`, asked by the act itself ([residence.md](./residence.md)).
 
 ## History
 
@@ -1637,8 +1705,9 @@ tail, `reload` on a class path, the lint family over pack trees. Magic
 proves it: **arcana** (the item classes, Ring/Amulet/Potion new, the
 disciplines, the verbs, the banks — `arcane-descriptors` folded in) and
 **arcane-library** (the spells, every clonable magic item, the two loci
-named by `locus:`). The catalogues warm by class; `MaterialLogic.boot`
-keeps a row by `instanceof Material`. Nineteen packs. The MR round
+named by `locus:`). The catalogues warm by class (then, `MaterialLogic.boot`
+kept a row by `instanceof Material`; today the material roster keeps it by
+class with no boot). Nineteen packs. The MR round
 (MR !205) removed three hand-kept lists the build had grown: the
 title roots now DERIVE from the claims (a template row is always
 title-checked; a document only under a claimed root), `StuffApi` has
@@ -1666,6 +1735,13 @@ rooted tree. Rosters that ship from two roots (Locality, Government)
 scan `TemplatePathRosters`. Not applied inside `/world/<locality>` rows
 (a place's rooms stay `/world/<locality>/<room>`) — only their
 controllers moved to `<locality>/idea/cmd/`.
+
+**2026-11-11 — load-on-use round two (MR !575).** Six boot lines left the
+platform pack (the material, biome, condition and address rosters, the
+profile and schedule catalogues) and five families became document kinds a
+pack ships under `content/cleansers/`, `fabrics/`, `maturation-profiles/`,
+`fraction-schedules/` and `dyestuffs/` (§ The boot union; the
+`lint:boot-entries` ceiling 75 → 69).
 
 ## ⭐ `trade-drilling` (2026-10)
 
@@ -1729,3 +1805,11 @@ views. The realm's sea, the Greywater, is a **world-seed** row under
 `/stuff/idea/WaterExpanse/`; the Hesper, Gannet Rock and the estuary's
 strand, pool and headland are **terminus**'s. See
 [expanse.md](./expanse.md).
+
+`reqs/documents-path-identity` (2026-11-09) — **documents path identity**:
+`naturalKey` gone (a document's path is its only identity; the key lines
+left every emote, recipe, archetype and blueprint file); typed words are
+unique at install against the install set AND the store, naming both
+claimants, with `lint:typed-words` before merge; nine metadata families
+became document kinds with their own content dirs; nine catalogue boot
+lines removed. See git log for the branch.

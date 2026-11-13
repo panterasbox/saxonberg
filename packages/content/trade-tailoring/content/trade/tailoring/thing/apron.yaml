@@ -20,6 +20,6 @@ data:
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso, legs]
   _materialPath: /stuff/idea/material/textile/linen
-  constructionForm: sackcloth
+  constructionForm: /trade/textiles/fabrics/sackcloth
   gradeBand: fair
   mass: 0.6

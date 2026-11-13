@@ -250,6 +250,24 @@ export class Scene {
     const causingCommandId =
       ExecutionContextApi.getCurrentCausingCommandId() ?? undefined;
 
+    // ⭐ The topic vocabulary loads with the pipeline (documents D13): while
+    // it is cold — the first scenes of a process — dispatch waits IN ORDER
+    // behind the one warm, and every queued scene dispatches, in order, when
+    // it lands. No frame is ever classified cold and none is dropped. The
+    // ids are captured now, so a queued frame is attributed to its command.
+    const warming = MessageApi.topicsWarming();
+    if (warming !== null || QUEUED.length > 0) {
+      QUEUED.push(() => this.#dispatch(commandId, causingCommandId));
+      if (warming !== null) void warming.then(drainQueued, drainQueued);
+      else drainQueued();
+      return;
+    }
+    this.#dispatch(commandId, causingCommandId);
+  }
+
+  /** Render every frame and deliver it — `send`'s body, now or once topics are warm. */
+  #dispatch(commandId: string | undefined, causingCommandId: string | undefined): void {
+
     const explicitTarget = this.#frames.find(
       (f) => f.recipientKind === 'target'
     )?.target;
@@ -408,26 +426,15 @@ function capitalize(s: string): string {
 }
 
 /**
- * The room a Stuff sits in: walk up the container chain while each hop
- * is Containable, returning the first Container that is not (a
- * Location). Resolves the true source room even when the emitter is a
- * carried object (a whistle in a hand propagates from the room, not the
- * hand). Mirrors the container-chain walk in `Containable.canEvict`.
- * Returns the actor itself when it is already a non-Containable
- * Container (a humming room). `null` when placeless.
+ * The room a Stuff sits in — `Containable.getEnclosingPlace()`, the one
+ * walk up the container chain (controller-liquidity D7): a whistle in a
+ * hand propagates from the room, not the hand; a shout in a boat from the
+ * river. Returns the actor itself when it is a non-Containable Container
+ * (a humming room). `null` when placeless.
  */
 function enclosingLocation(start: Stuff): (Stuff & Container) | null {
-  let cur: Stuff | null = start;
-  while (cur !== null) {
-    if (MixinApi.isContainable(cur)) {
-      cur = cur.getContainer();
-    } else if (MixinApi.isContainer(cur)) {
-      return cur;
-    } else {
-      return null;
-    }
-  }
-  return null;
+  if (MixinApi.isContainable(start)) return start.getEnclosingPlace();
+  return MixinApi.isContainer(start) ? start : null;
 }
 
 /**
@@ -445,4 +452,23 @@ function composeFaint(
   const noun = descriptor && descriptor.length > 0 ? descriptor : 'sound';
   const adjective = sourceDb - deliveredDb >= 35 ? 'distant' : 'faint';
   return Mml.compose`From the ${direction}, a ${adjective} ${noun}.`;
+}
+
+/**
+ * Scenes waiting on the topic vocabulary's first warm, in send order
+ * (documents D13). Module-scoped value construction; drained by
+ * {@link drainQueued} the moment the warm lands.
+ */
+const QUEUED: Array<() => void> = [];
+
+/** Dispatch every queued scene, in order (a warm that failed still delivers — routing falls back loudly). */
+function drainQueued(): void {
+  while (QUEUED.length > 0) {
+    const next = QUEUED.shift()!;
+    try {
+      next();
+    } catch (err) {
+      console.error('Scene: a queued dispatch failed:', err);
+    }
+  }
 }

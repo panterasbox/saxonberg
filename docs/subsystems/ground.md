@@ -85,8 +85,8 @@ standable; its bed is.*
 
 ⚠ `onGrade`'s sky-exposure limb is only as live as the biome roster —
 `BiomeApi.isSkyExposed` answers `false` when no biome resolves, and
-`getBiome()` is a **registry read**. `BiomeCatalogue` is what warms it; see
-[biome.md](./biome.md).
+a biome loads as its place's constituent (there is no biome catalogue);
+see [biome.md](./biome.md).
 
 ---
 

@@ -23,6 +23,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
 import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
@@ -66,6 +67,26 @@ import { CombatLogic } from "../../platform/idea/api/CombatLogic";
  */
 const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
 
+/**
+ * ⭐ Why defending did not happen (controller-liquidity W7c) — the `defend`
+ * verb words each. `cannot-cover` / `cannot-interpose` carry the engine's
+ * own reason token (`why`) for the note.
+ */
+export type DefendRefusal =
+  | ActRefusal<"not-in-combat">
+  | ActRefusal<"cannot-cover", { why: string }>
+  | ActRefusal<"ally-not-fighting">
+  | ActRefusal<"ally-not-pressed">
+  | ActRefusal<"busy-elsewhere">
+  | ActRefusal<"cannot-interpose", { why: string }>;
+
+/** What defending came to: covered up, a coup stayed, or interposed for `target`. */
+export type DefendOutcome =
+  | ActOutcome<{ kind: "cover" }>
+  | ActOutcome<{ kind: "stayed"; target: Stuff }>
+  | ActOutcome<{ kind: "interposed"; target: Stuff }>
+  | DefendRefusal;
+
 /** Public method surface for CombatantMixin. */
 export interface Combatant {
   /**
@@ -89,6 +110,13 @@ export interface Combatant {
   yieldFight(): boolean;
   intervene(target: Stuff): boolean;
   defendAlly(ally: Stuff): { ok: boolean; reason?: string };
+  /**
+   * ⭐ `defend [<target>]` — one act (controller-liquidity W7c): the
+   * fighter decides what defending comes to. With nobody named it covers up
+   * (the self-defensive gambit); named, a killing stroke poised over (or
+   * by) them is stayed, else the fighter interposes for them.
+   */
+  defend(target: Stuff | null): DefendOutcome;
   disengage(): { ok: boolean; message?: string };
   bumRush(direction: string): Promise<{ ok: boolean; reason?: string }>;
   offerBreak(): { ok: boolean; reason?: string; broke: boolean };
@@ -525,6 +553,27 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return combatLogic().defendAlly(this as unknown as Stuff, ally);
     }
 
+    public defend(target: Stuff | null): DefendOutcome {
+      if (target === null) {
+        const elig = this.queueGambit("defend");
+        if (elig.ok) return { ok: true, facts: { kind: "cover" } };
+        return elig.reason === "not-in-combat"
+          ? { ok: false, reason: "not-in-combat" }
+          : { ok: false, reason: "cannot-cover", facts: { why: elig.reason ?? "ineligible" } };
+      }
+      if (this.intervene(target)) return { ok: true, facts: { kind: "stayed", target } };
+      const res = this.defendAlly(target);
+      if (res.ok) return { ok: true, facts: { kind: "interposed", target } };
+      switch (res.reason) {
+        case "ally-not-fighting":
+        case "ally-not-pressed":
+        case "busy-elsewhere":
+          return { ok: false, reason: res.reason };
+        default:
+          return { ok: false, reason: "cannot-interpose", facts: { why: res.reason ?? "failed" } };
+      }
+    }
+
     /** Leave the fight — an opposed-lite break with a parting shot. */
     public disengage(): { ok: boolean; message?: string } {
       return combatLogic().disengage(this as unknown as Stuff);
@@ -610,7 +659,13 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
         },
         CombatApi.splashSetFor(target),
       );
-      if (plan.placement === "miss") return { arrived: "wide" };
+      // ⭐ Every arrival puts the thing somewhere (C50): wide or struck, it
+      // comes to rest by the target; shattered, it is gone.
+      const landing = new ThrownLanding(item, target, plan);
+      if (plan.placement === "miss") {
+        landing.settle();
+        return { arrived: "wide" };
+      }
       // ── The KINETIC half. `null` back is the honest no-op: too little
       // energy to matter (a thrown coin) or no matching anatomy. The
       // materials-response grid decides what the energy actually costs.
@@ -621,8 +676,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (spec !== null) ConditionApi.inflict(target, spec);
 
       // ⭐ What becomes of the thing is the thing's: no dynamics here.
-      if (!plan.profile.canShatter()) return { arrived: "hit" };
-      return new ThrownLanding(item, target, plan).land();
+      if (!plan.profile.canShatter()) {
+        landing.settle();
+        return { arrived: "hit" };
+      }
+      return landing.land();
     }
 
     public resolveThrown(

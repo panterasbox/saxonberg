@@ -1,0 +1,31 @@
+# rake — take the ash out of a fire's grate (cleanliness D24, potash D4).
+#
+# ⭐ Its own act (controller-liquidity W18, owner 2026-11-10): raking was an
+# arm of `sweep` (W7c's `SweepableMixin` had three hosts and a three-way
+# result). A grate is raked; a floor and a chimney are swept.
+verbs: [rake]
+category: device
+controller: /platform/idea/cmd/device/RakeController
+description: "Rake the ash out of a fire's grate"
+help: |
+  Rake the ash out of a fire's grate — `rake hearth`, `rake pit`, or bare
+  `rake` when there is one fire by you. The ash comes out in heaps into
+  your hands (and some of it onto them): the lye-maker's ash, worth
+  carrying to an ashery. A deep bed of ash chokes a fire's draught, so a
+  fire that is never raked burns worse.
+
+  Sweeping the CHIMNEY is `sweep hearth with brush`.
+examples:
+  - cmd: rake hearth
+    note: Rake the hearth's grate out into heaps of ash
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: fire
+    type: object
+    required: false
+    scope: ["here", "peers", "person"]
+    default: "reachable:[mixin.BurnerMixin]"
+    requires: BurnerMixin

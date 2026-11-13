@@ -19,7 +19,8 @@
  */
 
 import '../../../../../../test-bootstrap';
-import { describe, it, expect, afterEach } from 'vitest';
+import { beforeEach, describe, it, expect, afterEach, vi } from 'vitest';
+import { MessageApi } from '../../../../../api/message';
 import EquipController from '../EquipController';
 import UnequipController from '../UnequipController';
 import RemoveController from '../RemoveController';
@@ -53,6 +54,12 @@ import {
   stampTemplatePathForTest,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
+import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+
+beforeEach(() => {
+  standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
+});
 
 class Garment extends WearableMixin(
   SlottableMixin(ConstructedMixin(ContainableMixin(Good))),
@@ -98,7 +105,7 @@ function standUp(): { body: Wearer; loc: Place; plan: string } {
   // form (the closed `as const`), and re-registering it throws. The
   // pack-supplied fabric and the kernel form together are exactly the
   // two-source shape the ladder reads.
-  Construction.registerFabric({
+  rememberFabric({
     key: 'woven',
     layerBand: 0,
     loft: 0.1,
@@ -180,7 +187,7 @@ function worn(body: Wearer): string[] {
 }
 
 afterEach(() => {
-  Construction.clearFabrics();
+  forgetFabrics();
   SchedulerApi._clearAllForTesting();
   WorldClockApi._resetForTesting();
   StuffApi.clearAll();
@@ -193,7 +200,7 @@ describe('bare `equip` — the whole kit', () => {
     // picked up first, so a naive walk would try it first and then
     // refuse the shirt for ever.
     const cuirass = garment(plan, 'plate', 'cuirass');
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(cuirass as never, body as never);
     ContainmentApi.move(shirt as never, body as never);
 
@@ -214,11 +221,52 @@ describe('bare `equip` — the whole kit', () => {
      */
     const { body, loc, plan } = standUp();
     for (const kw of ['shirt', 'jerkin', 'cloak']) {
-      ContainmentApi.move(garment(plan, 'woven', kw) as never, body as never);
+      ContainmentApi.move(garment(plan, fabricPath('woven'), kw) as never, body as never);
     }
     await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
     await settle();
     expect(worn(body).sort()).toEqual(['cloak', 'jerkin', 'shirt']);
+  });
+
+  it('⭐ C44: what is already on is not pooled — no "nowhere left to put it" for your own coat', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const cloak = garment(plan, fabricPath('woven'), 'cloak');
+    ContainmentApi.move(cloak as never, body as never);
+    const lines: string[] = [];
+    const spy = vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (m: unknown) => {
+        lines.push(String(m));
+        return b;
+      };
+      b.toPeers = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+    await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
+    await settle();
+    spy.mockRestore();
+    expect(worn(body).sort()).toEqual(['cloak', 'shirt']);
+    expect(lines.join(' ')).not.toMatch(/leave/);
+  });
+
+  it('⭐ C43: `wear` of a thing already on says so', async () => {
+    const { body, loc, plan } = standUp();
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
+    ContainmentApi.move(shirt as never, body as never);
+    body.occupyAll(shirt as never, ['torso']);
+    const c = ctx(body, loc, 'wear');
+    await makeStuff(() => new WearController()).execute(
+      { target: { stuff: shirt as never, raw: 'shirt' } } as never,
+      c,
+    );
+    expect(
+      c.getNotes().some((n) => (n as { reason?: string }).reason === 'already-worn'),
+    ).toBe(true);
   });
 
   it('says so when there is nothing to put on', async () => {
@@ -239,7 +287,7 @@ describe('⭐ `--from` — dressing out of a container', () => {
     const { body, loc, plan } = standUp();
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest as never, loc as never);
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, chest as never);
     // It starts in the CHEST, not in the hands — the old verb's
     // `mustBeInInventory` would have refused this outright.
@@ -252,12 +300,47 @@ describe('⭐ `--from` — dressing out of a container', () => {
     await settle();
     expect(worn(body)).toEqual(['shirt']);
   });
+
+  it('⭐ C42: a piece the body refuses STAYS in the chest — refused before it moves', async () => {
+    const { body, loc } = standUp();
+    const chest = makeStuff(() => new Chest());
+    ContainmentApi.move(chest as never, loc as never);
+    // Cut for a body plan this one does not have: no slot for it.
+    const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', fabricPath('woven'), 'tabard');
+    ContainmentApi.move(odd as never, chest as never);
+    const c = ctx(body, loc);
+    await makeStuff(() => new EquipController()).execute(
+      {
+        target: { stuff: odd as never, raw: 'tabard' },
+        from: { stuff: chest as never, raw: 'chest' },
+      } as never,
+      c,
+    );
+    await settle();
+    expect(odd.getContainer()).toBe(chest);
+    expect(c.getNotes().map((n) => (n as { reason?: string }).reason)).toEqual(['wrong-fit']);
+  });
 });
 
 describe('`unequip`', () => {
+  it('⭐ C53: the strip CHAINS — each layer takes its own time', async () => {
+    const { body, loc, plan } = standUp();
+    for (const kw of ['shirt', 'jerkin', 'cloak']) {
+      const g = garment(plan, fabricPath('woven'), kw);
+      ContainmentApi.move(g as never, body as never);
+      body.occupyAll(g as never, ['torso']);
+    }
+    expect(worn(body)).toHaveLength(3);
+    await makeStuff(() => new UnequipController()).execute({} as never, ctx(body, loc));
+    // One layer is coming off; the other two wait their turn.
+    expect(worn(body)).toHaveLength(2);
+    await settle();
+    expect(worn(body)).toEqual([]);
+  });
+
   it('⭐ peels OUTERMOST-first — you cannot pull a shirt out from under plate', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     const cuirass = garment(plan, 'plate', 'cuirass');
     ContainmentApi.move(shirt as never, body as never);
     ContainmentApi.move(cuirass as never, body as never);
@@ -272,7 +355,7 @@ describe('`unequip`', () => {
 
   it('⭐⭐ `wear` lands after the controller is gone (the dispatcher destructs it)', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     const ctrl = makeStuff(() => new WearController());
     await ctrl.execute(
@@ -289,7 +372,7 @@ describe('`unequip`', () => {
 
   it('⚠ `remove apron` with no apron on is a refusal, never a strip (the drive)', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'remove');
@@ -303,7 +386,7 @@ describe('`unequip`', () => {
 
   it('⚠ `remove shirt` naming nothing you have is a refusal, never a strip (the drive)', async () => {
     const { body, loc, plan } = standUp();
-    const shirt = garment(plan, 'woven', 'shirt');
+    const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'remove');
@@ -354,7 +437,7 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
     gauntlet.setPrimaryKeyword('gauntlet');
     gauntlet.setKeywords(['gauntlet']);
     gauntlet.setShortDescription('a gauntlet');
-    gauntlet.setConstructionForm('woven');
+    gauntlet.setConstructionForm(fabricPath('woven'));
     gauntlet.setSlotClaims({ [plan]: ['torso'] });
     stampTemplatePathForTest(gauntlet, `/stuff/thing/kit-${(seq += 1)}-gaunt`);
     ContainmentApi.move(gauntlet as never, body as never);

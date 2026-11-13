@@ -14,7 +14,6 @@
 # sibling): the mash tun is the gate, the bucket is the landing vessel,
 # the spent grain is conservation's residue (P11) — feed, sellable back
 # to the growers.
-recipeId: mash
 name: Mash
 keywords: [mash, wort]
 discipline: fermenting

@@ -20,7 +20,6 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
-import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
 import { TemplateApi } from '../../../../api/template';
 import { DocumentApi } from '../../../../api/document';
@@ -55,10 +54,9 @@ export default class CatController extends CommandController<CatModel> {
       if (!stuff) {
         return this.fail(context, `no match for --mql ${model.mql.raw ?? ''}`);
       }
-      target =
-        stuff.getTemplatePath() ??
-        (stuff as unknown as { path?: string }).path ??
-        null;
+      // A live thing → its lineage stamp; a Template row (the MQL path
+      // atom) → its own path. Two distinct lookups, as `clone` splits them.
+      target = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
     } else if (model.path) {
       try {
         target =

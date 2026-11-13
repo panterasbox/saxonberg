@@ -44,11 +44,16 @@
  */
 
 import type { SmellNote } from '../perception/Smell';
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { MixinConstructor, NestingConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
 import { PumpableMixin } from '../pump/Pumpable';
+
+/** Raking a grate, real ms. */
+const GRATE_RAKE_MS = 8000;
+/** What raking a grate costs, W. */
+const GRATE_RAKE_W = 200;
 import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -70,12 +75,21 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: a Burner's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the Combustible/Energized precedent)
 import { FireLogic } from '../../platform/idea/api/FireLogic';
 import type { IgniteOutcome } from '../../api/fire';
+import type { ActDone, ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
+import type {
+  IgnitePlan,
+  ExtinguishPlan,
+  IgniteRefusal,
+  ExtinguishRefusal,
+} from './Combustible';
 
 /** Resolve the HMR-able FireLogic singleton (the combustion driver). */
 function burnerFireLogic(): FireLogic {
   return StuffApi.singletonSync('/platform/idea/api/fire', () => new FireLogic());
 }
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { DirtKinds } from '../cleanliness/DirtKind';
+import { MaterialApi } from '../../api/material';
 
 /** Burner defaults that are not magnitudes — the rest are dials. */
 const BURNER_DEFAULTS = {
@@ -146,6 +160,12 @@ export type StokeOutcome =
  * worked by hand — but a furnace is NOT a pump: it implements the
  * protocol, never `PumpingMixin`'s capability.
  */
+/**
+ * A rake of the grate (`rake`, controller-liquidity W18): the ash taken
+ * out, in heaps in the raker's hands — empty when there was hardly any.
+ */
+export type RakePlan = ActPlan<undefined, { ash: readonly Stuff[] }>;
+
 export interface Burner extends Pumpable {
   /** Is the furnace currently alight? */
   isLit(): boolean;
@@ -190,6 +210,8 @@ export interface Burner extends Pumpable {
    * there was hardly any.
    */
   rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff[] }>;
+  /** ⭐ `rake`: the grate raked, planned by the fire — {@link rakeGrate} at the end. */
+  rakePlan(raker: Stuff): RakePlan;
   /**
    * ⭐ Mint `kg` of ash carrying `alkaliKg` of alkali as heaps of
    * `fire.ash.heapKg` (potash D3, D4) — the grate's rake and a clamp's
@@ -233,6 +255,27 @@ export interface Burner extends Pumpable {
   // The combustion face (F1) — forwards into the FireLogic driver.
   /** Light the furnace; `{lit:false, reason}` on refusal (no fuel / lit). */
   ignite(): IgniteOutcome;
+  /**
+   * ⭐ `light` asks this (controller-liquidity W8): Combustible's lighting,
+   * and ⭐ lighting a burner STARTS its firing — what it sets up at the
+   * start (a clamp's channel, middle and skin) is fixed now, not when
+   * somebody later says `fire` (ceramics drive A, run 38).
+   */
+  ignitePlanFor(by: Stuff): Promise<IgnitePlan>;
+  /** ⭐ `douse` asks this (W8): the furnace put out and wetted. */
+  extinguishPlanFor(by: Stuff): Promise<ExtinguishPlan>;
+  /**
+   * ⭐ The draught a named setting stands for — `wide`/`open`/`half`/`low`/
+   * `banked` — or `null` for a word that is not one (controller-liquidity
+   * W8: the one vocabulary `draught` and `fire --draught` read).
+   */
+  draughtFor(word: string): number | null;
+  /**
+   * ⭐ `cover` (W8): bank the fire to the banked floor (the
+   * `fire.draught.banked` dial the burner reads itself); `not-lit` when it
+   * is out.
+   */
+  bank(): BankRefusal | ActOutcome<undefined>;
   /** Put the furnace out (and wet it); returns whether it was lit. */
   douse(): boolean;
   /** Advance one burning tick (fuel drain; self-extinguish at empty). */
@@ -395,13 +438,48 @@ function burnerAugmenter(
 /** At or below this draught a fire reads as banked. */
 const BANKED_LOOK_THRESHOLD = 0.1;
 
-export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
+/**
+ * ⭐ The draught ladder's words, and what each is worth — ONE vocabulary on
+ * the host (controller-liquidity W8), read by `draught` and by `fire
+ * --draught`. The words are the ones a person says; the fuel trade's `char
+ * <n>` is where a FIGURE is worth having. ⚠ The `draught` view's words
+ * mirror these keys: a word here the view does not offer is unreachable.
+ */
+const DRAUGHT_WORDS: Readonly<Record<string, number>> = {
+  wide: 1,
+  open: 1,
+  half: 0.5,
+  low: 0.2,
+  banked: 0.05,
+};
+
+/** ⭐ The one reason `cover` refuses — `CoverController` words it. */
+export type BankRefusal = ActRefusal<'not-lit'>;
+
+export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
   Base: TBase,
 ) {
   // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
   // answers `pump`, and a lamp's honest `no-bellows` is this override.
+  // ⭐ `rake` is the fire's own act (controller-liquidity W18 — W7c had it
+  // as an arm of `sweep`): `rake hearth` takes the ash out of any fire's
+  // grate — a pit, a brazier, a hearth.
   class BurnerMixin extends PumpableMixin(Base) implements Burner {
     static _mixinName = 'BurnerMixin';
+
+    /** `rake`: the grate raked of its ash, into the raker's hands. */
+    public rakePlan(raker: Stuff): RakePlan {
+      return {
+        ok: true,
+        durationMs: GRATE_RAKE_MS,
+        effortW: GRATE_RAKE_W,
+        facts: undefined,
+        onComplete: async () => {
+          const { ash } = await this.rakeGrate(raker);
+          return { ok: true, facts: { ash } };
+        },
+      };
+    }
 
     static markupAugmenters: MarkupAugmenter[] = [burnerAugmenter];
 
@@ -439,6 +517,11 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
+        // ⭐ `draught`'s three shapes, in the order the chain must try
+        // them (controller-liquidity W7b): the fire-first set refuses a
+        // bad setting rather than falling through, so it goes first.
+        'platform/cmd/device/draught-fire.yaml',
+        'platform/cmd/device/draught-set.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
       ],
@@ -446,8 +529,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
+        'platform/cmd/device/draught-fire.yaml',
+        'platform/cmd/device/draught-set.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
+        // ⭐ Raking the grate (controller-liquidity W18): a fire you stand
+        // at — a hearth, a pit, a brazier. Peers only: nobody rakes the
+        // lamp in their hand.
+        'platform/cmd/device/rake.yaml',
         'platform/cmd/device/pump.yaml',
         // ⭐ The fire is what affords heating — and with it boiling, which
         // is `heat`'s alias (a pot held at its boiling point is boiling;
@@ -545,7 +634,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isAssembled(self) || !(heldK > 0) || !(heldS > 0)) return;
       const line = self.getLine('lining');
       if (line === null) return;
-      const brick = StuffApi.findByTemplatePath<Material>(line.material);
+      const brick = MaterialApi.materials().peek(line.material);
       const limitK = (brick && MixinApi.hasFusion(brick) ? brick.getMeltingPoint().rawValue() : 0) || 1950;
       let units =
         burnerDial(AppSettingKeys.fireLiningWearPerHour, 0.5) *
@@ -677,7 +766,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       const alkaliKg = this.ashAlkaliKg;
       const kg = this.takeAsh();
-      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
+      if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: DirtKinds.ASH, amount: 0.15, where: 'hands' }]);
       if (!(kg > 0.01)) return { kg, ash: [] };
       const template = (() => {
         try {
@@ -775,7 +864,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         if (m) shares.push([m, 1]);
       } else {
         for (const [path, mass] of Object.entries(this.fuelBed)) {
-          const m = StuffApi.findByTemplatePath<Material>(path);
+          const m = MaterialApi.materials().peek(path);
           if (m && mass > 0) shares.push([m, mass / total]);
         }
       }
@@ -814,6 +903,15 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      * may seed a starting charge; `stoke` is how anybody adds more.
      */
     public fuelBed: Record<string, number> = {};
+
+    /**
+     * The restore door for the fuel bed (load-on-use W8): the bed is keyed
+     * by the materials it holds, and they load with the burner.
+     */
+    public setFuelBed(value: Record<string, number>): Promise<void> | undefined {
+      this.fuelBed = value ?? {};
+      return MaterialApi.materials().ensureCited(Object.keys(this.fuelBed));
+    }
     /**
      * The air control, `0..1` — a damper, a wick, a tuyère, the ash you
      * bank a hearth down under. ⭐ On the mixin because **every** fire
@@ -896,7 +994,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       let joules = 0;
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (!material || !MixinApi.hasCombustion(material)) continue;
         joules += mass * material.getHeatOfCombustion().rawValue() * 1e6;
       }
@@ -912,7 +1010,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const out: { material: Material; mass: number }[] = [];
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (material) out.push({ material, mass });
       }
       out.sort((a, b) => b.mass - a.mass);
@@ -928,7 +1026,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         if (material) beds.push([material, this.fuelRemaining()]);
       } else {
         for (const [path, mass] of Object.entries(this.fuelBed)) {
-          const material = StuffApi.findByTemplatePath<Material>(path);
+          const material = MaterialApi.materials().peek(path);
           if (material && mass > 0) beds.push([material, mass]);
         }
       }
@@ -977,7 +1075,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       const out: { material: Material; share: number }[] = [];
       for (const [path, mass] of Object.entries(this.fuelBed)) {
         if (!(mass > 0)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         if (material) out.push({ material, share: mass / total });
       }
       return out;
@@ -1034,7 +1132,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         scope as unknown as Stuff & Container,
       )) {
         if (!(c.amount > worst)) continue;
-        const material = StuffApi.findByTemplatePath<Material>(c.type);
+        const material = MaterialApi.materials().peek(c.type);
         if (!material || !MixinApi.hasCombustion(material)) continue;
         if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
         worst = c.amount;
@@ -1203,6 +1301,16 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       return this.draught;
     }
 
+    public draughtFor(word: string): number | null {
+      return DRAUGHT_WORDS[word.trim().toLowerCase()] ?? null;
+    }
+
+    public bank(): BankRefusal | ActOutcome<undefined> {
+      if (!this.isLit()) return { ok: false, reason: 'not-lit' };
+      this.setDraught(burnerDial(AppSettingKeys.fireDraughtBanked, 0.05));
+      return { ok: true, facts: undefined };
+    }
+
     public setDraught(value: number): void {
       if (!Number.isFinite(value)) return;
       this.settleRoomAir();
@@ -1313,7 +1421,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       if (this.lit && this.fuelRemaining() > 0) {
         return Quantity.of(this.getHeldTemperatureK(), 'K');
       }
-      return (super.getTemperature as () => Quantity<'K'>).call(this);
+      // Through the base's prototype: `NestingConstructor` types `super` as
+      // the constraint, which declares no temperature (Thermal's, beneath).
+      return (Base.prototype as { getTemperature(): Quantity<'K'> }).getTemperature.call(this);
     }
 
     // ---------- stoking ----------
@@ -1389,7 +1499,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       for (const path of Object.keys(this.fuelBed)) {
         const mass = this.fuelBed[path] ?? 0;
         // ⭐ What burns leaves its ash in the grate (cleanliness D24).
-        const material = StuffApi.findByTemplatePath<Material>(path);
+        const material = MaterialApi.materials().peek(path);
         const ash = material && MixinApi.hasCombustion(material) ? material.getAshFraction() : 0;
         if (ash > 0) {
           this.ashKg += mass * fraction * ash;
@@ -1598,6 +1708,31 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public douse(): boolean {
       return burnerFireLogic().douse(this as unknown as Stuff);
+    }
+
+    public async ignitePlanFor(by: Stuff): Promise<IgnitePlan> {
+      return this.instantFirePlan<IgniteRefusal>(async () => {
+        const out = this.ignite();
+        if (!out.lit) return { ok: false, reason: out.reason ?? 'not-flammable' };
+        await this.onFireStart(by);
+        return { ok: true, facts: undefined };
+      });
+    }
+
+    public async extinguishPlanFor(_by: Stuff): Promise<ExtinguishPlan> {
+      // Read now as well as at completion (the fire may have gone out
+      // between): a fire that is out is not doused.
+      const burning = this.isLit();
+      return this.instantFirePlan<ExtinguishRefusal>(() =>
+        burning && this.douse() ? { ok: true, facts: undefined } : { ok: false, reason: 'not-burning' },
+      );
+    }
+
+    /** An instant act at the fire: no time, no effort, its verdict at completion. */
+    private instantFirePlan<X extends ActRefusal<string>>(
+      run: () => ActDone<undefined, X> | Promise<ActDone<undefined, X>>,
+    ): ActPlan<undefined, undefined, X> {
+      return { ok: true, durationMs: 0, effortW: 0, facts: undefined, onComplete: run };
     }
 
     /** Advance one burning tick (fuel drain; self-extinguish at empty). */

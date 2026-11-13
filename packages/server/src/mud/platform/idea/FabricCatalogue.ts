@@ -1,129 +1,68 @@
 /**
- * FabricCatalogue — the self-warming home of the fabric-form roster.
+ * FabricCatalogue — the singleton that serves the `fabric` documents (the
+ * non-resisting textile forms: `woven`, `knit`, `felted`,
+ * `/trade/textiles/fabrics/sackcloth`, any pack's `content/fabrics/`),
+ * reached as `MaterialApi.fabrics()`. What a fabric IS: `FabricSpec` in
+ * `lib/material/Construction.ts`.
  *
- * `Construction`'s covering vocabulary has two sources: a closed kernel
- * `as const` for the resist-bearing forms, and template rows for the
- * non-resisting textile ones. Rows cannot stand themselves up, and
- * something template-backed must own the warm — that is this singleton,
- * and the only thing it exists for.
+ * ⭐ A garment cites its fabric BY PATH (`constructionForm:
+ * /platform/fabrics/woven`, load-on-use W2), so a misspelling is caught by
+ * `lint:census` before merge and `Constructed.setConstructionForm` loads the
+ * document with the garment. The kernel's resist-bearing forms (`plate`,
+ * `mail`…) stay bare words — a path is never a kernel form.
  *
- * ⚠ **The reference-Ideas-inert-at-boot rule.** This has bitten three
- * times: nothing warms the roster, and every read returns null forever.
- * Here the failure would be worse than silent — a garment row authoring
- * `constructionForm: woven` would THROW at hydration, because
- * `Constructed.setConstructionForm` validates against the vocabulary.
- * So the warm is `onCreate`, **never an operator `Api.boot()`**, and
- * eager loading rides the platform pack's `boot:` manifest.
+ * ## Why this is content and the resist grid is not
  *
- * ⚠ **Ordering matters and is guaranteed by construction.** The boot
- * manifest is the union of every applied pack's `boot:` list in install
- * order, DFS-sorted; the platform pack installs first, so this warms
- * before any locality room clones its `props:`. A garment cloned after
- * boot (a loadout, a craft, the `clone` verb) is trivially safe.
+ * A form's resist profile is combat mitigation; a fabric carries drape,
+ * loft and weave density and contributes no resist — every fabric shares
+ * the kernel's one `TEXTILE_RESIST_PROFILE`. Content chooses the weave,
+ * the kernel decides that cloth resists poorly.
  *
- * The roster is every root's `idea/fabric/` subtree, filtered to rows
- * whose `class` extends {@link Fabric} wherever it lives — **never an
- * allowlist of roots**, the `MaterialCatalogue.warm()` shape verbatim,
- * so a pack's own fabric class qualifies with no kernel list edit.
+ * ⚠ `layerBand` is required and validated here: `getLayerDepth()` is
+ * called unconditionally in three hot paths, so a bad band fails at
+ * install, never at the moment somebody swings.
  */
 
-import { Idea } from '../../lib/stuff/Idea';
-import Fabric from './material/Fabric';
-import { Construction } from '../../lib/material/Construction';
-import type { FabricSpec } from '../../lib/material/Construction';
-import { StuffApi } from '../../api/stuff';
-import { Template } from '../../lib/stuff/Template';
-import type { VetoResult } from '../../lib/errors';
-import type { EvictionContext } from '../../lib/stuff/Stuff';
+import { DocumentCatalogue } from '../../lib/document/DocumentCatalogue';
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import { MAX_LAYER_BAND, type FabricSpec } from '../../lib/material/Construction';
 
-const FabricCatalogueBase = Idea;
+export default class FabricCatalogue extends DocumentCatalogue<FabricSpec> {
+  /** A reference catalogue everyone reads — `look`, `fit`, `wear` inside a circle (the commons). */
+  static boundaryRole: BoundaryRole = 'commons';
 
-export default class FabricCatalogue extends FabricCatalogueBase {
-  /** Residency veto — a culled catalogue re-warms nothing. */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'system singleton; never culled' };
-  }
+  protected readonly kind = 'fabric';
 
-  public canDestruct(): VetoResult {
+  /** Validate a fabric document at `path` (the installer's validator too); throws naming what is wrong. */
+  public parse(data: Record<string, unknown>, path: string): FabricSpec {
+    const why = (r: string): never => {
+      throw new Error(`fabric '${path}': ${r}`);
+    };
+    const key = path.slice(path.lastIndexOf('/') + 1);
+    if (!/^[a-z][a-z0-9-]*$/.test(key)) why(`'${key}' is not a kebab form word`);
+    const num = (field: string, fallback?: number): number => {
+      const v = data[field] ?? fallback;
+      if (typeof v !== 'number' || !Number.isFinite(v)) return why(`${field} must be a number`);
+      return v;
+    };
+    const unit = (field: string, fallback?: number): number => {
+      const v = num(field, fallback);
+      if (v < 0 || v > 1) why(`${field} ${v} is outside 0..1`);
+      return v;
+    };
+    const layerBand = num('layerBand');
+    if (!Number.isInteger(layerBand) || layerBand < 0 || layerBand > MAX_LAYER_BAND) {
+      why(`layerBand ${layerBand} is outside the 0..${MAX_LAYER_BAND} ladder`);
+    }
+    const stretch = num('stretch', 1);
+    if (stretch < 0) why(`stretch ${stretch} is negative`);
     return {
-      ok: false,
-      reason: 'FabricCatalogue is a system singleton; never destructed',
+      key,
+      layerBand,
+      loft: unit('loft', 0),
+      weaveDensity: unit('weaveDensity', 0),
+      drape: unit('drape', 0.5),
+      stretch,
     };
-  }
-
-  public override async onCreate(_context?: unknown): Promise<void> {
-    await this.warm();
-  }
-
-  /**
-   * Stand up every authored fabric row and push it into the
-   * `Construction` vocabulary. Public so a pack go-live can re-warm;
-   * idempotent — `singleton` no-ops rows already live, and the registry
-   * is rebuilt wholesale.
-   *
-   * ⚠ The registry swap happens **after every await**, in one
-   * synchronous block, so no frame ever observes a half-empty
-   * vocabulary.
-   */
-  public async warm(): Promise<number> {
-    const templates = await Template.findByPathInfix('/idea/fabric/');
-    const isFabric = new Map<string, boolean>();
-    const specs: FabricSpec[] = [];
-    for (const tpl of templates) {
-      if (!isFabric.has(tpl.class)) {
-        isFabric.set(tpl.class, await isFabricClass(tpl.class));
-      }
-      if (!isFabric.get(tpl.class)) continue;
-      try {
-        const row = await StuffApi.singleton<Fabric>(tpl.path);
-        specs.push(row.toSpec());
-      } catch (err) {
-        console.warn(`FabricCatalogue: '${tpl.path}' failed to stand up:`, err);
-      }
-    }
-    Construction.clearFabrics();
-    for (const spec of specs) {
-      try {
-        Construction.registerFabric(spec);
-      } catch (err) {
-        console.error(
-          `FabricCatalogue: fabric '${spec.key}' rejected by the registry:`,
-          err,
-        );
-      }
-    }
-    console.info(
-      `FabricCatalogue: ${Construction.fabricKeys().length} fabric form(s) live ` +
-        `(${Construction.fabricKeys().join(', ')})`,
-    );
-    return Construction.fabricKeys().length;
-  }
-}
-
-/**
- * Does `classPath` resolve to `Fabric` or a subclass of it?
- *
- * ⚠ The `===` clause is load-bearing and the sibling catalogues do not
- * have it, for a reason worth stating: `MaterialCatalogue` and
- * `MaturationProfileCatalogue` filter on `cls.prototype instanceof Base`
- * alone, and that works ONLY because both have a `lib/` abstract base
- * plus a thin `platform/` concrete that rows actually name — so the
- * named class is always a STRICT subclass. `Fabric` is one class that
- * rows name directly, and `Fabric.prototype instanceof Fabric` is
- * false. Copying the predicate without the precondition would have
- * matched nothing, silently, and left every fabric form out of the
- * vocabulary.
- */
-async function isFabricClass(classPath: string): Promise<boolean> {
-  try {
-    const cls = (await StuffApi.loadClassByPath(classPath)) as {
-      prototype?: unknown;
-    };
-    return (
-      typeof cls === 'function' &&
-      (cls === (Fabric as unknown) || cls.prototype instanceof Fabric)
-    );
-  } catch {
-    return false;
   }
 }

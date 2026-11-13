@@ -21,6 +21,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import type { ActPlan, ActRefusal } from './ActPlan';
+import type { CraftingFailure } from './CraftingDecline';
 
 const CARVING = ['platform/cmd/crafting/carve.yaml'];
 
@@ -41,10 +42,16 @@ export interface CarveRequest {
    * cut oversize for, by its shrinkage. `''` when unsaid.
    */
   forWord?: string;
+  /**
+   * The wood named to carve a part FROM (`carve peg from the blank`) when
+   * it plans nothing itself — preferred, not required, by the generic
+   * carving (`RecipeCatalogue.carvingPlanFor`).
+   */
+  stock?: Stuff | null;
 }
 
 /** What a carving is for, when a refusal says what it needs. */
-export type CarvingKind = 'trim' | 'riser' | 'pattern';
+export type CarvingKind = 'trim' | 'riser' | 'pattern' | 'carving';
 
 /**
  * ⭐ Every reason a thing refuses its carving — `CarveController` words
@@ -68,13 +75,21 @@ export type CarveRefusal =
   | ActRefusal<'green-stock'>
   | ActRefusal<'no-shape', { of: Stuff }>
   | ActRefusal<'no-metal', { of: Stuff }>
-  | ActRefusal<'too-small', { of: Stuff }>;
+  | ActRefusal<'too-small', { of: Stuff }>
+  // ⭐ the generic carving — a recipe row (controller-liquidity W7c)
+  /** No word: the carvings installed, by name. */
+  | ActRefusal<'no-part', { names: readonly string[] }>
+  /** The word names no carving: the carvings installed, by name. */
+  | ActRefusal<'not-a-carving', { word: string; names: readonly string[] }>
+  | ActRefusal<'wrong-tool', { knife: Stuff }>
+  | ActRefusal<'craft-refused', { failure: CraftingFailure }>;
 
 /** What a carving's begin words need. */
 export type CarveBegin =
   | { kind: 'trim'; knife: Stuff }
   | { kind: 'riser' }
-  | { kind: 'pattern'; of: Stuff; metalName: string };
+  | { kind: 'pattern'; of: Stuff; metalName: string }
+  | { kind: 'carving'; knife: Stuff };
 
 /** What a carving came to. */
 export type CarveDone =
@@ -82,6 +97,8 @@ export type CarveDone =
   | { kind: 'trimmed'; feature: string }
   | { kind: 'riser' }
   | { kind: 'pattern'; pattern: Stuff; formDescription: string; metalName: string }
+  /** A part carved out of a piece of wood by a carving row. */
+  | { kind: 'carved'; knife: Stuff; output: Stuff }
   /** The thing or the carver was gone when the step landed (nothing said). */
   | { kind: 'gone' };
 

@@ -123,7 +123,7 @@ export default class ResponseReading extends Reading {
     const verb = armor ? 'turns' : 'delivers';
     const lines: Mml[] = [];
     lines.push(
-      Mml.compose`Response of ${Mml.thing(stuff)} (${construction.getForm()}) — how it ${verb} each channel:`,
+      Mml.compose`Response of ${Mml.thing(stuff)} (${construction.getWord()}) — how it ${verb} each channel:`,
     );
     if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
       lines.push(

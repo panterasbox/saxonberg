@@ -1,0 +1,14 @@
+key: rupture-repair
+label: rupture repair
+addresses:
+  traumaTypes:
+  - rupture
+instrument: surgery
+competence:
+  discipline: medicine
+  band: competent
+bloodCostL: 0.3
+baseDurationS: 300
+anaesthesia: required
+resolution: surgery
+difficulty: formidable

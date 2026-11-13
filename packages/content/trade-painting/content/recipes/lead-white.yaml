@@ -1,6 +1,5 @@
 # Lead white — on the stones (paint D19). A hand quern carries `millstone` and so
 # does a mill: the capital decides your time, not your access.
-recipeId: lead-white
 name: Lead white
 keywords: ["lead-white", "white lead"]
 inputSlots:

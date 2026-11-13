@@ -34,7 +34,7 @@ import {
 // at module-load time, so simply importing it (which we do for several
 // other uses below) guarantees the security gate is in place before
 // the first `ProxyApi.wrap` in `create` / `clone` / `createSync`.
-import { SecurityApi } from './security';
+import { SecurityApi, type ApiNeed } from './security';
 import { ShadowApi } from './shadow';
 import { EventApi } from './event';
 import { Events } from '../lib/events';
@@ -808,6 +808,33 @@ export class StuffApi {
       return this.singleton<T>(path, context);
     }
     return this.clone<T>(path, context);
+  }
+
+  /**
+   * ⭐⭐ **The one readiness door**: stand up what a read stands on — a
+   * catalogue by its singleton path, a row-less catalogue by its loader —
+   * or every need an Api declares (`StuffApi.ready(GovernmentApi)`).
+   *
+   * ⛔ Not for callers. The boot readies every Api's `needs` once
+   * (`AppBootstrap`), and an Api's async statics await theirs in the call
+   * gate; a class that reaches for this is doing its Api's job.
+   */
+  public static ready(
+    ...needs: ReadonlyArray<ApiNeed | { readonly needs?: readonly ApiNeed[] }>
+  ): Promise<void> {
+    // `singleton` resolves at once for a resident one — no pre-check
+    // (lint:get-or-create).
+    // ⚠ An Api is a CLASS — a function — so it is told from a loader by the
+    // `needs` it declares, never by `typeof` (the drive's boot found it).
+    const flat = needs.flatMap((n): ApiNeed[] => {
+      if (typeof n === 'string') return [n];
+      const declared = (n as { needs?: readonly ApiNeed[] }).needs;
+      if (Array.isArray(declared)) return [...declared];
+      return typeof n === 'function' ? [n as ApiNeed] : [];
+    });
+    return Promise.all(
+      flat.map((n) => (typeof n === 'function' ? n() : StuffApi.singleton(n))),
+    ).then(() => undefined);
   }
 
   /**

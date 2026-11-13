@@ -142,9 +142,9 @@ describe('⭐ writing on paper', () => {
     expect(s.writeOn(h, 'meet me at noon').ok).toBe(true);
     expect(s.getMarkText()).toBe('meet me at noon');
     expect(s.getPassages()).toEqual([{ text: 'meet me at noon', hand: h.getIdentityPath() }]);
-    expect(s.readFor(h)).toBe('(in your hand) meet me at noon');
+    expect(s.textFor(h)).toBe('(in your hand) meet me at noon');
     const stranger = makeStuffAtPath(() => new Holder(), '/platform/agent/Avatar/stranger');
-    expect(s.readFor(stranger)).toBe('(in a hand you do not know) meet me at noon');
+    expect(s.textFor(stranger)).toBe('(in a hand you do not know) meet me at noon');
   });
 
   it('the same words in two different hands are two different papers', () => {

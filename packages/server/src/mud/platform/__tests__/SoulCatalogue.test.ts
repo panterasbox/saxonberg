@@ -13,7 +13,7 @@ import SoulCatalogue from '../idea/SoulCatalogue';
 import { SoulApi } from '../../api/soul';
 import { DocumentApi } from '../../api/document';
 import { StuffApi } from '../../api/stuff';
-import { StoredDocument } from '../../lib/document/StoredDocument';
+import { DocumentRefusal, StoredDocument } from '../../lib/document/StoredDocument';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 function doc(path: string, data: Record<string, unknown>): StoredDocument {
@@ -64,7 +64,7 @@ describe('SoulCatalogue (documents-backed)', () => {
 
   it('setDisabled writes the row through DocumentApi.save with the flag and updates the cache both ways', async () => {
     expect(await SoulApi.setDisabled('greet', true)).toBe(true);
-    expect(save).toHaveBeenCalledWith('/expression/emotes/greet', 'emote', expect.objectContaining({ verb: 'greet', disabled: true }));
+    expect(save).toHaveBeenCalledWith('/expression/emotes/greet', 'emote', expect.objectContaining({ disabled: true }));
     expect(await SoulApi.resolve('greet')).toBeNull();
     expect(await SoulApi.setDisabled('greet', false)).toBe(true);
     expect((save.mock.calls.at(-1) as unknown[])[2]).not.toHaveProperty('disabled');
@@ -74,7 +74,7 @@ describe('SoulCatalogue (documents-backed)', () => {
 
   it('mint lands under the soul committee\'s extent (/expression/emotes)', async () => {
     await SoulApi.mint({ verb: 'bow', grammar: GRAMMAR });
-    expect(save).toHaveBeenCalledWith('/expression/emotes/bow', 'emote', expect.objectContaining({ verb: 'bow' }));
+    expect(save).toHaveBeenCalledWith('/expression/emotes/bow', 'emote', expect.objectContaining({ grammar: GRAMMAR }));
   });
 
   it('resolve is canonical-only: a search term does not dispatch', async () => {
@@ -106,7 +106,7 @@ describe('SoulCatalogue (documents-backed)', () => {
     expect(save).toHaveBeenCalledTimes(1);
     expect(save.mock.calls[0]![0]).toBe('/expression/emotes/shrug');
     expect(save.mock.calls[0]![1]).toBe('emote');
-    expect(save.mock.calls[0]![2]).toMatchObject({ verb: 'shrug', searchTerms: ['meh'], grammar: GRAMMAR });
+    expect(save.mock.calls[0]![2]).toMatchObject({ searchTerms: ['meh'], grammar: GRAMMAR });
     expect((await SoulApi.resolve('shrug'))?.verb).toBe('shrug');
     expect(await SoulApi.resolve('meh')).toBeNull();
     expect((await SoulApi.search('meh')).map((e) => e.verb)).toEqual(['shrug']);
@@ -118,6 +118,34 @@ describe('SoulCatalogue (documents-backed)', () => {
     expect(save.mock.calls[0]![0]).toBe('/expression/emotes/greet');
     expect((await SoulApi.search('yo')).map((e) => e.verb)).toEqual(['greet']);
     expect(await SoulApi.search('hi')).toEqual([]);
+  });
+
+  it('⭐ edit MERGES a partial grammar: a new template keeps the slots (C72)', async () => {
+    docs.push(
+      doc('/expression/emotes/poke', {
+        verb: 'poke',
+        grammar: { slots: { target: { kind: 'person' } }, template: '{{ actor }} pokes {{ target }}.' },
+      }),
+    );
+    void SoulApi.invalidateCache();
+    const next = await SoulApi.edit('poke', { grammar: { template: '{{ actor }} prods {{ target }}.' } });
+    expect(next.grammar.template).toBe('{{ actor }} prods {{ target }}.');
+    expect(Object.keys(next.grammar.slots)).toEqual(['target']);
+    expect((save.mock.calls[0]![2] as { grammar: { slots: object } }).grammar.slots).toEqual({
+      target: { kind: 'person' },
+    });
+  });
+
+  it('a REFUSED write leaves the live catalogue as it was (write first, then the cache)', async () => {
+    const refused = new DocumentRefusal('access-denied', "you don't have permission to write that document");
+    save.mockRejectedValue(refused);
+    del.mockRejectedValue(refused);
+    await expect(SoulApi.edit('greet', { searchTerms: ['yo'] })).rejects.toBe(refused);
+    expect((await SoulApi.search('hi')).map((e) => e.verb)).toEqual(['greet']);
+    await expect(SoulApi.setDisabled('greet', true)).rejects.toBe(refused);
+    expect((await SoulApi.resolve('greet'))?.verb).toBe('greet');
+    await expect(SoulApi.delete('smirk')).rejects.toBe(refused);
+    expect((await SoulApi.resolve('smirk'))?.verb).toBe('smirk');
   });
 
   it('delete calls DocumentApi.delete at the document path and drops the cache entry', async () => {

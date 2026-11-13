@@ -1,6 +1,6 @@
 verbs: [settings]
 category: shell
-controller: /platform/idea/cmd/shell/SettingsController
+controller: /platform/idea/cmd/shell/SettingsListController
 description: "Manage your declared settings"
 opens_card: settings
 help: |
@@ -23,12 +23,14 @@ validators:
   - /lib/command/validators/requiresEnvironment
 subcommands:
   list:
+    controller: /platform/idea/cmd/shell/SettingsListController
     description: "List declared settings, grouped by source mixin"
     help: |
       Show every setting you can adjust, grouped by the system
       that declares it. This is what bare `settings` shows too —
       your starting point for finding a key's exact name.
   get:
+    controller: /platform/idea/cmd/shell/SettingsGetController
     description: "Show a setting's current value"
     help: |
       Print the value a setting currently holds for you, whether
@@ -39,6 +41,7 @@ subcommands:
         required: true
 
   set:
+    controller: /platform/idea/cmd/shell/SettingsSetController
     description: "Set a setting's value"
     help: |
       Override a setting. Name the key and the value you want; the
@@ -61,6 +64,7 @@ subcommands:
         greedy: true
 
   unset:
+    controller: /platform/idea/cmd/shell/SettingsUnsetController
     description: "Clear an override; the schema default applies"
     help: |
       Drop your override for a setting so its schema default takes
@@ -75,6 +79,7 @@ subcommands:
         required: true
 
   describe:
+    controller: /platform/idea/cmd/shell/SettingsDescribeController
     description: "Show a setting's schema entry"
     help: |
       Show a setting's full schema entry — its type, default, and

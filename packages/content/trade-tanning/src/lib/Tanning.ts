@@ -165,10 +165,10 @@ const LEATHER = '/stuff/idea/material/organic/leather';
  * raw skin and the dung of the bate, on the hands and the apron.
  */
 export const TAN_SOILS: readonly SoilSpec[] = [
-  { kind: 'grease', amount: 0.2, where: 'hands' },
-  { kind: 'manure', amount: 0.2, where: 'hands' },
-  { kind: 'grease', amount: 0.1, where: 'apron' },
-  { kind: 'manure', amount: 0.1, where: 'apron' },
+  { kind: '/platform/dirt/grease', amount: 0.2, where: 'hands' },
+  { kind: '/platform/dirt/manure', amount: 0.2, where: 'hands' },
+  { kind: '/platform/dirt/grease', amount: 0.1, where: 'apron' },
+  { kind: '/platform/dirt/manure', amount: 0.1, where: 'apron' },
 ];
 
 /** The pit a hide is lifted from: what it read of it, and what it costs it. */

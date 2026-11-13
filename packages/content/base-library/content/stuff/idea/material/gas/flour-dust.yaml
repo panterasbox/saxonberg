@@ -5,8 +5,8 @@
 # limit: one number, the limit, carries the difference. Not a poison.
 class: /platform/idea/material/FuelGas
 data:
-  smells: [{ aroma: /base-library/aromas/flour, strength: 20 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/grain/flour, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 100 }]
   name: flour dust
   keywords: [dust, flour]
   appearance: a white haze of flour in the air

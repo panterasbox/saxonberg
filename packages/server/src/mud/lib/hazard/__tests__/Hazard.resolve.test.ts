@@ -424,6 +424,11 @@ describe('disarm — found-gated', () => {
     expect(trap.isArmed()).toBe(true); // still live — you can't defuse what you can't see
   });
 
+  it('⭐ W8: the hazard reads its own disarm dial (5 s unseeded)', () => {
+    const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
+    expect(trap.getDisarmDurationMs()).toBe(5000);
+  });
+
   it('disarms a trap the actor has discovered', async () => {
     const m = plainMover('/platform/agent/Avatar/hz-sharp');
     ContainmentApi.move(m, makeStuff(() => new Place()));

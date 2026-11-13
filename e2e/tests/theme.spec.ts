@@ -4,7 +4,7 @@ import { openWorldAs, runCommand } from './helpers';
 /**
  * > AC: *theme switching is verified by **driving a browser** — all
  * > three themes, chrome and transcript — not by the suite alone.
- * > Controller tests skip the binder, so `cockpit style theme` is
+ * > Controller tests skip the binder, so `client-style theme` is
  * > exercised as a typed command against a running server.*
  *
  * ⭐ This spec exists because the unit suite **structurally cannot**
@@ -16,7 +16,7 @@ import { openWorldAs, runCommand } from './helpers';
  * end to end — server verb → overlay → push → store → `useGround` →
  * `:root` → a painted pixel.
  *
- * It also covers the other half of the criterion: `cockpit style theme`
+ * It also covers the other half of the criterion: `client-style theme`
  * as a **typed command against a running server**. The controller tests
  * call `execute()` directly and skip the command binder entirely, so
  * they cannot catch a YAML view whose slots don't match the controller.
@@ -29,11 +29,17 @@ const GROUNDS = {
   'high-contrast': '#000000',
 } as const;
 
-/** Each theme's `--sx-fg`, resolved to the rgb() a browser reports. */
+/**
+ * The transcript's foreground under each theme, as a browser reports it.
+ * ⚠ The terminal sits on a neutral near-black in EVERY theme, with light
+ * text in every theme (client-surface, e30fc2aea: marble's dark ink did
+ * not read on it): `terminal-fg` is an INVARIANT token (`themes/invariant.ts`),
+ * so the transcript reads the same light ink under all three.
+ */
 const FOREGROUNDS = {
   ink: 'rgb(242, 245, 250)',
-  marble: 'rgb(11, 24, 48)',
-  'high-contrast': 'rgb(255, 255, 255)',
+  marble: 'rgb(242, 245, 250)',
+  'high-contrast': 'rgb(242, 245, 250)',
 } as const;
 
 function customProperty(page: import('@playwright/test').Page, name: string) {
@@ -55,7 +61,7 @@ test('all three themes repaint chrome and transcript, with no reconnect', async 
     await expect(transcript).toBeVisible({ timeout: 20_000 });
 
     for (const name of ['ink', 'marble', 'high-contrast'] as const) {
-      await runCommand(page, `cockpit style theme ${name}`);
+      await runCommand(page, `client-style theme ${name}`);
 
       // 1. Chrome repainted — the custom property really landed on
       //    :root, resolved by a real cascade rather than a jsdom stub.
@@ -78,10 +84,8 @@ test('all three themes repaint chrome and transcript, with no reconnect', async 
       });
       expect(missing, `${name}: empty custom properties`).toEqual([]);
 
-      // 3. Transcript repainted through the SAME theme object. This is
-      //    the divergence check: chrome and transcript resolve their
-      //    theme through one `pickTheme`, so a body row's colour must
-      //    track the ground.
+      // 3. Transcript painted through the SAME theme object — light text
+      //    on the neutral terminal ground in every theme (e30fc2aea).
       await expect(transcript).toHaveCSS('color', FOREGROUNDS[name]);
     }
 
@@ -111,7 +115,7 @@ test('high-contrast: no chrome control is unreadable against its own field', asy
   // is what this build owns — world prose carries author colour.
   const { page, close } = await openWorldAs(browser, 'theme-contrast');
   try {
-    await runCommand(page, 'cockpit style theme high-contrast');
+    await runCommand(page, 'client-style theme high-contrast');
     await expect
       .poll(() => customProperty(page, '--sx-ground'), { timeout: 10_000 })
       .toBe(GROUNDS['high-contrast']);
@@ -161,22 +165,24 @@ test('high-contrast: no chrome control is unreadable against its own field', asy
   }
 });
 
-test('`cockpit style theme default` refuses, naming the three known themes', async ({
+test('`client-style theme default` refuses, naming the three known themes', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'theme-refuse');
   try {
-    await runCommand(page, 'cockpit style theme marble');
+    await runCommand(page, 'client-style theme marble');
     await expect
       .poll(() => customProperty(page, '--sx-ground'), { timeout: 10_000 })
       .toBe(GROUNDS.marble);
 
-    await runCommand(page, 'cockpit style theme default');
+    await runCommand(page, 'client-style theme default');
 
     // The refusal reaches the player in the machine voice and says what
     // WOULD have worked — "commands refuse honestly" is a convention,
-    // and a refusal that names no alternative is a dead end.
-    const refusal = page.getByText(/unknown theme/i).last();
+    // and a refusal that names no alternative is a dead end. (Since
+    // controller-liquidity W7b the vocabulary is the view's `values:`
+    // list, so the BINDER refuses the word, naming the three.)
+    const refusal = page.getByText(/'default' is not one of/i).last();
     await expect(refusal).toBeVisible({ timeout: 10_000 });
     await expect(refusal).toContainText('ink');
     await expect(refusal).toContainText('marble');

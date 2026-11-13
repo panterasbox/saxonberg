@@ -1,7 +1,8 @@
 /**
  * WriteOnController — `write <words> on <thing>` (underwater review): the
  * world's verb for putting words on a thing. The surface decides
- * (`Marked.writeOn`); the verb renders. (The shell's authoring verb is
+ * (`Marked.inscribe` — `writeOn`, at a page when one is named; a book
+ * writes its page); the verb renders. (The shell's authoring verb is
  * `edit` — `WriteController` — since this review.)
  */
 
@@ -11,7 +12,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import Book from '../../../thing/Book';
 
 interface WriteOnModel extends CommandModel {
   words: string;
@@ -33,15 +33,9 @@ export default class WriteOnController extends CommandController<WriteOnModel> {
       return this.refuse(context, 'act.deed', `There is nowhere to write on ${surface.getPresentation()}.`, 'no-room');
     }
     const medium = model.medium?.stuff ?? undefined;
-    const hasPage = model.page !== undefined && model.page !== '';
-    if (hasPage && !(surface instanceof Book)) {
-      return this.refuse(context, 'act.deed', `${surface.getPresentation()} has no pages.`, 'not-a-book');
-    }
-    // ⭐ A book is written on a page, and its pages are a document.
-    const out =
-      surface instanceof Book
-        ? await surface.writePage(giver, model.words ?? '', hasPage ? Number(model.page) : surface.getOpenPage(), medium)
-        : surface.writeOn(giver, model.words ?? '', medium);
+    const page = model.page !== undefined && model.page !== '' ? Number(model.page) : undefined;
+    // ⭐ The surface decides — a book is written on a page (`inscribe`).
+    const out = await surface.inscribe(giver, model.words ?? '', { page, medium });
     if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
     MessageApi.scene(giver)
       .topic('act.deed')

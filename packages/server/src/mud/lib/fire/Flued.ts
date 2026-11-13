@@ -18,9 +18,15 @@
  * The soot is the ACT's deposit (`consumeFuel`), never a clock.
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Burner } from './Burner';
+import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
+
+/** Brushing a flue, real ms — rod by rod. */
+const FLUE_SWEEP_MS = 24000;
+/** What brushing a flue costs, W. */
+const FLUE_SWEEP_W = 400;
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { PersistableApi } from '../../api/persistable';
@@ -30,6 +36,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { DirtKinds } from '../cleanliness/DirtKind';
 
 /** Soot a swept flue drops, as a load on the floor per kg (D18). */
 const SOOT_LOAD_PER_KG = 0.8;
@@ -73,11 +80,35 @@ function flueAugmenter(text: string, host: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
+export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
   Base: TBase,
 ) {
-  return class FluedMixin extends Base implements Flued {
+  // ⭐ A chimney is swept (`SweepableMixin`): with a flue brush, the soot
+  // comes down. A grate is raked, not swept — `rake`, the Burner's own
+  // (controller-liquidity W18).
+  return class FluedMixin extends SweepableMixin(Base) implements Flued {
     static _mixinName: string = 'FluedMixin';
+
+    /**
+     * @hook `sweep` sweeps the CHIMNEY (soot onto the hearthstone and the
+     * sweeper's hands) — with a flue brush; a broom does not go up a flue.
+     */
+    public override sweepPlanFor(req: SweepRequest): SweepPlan | SweepRefusal | null {
+      if (!req.brush) return { ok: false, reason: 'no-brush' };
+      return {
+        ok: true,
+        durationMs: FLUE_SWEEP_MS,
+        effortW: FLUE_SWEEP_W,
+        facts: { tool: 'brush' },
+        onComplete: async () => {
+          const { sootKg, taken } = await this.sweepChimney(req.actor);
+          return {
+            ok: true,
+            facts: { kg: sootKg, kinds: Object.fromEntries(sootKg > 0 ? [[DirtKinds.SOOT, sootKg]] : []), taken },
+          };
+        },
+      };
+    }
 
     static fieldMeta: FieldMeta = {
       flueSoot: { persistent: true, runtimeState: true },
@@ -103,9 +134,9 @@ export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
       const floor =
         room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
       if (floor && MixinApi.isSoilable(floor) && soot > 0) {
-        floor.soil('soot', soot * SOOT_LOAD_PER_KG);
+        floor.soil(DirtKinds.SOOT, soot * SOOT_LOAD_PER_KG);
       }
-      if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
+      if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: DirtKinds.SOOT, amount: 0.3, where: 'hands' }]);
       const taken = await this.takeSoot(sweeper, soot);
       await PersistableApi.captureHostOf(self).catch(() => {});
       return { sootKg: soot, taken };

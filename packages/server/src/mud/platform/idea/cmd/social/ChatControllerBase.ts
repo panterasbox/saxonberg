@@ -22,6 +22,7 @@ import { PlayerApi } from '../../../../api/player';
 import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../../../lib/command/CommandGiver';
+import type { ChannelRefusalReason } from '../../../../lib/social/Channel';
 
 export interface ChatModel extends CommandModel {
   channel?: string;
@@ -38,6 +39,33 @@ export interface ChatModel extends CommandModel {
 }
 
 export abstract class ChatControllerBase extends CommandController<ChatModel> {
+  /**
+   * The words for a channel act the catalogue refused (the gate is the
+   * catalogue's — controller-liquidity D9; the controller only words it).
+   */
+  protected refusalLine(reason: ChannelRefusalReason, name: string): string {
+    switch (reason) {
+      case 'no-such-channel':
+        return `No channel '${name}'.`;
+      case 'not-player-created':
+        return `'${name}' is not a player-created channel.`;
+      case 'no-subject':
+        return `'${name}' has no owner to answer for it.`;
+      case 'not-owner':
+        return `Only the owner of '${name}' may do that.`;
+      case 'not-member':
+        return `You are not in '${name}'.`;
+      case 'reserved-name':
+        return `'${name}' is a reserved subcommand; pick another.`;
+      case 'name-taken':
+        return `A channel named '${name}' already exists.`;
+      default: {
+        const never: never = reason;
+        return String(never);
+      }
+    }
+  }
+
   protected async tune(
     model: ChatModel,
     context: CommandContext,

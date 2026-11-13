@@ -1,6 +1,6 @@
 verbs: [var]
 category: shell
-controller: /platform/idea/cmd/shell/VarController
+controller: /platform/idea/cmd/shell/VarListController
 description: "Manage your ad-hoc session variables"
 help: |
   Session variables are scratch values you name yourself and reuse
@@ -16,12 +16,14 @@ validators:
   - /lib/command/validators/requiresEnvironment
 subcommands:
   list:
+    controller: /platform/idea/cmd/shell/VarListController
     description: "List session variables"
     help: |
       Show every session variable you've set and its value. This
       is what bare `var` shows too.
 
   set:
+    controller: /platform/idea/cmd/shell/VarSetController
     description: "Set a session variable"
     help: |
       Name a value and store it for the rest of your session. Once
@@ -40,6 +42,7 @@ subcommands:
         greedy: true
 
   unset:
+    controller: /platform/idea/cmd/shell/VarUnsetController
     description: "Clear a session variable"
     help: |
       Forget a session variable you set, freeing its name. It would

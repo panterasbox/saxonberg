@@ -86,6 +86,7 @@ import type { BrainContext, BrainStatics } from './brain';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
+import { CommandLineApi } from '../../api/command-line';
 
 /** How a par unit is said in an order — the `job post` phrase's words. */
 const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos', count: 'pieces' };
@@ -222,9 +223,9 @@ export const brain = class {
       if (isIce(item) && binKw) {
         await keeper.forceCommand(`pour ${kw} into ${binKw}`);
       } else if (isGlass(item) && rackKw) {
-        await keeper.forceCommand(`put ${kw} in ${rackKw}`);
+        await keeper.forceCommand(`put ${CommandLineApi.word(kw)} in ${CommandLineApi.word(rackKw)}`);
       } else if (shelfKw) {
-        await keeper.forceCommand(`put ${kw} on ${shelfKw}`);
+        await keeper.forceCommand(`put ${CommandLineApi.word(kw)} on ${CommandLineApi.word(shelfKw)}`);
       }
     }
 
@@ -244,10 +245,10 @@ export const brain = class {
         if (!isGlass(item) || !isSoiledEmpty(item) || !MixinApi.isContainable(item)) continue;
         const kw = keywordOf(item);
         if (!kw) continue;
-        await keeper.forceCommand(`get 1 ${kw}`);
+        await keeper.forceCommand(`get 1 ${CommandLineApi.word(kw)}`);
         if (item.getContainer() !== keeper) continue;
-        await keeper.forceCommand(`wash ${kw}`);
-        await keeper.forceCommand(`put ${kw} in ${rackKw}`);
+        await keeper.forceCommand(`wash ${CommandLineApi.word(kw)}`);
+        await keeper.forceCommand(`put ${CommandLineApi.word(kw)} in ${CommandLineApi.word(rackKw)}`);
       }
     }
   }
@@ -328,9 +329,9 @@ function isSolidIce(thing: Stuff): boolean {
  * the business carries it whole (the repair build's W7).
  */
 async function unpackIntoCold(keeper: Keeper, kw: string, coldKw: string): Promise<void> {
-  await keeper.forceCommand(`open ${coldKw}`);
-  await keeper.forceCommand(`put ${kw} in ${coldKw}`);
-  await keeper.forceCommand(`close ${coldKw}`);
+  await keeper.forceCommand(`open ${CommandLineApi.word(coldKw)}`);
+  await keeper.forceCommand(`put ${CommandLineApi.word(kw)} in ${CommandLineApi.word(coldKw)}`);
+  await keeper.forceCommand(`close ${CommandLineApi.word(coldKw)}`);
 }
 
 function isIce(thing: Stuff): boolean {
@@ -556,7 +557,7 @@ async function unpackBench(
     if (!MixinApi.isContainable(item)) continue;
     const kw = keywordOf(item);
     if (!kw) continue;
-    await keeper.forceCommand(`get 1 ${kw}`);
+    await keeper.forceCommand(`get 1 ${CommandLineApi.word(kw)}`);
     if (item.getContainer() !== (keeper as unknown as Stuff)) continue;
     taken.push(item);
   }

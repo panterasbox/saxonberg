@@ -30,10 +30,12 @@ data:
   exits:
     south:
       destination: /world/terminus/hearts-delight/location/bench-lane
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 2
     west:
       destination: /world/terminus/hearts-delight/silk-house/location/walk
+      kind: /platform/idea/exits/track
       media: [ground]
       edgeMinutes: 1
   adornments:

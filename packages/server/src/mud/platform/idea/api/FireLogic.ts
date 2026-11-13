@@ -9,7 +9,6 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
-import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
@@ -23,6 +22,8 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome, Incandescence } from '../../../api/fire';
+import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
+import { MaterialApi } from '../../../api/material';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
 /**
@@ -586,8 +587,9 @@ const SOOT_PER_KG = 0.01;
 /**
  * ⭐ (cleanliness D6) A smoky fire indoors soots what is in the room with
  * it — the panes, the floor, a lamp, whatever lies about. The room's own
- * fixtures and props, asked directly; a pane is reached through its
- * anchor. Under the open sky the smoke goes up and nothing is sooted.
+ * fixtures and props, asked directly; a pane in one of its ways is reached
+ * through the way (the side). Under the open sky the smoke goes up and
+ * nothing is sooted.
  */
 function sootTheRoom(room: Stuff & Container, kgBurnt: number): void {
   if (BiomeApi.isSkyExposed(room)) return;
@@ -595,16 +597,21 @@ function sootTheRoom(room: Stuff & Container, kgBurnt: number): void {
   if (!(amount > 0)) return;
   const touched = new Set<Stuff>();
   const fixtures = MixinApi.isAdornable(room) ? room.getFixtures() : [];
-  for (const f of fixtures) {
-    const glazing = BoundaryAnchor.is(f) ? f.getBoundary() : null;
-    touched.add(glazing ? (glazing as unknown as Stuff) : (f as unknown as Stuff));
+  for (const f of fixtures) touched.add(f as unknown as Stuff);
+  // ⭐ What stands in the room's ways — a window, a door — is sooted on the
+  // room's side too (boundary build: read off the side, not an anchor).
+  if (MixinApi.isExitable(room)) {
+    for (const exit of room.getExits().values()) {
+      const b = exit.getBoundary();
+      if (b) touched.add(b as unknown as Stuff);
+    }
   }
   for (const c of room.getContents()) {
     if (c.isAgent()) continue;
     touched.add(c);
   }
   for (const t of touched) {
-    if (MixinApi.isSoilable(t)) t.soil('soot', amount);
+    if (MixinApi.isSoilable(t)) t.soil(DirtKinds.SOOT, amount);
   }
 }
 
@@ -661,7 +668,7 @@ function flammableMediumCheck(
   let worst: { type: string; amount: number } | null = null;
   let worstLimit = ignitesAt;
   for (const c of contents) {
-    const material = StuffApi.findByTemplatePath<Material>(c.type);
+    const material = MaterialApi.materials().peek(c.type);
     if (!material) continue;
     // ⭐ (cleanliness D22) A substance's own flammable limit, when it
     // states one — mill dust flashes at a share of the air coal gas would
@@ -799,8 +806,10 @@ function openNeighboursOf(room: Stuff & Container): (Stuff & Container)[] {
   const out: (Stuff & Container)[] = [];
   for (const exit of room.getExits().values()) {
     if (exit.isBlocked()) continue;
-    const door = exit.getDoor();
-    if (door !== null && MixinApi.isSealable(door) && !door.isOpen()) {
+    // A shut door is a firebreak, and so is glass: fire crosses an OPEN
+    // doorway only (boundary build — a window is now a side too).
+    const boundary = exit.getBoundary();
+    if (boundary !== null && (!boundary.isOpen() || !boundary.passesBodiesWhenOpen())) {
       continue; // firebreak
     }
     let dest: Stuff & Container | null = null;

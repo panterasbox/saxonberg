@@ -38,6 +38,7 @@ import type { MarkupAugmenter } from '../../api/mml';
 import type { AudibleEmitOptions } from '../perception/Audible';
 import type { Tangible } from './Tangible';
 import type Material from './Material';
+import type { ActOutcome } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -47,6 +48,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
 import { ScheduleApi } from '../../api/schedule';
+import { MaterialApi } from '../../api/material';
 
 /** Soaked past this (the `soaked` band), a weak-wet material gives way. */
 const SODDEN_AT = 0.8;
@@ -203,6 +205,14 @@ export interface Integrity {
    * into its material's `brokenTemplate` and what it held spills.
    */
   sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome>;
+  /**
+   * ⭐ Let go of, it FALLS onto `place`'s floor (ceramics M5; controller-
+   * liquidity W8 moved it off `drop`): `m·g·h` with `h` the
+   * `impact.dropHeightM` dial, against the floor's material. `null` when
+   * nothing landed — it has no mass, or it merged into a stack and is gone.
+   * `put` and `get` never call this: nothing breaks from being handled.
+   */
+  fallOnto(place: Stuff): Promise<ImpactOutcome | null>;
   /** What a blow would do, without doing it: `none`, a `crack`, or `break`. */
   impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break';
   /**
@@ -213,6 +223,20 @@ export interface Integrity {
    * column and placed by none (underwater C5).
    */
   ringSound(): RingSound;
+  /**
+   * ⭐ The `ring` act (controller-liquidity W7c): tapped by `actor`, it
+   * answers how it sounded and whether it is a SIGNAL — a Ringable bell is
+   * struck (remembered) and sounds from itself; anything else is heard as
+   * the tap. The controller words both; the thing decides which it was.
+   */
+  ringBy(actor: Stuff): ActOutcome<RingFacts>;
+}
+
+/** What `ringBy` answers: the sound, and whether it rang as a signal (a bell struck). */
+export interface RingFacts {
+  sound: RingSound;
+  /** A Ringable signal — struck, remembered, sounded from itself. */
+  signal: boolean;
 }
 
 /**
@@ -418,7 +442,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       let grog = mat.hasTag('refractory') ? 0.4 : 0;
       if (MixinApi.isComposition(self)) {
         for (const e of self.getMakeup()) {
-          const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+          const m = MaterialApi.materials().peek(e.materialPath);
           if (m?.hasTag('grog')) grog += e.fraction;
         }
       }
@@ -480,6 +504,20 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       return spec.energyJ * Math.min(1, Math.max(0, floor) / own);
     }
 
+    public async fallOnto(place: Stuff): Promise<ImpactOutcome | null> {
+      const self = this as unknown as Stuff;
+      // ⭐ A dropped piece can MERGE into a like stack on the floor and be
+      // gone by now (a brick onto the hacks' brick stack): the stack it
+      // joined did not fall, so there is nothing to land.
+      if (self.isDestroyed()) return null;
+      const kg = this.body().getMass()?.rawValue();
+      if (typeof kg !== 'number' || !(kg > 0)) return null;
+      const floor = (MixinApi.isAdornable(place) ? place.getFloor() : null) as Stuff | null;
+      const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
+      const heightM = integrityDial(AppSettingKeys.impactDropHeightM, 1);
+      return this.sufferImpact({ energyJ: kg * 9.81 * heightM, surface, cause: 'drop' });
+    }
+
     public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
       const self = this as unknown as Stuff;
       const verdict = this.impactVerdict(spec);
@@ -539,6 +577,18 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         db: rings ? 50 + 10 * Math.log10(kg) : 35,
         rings,
       };
+    }
+
+    public ringBy(_actor: Stuff): ActOutcome<RingFacts> {
+      const self = this as unknown as Stuff;
+      const sound = this.ringSound();
+      if (!MixinApi.isRingable(self)) return { ok: true, facts: { sound, signal: false } };
+      // ⭐ A bell is a SIGNAL (review R2-D4): its sound is its own, emitted
+      // through the audible system, and it remembers it was struck so a
+      // listener (a ferryman across the water) can answer (river W16).
+      if (MixinApi.isAudible(self)) self.emit(sound);
+      self.struck();
+      return { ok: true, facts: { sound, signal: true } };
     }
   };
 }

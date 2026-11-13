@@ -1,6 +1,6 @@
 verbs: [contacts]
 category: social
-controller: /platform/idea/cmd/social/ContactsController
+controller: /platform/idea/cmd/social/ContactsListController
 description: "Manage personal named lists of other characters (friends, study-group, ignore — labels are free-form)"
 help: |
   Keep your own private lists of other characters. The labels are
@@ -15,6 +15,7 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   add:
+    controller: /platform/idea/cmd/social/ContactsAddController
     description: "Add a player or NPC to a labeled list. Default expands to every character of the target's user; --char stores only the matched character."
     help: |
       File someone under a label. By default this remembers every
@@ -40,6 +41,7 @@ subcommands:
         type: string
         required: true
   remove:
+    controller: /platform/idea/cmd/social/ContactsRemoveController
     description: "Remove a single entry from a labeled list (matches against entries already in your list)"
     help: |
       Take one person off a label. The name is matched against the
@@ -53,6 +55,7 @@ subcommands:
         type: string
         required: true
   show:
+    controller: /platform/idea/cmd/social/ContactsShowController
     description: "Show the entries on a labeled list, with current names"
     help: |
       List everyone filed under a label, shown with their current
@@ -65,11 +68,13 @@ subcommands:
         type: string
         required: true
   list:
+    controller: /platform/idea/cmd/social/ContactsListController
     description: "Show the distinct labels you've used"
     help: |
       Show all the labels you've created, so you can remember what
       lists you're keeping before you `show` one.
   clear:
+    controller: /platform/idea/cmd/social/ContactsClearController
     description: "Remove every entry of a labeled list"
     help: |
       Empty a whole label at once, removing every entry on it. The
@@ -79,6 +84,7 @@ subcommands:
         type: string
         required: true
   rename:
+    controller: /platform/idea/cmd/social/ContactsRenameController
     description: "Relabel every entry from one label to another"
     help: |
       Move every entry from one label to another in a single step —

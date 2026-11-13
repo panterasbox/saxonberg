@@ -20,16 +20,19 @@ args:
   # ⭐ WHICH FURNACE, declared rather than hunted for. `smelt` alone is
   # unchanged; a smelt-house with two furnaces becomes addressable.
   #
-  # ⚠ The controller still narrows on being a CONTAINER — you charge a
-  # furnace you can put ore INTO, and a forge is not one. A mixin query
-  # resolves the fire; what kind of fire it is stays the controller's.
+  # ⭐ `affords` (controller-liquidity W9): the fire must be one that
+  # affords `smelt` itself — a `SmeltingFurnace`. A charcoal clamp is a
+  # furnace and a container one passable exit from the smelter, and the
+  # controller used to sniff its class statics to turn it away; it is
+  # refused at the binder now, and a clamp in the same reach as a furnace
+  # never shadows it.
   - name: furnace
     type: object
     required: false
     prepositions: [at, in]
     default: "reachable:[mixin.BurnerMixin]"
     scope: ["here", "peers", "person"]
-    requires: [BurnerMixin]
+    requires: [BurnerMixin, affords]
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

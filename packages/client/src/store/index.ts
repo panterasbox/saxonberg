@@ -1492,7 +1492,7 @@ export const useStore = create<StoreState>((set, get) => ({
       /*
        * ⭐ `shell.result` seeds into clientState rather than into a
        * field of its own, because the WRITE path pushes it there: a
-       * `client-state-update` from `SettingsController` is how the
+       * `client-state-update` from `SettingsSetController` is how the
        * setting takes effect without a reconnect. Two homes for one
        * answer would drift the first time only one of them was written.
        */

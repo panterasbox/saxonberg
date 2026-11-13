@@ -21,6 +21,9 @@ data:
     south:
       destination: /world/terminus/rejection/location/foundry
       edgeMinutes: 1
+      # The same yard door as the foundry's way out (boundary build): one
+      # door, two sides — locked overnight from both.
+      door: /world/terminus/rejection/thing/yard-door
   props:
     - /trade/smelting/thing/bell-pit
     - /trade/smelting/thing/ladle

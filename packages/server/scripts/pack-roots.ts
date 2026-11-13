@@ -39,8 +39,23 @@ interface Manifest {
   requires?: { title?: Array<{ extent: string }> };
 }
 
+/**
+ * The manifests do not change during a lint run, and `extendsAny` is called
+ * once per content row with this as its default — re-parsing ~65 manifests
+ * per row made `lint:locations` take 10+ minutes. Read once per directory.
+ */
+const packSourcesCache = new Map<string, PackSource[]>();
+
 /** Every shipped pack that ships a `src/`, with the roots it backs. */
 export function packSources(contentDir: string = CONTENT): PackSource[] {
+  const cached = packSourcesCache.get(contentDir);
+  if (cached) return cached;
+  const read = readPackSources(contentDir);
+  packSourcesCache.set(contentDir, read);
+  return read;
+}
+
+function readPackSources(contentDir: string): PackSource[] {
   if (!existsSync(contentDir)) return [];
   const out: PackSource[] = [];
   for (const pack of readdirSync(contentDir).sort()) {
@@ -168,6 +183,8 @@ export function composesMixin(
  * built from another base) and cycle-guarded by the visited set.
  */
 const ancestryCache = new Map<string, boolean>();
+/** `extendsAny`'s pack sources when its caller passes none — read once. */
+let defaultPackSources: PackSource[] | null = null;
 
 /** `/a/b/../c` → `/a/c`. Shared by the ancestry walk below. */
 export function normalizeClassPath(p: string): string {
@@ -203,7 +220,7 @@ export function extendsAny(
   classPath: string,
   roots: readonly string[],
   depth = 0,
-  sources: readonly PackSource[] = packSources(),
+  given?: readonly PackSource[],
 ): boolean {
   if (roots.includes(classPath)) return true;
   if (depth > 6) return false;
@@ -211,6 +228,10 @@ export function extendsAny(
   const cached = ancestryCache.get(key);
   if (cached !== undefined) return cached;
   ancestryCache.set(key, false); // cycle guard
+  // ⚠ Read once, after the cache: a `= packSources()` default re-read every
+  // pack manifest on EVERY call, cache hits included — ~20 ms × thousands
+  // of rows made `lint:locations` and `lint:location-graph` take minutes.
+  const sources = given ?? (defaultPackSources ??= packSources());
   let src: string;
   try {
     src = readFileSync(classFileOf(classPath, sources), "utf8");

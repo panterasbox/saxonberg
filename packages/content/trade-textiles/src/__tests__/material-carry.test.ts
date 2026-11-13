@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import SpinController from "../idea/cmd/textiles/SpinController";
 import WeaveController from "../idea/cmd/textiles/WeaveController";
 import TextileStock from "../thing/TextileStock";
+import TextileWork from "../lib/TextileWork";
 import ClothBolt from "../thing/ClothBolt";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
@@ -34,6 +35,7 @@ import {
   registerMaterial,
 } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { rememberFabric } from "@saxonberg/server/mud/lib/material/__tests__/fabrics";
 
 const LINEN = "/stuff/idea/material/textile/linen";
 const WOOL = "/stuff/idea/material/textile/wool";
@@ -91,7 +93,7 @@ beforeEach(async () => {
   await standUpBranchHarness();
   registerMaterial(LINEN, "linen", ["textile", "fibre", "cellulose"]);
   registerMaterial(WOOL, "wool", ["textile", "fibre", "protein"]);
-  Construction.registerFabric({ key: "woven", layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
+  rememberFabric({ key: "woven", layerBand: 0, loft: 0.1, weaveDensity: 0.75, drape: 0.6 });
   room = makeStuff(() => new TestActor());
   actor = makeStuff(() => new TestActor());
   ContainmentApi.move(actor, room);
@@ -110,7 +112,7 @@ async function spin(target: Stuff, count = 10): Promise<void> {
     { stock: ref(target, "fleece"), count } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "spin"),
   );
-  await completeStep(SpinController.BASE_MS * 2);
+  await completeStep(TextileWork.SPIN_BASE_MS * 2);
 }
 
 async function weave(target: Stuff): Promise<void> {
@@ -119,7 +121,7 @@ async function weave(target: Stuff): Promise<void> {
     { yarn: ref(target, "yarn") } as never,
     makeContext(actor as unknown as Stuff, room as unknown as Stuff, "weave"),
   );
-  await completeStep(WeaveController.BASE_MS * 2);
+  await completeStep(TextileWork.WEAVE_BASE_MS * 2);
 }
 
 describe("the textile chain keeps the fibre", () => {
@@ -199,5 +201,30 @@ describe("the textile chain keeps the fibre", () => {
   it("line (yarnCount 0) keeps its authored words — it is not yarn yet", () => {
     const line = stock(WOOL, "/trade/textiles/thing/line", 2);
     expect(line.getShortDescription()).toBe("fleece");
+  });
+});
+
+describe("⭐ the stock answers the act (controller-liquidity W11)", () => {
+  it("C23: yarn is what has a count, whatever its row is called — the cordage pack's hemp yarn weaves", async () => {
+    await weave(stock(WOOL, "/trade/cordage/thing/hemp-yarn", 4, 6));
+    expect(held((s) => s instanceof ClothBolt)).toBeDefined();
+    
+  });
+
+  it("C29: a mint that fails takes nothing — the yarn is still in hand", async () => {
+    const yarn = stock(WOOL, "/trade/textiles/thing/yarn", 4, 12);
+    vi.spyOn(StuffApi, "clone").mockRejectedValue(new Error("no row"));
+    await weave(yarn);
+    expect(yarn.isDestroyed()).toBe(false);
+    expect(yarn.getQuantity()).toBe(4);
+    expect(held((s) => s instanceof ClothBolt)).toBeUndefined();
+  });
+
+  it("C29: spinning that cannot mint leaves the line", async () => {
+    const line = stock(WOOL, "/trade/textiles/thing/line", 4);
+    vi.spyOn(StuffApi, "clone").mockRejectedValue(new Error("no row"));
+    await spin(line);
+    expect(line.isDestroyed()).toBe(false);
+    expect(line.getQuantity()).toBe(4);
   });
 });

@@ -1,7 +1,6 @@
 # ⭐ Raised from its parts (repair D17): a forged blade wedged into a
 # handle — `fit billhook`. The forging is `billhook-blade`'s (smithing);
 # the hafting is anybody's hand.
-recipeId: billhook
 name: Billhook
 keywords: [billhook, bill]
 inputSlots:

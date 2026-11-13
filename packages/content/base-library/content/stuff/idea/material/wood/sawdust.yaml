@@ -11,8 +11,8 @@
 # is the shavings fire. Not food: nothing grows in it here.
 class: /platform/idea/material/Wood
 data:
-  smells: [{ aroma: /base-library/aromas/sawdust, strength: 30 }]
-  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/wood/sawdust, strength: 30 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: sawdust
   keywords: [sawdust, dust]
   appearance: "a pale, resinous dust of sawn wood"

@@ -40,6 +40,7 @@ export type KeennessBand = 'keen' | 'serviceable' | 'dulled' | 'blunted';
 const KEEN_DEFAULTS = {
   WEAR_PER_USE: 0.08,
   DELIVERY_FLOOR: 0.7,
+  SHARPEN_MS: 12000,
 } as const;
 
 /** Numeric AppSetting read, falling back to the seeded literal (the
@@ -65,6 +66,12 @@ export interface Keen {
   dull(amount?: number): void;
   /** Restore the edge to fully keen — `sharpen`'s completion effect. */
   hone(): void;
+  /**
+   * How long a hone takes on a whetstone, before the stone paces it
+   * (`crafting.keenness.sharpenDurationMs`) — the edge's own number, so
+   * every caller of `hone` reads one clock.
+   */
+  honeDurationMs(): number;
   /**
    * ⭐ Whether there is an EDGE here to hold a hone (repair D3): its own
    * form cuts or pierces (a billhook, a dagger), or some part of it does
@@ -154,6 +161,11 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     hone(): void {
       this.setKeenness(1);
+    }
+
+    honeDurationMs(): number {
+      const ms = dial(AppSettingKeys.craftingKeennessSharpenDurationMs, KEEN_DEFAULTS.SHARPEN_MS);
+      return ms > 0 ? ms : KEEN_DEFAULTS.SHARPEN_MS;
     }
 
     hasEdge(): boolean {
