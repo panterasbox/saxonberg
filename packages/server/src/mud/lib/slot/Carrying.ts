@@ -2,16 +2,21 @@
  * CarryingMixin — **what a body that carries knows about the things on it,
  * and where an arrival goes on it.**
  *
- * ⭐⭐ `ContainmentApi.move(item, body)` is the receiving act (size and
- * carrying W8): the body is a destination that places what arrives. This
- * mixin's {@link arrivalFor} override is D11's order — a hanging pouch onto
- * the belt, a stack onto its like, a free hand (`carry.order`), the worn
- * pockets and containers in tier order, else `refuse` — and `move` performs
- * it, or throws naming why. `Container.canReceive(item)` is the same
- * resolution read dry, so the pre-check and the act cannot disagree. The
- * RULE that nothing sits loose is every body's (`Creature.arrivalFor`); the
- * capability composes only on the classes that carry: `Character`,
- * `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal`.
+ * ⭐⭐ `ContainmentApi.move(item, carrier)` is the one call, and a carrier
+ * ROUTES what arrives (size and carrying W8; owner, 2026-11-13). This
+ * mixin's {@link arrivalFor} override is D11's order over the places that
+ * ARE the body — a hanging pouch onto the belt, a stack onto its like, a
+ * free hand by `carry.order`, a worn pocket. When none takes it, the
+ * carrier's own arrival handling ({@link routeArrival}) takes it anyway — a
+ * TRUE move onto the body, its witnesses firing — and sends it on with a
+ * second true move: into the first worn or carried bag it fits, else down
+ * where the body stands, with the line. Nothing is retargeted; no caller
+ * chooses. `carrier.directMove(item)` goes around the routing (the body's
+ * own regions, or a refusal). The RULE that nothing sits loose is every
+ * body's (`Creature.arrivalFor`); a body that does not carry (a fish) is
+ * not routed, and `move` throws. The capability composes only on the
+ * classes that carry: `Character`, `DraftAnimal`, `KeptAnimal` and
+ * ranching's `WorkingAnimal`.
  *
  * ## What it knows
  *
@@ -22,6 +27,7 @@
  *   leaves the body.
  * - **Readying** (D16): `ready` — the held thing goes home, the named one
  *   comes to hand; in a fight it is the generalized weapon switch.
+ * - **Routing** (W8, 2026-11-13): `routeArrival` — on the body, then a bag or the floor.
  * - **Letting go** (D13): `releaseHeld`.
  * - **The restore** (D32): `placeLoose` — the one overflow (the residence,
  *   else where the body stands), the carrier's own explicit choice.
@@ -45,10 +51,12 @@ import type { Creature } from '../creature/Creature';
 import type { Arrival, ArrivalRefusal } from '../spatial/Container';
 import type { ActRefusal } from '../craft/ActPlan';
 import type { CaptureContext, HydrateContext, HomeEnd, HomesSlice, MixinSlice } from '../persistence/PersistenceSlice';
-import { ContainmentApi } from '../../api/containment';
+import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import { Placements } from '../spatial/Placement';
 import { MixinApi } from '../../api/mixin';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { SpeciesApi } from '../../api/species';
 import { CombatApi } from '../../api/combat';
 import { MessageApi } from '../../api/message';
@@ -100,6 +108,20 @@ export type ReadyRefusal =
   | ActRefusal<'not-on-you'>
   | ActRefusal<'pick-up', { item: Stuff }>
   | ActRefusal<'already-switching'>;
+
+/**
+ * ⭐ A route on a carrier, named (owner, 2026-11-13) — the routing's own
+ * choices in `Arrival`'s vocabulary: `seat` these slots (a hand, a wear
+ * claim), `pair` on a worn host's region (a pocket, the belt's `from`),
+ * `into` a bag this body carries, or `carried` — the routing short of the
+ * floor (on the body, else the first bag it fits: what `get` does).
+ * {@link Carrying.directMove} takes THIS route or refuses; `move` takes the
+ * first route that takes it, and sets it down when none does.
+ */
+export type CarryRoute =
+  | Extract<Arrival, { kind: 'seat' | 'pair' }>
+  | { kind: 'into'; container: Stuff & Container }
+  | { kind: 'carried' };
 
 /** Every refusal a carrier words. */
 export type CarryRefusal = ReceiveRefusal | ReadyRefusal;
@@ -211,6 +233,29 @@ export interface Carrying {
   gearNoise(): 0 | 1;
   /** ⭐ D32: place everything loose on this body (a restore's first load). */
   placeLoose(): Promise<Stuff[]>;
+  /**
+   * ⭐⭐ The carrier's arrival handling when nothing ON it takes `item`
+   * (owner, 2026-11-13) — called by `ContainmentApi.move` alone (gated).
+   * A true move onto this body (its witnesses fire), then a second true
+   * move: into the first worn or carried bag it fits, else down where the
+   * body stands, with the line. Returns where it ended.
+   *
+   * @internal
+   */
+  routeArrival(item: Stuff & Containable, refusal: ArrivalRefusal): Stuff & Container;
+  /**
+   * ⭐⭐ The routing made explicit (owner, 2026-11-13): `item` takes exactly
+   * one route or nothing moves and the refusal is returned. No `route`:
+   * ON the body — a hand, a pocket, a hook, the body's own choice of its
+   * regions (never onward to a bag). A `route` names which: `seat` these
+   * slots, `pair` on a worn host's region, `into` a bag this body carries,
+   * `carried` — on the body, else the first bag it fits.
+   * Never the floor — that is not on the carrier; only `move`'s routing
+   * sets a thing down. For a handed act that must refuse before money moves
+   * (`buy`, `give`, `put X in <person>`, a store's withdrawal) and staging
+   * that pins an exact state; everything else calls `ContainmentApi.move`.
+   */
+  directMove(item: Stuff & Containable, route?: CarryRoute): ArrivalRefusal | null;
   /**
    * ⭐ D37: before a guest body is reaped, what it borrowed goes back — a
    * good titled to someone else to its owner (their hands, else set down
@@ -495,18 +540,39 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     // ── arriving (D11, W8) ──
 
     /**
-     * ⭐⭐ Where `item` arrives on this body (size and carrying W8): the
-     * body's admissions first (`Creature.arrivalFor` — placed, an agent,
-     * seated, admitted), else D11's order — {@link resolveReceive} — as the
-     * hook's answer `ContainmentApi.move` performs and `canReceive` reads.
+     * ⭐⭐ Where `item` arrives ON this body (size and carrying W8; owner,
+     * 2026-11-13): the body's admissions first (`Creature.arrivalFor` —
+     * placed, an agent, seated, admitted), else the routing's first choice
+     * by D11's order — a hook on the belt, a stack onto its like, a free
+     * hand or a pocket (`carry.order`), a worn or carried bag. A choice ON
+     * the body is answered (`seat`, `pair`, `contents`); a bag, or nothing,
+     * answers `refuse` — a thing in a satchel is in the satchel, not on the
+     * body — and `move` hands it to {@link routeArrival}, which lands it on
+     * the body and moves it on. `how.onBody` asks the body's own places
+     * only (`directMove`).
      *
      * @hook
      */
-    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
+    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean; onBody?: boolean }): Arrival {
       const base = super.arrivalFor(item, how);
       if (base.kind === 'contents') return base;
+      // The routing's first choice (bags in `carry.order`); a bag it would
+      // choose is not ON the body, so it answers `refuse` and `move` routes
+      // it there. `onBody`: the body's own places only.
+      return this.arrivalOf(this.resolveReceive(item, how?.onBody !== true));
+    }
+
+    /** The bag {@link resolveReceive} chose (a worn container, a stack's), else null. */
+    private bagOf(where: ReturnType<CarryingMixin['resolveReceive']>): (Stuff & Container) | null {
       const self = this as unknown as Stuff;
-      const where = this.resolveReceive(item);
+      if (where.kind === 'merge' && where.into.stuffId !== self.stuffId) return where.into as Stuff & Container;
+      if (where.kind === 'place' && where.place.region === undefined) return where.place.host;
+      return null;
+    }
+
+    /** {@link resolveReceive}'s answer as the hook's: on this body, or refused. */
+    private arrivalOf(where: ReturnType<CarryingMixin['resolveReceive']>): Arrival {
+      const self = this as unknown as Stuff;
       switch (where.kind) {
         case 'held':
           return { kind: 'contents' };
@@ -515,32 +581,160 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           return { kind: 'seat', slots: where.slots };
         case 'merge':
           // ⭐ A stack meets its like and takes no hand (requirements §
-          // Collisions): onto the coins in the purse, the apples in a hand.
+          // Collisions): onto the coins in a hand or a pocket.
           return where.into.stuffId === self.stuffId
             ? { kind: 'contents' }
-            : { kind: 'into', container: where.into as Stuff & Container };
+            : { kind: 'refuse', refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: where.item, held: [], tried: [where.into] } } };
         case 'place':
           return where.place.region !== undefined
             ? { kind: 'pair', host: where.place.host, region: where.place.region }
-            : { kind: 'into', container: where.place.host };
+            : { kind: 'refuse', refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: where.item, held: [], tried: [where.place.host] } } };
         case 'refused':
           return { kind: 'refuse', refusal: where.refusal };
       }
     }
 
+    /** The things this carrier is routing right now (the re-entry guard). Runtime only. */
+    private _routing = new Set<string>();
+
+    /** See {@link Carrying.directMove}. Through the chokepoint, after the route's own dry answer. */
+    public directMove(item: Stuff & Containable, route?: CarryRoute): ArrivalRefusal | null {
+      const self = this as unknown as Stuff & Container & Slotted;
+      if (route === undefined) {
+        const arrival = this.arrivalFor(item, { placed: false, onBody: true });
+        if (arrival.kind === 'refuse') return arrival.refusal;
+        ContainmentApi.move(item, self);
+        return null;
+      }
+      const nowhere = (tried: Stuff[]): ArrivalRefusal => ({
+        ok: false,
+        reason: 'nowhere-to-carry',
+        facts: { item, held: this.asBody().heldThings(), tried },
+      });
+      switch (route.kind) {
+        case 'carried': {
+          const where = this.resolveReceive(item, true);
+          const onBody = this.arrivalOf(where);
+          if (onBody.kind !== 'refuse') {
+            ContainmentApi.move(item, self);
+            return null;
+          }
+          const bag = this.bagOf(where);
+          if (bag === null) return onBody.refusal;
+          ContainmentApi.move(item, bag);
+          return null;
+        }
+        case 'seat': {
+          const ok =
+            MixinApi.isSlottable(item) &&
+            route.slots.length > 0 &&
+            route.slots.every(
+              (slot) =>
+                self.canOccupy(item as Stuff & Slottable, slot) &&
+                self.getOccupants(slot).size < (self.getSlotSpec(slot)?.capacity ?? 1),
+            );
+          if (!ok) return nowhere([]);
+          self.seatInSlots(item as Stuff & Containable & Slottable, route.slots);
+          return null;
+        }
+        case 'pair': {
+          if (this.tierOf(route.host) === 'elsewhere' || !route.host.canPlace(item, route.region).ok) {
+            return nowhere([route.host]);
+          }
+          ContainmentApi.move(item, route.host, route.region);
+          return null;
+        }
+        case 'into': {
+          const bag = route.container;
+          if (this.tierOf(bag) === 'elsewhere' || within(bag, item)) return nowhere([bag]);
+          // The routing's own test of a bag (`placeTakes`): its tape measure.
+          const fit = bag.fitRefusal(item);
+          if (fit !== null) return fit;
+          ContainmentApi.move(item, bag);
+          return null;
+        }
+      }
+    }
+
+    /**
+     * ⭐⭐ The honest cascade (owner, 2026-11-13) — `ContainmentApi.move(item,
+     * this)` lands here when nothing ON the body takes `item`. Where it goes
+     * on is decided BEFORE it lands (so a move that has nowhere to end
+     * throws with nothing moved); then every step is a TRUE move with its
+     * own witnesses: onto this body (admitted for the moment it is loose —
+     * nothing observes it between the two), then into the first worn or
+     * carried bag it fits by `carry.order` and D11's tier order, else down
+     * where the body stands, and the body is told — *Your hands are full —
+     * you set the cup down.* Observers see it reach the body and the body
+     * put it away or set it down.
+     *
+     * @throws ContainmentError when there is no bag and nowhere to set it down.
+     */
+    @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/ContainmentLogic#ContainmentLogic'))
+    public routeArrival(item: Stuff & Containable, refusal: ArrivalRefusal): Stuff & Container {
+      const self = this as unknown as Stuff & Container & Containable;
+      const bag = this.bagOf(this.resolveReceive(item, true));
+      const here = bag === null ? self.getEnclosingPlace() : null;
+      if (bag === null && here === null) {
+        throw new ContainmentError(
+          `move: ${item.getTemplatePath() ?? item.stuffId} has no place on ` +
+            `${self.getTemplatePath() ?? self.stuffId}, no bag it carries takes it, and it stands nowhere to set it down`,
+          { reason: refusal.reason, facts: refusal.facts },
+        );
+      }
+      // The first true move: it reaches this body (admitted — a re-entry
+      // here would be an arrival rule that ignores the admission).
+      if (this._routing.has(item.stuffId)) {
+        throw new ContainmentError(`move: routing ${item.stuffId} onto ${self.stuffId} re-entered`);
+      }
+      this._routing.add(item.stuffId);
+      try {
+        this.asBody().admitWhile(item, () => ContainmentApi.move(item, self));
+      } finally {
+        this._routing.delete(item.stuffId);
+      }
+      if (item.isDestroyed() || item.getContainer() !== self) return self;
+      if (bag !== null) {
+        ContainmentApi.move(item, bag);
+        return bag;
+      }
+      ContainmentApi.move(item, here!);
+      if (!item.isDestroyed() && MixinApi.isSensor(self)) {
+        const why = refusal;
+        const thing = Mml.thing(item);
+        const line =
+          why.reason === 'too-heavy'
+            ? Mml.compose`${thing} is more than you can lift — you set it down.`
+            : why.reason === 'cannot-grip'
+              ? Mml.compose`You cannot grip ${thing} — you set it down.`
+              : why.reason === 'hands-on-cart'
+                ? Mml.compose`Your hands are on ${Mml.thing(why.facts.cart)} — you set ${thing} down.`
+                : Mml.compose`Your hands are full — you set ${thing} down.`;
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toSelf(line)
+          .toPeers(Mml.compose`${Mml.actor(self)} sets ${thing} down.`)
+          .send();
+      }
+      return here!;
+    }
+
     /**
      * ⭐ Where `item` would go on this body, by D11's order — the one
-     * resolution `move` performs (via `arrivalFor`) and `canReceive` reports, so the dry
-     * run and the act can never disagree.
+     * resolution `move` performs (via `arrivalFor`) and {@link routeArrival}
+     * performs (`bags` true: a worn or carried bag too), and that
+     * `directMove` reads with `bags` false (only the places that are the
+     * body) — so the routing and its bypass can never disagree.
      */
     private resolveReceive(
       item: Stuff,
+      bags: boolean,
     ):
       | { kind: 'held' }
       | { kind: 'wear'; slots: string[] }
-      | { kind: 'merge'; into: Stuff }
+      | { kind: 'merge'; into: Stuff; item: Stuff }
       | { kind: 'hand'; slots: string[] }
-      | { kind: 'place'; place: CarryPlace }
+      | { kind: 'place'; place: CarryPlace; item: Stuff }
       | { kind: 'refused'; refusal: ReceiveRefusal } {
       if (this.tierOf(item) === 'hand') return { kind: 'held' };
       // ⭐ A body with no hands that is HANDED its tack puts it on (size and
@@ -555,9 +749,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         }
       }
       const hang = this.hangHostFor(item);
-      if (hang !== null) return { kind: 'place', place: { host: hang, region: Placements.FROM } };
+      if (hang !== null) return { kind: 'place', place: { host: hang, region: Placements.FROM }, item };
+      const self = this as unknown as Stuff;
       const merge = this.mergeTargetFor(item);
-      if (merge !== null) return { kind: 'merge', into: merge };
+      if (merge !== null && (bags || merge.stuffId === self.stuffId)) return { kind: 'merge', into: merge, item };
       const hands = this.handsFor(item);
       if (hands === null) return { kind: 'refused', refusal: { ok: false, reason: 'too-heavy' } };
       const order: CarryOrder = this.carryOrder();
@@ -565,9 +760,12 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const handOk = this.freeHands() >= hands && MixinApi.isSlottable(item);
       const hand = { kind: 'hand' as const, slots: open.slice(0, hands) };
       // Never into itself, nor into something it holds.
-      const places = this.carryPlaces().filter((p) => !within(p.host, item));
+      // ⭐ `bags` false: only the places that ARE the body (a worn pocket);
+      // a bag is a container of its own — the routing's second move.
+      const every = this.carryPlaces().filter((p) => !within(p.host, item));
+      const places = bags ? every : every.filter((p) => p.region !== undefined);
       const fits = places.find((p) => this.placeTakes(p, item)) ?? null;
-      const place = fits !== null ? { kind: 'place' as const, place: fits } : null;
+      const place = fits !== null ? { kind: 'place' as const, place: fits, item } : null;
       if (order === 'hands-first') {
         if (handOk) return hand;
         if (place !== null) return place;
@@ -589,7 +787,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const held = this.asBody().heldThings();
       let away: { held: Stuff; host: Stuff; region?: string } | null = null;
       for (const h of held) {
-        const p = places.find((x) => !within(x.host, h) && this.placeTakes(x, h));
+        const p = every.find((x) => !within(x.host, h) && this.placeTakes(x, h));
         if (p !== undefined) {
           away = p.region !== undefined ? { held: h, host: p.host, region: p.region } : { held: h, host: p.host };
           break;
@@ -662,12 +860,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         const owner = MixinApi.isChattel(item) ? item.stampedOwner() : null;
         const ownerPath = owner !== null && owner.kind !== 'group' ? owner.templatePath : null;
         if (ownerPath !== null && ownerPath !== me) {
-          // To the owner's hands, else set down where the owner stands.
+          // To the owner — `move` routes it: on them, their bag, else set
+          // down where the owner stands.
           const body = StuffApi.findByIdentityPath(ownerPath).find((b) => MixinApi.isCarrying(b) && !b.isDestroyed());
           if (body !== undefined && MixinApi.isCarrying(body)) {
-            const at = body.getContainer();
-            if (body.canReceive(item) === null) ContainmentApi.move(item, body);
-            else if (at !== null) ContainmentApi.move(item, at as Stuff & Container);
+            ContainmentApi.move(item as Stuff & Containable, body);
           } else if (place !== null) ContainmentApi.move(item, place as Stuff & Container);
           out.push(item);
           continue;
@@ -704,9 +901,15 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         // Out of the body first, so it arrives (and with nowhere to be, it stays).
         if (at === null) continue;
         ContainmentApi.move(item as Stuff & Containable, at as Stuff & Container);
-        // The body's own answer (its arrival rule, read dry), then the one call.
+        // The body's own answer (its arrival rule, read dry): on it, else a
+        // bag it carries, else the one overflow — each landing one true move.
         if (this.arrivalFor(item as Stuff & Containable).kind !== 'refuse') {
           ContainmentApi.move(item as Stuff & Containable, self);
+          continue;
+        }
+        const bag = this.bagOf(this.resolveReceive(item, true));
+        if (bag !== null) {
+          ContainmentApi.move(item as Stuff & Containable, bag);
           continue;
         }
         await this.overflow(item as Stuff & Containable, at as Stuff & Container);

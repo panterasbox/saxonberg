@@ -164,9 +164,7 @@ export function FluedMixin<TBase extends NestingConstructor<Stuff & Burner>>(
       if (MixinApi.isStackable(lump)) lump.setQuantity(units);
       const into = MixinApi.isContainer(sweeper) ? sweeper : MixinApi.isContainable(sweeper) ? sweeper.getContainer() : null;
       if (into !== null && MixinApi.isContainer(into) && MixinApi.isContainable(lump)) {
-        // Made (D-W7a): to whoever made it, else set down where they stand.
-        if (into.canReceive(lump) === null) ContainmentApi.move(lump, into);
-        else ContainmentApi.move(lump, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into);
+        ContainmentApi.move(lump, into);
       }
       return [lump];
     }

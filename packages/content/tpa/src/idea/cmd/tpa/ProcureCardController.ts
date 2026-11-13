@@ -34,9 +34,7 @@ export default class ProcureCardController extends CommandController<CommandMode
     const card = await StuffApi.clone<Stuff & Containable>(TpaPaths.travelCard);
     // On the house, and nothing was charged: to you, else on the counter
     // where you stand (size and carrying W8).
-    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (giver.canReceive(card) === null || here === null) ContainmentApi.move(card, giver);
-    else ContainmentApi.move(card, here);
+    ContainmentApi.move(card, giver);
 
     const who = clerk ? Mml.actor(clerk) : Mml.fromMarkup("the clerk");
     MessageApi.scene(giver)

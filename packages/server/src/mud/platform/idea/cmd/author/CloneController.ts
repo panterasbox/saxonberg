@@ -244,9 +244,7 @@ export default class CloneController extends CommandController<CloneModel> {
     const movingFromHydration =
       priorContainer !== null && priorContainer !== placement.dest;
     try {
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (placement.dest.canReceive(item) === null) ContainmentApi.move(item, placement.dest);
-      else ContainmentApi.move(item, (MixinApi.isContainable(placement.dest) ? placement.dest.getContainer() : null) ?? placement.dest);
+      ContainmentApi.move(item, placement.dest);
     } catch (err) {
       this.tell(
         context,
@@ -383,9 +381,7 @@ export default class CloneController extends CommandController<CloneModel> {
     if ('error' in placement) return placement.error;
     if (placement.dest === null) return null;
     try {
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (placement.dest.canReceive(copy as Stuff & Containable) === null) ContainmentApi.move(copy as Stuff & Containable, placement.dest);
-      else ContainmentApi.move(copy as Stuff & Containable, (MixinApi.isContainable(placement.dest) ? placement.dest.getContainer() : null) ?? placement.dest);
+      ContainmentApi.move(copy as Stuff & Containable, placement.dest);
     } catch (err) {
       return (err as Error).message;
     }

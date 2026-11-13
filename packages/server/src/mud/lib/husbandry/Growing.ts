@@ -1124,18 +1124,9 @@ function growingPickPlan(
           const crop = await StuffApi.clone<Stuff>(cropPath, undefined, { madeFrom: plant });
           stampCrop(crop, by, band, cropPath);
           if (MixinApi.isContainable(crop) && MixinApi.isContainer(by)) {
-            // Made (D-W7a; W8): to whoever made it, else set down where they
-            // stand — and they are told. The fallback is this mint's.
-            if (by.canReceive(crop as Stuff & Containable) === null) ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
-            else {
-              ContainmentApi.move(crop as Stuff & Containable, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by as Stuff & Container);
-              if (MixinApi.isSensor(by)) {
-                MessageApi.scene(by)
-                  .topic('act.deed')
-                  .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(crop as Stuff & Containable)} down.`)
-                  .send();
-              }
-            }
+            // Made (D-W7a; W8): to whoever made it — `move` routes it on a
+            // carrier (hands, pocket, bag, else set down, and they are told).
+            ContainmentApi.move(crop as Stuff & Containable, by as Stuff & Container);
           }
           crops.push(crop);
         }
@@ -1300,18 +1291,9 @@ async function landSwath(
         MixinApi.isContainer(by) && !(MixinApi.isLoadBearing(by) && by.wouldExceedCeiling(crop));
       if (MixinApi.isContainable(crop)) {
         const dest = (carry ? by : where) as Stuff & Container;
-        // Made (D-W7a; W8): to whoever made it, else set down where they
-        // stand — and they are told. The fallback is this mint's.
-        if (dest.canReceive(crop as Stuff & Containable) === null) ContainmentApi.move(crop as Stuff & Containable, dest);
-        else {
-          ContainmentApi.move(crop as Stuff & Containable, (MixinApi.isContainable(dest) ? dest.getContainer() : null) ?? dest);
-          if (MixinApi.isSensor(dest)) {
-            MessageApi.scene(dest)
-              .topic('act.deed')
-              .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(crop as Stuff & Containable)} down.`)
-              .send();
-          }
-        }
+        // Made (D-W7a; W8): to whoever made it — `move` routes it on a
+        // carrier (hands, pocket, bag, else set down, and they are told).
+        ContainmentApi.move(crop as Stuff & Containable, dest);
       }
       if (!carry) dropped++;
       crops.push(crop);

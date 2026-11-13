@@ -66,9 +66,7 @@ export default class Spear extends TakesFishMixin(Weapon) {
     }
     const leaf = best.speciesPath.split('/').pop() ?? '';
     const fish = await StuffApi.clone<Stuff>(`/trade/fishing/agent/${leaf}`);
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (by.canReceive(fish as Stuff & Containable) === null) ContainmentApi.move(fish as Stuff & Containable, by as Stuff & Container);
-    else ContainmentApi.move(fish as Stuff & Containable, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by as Stuff & Container);
+    ContainmentApi.move(fish as Stuff & Containable, by as Stuff & Container);
     return { ok: true, facts: { kind: 'struck', fish } };
   }
 }

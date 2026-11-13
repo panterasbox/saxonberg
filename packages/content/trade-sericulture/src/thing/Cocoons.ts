@@ -518,9 +518,7 @@ async function mint<T>(row: string, by: Stuff): Promise<T | null> {
   }
   if (!made) return null;
   if (MixinApi.isContainable(made) && MixinApi.isContainer(by)) {
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (by.canReceive(made as Stuff & Containable) === null) ContainmentApi.move(made as Stuff & Containable, by as Stuff & Container);
-    else ContainmentApi.move(made as Stuff & Containable, (MixinApi.isContainable(by) ? by.getContainer() : null) ?? by as Stuff & Container);
+    ContainmentApi.move(made as Stuff & Containable, by as Stuff & Container);
   }
   return made as unknown as T;
 }

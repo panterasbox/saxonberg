@@ -154,9 +154,8 @@ async function dispatch(text: string): Promise<void> {
     const price = shelf.priceFor(item.getTemplatePath() ?? '') ?? 0;
     if (balance < price) return; // a refused buy leaves the good where it is
     // As `buy` does (size and carrying W8): no hand for it, no sale.
-    if (keeper.canReceive(item as never) !== null) return;
+    if (keeper.directMove(item as never) !== null) return;
     balance -= price;
-    ContainmentApi.move(item as never, keeper as never);
     return;
   }
   if (verb === 'put') {

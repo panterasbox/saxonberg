@@ -102,12 +102,16 @@ export class ContainmentLogic extends ApiLogic {
       placeOn(item, to, placement);
       return;
     }
-    // ⭐⭐ A BODY places what arrives (size and carrying W8): the destination
-    // answers `arrivalFor` — into its contents (admitted), a hand or its
-    // tack (`seat`), a worn host's pocket or hook (`pair`), a bag it
-    // carries (`into`) — or refuses, and `move` throws naming why. It never
-    // lands the thing anywhere but on the body. (A key moved out of its
-    // pocket onto its owner asks too, and goes to a hand.)
+    // ⭐⭐ A BODY places what arrives ON it (size and carrying W8): the
+    // destination answers `arrivalFor` — into its contents (admitted), a
+    // hand or its tack (`seat`), a worn host's pocket or hook (`pair`) — or
+    // refuses. ⭐⭐ A CARRIER routes a refused arrival (owner, 2026-11-13):
+    // its own arrival handling (`Carrying.routeArrival`) takes it — a true
+    // move onto the body — and sends it on with a second true move, into a
+    // bag it carries or down where it stands. Nothing is retargeted here.
+    // A body that does not carry (a fish) has no place for a loose thing,
+    // and `move` throws naming why. (A key moved out of its pocket onto its
+    // owner asks too, and goes to a hand.)
     if (to !== null && to.isAgent()) {
       const arrival = callHook<Arrival>(to, 'arrivalFor', [item, { placed: false }]) ?? { kind: 'contents' };
       switch (arrival.kind) {
@@ -119,10 +123,11 @@ export class ContainmentLogic extends ApiLogic {
         case 'pair':
           this.move(item, arrival.host, arrival.region);
           return;
-        case 'into':
-          this.move(item, arrival.container);
-          return;
         case 'refuse':
+          if (MixinApi.isCarrying(to)) {
+            to.routeArrival(item, arrival.refusal);
+            return;
+          }
           throw new ContainmentError(arrivalWords(item, to, arrival.refusal), {
             reason: arrival.refusal.reason,
             facts: arrival.refusal.facts,
@@ -228,11 +233,12 @@ export class ContainmentLogic extends ApiLogic {
       if (offer.kind === 'zero') {
         // A shut lid refuses at the verb — never in `move`.
         if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
-        // ⭐⭐ Would it arrive — asked first so it is a sentence, not a thrown
-        // ContainmentError (size and carrying W8). Every container answers:
-        // the tape measure (D4), a container that says what it is FOR, a
-        // person HANDED it (D-W7a — their hands, pockets, pack).
-        const refused = MixinApi.isContainer(target) ? target.canReceive(item) : null;
+        // ⭐⭐ Would it arrive — asked before any write so it is a sentence,
+        // not a thrown ContainmentError (size and carrying W8). Every
+        // container answers: the tape measure (D4), a container that says
+        // what it is FOR, a person HANDED it — ON them (their hands, a
+        // pocket, a hook), never routed on to their bag or their feet.
+        const refused = MixinApi.isContainer(target) ? arrivalRefusal(target, item) : null;
         if (refused !== null) {
           switch (refused.reason) {
             case 'too-big-for-mouth':
@@ -278,6 +284,15 @@ export class ContainmentLogic extends ApiLogic {
         const named = item.getPresentation();
         if (route.kind === 'slot') {
           (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
+        } else if (route.kind === 'zero' && MixinApi.isCarrying(target)) {
+          // Handed: exactly onto the person, or nothing moves (the routing
+          // is gone around — owner, 2026-11-13). Refused now (the plan's
+          // read went stale), it goes back to the putter.
+          const carry = target.directMove(item);
+          if (carry !== null) {
+            ContainmentApi.move(item, by as ContainerStuff);
+            return { ok: false, reason: 'refused-by-carrier', facts: { carry } };
+          }
         } else if (route.kind === 'zero') {
           ContainmentApi.move(item, target as ContainerStuff);
         } else {
@@ -626,10 +641,29 @@ function callHook<T>(
 }
 
 /**
+ * Would `item` arrive in `target` — the destination's own answer read dry
+ * (its `arrivalFor`; for contents, the tape measure and the veto), before
+ * any write. A carrier answers for its own regions only: the plan words a
+ * refusal rather than letting `move` route the thing on.
+ */
+function arrivalRefusal(target: ContainerStuff, item: ContainableStuff): ArrivalRefusal | null {
+  const arrival = target.arrivalFor(item, { placed: false, onBody: true });
+  if (arrival.kind === 'refuse') return arrival.refusal;
+  if (arrival.kind !== 'contents') return null;
+  const fit = target.fitRefusal(item);
+  if (fit !== null) return fit;
+  const veto = target.canAddContainable?.(item, { placed: false });
+  if (veto !== undefined && !veto.ok) {
+    return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? '' } };
+  }
+  return null;
+}
+
+/**
  * The author's sentence for a refused arrival (size and carrying W8) — the
  * `ContainmentError` message: *"move: the lantern has no place on Bob —
  * hands hold the mug and the map; tried the coat, the satchel"*. A
- * player's sentence is the controller's, from `canReceive`.
+ * player's sentence is the controller's, from the refusal's facts.
  */
 function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): string {
   const name = (x: Stuff): string => {
@@ -645,7 +679,7 @@ function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): str
       const held = r.facts.held.map(name);
       const tried = r.facts.tried.map(name);
       if (held.length === 0 && tried.length === 0) {
-        return `${head} — it does not carry (no hands, nothing worn it fits); ask canReceive first`;
+        return `${head} — it does not carry (no hands, nothing worn it fits)`;
       }
       return (
         `${head} — hands hold ${held.length > 0 ? held.join(' and ') : 'nothing'}; ` +

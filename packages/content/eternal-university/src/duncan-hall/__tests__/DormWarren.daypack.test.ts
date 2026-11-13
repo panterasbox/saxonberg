@@ -1,7 +1,7 @@
 /**
  * ⭐ Katie's intake hands a newcomer an Eternal U daypack (size and
  * carrying D29). It is HANDED: it goes onto the newcomer only when they can
- * take it (`canReceive`, before anything moves); otherwise it waits in the
+ * take it (`directMove` — it moves or nothing does); otherwise it waits in the
  * newly let room. A row that will not stand up never voids the let.
  */
 
@@ -48,14 +48,13 @@ afterEach(() => {
 describe('the daypack at intake (D29)', () => {
   it('⭐ a newcomer who can take it is handed it', async () => {
     const { w, tenant, pack } = setup();
-    vi.spyOn(tenant, 'canReceive').mockReturnValue(null);
     expect(await w.give(tenant, UNIT)).toBe('handed');
     expect(pack.getContainer()).toBe(tenant);
   });
 
   it('⭐ a newcomer who cannot take it finds it in the new room — never refused, never lost', async () => {
     const { w, tenant, pack, room } = setup();
-    vi.spyOn(tenant, 'canReceive').mockReturnValue({
+    vi.spyOn(tenant, 'directMove').mockReturnValue({
       ok: false,
       reason: 'nowhere-to-carry',
       facts: { item: pack, held: [], tried: [] },

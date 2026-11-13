@@ -32,7 +32,6 @@ describe('Creature.arrivalFor — nothing loose on a body, fail closed', () => {
   it('a body that does not carry: move throws nowhere-to-carry, nothing moved', () => {
     const wolf = makeStuff(() => new Creature());
     const m = mug();
-    expect(wolf.canReceive(m)?.reason).toBe('nowhere-to-carry');
     expect(() => ContainmentApi.move(m, wolf)).toThrow(ContainmentError);
     expect(m.getContainer()).toBeNull();
   });

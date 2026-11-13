@@ -2809,9 +2809,7 @@ async function setLump(
   // ⭐ The pool's composition sets into the lump (ceramics ruling C).
   const dissolved = setPayload?.makeup;
   if (dissolved && dissolved.length > 0 && MixinApi.isComposition(cast)) cast.setMakeup(dissolved);
-  // Made (D-W7a): to whoever made it, else set down where they stand.
-  if (scope.canReceive(cast as Stuff & Containable) === null) ContainmentApi.move(cast as Stuff & Containable, scope);
-  else ContainmentApi.move(cast as Stuff & Containable, (MixinApi.isContainable(scope) ? scope.getContainer() : null) ?? scope);
+  ContainmentApi.move(cast as Stuff & Containable, scope);
 }
 
 /**
@@ -2977,9 +2975,7 @@ async function setCrystals(
         cast.setShortDescription(`${product.getName()} crystals`);
         cast.setKeywords(['crystals', 'crystal', ...product.getName().split(/\s+/)]);
       }
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (scope.canReceive(cast as Stuff & Containable) === null) ContainmentApi.move(cast as Stuff & Containable, scope);
-      else ContainmentApi.move(cast as Stuff & Containable, (MixinApi.isContainable(scope) ? scope.getContainer() : null) ?? scope);
+      ContainmentApi.move(cast as Stuff & Containable, scope);
     }
     // Whatever joined the crop while it was minting is in it now.
     if (MixinApi.isTangible(cast)) cast.setMass(Quantity.of(crop.kg, 'kg'));

@@ -214,14 +214,25 @@ export class ContainmentApi {
    *     stand; else its recorded maker. A good that already exists is
    *     never retitled by being moved — taking one is theft.
    *
-   * ⭐⭐ **A body is a destination that places what arrives** (size and
-   * carrying W8). `move(item, person)` just works: the body decides where
-   * on it the thing goes — a free hand, else a pocket, a hook on the belt,
-   * a worn bag, else the pack on its back (`Container.arrivalFor`). When
-   * the body has no honest place for it (hands full and nothing it fits; a
-   * fish, which has no pocket), `move` THROWS a `ContainmentError` naming
-   * why — it never lands the thing anywhere but where you asked. To get a
-   * refusal instead of a throw, ask `dest.canReceive(item)` first.
+   * ⭐⭐ **A carrier ROUTES what arrives** (size and carrying W8; owner,
+   * 2026-11-13). `move(item, person)` just works, and no caller chooses:
+   * the body places it ON itself — a free hand, a pocket, a hook on the
+   * belt (`Container.arrivalFor`) — and when its routing picks a bag, or
+   * nothing on it takes the thing, the carrier's own arrival handling
+   * (`Carrying.routeArrival`) takes it: a TRUE move onto the body (its
+   * witnesses fire), then a second true move — into the first worn or
+   * carried bag it fits, else down where the body stands, with a line to
+   * the body. Nothing is retargeted; observers see it reach the body and
+   * the body put it away or set it down. Only a body that has nowhere to
+   * set it down throws. A body that does not carry (a fish) is not routed:
+   * nothing sits loose on a body, so `move` THROWS a `ContainmentError`
+   * naming why (`reason` + `facts`). Every other destination is exact.
+   *
+   * ⭐ To go AROUND the routing — a handed act that must refuse before money
+   * moves, a staging that pins an exact state — ask the carrier:
+   * `carrier.directMove(item[, route])` puts it exactly there (on the body,
+   * or the named hand / pocket / bag) or moves nothing and returns the
+   * refusal.
    *
    * The other layer is a thing moving ITSELF ({@link MobileMixin}'s
    * `traverse`), which crosses exits and arrives through this primitive.

@@ -599,32 +599,40 @@ export default class Stock extends StockBase {
     let item = shelfGood;
     const price = this.priceFor(item.getTemplatePath() ?? "");
     if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
-    // ⭐ Handed (D-W7a): asked before any money moves.
-    const cannot = this.handOverRefusal(item, giver, word);
-    if (cannot !== null) return cannot;
-    const paid = await EmploymentApi.settleSale(
-      (this as unknown as Stuff).getIdentityPath(),
-      price,
-      price, // the whole price is the store's taxable revenue
-      "a purchase",
-    );
-    if (!paid) return this.refusedBroke(item, word, price);
     // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
     // as one heap: handing over the heap sold thirty staves for the price
     // of one (found by the assembly drive). One comes off the heap.
     if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
       item = (await item.split(1)) as unknown as Stuff & Containable;
     }
-    const owner = await this.purchaserOf(giver, paid.receipt);
-    // ⚠ Stamped BEFORE it is handed over, and named before: a piece that
-    // arrives where its like already is merges INTO it and is destroyed
-    // (the resident absorbs the arrival), so a stamp or a name after the
-    // move would land on nothing.
-    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    // Named before the move: a piece that arrives where its like already
+    // is merges INTO it and is destroyed (the resident absorbs the arrival).
     const named = item.getPresentation();
-    // `move` records where it now is (the fishing drive's restart: a
-    // bought good never placed was in nobody's estate).
-    this.handOver(item, giver);
+    // ⭐ Handed (D-W7a): the good moves FIRST — refused, nothing is charged
+    // (a split piece goes back onto its heap); a sale that does not settle
+    // hands it back. `move` records where it now is (the fishing drive's
+    // restart: a bought good never placed was in nobody's estate).
+    const from = { container: shelfGood.getContainer(), pair: shelfGood.getPlacement() };
+    const cannot = this.handOver(item, giver, word);
+    if (cannot !== null) {
+      if (item !== shelfGood) this.handBack(item, from);
+      return cannot;
+    }
+    const paid = await EmploymentApi.settleSale(
+      (this as unknown as Stuff).getIdentityPath(),
+      price,
+      price, // the whole price is the store's taxable revenue
+      "a purchase",
+    );
+    if (!paid) {
+      this.handBack(item, from);
+      // A piece handed back merged into its heap: the heap is named (as one).
+      return this.refusedBroke(item.isDestroyed() ? shelfGood : item, word, price);
+    }
+    const owner = await this.purchaserOf(giver, paid.receipt);
+    // Stamped after the hand-over, on the piece the buyer holds — or, merged
+    // into their like on arrival, on nothing to stamp (its like is theirs).
+    if (MixinApi.isChattel(item) && !item.isDestroyed()) await item.stampChattel(owner);
     return this.bought(giver, item, paid.tail, owner, named);
   }
 

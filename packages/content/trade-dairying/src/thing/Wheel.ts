@@ -147,9 +147,7 @@ export default class Wheel extends WheelBase implements Splittable {
     this.carryOnto(wedge, massKg);
     const where = this.getContainer();
     if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(wedge)) {
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (where.canReceive(wedge as Stuff & Containable) === null) ContainmentApi.move(wedge as Stuff & Containable, where as Stuff & Container);
-      else ContainmentApi.move(wedge as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where as Stuff & Container);
+      ContainmentApi.move(wedge as Stuff & Containable, where as Stuff & Container);
     }
     const remaining = left - 1;
     this.wedgesLeft = remaining;

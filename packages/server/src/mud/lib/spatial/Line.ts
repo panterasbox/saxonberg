@@ -173,9 +173,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
     end.attachTo(this, tiedTo);
     // Into a person's hands (the flip, W7): received, else at their feet.
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (into.canReceive(end) === null) ContainmentApi.move(end, into);
-    else ContainmentApi.move(end, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into);
+    ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];
     return end;

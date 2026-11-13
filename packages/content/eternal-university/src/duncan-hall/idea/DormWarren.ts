@@ -204,9 +204,9 @@ export default class DormWarren extends DormWarrenBase {
   }
 
   /**
-   * The daypack is HANDED (D-W7a): it goes onto the newcomer only when
-   * they can take it (`canReceive`, the dry run, before anything moves);
-   * if they cannot — hands full, nowhere it fits — it waits in their new
+   * The daypack is HANDED (D-W7a): it goes onto the newcomer exactly
+   * (`directMove` — a hand, a pocket; it moves or nothing does); if they
+   * cannot take it — hands full, nowhere it fits — it waits in their new
    * room, never on the floor of the lobby and never lost. Best-effort: a
    * row that will not stand up never voids the let.
    */
@@ -221,10 +221,7 @@ export default class DormWarren extends DormWarrenBase {
       console.warn(`DormWarren: the daypack did not stand up for ${unitExtent}: ${(err as Error).message}`);
       return 'none';
     }
-    if (MixinApi.isContainer(tenant) && tenant.canReceive(pack) === null) {
-      ContainmentApi.move(pack, tenant);
-      return 'handed';
-    }
+    if (MixinApi.isCarrying(tenant) && tenant.directMove(pack) === null) return 'handed';
     // ⚠ Standing the room up can fail (the size-and-carrying drive found
     // `admit` refusing the unit's own door — "non-cardinal direction
     // 'unit-2' requires the destination to be in a different zone", the

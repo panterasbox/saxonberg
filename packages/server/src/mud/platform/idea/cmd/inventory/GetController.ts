@@ -27,6 +27,8 @@ import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
 import type { Adornment } from '../../../../lib/boundary/Adornment';
+import type { Slotted } from '../../../../lib/slot/Slotted';
+import type { Slottable } from '../../../../lib/slot/Slottable';
 import { PerceptionApi } from '../../../../api/perception';
 import { ProxyApi } from '../../../../api/proxy';
 
@@ -235,13 +237,12 @@ export default class GetController extends CommandController<GetModel> {
   private takeFromBody(giver: Stuff & Container & Carrying, body: Stuff, things: readonly Stuff[], context: CommandContext): void {
     for (const thing of things) {
       if (!MixinApi.isContainable(thing)) continue;
-      const refused = giver.canReceive(thing);
+      const refused = giver.directMove(thing, { kind: 'carried' });
       if (refused !== null) {
         MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
         context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
         return;
       }
-      ContainmentApi.move(thing, giver);
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(Mml.compose`You take ${Mml.thing(thing)} from ${Mml.actor(body)}.`)
@@ -494,17 +495,6 @@ export default class GetController extends CommandController<GetModel> {
       // turn, each with a note and a scene, on every brain beat of a long
       // clock jump — and the server ran out of heap).
       if (this.bodyRefused) return false;
-      const refused = giver.canReceive(operand);
-      if (refused !== null) {
-        this.bodyRefused = true;
-        context.note({
-          kind: 'controller-rejected',
-          reason: refused.reason === 'hands-on-cart' ? 'hands-hauling' : refused.reason,
-          detail: `${operand.getPresentation()}: ${refused.reason}`,
-        });
-        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
-        return false;
-      }
     } else if (MixinApi.isHauling(giver) && giver.isHitched()) {
       context.note({
         kind: 'controller-rejected',
@@ -531,6 +521,15 @@ export default class GetController extends CommandController<GetModel> {
         this.declineFixture(operand, operand.getPresentation(), context);
         return false;
       }
+      // ⭐ Asked before it comes down (the body's own answer, read dry):
+      // with no hand or pocket for it, it stays on the wall.
+      const onBody = MixinApi.isCarrying(giver) ? giver.arrivalFor(operand, { placed: false, onBody: true }) : null;
+      if (onBody !== null && onBody.kind === 'refuse') {
+        this.bodyRefused = true;
+        context.note({ kind: 'controller-rejected', reason: onBody.refusal.reason, detail: operand.getPresentation() });
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(this.carryRefusalWords(giver, onBody.refusal))).send();
+        return false;
+      }
       // Detach BEFORE the move: the not-portable invariant refuses to
       // move an Adornment that is still attached.
       host.removeFixture(operand as Stuff & Adornment);
@@ -543,7 +542,11 @@ export default class GetController extends CommandController<GetModel> {
     // cell that is now in someone's pocket. The occupant's own refusal
     // (a cursed thing; `Blessable.tryRelease`) is honoured, and it is
     // all-or-nothing across the host's slots.
+    const seated: [Stuff & Slotted, readonly string[]][] = [];
     if (MixinApi.isSlottable(operand)) {
+      for (const [host, slots] of operand.occupiedSlots()) {
+        if ((host as unknown as Stuff) !== (giver as unknown as Stuff)) seated.push([host, slots]);
+      }
       for (const host of operand.occupiedSlots().keys()) {
         if ((host as unknown as Stuff) === (giver as unknown as Stuff)) continue;
         const release = host.tryReleaseFromSlots(operand);
@@ -568,7 +571,24 @@ export default class GetController extends CommandController<GetModel> {
     // already is MERGES into it and is destroyed, and a reference to a
     // destroyed thing threw in the scene (the assembly drive's pegs).
     const named = operand.getPresentation();
-    ContainmentApi.move(operand, giver);
+    // ⭐ A body takes it into what it CARRIES — on it, else a bag it carries
+    // — or nothing moves and it says why (owner, 2026-11-13: `directMove`
+    // goes around the routing, which would set it down again). A slot it
+    // was released from takes it back (a fixture was asked before it came
+    // down).
+    const refused = MixinApi.isCarrying(giver) ? giver.directMove(operand, { kind: 'carried' }) : null;
+    if (refused !== null) {
+      this.bodyRefused = true;
+      for (const [host, slots] of seated) for (const slot of slots) host.occupy(operand as unknown as Stuff & Slottable, slot);
+      context.note({
+        kind: 'controller-rejected',
+        reason: refused.reason === 'hands-on-cart' ? 'hands-hauling' : refused.reason,
+        detail: `${operand.getPresentation()}: ${refused.reason}`,
+      });
+      MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
+      return false;
+    }
+    if (!MixinApi.isCarrying(giver)) ContainmentApi.move(operand, giver);
     const merged = operand.isDestroyed();
     // Custody returns to a pair of hands; `move` records it (`inventory`).
     // Picking up a good you do not hold title to is theft — permitted and

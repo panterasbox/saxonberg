@@ -257,9 +257,7 @@ export default class Gather extends GatherBase implements Formable {
       });
     }
     if (where && MixinApi.isContainable(product)) {
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (where.canReceive(product as Stuff & Containable) === null) ContainmentApi.move(product as Stuff & Containable, where);
-      else ContainmentApi.move(product as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
+      ContainmentApi.move(product as Stuff & Containable, where);
     }
     try {
       const moil = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, { madeFrom: self });
@@ -272,9 +270,7 @@ export default class Gather extends GatherBase implements Formable {
       (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
       if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setMakeup(alloying);
       if (where && MixinApi.isContainable(moil)) {
-        // Made (D-W7a): to whoever made it, else set down where they stand.
-        if (where.canReceive(moil as Stuff & Containable) === null) ContainmentApi.move(moil as Stuff & Containable, where);
-        else ContainmentApi.move(moil as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where);
+        ContainmentApi.move(moil as Stuff & Containable, where);
       }
     } catch {
       /* missing cullet row: the moil is simply lost */
@@ -341,9 +337,7 @@ export default class Gather extends GatherBase implements Formable {
             ? (actor as unknown as Stuff & Container)
             : null;
       if (dest && MixinApi.isContainable(cullet)) {
-        // Made (D-W7a): to whoever made it, else set down where they stand.
-        if (dest.canReceive(cullet as Stuff & Containable) === null) ContainmentApi.move(cullet as Stuff & Containable, dest);
-        else ContainmentApi.move(cullet as Stuff & Containable, (MixinApi.isContainable(dest) ? dest.getContainer() : null) ?? dest);
+        ContainmentApi.move(cullet as Stuff & Containable, dest);
       }
     } catch {
       /* a missing cullet row is a content gap; the gather still goes */

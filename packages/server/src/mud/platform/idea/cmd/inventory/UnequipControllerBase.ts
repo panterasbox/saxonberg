@@ -311,7 +311,6 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     // fits) or comes to hand (drive step 9's backpack) — and with neither,
     // it is set down where you stand, said so. A body with no hands sets
     // down what came off it: handed back, its tack would only go on again.
-    let setDown = false;
     if (
       MixinApi.isCarrying(giver) &&
       MixinApi.isContainable(target) &&
@@ -319,14 +318,11 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
       !giver.isHonest(target)
     ) {
       if (wieldy) giver.stow(target);
-      if (!giver.isHonest(target)) {
-        const here = giver.getContainer();
-        if (giver.handSlots().length > 0 && giver.canReceive(target) === null) ContainmentApi.move(target, giver);
-        else if (here !== null) {
-          ContainmentApi.move(target, here);
-          setDown = true;
-        }
-      }
+      // `move` routes it: a hand, a pocket, a bag, else set down (the
+      // routing's line). A handless body's tack would route straight back
+      // on, so it is set down where the body stands.
+      const here = giver.handSlots().length > 0 ? null : giver.getEnclosingPlace();
+      if (!giver.isHonest(target)) ContainmentApi.move(target, here ?? giver);
     }
 
     if (!quiet) {
@@ -344,12 +340,6 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
             ? Mml.compose`${Mml.actor(giver)} puts up ${Mml.thing(target)}.`
             : Mml.compose`${Mml.actor(giver)} takes off ${Mml.thing(target)}.`,
         )
-        .send();
-    }
-    if (setDown) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`Your hands are full — you set ${Mml.thing(target)} down.`)
         .send();
     }
     armed = true;

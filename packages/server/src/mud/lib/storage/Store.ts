@@ -881,9 +881,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
         // The claim is already filed: to you, else set down where you stand.
         const to = actor as unknown as Stuff & Container;
-        const here = MixinApi.isContainable(to) ? to.getContainer() : null;
-        if (to.canReceive(paper) === null || here === null) ContainmentApi.move(paper, to);
-        else ContainmentApi.move(paper, here);
+        ContainmentApi.move(paper, to);
       }
       return { ...out, paper };
     }
@@ -1000,11 +998,13 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
-        // Handed (D-W7a): with no hand or pocket for it, it stays in store.
-        if ((actor as unknown as Stuff & Container).canReceive(live) !== null) {
+        // Handed (D-W7a): onto you first (a hand or a pocket — `directMove`),
+        // or it stays in store and nothing is settled.
+        const refused = MixinApi.isCarrying(actor) ? actor.directMove(live) : null;
+        if (refused !== null) {
           return { ok: false, reason: 'hands-full', line: `Your hands are full — the keeper keeps ${live.getPresentation()} until you have one free.` };
         }
-        ContainmentApi.move(live, actor as unknown as Stuff & Container);
+        if (!MixinApi.isCarrying(actor)) ContainmentApi.move(live, actor as unknown as Stuff & Container);
         r.amountKg = 0;
         r.settledAtS = nowS();
         const receiptPath = await this.fileReceipt(business, r);
@@ -1141,9 +1141,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         for (const g of goods) {
           if (!MixinApi.isContainable(g)) continue;
           // Drawn and debited: comes to you, else set down at the counter.
-          // Made (D-W7a): to whoever made it, else set down where they stand.
-          if (to.canReceive(g) === null) ContainmentApi.move(g, to);
-          else ContainmentApi.move(g, (MixinApi.isContainable(to) ? to.getContainer() : null) ?? to);
+          ContainmentApi.move(g, to);
         }
       }
       if (line.amountKg <= LINE_EPSILON_KG) {

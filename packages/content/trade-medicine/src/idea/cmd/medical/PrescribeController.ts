@@ -78,12 +78,11 @@ export default class PrescribeController extends CommandController<PrescribeMode
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
       writtenAtS: WorldClockApi.getNow().rawValue(),
     });
-    // The slip is the act's product — into the prescriber's keeping, else
-    // set down where they stand (made, D-W7a; size and carrying W8).
+    // The slip is the act's product — into the prescriber's keeping (made,
+    // D-W7a; size and carrying W8: `move` routes it on a carrier — hands,
+    // pocket, bag, else set down where they stand).
     const written = slip as unknown as Stuff & Containable;
-    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (MixinApi.isContainer(giver) && giver.canReceive(written) === null) ContainmentApi.move(written, giver);
-    else if (here !== null) ContainmentApi.move(written, here);
+    if (MixinApi.isContainer(giver)) ContainmentApi.move(written, giver);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

@@ -826,7 +826,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
       const plan = SpeciesApi.tryGetBodyPlanPath(giver);
       const claim = now && plan !== null && MixinApi.isWearable(item) ? [...item.getSlotClaim(plan)] : [];
       if (claim.length > 0 && MixinApi.isSlottable(item)) giver.seatInSlots(item, claim);
-      else if (giver.canReceive(item) === null) ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
+      else if (MixinApi.isCarrying(giver)) giver.directMove(item as Stuff & Containable, { kind: 'carried' });
     }
     return PerceptionApi.perceived(giver, giver.getContents());
   }

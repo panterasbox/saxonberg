@@ -1,8 +1,11 @@
 /**
- * ⭐⭐ `move` just works (size and carrying W8): a body is a destination that
- * places what arrives — a hand, the other hand, a pocket it fits — and when
- * it has no honest place, `move` THROWS naming why; it never lands the
- * thing anywhere but the body. `canReceive` is the same answer, read dry.
+ * ⭐⭐ `move` just works (size and carrying W8; owner, 2026-11-13): a carrier
+ * ROUTES what arrives — a hand, the other hand, a pocket it fits; else it
+ * reaches the body (a true move, its witnesses fire) and the body moves it
+ * on into a bag it carries, else sets it down where it stands, with a line.
+ * Nothing is retargeted. `carrier.directMove(item[, route])` goes around the
+ * routing: exactly there, or nothing moves and the refusal comes back. A
+ * body that does not carry (a fish) is not routed — `move` throws.
  */
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -13,7 +16,10 @@ import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installForms } from '../../../../lib/spatial/__tests__/size-fixture';
-import { makeBody, tool, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
+import { Body, Bag, handsSpecies, makeBody, tool, wornBag, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
+import { Actor } from '../../../../lib/creature/Actor';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Containable } from '../../../../lib/spatial/Containable';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../lib/location/Location';
 import Holder from '../../../../lib/stuff/Holder';
@@ -23,6 +29,7 @@ const TROUSERS: PlacementEntry[] = [
 ];
 const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
 const mug = () => tool('mug', 0.35, [0.09, 0.09, 0.1]);
+const kw = (t: Stuff): string => (t as unknown as { getKeywords(): string[] }).getKeywords()[0] ?? '';
 
 describe('ContainmentApi.move onto a body — the body places what arrives (W8)', () => {
   beforeEach(() => {
@@ -34,9 +41,10 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     StuffApi.clearAll();
   });
 
-  it('a mug lands in a hand; a second in the other; a key in a pocket; a fourth throws naming the hands and the pockets', async () => {
+  it('a mug lands in a hand; a second in the other; a key in a pocket; a fourth is refused by directMove and set down by move', async () => {
     const { me, plan } = makeBody();
-    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const here = makeStuff(() => new Location());
+    ContainmentApi.move(me, here);
     const trousers = await wornGarment(me, plan, 'trousers', 'legs', TROUSERS);
     const [m1, m2, k, m3] = [mug(), mug(), key(), mug()];
     ContainmentApi.move(m1, me);
@@ -47,23 +55,113 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     ContainmentApi.move(k, me);
     expect(k.getPlacement()).toEqual({ host: trousers, name: 'left pocket' });
     expect(me.isHonest(k)).toBe(true);
-    // The dry read says so first…
-    const refused = me.canReceive(m3);
+    // Around the routing: exactly onto the body, or nothing moves.
+    const refused = me.directMove(m3);
     expect(refused?.reason).toBe('nowhere-to-carry');
-    // …and the act throws rather than lie: nothing moved.
+    expect(m3.getContainer()).toBeNull();
+    // The one call routes it: it reaches the body, and is set down.
+    ContainmentApi.move(m3, me);
+    expect(m3.getContainer()).toBe(here);
+  });
+
+  it('⭐ the cascade is two TRUE moves — the body first, then the bag (no retarget)', () => {
+    const log: string[] = [];
+    class WBody extends Body {
+      onContainableAdded(t: Stuff & Containable): void {
+        log.push(`body+${kw(t)}`);
+      }
+      onContainableRemoved(t: Stuff & Containable): void {
+        log.push(`body-${kw(t)}`);
+      }
+    }
+    class WBag extends Bag {
+      onContainableAdded(t: Stuff & Containable): void {
+        log.push(`bag+${kw(t)}`);
+      }
+    }
+    const { species, plan } = handsSpecies();
+    const me = makeStuff(() => new WBody());
+    me.setSpecies(species);
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    ContainmentApi.move(tool('a', 0.3, [0.05, 0.05, 0.1]), me);
+    ContainmentApi.move(tool('b', 0.3, [0.05, 0.05, 0.1]), me);
+    const sack = makeStuff(() => new WBag());
+    sack.setShortDescription('sack');
+    sack.setKeywords(['sack']);
+    sack.setSlotClaims({ [plan]: ['back'] });
+    sack.setOpen(true);
+    me.seatInSlot(sack, 'back');
+    log.length = 0;
+    const cup = tool('cup', 0.2, [0.05, 0.05, 0.08]);
+    ContainmentApi.move(cup, me);
+    expect(cup.getContainer()).toBe(sack);
+    expect(log).toEqual(['body+cup', 'body-cup', 'bag+cup']);
+  });
+
+  it('⭐ set down: the body first, then the place — and the body is told', () => {
+    const log: string[] = [];
+    class WBody extends Body {
+      onContainableAdded(t: Stuff & Containable): void {
+        log.push(`body+${kw(t)}`);
+      }
+    }
+    class WPlace extends Location {
+      onContainableAdded(t: Stuff & Containable): void {
+        log.push(`place+${kw(t)}`);
+      }
+    }
+    const { species } = handsSpecies();
+    const me = makeStuff(() => new WBody());
+    me.setSpecies(species);
+    const here = makeStuff(() => new WPlace());
+    ContainmentApi.move(me, here);
+    ContainmentApi.move(tool('a', 0.3, [0.05, 0.05, 0.1]), me);
+    ContainmentApi.move(tool('b', 0.3, [0.05, 0.05, 0.1]), me);
+    log.length = 0;
+    const cup = tool('cup', 0.2, [0.05, 0.05, 0.08]);
+    ContainmentApi.move(cup, me);
+    expect(cup.getContainer()).toBe(here);
+    expect(log).toEqual(['body+cup', 'place+cup']);
+  });
+
+  it('a carrier standing nowhere, with no bag, throws — and nothing moved', () => {
+    const { me } = makeBody();
+    ContainmentApi.move(mug(), me);
+    ContainmentApi.move(mug(), me);
+    const m3 = mug();
+    expect(() => ContainmentApi.move(m3, me)).toThrow(ContainmentError);
+    expect(m3.getContainer()).toBeNull();
+  });
+
+  it('directMove takes the named route or refuses: into the bag; a full hand refused', () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const sack = wornBag(me, plan, 'sack', 'back');
+    const cup = tool('cup', 0.2, [0.05, 0.05, 0.08]);
+    expect(me.directMove(cup, { kind: 'into', container: sack })).toBeNull();
+    expect(cup.getContainer()).toBe(sack);
+    const m = mug();
+    ContainmentApi.move(m, me);
+    const other = mug();
+    const held = me.getOccupant('hand:right') === m ? 'hand:right' : 'hand:left';
+    expect(me.directMove(other, { kind: 'seat', slots: [held] })?.reason).toBe('nowhere-to-carry');
+    expect(other.getContainer()).toBeNull();
+  });
+
+  it('a fish does not carry: move onto it throws, nothing moved', () => {
+    class Fish extends Actor {}
+    const fish = makeStuff(() => new Fish());
+    ContainmentApi.move(fish, makeStuff(() => new Location()));
+    const hook = key();
     let thrown: unknown = null;
     try {
-      ContainmentApi.move(m3, me);
+      ContainmentApi.move(hook, fish);
     } catch (err) {
       thrown = err;
     }
     expect(thrown).toBeInstanceOf(ContainmentError);
-    const e = thrown as ContainmentError;
-    expect(e.reason).toBe('nowhere-to-carry');
-    expect(e.message).toMatch(/has no place on/);
-    expect(e.message).toMatch(/hands hold .*mug.* and .*mug/);
-    expect(e.message).toMatch(/tried .*trousers/);
-    expect(m3.getContainer()).toBeNull();
+    expect((thrown as ContainmentError).reason).toBe('nowhere-to-carry');
+    expect(hook.getContainer()).toBeNull();
   });
 
   it('out of a box: leaves the box, lands in a hand', () => {
@@ -97,9 +195,4 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     expect(me.isSeating(m)).toBe(false);
   });
 
-  it('every container answers canReceive — a box by its fit, with no narrowing', () => {
-    const box = makeStuff(() => new Holder());
-    expect(box.canReceive(mug())).toBeNull();
-    expect(MixinApi.isCarrying(box)).toBe(false);
-  });
 });

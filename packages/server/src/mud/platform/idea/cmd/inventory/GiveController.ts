@@ -73,23 +73,15 @@ export default class GiveController extends CommandController<GiveModel> {
       );
     }
 
-    // ⭐ A HANDED thing is offered (size and carrying D-W7a): if they
-    // cannot take it, nothing changes hands — asked before anything moves.
-    const refused = recipient.canReceive(item);
-    if (refused !== null) {
-      const full = refused.reason === 'nowhere-to-carry' && refused.facts.held.length > 0;
-      MessageApi.scene(giver)
-        .topic('sense.survey')
-        .toSelf(
-          full
-            ? Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`
-            : Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`,
-        )
-        .send();
-      context.note({ kind: 'controller-rejected', reason: 'recipient-hands-full', detail: item.getPresentation() });
+    // ⭐ A HANDED thing is offered (size and carrying D-W7a): onto them —
+    // a hand or a pocket, never routed on to their bag or their feet
+    // (`directMove`, owner 2026-11-13) — or nothing changes hands. A body
+    // that does not carry takes nothing handed to it (its own answer, read
+    // dry); a recipient that is no body takes it plainly.
+    if (!MixinApi.isCarrying(recipient) && recipient.arrivalFor(item as Stuff & Containable).kind === 'refuse') {
+      this.keptWords(giver, recipient, item, false, context);
       return;
     }
-
     // **Leaving your inventory means leaving your body first** — the
     // same release gate `remove`/`unwield`/`drop` run. Without it this
     // verb both bypasses a curse and leaves a phantom slot occupant
@@ -114,7 +106,15 @@ export default class GiveController extends CommandController<GiveModel> {
       }
     }
 
-    ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
+    const refused = MixinApi.isCarrying(recipient)
+      ? recipient.directMove(item as Stuff & Containable)
+      : (ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container), null);
+    if (refused !== null) {
+      // Back where it was let go of: `move` routes it to the giver's free hand.
+      ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
+      this.keptWords(giver, recipient, item, refused.reason === 'nowhere-to-carry' && refused.facts.held.length > 0, context);
+      return;
+    }
 
     MessageApi.scene(giver)
       .topic('sense.survey')
@@ -129,5 +129,18 @@ export default class GiveController extends CommandController<GiveModel> {
       .topic('sense.survey')
       .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
+  }
+
+  /** The recipient had nowhere to take it, and the giver keeps it. */
+  private keptWords(giver: Stuff, recipient: Stuff, item: Stuff, full: boolean, context: CommandContext): void {
+    MessageApi.scene(giver)
+      .topic('sense.survey')
+      .toSelf(
+        full
+          ? Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`
+          : Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`,
+      )
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'recipient-hands-full', detail: item.getPresentation() });
   }
 }

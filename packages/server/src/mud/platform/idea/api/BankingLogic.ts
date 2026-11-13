@@ -465,9 +465,7 @@ async function moveCoins(
   return takeCoins(from, plan, async (piece) => {
     // The ledger has already moved — a purse or a pocket, else set down
     // where they stand; never refused after the ledger, never lost (W8).
-    const here = MixinApi.isContainable(to) ? to.getContainer() : null;
-    if (to.canReceive(piece) === null || here === null) ContainmentApi.move(piece, to);
-    else ContainmentApi.move(piece, here);
+    ContainmentApi.move(piece, to);
   });
 }
 
@@ -1947,9 +1945,7 @@ async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stu
     // Cash the ledger has already moved (D-W7a): a purse or a pocket, else
     // set down where they stand — never refused after the ledger, never lost.
     const cash = coin as unknown as Stuff & Containable;
-    const here = MixinApi.isContainable(into) ? into.getContainer() : null;
-    if (into.canReceive(cash) === null || here === null) ContainmentApi.move(cash, into);
-    else ContainmentApi.move(cash, here);
+    ContainmentApi.move(cash, into);
     if (!representative) representative = coin;
   }
   // `dispense` yields ≥1 line for a positive amount; the largest is returned
@@ -2169,9 +2165,7 @@ async function issueCardImpl(
     // W8: the body places it (else it is set down where they stand), and a
     // carrier puts it away at once — a pocket it fits becomes its home.
     const kept = card as unknown as Stuff & Containable;
-    const here = MixinApi.isContainable(principal) ? principal.getContainer() : null;
-    if (principal.canReceive(kept) === null || here === null) ContainmentApi.move(kept, principal);
-    else ContainmentApi.move(kept, here);
+    ContainmentApi.move(kept, principal);
     if (MixinApi.isCarrying(principal) && principal.tierOf(kept) === 'hand') principal.stow(kept);
   }
   return card as Stuff & CredentialWallet;

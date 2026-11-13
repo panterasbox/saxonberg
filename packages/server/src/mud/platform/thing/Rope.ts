@@ -619,11 +619,13 @@ export default class Rope extends CuttableMixin(
     const rope = this as unknown as Stuff & Line;
     const hangs = MixinApi.isPlacing(halter) && halter.getPlacements().includes(Placements.FROM)
       && halter.canPlace(rope, Placements.FROM).ok;
-    if (!hangs && (!MixinApi.isContainer(animal) || animal.canReceive(rope) !== null)) {
+    // Hung from the halter, else ONTO the animal (`directMove` — a hand or
+    // its own regions, never routed on to its pack or the ground); a body
+    // that does not carry takes nothing that does not hang.
+    if (hangs && MixinApi.isPlacing(halter)) ContainmentApi.move(rope, halter, Placements.FROM);
+    else if (!MixinApi.isCarrying(animal) || animal.directMove(rope) !== null) {
       return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
     }
-    if (hangs && MixinApi.isPlacing(halter)) ContainmentApi.move(rope, halter, Placements.FROM);
-    else if (MixinApi.isContainer(animal)) ContainmentApi.move(rope, animal);
     this._anchor = halter;
     this.anchorPath = halter.getTemplatePath();
     this.knots = [...this.knots.filter((k) => k.end !== 'fixed'), { ...knot, end: 'fixed' }];
@@ -656,8 +658,12 @@ export default class Rope extends CuttableMixin(
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
-      // Handed back to you (D-W7a): with no hand for it, it stays tied.
-      if (by.canReceive(this as unknown as Stuff) !== null) {
+      // Handed back to you (D-W7a): onto you first (`directMove`), or it
+      // stays tied and nothing changes.
+      const taken = MixinApi.isCarrying(by)
+        ? by.directMove(this as unknown as Stuff & Line)
+        : (ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container), null);
+      if (taken !== null) {
         return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load: anchor } };
       }
       if (this.hungVia !== null) {
@@ -667,7 +673,6 @@ export default class Rope extends CuttableMixin(
       this._anchor = null;
       this.anchorPath = null;
       this.knots = this.knots.filter((k) => k.end !== 'fixed');
-      ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container);
       return { ok: true, line: `You untie ${this.getPresentation()} from ${anchor.getPresentation()} and take it up.` };
     }
     const across = this.acrossNow();
@@ -1036,8 +1041,7 @@ export default class Rope extends CuttableMixin(
     // Made (D-W7a): to whoever cut it, else set down where they stand.
     if (into !== null && MixinApi.isContainer(into)) {
       const cut = piece as unknown as Stuff & Line;
-      if (into.canReceive(cut) === null) ContainmentApi.move(cut, into);
-      else ContainmentApi.move(cut, (MixinApi.isContainable(into) ? into.getContainer() : null) ?? into);
+      ContainmentApi.move(cut, into);
     }
     return { ok: true, facts: { kind: 'rope', takeM: take, leftM: this.lengthM } };
   }

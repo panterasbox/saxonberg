@@ -117,12 +117,13 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(
     const load = this.getLashedTo();
     if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
-    // Handed back to you (D-W7a): with no hand for it, it stays lashed.
-    if (by.canReceive(this) !== null) {
+    // Handed back to you (D-W7a): onto you first (`directMove`), or it
+    // stays lashed and nothing changes.
+    const taken = MixinApi.isCarrying(by) ? by.directMove(this) : (ContainmentApi.move(this, by as Stuff & Container), null);
+    if (taken !== null) {
       return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load } };
     }
     this._lashedTo = null;
-    ContainmentApi.move(this, by as Stuff & Container);
     if (line !== null) await line.endUntied(by, load);
     return { ok: true, line: `You cast the end of the line off ${load.getPresentation()} and take it up.` };
   }
@@ -132,9 +133,7 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(
     const load = this._lashedTo;
     const at = load !== null && !load.isDestroyed() && MixinApi.isContainable(load) ? load.getContainer() : null;
     if (at === null || at === this.getContainer()) return;
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (at.canReceive(this) === null) ContainmentApi.move(this, at as Stuff & Container);
-    else ContainmentApi.move(this, (MixinApi.isContainable(at) ? at.getContainer() : null) ?? at as Stuff & Container);
+    ContainmentApi.move(this, at as Stuff & Container);
   }
 
   /** ⭐ A tug up the line, from whoever holds this end. */

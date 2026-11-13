@@ -87,8 +87,9 @@ export abstract class HeldGoodsControllerBase<
       return;
     }
 
-    // ⭐ Handed back (D-W7a): if you cannot take it, it stays where it is.
-    const refused = MixinApi.isContainer(giver) ? giver.canReceive(item) : null;
+    // ⭐ Handed back (D-W7a): onto you first (`directMove` — a hand, a
+    // pocket), or it stays where it is and the listing with it.
+    const refused = MixinApi.isCarrying(giver) ? giver.directMove(item) : null;
     if (refused !== null) {
       this.reject(giver, context, Mml.text(this.carryRefusalWords(giver, refused)), {
         kind: "controller-rejected",
@@ -99,7 +100,7 @@ export abstract class HeldGoodsControllerBase<
     }
 
     // Custody → you; clear the listing. No chattel op (ownership never left).
-    if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
+    if (!MixinApi.isCarrying(giver) && MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     if (MixinApi.isChattel(item)) shelf.removeHolding(item.getChattelId());
 
     MessageApi.scene(giver)

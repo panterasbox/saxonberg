@@ -76,7 +76,7 @@ describe('Carrying — hands (D9/D10)', () => {
     expect(c.getHandedness()).toBe(2);
     me.hitch(c);
     expect(me.freeHands()).toBe(0);
-    const r = me.canReceive(tool('cup', 0.2));
+    const r = me.directMove(tool('cup', 0.2));
     expect(r?.reason).toBe('hands-on-cart');
     expect(carryWords(me, r!)).toMatch(/hands are on/);
   });
@@ -85,7 +85,7 @@ describe('Carrying — hands (D9/D10)', () => {
     const { me, plan } = makeBody();
     hold(me, plan, tool('knife', 0.3), 'hand:right');
     hold(me, plan, tool('torch', 0.5), 'hand:left');
-    const r = me.canReceive(tool('cup', 0.2));
+    const r = me.directMove(tool('cup', 0.2));
     expect(r?.reason).toBe('nowhere-to-carry');
     // ⭐ The refusal is the tutorial (the flip, W7): the hands' contents,
     // what did not fit, and the next command.

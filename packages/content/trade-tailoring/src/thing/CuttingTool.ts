@@ -176,18 +176,14 @@ async function finishCut(
   }
   if (MixinApi.isWearable(pieces)) pieces.setSeamAllowance(allowance);
   if (MixinApi.isContainable(pieces) && MixinApi.isContainer(giver)) {
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (giver.canReceive(pieces as Stuff & Containable) === null) ContainmentApi.move(pieces as Stuff & Containable, giver as Stuff & Container);
-    else ContainmentApi.move(pieces as Stuff & Containable, (MixinApi.isContainable(giver) ? giver.getContainer() : null) ?? giver as Stuff & Container);
+    ContainmentApi.move(pieces as Stuff & Containable, giver as Stuff & Container);
   }
   // ⭐ Offcuts — and a generous cut leaves more of them.
   const offcutUnits = Math.max(1, allowance + 1);
   const offcuts = await StuffApi.clone<Stuff>(OFFCUT_ROW);
   if (MixinApi.isStackable(offcuts)) offcuts.setQuantity(offcutUnits);
   if (MixinApi.isContainable(offcuts) && MixinApi.isContainer(giver)) {
-    // Made (D-W7a): to whoever made it, else set down where they stand.
-    if (giver.canReceive(offcuts as Stuff & Containable) === null) ContainmentApi.move(offcuts as Stuff & Containable, giver as Stuff & Container);
-    else ContainmentApi.move(offcuts as Stuff & Containable, (MixinApi.isContainable(giver) ? giver.getContainer() : null) ?? giver as Stuff & Container);
+    ContainmentApi.move(offcuts as Stuff & Containable, giver as Stuff & Container);
   }
   return { ok: true, facts: { kind: 'pattern', allowance, offcuts: offcutUnits } };
 }

@@ -236,7 +236,5 @@ async function mintPhysical(
   // write — never refused, never lost; size and carrying W8).
   const minted = key as unknown as Stuff & Containable;
   const to = holder as Stuff & Container;
-  const here = MixinApi.isContainable(to) ? to.getContainer() : null;
-  if (to.canReceive(minted) === null || here === null) ContainmentApi.move(minted, to);
-  else ContainmentApi.move(minted, here);
+  ContainmentApi.move(minted, to);
 }

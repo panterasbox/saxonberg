@@ -165,9 +165,7 @@ export const brain = class {
         for (const c of crib.getContents() as Stuff[]) {
           if (held(hand, COCOONS) >= REEL_CHARGE) break;
           if (c.getTemplatePath() !== COCOONS || !MixinApi.isContainable(c)) continue;
-          // Made (D-W7a): to whoever made it, else set down where they stand.
-          if (hand.canReceive(c as Stuff & Containable) === null) ContainmentApi.move(c as Stuff & Containable, hand);
-          else ContainmentApi.move(c as Stuff & Containable, (MixinApi.isContainable(hand) ? hand.getContainer() : null) ?? hand);
+          ContainmentApi.move(c as Stuff & Containable, hand);
         }
         MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} scoops cocoons out of the crib.`).send();
       }

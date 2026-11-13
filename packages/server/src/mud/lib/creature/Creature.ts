@@ -709,7 +709,7 @@ export class Creature extends CreatureBase {
    *
    * @hook
    */
-  public override arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
+  public override arrivalFor(item: Stuff & Containable, how?: { placed?: boolean; onBody?: boolean }): Arrival {
     if (how?.placed === true || item.isAgent() || this.isSeating(item) || this.isAdmitting(item)) {
       return { kind: 'contents' };
     }

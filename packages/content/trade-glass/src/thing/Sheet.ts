@@ -214,9 +214,7 @@ export default class Sheet extends SheetBase {
     pane.setForm("pane");
     if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setMakeup(alloying);
     if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
-      // Made (D-W7a): to whoever made it, else set down where they stand.
-      if (where.canReceive(pane as unknown as Stuff & Containable) === null) ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
-      else ContainmentApi.move(pane as unknown as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where as Stuff & Container);
+      ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
     }
     await StuffApi.destruct(self);
   }
@@ -285,9 +283,7 @@ export default class Sheet extends SheetBase {
       p.setForm("pane");
       if (MixinApi.isComposition(p) && alloying.length > 0) p.setMakeup(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
-        // Made (D-W7a): to whoever made it, else set down where they stand.
-        if (where.canReceive(p as unknown as Stuff & Containable) === null) ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
-        else ContainmentApi.move(p as unknown as Stuff & Containable, (MixinApi.isContainable(where) ? where.getContainer() : null) ?? where as Stuff & Container);
+        ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
       }
     }
     await StuffApi.destruct(self);
