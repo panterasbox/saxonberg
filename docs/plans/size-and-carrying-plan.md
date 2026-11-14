@@ -2720,7 +2720,9 @@ D33 (a tray's cups, a belt's pouches). `move` is still the one call; a carrier s
   carries a satchel's contents — one move, no bring-along ask of the destination, no `placed` admission.
   The host-follow code is **unchanged**; its coat tests become contents assertions (below) and its tray/belt
   tests stay as the mechanism's.
-- **D-W9-9 — words and offers.** `put key in coat` → `PlacementOffers(coat)`: no region zero, two pockets
+- **D-W9-9 — words and offers.** ⚠ *The by-name ask and the side-pocket note are superseded by W10
+  (owner, 2026-11-14, ruling 5): a chamber is its container's business — `put key in coat` lands in the
+  first pocket that takes it, no prompt; see D-W10-6/-14.* `put key in coat` → `PlacementOffers(coat)`: no region zero, two pockets
   answering `in` → `preposition-ambiguous { regions }` → *"Which — the left pocket or the right pocket?"*
   (D26-e, unchanged); one pocket → taken; `put key in inner pocket` → the binder's `via.region` → `named` →
   `canPlace` → route `region` → `move(key, coat, 'inner pocket')` → `placeIn`. **`setHome` on a `region`
@@ -3077,16 +3079,44 @@ else in the requirements is re-decided: where the requirements DECIDED a behavio
 found implicit (the third `get` goes to a pocket, line 107), the remedy is *make it explicit on
 the def*, not *cut* — flagged for the owner at the end.
 
+**Owner review of W10 (2026-11-14) — six rulings, folded in below (the first draft is
+`9db046c6c`; what changed is marked ⟲):**
+
+1. **Use it where it sits.** Using an instrument from the **ready** tier moves nothing: `measure
+   strike with compass` with the compass on your belt works, and afterwards it is still on the
+   belt — draw-use-return is part of the act, no state, nothing to track. Hands matter only when
+   a thing is to STAY in hand (`wield`, `get`, carrying a lantern) — explicit acts. ⟲ D-W10-1,
+   D-W10-3, D-W10-7: "get it into a free hand first" is gone everywhere; the eleven instrument
+   args accept a tool in hand, ready, or within reach; packed is refused via `canReach`.
+2. **Tiers: hand · ready · packed, and closed is never a tier.** Ready = you can get at it
+   without taking anything off (a belt, a pocket, a hung pouch, a worn satchel — open OR
+   closed). Closed does exactly three things: the unfasten beat in a fight, hiding contents
+   (perception), keeping them dry (water). Packed = inside something you would have to take off.
+   ⟲ D-W10-12: `Containable.reachRefusal` loses its `enclosed-shut` arm.
+3. **No artificial lag, ever.** A command resolves at once; holder cost exists only where time is
+   already budgeted — combat's beats. ⟲ D-W10-13: W10d is confirmed combat-only and audited for
+   any delay outside a session (none).
+4. **Chambers (model a).** A container's chambers are named regions of ONE `Container`, each with
+   its own volume, mouth, sides and air (`encloses`); volume and fit are always per chamber, never
+   summed; a container with no named chambers is one chamber (region zero = the whole interior).
+   ⟲ D-W10-14: W9's regions verified against it; the one partition rule stated; the summing audit.
+5. **"Which pocket?" only across DIFFERENT things.** A pocket on one garment is the garment's
+   internal business, as a hand is the body's: `put key in coat` → the coat puts it in the first
+   chamber it fits, no prompt; `put key in left pocket` → that one or a refusal. ⟲ Audit item 6
+   reversed; D-W10-6 rewritten; D26-e's by-name ask retired for chambers.
+6. The three questions: Q1 `get` keeps the hand·hand·pocket route, said in `help get`; Q2 tack is
+   `put saddle on mule`; Q3 hand acts in a fight are the guarded beat, combat only. ⟲ D-W10-15.
+
 #### The audit — every implicit behavior this MR added, verified against the tree at `fc23b0808`
 
 | # | item | where | predictable from the def + `help`? | recommendation | remedy |
 |---|---|---|---|---|---|
-| 1 | **`readies:`** — the dispatcher brings a bound instrument to hand before the controller runs, stowing what is in the way | `api/command.ts:918` (`FieldDefinition.readies`); `lib/command/command.schema.json:352, :490`; `CommandDefinition.ts:938/981/986`; `CommandGiver.ts:1786` (the call), `:1846–1899` (`_readyInstruments`), `:251–258` (`wordsOf`); 11 views (`measure.tool`, `analyze.tool`, `read.target`, `light.target`, `douse.target`, `pour.source`, `fill.target`, `drink.target`, `shape.instrument`, `cut.tools`, `fit.tool`) | **No** — `help measure` says nothing about a hand being freed or where the sword goes | **cut** (owner) | instruments are used where they are (reach); the 5 tool args that had no `canReach` get it (D-W10-7) |
+| 1 | **`readies:`** — the dispatcher brings a bound instrument to hand before the controller runs, stowing what is in the way | `api/command.ts:918` (`FieldDefinition.readies`); `lib/command/command.schema.json:352, :490`; `CommandDefinition.ts:938/981/986`; `CommandGiver.ts:1786` (the call), `:1846–1899` (`_readyInstruments`), `:251–258` (`wordsOf`); 11 views (`measure.tool`, `analyze.tool`, `read.target`, `light.target`, `douse.target`, `pour.source`, `fill.target`, `drink.target`, `shape.instrument`, `cut.tools`, `fit.tool`) | **No** — `help measure` says nothing about a hand being freed or where the sword goes | **cut** (owner) | ⟲ used where it sits — in hand, ready (open or closed), or within reach; nothing moves; packed refused by `canReach`; the 5 tool args that had no `canReach` get it (D-W10-1, -7, -12) |
 | 2 | **Homes** — a thing remembers where on you it lives; `stow` sends it there, else to the first place it fits, which becomes its home | `Carrying.ts:304` (`_homes`), `:318–346` (`captureSlice`/`hydrateSlice`), `:349–358`, `:497–513` (`homeOf`/`setHome`), `:1234–1260` (`stowRefusal`/`stowPlaceFor`/`homeTakes`), `:1262–1290` (`stow`), `:1316–1328` (`bringToHand` remembers), `:1433–1475` (`endOf`/`resolveEnd`); `PersistenceSlice.ts:274–294` (`HomeEnd`/`HomesSlice`); `ContainmentLogic.ts:322–341` (`putPlanFor` sets a home); `CombatLogic.ts:4422–4425` (`switchSecondsFor` prices by home) | **No** — where a held thing goes depends on a history the player cannot see | **cut** (owner) | `stow` = route it off the hands by the carrier's places, in the one documented order; nothing takes it → refused in words, it stays in hand (D-W10-2) |
 | 3 | `get`'s `carried` route — hands full, the thing goes to a pocket or bag it fits | `GetController.ts:579` (`directMove(…, {kind:'carried'})`), `:240` (from a body), `:526` (a fixture asked before it comes down) | **Not today** — `help get` says *"move it into your inventory"* | **make explicit (help)** — the requirements DECIDED it (line 107: *the third `get` goes to a pocket it fits*); the def states the one rule and names `carry.order`; the alternatives are verbs the player knows (`drop`, `put`) | D-W10-4; owner's question 1 if hand-only is preferred |
-| 4 | `get X from <a holder on you>` frees a hand by stowing what is in it | `GetController.ts:255–273` (`bringOut` → `bringToHand` → `stow`) | **No** | **cut** — `bringToHand` seats into a free hand only; hands in the way → `hands-needed`, naming them and the ways out | D-W10-3 |
+| 4 | `get X from <a holder on you>` frees a hand by stowing what is in it | `GetController.ts:255–273` (`bringOut` → `bringToHand` → `stow`) | **No** | **cut** — `get X from <on you>` is the explicit *keep it in hand* act: it seats into a free hand only; hands in the way → `hands-needed`, naming them and the ways out | D-W10-3 |
 | 5 | `put X in coat` with one pocket takes it silently | `PlacementOffers` → `putPlanFor` (D-W9-9) | **Yes** — one offer is what *in the coat* means; several ask by name (D26-e, drive step 3) | **keep** | — |
-| 6 | a bare `pocket` binds the first pocket of the nearest garment and does not ask | `scope-walk.ts:213–217` (a facet per named region, `via.region`); the resolver takes the first facet that matches (`resolver.ts:482/:537` set `m.via`) — D26-d | **No** — four pockets, one chosen by list order | **make explicit** — a word matching several regions of ONE host binds the host with no `via.region`, so `putPlanFor` → `placementFor` → `preposition-ambiguous {regions}` → *"Which — the left pocket, …?"* (the ask that already exists) | D-W10-6 |
+| 6 | a bare `pocket` binds the first pocket of the nearest garment and does not ask | `scope-walk.ts:213–217` (a facet per named region, `via.region`); the resolver takes the first facet that matches (`resolver.ts:482/:537` set `m.via`) — D26-d | ⟲ **Yes, by the owner's rule** — a pocket on one garment is the garment's business; the only ambiguity a player must resolve is across DIFFERENT things, which the binder's *which one?* already asks (a coat and trousers both answering `pocket`) | **keep the choice, state the rule** — a word matching several chambers of ONE host binds the host with no `via.region`; the host puts it in the first chamber it fits (W9's `Container.arrivalFor`), no prompt; D26-e's by-name ask for chambers is **retired** | D-W10-6 |
 | 7 | the binder's perceive-then-retry when a name's top tier is all unperceived | `CommandLogic.ts:672–690` (`scopedMany`), D23-e | **Yes** — *you name what you perceive* is the perception rule (`mql-grammar.md` § *Reach is one rule*); the retry produces exactly that and nothing else | **keep** | — |
 | 8 | the tie-break hand · ready · packed · room | `scope-walk.ts:55–135`; `mql-grammar.md:172–182` | **Yes** — documented, and `scope:` is on every def | **keep** | `help get`/`help put` say in one line which scope they search |
 | 9 | `put`/`get … from` reach your own gear first | `put.yaml` `target.scope: reachable`; `get.yaml` `source.scope: reachable` (`aa69a3376`) | **Yes** — on the def; `reachable` = person first (`mql-grammar.md:162`) | **keep** | — |
@@ -3105,7 +3135,8 @@ the def*, not *cut* — flagged for the owner at the end.
 | 22 | readying's `pick-up` refusal for a portable thing on the floor | `Carrying.ts:1147–1154` (`readyRefusal`'s elsewhere branch), `CommandController.ts:541–544` | goes with `readies:` | **cut** | D-W10-3 |
 | 23 | `fight switch`/`fight draw` stow what is in the way (the switch's *away* half) | `Carrying.ready` → `bringToHand` → `stow`; `CombatLogic.ts:4420–4426` | **No** — `help fight switch` says *your hands are full and your guard is down*, not where the lantern went | **cut the stow** — hands in the way → refused naming the way out: `drop X` (free), `unwield X`/`put X in Y` (a beat) | D-W10-3 |
 | 24 | the inventory verbs are FREE in a fight while `fight switch` costs beats | `PutController`, `GetController`, `EquipControllerBase`, `UnequipControllerBase` — no `CombatApi.sessionFor` anywhere in `cmd/inventory/` | **No** — the only priced path is the one you can route around with `put`/`get` | **make explicit** — in a session the hand acts cost the switch's beats by holder (owner, item 1); `drop` is free | D-W10-5; owner's question 3 |
-| 25 | the five tool args bind the WHOLE reach pool (shut and packed included since W3) — `readies:` was what refused a packed compass | `measure.yaml:84`, `analyze.yaml:63`, `shape.yaml:50`, `cut.yaml:70`, `fit.yaml:73` — no `canReach` (the other six have it) | after item 1 a compass shut in your pack would read your strike | **make explicit** — `canReach` on the five; a default-bound tool list is narrowed by reach in the controller (the `get` precedent, one walk) | D-W10-7 |
+| 25 | the five tool args bind the WHOLE reach pool (shut and packed included since W3) — `readies:` was what refused a packed compass | `measure.yaml:84`, `analyze.yaml:63`, `shape.yaml:50`, `cut.yaml:70`, `fit.yaml:73` — no `canReach` (the other six have it) | after item 1 a compass packed on your back would read your strike | **make explicit** — `canReach` on the five; a default-bound tool list is narrowed by reach in the controller (the `get` precedent, one walk); ⟲ a compass in a SHUT pouch on your belt is ready and reads | D-W10-7 |
+| 29 | ⟲ `reachRefusal('enclosed-shut')` — a thing in a shut pouch on your own belt, or in a shut box in your hand, is refused *"X is shut"* | `Containable.ts:512–517`; `canReach.ts` wording; `perception.ts:406` | **No, and false to the rule** — closed is never a tier (owner, ruling 2); the room pool never held shut room contents (D17-b), so the arm fired only for your OWN things | **cut** — the arm and the type; `canReach` words `packed` only | D-W10-12 |
 | 26 | `get` stops asking the body after one refusal in a line | `GetController.ts:47, :497` (`bodyRefused`) | one refusal per line — presentation | **keep** | — |
 | 27 | a card dealt to a keeper is put away at once | `Gus.ts:120`, `BankingLogic.ts:2169` (`stow`) | NPC/mint behavior, not a command | **keep** — `stow`'s new meaning (off the hands, else stays) serves it | — |
 | 28 | the routing's floor fallback with a line (`move` onto a full body) | `Carrying.routeArrival` `:677–723` | the owner-approved rule for `move` (W8i) | **keep** | — |
@@ -3115,11 +3146,13 @@ the def*, not *cut* — flagged for the owner at the end.
 - **D-W10-1 — `readies:` is retired.** `FieldDefinition.readies` (`api/command.ts:918`), the two
   schema entries, the `CommandDefinition` validation clause (`readies` leaves the *only valid on
   object fields* list), `CommandGiver._readyInstruments` + its call + `wordsOf`, and the line on
-  all 11 views. An instrument is used where it is — in your hand, on your belt, in an open pouch,
-  on the bench — and a thing a hand cannot get at is refused by `canReach` in the object's own
-  words (*"Your canvas backpack is on your back — take it off first."*), the pre-build behavior
-  with W3's one rule. ⚠ `lint:command-views` reads the schema: a view still carrying `readies:`
-  fails the gate (the schema has no such key), so the 11 edits are forced, not remembered.
+  all 11 views. ⟲ **An instrument is used where it sits** (owner, ruling 1): in your hand, on
+  your belt, in a pocket, in a pouch or satchel you wear — open or shut — or within reach in the
+  room (a bench, a photometer on the table); **nothing moves, nothing is remembered** —
+  draw-use-return is inside the act. The one refusal is the packed tier, by `canReach` in the
+  object's own words (*"Your canvas backpack is on your back — take it off first."*). ⚠
+  `lint:command-views` reads the schema (`additionalProperties: false`): a view still carrying
+  `readies:` fails the gate, so the 11 edits are forced, not remembered.
 - **D-W10-2 — homes are retired; `stow` is the route off the hands.** `Carrying.stow(held):
   ArrivalRefusal | null` vacates the hand and moves `held` into the first of the carrier's places
   that takes it, **in D11's order and nothing else**: a pocket of a worn garment, a hook on a worn
@@ -3135,7 +3168,10 @@ the def*, not *cut* — flagged for the owner at the end.
   slice was one `captureSlice` hook among the mixins' (`:869–871`); a snapshot that carries a
   stale `homes` slice is skipped (no hook claims it — the existing *no `hydrateSlice`* path).
   `lint:pm` holds (no collection, no policy row).
-- **D-W10-3 — `ready` and `bringToHand` seat into a FREE hand; they free none.** `readyRefusal`:
+- **D-W10-3 — only three acts bring a thing to hand, and none frees one for you.** ⟲ The
+  callers of `ready`/`bringToHand` after W10 are exactly the explicit *keep it in hand* acts:
+  `get X from <on you>`, `fight switch`, `fight draw` (and combat's own `performSwap`). No
+  instrument arg reaches them. `readyRefusal`:
   `hand` → ok; `packed` → `packed {by}`; `elsewhere` → `not-on-you` (the one elsewhere answer —
   `pick-up` deleted; no dispatcher path reaches `ready` with a room thing any more, and `fight
   switch` checks the tier first); on the body → `too-heavy` / `hands-on-cart` / `cannot-grip` /
@@ -3158,11 +3194,8 @@ the def*, not *cut* — flagged for the owner at the end.
   the shape (*the third `get` goes to a pocket it fits … the first wall comes only when hands and
   pockets are full*), the drive's step 1 pins it, and a hand-only `get` would reopen product
   scope. The def now carries the rule in the one sentence every routing verb carries (D-W10-11),
-  plus `get`'s own clause: *never a bag you carry in your hand, never the floor*. ⚠ Flagged as
-  the owner's question 1 — if the answer is *hand only*, the cut is `GetController.ts:579` →
-  `directMove(operand)` (no route; a hand or a hook/pocket ON the body) and `:240` likewise, the
-  sentence shrinks to *into a free hand*, and drive step 1's key becomes *the third `get` is
-  refused naming the two hands*.
+  plus `get`'s own clause: *never a bag you carry in your hand, never the floor*. ⟲ Confirmed by
+  the owner (ruling 6, Q1): keep the route, state it in `help get`.
 - **D-W10-5 — in a fight, every hand act is the switch's guarded beat, priced by holder.** The
   owner (item 1): *"in a fight the explicit acts cost the switch's beats priced by holder."*
   `WeaponSwitch` gains an optional `land?: () => void` (constructor param; `completeSwitch` calls
@@ -3186,15 +3219,29 @@ the def*, not *cut* — flagged for the owner at the end.
   price is the reach dial — the table's *a homeless put-away*; `remove` of a pack: the switch
   dial). `give` and `buy` hand to another body and are not priced (a reach of 0 — recorded, not
   worked). `fight switch`/`fight draw` are unchanged callers of `ready`. The views say it in one
-  line each (below). Owner's question 3 names the smaller alternative.
-- **D-W10-6 — a bare word that matches several regions of ONE host asks.** The resolver's facet
-  match: when more than one `via.region` facet of the same candidate matches the typed word
-  (`pocket` against `left pocket` · `right pocket` · `breast pocket` · `inner pocket`), the match
-  carries the host with **no** `via.region` — `putPlanFor` then takes the `placementFor(prep)`
-  branch and `PlacementOffers` answers `preposition-ambiguous { regions }` → *"Which — the left
-  pocket, the right pocket, the breast pocket or the inner pocket of the coat?"* (the ask D26-e
-  built). One region matching → `via.region` as today (`put key in inner pocket`). `get key from
-  pocket` is unaffected (the source is the garment; the key is found by `heldBy`).
+  line each (below). ⟲ Confirmed by the owner (ruling 6, Q3) — **combat only**: outside a live
+  session `guarded` runs the act at once (D-W10-13).
+- **D-W10-6 — a chamber is its container's business; "which?" is asked only across different
+  things.** ⟲ (owner, ruling 5; reverses the first draft and retires D26-e for chambers.) Three
+  cases, one rule each:
+  (a) `put key in coat` — several chambers answer `in` → `PlacementOffers.choose` no longer
+  returns `preposition-ambiguous { regions }` for ENCLOSING offers sharing a word; it returns the
+  `zero`-shaped offer *the container decides* and `putPlanFor` routes `{ kind: 'zero' }` →
+  `move(key, coat)` → the chokepoint asks `arrivalFor` → W9's default picks **the first enclosing
+  region that takes it** (`Container.arrivalFor`, authored order) → `placeIn`; the prose names the
+  chamber it chose (*"You put the key in the left pocket of the coat."*). The `regions` field on
+  `PlacementChoice`/`PlaceRefusal` and `PutController.refused`'s *Which —* branch are **deleted**.
+  (b) `put key in left pocket` — the binder's `via.region` names one chamber → that one or its
+  own refusal (unchanged).
+  (c) a bare `pocket` — the resolver's facet match: several `via.region` facets of ONE candidate
+  matching the word bind the host with **no** `via.region` (case a); the SAME word answered by two
+  different hosts both in reach (a coat and trousers) is the binder's existing *which one?* across
+  candidates — the only prompt the player ever meets, and it names things, never pockets.
+  ⚠ The sibling-member ambiguity stays: a range offering `on` the hot plate AND `in` the firebox
+  for one typed word is two different places to be, not two chambers of one — `choose` keeps
+  `preposition-ambiguous { takes }` for offers that do not all enclose (`lint:placement-words`'
+  primary-word rule already makes it rare). `D-W9-9`'s *a pack with a side pocket asks* is
+  reversed: region zero is the first chamber tried, then the named ones (D-W10-14).
 - **D-W10-7 — the five tool args carry `canReach`, and a default-bound list is narrowed, not
   refused.** `measure.tool`, `analyze.tool`, `shape.instrument`, `cut.tools`, `fit.tool` gain
   `validators: [canReach]` (the other six readied args already have it). `MqlManyResult` gains
@@ -3203,9 +3250,10 @@ the def*, not *cut* — flagged for the owner at the end.
   for a defaulted many-result (the author's pool is not the player's word), and each of the five
   controllers narrows a defaulted list with `PerceptionApi.reachableAmong(giver, tools)` — one
   walk, the `GetController` precedent (`:132`) — before handing it to the Reading / the shape /
-  the cut / the joint. A NAMED tool that is shut away or packed is refused in the validator's
-  words. `lint:controller-decisions`: a filter call, not a threshold; `lint:controller-resolution`
-  79: the controller resolves nothing of its own.
+  the cut / the joint. A NAMED tool that is packed is refused in the validator's words; ⟲ a named
+  tool in a shut pouch or satchel you wear is READY and accepted (D-W10-12). `lint:controller-
+  decisions`: a filter call, not a threshold; `lint:controller-resolution` 79: the controller
+  resolves nothing of its own.
 - **D-W10-8 — tack goes on by `put <tack> on <beast>`.** `Slotted.openSlotFor` (`:378–380`)
   refuses every `Vitals` host today (*dressing someone else is not `put`*); it admits a body whose
   `Attired.handSlots()` is empty (a mule, a hog — a body that cannot dress itself) when `item`
@@ -3218,7 +3266,7 @@ the def*, not *cut* — flagged for the owner at the end.
   take the pack saddle."* Panniers: `give pannier to mule` hangs them from the saddle by the
   routing's hook rule (item 11 — the one documented rule, in `help give`); `put pannier on
   mule:i:saddle` is the explicit form (MQL names through the body, as drive 18's `put ration in
-  mule:i:pannier` already does).
+  mule:i:pannier` already does). ⟲ Confirmed by the owner (ruling 6, Q2).
 - **D-W10-9 — `give`'s rollback re-seats exactly.** `GiveController` records the slots the
   release vacated (`tryReleaseFromSlots` returns them, or `occupiedSlots()` read before) and, on
   a refusal, `directMove(item, { kind: 'seat', slots })` — the hand it left, whatever
@@ -3243,6 +3291,62 @@ the def*, not *cut* — flagged for the owner at the end.
   skipping the hand*), `remove` (*it comes to your hand; with none free, where `unwield` puts
   things*), `equip --from`. `move`'s floor fallback is not a player-facing rule (no verb reaches
   it) and is not in the sentence.
+- ⟲ **D-W10-12 — hand · ready · packed; closed is never a tier** (owner, ruling 2). `tierOf`
+  already answers only the three (plus `elsewhere`); what contradicted the rule was reach:
+  `Containable.reachRefusal`'s `enclosed-shut` arm (`:512–517`) refused a thing in a shut pouch on
+  your belt or a shut box in your hand. **Deleted**, with its type (`reachRefusal(actor):
+  PackedRefusal | null`), the `canReach` validator's *"X is shut."* wording and
+  `perception.ts:406`'s docstring. The room's rule is untouched and is not a tier:
+  `getReachableContents`/the `peers` pool reach one level into OPEN things standing in the room
+  (D17-b) — a lid on somebody's chest is a thing to open, a flap on your own pouch is not. What
+  closed still does, each already shipped and unchanged: the unfasten beat in a fight
+  (`CombatLogic.outOf`, `closes`/`!isOpen`); hiding contents from OTHERS (`holdersAdmit`, D24 —
+  your own things you always perceive, rule 1); keeping them dry (`closureLevel`, D22).
+  `carrying.md` § The tiers and the wiki guide say the sentence verbatim: *ready = you can get at
+  it without taking anything off — a belt, a pocket, a hung pouch, a worn satchel, open or shut;
+  packed = inside something you would have to take off.* `inventory`'s help line *a shut one is
+  shut* refers to someone else's or the room's container and stays.
+- ⟲ **D-W10-13 — no artificial lag, ever** (owner, ruling 3). A command resolves at once; a
+  holder cost exists only where time is already budgeted — combat's beats. Audited against this
+  wave: `guarded` (D-W10-5) runs the act **now** outside a live session and is the switch's beat
+  inside one; `putPlanFor` keeps `durationMs: 0`; `stow`, `bringToHand`, `directMove` are
+  synchronous moves; no `ScheduleApi`, no engagement, no `durationMs` is introduced anywhere in
+  W10. Pre-existing engagements that are the state machine's (`wear`/`remove`'s dressing time by
+  weight, the traverse) are not holder costs and are out of this wave's scope. The rule goes into
+  `carrying.md` § A hand act in a fight is a guarded beat as its first sentence, and into
+  `command-spec.md` beside `async:` (*a verb never waits on a holder; combat's tick is the one
+  budgeted clock*).
+- ⟲ **D-W10-14 — chambers are regions of one Container; volume and fit are per chamber, never
+  summed** (owner, model a). The rule, stated for `spatial.md` § Chambers (new) and `carrying.md`
+  § Pockets: *a container's chambers are the enclosing regions its row names (`placements:`
+  entries whose member `encloses`), each with its own `volumeM3`, `mouth`, sides (`closes` is its
+  top) and air; a container with no named chamber is one chamber — region zero, the whole
+  interior; a container with both has region zero = the interior LESS the named chambers; a thing
+  fits a chamber or it does not, and nothing adds chambers together.* One model covers a coat's
+  pockets, a fridge with a freezer, and a multi-chambered vessel. **W9 verified against it**
+  (grounded this review): `Placing.memberFitRefusal` (`:568–577`) tests a chamber by ITS `mouth`
+  and ITS `volumeM3` over `getPlaced(name)` — per chamber ✓; `Container.fitRefusal` for region
+  zero reads `interiorOf(self)` — the whole interior ✓ — and `hasInterior() false` (Garment)
+  refuses it ✓; `Container.arrivalFor` default tries chambers in authored order ✓;
+  `reconcilePressing` gives a self-region its own sides ✓; `Creature.wornBulk` (`:871`) takes
+  `max(packed, authored, inside)` per worn container, not a region sum ✓; `inventory --weight`
+  lists each thing's own mass and bulk (`Tangible.getPackedVolumeM3`) with a chamber's contents
+  under it ✓; `LoadBearing`'s awkwardness (`:281`) reads the ITEM's volume ✓. **The one gap**:
+  region zero of a container that ALSO names chambers (no shipped row — garments have no
+  interior, packs name no chamber) is measured as the whole `interiorOf` box while its chambers
+  claim their own volume — the interior counted twice. The partition clause: `fitRefusal`'s
+  region-zero `no-room` test counts `Σ enclosing entries' volumeM3` as used before the loose
+  contents' boxes (one clause beside the existing used-volume sum); the mouth and box tests stay
+  the interior's. Order of trial in `arrivalFor` for such a host: region zero first (the general
+  case), then the named chambers — so a loaf goes in the fridge and the ice tray in the freezer,
+  a map that fits only the pack's side pocket goes there — `arrivalFor`'s default gains *try
+  region zero's tape measure first, then the chambers* instead of returning `contents`
+  unconditionally when `hasInterior()`. Pinned by a new `Container.chambers.test.ts` whose fixture
+  has both. `spatial.md`, `carrying.md` and `in.yaml`'s comment say *a chamber*.
+- ⟲ **D-W10-15 — the three questions, answered** (owner, ruling 6): Q1 `get` keeps the
+  requirements' hand·hand·pocket route and `help get` states it (D-W10-4 stands; its *if
+  hand-only* clause is struck); Q2 tack is `put saddle on mule` (D-W10-8 stands); Q3 the hand
+  acts in a fight are the guarded beat, **combat only** (D-W10-5 stands, bounded by D-W10-13).
 
 #### Host and site changes
 
@@ -3253,7 +3357,11 @@ the def*, not *cut* — flagged for the owner at the end.
 | `readies: true` | 11 views (`$P/cmd/…`) | line deleted | 11 |
 | `canReach` | `measure`, `analyze`, `shape`, `cut`, `fit` tool args | added | 5 |
 | `MqlManyResult.defaulted` | `api/mql/types.ts`; `CommandLogic.defaulted` (`:2907`) | one optional field, set at one site | 2 |
-| `canReach` validator | `lib/command/validators/canReach.ts` | passes a defaulted many-result | 1 |
+| `canReach` validator | `lib/command/validators/canReach.ts` | passes a defaulted many-result; ⟲ words `packed` only (the *is shut* branch goes) | 1 |
+| ⟲ `reachRefusal` | `lib/spatial/Containable.ts:167–176, :490–520` | the `enclosed-shut` arm and type deleted → `PackedRefusal \| null`; `perception.ts:406` docstring | 1 |
+| ⟲ `PlacementOffers.choose` | `lib/spatial/PlacementOffers.ts:86–119` | enclosing offers sharing a word → the `zero`-shaped *container decides* offer; `regions` field deleted from `PlacementChoice`; sibling ambiguity (`takes`) kept | 1 |
+| ⟲ *Which —* branch | `PutController.refused` (`:236–239`); `PlaceRefusal.facts.regions` | deleted; the chamber's name reaches the prose from the route the chokepoint took | 1 |
+| ⟲ region-zero partition | `Container.fitRefusal` (`:433–450`), `Container.arrivalFor` default | Σ chamber volumes counted as used; region zero tried before the named chambers | 2 |
 | `reachableAmong` narrowing | `MeasureController`, `AnalyzeController`, `ShapeController`, `CutController`, `FitController` | one line each, on a defaulted list | 5 |
 | homes | `lib/slot/Carrying.ts` | `_homes`, `homeOf`, `setHome`, `HomeHost`, `homeItemById`, `homeTakes`, `captureSlice`, `hydrateSlice`, `endOf`, `resolveEnd`, `stowRefusal`'s home arm, `stowPlaceFor` (folded into `stow`), `bringToHand`'s remembering — deleted; interface 16 → **13** (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · placeLoose · returnBorrowed · routeArrival · directMove`) | ~190 lines |
 | `HomeEnd`, `HomesSlice` | `lib/persistence/PersistenceSlice.ts` | deleted (+ the `MixinSlice` arm) | 1 file |
@@ -3291,10 +3399,10 @@ bodies that cannot dress themselves; a person is still refused. No guard re-narr
 
 | view | what its help says after W10 (added or changed text only) |
 |---|---|
-| `measure`, `analyze` | *A tool is used where it is — in your hand, on your belt, in an open pouch, on the bench. Shut in a box or packed on your back it is refused; take it out first.* The `readies:` line deleted; `validators: [canReach]` on `tool`. |
-| `read`, `light`, `douse`, `pour`, `fill`, `drink`, `shape`, `cut`, `fit` | the `readies:` line deleted; no help text mentioned readying (the builder confirms with `grep -n "to hand\|readies\|readied" <the 11 views>` and removes any line it finds); `shape`/`cut`/`fit` gain `validators: [canReach]`. |
+| `measure`, `analyze` | ⟲ *A tool is used where it sits — in your hand, on your belt, in a pocket or a pouch you wear (open or shut), or within reach on the bench — and it stays there. Packed on your back it is refused: take the pack off first.* The `readies:` line deleted; `validators: [canReach]` on `tool`. |
+| `read`, `light`, `douse`, `pour`, `fill`, `drink`, `shape`, `cut`, `fit` | the `readies:` line deleted; ⟲ each gains the one sentence *Used where it sits — in hand, on you (open or shut), or within reach; packed on your back is refused.* on its target/tool arg's help (the builder also greps `"to hand\|readies\|readied"` across the 11 and removes what it finds); `shape`/`cut`/`fit` gain `validators: [canReach]`. |
 | `get` | the D-W10-11 paragraph, then: *`get` never puts a thing in a bag you are carrying in your hand, and never on the floor — nothing takes it, nothing moves. `get X from <something on you>` — your belt, a pocket, the pouch on your belt — takes it in a free hand; with both hands full you are told what you hold and what to `drop` or put away.* The scope note: *The room is searched first, then what is on you (`scope: [peers, reachable]`).* In a fight: *getting a thing out costs a beat by where it is (`help fight switch`).* |
-| `put` | *`put <tack> on <animal>` — a pack saddle, a halter, panniers — puts it on a beast that cannot dress itself; a person dresses themself (`wear`). A bare `pocket` on a garment with several asks which — name it: `put key in "inner pocket"`.* In a fight: *putting a thing away costs a beat by where it goes — a holster or scabbard is quick, a pocket slower, a buttoned one slower still (`help fight switch`).* |
+| `put` | *`put <tack> on <animal>` — a pack saddle, a halter, panniers — puts it on a beast that cannot dress itself; a person dresses themself (`wear`).* ⟲ *A thing with several pockets or chambers (a coat, a fridge) puts what you give it in the first that takes it and tells you which; name one to choose — `put key in "inner pocket"`. You are asked "which?" only when your words fit two different things (a coat and trousers both have pockets).* In a fight: *putting a thing away costs a beat by where it goes — a holster or scabbard is quick, a pocket slower, a buttoned one slower still (`help fight switch`).* |
 | `give` | the D-W10-11 paragraph in the third person: *What you hand someone goes where THEIR body puts it — a free hand, a pocket, a hook on their belt or saddle, a bag they wear; a body with no hands and nothing to hang it from refuses, a body whose hands and pockets are full refuses, and you keep it exactly where it was. Tack is not handed — `put saddle on mule`.* |
 | `buy` | *What you buy goes where your body puts it (`help give` — the same rule); with nowhere for it the sale is refused before anything is charged.* |
 | `unwield` | rewritten: *Put up something you are holding. It goes off your hands by the one rule, skipping the hand: a pocket of what you wear, a hook on your belt, a pouch or bag you wear, the pack on your back — the first that takes it — and you are told where. Nothing takes it → you are told, and it stays in your hand: `drop` it, or `put` it somewhere by name. In a fight it costs a beat (a reach).* The ⚠ cursed line stays. |
@@ -3304,7 +3412,7 @@ bodies that cannot dress themselves; a person is still refused. No guard re-narr
 | `tie` | *An animal wearing a halter takes the lead on the halter, and you keep the end in a free hand; no halter, no lead.* |
 | `hitch` | *Your hands are on the cart while it is hitched — nothing else goes in them (`unhitch` first).* |
 | `fight switch`, `fight draw` | *Your hands must be free for it: a thing in the way is named, and `drop` is instant — `unwield`/`put` cost their own beat. The beat is the holder's: a holster or scabbard quick (1.5 s), an open pocket or pouch a reach (3 s), a buttoned pocket or shut pouch the reach plus the undoing (+3 s); nothing comes out of the pack on your back.* |
-| `inventory` | unchanged. |
+| `inventory` | ⟲ the tiers paragraph gains the rule: *READY is what you can get at without taking anything off — a belt, a pocket, a hung pouch, a worn satchel, open or shut; PACKED is inside something you would have to take off.* |
 | `settings` | unchanged (`carry.order` is already listed and described). |
 
 `docs/subsystems/carrying.md`: § Homes deleted; § Readying rewritten (*what `ready` does now:
@@ -3317,21 +3425,27 @@ replaced by a retirement note (*retired W10, 2026-11-14 — an instrument is use
 rewritten for D-W10-5; `embodiment.md:309–312` rewritten (*readying is `get X from`/`fight
 switch`; nothing frees a hand for you*); `mql-grammar.md:162` (*the giver itself last*); the
 wiki guide's § Readying → § *Putting things away* (the one rule in player words; the fight
-beats); `persistence.md` if it names the homes slice (grep); this plan's § Host placement
-`Carrying` row (strike `homes`, `ready`'s stow).
+beats); `persistence.md` if it names the homes slice (grep); ⟲ `spatial.md` gains § Chambers (D-W10-14's
+rule, one paragraph + the partition clause) and `carrying.md` § The tiers the closed-is-never-a-tier
+sentence (D-W10-12); `command-spec.md` the no-lag line beside `async:` (D-W10-13); this plan's
+§ Host placement `Carrying` row (strike `homes`, `ready`'s stow).
 
 #### Steps — one commit each; `pnpm -C packages/server build`, `test:near`, the suites named, every touched pack's vitest, the gates the change moved
 
-- **W10a — `readies:` retired; the tools are reached.** D-W10-1 + D-W10-7: the field, the schema,
-  the validation clause, the dispatcher (`_readyInstruments`, `wordsOf`, the call), the 11 views'
-  lines; `canReach` on the five; `MqlManyResult.defaulted`; the five controllers' narrowing;
-  `api/command.ts`'s docstring. Tests: `api/__tests__/validation.test.ts` (+ *a view with
+- **W10a — `readies:` retired; the tools are used where they sit.** D-W10-1 + D-W10-7 + ⟲
+  D-W10-12: the field, the schema, the validation clause, the dispatcher (`_readyInstruments`,
+  `wordsOf`, the call), the 11 views' lines and their one-sentence help; `canReach` on the five;
+  `MqlManyResult.defaulted`; the five controllers' narrowing; `api/command.ts`'s docstring;
+  **`Containable.reachRefusal`'s `enclosed-shut` arm and type deleted**, `canReach`'s *is shut*
+  wording gone, `perception.ts:406`. Tests: `api/__tests__/validation.test.ts` (+ *a view with
   `readies:` is refused by the schema*); new `lib/command/validators/__tests__/canReach.defaulted.
-  test.ts` (*a named compass packed on the back is refused in the object's words; a defaulted
-  tool list containing a packed compass passes the validator and the controller narrows it*);
-  `MeasureController`/`AnalyzeController` tests near (`test:near`). Gates: `lint:command-views`,
-  `lint:controller-decisions` 508, `lint:controller-resolution` 79, `lint:perceived-surfaces` 0,
-  `lint:imports`.
+  test.ts` (*a named compass packed on the back is refused in the object's words; ⟲ a named
+  compass in a SHUT belt pouch passes and stays in the pouch after `measure`; a defaulted tool
+  list containing a packed compass passes the validator and the controller narrows it*);
+  `Containable`/`perception.can-reach` tests near re-asserted (*a shut box in your hand: its
+  contents are reachable; a shut chest in the room: not in the pool*); `MeasureController`/
+  `AnalyzeController` tests near. Gates: `lint:command-views`, `lint:controller-decisions` 508,
+  `lint:controller-resolution` 79, `lint:perceived-surfaces` 0, `lint:imports`.
 - **W10b — homes retired; `stow` is the route off the hands; `ready` seats only.** D-W10-2 +
   D-W10-3: the deletions in `Carrying`, `PersistenceSlice`, `ContainmentLogic.putPlanFor`,
   `CombatLogic.switchSecondsFor`; `stow`'s new contract; `ReadyRefusal`/`ReadiedOutcome`;
@@ -3354,20 +3468,31 @@ beats); `persistence.md` if it names the homes slice (grep); this plan's § Host
   no homes*). Gates: `lint:pm`, `lint:mixin-clusters` (Carrying loses a cluster — may FALL),
   `lint:lib-statics` (the two statics `captureSlice`/`hydrateSlice` leave — may fall),
   `lint:controller-decisions` 508, `lint:controller-functions` 63.
-- **W10c — the explicit forms and the help.** D-W10-4, -6, -8, -9, -11: `openSlotFor`'s guard +
-  `PutController`'s body-slot words; the routing's tack branch deleted; the resolver's
-  region-facet ambiguity; `GiveController`'s re-seat; the help text of `get`, `put`, `give`,
-  `buy`, `unwield`, `remove`, `wield`, `equip`, `tie`, `hitch`, `fight switch`/`draw`,
-  `measure`/`analyze`; `mql-grammar.md:162`. Tests: new `PutController.tack.test.ts` (*`put
-  saddle on mule` seats it on `back`; `put saddle on bob` is refused *you can't put things on*;
-  `give saddle to mule` is refused `nowhere-to-carry` in the third person*); new
-  `scope-walk.region-ambiguous.test.ts` (*`put key in pocket` against a four-pocket coat asks by
-  name; against a one-pocket shirt takes it; `put key in "inner pocket"` is `via.region`*);
-  `GiveController` test near (+ *a refused give re-seats into the hand it left under
-  `pockets-first`*); `Carrying.hands.test` (the tack case → `seatInSlots` by `put`). Gates:
-  `lint:one-word` 0/0/0 (no new word), `lint:subcommand-words`, `lint:command-views`,
+- **W10c — the explicit forms, the chambers, and the help.** D-W10-4, -6, -8, -9, -11, ⟲ -14:
+  `openSlotFor`'s guard + `PutController`'s body-slot words; the routing's tack branch deleted;
+  the resolver's region-facet rule (several chambers of one host → the host, no `via.region`);
+  `PlacementOffers.choose` returns the *container decides* offer for enclosing offers sharing a
+  word and loses `regions`; `PutController.refused`'s *Which —* branch deleted; the chamber's
+  name in the prose from the route taken; `fitRefusal`'s region-zero partition clause and
+  `arrivalFor`'s region-zero-first order; `GiveController`'s re-seat; the help text of `get`,
+  `put`, `give`, `buy`, `unwield`, `remove`, `wield`, `equip`, `tie`, `hitch`, `inventory`,
+  `fight switch`/`draw`, `measure`/`analyze` (+ the nine); `mql-grammar.md:162`; `in.yaml`'s
+  comment. Tests: new `PutController.tack.test.ts` (*`put saddle on mule` seats it on `back`;
+  `put saddle on bob` is refused *you can't put things on*; `give saddle to mule` is refused
+  `nowhere-to-carry` in the third person*); ⟲ `Garment.pockets.test`, `Placing.entries.test`,
+  `PutController.test` — every *Which —* assertion becomes *the first chamber that takes it, named
+  in the prose*; new `scope-walk.region-ambiguous.test.ts` (*`put key in pocket` against a
+  four-pocket coat lands in the coat's first fitting pocket, no prompt; the same word with a coat
+  AND trousers in reach asks `which one?` naming the two garments; `put key in "inner pocket"` is
+  `via.region`*); new `Container.chambers.test.ts` (*a fixture with an interior and two chambers:
+  a loaf lands in region zero, a thing that fits only a chamber lands there, region zero's room is
+  the interior less the chambers, nothing sums*); `GiveController` test near (+ *a refused give
+  re-seats into the hand it left under `pockets-first`*); `Carrying.hands.test` (the tack case →
+  `seatInSlots` by `put`). Gates: `lint:one-word` 0/0/0 (no new word), `lint:subcommand-words`,
+  `lint:command-views`, `lint:placement-words` (three members, unchanged),
   `lint:controller-mutations` 137 (the re-seat is one `directMove`), `lint:multi-act` 6,
-  `lint:duck-typing` 474. B4: `grep -rn "readies\|homeOf\|setHome" packages/content` → 0.
+  `lint:duck-typing` 474. B4: `grep -rn "readies\|homeOf\|setHome\|preposition-ambiguous"
+  packages/content` → 0.
 - **W10d — a hand act in a fight is a guarded beat.** D-W10-5: `WeaponSwitch.land?`;
   `CombatLogic.beginGuardedAct`/`handActSecondsFor`; `Combatant.beginHandAct`/`handActSeconds`;
   `CommandController.guarded`; the six sites. Tests: new `CombatLogic.hand-acts.test.ts` (*in a
@@ -3384,9 +3509,9 @@ beats); `persistence.md` if it names the homes slice (grep); this plan's § Host
   tests read no home); every `lint:*` individually.
 
 Commit titles: `refactor(size-and-carrying W10a): readies retired — an instrument is used where it
-is, and canReach is the gate`, `refactor(size-and-carrying W10b): homes retired — stow routes off
+sits, closed is never a tier, and canReach refuses packed`, `refactor(size-and-carrying W10b): homes retired — stow routes off
 the hands, ready seats into a free one`, `refactor(size-and-carrying W10c): the explicit forms —
-put tack on a beast, a bare pocket asks, the help says the one rule`, `feat(size-and-carrying
+put tack on a beast, a coat chooses its pocket, chambers never sum, the help says the one rule`, `feat(size-and-carrying
 W10d): a hand act in a fight is the switch's guarded beat, priced by holder`, `docs(size-and-
 carrying W10e): the command def predicts everything — carrying.md, the drive, the scripting
 slate`.
@@ -3404,7 +3529,9 @@ slate`.
 | `api/__tests__/validation.test.ts` | + `readies:` refused |
 | `platform/__tests__/Avatar.flip-restore.test.ts` | + a stale `homes` slice is skipped |
 | `lib/slot/__tests__/Carrying.hands.test.ts` (the tack case) | re-asserted through `put` |
-| **new** `canReach.defaulted.test.ts` · `Carrying.stow.test.ts` · `PutController.tack.test.ts` · `scope-walk.region-ambiguous.test.ts` · `CombatLogic.hand-acts.test.ts` | added |
+| ⟲ `Garment.pockets.test` · `Placing.entries.test` · `PutController.test` (the *Which —* cases) | re-asserted — the first fitting chamber, named; no prompt within one host |
+| ⟲ `Containable` / `perception.can-reach` tests (the `enclosed-shut` cases) | re-asserted — a shut thing on you is reachable; the room's shut chest is not in the pool |
+| **new** `canReach.defaulted.test.ts` · `Carrying.stow.test.ts` · `PutController.tack.test.ts` · `scope-walk.region-ambiguous.test.ts` · `Container.chambers.test.ts` · `CombatLogic.hand-acts.test.ts` | added |
 | `GiveController` near | + the re-seat |
 
 #### Acceptance
@@ -3415,24 +3542,30 @@ slate`.
 
   | step | relied on | now |
   |---|---|---|
-  | 1 | `get` → hand · hand · pocket (D-W10-4 keeps it) | **unchanged**; the fourth refusal still names the next command |
-  | 4 | `measure strike with compass` with both hands full stowed the sword and drew the compass | the reading **runs with the compass in the pouch** (used where it is; no sheathe line — assert the reading's own answer); then `get compass from pouch` → refused `hands-needed` naming the sword and the mug and `drop`/`unwield`; `unwield mug` → refused *nowhere* (no pocket takes a mug; no bag worn) → `drop mug`; `get compass from pouch` → *You pull out your surveyor's brass compass from your leather belt pouch.* |
-  | 5 | the `readies:` refusal *packed in your canvas backpack — take it off first* | the `canReach` validator's words: `/is on your back — take it off first/` |
+  | 1 | `get` → hand · hand · pocket (D-W10-4 keeps it; owner Q1) | **unchanged**; the fourth refusal still names the next command |
+  | 3 | ⟲ `put key in coat` asked *Which — the left pocket, …* | `put key in coat` → **done**, the prose naming the chamber the coat chose (`/in the (left|right|breast|inner) pocket of a linen coat/`), the key in that pocket per `inventory`; then `get key from coat` and `put key in "inner pocket"` → `/inner pocket of a linen coat/` (the explicit form, unchanged); the mug refused `/too big/` unchanged |
+  | 4 | `measure strike with compass` with both hands full stowed the sword and drew the compass | the reading **runs with the compass in the pouch and the compass stays there** (`inventory` after: still in the pouch — ruling 1's assertion; no sheathe line); ⟲ then `close pouch` (if the pouch row is `Sealable`; else skip) and `measure` again → still runs (closed is never a tier); then `get compass from pouch` with both hands full → refused `hands-needed` naming the sword and the mug and `drop`/`unwield`; `unwield mug` → refused *nowhere* (no pocket takes a mug; no bag worn) → `drop mug`; `get compass from pouch` → *You pull out your surveyor's brass compass from your leather belt pouch.* |
+  | 5 | the `readies:` refusal *packed in your canvas backpack — take it off first* | the `canReach` validator's words: `/is on your back — take it off first/`; ⟲ a second probe before `remove`: `put compass in satchel` (a worn satchel, `close satchel`) → `measure` runs — shut on you is ready |
   | 6 | `readySeconds` read by `eval` (⚠ **already stale**: W8e moved it to a module-private `switchSecondsFor`; runs 12–13 predate W8e) and the switch's *away* half | the beats are read from the session after each command: `eval … CombatApi.sessionFor(me).getState(me).weaponSwitch.getRemaining()` — `fight switch sword` from the scabbard (draw) < `fight switch compass` from the open pouch (reach) < the key from the buttoned breast pocket (reach + unfasten); with a mug in the other hand `fight switch greatsword` is refused naming the mug and `drop mug`; `put mug in pouch` in the fight → *your guard drops* and `getRemaining() > 0`, the mug still in hand until it lands; `drop mug` → no switch on the state; `measure strike with compass` in the fight → the reading runs, no switch |
   | 7 | `fight draw` refused *hands are full — … lantern* | the `hands-needed` words: `/you're holding[^.]*lantern/` and `` `drop lantern` ``; the rest unchanged |
   | 9, 10, 15, 19 | `remove` → hand; `put … in scabbard`/`on belt`; the sword falls; a full pack | **unchanged** |
   | 18 | `give saddle to mule` put it on; `give halter to mule` | `give saddle to mule` → refused `/nowhere to take/`; **`put saddle on mule`** → `/put .* saddle on/`; `give pannier to mule` ×2 → hung from the saddle (the routing's hook — unchanged); `put halter on mule`; the rest unchanged |
   | 21 | the restore | **unchanged** (the pocketed key is W9's slice; no homes slice is asserted) |
 
-  B2 keys for the rewritten steps: 4 (`hands-needed` inverted), 5 (the validator's words), 6 (the
-  holster-vs-pouch comparison), 18 (`put saddle on`).
-- **Behavior changes, intended and named**: no verb frees a hand for you; `get X from <on you>`
-  with full hands is refused; `unwield` with nowhere to put the thing is refused and the thing
-  stays in hand; `fight switch`/`fight draw` with a hand in the way are refused; a bare `pocket`
-  with several asks; `give saddle to mule` is refused and `put saddle on mule` seats it; a packed
-  or shut-away named tool is refused by `canReach` and a defaulted tool list is narrowed; in a
-  fight `put`/`get`/`wield`/`unwield`/`remove` cost the switch's beats and `drop` is free; a
-  snapshot's `homes` slice is ignored.
+  B2 keys for the rewritten steps: 3 (the chamber named), 4 (the compass still in the pouch;
+  `hands-needed` inverted), 5 (the validator's words), 6 (the holster-vs-pouch comparison), 18
+  (`put saddle on`).
+- **Behavior changes, intended and named**: an instrument is used where it sits and stays there —
+  nothing moves to a hand that the player did not `get`/`wield`/`fight switch`; a tool in a shut
+  pouch or satchel you wear is usable (closed is never a tier); `get X from <on you>` with full
+  hands is refused; `unwield` with nowhere to put the thing is refused and the thing stays in
+  hand; `fight switch`/`fight draw` with a hand in the way are refused; `put key in coat` puts it
+  in the first pocket that takes it and names it — no *Which —* within one thing; a bare `pocket`
+  answered by two garments asks which GARMENT; `give saddle to mule` is refused and `put saddle
+  on mule` seats it; a packed named tool is refused by `canReach` and a defaulted tool list is
+  narrowed; in a fight `put`/`get`/`wield`/`unwield`/`remove` cost the switch's beats and `drop` is
+  free — outside a fight nothing waits; a snapshot's `homes` slice is ignored; a container with an
+  interior and chambers counts its chambers' volume against region zero.
 - **Structure**: `grep -rn "readies" packages/content packages/server/src --include='*.yaml'
   --include='*.ts' | grep -v "StuffApi.ready\|readies them\|readies every\|readies it"` → 0;
   `grep -rn "homeOf\|setHome(\|HomesSlice\|HomeEnd\|HomeHost" packages/server/src packages/content`
@@ -3483,15 +3616,19 @@ The slate carries the four and the one-line `def` the player writes today; no co
   `handsToFree`, `readiedWords`'s stow half are **deleted**; `guarded`/`beginHandAct`/
   `handActSeconds` generalize `WeaponSwitch` (one implementer → the five hand verbs: promoted at
   the second consumer, which the owner named); `defaulted` is the `ordinal` precedent;
-  `drawWords` is `readiedWords` moved to its one caller. Searched: a reach predicate in MQL (none —
+  `drawWords` is `readiedWords` moved to its one caller; ⟲ the chamber model is W9's regions
+  verified (per-chamber `mouth`/`volumeM3` already), plus one partition clause and one deletion
+  (`regions`/`enclosed-shut`) — nothing added. Searched: a reach predicate in MQL (none —
   `predicates.ts`), a defaulted-binding marker (none), a body-slot `put` (refused on purpose at
-  `openSlotFor:380`, now narrowed), a try-else in scripting (none — slated).
+  `openSlotFor:380`, now narrowed), a try-else in scripting (none — slated), a summing of region
+  volumes anywhere (none found — D-W10-14's list).
 - **P2** — `guarded` on `CommandController`: every verb may ask, five do; `beginHandAct` on every
   `Combatant` beside `beginWeaponSwitch` (the same host, the same beat); `openSlotFor` admits
   exactly the bodies that cannot dress themselves; `Carrying` stays on its four classes. No guard
   re-narrows a host; no honest-no default added.
 - **P3** — `stow` refuses rather than dropping or guessing; `unwield` words the refusal and stops;
-  `ready` refuses `hands-needed` naming the way out; a bare `pocket` asks; `give saddle to mule`
+  `ready` refuses `hands-needed` naming the way out; ⟲ a coat names the pocket it chose (a choice
+  the owner ruled is the container's — told, never silent) and two garments ask; `give saddle to mule`
   refuses in the third person; a stale `homes` slice is skipped by the existing no-hook path (a
   log line if the restore sees one — the builder confirms `restoreState` logs an unclaimed slice,
   else adds the one line); a named packed tool is refused by `canReach`; a `readies:` key fails
@@ -3512,20 +3649,20 @@ The slate carries the four and the one-line `def` the player writes today; no co
   `WeaponSwitch` not renamed — a sweep's question, recorded), `drawWords`, `defaulted`. No class
   renamed; no new verb (`lint:one-word` 0).
 
-**Still the owner's (three):**
+**The three questions of the first draft are answered** (owner, 2026-11-14 — D-W10-15): Q1 keep
+the route, say it; Q2 `put saddle on mule`; Q3 the guarded beat, combat only.
 
-1. **`get` with full hands** — D-W10-4 keeps the requirements' DECIDED route (hand · hand · pocket)
-   and makes the def say it. The alternative the ruling could mean is *hand only* (`get` = pick up
-   into a free hand; the pocket is `put`'s): a two-line cut at `GetController.ts:579/:240`, and
-   drive step 1's third `get` becomes a refusal. The plan picks keep (closed scope); say if the
-   cut is wanted.
-2. **Tack** — D-W10-8 replaces *a handed beast puts its tack on* with `put <tack> on <beast>` (an
-   existing verb; lens 3a chose). Drive step 18 changes two lines. The alternative is to keep the
-   auto-wear and state it in `help give`.
-3. **The hand acts in a fight** — D-W10-5 prices `put`/`get`/`wield`/`unwield`/`remove` as the
-   switch's guarded beat (the owner's sentence). The smaller alternative is *refused in a fight;
-   `drop` is free; `fight switch`/`fight draw` are the only hand acts* — fewer sites, no
-   `WeaponSwitch` generalization, and a fighter cannot put a lantern away without dropping it.
+**Still the owner's (two, both one-line vetoes, not forks — the plan has chosen):**
+
+1. **Region zero before the chambers** (D-W10-14): a container with an interior AND named chambers
+   (a fridge with a freezer; a pack with a side pocket — no shipped row) tries its main interior
+   first, then its chambers in authored order. The alternative is chambers first (a map always
+   goes in the side pocket, a loaf never would). The plan picks region zero first — the general
+   case is the general interior.
+2. **The room's shut rule stands** (D-W10-12): closed is never a tier ON YOU, but a shut chest
+   standing in the room still keeps its contents out of the `peers` pool (D17-b) — you open it
+   first. The plan reads ruling 2 as the tiers' (your own things) and leaves the room's lid alone;
+   say if a shut room container should be reached into too.
 
 ## Reachability wiring
 
