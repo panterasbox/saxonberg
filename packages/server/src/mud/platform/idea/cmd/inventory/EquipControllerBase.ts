@@ -205,7 +205,10 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
      * both and says neither.
      */
     const held = EquipControllerBase.claimAs(one, mode) === 'wield';
-    await this.engage(one, context, giver, () => {
+    // ⭐ In a fight, taking a thing up is a guarded beat by where it is
+    // (D-W10-5); `wear`'s dressing step is unchanged.
+    const seconds = held && MixinApi.isCombatant(giver) ? giver.handActSeconds(one) : 0;
+    await this.guarded(giver, seconds, () => this.engage(one, context, giver, () => {
       EquipControllerBase.put(one, giver, mode);
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -220,7 +223,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
             : Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(one)}.`,
         )
         .send();
-    });
+    }));
   }
 
   /**

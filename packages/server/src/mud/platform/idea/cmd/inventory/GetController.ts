@@ -254,7 +254,18 @@ export default class GetController extends CommandController<GetModel> {
   /** `get X from <a thing on you>`: each comes to hand, or the body says why not. */
   private bringOut(giver: Stuff & Carrying, things: readonly Stuff[], context: CommandContext): void {
     for (const thing of things) {
-      const out = giver.bringToHand(thing);
+      // ⭐ `ready` — into a free hand now, or (in a fight) the guarded beat
+      // priced by the holder, refused BEFORE the beat when hands are in the
+      // way (D-W10-3/-5).
+      const out = giver.ready(thing);
+      if (out === null) {
+        MessageApi.scene(giver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`You reach for ${Mml.thing(thing)} — your guard drops.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} reaches for something.`)
+          .send();
+        return;
+      }
       if (out.ok) {
         const words = this.drawWords(out);
         if (words !== null && MixinApi.isSensor(giver)) {
@@ -429,6 +440,22 @@ export default class GetController extends CommandController<GetModel> {
    * still succeed).
    */
   private async pickUpOperand(
+    operand: Stuff,
+    context: CommandContext,
+  ): Promise<boolean> {
+    // ⭐ In a fight, picking a thing up is a guarded beat — a reach (D-W10-5);
+    // outside one it lands now (D-W10-13).
+    const giver = context.commandGiver;
+    const seconds = MixinApi.isCombatant(giver) ? giver.handActSeconds(operand) : 0;
+    let took = false;
+    const deferred = await this.guarded(giver, seconds, async () => {
+      took = await this.pickUpNow(operand, context);
+    });
+    return deferred ? true : took;
+  }
+
+  /** The take itself — see {@link pickUpOperand}. */
+  private async pickUpNow(
     operand: Stuff,
     context: CommandContext,
   ): Promise<boolean> {

@@ -147,6 +147,24 @@ export default class PutController extends CommandController<PutModel> {
       PutController.refused(item, target, plan, context);
       return false;
     }
+    // ⭐ In a fight, putting a thing away is a guarded beat by where it goes
+    // (D-W10-5); outside one it lands now (D-W10-13).
+    const seconds = MixinApi.isCombatant(giver) ? giver.handActSeconds(item, target) : 0;
+    let went = false;
+    const deferred = await this.guarded(giver, seconds, async () => {
+      went = await this.land(item, target, plan, context);
+    });
+    return deferred ? true : went;
+  }
+
+  /** The put lands: the plan's completion, in words. */
+  private async land(
+    item: Stuff,
+    target: Stuff,
+    plan: Extract<ReturnType<typeof ContainmentApi.putPlanFor>, { ok: true }>,
+    context: CommandContext,
+  ): Promise<boolean> {
+    const giver = context.commandGiver;
     const done = await plan.onComplete();
     if (!done.ok) {
       PutController.refused(item, target, done, context);

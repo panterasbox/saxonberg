@@ -36,7 +36,7 @@ interface CloseModel extends CommandModel {
 }
 
 export default class CloseController extends CommandController<CloseModel> {
-  execute(model: CloseModel, context: CommandContext): void {
+  async execute(model: CloseModel, context: CommandContext): Promise<void> {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
@@ -68,7 +68,8 @@ export default class CloseController extends CommandController<CloseModel> {
     // pocket"` — the binder's `via.region` names it, and the host drives it.
     const region = target.via?.region;
     if (region !== undefined && MixinApi.isPlacing(target.stuff)) {
-      this.closeChamber(commandGiver, target.stuff, region, context);
+      const host = target.stuff;
+      await this.guarded(commandGiver, CloseController.seconds(commandGiver, host), () => this.closeChamber(commandGiver, host, region, context));
       return;
     }
 
@@ -122,17 +123,17 @@ export default class CloseController extends CommandController<CloseModel> {
       return;
     }
 
-    sealable.close(commandGiver);
-
-    MessageApi.scene(commandGiver)
-      .topic('act.deed')
-      .toSelf(Mml.compose`You close ${Mml.thing(sealable as unknown as Stuff)}.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(commandGiver)} closes ${Mml.thing(sealable as unknown as Stuff)}.`,
-      )
-      .send();
-
-    return;
+    // ⭐ In a fight, shutting a thing is a guarded beat (D-W10-5).
+    await this.guarded(commandGiver, CloseController.seconds(commandGiver, sealable as unknown as Stuff), () => {
+      sealable.close(commandGiver);
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You close ${Mml.thing(sealable as unknown as Stuff)}.`)
+        .toPeers(
+          Mml.compose`${Mml.actor(commandGiver)} closes ${Mml.thing(sealable as unknown as Stuff)}.`,
+        )
+        .send();
+    });
   }
 
   /** `close "breast pocket"`: the chamber buttons itself if it can — the host decides (D-W10-12). */
@@ -150,5 +151,12 @@ export default class CloseController extends CommandController<CloseModel> {
       .toSelf(Mml.compose`You button the ${region} of ${Mml.thing(host)}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} buttons the ${region} of ${Mml.thing(host)}.`)
       .send();
+  }
+
+  /** What opening or shutting `thing` costs in a fight: the unfasten beat on you, a reach in the room (D-W10-5). */
+  private static seconds(giver: Stuff, thing: Stuff): number {
+    if (!MixinApi.isCombatant(giver)) return 0;
+    const onYou = MixinApi.isCarrying(giver) && giver.tierOf(thing) !== 'elsewhere';
+    return giver.handActSeconds(thing, onYou ? 'unfasten' : undefined);
   }
 }

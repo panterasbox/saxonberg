@@ -8,6 +8,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { HandActDestination } from "../../../lib/combat/Combatant";
 import { Creature } from "../../../lib/creature/Creature";
 import type { Engaged } from "../../../lib/activity/Engaged";
 import { MixinApi } from "../../../api/mixin";
@@ -449,6 +450,18 @@ export class CombatLogic extends ApiLogic {
     target: Stuff,
   ): { ok: boolean; reason?: string } {
     return beginSwitchImpl(actor, target, false);
+  }
+
+  /** See {@link Combatant.beginHandAct} (size and carrying D-W10-5). */
+  @CallSecurity(CombatantCallers)
+  public beginHandAct(actor: Stuff, seconds: number, land: () => void): { ok: boolean; reason?: string } {
+    return beginGuardedAct(actor, seconds, land);
+  }
+
+  /** See {@link Combatant.handActSeconds} (size and carrying D-W10-5). */
+  @CallSecurity(CombatantCallers)
+  public handActSeconds(actor: Stuff, item: Stuff, to?: HandActDestination): number {
+    return handActSecondsFor(actor, item, to);
   }
 
   @CallSecurity(CombatantCallers)
@@ -4300,6 +4313,14 @@ function reDeriveTempo(state: CombatantState): void {
 function completeSwitch(state: CombatantState): void {
   const sw = state.weaponSwitch;
   if (!sw) return;
+  const land = sw.getLanding();
+  // ⭐ A hand act's beat lands its act (D-W10-5); a switch swaps the grip.
+  if (land !== undefined) {
+    state.weaponSwitch = null;
+    land();
+    reDeriveTempo(state);
+    return;
+  }
   performSwap(state.combatant, sw.getTarget());
   state.flags.remove("disarmed");
   state.weaponSwitch = null;
@@ -4382,13 +4403,6 @@ function beginSwitchImpl(
   target: Stuff,
   fast: boolean,
 ): { ok: boolean; reason?: string } {
-  const session = sessionForImpl(actor);
-  const state = session?.getState(actor);
-  if (!state) return { ok: false, reason: "not-in-combat" };
-  if (state.down) return { ok: false, reason: "downed" };
-  if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
-    return { ok: false, reason: "already-switching" };
-  }
   // ⭐ A carrier's switch is priced by its holders (size and carrying D16;
   // W8 — combat prices its own switch); a body with no hands pays the
   // shipped switch's two dials.
@@ -4397,8 +4411,52 @@ function beginSwitchImpl(
     : fast
       ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
       : dial(AppSettingKeys.combatSwitchSeconds, 6);
-  state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast);
+  return beginGuardedAct(actor, seconds, undefined, target, fast);
+}
+
+/**
+ * ⭐ The guarded beat (size and carrying D-W10-5) — `beginSwitchImpl`'s body:
+ * guard down, no instrument, for `seconds`; at the end `land` runs (a hand
+ * act), else the grip swaps to `target`. One beat at a time
+ * (`already-switching`).
+ */
+function beginGuardedAct(
+  actor: Stuff,
+  seconds: number,
+  land?: () => void,
+  target: Stuff | null = null,
+  fast = false,
+): { ok: boolean; reason?: string } {
+  const session = sessionForImpl(actor);
+  const state = session?.getState(actor);
+  if (!state) return { ok: false, reason: "not-in-combat" };
+  if (state.down) return { ok: false, reason: "downed" };
+  if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
+    return { ok: false, reason: "already-switching" };
+  }
+  state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast, land);
   return { ok: true };
+}
+
+/**
+ * ⭐ The seconds a hand act costs in a fight, by holder (size and carrying
+ * D-W10-5; the `combat.*` dials): `to` undefined — `item` coming to hand
+ * (out of where it sits; off the floor a reach); a holder — `item` going in
+ * (out of where it is unless already in hand, + into: a shaped holder the
+ * draw, anything else a reach); `'unfasten'` — opening or shutting a holder
+ * or chamber; `'take-off'` — a worn pack off (the switch dial). `drop` is
+ * never asked: it is free.
+ */
+function handActSecondsFor(actor: Stuff, item: Stuff, to?: HandActDestination): number {
+  const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
+  const reach = dial(AppSettingKeys.combatReachSeconds, 3);
+  if (to === 'unfasten') return dial(AppSettingKeys.combatUnfastenSeconds, 3);
+  if (to === 'take-off') return dial(AppSettingKeys.combatSwitchSeconds, 6);
+  const held = MixinApi.isCarrying(actor) && actor.tierOf(item) === 'hand';
+  const out = held ? 0 : outOf(actor, item, { draw, reach });
+  if (to === undefined) return out;
+  const into = MixinApi.isContainer(to) && !to.isAgent() && to.getShapedTo() !== null ? draw : reach;
+  return out + into;
 }
 
 /**

@@ -73,7 +73,8 @@ export default class OpenController extends CommandController<OpenModel> {
     // pocket"` — the binder's `via.region` names it, and the host drives it.
     const region = target.via?.region;
     if (region !== undefined && MixinApi.isPlacing(target.stuff)) {
-      this.openChamber(commandGiver, target.stuff, region, context);
+      const host = target.stuff;
+      await this.guarded(commandGiver, OpenController.seconds(commandGiver, host), () => this.openChamber(commandGiver, host, region, context));
       return;
     }
 
@@ -107,11 +108,13 @@ export default class OpenController extends CommandController<OpenModel> {
     if (!answer.ok) {
       return this.refuse(context, 'act.deed', OpenController.refusal(answer, answer.facts?.why ?? null), answer.reason);
     }
-    await this.engagePlan(context, answer, {
+    // ⭐ In a fight, opening a thing is a guarded beat (D-W10-5): the
+    // unfasten on you, a reach in the room. Outside one it lands now.
+    await this.guarded(commandGiver, OpenController.seconds(commandGiver, sealable as unknown as Stuff), () => this.engagePlan(context, answer, {
       beginSelf: () => Mml.compose``,
       onRefused: (r) => Mml.compose`${OpenController.refusal(r, null)}`,
       onDone: (f) => OpenController.done(commandGiver, f),
-    });
+    }));
   }
 
   /** The opening, in words. */
@@ -161,5 +164,12 @@ export default class OpenController extends CommandController<OpenModel> {
       .toSelf(Mml.compose`You unbutton the ${region} of ${Mml.thing(host)}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} unbuttons the ${region} of ${Mml.thing(host)}.`)
       .send();
+  }
+
+  /** What opening or shutting `thing` costs in a fight: the unfasten beat on you, a reach in the room (D-W10-5). */
+  private static seconds(giver: Stuff, thing: Stuff): number {
+    if (!MixinApi.isCombatant(giver)) return 0;
+    const onYou = MixinApi.isCarrying(giver) && giver.tierOf(thing) !== 'elsewhere';
+    return giver.handActSeconds(thing, onYou ? 'unfasten' : undefined);
   }
 }

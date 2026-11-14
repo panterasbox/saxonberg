@@ -84,10 +84,23 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     if (model.target?.stuff) {
       const careful = /^careful/i.test(manner);
       const target = model.target.stuff;
-      UnequipControllerBase.takeOff(target, this.heldSpeak(target), careful, false, context, giver, {
-        onDone: () => {},
-        onAbort: () => {},
-      });
+      const wieldy = this.heldSpeak(target);
+      const takeOff = (): void => {
+        UnequipControllerBase.takeOff(target, wieldy, careful, false, context, giver, {
+          onDone: () => {},
+          onAbort: () => {},
+        });
+      };
+      // ⭐ In a fight a hand act is a guarded beat (D-W10-5): putting a held
+      // thing up is a reach (where it goes is decided as it lands); a pack
+      // off the back is the switch's beats. Any other garment's dressing
+      // time is its own, unchanged.
+      const pack = !wieldy && giver.getSlotNames().includes('back') && giver.getOccupants('back').has(target as never);
+      if ((wieldy || pack) && MixinApi.isCombatant(giver)) {
+        await this.guarded(giver, giver.handActSeconds(target, wieldy ? giver : 'take-off'), takeOff);
+        return;
+      }
+      takeOff();
       return;
     }
     this.strip(context, giver);

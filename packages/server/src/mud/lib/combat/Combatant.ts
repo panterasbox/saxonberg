@@ -89,6 +89,14 @@ export type DefendOutcome =
   | DefendRefusal;
 
 /** Public method surface for CombatantMixin. */
+/**
+ * Where a hand act in a fight sends its thing (size and carrying D-W10-5):
+ * a holder it goes into, `'unfasten'` (opening or shutting a holder or a
+ * buttoned chamber), or `'take-off'` (a worn pack coming off). Absent: the
+ * thing comes to hand.
+ */
+export type HandActDestination = Stuff | 'unfasten' | 'take-off';
+
 export interface Combatant {
   /**
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
@@ -129,6 +137,15 @@ export interface Combatant {
    * becomes the instrument when it comes to hand.
    */
   beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string };
+  /**
+   * ⭐ Begin a hand act as the switch's guarded beat (size and carrying
+   * D-W10-5): guard down, no instrument, for `seconds`; `land` runs at the
+   * beat's end. Refused `already-switching` while a beat is live, and
+   * `not-in-combat` outside a session (a caller asks only inside one).
+   */
+  beginHandAct(seconds: number, land: () => void): { ok: boolean; reason?: string };
+  /** ⭐ What a hand act with `item` costs in a fight, in seconds, by its holder (`to`: see {@link HandActDestination}). */
+  handActSeconds(item: Stuff, to?: HandActDestination): number;
   /** `words`: why not, in the carrier's own words, when a carry rule refused it. */
   drawSidearm(): { ok: boolean; reason?: string; refusal?: ReadyRefusal };
   resolveThrown(
@@ -628,6 +645,16 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Begin a guarded weapon switch against `target`. */
     public beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string } {
       return combatLogic().beginSwitch(this as unknown as Stuff, target);
+    }
+
+    /** See {@link Combatant.beginHandAct}. */
+    public beginHandAct(seconds: number, land: () => void): { ok: boolean; reason?: string } {
+      return combatLogic().beginHandAct(this as unknown as Stuff, seconds, land);
+    }
+
+    /** See {@link Combatant.handActSeconds}. */
+    public handActSeconds(item: Stuff, to?: HandActDestination): number {
+      return combatLogic().handActSeconds(this as unknown as Stuff, item, to);
     }
 
     /** Fast-draw a sheathed/carried backup weapon. */
