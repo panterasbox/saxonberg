@@ -10,9 +10,11 @@ sparse country of Rejection and Hearts Delight (tracks over open ground,
 depth, levels from −1 to 8).
 
 In Explore mode the left pane becomes **the picture of what you know of the
-zone you are in**: a map you can read and click, the zone as a card, the
-ways that leave it, a breadcrumb drawn from your own map, and a few lenses
-that ask the map a question. Today the pane is a text navigator — a
+zone you are in**: a map you can read and click, the ways from where you
+stand (every direction, every other way, and the ways that leave the zone),
+the place you have selected, the zone in one line that opens, a breadcrumb
+drawn from your own map, and a few lenses that ask the map a question —
+every mark on it explained by a tooltip. Today the pane is a text navigator — a
 breadcrumb read from the live world, a text compass, a list of ways out —
 and nothing on the client knows anything about a place you are not standing
 in. This build gives the client a **copy of your own knowledge**, kept
@@ -20,8 +22,8 @@ current by the server, and draws the pane from it. Seeding slates:
 [map-slate](../slates/builds/map-slate.md) (§ The navigation pane, revised,
 and everything after it), [client-knowledge-model-slate](../slates/builds/client-knowledge-model-slate.md),
 [locality-knowledge-slate](../slates/builds/locality-knowledge-slate.md).
-The design canvas the owner iterated on (private): the pane, its three
-looks, and a behavior board.
+The design canvas the owner iterated on (private): the pane, its looks, a
+behavior board, the **stacked** pane this doc follows, and the tooltips.
 
 ## What the thing is
 
@@ -69,10 +71,11 @@ looks, and a behavior board.
 
 **Therefore what is genuinely new here is:** your knowledge reaching the
 client as a live copy; **where things are** becoming part of what you know;
-the drawn map with its levels, zoom and diagonal and track ways; the Zone
-card and the Ways-out list in the pane; a breadcrumb from your own map, with
-a first visit writing the Locality into it; five lenses and a legend; and
-the direction glyphs the client does not have. The reuse ledger for the
+the drawn map with its levels, zoom and diagonal and track ways; the
+stacked pane — the ways from here, the selected place, the zone line; a
+breadcrumb from your own map, with a first visit writing the Locality into
+it; four lenses; a tooltip on every mark; and the direction glyphs the
+client does not have. The reuse ledger for the
 plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.md).
 
 ## Goals
@@ -86,19 +89,28 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
 - **A map of the zone you are in**, drawn from that knowledge: walked rooms
   solid, known ones outlined, openings into blank space; doors and windows
   in their states; diagonals corner to corner; tracks along their bearing
-  over open ground; your position and coordinates with the level stressed;
-  the levels you know; three zoom steps; house style.
+  over open ground; your position; the levels you know; three zoom steps;
+  house style.
 - **The map is how you move.** Clicking a neighbor moves you there by the
   ordinary command; clicking a distant room shows the route to it.
-- **The zone as a card**: its kind, cell size, your extent and levels known,
-  how much of it you have walked and from what sources, and what holds
-  across it (sky, climate, jurisdiction).
-- **Ways out**: the exits that leave the zone, named, with where they lead.
+- **Where you are, spelled out:** the place's name and `x: · y: · z:`,
+  with z stressed.
+- **The ways from here:** every direction as a rose — the eight horizontal
+  ones and up and down — each in its state; every other way beside it (in,
+  out, named ways); and the ways that **leave the zone**, named, with where
+  they lead.
+- **The selected place** — you, until you click another: what you know of
+  it, from whom and when, and how to get there.
+- **The zone in one line** that opens into its facts: its kind, cell size,
+  your extent and levels known, walked against known, your sources, and
+  what holds across it (sky, climate, jurisdiction).
 - **A breadcrumb from your own map.** Your first visit to a Locality writes
   it into your map; the breadcrumb reads your map; clicking a crumb shows
   that Locality as you know it.
-- **Lenses** — frontier, route, refusals, boundaries, compass — one per
-  drawing channel, each with a tooltip, and a legend for every mark.
+- **Lenses** — frontier, route, refusals, boundaries — in one compact row.
+- **A tooltip on every mark** — every room, way, level, lens mark and
+  control on the pane says everything you know about it on hover, so you
+  never click through to find out. The legend is just "hover any mark".
 
 ## Non-goals
 
@@ -118,7 +130,10 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
 - **Spherical zones and expanse charts** → map-slate; the pane shows *no
   map for this kind of space yet* and the Ways-out list.
 - **The pane in modes other than Explore** → a later card-surface pass;
-  untouched here.
+  untouched here (but its width is shared, below).
+- **The tooltip system itself** → [tooltip-slate](../slates/builds/tooltip-slate.md),
+  its own build, **before** this one; this build only supplies the map's
+  tooltip content.
 - **A view of zones joined together** → map-slate § Zone level.
 - **Map styles as options** → later, as content.
 - **A cartography discipline** → nowhere, deliberately, until a map can be
@@ -146,8 +161,10 @@ learnable facts are the Locality's own rows.
 - **Existing maps** — claims written before this build have no coordinates.
   No migration: a place without one is listed on the Zone card as *known,
   not yet placed* until you see it again. (Dev data only.)
-- **card-sizes-slate** proposed the Zone as its own card; it is the pane's
-  tab here (recorded in that slate).
+- **card-sizes-slate** proposed the Zone as its own card; in the pane it is
+  the zone line that opens (recorded in that slate).
+- **The panel's width** — today 15 rem, shared by every mode; this build
+  sets it (below), so every mode's panel inherits it.
 - **The icon set** — the direction and elevation glyphs the
   iconography slate reserved for this.
 
@@ -162,9 +179,11 @@ firewall decides it: the client receives only your own knowledge, so the
 coordinates must *be* your knowledge.
 
 ### The zone's extent and levels are yours **[DECIDED]**
-The Zone card's "extent known" and the level control show the extent and
-levels **you have found**, never the zone's real size — that would tell you
-what you have not explored.
+The zone's "extent known" and the level control show the extent and levels
+**you have found**, never the zone's real size — that would tell you what
+you have not explored. ⭐ **The level control appears only when what you
+know spans more than one level.** On a first visit everything is z: 0 until
+you find otherwise, and in most zones most players never see the control.
 
 ### Three tiers on the map **[DECIDED]**
 Walked (solid) · known without walking — seen, searched, told, charted,
@@ -178,16 +197,42 @@ drawn, with the least certain step marked; no movement.
 ### Lenses in this build **[DECIDED]**
 Frontier (openings not taken), route (the latest plan, for the session),
 refusals (a way you saw locked or shut), boundaries (where the jurisdiction
-changes, from what you know), compass (on by default while it is an
-experiment). The rule is one lens per channel — turning one on turns off
-whatever holds its channel, and says so — but this build's five use five
+changes, from what you know). The compass is not a lens: it is the rose in
+the ways section. The rule is one lens per channel — turning one on turns
+off whatever holds its channel, and says so — but this build's four use four
 different channels, so all can be on together; the rule bites when the next
-build adds trail. Every lens has a tooltip; a legend explains every mark.
+build adds trail.
+
+### The pane, top to bottom **[DECIDED]**
+No tabs — one column, sections that fold: where you are (breadcrumb, name,
+`x: · y: · z:`) · the map, full width, with only the levels and zoom on it ·
+the lenses in one row · the ways from here (the rose with up and down, the
+other ways, the ways leaving the zone) · the selected place · the zone line.
+
+### The rose **[DECIDED]**
+Up and down are ordinary directions between levels inside a zone, so they
+sit with the eight horizontal ones. A direction you know of no way in reads
+dim; a door reads as a door; a refused way reads refused — so *no way* never
+looks like *a door*.
 
 ### Zoom, levels, coordinates **[DECIDED]**
 Three steps — whole zone · nearby · close — each changing what is drawn;
-*me* recenters. A level control lists the levels you know, yours marked.
-`x · y · z` always shown, z stressed.
+*me* recenters. The level control lists the levels you know, yours marked.
+Coordinates read `x: 2  y: 3  z: 0`, z stressed.
+
+### Tooltips on the map **[DECIDED]**
+Every room, way, level, lens mark and control carries a tooltip in the
+app-wide model ([tooltip-slate](../slates/builds/tooltip-slate.md)): what
+it is, everything you know of it with source and date, how to get there,
+and what a click would do — terms opening nested tooltips. Composed from
+your own knowledge, so they are instant and honest. No separate legend.
+
+### The panel's width **[DECIDED]**
+**22 rem, the same in every mode.** On the owner's screen (125% zoom, about
+118 rem wide) that is the widest the panel can be and still leave two card
+columns; at 100% it leaves three; on a 1920 px screen two. The panel no
+longer collapses to make room for another card column — only at the narrow
+tier, where the terminal and one card column would not otherwise fit.
 
 ### House style **[DECIDED]**
 The map draws in the client's house style; parchment is for illustrated
@@ -236,15 +281,21 @@ expensive to reverse are named here, biggest first.
    zone rather than a room — kept to the zone's kind, name and cell size,
    because anything more (its true extent, its levels) would tell you what
    you have not explored.
+6. **The panel's width, for every mode.** 22 rem, shared by forum, chat,
+   govern and make before any of them is designed — the owner's preference,
+   with his own caveat that it may constrain those designs.
+7. **Tooltips everywhere** — not built here, but this build is its first
+   big consumer, so it comes after the tooltip build.
 
 ## The order **[DECIDED]**
 
-- **Across builds:** this build first; the movement build (step beat,
-  walking to a place) after controller-liquidity merges; then *your map
-  grows* (trail, notes, freshness).
+- **Across builds:** the tooltip build; then this build; the movement build
+  (step beat, walking to a place) after controller-liquidity merges; then
+  *your map grows* (trail, notes, freshness).
 - **Within this build:** the knowledge model and claims-with-coordinates
-  first — nothing draws without them — then the map, then the Zone tab and
-  Ways out, then the breadcrumb, then the lenses and legend.
+  first — nothing draws without them — then the map, then the ways and the
+  selected place, then the zone line, then the breadcrumb, then the lenses
+  and the map's tooltips.
 - ⭐ **Seen early.** The owner gives most of his feedback by looking, so a
   plain map drawn from **real knowledge on a running world** comes before
   any polish — the first thing after the foundation — and each later piece
@@ -279,9 +330,9 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
 ### Blocking drive
 
 1. `instant` · player — A new character with an empty map walks into the
-   Sunken Delve. The pane shows the vestibule solid, `x · y · z` with z
-   stressed, the ways it can see, and the way back out listed under Ways
-   out.
+   Sunken Delve. The pane shows the vestibule solid, `x: · y: · z: 0` with
+   z stressed, no level control (one level known), the rose with the ways it
+   can see, and the way back out under *leaving the zone*.
 2. `instant` · player — `look`. The rooms it can see appear outlined; the
    frontier lens marks the openings not taken.
 3. `instant` · player — Click a neighboring room on the map. `go
@@ -289,16 +340,17 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
    follows.
 4. `instant` · player — Walk the diagonal from the third corridor to the
    vault: drawn corner to corner.
-5. `instant` · player — Go down to the pit. The level control shows both
-   levels, yours marked; choose the other level and see what you know of it.
+5. `instant` · player — The rose's *down* lights; go down to the pit. The
+   level control appears now — two levels known, yours marked; choose the
+   other level and see what you know of it.
 6. `instant` · player — The cache: absent from the map until `search` finds
    it; then drawn.
 7. `instant` · player — Click a distant known room. The route is drawn with
    its least certain step marked; nobody moves. `route to <room>` draws the
    same.
-8. `instant` · player — Open the Zone tab: kind, cell size, extent and
-   levels known, walked against known counts, sources, ways out; then Ways
-   out.
+8. `instant` · player — Open the zone line: kind, cell size, extent and
+   levels known, walked against known, sources; click a distant room and
+   read the selected place: what you know, from whom, how to get there.
 9. `instant` · player — In the lounge, the office's north door is absent;
    `search` finds it and it appears. A locked or shut door is drawn so, and
    the refusals lens marks it.
@@ -311,9 +363,10 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
 13. `instant` · player — First visit to a Locality: the breadcrumb gains it
     by name; click the crumb and see the Locality as you know it. A second
     character who has never been there sees it unnamed.
-14. `instant` · player — Toggle every lens, all five at once (none of this
-    build's five share a channel, so all can be on); hover each for its
-    tooltip; open the legend and find every mark on screen in it.
+14. `instant` · player — Turn on all four lenses at once (none share a
+    channel). Hover a room, a door, a corridor, a level button and every
+    lens mark: each tooltip says what it is and what you know of it, with
+    source and date; hover a term inside one and a nested tooltip opens.
 15. `instant` · player — A second player B stands in the same delve with a
     different map. B's pane shows only B's knowledge.
 16. `short` · staged — Restart the world. On reconnect the pane redraws the
@@ -322,7 +375,10 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
 18. `instant` · player — In a pitch-dark delve room, `look` sees nothing:
     no neighbor appears; the map shows only what you walked. (Light.)
 19. `instant` · player — The status bar shows the weather and time the
-    navigator used to; the Zone card shows the jurisdiction.
+    navigator used to; the zone line shows the jurisdiction.
+20. `instant` · player — At 125% zoom on a 2560 px screen the panel is
+    22 rem and two card columns sit beside the terminal; open the forum
+    mode and its panel is the same width.
 
 ### Soak drive
 
@@ -334,15 +390,19 @@ None — nothing here depends on game time.
   knowledge, with walked, known and unexplored places told apart.
 - Clicking a neighboring room moves the player; clicking a distant one
   shows the route.
-- The map shows levels, coordinates, diagonals and tracks, and three zoom
-  steps.
-- The Zone tab and Ways out describe the zone as the player knows it, never
-  more.
+- The map shows diagonals and tracks and three zoom steps; the level
+  control appears only once the player knows more than one level.
+- The ways from here show every direction, up and down included, and every
+  other way, each in its state; the ways leaving the zone are listed with
+  where they lead.
+- The zone line describes the zone as the player knows it, never more.
 - A hidden way is absent until found.
 - The breadcrumb is the player's own: a Locality they have never visited is
   unnamed.
-- The five lenses work, one per channel, each explained; the legend explains
-  every mark.
+- The four lenses work, one per channel.
+- Every mark on the pane has a tooltip saying what it is and what the
+  player knows of it, with sources.
+- The panel is the same width in every mode.
 - After a restart, a reconnect or a second device, the map is the same.
 - Two players in one place see two different maps.
 
@@ -353,7 +413,8 @@ None — nothing here depends on game time.
   [locality-knowledge-slate](../slates/builds/locality-knowledge-slate.md) ·
   [step-beat-slate](../slates/builds/step-beat-slate.md) ·
   [iconography-slate](../slates/builds/iconography-slate.md) ·
-  [card-sizes-slate](../slates/builds/card-sizes-slate.md)
+  [card-sizes-slate](../slates/builds/card-sizes-slate.md) ·
+  [tooltip-slate](../slates/builds/tooltip-slate.md)
 - [location-graph.md](../subsystems/location-graph.md) ·
   [boundary.md](../subsystems/boundary.md) ·
   [card-surface.md](../subsystems/card-surface.md) ·
