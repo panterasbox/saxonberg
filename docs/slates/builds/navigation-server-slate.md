@@ -25,6 +25,27 @@ jurisdiction's name.
 
 ## The items
 
+### S0 — Retire `locate` **[first pass — DECIDED, the owner 2026-11-14]**
+`locate <target>` walks any target's containment chain out to its zone and
+prints it, over the scope `["online", "/stuff/**", "/platform/**"]` — an
+**omniscient where-is** on every player, older than the map's knowledge
+model and its firewall. It undercuts `scry` (remote perception is an
+instrument's, and may refuse) and breaks the pets drive's doctrine
+(*"ownership must never locate"*). Each of its jobs has a home:
+
+| its job | its home |
+|---|---|
+| where is *that* (anything, anywhere) | gone — `query` lists what you can reach; `scry` is the costly far sight |
+| where am I | the navigation pane (the Locality crumbs, the Zone block) |
+| at sea, the reckoning | **`course`**, which already reads it (bare `course`) — and stays **helm only**: a passenger knows what they can see and what the crew says |
+| in port, *made fast alongside …* | the pane's outer position for the ship |
+
+Touches: `LocateController` + its view and controller row, the
+affordance on the perceiver mixin, `Perceiver` mentions, `Ship.aboard`
+test, three wire tests that run `locate me` (pets, maritime-space,
+river-e soak) — they read the reckoning through `course` or assert the
+state — and `perceiver.md`, `senses.md`, `ship.md`, `expanse.md`.
+
 ### S1 — Claims carry where the place is **[first pass — in the requirements]**
 Zone, coordinates and level written on every place claim at perception
 time; a told or charted source passes on what it knew. Without it no map
@@ -86,6 +107,44 @@ click to see, never prevented. So the copy of your map carries them
 (*appetite keeps and tags; capability deletes*), and the client collapses
 them unless the player's appetite says otherwise. The same holds for a
 zone's path (S3) and anything else a tooltip shows that names a row.
+
+### S10 — A ship is a Locality **[first pass]**
+Aboard, **the ship is your Locality** (the owner): the last crumb. Today a
+ship has no address, so it resolves to no Locality and files no map.
+Either a ship covers its own address, or the crumb line takes a ship crumb
+from the ship itself. And the Zone section shows **two nested positions**:
+you within the ship (its deck frame), and the ship within the world — at
+sea the **reckoning** on the Expanse (worded by your skill, never the true
+position; `course` already computes it), in port **where she is made
+fast** in the wharf zone, on a river the reach and how far along. The
+retired `locate` already worked out the three outer cases.
+
+### S11 — The jurisdiction aboard a ship **[first pass — a bug]**
+`whereabouts` reads `governmentAt(address)`; aboard a ship it says *no
+government claims this ground* while the `government` verb, through
+`subjectTo`, answers the port and then the flag state. The pane must use
+the same read the verb does.
+
+### S12 — Moving places change Locality while you stand still **[first pass]**
+A river patch's address follows its km, so drifting carries you across
+Localities. The pane refreshes on a move today; it must also refresh when
+your covering Locality changes under you.
+
+### S13 — Elevation is not z **[to examine]**
+The owner: *"z is discrete position on a fixed grid, and that grid changes
+frequently. Elevation is elevation — determined by biome and location and
+all sorts of other things; an expression of your actual setting in the
+narrative."* The pane shows `z:` as position only and elevation as a
+setting fact. ⚠ `ZoneApi.elevationFor` computes height as *zone elevation
++ z × cellSize*, tying the two together — examine whether the code's model
+is wrong before anything reads it for the pane.
+
+### S14 — *Terminus City* **[first pass — content]**
+Two Localities are both named *Terminus* (the realm and the city), so the
+crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`)
+to *Terminus City* (the owner: *"fine for now"*). ⚠ Not a one-line edit:
+TPA boards name destinations by Locality name, and the name lookup resolves
+the collision to the broader place today — the build checks both.
 
 ## Not here
 

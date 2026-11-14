@@ -167,6 +167,13 @@ learnable facts are the Locality's own rows.
   sets it (below), so every mode's panel inherits it.
 - **The icon set** — the direction and elevation glyphs the
   iconography slate reserved for this.
+- **`locate`** — retired; three wire drives that used `locate me` read the
+  reckoning through `course` instead.
+- **Ships** — they have no Locality today; aboard, the crumbs were empty
+  and the navigator named no government.
+- **Two Localities named "Terminus"** — the city's row is renamed
+  *Terminus City* (content), so the crumbs stop reading *Terminus ›
+  Terminus*.
 
 ## Surface decisions
 
@@ -252,6 +259,35 @@ learn about the places above you without inspecting them by hand: its
 name, its address, when you first came and how you know it, how much of
 your map lies there, and (once the server sends them) its government and
 kind. A crumb opens the Locality as you know it.
+
+### The two sections' contents **[DECIDED in shape]**
+The Locality section's crumb tooltips and the Zone block, by zone kind —
+Cartesian, a frame inside one, aboard a ship, Spherical, an Expanse, moving
+water, the underwater column — are set in
+[map-slate § The Locality section and the Zone section](../slates/builds/map-slate.md).
+Highlights a player sees: a crumb says who governs the place and who holds
+its seats, whether you live here, your standing here, the weather and a
+true forecast, and the lights tonight; the Zone block says how the space is
+laid out and where you are in it. Where a kind has no map yet (a sphere, an
+expanse, moving water) the map shows *no map for this kind of space yet*
+and the rest of the Zone block still works.
+
+### Aboard a ship **[DECIDED — the owner]**
+The ship is your Locality — the last crumb — and the Zone section shows two
+positions: you on her decks, and her in the world (at sea the reckoning,
+in port where she is made fast, on a river the reach). The reckoning itself
+is read at the helm (`course`); a passenger knows what they can see and what
+the crew says.
+
+### `locate` is retired **[DECIDED — the owner]**
+It answered *where is anything, anywhere* for every player — which the map's
+honesty and `scry`'s cost forbid. Its jobs are already elsewhere: `query`
+for what you can reach, the pane for where you are, `course` for the
+reckoning.
+
+### z and elevation **[DECIDED — the owner]**
+`z:` is position on the zone's grid, nothing more. Elevation is a fact of
+your setting — biome, place — shown apart from it.
 
 ### Paths are a spoiler **[DECIDED — the owner]**
 Anything that names an object's row — a template or identity path — is a
@@ -401,7 +437,17 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
     no neighbor appears; the map shows only what you walked. (Light.)
 19. `instant` · player — The status bar shows the weather and time the
     navigator used to; the zone line shows the jurisdiction.
-20. `instant` · player — At 125% zoom on a 2560 px screen the panel is
+20. `instant` · player — Board a ship at a wharf: the last crumb is the
+    ship, the Zone block shows your place on her decks and where she is made
+    fast. Put to sea: the crumbs still end at the ship, the outer position
+    says *at sea*, and only at the helm does `course` give the reckoning.
+    The jurisdiction names the port, then the flag.
+21. `instant` · player — In the Hush (a spherical zone) the map reads *no
+    map for this kind of space yet* and the Zone block still describes the
+    cavern. `locate` is not a command.
+22. `instant` · player — Hover a crumb in Terminus City: its government,
+    the seats and their holders, resident or visitor, the forecast.
+23. `instant` · player — At 125% zoom on a 2560 px screen the panel is
     22 rem and two card columns sit beside the terminal; open the forum
     mode and its panel is the same width.
 

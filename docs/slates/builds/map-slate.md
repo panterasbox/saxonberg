@@ -865,6 +865,46 @@ things, and the pane keeps each one's information together:
 Data sourcing for every part of the pane, and the server changes it
 needs: [navigation-server-slate](./navigation-server-slate.md).
 
+### ⭐⭐ The Locality section and the Zone section — their contents **[DECIDED in shape, 2026-11-14]**
+
+From the code survey of both trees. Sources: **A** on the client today ·
+**B** a cheap server read · **C** needs modeling or content
+([navigation-server-slate](./navigation-server-slate.md)).
+
+**The Locality section** — *where am I in the world, and what governs it.*
+The crumb line is each Locality's name, outermost first (A). Each crumb's
+tooltip: name and address (A); its government — name, description, the
+chain above it (B; every government has a description, no Locality does);
+the seats and who holds them (B); **resident or visitor** (B, derived from
+your domicile); **your standing here** (B; renown is partitioned by
+Locality); weather now and a **true forecast** (B — weather is
+deterministic); whether the weather is pinned, leaning or procedural (B, a
+spoiler candidate); street lighting tonight (B, four Localities); the river
+it drains to (B raw, C readable); a TPA destination or not (B); your map of
+it (B). Not available: description, kind, population, emblem (C — no
+fields), who owns ground here (C — parcels key by path; only the current
+room's owner is cheap). ⭐ **Aboard a ship, the ship is the last crumb**
+(S10).
+
+**The Zone section** — *how is this space laid out, and where am I in it.*
+What it holds follows the zone's kind:
+
+| kind | the Zone block | the map |
+|---|---|---|
+| Cartesian (103 rows) | `x: y: z:`, cell size, sky or roof, extent and levels you know | the minimap |
+| a frame inside one (a house, dorm, ship) | the building or ship, the floor | the minimap on that frame |
+| **aboard a ship** | **two positions**: you on her decks, and her in the world — the reckoning at sea, made fast in port, the reach on a river (S10) | the deck frame |
+| Spherical (the Hush) | the place's radius and character | placeholder: *no map for this kind of space yet* |
+| Expanse (the Greywater) | the reckoning only at the helm (`course`); else what you can see | placeholder |
+| moving zones (river, sea patches) | the last place passed, how far, the water's character | placeholder |
+| the underwater column | the band (lit · dark · bed) | the column as a strip |
+
+Zone-wide, in the zone line's tooltip (B): the epoch covenant, anti-magic
+suppression, the climate site (latitude, polar night), the horizon (what is
+in view — not what is nearby). ⚠ **`z` is position, not height**;
+elevation is a setting fact, shown apart (S13). The zone's name is a
+derived label; its path is a spoiler.
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against
