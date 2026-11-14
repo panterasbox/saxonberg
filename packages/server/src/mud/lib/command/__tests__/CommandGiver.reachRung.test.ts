@@ -128,7 +128,7 @@ describe('the binder binds by one rule; the verb refuses after', () => {
     thing('quince', b);
     expect(await run(await view(), 'eatish quince')).toBeNull();
     expect(models).toHaveLength(0);
-    expect(refusal()).toMatch(/box is shut\.$/);
+    expect(refusal()).toMatch(/box is shut — `open box` first\.$/);
   });
 
   it('⭐ the nearest wins: the quince at hand before the one in the bag', async () => {

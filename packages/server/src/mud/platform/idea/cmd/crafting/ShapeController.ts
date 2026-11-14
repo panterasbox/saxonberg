@@ -56,7 +56,9 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
 
     let plan: ShapePlan | ShapeRefusal | null = null;
     // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
-    const tools = PerceptionApi.reachableAmong(context.commandGiver, model.instrument?.stuff ?? [], { location: context.location ?? null });
+    const tools = model.instrument?.defaulted === true
+      ? PerceptionApi.reachableAmong(context.commandGiver, model.instrument?.stuff ?? [], { location: context.location ?? null })
+      : model.instrument?.stuff ?? [];
     for (const tool of tools) {
       if (tool === material || !MixinApi.isForming(tool)) continue;
       plan = await tool.shapePlanFor(req);

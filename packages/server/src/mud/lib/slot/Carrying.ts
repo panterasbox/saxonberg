@@ -22,11 +22,15 @@
  *
  * - **Hands** (D9–D10): `handSlots`, `freeHands`, `handsFor`.
  * - **Tiers** (D15): `tierOf` — hand · ready · packed · elsewhere.
- * - **Homes** (D14): `setHome`/`homeOf` — runtime, persisted by contents
- *   path (`captureSlice`/`hydrateSlice`), forgotten lazily when either end
- *   leaves the body.
- * - **Readying** (D16): `ready` — the held thing goes home, the named one
- *   comes to hand; in a fight it is the generalized weapon switch.
+ * - **Putting away** (D-W10-2): `stow` — off the hands into the first of
+ *   the carrier's places that takes it, in D11's order; nothing takes it →
+ *   refused, it stays in the hand. No homes: nothing remembers where a
+ *   thing came from (retired W10, 2026-11-14).
+ * - **Readying** (D-W10-3): `ready` — the named thing comes into a FREE
+ *   hand, or a refusal naming what holds the hands; nothing is put away for
+ *   you. In a fight it is the generalized weapon switch. Its callers are the
+ *   explicit *keep it in hand* acts (`get X from <on you>`, `fight switch`,
+ *   `fight draw`); an instrument is used where it sits.
  * - **Routing** (W8, 2026-11-13): `routeArrival` — on the body, then a bag or the floor.
  * - **Letting go** (D13): `releaseHeld`.
  * - **The restore** (D32): `placeLoose` — the one overflow (the residence,
@@ -40,7 +44,7 @@
  * Operational reference: `docs/subsystems/carrying.md`.
  */
 
-import { Mixins, type MixinConstructor } from '../mixin';
+import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable, PackedRefusal } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
@@ -50,7 +54,6 @@ import type { Slotted } from './Slotted';
 import type { Creature } from '../creature/Creature';
 import type { Arrival, ArrivalRefusal } from '../spatial/Container';
 import type { ActRefusal } from '../craft/ActPlan';
-import type { CaptureContext, HydrateContext, HomeEnd, HomesSlice, MixinSlice } from '../persistence/PersistenceSlice';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import { Placements } from '../spatial/Placement';
@@ -97,16 +100,22 @@ export type ReceiveRefusal = Extract<
   { reason: 'too-heavy' | 'cannot-grip' | 'hands-on-cart' | 'nowhere-to-carry' }
 >;
 
-/** Why readying a thing failed (D16) — every one names a way out. */
+/** Why readying a thing failed (D16; D-W10-3) — every one names a way out. */
 export type ReadyRefusal =
   | PackedRefusal
-  | ActRefusal<'hands-full', { held: Stuff; home: Stuff | null }>
-  | ActRefusal<'hands-needed', { hands: number; held: Stuff[] }>
+  | ActRefusal<
+      'hands-needed',
+      {
+        hands: number;
+        held: Stuff[];
+        /** A held thing that WOULD go away, and where — the `put` the words name. */
+        away?: { held: Stuff; host: Stuff; region?: string } | null;
+      }
+    >
   | ActRefusal<'hands-on-cart', { cart: Stuff }>
   | ActRefusal<'cannot-grip', { why: string }>
   | ActRefusal<'too-heavy'>
   | ActRefusal<'not-on-you'>
-  | ActRefusal<'pick-up', { item: Stuff }>
   | ActRefusal<'already-switching'>;
 
 /**
@@ -152,19 +161,15 @@ export interface CarriedAt {
 
 /**
  * ⭐ What a readying did (D16; W8 — facts, never a sentence): the thing
- * that came to hand and where it came FROM, and each held thing put away
- * and where it went. `moved: false` — nothing needed to move.
+ * that came to hand and where it came FROM. `moved: false` — nothing needed
+ * to move. Nothing else moves in a readying (D-W10-3).
  */
 export interface ReadiedOutcome {
   ok: true;
   item: Stuff;
   moved: boolean;
   from: CarriedAt;
-  stowed: { held: Stuff; at: CarriedAt }[];
 }
-
-/** A home's host: a container on the body, or a placing host whose region it is. */
-export type HomeHost = (Stuff & Container) | (Stuff & Placing);
 
 export interface Carrying {
   /**
@@ -175,17 +180,6 @@ export interface Carrying {
   /** ⭐ How near `thing` is to the hand (D15); `elsewhere` when it is not on this body. */
   tierOf(thing: Stuff): CarryTier;
   /**
-   * Where `item` goes back to on this body, or null (D14): the host (a
-   * container on the body, or a placing host) and, for a pocket, the
-   * region. Forgotten when either end has left.
-   */
-  homeOf(item: Stuff): { host: HomeHost; region?: string } | null;
-  /**
-   * Remember `home` (a container on this body, or — with `region` — a
-   * placing host's region: a coat's pocket) as where `item` goes back to.
-   */
-  setHome(item: Stuff, home: HomeHost, region?: string): void;
-  /**
    * ⭐ Is `item` honestly on this body (D11)? A slot occupant (held, worn);
    * or placed on a host that is itself honest here (a key in a worn coat's
    * pocket, a pouch hung from a worn belt); or inside such a thing. Loose in
@@ -194,28 +188,27 @@ export interface Carrying {
    */
   isHonest(item: Stuff): boolean;
   /**
-   * ⭐ Bring `item` to hand (D16). In hand already → ok; on you → the hand
-   * it needs is freed (what is in it goes home; never dropped for you) and
-   * it comes out; packed → refused, naming the pack; in the room → used
-   * where it stands. In a fight it is a guarded switch priced by
-   * {@link readySeconds}.
+   * ⭐ Bring `item` into a FREE hand (D-W10-3). In hand already → ok; on
+   * you with the hand(s) it needs free → it comes out; hands in the way →
+   * `hands-needed` naming what they hold (nothing is put away for you);
+   * packed → refused, naming the pack; a fixture in the room → used where it
+   * stands; a portable thing elsewhere → `not-on-you`. In a fight it is the
+   * switch, priced by where it comes out of.
    */
   ready(item: Stuff): ReadyRefusal | ReadiedOutcome | null;
   /**
-   * What must leave the hands for `item` to come to hand (D16) — the
-   * held things in the way of its grip. Combat prices a switch by them.
+   * ⭐ Put `held` away (D-W10-2): off the hands into the first of this
+   * body's places that takes it, in D11's order — a pocket of a worn
+   * garment, a hook on a worn host, a container hung or pocketed there, a
+   * worn bag off the back, the pack on the back. Nothing takes it →
+   * `nowhere-to-carry`, nothing moves, it stays in the hand — never the
+   * floor (that is `drop`), never a guess. A thing neither in a hand nor
+   * just let go of on this body: null, nothing to do.
    */
-  handsToFree(item: Stuff): Stuff[];
+  stow(held: Stuff): ArrivalRefusal | null;
   /**
-   * Put `held` away — to its home if it still takes it; homeless, to the
-   * first place on you it fits (which becomes its home). Refuses
-   * `hands-full` naming it when neither will take it. Never drops it.
-   */
-  stow(held: Stuff): ReadyRefusal | null;
-  /**
-   * Seat `item` in the hand(s) it needs now, stowing what is in the way —
-   * the body of `ready`, and the completion of a fight's switch. Quiet: the
-   * caller tells.
+   * Seat `item` in the free hand(s) it needs now — the body of `ready`,
+   * and the completion of a fight's switch. Quiet: the caller tells.
    */
   bringToHand(item: Stuff): ReadiedOutcome | ReadyRefusal;
   /**
@@ -296,65 +289,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       },
     ];
 
-    /**
-     * Where this body's things go back to (D14) — runtime, keyed by
-     * stuffId, persisted by contents path. ⚠ Not a field: a stuffId does
-     * not survive a restart; the slice is the durable form.
-     */
-    private _homes = new Map<string, { host: HomeHost; region?: string }>();
-
     /** This carrier as the body it is (its hands are the slot substrate's — `Attired`). */
     private asBody(): Creature {
       return this as unknown as Creature;
-    }
-
-    // ── persistence (D14): the carrier persists what it knows, by path ──
-
-    /**
-     * Persistence-spine capture hook: each home as two ends named by
-     * chattel id or contents path (`HomesSlice`). The `SlottedMixin`
-     * precedent — never a stuffId.
-     */
-    static captureSlice(host: Stuff, ctx: CaptureContext): HomesSlice {
-      const self = host as unknown as Stuff & Carrying;
-      const homes: HomesSlice['homes'] = [];
-      const c = self as unknown as CarryingMixin;
-      for (const [id, home] of c._homes) {
-        const item = c.homeItemById(id);
-        if (item === null || self.homeOf(item) === null) continue;
-        const a = endOf(host, item, ctx);
-        const b = endOf(host, home.host, ctx);
-        if (a !== null && b !== null) {
-          homes.push({ item: a, home: b, ...(home.region !== undefined ? { region: home.region } : {}) });
-        }
-      }
-      return { homes };
-    }
-
-    /** Restore the homes after the contents (pass 4 runs after them). */
-    static async hydrateSlice(host: Stuff, slice: MixinSlice, _ctx: HydrateContext): Promise<void> {
-      const homes = (slice as Partial<HomesSlice>).homes;
-      if (!Array.isArray(homes)) return;
-      const self = host as unknown as Stuff & Carrying;
-      for (const { item, home, region } of homes) {
-        const i = resolveEnd(host, item);
-        const h = resolveEnd(host, home);
-        if (i === null || h === null) continue;
-        if (typeof region === 'string' && MixinApi.isPlacing(h)) self.setHome(i, h, region);
-        else if (MixinApi.isContainer(h)) self.setHome(i, h);
-      }
-    }
-
-    /** The live thing behind a home key, while it is still on this body. */
-    private homeItemById(id: string): Stuff | null {
-      const self = this as unknown as Stuff & Container;
-      const stack: Stuff[] = [...self.getContents()];
-      for (let i = 0; i < stack.length && i < 2048; i++) {
-        const s = stack[i]!;
-        if (s.stuffId === id) return s;
-        if (MixinApi.isContainer(s) && !s.isAgent()) stack.push(...s.getContents());
-      }
-      return null;
     }
 
     // ── hands (D9–D10) ──
@@ -490,26 +427,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (slots.some((s) => hands.includes(s))) return 'hand';
       // Worn itself (or, never after the flip, loose on the body): one draw.
       return 'ready';
-    }
-
-    // ── homes (D14) ──
-
-    public homeOf(item: Stuff): { host: HomeHost; region?: string } | null {
-      const home = this._homes.get(item.stuffId) ?? null;
-      if (home === null) return null;
-      // Lazily forgotten: a home is knowledge of THIS body's things, so
-      // either end leaving the body (dropped, given, the pouch sold)
-      // retires it. No hook on `drop`/`give` is needed.
-      if (this.tierOf(item) === 'elsewhere' || this.tierOf(home.host) === 'elsewhere') {
-        this._homes.delete(item.stuffId);
-        return null;
-      }
-      return home;
-    }
-
-    public setHome(item: Stuff, home: HomeHost, region?: string): void {
-      if (item.stuffId === home.stuffId) return;
-      this._homes.set(item.stuffId, region !== undefined ? { host: home, region } : { host: home });
     }
 
     // ── honesty (D11) ──
@@ -1116,9 +1033,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       }
       const refusal = this.readyRefusal(item);
       if (refusal !== null) return refusal;
-      if (!this.wantsHand(item)) return { ok: true, item, moved: false, from: this.carriedAt(item), stowed: [] };
+      if (!this.wantsHand(item)) return { ok: true, item, moved: false, from: this.carriedAt(item) };
       // ⭐ In a fight it is the switch, generalized (D16): guard down, no
-      // instrument, for the seconds the two halves cost.
+      // instrument, for the seconds its holder costs.
       if (MixinApi.isCombatant(self) && CombatApi.sessionFor(self)) {
         const started = self.beginWeaponSwitch(item);
         if (!started.ok) {
@@ -1134,10 +1051,10 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     /** Does readying `item` move it into a hand (on you, holdable, not there yet)? */
     private wantsHand(item: Stuff): boolean {
       const tier = this.tierOf(item);
-      return tier !== 'hand' && tier !== 'elsewhere' && MixinApi.isSlottable(item) && this.gripSlotsFor(item) !== null;
+      return tier !== 'hand' && tier !== 'elsewhere' && MixinApi.isSlottable(item) && this.asBody().handSlots().length > 0;
     }
 
-    /** Every check `ready` makes, writing nothing. */
+    /** Every check `ready` makes, writing nothing (D-W10-3: nothing is put away for you). */
     private readyRefusal(item: Stuff): ReadyRefusal | null {
       const tier = this.tierOf(item);
       if (tier === 'hand') return null;
@@ -1145,30 +1062,30 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         return { ok: false, reason: 'packed', facts: { by: this.packOf(item) ?? item } };
       }
       if (tier === 'elsewhere') {
-        // In somebody else's grasp: not yours to use. A fixture (a bench, a
-        // cask, a bolted vice) is used where it stands; a thing you could
-        // carry is picked up first (the flip, W7: `get` is the receiving act).
+        // A fixture (a bench, a cask, a bolted vice) is used where it
+        // stands; anything else off this body is not yours to ready — a
+        // portable thing in the room is `get`'s, one in another's grasp theirs.
         if (insideAnotherBody(this as unknown as Stuff, item)) return { ok: false, reason: 'not-on-you' };
         const fixed = MixinApi.isContainable(item) && item.isFixedInPlace();
-        return fixed || !MixinApi.isSlottable(item) ? null : { ok: false, reason: 'pick-up', facts: { item } };
+        return fixed || !MixinApi.isSlottable(item) ? null : { ok: false, reason: 'not-on-you' };
       }
       if (!this.wantsHand(item)) return null;
       const hands = this.handsFor(item);
       if (hands === null) return { ok: false, reason: 'too-heavy' };
       const cart = this.cartInHand();
-      const grip = this.openHands().length + this.asBody().heldThings().length - (cart?.hands ?? 0);
+      const held = this.asBody().heldThings();
+      const grip = this.openHands().length + held.length - (cart?.hands ?? 0);
       if (cart !== null && this.openHands().length >= hands && this.freeHands() < hands) {
         return { ok: false, reason: 'hands-on-cart', facts: { cart: cart.cart } };
       }
       if (grip < hands) {
         const why = this.gripWhy();
         if (why !== null) return { ok: false, reason: 'cannot-grip', facts: { why } };
-        return { ok: false, reason: 'hands-needed', facts: { hands, held: this.asBody().heldThings() } };
       }
-      // What has to come out of the hands, and will it go?
-      for (const held of this.inTheWay(item, hands)) {
-        const r = this.stowRefusal(held);
-        if (r !== null) return r;
+      // ⭐ The hands it needs must be FREE (D-W10-3): what holds them is
+      // named, and the player frees them (`drop`, `unwield`, `put`).
+      if (this.inTheWay(item).length > 0 || grip < hands) {
+        return { ok: false, reason: 'hands-needed', facts: { hands, held, away: this.awayFor(held) } };
       }
       return null;
     }
@@ -1185,7 +1102,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       return null;
     }
 
-    /** The hand slots `item` would take: its own claim's hands, else the first free ones. */
+    /**
+     * The FREE hand slots `item` would take: its own claim's hands when they
+     * are free, else the first free ones; null when too few are free
+     * (D-W10-3 — an occupied hand is never emptied for you).
+     */
     private gripSlotsFor(item: Stuff): string[] | null {
       // A hand takes any slottable thing — every good (W7); a fixture or a
       // place cannot be held and is used where it is.
@@ -1200,92 +1121,53 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         if (plan !== null) claim = item.getSlotClaim(plan).filter((s) => hands.includes(s));
       }
       // ⭐ The claim names where `wield` puts a thing when the hand is free;
-      // a FREE hand beats an occupied claimed one (D9-b — the drive, step
-      // 7: with the right hand on a shield and the left empty, `fight draw`
-      // tried to put the shield away to draw into the right).
+      // a FREE hand beats an occupied claimed one (D9-b).
       const open = this.openHands();
       if (claim.length >= n && claim.slice(0, n).every((h) => open.includes(h))) return claim.slice(0, n);
-      // Free hands first (claimed ones before the rest), then the occupied ones (their holders go home).
-      const order = [...claim.filter((h) => open.includes(h)), ...open, ...claim, ...hands.filter((h) => self.isSlotOccupied(h))];
-      const picked = [...new Set(order)].slice(0, n);
+      const picked = [...new Set([...claim.filter((h) => open.includes(h)), ...open])].slice(0, n);
       return picked.length >= n ? picked : null;
     }
 
-    public handsToFree(item: Stuff): Stuff[] {
-      return this.inTheWay(item, this.handsFor(item) ?? 1);
+    /** What holds the hands `item` needs, when too few are free — the facts of `hands-needed`. */
+    private inTheWay(item: Stuff): Stuff[] {
+      return this.gripSlotsFor(item) === null ? this.asBody().heldThings() : [];
     }
 
-    /** What must leave the hands for `item` to take `hands` of them. */
-    private inTheWay(item: Stuff, hands: number): Stuff[] {
-      const self = this as unknown as Stuff & Slotted;
-      const slots = this.gripSlotsFor(item) ?? [];
-      const out: Stuff[] = [];
-      for (const s of slots.slice(0, hands)) {
-        for (const o of self.getOccupants(s)) if (o.stuffId !== item.stuffId && !out.includes(o)) out.push(o);
+    /** The first held thing that WOULD go somewhere on this body, and where (the `put` a refusal names). */
+    private awayFor(held: readonly Stuff[]): { held: Stuff; host: Stuff; region?: string } | null {
+      for (const h of held) {
+        const p = this.stowPlaceFor(h);
+        if (p !== null) return p.region !== undefined ? { held: h, host: p.host, region: p.region } : { held: h, host: p.host };
       }
-      return out;
+      return null;
     }
 
-    /**
-     * Would `held` go away? `null` = yes: to its home, or — homeless — to
-     * the first place on you it fits (the flip, W7: never loose). Refuses
-     * `hands-full` naming it otherwise; never drops it for you.
-     */
-    private stowRefusal(held: Stuff): ReadyRefusal | null {
-      if (this.tierOf(held) !== 'hand') return null;
-      const home = this.homeOf(held);
-      if (home !== null && this.homeTakes(held)) return null;
-      if (home === null && this.stowPlaceFor(held) !== null) return null;
-      return { ok: false, reason: 'hands-full', facts: { held, home: home?.host ?? null } };
-    }
-
-    /** Where a homeless held thing would be put away: the first carry place it fits. */
+    /** Where `held` would be put away: the first carry place it fits, in D11's order. */
     private stowPlaceFor(held: Stuff): CarryPlace | null {
       return this.carryPlaces().find((p) => !within(p.host, held) && this.placeTakes(p, held)) ?? null;
     }
 
-    /** Would `held`'s home take it back — its pocket's `canPlace`, its container's tape measure? */
-    private homeTakes(held: Stuff): boolean {
-      const home = this.homeOf(held);
-      if (home === null) return false;
-      const { host, region } = home;
-      if (region !== undefined && MixinApi.isPlacing(host) && MixinApi.isContainer(host)) {
-        return this.placeTakes({ host, region }, held);
-      }
-      // A sibling-pair home (a clip on the belt): the region's own fit.
-      if (region !== undefined && MixinApi.isPlacing(host)) {
-        return MixinApi.isContainable(held) && host.canPlace(held, region).ok;
-      }
-      return MixinApi.isContainer(host) && this.placeTakes({ host }, held);
-    }
-
-    public stow(held: Stuff): ReadyRefusal | null {
-      const refusal = this.stowRefusal(held);
-      if (refusal !== null) return refusal;
+    public stow(held: Stuff): ArrivalRefusal | null {
+      // In a hand — or just let go of and still on this body (`unwield`
+      // releases first, so the cursed gate fires before anything moves).
       const self = this as unknown as Stuff & Slotted;
+      const loose = MixinApi.isContainable(held) && held.getContainer()?.stuffId === self.stuffId && !this.isHonest(held);
+      if ((this.tierOf(held) !== 'hand' && !loose) || !MixinApi.isContainable(held)) return null;
+      const place = this.stowPlaceFor(held);
+      if (place === null) {
+        return {
+          ok: false,
+          reason: 'nowhere-to-carry',
+          facts: { item: held, held: this.asBody().heldThings(), tried: [...new Set(this.carryPlaces().map((p) => p.host))] },
+        };
+      }
       if (MixinApi.isSlottable(held)) {
         for (const slot of this.asBody().handSlots()) {
           if ([...self.getOccupants(slot)].some((o) => o.stuffId === held.stuffId)) self.vacate(slot, held);
         }
       }
-      const home = this.homeOf(held);
-      if (!MixinApi.isContainable(held)) return null;
-      if (home !== null) {
-        const { host, region } = home;
-        if (region !== undefined && MixinApi.isPlacing(host)) ContainmentApi.move(held, host, region);
-        else if (MixinApi.isContainer(host)) ContainmentApi.move(held, host);
-        return null;
-      }
-      // Homeless: the first place it fits — and that becomes its home.
-      const place = this.stowPlaceFor(held);
-      if (place === null) return null;
-      if (place.region !== undefined) {
-        ContainmentApi.move(held, place.host, place.region);
-        this.setHome(held, place.host, place.region);
-      } else {
-        ContainmentApi.move(held, place.host);
-        this.setHome(held, place.host);
-      }
+      if (place.region !== undefined) ContainmentApi.move(held, place.host, place.region);
+      else ContainmentApi.move(held, place.host);
       return null;
     }
 
@@ -1293,41 +1175,20 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const refusal = this.readyRefusal(item);
       if (refusal !== null) return refusal;
       const from = this.carriedAt(item);
-      const still: ReadiedOutcome = { ok: true, item, moved: false, from, stowed: [] };
+      const still: ReadiedOutcome = { ok: true, item, moved: false, from };
       if (!this.wantsHand(item)) return still;
-      const hands = this.handsFor(item) ?? 1;
-      // ⭐ What each hand does is reported (size and carrying drive, step 4:
-      // the readying was silent — the compass simply appeared); the
-      // controller words it: *you sheathe your sword and pull out your compass.*
-      const stowed: ReadiedOutcome['stowed'] = [];
-      for (const held of this.inTheWay(item, hands)) {
-        const r = this.stow(held);
-        if (r !== null) return r;
-        stowed.push({ held, at: this.carriedAt(held) });
-      }
       const slots = this.gripSlotsFor(item);
       if (slots === null || !MixinApi.isContainable(item) || !MixinApi.isSlottable(item)) return still;
       const self = this as unknown as Stuff & Slotted;
       const it = item as Stuff & Containable & Slottable;
       // Out of whatever slot it sat in (a sheath), then into the hand(s).
+      // Nothing is remembered (D-W10-2): where it goes after is `stow`'s
+      // one documented order, or the player's `put`.
       for (const [slot, occ] of self.getAllOccupants()) {
         if (occ.has(it)) self.vacate(slot, it);
       }
-      // It remembers where it came from — that is where it goes back. ⭐ The
-      // pocket before the container (W9): a key out of a pocket is the
-      // coat's contents, and its home is the pocket, not the coat.
-      const container = it.getContainer();
-      const pair = it.getPlacement();
-      if (!this.homeOf(it)) {
-        if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
-          // Out of a pocket (or off a clip): that is where it goes back.
-          this.setHome(it, pair.host, pair.name);
-        } else if (container !== null && container.stuffId !== self.stuffId && MixinApi.isContainer(container)) {
-          this.setHome(it, container);
-        }
-      }
       self.seatInSlots(it, slots);
-      return { ok: true, item, moved: true, from, stowed };
+      return { ok: true, item, moved: true, from };
     }
 
     /** Where `item` sits on this body, as facts — the readying's report. */
@@ -1427,49 +1288,4 @@ function insideAnotherBody(me: Stuff, item: Stuff): boolean {
     cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
   }
   return false;
-}
-
-/** One end of a home, as the slice names it: chattel id, else contents path. */
-function endOf(host: Stuff, thing: Stuff, ctx: CaptureContext): HomeEnd | null {
-  if (MixinApi.isChattel(thing) && thing.isOwnerPersisted()) return { kind: 'chattel', chattelId: thing.getChattelId() };
-  const path: number[] = [];
-  let cur: Stuff = thing;
-  for (let i = 0; i < 32; i++) {
-    const up: Stuff | null = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-    if (up === null) return null;
-    if (up.stuffId === host.stuffId) {
-      const top = ctx.indexOf(cur);
-      if (top < 0) return null;
-      path.unshift(top);
-      return { kind: 'path', path, templatePath: thing.getTemplatePath() ?? '' };
-    }
-    if (!MixinApi.isContainer(up)) return null;
-    const at = up.getContents().indexOf(cur as Stuff & Containable);
-    if (at < 0) return null;
-    path.unshift(at);
-    cur = up;
-  }
-  return null;
-}
-
-/** The live thing a slice end names on `host`, or null when it no longer resolves. */
-function resolveEnd(host: Stuff, end: HomeEnd): Stuff | null {
-  if (end.kind === 'chattel') {
-    return MixinApi.isEstate(host) ? host.getEstateLive(end.chattelId) : null;
-  }
-  if (!MixinApi.isContainer(host) || end.path.length === 0) return null;
-  // The first index is into the body's CAPTURED order — the same three
-  // skips the Container slice makes, so the restored order matches.
-  const top = host.getContents().filter(
-    (item) =>
-      !MixinApi.isHasInteractive(item) &&
-      !MixinApi.isBehaved(item) &&
-      !(MixinApi.isChattel(item) && item.isOwnerPersisted()),
-  );
-  let cur: Stuff | null = top[end.path[0]!] ?? null;
-  for (const i of end.path.slice(1)) {
-    if (cur === null || !MixinApi.isContainer(cur)) return null;
-    cur = cur.getContents()[i] ?? null;
-  }
-  return cur !== null && (cur.getTemplatePath() ?? '') === end.templatePath ? cur : null;
 }

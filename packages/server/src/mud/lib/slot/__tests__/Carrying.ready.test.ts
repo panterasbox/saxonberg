@@ -1,8 +1,9 @@
 /**
- * ⭐ Readying (size-and-carrying D15/D16): what is in the hand goes home,
- * the named thing comes out; packed is refused naming the pack; a bench is
- * used where it stands; nothing is ever dropped for you; in a fight it is
- * the switch, priced in two halves by holder.
+ * ⭐ Readying (size-and-carrying D15/D16; D-W10-3): the named thing comes
+ * into a FREE hand, or a refusal naming what holds the hands — nothing is
+ * put away for you and nothing remembers a home; packed is refused naming
+ * the pack; a fixture is used where it stands; a portable thing off your
+ * body is `not-on-you`; in a fight it is the switch, priced by its holder.
  */
 import '../../../../test-bootstrap';
 import { carry, handsOf, carryWords } from './carrying-fixture';
@@ -47,25 +48,26 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     expect(me.tierOf(floor)).toBe('elsewhere');
   });
 
-  it('sheathe and draw: the sword goes home to its scabbard, the compass comes to hand', () => {
+  it('a sword in hand and a compass in the pouch: hands-needed naming the sword; with a free hand the compass comes to it and the sword stays', () => {
     const { me, plan } = makeBody();
-    const scabbard = wornBag(me, plan, 'scabbard', 'torso');
-    const sword = tool('sword', 1.2, [0.05, 0.02, 0.9]);
-    sword.setSlotClaims({ [plan]: ['hand:right'] });
-    ContainmentApi.move(sword, scabbard);
-    hold(me, plan, tool('torch', 0.5), 'hand:left');
-    // Draw the sword from its scabbard: its home is remembered.
-    expect(me.ready(sword)?.ok ?? true).toBe(true);
-    expect(me.tierOf(sword)).toBe('hand');
-    expect(me.homeOf(sword)?.host).toBe(scabbard);
-    // Now the compass from the satchel: the sword must go home.
-    const satchel = wornBag(me, plan, 'satchel', 'torso');
+    const sword = hold(me, plan, tool('sword', 1.2, [0.05, 0.02, 0.9]), 'hand:right');
+    hold(me, plan, tool('lantern', 1), 'hand:left');
+    const pouch = wornBag(me, plan, 'pouch', 'torso');
     const compass = tool('compass', 0.2);
-    compass.setSlotClaims({ [plan]: ['hand:right'] });
-    ContainmentApi.move(compass, satchel);
-    expect(me.ready(compass)?.ok ?? true).toBe(true);
+    ContainmentApi.move(compass, pouch);
+    const r = me.ready(compass) as { ok: boolean; reason?: string; facts?: { held: unknown[] } } | null;
+    expect(r?.reason).toBe('hands-needed');
+    expect(r?.facts?.held).toHaveLength(2);
+    expect(carryWords(me, r!)).toMatch(/That takes a free hand — you're holding the (sword|lantern) and the (sword|lantern)\. `drop (sword|lantern)` \(free in a fight\), or put one away first \(`unwield (sword|lantern)`/);
+    // Nothing moved: the sword and the lantern in hand, the compass in the pouch.
+    expect(me.tierOf(sword)).toBe('hand');
+    expect(compass.getContainer()).toBe(pouch);
+    // Free a hand by an explicit act; now the compass comes to it.
+    me.releaseHeld(['hand:left']);
+    const out = me.ready(compass);
+    expect(out?.ok ?? true).toBe(true);
     expect(me.tierOf(compass)).toBe('hand');
-    expect(sword.getContainer()).toBe(scabbard);
+    expect(me.tierOf(sword)).toBe('hand');
   });
 
   it('packed refuses, naming the pack and the way out', () => {
@@ -90,41 +92,40 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     expect(bench.getContainer()).toBe(room);
   });
 
-  it('never dropped for you: a held thing whose home will not take it back refuses, naming both ways out', () => {
-    const { me, plan } = makeBody();
-    const pouch = wornBag(me, plan, 'pouch', 'torso');
-    // The first hand is the one asked (the plan's order): the lantern's.
-    const lantern = hold(me, plan, tool('lantern', 1), 'hand:left');
-    hold(me, plan, tool('shield', 4), 'hand:right');
-    me.setHome(lantern, pouch);
-    // The pouch is too small for it now (a box that refuses).
-    vi.spyOn(pouch, 'fitRefusal').mockReturnValue({ reason: 'too-big' } as never);
-    const compass = tool('compass', 0.2);
-    // In a satchel at the waist — on you, not in hand (the flip, W7).
-    ContainmentApi.move(compass, wornBag(me, plan, 'satchel', 'waist'));
-    const r = me.ready(compass) as { ok: boolean; reason?: string } | null;
-    expect(r?.reason).toBe('hands-full');
-    // Both held things named, each offered to drop (the drive, step 7).
-    expect(carryWords(me, r!)).toMatch(/Your hands are full — the lantern and the shield — and the lantern won't go back in the pouch\. Drop one \(`drop lantern` or `drop shield`\) or put it away first\./);
-    expect(me.tierOf(lantern)).toBe('hand');
+  it('a portable thing in the room is not yours to ready — `get` is the act', () => {
+    const { me } = makeBody();
+    const room = makeStuff(() => new Location());
+    ContainmentApi.move(me, room);
+    const stone = tool('stone', 1);
+    ContainmentApi.move(stone, room);
+    const r = me.ready(stone) as { ok: boolean; reason?: string } | null;
+    expect(r?.reason).toBe('not-on-you');
+    expect(stone.getContainer()).toBe(room);
   });
 
-  it('two hands by weight: a shield in the other hand refuses, naming it', () => {
+  it('a thing in another body is not-on-you', () => {
+    const { me } = makeBody();
+    const { me: other, plan: otherPlan } = makeBody();
+    const room = makeStuff(() => new Location());
+    ContainmentApi.move(me, room);
+    ContainmentApi.move(other, room);
+    const knife = hold(other, otherPlan, tool('knife', 0.3));
+    const r = me.ready(knife) as { ok: boolean; reason?: string } | null;
+    expect(r?.reason).toBe('not-on-you');
+  });
+
+  it('two hands by weight: a shield in the other hand refuses hands-needed, naming it', () => {
     const { me, plan } = makeBody();
     const shield = tool('shield', 4);
     shield.setSlotClaims({ [plan]: ['hand:left'] });
     me.seatInSlot(shield, 'hand:left');
-    // A home that refuses keeps the shield in hand.
-    const pouch = wornBag(me, plan, 'pouch', 'torso');
-    me.setHome(shield, pouch);
-    vi.spyOn(pouch, 'fitRefusal').mockReturnValue({ reason: 'too-big' } as never);
     const maul = tool('maul', 12);
     // Slung in a bag at the waist — on you, not in hand (the flip, W7).
     ContainmentApi.move(maul, wornBag(me, plan, 'sling', 'waist'));
     expect(handsOf(me, maul)).toBe(2);
     const r = me.ready(maul) as { ok: boolean; reason?: string } | null;
-    expect(r?.reason).toBe('hands-full');
-    expect(carryWords(me, r!)).toMatch(/shield/);
+    expect(r?.reason).toBe('hands-needed');
+    expect(carryWords(me, r!)).toMatch(/both hands — you're holding the shield/);
   });
 
   it('in a fight, `ready` starts the switch (combat prices it — CombatLogic.switch-pricing)', () => {

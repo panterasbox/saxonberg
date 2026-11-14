@@ -44,7 +44,9 @@ export default class CutController extends ManualBuildController<CutModel> {
     const target = (model.target?.stuff ?? null) as Stuff | null;
     const raw = model.target?.raw?.trim() || null;
     // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
-    const tools = PerceptionApi.reachableAmong(actor, (model.tools?.stuff ?? []) as Stuff[], { location: context.location ?? null });
+    const tools = model.tools?.defaulted === true
+      ? PerceptionApi.reachableAmong(actor, (model.tools?.stuff ?? []) as Stuff[], { location: context.location ?? null })
+      : (model.tools?.stuff ?? []) as Stuff[];
     const req: CutRequest = {
       actor,
       tools,

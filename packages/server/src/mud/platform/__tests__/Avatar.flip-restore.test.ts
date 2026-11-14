@@ -294,6 +294,29 @@ describe('the flip across a restart (drive 21)', () => {
     expect(cup.getContainer()).toBe(room);
     expect(told.join(' ')).toMatch(/Your tin cup would not fit anywhere on you; it is at your feet\./);
   });
+
+  it('⭐ a snapshot carrying a retired `homes` slice restores with no error and no homes (W10)', async () => {
+    const room = makeStuff(() => new Location());
+    const avatar = makeAvatar('flip-homes');
+    ContainmentApi.move(avatar, room);
+    const c = good(CUP, 'cup');
+    ContainmentApi.move(c, avatar);
+    const key = Avatar.getTemplatePath('flip-homes');
+    await PersistableApi.capture(avatar, key);
+    logout(avatar);
+    // A record written before W10: the carrier's homes slice rides along.
+    const rec = snapshots.find((d) => d.owner === key) ?? snapshots.at(-1)!;
+    (rec.state as Record<string, unknown>).CarryingMixin = {
+      homes: [{ item: { kind: 'path', path: [0], templatePath: CUP }, home: { kind: 'path', path: [0], templatePath: CUP } }],
+    };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const reborn = makeAvatar('flip-homes');
+    ContainmentApi.move(reborn, room);
+    await PersistableApi.materialize(reborn, key);
+    const c2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === CUP);
+    expect(c2 && reborn.tierOf(c2)).toBe('hand');
+    expect(warn.mock.calls.some((args) => String(args[0]).includes("unclaimed 'CarryingMixin' slice"))).toBe(true);
+  });
 });
 
 describe('a pocketed key that is OWNED, across a restart (W9, D-W9-7)', () => {

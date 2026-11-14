@@ -68,7 +68,9 @@ describe('consign takes what you carry, never what you wear', () => {
     ContainmentApi.move(key, room);
     ContainmentApi.move(mug, me);
     ContainmentApi.move(key, me);
-    me.stow(key);
+    // `stow` routes it off the hands by the one order (D-W10-2): the shirt's pocket.
+    expect(me.stow(key)).toBeNull();
+    expect(key.getPlacement()?.name).toBe('breast pocket');
     expect(me.wears(mug)).toBe(false);
     expect(me.wears(key)).toBe(false);
     for (const g of [mug, key]) {

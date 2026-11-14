@@ -213,7 +213,3 @@ export function carryWords(giver: Stuff, r: unknown): string {
   return makeStuff(() => new WordsProbe()).carryRefusalWords(giver, r as never);
 }
 
-/** The words a verb's controller gives a readying (`CommandController.readiedWords`). */
-export function readiedWords(giver: Stuff, out: unknown): { self: string; peer: string } | null {
-  return makeStuff(() => new WordsProbe()).readiedWords(giver, out as never);
-}

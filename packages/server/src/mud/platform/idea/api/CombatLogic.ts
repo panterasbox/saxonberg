@@ -4240,8 +4240,8 @@ function gripSlotFor(actor: Stuff, target: Stuff): string | null {
  */
 function performSwap(actor: Stuff, target: Stuff | null): void {
   if (!MixinApi.isSlotted(actor) || !target) return;
-  // ⭐ A carrier brings it to hand its own way (size and carrying D16):
-  // what is in the hand goes home, the thing comes out of its holder. A
+  // ⭐ A carrier brings it to hand its own way (size and carrying D16;
+  // D-W10-3): into a free hand, out of its holder. A
   // thing that is not a weapon is held, never the instrument
   // (`wieldedWeapon` reads weapons only).
   if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
@@ -4403,27 +4403,17 @@ function beginSwitchImpl(
 
 /**
  * ⭐ The game-seconds a carrier's switch to `item` costs (size and carrying
- * D16): each held thing in the way going home (a reach, or a draw into a
- * shaped holder; plus the undoing of a fastened one), then `item` coming
- * out of where it is (a clip, a sheath slot or a shaped holder is the draw;
- * a pocket or a pouch a reach, plus the unfastening). The dials are
- * `combat.*`.
+ * D16; D-W10-3): `item` coming out of where it is (a clip, a sheath slot or
+ * a shaped holder is the draw; a pocket or a pouch a reach, plus the
+ * unfastening). Nothing is put away for you — a hand in the way is a
+ * refusal before any switch, never a price. The dials are `combat.*`.
  */
 function switchSecondsFor(actor: Stuff & Carrying, item: Stuff): number {
   const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
   const reach = dial(AppSettingKeys.combatReachSeconds, 3);
   const unfasten = dial(AppSettingKeys.combatUnfastenSeconds, 3);
   if (actor.tierOf(item) === 'hand') return 0;
-  const into = (home: Stuff): number => {
-    if (MixinApi.isContainer(home) && home.getShapedTo() !== null) return draw;
-    return reach + (MixinApi.isSealable(home) && !home.isOpen() ? unfasten : 0);
-  };
-  let away = 0;
-  for (const held of actor.handsToFree(item)) {
-    const home = actor.homeOf(held);
-    away += home === null ? reach : into(home.host);
-  }
-  return away + outOf(actor, item, { draw, reach, unfasten });
+  return outOf(actor, item, { draw, reach, unfasten });
 }
 
 /** One half of a switch: `item` coming out of where it sits on `actor`, in seconds. */
@@ -4450,7 +4440,7 @@ function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; refusal?
   const backup = findBackupWeapon(actor);
   if (!backup) return { ok: false, reason: "no-sidearm" };
   // ⭐ `fight draw` is a readying (size and carrying D16): the holder
-  // prices it — a sheath is the draw dial, the hand's own load goes home.
+  // prices it — a sheath is the draw dial; a hand in the way is refused.
   if (MixinApi.isCarrying(actor) && actor.handSlots().length > 0) {
     if (!sessionForImpl(actor)) return { ok: false, reason: "not-in-combat" };
     const refused = actor.ready(backup);

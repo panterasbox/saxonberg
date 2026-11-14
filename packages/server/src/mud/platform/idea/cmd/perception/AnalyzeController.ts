@@ -42,7 +42,9 @@ export default class AnalyzeController extends CommandController<ReadCommandMode
       return;
     }
     // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
-    const tools = PerceptionApi.reachableAmong(context.commandGiver, model.tool?.stuff ?? [], { location: context.location ?? null });
+    const tools = model.tool?.defaulted === true
+      ? PerceptionApi.reachableAmong(context.commandGiver, model.tool?.stuff ?? [], { location: context.location ?? null })
+      : model.tool?.stuff ?? [];
     await reading.runAnalyze(context, model.subject, tools);
   }
 }

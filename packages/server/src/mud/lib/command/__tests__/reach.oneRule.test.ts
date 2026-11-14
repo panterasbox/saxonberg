@@ -185,7 +185,7 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     ContainmentApi.move(ready, room);
     // Packed: bound (it is the nearest you perceive), then refused in words.
     expect(await run('use knife')).toBeNull();
-    expect(refusal()).toMatch(/rucksack is on your back — take it off first\.$/);
+    expect(refusal()).toMatch(/rucksack is on your back — take it off first \(`remove rucksack`\)\.$/);
     expect(packed.reachRefusal(me)?.reason).toBe('packed');
     ContainmentApi.move(packed, room);
     expect(await run('use knife')).toBe(floor);
@@ -197,6 +197,6 @@ describe('reach — one rule: hand · ready · packed · room (D17)', () => {
     ContainmentApi.move(k, satchel);
     satchel.setOpen(false);
     expect(await run('use knife')).toBeNull();
-    expect(refusal()).toMatch(/satchel is shut\.$/);
+    expect(refusal()).toMatch(/satchel is shut — `open satchel` first\.$/);
   });
 });

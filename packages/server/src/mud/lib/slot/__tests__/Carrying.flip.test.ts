@@ -202,7 +202,7 @@ describe('the flip — nothing loose on a body', () => {
     expect(me.heldThings()).not.toContain(key);
   });
 
-  it('⭐ a readied key out of a pocket goes home to that pocket (W9: the pocket before the coat)', async () => {
+  it('⭐ a key out of a pocket comes to a free hand; `stow` puts it in the FIRST pocket that takes it by order (no home)', async () => {
     const { room, me, trousers } = await newcomer();
     const key = good('key', 0.02, [0.06, 0.025, 0.003]);
     ContainmentApi.move(key, room);
@@ -211,10 +211,10 @@ describe('the flip — nothing loose on a body', () => {
     const readied = me.bringToHand(key);
     expect(readied.ok).toBe(true);
     expect(me.tierOf(key)).toBe('hand');
-    expect(me.homeOf(key)).toEqual({ host: trousers, region: 'right pocket' });
     expect(me.stow(key)).toBeNull();
     expect(key.getContainer()).toBe(trousers);
-    expect(key.getPlacement()).toEqual({ host: trousers, name: 'right pocket' });
+    // The left pocket comes first in the trousers' order — not "its" right.
+    expect(key.getPlacement()).toEqual({ host: trousers, name: 'left pocket' });
   });
 
   it('⭐ D37 in a pocket: a guest\'s borrowed key goes back to its owner, a found pebble is dropped (W9)', async () => {

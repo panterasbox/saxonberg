@@ -863,12 +863,24 @@ async function restoreState(
       await applier.apply(live, data, { mode: 'restore' });
     },
   };
-  for (const c of MixinApi.getPersistenceContributors(
+  const contributors = MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
-  )) {
+  );
+  for (const c of contributors) {
     if (!c.hydrateSlice) continue;
     const slice = state[c.key];
     if (slice) await c.hydrateSlice(target, slice, ctx);
+  }
+  // A slice no layer claims (a retired one — size-and-carrying W10's
+  // carrier homes) is skipped, and said, never an error.
+  const claimed = new Set(contributors.map((c) => c.key));
+  for (const key of Object.keys(state)) {
+    if (!claimed.has(key)) {
+      console.warn(
+        `PersistableLogic: skipped an unclaimed '${key}' slice restoring ` +
+          `${target.getTemplatePath() ?? target.stuffId} — no layer restores it.`,
+      );
+    }
   }
 
   // (5) ⭐⭐ Worn goods the host OWNS — re-worn only now, because they are

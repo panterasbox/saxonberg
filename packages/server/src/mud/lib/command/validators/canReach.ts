@@ -69,7 +69,8 @@ function keywordOf(x: Stuff): string {
 /** `x` as the giver names it — *your belt pouch* when it is on them, else as they perceive it. */
 function holderWords(giver: Stuff, x: Stuff): string {
   const onYou = MixinApi.isCarrying(giver) && giver.tierOf(x) !== 'elsewhere';
-  return onYou ? `Your ${x.presentationPhrase().bare()}` : GrammarApi.cap(x.describeFor(giver));
+  const bare = x.presentationPhrase().bare().replace(/^(a|an|the) /i, '');
+  return onYou ? `Your ${bare}` : GrammarApi.cap(x.describeFor(giver));
 }
 
 const validator: FieldValidator = (value, field, context) => {

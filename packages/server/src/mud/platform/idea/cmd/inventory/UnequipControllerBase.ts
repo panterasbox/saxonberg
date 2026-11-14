@@ -252,6 +252,11 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
      * cursed item in your pack refuses nothing — the curse is a fact
      * about wearing it, not about owning it.
      */
+    // The hand(s) it is in now — where it goes back if nothing on you takes
+    // it (D-W10-2: `unwield` with nowhere to put a thing leaves it in hand).
+    const left = MixinApi.isSlottable(target)
+      ? [...target.occupiedSlots()].find(([host]) => host.stuffId === giver.stuffId)?.[1] ?? []
+      : [];
     const release = giver.tryReleaseFromSlots(
       target as Parameters<typeof giver.tryReleaseFromSlots>[0],
     );
@@ -306,18 +311,31 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
     if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
-    // ⭐ Nothing loose on a body (size and carrying D11, W8): what came off
-    // is put up where it lives (its sheath, else the first place on you it
-    // fits) or comes to hand (drive step 9's backpack) — and with neither,
-    // it is set down where you stand, said so. A body with no hands sets
-    // down what came off it: handed back, its tack would only go on again.
+    // ⭐ Nothing loose on a body (size and carrying D11, W8; D-W10-2): a held
+    // thing put up goes off the hands by the one documented order (a
+    // pocket, a hook on the belt, a pouch or bag you wear, the pack) — and
+    // with none, it goes back in the hand it left and you are told; never
+    // the floor, never a guess. A worn thing taken off comes to hand (drive
+    // step 9's backpack), else is set down where you stand, said so. A body
+    // with no hands sets down what came off it.
     if (
       MixinApi.isCarrying(giver) &&
       MixinApi.isContainable(target) &&
       target.getContainer() === giver &&
       !giver.isHonest(target)
     ) {
-      if (wieldy) giver.stow(target);
+      const refused = wieldy ? giver.stow(target) : null;
+      if (refused !== null) {
+        drop();
+        giver.directMove(target, { kind: 'seat', slots: [...left] });
+        const kw = (MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined) ?? target.presentationPhrase().bare();
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`There is nowhere on you to put ${Mml.thing(target)} — it stays in your hand. \`drop ${kw}\`, or \`put\` it somewhere by name.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: refused.reason, detail: target.getPresentation() });
+        return 'refused';
+      }
       // `move` routes it: a hand, a pocket, a bag, else set down (the
       // routing's line). A handless body's tack would route straight back
       // on, so it is set down where the body stands.
@@ -326,11 +344,20 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     }
 
     if (!quiet) {
+      // ⭐ Where it went is said (D-W10-2: the one order, told, never silent).
+      const pair = MixinApi.isContainable(target) ? target.getPlacement() : null;
+      const at = MixinApi.isContainable(target) ? target.getContainer() : null;
+      const where =
+        pair !== null && pair.host.stuffId !== giver.stuffId
+          ? ` — ${pair.name === 'from' ? 'on' : 'in'} the ${pair.name === 'from' ? '' : `${pair.name} of the `}${pair.host.presentationPhrase().bare()}`
+          : at !== null && at.stuffId !== giver.stuffId
+            ? ` — in ${at.presentationPhrase().definite()}`
+            : '';
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           wieldy
-            ? Mml.compose`You put up ${Mml.thing(target)}.`
+            ? Mml.compose`You put up ${Mml.thing(target)}${where}.`
             : careful
               ? Mml.compose`You peel off ${Mml.thing(target)} carefully, inside out, touching only the inside.`
               : Mml.compose`You take off ${Mml.thing(target)}.`,

@@ -17,7 +17,7 @@ import type {
   } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Carrying } from '../../../../lib/slot/Carrying';
+import type { Carrying, ReadiedOutcome } from '../../../../lib/slot/Carrying';
 import type { Container } from '../../../../lib/spatial/Container';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
@@ -256,7 +256,7 @@ export default class GetController extends CommandController<GetModel> {
     for (const thing of things) {
       const out = giver.bringToHand(thing);
       if (out.ok) {
-        const words = this.readiedWords(giver, out);
+        const words = this.drawWords(out);
         if (words !== null && MixinApi.isSensor(giver)) {
           MessageApi.scene(giver)
             .topic('act.deed')
@@ -270,6 +270,31 @@ export default class GetController extends CommandController<GetModel> {
       context.note({ kind: 'controller-rejected', reason: out.reason, detail: thing.getPresentation() });
       return;
     }
+  }
+
+  /**
+   * ⭐ A thing drawn into a free hand, in words (D-W10-3): *"You pull out
+   * your compass from your belt pouch."* / *"You draw your sword."* `null`
+   * when nothing moved. Nothing else moved — nothing is put away for you.
+   */
+  private drawWords(out: ReadiedOutcome): { self: string; peer: string } | null {
+    if (!out.moved) return null;
+    const bare = (x: Stuff): string => x.presentationPhrase().bare();
+    const at = out.from;
+    if (at.container !== null && MixinApi.isContainer(at.container) && !at.container.isAgent() && at.container.getShapedTo() !== null) {
+      return { self: `You draw your ${bare(out.item)}.`, peer: `draws ${out.item.presentationPhrase().indefinite()}` };
+    }
+    let where: string | null = null;
+    if (at.host !== null) {
+      const host = bare(at.host);
+      const named = at.region !== null && MixinApi.isPlacing(at.host) && at.host.namedRegions().includes(at.region);
+      where = named ? `your ${host}${host.endsWith('s') ? "'" : "'s"} ${at.region}` : `your ${host}`;
+    } else if (at.container !== null) where = `your ${bare(at.container)}`;
+    else if (at.slot !== null) where = `your ${at.slot.split(':')[0]}`;
+    return {
+      self: where !== null ? `You pull out your ${bare(out.item)} from ${where}.` : `You pull out your ${bare(out.item)}.`,
+      peer: `pulls out ${out.item.presentationPhrase().indefinite()}`,
+    };
   }
 
   /** Is `s` in `holder`, or placed on it? */
