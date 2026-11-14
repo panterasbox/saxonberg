@@ -230,6 +230,20 @@ information together: the breadcrumb is where you are in the world; the
 Zone block — directly above the map, which *is* the zone — is your position
 in the zone.
 
+### The whole card, and how it is fed **[DECIDED — the owner]**
+Widest to narrowest: you are here · in the world · the zone and its map ·
+the horizon · the structure · the ways · the place · you
+([map-slate § The whole card](../slates/builds/map-slate.md)). The place
+name, the map and the ways are always open; every other section is one
+summary line, opened on click, its detail in its tooltip. A section with
+nothing to say is absent. While you move through more than one room, a
+movement block shows the movement — fed generically by whatever movement
+you are in. The server pushes the card's content in sections and sends only
+what changed ([navigation-server-slate § S18](../slates/builds/navigation-server-slate.md)).
+⚠ This build ships the horizon, structure and you sections as far as their
+server items (S16, S17) land in the first pass; the movement block lands
+with the movement build.
+
 ### The rose **[DECIDED]**
 Up and down are ordinary directions between levels inside a zone, so they
 sit with the eight horizontal ones. A direction you know of no way in reads

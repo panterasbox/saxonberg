@@ -925,6 +925,58 @@ derived label; its path is a spoiler.
   atlas* — and the active route. A short *recent* list waits for the trail
   record; pinned destinations wait for notes and pins.
 
+### ⭐⭐ The whole card — widest to narrowest **[DECIDED — the owner, 2026-11-14]**
+
+The card zooms in as it goes down, every section seen through *navigating
+the game's content as you explore*:
+
+1. **You are here** — the room's name, small.
+2. **In the world** — the Locality crumbs.
+3. **The zone** — its crumbs, `x: y: z:`, who keeps it, the rules in
+   force, the map.
+4. **The horizon** — what you can see beyond this room: landmarks first,
+   each with its compass point and range (`query horizon`'s set); on the
+   map, bearing ticks at the edge.
+5. **The structure** — inside: which building, which storey, the way to its
+   entrance; outside: the structures you are **landed at** (which faces you
+   can reach — the painting landing, shown at last). Aboard ship, her decks.
+6. **Boundaries** — the ways section (the rose with up and down, the other
+   ways, the ways leaving the zone) and what stands in each way: doors in
+   their states, windows as edges you see through and cannot cross.
+7. **The place** — the room itself (next to design).
+8. **You** — your person as a navigator: pace and endurance, load (what
+   you can climb or swim with), the light you carry, posture, a mount.
+
+**The glance rule.** Nobody reads it top to bottom, and it need not be read
+so: the **place name, the map and the ways are always open**; every other
+section is **one summary line** that opens on click, its detail in its
+tooltip. The order is fixed (muscle memory); the player chooses which
+summaries stay open, and the card remembers.
+
+**Absent, not empty.** A section with nothing to say does not appear — a
+bare cave has no horizon, no structure, no zone rules. The one exception is
+the map's *no map for this kind of space yet*. Thin places get a short card;
+rich places a full one; one card handles both.
+
+**In motion.** While you move through more than one room, a **movement
+block** sits under the place name: where to, the step you are on, what is
+left, the pace, what may stop it, *Stop* and *Walk instead*. It is fed by
+**whatever movement you are in**, generically — a queued walk now; a
+journey, a ferry, a voyage or freight later, all the same block with no new
+card code (the hedge against [logistics](./logistics-slate.md) and
+[freight](./freight-slate.md)). The ways dim while you move; a click on one
+stops the walk and steps that way.
+
+**The wire.** The card is a docked slot, so it updates implicitly: the
+server **pushes one structured navigation payload in sections**, each with
+its own version and its own triggers, and sends **only the sections that
+changed** (a step resends the ways and the place, the horizon only if the
+view changed). Your knowledge rides the replica separately. While a queue
+of steps runs, pushes coalesce to one per beat. Commands are only for what
+the card asks for on demand — the refresh, a tooltip's round trip.
+Payload sizes are estimates; the plan measures them
+([navigation-server-slate § S18](./navigation-server-slate.md)).
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against

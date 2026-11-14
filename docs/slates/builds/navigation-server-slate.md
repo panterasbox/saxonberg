@@ -155,6 +155,34 @@ zone, and the copy's coordinates. House A and house B are separate on your
 map from day one, and when zone instancing makes that key a real zone, the
 claims already carry its identity: no migration.
 
+### S16 — The horizon as data **[first pass]**
+`query horizon` lists what can be seen from here beyond the room —
+landmarks first, each with its compass point and range — but in prose. The
+card's horizon section and the map's bearing ticks need it as data, resent
+when what is in view changes.
+
+### S17 — The structure as data **[first pass]**
+`Whereabouts` carries only the building's name. The card wants, cheaply:
+the storey you are on and the storeys, the entrance and the way to it,
+height, landmark, whether its title is sold, and — outside — the
+structures you are **landed at** (`Place.landedStructuresNow()`), i.e. the
+faces you can reach.
+
+### S18 — The navigation payload, pushed in sections **[first pass]**
+`Whereabouts` grows into one structured payload in sections — zone, horizon,
+structure, ways, place, you, movement — each versioned, each with its own
+triggers (a move; a Locality change while drifting, S12; a door you can see
+opening; a change of pace, load or posture), and the server sends only the
+sections that changed, coalescing to one push per beat while steps are
+queued. Measure the sizes before committing to the shape.
+
+### S19 — Movement in progress, from the engagement **[first pass / follow-up]**
+The movement block reads whatever movement engagement you are in: its
+destination, legs done and left, ETA, pace, and what would stop it. The
+shipped Journey ([logistics.md](../../subsystems/logistics.md)) exposes its
+progress this way; the queued walk (the movement build) does too; voyages
+and freight later. One shape, so the card never learns a new transit kind.
+
 ### S14 — *Terminus City* **[first pass — content]**
 Two Localities are both named *Terminus* (the realm and the city), so the
 crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`)
