@@ -40,7 +40,7 @@ weight is [encumbrance.md](./encumbrance.md). The slots are
 | the hands | `Attired` (`handSlots`, `heldThings`, `wears`) | the slot substrate's fact — any body's hands by its plan |
 | `CARRYING_DEFAULTS` | top of `Carrying.ts` | the grip dials (one-hand fraction, two-hand length); the awkwardness dials are `LOAD_BEARING_DEFAULTS`' |
 | `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` |
-| pockets | `PlacingMixin` named regions + the `/platform/placements/pocket` document | a region of a garment, never an object |
+| pockets | `PlacingMixin` named regions over the `/platform/placements/in` document, on a `Garment` that is a `Container` with no inside of its own | a region of a garment, never an object; the pocketed thing is the garment's contents (W9) |
 | the belt | `PlacingMixin`'s `from` member + its hanging length | a `Garment` row with `placements: [from]` — no belt class |
 | worn and hung containers | `Pack` (`Wearable(Slottable(Vessel))`, composes `Placing` and `Sealable`) | a satchel, a rucksack, a belt pouch, a pannier, a holster (`shapedTo:`) |
 | the words | `CommandController.carryRefusalWords` · `readiedWords` | the body reports facts; the verb words them |
@@ -191,7 +191,7 @@ slots and the placement pairs, never stored:
 | tier | what | a … |
 |---|---|---|
 | **hand** | in a hand slot | the mug you are holding |
-| **ready** | worn; or hung `from` / pocketed on a worn host; or inside a container that is worn off the back, hung or pocketed | a key in a pocket, a holster on the belt, the canteen clipped to a pack's strap, the satchel at your side and what is in it |
+| **ready** | worn; or hung `from` a worn host; or in a pocket of a worn garment (the garment's contents); or inside a container that is worn off the back, hung or pocketed | a key in a pocket, a holster on the belt, the canteen clipped to a pack's strap, the satchel at your side and what is in it |
 | **packed** | inside a container in the `back` slot | the rucksack's contents — *take it off first* |
 | **elsewhere** | not on this body | — |
 
@@ -199,16 +199,23 @@ The slot named `back` is what makes a pack's inside packed: a satchel
 row claims `[torso]` and is ready, a rucksack claims `[back]`. Two rows,
 no flag. `inventory` buckets what is directly on a body by `tierOf`
 (held · regions · worn · ready containers · packed containers — the
-controller's `tiersOf`); the carrier's private `carryPlaces()` is the
+controller's `tiersOf`; a worn garment's pockets print by region under
+*Ready*, and a **holder** is a container with an inside of its own — a
+satchel, never a coat); the carrier's private `carryPlaces()` is the
 arrival walk's order: worn pockets, then containers hung from or pocketed
-on a worn host, then worn containers off the back, then the back.
+on a worn host (a purse in a coat pocket is one — W9), then worn
+containers with an inside off the back, then the back. A `CarryPlace` is
+`{ host: Container; region? }` — a pocket's host is a Container now.
 
 ## Homes
 
 A home is **the carrier's knowledge** of where a thing lives — no field
 on the thing (a brick has no home). `put <thing> in/on <container on
 me>` sets it (`ContainmentLogic.putPlanFor`'s completion), and so does
-`bringToHand` when a thing had none. `setHome(item, host, region?)` —
+`bringToHand` when a thing had none — remembering the **pocket before
+the container** (a key out of a pocket is the coat's contents; its home
+is the pocket, not the coat — W9). `put key in left pocket` on a worn
+coat sets the home too (a `region` route). `setHome(item, host, region?)` —
 a home can be a pocket by name, and `homeOf(item)` answers
 `{ host, region? }`. Homes are forgotten **lazily**: `homeOf`
 drops one when either end has left the body, so `drop`, `give` and a
@@ -274,19 +281,25 @@ beat (*you have the sword in hand*). No competence term yet. See
 ## Pockets — named placement regions
 
 A pocket is a **region its garment offers**, never an object. `Garment`
-composes `PlacingMixin` with a class default of no placements, and a row
-names its pockets as entries over the `/platform/placements/pocket`
-document (`encloses: true`, words *into* / *in*):
+composes `PlacingMixin` over `ContainerMixin` with a class default of no
+placements and **no inside of its own** (`hasInterior() === false`), and a
+row names its pockets as entries over the `/platform/placements/in`
+document (`encloses: true`, words *in* / *into*):
 
 ```yaml
 placements:
-  - { member: /platform/placements/pocket, name: left pocket,
+  - { member: /platform/placements/in, name: left pocket,
       mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }
 ```
 
-The pocketed thing lives in the **wearer's** contents with the pair
-`(trousers, left pocket)` — as the ham lives in the room with `(hook,
-from)`. The entry's `mouth` and `volumeM3` are the tape measure
+⭐⭐ **A pocket is a region of its garment, which is a Container; the key
+is the coat's contents** (owner, 2026-11-13 — *an enclosing relation is
+containment; a supporting or hanging relation is a pair*; size and
+carrying W9). The pocketed thing has `container = the trousers` and the
+pair `(trousers, left pocket)`; it walks key → trousers → body for every
+tier, honesty and reach read. A shirt with no pockets holds nothing:
+`put key in shirt` offers no region, and `move(key, shirt)` throws. The
+entry's `mouth` and `volumeM3` are the tape measure
 (realistic: a key, a coin, a matchbox go in a trouser pocket; a mug does
 not). **`covered: true`** (an inner pocket) hides it from other people;
 an outer pocket is covered when its garment is not outermost. **`closes:
@@ -331,13 +344,14 @@ slot and hangs; a bumbag claims `[waist]` (its own strap).
 ## ⭐ What is placed on a thing travels with it (D33)
 
 `ContainmentLogic.moveCore` carries every thing whose pair names a moved
-host into the host's new environment **with its pair kept** — a coat
-taken off, given away or hung in a wardrobe keeps its pocketed key; a
-belt taken off brings its pouches. The followers arrive *placed*, so a
-body receiving a coat admits them; the whole bring-along is asked of the
-destination first, so a refusal moves nothing (a body's `arrivalFor`
-admits a placed arrival). See
-[spatial.md](./spatial.md).
+host into the host's new environment **with its pair kept** — a belt
+taken off brings its pouches; a carried tray its cups. The followers
+arrive *placed*, so a body receiving a belt admits them; the whole
+bring-along is asked of the destination first, so a refusal moves nothing
+(a body's `arrivalFor` admits a placed arrival). ⭐ A coat's pocketed key
+is NOT a follower (W9): it is the coat's contents, and goes where the
+coat goes as contents do — taken off, given away or hung in a wardrobe, it
+is still in its pocket. See [spatial.md](./spatial.md).
 
 ## Leading and hitching
 

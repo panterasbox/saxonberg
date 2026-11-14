@@ -170,10 +170,13 @@ Detach is `ContainmentApi.move(item, null)`. A direct
 - ⭐⭐ **A body places what arrives — `arrivalFor`; a carrier ROUTES** (size
   and carrying W8; owner, 2026-11-13). Beside `canAddContainable`, every
   container has `arrivalFor(item, how?)` — where IN it an arrival goes —
-  and `move` asks it of a destination that is an agent: `contents`
-  (admitted — placed, an agent, being seated, admitted by the restore),
+  and `move` asks it of **every Container destination given no word**
+  (W9): `contents` (the default for a container with an inside; on a body,
+  admitted — placed, an agent, being seated, admitted by the restore),
   `seat` (a hand, a mule's tack → `Slotted.seatInSlots`), `pair` (a worn
-  host's pocket or hook → `placeOn`), or `refuse`. This is the `Placing`
+  host's pocket or hook, or — for a container with no inside of its own,
+  `Container.hasInterior() === false`, a coat — its own first enclosing
+  region that takes the thing), or `refuse`. This is the `Placing`
   precedent again: the destination decides where inside it the thing sits.
   ⭐⭐ A `refuse` on a **carrier** is the carrier's: `Carrying.routeArrival`
   (gated to the chokepoint) lands the thing ON the body — a true move, the
@@ -363,11 +366,19 @@ other.
 | Apple in inventory | the actor | `null` |
 | Apple on a desk inside a chest | the chest | `{ desk, 'on' }` |
 | Ham hanging from a hook in a room | the room | `{ hook, 'from' }` |
+| Key in a coat's pocket | the coat | `{ coat, 'left pocket' }` |
+| Board in the drying loft | the loft | `null` |
 
-⭐ **The host is always a SIBLING in the same contents list** — that is
-the structural insight the whole design rests on, and it is why the
-persisted form is an *index into the container's own slice*
-(`ContentPlacement`, below) rather than a reference.
+⭐⭐ **An enclosing relation is containment; a supporting or hanging
+relation is a pair** (owner, 2026-11-13 — size and carrying W9). For `on`
+and `from` the host is a **SIBLING** in the same contents list — a mug on a
+desk is in the room's air, light and view — which is why the persisted form
+is an *index into the container's own slice* (`ContentPlacement`, below)
+rather than a reference. For an **enclosing** member (`in`) the host is
+**the container itself**: a key in a coat's pocket is the coat's contents,
+and its pair names the region (`{ coat, 'left pocket' }`). `getPlacement()`
+answers the same for a pocketed key as it always did; `getContainer()` now
+answers the coat; `getEnclosingScope()` answered the coat already.
 
 The "apple in the room" intuition is preserved: the room's
 `getContents()` includes the apple directly, not through any indirect
@@ -377,7 +388,7 @@ A desk-with-drawer composes BOTH `Container` (the drawer-as-part,
 `container = desk`) AND `Placing` (the apples on top, `container =
 room`). The two collections are independent and non-overlapping.
 
-### ⚠⚠ Two composition refusals, enforced at registration
+### ⚠⚠ Three composition refusals, enforced at registration
 
 `PlacingMixin.__validateComposition__` throws on first registration of
 a concrete class (`assertComposable`, dispatched from
@@ -395,6 +406,11 @@ the throw, with a control class that must register cleanly.
    *which exits does each region afford* is a question the model
    refuses to answer. Put a `Fitting` or a `Chamber` in its contents
    instead (that is how a boot works), or write the class.
+3. **A Placing host offering an ENCLOSING member must compose
+   `ContainerMixin`** (W9) — what is in a region of a host is its
+   contents. The class half refuses a class default naming `in`; the row
+   half is `setPlacements`, which throws `TypeError` once the member
+   documents load and one encloses on a host that holds nothing.
 
 ### The `Placement` vocabulary — a member is a DOCUMENT
 
@@ -417,12 +433,12 @@ constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
 | `prose` (one Liquid template) | `put`, `dry` |
 | `heading` | the `look` / `sense` drill-in |
 
-Four ship: `on` (`[on, onto]`), `in` (`[in, into]`, `encloses: true`),
-`from` (`[from, on]`, **`hangs: true`, `fastens: true`** — a hung thing
-is clipped or tied: bounded by a length, and it stays put in water and
-zero g) and `pocket` (`[into, in]`, `encloses: true` — size and carrying
-D26). A Placement document's `hangs`/`fastens` say what the relation
-does; `on` fastens nothing.
+Three ship: `on` (`[on, onto]`), `in` (`[in, into]`, `encloses: true`)
+and `from` (`[from, on]`, **`hangs: true`, `fastens: true`** — a hung
+thing is clipped or tied: bounded by a length, and it stays put in water
+and zero g). A Placement document's `hangs`/`fastens` say what the
+relation does; `on` fastens nothing. (`pocket` was a fourth, `[into, in]`,
+from D26 until W9: a pocket is a named `in` region of a Container now.)
 
 ⭐ **A host's `placements:` entries may be NAMED regions.** An entry is a
 bare path (one member, named by its leaf — the shipped rows) or
@@ -431,11 +447,11 @@ bare path (one member, named by its leaf — the shipped rows) or
 ```yaml
 # a coat's row
 placements:
-  - { member: /platform/placements/pocket, name: left pocket,
+  - { member: /platform/placements/in, name: left pocket,
       mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
-  - { member: /platform/placements/pocket, name: breast pocket,
+  - { member: /platform/placements/in, name: breast pocket,
       mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true }
-  - { member: /platform/placements/pocket, name: inner pocket, covered: true,
+  - { member: /platform/placements/in, name: inner pocket, covered: true,
       mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006 }
 ```
 
@@ -449,9 +465,15 @@ region from other people; `closes` fastens it (pressing and perception
 treat it as shut). The class default is the static
 `PlacingMixin.defaultPlacements` (`[on]`); `Garment` and `Pack` say `[]`,
 so a garment with no pockets honestly offers nothing. **A pocket is never
-an object**: the pocketed thing lives in the *wearer's* contents with the
-pair `(coat, left pocket)`, exactly as the ham lives in the room with
-`(hook, from)`.
+an object**: it is a region of its garment, which is a `Container` with no
+inside of its own (`hasInterior() === false` — W9, D-W9-13: every garment,
+since any garment may have a pocket and that is the row's choice); the
+pocketed thing is the coat's contents with the pair `(coat, left pocket)`.
+`move(key, coat, 'left pocket')` is `placeIn` — the region's `canPlace`,
+then into the coat's contents (the container's own tape measure is not
+asked for a named region), then the pair. A pack with an inside AND a
+named `in` side pocket asks *which* for `put map in pack` — honest, and no
+shipped row does it.
 
 ⭐ **`from` lists `on` as a SECONDARY word**, which is how `put ham on
 hook` reaches a `from`-only host and gets told *"You hang the ham from
@@ -554,11 +576,17 @@ read is a walk and not a second step. See
 [thermal.md](./thermal.md) § *Two questions, one step apart*.
 
 **The pair IS persisted**, by the container's slice.
-`ContentPlacement { hostIndex?, placement? }` in
+`ContentPlacement { hostIndex?, hostChattelId?, placement? }` in
 `lib/persistence/PersistenceSlice.ts` records the host's **index
-within the same contents list** plus the member's **path**
-(`/platform/placements/on`);
-`PersistableLogic`'s placement pass re-`place`s on restore. (An older
+within the same contents list** (or its chattel id, when the host is an
+owned good the estate carries) plus the member's **path**
+(`/platform/placements/on`) or the host's region name;
+`PersistableLogic`'s placement pass re-`place`s on restore. ⭐ A region of
+the container ITSELF (a pocket's key, W9) records `{ placement: 'left
+pocket' }` with no host field, inside the coat's own slice; `restoreItem`
+moves the clone straight into that region (a stale record is logged and
+the host's arrival decides). An owned key in a coat's pocket rides the
+owner's estate with `placedOn` naming the coat, and pass (6) puts it back. (An older
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
 
@@ -571,9 +599,15 @@ crossing exits, arriving through `move`. There is no third call
 (`place` and `land` were folded in by the assembly build, 2026-10-12).
 
 A destination that offers placements and holds nothing — a desk, a
-drying loft, a rack — is a placement: `move(apple, desk)` puts it ON
-the desk (the host's default member), and `move(ham, rack, 'from')`
-names the member when a host offers several.
+rack — is a placement: `move(apple, desk)` puts it ON the desk (the
+host's default member), and `move(ham, rack, 'from')` names the member
+when a host offers several. ⭐ A word naming an ENCLOSING region of a
+Container (`move(key, coat, 'left pocket')`, or `in` on a desk with a
+drawer region) is `placeIn` — into the host's contents, pair kept (W9). A
+word that names no region is accepted on a container with an inside iff
+it is region zero's own (`in`, `into`, `Placements.IN`: plain contents —
+`move(board, loft, Placements.IN)`) and **throws** otherwise; a word is
+never silently ignored.
 
 ```typescript
 ContainmentApi.move(apple, desk);
@@ -621,23 +655,27 @@ upstream by `put`, which reads the veto's `reason` into prose.
 
 When `moveCore` moves a host, every thing whose placement pair names
 that host (found in the host's **old** environment) follows it into the
-new environment **with its pair kept** — a coat taken off, given away or
-hung in a wardrobe keeps its pocketed key; a carried tray brings its
-cups; a belt taken off brings its pouches. It is `moveCore` recursing on
+new environment **with its pair kept** — a carried tray brings its cups;
+a belt taken off brings its pouches. ⭐ This is the SIBLING pair's rule
+(`on`, `from`). What is IN a thing — a coat's pocketed key — is its
+contents and travels as contents, with no follow at all (W9, D-W9-8). It is `moveCore` recursing on
 itself (never `ContainmentApi.move`, which would clear the pair), so
 witnesses fire and custody follows for each follower. Before anything
 moves, the whole bring-along (`bringAlong`, recursive, one cycle guard)
 is asked of the destination's `canAddContainable(f, { placed: true })`,
-each follower on its own — so a body admits a coat's pocketed things as
-placed, and a chest that cannot fit the tray's cups refuses the tray. A
+each follower on its own — so a body admits a belt's pouches as placed,
+and a chest that cannot fit the tray's cups refuses the tray. A
 creature placed on a moved host steps off (pair cleared, stays); a host
 moved to `null` drops what was on it where it stood.
 
 ### `Placing.getPlaced(name?)`
 
 Lazy walk; no maintained forward collection. The host walks its own
-environment's contents and filters on `getPlacement()`. With a `name`,
-only that member's items. For typical room sizes the walk is cheap;
+environment's contents — and, when it is itself a Container, its own
+contents (an enclosing region: a pocket, W9) — and filters on
+`getPlacement()`. With a `name`, only that member's items.
+`Container.getLooseContents` never lists a thing in a region of the
+container (it is listed under its region). For typical room sizes the walk is cheap;
 hosts with very many placed items are content design that hasn't
 earned a forward index.
 
@@ -648,7 +686,8 @@ order: the name is not offered → `no-such-placement`; the member
 `encloses` and the host is a closed `Sealable` → `shut`; **the member
 fit** (size and carrying D4) — a region whose member `encloses` (a
 pocket) checks the entry's `mouth` (`too-big-for-mouth`) and `volumeM3`
-over what it already holds (`no-room`); a member that `hangs` checks the
+over what it already holds (`no-room` — what it holds is the host's own
+contents in that region, W9); a member that `hangs` checks the
 summed hanging widths against `hangingLengthM()` (`no-room-along` — the
 first thing always hangs: a hook is a point) and the summed mass against
 `bearsKg()` (`too-heavy-for`); `on` bounds nothing — else ok.
@@ -1347,7 +1386,8 @@ arrives (`arrivalFor`, W8 — the W7 `loose-on-body` veto and the
 `receive` family it guarded are gone), a carrier routes the rest (W8i —
 onto the body, then a bag or the floor, every step a true move) and
 `move` throws on a non-carrier; placement
-entries became named regions (`pocket` the fourth member, `from` gained
+entries became named regions (`pocket` the fourth member until W9 folded
+it into `in` — a pocket is a region of a Container — `from` gained
 `hangs`/`fastens`, the member fit in `canPlace`, the hanging length);
 `moveCore` carries a host's placed things with it (D33); `put` names
 pockets and `give` hands over with `directMove`. See [carrying.md](./carrying.md)

@@ -373,7 +373,8 @@ sync at the enumeration seams by warming it into
    THIS viewer found on it by searching while it still holds it (D24a —
    `BeliefPayload.foundOn`); never its loose pockets or an implant. An
    open pocket of an outer coat shows; under a cloak it does not (the coat
-   is no longer outermost). What holds the viewer is the viewer's side of
+   is no longer outermost). (The pocket rule reads the pair's host, which
+   for a pocketed thing is the container itself — the coat — since W9.) What holds the viewer is the viewer's side of
    its lid.
 3. concealment, discovery and light (unchanged).
 

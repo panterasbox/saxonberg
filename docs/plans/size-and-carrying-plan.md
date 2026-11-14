@@ -2992,6 +2992,53 @@ not a question: (1) **the drying loft** becomes a Container (D-W9-12) — the sa
 tests; (2) **a pack with a named side pocket asks** *"the inside or the side pocket?"* where D26-c chose the
 main silently (D-W9-9) — no shipped row has one.
 
+
+**✅ Done — W9 (4326f7a23 W9a · fd29d2dcf W9b · 3b63f4daa W9c · e55dc0a7e W9d · dc11127dd W9e · W9f this docs commit).** An enclosing relation is containment: `Container.hasInterior()` (Garment `false`), `arrivalFor`'s region choice for every Container given no word, `canAddContainable(item, { placed, region })`, `placeIn` beside `placeOn`, refusal 3 and the `setPlacements` row check, `getPlaced` over its own contents, pressing per region; 31 pocket entries cite `in` and `pocket` is deleted; a pocketed key persists in its coat's slice (and an owned one in the estate, `placedOn` naming the coat); the carrier, `inventory` and `search` read pockets as contents; the drying loft is a Container. Verified per sub-commit: server `tsc`, `test:near` vs the previous commit, the touched packs' vitest + `tsc`, the gates the plan names (individually); after W9f every pack's vitest and every `lint:*` individually (see the W9 report). The drive and the walk are /finalize's.
+
+#### Decided while building W9
+
+- **W9-a — the readers that had to move with the flip went in W9a**, not W9c/W9d: once
+  a pocketed key's container is the coat, every reader of "the body's contents" sees it
+  gone at once, so W9a (to stay green) carried `PerceptionLogic.visibleContentsOf` (a
+  self-region thing is listed under its region, never as *In it*), `InventoryController.
+  tiersOf` (a worn garment's pockets print under *Ready* exactly as before; a holder is a
+  container **with an inside** — the plan's "or an enclosing region offered" is dropped,
+  since a coat-as-holder would print *coat: empty* beside its pocket line), `Carrying.
+  carryPlaces` skipping a worn container with no inside, and test re-assertions across
+  perception, binder, flip-restore and three pack tests. W9c/W9d kept the rest.
+- **W9-b — four pack brains/tests read the body's contents for "what it carries"**
+  (`trade-shopkeeping` stocks + consigns, `trade-farming` farms; the distilling and
+  terminus tests) and now count what is in a pocket of what the body wears. Not in the
+  plan's list; found by running those packs' vitest at W9a.
+- **W9-c — `CarryPlace` keeps its sibling arm.** The plan narrowed it to
+  `{ host: Container; region? }`; a hanging region's host (`hangHostFor` — a belt, a
+  halter) need hold nothing, so the type is `{ host: Container; region? } | { host:
+  Placing; region }`. `Carrying` stays at 14 interface members.
+- **W9-d — the region's name reaches the prose and the drill-in.** `in.yaml`'s prose
+  names the region only when the host names it (`PutController` passes `''` for region
+  zero and a bare member, which are paths); `LookController` heads a named region's line
+  *In its left pocket* — the shared member heading (*In it*) would have printed the same
+  line for every pocket.
+- **W9-e — three test fixtures offered an enclosing region on a host that holds nothing**
+  (`PutController`'s compartment, `Containable`'s enclosing host, `perception.can-reach`'s
+  compartment): they compose Container with no inside, as refusal 3 requires.
+- **W9-f — the loft's air reaches what is in it.** `Moisture.exposureOf` /
+  `exposedScopeOf` read a place's contents only; a stack is now the loft's contents, so
+  both accept a **compartment with its own air** (Atmospheric, not Exitable) at exposure
+  1 — what the loft's `in` placement gave it at the Placing default. A coach's cabin
+  (Exitable) is still enclosed. Found by `Seasoning.chamber.test`.
+- **W9-g — `DryController`**: a rack that is a Container and not Placing is checked by its
+  tape measure (`fitRefusal`) and moved into (`move(target, rack)`), worded *in the loft*;
+  `Chambered.applyChambers` requires a Containable Container.
+- **W9-h — commandContributions per worn garment (the measured risk): no growth.** A
+  wearer's recency stack goes 1 → 5 for four garments with or without `Container` on
+  `Garment` (a bystander's 1 → 1): `Container`'s `self` bucket reaches only the item
+  itself, and it contributes no `peers`/`environment`/`inventory`. No override.
+- **W9-i — `lint:duck-typing` caught a probe** (`'placement' in entry`) that W9c's named
+  gates did not run; fixed in W9d (474/474).
+- **W9-j — `lint-family.md` has no `placement-words` entry** to update (the plan's W9f
+  line assumed one); the roster is derived.
+
 ## Reachability wiring
 
 | capability | verb | affordance | data | load | arg gate |
@@ -3079,7 +3126,9 @@ idioms (drive 18's `cook`/`buy`/`give`) are W7's.
   before W5.
 - **Pocketed and hung things live in the wearer's contents, not the garment's** — so
   the host-follow is a rule of moving (D33, W5), the one place the "ham in the room"
-  model costs something; `ContainmentLogic.hostFollow.test.ts` pins it.
+  model costs something; `ContainmentLogic.hostFollow.test.ts` pins it. ⚠ *Superseded
+  for pockets by W9: a pocketed thing is the garment's contents and follows as contents;
+  only hung (`from`) and set-on (`on`) things are the wearer's, with the pair.*
 - **A belt's strength number** is a new material property with no reader before this
   build; its values are grain (leather 20 MPa, hemp 60, canvas 30, iron 200, steel 400)
   and unset is unbounded, so no shipped row changes behavior.

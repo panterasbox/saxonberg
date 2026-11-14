@@ -75,7 +75,10 @@ the model does not believe. See
 ## The object
 
 `platform/thing/equipment/Garment` =
-`Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Good))))))`.
+`Placing(Container(Tearable(Labelled(Soilable(Wearable(Slottable(Assembled(Crafted(Durable(Constructed(Dyed(Good))))))))))))`
+— ⭐ a `Container` with no inside of its own (`hasInterior() === false`):
+its insides are the pockets its row names, and what is in a pocket is the
+garment's contents (size and carrying W9; see [carrying.md](./carrying.md)).
 
 | composed | buys |
 |---|---|
