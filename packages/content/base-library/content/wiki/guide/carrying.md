@@ -38,9 +38,12 @@ your trousers, the *inner pocket* of your coat. A pocket takes small
 things. A key, a coin or a box of matches goes in a trouser pocket; a mug
 does not.
 
-- `put key in coat` puts the key in a pocket of your coat, or asks you
-  which one.
-- `put key in inner pocket` names it.
+- `put key in trousers` puts the key in the first of two plain pockets it
+  fits, and tells you which.
+- `put key in coat` asks which pocket when the coat's pockets differ — one
+  buttons, one is inside under the coat — and the question says how.
+  `look coat` shows its pockets and what differs.
+- `put key in "inner pocket"` names it.
 
 Other people can see what is in an outside pocket. They cannot see into
 an inner pocket, or a buttoned one, or a pocket covered by the coat you
@@ -51,30 +54,47 @@ wear over it.
 What you carry is at one of three distances from your hand.
 
 - **In hand**: what you are holding now.
-- **Ready**: your pockets, what hangs from your belt, the satchel at your
-  side and what is in it. A moment away.
-- **Packed**: what is in the pack on your back. To reach in, take the
-  pack off first (`remove backpack`).
+- **Ready**: what you can get at without taking anything off — your
+  pockets, what hangs from your belt, the satchel at your side and what is
+  in it.
+- **Packed**: inside something you would have to take off — the pack on
+  your back. To reach in, take the pack off first (`remove backpack`).
+
+A shut thing is shut wherever it is. A buttoned pocket or a pouch with its
+flap down has to be opened first (`open pouch`, `open "breast pocket"`),
+and nothing opens itself.
 
 `inventory` (or just `i`) lists what you carry in that order, then tells
 you how heavy your load feels.
 
 <help verb="inventory"/>
 
-## Readying {#readying}
+## Putting things away {#readying}
 
-When you use a tool (`measure` with a tape, `read` a map, `light` a
-lantern) the tool comes to your hand by itself. If your hand is already
-full, the thing in it goes back where it lives: the pocket or pouch you
-took it from, or the place you last put it. If there is nowhere for it to
-go, you are told, and nothing is dropped for you.
+A tool is used where it sits. `measure strike with compass` with the
+compass in the open pouch on your belt works, and the compass is still in
+the pouch afterwards. A shut pouch has to be opened first; a compass packed
+on your back is refused until you take the pack off.
 
-In a fight, getting a thing out costs time, and the time depends on
-where it is. A pistol in a holster or a sword in its scabbard comes out
-quickest. A thing in an open pocket or pouch takes longer. A buttoned
-pocket or a shut pouch takes longer still, because you have to undo it
-first. Nothing comes out of a pack on your back in a fight. Dropping
-what you hold is instant.
+Nothing moves into or out of your hands unless you say so:
+
+- `get compass from pouch` takes it into a free hand. With both hands full
+  you are told what you are holding and what to `drop` or put away.
+- `unwield sword` puts it away by the one rule: a pocket, a hook on your
+  belt, a pouch or bag you wear, the pack on your back, the first that
+  takes it. You are told where. If nothing takes it, it stays in your hand.
+- `drop` sets a thing down where you stand.
+
+If you want one command to do several of these, write it yourself:
+`def draw ($x) { open ($x):e ; get $x from ($x):e }` (see `help def`).
+
+In a fight, every one of these hand acts takes time, and your guard is
+down while you do it. A pistol in a holster or a sword in its scabbard
+comes out quickest. A thing in an open pocket or pouch takes longer.
+Opening a buttoned pocket or a shut pouch is its own moment. Nothing comes
+out of a pack on your back in a fight, and a gun in a pack at your feet is
+`get gun from pack`. Dropping what you hold is instant. Out of a fight,
+nothing waits.
 
 ## Belts and what hangs from them {#belts}
 

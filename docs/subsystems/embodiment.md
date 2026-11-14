@@ -306,10 +306,12 @@ hand. That pool is gone. The rule now:
   or a bag if one fits, and is told *"your hands are full"* if none does.
   That friction is the point now: what you hold is a choice that costs you
   something (see [carrying.md](./carrying.md)).
-- **Readying is the act between the tiers.** `ready <thing>` (and any verb
-  whose argument declares `readies: true` — `measure`, `read`, `light`,
-  `pour`, the crafting tools) puts the held thing back where it lives and
-  brings the named one to hand; in a fight it costs beats by holder.
+- **Readying is `get X from` / `fight switch`; nothing frees a hand for
+  you** (size and carrying W10). `get compass from pouch` brings it into a
+  FREE hand, or is refused naming what the hands hold and the ways out
+  (`drop`, `unwield`, `put`); an instrument verb (`measure`, `read`,
+  `light`, `pour`, the crafting tools) uses the tool where it sits. In a
+  fight a hand act costs a beat by holder.
 - **`wield` is still a commitment.** `wield`/`wear`/`mount`/a posture seat
   occupy slots because each is a body-level commitment; `equip` reads
   `Carrying.wieldSlots(item, claim)`, which widens a one-hand claim to two

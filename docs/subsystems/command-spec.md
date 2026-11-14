@@ -526,6 +526,10 @@ single dispatch-response envelope fires late. See
 [command-routing.md § Async dispatch](./command-routing.md#async-dispatch--detaching-the-controller-body)
 for the mechanism. Two things to know as an author:
 
+- ⭐ **A verb never waits on a holder; combat's tick is the one budgeted
+  clock** (size and carrying D-W10-13). A command resolves at once; a
+  hand act's holder cost exists only inside a live fight, as the switch's
+  guarded beat.
 - **Sync (the default) is already per-giver, never global.** A sync
   command blocks only the giver's own next command, not other players'
   input. You don't need `async` to avoid stalling the room — only to
@@ -758,31 +762,20 @@ substance on the room). `mustNotBeShutAway` is folded into it and
 deleted. Inspection verbs (`look apple`) carry no reach validator: the
 apple in your shut box is yours to look at.
 
-### ⭐ `readies: true` — the tool comes to hand (size and carrying D16)
+### `readies:` — retired (size and carrying W10, 2026-11-14)
 
-An `object`/`objects` arg may declare `readies: true`: the dispatcher
-calls `giver.ready(bound)` (`CommandGiver._executeOne`, after the
-validators, so a reach refusal comes first) **before the controller
-runs**, and renders the carrier's refusal itself (*"Your hands are full —
-…"*, *"It's packed in the backpack — take it off first."*, *"You'd have
-to pick the tape up first (`get tape`)."*). The controller stays dumb: it
-acts on the thing where it now is. Only a single bound thing is readied —
-a default that binds every tool in reach readies none. In a fight the
-readying is the generalized weapon switch, priced in beats by holder
-([carrying.md](./carrying.md)).
-
-```yaml
-args:
-  - name: tool
-    readies: true
-    prepositionRequired: true
-    type: objects
-    required: false
-```
-
-Shipped on: `measure`/`analyze` `tool`, `read`, `light`/`douse`, `pour`
-`source`, `fill`/`drink` `target`, `shape` `instrument`, `fit` `tool`,
-`cut` `tools`. Use it on any arg naming a thing the act is done WITH.
+*Retired W10, 2026-11-14 — an instrument is used where it is; `canReach` is
+the gate.* The field brought a bound tool to the giver's hand before the
+controller ran, putting away whatever was in the way — a behavior no
+player could predict from `help`. Now a tool is used where it sits (in
+hand, in an open holder on you, within reach) and stays there; a tool arg
+carries `validators: [canReach]`, whose refusals name the next command
+(*"Your pouch is shut — `open pouch` first."* / *"Your rucksack is on your
+back — take it off first (`remove rucksack`)."*). The schema refuses the
+key (`additionalProperties: false`), so a view still carrying it fails
+`lint:command-views`. ⭐ **The command def predicts everything a command
+does** — no implicit interpreter acts; a player's convenience is an
+option, an arg, a verb they know, or their own alias/`def`.
 
 ### `type: struct` — structured-input-only fields
 
@@ -1024,6 +1017,13 @@ field is required AND has no default AND the player typed nothing.
 normal validators / MQL resolution / type coercion pipeline. The
 controller never knows whether the populated field came from a typed
 arg or from `default:` — uniform call surface.
+
+⭐ **One fact rides the result** (size and carrying D-W10-7): an
+`objects` slot bound from its `default:` carries `defaulted: true` on its
+`MqlManyResult` (the `ordinal` precedent). `canReach` passes a defaulted
+list whole — the author's pool is not the player's word — and the
+controller narrows it (`PerceptionApi.reachableAmong`), so a packed spare
+in `reachable:[mixin.ToolMixin]` never refuses `measure`.
 
 If `default:` resolution fails (MQL no-match, validator veto, etc.),
 the field's standard failure surface fires; the framework does NOT

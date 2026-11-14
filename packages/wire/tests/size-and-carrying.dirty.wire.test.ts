@@ -374,17 +374,26 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(flat).not.toMatch(/In hand:|Worn:/);
   }, 120_000);
 
-  it('3. [instant · player] a coat\'s pocket is the key\'s home; a mug is refused by its size', async () => {
+  it('3. [instant · player] a coat\'s pockets differ, so it asks and says how; the trousers\' are alike, so they pick; a mug is refused by its size', async () => {
     const a = survivors[0]!.s;
     expectDone(await say(a, 'drop lantern'));
     await give(a, T.coat);
     const worn = await say(a, 'wear coat');
     expectDone(worn);
     await finish(a, worn.r);
-    // The coat has four pockets: a bare `coat` asks which, by name.
-    expectRefused(await say(a, 'put key in coat'), /Which — the left pocket, the right pocket, the breast pocket or the inner pocket/i);
+    // ⭐ The coat's four pockets DIFFER (two plain, one buttoned, one inside):
+    // `put key in coat` asks, and the ask says how (W10, D-W10-6).
+    expectRefused(
+      await say(a, 'put key in coat'),
+      key('3', /Which — .*left pocket.*right pocket.*breast pocket \(buttoned\).*inner pocket \(inside\)/i),
+    );
+    const coat = (await say(a, 'look coat')).w;
+    expect(coat, '`look coat` shows each pocket and what differs').toMatch(/breast pocket \(buttoned[^)]*\)[\s\S]*inner pocket \(inside\)/i);
     expectDone(await say(a, 'put key in "inner pocket"'), /inner pocket of a linen coat/i);
-    expect(await inv(a)).toMatch(key('3', /In your linen coat's inner pocket: a key/i));
+    expect(await inv(a)).toMatch(/In your linen coat's inner pocket: a key/i);
+    // The trousers' two pockets are ALIKE: the trousers pick, and say which.
+    expectDone(await say(a, 'get key from "inner pocket"'));
+    expectDone(await say(a, 'put key in trousers'), key('3', /in the (left|right) pocket of .*trousers/i));
     const mug = await say(a, 'put mug in "left pocket"');
     expectRefused(mug, /too big/i);
   }, 120_000);
@@ -412,19 +421,33 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const more = await say(b, `put #${last} on belt`);
     expectRefused(more, /belt/i);
     expectDone(await say(b, `drop #${last}`));
-    // A compass in the belt pouch: readying it puts away what is in the
-    // hand and pulls out the compass, and the reading runs.
+    // ⭐ A compass in the OPEN belt pouch is used where it sits (W10,
+    // D-W10-1): the reading runs with both hands full and the compass is
+    // still in the pouch after — nothing moved, no sheathe line.
     await give(b, T.compass);
     expectDone(await say(b, `put compass in #${pouch}`));
-    // Both hands full — a sword and a mug — so something must go away first.
     await give(b, T.sword);
     await give(b, T.mug);
     const m = await say(b, 'measure strike with compass');
-    expect(m.w).toMatch(/You (sheathe|put) your [^.]* and pull out your surveyor's brass compass/i);
-    expect(reasonOf(m.r), 'the reading ran (its own answer, not a reach refusal)').not.toMatch(/packed|pick-up|hands/);
+    expect(reasonOf(m.r), 'the reading ran (its own answer, not a reach refusal)').not.toMatch(/packed|shut|hands/);
+    expect(m.w).not.toMatch(/sheathe|pull out/i);
+    expect(await inv(b), 'the compass stays in the pouch').toMatch(key('4', /pouch[^\n]*compass|compass[^\n]*pouch/i));
+    // Shut means shut — and the refusal names the next command; never an implicit open.
+    expectDone(await say(b, `close #${pouch}`));
+    expectRefused(await say(b, 'measure strike with compass'), key('4', /belt pouch is shut — `open pouch` first/i));
+    expectDone(await say(b, `open #${pouch}`));
+    expect(reasonOf((await say(b, 'measure strike with compass')).r) ?? '').not.toMatch(/shut|packed/);
+    // `get compass from pouch` with both hands full: refused, naming what they hold and the ways out.
+    const full = await say(b, `get compass from #${pouch}`);
+    expectRefused(full, /you're holding[^.]*(sword|mug)[^.]*\. `drop/i);
+    expect(full.w).toMatch(/`unwield/i);
+    // Nothing on you takes a mug (no bag worn): `unwield` says so and keeps it in hand.
+    expectRefused(await say(b, 'unwield mug'), /nowhere on you to put/i);
+    expectDone(await say(b, 'drop mug'));
+    expectDone(await say(b, `get compass from #${pouch}`), /You pull out your surveyor's brass compass from your leather belt pouch/i);
   }, 240_000);
 
-  it('5. [instant · player] a compass packed in a worn backpack is refused until the pack is off', async () => {
+  it('5. [instant · player] a compass packed in a worn backpack is refused until the pack is off; off, it lies at your feet and is used there', async () => {
     const b = await person('scpack', COTTAGE);
     await give(b, T.backpack);
     await give(b, T.compass);
@@ -433,66 +456,92 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(w);
     await finish(b, w.r);
     const packed = await say(b, 'measure strike with compass');
-    expectRefused(packed, key('5', /packed in (a|the|your) canvas backpack — take it off first/i));
+    expectRefused(packed, key('5', /is on your back — take it off first/i));
+    // Both hands full first: taking the pack off sets it down at your feet (D-W10-16).
+    await give(b, T.lantern);
+    await give(b, T.mug);
     const off = await say(b, 'remove backpack');
     expectDone(off);
     await finish(b, off.r);
+    expect(squash(await b.prose('look here')), 'the pack lies at your feet').toMatch(/backpack/i);
+    // Open, within reach: the compass in it is used where it sits.
     const then = await say(b, 'measure strike with compass');
-    expect(reasonOf(then.r) ?? '').not.toMatch(/packed|pick-up/);
+    expect(reasonOf(then.r) ?? '').not.toMatch(/packed|shut/);
     expect(then.w).toMatch(/compass/i);
+    expectDone(await say(b, 'close backpack'));
+    expectRefused(await say(b, 'measure strike with compass'), /is shut — `open backpack` first/i);
   }, 180_000);
 
-  it('6. [short · staged] readying in a fight: the beats are the holders\' — sheathe + draw, a dropped sword, a holster, a buttoned pocket', async () => {
+  it('6. [short · staged] a hand act in a fight is a guarded beat by holder — a scabbard, the open pouch, a buttoned pocket opened first; drop is free', async () => {
     const f = await person('scbeat', TREELINE, { wizard: true, parcels: ['/world/newbie-wilds'] });
     await don(f, T.belt);
     await give(f, T.pouch);
-    await give(f, T.holster);
-    const sword = await give(f, T.sword);
-    const compass = await give(f, T.compass);
+    await give(f, T.scabbard);
+    await give(f, T.sword);
+    expectDone(await say(f, 'put sword in scabbard'));
+    await give(f, T.compass);
     expectDone(await say(f, 'put compass in pouch'));
-    const shield = await give(f, T.shield);
-    const id = (await f.queryOne('me', 'ref')) as unknown as { stuffId?: string } | null;
-    const me = id?.stuffId ?? '';
-    const secs = async (thing: string): Promise<number> => {
-      const r = await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(StuffApi.findById('${me}').readySeconds(StuffApi.findById('${thing}')))`);
-      return Number(/"?([0-9.]+)"?\s*$/.exec(r.w)?.[1] ?? NaN);
-    };
-    record.push(`ready ids me=${me} sword=${sword} shield=${shield}`);
-    const both = await secs(compass); // sword + shield held: something goes home first
-    expectDone(await say(f, 'drop shield'));
-    const oneFree = await secs(compass); // a free hand: just the draw out of the pouch
-    expectDone(await say(f, 'drop sword'));
-    const pistol = await give(f, T.pistol);
-    expectDone(await say(f, 'put pistol in holster'));
-    const fromHolster = await secs(pistol);
-    // A key: from the open pouch, and from the coat's buttoned breast pocket
-    // (the shirt off, so the coat's is the only breast pocket).
+    // A key in the coat's buttoned breast pocket (the shirt off, so the
+    // coat's is the only breast pocket); the pocket starts shut.
     const shirt = await say(f, 'remove shirt');
     await finish(f, shirt.r);
     expectDone(await say(f, 'drop shirt'));
     await don(f, T.coat);
-    const key = await give(f, T.key);
-    expectDone(await say(f, `put #${key} in pouch`));
-    const keyOpen = await secs(key);
-    expectDone(await say(f, `get #${key} from pouch`));
-    expectDone(await say(f, `put #${key} in "breast pocket"`));
-    const buttoned = await secs(key);
-    record.push(`ready seconds: both-hands-full ${both}, a free hand ${oneFree}, holster ${fromHolster}, key in the pouch ${keyOpen}, key in the buttoned pocket ${buttoned}`);
-    expect(both, 'putting something away first costs a beat more').toBeGreaterThan(b2('6') ? both : oneFree);
-    expect(fromHolster, 'a holster is the quick draw').toBeLessThan(oneFree);
-    expect(buttoned, 'a buttoned pocket is slower than the open pouch').toBeGreaterThan(keyOpen);
-    await give(f, T.sword);
-    await give(f, T.mug);
+    const keyId = await give(f, T.key);
+    expectDone(await say(f, 'open "breast pocket"'));
+    expectDone(await say(f, `put #${keyId} in "breast pocket"`));
+    expectDone(await say(f, 'close "breast pocket"'));
+    const id = (await f.queryOne('me', 'ref')) as unknown as { stuffId?: string } | null;
+    const me = id?.stuffId ?? '';
+    // The beat is read off the session after each command (W10: `readySeconds` is gone).
+    const beat = async (): Promise<number> => {
+      const r = await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(CombatApi.sessionFor(StuffApi.findById('${me}'))?.getState(StuffApi.findById('${me}'))?.weaponSwitch?.getRemaining() ?? 0)`);
+      return Number(/"?([0-9.]+)"?\s*$/.exec(r.w)?.[1] ?? NaN);
+    };
+    const settle = async (): Promise<void> => {
+      for (let i = 0; i < 20 && (await beat()) > 0; i++) await new Promise((r) => setTimeout(r, 1_000));
+    };
     expectDone(await say(f, 'attack wolf'));
+    expectDone(await say(f, 'fight switch sword'));
+    const fromScabbard = await beat();
+    await settle();
+    expectDone(await say(f, 'unwield sword'));
+    await settle();
+    expectDone(await say(f, 'fight switch compass'));
+    const fromPouch = await beat();
+    await settle();
+    // ⭐ The buttoned pocket is SHUT: refused naming `open`, then opening it is its own beat.
+    expectRefused(await say(f, 'fight switch key'), key('6', /breast pocket is shut — `open "breast pocket"` first/i));
+    const opened = await say(f, 'open "breast pocket"');
+    expect(opened.w).toMatch(/guard drops/i);
+    const unfasten = await beat();
+    await settle();
+    expectDone(await say(f, 'drop compass'));
+    expectDone(await say(f, 'fight switch key'));
+    const fromPocket = await beat();
+    await settle();
+    record.push(`fight beats: scabbard ${fromScabbard}, pouch ${fromPouch}, unfasten ${unfasten}, pocket ${fromPocket}`);
+    expect(fromScabbard, 'a scabbard is the quick draw').toBeLessThan(fromPouch);
+    expect(unfasten + fromPocket, 'the buttoned pocket costs more than the open pouch').toBeGreaterThan(b2('6') ? unfasten + fromPocket : fromPouch);
+    // A mug in the other hand: the greatsword is refused naming the mug and `drop mug`.
+    await give(f, T.mug);
+    await give(f, T.greatsword);
+    const gs = await say(f, 'fight switch greatsword');
+    expectRefused(gs, /mug[\s\S]*`drop mug`|`drop mug`[\s\S]*mug/i);
+    // `put mug in pouch` in the fight: the guard drops, and the mug lands at the beat's end.
+    const put = await say(f, 'put mug in pouch');
+    expect(put.w).toMatch(/guard drops/i);
+    expect(await beat()).toBeGreaterThan(0);
+    await settle();
+    // `drop` is free: no switch on the state.
+    await give(f, T.mug);
+    expectDone(await say(f, 'drop mug'));
+    expect(await beat()).toBe(0);
+    // An instrument is used where it sits — no beat.
     const r = await say(f, 'measure strike with compass');
-    const late = squash(await f.listen(4_000));
-    record.push(`fight ready: ${r.w} | ${late}`);
-    // In a fight the readying is the switch (D16-d): the act runs on the
-    // compass where it is, and the hands' words come when the switch lands
-    // — read from the record; the beats above are the checkpoint.
-    expect(reasonOf(r.r) ?? '', 'the reading ran').not.toMatch(/packed|pick-up|hands/);
+    expect(reasonOf(r.r) ?? '', 'the reading ran').not.toMatch(/packed|shut|hands/);
     await f.cmd('fight yield');
-  }, 240_000);
+  }, 300_000);
 
   it('7. [short · staged] a lantern and a shield: the draw is refused naming the lantern; a greatsword names the shield; a big body holds it in one hand, a gnome cannot', async () => {
     const g = await person('schands', TREELINE);
@@ -505,7 +554,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // (Step 6 may have left the wolf dead: the sellsword is the fight here.)
     expectDone(await say(g, 'attack sellsword'));
     const draw = await say(g, 'fight draw');
-    expectRefused(draw, key('7', /hands are full — [^.]*lantern/i));
+    expectRefused(draw, key('7', /you're holding[^.]*lantern/i));
     expect(draw.w, 'offers to drop the lantern').toMatch(/`drop lantern`/i);
     expectDone(await say(g, 'drop lantern'));
     expect(squash(await g.prose('look here'))).not.toMatch(/pitch dark/i);
@@ -646,6 +695,39 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(after).not.toMatch(/bowl/);
   }, 180_000);
 
+  it('14b. [instant · staged] the pack on the ground: shut, another sees only the pack; open, they see in and take — and the owner cannot fight-draw from it', async () => {
+    const a = await person('scdrop', `${STEADING}/hayloft`);
+    const pack = await give(a, T.backpack);
+    const pistol = await give(a, T.pistol);
+    expectDone(await say(a, `put #${pistol} in #${pack}`));
+    expectDone(await say(a, `close #${pack}`));
+    expectDone(await say(a, `drop #${pack}`));
+    const b = await person('scrifle', `${STEADING}/hayloft`);
+    // Shut: B sees the pack and no pistol; reaching in is refused naming `open`.
+    const seen = squash(await b.prose('look backpack'));
+    expect(seen).toMatch(/backpack/i);
+    expect(seen, 'shut: its contents are unseen').not.toMatch(/pistol/i);
+    expectRefused(await say(b, 'get pistol from backpack'), key('14b', /is shut — `open backpack` first/i));
+    expect((await say(b, 'i backpack')).w).toMatch(/shut/i);
+    // Before the handover, with the pistol in A's open pack at A's feet:
+    // within reach, not ready — `fight draw`/`fight switch` reach only what is ON you.
+    expectDone(await say(a, `open #${pack}`));
+    expectDone(await say(a, `attack ${await idOf(b)}`));
+    expectRefused(await say(a, 'fight draw'), /no sidearm/i);
+    expectRefused(await say(a, 'fight switch pistol'), /don't have that on you|don't have any/i);
+    const got = await say(a, `get #${pistol} from #${pack}`);
+    expect(got.w).toMatch(/guard drops/i);
+    await a.cmd('fight yield');
+    await new Promise((r) => setTimeout(r, 6_000));
+    expectDone(await say(a, `put #${pistol} in #${pack}`));
+    expectDone(await say(a, `drop #${pack}`));
+    // Open: B sees in, and takes — theft on the ledger; nothing new.
+    expect(squash(await b.prose('look in backpack'))).toMatch(key('14b', /pistol/i));
+    expectDone(await say(b, 'get pistol from backpack'));
+    expect(await inv(b)).toMatch(/pistol/i);
+    expect((await say(b, `title #${pistol}`)).w, 'still A\'s on the ledger').toMatch(new RegExp(a.handle, 'i'));
+  }, 240_000);
+
   it('15. [instant · staged] knocked out mid-fight: the sword falls, the belt stays; the letter is found only by searching, and only by the searcher', async () => {
     const v = await person('scvictim', `${STEADING}/lookout`);
     await don(v, T.coat);
@@ -725,9 +807,11 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
 
   it('18. [instant · player] a mule carries in what it wears and is led on a rope; a cart fills your hands, will not pass a narrow gate, and a tarp hides its load', async () => {
     const m = await person('scmule', YARD);
-    // Tack the mule: what a handless beast is handed, it puts on.
+    // Tack the mule: a mule does not saddle itself — `give` is refused,
+    // `put … on` seats it (W10, D-W10-8).
     expectDone(await say(m, 'get "pack saddle"'));
-    expectDone(await say(m, 'give saddle to mule'));
+    expectRefused(await say(m, 'give saddle to mule'), key('18', /nowhere to take/i));
+    expectDone(await say(m, 'put saddle on mule'), /put .* saddle on/i);
     expectDone(await say(m, 'get pannier'));
     expectDone(await say(m, 'give pannier to mule'));
     expectDone(await say(m, 'give pannier to mule'));
@@ -752,7 +836,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // Hands free again for the lead.
     for (let i = 0; i < 4 && /In hand:[^\n]*ration/i.test(await inv(m)); i++) await say(m, 'drop ration');
     expectDone(await say(m, 'get halter'));
-    expectDone(await say(m, 'give halter to mule'));
+    expectDone(await say(m, 'put halter on mule'));
     await give(m, T.rope);
     expectDone(await say(m, 'tie rope to mule'));
     // At the narrow gate, the laden mule's panniers won't fit.

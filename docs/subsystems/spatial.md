@@ -508,6 +508,41 @@ engine defect, never a refusal and never a default). What loads them:
 - **the persistence restore pass** awaits `ContainmentApi.placements().ensure` for each
   restored item's `ContentPlacement`.
 
+### ⭐ Chambers — one interior OR a set of chambers, never both (size and carrying D-W10-14)
+
+*A container's chambers are the enclosing regions its row names
+(`placements:` entries whose member `encloses`), each with its own
+`volumeM3`, `mouth`, sides (`closes` is its top) and air; a container that
+names no chamber is one chamber — region zero, the whole interior; a
+container that names chambers has no interior beside them; a thing fits a
+chamber or it does not, and nothing adds chambers together.* One model
+covers a coat's pockets, a fridge with a freezer (two chambers, no
+interior) and a multi-chambered vessel. `Container.hasInterior()` is
+**derived** — true iff the host offers no enclosing region (`Garment`
+keeps its `false`: cloth has no inside even with no pockets) — so a row
+authoring both is unrepresentable rather than linted.
+
+**Which chamber.** A chamber's *character* is what the world acts on —
+its member (own air), `covered` (hidden under the outer layer), `closes` (a
+closure) — never its size (`Placing.chamberCharacter(name)`,
+`alikeChambers(names)`). Chambers that DIFFER are the player's choice:
+words matching several of them ask *which?*, naming each difference
+(*(buttoned)*, *(inside)*). Chambers ALIKE in every such respect are the
+container's to fill: `PlacementOffers.choose` answers the *container
+decides* offer, the chokepoint asks `arrivalFor`, and the first chamber
+that takes it (authored order) gets it, named in the prose. A bare word
+matching several chambers of one host binds the host with no region
+(`scope-walk`'s attribution); two hosts answering the word is the binder's
+*which one?*. A non-enclosing sibling ambiguity (a range's hot plate and
+firebox) still asks by preposition.
+
+**A chamber that closes** is a closure the player drives:
+`Placing.isRegionOpen` / `fastenRegion(name, shut)`, the host's persistent
+`shutRegions` (per instance; `null` = the row's default, every `closes`
+chamber shut); `open "breast pocket"`. A shut chamber refuses the put and
+the reach (`enclosed-shut { by, region }`), hides its contents, and
+presses with a top.
+
 ### The cost of a new way of sitting
 
 > **One document, plus one word on every verb whose argument accepts a

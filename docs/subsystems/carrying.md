@@ -36,14 +36,14 @@ weight is [encumbrance.md](./encumbrance.md). The slots are
 | **the bypass** — `Carrying.directMove(item, route?)` | `lib/slot/Carrying.ts` | the routing made explicit, in `Arrival`'s vocabulary (`CarryRoute`): no route = ON the body (hand / pocket / hook); `seat` these slots · `pair` a worn host's region · `into` a bag it carries · `carried` (on the body, else the first bag — `get`'s). Returns `null` or the `ArrivalRefusal`, nothing moved. Never the floor |
 | **the invariant** — nothing loose | `Creature.arrivalFor` (every body) | admits only what arrives placed, an agent, a thing being seated (`Slotted.isSeating`), or one the body is admitting (`Creature.admitWhile`, gated `AnyOf(SelfOnly, FromModule(PersistableLogic))` — the restore, and the routing's first move). Else `refuse` `nowhere-to-carry`. **Fails closed**: no species row loaded is no escape |
 | **the seating mark** | `Slotted.seatInSlot` / `seatInSlots` | contents first, then the slots, under a mark (`try/finally`, a failed claim rolled back out) |
-| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and `directMove`; homes, tiers, readying, letting go, the restore's overflow |
+| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and `directMove`; tiers, `stow`, readying into a free hand, letting go, the restore's overflow — **13** interface members (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · placeLoose · returnBorrowed · routeArrival · directMove`) |
 | the hands | `Attired` (`handSlots`, `heldThings`, `wears`) | the slot substrate's fact — any body's hands by its plan |
 | `CARRYING_DEFAULTS` | top of `Carrying.ts` | the grip dials (one-hand fraction, two-hand length); the awkwardness dials are `LOAD_BEARING_DEFAULTS`' |
 | `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` |
 | pockets | `PlacingMixin` named regions over the `/platform/placements/in` document, on a `Garment` that is a `Container` with no inside of its own | a region of a garment, never an object; the pocketed thing is the garment's contents (W9) |
 | the belt | `PlacingMixin`'s `from` member + its hanging length | a `Garment` row with `placements: [from]` — no belt class |
 | worn and hung containers | `Pack` (`Wearable(Slottable(Vessel))`, composes `Placing` and `Sealable`) | a satchel, a rucksack, a belt pouch, a pannier, a holster (`shapedTo:`) |
-| the words | `CommandController.carryRefusalWords` · `readiedWords` | the body reports facts; the verb words them |
+| the words | `CommandController.carryRefusalWords` · `GetController`'s private `drawWords` | the body reports facts; the verb words them |
 
 **Who carries.** `Carrying` composes only where a body carries: a person
 (`Character` → every Avatar, NPC, Extra, Cast), a draft animal (a mule's
@@ -207,75 +207,107 @@ on a worn host (a purse in a coat pocket is one — W9), then worn
 containers with an inside off the back, then the back. A `CarryPlace` is
 `{ host: Container; region? }` — a pocket's host is a Container now.
 
-## Homes
+## ⭐⭐ The command def predicts everything (W10, owner 2026-11-14)
 
-A home is **the carrier's knowledge** of where a thing lives — no field
-on the thing (a brick has no home). `put <thing> in/on <container on
-me>` sets it (`ContainmentLogic.putPlanFor`'s completion), and so does
-`bringToHand` when a thing had none — remembering the **pocket before
-the container** (a key out of a pocket is the coat's contents; its home
-is the pocket, not the coat — W9). `put key in left pocket` on a worn
-coat sets the home too (a `region` route). `setHome(item, host, region?)` —
-a home can be a pocket by name, and `homeOf(item)` answers
-`{ host, region? }`. Homes are forgotten **lazily**: `homeOf`
-drops one when either end has left the body, so `drop`, `give` and a
-sale need no hook. Persisted by `captureSlice` as `HomesSlice` ends —
-`{kind: 'chattel', chattelId}` or `{kind: 'path', path, templatePath}`
-(never a stuffId, which does not survive a restart) — and restored by
-`hydrateSlice` after contents and the estate.
+*"The command def is supposed to be the one document that, if you get your
+head around it, you can predict everything a command will do."* Every
+carrying behavior is either on the verb's view (an option, an arg, a help
+sentence stating the ONE rule) or it is the player's own act. Retired by
+this ruling: **homes** (a thing remembering where on you it lives), the
+`readies:` arg field (the dispatcher bringing an instrument to hand), and
+every implicit *put the held thing away to free a hand*. The player's
+one-line conveniences are their own aliases and `def`s — see the
+[scripting-hand-economy slate](../slates/builds/scripting-hand-economy-slate.md).
 
-## ⭐⭐ Readying
+### The tiers are hand · ready · packed — closed is a STATE, never a tier
 
-`ready(item)` is the model's act — the thing comes to hand:
+*Ready* = you can get at it without taking anything off — a belt, a
+pocket, a hung pouch, a worn satchel; *packed* = inside something you would
+have to take off. ⭐ **A shut holder is shut wherever it is** — a pouch on
+your belt, a box in your hand, a chest in the room: using or taking from it
+is refused naming the next command (*"Your belt pouch is shut — `open
+pouch` first."*, `canReach`), never an implicit open. `open` resolves at
+once; in a fight it is the unfasten beat you pay.
+
+### Closures
+
+A closure is per object, the author's (lens 2): a `Sealable` holder (a
+pouch with a flap, a satchel, a pack, a chest) opens and shuts by
+`open`/`close` and may refuse to reclose (a wax seal — `Sealable.canClose`);
+an open hook or tool loop (`from`) has no closure; and **a chamber whose
+entry says `closes: true`** (a buttoned pocket) is a closure the player
+drives — `Placing.isRegionOpen(name)` / `fastenRegion(name, shut)` (the object's act, refused `does-not-close` / `already-…`), backed
+by the host's own persistent `shutRegions` field (per instance; `null` =
+the row's default, *every `closes` chamber starts shut*). `open "breast
+pocket"` / `close "breast pocket"` — the binder's `via.region` names the
+chamber. Its readers: `Containable.reachRefusal` (`enclosed-shut { by,
+region }`), `PerceptionLogic.holdersAdmit` (a shut chamber hides), pressing
+(`height: !isRegionOpen`), and `look`/`inventory` (*(shut)*).
+
+## ⭐⭐ Putting away — `stow`
+
+`stow(held): ArrivalRefusal | null` is **the route off the hands**: the
+first of the carrier's places that takes it, in D11's order and nothing
+else — a pocket of a worn garment, a hook on a worn host (`from`), a
+container hung or pocketed there, a worn bag off the back, the pack on the
+back (`carryPlaces()`). Nothing takes it → `nowhere-to-carry { item, held,
+tried }`, **nothing moves, it stays in the hand** — never the floor (that
+is `drop`), never a guess. `unwield` is this act said in its help, and
+tells you where the thing went (*You put up the sword — on the belt.*);
+nothing taking it → *There is nowhere on you to put the mug — it stays in
+your hand.* A thing that came out of a pocket does NOT go back to "its"
+pocket: there are no homes.
+
+## ⭐⭐ Readying — into a free hand, or a refusal
+
+`ready(item)` brings a thing into a **free** hand (D-W10-3):
 
 - already in hand → ok;
-- **ready** tier → free a hand: `stow` puts the held thing back in its
-  home if it still fits (a homeless held thing goes to the first carry
-  place it fits, which becomes its home), else refuse **`hands-full`**,
-  naming the held thing and both ways out — *drop it* or *put it away
-  first*. **Never dropped for the player.** Then `bringToHand`, which
-  returns a `ReadiedOutcome` — where the thing came from and where each
-  held thing went (`CarriedAt` facts) — that the verb words
-  (`readiedWords`: *you sheathe your sword and pull out your compass*);
-- **packed** → refuse `packed` (*"It's packed in the backpack — take it
-  off first (`remove backpack`)."*);
-- in the room: a fixture is used where it stands; a portable thing
-  refuses **`pick-up`** (*"You'd have to pick the tape up first (`get
-  tape`)."*); in another body → `not-on-you`.
+- **ready** tier with the hand(s) it needs free → `bringToHand` seats it
+  and returns a `ReadiedOutcome` (`{ ok, item, moved, from }`);
+- hands in the way → **`hands-needed { hands, held, away? }`**, worded
+  *"That takes a free hand — you're holding the mug and the lantern. `drop
+  lantern` (free in a fight), or put one away first (`unwield lantern`,
+  `put mug in "left pocket"`)."* — nothing is put away for you;
+- **packed** → `packed` (*take it off first*);
+- in the room: a fixture is used where it stands (ok); a portable thing →
+  `not-on-you` (`get` is the act); in another body → `not-on-you`.
 
-⭐ **A verb asks for it with one arg field.** A view's object arg
-declaring `readies: true` is readied by the dispatcher
-(`CommandGiver._executeOne`, after the validators) before the controller
-runs, and the outcome or refusal is worded there by a clone of the verb's
-controller (`carryRefusalWords` / `readiedWords`) — the body decides. Only a
-single bound thing is readied. The views: `measure`/`analyze` `tool`,
-`read`, `light`/`douse`, `pour` `source`, `fill`/`drink` `target`,
-`shape` `instrument`, `fit` `tool`, `cut` `tools`. See
-[command-spec.md](./command-spec.md).
+Its callers are exactly the explicit *keep it in hand* acts: `get X from
+<something on you>` (the thing comes to a free hand — *You pull out your
+compass from your pouch.*), `fight switch`, `fight draw`, and combat's
+`performSwap`. ⭐ **No instrument arg reaches it**: an instrument is used
+where it sits — in hand, in an OPEN holder on the ready tier, or within
+reach — and stays there; the tool args carry `canReach`, whose refusals
+name the next command (shut → *`open` it first*; packed → *take it off
+first (`remove <pack>`)*). A defaulted tool list (`reachable:[mixin.ToolMixin]`)
+is passed whole by `canReach` (`MqlManyResult.defaulted`) and narrowed by
+the controller (`PerceptionApi.reachableAmong`).
 
-### Readying in a fight is priced by holder
+### ⭐ A hand act in a fight is a guarded beat
 
-In a live combat session `ready` is the weapon switch generalized to any
-item (`Combatant.beginWeaponSwitch(item)`): guard down, no instrument,
-for the seconds **combat prices** (W8 — `CombatLogic`'s module-private
-`switchSecondsFor`, by the `combat.*` dials; the carrier reports what is
-in the way through `handsToFree(item)`) — **two halves**, each priced by
-where the thing goes or comes from:
+*A verb never waits on a holder; combat's tick is the one budgeted clock*
+(D-W10-13): outside a live session every hand act resolves at once. Inside
+one, `put`, `get` (from a holder, or off the floor), `wield`, `unwield`,
+`remove` of a pack, and `open`/`close` of a holder on you are the switch's
+guarded beat (`CommandController.guarded` → `Combatant.beginHandAct`), and
+`fight switch`/`fight draw` are `ready`'s switch — each priced by its holder
+(`Combatant.handActSeconds` → `CombatLogic.handActSecondsFor`):
 
 | holder | seconds (dial) |
 |---|---|
-| dropped | 0 |
-| a shaped holder (`shapedTo` set — a holster, a scabbard), a `from` clip, a non-hand slot (the `sidearm` sheath) | `combat.draw.seconds` (1.5) |
-| an open pocket, an unshaped pouch, a homeless put-away | `combat.reach.seconds` (3) |
-| a pocket that `closes`, or a shut pouch | + `combat.unfasten.seconds` (3) |
-| packed | refused — `remove` of a worn pack in a session costs `combat.switch.seconds` |
+| dropped | 0 — never a beat |
+| a shaped holder (`shapedTo` — a holster, a scabbard), a `from` clip, a non-hand slot (the `sidearm` sheath) | `combat.draw.seconds` (1.5) |
+| an open pocket, an unshaped pouch, the floor, a put-away (`unwield`) | `combat.reach.seconds` (3) |
+| opening or shutting a holder or a buttoned chamber on you | `combat.unfasten.seconds` (3) |
+| a worn pack off (`remove`) | `combat.switch.seconds` |
+| a shut holder | refused — `open` it first (its own beat) |
+| packed | refused |
 
-`beatsForSeconds` rounds the sum up. The act does not wait for the
-switch: the readied act runs on the thing where it is, and the beats are
-the price. `fight draw`/`fight switch` are callers of `ready`. The start
-line names the holder (`FightSwitchController`'s — *fumbles at her coat
-pocket*, *her hand drops to her holster*); the landing is combat's own
-beat (*you have the sword in hand*). No competence term yet. See
+The act lands at the beat's end (`WeaponSwitch`'s `land`); a second hand act
+while one is live is `already-switching`. `fight draw`/`fight switch` reach
+only what is **on your person** (`switch.target.scope: [inventory]`): a gun
+in an open pack at your feet is `get gun from pack`, a beat of its own. See
 [combat.md](./combat.md).
 
 ## Pockets — named placement regions
@@ -303,15 +335,25 @@ entry's `mouth` and `volumeM3` are the tape measure
 (realistic: a key, a coin, a matchbox go in a trouser pocket; a mug does
 not). **`covered: true`** (an inner pocket) hides it from other people;
 an outer pocket is covered when its garment is not outermost. **`closes:
-true`** (a buttoned breast pocket) is fastened — shut for pressing and
-perception, a fastening to undo in a fight — with no flap state and no
-button verb: it still costs you the choice of pocket.
+true`** (a buttoned breast pocket) is a closure: it starts shut, the player
+opens and shuts it (`open "breast pocket"`), and its state persists per
+instance (§ Closures).
 
-`put key in coat` takes the one pocket that fits or asks *"Which — the
-left pocket or the right pocket of the coat?"*; `put key in inner pocket`
-names it (a region's name is a word its host answers to). A bare `pocket`
-binds the first pocket of the nearest garment. See
-[spatial.md](./spatial.md).
+⭐ **Chambers that differ ask; chambers alike are the container's to fill**
+(D-W10-6, owner final A). A chamber's *character* is what the world acts on
+— its member (own air), `covered`, `closes` — never its size
+(`Placing.chamberCharacter` / `alikeChambers`). `put key in trousers` (two
+plain pockets) puts it in the first that takes it and names it; `put key in
+coat` (two plain, one buttoned, one inside) asks *"Which — the left pocket,
+the right pocket, the breast pocket (buttoned) or the inner pocket (inside)
+of the coat?"*; `put key in "inner pocket"` names it. A bare `pocket`
+matching several chambers of one garment binds the garment (no region) and
+the same rule decides; the same word answered by two garments is the
+binder's *which one?*. `look coat` shows each pocket once with its
+difference word. ⭐ **A container is one interior OR a set of chambers,
+never both** (D-W10-14): `Container.hasInterior()` is derived — true iff
+it offers no enclosing region — and volume and fit are per chamber, never
+summed. See [spatial.md](./spatial.md) § Chambers.
 
 ## The belt — every from-host
 
@@ -432,14 +474,15 @@ a conscious one refuses (*"Bob won't let you"*).
 
 | verb | what it does here |
 |---|---|
-| `get` | `directMove(item, { kind: 'carried' })` — a hand, then a pocket or bag it fits; a no-slot pouch onto the belt; refused, nothing moves |
-| `put X in/on/from Y` | onto a host or into a container; pockets by name; sets the thing's home when `Y` is on you |
-| `give X to Y` | the release gate, then `Y.directMove(X)` — onto them or back in your hand; a non-carrier takes nothing |
+| `get` | `directMove(item, { kind: 'carried' })` — a hand, then a pocket or bag it fits (never a bag in your hand, never the floor); a no-slot pouch onto the belt; refused, nothing moves. `get X from <on you>` → `bringToHand` into a free hand, or `hands-needed` |
+| `put X in/on/from Y` | onto a host or into a container; chambers by the rule above; `put <tack> on <beast>` seats tack on a body that cannot dress itself (`Slotted.openSlotFor`) |
+| `give X to Y` | the release gate, then `Y.directMove(X)` — onto them, or re-seated exactly in the hand it left; a non-carrier takes nothing; tack is not handed (`put saddle on mule`) |
+| `unwield` | `stow` — off the hands by the one order, told where; nothing takes it → refused, it stays in hand |
 | `drop` | to the place; instant, and free in a fight |
 | `inventory` (`i`) | by tier — *In hand* · *Ready* (each pocket and hanging member by name, each ready container with its perceived contents) · *Worn* · *Packed* (each pack as *N things, M kg*) — then the burden in words. `--all` `--flat` `--held` `--ready` `--worn` `--packed` `--weight`; `i <container>`, `i belt` (what hangs and the room left), `i <person>` |
 | `wear` / `wield` / `equip` | `seatInSlots` by the claim; the grip by `wieldPlanFor` |
 | `fight draw` / `fight switch` | `ready` in a session |
-| any `readies:` verb | readies its tool first |
+| an instrument verb (`measure`, `analyze`, `read`, `light`, `pour`, `fill`, `shape`, `cut`, `fit` …) | uses the tool where it sits; `canReach` refuses shut (*`open` it first*) and packed (*take it off first*) |
 | `stoop` / `crawl` | lower profiles through low ways ([size.md](./size.md)) |
 
 The player's guide is the `carrying` wiki guide (base-library

@@ -1061,27 +1061,28 @@ focus-fire keyed on `graph.incomingEdges`), it grants its holder a large
 - **Sidearm draw** (`fight draw`) — a *fast* switch to a sheathed (`sidearm`
   slot) / carried backup: **disarm becomes a tempo setback, not a fight-ender**
   (the `combatant` brain draws when disarmed).
-- ⭐⭐ **Readying is the switch, generalized, and priced by holder** (size
-  and carrying D16, 2026-11-12). On a carrier, `fight switch` and `fight
-  draw` call `Carrying.ready(item)`, and so does any act whose view arg
-  declares `readies: true` (a compass, a tape, a lantern, a potion): in a
-  session `ready` starts `Combatant.beginWeaponSwitch(item, {seconds})` —
-  guard down, no instrument — for `Carrying.readySeconds(item)`, **two
-  halves**: putting away what the hands hold, then getting the thing out,
-  each by its holder. Dropped 0; a shaped holder (`shapedTo` — a holster,
-  a scabbard), a `from` clip or a non-hand slot (`sidearm`)
-  **`combat.draw.seconds`** (1.5); an open pocket, an unshaped pouch or a
-  homeless put-away **`combat.reach.seconds`** (3, new); a pocket that
-  `closes` or a shut pouch adds **`combat.unfasten.seconds`** (3, new);
-  packed → refused (*take it off first*; `remove` of a worn pack in a
-  session costs `combat.switch.seconds`). `beatsForSeconds` rounds the sum
-  up. The readied act does not wait — it runs on the thing where it is,
-  and the beats are the price; the completion is the carrier's
-  `bringToHand`, so a non-weapon is held and never the instrument. The
-  start line names the holder (`Carrying.holderPhrase` — *her hand drops
-  to her holster*). `drop` is instant and free. No competence term yet.
-  A body with no hand slots switches the shipped way. See
-  [carrying.md](./carrying.md).
+- ⭐⭐ **A hand act in a fight is the switch's guarded beat, priced by
+  holder** (size and carrying D16; W10 D-W10-5, 2026-11-14). On a carrier,
+  `fight switch` and `fight draw` call `Carrying.ready(item)` — into a FREE
+  hand only (a hand in the way is refused `hands-needed`, naming `drop`
+  (free) and `unwield`/`put` (a beat)); they reach only what is ON your
+  person (`switch.target.scope: [inventory]`). In a session `ready` starts
+  `Combatant.beginWeaponSwitch(item)` — guard down, no instrument — for
+  ONE half: the thing coming out of its holder (`outOf`). And every
+  inventory hand act is the same guarded beat (`CommandController.guarded`
+  → `Combatant.beginHandAct(seconds, land)`, `WeaponSwitch`'s optional
+  `land`): `put` (out of where it is + into where it goes), `get` from a
+  holder or the floor, `wield`, `unwield` (a reach), `remove` of a pack
+  (`combat.switch.seconds`), `open`/`close` of a holder on you
+  (`combat.unfasten.seconds`). `drop` is 0 and never a beat. Dials: a shaped
+  holder (`shapedTo` — a holster, a scabbard), a `from` clip or a non-hand
+  slot (`sidearm`) **`combat.draw.seconds`** (1.5); an open pocket, an
+  unshaped pouch, the floor **`combat.reach.seconds`** (3); a SHUT holder or
+  buttoned chamber is refused — opening it is its own unfasten beat; packed
+  → refused. The act lands at the beat's end; a second one while one is
+  live is `already-switching`. Outside a session nothing waits
+  (D-W10-13). An instrument is used where it sits — `measure` in a fight
+  takes no beat.
 - **Two hands by weight, two by use** — `Carrying.handsFor` decides a
   grip from the holder's own carry capacity and stature; a weapon row
   claims two hands only when its *use* needs two (bow, musket, spear), so
