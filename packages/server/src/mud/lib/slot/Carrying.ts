@@ -129,10 +129,13 @@ export type CarryRefusal = ReceiveRefusal | ReadyRefusal;
 /**
  * Where a thing can go on a body short of a hand (D11/D15): a container
  * (a worn satchel, a pouch hung from the belt, the pack on the back), or a
- * named region of a worn host (a coat's `left pocket`).
+ * named region of a worn container (a coat's `left pocket` — the coat is a
+ * Container and the key its contents, size and carrying W9).
  */
 export type CarryPlace =
-  | { host: Stuff & Container; region?: undefined }
+  | { host: Stuff & Container; region?: string }
+  // A hanging region of a sibling host (a belt's `from`, a halter's): a pair,
+  // never containment, and its host need hold nothing.
   | { host: Stuff & Placing; region: string };
 
 /**
@@ -566,7 +569,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     private bagOf(where: ReturnType<CarryingMixin['resolveReceive']>): (Stuff & Container) | null {
       const self = this as unknown as Stuff;
       if (where.kind === 'merge' && where.into.stuffId !== self.stuffId) return where.into as Stuff & Container;
-      if (where.kind === 'place' && where.place.region === undefined) return where.place.host;
+      if (where.kind === 'place' && where.place.region === undefined) return where.place.host as Stuff & Container;
       return null;
     }
 
@@ -587,7 +590,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
             : { kind: 'refuse', refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: where.item, held: [], tried: [where.into] } } };
         case 'place':
           return where.place.region !== undefined
-            ? { kind: 'pair', host: where.place.host, region: where.place.region }
+            ? { kind: 'pair', host: where.place.host as unknown as Stuff & Placing, region: where.place.region }
             : { kind: 'refuse', refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: where.item, held: [], tried: [where.place.host] } } };
         case 'refused':
           return { kind: 'refuse', refusal: where.refusal };
@@ -870,9 +873,13 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           continue;
         }
         // Untitled and not the guest's own clothes: found here, left here.
-        const onBody = item.getContainer()?.stuffId === self.stuffId;
+        // ⭐ In a pocket of what the guest wears is on the guest too (W9: the
+        // pocket's thing is its garment's contents).
+        const at = item.getContainer();
+        const pair = item.getPlacement();
+        const inWornPocket = at !== null && worn.has(at.stuffId) && pair !== null && pair.host.stuffId === at.stuffId;
+        const onBody = at?.stuffId === self.stuffId || inWornPocket;
         if (ownerPath === null && onBody && !worn.has(item.stuffId) && place !== null) {
-          const pair = item.getPlacement();
           const onWorn = pair !== null && worn.has(pair.host.stuffId);
           // A thing in the guest's own pocket, or held: found, so dropped.
           if (onWorn || this.tierOf(item) === 'hand') {
@@ -1048,8 +1055,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           if (seen.has(o.stuffId)) continue;
           seen.add(o.stuffId);
           worn.push(o);
-          // A worn host's pockets — the regions whose way of sitting encloses.
-          if (MixinApi.isPlacing(o)) {
+          // A worn host's pockets — the regions whose way of sitting encloses
+          // (a host offering one is a Container: refusal 3, W9).
+          if (MixinApi.isPlacing(o) && MixinApi.isContainer(o)) {
             for (const name of o.getPlacements()) {
               const member = o.placementOf(name);
               if (member.getEncloses() && !member.getHangs()) pockets.push({ host: o, region: name });
@@ -1070,15 +1078,29 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         seen.add(c.stuffId);
         hung.push({ host: c });
       }
+      // ⭐ …and one level into each worn host's pockets for a container
+      // pocketed there (a purse in a coat pocket — W9: it is the coat's
+      // contents, not the body's), ready.
+      for (const w of worn) {
+        if (!MixinApi.isContainer(w) || w.isAgent()) continue;
+        for (const c of w.getContents()) {
+          if (seen.has(c.stuffId) || !MixinApi.isContainer(c) || c.isAgent()) continue;
+          const placed = MixinApi.isContainable(c) ? c.getPlacement() : null;
+          if (placed === null || placed.host.stuffId !== w.stuffId) continue;
+          seen.add(c.stuffId);
+          hung.push({ host: c });
+        }
+      }
       return [...pockets, ...hung, ...ready, ...packed];
     }
 
     /** Would `place` take `item` — the region's `canPlace`, the container's tape measure? */
     private placeTakes(place: CarryPlace, item: Stuff): boolean {
       if (place.region !== undefined) {
-        return MixinApi.isContainable(item) && place.host.canPlace(item, place.region).ok;
+        const host = place.host as Stuff;
+        return MixinApi.isContainable(item) && MixinApi.isPlacing(host) && host.canPlace(item, place.region).ok;
       }
-      return place.host.fitRefusal(item) === null;
+      return (place.host as Stuff & Container).fitRefusal(item) === null;
     }
 
     // ── readying (D16) ──
@@ -1227,7 +1249,13 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const home = this.homeOf(held);
       if (home === null) return false;
       const { host, region } = home;
-      if (region !== undefined && MixinApi.isPlacing(host)) return this.placeTakes({ host, region }, held);
+      if (region !== undefined && MixinApi.isPlacing(host) && MixinApi.isContainer(host)) {
+        return this.placeTakes({ host, region }, held);
+      }
+      // A sibling-pair home (a clip on the belt): the region's own fit.
+      if (region !== undefined && MixinApi.isPlacing(host)) {
+        return MixinApi.isContainable(held) && host.canPlace(held, region).ok;
+      }
       return MixinApi.isContainer(host) && this.placeTakes({ host }, held);
     }
 
@@ -1285,14 +1313,17 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       for (const [slot, occ] of self.getAllOccupants()) {
         if (occ.has(it)) self.vacate(slot, it);
       }
-      // It remembers where it came from — that is where it goes back.
+      // It remembers where it came from — that is where it goes back. ⭐ The
+      // pocket before the container (W9): a key out of a pocket is the
+      // coat's contents, and its home is the pocket, not the coat.
       const container = it.getContainer();
       const pair = it.getPlacement();
       if (!this.homeOf(it)) {
-        if (container !== null && container.stuffId !== self.stuffId && MixinApi.isContainer(container)) this.setHome(it, container);
-        else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
+        if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
           // Out of a pocket (or off a clip): that is where it goes back.
           this.setHome(it, pair.host, pair.name);
+        } else if (container !== null && container.stuffId !== self.stuffId && MixinApi.isContainer(container)) {
+          this.setHome(it, container);
         }
       }
       self.seatInSlots(it, slots);

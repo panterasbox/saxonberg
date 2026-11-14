@@ -106,6 +106,26 @@ describe('inventory — by tier (D28)', () => {
     expect(out.indexOf('Worn')).toBeLessThan(out.indexOf('Packed'));
   });
 
+  it('⭐ a coat is worn with its pocket line under Ready; a pocketless shirt is worn, not a holder (W9)', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    await wornGarment(me, plan, 'shirt', 'torso');
+    const coat = await wornGarment(me, plan, 'coat', 'torso', [
+      { member: Placements.IN, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+    ]);
+    const key = tool('key', 0.02, [0.06, 0.025, 0.003]);
+    carry(me, key);
+    ContainmentApi.move(key, coat, 'left pocket');
+    expect(key.getContainer()).toBe(coat);
+    const out = await inventory(me);
+    expect(out).toMatch(/In your [^\n]*coat[^\n]*'s left pocket: [^\n]*key/);
+    expect(out).toMatch(/Worn: [^\n]*shirt/);
+    expect(out).toMatch(/Worn: [^\n]*coat/);
+    // Neither garment is listed as a container of its own ("coat: empty").
+    expect(out).not.toMatch(/shirt[^\n]*: empty/);
+    expect(out).not.toMatch(/coat[^\n]*: empty/);
+  });
+
   it('`--all` opens the packs; `--packed` is that section alone', async () => {
     const { me } = await kitted();
     expect(await inventory(me, { all: true })).toMatch(/rucksack[^\n]*: [^\n]*map/);

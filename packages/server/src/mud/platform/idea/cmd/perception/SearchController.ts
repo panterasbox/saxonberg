@@ -172,8 +172,16 @@ export default class SearchController extends CommandController<SearchModel> {
     target: Stuff | null,
   ): { scope: Stuff[]; depth: SearchDepth; subject: Mml } {
     if (target && MixinApi.isContainer(target)) {
+      // ⭐ A body: what it holds and each worn thing's own contents, one
+      // level — its coat's pockets (W9: a pocketed thing is the coat's).
+      const scope: Stuff[] = [...target.getContents()];
+      if (MixinApi.isAttired(target)) {
+        for (const worn of target.getContents()) {
+          if (MixinApi.isContainer(worn) && !worn.isAgent() && target.wears(worn)) scope.push(...worn.getContents());
+        }
+      }
       return {
-        scope: [...target.getContents()],
+        scope,
         depth: 'narrow',
         subject: Mml.thing(target),
       };

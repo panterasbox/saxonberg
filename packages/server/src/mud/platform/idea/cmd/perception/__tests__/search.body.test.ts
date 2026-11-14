@@ -151,6 +151,17 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     expect(PerceptionApi.perceives(other, letter)).toBe(false);
   });
 
+  it('⭐ what is in the dead man\'s coat pocket is found (W9: the coat\'s contents, one level in)', async () => {
+    const note = makeStuffAtPath(() => new Thing(), '/test/search/note');
+    note.setShortDescription('a note');
+    await pocketOn(corpse as never, note);
+    expect(PerceptionApi.perceives(mara, note)).toBe(false);
+    await search(mara, corpse);
+    await finish();
+    expect(PerceptionApi.perceives(mara, note)).toBe(true);
+    expect(PerceptionApi.perceives(other, note)).toBe(false);
+  });
+
   it('⭐ moved to another holder, the find is inert', async () => {
     await search(mara, corpse);
     await finish();

@@ -1014,7 +1014,7 @@ async function restoreItem(
  * and its member still encloses; else `null` (a stale record is logged).
  */
 async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | null> {
-  if (!("placement" in entry) || entry.placement === undefined) return null;
+  if (entry.placement === undefined) return null;
   const at = entry.placement;
   if (at.placement === undefined || at.hostIndex !== undefined || at.hostChattelId !== undefined) return null;
   const offered =
