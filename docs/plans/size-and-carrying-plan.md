@@ -995,7 +995,9 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 
 - **D25-c (owner review, 2026-11-12)** — The lens lives on **`AuthorMixin`**, not `Avatar`: the lens is an author's tool, the verb was already afforded by `AuthorMixin`, and a character with no author shell (a future consumer-only avatar that opts out of the authoring and labor stack) should carry none of it. `_lensExtents`/`lensOn`/`lensOff`/`lensExtents` moved to `lib/shell/Author.ts`; perception's rule 0 and the three lens controllers narrow on `MixinApi.isAuthor`.
 - **D26 — a pocket is a named region offered by the garment, never an object, and the
-  garment holds nothing itself.** `Garment` composes `PlacingMixin` only (class default
+  garment holds nothing itself.** ⚠ *The second half is superseded by W9 (2026-11-13): the
+  garment IS a `Container`, a pocket is a region of it, and the pocketed thing is its contents —
+  see § W9, D-W9-1. The entry fields, the names, the fit and the words below stand.* `Garment` composes `PlacingMixin` only (class default
   `placements: []` — a garment with no pockets offers nothing); a pocketed thing lives in
   the **wearer's** contents with the pair `(garment, 'left pocket')`, exactly as the ham
   lives in the room with `(hook, 'from')` (`placeOn` :242–275). `Placing.placements`
@@ -1102,7 +1104,8 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   stands in with a `DiagnosticApi.record` naming the row (the author fixes the loadout).
   `installDefaultLoadout`, `Gus`'s `CARRIED`, `Costumed.wearGarments` and `props:` into
   a body all go through `receive`. Nothing is ever destroyed or left on the floor.
-- **D33 — whatever is placed on, in or from a thing travels with it** (owner,
+- **D33 — whatever is placed on, in or from a thing travels with it** (⚠ *W9: on or from — a thing IN a
+  host is its contents and travels as contents; the host-follow is the sibling pair's, D-W9-8*) (owner,
   2026-11-11: the general rule, not a garment special case). In `ContainmentLogic.
   moveCore`, after the host's own `setContainer`: every item whose placement pair names
   the moved host (`getPlaced()` over the host's **old** environment) is moved into the
@@ -1537,12 +1540,12 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
 | `'ceiling-too-low'` on `stand` | `PosedMixin.acceptPosture` | the body's posture change is the body's refusal |
 | `back` (cap 1), `waist` (cap 4) slots | the biped **plan row** | rows: the biped wears a pack and a belt; the quadruped has `back:1` already. No code |
 | `canid` plan | a new plan row, `extends:` quadruped | the dog's mouth; the horse's plan is untouched |
-| `Garment` + `PlacingMixin` (class default `placements: []`); `hangingLengthM` override while worn | `Garment` | every garment may offer pockets or a hanging length, and zero is the honest count (a shirt with no pockets offers no region and `put` refuses `no-such-placement` as any Placing host does; a belt offers `from`). **Not `Container`**: a garment holds nothing — the wearer does. Not on `Wearable`; not on `Good` |
+| `Garment` + `PlacingMixin` (class default `placements: []`); `hangingLengthM` override while worn | `Garment` | every garment may offer pockets or a hanging length, and zero is the honest count (a shirt with no pockets offers no region and `put` refuses `no-such-placement` as any Placing host does; a belt offers `from`). **Not `Container`**: a garment holds nothing — the wearer does. Not on `Wearable`; not on `Good`. ⚠ **Superseded by W9** (owner ruling 2026-11-13: *an enclosing relation is containment*): `Garment` composes `ContainerMixin` with `hasInterior() === false`; a pocketed thing is the garment's contents (D-W9-1, D-W9-13) |
 | `placements` entry widening (`name`, `mouth`, `volumeM3`, `covered`, `closes`) | `PlacingMixin` | every placing host may name its regions (a range's two plates, a coat's three pockets); a bare string entry is unchanged |
 | `hangingLengthM`, `bearsKg`, `roomFor`, the member fit in `canPlace` | `PlacingMixin` | every placing host answers how long its hanging edge is and what it bears; a host with no `from` member never asks. One mechanism for belt, bandolier, harness, strap, saddle, ring, rail, pegboard |
 | `tensileStrengthMPa` | `Material` row property | every material has a strength; unset = unbounded (a pegboard's authors need not care). Not on the belt row (the leather decides) |
 | `hangs`, `fastens` | the `from` Placement document (and any pack's own hanging document) | a member's document says what the relation does; `on` fastens nothing, `in` encloses |
-| `/platform/placements/pocket` | a Placement document row | the `in` family's vocabulary, one more member |
+| `/platform/placements/pocket` | a Placement document row | the `in` family's vocabulary, one more member. ⚠ **Superseded by W9**: the document retires; a pocket entry cites `in`, and the garment is a `Container` (D-W9-2) |
 | `shapedTo?` | `ContainerMixin` | any container may be shaped to one kind (a quiver, a knife block, a cup rack); unset = unshaped. Not on `Pack` only — a wall-mounted quiver is not worn |
 | `PortableLight` → `Wearable(Slottable(LightSource(Switchable(Good))))` | `PortableLight` | a portable light may be worn or clipped; a row claims it or does not (the flare claims nothing). Not on `Lamp` (a hearth lantern is not worn) |
 | `readies:` | `FieldDefinition` (`api/command.ts`) | one field in, three (`depth`, flags) out; read by the dispatcher only |
@@ -2524,6 +2527,470 @@ should be on move(). the only time you go around move() is when you need to go a
 **Still the owner's:** nothing in W8. Two notes for the sweep, not questions: `Carrying.ts` could move
 to `lib/creature/` now that its base is `Creature` (≈100 imports); and the `ForSale` reshape to facts
 (3 implementers, one in `transport`) is retail's build.
+
+### W9 — what is IN a thing is its contents; pockets are regions of a container (owner ruling, 2026-11-13)
+
+**Why.** The owner, reviewing the pocket model: *"if the apple is IN the desk it should absolutely be
+contents of the desk, not the room — but I don't know if I'd argue that for every relation."* The rule
+that falls out, and that this wave makes literal:
+
+> ⭐⭐ **An enclosing relation is containment; a supporting or hanging relation is a pair.**
+
+Shipped spatial already says so for `in`: `$C/platform/content/placements/in.yaml` is the one member that
+`encloses`, and nothing offers it as a sibling placement on purpose — `put X in icebox` is plain
+containment, region zero. `on` and `from` are the auxiliary sibling pair (spatial.md § The auxiliary-pair
+model) and **stay** pairs: a mug on a desk is in the room's air, light and view; a holster hung from a
+belt is worn on the outside. What this MR got wrong is **pockets**: D26 made a pocket an enclosing
+placement member (`/platform/placements/pocket`, `encloses: true`) on a `Placing` garment, so a pocketed
+key is `container = wearer` + pair `{coat, 'left pocket'}` — *in* modeled as a sibling. That one
+inversion forced D33's host-follow for pocketed things, the owned-host pair restore pass (6), `CarryPlace
+= Container | Placing`, the pocket fit inside `Placing.canPlace`, and the pocket branch of perception's
+pair rule.
+
+**The fix.** A garment with pockets is a **`Container` whose contents are partitioned by named region**
+(`left pocket`, `breast pocket`, `inner pocket`), each region carrying its own `mouth`, `volumeM3`,
+`covered`, `closes` — today's entry fields, unchanged. The key's container is the coat. `on`/`from` keep
+D33 (a tray's cups, a belt's pouches). `move` is still the one call; a carrier still routes what arrives;
+`directMove` is still the bypass; no new movement name; the mixin decides and the controller words.
+
+#### Grounding
+
+- **The pair today** (`lib/spatial/Containable.ts:319-338, :444-447, :463-473, :531-533`): `_placementHost`
+  (instance ref, weak) + `_placementName`; `getPlacement()`; `getEnclosingScope()` returns the host when
+  the member `encloses`, else the container; `_setPlacement` gated `FromContainmentApi`. **Nothing in the
+  item-side pair requires the host to be a sibling** — the sibling claim lives in two places only: the
+  persisted form (`ContentPlacement.hostIndex`, `lib/persistence/PersistenceSlice.ts:59-78`, written by
+  `Container.captureSlice` `:684-697`) and `Placing.getPlaced` (`lib/spatial/Placing.ts:415-425`), which
+  walks the host's **environment**.
+- **The host side** (`Placing.ts`): `PlacementEntry { member, name?, mouth?, volumeM3?, covered?, closes? }`
+  (`:76-83`); `getPlacementEntry` (`:347`), `namedRegions` (`:358`, folded into `getKeywords` `:371`),
+  `placementOf` (`:388`), `setPlacements` (`:401`, awaits the member documents), `resolvePlacement` (`:433`),
+  `canPlace` (`:472`: no-such-placement → `shut` for an enclosing member on a shut Sealable → the member
+  fit), `memberFitRefusal` (`:499-541`: hanging length/strength; an enclosing region's mouth, depth
+  `POCKET_STICK_OUT`, and volume over `getPlaced(name)`). Composition refusals (`:288`): a Placing host
+  composes Containable; never Exitable. Class default `static defaultPlacements = [on]`; `Garment` and
+  `Pack` say `[]`.
+- **The chokepoint** (`platform/idea/api/ContainmentLogic.ts`): `move` (`:87`) → a `Placing` destination
+  with a word, or with none when it is not a Container → `placeOn` (`:336-375`: into the host's
+  **environment**, `moveCore(…, placed=true)`, stamp the pair, fire, restamp, press); the agent branch asks
+  `arrivalFor` (`:116-140`); the same-container unplace (`:145-152`); `moveCore` (`:384`): the bring-along
+  asked of the destination (`:437-441`), `canAddContainable(item, { placed })` (`:450`), the pair cleared
+  when the container changes (`:479-487`), `pressAfterArrival` for a non-place container (`:514`), the
+  host-follow (`:519-532`), custody. `directFollowers`/`bringAlong` (`:544-583`) look only in the host's
+  environment. `putPlanFor` (`:180-290`): the binder's `via.region` → `named`; the slot rule; `PlacementOffers`;
+  region zero's `arrivalRefusal` (`:598`); `setHome` on a `zero` route only (`:272-280`).
+- **`Container`** (`lib/spatial/Container.ts`): `arrivalFor` default `contents` (`:473`); `canAddContainable`
+  = `fitRefusal` (`:463`); `bounds`/`fitRefusal` (`:388-450`; unknown bounds ask nothing — a flexible thing
+  with no authored box and no capacity has `interiorOf === null`); `reconcilePressing` (`:492-600`: a body
+  presses only what is in a pocket, `:552-556`; a thing placed on a sibling inside a container is pressed by
+  nothing, `:557-559`; the leaving thing's `dest` `:580`); `cleanupOnDestruct` evacuates to the outer
+  (`:737`); the `contents` subscribable field (`:840-870`, `dependsOnFields: ['contents','placement']`);
+  `getReachableContents` (`:1002`); `getLooseContents` filters things placed on a **sibling** in the list
+  (`:1035-1051`); `static commandContributions.self` lists five inventory views (`:810-818`); `closedSidesOf`
+  (`:1058`); `interiorOf` (`:1076`). `PlacementOffers` (`lib/spatial/PlacementOffers.ts:58-60`): region zero
+  iff `isContainer(host) && !host.isAgent()`.
+- **`Garment`** (`platform/thing/equipment/Garment.ts:103-109`): `PlacingMixin(Tearable(Labelled(Soilable(
+  Wearable(Slottable(Assembled(Crafted(Durable(Constructed(Dyed(Good)))))))))))`; `defaultPlacements = []`;
+  `hangingLengthM` while worn; `tear` moves the rags to `where` and destructs. `Good` is
+  `Slottable(Faced(Integrity(MadeFrom(Chattel(Concealable(Thing))))))` — **not a Container**. `Pack`
+  (`Pack.ts:46-60`) is `Placing(Wearable(Slottable(Sealable(Vessel))))` — a worn Container+Placing already.
+  **37 rows name `Garment`; 20 author `placements:`; 14 author pockets (31 entries); 6 author `dimensions:`.**
+- **The two `in`-as-sibling hosts.** `Chamber` (`platform/thing/Chamber.ts:47-67`) is
+  `Atmospheric(Placing(Thing))` with `placements = [IN]` and `occupants() = getPlaced(IN)`; **one row**,
+  `trade-carpentry/…/thing/drying-loft.yaml`; readers `DryController.ts:110-148` (`rack.resolvePlacement` →
+  `move(target, rack, member)`), `dry.yaml:77-82` (`prepositions: [on, onto, from]`, `requires:
+  [PlacingMixin]`), `api/containment.ts:202` (the docstring's `move(item, loft, Placements.IN)`),
+  `Atmospheric.ts:767`, `Chambered.ts`; tests `Chamber.test`, `Seasoning.chamber.test`,
+  `Thermal.heatwork.test`, `Chambered.test`, carpentry's `sawmill.test`. `in.yaml`'s comment *"nothing
+  composes a host that OFFERS `in` today"* is already false.
+- **Carrying** (`lib/slot/Carrying.ts`): `CarryPlace = {host: Placing; region} | {host: Container}` (`:134`);
+  `carryPlaces` (`:1036-1072`: worn hosts' enclosing non-hanging regions → pockets; containers placed on
+  worn hosts → hung; worn containers → ready/packed); `placeTakes` (`:1075`); `tierOf` (`:462-489`: a thing
+  inside a worn container is `ready` or `packed` by the container's slot); `isHonest` (`:514`); `arrivalFor`
+  → `pair` (`:590`); `directMove` `pair`/`into` (`:640-655`); `routeArrival` (`:674`); `stow`/`homeTakes`/
+  `stowPlaceFor` (`:1219-1255`); `bringToHand` remembers a container before a pair (`:1286-1294`);
+  `carriedAt` (`:1300`); `returnBorrowed` walks `getCarriedContents()` one level (`:858-889`).
+- **Perception** (`platform/idea/api/PerceptionLogic.ts`): `holdersAdmit` (`:1160-1192`) walks
+  `getEnclosingScope`; the covered/`closes` check is keyed on `placement.host === scope` (`:1176-1186`) and
+  D24a's `foundOnBy(viewer, cur, wearer = scope.getContainer())`; `bodyShows` (`:1218-1234`); `resolveSearch`
+  (`:1311-1342`); `visibleContentsOf` (`:1351-1385`) groups `target.getContents()` only.
+  `SearchController.buildScope` (`:166-198`) for a named container is `target.getContents()`.
+- **Persistence**: `captureSlice` (`Container.ts:642-699`): `hostIndex` by `ctx.indexOf(placed.host)`, else
+  `hostChattelId` for an owned host; `PersistableLogic.restoreState` pass (3b) (`:822-840`, `idx ===
+  undefined → continue`), pass (6) (`:896-924`, owned-host pairs + the estate's `placedOn`); `restoreItem`
+  (`:968-1000`) moves a nested clone into its host plainly (a Creature admits). `Estate.captureSlice`
+  (`lib/chattel/Estate.ts:256-277`) records `placedOn` only when `live.getContainer() === host`;
+  `hydrateSlice` restores `inventory` goods into the owner (`:345-370`). A worn **Pack's** contents already
+  persist as nested state inside the pack's own entry — the shape a pocketed key takes after this wave.
+- **Readers of the pocket document**: `Placements.POCKET` (`Placement.ts:53`), `Garment.ts:32` (docstring),
+  31 content entries in 14 rows, 11 test files (`api/__tests__/mql.universal`, `banking/issueCard.pocket`,
+  `command/binder.perceived`, `retail/ConsignmentShelf.worn`, `slot/Carrying.flip`,
+  `platform/Avatar.flip-restore`, `cmd/perception/search.body`, `equipment/Garment.pockets`,
+  `api/ContainmentLogic.hostFollow`, `api/ContainmentLogic.arrival`, `cmd/inventory/Inventory.tiers`).
+  `check-template-census.ts:1206` reads a region entry's `member` as a document path;
+  `check-placement-words.ts` reads every `content/placements/` document.
+- **The words**: `CommandController.ts:562-627` and `FightSwitchController.ts:76` word a region by
+  `pair.host.namedRegions()`; `CombatLogic.outOf` (`:4430-4446`) prices a holder by the pair's member and
+  entry — all pair-based, none sibling-based.
+
+#### Decisions
+
+- **D-W9-1 — the region mechanism is the shipped pair with `host = the container itself`.** A thing in a
+  named region of its container has `container = coat` and `placement = { host: coat, name: 'left pocket'
+  }`. The member document's `encloses` **is** the switch the owner's rule names: an entry whose member
+  encloses is a region OF the container (the thing is its contents); one whose member does not (`on`,
+  `from`) is the sibling pair exactly as today. `getPlacement()` for a pocketed key returns `{ host: coat,
+  name: 'left pocket' }` — the same answer as before; what changed is `getContainer()`, which now answers
+  `coat`. `getEnclosingScope()` answers `coat` either way (it already returned the host for an enclosing
+  member), so every air, light and reach reader is unchanged. **No new field, no new mixin, no new
+  document kind**: the honest expression of *in* was one bit away, and the bit already existed. Searched
+  and rejected: a `region` field beside the pair on `Containable` (a second way to say one thing); a
+  `regions:` list on `Container` apart from `placements:` (two lists for one vocabulary, and `namedRegions`
+  / `via.region` / `getPlacementEntry` would need a second reader each); a pocket as an object (D26's
+  refusal stands — the owner's *"not an object"*).
+- **D-W9-2 — one list, two shapes, decided per entry.** `placements:` stays the one authored list of the
+  ways a thing may sit on, in or from a host; `PlacementEntry` is unchanged. **A host whose list offers an
+  enclosing member must compose `Container`** — `PlacingMixin.__validateComposition__` gains refusal 3 for a
+  class default naming one (`Chamber`'s `[IN]`), and `setPlacements` (after the member documents load)
+  throws `TypeError` for a row entry naming one on a non-Container host (the applier records it, P3). The
+  rows' member path becomes **`/platform/placements/in`**: the enclosing member is `in`, the owner's word;
+  `/platform/placements/pocket` and `Placements.POCKET` **retire** (D26-c's `into`-primary trick existed only
+  to let a pack's region zero win `in`; see D-W9-9 for what a pack with a side pocket now asks).
+- **D-W9-3 — `Container.hasInterior()`: does this container have an unnamed inside (region zero)?** Default
+  `true` — every chest, bucket, cart, pack, place. **`Garment` answers `false`**: cloth has no inside of its
+  own; its insides are the pockets its row names. Readers: `PlacementOffers` offers region zero iff
+  `hasInterior()` (so a coat offers its pockets only, and a shirt with no pockets offers **nothing** —
+  `put key in shirt` → `wrong-preposition { takes: [] }`, worded by `PutController` as today's *"you can't
+  put anything in that"*); `fitRefusal` answers `no-room` (facts naming the container) when `!hasInterior()`,
+  so a loose arrival into region zero is refused by the tape measure like any full container; the
+  `InventoryController` holder test (D-W9-11). Not derived from `bounds()`: six garment rows author
+  `dimensions:` for their own passage, and `interiorOf` would read 0.8 × a folded coat as a cavity.
+- **D-W9-4 — the destination decides the region, through the hook it already has.** `ContainmentLogic.move`
+  asks `arrivalFor` of **every `Container` destination given no word** (today: agents only — the generalization
+  of W8 rule 1: *where inside is the destination's choice*). `Container.arrivalFor`'s default: `how.placed` or
+  `hasInterior()` → `contents` (as today); else the first enclosing region whose `canPlace` admits the thing
+  → `{ kind: 'pair', host: self, region }`; none → `{ kind: 'refuse', refusal: <the last region's FitRefusal,
+  or no-room with no regions> }`. The chokepoint's `pair` arm is unchanged — `this.move(item, host, region)`
+  — and now dispatches on the member (D-W9-5). A refused non-carrier throws `ContainmentError` as W8 made it
+  (`move(mug, coat)` → *"the mug has no place in the coat — too big for its mouth"*; the author learns at the
+  call, lens 2). `Carrying.arrivalFor`'s `pair` for a pocket is the same shape and needs no change.
+- **D-W9-5 — the chokepoint's placing dispatch reads `encloses`.** In `move`: a `Placing` destination with a
+  word resolves the key (`getPlacements().includes(word)` → the key; else `resolvePlacement(word)`); the
+  key's member **encloses** → new module function **`placeIn(item, host, key)`** beside `placeOn`: `canPlace`
+  veto → throw; `moveCore(item, host, false, undefined, false, key)`; `_setPlacement(host, key)`; the
+  `placement` fire; the Thermal restamp (the deferred `pressAfterArrival` `moveCore` already issued reads the
+  stamped pair a tick later). Not enclosing → `placeOn` as today. A `Placing` destination with no word that
+  is not a Container → `placeOn` (unchanged). **A word on a plain Container** (`move(x, chamber,
+  Placements.IN)` — the loft's callers) is accepted iff it is one of region zero's words (`in`'s
+  prepositions) and lands in contents; any other word throws `offers no placement` (P3; today it is
+  silently ignored). `moveCore` gains `region?: string`, passed to `canAddContainable(item, { placed, region
+  })`: the Container default **skips the whole-container tape measure when a region is named** — the
+  region's `canPlace` ran — so a map that fits a pack's side pocket is not refused by the main
+  compartment's fullness. `moveCore` from === to (a key from the left pocket to the right): returns early;
+  `placeIn` restamps — the `placeOn` precedent (*a mug from one desk to another*).
+- **D-W9-6 — `getPlaced(name)` walks its own contents for an enclosing member** and its environment's for
+  the rest (`Placing.ts:415`; the enclosing branch narrows `MixinApi.isContainer(this)`, guaranteed by
+  refusal 3). `canPlace`, `memberFitRefusal`, `roomFor`, `namedRegions`, `getPlacementEntry`, `placementOf`,
+  `resolvePlacement`, the MQL `via.region` facet, the `look` drill-in (`Placing.ts:254-264`,
+  `LookController.ts:682-701`) and `InventoryController.regionLines` are **unchanged** — they read
+  `getPlaced`. `Container.getLooseContents` additionally filters a thing whose pair's host **is this
+  container** (it is listed under its region, never as loose), one clause beside the sibling filter.
+- **D-W9-7 — persistence: a region of the container itself is a pair with no sibling host.**
+  `ContentPlacement { placement: 'left pocket' }` with neither `hostIndex` nor `hostChattelId` means *a
+  region of the container this slice belongs to*. `Container.captureSlice`: `placed.host === container` →
+  `placement.placement = placed.name` only. Restore: `restoreItem` moves a nested clone **straight into its
+  recorded region** (`move(clone, host, entry.placement.placement)` when the entry names a self-region and
+  `isPlacing(host)`) — one move, no re-stamp; pass (3b) skips self-region entries (and a self-region entry
+  whose host offers no such region, or whose member no longer encloses, is **logged and left where the
+  arrival put it** — P3's skip, never a throw out of the restore). A pocketed key persists **inside the
+  garment's own slice**, as a worn pack's contents do today — the body's snapshot carries the coat, the coat's
+  state carries the key. `Estate.captureSlice`'s `placedOn` condition widens from `live.getContainer() === host`
+  to *in the owner's keeping*: directly on the body, **or in a region of a thing on the body** (`pair.host ===
+  live.getContainer()` and `ctx.indexOf(pair.host) >= 0`, or the host owned) — so an owned key in an unowned
+  coat's pocket records `{ hostIndex: <the coat>, placement: 'left pocket' }` and pass (6) moves it from the
+  owner (where `inventory` restores it) into the coat's region exactly as it moves a pouch onto a belt today.
+  Nothing new is captured; `HomesSlice` is unchanged (a home's host may be the coat, with its region).
+- **D-W9-8 — D33 retires for pockets by construction and stays for `on`/`from`.** A pocketed key is the
+  coat's contents, so `directFollowers(coat, env)` finds nothing for it and `moveCore` carries it as it
+  carries a satchel's contents — one move, no bring-along ask of the destination, no `placed` admission.
+  The host-follow code is **unchanged**; its coat tests become contents assertions (below) and its tray/belt
+  tests stay as the mechanism's.
+- **D-W9-9 — words and offers.** `put key in coat` → `PlacementOffers(coat)`: no region zero, two pockets
+  answering `in` → `preposition-ambiguous { regions }` → *"Which — the left pocket or the right pocket?"*
+  (D26-e, unchanged); one pocket → taken; `put key in inner pocket` → the binder's `via.region` → `named` →
+  `canPlace` → route `region` → `move(key, coat, 'inner pocket')` → `placeIn`. **`setHome` on a `region`
+  route** whose host the putter carries (`by.tierOf(target) !== 'elsewhere'`) — D14's *putting is how a home
+  is made* applied to a pocket, which the `zero`-only branch missed (a latent gap, closed here). `get key
+  from pocket` is `directMove(key, { kind: 'carried' })` → `move(key, body)` → the container changes (coat →
+  body), `moveCore` clears the pair, the body seats it (the arrival test's *a key out of its pocket goes to a
+  hand* holds). ⚠ **A pack with a side pocket** (`{ member: in, name: side pocket }` on a `Pack` row —
+  none shipped) now asks *"the inside or the side pocket?"* for `put map in pack`, where D26-c's `into`
+  trick put it in the main silently. Honest and cheap (lens 3b); recorded, not worked around.
+- **D-W9-10 — pressing per region.** `Container.reconcilePressing`: a thing whose pair's host **is this
+  container** has a region's sides — a bottom and walls always, a top iff the entry `closes` (the buttoned
+  breast pocket keeps the cork; the open side pocket lets it float) — and leaves **into the container's own
+  surroundings**: `self.getContainer()`, or `self.getEnclosingPlace()` when that container is an agent (out
+  of your pocket into the air of the place, never into your hand — today's *"out of a pocket it is gone from
+  the body"*). The agent-only pocket clause (`:552-556`, D26-g) is deleted: a body no longer holds pocketed
+  things, so a body presses nothing. `Container.closedSidesOf`/`closureLevel` are unchanged: a garment's
+  region zero is never asked (no interior), and swimming wets its pockets (`closureLevel` `open`) as drive
+  16 expects of a pack.
+- **D-W9-11 — the carrier's reads.** `CarryPlace` narrows to `{ host: Stuff & Container; region?: string }`
+  (a pocket's host is a Container now); `placeTakes` keeps its two arms (`canPlace(item, region)` through
+  `isPlacing` · `fitRefusal`). `carryPlaces`' hung loop also walks **one level into each worn host's
+  enclosing regions** for a container pocketed there (a purse in a coat pocket is a carry place, `ready`).
+  `bringToHand` remembers the **pair before the container** (today container first — a key out of a pocket
+  would get the coat as its home and lose its pocket). `returnBorrowed` walks into every **unowned worn
+  container** recursively (a borrowed key in the guest's own trouser pocket must come out before the outfit
+  is destroyed with the body). `tierOf`, `isHonest`, `homeOf`, `stow`, `homeTakes`, `carriedAt`,
+  `directMove`, `routeArrival`, `resolveReceive`, `placeLoose` are unchanged — each reads the pair or walks
+  up through containers, and a pocketed key walks key → coat → body. `InventoryController.tiersOf`: a
+  **holder** is `isContainer && !isAgent && (hasInterior() || an enclosing region offered)` — a shirt is
+  `worn`, a coat is `worn` and its pockets print under it through `regionLines`, a satchel is `ready` as
+  today; the `regions` bucket keeps the sibling pairs (`from`). `SearchController.buildScope` for a body
+  (`isAttired`) is its contents **plus each worn Container's contents** (one level; a corpse's coat pockets),
+  so `resolveSearch`'s `covered` test (`bodyShows` → the pair's member encloses → not shown) and D24a's
+  `foundOnBy(viewer, letter, coat.getContainer() === body)` hold unchanged.
+- **D-W9-12 — `Chamber` is a Container, and the loft offers region zero.** `Chamber =
+  Atmospheric(Container(Thing))` — the `Placing` layer, `placements = [IN]` and the `occupants()` override
+  go (`Atmospheric.occupants()` defaults to a Container's contents). `DryController`: a rack that is a
+  Container and not Placing takes `move(target, rack)`; `dry.yaml`'s `rack` arg `requires:
+  [ContainerMixin|PlacingMixin]` and `prepositions: [on, onto, from, in, into]` (the `lint:placement-words`
+  roster: `dry` accepts `in`). `api/containment.ts:202`'s docstring, `Chambered.ts`' and `Atmospheric.ts:767`'s
+  comments follow. The loft row is unchanged (its `placements` was the class default). The owner's rule
+  decides it: a board in a loft is in the loft's air **because it is in the loft** — the second shipped
+  `in`-as-sibling, and leaving it would make `getPlaced(IN)` mean two things.
+- **D-W9-13 — Garment composes `Container`: every garment, not a split.** The P2 question — *how many
+  garments will ever hold anything?* — has the answer D26 gave for `Placing` on every garment: a pocket is
+  the **row's** choice, sewn on by the tailor, and any garment may have one (lens 2: the ordinary case is a
+  row edit, never a class change; a `PocketedGarment` would make *add a pocket to the hat* a kernel MR). 14
+  of 37 rows have pockets today. The honest-empty default costs nothing visible: a pocketless garment
+  offers no region (`PlacementOffers` empty), refuses region zero by `fitRefusal`, lists as `worn` not as a
+  holder, and its card shows no `contents` section (`Cards.ts:182`: absent on an empty one). Composition:
+  `PlacingMixin(ContainerMixin(Tearable(…)))` — Container inside Placing, the `Pack` order. What composing
+  Container claims of every garment: `cleanupOnDestruct` (a torn coat's `tear` destruct spills its pocketed
+  things where the coat was — right), the `contents` subscribable field (empty), `MixinApi.isOpenContainer`
+  true for a worn coat (so `PerceptionApi.reach` walks one level into **your own** pockets — `get key`
+  binds; a stranger's body is not an open container, so theirs are not walked), and Container's
+  `commandContributions.self` (five inventory views) per worn garment — measured as a risk below.
+- **D-W9-14 — what stays exactly as it was.** `Containable.getEnclosingScope`/`getEnclosingPlace`/
+  `reachRefusal`; `Thermal`'s holder and air reads; `holdersAdmit` (the covered/`closes` check keys on
+  `placement.host === scope`, true for a self-region); `bodyShows`; `CombatLogic.outOf`'s holder pricing
+  (pocket = reach, `closes` = + unfasten); `CommandController`'s and `FightSwitchController`'s region words;
+  `Carrying.arrivalFor`'s `pair`; `directMove`'s `pair`/`into`; the restore's `placeLoose`; the MQL facet;
+  `lint:placement-words`' three invariants.
+
+#### Host placement
+
+| what | host | callers (counts) | signature / change | what composing it claims |
+|---|---|---|---|---|
+| `hasInterior()` | `ContainerMixin` (`lib/spatial/Container.ts`) | `PlacementOffers` (1), `fitRefusal` (1), `arrivalFor` default (1), `InventoryController.tiersOf` (1) | `hasInterior(): boolean` — default `true` | every container has an unnamed inside unless its class says its insides are named — a Garment says so; a chest, a bucket, a cart, a place, a pack, a loft mean `true` |
+| `arrivalFor` default — the region choice | `ContainerMixin` | the chokepoint, now for every Container destination with no word | unchanged signature; body: `placed`/`hasInterior` → `contents`; else first fitting enclosing region → `pair { host: self, region }`; else `refuse` | the W8 hook's fourth behavior on the same implementer (the default); still three implementers |
+| `canAddContainable(item, how)` | `ContainerMixin` | `moveCore` (1) | `how: { placed?: boolean; region?: string }` — the default skips the tape measure when `region` is named | a region's fit is the region's; the container's interior is not asked for a thing going into a pocket |
+| `fitRefusal` no-interior arm | `ContainerMixin` | — | `!hasInterior()` → `{ reason: 'no-room', facts: { container, item, dims: null } }` | region zero of a thing with no inside has no room |
+| `reconcilePressing` region sides + destination | `ContainerMixin` | — | self-region → `{ width: true, depth: true, height: entry.closes }`; dest `getContainer()` or the enclosing place past an agent; the agent-pocket clause deleted | pressing is the container's; a body presses nothing |
+| `getLooseContents` self-region filter | `ContainerMixin` | — | one clause | a thing listed under its region is not loose |
+| `captureSlice` self-host pair | `ContainerMixin` | — | `placed.host === container` → `{ placement }` | the slice records the pair it owns |
+| `placeIn` | module function in `ContainmentLogic.ts`, beside `placeOn` | `move` (1) | `placeIn(item, host: Stuff & Container & Placing, key: string): void` | the one chokepoint; the enclosing twin of `placeOn` |
+| `move` dispatch on `encloses`; the `arrivalFor` ask for every Container; region-zero words on a plain Container | `ContainmentLogic.move` | every `move` | — | the primitive decides; no caller changes |
+| `moveCore(…, region?)` | `ContainmentLogic` | `placeIn` (1) | sixth parameter | — |
+| `putPlanFor` `setHome` on a `region` route | `ContainmentLogic.putPlanFor` | — | the `zero` condition widened to `zero \| region` with a carried host | D14 for pockets |
+| `getPlaced(name)` enclosing branch | `PlacingMixin` | every reader (unchanged) | walks `this.getContents()` when the member encloses | a region's contents are the host's |
+| composition refusal 3; `setPlacements` row check | `PlacingMixin.__validateComposition__` / `setPlacements` | `Chamber` (class), 14 rows + any future row | throws `TypeError` | an enclosing member on a non-Container is unrepresentable, and says so |
+| `Garment` composes `ContainerMixin`; `hasInterior() = false` | `platform/thing/equipment/Garment.ts` | 37 rows | `PlacingMixin(ContainerMixin(…))` | D-W9-13 |
+| `Chamber = Atmospheric(Container(Thing))` | `platform/thing/Chamber.ts` | 1 row, 5 test files, `DryController`, `dry.yaml` | drops `Placing`, `placements`, `occupants()` | D-W9-12 |
+| `restoreItem` into a recorded region; pass (3b) skips self-regions; `Estate` `placedOn` widened | `PersistableLogic` / `Estate.captureSlice` | — | — | D-W9-7 |
+| `CarryPlace`, `carryPlaces` pocketed-container walk, `bringToHand` pair-first home, `returnBorrowed` recursive walk | `CarryingMixin` | internal | `CarryPlace = { host: Stuff & Container; region?: string }` | D-W9-11 |
+| `tiersOf` holder test + worn regions | `InventoryController` (private statics) | 1 view | — | a bucketing for one view |
+| `buildScope` worn walk | `SearchController` (private) | 1 verb | — | the verb gathers what the body wears; `resolveSearch` decides |
+| `Placements.POCKET`, `/platform/placements/pocket` | **deleted** | 31 entries → `in`; 11 test files | — | one enclosing member |
+| `in.yaml` | the platform placement document | — | prose names the region when there is one (`{% if name %}in the {{ name }} of {{ host }}{% else %}in {{ host }}{% endif %}`); the stale comment rewritten | — |
+
+**The two tests, applied.** No guard re-narrows a host: `hasInterior()` is a container's statement about
+its own inside, not a gate on who composes Container; refusal 3 refuses a composition, never a call. No
+honest "no" on most hosts: `hasInterior()` is `true` everywhere but `Garment`, where it is a fact about
+cloth; `Container` on `Garment` is the same shape D26 chose for `Placing` on `Garment` (the row names the
+regions; zero is the honest count), and the four costs of an empty Container are enumerated in D-W9-13 and
+driven to nothing visible.
+
+#### Content
+
+| rows | entries | change |
+|---|---|---|
+| `generic-objects/…/clothes/`: `blazer` 3 · `field-jacket` 4 · `greatcoat` 3 · `lab-hoodie` 1 · `student-shirt` 1 · `student-trousers` 2 · `tweed-jacket` 3 · `white-coat` 2 | 19 | `member: /platform/placements/pocket` → `member: /platform/placements/in`; `name`/`mouth`/`volumeM3`/`covered`/`closes` untouched |
+| `trade-tailoring/…/thing/`: `apron` 1 · `coat` 4 · `shirt` 1 · `trousers` 2 | 8 | same |
+| `trade-tanning/…/thing/vest` (2, `closes: true`) · `terminus/…/university-avenue/thing/vest` (Gus's, 2) | 4 | same |
+| `platform/content/placements/pocket.yaml` | — | **deleted** |
+| `platform/content/placements/in.yaml` | — | prose region-aware; comment: *the enclosing member — a host that offers it as a named region is a Container and what sits there is its contents (a coat's pockets); the loft is region zero* |
+| `platform/content/platform/cmd/crafting/dry.yaml` | — | `rack.requires: [ContainerMixin\|PlacingMixin]`, `prepositions: [on, onto, from, in, into]` |
+| `trade-carpentry/…/thing/drying-loft.yaml` | — | unchanged (comment: *a Container with its own air*) |
+
+**31 entries in 14 rows; one document deleted; two views touched; `grep -rn "placements/pocket"
+packages/` → 0 after W9b.** No `extends:` row carries a pocket entry of its own (the 14 are the leaves).
+
+#### Steps — one commit each; `pnpm -C packages/server build`, `test:near`, the suites named, every touched pack's vitest, the gates the change moved
+
+- **W9a — `in` is containment.** `Container.hasInterior`/`arrivalFor` default/`canAddContainable(region)`/
+  `fitRefusal`/`reconcilePressing`/`getLooseContents`; `Placing.getPlaced` enclosing branch, refusal 3,
+  `setPlacements` row check; `ContainmentLogic` `placeIn`, the dispatch, `moveCore(region)`, the `arrivalFor`
+  ask for every Container, region-zero words on a plain Container, `putPlanFor`'s region home;
+  `PlacementOffers` region-zero gate; `Containable` docstrings (*the host is a sibling for `on`/`from`, the
+  container itself for `in`*); `Garment` composes `Container`, `hasInterior() false`. Both members still
+  resident (the `pocket` document retires in W9b, so every row keeps working through this commit). Tests:
+  `Garment.pockets.test` (7 cases re-asserted on `getContainer() === coat`; + *`put key in shirt` with no
+  pockets offers nothing*; + *`move(mug, coat)` throws naming the mouth*; + *`look coat` lists the key once,
+  under its pocket*); `ContainmentLogic.arrival.test` (`:44`, `:177` re-asserted); `ContainmentLogic.hostFollow.test`:
+  the four coat cases → **no host-follow** (*remove coat: the key's container is the coat before and after,
+  `directFollowers(coat, body)` is empty*; *drop coat: key in coat, coat in room, pair kept*; *give coat: the
+  new wearer's contents hold the coat, the coat the key*; *a cup on a tray in a pocket: tray and cup are the
+  coat's contents, the cup's pair names the tray*), the tray/belt cases kept; `Creature.veto.test` unchanged
+  (`placed` admission stays for `from`/`on`). Gates: `lint:instanceable`, `lint:mixin-names` (no new mixin),
+  `lint:duck-typing`, `lint:object-verbs` (0), `lint:imports`, `lint:module-scope`, `lint:template-census`.
+- **W9b — the rows cite `in`; `pocket` retires.** 31 entries → `in`; `pocket.yaml` deleted;
+  `Placements.POCKET` deleted; `in.yaml`; the 11 test files' citations; `Garment.ts:32` docstring; B4's
+  grep (`packages/content` and `packages/server`) finds none. Gates: `lint:placement-words` (three members
+  ship; `put` accepts `in`), `lint:template-census` (clause g: every `member` is a shipped document),
+  `lint:command-views`.
+- **W9c — a pocketed key persists in its coat.** `captureSlice` self-host pair; `restoreItem` into the
+  recorded region; pass (3b) skips self-regions (logs a stale one); `Estate.captureSlice` widening + pass (6).
+  Tests: `Garment.pockets.test` case 7 → *the coat's own slice carries the key; the region is restored with no
+  sibling host*; `Avatar.flip-restore.test:144` (**the restart round-trip of a pocketed key** — re-asserted
+  `k2.getContainer() === t2` and `k2.getPlacement()` names the pocket; the loose-inventory D32 case
+  unchanged); new in `Avatar.flip-restore.test`: *an owned key in an unowned coat's pocket comes back in the
+  same pocket (the estate's `placedOn` by the coat's index)*, and *an owned key in an owned coat's pocket
+  (`hostChattelId`)*; `Estate` tests near. Gates: `lint:schema` untouched (no collection); `lint:pm`.
+- **W9d — the carrier, the inventory, the search.** `CarryPlace`, `carryPlaces`, `bringToHand`,
+  `returnBorrowed`; `InventoryController.tiersOf` + worn region lines; `SearchController.buildScope`. Tests:
+  `Carrying.flip.test` (`:70`, `:119`, `:140`, `:167`, `:195` re-asserted; + *a readied key out of a pocket
+  goes home to that pocket*; + *a guest's borrowed key in their own pocket goes back to its owner*);
+  `Inventory.tiers.test` (*a coat with a pocketed key lists under worn with its pocket line; a pocketless
+  shirt is worn, not a holder*); `search.body.test` (unchanged assertions, the scope now reaches the coat);
+  `perceives.holders.test:163`, `PerceptionLogic.visibleContents.test:77` (*your own: the coat as worn, its
+  key through the coat*), `issueCard.pocket.test`, `GetController.test` (`get key from pocket` → a hand),
+  `mql.universal.test`/`binder.perceived.test`/`ConsignmentShelf.worn.test` re-asserted where they bind a
+  pocketed thing. Gates: `lint:controller-decisions` (508, no rise — the holder test is a read),
+  `lint:controller-mutations` (137), `lint:perceived-surfaces` (0 — `buildScope`'s list goes to
+  `resolveSearch`, as today's does), `lint:controller-functions` (63), `lint:combat-dynamics`.
+- **W9e — the loft is a Container.** `Chamber`, `DryController`, `dry.yaml`, `api/containment.ts` docstring,
+  `Chambered.ts`/`Atmospheric.ts` comments. Tests: `Chamber.test`, `Seasoning.chamber.test`,
+  `Thermal.heatwork.test`, `Chambered.test`, carpentry's `sawmill.test` (`move(board, loft, Placements.IN)`
+  lands in contents; `occupants()` is contents). Gates: `lint:placement-words` (`dry` accepts `in`),
+  `lint:instanceable`, carpentry's vitest.
+- **W9f — the docs.** `spatial.md` (§ The auxiliary-pair model: the table gains *key in a coat's pocket →
+  container = the coat, pair `{coat, left pocket}`* and *board in the loft → the loft, `null`*; *the host is a
+  SIBLING* becomes *for `on` and `from` the host is a sibling; for an enclosing member the host is the
+  container itself*; § Two composition refusals → three; § The `Placement` vocabulary: three ship, the named
+  region example cites `in`; § `getPlaced`; § `canPlace`; § D33 scoped to pairs; § `ContentPlacement`),
+  `carrying.md` (§ Cast's pockets row; § Pockets rewritten — *a pocket is a region of its garment, which is a
+  Container; the key is the coat's contents*; § D33; § Tiers), `persistence.md` (the self-region record),
+  `perception.md` (one line: the pocket rule reads the pair's host, which is the container), `textiles.md` if
+  it names Garment's composition, `lint-family.md` (`placement-words`: three members), `thermal.md`'s
+  two-questions note (unchanged in effect; one clause), and **this plan**: § Host placement's `Garment` row
+  and `/platform/placements/pocket` row marked *superseded by W9*; D26 and D33 annotated; § Risks.
+
+Commit titles: `refactor(size-and-carrying W9a): in is containment — a pocket is a region of its
+garment, and the garment is a Container`, `content(size-and-carrying W9b): pocket entries cite in; the
+pocket document retires`, `fix(size-and-carrying W9c): a pocketed key persists in its coat`,
+`refactor(size-and-carrying W9d): the carrier, inventory and search read pockets as contents`,
+`refactor(size-and-carrying W9e): the drying loft is a Container`, `docs(size-and-carrying W9f): spatial.md
+— an enclosing relation is containment`.
+
+#### Tests — moved, retired, added
+
+| test | fate |
+|---|---|
+| `ContainmentLogic.hostFollow.test` coat cases ×4 | **rewritten** as contents assertions (D-W9-8): no bring-along, `directFollowers` empty; the belt and tray cases stay |
+| `Garment.pockets.test` ×7 | re-asserted on the coat as container; **+3** (shirt offers nothing · `move` throws · `look` lists once) |
+| `Avatar.flip-restore.test:144` | re-asserted (the round trip); **+2** owned-key cases |
+| `ContainmentLogic.arrival.test:44,:177` · `Carrying.flip.test` ×5 · `Inventory.tiers.test` · `perceives.holders.test:163` · `visibleContents.test:77` · `issueCard.pocket.test` · `search.body.test` · `GetController.test` · `mql.universal` · `binder.perceived` · `ConsignmentShelf.worn` | cite `in`; assertions on `getContainer()` of a pocketed thing flip to the garment |
+| `Carrying.flip.test` | **+2** (home is the pocket · a guest's pocketed borrowed thing returns) |
+| `Chamber.test` · `Seasoning.chamber.test` · `Thermal.heatwork.test` · `Chambered.test` · `sawmill.test` | the loft's occupants are its contents; `getPlaced(IN)` assertions → `getContents()` |
+| `Creature.veto.test` | unchanged |
+| none retired outright | the host-follow suite shrinks to the pair cases; nothing else loses a case |
+
+#### Acceptance
+
+- **The drive's assertions hold unchanged** (`packages/wire/tests/size-and-carrying.dirty.wire.test.ts`,
+  the 22 steps — 1–4, 6, 14–15, 19 and 21 exercise pockets: a key to a pocket, *"Which — left or right
+  pocket?"*, the breast pocket's 6 s, the inner-pocket letter found by `search` and shown to nobody, the
+  cork in the buttoned pocket at 0 g, the restored key in its pocket). Re-run **once at /finalize** with the
+  browser walk; mid-wave, tsc + `test:near` + the suites named + the touched packs' vitest (tailoring,
+  tanning, generic-objects, carpentry, terminus).
+- **Behavior changes, intended and named**: a pocketed thing's `getContainer()` is its garment; `put key in
+  shirt` (no pockets) is refused as *nothing to put it in*, not `no-such-placement`; `move(x, coat)` with
+  no fitting pocket throws; `put map in pack` on a pack row that authors a side pocket asks; a readied key's
+  home is its pocket; a word that names no region on a plain Container throws.
+- **Structure**: `grep -rn "placements/pocket\|Placements.POCKET" packages/` → 0; `Garment` composes
+  `ContainerMixin` and `hasInterior()` is `false`; `Chamber` composes no `PlacingMixin`;
+  `directFollowers(coat, …)` is empty for every pocketed thing; `ContentPlacement` of a pocketed key has
+  `placement` and no host field; the `Carrying` interface stays at **14**.
+- **No new mixin, Api, class, hook, registry, collection or document kind.** `hasInterior` is a method on an
+  existing mixin; `placeIn` a module function beside `placeOn`; refusal 3 a clause in an existing hook; one
+  document **deleted**.
+- **No ceiling rises**: `lint:controller-decisions` 508, `lint:controller-mutations` 137,
+  `lint:controller-functions` 63, `lint:perceived-surfaces` 0, `lint:object-verbs` 0, `lint:lib-statics`,
+  `lint:duck-typing`, `lint:mixin-names`, `lint:instanceable`, `lint:imports`, `lint:module-scope`,
+  `lint:placement-words`, `lint:template-census`, `lint:command-views`, `lint:combat-dynamics`, `lint:pm`.
+  The full family at code-complete and /finalize only.
+
+#### Risks
+
+- **Command contributions per worn garment.** `ContainerMixin.commandContributions.self` adds five views for
+  every Container a bystander can reach; a dressed body wears 4–6 garments, and the `cleanupOnDestruct`
+  comment records 80 signed-out bodies' clothes once held in one NPC's stack. Mitigation: W9a measures the
+  recency stack after dressing (`CommandApi.applyContainmentDelta` count before/after); if it grows by the
+  garment count, `Garment` overrides `static commandContributions` to the empty shape (the body affords
+  those verbs already) — a one-line class fact, recorded in D-W9-13.
+- **The restore ordering.** A nested clone moved straight into its recorded region (D-W9-7) depends on the
+  region's `canPlace` passing with whatever is already restored into that region — the slice order is the
+  capture order, so a region that fit at capture fits at restore; a stale record (the row lost the pocket)
+  is logged and the thing lands by `arrivalFor`'s choice, never thrown. Pinned by `Garment.pockets.test` 7
+  and the two owned-key cases.
+- **`move`'s `arrivalFor` ask on every Container.** One virtual call per move; the default returns
+  `contents` at once for every container with an interior. A test stub that overrides `arrivalFor` on a
+  non-agent container now takes effect where it was ignored — the suite run finds any (W8i-10's shape).
+- **Two members answering `in` on one host** (a pack with a side pocket) asks instead of choosing silently
+  — D-W9-9; no shipped row does it.
+- **`SearchController.buildScope`'s walk** is a raw `getContents` read in a controller; `lint:perceived-surfaces`
+  counts a surface only where the list reaches a person unperceived, and this list goes to `resolveSearch`
+  as today's does. If the gate rises by one, the walk becomes `resolveSearch`'s own (it already takes
+  `onBody`): the model gathers what the body wears.
+- **Chamber's five tests + carpentry.** `getPlaced(IN)` → `getContents()`; a test that moved a board with
+  `move(board, loft, Placements.IN)` still lands it (region zero's word is accepted).
+- **The dispatch's word resolution** on a `Container & Placing` host: a word that is both a sibling member's
+  and region zero's (`in` on a desk-with-drawer that also offers an `in` region) resolves to the named
+  region first (`getPlacements().includes`), then `resolvePlacement`, then region zero — the order
+  `PlacementOffers.choose` already applies; pinned by a `ContainmentLogic` case.
+
+#### The review questions for this wave
+
+- **P1** — nothing new: the pair, `PlacementEntry`, `arrivalFor`, `canAddContainable`, `ContentPlacement`
+  and the `in` document are all reused; `hasInterior` and `placeIn` are a method and a module function
+  beside the ones they twin (`placeOn`); a document and a constant are **deleted**. Searched: a `region`
+  field on `Containable`, a `regions:` list on `Container`, a pocket object — rejected in D-W9-1.
+- **P2** — `hasInterior` is `true` on every container but `Garment` (cloth has no inside); `Container` on
+  `Garment` is the row's choice to use, as `Placing` on `Garment` already is (14 of 37 rows), and an empty
+  one costs nothing visible (D-W9-13, one measured risk); refusal 3 narrows a composition, not a host.
+- **P3** — a self-region record with no such region is logged and the thing placed by the hook; a word
+  naming no region on a plain Container throws (it was silently ignored); `move(x, coat)` with no fitting
+  pocket throws naming the mouth; a shirt with no pockets offers nothing and `put` says so; `setPlacements`
+  throws on an enclosing member over a non-Container and the applier records it.
+- **P4** — `MixinApi.isContainer`/`isPlacing`/`isAttired` narrowing throughout; `Chamber` and `Garment` are
+  kernel classes; no pack imports change (carpentry's loft row names a kernel class).
+- **P5** — the container decides the region (`arrivalFor`, `canPlace`); `PutController`, `InventoryController`
+  and `SearchController` word and bucket; `DryController` stops resolving a member for a Container rack.
+- **P6** — nothing new persists; the pair rides the slice it always rode, now the garment's; staged/live is
+  unchanged for every row; no collection.
+- **P7** — the member document loads with its host (`setPlacements` awaits it) and the restore pass ensures
+  it; no search, no boot entry (`check-boot-entries` 81 holds).
+- **P8** — `hasInterior` (the common word for region zero), `placeIn` (twin of `placeOn`); `in` keeps its
+  name and `pocket` loses one; no class renamed; `Chamber` keeps its name (it is still a compartment with
+  its own air).
+
+**Still the owner's:** nothing in W9 that the ruling did not decide. Two consequences surfaced for a veto,
+not a question: (1) **the drying loft** becomes a Container (D-W9-12) — the same inversion, one row, five
+tests; (2) **a pack with a named side pocket asks** *"the inside or the side pocket?"* where D26-c chose the
+main silently (D-W9-9) — no shipped row has one.
 
 ## Reachability wiring
 
