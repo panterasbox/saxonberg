@@ -1,9 +1,10 @@
 /**
  * ⭐ A pocket is a named REGION of its garment, never an object (size and
- * carrying D26): the row's entries become the coat's offers; what is put in
- * one lives in the wearer's contents with the pair `(coat, left pocket)`;
- * each pocket has its own mouth and room; an inner pocket is covered, a
- * buttoned one closes; and the pair is what persists.
+ * carrying D26): the row's entries become the coat's offers; ⭐⭐ what is
+ * put in one is the COAT's contents with the pair `(coat, left pocket)` —
+ * an enclosing relation is containment (W9, owner 2026-11-13); each pocket
+ * has its own mouth and room; an inner pocket is covered, a buttoned one
+ * closes; a garment has no inside of its own; and the pair is what persists.
  */
 import '../../../../../test-bootstrap';
 import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
@@ -12,6 +13,8 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { BiomeApi } from '../../../../api/biome';
 import { MqlApi } from '../../../../api/mql';
+import { PerceptionApi } from '../../../../api/perception';
+import { ContainmentError } from '../../../../api/containment';
 import { Quantity } from '../../../../lib/quantity';
 import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
@@ -78,8 +81,8 @@ describe('Garment — pockets as regions (D26)', () => {
     expect(plan2.ok).toBe(true);
     if (!plan2.ok) return;
     expect((await plan2.onComplete()).ok).toBe(true);
-    // In the WEARER's contents, the pair naming the coat's region.
-    expect(k.getContainer()).toBe(me);
+    // ⭐ In the COAT's contents (W9), the pair naming the coat's region.
+    expect(k.getContainer()).toBe(coat);
     expect(k.getPlacement()).toEqual({ host: coat, name: 'inner pocket' });
     expect(coat.getPlaced('inner pocket')).toEqual([k]);
     expect(me.tierOf(k)).toBe('ready');
@@ -149,13 +152,62 @@ describe('Garment — pockets as regions (D26)', () => {
     ContainmentApi.move(buttoned, coat, 'breast pocket');
     const loose = cork();
     ContainmentApi.move(loose, coat, 'left pocket');
-    const left = me.reconcilePressing();
+    // The coat presses what is in its pockets (W9) — a body presses nothing.
+    expect(me.reconcilePressing()).toEqual([]);
+    const left = coat.reconcilePressing();
     expect(left).toEqual([loose]);
     expect(loose.getContainer()).toBe(room);
     expect(buttoned.getPlacement()).toEqual({ host: coat, name: 'breast pocket' });
     // Reaching into a buttoned pocket costs the undoing of it — combat's
     // price (CombatLogic.switch-pricing reads `closes` off the region).
     expect(coat.getPlacementEntry('breast pocket')?.closes).toBe(true);
+  });
+
+  it('⭐ a garment has no inside of its own: `put key in shirt` (no pockets) offers nothing', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const shirt = await wornGarment(me, plan, 'shirt', 'torso');
+    expect(shirt.hasInterior()).toBe(false);
+    const k = key();
+    carry(me, k);
+    expect(put(k, shirt, me, 'in')).toMatchObject({ ok: false, reason: 'wrong-preposition', facts: { takes: [] } });
+    expect(shirt.fitRefusal(k)?.reason).toBe('no-room');
+    expect(() => ContainmentApi.move(k, shirt)).toThrow(ContainmentError);
+    expect(me.tierOf(k)).toBe('hand');
+  });
+
+  it('⭐ `move(mug, coat)` with no pocket that takes it throws, naming the mouth', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
+    const m = mug();
+    let thrown: unknown = null;
+    try {
+      ContainmentApi.move(m, coat);
+    } catch (err) {
+      thrown = err;
+    }
+    expect(thrown).toBeInstanceOf(ContainmentError);
+    expect((thrown as Error).message).toMatch(/in the coat — too big for its mouth/);
+    expect(m.getContainer()).toBeNull();
+    // With no word, a key goes to the first pocket that takes it.
+    const k = key();
+    ContainmentApi.move(k, coat);
+    expect(k.getContainer()).toBe(coat);
+    expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });
+  });
+
+  it('⭐ `look coat` lists the key once, under its pocket', async () => {
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, makeStuff(() => new Location()));
+    const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
+    const k = key();
+    ContainmentApi.move(k, coat, 'left pocket');
+    // The drill-in's read (by region) has it; the loose listing and the
+    // "In it" grouping do not.
+    expect(coat.getPlaced('left pocket')).toEqual([k]);
+    expect(coat.getLooseContents()).toEqual([]);
+    expect(PerceptionApi.visibleContentsOf(me, coat).carried).toEqual([]);
   });
 
   it('the placement pair is what persists — the shipped restore puts it back', async () => {

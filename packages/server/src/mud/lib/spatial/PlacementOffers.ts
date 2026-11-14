@@ -2,7 +2,8 @@
  * PlacementOffers — ⭐ **the ways a host offers to be put into or onto**, in
  * listing order, and what a word means among them (controllers-are-io D11).
  *
- * Region zero first when the host is a plain container, then one per member
+ * Region zero first when the host is a container with an inside of its own
+ * (`Container.hasInterior` — not a coat), then one per member
  * its row offers. Region zero is the container's own interior and is NOT a
  * member — a chest has no compartments, it just holds things. It borrows its
  * words from the `in` row when the catalogue has one, which is what makes *one
@@ -57,7 +58,9 @@ export class PlacementOffers {
     // means "you can reach or see one level into that" asks. ⚠ Minus the
     // lid: a SHUT chest offers region zero and refuses at the verb with a
     // reason, which is a better sentence than pretending it has no inside.
-    if (MixinApi.isContainer(host) && !host.isAgent()) {
+    // ⭐ …and only a container with an unnamed inside (W9, D-W9-3): a coat's
+    // insides are its pockets, so it offers those and no region zero.
+    if (MixinApi.isContainer(host) && !host.isAgent() && host.hasInterior()) {
       offers.push({ kind: 'zero', name: Placements.IN, words: ContainmentApi.placements().need(Placements.IN).getPrepositions() });
     }
     if (MixinApi.isPlacing(host)) {

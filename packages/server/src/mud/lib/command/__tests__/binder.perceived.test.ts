@@ -150,8 +150,10 @@ describe('the binder binds what the giver perceives (D23)', () => {
     const held = inHand(knife(), 'hand:right');
     inPocket(knife());
     const def = await view('ruth');
-    // MQL names both — for everyone.
-    const named = MqlApi.resolveMany('knife', { commandGiver: world.giver, scope: 'ruth' }).stuff;
+    // MQL names both — for everyone. ⭐ The pocketed one is her COAT's
+    // contents (W9), so it is named from outside one level down, as the
+    // room's crate is: `ruth:inventory` reaches into the open coat.
+    const named = MqlApi.resolveMany('knife', { commandGiver: world.giver, scope: 'ruth:inventory' }).stuff;
     expect(named.filter((s) => s instanceof Knife)).toHaveLength(2);
     expect(await run(def, 'grab knife')).toBe(held);
     expect(kinds().some((k) => k.startsWith('validator-failed:cardinality'))).toBe(false);
@@ -159,7 +161,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
 
   it('⭐ `2nd knife` counts only the knives the giver perceives', async () => {
     const first = inHand(knife(), 'hand:right');
-    inPocket(knife()); // between them in her contents — never counted
+    inPocket(knife()); // in her coat — never counted
     const second = inHand(knife(), 'hand:left');
     const def = await view('ruth');
     expect(await run(def, 'grab first knife')).toBe(first);

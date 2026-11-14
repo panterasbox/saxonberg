@@ -318,14 +318,18 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Auxiliary placement host — an instance (live) ref. Holds a direct
      * reference to the `Placing` host this thing sits on or in (null
-     * when loose). Declared `{ ref: 'instance' }`, so the R2.3
+     * when loose). ⭐ For `on` and `from` the host is a SIBLING in the same
+     * container (a mug on a desk); for an enclosing member it is the
+     * container ITSELF (a key in a coat's pocket — the coat's contents,
+     * size and carrying W9). Declared `{ ref: 'instance' }`, so the R2.3
      * self-heal clears the slot when the host is destructed.
      *
      * An instance ref was chosen over identity templatePath stamping
      * because non-singleton hosts (several identical tables in a
      * dining hall) can't be addressed unambiguously by templatePath.
      * The pair survives a restart through the container's slice, which
-     * records the host's INDEX in the same contents list.
+     * records the host's INDEX in the same contents list — or, for a
+     * region of the container itself, the region's name alone (W9).
      */
     protected _placementHost: (Stuff & Placing) | null = null;
 

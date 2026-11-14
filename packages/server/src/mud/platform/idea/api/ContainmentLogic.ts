@@ -26,6 +26,7 @@ import type {
   PutRoute,
 } from '../../../api/containment';
 import { ContainmentApi } from '../../../api/containment';
+import { Placements } from '../../../lib/spatial/Placement';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -89,30 +90,50 @@ export class ContainmentLogic extends ApiLogic {
     to: ContainerStuff | PlacingStuff | null,
     placement?: string,
   ): void {
-    // ⭐ A destination that offers placements and holds nothing — a desk,
-    // a drying loft, a rack — is a PLACE ON something: the thing goes into
-    // the host's own environment and takes the placement pair. A word
-    // names which placement when the host offers more than one; with none,
-    // the host's own default. One primitive; the relation is derived.
-    if (
-      to !== null &&
-      MixinApi.isPlacing(to) &&
-      (placement !== undefined || !MixinApi.isContainer(to))
-    ) {
-      placeOn(item, to, placement);
+    // ⭐⭐ A word names a region (size and carrying W9, D-W9-5): the host's
+    // own region by name, else by the word it answers to. A region whose
+    // member ENCLOSES is a region of a Container — the thing goes IN it, as
+    // its contents, with the pair naming the region (`placeIn`: a key in a
+    // coat's pocket). Any other (`on`, `from`) is the sibling pair: the
+    // thing goes into the host's own environment (`placeOn`: a mug on a
+    // desk). A word that names no region is accepted on a container with an
+    // inside iff it is one of region zero's own words (`in`) — and throws
+    // otherwise: a word is never silently ignored.
+    if (to !== null && placement !== undefined) {
+      const key = MixinApi.isPlacing(to)
+        ? to.getPlacements().includes(placement)
+          ? placement
+          : to.resolvePlacement(placement)
+        : null;
+      if (key !== null) {
+        if (MixinApi.isContainer(to) && (to as unknown as PlacingStuff).placementOf(key).getEncloses()) {
+          placeIn(item, to as unknown as ContainerStuff & PlacingStuff, key);
+        } else {
+          placeOn(item, to as PlacingStuff, key);
+        }
+        return;
+      }
+      if (!(MixinApi.isContainer(to) && isRegionZeroWord(to, placement))) {
+        throw new ContainmentError(`move: ${(to as Stuff).stuffId} offers no placement '${placement}'`);
+      }
+    } else if (to !== null && MixinApi.isPlacing(to) && !MixinApi.isContainer(to)) {
+      // ⭐ A destination that offers placements and holds nothing — a desk,
+      // a rack — is a PLACE ON something: its own default, with no word.
+      placeOn(item, to, undefined);
       return;
     }
-    // ⭐⭐ A BODY places what arrives ON it (size and carrying W8): the
-    // destination answers `arrivalFor` — into its contents (admitted), a
-    // hand or its tack (`seat`), a worn host's pocket or hook (`pair`) — or
-    // refuses. ⭐⭐ A CARRIER routes a refused arrival (owner, 2026-11-13):
-    // its own arrival handling (`Carrying.routeArrival`) takes it — a true
-    // move onto the body — and sends it on with a second true move, into a
-    // bag it carries or down where it stands. Nothing is retargeted here.
-    // A body that does not carry (a fish) has no place for a loose thing,
-    // and `move` throws naming why. (A key moved out of its pocket onto its
-    // owner asks too, and goes to a hand.)
-    if (to !== null && to.isAgent()) {
+    // ⭐⭐ THE DESTINATION places what arrives (size and carrying W8; W9,
+    // D-W9-4 — every Container, given no word): into its contents, a hand
+    // or its tack (`seat`), a pocket (`pair` — a body's worn coat, or a
+    // coat's own region when it has no inside of its own) — or refuses.
+    // ⭐⭐ A CARRIER routes a refused arrival (owner, 2026-11-13): its own
+    // arrival handling (`Carrying.routeArrival`) takes it — a true move
+    // onto the body — and sends it on with a second true move, into a bag
+    // it carries or down where it stands. Nothing is retargeted here. A
+    // body that does not carry (a fish), or a coat no pocket of which takes
+    // the thing, refuses, and `move` throws naming why. (A key moved out of
+    // its pocket onto its owner asks too, and goes to a hand.)
+    if (to !== null && placement === undefined && MixinApi.isContainer(to)) {
       const arrival = callHook<Arrival>(to, 'arrivalFor', [item, { placed: false }]) ?? { kind: 'contents' };
       switch (arrival.kind) {
         case 'contents':
@@ -128,7 +149,7 @@ export class ContainmentLogic extends ApiLogic {
             to.routeArrival(item, arrival.refusal);
             return;
           }
-          throw new ContainmentError(arrivalWords(item, to, arrival.refusal), {
+          throw new ContainmentError(arrivalWords(item, to as Stuff, arrival.refusal), {
             reason: arrival.refusal.reason,
             facts: arrival.refusal.facts,
           });
@@ -299,8 +320,9 @@ export class ContainmentLogic extends ApiLogic {
           ContainmentApi.move(item, target as PlacingStuff, route.name);
         }
         // ⭐ Putting is how a home is made (size and carrying D14): a thing
-        // put in a container the putter carries goes back there when it
-        // is put away.
+        // put in a container the putter carries — or in a region of a host
+        // the putter carries, a pocket (W9, D-W9-9) — goes back there when
+        // it is put away.
         if (
           route.kind === 'zero' &&
           MixinApi.isCarrying(by) &&
@@ -309,6 +331,13 @@ export class ContainmentLogic extends ApiLogic {
           by.tierOf(target) !== 'elsewhere'
         ) {
           by.setHome(item, target);
+        } else if (
+          route.kind === 'region' &&
+          MixinApi.isCarrying(by) &&
+          !target.isAgent() &&
+          by.tierOf(target) !== 'elsewhere'
+        ) {
+          by.setHome(item, target as PlacingStuff, route.name);
         }
         return { ok: true, facts: { route, named } };
       },
@@ -338,7 +367,7 @@ export class ContainmentLogic extends ApiLogic {
 }
 
 /**
- * Put `item` ON (or IN) a placing host: into the host's environment, then
+ * Put `item` ON (or FROM) a placing host: into the host's environment, then
  * the placement pair. `move` is a no-op when the container is unchanged
  * (a mug from one desk to another in the same room), so the placement
  * update, its card wake and the ambient restamp happen here regardless.
@@ -385,6 +414,48 @@ function placeOn(
 }
 
 /**
+ * ⭐ Put `item` IN a region of `host` (size and carrying W9, D-W9-5) — the
+ * enclosing twin of {@link placeOn}: the region's own fit (`canPlace` — its
+ * mouth, its room, a shut flap), then into the host's CONTENTS (the region
+ * measured it, so the container's interior is not asked), then the pair
+ * naming the region. A key from one pocket to the other changes no
+ * container; the pair is the whole of the move, as a mug from one desk to
+ * another.
+ */
+function placeIn(
+  item: ContainableStuff,
+  host: ContainerStuff & PlacingStuff,
+  key: string,
+): void {
+  const veto = host.canPlace(item, key);
+  if (!veto.ok) {
+    throw new ContainmentError(
+      `move: host ${(host as Stuff).stuffId} rejects ${item.stuffId} in its ${key} (${veto.reason})`,
+    );
+  }
+  const from = item.getContainer();
+  const was = item.getPlacement()?.name ?? '';
+  moveCore(item, host, false, undefined, false, key);
+  item._setPlacement(host, key);
+  // Rung 1: the region just changed — wake every card showing it.
+  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, key);
+  if (MixinApi.isThermal(item)) void item.restamp();
+  // `moveCore` asked the pressing when the container changed; from one
+  // region to another it did not move, so ask here.
+  if (from === host) pressAfterArrival(item, host);
+}
+
+/**
+ * Is `word` one of region zero's words on `to` — a container with an
+ * inside of its own, offering it (`in`, `into`, or the member's path)?
+ */
+function isRegionZeroWord(to: ContainerStuff, word: string): boolean {
+  if (to.isAgent() || !to.hasInterior()) return false;
+  if (word === Placements.IN) return true;
+  return ContainmentApi.placements().need(Placements.IN).getPrepositions().includes(word.trim().toLowerCase());
+}
+
+/**
  * Ask the container a thing just arrived in whether it is pressed in
  * (size and carrying D5), a tick later. A body or a container with no sides
  * to speak of answers at once and moves nothing.
@@ -415,6 +486,7 @@ function moveCore(
   force: boolean,
   following?: Set<string>,
   placed = false,
+  region?: string,
 ): void {
   if (to !== null) {
     // PRE-FLIGHT (1): Exitables may only land in Exitables.
@@ -460,10 +532,11 @@ function moveCore(
   const from = item.getContainer();
   if (from === to) return;
 
-  // ⭐⭐ What travels with it (size and carrying D33): everything placed on,
-  // in or from this thing — a coat's pocketed key, a tray's cups, a belt's
-  // pouches — lives in its OLD environment with a pair naming it, and goes
-  // where it goes, pair kept. The whole bring-along is gathered (recursive,
+  // ⭐⭐ What travels with it (size and carrying D33): everything placed on
+  // or from this thing — a tray's cups, a belt's pouches — lives in its OLD
+  // environment with a pair naming it, and goes where it goes, pair kept.
+  // (What is IN it — a coat's pocketed key — is its contents and travels
+  // as contents: W9, D-W9-8.) The whole bring-along is gathered (recursive,
   // one cycle guard) and asked of the destination FIRST, so a refusal moves
   // nothing; then each is moved after the host, by this function, keeping
   // its pair (witnesses fire, custody follows).
@@ -484,7 +557,10 @@ function moveCore(
     ? callHook<VetoResult>(from, 'canRemoveContainable', [item])
     : undefined;
   const addVeto = to
-    ? callHook<VetoResult>(to, 'canAddContainable', [item, { placed: placed || following !== undefined }])
+    ? callHook<VetoResult>(to, 'canAddContainable', [
+        item,
+        { placed: placed || following !== undefined, ...(region !== undefined ? { region } : {}) },
+      ])
     : undefined;
   if (!force) {
     assertVetoOk(moveVeto, 'canMove');
@@ -673,7 +749,7 @@ function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): str
       return x.getTemplatePath() ?? x.stuffId;
     }
   };
-  const head = `move: ${name(item)} has no place on ${name(to)}`;
+  const head = `move: ${name(item)} has no place ${to.isAgent() ? 'on' : 'in'} ${name(to)}`;
   switch (r.reason) {
     case 'nowhere-to-carry': {
       const held = r.facts.held.map(name);
@@ -694,6 +770,12 @@ function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): str
       return `${head} — its hands are on ${name(r.facts.cart)}`;
     case 'refused-by-container':
       return `${head} — ${r.facts.said}`;
+    case 'too-big-for-mouth':
+      return `${head} — too big for its mouth`;
+    case 'too-big-inside':
+      return `${head} — too big to go inside`;
+    case 'no-room':
+      return `${head} — no room`;
     default:
       return `${head} — ${r.reason}`;
   }

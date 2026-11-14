@@ -176,7 +176,21 @@ export default class InventoryController extends CommandController<InventoryMode
     }
     const out: CarriedTiers = { held: [], regions: [], worn: [], ready: [], packed: [], loose: [] };
     const regions = new Map<string, CarriedTiers['regions'][number]>();
-    const isHolder = (x: Stuff): x is Stuff & Container => MixinApi.isContainer(x) && !x.isAgent();
+    // ⭐ A holder has an inside of its own (W9): a satchel, a pack — never a
+    // coat, whose insides are its pockets (listed by region below).
+    const isHolder = (x: Stuff): x is Stuff & Container =>
+      MixinApi.isContainer(x) && !x.isAgent() && x.hasInterior();
+    const group = (host: Stuff & Placing, region: string, x: Stuff): void => {
+      const key = `${host.stuffId}\u0000${region}`;
+      let g = regions.get(key);
+      if (g === undefined) {
+        g = { host, region, items: [] };
+        regions.set(key, g);
+        out.regions.push(g);
+      }
+      g.items.push(x);
+      if (isHolder(x)) out.ready.push(x);
+    };
     // What is directly on the body, as its owner perceives it (rule 1: your
     // own things, always) — the view's read, not a search of the body.
     const own = PerceptionApi.visibleContentsOf(carrier, carrier);
@@ -186,21 +200,21 @@ export default class InventoryController extends CommandController<InventoryMode
       if (tier === 'hand') {
         out.held.push(x);
       } else if (pair !== null && pair.host.stuffId !== self.stuffId && MixinApi.isPlacing(pair.host)) {
-        const key = `${pair.host.stuffId}\u0000${pair.name}`;
-        let g = regions.get(key);
-        if (g === undefined) {
-          g = { host: pair.host, region: pair.name, items: [] };
-          regions.set(key, g);
-          out.regions.push(g);
-        }
-        g.items.push(x);
-        if (isHolder(x)) out.ready.push(x);
+        group(pair.host, pair.name, x);
       } else if (slotOf.has(x.stuffId)) {
         if (!isHolder(x)) out.worn.push(x);
         else if (tier === 'packed' || (slotOf.get(x.stuffId) ?? []).includes('back')) out.packed.push(x);
         else out.ready.push(x);
       } else {
         out.loose.push(x);
+      }
+      // ⭐ What is in the pockets of what it wears — the garment's own
+      // contents, in a region of it (W9) — is ready, by its pocket.
+      if (slotOf.has(x.stuffId) && MixinApi.isContainer(x) && !x.isAgent() && MixinApi.isPlacing(x)) {
+        for (const c of x.getContents()) {
+          const inPocket = MixinApi.isContainable(c) ? c.getPlacement() : null;
+          if (inPocket !== null && inPocket.host.stuffId === x.stuffId) group(x, inPocket.name, c);
+        }
       }
     }
     return out;

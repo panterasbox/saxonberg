@@ -125,7 +125,7 @@ describe('the flip — nothing loose on a body', () => {
     expect(trousers.canPlace(sword, 'left pocket')).toEqual({ ok: false, reason: 'too-big-inside' });
   });
 
-  it('⭐ a direct move onto a body places it (a hand); placed on a worn host it comes on too', async () => {
+  it('⭐ a direct move onto a body places it (a hand); put in a worn pocket it is the garment\'s', async () => {
     const { room, me, trousers } = await newcomer();
     const coin = good('coin', 0.01, [0.02, 0.02, 0.002]);
     ContainmentApi.move(coin, room);
@@ -133,7 +133,8 @@ describe('the flip — nothing loose on a body', () => {
     expect(me.tierOf(coin)).toBe('hand');
     ContainmentApi.move(coin, room);
     ContainmentApi.move(coin, trousers, 'left pocket');
-    expect(coin.getContainer()).toBe(me);
+    // In the pocket is IN the trousers (W9): their contents, honest on the body.
+    expect(coin.getContainer()).toBe(trousers);
     expect(me.isHonest(coin)).toBe(true);
   });
 

@@ -1368,7 +1368,12 @@ function visibleContentsImpl(viewer: Stuff, target: Stuff): VisibleContents {
       for (const o of occupants) if (!slotted.has(o.stuffId)) slotted.set(o.stuffId, kind);
     }
   }
-  const all = target.getContents();
+  // ⭐ A thing in a named region of the target (a coat's pocketed key —
+  // size and carrying W9) is listed under its region by the drill-in that
+  // reads `getPlaced`, never twice.
+  const all = target
+    .getContents()
+    .filter((c) => !(MixinApi.isContainable(c) && c.getPlacement()?.host.stuffId === target.stuffId));
   const seen = all.filter((c) => perceivesImpl(viewer, c));
   for (const c of seen) {
     const kind = slotted.get(c.stuffId);

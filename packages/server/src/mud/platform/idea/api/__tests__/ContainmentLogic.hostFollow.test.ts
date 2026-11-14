@@ -1,9 +1,10 @@
 /**
- * ⭐⭐ Whatever is placed on, in or from a thing travels with it (size and
- * carrying D33) — a rule of MOVING, not of garments: a coat's pocketed key,
- * a tray's cups, a belt's pouches go where their host goes, pair kept,
- * recursively; the whole bring-along is asked first, so a refusal moves
- * nothing; and a planted cycle trips the guard.
+ * ⭐⭐ Whatever is placed on or from a thing travels with it (size and
+ * carrying D33) — a rule of MOVING, not of garments: a tray's cups, a belt's
+ * pouches go where their host goes, pair kept, recursively; the whole
+ * bring-along is asked first, so a refusal moves nothing; and a planted
+ * cycle trips the guard. ⭐ What is IN a thing — a coat's pocketed key — is
+ * its contents and travels as contents, with no host-follow (W9, D-W9-8).
  */
 import '../../../../../test-bootstrap';
 import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
@@ -40,31 +41,36 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
     return { me, plan, room, coat, k };
   }
 
-  it('remove coat: the key leaves with the coat — it never left the body, pair kept', async () => {
+  it('remove coat: the key is the coat\'s contents before and after — nothing follows', async () => {
     const { me, coat, k } = await coated();
+    expect(k.getContainer()).toBe(coat);
+    expect(me.getContents()).not.toContain(k);
     me.vacate('torso', coat);
     expect(coat.getContainer()).toBe(me);
+    expect(k.getContainer()).toBe(coat);
     expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });
   });
 
-  it('drop coat: the key is in the room, still in the left pocket', async () => {
+  it('drop coat: the key in the coat, the coat in the room, pair kept', async () => {
     const { me, room, coat, k } = await coated();
     me.vacate('torso', coat);
     ContainmentApi.move(coat, room);
-    expect(k.getContainer()).toBe(room);
+    expect(coat.getContainer()).toBe(room);
+    expect(k.getContainer()).toBe(coat);
+    expect(room.getContents()).not.toContain(k);
     expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });
     expect(coat.getPlaced('left pocket')).toEqual([k]);
     expect(me.tierOf(k)).toBe('elsewhere');
   });
 
-  it('give coat: the new wearer\'s contents hold the key, placed', async () => {
+  it('give coat: the new wearer\'s contents hold the coat, the coat the key', async () => {
     const { me, room, coat, k } = await coated();
     const { me: ruth } = makeBody();
     ContainmentApi.move(ruth, room);
     me.vacate('torso', coat);
     ContainmentApi.move(coat, ruth);
     expect(coat.getContainer()).toBe(ruth);
-    expect(k.getContainer()).toBe(ruth);
+    expect(k.getContainer()).toBe(coat);
     expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });
     expect(ruth.tierOf(k)).toBe('ready');
   });
@@ -88,7 +94,7 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
     expect(cup.getPlacement()).toEqual({ host: tray, name: Placements.ON });
   });
 
-  it('a cup on a tray in a pocket comes along too (recursion)', async () => {
+  it('a cup on a tray in a pocket: tray and cup are the coat\'s contents, the cup\'s pair names the tray', async () => {
     const { me, room, coat } = await coated();
     const tray = thing(() => new Surface(), { kg: 0.05, box: { width: 0.1, depth: 0.03, height: 0.005 } });
     carry(me, tray);
@@ -96,11 +102,13 @@ describe('ContainmentLogic — the host-follow (D33)', () => {
     const pin = thing(() => new Item(), { kg: 0.001, box: { width: 0.01, depth: 0.01, height: 0.01 } });
     carry(me, pin);
     ContainmentApi.move(pin, tray, Placements.ON);
+    expect(tray.getContainer()).toBe(coat);
+    expect(pin.getContainer()).toBe(coat);
     me.vacate('torso', coat);
     ContainmentApi.move(coat, room);
-    expect(tray.getContainer()).toBe(room);
+    expect(tray.getContainer()).toBe(coat);
     expect(tray.getPlacement()).toEqual({ host: coat, name: 'right pocket' });
-    expect(pin.getContainer()).toBe(room);
+    expect(pin.getContainer()).toBe(coat);
     expect(pin.getPlacement()).toEqual({ host: tray, name: Placements.ON });
   });
 

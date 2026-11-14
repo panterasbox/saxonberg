@@ -159,9 +159,10 @@ async function dispatch(text: string): Promise<void> {
     return;
   }
   if (verb === 'put') {
-    // `put <kw> in <counterKw>`
+    // `put <kw> in <counterKw>` — what she carries, her pocket's included
+    // (a pocketed crate is the apron's contents: size and carrying W9).
     const item = keeper
-      .getContents()
+      .getCarriedContents()
       .find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
     const target = room
       .getContents()

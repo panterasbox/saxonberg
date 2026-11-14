@@ -229,7 +229,8 @@ export const brain = class {
       // A lift that declined (too heavy, not there) leaves the good where
       // it was — stop rather than grind through the rest; the next beat
       // starts from what the hand can carry.
-      if (!MixinApi.isContainable(good) || good.getContainer() !== hand) break;
+      // (In a hand or a pocket — a pocketed good is its garment's contents, W9.)
+      if (!goodsOn(hand).some((g) => g.stuffId === good.stuffId)) break;
     }
     // Everything chattel the hand now carries goes up — not only what
     // this beat took. A beat whose `consign` failed leaves last beat's
@@ -303,15 +304,27 @@ export const brain = class {
 
 /**
  * ⭐ The goods `holder` has to sell — what a body CARRIES
- * (`getContents()` less what `Attired.wears`: a hand, a pocket, a belt — never what it
- * wears, since the flip put its costume in its contents too), chattel, and
- * never the house card (chattel too — not for sale).
+ * (`getContents()` less what `Attired.wears`: a hand, a belt — never what it
+ * wears, since the flip put its costume in its contents too — and what is in
+ * the pockets of what it wears, which is the garment's contents: size and
+ * carrying W9), chattel, and never the house card (chattel too — not for sale).
  */
 function goodsOn(holder: Stuff): Stuff[] {
   const worn = MixinApi.isAttired(holder) ? holder : null;
-  const things = MixinApi.isContainer(holder)
-    ? (holder.getContents() as Stuff[]).filter((x) => worn === null || !worn.wears(x))
-    : [];
+  const things: Stuff[] = [];
+  if (MixinApi.isContainer(holder)) {
+    for (const x of holder.getContents() as Stuff[]) {
+      if (worn === null || !worn.wears(x)) {
+        things.push(x);
+        continue;
+      }
+      // A worn garment's pockets: what is in a region of it.
+      if (!MixinApi.isContainer(x)) continue;
+      for (const p of x.getContents() as Stuff[]) {
+        if (MixinApi.isContainable(p) && p.getPlacement()?.host.stuffId === x.stuffId) things.push(p);
+      }
+    }
+  }
   return things.filter((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
 }
 

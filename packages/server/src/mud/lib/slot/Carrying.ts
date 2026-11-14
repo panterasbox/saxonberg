@@ -1055,7 +1055,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
               if (member.getEncloses() && !member.getHangs()) pockets.push({ host: o, region: name });
             }
           }
-          if (MixinApi.isContainer(o) && !o.isAgent()) (slot === PACKED_SLOT ? packed : ready).push({ host: o });
+          // A worn container with an inside of its own — a satchel, the pack;
+          // never a coat, whose insides are the pockets above (W9).
+          if (MixinApi.isContainer(o) && !o.isAgent() && o.hasInterior()) (slot === PACKED_SLOT ? packed : ready).push({ host: o });
         }
       }
       // What hangs from (or is pocketed on) a worn host and holds things: a

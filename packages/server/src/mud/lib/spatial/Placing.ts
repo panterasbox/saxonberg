@@ -14,6 +14,14 @@
  * `placement = { host: the desk, name: 'on' }`. Placing doesn't enclose
  * — the member row says whether the relation encloses, and `in` does.
  *
+ * ⭐⭐ **An enclosing relation is containment; a supporting or hanging
+ * relation is a pair** (size and carrying W9, owner 2026-11-13). A region
+ * whose member encloses (a coat's `left pocket`, member `in`) is a region
+ * OF the host, which is a `Container`: the key put there has `container =
+ * the coat` and `placement = { host: the coat, name: 'left pocket' }`. For
+ * `on` and `from` the host is a SIBLING in the same container; for an
+ * enclosing member the host is the container itself.
+ *
  * No storage on the mixin itself for the placed items. `getPlaced()`
  * lazily walks the host's environment and filters by
  * `Containable.getPlacement()` resolving to this host. The Placing host
@@ -21,7 +29,7 @@
  * (`userFacingDetail`), the offered names, and the per-host `canPlace`
  * veto.
  *
- * **Two composition refusals**, both enforced at runtime by the
+ * **Three composition refusals**, all enforced at runtime by the
  * `__validateComposition__` hook `StuffApi.register` dispatches once per
  * concrete class:
  *
@@ -34,10 +42,14 @@
  *    *which exits does each region afford* is a question the model
  *    refuses to answer. Put a `Fitting` or a `Chamber` in its contents
  *    instead.
+ *3. A Placing host whose class default offers an ENCLOSING member must
+ *    compose `ContainerMixin` — what is in a region of a host is its
+ *    contents (W9, D-W9-2). A row that names one on a non-Container host
+ *    is refused by `setPlacements` once its member documents load.
  *
- * PlacingMixin does NOT require `Container` on the host. A simple table
- * has no interior — just a top. A desk with a drawer composes both, and
- * each works independently.
+ * PlacingMixin does NOT otherwise require `Container` on the host. A simple
+ * table has no interior — just a top. A desk with a drawer composes both,
+ * and each works independently.
  *
  * See `docs/subsystems/spatial.md` and the `Placement` vocabulary Idea
  * (`/platform/idea/Placement/<name>`).
@@ -140,8 +152,9 @@ export interface Placing {
 
   /**
    * Items currently placed on this host. Computed lazily by walking the
-   * host's environment and filtering by
-   * `Containable.getPlacement()?.host === this`. With `name`, only the
+   * host's environment — and, for a host that is a Container, its own
+   * contents (a region that encloses: a coat's pocket, W9) — and filtering
+   * by `Containable.getPlacement()?.host === this`. With `name`, only the
    * items placed under that member. Returned readonly; mutate via
    * `ContainmentApi.move`.
    */
@@ -281,7 +294,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     /**
-     * Composition-time check — the two refusals in the module
+     * Composition-time check — the three refusals in the module
      * docstring. Dispatched once per concrete class by
      * `StuffApi.register`.
      */
@@ -303,6 +316,18 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
             `or a Chamber in its contents instead (that is how a boot ` +
             `works), or, if the outside of this vehicle really must ` +
             `carry things, write the class.`,
+        );
+      }
+      // ⭐ Refusal 3 (W9, D-W9-2): what is IN a region of a host is its
+      // contents, so a host offering an enclosing member is a Container.
+      // A class default names kernel paths, and `in` is the kernel's one
+      // enclosing member (the documents are not read at composition).
+      const defaults = (ctor as { defaultPlacements?: readonly string[] }).defaultPlacements ?? [];
+      if (defaults.includes(Placements.IN) && !MixinApi.hasMixin(ctor, Mixins.Container)) {
+        throw new Error(
+          `${name} composes PlacingMixin offering '${Placements.IN}' by default ` +
+            `but is not a ContainerMixin — a thing IN a host is its contents, ` +
+            `so a host with an enclosing region must hold things (size and carrying W9).`,
         );
       }
     }
@@ -409,18 +434,32 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.placements = entries;
       const members = entries.map((e) => (typeof e === 'string' ? e : e.member));
       // The applier awaits this: the row is live only when its placements are.
-      return Promise.all(members.map((p) => ContainmentApi.placements().ensure(p))).then(() => undefined);
+      // ⭐ An enclosing member on a host that holds nothing is refused once
+      // its document says it encloses (W9, refusal 3's row half).
+      const self = this as unknown as Stuff;
+      return Promise.all(members.map((p) => ContainmentApi.placements().ensure(p))).then((loaded) => {
+        const enclosing = loaded.find((m) => m.getEncloses());
+        if (enclosing !== undefined && !MixinApi.isContainer(self)) {
+          throw new TypeError(
+            `placements: '${enclosing.getPath()}' encloses, and ${self.getTemplatePath() ?? self.stuffId} ` +
+              `is not a Container — a thing in a region of a host is its contents (size and carrying W9)`,
+          );
+        }
+      });
     }
 
     getPlaced(name?: string): readonly (Stuff & Containable)[] {
       // Lazy walk: items in our environment placed on us. For a desk in
       // a room, the environment is the room; apples placed on the desk
-      // have container = room, placement host = desk.
+      // have container = room, placement host = desk. ⭐ And, for a host
+      // that holds things, its own contents in a region of it (a coat's
+      // pocketed key — W9, D-W9-6: an enclosing region is containment).
       const self = this as unknown as Stuff & Containable;
       const env = self.getContainer();
-      if (!env) return [];
-      const candidates = env.getContents();
       const selfStuff = this as unknown as Stuff;
+      const own = MixinApi.isContainer(selfStuff) ? selfStuff.getContents() : [];
+      const candidates = env ? [...env.getContents(), ...own] : own;
+      if (candidates.length === 0) return [];
       return candidates.filter((c) => {
         if (!MixinApi.isContainable(c)) return false;
         const placement = c.getPlacement();

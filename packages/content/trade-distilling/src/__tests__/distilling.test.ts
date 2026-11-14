@@ -625,7 +625,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   it('hire into a purchases position deals the house card, once', async () => {
     const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
-    const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
+    const cards = () => hand.getCarriedContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
     const pay = (cards()[0] as unknown as PaymentCard).getCredential('payment');
     expect(pay?.hasAccount(outfitAccount)).toBe(true);
@@ -638,7 +638,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   it('a hand that has lost its card (it persists with the hand; this is the one-off) is dealt one on the next roster tick', async () => {
     const hand = await makeHand();
     await outfit.appoint(hand, 'hand');
-    const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
+    const cards = () => hand.getCarriedContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
     // The card left the hand somehow (a theft, a drop) — the roster deals another.
     ContainmentApi.move(cards()[0] as never, floorRoom as never);

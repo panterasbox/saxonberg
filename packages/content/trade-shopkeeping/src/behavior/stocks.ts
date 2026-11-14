@@ -186,9 +186,9 @@ export const brain = class {
         if (!kw) continue;
         for (let i = 0; i < e.count; i += 1) {
           if (BankingApi.balanceOf(account).minor < (e.supplierCounter.priceFor(e.template) ?? 0)) break;
-          const before = keeper.getContents().length;
+          const before = goodsOn(keeper).length;
           await keeper.forceCommand(`buy ${CommandLineApi.word(kw)}`);
-          if (keeper.getContents().length <= before) break; // a refused buy — stop
+          if (goodsOn(keeper).length <= before) break; // a refused buy — stop
         }
         await ctx.goTo(homePath);
       }
@@ -217,15 +217,27 @@ async function shelve(keeper: Keeper, counter: Stock, homePath: string): Promise
 
 /**
  * ⭐ The goods the keeper has to shelve — what she CARRIES
- * (`getContents()` less what `Attired.wears`: a hand, a pocket, a belt — never what she
- * wears, since the flip put her clothes in her contents too), chattel, and
- * never the house card (chattel too — not for sale).
+ * (`getContents()` less what `Attired.wears`: a hand, a belt — never what she
+ * wears, since the flip put her clothes in her contents too — and what is in
+ * the pockets of what she wears, which is the garment's contents: size and
+ * carrying W9), chattel, and never the house card (chattel too — not for sale).
  */
 function goodsOn(holder: Stuff): Stuff[] {
   const worn = MixinApi.isAttired(holder) ? holder : null;
-  const things = MixinApi.isContainer(holder)
-    ? (holder.getContents() as Stuff[]).filter((x) => worn === null || !worn.wears(x))
-    : [];
+  const things: Stuff[] = [];
+  if (MixinApi.isContainer(holder)) {
+    for (const x of holder.getContents() as Stuff[]) {
+      if (worn === null || !worn.wears(x)) {
+        things.push(x);
+        continue;
+      }
+      // A worn garment's pockets: what is in a region of it.
+      if (!MixinApi.isContainer(x)) continue;
+      for (const p of x.getContents() as Stuff[]) {
+        if (MixinApi.isContainable(p) && p.getPlacement()?.host.stuffId === x.stuffId) things.push(p);
+      }
+    }
+  }
   return things.filter((g) => MixinApi.isChattel(g) && !MixinApi.isCredentialWallet(g));
 }
 

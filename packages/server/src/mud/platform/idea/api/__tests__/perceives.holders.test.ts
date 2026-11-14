@@ -11,7 +11,8 @@
  *   (3) concealment (unchanged).
  *
  * Pockets (W5's rows) and the back slot (W5) are staged here with test
- * fixtures: a coat composing `Placing` with `in`-member entries, a body
+ * fixtures: a coat composing `Placing` over `Container` with `in`-member
+ * entries — what is in a pocket is the coat's contents (W9) — and a body
  * plan with a `back` slot.
  */
 import '../../../../../test-bootstrap';
@@ -30,6 +31,7 @@ import Thing from '../../../thing/Thing';
 import Holder from '../../../../lib/stuff/Holder';
 import { SealableMixin } from '../../../../lib/spatial/Sealable';
 import { PlacingMixin } from '../../../../lib/spatial/Placing';
+import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { WearableMixin } from '../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../../lib/slot/Wieldable';
@@ -45,7 +47,12 @@ class CarrierBody extends CarryingMixin(Creature) {}
 
 const PLAN = '/stuff/idea/species/BodyPlan/holders-biped';
 
-class Coat extends PlacingMixin(WearableMixin(SlottableMixin(Thing))) {}
+/** A garment's shape (W9): its insides are its pockets, never an interior of its own. */
+class Coat extends PlacingMixin(ContainerMixin(WearableMixin(SlottableMixin(Thing)))) {
+  override hasInterior(): boolean {
+    return false;
+  }
+}
 class Shirt extends WearableMixin(SlottableMixin(Thing)) {}
 // Slottable: a hand holds a box (size and carrying W7).
 class Box extends SealableMixin(SlottableMixin(Holder)) {}
@@ -234,7 +241,11 @@ describe('perceives — the holder rules (D24)', () => {
     expect(v.carried).toEqual([]);
     const own = PerceptionApi.visibleContentsOf(bob, bob);
     expect(new Set(own.worn)).toEqual(new Set([shirt, coat]));
-    expect(own.carried).toEqual([purse]);
+    // ⭐ The purse is the coat's contents (W9): the owner sees it through
+    // the coat — under its pocket — not as carried loose on the body.
+    expect(own.carried).toEqual([]);
+    expect(PerceptionApi.perceives(bob, purse)).toBe(true);
+    expect(coat.getPlaced('inner pocket')).toEqual([purse]);
     const box = makeStuff(() => new Box());
     ContainmentApi.move(box, room);
     ContainmentApi.move(thing(), box);

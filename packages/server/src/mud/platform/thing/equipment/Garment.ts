@@ -27,14 +27,18 @@
  * - `DyedMixin` — the dye application stack and its fastness, so a
  *   garment can be coloured, washed, and faded. Undyed is the sparse
  *   default (an empty stack), so this costs a shipped row nothing.
- * - ⭐ `PlacingMixin` (size and carrying D26/D27) — a garment OFFERS
- *   regions and holds nothing itself: a pocket is a named region (`left
- *   pocket`, `{member: /platform/placements/pocket, mouth, volumeM3}`), and
- *   a belt or a bandolier offers `from` along its worn length. What is put
- *   in a pocket or hung from a belt lives in the WEARER's contents with the
- *   placement pair `(garment, name)` — the ham on the hook, worn. The class
- *   default is `[]`: a shirt with no pockets offers nothing. Not a
- *   `Container` — the wearer holds; the garment says where.
+ * - ⭐ `PlacingMixin` over `ContainerMixin` (size and carrying D26/D27;
+ *   W9, D-W9-13) — a garment OFFERS regions: a pocket is a named region
+ *   (`left pocket`, `{member: /platform/placements/pocket, mouth,
+ *   volumeM3}`), and a belt or a bandolier offers `from` along its worn
+ *   length. ⭐⭐ *An enclosing relation is containment; a supporting or
+ *   hanging relation is a pair* (owner, 2026-11-13): a key put in a pocket
+ *   is the GARMENT's contents, its pair `(coat, left pocket)`; a pouch hung
+ *   from a belt lives in the wearer's contents with the pair `(belt,
+ *   from)` — the ham on the hook, worn. A garment has no inside of its own
+ *   (`hasInterior() === false`): its insides are the pockets its row
+ *   names, and the class default is `[]` — a shirt with no pockets offers
+ *   nothing and holds nothing.
  *
  * Variety stays content + composition, never subclassing: *type* is
  * `slotClaims` + description; *added behavior* is a mixin layered on
@@ -75,6 +79,7 @@ import type { DirtKindDescriptor } from '../../../lib/cleanliness/DirtKind';
 import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolicy';
 import { DirtKinds } from '../../../lib/cleanliness/DirtKind';
 import { PlacingMixin } from '../../../lib/spatial/Placing';
+import { ContainerMixin } from '../../../lib/spatial/Container';
 import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
 import { Creature } from '../../../lib/creature/Creature';
 import { MaterialApi } from '../../../api/material';
@@ -88,14 +93,17 @@ import { MaterialApi } from '../../../api/material';
 // ⭐ Tearable: an old shirt tears into rags — the mill's raw
 // stuff — mass for mass, and not while somebody is wearing it.
 // ⭐ Placing outermost of all (size and carrying D26): pockets and a hanging
-// length are regions OF the garment, offered whatever else it is.
-const GarmentBase = PlacingMixin(TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
+// length are regions OF the garment, offered whatever else it is. ⭐ Container
+// just inside it — the `Pack` order (W9, D-W9-13): what is in a pocket is
+// the garment's contents, and every garment may have a pocket (the row's
+// choice), so every garment is a Container with no inside of its own.
+const GarmentBase = PlacingMixin(ContainerMixin(TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
     AssembledMixin(
       CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
-)))));
+))))));
 
 /** The commons' clean rag a torn garment becomes. */
 const RAG_TEMPLATE = '/stuff/thing/rag';
@@ -132,6 +140,16 @@ export default class Garment extends GarmentBase {
 
   /** ⭐ A garment offers nothing until its row names pockets or a hanging length (D26). */
   static override defaultPlacements: readonly string[] = [];
+
+  /**
+   * ⭐ Cloth has no inside of its own (W9, D-W9-3): a garment's insides are
+   * the pockets its row names. So it offers no region zero, a loose arrival
+   * goes to the first pocket that takes it, and a shirt with no pockets
+   * holds nothing.
+   */
+  public override hasInterior(): boolean {
+    return false;
+  }
 
   /**
    * ⭐ Worn, a garment's hanging length is its WEARER (size and carrying

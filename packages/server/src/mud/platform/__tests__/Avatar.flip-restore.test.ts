@@ -20,6 +20,7 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 import Garment from '../thing/equipment/Garment';
 import Good from '../thing/Good';
 import { ContainmentApi } from '../../api/containment';
+import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import Location from '../../lib/location/Location';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -160,9 +161,11 @@ describe('the flip across a restart (drive 21)', () => {
     await PersistableApi.materialize(reborn, key);
     const contents = reborn.getContents() as Stuff[];
     const t2 = contents.find((x) => x.getTemplatePath() === TROUSERS);
-    const k2 = contents.find((x) => x.getTemplatePath() === KEY);
+    // ⭐ The key is the trousers' contents (W9) — in its pocket.
+    const k2 = t2 && MixinApi.isContainer(t2) ? (t2.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY) : undefined;
     const c2 = contents.find((x) => x.getTemplatePath() === CUP);
     expect(t2 && reborn.getOccupants('legs').has(t2 as never)).toBe(true);
+    expect(k2 && MixinApi.isContainable(k2) && k2.getContainer()).toBe(t2);
     expect(k2 && placedOn(k2, t2!)).toBe(true);
     expect(c2 && reborn.tierOf(c2)).toBe('hand');
     expect(contents.every((x) => reborn.isHonest(x))).toBe(true);

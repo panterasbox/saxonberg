@@ -15,7 +15,10 @@ import { MixinApi } from '../../../../api/mixin';
 import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installForms, thing, place, OpenBox } from '../../../../lib/spatial/__tests__/size-fixture';
+import { PlacingMixin } from '../../../../lib/spatial/Placing';
+import { ContainerMixin } from '../../../../lib/spatial/Container';
+import Good from '../../../../lib/stuff/Good';
 import { Body, Bag, handsSpecies, makeBody, tool, wornBag, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { Actor } from '../../../../lib/creature/Actor';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -195,4 +198,49 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     expect(me.isSeating(m)).toBe(false);
   });
 
+  it('⭐ a word on a plain container: region zero\'s word lands in its contents; any other throws (W9)', () => {
+    const room = place(4, 'ceiling', 'walled');
+    const box = thing(() => new OpenBox(), { kg: 2, box: { width: 0.4, depth: 0.4, height: 0.4 } });
+    ContainmentApi.move(box, room);
+    const k = key();
+    ContainmentApi.move(k, box, Placements.IN);
+    expect(k.getContainer()).toBe(box);
+    expect(k.getPlacement()).toBeNull();
+    const k2 = key();
+    ContainmentApi.move(k2, box, 'into');
+    expect(k2.getContainer()).toBe(box);
+    expect(() => ContainmentApi.move(key(), box, 'from')).toThrow(/offers no placement 'from'/);
+  });
+
+  it('⭐ a word on a container that also offers an `in` region: the named region first, then region zero (W9)', async () => {
+    class Desk extends PlacingMixin(ContainerMixin(Good)) {}
+    const room = place(4, 'ceiling', 'walled');
+    const desk = thing(() => new Desk(), { kg: 20, box: { width: 1, depth: 0.6, height: 0.8 } });
+    await desk.setPlacements([Placements.ON, { member: Placements.IN, name: 'drawer', volumeM3: 0.02 }]);
+    ContainmentApi.move(desk, room);
+    const k = key();
+    ContainmentApi.move(k, desk, 'in');
+    expect(k.getContainer()).toBe(desk);
+    expect(k.getPlacement()).toEqual({ host: desk, name: 'drawer' });
+    expect(desk.getPlaced('drawer')).toEqual([k]);
+    const k2 = key();
+    ContainmentApi.move(k2, desk, 'on');
+    expect(k2.getContainer()).toBe(room);
+    expect(k2.getPlacement()).toEqual({ host: desk, name: Placements.ON });
+    // No word: the desk has an inside of its own — region zero.
+    const k3 = key();
+    ContainmentApi.move(k3, desk);
+    expect(k3.getContainer()).toBe(desk);
+    expect(k3.getPlacement()).toBeNull();
+  });
+
+  it('⭐ an enclosing region on a host that holds nothing is refused (W9 refusal 3)', async () => {
+    class Shelf extends PlacingMixin(Good) {}
+    const shelf = thing(() => new Shelf(), { kg: 2 });
+    await expect(shelf.setPlacements([{ member: Placements.IN, name: 'cubby' }])).rejects.toThrow(/is not a Container/);
+    class BadHost extends PlacingMixin(Good) {
+      static override defaultPlacements: readonly string[] = [Placements.IN];
+    }
+    expect(() => thing(() => new BadHost(), { kg: 1 })).toThrow(/is not a ContainerMixin/);
+  });
 });
