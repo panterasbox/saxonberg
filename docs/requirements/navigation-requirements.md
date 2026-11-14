@@ -204,10 +204,15 @@ different channels, so all can be on together; the rule bites when the next
 build adds trail.
 
 ### The pane, top to bottom **[DECIDED]**
-No tabs — one column, sections that fold: where you are (breadcrumb, name,
-`x: · y: · z:`) · the map, full width, with only the levels and zoom on it ·
-the lenses in one row · the ways from here (the rose with up and down, the
-other ways, the ways leaving the zone) · the selected place · the zone line.
+No tabs — one column, sections that fold: **the Locality breadcrumb** and
+the place's name · **the Zone block** (the zone's label, `x: · y: · z:`, the
+extent and levels you know) · the map, full width, with only the levels and
+zoom on it · the lenses in one row · the ways from here (the rose with up
+and down, the other ways, the ways leaving the zone) · the selected place ·
+the zone line. ⭐ **Locality and Zone are two trees** and each keeps its
+information together: the breadcrumb is where you are in the world; the
+Zone block — directly above the map, which *is* the zone — is your position
+in the zone.
 
 ### The rose **[DECIDED]**
 Up and down are ordinary directions between levels inside a zone, so they
@@ -241,8 +246,28 @@ maps, so the two never look alike.
 ### Breadcrumb and first visits **[DECIDED]**
 Your first visit to a Locality writes it into your map with what it
 declares as learnable (its name, its description when it has one, its
-government). The breadcrumb reads your map. A crumb opens the Locality as
-you know it.
+government). The breadcrumb reads your map. ⭐ **Every crumb has a
+tooltip** — you almost always stand on a leaf, so the crumbs are how you
+learn about the places above you without inspecting them by hand: its
+name, its address, when you first came and how you know it, how much of
+your map lies there, and (once the server sends them) its government and
+kind. A crumb opens the Locality as you know it.
+
+### Paths are a spoiler **[DECIDED — the owner]**
+Anything that names an object's row — a template or identity path — is a
+spoiler on the appetite axis: hidden by default, shown by one deliberate
+click (*"What is this, really?"*) or by raising your appetite, never
+prevented ([spoiler-slate § Paths are a spoiler](../slates/tails/spoiler-slate.md)).
+The zone shows a derived label by default; its path is that kind of
+spoiler.
+
+### Where the data comes from **[DECIDED]**
+Every field on the pane and its tooltips is sourced from what the client
+already holds, the copy of your map this build adds, or a cached round
+trip — and what the server does not yet have is listed, item by item, in
+[navigation-server-slate](../slates/builds/navigation-server-slate.md)
+(S1–S9), each marked first pass or follow-up. A field the server cannot
+supply yet is absent, never guessed.
 
 ### The copy is the server's **[DECIDED]**
 The server owns your knowledge; the client's copy is kept current by the
@@ -414,7 +439,9 @@ None — nothing here depends on game time.
   [step-beat-slate](../slates/builds/step-beat-slate.md) ·
   [iconography-slate](../slates/builds/iconography-slate.md) ·
   [card-sizes-slate](../slates/builds/card-sizes-slate.md) ·
-  [tooltip-slate](../slates/builds/tooltip-slate.md)
+  [tooltip-slate](../slates/builds/tooltip-slate.md) ·
+  [navigation-server-slate](../slates/builds/navigation-server-slate.md) ·
+  [spoiler-slate](../slates/tails/spoiler-slate.md)
 - [location-graph.md](../subsystems/location-graph.md) ·
   [boundary.md](../subsystems/boundary.md) ·
   [card-surface.md](../subsystems/card-surface.md) ·

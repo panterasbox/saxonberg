@@ -843,6 +843,28 @@ side of it. What that gives the map:
   a size, so *can I carry this through here* is a question about the way —
   a possible lens, and haulage's.
 
+### ⭐ Two trees, two places in the pane **[DECIDED — the owner, 2026-11-14]**
+
+The **Locality** tree and the **Zone** tree overlap but are different
+things, and the pane keeps each one's information together:
+
+- **The breadcrumb is the Locality tree** — *Saxonberg › Wharfside* — at
+  the top, where you are in the world. Every crumb carries a tooltip: you
+  almost always stand on a leaf, so the crumbs are how you learn about the
+  places above you without inspecting them by hand.
+- **The Zone block sits directly above the map** — the map *is* the zone:
+  the zone's label, then `x: · y: · z:`, then the extent and levels you
+  know. The coordinates leave the header; they describe your position in a
+  Zone, not in the Locality tree.
+- The owner floated showing the zone you are in **as a breadcrumb of its
+  own** — undecided. A zone has no player-facing name (zones are
+  mechanism); its path is a spoiler
+  ([spoiler-slate § Paths are a spoiler](../tails/spoiler-slate.md)), so
+  by default it shows a derived label.
+
+Data sourcing for every part of the pane, and the server changes it
+needs: [navigation-server-slate](./navigation-server-slate.md).
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against

@@ -109,6 +109,29 @@ player doesn't. So spoiler-gates compose with the access tiers.
 
 ---
 
+### ⭐ Paths are a spoiler (the owner, 2026-11-14)
+
+> *"Paths are just a type of spoiler and we should treat them as any other
+> kind of spoiler. We do our best to hide the information from the player,
+> but if they really want to pierce the veil we don't try and stop them —
+> in fact we try and actually codify it."*
+
+A template or identity path is not dangerous for what it says but for
+what it **reveals about an object**: it links *this* thing to its row. It
+breaks indistinguishability (two things meant to look alike come apart),
+it is a free identify on everything (`scroll-of-identify` exists because
+what a thing is can be hidden), and it names the code to read. The repo
+is public either way (decision 1); the per-object link is the spoiler.
+
+So paths sit on the **appetite** axis, not the capability axis: kept and
+**tagged** on the wire, collapsed by the client — *"What is this,
+really?"* in a tooltip — and opened by one deliberate click or by raising
+the player's appetite. Unlike the imposed secrets above (decision 3), a
+path is never withheld server-side; piercing it is a choice the game
+codifies. ⚠ Where paths sit among `SpoilerLevels` is **open** — likely the
+highest "machinery" level. First consumer: the navigation build's copy of
+your map ([navigation-server-slate § S9](../builds/navigation-server-slate.md)).
+
 ## Assessment integrity — flagged, *not solved here*
 
 The one place "best-effort + open source" is genuinely **insufficient**:

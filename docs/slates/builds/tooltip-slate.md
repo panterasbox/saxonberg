@@ -65,6 +65,24 @@ We need a tooltip model that's going to work for the whole app."*
 nested tooltip); a *thing* is a gold underline (hover for its tooltip,
 click for its card); a command is boxed (what a click runs).
 
+### The spoiler reveal — a standard block **[DECIDED in principle]**
+
+Any fact in a tooltip that is a spoiler — first among them an object's
+**path** — travels tagged on the appetite axis and renders as a collapsed
+**"What is this, really?"** line; one click opens it, and a player whose
+appetite is high sees it open. The same block everywhere — rooms, ways,
+items, people ([spoiler-slate § Paths are a spoiler](../tails/spoiler-slate.md)).
+
+### Where each tooltip's content comes from
+
+Every field on every tooltip names its class
+([navigation-server-slate](./navigation-server-slate.md)): **A** on the
+client today · **B** on the client after the navigation build · **C** a
+round trip on hover, cached · **D** not on the server yet. A tooltip
+renders what it has at once and fills C fields as they arrive; a D field
+is simply absent until its server item lands — never a placeholder that
+guesses.
+
 ## Open
 
 1. **The lock gesture** — dwell time, the key (Shift? middle-click?), and

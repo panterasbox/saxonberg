@@ -68,6 +68,17 @@ id. Since then the server gained what is actually authoritative here:
    view and the Zone tab are derived views over the three stores,
    memoized. A new lens is a selector, not a new wire.
 
+### ⚠ Paths in the replica travel spoiler-tagged **[DECIDED — the owner's spoiler position]**
+
+A map claim names its place by **identity path** and labels it with its
+**template path**. Paths are a spoiler on the appetite axis
+([spoiler-slate § Paths are a spoiler](../tails/spoiler-slate.md)): the
+replica carries them **tagged**, the client collapses them unless the
+player's appetite opens them, and nothing in the pane keys its display on
+a path a player has not chosen to see. (The replica may still use them as
+record keys internally — keys are not display.)
+[navigation-server-slate § S9](./navigation-server-slate.md).
+
 ## Performance **[LEAN]**
 
 - The knowledge replica lives in **its own zustand store**, apart from
