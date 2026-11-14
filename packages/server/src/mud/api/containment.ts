@@ -199,9 +199,11 @@ export class ContainmentApi {
    * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
    * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
    * a placing host (into the host's environment, with the placement pair);
-   * `move(item, loft, Placements.IN)` names the placement (by path, or a
-   * typed word the host resolves) when a host offers more
-   * than one. `null` detaches it.
+   * `move(item, coat, 'left pocket')` names the region (by path, name, or a
+   * typed word the host resolves) when a host offers more than one — an
+   * enclosing region puts it IN the host, as its contents (W9);
+   * `move(board, loft, Placements.IN)` is region zero's own word on a plain
+   * container. `null` detaches it.
    *
    * Everything a move implies beyond geometry is DERIVED here, so no
    * caller has to remember it:

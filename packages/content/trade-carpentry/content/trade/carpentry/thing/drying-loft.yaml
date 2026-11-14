@@ -1,9 +1,10 @@
 # The drying loft — the room over a sawmill's floor where boards are
 # stacked in stick to season (assembly D15, AC 25).
 #
-# ⭐ A COMPARTMENT, not a room: a Chamber (`/platform/thing/Chamber`) with
-# its own air, minted by the sawmill that declares it and standing beside
-# it. A board `put … in loft` is placed in its air rather than the
+# ⭐ A COMPARTMENT, not a room: a Chamber (`/platform/thing/Chamber`) — a
+# Container with its own air — minted by the sawmill that declares it and
+# standing beside it. A board `put … in loft` is the loft's contents (size
+# and carrying W9) and seasons in its air rather than the
 # yard's: dry, and with a draught through the
 # louvres — the conditions a timber yard pays for. ⚠ Its warmth is NOT
 # authored (`lint:envelope`: a room's warmth is derived); what the loft

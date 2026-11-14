@@ -45,6 +45,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { Placements } from '../../../../lib/spatial/Placement';
 
 const TOPIC = 'act.deed';
 const DISCIPLINE = 'cooking';
@@ -93,7 +94,12 @@ export default class DryController extends CommandController<DryModel> {
     }
 
     const rack = model.rack?.stuff ?? null;
-    if (rack !== null && !MixinApi.isPlacing(rack)) {
+    // ⭐ A rack you hang ON (a Placing host), or a compartment you put a
+    // thing IN — a Container with its own air, the drying loft (size and
+    // carrying W9: what is in it is its contents).
+    const placing = rack !== null && MixinApi.isPlacing(rack) ? rack : null;
+    const holder = rack !== null && placing === null && MixinApi.isContainer(rack) ? rack : null;
+    if (rack !== null && placing === null && holder === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You cannot hang anything on ${Mml.thing(rack)}.`)
@@ -108,13 +114,13 @@ export default class DryController extends CommandController<DryModel> {
     // on hook` works because `from`'s row lists `on` as a secondary,
     // which is how the world teaches the word without a tutorial.
     const member =
-      rack === null ? null : rack.resolvePlacement(model.rack?.prep);
-    if (rack !== null && member === null) {
-      const takes = rack.getPlacements().join(' or ');
+      placing === null ? null : placing.resolvePlacement(model.rack?.prep);
+    if (placing !== null && member === null) {
+      const takes = placing.getPlacements().join(' or ');
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`You can't hang things ${model.rack?.prep ?? ''} ${Mml.thing(rack)} — it takes ${takes}.`,
+          Mml.compose`You can't hang things ${model.rack?.prep ?? ''} ${Mml.thing(placing)} — it takes ${takes}.`,
         )
         .send();
       context.note({
@@ -134,7 +140,10 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'not-movable' });
         return;
       }
-      const veto = rack.canPlace(target, member!);
+      const veto =
+        placing !== null
+          ? placing.canPlace(target, member!)
+          : { ok: holder!.fitRefusal(target) === null };
       if (!veto.ok) {
         MessageApi.scene(giver)
           .topic(TOPIC)
@@ -145,7 +154,8 @@ export default class DryController extends CommandController<DryModel> {
         context.note({ kind: 'controller-rejected', reason: 'rack-refuses' });
         return;
       }
-      ContainmentApi.move(target, rack, member!);
+      if (placing !== null) ContainmentApi.move(target, placing, member!);
+      else ContainmentApi.move(target, holder!);
     }
 
     // ⭐ The thing's own forecast, in words — a cut's water state, else a
@@ -172,9 +182,11 @@ export default class DryController extends CommandController<DryModel> {
     // ⭐ The sentence uses the MEMBER's own word: *on the rack*, *from
     // the hook*. A player never has to be told which; they read it.
     const word =
-      member === null || rack === null
-        ? ''
-        : rack.placementOf(member).getPrimaryWord();
+      holder !== null
+        ? ContainmentApi.placements().need(Placements.IN).getPrimaryWord()
+        : member === null || placing === null
+          ? ''
+          : placing.placementOf(member).getPrimaryWord();
     const self = rack
       ? Mml.compose`You hang ${Mml.thing(target)} up to dry ${word} ${Mml.thing(rack)}.${tail}`
       : Mml.compose`You hang ${Mml.thing(target)} up to dry.${tail}`;

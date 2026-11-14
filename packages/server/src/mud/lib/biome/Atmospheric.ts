@@ -764,7 +764,8 @@ export function AtmosphericMixin<
      * the one seam that says where a scope's occupants are.
      *
      * @hook Override where the class's air is a PLACEMENT rather than a
-     *   containment — `Chamber` answers `getPlaced(Placements.IN)`. Never branch on
+     *   containment (none ships: `Chamber` is a Container since size and
+     *   carrying W9, so its occupants are its contents). Never branch on
      *   `isPlacing` here: the class whose air is a placement is the class
      *   that says so.
      */

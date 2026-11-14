@@ -3,10 +3,10 @@
  * the fridge-design-pack's `Chamber` spec).
  *
  * The three things the spec asks of it:
- *  - it REGISTERS, with both of Placing's composition refusals silent
- *    (it is Containable, and it is not Exitable);
- *  - `occupants()` — the Atmospheric seam it overrides — is what is
- *    placed `in` it, not a contents list it does not have;
+ *  - it REGISTERS as a Container with its own air (size and carrying W9:
+ *    an enclosing relation is containment — no Placing layer);
+ *  - `occupants()` — the Atmospheric seam — is its contents: what is put
+ *    `in` it (`move(x, loft, Placements.IN)` is region zero's own word);
  *  - ⭐ the acceptance: a Thermal good placed `in` a chamber authored at
  *    281 K restamps to 281 K, while one `on` a `Fitting` in the same room
  *    reads the room's.
@@ -105,19 +105,19 @@ describe('Chamber', () => {
     StuffApi.clearAll();
   });
 
-  it('registers — both Placing composition refusals are silent', () => {
+  it('registers — a Container with its own air, and no Placing layer (W9)', () => {
     expect(() => chamber(null)).not.toThrow();
     const c = chamber(null);
-    expect(MixinApi.isPlacing(c)).toBe(true);
+    expect(MixinApi.isPlacing(c)).toBe(false);
     expect(MixinApi.isAtmospheric(c)).toBe(true);
     expect(MixinApi.isContainable(c)).toBe(true);
-    expect(MixinApi.isContainer(c)).toBe(false);
+    expect(MixinApi.isContainer(c)).toBe(true);
     expect(MixinApi.isExitable(c)).toBe(false);
-    expect(c.getPlacements()).toEqual([Placements.IN]);
+    expect(c.hasInterior()).toBe(true);
     expect(c.isFixedInPlace()).toBe(true);
   });
 
-  it('occupants() is what is placed IN it — and nothing else in the room', () => {
+  it('occupants() is what is IN it — its contents — and nothing else in the room', () => {
     const room = makeStuff(() => new TestRoom());
     const loft = chamber(281);
     ContainmentApi.move(loft, room);
@@ -127,8 +127,9 @@ describe('Chamber', () => {
     ContainmentApi.move(inside, loft, Placements.IN);
 
     expect(loft.probeOccupants()).toEqual([inside]);
-    // The placed thing stands in the ROOM, under the chamber.
-    expect(inside.getContainer()).toBe(room);
+    // ⭐ IN the chamber is the chamber's contents (W9).
+    expect(inside.getContainer()).toBe(loft);
+    expect(inside.getPlacement()).toBeNull();
     expect(inside.getEnclosingScope()).toBe(loft);
     expect(beside.getEnclosingScope()).toBe(room);
   });
@@ -186,9 +187,8 @@ describe('Chamber', () => {
     await c.restamp();
     expect(c.lastAmbientK).toBeCloseTo(281, 0);
 
-    // `setTemperature` fans a restamp out over `occupants()` — for a
-    // Container that was its contents; for a chamber it must be what is
-    // placed in it, or the cheese would never hear about the change.
+    // `setTemperature` fans a restamp out over `occupants()` — a
+    // Container's contents, which is where the cheese is (W9).
     // ⚠ No explicit restamp after the change: only the fan-out can move
     // the cached ambient (it is fire-and-forget, so let it settle).
     loft.setTemperature(Quantity.of(275, 'K'));

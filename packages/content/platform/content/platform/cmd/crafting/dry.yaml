@@ -74,11 +74,13 @@ args:
     # a support but not the member's word refuses every such target AT
     # THE BINDER, closed and silent. `lint:placement-words --list` is
     # what tells an author which arguments those are.
-    prepositions: [on, onto, from]
+    # `in`/`into`: a compartment with its own air (the drying loft) is a
+    # Container — a board put in it is its contents (size and carrying W9).
+    prepositions: [on, onto, from, in, into]
     scope: "reachable"
     # The support is optional: hanging a thing in the open air works, it is
     # simply slower. When one IS named it carries the exposure fraction.
     default: "reachable:[class.DryingRack]"
-    requires: [PlacingMixin]
+    requires: [ContainerMixin|PlacingMixin]
     validators:
       - /lib/command/validators/canReach
