@@ -905,6 +905,26 @@ in view — not what is nearby). ⚠ **`z` is position, not height**;
 elevation is a setting fact, shown apart (S13). The zone's name is a
 derived label; its path is a spoiler.
 
+### The card's sizes, the leaf once, and the one-hop lookahead **[DECIDED — the owner, 2026-11-14]**
+
+- **Three sizes, like any card.** *Small* — other modes, staying aware of
+  your surroundings: the place, the crumbs on one line, the ways from here,
+  little or no map. *Docked* — Explore, everything designed so far.
+  *Large* — complex navigation with **full-size maps**: the Expanse's chart
+  and course plotting (an Expanse wants a chart, never a minimap), and any
+  zone too big to read small.
+- **The Place appears once.** Both breadcrumbs stop one short of the leaf;
+  the room's name sits small at the top (*you are here*), and a **Place
+  section** — larger, detailed — sits below the Zone block. Its content is
+  the next design topic.
+- **Browsing your map records is another card** — the **atlas**
+  ([atlas-slate](./atlas-slate.md)). The nav card is *where you are and
+  where you can go*; it keeps only light record-keeping: **one hop of
+  lookahead** — hover a way out of the zone (or a crumb) and the tooltip
+  shows a small thumbnail of that zone *as you know it*, with *open in the
+  atlas* — and the active route. A short *recent* list waits for the trail
+  record; pinned destinations wait for notes and pins.
+
 ### Still open
 
 - The minimap's exact visual design — to iterate with the owner against

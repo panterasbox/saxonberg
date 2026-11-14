@@ -135,6 +135,14 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
   its own build, **before** this one; this build only supplies the map's
   tooltip content.
 - **A view of zones joined together** → map-slate § Zone level.
+- **Browsing your map records without moving** → [atlas-slate](../slates/builds/atlas-slate.md),
+  its own card; here only a one-hop lookahead (a way out's tooltip shows
+  that zone as you know it, with *open in the atlas*).
+- **The card's small and large sizes** (the large one with full-size maps
+  and the Expanse chart) → map-slate § The card's sizes; this build is the
+  docked size.
+- **The Place section's content** → the next design topic in this
+  conversation; this build reserves its place below the Zone block.
 - **Map styles as options** → later, as content.
 - **A cartography discipline** → nowhere, deliberately, until a map can be
   wrong in a way skill corrects.
@@ -211,8 +219,9 @@ different channels, so all can be on together; the rule bites when the next
 build adds trail.
 
 ### The pane, top to bottom **[DECIDED]**
-No tabs — one column, sections that fold: **the Locality breadcrumb** and
-the place's name · **the Zone block** (the zone's label, `x: · y: · z:`, the
+No tabs — one column, sections that fold: **the place's name**, small, at
+the top · **the Locality breadcrumb**, stopping one short of the place ·
+**the Zone block** (the zone's label, `x: · y: · z:`, the
 extent and levels you know) · the map, full width, with only the levels and
 zoom on it · the lenses in one row · the ways from here (the rose with up
 and down, the other ways, the ways leaving the zone) · the selected place ·
