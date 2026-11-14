@@ -1617,6 +1617,12 @@ export class CommandLogic extends ApiLogic {
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
+        // ⭐ The slot took its author's `default:` (size and carrying
+        // D-W10-7): the pool is the author's, not the player's word, so a
+        // validator passes it whole and the controller narrows it.
+        if (def.default !== undefined && raw === ShellApi.expandVariables(def.default, giver)) {
+          bound.defaulted = true;
+        }
         // ⭐ The controller needs to know it was handed a SET (`look
         // horizon` of one thing is still a list, not that thing's look).
         if (r.isSet) bound.isSet = true;

@@ -14,12 +14,18 @@
  * the resolver can't — "this thing must actually be in arm's reach" is the
  * canonical example.
  *
- * ⭐ **The refusal names what works** (D17; `mustNotBeShutAway` folded in
- * here): a thing the binder bound in a shut box says *"The box is shut."*;
- * one in the pack on your back says *"The pack is on your back — take it
- * off first."*; anything else *"you can't reach …"*. It fires AFTER
- * binding, and the binder only binds what the giver perceives — so it never
- * names a thing the giver could not see.
+ * ⭐ **The refusal names the next command** (D17; D-W10-12 — shut means
+ * shut, everywhere, and never an implicit open): a thing the binder bound in
+ * a shut holder says *"Your belt pouch is shut — `open pouch` first."*;
+ * one in the pack on your back says *"Your canvas backpack is on your back
+ * — take it off first (`remove backpack`)."*; anything else *"you can't
+ * reach …"*. It fires AFTER binding, and the binder only binds what the
+ * giver perceives — so it never names a thing the giver could not see.
+ *
+ * ⭐ A DEFAULTED list passes whole (D-W10-7): a slot bound from its view's
+ * `default:` (`reachable:[mixin.ToolMixin]`) is the author's pool, not the
+ * player's word — the controller narrows it (`PerceptionApi.reachableAmong`)
+ * rather than the whole command being refused for a packed spare.
  *
  * ⭐ A FEATURE of the place you stand in is to hand: a match that arrived
  * through a detail or a held substance on the room or vessel around you
@@ -54,10 +60,26 @@ function featureAround(giver: Stuff, stuff: Stuff, via: MqlMatchVia | undefined)
   return giver.getContainer() === stuff || giver.getEnclosingPlace() === stuff;
 }
 
+/** The word a player types for `x` — its authored keyword, quoted when it has a space. */
+function keywordOf(x: Stuff): string {
+  const kw = (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+  return kw.includes(' ') ? `"${kw}"` : kw;
+}
+
+/** `x` as the giver names it — *your belt pouch* when it is on them, else as they perceive it. */
+function holderWords(giver: Stuff, x: Stuff): string {
+  const onYou = MixinApi.isCarrying(giver) && giver.tierOf(x) !== 'elsewhere';
+  return onYou ? `Your ${x.presentationPhrase().bare()}` : GrammarApi.cap(x.describeFor(giver));
+}
+
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
   if (stuffs === null) return `${field} must be an object`;
   if (stuffs.length === 0) return undefined;
+  // ⭐ The author's pool, not the player's word (D-W10-7).
+  if (typeof value === 'object' && value !== null && (value as { defaulted?: true }).defaulted === true) {
+    return undefined;
+  }
 
   const giver = context.commandGiver as Stuff;
   const vias = viasOf(value, stuffs.length);
@@ -67,10 +89,10 @@ const validator: FieldValidator = (value, field, context) => {
     if (MixinApi.isContainable(stuff)) {
       const refusal = stuff.reachRefusal(giver);
       if (refusal !== null) {
-        const by = GrammarApi.cap(refusal.facts.by.describeFor(giver));
+        const by = refusal.facts.by;
         return refusal.reason === 'packed'
-          ? `${by} is on your back — take it off first.`
-          : `${by} is shut.`;
+          ? `${holderWords(giver, by)} is on your back — take it off first (\`remove ${keywordOf(by)}\`).`
+          : `${holderWords(giver, by)} is shut — \`open ${keywordOf(by)}\` first.`;
       }
     }
     if (featureAround(giver, stuff, vias[i])) continue;

@@ -20,6 +20,10 @@ help: |
 
   Clay is green until it is fired: let it dry to leather-hard before you
   trim, join or stamp it, and to bone-dry before it goes in a kiln.
+
+  Used where it sits — in hand, in an open holder on you, or within
+  reach; a shut holder says `open` it first, a pack on your back says
+  take it off.
 examples:
   - cmd: shape clay into mug
     note: Throw a mug on the wheel here
@@ -47,7 +51,6 @@ args:
   # with a default (`lint:controller-resolution`); the controller asks each bound
   # tool whether it plans the shape, and hands are the fallback.
   - name: instrument
-    readies: true
     type: objects
     required: false
     prepositions: [with, using, on, at]
@@ -56,6 +59,8 @@ args:
     default: "reachable:[capability.wheel],reachable:[capability.brick-table],reachable:[capability.blowpipe]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
   # The form, after `into` — greedy, so `tall jug holding 3 pints` is one
   # phrase. Last, as a greedy arg must be.
   - name: form

@@ -36,6 +36,10 @@ help: |
 
   Sawing, riving and butchering are their own verbs (`saw`, `rive`,
   `butcher`) — each is a different act on the thing, not a kind of cut.
+
+  Used where it sits — in hand, in an open holder on you, or within
+  reach; a shut holder says `open` it first, a pack on your back says
+  take it off.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -67,7 +71,6 @@ args:
   # target (or the tool that plans the cut) narrows them by the capability
   # it needs.
   - name: tools
-    readies: true
     prepositionRequired: true
     type: objects
     required: false
@@ -75,6 +78,8 @@ args:
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
 options:
   for:
     type: object

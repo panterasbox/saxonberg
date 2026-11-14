@@ -311,6 +311,15 @@ export interface MqlOneResult extends MqlOne {
 export interface MqlManyResult extends MqlMany {
   raw: string;
   prep?: string;
+  /**
+   * ⭐ Present (`true`) when the slot was bound from its view's
+   * `default:` rather than the player's words (size and carrying
+   * D-W10-7) — the `ordinal` precedent: a fact about the binding rides
+   * the result. `canReach` passes a defaulted list whole (the author's
+   * pool is not the player's word) and the controller narrows it by
+   * `PerceptionApi.reachableAmong`.
+   */
+  defaulted?: true;
 }
 
 

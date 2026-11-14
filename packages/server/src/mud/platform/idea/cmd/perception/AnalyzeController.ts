@@ -19,6 +19,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext } from '../../../../api/command';
 import type { ReadCommandModel } from './MeasureController';
 import { StuffApi } from '../../../../api/stuff';
+import { PerceptionApi } from '../../../../api/perception';
 import ReadingCatalogue, {
   READING_CATALOGUE_PATH,
 } from '../../ReadingCatalogue';
@@ -40,6 +41,8 @@ export default class AnalyzeController extends CommandController<ReadCommandMode
       );
       return;
     }
-    await reading.runAnalyze(context, model.subject, model.tool?.stuff ?? []);
+    // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
+    const tools = PerceptionApi.reachableAmong(context.commandGiver, model.tool?.stuff ?? [], { location: context.location ?? null });
+    await reading.runAnalyze(context, model.subject, tools);
   }
 }

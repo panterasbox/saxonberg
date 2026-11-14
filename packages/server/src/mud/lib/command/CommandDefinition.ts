@@ -935,7 +935,7 @@ function validateArgOrdering(
  * field. Throws at YAML-load time on invalid combos.
  */
 function validateCardinality(
-  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string; onFiltered?: string; readies?: boolean },
+  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string; onFiltered?: string },
   filePath: string,
   scope: string,
 ): void {
@@ -977,13 +977,12 @@ function validateCardinality(
     (field.cardinality !== undefined ||
       field.onExcess !== undefined ||
       field.onShortage !== undefined ||
-      field.onFiltered !== undefined ||
-      field.readies !== undefined) &&
+      field.onFiltered !== undefined) &&
     field.type !== 'object' &&
     field.type !== 'objects'
   ) {
     throw new Error(
-      `${filePath} (${scope}.${fname}): cardinality / onExcess / onShortage / onFiltered / readies are only valid on object / objects fields (got type=${field.type ?? 'undefined'})`
+      `${filePath} (${scope}.${fname}): cardinality / onExcess / onShortage / onFiltered are only valid on object / objects fields (got type=${field.type ?? 'undefined'})`
     );
   }
 

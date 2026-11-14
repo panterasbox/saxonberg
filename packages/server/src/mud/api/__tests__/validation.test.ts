@@ -187,3 +187,22 @@ describe('subcommand-level validators', () => {
     ).toEqual({ ok: true });
   });
 });
+
+describe('readies: is retired (size and carrying D-W10-1)', () => {
+  it('a view still carrying `readies:` is refused by the schema', () => {
+    expect(() =>
+      CommandDefinition.fromYaml(
+        `
+verbs: [test]
+controller: TestController
+description: ok
+args:
+  - name: tool
+    type: objects
+    readies: true
+`,
+        '<test>',
+      ),
+    ).toThrow(/args\/0 must NOT have additional properties/);
+  });
+});

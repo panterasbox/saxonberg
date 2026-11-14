@@ -25,6 +25,7 @@ import type { CutAnswer, CutBegin, CutDone, CutRefusal, CutRequest } from '../..
 import { GrammarApi } from '../../../../api/grammar';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
+import { PerceptionApi } from '../../../../api/perception';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -42,7 +43,8 @@ export default class CutController extends ManualBuildController<CutModel> {
     const actor = context.commandGiver as unknown as Stuff;
     const target = (model.target?.stuff ?? null) as Stuff | null;
     const raw = model.target?.raw?.trim() || null;
-    const tools = (model.tools?.stuff ?? []) as Stuff[];
+    // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
+    const tools = PerceptionApi.reachableAmong(actor, (model.tools?.stuff ?? []) as Stuff[], { location: context.location ?? null });
     const req: CutRequest = {
       actor,
       tools,

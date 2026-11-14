@@ -27,6 +27,7 @@ import type {
 } from '../../../../lib/craft/Shapeable';
 import type { ActWords } from '../../../../lib/command/EngagedActController';
 import { MixinApi } from '../../../../api/mixin';
+import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
 
 type Composed = ReturnType<typeof Mml.compose>;
@@ -54,7 +55,9 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
     };
 
     let plan: ShapePlan | ShapeRefusal | null = null;
-    for (const tool of model.instrument?.stuff ?? []) {
+    // ⭐ Used where it sits (D-W10-7): a defaulted pool is narrowed to what is in reach.
+    const tools = PerceptionApi.reachableAmong(context.commandGiver, model.instrument?.stuff ?? [], { location: context.location ?? null });
+    for (const tool of tools) {
       if (tool === material || !MixinApi.isForming(tool)) continue;
       plan = await tool.shapePlanFor(req);
       if (plan !== null) break;

@@ -244,20 +244,6 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * (late) envelope carries the body's accumulated notes + final status.
  */
 /**
- * A clone of the verb's controller, to word what the body reported (size
- * and carrying W8), or `null` when there is none to clone. The caller
- * destructs it.
- */
-async function wordsOf(controllerPath: string | undefined): Promise<CommandController | null> {
-  if (!controllerPath) return null;
-  try {
-    return await StuffApi.clone<CommandController>(controllerPath);
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Author-diagnostics: record a controller throw (store row + author push).
  * `controllerPath` is the already-resolved `/`-rooted controller template
  * path (see `CommandDefinition.resolvedController` /
@@ -1780,11 +1766,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         return;
       }
-      // ⭐ The instruments come to hand before the act (size and carrying
-      // D16): a `readies:` arg is readied by the giver, and a refusal is
-      // the answer — the controller never runs.
-      if (!(await this._readyInstruments(command, model, context, controllerPath))) return;
-
       // Async: spawn the controller body detached (a fresh root frame,
       // NOT awaited) so the giver's input chain frees at accept-time.
       // The detached run owns firing the single (late) dispatch-response
@@ -1833,69 +1814,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       } finally {
         if (controller) StuffApi.destruct(controller);
       }
-    }
-
-    /**
-     * ⭐ Ready every `readies: true` arg the model bound (size and carrying
-     * D16): `Carrying.ready` on the giver — the held thing goes home, the
-     * instrument comes out (in a fight, the switch's beats). An `objects`
-     * arg readies only a single bound thing. `false` when the giver
-     * refused, having said why; a giver that carries nothing readies
-     * nothing.
-     */
-    async _readyInstruments(
-      command: CommandDefinition,
-      model: CommandModel,
-      context: CommandContext,
-      controllerPath?: string,
-    ): Promise<boolean> {
-      const giver = this as unknown as Stuff;
-      if (!MixinApi.isCarrying(giver)) return true;
-      const sub = model.subcommand;
-      const fields = sub ? (command.getSubcommand(sub)?.args ?? []) : command.args;
-      for (const field of fields) {
-        if (field.readies !== true) continue;
-        // An object arg binds an `MqlOneResult`, an objects arg an
-        // `MqlManyResult` (the field's type says which).
-        const bound = (model as Record<string, unknown>)[field.name] as
-          | { stuff?: Stuff | Stuff[] | null }
-          | undefined;
-        const things = bound?.stuff ?? null;
-        const list = things === null ? [] : Array.isArray(things) ? things : [things];
-        if (list.length !== 1) continue;
-        const item = list[0]!;
-        if (MixinApi.isTangible(item)) await item.ensureShape();
-        const readied = giver.ready(item);
-        if (readied === null) continue;
-        // ⭐ The body reports facts; the verb's controller words them (size
-        // and carrying W8) — cloned only when there is something to say,
-        // and destructed as every early return destructs it.
-        const words = await wordsOf(controllerPath);
-        try {
-          if (readied.ok) {
-            const line = words?.readiedWords(giver, readied) ?? null;
-            if (line !== null && MixinApi.isSensor(giver)) {
-              MessageApi.scene(giver)
-                .topic('act.deed')
-                .toSelf(Mml.text(line.self))
-                .toPeers(Mml.compose`${Mml.actor(giver)} ${Mml.text(line.peer)}.`)
-                .send();
-            }
-            continue;
-          }
-          const said = words?.carryRefusalWords(giver, readied) ?? "You can't ready that.";
-          MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(said)).send();
-          context.note({
-            kind: 'controller-rejected',
-            reason: readied.reason,
-            detail: item.getPresentation(),
-          });
-          return false;
-        } finally {
-          if (words !== null) StuffApi.destruct(words);
-        }
-      }
-      return true;
     }
 
     /**
