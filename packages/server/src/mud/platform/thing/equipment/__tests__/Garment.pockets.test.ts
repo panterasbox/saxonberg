@@ -20,6 +20,8 @@ import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { CaptureContext, ContentPlacement } from '../../../../lib/persistence/PersistenceSlice';
+import Garment from '../Garment';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installForms, material } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, garment } from '../../../../lib/slot/__tests__/carrying-fixture';
@@ -210,13 +212,30 @@ describe('Garment — pockets as regions (D26)', () => {
     expect(PerceptionApi.visibleContentsOf(me, coat).carried).toEqual([]);
   });
 
-  it('the placement pair is what persists — the shipped restore puts it back', async () => {
+  it('⭐ the coat\'s own slice carries the key; its region is recorded with no sibling host (W9)', async () => {
     const { me, plan } = makeBody();
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
     const k = key();
     carry(me, k);
-    ContainmentApi.move(k, coat, 'left pocket');
-    expect(k.getPlacement()?.name).toBe('left pocket');
+    ContainmentApi.move(k, coat, 'right pocket');
+    expect(k.getPlacement()?.name).toBe('right pocket');
+    // The coat's container slice: the key, its region by name, no host field.
+    const captured: { item: unknown; placement: ContentPlacement }[] = [];
+    const slice = (Garment as unknown as {
+      captureSlice(h: Stuff, c: CaptureContext): { contents: unknown[] };
+    }).captureSlice(coat, {
+      captureItem: (item, placement) => {
+        captured.push({ item, placement });
+        return { templatePath: '/t/key', state: {}, placement };
+      },
+      captureState: () => ({}),
+      indexOf: () => -1,
+      noteOwnedGood: () => undefined,
+    });
+    expect(slice.contents).toHaveLength(1);
+    expect(captured).toEqual([{ item: k, placement: { placement: 'right pocket' } }]);
+    // …and the body's own slice does not carry it: it is not the body's.
+    expect(me.getContents()).not.toContain(k);
     // Taken out and put back by its region name — the pair is the name.
     carry(me, k);
     expect(k.getPlacement()).toBeNull();

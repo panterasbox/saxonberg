@@ -708,7 +708,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * A nested **host** (composes `Persistable`) is emitted as a `{ ref }`
      * (it persists itself); anything else nests its composed `state`,
      * recursing through `ctx.captureItem`. A placed item records the
-     * index of the `Placing` sibling it sits on and the member's name.
+     * index of the `Placing` sibling it sits on and the member's name — or,
+     * in a named region of this container itself (a pocket), the region's
+     * name alone (W9).
      *
      * Restore of the container slice is centralized in `PersistableLogic`
      * (it cross-references the Slotted slice by index), so there is no
@@ -758,7 +760,12 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const entries: ContentEntry[] = contents.map((item) => {
         const placement: ContentPlacement = {};
         const placed = item.getPlacement();
-        if (placed) {
+        if (placed && placed.host.stuffId === container.stuffId) {
+          // ⭐ A region of THIS container (a coat's `left pocket` — W9,
+          // D-W9-7): the region's name and no host field — the slice it
+          // rides is the host's own.
+          placement.placement = placed.name;
+        } else if (placed) {
           const idx = ctx.indexOf(placed.host);
           if (idx >= 0) {
             placement.hostIndex = idx;

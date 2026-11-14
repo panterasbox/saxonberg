@@ -73,7 +73,11 @@ export interface ContentPlacement {
   hostChattelId?: string;
   /**
    * The placement's PATH (`/platform/placements/on`) the item is placed
-   * under — a document's only name. Undefined when it sits loose.
+   * under — a document's only name — or the host's own region name (`left
+   * pocket`). Undefined when it sits loose. ⭐ With neither `hostIndex` nor
+   * `hostChattelId`, it names a region of the container this slice belongs
+   * to: a coat's pocket, whose key is the coat's contents (size and
+   * carrying W9).
    */
   placement?: string;
 }

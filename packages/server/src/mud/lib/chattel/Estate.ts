@@ -258,10 +258,21 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
         const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
         // ⭐ In the owner's keeping and placed on a host there (a pouch on
         // the belt): the host by contents index, or by chattel id when the
-        // host is owned too (size and carrying W7).
+        // host is owned too (size and carrying W7). ⭐ Or in a region of a
+        // thing on the owner (a key in a coat's pocket — the coat's contents,
+        // W9, D-W9-7): the coat by the same two names, and pass (6) moves the
+        // key from the owner into the coat's region as it hangs a pouch.
         const pair = MixinApi.isContainable(live) ? live.getPlacement() : null;
+        const at = MixinApi.isContainable(live) ? live.getContainer() : null;
+        const inKeeping =
+          at === host ||
+          (pair !== null &&
+            at !== null &&
+            pair.host.stuffId === at.stuffId &&
+            MixinApi.isContainable(at) &&
+            at.getContainer() === host);
         let placedOn: ContentPlacement | null = null;
-        if (pair !== null && MixinApi.isContainable(live) && live.getContainer() === host) {
+        if (pair !== null && inKeeping) {
           const idx = ctx.indexOf(pair.host);
           if (idx >= 0) placedOn = { hostIndex: idx, placement: pair.name };
           else if (MixinApi.isChattel(pair.host) && pair.host.isOwnerPersisted()) {

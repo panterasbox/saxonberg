@@ -822,7 +822,9 @@ async function restoreState(
 
   // (3b) Placement pass — a placed item re-`place`s onto its `Placing`
   // sibling, under the placement the slice recorded: a member path, or a
-  // host's own region name (`left pocket` — size and carrying D26). ⭐ The
+  // host's own region name (size and carrying D26). ⭐ A region of THIS
+  // container (no `hostIndex` — a pocket's key, W9) went straight into its
+  // region in `restoreItem` and is skipped here. ⭐ The
   // member loads first (documents D7), so the restored thing's sync reads —
   // its enclosing scope, `look`'s drill-in — find it. ⭐ AFTER the slotted
   // pass: a worn belt's hanging length is its wearer's waist (D27), so its
@@ -987,8 +989,14 @@ async function restoreItem(
   clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
+    // ⭐ A region of the host itself (a pocket — W9, D-W9-7): straight into
+    // it, one move. A stale record (the row lost the pocket, or its member
+    // no longer encloses) is logged and the host's arrival decides.
+    const region = await selfRegionOf(entry, host);
     const put = (): void =>
-      ContainmentApi.move(clone as Stuff & Containable, host as Stuff & Container);
+      region !== null
+        ? ContainmentApi.move(clone as Stuff & Containable, host as unknown as Stuff & Placing, region)
+        : ContainmentApi.move(clone as Stuff & Containable, host as Stuff & Container);
     // ⭐ A body admits what it carried (the flip's veto, D11; W8 — every
     // body, so a hog or a fish restored with contents is not refused): the
     // record is replayed — re-seated and re-placed by the passes after
@@ -998,6 +1006,29 @@ async function restoreItem(
     else put();
   }
   return clone;
+}
+
+/**
+ * The region of `host` itself that `entry` records (size and carrying W9,
+ * D-W9-7) — `placement` with no host field — when the host still offers it
+ * and its member still encloses; else `null` (a stale record is logged).
+ */
+async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | null> {
+  if (!("placement" in entry) || entry.placement === undefined) return null;
+  const at = entry.placement;
+  if (at.placement === undefined || at.hostIndex !== undefined || at.hostChattelId !== undefined) return null;
+  const offered =
+    MixinApi.isPlacing(host) && host.getPlacements().includes(at.placement)
+      ? host.getPlacementEntry(at.placement)
+      : null;
+  if (offered !== null && (await ContainmentApi.placements().ensure(offered.member)).getEncloses()) {
+    return at.placement;
+  }
+  console.warn(
+    `PersistableLogic: ${host.getTemplatePath() ?? host.stuffId} offers no enclosing region ` +
+      `'${at.placement}' any more — the restored thing lands where the host's arrival puts it`,
+  );
+  return null;
 }
 
 /**

@@ -21,6 +21,9 @@ import Garment from '../thing/equipment/Garment';
 import Good from '../thing/Good';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
+import { ChattelApi } from '../../api/chattel';
+import ChattelRegistry from '../idea/ChattelRegistry';
+import { TemplatePaths } from '../../lib/paths';
 import { MessageApi } from '../../api/message';
 import Location from '../../lib/location/Location';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -32,11 +35,13 @@ import {
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 let snapshots: Record<string, unknown>[] = [];
+let chattelRows: Record<string, unknown>[] = [];
 let seq = 0;
 
 /** The in-memory `holder_snapshots` store (the spine suite's harness). */
 function installStore(): void {
   const find = vi.fn(async (col: string, query: Record<string, unknown>) => {
+    if (col === 'chattel') return chattelRows;
     if (col !== 'holder_snapshots') return [];
     return snapshots.filter((d) =>
       Object.entries(query).every(([k, v]) => d[k] === v),
@@ -79,7 +84,32 @@ const KEY = '/test/flip/key';
 const CUP = '/test/flip/cup';
 const POCKETS = [
   { member: '/platform/placements/in', name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+  { member: '/platform/placements/in', name: 'right pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
 ];
+
+/** Title on file for `good` (the spine suite's stamp); {@link indexTitles} builds the registry from the rows. */
+function stamp(good: Stuff, playerId: string): void {
+  const id = `c-${good.stuffId}`;
+  (good as unknown as { _chattelId: string })._chattelId = id;
+  chattelRows.push({
+    _id: id,
+    chattelId: id,
+    owner: { kind: 'player', templatePath: Avatar.getTemplatePath(playerId) },
+    place: '',
+    titledAt: 1,
+  });
+}
+
+/** The title registry, its index read from the rows on file. */
+async function indexTitles(): Promise<void> {
+  const reg = makeStuffAtPath(() => new ChattelRegistry(), TemplatePaths.chattelRegistry);
+  await reg.onCreate();
+}
+
+/** Let the custody writes every move fires settle. */
+async function settle(): Promise<void> {
+  for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+}
 let planPath = '';
 
 function makeAvatar(playerId: string): Avatar {
@@ -125,6 +155,8 @@ function good(path: string, name: string): Good {
 describe('the flip across a restart (drive 21)', () => {
   beforeEach(() => {
     snapshots = [];
+    chattelRows = [];
+    ChattelApi._resetRegistryRefForReload();
     installV1QuantityMarshallers();
     Document.setMarshallerResolver(() => undefined, async () => undefined);
     installStore();
@@ -149,7 +181,9 @@ describe('the flip across a restart (drive 21)', () => {
     const t = await trousers();
     avatar.seatInSlots(t, ['legs']);
     const k = good(KEY, 'key');
-    ContainmentApi.move(k, t, 'left pocket');
+    // The RIGHT pocket: the record names the region, so it is not the
+    // arrival's first choice that puts it back (W9, D-W9-7).
+    ContainmentApi.move(k, t, 'right pocket');
     const c = good(CUP, 'cup');
     ContainmentApi.move(c, avatar);
     const key = Avatar.getTemplatePath('flip-ann');
@@ -167,6 +201,7 @@ describe('the flip across a restart (drive 21)', () => {
     expect(t2 && reborn.getOccupants('legs').has(t2 as never)).toBe(true);
     expect(k2 && MixinApi.isContainable(k2) && k2.getContainer()).toBe(t2);
     expect(k2 && placedOn(k2, t2!)).toBe(true);
+    expect(k2 && MixinApi.isContainable(k2) && k2.getPlacement()?.name).toBe('right pocket');
     expect(c2 && reborn.tierOf(c2)).toBe('hand');
     expect(contents.every((x) => reborn.isHonest(x))).toBe(true);
   });
@@ -258,6 +293,69 @@ describe('the flip across a restart (drive 21)', () => {
     expect(await avatar.placeLoose()).toContain(cup);
     expect(cup.getContainer()).toBe(room);
     expect(told.join(' ')).toMatch(/Your tin cup would not fit anywhere on you; it is at your feet\./);
+  });
+});
+
+describe('a pocketed key that is OWNED, across a restart (W9, D-W9-7)', () => {
+  beforeEach(() => {
+    snapshots = [];
+    chattelRows = [];
+    ChattelApi._resetRegistryRefForReload();
+    installV1QuantityMarshallers();
+    Document.setMarshallerResolver(() => undefined, async () => undefined);
+    installStore();
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'lounge' });
+    vi.spyOn(ParcelApi, 'heldUnitOf').mockResolvedValue(null);
+    vi.spyOn(ChattelApi, 'placedIn').mockResolvedValue([]);
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path === TROUSERS) return trousers();
+      return good(KEY, 'key');
+    }) as unknown as typeof StuffApi.clone);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  async function roundTrip(playerId: string, ownCoat: boolean): Promise<{ t2: Stuff; k2: Stuff | undefined }> {
+    const room = makeStuff(() => new Location());
+    const avatar = makeAvatar(playerId);
+    ContainmentApi.move(avatar, room);
+    const t = await trousers();
+    if (ownCoat) stamp(t, playerId);
+    const k = good(KEY, 'key');
+    stamp(k, playerId);
+    await indexTitles();
+    avatar.seatInSlots(t, ['legs']);
+    ContainmentApi.move(k, t, 'right pocket');
+    await settle();
+    expect(MixinApi.isChattel(k) && k.isOwnerPersisted()).toBe(true);
+    const key = Avatar.getTemplatePath(playerId);
+    await PersistableApi.capture(avatar, key);
+    logout(avatar);
+    const reborn = makeAvatar(playerId);
+    ContainmentApi.move(reborn, room);
+    await PersistableApi.materialize(reborn, key);
+    const t2 = [...reborn.getOccupants('legs')][0] as Stuff;
+    const k2 = MixinApi.isContainer(t2)
+      ? (t2.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY)
+      : undefined;
+    return { t2, k2 };
+  }
+
+  it('⭐ an owned key in an unowned coat\'s pocket comes back in the same pocket (the estate names the coat by index)', async () => {
+    const { t2, k2 } = await roundTrip('flip-eve', false);
+    expect(t2).toBeDefined();
+    expect(k2).toBeDefined();
+    expect(MixinApi.isContainable(k2!) && k2.getPlacement()).toEqual({ host: t2, name: 'right pocket' });
+  });
+
+  it('⭐ an owned key in an owned coat\'s pocket comes back too (the estate names the coat by its chattel id)', async () => {
+    const { t2, k2 } = await roundTrip('flip-fay', true);
+    expect(t2).toBeDefined();
+    expect(k2).toBeDefined();
+    expect(MixinApi.isContainable(k2!) && k2.getPlacement()).toEqual({ host: t2, name: 'right pocket' });
   });
 });
 
