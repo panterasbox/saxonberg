@@ -210,10 +210,11 @@ export default class InventoryController extends CommandController<InventoryMode
       }
       // ⭐ What is in the pockets of what it wears — the garment's own
       // contents, in a region of it (W9) — is ready, by its pocket.
+      // (The host's own read — `getPlaced` — kept to what is IN it.)
       if (slotOf.has(x.stuffId) && MixinApi.isContainer(x) && !x.isAgent() && MixinApi.isPlacing(x)) {
-        for (const c of x.getContents()) {
-          const inPocket = MixinApi.isContainable(c) ? c.getPlacement() : null;
-          if (inPocket !== null && inPocket.host.stuffId === x.stuffId) group(x, inPocket.name, c);
+        for (const c of x.getPlaced()) {
+          const inPocket = c.getPlacement();
+          if (c.getContainer() === x && inPocket !== null) group(x, inPocket.name, c);
         }
       }
     }

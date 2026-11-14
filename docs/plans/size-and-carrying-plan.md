@@ -3036,6 +3036,12 @@ main silently (D-W9-9) — no shipped row has one.
   itself, and it contributes no `peers`/`environment`/`inventory`. No override.
 - **W9-i — `lint:duck-typing` caught a probe** (`'placement' in entry`) that W9c's named
   gates did not run; fixed in W9d (474/474).
+- **W9-k — `lint:controller-resolution` caught three self-resolution reads** (79 → 82):
+  `InventoryController.tiersOf`'s walk of a worn garment and `SearchController.
+  buildScope`'s worn walk. Neither ceiling rose: `tiersOf` asks the host's own
+  `getPlaced()` (kept to what is IN it) and a body's search scope is its
+  `getReachableContents()` (one level into each open thing on it — a coat's pockets;
+  an open satchel's contents now too, which the plan's "each worn Container" also meant).
 - **W9-j — `lint-family.md` has no `placement-words` entry** to update (the plan's W9f
   line assumed one); the roster is derived.
 
