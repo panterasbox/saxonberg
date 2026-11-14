@@ -7,6 +7,12 @@ trying not to touch the server much, then follow up — some light server
 touches are probably fine."* Each item says whether the navigation build
 needs it (**first pass**) or it follows (**follow-up**).
 
+⭐ **Priority (the owner, 2026-11-14):** this server work comes first, so
+the client is unblocked as soon as possible. The order: this slate's
+first-pass items (S0–S15) as one server build; [zone-instancing-slate](./zone-instancing-slate.md)
+as its own build beside or after it; then the tooltip build and the
+navigation pane on the client.
+
 The client draws the pane from four classes of data:
 
 | class | meaning | latency |
@@ -138,6 +144,16 @@ narrative."* The pane shows `z:` as position only and elevation as a
 setting fact. ⚠ `ZoneApi.elevationFor` computes height as *zone elevation
 + z × cellSize*, tying the two together — examine whether the code's model
 is wrong before anything reads it for the pane.
+
+### S15 — A claim's zone is the copy's identity **[first pass]**
+A room inside a copy (a house on a lot, a dorm room, a smack's decks, a
+reach patch) is stamped today with **its row's zone**, shared by every copy,
+and **derived coordinates** that collide between copies (*frames* —
+[zone-instancing-slate](./zone-instancing-slate.md)). So S1 records, for
+such a room, **the copy's identity** — the key its warren mints — as the
+zone, and the copy's coordinates. House A and house B are separate on your
+map from day one, and when zone instancing makes that key a real zone, the
+claims already carry its identity: no migration.
 
 ### S14 — *Terminus City* **[first pass — content]**
 Two Localities are both named *Terminus* (the realm and the city), so the
