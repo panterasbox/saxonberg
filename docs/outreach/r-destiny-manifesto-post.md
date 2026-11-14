@@ -28,7 +28,7 @@
 
 5 minutes, if you watch nothing else: https://www.youtube.com/watch?v=n52hOI2IeZM
 
-Hey DGG. [How long you've been around DGG, in your words.] I've spent [how long] building an open-source online game where the people who play it also govern it, for real. The video explains the machine. What I actually want is for this sub to fight about the parts I'm least sure of, because you're the crowd that will.
+Hey DGG. [How long you've been around DGG, in your words.] I've spent [how long] building an open-source online game where the people who play it also govern it, for real. It's a MUD, which is basically an MMO you play in text: one big persistent world you read and type into, with a real simulation underneath, where food spoils, rivers flow and money runs through a bank whose ledger anyone can audit. The video explains the machine. What I actually want is for this sub to fight about the parts I'm least sure of, because you're the crowd that will.
 
 **Money gets one vote out of three.** Players are counted three ways, for what they make, how they play and what they fund, and a law needs two of the three. So money gets a real voice but can never win alone. Is that more honest than pretending money doesn't buy influence anyway? Or is giving it a seat at all already conceding too much?
 
@@ -40,6 +40,6 @@ If you want to see it instead of argue about it, there's a live demo at https://
 
 ---
 
-**Word count:** about 260 (body). **Open for the owner:** the DGG line and the "how long";
+**Word count:** about 290 (body). **Open for the owner:** the DGG line and the "how long";
 the stream slot; which title; whether the AI-built posture goes in the post or waits for the
 comments (draft 2 leaves it out, since someone will ask).
