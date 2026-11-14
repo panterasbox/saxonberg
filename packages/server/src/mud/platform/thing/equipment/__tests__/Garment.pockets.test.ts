@@ -28,15 +28,15 @@ import Location from '../../../../lib/location/Location';
 
 /** D26's coat: two patch pockets, a buttoned breast pocket, a covered inner one. */
 const COAT: PlacementEntry[] = [
-  { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
-  { member: Placements.POCKET, name: 'right pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
-  { member: Placements.POCKET, name: 'breast pocket', mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true },
-  { member: Placements.POCKET, name: 'inner pocket', mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006, covered: true },
+  { member: Placements.IN, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+  { member: Placements.IN, name: 'right pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+  { member: Placements.IN, name: 'breast pocket', mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true },
+  { member: Placements.IN, name: 'inner pocket', mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006, covered: true },
 ];
 /** D26's trousers: two pockets a key goes in and a mug does not. */
 const TROUSERS: PlacementEntry[] = [
-  { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
-  { member: Placements.POCKET, name: 'right pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+  { member: Placements.IN, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+  { member: Placements.IN, name: 'right pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
 ];
 
 const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
@@ -101,13 +101,13 @@ describe('Garment — pockets as regions (D26)', () => {
   it('one pocket is taken without asking', async () => {
     const { me, plan } = makeBody();
     const apron = await wornGarment(me, plan, 'apron', 'torso', [
-      { member: Placements.POCKET, name: 'front pocket', mouth: { width: 0.2, height: 0.05 }, volumeM3: 0.002 },
+      { member: Placements.IN, name: 'front pocket', mouth: { width: 0.2, height: 0.05 }, volumeM3: 0.002 },
     ]);
     const k = key();
     carry(me, k);
     const p = put(k, apron, me, 'in');
     expect(p.ok).toBe(true);
-    if (p.ok) expect(p.facts.route).toEqual({ kind: 'region', name: 'front pocket', word: 'into' });
+    if (p.ok) expect(p.facts.route).toEqual({ kind: 'region', name: 'front pocket', word: 'in' });
   });
 
   it('each pocket fits by its own mouth and room: a key goes in a trouser pocket, a mug does not', async () => {

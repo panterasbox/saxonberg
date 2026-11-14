@@ -542,7 +542,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     const { species, plan } = handsSpecies();
     hand.setSpecies(species);
     await wornGarment(hand as never, plan, 'apron', 'torso', [
-      { member: Placements.POCKET, name: 'pocket', mouth: { width: 0.2, height: 0.2 }, volumeM3: 0.01 },
+      { member: Placements.IN, name: 'pocket', mouth: { width: 0.2, height: 0.2 }, volumeM3: 0.01 },
     ]);
     ContainmentApi.move(hand as never, floorRoom as never);
     return hand;

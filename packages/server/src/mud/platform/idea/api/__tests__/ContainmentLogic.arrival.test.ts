@@ -28,7 +28,7 @@ import Location from '../../../../lib/location/Location';
 import Holder from '../../../../lib/stuff/Holder';
 
 const TROUSERS: PlacementEntry[] = [
-  { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+  { member: Placements.IN, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
 ];
 const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
 const mug = () => tool('mug', 0.35, [0.09, 0.09, 0.1]);

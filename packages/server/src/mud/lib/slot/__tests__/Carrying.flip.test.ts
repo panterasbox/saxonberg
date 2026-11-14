@@ -18,7 +18,7 @@ import { installForms } from '../../spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, wornBag, carryWords } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-const POCKET = { member: '/platform/placements/pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
+const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
 
 function good(name: string, kg: number, box: [number, number, number]): Good {
   const g = makeStuff(() => new Good());

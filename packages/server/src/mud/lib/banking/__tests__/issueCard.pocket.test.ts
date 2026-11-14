@@ -25,7 +25,7 @@ import { installForms } from '../../spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from './banking-test-harness';
 
-const POCKET = { member: '/platform/placements/pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
+const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
 
 describe('an issued card goes in a pocket, never a hand when a pocket takes it', () => {
   beforeEach(() => {

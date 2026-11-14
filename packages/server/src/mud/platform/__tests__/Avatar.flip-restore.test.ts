@@ -78,7 +78,7 @@ const TROUSERS = '/test/flip/trousers';
 const KEY = '/test/flip/key';
 const CUP = '/test/flip/cup';
 const POCKETS = [
-  { member: '/platform/placements/pocket', name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
+  { member: '/platform/placements/in', name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },
 ];
 let planPath = '';
 

@@ -45,12 +45,14 @@ export const KERNEL_PLACEMENT_PREFIX = '/platform/placements/';
 export const Placements = {
   /** On a surface — a mug on a desk. */
   ON: '/platform/placements/on',
-  /** Inside a compartment with its own air — every container's inside. */
+  /**
+   * Inside — every container's inside (region zero), and a named region of
+   * a container (a coat's `left pocket`: the key is the coat's contents —
+   * size and carrying W9). The one member that encloses.
+   */
   IN: '/platform/placements/in',
   /** Hanging from a hook. */
   FROM: '/platform/placements/from',
-  /** In a pocket — a named region of a garment (size and carrying D26). */
-  POCKET: '/platform/placements/pocket',
 } as const;
 
 /** One way of sitting — see the module header. */

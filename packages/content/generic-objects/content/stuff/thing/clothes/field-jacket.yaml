@@ -17,7 +17,7 @@ data:
   # ⭐ Four flapped pockets — two at the chest, two at the hip (size and
   # carrying D29). Flapped, so they close.
   placements:
-    - { member: /platform/placements/pocket, name: left chest pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0006, closes: true }
-    - { member: /platform/placements/pocket, name: right chest pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0006, closes: true }
-    - { member: /platform/placements/pocket, name: left hip pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015, closes: true }
-    - { member: /platform/placements/pocket, name: right hip pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015, closes: true }
+    - { member: /platform/placements/in, name: left chest pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0006, closes: true }
+    - { member: /platform/placements/in, name: right chest pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0006, closes: true }
+    - { member: /platform/placements/in, name: left hip pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015, closes: true }
+    - { member: /platform/placements/in, name: right hip pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015, closes: true }

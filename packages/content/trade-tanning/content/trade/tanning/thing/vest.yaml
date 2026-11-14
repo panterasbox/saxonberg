@@ -14,7 +14,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   placements:
     - /platform/placements/from
-    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
-    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
+    - { member: /platform/placements/in, name: left pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
+    - { member: /platform/placements/in, name: right pocket, mouth: { width: 0.14, height: 0.04 }, volumeM3: 0.001, closes: true }
   constructionForm: hide
   gradeBand: fair

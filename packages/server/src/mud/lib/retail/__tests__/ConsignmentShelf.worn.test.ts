@@ -25,7 +25,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Shelf extends PersistableMixin(ConsignmentShelfMixin(DetailedMixin(Vessel))) {}
 
-const POCKET = { member: '/platform/placements/pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
+const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
 
 describe('consign takes what you carry, never what you wear', () => {
   beforeEach(() => {

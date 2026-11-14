@@ -19,5 +19,5 @@ data:
   # ⭐ Two side pockets (size and carrying D26): a key, a coin or a matchbox
   # goes in; a mug's 9 cm does not pass a 3.5 cm mouth.
   placements:
-    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }
-    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }
+    - { member: /platform/placements/in, name: left pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }
+    - { member: /platform/placements/in, name: right pocket, mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 }

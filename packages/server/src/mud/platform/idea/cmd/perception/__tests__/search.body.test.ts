@@ -74,7 +74,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
   /** Into `body`'s coat's inner pocket — covered (the flip, W7: never loose on a body). */
   const pocketOn = async (body: Creature, thing: Stuff): Promise<void> => {
     const coat = makeStuff(() => new Garment());
-    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    await coat.setPlacements([{ member: '/platform/placements/in', name: 'inner pocket', covered: true }]);
     coat.setSlotClaims({ '/stuff/idea/species/BodyPlan/search-biped': ['torso'] });
     body.seatInSlot(coat, 'torso');
     ContainmentApi.move(thing as never, coat, 'inner pocket');

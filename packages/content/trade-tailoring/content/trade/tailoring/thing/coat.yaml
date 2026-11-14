@@ -20,7 +20,7 @@ data:
   # when you swim; it floats out of an open side pocket) and a covered
   # inner pocket nobody sees into (size and carrying D26).
   placements:
-    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
-    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
-    - { member: /platform/placements/pocket, name: breast pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true }
-    - { member: /platform/placements/pocket, name: inner pocket, mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006, covered: true }
+    - { member: /platform/placements/in, name: left pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+    - { member: /platform/placements/in, name: right pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+    - { member: /platform/placements/in, name: breast pocket, mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true }
+    - { member: /platform/placements/in, name: inner pocket, mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006, covered: true }

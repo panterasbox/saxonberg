@@ -1,16 +1,23 @@
-# in — sitting INSIDE something that has its own air.
+# in — sitting INSIDE something.
 #
-# ⭐⭐ `encloses: true`, and it is the only shipped member that does. A
-# thing placed under this reads its HOST's air rather than the room's,
-# and a shut host refuses both the put and the reach. That is the seam
-# the icebox and, later, the freezer compartment are cashed on.
+# ⭐⭐ `encloses: true`, and it is the only shipped member that does. What
+# encloses is CONTAINMENT (size and carrying W9, owner 2026-11-13: *an
+# enclosing relation is containment; a supporting or hanging relation is a
+# pair*): a thing in a host is the host's contents, reads the host's air
+# rather than the room's, and a shut host refuses both the put and the
+# reach. That is the seam the icebox and the freezer compartment are cashed on.
 #
-# ⚠ Nothing composes a host that OFFERS `in` today, deliberately — the
-# icebox is a plain Container, so `put X in icebox` is region zero, and
-# region zero takes its words and its prose from THIS row. A host that
-# offers `in` as a named region arrives with the first real compartment
-# (the fridge pack), not with this build. See the placement plan, D17.
+# Two shapes, one member:
+# - region zero — a container's own unnamed inside (the icebox, a chest,
+#   the drying loft: `put X in loft` is plain containment). Region zero
+#   takes its words and its prose from THIS row.
+# - a NAMED region — a host that offers `in` under a name is a Container
+#   and what sits there is its contents: a coat's pockets (`placements:
+#   [{member: /platform/placements/in, name: left pocket, mouth: {width:
+#   0.16, height: 0.05}, volumeM3: 0.0015}]`; the entry's mouth and volume
+#   are the tape measure, `covered` hides it, `closes` fastens it). The key
+#   put in one has `container = the coat` and the pair `(coat, left pocket)`.
 prepositions: [in, into]
 encloses: true
-prose: "{{ actor }} put{{ s }} {{ item }} in {{ host }}."
+prose: "{{ actor }} put{{ s }} {{ item }} {% if name %}in the {{ name }} of {{ host }}{% else %}in {{ host }}{% endif %}."
 heading: In it

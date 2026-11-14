@@ -181,6 +181,12 @@ export default class PutController extends CommandController<PutModel> {
         ? target.placementOf(name)
         : ContainmentApi.placements().need(name);
     const template = member.getProse();
+    // ⭐ The region's own name when the host names it (a coat's `left
+    // pocket` — `in the left pocket of the coat`), else nothing (W9).
+    const regionName =
+      route.kind === 'region' && MixinApi.isPlacing(target) && target.namedRegions().includes(route.name)
+        ? route.name
+        : '';
     const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {
@@ -190,7 +196,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.compose`You`,
             item: what,
             host: Mml.thing(target),
-            name: route.kind === 'region' ? route.name : name,
+            name: regionName,
             s: '',
             es: '',
           }),
@@ -200,7 +206,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.actor(giver),
             item: what,
             host: Mml.thing(target),
-            name: route.kind === 'region' ? route.name : name,
+            name: regionName,
             s: 's',
             es: 'es',
           }),

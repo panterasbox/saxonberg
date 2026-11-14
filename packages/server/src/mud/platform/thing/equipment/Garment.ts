@@ -29,7 +29,7 @@
  *   default (an empty stack), so this costs a shipped row nothing.
  * - ⭐ `PlacingMixin` over `ContainerMixin` (size and carrying D26/D27;
  *   W9, D-W9-13) — a garment OFFERS regions: a pocket is a named region
- *   (`left pocket`, `{member: /platform/placements/pocket, mouth,
+ *   (`left pocket`, `{member: /platform/placements/in, mouth,
  *   volumeM3}`), and a belt or a bandolier offers `from` along its worn
  *   length. ⭐⭐ *An enclosing relation is containment; a supporting or
  *   hanging relation is a pair* (owner, 2026-11-13): a key put in a pocket

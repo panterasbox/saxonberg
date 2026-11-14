@@ -697,8 +697,10 @@ export default class LookController extends CommandController<LookModel> {
         // so a hook says "Hanging from it" where a shelf says "On it",
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
-        const heading =
-          target.placementOf(member).getHeading() || 'With it';
+        // A named region heads its own line (`In its left pocket` — W9).
+        const heading = target.namedRegions().includes(member)
+          ? `In its ${member}`
+          : target.placementOf(member).getHeading() || 'With it';
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,

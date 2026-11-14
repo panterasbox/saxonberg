@@ -18,8 +18,8 @@ import { installForms, thing, place, Item, Surface, Chest } from '../../../../li
 import { makeBody, tool, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
 
 const POCKETS: PlacementEntry[] = [
-  { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
-  { member: Placements.POCKET, name: 'right pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+  { member: Placements.IN, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+  { member: Placements.IN, name: 'right pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
 ];
 const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
 

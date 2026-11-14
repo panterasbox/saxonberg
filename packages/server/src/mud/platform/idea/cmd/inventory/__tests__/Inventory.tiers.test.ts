@@ -80,7 +80,7 @@ describe('inventory — by tier (D28)', () => {
     ContainmentApi.move(pouch, belt, Placements.FROM);
     ContainmentApi.move(tool('coin', 0.01), pouch);
     const coat = await wornGarment(me, plan, 'coat', 'torso', [
-      { member: Placements.POCKET, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
+      { member: Placements.IN, name: 'left pocket', mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 },
     ]);
     const key = tool('key', 0.02, [0.06, 0.025, 0.003]);
     carry(me, key);

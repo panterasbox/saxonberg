@@ -25,4 +25,4 @@ data:
   mass: 0.6
   # ⭐ A deep bib pocket across the front (size and carrying D26).
   placements:
-    - { member: /platform/placements/pocket, name: bib pocket, mouth: { width: 0.22, height: 0.06 }, volumeM3: 0.002 }
+    - { member: /platform/placements/in, name: bib pocket, mouth: { width: 0.22, height: 0.06 }, volumeM3: 0.002 }

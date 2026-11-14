@@ -15,4 +15,4 @@ data:
   mass: 0.25
   # ⭐ One open breast pocket (size and carrying D29).
   placements:
-    - { member: /platform/placements/pocket, name: breast pocket, mouth: { width: 0.1, height: 0.025 }, volumeM3: 0.0003 }
+    - { member: /platform/placements/in, name: breast pocket, mouth: { width: 0.1, height: 0.025 }, volumeM3: 0.0003 }

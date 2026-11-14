@@ -134,7 +134,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
     ContainmentApi.move(ruth, world.location as never);
     coat = makeStuff(() => new Garment());
     coat.setShortDescription('a coat');
-    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    await coat.setPlacements([{ member: '/platform/placements/in', name: 'inner pocket', covered: true }]);
     coat.setSlotClaims({ [PLAN]: ['torso'] });
     ruth.seatInSlot(coat, 'torso');
     vi.spyOn(world.giver as never, '_executeOne').mockImplementation((async (

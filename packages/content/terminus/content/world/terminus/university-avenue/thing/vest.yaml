@@ -16,8 +16,8 @@ data:
   # Two patch pockets (size and carrying W7): his watch and his crossing log
   # ride in them — nothing sits loose on a body.
   placements:
-    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
-    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+    - { member: /platform/placements/in, name: left pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+    - { member: /platform/placements/in, name: right pocket, mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
   details:
     striping:
       keywords: [striping, stripe, reflective, silver]

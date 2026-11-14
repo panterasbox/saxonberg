@@ -236,7 +236,7 @@ beforeEach(async () => {
   const { species, plan } = handsSpecies();
   keeper.setSpecies(species);
   await wornGarment(keeper as never, plan, 'apron', 'torso', [
-    { member: Placements.POCKET, name: 'pocket', mouth: { width: 1, height: 1 }, volumeM3: 2 },
+    { member: Placements.IN, name: 'pocket', mouth: { width: 1, height: 1 }, volumeM3: 2 },
   ]);
   ContainmentApi.move(keeper as never, shop as never);
   vi.spyOn(keeper, 'forceCommand').mockImplementation(dispatch as never);

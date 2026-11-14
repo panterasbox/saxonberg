@@ -74,7 +74,7 @@ describe('MQL is universal; perception is the surface’s (D23)', () => {
     // inner pocket (covered: size and carrying D26).
     const coat = makeStuff(() => new Garment());
     coat.setShortDescription('a coat');
-    await coat.setPlacements([{ member: '/platform/placements/pocket', name: 'inner pocket', covered: true }]);
+    await coat.setPlacements([{ member: '/platform/placements/in', name: 'inner pocket', covered: true }]);
     coat.setSlotClaims({ '/stuff/idea/species/BodyPlan/universal-biped': ['torso'] });
     bearer.seatInSlot(coat, 'torso');
     ContainmentApi.move(letter, coat, 'inner pocket');

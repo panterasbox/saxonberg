@@ -15,6 +15,6 @@ data:
   mass: 0.9
   # ⭐ Two hip pockets and an inner pocket (size and carrying D29).
   placements:
-    - { member: /platform/placements/pocket, name: left pocket, mouth: { width: 0.15, height: 0.045 }, volumeM3: 0.0012 }
-    - { member: /platform/placements/pocket, name: right pocket, mouth: { width: 0.15, height: 0.045 }, volumeM3: 0.0012 }
-    - { member: /platform/placements/pocket, name: inner pocket, mouth: { width: 0.13, height: 0.025 }, volumeM3: 0.0005, covered: true }
+    - { member: /platform/placements/in, name: left pocket, mouth: { width: 0.15, height: 0.045 }, volumeM3: 0.0012 }
+    - { member: /platform/placements/in, name: right pocket, mouth: { width: 0.15, height: 0.045 }, volumeM3: 0.0012 }
+    - { member: /platform/placements/in, name: inner pocket, mouth: { width: 0.13, height: 0.025 }, volumeM3: 0.0005, covered: true }
