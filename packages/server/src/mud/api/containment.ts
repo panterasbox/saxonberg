@@ -145,7 +145,7 @@ export type PlaceRefusal =
       facts: { takes: readonly string[]; got?: string; regions?: readonly string[] };
     }
   | { ok: false; reason: 'slot-host-not-container'; facts?: undefined }
-  | { ok: false; reason: 'shut'; facts?: undefined }
+  | { ok: false; reason: 'shut'; facts?: { region?: string } }
   | { ok: false; reason: 'refused-by-container'; facts: { said: string | null } }
   /** A person handed it and their body refused (size and carrying W8) — facts for the verb to word. */
   | { ok: false; reason: 'refused-by-carrier'; facts: { carry: ArrivalRefusal } }

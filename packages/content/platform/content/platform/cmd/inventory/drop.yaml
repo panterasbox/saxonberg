@@ -10,6 +10,10 @@ help: |
   Name several items in one line to drop them all at once. You can
   only drop what you're actually carrying — worn or wielded gear has
   to come off first with `remove` or `unwield`.
+
+  A pack you drop lies on the ground: anyone may look in it and reach
+  into it if it is open (`close` it first), and taking from it is
+  taking. Dropping is instant, in a fight too.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

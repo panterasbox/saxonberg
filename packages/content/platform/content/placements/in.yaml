@@ -17,6 +17,15 @@
 #   0.16, height: 0.05}, volumeM3: 0.0015}]`; the entry's mouth and volume
 #   are the tape measure, `covered` hides it, `closes` fastens it). The key
 #   put in one has `container = the coat` and the pair `(coat, left pocket)`.
+#
+# ⭐ A named region of `in` is a CHAMBER (size and carrying D-W10-14): a
+# container is ONE interior or a set of chambers, never both — a host whose
+# row names a chamber has no region zero (`Container.hasInterior()` is
+# derived). Each chamber fits by its own mouth and volume; nothing adds
+# chambers together. Chambers alike (two plain side pockets) are the
+# container's to fill; chambers that differ (`closes`, `covered`) are the
+# player's to choose. A `closes` chamber starts shut and is opened and shut
+# by `open`/`close "<name>"`.
 prepositions: [in, into]
 encloses: true
 prose: "{{ actor }} put{{ s }} {{ item }} {% if name %}in the {{ name }} of {{ host }}{% else %}in {{ host }}{% endif %}."

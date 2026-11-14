@@ -30,6 +30,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Placing } from '../../../../lib/spatial/Placing';
 import type { Sealable, OpenFacts, OpenRefusal } from '../../../../lib/spatial/Sealable';
 
 type Composed = ReturnType<typeof Mml.compose>;
@@ -65,6 +66,14 @@ export default class OpenController extends CommandController<OpenModel> {
         field: 'target',
         query: target.raw,
       });
+      return;
+    }
+
+    // ⭐ A chamber that closes (size and carrying D-W10-12): `open "breast
+    // pocket"` — the binder's `via.region` names it, and the host drives it.
+    const region = target.via?.region;
+    if (region !== undefined && MixinApi.isPlacing(target.stuff)) {
+      this.openChamber(commandGiver, target.stuff, region, context);
       return;
     }
 
@@ -135,5 +144,22 @@ export default class OpenController extends CommandController<OpenModel> {
         throw new Error(`OpenController: no words for ${String(unworded)}`);
       }
     }
+  }
+
+  /** `open "breast pocket"`: the chamber unbuttons itself if it can — the host decides (D-W10-12). */
+  private openChamber(giver: Stuff, host: Stuff & Placing, region: string, context: CommandContext): void {
+    const done = host.fastenRegion(region, false);
+    if (!done.ok) {
+      const line = done.reason === 'does-not-close'
+        ? `The ${region} doesn't fasten — it is always open.`
+        : 'It is already open.';
+      this.refuse(context, 'act.deed', line, done.reason ?? 'refused');
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You unbutton the ${region} of ${Mml.thing(host)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} unbuttons the ${region} of ${Mml.thing(host)}.`)
+      .send();
   }
 }

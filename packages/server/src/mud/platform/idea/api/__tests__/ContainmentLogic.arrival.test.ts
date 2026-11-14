@@ -212,7 +212,7 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     expect(() => ContainmentApi.move(key(), box, 'from')).toThrow(/offers no placement 'from'/);
   });
 
-  it('⭐ a word on a container that also offers an `in` region: the named region first, then region zero (W9)', async () => {
+  it('⭐ a container that names a chamber has no region zero (D-W10-14): `in` and no word both find the drawer', async () => {
     class Desk extends PlacingMixin(ContainerMixin(Good)) {}
     const room = place(4, 'ceiling', 'walled');
     const desk = thing(() => new Desk(), { kg: 20, box: { width: 1, depth: 0.6, height: 0.8 } });
@@ -227,11 +227,13 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     ContainmentApi.move(k2, desk, 'on');
     expect(k2.getContainer()).toBe(room);
     expect(k2.getPlacement()).toEqual({ host: desk, name: Placements.ON });
-    // No word: the desk has an inside of its own — region zero.
+    // No word: a container is one interior OR a set of chambers, never both
+    // (owner final A) — the desk names a drawer, so the drawer takes it.
+    expect(desk.hasInterior()).toBe(false);
     const k3 = key();
     ContainmentApi.move(k3, desk);
     expect(k3.getContainer()).toBe(desk);
-    expect(k3.getPlacement()).toBeNull();
+    expect(k3.getPlacement()).toEqual({ host: desk, name: 'drawer' });
   });
 
   it('⭐ an enclosing region on a host that holds nothing is refused (W9 refusal 3)', async () => {

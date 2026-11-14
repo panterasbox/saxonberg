@@ -4,7 +4,12 @@ category: inventory
 controller: /platform/idea/cmd/inventory/UnwieldController
 description: "Stop wielding a held item"
 help: |
-  Put up something you are holding.
+  Put up something you are holding. It goes off your hands by the one
+  rule, skipping the hand: a pocket of what you wear, a hook on your
+  belt, a pouch or bag you wear, the pack on your back — the first that
+  takes it — and you are told where. Nothing takes it → you are told,
+  and it stays in your hand: `drop` it, or `put` it somewhere by name.
+  In a fight it costs a beat (a reach).
 
   ⚠ A cursed thing will not let your hand open.
 validators:

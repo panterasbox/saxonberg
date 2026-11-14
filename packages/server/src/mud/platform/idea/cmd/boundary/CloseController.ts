@@ -28,6 +28,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Placing } from '../../../../lib/spatial/Placing';
 import type { Sealable } from '../../../../lib/spatial/Sealable';
 
 interface CloseModel extends CommandModel {
@@ -60,6 +61,14 @@ export default class CloseController extends CommandController<CloseModel> {
         field: 'target',
         query: target.raw,
       });
+      return;
+    }
+
+    // ⭐ A chamber that closes (size and carrying D-W10-12): `close "breast
+    // pocket"` — the binder's `via.region` names it, and the host drives it.
+    const region = target.via?.region;
+    if (region !== undefined && MixinApi.isPlacing(target.stuff)) {
+      this.closeChamber(commandGiver, target.stuff, region, context);
       return;
     }
 
@@ -124,5 +133,22 @@ export default class CloseController extends CommandController<CloseModel> {
       .send();
 
     return;
+  }
+
+  /** `close "breast pocket"`: the chamber buttons itself if it can — the host decides (D-W10-12). */
+  private closeChamber(giver: Stuff, host: Stuff & Placing, region: string, context: CommandContext): void {
+    const done = host.fastenRegion(region, true);
+    if (!done.ok) {
+      const line = done.reason === 'does-not-close'
+        ? `The ${region} doesn't fasten — it is always open.`
+        : 'It is already closed.';
+      this.refuse(context, 'act.deed', line, done.reason ?? 'refused');
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You button the ${region} of ${Mml.thing(host)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buttons the ${region} of ${Mml.thing(host)}.`)
+      .send();
   }
 }

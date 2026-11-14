@@ -154,6 +154,15 @@ export default class PutController extends CommandController<PutModel> {
     }
     const { route, named } = done.facts;
 
+    // ⭐ Tack on a beast that cannot dress itself (D-W10-8): put ON it.
+    if (route.kind === 'slot' && MixinApi.isVitals(target)) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You put ${Mml.thing(item)} on ${Mml.actor(target)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} on ${Mml.actor(target)}.`)
+        .send();
+      return true;
+    }
     if (route.kind === 'slot') {
       MessageApi.scene(giver)
         .topic('sense.survey')
@@ -175,17 +184,24 @@ export default class PutController extends CommandController<PutModel> {
     // ⚠ The name was read BEFORE the move: a stack that arrives where its
     // like already is MERGES into it and is destroyed.
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
-    const name = route.kind === 'zero' ? Placements.IN : route.name;
+    // ⭐ A container that decided among alike chambers (D-W10-6) names the
+    // one it chose: the thing's own pair, read after the move.
+    const chosen =
+      route.kind === 'zero' && !item.isDestroyed() && MixinApi.isContainable(item) && MixinApi.isPlacing(target)
+        ? item.getPlacement()
+        : null;
+    const chamber = chosen !== null && chosen.host.stuffId === target.stuffId ? chosen.name : null;
+    const name = chamber ?? (route.kind === 'zero' ? Placements.IN : route.name);
     const member =
-      route.kind === 'region' && MixinApi.isPlacing(target)
+      (route.kind === 'region' || chamber !== null) && MixinApi.isPlacing(target)
         ? target.placementOf(name)
         : ContainmentApi.placements().need(name);
     const template = member.getProse();
     // ⭐ The region's own name when the host names it (a coat's `left
     // pocket` — `in the left pocket of the coat`), else nothing (W9).
     const regionName =
-      route.kind === 'region' && MixinApi.isPlacing(target) && target.namedRegions().includes(route.name)
-        ? route.name
+      MixinApi.isPlacing(target) && target.namedRegions().includes(name) && (route.kind === 'region' || chamber !== null)
+        ? name
         : '';
     const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
@@ -232,9 +248,16 @@ export default class PutController extends CommandController<PutModel> {
       case 'wrong-preposition':
       case 'preposition-ambiguous': {
         const { takes, got, regions } = r.facts;
-        // ⭐ Regions that share a word are asked for by NAME (D26).
+        // ⭐ Regions that share a word are asked for by NAME (D26), each with
+        // how it differs (D-W10-6): the ask is the lesson.
         if (regions !== undefined) {
-          line = Mml.compose`Which — ${PutController.joinOr(regions.map((n) => `the ${n}`))} of ${Mml.thing(target)}?`;
+          const differs = (n: string): string => {
+            if (!MixinApi.isPlacing(target)) return '';
+            const e = target.getPlacementEntry(n);
+            const words = [...(e?.closes === true ? ['buttoned'] : []), ...(e?.covered === true ? ['inside'] : [])];
+            return words.length > 0 ? ` (${words.join(', ')})` : '';
+          };
+          line = Mml.compose`Which — ${PutController.joinOr(regions.map((n) => `the ${n}${differs(n)}`))} of ${Mml.thing(target)}?`;
           detail = `target offers ${regions.join(', ')}`;
           break;
         }
@@ -257,10 +280,17 @@ export default class PutController extends CommandController<PutModel> {
         line = Mml.compose`${Mml.thing(item)} would fit ${Mml.thing(target)}, but there is nowhere in it for that to sit.`;
         detail = 'a slot host must also hold its occupant';
         break;
-      case 'shut':
-        line = Mml.compose`${Mml.thing(target)} is shut.`;
+      case 'shut': {
+        // ⭐ Shut means shut — and the refusal names the next command
+        // (D-W10-12; never an implicit open).
+        const region = r.facts?.region;
+        const kw = (MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined) ?? target.presentationPhrase().bare();
+        line = region !== undefined
+          ? Mml.compose`The ${region} of ${Mml.thing(target)} is shut — \`open "${region}"\` first.`
+          : Mml.compose`${Mml.thing(target)} is shut — \`open ${kw.includes(' ') ? `"${kw}"` : kw}\` first.`;
         detail = `${target.getPresentation()} is closed`;
         break;
+      }
       case 'refused-by-container':
         line = r.facts.said
           ? Mml.fromMarkup(r.facts.said)

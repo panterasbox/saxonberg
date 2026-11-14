@@ -78,8 +78,17 @@ export default class GiveController extends CommandController<GiveModel> {
     // (`directMove`, owner 2026-11-13) — or nothing changes hands. A body
     // that does not carry takes nothing handed to it (its own answer, read
     // dry); a recipient that is no body takes it plainly.
-    if (!MixinApi.isCarrying(recipient) && recipient.arrivalFor(item as Stuff & Containable).kind === 'refuse') {
-      this.keptWords(giver, recipient, item, false, context);
+    // ⭐ Asked dry BEFORE anything leaves the giver's hand (D-W10-9): a
+    // refused give keeps the thing exactly where it was — the hand it is
+    // in, whatever `carry.order` says — because it never moved. A carrier
+    // answers for its own places only (`onBody` — what `directMove` takes).
+    const dry = recipient.arrivalFor(
+      item as Stuff & Containable,
+      MixinApi.isCarrying(recipient) ? { placed: false, onBody: true } : undefined,
+    );
+    if (dry.kind === 'refuse') {
+      const full = dry.refusal.reason === 'nowhere-to-carry' && dry.refusal.facts.held.length > 0;
+      this.keptWords(giver, recipient, item, full, context);
       return;
     }
     // **Leaving your inventory means leaving your body first** — the

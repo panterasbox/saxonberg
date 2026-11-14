@@ -73,6 +73,11 @@ function holderWords(giver: Stuff, x: Stuff): string {
   return onYou ? `Your ${bare}` : GrammarApi.cap(x.describeFor(giver));
 }
 
+/** `'s`, or `'` after a stem ending in s (*your trousers' left pocket*). */
+function possessive(x: Stuff): string {
+  return x.presentationPhrase().bare().endsWith('s') ? "'" : "'s";
+}
+
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
   if (stuffs === null) return `${field} must be an object`;
@@ -93,7 +98,9 @@ const validator: FieldValidator = (value, field, context) => {
         const by = refusal.facts.by;
         return refusal.reason === 'packed'
           ? `${holderWords(giver, by)} is on your back — take it off first (\`remove ${keywordOf(by)}\`).`
-          : `${holderWords(giver, by)} is shut — \`open ${keywordOf(by)}\` first.`;
+          : refusal.facts.region !== undefined
+            ? `${holderWords(giver, by)}${possessive(by)} ${refusal.facts.region} is shut — \`open "${refusal.facts.region}"\` first.`
+            : `${holderWords(giver, by)} is shut — \`open ${keywordOf(by)}\` first.`;
       }
     }
     if (featureAround(giver, stuff, vias[i])) continue;

@@ -151,7 +151,10 @@ describe('Garment — pockets as regions (D26)', () => {
       return c;
     };
     const buttoned = cork();
+    // A `closes` pocket starts shut (D-W10-12): unbutton, put, button.
+    expect(coat.fastenRegion('breast pocket', false)).toEqual({ ok: true });
     ContainmentApi.move(buttoned, coat, 'breast pocket');
+    expect(coat.fastenRegion('breast pocket', true)).toEqual({ ok: true });
     const loose = cork();
     ContainmentApi.move(loose, coat, 'left pocket');
     // The coat presses what is in its pockets (W9) — a body presses nothing.
@@ -160,9 +163,10 @@ describe('Garment — pockets as regions (D26)', () => {
     expect(left).toEqual([loose]);
     expect(loose.getContainer()).toBe(room);
     expect(buttoned.getPlacement()).toEqual({ host: coat, name: 'breast pocket' });
-    // Reaching into a buttoned pocket costs the undoing of it — combat's
-    // price (CombatLogic.switch-pricing reads `closes` off the region).
-    expect(coat.getPlacementEntry('breast pocket')?.closes).toBe(true);
+    // Unbuttoned, the same pocket lets it float away (pressing reads the
+    // closure's STATE, D-W10-12).
+    coat.fastenRegion('breast pocket', false);
+    expect(coat.reconcilePressing()).toEqual([buttoned]);
   });
 
   it('⭐ a garment has no inside of its own: `put key in shirt` (no pockets) offers nothing', async () => {

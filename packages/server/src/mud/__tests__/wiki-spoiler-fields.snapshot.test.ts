@@ -40,6 +40,10 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Size and carrying W10 (2026-11-14).**
+ *   - `PlacingMixin.shutRegions` — level 0: which buttoned chambers are
+ *     shut now, per instance; `look coat` says *(shut)* to anyone looking.
+ *
  * **Client surface (2026-10-31).**
  *   - ⚠ `Corpse.ofIdentityPath` — **`spoiler: 2`**. Whose body it is: the
  *     fact a corpse now tells only to whoever knew the dead (#105). A panel

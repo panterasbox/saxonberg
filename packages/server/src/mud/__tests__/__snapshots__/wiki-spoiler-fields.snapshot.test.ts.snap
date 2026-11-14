@@ -952,6 +952,7 @@ PlaceNode.travel = 0
 PlaceNode.zone = 0
 PlacingMixin.airExposure = 0
 PlacingMixin.placements = 0
+PlacingMixin.shutRegions = 0
 PlacingMixin.userFacingDetail = 0
 Plant._rootZoneStamp = 0
 Plant.seedTemplatePath = 0

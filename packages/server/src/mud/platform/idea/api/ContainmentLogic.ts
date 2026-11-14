@@ -226,7 +226,7 @@ export class ContainmentLogic extends ApiLogic {
       const word = words[0] ?? named;
       if (!veto.ok) {
         return veto.reason === 'shut'
-          ? { ok: false, reason: 'shut' }
+          ? { ok: false, reason: 'shut', ...(placing.isRegionOpen(named) ? {} : { facts: { region: named } }) }
           : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
       }
       route = { kind: 'region', name: named, word };
@@ -281,7 +281,7 @@ export class ContainmentLogic extends ApiLogic {
         const word = offer.words[0] ?? offer.name;
         if (!veto.ok) {
           return veto.reason === 'shut'
-            ? { ok: false, reason: 'shut' }
+            ? { ok: false, reason: 'shut', ...((target as PlacingStuff).isRegionOpen(offer.name) ? {} : { facts: { region: offer.name } }) }
             : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
         }
         route = { kind: 'region', name: offer.name, word };

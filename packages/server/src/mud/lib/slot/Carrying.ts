@@ -496,7 +496,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       switch (where.kind) {
         case 'held':
           return { kind: 'contents' };
-        case 'wear':
         case 'hand':
           return { kind: 'seat', slots: where.slots };
         case 'merge':
@@ -651,23 +650,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       bags: boolean,
     ):
       | { kind: 'held' }
-      | { kind: 'wear'; slots: string[] }
       | { kind: 'merge'; into: Stuff; item: Stuff }
       | { kind: 'hand'; slots: string[] }
       | { kind: 'place'; place: CarryPlace; item: Stuff }
       | { kind: 'refused'; refusal: ReceiveRefusal } {
       if (this.tierOf(item) === 'hand') return { kind: 'held' };
-      // ⭐ A body with no hands that is HANDED its tack puts it on (size and
-      // carrying drive, step 18): a mule carries only in what it wears, and
-      // `put pack saddle in mule` had nowhere to go — no hand, no pocket.
-      // The claim's slots must be free; worn already is nothing to do.
-      if (this.asBody().handSlots().length === 0 && MixinApi.isSlottable(item)) {
-        const claim = this.wearClaim(item);
-        const self = this as unknown as Stuff & Slotted;
-        if (claim.length > 0 && claim.every((slot) => self.canOccupy(item as Stuff & Slottable, slot))) {
-          return { kind: 'wear', slots: claim };
-        }
-      }
       const hang = this.hangHostFor(item);
       if (hang !== null) return { kind: 'place', place: { host: hang, region: Placements.FROM }, item };
       const self = this as unknown as Stuff;

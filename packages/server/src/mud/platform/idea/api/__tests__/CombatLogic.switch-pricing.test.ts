@@ -1,7 +1,7 @@
 /**
  * ⭐ Combat prices its own switch (size and carrying W8; D16): a carrier's
  * switch costs what its holder sets — a sheath is the draw (1.5 s), an open
- * pouch a reach (3 s), a flapped pouch a reach and the undoing (6 s). One
+ * pouch a reach (3 s); a shut one is refused before any beat. One
  * half only (D-W10-3): nothing is put away for you, so a hand in the way is
  * a refusal, never a price. Read off the switch's beats at a half-second tick.
  */
@@ -58,7 +58,7 @@ describe('CombatLogic — a carrier\'s switch is priced by its holders', () => {
     StuffApi.clearAll();
   });
 
-  it('a sheath is the draw; an open pouch a reach; a flapped pouch a reach and the undoing; a hand in the way is a refusal', () => {
+  it('a sheath is the draw; an open pouch a reach; a hand in the way is a refusal', () => {
     const room = makeStuff(() => new Location());
     const { me, plan } = makeBody();
     const { me: other } = makeBody();
@@ -81,8 +81,8 @@ describe('CombatLogic — a carrier\'s switch is priced by its holders', () => {
     const bandage = tool('bandage', 0.1);
     ContainmentApi.move(bandage, pouch);
     expect(beatsTo(me, bandage)).toBe(6); // 3 s
-    pouch.setOpen(false);
-    expect(beatsTo(me, bandage)).toBe(12); // 3 + 3 s
+    // A shut pouch is no longer priced slower: it is refused before any
+    // beat (`canReach` — `open` it first, its own beat; D-W10-12).
 
     // Both hands full: `ready` refuses before any switch — no price.
     hold(me, plan, tool('torch', 0.5), 'hand:right');

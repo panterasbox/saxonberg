@@ -16,6 +16,13 @@ help: |
   ⭐ Pulling off something dirty in a hurry gets its dirt on your hands —
   the doffing problem every nurse is taught. `remove gloves carefully`
   takes three times as long and leaves your hands as they were.
+
+  What you take off comes to your hand — both hands for a heavy pack —
+  and with your hands busy, or it past what you can lift, you set it
+  down where you stand and are told. A pack on the ground is anyone's to
+  look in and reach into if it is open (`close` it), and taking from it
+  is taking. A body with no hands (a mule) sets it down. In a fight,
+  taking off a pack costs the switch's beats.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

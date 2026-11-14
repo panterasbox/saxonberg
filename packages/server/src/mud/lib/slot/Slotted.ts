@@ -377,8 +377,15 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public openSlotFor(item: Stuff, word?: string): string | null {
       const host = this as unknown as Stuff & Slotted;
-      if (MixinApi.isVitals(host) || !MixinApi.isSlottable(item)) return null;
-      if (!new PlacementOffers(host).admitsSlot(word)) return null;
+      // ⭐ A body that can dress itself is not `put` into (that is `wear`);
+      // one that cannot — a mule, a hog: no hands — takes its tack by `put`
+      // (size and carrying D-W10-8).
+      const dressesItself = MixinApi.isVitals(host) && (!MixinApi.isAttired(host) || host.handSlots().length > 0);
+      if (dressesItself || !MixinApi.isSlottable(item)) return null;
+      // Tack goes ON a beast (`put saddle on mule`); any other slot host
+      // takes the word its interior takes.
+      const beast = MixinApi.isVitals(host);
+      if (beast ? word !== undefined && word !== 'on' : !new PlacementOffers(host).admitsSlot(word)) return null;
       // ⭐ A posture-bearing slot (a bench's seat, the handcart's `bed`) is
       // where a BODY sits or lies — the posture verbs fill it, never `put`.
       // Since a hand holds any good (size and carrying W7-f) every good is

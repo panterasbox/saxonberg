@@ -21,6 +21,11 @@ help: |
   `look` tells you what a thing is like, and mentions what you would
   notice there; `inventory` is the full list. `look in <thing>` is the
   same as `inventory <thing>`. Short on typing? Plain `i`.
+
+  READY is what you can get at without taking anything off — a belt, a
+  pocket, a hung pouch, a worn satchel; PACKED is inside something you
+  would have to take off. A shut holder is shut wherever it is — `open`
+  it first; `inventory` marks it (shut).
 examples:
   - cmd: inventory
     note: What is in hand, ready, worn and packed

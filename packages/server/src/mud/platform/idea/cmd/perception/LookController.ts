@@ -687,7 +687,33 @@ export default class LookController extends CommandController<LookModel> {
       for (const member of target.getPlacements()) {
         // ⭐ What the actor perceives on it (D23): a covered or concealed
         // thing placed there is not in the list.
-        const placed = PerceptionApi.perceived(actor, target.getPlaced(member));
+        const all = target.getPlaced(member);
+        const placed = PerceptionApi.perceived(actor, all);
+        const named = target.namedRegions().includes(member);
+        // ⭐ Each chamber once, with how it differs (D-W10-6): *(buttoned)*,
+        // *(inside)*, *(shut)* — and an empty one says so.
+        if (named) {
+          const e = target.getPlacementEntry(member);
+          const words = [
+            ...(e?.closes === true ? ['buttoned'] : []),
+            ...(e?.covered === true ? ['inside'] : []),
+            ...(e?.closes === true && !target.isRegionOpen(member) ? ['shut'] : []),
+          ];
+          const label = `In its ${member}${words.length > 0 ? ` (${words.join(', ')})` : ''}`;
+          if (all.length === 0) {
+            section(Mml.compose`── ${label}: empty.`, { shape: 'list', heading: label, sources: [LookController.lookSource(label)], items: [] });
+            continue;
+          }
+          if (placed.length === 0) continue;
+          const grouped = this.groupForList(placed, actor, (r) => this.builderMark(r, actor, Mml.actor(r)));
+          section(Mml.compose`── ${label}: ${Mml.list(grouped.parts)}.`, {
+            shape: 'list',
+            heading: label,
+            sources: [LookController.lookSource(label)],
+            items: grouped.items,
+          });
+          continue;
+        }
         if (placed.length === 0) continue;
         // A person sitting on a stool is placed on a host too. Identical
         // things group (D2), so a back-bar of fourteen bottles is one chip.

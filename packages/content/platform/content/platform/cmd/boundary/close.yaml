@@ -11,6 +11,11 @@ help: |
   The target has to be within reach. If it's already closed, or it
   isn't something that closes at all, the game tells you so and
   nothing happens.
+
+  A pouch, a satchel, a pack, a chest — and a pocket that buttons
+  (`open "breast pocket"`). What is shut keeps its contents from sight
+  and from hands, and dry; nothing opens itself. In a fight, opening or
+  shutting a thing on you is a beat with your guard down.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
@@ -20,6 +25,8 @@ args:
     required: true
     scope: "reachable"
     updates_focus: extend
-    requires: SealableMixin
+    # ⭐ …and a chamber that buttons (`open "breast pocket"` — size and
+    # carrying D-W10-12): the binder's `via.region` names it on its host.
+    requires: SealableMixin|PlacingMixin
     validators:
       - /lib/command/validators/canReach

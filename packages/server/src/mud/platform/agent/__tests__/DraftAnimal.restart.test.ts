@@ -124,8 +124,9 @@ describe('a cast beast keeps its tack across a restart', () => {
     ContainmentApi.move(m, yard);
     const s = saddle();
     ContainmentApi.move(s, yard);
-    // A handless body handed its tack puts it on (W8: `move` places it).
-    ContainmentApi.move(s, m);
+    // `put saddle on mule` seats it (W10, D-W10-8 — a mule does not saddle
+    // itself when handed its tack); the restart is what this pins.
+    m.seatInSlot(s as never, 'back');
     expect(m.getOccupants('back').has(s as never)).toBe(true);
 
     // The restart: every host is captured, then the world is gone.

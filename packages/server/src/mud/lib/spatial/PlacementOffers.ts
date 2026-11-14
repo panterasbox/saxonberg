@@ -48,9 +48,11 @@ export type PlacementChoice =
 
 export class PlacementOffers {
   private readonly offers: readonly PlacementOffer[];
+  private readonly host: Stuff;
 
   /** The offers `host` makes. */
   constructor(host: Stuff) {
+    this.host = host;
     const offers: PlacementOffer[] = [];
     // ⭐⭐ **One question, asked once.** *Is this an actor, whose insides
     // are its own?* is the `Agent` branch, and `MixinApi.isOpenContainer`
@@ -103,6 +105,20 @@ export class PlacementOffers {
       }
     }
     if (matches.length === 1) return { ok: true, offer: matches[0]! };
+    // ⭐⭐ Chambers (size and carrying D-W10-6, owner final A): several
+    // ENCLOSING regions of one container answering the word. Alike in every
+    // way the world cares about (two plain side pockets) → the container
+    // decides — the zero-shaped offer, routed to `arrivalFor`, which takes
+    // the first that fits; any differ (one buttons, one is inside) → the
+    // player chooses, by name (below).
+    const host = this.host;
+    if (
+      MixinApi.isPlacing(host) &&
+      matches.every((o) => o.kind === 'placement' && host.placementOf(o.name).getEncloses()) &&
+      host.alikeChambers(matches.map((o) => o.name))
+    ) {
+      return { ok: true, offer: { kind: 'zero', name: Placements.IN, words: matches[0]!.words } };
+    }
     // Ambiguous: a range is a firebox AND a hot plate, and the player has
     // to say which. (Two members sharing a primary word is an authoring
     // collision `lint:placement-words` refuses, so a typed word reaching

@@ -173,7 +173,7 @@ export interface Containable {
    * a shut box; the binder binds it; the verb's `canReach` asks this and
    * says why (D17 — the refusal fires after binding).
    */
-  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff }> | PackedRefusal | null;
+  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff; region?: string }> | PackedRefusal | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -489,7 +489,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See the interface docstring (controller-liquidity D6; size-and-carrying D17). */
     reachRefusal(
       actor: Stuff,
-    ): ActRefusal<'enclosed-shut', { by: Stuff }> | PackedRefusal | null {
+    ): ActRefusal<'enclosed-shut', { by: Stuff; region?: string }> | PackedRefusal | null {
       // What holds the actor holds the actor's side of the lid too: in a
       // shut wardrobe, the coat beside you is not behind its door.
       const around = new Set<string>([actor.stuffId]);
@@ -511,6 +511,11 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
           [...actor.getOccupants('back')].some((o) => o.stuffId === scope.stuffId)
         ) {
           return { ok: false, reason: 'packed', facts: { by: scope } };
+        }
+        // ⭐ In a chamber that closes, shut now (D-W10-12): shut means shut.
+        const pair = MixinApi.isContainable(cur) ? cur.getPlacement() : null;
+        if (pair !== null && pair.host.stuffId === scope.stuffId && MixinApi.isPlacing(scope) && !scope.isRegionOpen(pair.name)) {
+          return { ok: false, reason: 'enclosed-shut', facts: { by: scope, region: pair.name } };
         }
         if (MixinApi.isSealable(scope) && !scope.isOpen()) {
           return { ok: false, reason: 'enclosed-shut', facts: { by: scope } };

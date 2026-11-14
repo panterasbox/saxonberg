@@ -233,10 +233,13 @@ export interface Container {
 
   /**
    * ⭐ Does this container have an unnamed inside — region zero (size and
-   * carrying W9, D-W9-3)? `true` for every chest, bucket, cart, pack and
-   * place. A container whose insides are only its named regions says
-   * `false`: a `Garment` (cloth has no inside of its own; its insides are
-   * the pockets its row names). Region zero of a thing with no inside has
+   * carrying W9, D-W9-3)? ⭐⭐ **Derived** (D-W10-14, owner final A): a
+   * container is ONE interior or a set of named chambers, never both — so
+   * `true` iff it offers no enclosing region (every chest, bucket, cart,
+   * pack and place that names none), `false` once its row names a chamber
+   * (a fridge with a freezer, a pack with a side pocket — whose main is
+   * then a chamber too, if the author wants one). A `Garment` says `false`
+   * outright (cloth has no inside of its own, even with no pockets). Region zero of a thing with no inside has
    * no room ({@link fitRefusal}), is never offered (`PlacementOffers`), and
    * an arrival with no word goes to the first enclosing region that takes
    * it ({@link arrivalFor}).
@@ -510,13 +513,21 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // region — its first enclosing one that takes the thing.
       const self = this as unknown as Stuff & Container;
       let reason: string | null = null;
+      let shut: string | null = null;
       if (MixinApi.isPlacing(self)) {
         for (const name of self.getPlacements()) {
           if (!self.placementOf(name).getEncloses()) continue;
           const veto = self.canPlace(item, name);
           if (veto.ok) return { kind: 'pair', host: self, region: name };
-          reason = veto.reason ?? null;
+          if (veto.reason === 'shut') shut ??= name;
+          else reason = veto.reason ?? null;
         }
+      }
+      // ⭐ Only a SHUT chamber would have taken it: say which, and the next
+      // command (D-W10-12 — never an implicit open).
+      if (reason === null && shut !== null) {
+        const said = `The ${shut} of ${self.presentationPhrase().bare()} is shut — \`open "${shut}"\` first.`;
+        return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said } } };
       }
       if (reason !== null && !TAPE_REASONS.has(reason)) {
         return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said: reason } } };
@@ -531,9 +542,16 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
     }
 
-    /** See {@link Container.hasInterior}. Default: an unnamed inside. */
+    /** See {@link Container.hasInterior}. Derived: an unnamed inside iff no chamber is named. */
     public hasInterior(): boolean {
-      return true;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPlacing(self)) return true;
+      // `peek`, never `need`: a member not yet resident cannot be a chamber
+      // (an enclosing member is checked when the row's placements load).
+      return self.getPlacements().every((n) => {
+        const member = self.getPlacementEntry(n)?.member ?? n;
+        return ContainmentApi.placements().peek(member)?.getEncloses() !== true;
+      });
     }
 
     /** See {@link Container.closureLevel}. */
@@ -620,9 +638,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (member.getFastens()) continue;
           if (inRegion) {
             // ⭐ A region of this container: a bottom and walls always, a top
-            // iff it `closes` (a buttoned breast pocket keeps the cork; an
-            // open side pocket lets it float away).
-            const shut = placed.host.getPlacementEntry(placed.name)?.closes === true;
+            // iff it is a closure shut now (a buttoned breast pocket keeps the
+            // cork; an open side pocket — or the breast pocket unbuttoned —
+            // lets it float away).
+            const shut = !placed.host.isRegionOpen(placed.name);
             sides = { width: true, depth: true, height: shut };
           } else if (agent) {
             // On a body, a thing on a worn host's sibling pair is held there.

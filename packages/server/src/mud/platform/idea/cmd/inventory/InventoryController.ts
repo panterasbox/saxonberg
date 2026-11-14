@@ -346,8 +346,15 @@ export default class InventoryController extends CommandController<InventoryMode
       const member = host.placementOf(region);
       const items = PerceptionApi.perceived(viewer, [...host.getPlaced(region)]);
       const named = host.namedRegions().includes(region);
+      // ⭐ How a chamber differs (D-W10-6): *(buttoned)*, *(inside)*, *(shut)*.
+      const e = named ? host.getPlacementEntry(region) : null;
+      const words = [
+        ...(e?.closes === true ? ['buttoned'] : []),
+        ...(e?.covered === true ? ['inside'] : []),
+        ...(e?.closes === true && !host.isRegionOpen(region) ? ['shut'] : []),
+      ];
       const heading = named
-        ? region.charAt(0).toUpperCase() + region.slice(1)
+        ? `${region.charAt(0).toUpperCase() + region.slice(1)}${words.length > 0 ? ` (${words.join(', ')})` : ''}`
         : member.getHeading() || 'With it';
       if (items.length > 0) lines.push(Mml.compose`── ${heading}: ${InventoryController.list(viewer, items, weight)}.`);
       else if (named) lines.push(Mml.compose`── ${heading}: empty.`);

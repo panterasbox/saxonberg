@@ -189,6 +189,31 @@ export interface Placing {
   canPlace(item: Stuff & Containable, name: string): VetoResult;
 
   /**
+   * ⭐ A chamber's CHARACTER (size and carrying D-W10-6): a stable key over
+   * the facts the world acts on — its member (own air, hanging), `covered`
+   * (hidden under the outer layer), `closes` (a closure) — and nothing
+   * about size (`mouth`/`volumeM3` are what FIT decides). Two chambers with
+   * the same character are alike.
+   */
+  chamberCharacter(name: string): string;
+  /** Are these chambers alike in every way the world cares about (one character)? */
+  alikeChambers(names: readonly string[]): boolean;
+  /**
+   * ⭐ Is the chamber `name` open (D-W10-12)? A chamber whose entry says
+   * `closes: true` is a closure — it starts shut and the player opens and
+   * shuts it (`open "breast pocket"`); any other region is always open.
+   */
+  isRegionOpen(name: string): boolean;
+  /**
+   * ⭐ Shut (`shut: true`) or open the chamber `name` — the object's own act
+   * (`open`/`close "breast pocket"` ask it, D-W10-12): refused
+   * `does-not-close` for a region whose entry does not `close`, and
+   * `already-closed`/`already-open` when it already is; else done.
+   * Persisted per instance in {@link shutRegions}.
+   */
+  fastenRegion(name: string, shut: boolean): VetoResult;
+
+  /**
    * @hook ⭐ The force this host bears down on `item`, placed on or in it,
    * N — beyond the item's own weight (B104). A shelf, a bench, a floor:
    * `0`. A screw press: its platen. Read by whatever a load matters to (a
@@ -224,6 +249,12 @@ export interface Placing {
   airExposure: number;
   /** Public so the applier can reflect into it. Not the contract. */
   placements: (string | PlacementEntry)[];
+  /**
+   * The chambers shut now — `null` until the player opens or shuts one
+   * (the row's default: every `closes` chamber shut). Public so the
+   * persistence spine reflects into it. Not the contract.
+   */
+  shutRegions: string[] | null;
 }
 
 export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -236,6 +267,9 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       userFacingDetail: { persistent: true, authorable: true },
       airExposure: { persistent: true, authorable: true },
       placements: { persistent: true, authorable: true },
+      // ⭐ Per instance, never authored (D-W10-12): a row's choice is whether
+      // a chamber closes at all; whether it is shut now is this thing's.
+      shutRegions: { persistent: true },
     };
 
     /**
@@ -349,6 +383,38 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public placements: (string | PlacementEntry)[] = [
       ...((this.constructor as { defaultPlacements?: readonly string[] }).defaultPlacements ?? [Placements.ON]),
     ];
+
+    /** See {@link Placing.shutRegions}. */
+    public shutRegions: string[] | null = null;
+
+    chamberCharacter(name: string): string {
+      const e = this.getPlacementEntry(name);
+      if (e === null) return '';
+      return `${e.member}|${e.covered === true ? 'covered' : ''}|${e.closes === true ? 'closes' : ''}`;
+    }
+
+    alikeChambers(names: readonly string[]): boolean {
+      return new Set(names.map((n) => this.chamberCharacter(n))).size <= 1;
+    }
+
+    /** The chambers shut now: the stored list, else the row's default (every `closes` one). */
+    private shutNow(): string[] {
+      if (Array.isArray(this.shutRegions)) return this.shutRegions;
+      return this.getPlacements().filter((n) => this.getPlacementEntry(n)?.closes === true);
+    }
+
+    isRegionOpen(name: string): boolean {
+      if (this.getPlacementEntry(name)?.closes !== true) return true;
+      return !this.shutNow().includes(name);
+    }
+
+    fastenRegion(name: string, shut: boolean): VetoResult {
+      if (this.getPlacementEntry(name)?.closes !== true) return { ok: false, reason: 'does-not-close' };
+      if (this.isRegionOpen(name) !== shut) return { ok: false, reason: shut ? 'already-closed' : 'already-open' };
+      const rest = this.shutNow().filter((n) => n !== name);
+      this.shutRegions = shut ? [...rest, name] : rest;
+      return { ok: true };
+    }
 
     placementFor(word: string | undefined): PlacementChoice {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
@@ -522,6 +588,8 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (MixinApi.isSealable(self) && !self.isOpen()) {
           return { ok: false, reason: 'shut' };
         }
+        // ⭐ A chamber that closes, shut now (D-W10-12): shut means shut.
+        if (!this.isRegionOpen(name)) return { ok: false, reason: 'shut' };
       }
       // ⭐ The member fit (size and carrying D4) — the container rule's
       // regions: a pocket bounds by its mouth and its volume, a hanging

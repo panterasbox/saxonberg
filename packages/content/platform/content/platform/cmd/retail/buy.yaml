@@ -11,6 +11,10 @@ help: |
   seed"`, `buy "mana cell"`; one word binds bare (`buy loaf`). Where more
   than one counter is in reach, say which: `buy torch from the second
   counter`.
+
+  What you buy goes where your body puts it (`help give` — the same
+  rule); with nowhere for it the sale is refused before anything is
+  charged.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

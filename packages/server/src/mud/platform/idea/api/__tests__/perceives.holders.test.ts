@@ -180,10 +180,17 @@ describe('perceives — the holder rules (D24)', () => {
     const cork = thing();
     ContainmentApi.move(apple, coat, 'side pocket');
     ContainmentApi.move(letter, coat, 'inner pocket');
+    // A `closes` pocket starts shut (D-W10-12): unbutton, put, button.
+    coat.fastenRegion('breast pocket', false);
     ContainmentApi.move(cork, coat, 'breast pocket');
+    coat.fastenRegion('breast pocket', true);
     expect(PerceptionApi.perceives(me, apple)).toBe(true);
     expect(PerceptionApi.perceives(me, letter)).toBe(false);
     expect(PerceptionApi.perceives(me, cork)).toBe(false);
+    // Unbuttoned, the breast pocket shows what is in it (its STATE hides, D-W10-12).
+    coat.fastenRegion('breast pocket', false);
+    expect(PerceptionApi.perceives(me, cork)).toBe(true);
+    coat.fastenRegion('breast pocket', true);
     // The bearer knows their own pockets.
     expect(PerceptionApi.perceives(bob, letter)).toBe(true);
     // A cloak over the coat covers even the open side pocket.

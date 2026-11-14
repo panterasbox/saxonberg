@@ -1176,7 +1176,9 @@ function holdersAdmit(viewer: Stuff, target: Stuff): boolean {
       const placement = cur.getPlacement();
       if (placement !== null && (placement.host as unknown as Stuff).stuffId === scope.stuffId) {
         const entry = placement.host.getPlacementEntry(placement.name);
-        if (entry?.covered === true || entry?.closes === true) {
+        // A buttoned chamber hides only while it is shut (D-W10-12).
+        const shutChamber = entry?.closes === true && !placement.host.isRegionOpen(placement.name);
+        if (entry?.covered === true || shutChamber) {
           // ⭐ …unless this viewer FOUND it there by searching the body that
           // wears the pocket, and that body still holds it (D24a). The
           // pocket is the thing's scope, not the body, so the body's own

@@ -4404,26 +4404,27 @@ function beginSwitchImpl(
 /**
  * ⭐ The game-seconds a carrier's switch to `item` costs (size and carrying
  * D16; D-W10-3): `item` coming out of where it is (a clip, a sheath slot or
- * a shaped holder is the draw; a pocket or a pouch a reach, plus the
- * unfastening). Nothing is put away for you — a hand in the way is a
- * refusal before any switch, never a price. The dials are `combat.*`.
+ * a shaped holder is the draw; a pocket or a pouch a reach). Nothing is put
+ * away for you — a hand in the way is a refusal before any switch, never a
+ * price — and a shut holder is refused (`open` is its own beat, D-W10-12).
+ * The dials are `combat.*`.
  */
 function switchSecondsFor(actor: Stuff & Carrying, item: Stuff): number {
   const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
   const reach = dial(AppSettingKeys.combatReachSeconds, 3);
-  const unfasten = dial(AppSettingKeys.combatUnfastenSeconds, 3);
   if (actor.tierOf(item) === 'hand') return 0;
-  return outOf(actor, item, { draw, reach, unfasten });
+  return outOf(actor, item, { draw, reach });
 }
 
 /** One half of a switch: `item` coming out of where it sits on `actor`, in seconds. */
-function outOf(actor: Stuff, item: Stuff, d: { draw: number; reach: number; unfasten: number }): number {
+function outOf(actor: Stuff, item: Stuff, d: { draw: number; reach: number }): number {
   const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
   if (placed !== null && placed.host.stuffId !== actor.stuffId) {
-    // A clip, a hook: the draw. A pocket: a reach — a fastened one undone first.
+    // A clip, a hook: the draw. A pocket: a reach. (A shut one is refused
+    // before any beat — opening it is its own, D-W10-12.)
     if (!MixinApi.isPlacing(placed.host)) return d.draw;
     if (!placed.host.placementOf(placed.name).getEncloses()) return d.draw;
-    return d.reach + (placed.host.getPlacementEntry(placed.name)?.closes === true ? d.unfasten : 0);
+    return d.reach;
   }
   const at = MixinApi.isContainable(item) ? item.getContainer() : null;
   if (at === null || at.stuffId === actor.stuffId) {
@@ -4433,7 +4434,7 @@ function outOf(actor: Stuff, item: Stuff, d: { draw: number; reach: number; unfa
   }
   // ⭐ A container shaped to the thing (a holster, a scabbard) is the draw (D27).
   if (MixinApi.isContainer(at) && at.getShapedTo() !== null) return d.draw;
-  return d.reach + (MixinApi.isSealable(at) && !at.isOpen() ? d.unfasten : 0);
+  return d.reach;
 }
 
 function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {

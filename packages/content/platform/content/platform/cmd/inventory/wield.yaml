@@ -14,6 +14,10 @@ help: |
   are already full of the handle.
 
   ⭐ `equip` will do this as part of getting your whole kit on.
+
+  In a fight it costs a beat by where the thing is — a scabbard or
+  holster quick, a pocket slower — and your guard is down for it. Your
+  hands must be free: `drop` is instant.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

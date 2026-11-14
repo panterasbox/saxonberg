@@ -308,10 +308,13 @@ function attributionOf(c: ScopeCandidate, queryWords: string[], score: number): 
   const facetWords = new Set(c.facets.flatMap((f) => f.keywords));
   const rest = scoreKeywords(c.keywords.filter((k) => !facetWords.has(k)), queryWords);
   if (rest >= score) return c.via;
-  for (const f of c.facets) {
-    if (scoreKeywords(f.keywords, queryWords) >= score) return { ...c.via, ...f.via };
-  }
-  return c.via;
+  const reached = c.facets.filter((f) => scoreKeywords(f.keywords, queryWords) >= score);
+  // ⭐ A word naming several chambers of this one host (`pocket` on a coat)
+  // names the host, not a chamber (size and carrying D-W10-6): the
+  // container decides among alike chambers and `put` asks among differing.
+  if (reached.length > 1 && reached.every((f) => f.via.region !== undefined)) return c.via;
+  const f = reached[0];
+  return f !== undefined ? { ...c.via, ...f.via } : c.via;
 }
 
 /**
