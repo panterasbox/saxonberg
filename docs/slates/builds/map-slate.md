@@ -956,9 +956,28 @@ the game's content as you explore*:
    the structure card's; the nav card says only persistent or staged (how
    long your map of its inside stays true). Click: `look` at it. Trade
    verbs that bind at a landing (`paint`, `survey`) are not offered here.
-6. **Boundaries** — the ways section (the rose with up and down, the other
-   ways, the ways leaving the zone) and what stands in each way: doors in
-   their states, windows as edges you see through and cannot cross.
+6. **Boundaries** — always open: the rose (eight directions and up and
+   down), the other ways, the ways leaving the zone. Each way's state at a
+   glance: bright (open, yours to take) · gold (a door, shut, openable) ·
+   red ✕ (locked or blocked) · an eye (a window: see through, never go
+   through) · a mode glyph (needs climbing or swimming) · **amber — there,
+   but not for you right now** (sitting, cannot swim, your load will not
+   fit) · dim (no way you know of). Amber is honest because it is about
+   *you*. A way's tooltip: the command; where it leads as your map knows
+   it; what stands in it; the opening (and *your load won't fit*); one-way,
+   muffled, *found by searching*; a track's length; what stops *you* now.
+   Click an open way: `go`. Tooltip actions: **open** a shut door,
+   **unlock** one you hold the key to, **look through** a window — getting
+   through is navigation; anything else done to a door is its own card's.
+   ⭐⭐ **A boundary is a Thing whose behavior is its mixins** (the owner,
+   2026-11-14) — so its part of a tooltip is **assembled from what it is
+   made of**: one block per navigation-relevant mixin it composes
+   (Sealable: open or shut · Lockable: locked, the key, opens free from one
+   side, closes behind you · the Boundary base: the channels it passes and
+   its opening · Soilable: grime on the glass · fixed: never shuts). Never
+   a fixed *door / window / grating* shape: a pack's new boundary (a
+   portcullis, a ward, an airlock) shows its blocks with no client change,
+   and a facet the client cannot draw still shows as a plain fact row.
 7. **The place** — the room itself (next to design).
 8. **You** — your person as a navigator: pace and endurance, load (what
    you can climb or swim with), the light you carry, posture, a mount.

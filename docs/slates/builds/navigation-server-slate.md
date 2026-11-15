@@ -192,7 +192,20 @@ their own points — and the horizon becomes one computation everywhere
 authored lists kept as occlusion and reach overrides. S16 sends its result
 as data.
 
-### S14 — *Terminus City* **[first pass — content]**
+### S21 — A richer way record **[first pass]**
+`WayRecord` carries direction, state, `crossesZone`, the destination's name
+and the boundary's name. The ways section wants, per way: one-way, muffled,
+the media it needs (climb, swim), a track's length, the opening, and
+⭐ **whether you can take it now and, if not, which gate** — a dry run of
+the real `canTraverse`, so it can never disagree with trying. ⭐ The
+boundary's part is **its own projection by composition**: which
+navigation-relevant mixins it composes and each one's facts (open or shut;
+locked, whether you hold the key, opens free from one side, closes behind
+you; the channels it passes; grime) — never a fixed door/window shape, so
+a pack's new boundary is described with no client change. Reuse the
+projection the inspection card already uses before adding a hook.
+
+ **[first pass — content]**
 Two Localities are both named *Terminus* (the realm and the city), so the
 crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`)
 to *Terminus City* (the owner: *"fine for now"*). ⚠ Not a one-line edit:
