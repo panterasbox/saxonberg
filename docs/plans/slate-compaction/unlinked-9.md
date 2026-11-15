@@ -293,7 +293,7 @@ decisions*.
 - `## Held decisions this list waits on` → *Contracts merge (MR !149) for the storm-contract/ford cohort cuts* (92–93, 2) — the branch merged: `contract.md` (*built on `feat/work-contracts`*), `lib/commerce/` + `ContractLogic.ts`. Replaced by a struck one-liner with the pointer
 
 ### Kept (UNBUILT)
-- the status block · the capture paragraph (every source artifact exists: `education-videos.md`, `study-com/strategy.md`, `docs/lenses/`, `staging/wishbook.md`) · the organization note (`build-menu.md` and `guild-slate.md` both still exist; the *reconciling the three lists* pass is the slate-backlog taxonomy's generated README, but the note is framing, not a build item)
+- the status block · the capture paragraph (every source artifact existed at compaction time: the education video brief, the pitch strategy doc, `docs/lenses/`, `staging/wishbook.md`) · the organization note (`build-menu.md` and `guild-slate.md` both still exist; the *reconciling the three lists* pass is the slate-backlog taxonomy's generated README, but the note is framing, not a build item)
 - `## The demo cluster` 1–7 (verified above)
 - `## Adjacent backlog` — all nine bullets; an index into lens entries and other slates (`economy-slate.md`, `inquiry-slate.md`, `narration-slate.md` exist), kept whole
 - `## Held decisions` → the resonance feel-test (no theme decision recorded in `message-rendering.md` beyond the shipped cascade) · guild-slate reconciliation (`guild-slate.md` is UNBUILT)

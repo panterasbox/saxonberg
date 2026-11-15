@@ -43,9 +43,7 @@
 > **One stale justification:** this slate and its issue sold the substrate
 > partly on pedagogical real-language readables (a TOEFL register). TOEFL
 > was cut as a vertical on 2026-08-07 — a text-only English world cannot
-> serve speaking/listening or low-proficiency entrants
-> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com/cx-and-the-aspiring-teacher.md)
-> §1). The substrate stands on its own diegetic merits; that argument does
+> serve speaking/listening or low-proficiency entrants. The substrate stands on its own diegetic merits; that argument does
 > not.
 
 Working slate for the language substrate — how the game models
@@ -315,7 +313,7 @@ English players just see English and never notice the tagging.
 
 ### Register-tagged English content
 
-*Superseded — TOEFL was cut as a vertical on 2026-08-07 (the audit block above, and `docs/study-com/cx-and-the-aspiring-teacher.md` §1); the register-tagged English surface went with it.*
+*Superseded — TOEFL was cut as a vertical on 2026-08-07 (the audit block above); the register-tagged English surface went with it.*
 
 ### Translation tools as content
 

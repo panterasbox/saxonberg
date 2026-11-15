@@ -455,7 +455,7 @@ exists**: the **chronicle** records deeds, the **transcript** records
 evidence, and **renown** records **reception from others rather than
 claims about yourself.**
 
-**The [LinkedIn flank](../../study-com/strategy.md) arriving in the
+**The LinkedIn flank arriving in the
 least likely room in the game.**
 
 ### Three guards — and the third keeps the room pure

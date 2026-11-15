@@ -1927,7 +1927,7 @@ form of *"cooling has no fixed price"*.
 ## Course-readiness
 
 The syllabus is not this document's job — that synthesis happens
-against the study.com product analysis. What this document guarantees
+against an external course catalog. What this document guarantees
 is that the material is *there*, in the shape a real course needs,
 across the strands a real science course actually carries:
 

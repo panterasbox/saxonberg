@@ -16,7 +16,7 @@
 > literature-substitutes-for-fieldwork + the 5:2:1 shelf ratio · the
 > spellbook shelves (town / archive / guild hall) · the salle, the
 > audience, the drill ground (stakes unresolved) · the lecture hall +
-> seminar room and the walkable study.com demo · the eatery (a
+> seminar room and the walkable ed-tech demo · the eatery (a
 > front-of-house archetype bound to `kitchen`; where `serve` lives) +
 > room-and-board · the Chancellor seat · lab staff · athletic grounds
 > **Size:** a build
@@ -52,9 +52,9 @@ academic apparatus — courses, assessment, enrollment-as-contract; ⚠
 [sampling-and-labs-slate](./sampling-and-labs-slate.md) (the field/bench
 split that makes labs matter — **this closes two of its open
 questions**), [instrumentation-slate](./instrumentation-slate.md),
-[magic-101-course.md](../../magic-101-course.md) (**752 lines of
-authored curriculum — Part 8; it independently corroborates Parts 1 and
-6**), [civics.md](../../subsystems/civics.md) (the university's own
+the Magic 101 course draft (**752 lines of authored curriculum, since
+retired from the tree — Part 8; it independently corroborates Parts 1
+and 6**), [civics.md](../../subsystems/civics.md) (the university's own
 government), [contract.md](../../subsystems/contract.md) (the substrate
 enrollment rides), [advancement.md](../../subsystems/advancement.md).
 
@@ -66,7 +66,7 @@ Two shipped lists, and they **barely overlap**:
 
 - **23 platform Disciplines** (+10 arcana) are **vocational** —
   agriculture, bartending, smithing, medicine, cooking, horticulture,
-  appraisal, mixology. The study.com taxonomy: what you *do*.
+  appraisal, mixology. What you *do*.
 - **18 analyze/measure channels** are **physical** — chemistry,
   electrical, response, atmosphere, weather, light, shadow, sky, time,
   altitude, density, gravity, pressure, humidity, address. What you can
@@ -463,9 +463,9 @@ layer has a reason to exist outside a real fight.
 > on campus as well. not sure what we're gonna do with em yet, but we do
 > have our magic cirriculum to teach."**
 
-They are not a blank. **`docs/magic-101-course.md` is 752 lines of fully
-authored curriculum** — eight chapters, LO coding, study.com item format,
-worked generated items — and its structure maps onto the buildings this
+They are not a blank. **The Magic 101 course draft was 752 lines of fully
+authored curriculum** — eight chapters, learning-objective coding, worked
+generated items — and its structure maps onto the buildings this
 slate derived independently.
 
 ### The room roster falls out of the chapter list
@@ -494,7 +494,7 @@ flagged that it costs nothing:
 campus.** Part 1 supplies the other half — so siting the lecture hall
 adjacent to the assay/fermentation benches makes the whole demo
 literally walkable. **This is the cheapest high-value thing on the
-grounds**, and it is the study.com demo.
+grounds**, and it is the ed-tech demo.
 
 ### ⭐⭐⭐ Three curriculum findings that corroborate this slate
 

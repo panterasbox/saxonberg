@@ -123,7 +123,7 @@ or a shipped pointer (Duncan Hall). Gains one labelled MOVE (15 lines).
 
 | heading | outcome |
 |---|---|
-| status block | KEPT (unchanged — `Left` already names *the lecture hall + seminar room and the walkable study.com demo*, which is what the moved bullet is about) |
+| status block | KEPT (unchanged — `Left` already names *the lecture hall + seminar room and the walkable ed-tech demo*, which is what the moved bullet is about) |
 | framing · provenance · *Sits on / amends* | KEPT |
 | `## Part 0 — How the roster gets picked` | KEPT |
 | `## Part 1 — The roster, tiered` (+ `### Build` · `### Build, on a different justification` · `### Bind, do not author` · `### Do not build`) | KEPT |

@@ -294,14 +294,14 @@ pack; the pack only holds the acts and the instruments.
   (`veterinary` under `health`) applying the same acts to an animal
   patient. The constraint that keeps it open: no medical act gates on
   personhood. Its own future slate; collides with husbandry/ranching/pets.
-- **The pedagogy anchor (study.com / StudyWorld).** ⭐ Nursing here is the
+- **The pedagogy anchor (an ed-tech partner).** ⭐ Nursing here is the
   **NGN/NCLEX clinical-judgment cycle** (recognize cues → prioritize → act
   → evaluate), and it honours the teachability boundary — the sim teaches
   the **decision**, the real practicum owns the **motor** (phlebotomy/
-  surgical hands), and study.com owns the **referent** (real pharmacology;
+  surgical hands), and the partner's catalog owns the **referent** (real pharmacology;
   our drugs are invented on purpose). A `nursing` competence is a portable
   Transcript row — the federation's transferable-competence promise. This
-  is why nursing is a flagship StudyWorld vertical.
+  is why nursing is a flagship education vertical.
 - **The SBAR handoff + the shift-long deteriorating-patient lab quest**
   (NGN Q5) — the **scenario layer** (eternal-university / demo /
   health-vertical), riding this build's two-role scene and worsening

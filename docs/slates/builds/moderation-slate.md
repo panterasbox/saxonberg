@@ -211,7 +211,7 @@ start to get tricky with Google/Twitch/Kick auth."*
 
 IP bans are a **moderator tool** (*"I wanna make sure IP bans are available to moderators"*), shaped
 against collateral damage — shared addresses, mobile carriers, VPNs and ⚠ **campuses**, on an
-education platform heading for Study.com students:
+education platform whose players include students:
 
 - **It blocks NEW accounts from that network**, never existing accounts in good standing. The
   evader cannot mint a fresh account; the classmate already playing from the same campus is

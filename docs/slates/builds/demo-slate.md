@@ -7,10 +7,9 @@
 > **Size:** a build
 
 **Capture doc (2026-07-28): the build list supporting the
-education-video track and the study.com pitch demo.** Source
-artifacts: [education-videos.md](../../education-videos.md) (§
-Pre-script gap audit), [study-com-strategy.md](../../study-com/strategy.md),
-the fresh lens pass (docs/lenses/, entries 1–18), and
+education video track and the ed-tech pitch demo.** Source
+artifacts: the video briefs' pre-script gap audit, the pitch strategy
+notes, the fresh lens pass (docs/lenses/, entries 1–18), and
 [the wishbook](../tails/staging-leftovers-slate.md#4-the-wishbook).
 
 Organization note: this is the *third* live build list (alongside

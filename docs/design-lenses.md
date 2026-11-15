@@ -8,7 +8,7 @@ should have to be handed at the start of each session.
 > ⚠ **Not to be confused with [docs/lenses/](./lenses/README.md)** —
 > that directory is Jesse Schell's lens deck (fantasy, curiosity,
 > cheatability…), a borrowed *analysis toolkit* used mostly for the
-> education-video track. This doc is the *decision rubric*. Where a
+> education video track. This doc is the *decision rubric*. Where a
 > Schell lens sharpens one of the seven, it is named as an instrument
 > below.
 
