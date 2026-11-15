@@ -11,7 +11,8 @@ depth, levels from −1 to 8).
 
 In Explore mode the left pane becomes **the picture of what you know of the
 zone you are in**: a map you can read and click, the ways from where you
-stand (every direction, every other way, and the ways that leave the zone),
+stand (every direction and every named way, each marked when it leaves the
+zone),
 the place you have selected, the zone in one line that opens, a breadcrumb
 drawn from your own map, and a few lenses that ask the map a question —
 every mark on it explained by a tooltip. Today the pane is a text navigator — a
@@ -95,10 +96,11 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
   ordinary command; clicking a distant room shows the route to it.
 - **Where you are, spelled out:** the place's name and `x: · y: · z:`,
   with z stressed.
-- **The ways from here:** every direction as a rose — the eight horizontal
-  ones and up and down — each in its state; every other way beside it (in,
-  out, named ways); and the ways that **leave the zone**, named, with where
-  they lead.
+- **The ways from here:** the cardinal exits as a rose — the eight
+  horizontal directions, up and down — and the named exits as a list, by
+  their own names, each in its state; **any exit that leaves the zone is
+  marked** — cardinal or named, it is a flag on the exit, not a kind of
+  exit.
 - **The selected place** — you, until you click another: what you know of
   it, from whom and when, and how to get there.
 - **The zone in one line** that opens into its facts: its kind, cell size,
@@ -224,7 +226,8 @@ the top · **the Locality breadcrumb**, stopping one short of the place ·
 **the Zone block** (the zone's label, `x: · y: · z:`, the
 extent and levels you know) · the map, full width, with only the levels and
 zoom on it · the lenses in one row · the ways from here (the rose with up
-and down, the other ways, the ways leaving the zone) · the selected place ·
+and down, the named exits, a marker on any that leaves the zone) · the
+selected place ·
 the zone line. ⭐ **Locality and Zone are two trees** and each keeps its
 information together: the breadcrumb is where you are in the world; the
 Zone block — directly above the map, which *is* the zone — is your position
@@ -416,7 +419,7 @@ Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
 1. `instant` · player — A new character with an empty map walks into the
    Sunken Delve. The pane shows the vestibule solid, `x: · y: · z: 0` with
    z stressed, no level control (one level known), the rose with the ways it
-   can see, and the way back out under *leaving the zone*.
+   can see, and the way back out marked as leaving the zone.
 2. `instant` · player — `look`. The rooms it can see appear outlined; the
    frontier lens marks the openings not taken.
 3. `instant` · player — Click a neighboring room on the map. `go
@@ -487,8 +490,7 @@ None — nothing here depends on game time.
 - The map shows diagonals and tracks and three zoom steps; the level
   control appears only once the player knows more than one level.
 - The ways from here show every direction, up and down included, and every
-  other way, each in its state; the ways leaving the zone are listed with
-  where they lead.
+  named exit, each in its state; any exit that leaves the zone is marked.
 - The zone line describes the zone as the player knows it, never more.
 - A hidden way is absent until found.
 - The breadcrumb is the player's own: a Locality they have never visited is

@@ -509,11 +509,30 @@ still to be iterated against real play.
   is not pre-designed** — see what the map ends up doing and let the rest
   turn up.
 
-### The exit list stays — for the exits that leave the zone **[DECIDED]**
+### ⭐⭐ The exit model, as the code has it **[CORRECTED 2026-11-15]**
 
-An exit to another zone has no direction to draw: its destination is in
-another coordinate frame. Those exits are a **named list** beside the map —
-§ 3's widget. Exits inside the zone are drawn on the map, not listed.
+> ⚠ The earlier version of this section (*"the exit list stays — for the
+> exits that leave the zone"*) and a *leaving the zone* list built on it
+> were wrong: they assumed leaving the zone and having no direction are
+> the same thing. They are not.
+
+Verified in `Location.addExit` and `Exit.wayRecord`:
+
+- **Every exit has a direction word.**
+- **Cardinal exits** (the compass directions, up, down) may stay inside
+  the zone **or cross out of it**.
+- **Named exits** (`out`, `portal`, `office`, `unit-3`) must cross a zone
+  — **or** cross a holding frame *within one zone* (a dorm's `out`); so a
+  named exit does not always leave the zone either.
+- **Leaving the zone is a per-exit flag** — `crossesZone`, the far room's
+  zone compared with this one — independent of whether the exit is
+  cardinal or named.
+
+So the ways section follows the two real distinctions: **the rose holds
+the cardinal exits, the list holds the named exits** (by their own names),
+and **"leaves the zone" is a marker on any exit**, from the flag. On the
+map, an exit that leaves the zone has no cell to point at, so it is drawn as
+a stub off the room's edge with that marker.
 
 ### Two scales, both inside the zone **[DECIDED, the rendering to iterate]**
 
@@ -956,8 +975,9 @@ the game's content as you explore*:
    the structure card's; the nav card says only persistent or staged (how
    long your map of its inside stays true). Click: `look` at it. Trade
    verbs that bind at a landing (`paint`, `survey`) are not offered here.
-6. **Boundaries** — always open: the rose (eight directions and up and
-   down), the other ways, the ways leaving the zone. Each way's state at a
+6. **Boundaries** — always open: the rose (the cardinal exits — eight
+   directions, up and down) and the list of named exits; **leaving the zone
+   is a marker on any exit**, never a section (see § The exit model). Each way's state at a
    glance: bright (open, yours to take) · gold (a door, shut, openable) ·
    red ✕ (locked or blocked) · an eye (a window: see through, never go
    through) · a mode glyph (needs climbing or swimming) · **amber — there,
@@ -966,8 +986,8 @@ the game's content as you explore*:
    *you*. A way's tooltip: the command; where it leads as your map knows
    it; what stands in it; the opening (and *your load won't fit*); one-way,
    muffled, *found by searching*; a track's length; what stops *you* now.
-   ⭐ **No decoration** (the owner, 2026-11-15): the *other ways* and
-   *leaving the zone* lists are **the exits' own names** — the command
+   ⭐ **No decoration** (the owner, 2026-11-15): the named-exit list is
+   **the exits' own names** — the command
    words (`in`, `gate`, `crack`) — nothing written over them. The
    section's spare space is a **preview**: hover an exit (a rose arm or a
    name) and a strip under it shows that exit and the boundary it is on —
