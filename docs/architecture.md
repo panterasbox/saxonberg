@@ -879,8 +879,8 @@ five top-level branches, each capturing a distinct role:
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Idea          incorporeal identity (Exit, Login, Zone, …)
   ├── Thing         physical MATTER in a place (describable, addressable,
-  │     │           Detailed, Tangible, Wet, Containable) — a floor, a
-  │     │           hearth, a yard wall, a shop counter
+  │     │           Detailed, Tangible, Wet, Shaped, Containable) — a floor,
+  │     │           a hearth, a yard wall, a shop counter
   │     └── Good a GOOD: matter you can carry off, and therefore own
   │           │     and hide (Chattel + Concealable)
   │           └── Vessel  a Good that also holds things (Container) —
@@ -1167,7 +1167,7 @@ live animal. 96 composition sites were stripped. See
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
-| `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Containable(Stuff))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass, and the matter's own volume), `Wet` (can get wet), `Containable` ("I live somewhere" — and therefore its SIZE: the form, the box, the bulk and the fit, because size exists so a thing can be fitted into, through or onto something; size and carrying W10f). ⚠ **Not `Concealable`, not `Chattel`, and not `Integrity`** — those are what it means to be an article you can carry off (and crack), and they are `Good`'s and `Vessel`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
+| `Thing` | `Wet(Visible(Detailed(Perceptible(Tangible(Shaped(Containable(Stuff)))))))` | Physical MATTER: describable, addressable by keyword and therefore `Detailed`, `Tangible` (material + mass, and the matter's own volume), `Wet` (can get wet), `Shaped` (its SIZE — the form, the box, the bulk and the fit; beside Containable because size exists so a thing can be fitted into, through or onto something, and its own mixin because it is its own concept; size and carrying W10g), `Containable` ("I live somewhere"). ⚠ **Not `Concealable`, not `Chattel`, and not `Integrity`** — those are what it means to be an article you can carry off (and crack), and they are `Good`'s and `Vessel`'s (the base-class narrowing; this row said otherwise until 2026-09-30, which is one line W4 of that build missed). |
 | `Location` | `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff)))))))` | A PLACE: contained-in-able, adornable, with air, light and an address — and since the narrowing describable, addressable by keyword and detailed, which every room class used to have to remember for itself. ⚠ Not `Exitable`: being a place you can walk BETWEEN is the next rung, and `Offstage` is the class that proves it. |
 | `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`Location`, …) layer on coordinate / Visible / Exitable mixins. |
 | `Holder` | `ContainerMixin(Thing)` | **Matter that holds other matter** — a shop counter, a teller's counter, a warehouse, a shelf, a rack. Part of the premises: its ownership, if any, is the PARCEL's. |

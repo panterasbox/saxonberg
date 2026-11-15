@@ -826,18 +826,13 @@ describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub`
   });
 
   it('`put 2 coins in chest` splits two off the stack and puts them in; the rest stay in hand', async () => {
-    // Only the coin's own row mints a coin: a coin is Containable, so `put`
-    // loads its form (`/platform/idea/Form/…`) through the real clone
-    // (size and carrying W10f — a thing's size is Containable's).
-    const realClone = StuffApi.clone.bind(StuffApi);
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string, ...rest: unknown[]) =>
-      path === '/obj/item/PutCoin'
-        ? (makeStuffAtPath(() => {
-            const c = new Coin();
-            c.setName('coin');
-            return c;
-          }, path) as unknown as Stuff)
-        : (realClone as (...a: unknown[]) => Promise<Stuff>)(path, ...rest)) as typeof StuffApi.clone);
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) =>
+      makeStuffAtPath(() => {
+        const c = new Coin();
+        c.setName('coin');
+        return c;
+      }, path) as unknown as Stuff,
+    );
     const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);

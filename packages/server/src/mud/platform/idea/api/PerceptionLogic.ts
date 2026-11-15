@@ -1142,7 +1142,7 @@ function seeThrough(holder: Stuff): boolean {
   if (material === null || !MixinApi.hasOptics(material)) return false;
   const alpha = material.getLightAbsorption()?.rawValue();
   if (typeof alpha !== 'number' || alpha < 0) return false;
-  const box = MixinApi.isContainable(holder) && holder.hasAuthoredSize() ? holder.getDimensions() : null;
+  const box = MixinApi.isShaped(holder) && holder.hasAuthoredSize() ? holder.getDimensions() : null;
   const least = box ? Math.min(box.width, box.depth, box.height) : 0;
   const t = least > 0 ? (least * (1 - SIZE_DEFAULTS.INTERIOR_FRACTION)) / 2 : DEFAULT_SHELL_M;
   return Math.exp(-alpha * t) >= SEE_THROUGH_T;

@@ -299,6 +299,8 @@ export const Mixins = {
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
+  /** ⭐ Has a size — form, box, bulk, fit; beside Containable (size and carrying W10g). */
+  Shaped: 'ShapedMixin',
   Placing: 'PlacingMixin',
   /** ⭐ Declares and mints its own compartments (assembly D15). */
   Chambered: 'ChamberedMixin',
@@ -1016,6 +1018,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
+  ShapedMixin: "{} has no size to measure",
   PlacingMixin: "{} isn't something you can put things on or in",
   ChamberedMixin: '{} has no compartments',
   CoolboxMixin: "{} isn't a cold box",

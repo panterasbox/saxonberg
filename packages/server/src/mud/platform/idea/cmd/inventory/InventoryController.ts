@@ -389,7 +389,7 @@ export default class InventoryController extends CommandController<InventoryMode
     if (!MixinApi.isTangible(x)) return 'weightless';
     // Two significant figures — a reading off a list, not a weighing.
     const mass = `${Number(x.getMass().rawValue().toPrecision(2))} kg`;
-    const m3 = MixinApi.isContainable(x) ? x.getVolumeM3() : null;
+    const m3 = MixinApi.isShaped(x) ? x.getVolumeM3() : null;
     if (m3 === null) return mass;
     const litres = Quantity.of(m3, 'm³').to('L').rawValue();
     return `${mass}, ${Number(litres.toPrecision(2))} L`;

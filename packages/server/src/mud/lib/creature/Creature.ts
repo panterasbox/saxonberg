@@ -46,6 +46,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { OlfactoryMixin } from '../perception/Olfactory';
 import { PalateMixin } from '../metabolism/Palate';
 import { ContainableMixin } from '../spatial/Containable';
+import { ShapedMixin } from '../spatial/Shaped';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
@@ -167,6 +168,9 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
   BuoyantMixin(
   LoadBearingMixin(
     ContainerMixin(
+    // ⭐ Size beside containment (size and carrying W10g): a body has a
+    // size because it is fitted through ways and onto mounts.
+    ShapedMixin(
     ContainableMixin(
       DisguisableMixin(
         // ⭐⭐ **Perceptible, beside Visible, because every BODY is
@@ -244,7 +248,7 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
         )
         )
       )
-    )
+    ))
   )
   ))
   )
@@ -862,10 +866,10 @@ export class Creature extends CreatureBase {
     for (const slot of WORN_BULK_SLOTS) {
       if (!this.getSlotSpec(slot)) continue;
       for (const worn of this.getOccupants(slot)) {
-        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn) || !MixinApi.isContainable(worn)) continue;
+        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn) || !MixinApi.isShaped(worn)) continue;
         let inside = worn.getMatterVolumeM3() ?? 0;
         for (const c of worn.getContents()) {
-          if (MixinApi.isContainable(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
+          if (MixinApi.isShaped(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
         }
         const authored = worn.hasAuthoredSize() ? (worn.getDimensions()?.boxVolume() ?? 0) : 0;
         const bulk = Math.max(worn.getPackedVolumeM3() ?? 0, authored, inside);
@@ -883,7 +887,7 @@ export class Creature extends CreatureBase {
     for (const item of this.getContents()) {
       const pair = MixinApi.isContainable(item) ? item.getPlacement() : null;
       if (pair === null || !wornIds.has(pair.host.stuffId) || !MixinApi.isPlacing(pair.host)) continue;
-      if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isContainable(item)) continue;
+      if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isShaped(item)) continue;
       // Its authored box when it has one (a pannier keeps its frame's
       // shape); else what it packs to.
       const box = item.hasAuthoredSize() ? item.getDimensions() : item.getFitBox();

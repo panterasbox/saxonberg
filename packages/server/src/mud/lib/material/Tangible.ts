@@ -188,7 +188,7 @@ export interface Tangible {
    * The volume of the MATTER itself — mass over the bulk material's
    * density: a hollow thing's walls, never its room. `null` with no mass
    * or no material. The water a thing pushes aside reads this, and a
-   * thing's size (`Containable.getVolumeM3`, size and carrying D2) starts
+   * thing's size (`Shaped.getVolumeM3`, size and carrying D2) starts
    * from it.
    */
   getMatterVolumeM3(): number | null;

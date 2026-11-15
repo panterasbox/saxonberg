@@ -627,7 +627,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (member.getEncloses()) {
         const entry = this.getPlacementEntry(name);
-        const box = (MixinApi.isContainable(item) ? item.getFitBox() : null);
+        const box = (MixinApi.isShaped(item) ? item.getFitBox() : null);
         if (entry === null || box === null) return null;
         if (entry.mouth && !box.fitsThrough(entry.mouth)) return 'too-big-for-mouth';
         // ⭐ …and no longer than the pocket is deep, give or take what stands
@@ -640,7 +640,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (typeof entry.volumeM3 === 'number' && entry.volumeM3 > 0) {
           let used = 0;
           for (const c of this.getPlaced(name)) {
-            if (c.stuffId !== item.stuffId) used += (MixinApi.isContainable(c) ? c.getFitBox() : null)?.boxVolume() ?? 0;
+            if (c.stuffId !== item.stuffId) used += (MixinApi.isShaped(c) ? c.getFitBox() : null)?.boxVolume() ?? 0;
           }
           if (used + box.boxVolume() > entry.volumeM3 + 1e-9) return 'no-room';
         }
@@ -651,7 +651,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See {@link Placing.hangingLengthM}. */
     public hangingLengthM(): number {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isContainable(self)) return Infinity;
+      if (!MixinApi.isShaped(self)) return Infinity;
       const d = self.getDimensions();
       if (d === null) return Infinity;
       // A ring offers its circumference; anything else its longest side.
@@ -662,7 +662,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** See {@link Placing.bearsKg}. */
     public bearsKg(): number {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isTangible(self) || !MixinApi.isContainable(self)) return Infinity;
+      if (!MixinApi.isTangible(self) || !MixinApi.isShaped(self)) return Infinity;
       const mat = self.getMaterial();
       const mpa = mat?.getTensileStrengthMPa() ?? 0;
       if (!(mpa > 0)) return Infinity;
@@ -695,7 +695,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
  * flexible thing its packed cube root. `null` when its size is unknown.
  */
 function hangingWidthOf(item: Stuff): number | null {
-  return (MixinApi.isContainable(item) ? item.getFitBox() : null)?.hangingWidthM() ?? null;
+  return (MixinApi.isShaped(item) ? item.getFitBox() : null)?.hangingWidthM() ?? null;
 }
 
 // `via.region` facet — declaration-merged onto MqlMatchVia beside its owner

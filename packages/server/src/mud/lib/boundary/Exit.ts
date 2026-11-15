@@ -910,7 +910,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       const current = mode != null ? LocomotionApi.modeOf(mode) : null;
       const profile = current?.getBodyProfile() ?? 'upright';
       // What it carries is measured by its shape — loaded on use (W1).
-      for (const c of mover.getContents()) if (MixinApi.isContainable(c)) await c.ensureShape();
+      for (const c of mover.getContents()) if (MixinApi.isShaped(c)) await c.ensureShape();
       const env = mover.envelope(profile, { lengthwise });
       if (gap !== null && env !== null && !opens(env, gap, lengthwise)) {
         if (pair !== null) return { ok: false, reason: 'too-big-for-way', facts: { ...base, dismount: true } };
@@ -923,7 +923,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       if (gap !== null && pair === null) {
         const bulk = mover.wornBulk();
         for (const worn of [...bulk.things, ...bulk.hung]) {
-          if (!MixinApi.isContainable(worn)) continue;
+          if (!MixinApi.isShaped(worn)) continue;
           const box = worn.hasAuthoredSize() ? worn.getDimensions() : worn.getFitBox();
           if (box !== null && !box.fitsThrough(gap)) {
             return { ok: false, reason: 'too-big-for-way', facts: { ...base, pack: worn } };
@@ -938,7 +938,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
           if (thing !== null) return { ok: false, reason: thing.reason, facts: { ...base, ...thing.facts } };
         }
       }
-    } else if (MixinApi.isContainable(mover)) {
+    } else if (MixinApi.isShaped(mover)) {
       const own = await this.thingRefusal(mover, gap, turn);
       if (own !== null) {
         return { ok: false, reason: own.reason === 'held-too-big' ? 'too-big-for-way' : own.reason, facts: { ...base, ...own.facts } };
@@ -947,7 +947,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
 
     if (MixinApi.isHauling(mover) && mover.isHitched()) {
       const cart = mover.getHauledCart() as Stuff | null;
-      if (cart !== null && MixinApi.isContainable(cart)) {
+      if (cart !== null && MixinApi.isShaped(cart)) {
         await cart.ensureShape();
         // ⭐ A cart goes through on its wheels: UPRIGHT and end-on — its
         // width across the gap, its height under the lintel, never turned
@@ -971,7 +971,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     gap: BoundaryOpening | null,
     turn: number | null,
   ): Promise<{ reason: 'held-too-big' | 'wont-turn'; facts: { thing: Stuff; lengthM?: number } } | null> {
-    if (!MixinApi.isContainable(thing)) return null;
+    if (!MixinApi.isShaped(thing)) return null;
     await thing.ensureShape();
     const box = thing.getFitBox();
     if (box === null) return null;

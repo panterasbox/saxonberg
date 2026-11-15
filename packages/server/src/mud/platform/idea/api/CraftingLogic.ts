@@ -2639,7 +2639,7 @@ function applyAssembledOutput(
     // the line unrecorded, and the whole answers by its own mass.
     let lineVolume = 0;
     for (const m of ms) {
-      const v = MixinApi.isContainable(m.stuff) ? m.stuff.getVolumeM3() : null;
+      const v = MixinApi.isShaped(m.stuff) ? m.stuff.getVolumeM3() : null;
       if (v === null || !(v > 0)) { lineVolume = 0; break; }
       const units = MixinApi.isStackable(m.stuff) ? Math.max(1, m.stuff.getQuantity()) : 1;
       lineVolume += (v / units) * m.count;

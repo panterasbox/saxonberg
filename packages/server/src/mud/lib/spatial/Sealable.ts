@@ -254,7 +254,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (b === null || b.closed.height) return { ok: true };
       const shut = { ...b.closed, height: true };
       for (const c of self.getContents()) {
-        if (!MixinApi.isContainable(c)) continue;
+        if (!MixinApi.isShaped(c)) continue;
         const box = c.getFitBox();
         if (box !== null && box.orientationWithin(b.interior, shut) === null) {
           const named = c.getPresentation();

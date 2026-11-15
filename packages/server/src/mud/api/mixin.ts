@@ -25,6 +25,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import type { Shaped } from '../lib/spatial/Shaped';
 import type { Placing } from '../lib/spatial/Placing';
 import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
@@ -1138,6 +1139,11 @@ export class MixinApi {
 
   public static isContainable(obj: Stuff): obj is Stuff & Containable {
     return this.hasMixin(obj, Mixins.Containable);
+  }
+
+  /** Has a size — a form, a box, a bulk, a fit (size and carrying W10g). */
+  public static isShaped(obj: Stuff): obj is Stuff & Shaped {
+    return this.hasMixin(obj, Mixins.Shaped);
   }
 
   public static isPlacing(obj: Stuff): obj is Stuff & Placing {

@@ -22,7 +22,7 @@
  * class default is `block`, `flexible` for garments, lines, sacks and
  * packs, `sheet` for paper. A form row loads ON USE, never at boot: a
  * sync `getShape()` that misses starts the load and answers unknown this
- * once, and a path that must know the size awaits `Containable.ensureShape()`
+ * once, and a path that must know the size awaits `Shaped.ensureShape()`
  * first — a thing whose form is not loaded has no known size, and nothing
  * asks it to fit.
  */
