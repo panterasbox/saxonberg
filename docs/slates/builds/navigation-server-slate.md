@@ -205,7 +205,16 @@ you; the channels it passes; grime) — never a fixed door/window shape, so
 a pack's new boundary is described with no client change. Reuse the
 projection the inspection card already uses before adding a hook.
 
- **[first pass — content]**
+### S22 — The place and you, as data **[first pass]**
+The place section: light, open sky, water (depth, current), staged or
+persistent, crowding — reads `look` already does — plus your map's
+`searched` claim and the hazards you have found there (confirm discovery is
+recorded per player — [concealment.md](../../subsystems/concealment.md)).
+The you section: your pace (`movement.defaultMode`), endurance, load and
+what it bars (size-and-carrying), the light you carry, posture, a mount or
+vehicle.
+
+### S14 — *Terminus City* **[first pass — content]**
 Two Localities are both named *Terminus* (the realm and the city), so the
 crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`)
 to *Terminus City* (the owner: *"fine for now"*). ⚠ Not a one-line edit:
