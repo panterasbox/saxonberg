@@ -183,6 +183,15 @@ shipped Journey ([logistics.md](../../subsystems/logistics.md)) exposes its
 progress this way; the queued walk (the movement build) does too; voyages
 and freight later. One shape, so the card never learns a new transit kind.
 
+### S20 — The horizon, one computation on one frame **[first pass]**
+Ashore the horizon is an authored list of zones with no bearing or range;
+at sea it is geometry. The [geography-slate](./geography-slate.md) gives
+the land the sea's frame — Localities carry geographic anchors, landmarks
+their own points — and the horizon becomes one computation everywhere
+(bearing, range, visibility by height, elevation and curvature), with the
+authored lists kept as occlusion and reach overrides. S16 sends its result
+as data.
+
 ### S14 — *Terminus City* **[first pass — content]**
 Two Localities are both named *Terminus* (the realm and the city), so the
 crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`)

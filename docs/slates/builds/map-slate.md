@@ -935,8 +935,15 @@ the game's content as you explore*:
 3. **The zone** — its crumbs, `x: y: z:`, who keeps it, the rules in
    force, the map.
 4. **The horizon** — what you can see beyond this room: landmarks first,
-   each with its compass point and range (`query horizon`'s set); on the
-   map, bearing ticks at the edge.
+   each with its compass point and range, on land and at sea alike — one
+   computation on one geographic frame ([geography-slate](./geography-slate.md));
+   on the map, bearing ticks at the edge. Summary: *Horizon · the
+   lighthouse 2 km NE · the Corrigan 3 nm E · 2 sails*. A sighting's
+   tooltip: what it is (name, kind, height, illustration thumbnail); its
+   bearing and range; where it stands as your map knows it; whether you
+   have been; your route to it. **Click: `look` at it** (its inspection
+   card); *route there* and, at the helm, *lay a course* are actions in the
+   tooltip (lean). Traffic at sea is a name, a bearing and a range only.
 5. **The structure** — inside: which building, which storey, the way to its
    entrance; outside: the structures you are **landed at** (which faces you
    can reach — the painting landing, shown at last). Aboard ship, her decks.
