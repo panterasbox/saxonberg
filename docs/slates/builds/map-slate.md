@@ -978,9 +978,22 @@ the game's content as you explore*:
    a fixed *door / window / grating* shape: a pack's new boundary (a
    portcullis, a ward, an airlock) shows its blocks with no client change,
    and a facet the client cannot draw still shows as a plain fact row.
-7. **The place** — the room itself (next to design).
-8. **You** — your person as a navigator: pace and endurance, load (what
-   you can climb or swim with), the light you carry, posture, a mount.
+7. **The place** — light: the room already gets its own inspection card
+   when you enter, so the nav card shows only what bears on moving through
+   it and on what your map knows of it. *Place · dark · searched, nothing
+   more · a tripwire here.* Light (dark shows fewer ways, and your map grows
+   only from what you see); open sky or roofed (is there a horizon); water —
+   depth, current; **searched or not** (the one claim where absence means
+   something); hazards you have found here; your knowledge of it — first
+   walked, last seen, sources, conflicts; staged or persistent; crowding as
+   a count. Not its description, contents, people or illustration (the
+   inspection card's), nor its position or storey (above). Click: bring its
+   inspection card forward.
+8. **You** — your person as a navigator: *You · walking · light load · lamp
+   lit*. Pace and endurance; load — what you can climb or swim with and
+   what fits through an opening ([size-and-carrying](../../subsystems/carrying.md),
+   build-1's); the light you carry; posture; a mount or vehicle. The pace
+   switch lives here.
 
 **The glance rule.** Nobody reads it top to bottom, and it need not be read
 so: the **place name, the map and the ways are always open**; every other
