@@ -1001,6 +1001,17 @@ section is **one summary line** that opens on click, its detail in its
 tooltip. The order is fixed (muscle memory); the player chooses which
 summaries stay open, and the card remembers.
 
+**Fill the height, in order** (the owner, 2026-11-15: *"why are we
+truncating when there's so much empty space?"*). The docked card is the
+window's height, so it **fills the space it has**: with room to spare,
+summary lines wrap, then the next sections **open by themselves** in the
+fixed order, widest first; when space runs out they fold back to one line,
+last first — and only then does text truncate, always with the full text
+in its tooltip. Sections the player has opened or closed stay as set;
+filling decides only the untouched ones. A thin place gets a short card, a
+rich place on a tall screen everything open, the same place on a laptop
+summary lines.
+
 **Absent, not empty.** A section with nothing to say does not appear — a
 bare cave has no horizon, no structure, no zone rules. The one exception is
 the map's *no map for this kind of space yet*. Thin places get a short card;
