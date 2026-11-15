@@ -25,7 +25,7 @@ class Built extends AssembledMixin(DurableMixin(Good)) {}
 const OAK = '/stuff/idea/material/_size/oak';
 const LINEN = '/stuff/idea/material/_size/linen';
 
-describe('Containable — size', () => {
+describe('Shaped — size', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
