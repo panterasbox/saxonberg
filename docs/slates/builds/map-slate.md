@@ -944,9 +944,18 @@ the game's content as you explore*:
    have been; your route to it. **Click: `look` at it** (its inspection
    card); *route there* and, at the helm, *lay a course* are actions in the
    tooltip (lean). Traffic at sea is a name, a bearing and a range only.
-5. **The structure** — inside: which building, which storey, the way to its
-   entrance; outside: the structures you are **landed at** (which faces you
-   can reach — the painting landing, shown at last). Aboard ship, her decks.
+5. **The structure** — three situations ([construction.md](../../subsystems/construction.md)):
+   **inside** — *The Counting-house · ground floor of 3 · out: south* (name
+   and description, the storey you are on and what stands on what, the way
+   to its entrance, height, landmark, its outside's condition, persistent or
+   staged); **outside, at a landing** — *Beside: the Counting-house (door
+   N) · the cottage* (per structure: which face you can reach from here, its
+   outside's condition, the way in, height); **aboard ship** — her decks as
+   storeys, the gangway, where she is made fast, whether she is leaking.
+   ⭐ *Floor N of M* comes from **storeys**, never `z`. The owner's name is
+   the structure card's; the nav card says only persistent or staged (how
+   long your map of its inside stays true). Click: `look` at it. Trade
+   verbs that bind at a landing (`paint`, `survey`) are not offered here.
 6. **Boundaries** — the ways section (the rose with up and down, the other
    ways, the ways leaving the zone) and what stands in each way: doors in
    their states, windows as edges you see through and cannot cross.
