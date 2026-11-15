@@ -55,7 +55,7 @@ written as the template for every other.
   shapes.
 - **Material pages** → after the [material-decomposition build](../slates/builds/material-decomposition-slate.md),
   so they are written against mixins, not 347 rows.
-- **DBpedia derivation and the study.com crosswalk candidates** →
+- **DBpedia derivation and the external-catalog crosswalk candidates** →
   [real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md) § 6.
 - **An authoring tool for finding Wikidata ids** → the anchors slate § 7; the pilot's ids are found by
   hand.

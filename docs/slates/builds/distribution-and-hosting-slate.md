@@ -23,8 +23,7 @@ gonna be."*
 
 ## 1. ⭐⭐ The business is managed hosting **[DECIDED — already documented]**
 
-[platform-business-model.md](../../study-com/platform-business-model.md) § 2
-names it: **managed operations** — the copyright holder runs the infrastructure
+The platform business model names it: **managed operations** — the copyright holder runs the infrastructure
 and updates, a community brings its capital, labor and users. The owner,
 2026-10-19: *"me set up shop on aws or whatever running servers for people at
 the cost of the hosting plus markup for my labor … most people don't have the

@@ -33,8 +33,8 @@ hardest one to hold.
 > ⚠ **Two different "firsts", and they must not collide.** Wizardry is
 > the first curriculum for **the world**. **Magic 101 stays the first
 > curriculum for the pitch** — its job is *here is your schema,
-> populated, running*, and wizardry proves nothing about study.com's
-> schema. Wizardry is not off-catalogue (what it teaches is systems
+> populated, running*, and wizardry proves nothing about an external
+> catalog's schema. Wizardry is not off-catalogue (what it teaches is systems
 > analysis, schema literacy, writing for an audience, cost estimation),
 > but it does not do the import demo.
 
@@ -160,8 +160,7 @@ entries, ~45 appear in work anyone will do.
   shops at 4.5 of 9 months, *"a week apiece, which includes coding up the
   items to be sold"* — tier 3 is the whole of that sentence.
 - ⭐ **Tier 5's lesson is not to learn it.** Know it exists and look it
-  up. That is the teachability doc's category B, where enactment fails and
-  reference wins.
+  up. That is the case where enactment fails and reference wins.
 
 ## 5. ⭐⭐⭐ The class is not the noun — the first reflex to break
 
@@ -270,8 +269,8 @@ Three artifacts ship:
 clothes. Organised by **the thing you are making** it is a studio course
 — which is how these authors actually worked, incrementally on one area
 for months. Eight topics, each a layer of one place you keep returning
-to, every lesson ending with *your* place changed. That lands on
-study.com's own sizing (~8 nodes × 5–8 lessons, 5–10 min each).
+to, every lesson ending with *your* place changed. That lands on a
+typical online course's sizing (~8 nodes × 5–8 lessons, 5–10 min each).
 
 1. **A room that exists** — paths, the five namespace axes, `class:`, the
    row boots. ⭐ 100% machine-graded, zero marginal cost.
@@ -296,8 +295,7 @@ across all of it — *144 rooms that all say blanket of heat.*
 
 ### The program above it
 
-study.com's own top tier is literally **`Program`**, so wizardry is a
-program and W101 is one course in it. ⭐⭐⭐ **Order the rest by who can
+Wizardry is a program and W101 is one course in it. ⭐⭐⭐ **Order the rest by who can
 grade it** — 101 fully machine-graded, the middle mixed, the top pure
 crit, the capstone graded by reception over time. That is not tidiness:
 **it is the cost curve.** Thousands take 101 for free; only the few who
@@ -313,52 +311,31 @@ item generator's misconception bank **already populated**), and a pack
 that ships. ⚠ **There is no TypeScript anywhere in the program** — which
 is what makes the ladder honest and the gate at the top honest too.
 
-## 10. study.com — the structure, and three corrections
+## 10. Course structure — make our model immune
 
-⚠ **`platform-reality.md` wins by its own declaration** (verified against
-the live stage DB; *"where any design doc conflicts with this one, this
-one wins"*).
-
-**The stored hierarchy is `Program → Course → Topic → Lesson`, and
-"chapter" is not an entity** — it is a derived display index,
-`Topic.getChapterNumber()`. The CX product presents a **unit** tier that
-no doc mentions; the tree is a single self-referential
-`Academy_Asset_Tree`, so Topics plausibly nest and *unit* is the outer
-one. ⚑ Worth confirming, but:
-
-> ⭐⭐⭐ **Do not resolve it — make our model immune.** One ordered,
-> recursive `CourseNode` that may contain nodes or lessons, **with
-> assessment attachable to any node.** Then *assessment at different
-> layers* (lesson quiz → chapter test → unit test → practice final →
-> proctored final) needs zero tier-specific code, and however
-> unit/chapter resolves it costs us nothing. Their own assessment
-> containers are already this shape: `QuestionBank → Quiz`,
-> `ExamTemplate / Section / Page`, `Exam_Instance` with an
-> `AlgorithmType`, `Proctored_Exam`.
+> ⭐⭐⭐ **Do not commit to any external catalog's tier names.** One
+> ordered, recursive `CourseNode` that may contain nodes or lessons,
+> **with assessment attachable to any node.** Then *assessment at
+> different layers* (lesson quiz → chapter test → unit test → practice
+> final → proctored final) needs zero tier-specific code, and however an
+> external catalog names its tiers (unit, chapter, topic) it costs us
+> nothing.
 
 ⛔ **[college-slate](./college-slate.md)'s "load-bearing decision" is
 stale** — it commits to adopting *course → chapter → lesson* "field for
-field" and names a tier that does not exist. Recursive node is both the
-fix and strictly more faithful.
+field". Recursive node is both the fix and strictly more faithful to any
+catalog we might crosswalk to.
 
-Three more that change what we build:
+Two more that change what we build:
 
-- ⛔ **There is no learning-objective entity.** Zero hits for `objective`
-  in `academy-services`; the tag is a `Concept` or `ExamTaxonomyNode` id.
-  So **items tag to a Discipline node on our side and the crosswalk is
-  proprietary-adapter work.** For wizardry this is free: the Discipline
-  graph is ours, so wizardry's nodes are ours to define.
-- ⭐⭐ **The crit and the viva already have sockets on their side.**
-  `Question.Type` has ~20 values: `ESSAY` with an authored **`llmRubric`**
-  (LLM-graded), **`AI_MASTERY`** as multi-step `LLM_CHAT /
-  USER_MULTIPLE_CHOICE / USER_CONFIRMATION / USER_TEXT`, and
-  `GradableCourseProject` — and **all of those live on the CX side**, plus
-  `Question_Passage.case_study` with authored progressive reveal
-  (`case-reveal="N"`). The classroom is not foreign to their product; it
-  is their newest surface with a world behind it.
-- **Lessons are already dual-register** — a Wistia video *plus* a full
-  text transcript *plus* longform text. Our text client renders their
-  lesson natively, no adapter.
+- **Items tag to a Discipline node on our side, and any crosswalk to an
+  external catalog is adapter work.** For wizardry this is free: the
+  Discipline graph is ours, so wizardry's nodes are ours to define.
+- ⭐⭐ **The crit and the viva are ordinary assessment shapes** — an essay
+  graded against an authored rubric, a multi-step guided conversation, a
+  graded project, a case study with progressive reveal. The classroom is
+  not foreign to online learning; it is a newer surface with a world
+  behind it.
 
 ⭐ **And the teachability verdict is the strongest available.** The three
 modes are *direct enactment · allegory · reference*, and **wizardry is
@@ -371,8 +348,7 @@ layer out of reach.
 ⚠ **Do not build a room-and-bell simulator.** The lecture hall is nearly
 free (the watch embed ships) and teaches us nothing. Build **the cohort**
 and **the crit**, because they are what a content library structurally
-cannot do, they deliver the social layer the strategy doc names as
-study.com's gap, and **they are the measurement wizardry needs** (the
+cannot do, they deliver the social layer a content library lacks, and **they are the measurement wizardry needs** (the
 Discipline slate's open Q2: the band must derive from reception or it is a
 churn metric). ⭐ **For this course the build order inverts: assessment
 first, room last.**
@@ -485,13 +461,12 @@ entrenchment tier. All three have homes; none is written.
    something real.
 5. **The bean/brew conflation** — fix it, or preserve it as the teaching
    case? (Cannot be both.)
-6. ⚑ **Is CX's unit tier stored or derived?** Idle curiosity if we go
-   recursive; it decides how we talk to them.
+6. ⚑ *(retired — the recursive `CourseNode` makes an external
+   catalog's tier names irrelevant.)*
 7. **Do wizardry's Discipline taxonomy nodes get defined now?** Items
    must tag somewhere (§ 10).
 8. **Does W101 stay fully deterministic for v1**, or get
-   `AI_MASTERY`-shaped activities from the start, since that is where
-   their CX already is?
+   model-guided multi-step activities from the start?
 
 ## Cross-refs
 
@@ -506,10 +481,6 @@ entrenchment tier. All three have homes; none is written.
 - [../../eotl-craft.md](../../eotl-craft.md) +
   [../../eotl-census.md](../../eotl-census.md) — ⭐⭐⭐ the reference the
   whole slate judges against.
-- [../../study-com/platform-reality.md](../../study-com/platform-reality.md)
-  — verified ground truth; it wins over every other study.com doc.
-- [../../study-com/teachability-boundary.md](../../study-com/teachability-boundary.md)
-  — the three modes, and why wizardry is mode 1.
 - [../../wizardry-rubric.md](../../wizardry-rubric.md) — ⭐⭐⭐ what the
   Discipline measures; § 2 there is this slate's progress instrument.
 - [../../design-lenses.md](../../design-lenses.md) +

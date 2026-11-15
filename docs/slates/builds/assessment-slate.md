@@ -8,7 +8,7 @@
 > codes, stored-but-unread `requires` edges ([advancement.md](../../subsystems/advancement.md)).
 > **Left:** assessment as the general measure (§ 1) · exams over taxonomy nodes, quick win to
 > deep, adaptive (§ 3) · the issuer model — institution and standards body as one mechanism
-> (§ 4) · our own item banks, trades first, ahead of any study.com deal (§ 5) · the exam
+> (§ 4) · our own item banks, trades first, ahead of any partner deal (§ 5) · the exam
 > interface, timed (§ 6) · what a Discipline node carries (§ 7) · a realm admits assessment,
 > performance or both (§ 8) · the refusal that names its examiner (§ 9) · ⭐ the Discipline
 > tree pass (§ 10) · lockcraft as the first consumer (§ 11)
@@ -77,10 +77,9 @@ never the assessment half.
 | document | what it already decided | this slate |
 |---|---|---|
 | [advancement.md](../../subsystems/advancement.md) (shipped) | Transcript `deed`/`claim`; BKT with difficulty-modulated guess and slip; act signatures; channels; bands only; `iscedf` | the student model, unchanged |
-| [college-slate](./college-slate.md) | ⭐ the **procedural item generator that calls the game's own code** (*"it never reimplements the physics"*); distractors are **named errors** from a misconception bank; four assessment modes; *the course cites, never restates*; adopt study.com's taxonomy verbatim | the generator is how § 5 keeps items true to the world. ⚠ The verbatim taxonomy is revisited in § 3 |
+| [college-slate](./college-slate.md) | ⭐ the **procedural item generator that calls the game's own code** (*"it never reimplements the physics"*); distractors are **named errors** from a misconception bank; four assessment modes; *the course cites, never restates*; adopt an external catalog's taxonomy verbatim | the generator is how § 5 keeps items true to the world. ⚠ The verbatim taxonomy is revisited in § 3 |
 | [guild-slate](./guild-slate.md) | the **witnessed rank exam** (*eligibility derived, conferral witnessed*); the **claim rule** — a charter claims only Disciplines it has a master of | the guild is the standards-body issuer (§ 4) |
-| [study-com/integration-spec](../../study-com/integration-spec.md) | `recordClaim`, the claim producer; **provenance tags weight evidence** (`identity-verified > proctored > unverified > self-report`; a deed outranks any claim) | integrity weighting (§ 4), already designed |
-| [study-com/dual-transcript](../../study-com/dual-transcript.md) | the claim ledger and the deed ledger, **shown side by side**, the comparison itself the product | the lean for § 12 Q1 |
+| the education-integration design (retired from the tree) | `recordClaim`, the claim producer; **provenance tags weight evidence** (`identity-verified > proctored > unverified > self-report`; a deed outranks any claim); the claim ledger and the deed ledger **shown side by side**, the comparison itself the product | integrity weighting (§ 4); the lean for § 12 Q1 |
 | [real-world-anchors-slate](./real-world-anchors-slate.md) | a **Wikidata id** anchors a reality-shaped row (Disciplines named); relation *is · models · contrasts* with a note on how we differ | § 7's reference, decided there |
 
 ## 3. ⭐⭐ Exams are built from taxonomy nodes; evidence lands per node **[DECIDED — the owner]**
@@ -98,10 +97,9 @@ locks — you don't need to take the whole course."*
 - **A parent's standing derives from its children** — a measurement of one domain, inside the
   measurement doctrine ([measurement.md](../../measurement.md) § *Consumption confers monopoly*:
   the engine reads single-domain measurements, never a cross-domain valuation).
-- ⚠ **The college slate's "adopt study.com's taxonomy verbatim" is revisited.** That taxonomy is
-  course → chapter → lesson and has no trades. **Our Discipline tree is the grain; study.com's
-  concepts map onto it by crosswalk** (the [platform-reality](../../study-com/platform-reality.md)
-  correction already replaced the ISCED-F reverse index with an authored crosswalk).
+- ⚠ **The college slate's "adopt an external taxonomy verbatim" is revisited.** That taxonomy is
+  course → chapter → lesson and has no trades. **Our Discipline tree is the grain; an external
+  catalog's concepts map onto it by an authored crosswalk.**
 
 ## 4. ⭐⭐ Issuers — institution and standards body, one mechanism **[DECIDED — the owner]**
 
@@ -115,7 +113,7 @@ locks — you don't need to take the whole course."*
 `claim` evidence attested by the issuer. The university and each guild are **rows**; a rival
 guild or Rejection's mining school is rows (lens 2).
 
-- **Integrity weights the evidence** — the study.com spec's provenance tags, generalized: an exam
+- **Integrity weights the evidence** — the integration design's provenance tags, generalized: an exam
   taken **in person at the issuer's venue before a seat-holder** is strong evidence; open-book
   anywhere is weak. Nothing is forbidden; weak evidence moves the estimate less, through the BKT
   guess parameter the estimator already has.
@@ -128,7 +126,7 @@ guild or Rejection's mining school is rows (lens 2).
 ## 5. ⭐⭐ Our own item banks, trades first **[DECIDED — the owner]**
 
 *"Coverage is the big one and why I think we'll probably be generating a lot of our own content
-in this regard in advance of any potential study.com deal."*
+in this regard in advance of any potential [ed-tech] deal."*
 
 - **The curriculum is already written**: the trades and their subsystem docs are the syllabus —
   absorbency and sizing, colour by Beer–Lambert, a lock's binding order. Each is a principle the
@@ -206,11 +204,10 @@ and the **Locksmiths' Guild** as its first issuer. See [lock-slate](./lock-slate
 
 1. **One standing or two?** A tester and a doer reach "competent" by different evidence. One
    band fed by both, or *assessed* and *practised* shown side by side? **Lean: side by side** —
-   [dual-transcript](../../study-com/dual-transcript.md) already argues the comparison is the
-   product, and the channel decides which a floor reads (a pick reads `skill`; reading a lock
+   the dual-transcript argument already holds that the comparison is the product, and the channel decides which a floor reads (a pick reads `skill`; reading a lock
    reads `knowledge`).
-2. **Open book.** Study.com's current finals appear to be open-book and unproctored (its own
-   support pages disagree by plan) — the industry that awards credit accepts it. Lean: accept
+2. **Open book.** Many online courses' finals are open-book and unproctored, and the industry
+   that awards credit accepts them. Lean: accept
    it, weight it by provenance, and reserve strong evidence for exams taken before a seat-holder.
 3. **Upkeep.** Spaced re-testing as the loadout's answer — or capacity-not-decay as the
    advancement slate has it?

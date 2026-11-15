@@ -167,7 +167,7 @@ Everything past the middle tier is polity + economy design:
 
 ## Consumers waiting
 
-- The storm-contract cohort video (education-videos.md #6) — films
+- The storm-contract cohort video (the education video briefs' #6) — films
   today on local state; *lands* fully once the middle tier exists.
 - The trades/electrician vertical's daily loop (wishbook).
 - Foundry Row content, when the row builds out.

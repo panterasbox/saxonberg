@@ -52,7 +52,7 @@ questions hiding inside *"education costs money":*
 
 | Layer | Denominated in | Who pays | Settled? |
 |---|---|---|---|
-| **Content** | **real dollars** | the platform licenses study.com's catalogue (transfer credit, test prep) | ✅ theirs to price; a licensing expense |
+| **Content** | **real dollars** | the platform licenses a partner's catalogue (transfer credit, test prep) | ✅ theirs to price; a licensing expense |
 | **In-fiction cost** | **zorkmids** | what enrolling, examining, credentialing costs *in the game* | ⭐ this slate |
 | **In-fiction viability** | zorkmids | whether a student / teacher can *live and engage* while doing it | ⭐ this slate |
 

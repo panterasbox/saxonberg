@@ -113,20 +113,20 @@ they removed the category along with the abuse.**
 
 ### ⭐⭐⭐ Except the positive doctrine DOES exist — in the wrong three docs
 
-Corrected 2026-09-30 after the owner pointed at the study.com papers. The
-principle is written, three times, and **never in `measurement.md`**:
+Corrected 2026-09-30 after the owner pointed at the education-pitch
+papers. The principle is written, three times, and **never in
+`measurement.md`**:
 
 - [advancement-slate](../slates/builds/advancement-slate.md) names the
   psychology: *“it defuses the headline edtech risk the motivation lens
   names — **overjustification** — because the reward is **capability you
   chose to build**, not a carrot dangled for studying.”*
-- [adaptive-feed.md](../study-com/adaptive-feed.md) carries it as a
-  standing guard: *“keep verifying the reward is **chosen capability, not
+- an adaptive-feed pitch paper carried it as a standing guard: *“keep verifying the reward is **chosen capability, not
   a carrot**… the feed reports what happened; **it never asks the learner
   to play in order to be diagnosed**.”*
-- [engagement-and-positioning.md](../study-com/engagement-and-positioning.md)
-  has the diagnosis of the whole category, and it is the best sentence in
-  the tree on this subject: *“Gamification didn't fail because the idea
+- an engagement-and-positioning pitch paper had the diagnosis of the
+  whole category, and it is the best sentence in
+  the project on this subject: *“Gamification didn't fail because the idea
   was wrong. It failed because **everyone shipped the scoreboard and
   skipped the game** — and nobody hired a game designer.”*
 
@@ -144,24 +144,11 @@ was a lens entry, and the restart removed it without rehoming the
 content. ([lens-deck-salvage.md](../lens-deck-salvage.md) kept the slate
 checklist and the essence sentences; it did not keep this.)
 
-### ⛔ And a dangling citation, twice
-
-Both [adaptive-feed.md](../study-com/adaptive-feed.md) and
-[integration.md](../study-com/integration.md) cite the guard as
-**`advancement.md:800-802`**. `advancement.md` is **610 lines** and the
-word *overjustification* appears in it **nowhere**. The guard is in the
-*slate*, not the subsystem doc.
-
-⚠ Same defect class as the stale note [#28](./28-the-state-machine.md)
-found in `card-surface.md`: **a confident citation to a line range that
-does not exist**, which reads as authority and sends the reader nowhere.
-
 ## ⭐⭐⭐ Two permitted shapes, from a product that already does this
 
-The owner's answer to the gap is **StudyWorld**, and the two mechanisms
-worth borrowing are observations of the live study.com product rather
-than anything in the papers. ⚠ Noted because no deal is inked — the
-mechanisms are worth having whether or not that relationship happens.
+The two mechanisms worth borrowing are observations of a live ed-tech
+product rather than anything in the papers — worth having whether or not
+any partnership happens.
 
 **1 · Confetti on course completion.** Terminal, earned, tied to a real
 finish. It is **not** variable-ratio (B5 is untouched), not a gauge, and
@@ -191,8 +178,7 @@ faces forward.**
 
 ### ⭐⭐ And the project's own falsifiable test is already written
 
-[engagement-and-positioning.md](../study-com/engagement-and-positioning.md)'s
-**anti-pointsification test**:
+The engagement-and-positioning paper's **anti-pointsification test**:
 
 > *“A scoreboard can't support a livelihood; a badge can't feed you. **If
 > a player can sustain themselves financially by teaching in an honest
@@ -206,14 +192,13 @@ gamification?”*, and it belongs beside B5 rather than in a pitch deck.
 
 The same paper's skeptic question is *“couldn't you build a learning world
 for free on top of Wikipedia?”* and the answer names the layers that make
-feedback possible at all: **Study's taxonomy is DBpedia-derived — the raw
-information layer really is close to Wikipedia** — and what sits on top is
-*curriculum, assessment, **mastery models**, credentials, and the
-organization that maintains them.*
+feedback possible at all: **the raw information layer really is close to
+Wikipedia** — and what sits on top is *curriculum, assessment, **mastery
+models**, credentials, and the organization that maintains them.*
 
 > ⭐⭐ **You cannot give good feedback about learning without a model of
-> what the learner knows.** *“StudyWorld knows education, not just
-> information.”* Which is why this entry's hole and lens 1's hole
+> what the learner knows** — knowing education, not just information.
+> Which is why this entry's hole and lens 1's hole
 > (*nothing measures understanding*) are the same hole seen from two
 > sides: **encouragement needs something true to encourage about.**
 
@@ -315,11 +300,9 @@ nothing in the design uses it deliberately.
 1. ⭐⭐⭐ **Rehome the encouragement doctrine into `measurement.md`.** It
    exists — *the reward is **chosen capability**, not a carrot*, plus the
    **overjustification guard** and the **anti-pointsification test** — and
-   it lives in a slate and two vertical pitch docs. Every prohibition is
-   in `measurement.md`; the one permission is not. ⛔ **And fix the
-   dangling citation**: two docs point at `advancement.md:800-802` for a
-   guard that is in `advancement-slate.md`, in a 610-line file that never
-   mentions it.
+   lives in a slate (the two vertical pitch docs that also carried it
+   are gone). Every prohibition is in `measurement.md`; the one
+   permission is not.
 2. ⭐⭐⭐ **Build the second scale.** *“Quick wins” → “deep learning”* is
    a **path** vocabulary over the same competency band, and
    `Quantity.tag(scale)` already does exactly this

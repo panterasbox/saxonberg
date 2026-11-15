@@ -8,7 +8,7 @@
 > [contract.md](../../subsystems/contract.md), positions →
 > [employment.md](../../subsystems/employment.md), the path-addressed
 > catalogue pattern → [help.md](../../subsystems/help.md).
-> **Left:** the course catalogue + reader in the study.com taxonomy · the
+> **Left:** the course catalogue + reader (recursive `CourseNode`) · the
 > procedural item generator + examination on Magic 101 (the centerpiece;
 > the seed, evaluator contract, misconception-bank distractors and the
 > discrimination invariant) · enrollment as contract + Transcript wiring ·
@@ -17,7 +17,7 @@
 > employment (TA positions, sections, the mixed roster) · the
 > course-cites-never-restates syllabus + contribution as coursework · Poli
 > Sci 200 (unauthored) · deferred: player-authored courses · ⚠ blocked on
-> study.com only for the OUTPUT format
+> an ed-tech partner only for the OUTPUT format
 > **Size:** a build
 
 > Scope: the **academic apparatus** — what a course is, how assessment
@@ -28,9 +28,8 @@
 > knowledge gets found and published).
 >
 > The forcing function: the University has to teach something, and the
-> study.com pitch needs a demonstration that a real course catalog can
-> run inside this world. See [study-com-brief.md](../../study-com/brief.md)
-> for what we're asking the study.com side to tell us, and
+> ed-tech pitch needs a demonstration that a real course catalog can
+> run inside this world. See
 > [arcane-science.md](../../arcane-science.md) for the invented subject
 > the first course teaches.
 
@@ -45,8 +44,6 @@ See also:
   assessment. Its `predict` gate is our practical exam.
 - [../../arcane-science.md](../../arcane-science.md) — the first
   invented subject, authored to be teachable.
-- [../../study-com-strategy.md](../../study-com/strategy.md) — the deal
-  thinking; stakeholder map; the assessment-provenance seam.
 - [../../subsystems/advancement.md](../../subsystems/advancement.md) —
   Competence, the Transcript, Disciplines. Assessment writes here.
 - [../../subsystems/chronicle.md](../../subsystems/chronicle.md) —
@@ -102,54 +99,33 @@ sociable, expensive path onto a ladder that already exists.
 
 ---
 
-## The load-bearing decision: adopt the study.com taxonomy verbatim
+## The load-bearing decision: one recursive course node
 
-> ⛔⛔ **CORRECTED 2026-10-04 — this section names a tier that does not
-> exist.** `platform-reality.md` (verified against the live stage DB, and
-> authoritative over every other study.com doc by its own declaration)
-> reports the stored hierarchy as **`Program → Course → Topic → Lesson`**;
-> **"chapter" is not an entity** but a derived display index,
-> `Topic.getChapterNumber()`. The CX product additionally presents a
-> **unit** tier that no doc accounts for — plausibly a nested Topic, since
-> the store is a single self-referential `Academy_Asset_Tree`.
->
+> ⛔⛔ **CORRECTED 2026-10-04.** This section once committed to adopting
+> an external catalog's *course → chapter → lesson* shape field for field.
 > ⭐⭐⭐ **The fix is not to pick a tier list: it is one ordered,
 > recursive `CourseNode` that may contain nodes or lessons, with
 > assessment attachable to ANY node.** Then *assessment at different
-> layers* needs no tier-specific code and the unit/chapter question costs
-> us nothing — and it is strictly more faithful to their store than a
-> fixed three-tier shape was. Their assessment containers are already
-> this shape (`QuestionBank → Quiz`, `ExamTemplate / Section / Page`,
-> `Exam_Instance` + `AlgorithmType`, `Proctored_Exam`).
+> layers* needs no tier-specific code and however a catalog names its
+> tiers (unit, chapter, topic) costs us nothing.
 >
-> ⛔ **Two further corrections that change this slate's spine**, both from
-> the same verified doc: **there is no learning-objective entity** (zero
-> hits for `objective` in `academy-services`; the taggable unit is a
-> `Concept` / `ExamTaxonomyNode` id, so the generator's `objective` field
-> is a Discipline node here and the crosswalk is adapter work) — and
-> **items are not MC-only**: ~20 types including `ESSAY` with an authored
-> `llmRubric`, multi-step **`AI_MASTERY`** (`LLM_CHAT /
-> USER_MULTIPLE_CHOICE / USER_CONFIRMATION / USER_TEXT`) and
-> `GradableCourseProject`, all on the **CX** side. ⭐⭐ Those are the
-> sockets the viva and the crit plug into — the human-graded half of this
-> slate is not foreign to their product, it is their newest surface.
+> ⛔ **Two further corrections that change this slate's spine:** the
+> generator's `objective` field is a **Discipline node** here, and any
+> crosswalk to an external catalog is adapter work — and **items are not
+> MC-only**: an essay graded against an authored rubric, a multi-step
+> guided conversation and a graded project are all ordinary assessment
+> shapes. ⭐⭐ Those are the sockets the viva and the crit plug into.
 >
 > See [wizardry-curriculum-slate.md](./wizardry-curriculum-slate.md) § 10.
 
-
-**Course → chapter → lesson,** with their metadata fields, their
-lesson types, their objective tagging. Not "inspired by" — the same
-shape, field for field, as far as their schema is public or
-disclosable.
-
 Why this is the highest-leverage decision in the slate:
 
-- Licensing their catalog later becomes a **data import, not a
+- Licensing a partner's catalog later becomes a **data import, not a
   redesign.**
-- In the meantime, Magic 101 authored into their exact schema is a
-  live demonstration that their catalog drops in. The pitch stops
-  being *"we could integrate"* and becomes *"here's your schema,
-  populated, running."*
+- In the meantime, Magic 101 authored as a course tree is a live
+  demonstration that a real catalog drops in. The pitch stops being
+  *"we could integrate"* and becomes *"here's a catalog, populated,
+  running."*
 - It costs us nothing. We have no incumbent course taxonomy to
   protect.
 
@@ -159,14 +135,14 @@ collection), chapters as ordered children, lessons as
 `StoredDocument`s in the document store. The in-game browser is the
 `help api` browser pattern with a different root.
 
-⚑ The exact field list is the first thing we need from the study.com
-side. Guessing it wastes work.
+⚑ The exact field list is the first thing we need from a partner.
+Guessing it wastes work.
 
 ---
 
 ## Assessment — four modes, one of which they cannot do
 
-| Mode | Graded by | study.com analog |
+| Mode | Graded by | online-course analog |
 |---|---|---|
 | **Examination** | engine-computed key, procedurally generated items | chapter test / final |
 | **Practical** | engine checks a submitted result against truth, within tolerance | lab project |
@@ -182,7 +158,7 @@ instrument.
 `chronicle.md`'s **deed vs claim** distinction *is* assessment
 provenance. A competence evidenced by engine-witnessed deed is a
 different record from one asserted by claim, and the record carries
-which. That's the seam the study.com strategy doc called for —
+which. That's the seam an ed-tech integration needs —
 credential events carrying their assessment conditions (proctored /
 identity-verified open-book / unverified self-report) — and it exists.
 
@@ -209,8 +185,8 @@ effect — the record is a presentation, per the credential doctrine.
 
 ## The procedural item generator — the centerpiece
 
-Most study.com grading is **procedurally generated exams.** That is
-the single best fit between what they do and what we have, because our
+Much online-course grading is **procedurally generated exams.** That is
+the single best fit between what that industry does and what we have, because our
 items can be generated from the running sim with a **computed answer
 key.**
 
@@ -231,12 +207,8 @@ What it buys, in their language:
 2. **No item leakage.** Every student gets different numbers, so
    answer-sharing does nothing. A *higher* integrity signal at *less*
    friction — precisely the door that opens when proctoring shifts from
-   live supervision to automated identity verification. *(Corrected
-   2026-08-07: the strategy doc's "proctoring was removed" premise was too
-   strong — `Proctored_Exam` is alive and CX credit rides it,
-   [platform-reality §6](../../study-com/platform-reality.md). The
-   generator's argument is unaffected: per-student items beat shared
-   answers regardless of how the room is invigilated.)*
+   live supervision to automated identity verification. Per-student
+   items beat shared answers regardless of how the room is invigilated.
 3. **One generator, two modes.** The same spec emits the
    multiple-choice item *and* the practical ("go do it, report your
    number"). That is the inquiry slate's didactic/experiential
@@ -394,7 +366,7 @@ have not understood.
 ### What is blocked
 
 Everything above is ours and unblocked. What we cannot finish without
-study.com is the **output format**: their item schema, how variants are
+a partner is the **output format**: their item schema, how variants are
 declared in their system, objective tagging, and difficulty metadata.
 Build the generator to emit an internal representation, and treat
 their format as a **renderer** over it — then the schema arriving late
@@ -449,7 +421,7 @@ Worth stating plainly because it is both true and pitch-relevant.
 
 Ten shipped substrates, no new subsystem. That is the
 systems-over-content doctrine paying off, and it is the claim that
-makes a pilot look cheap to their engineering side.
+makes a pilot look cheap to a partner's engineering side.
 
 **Enrollment-as-contract is the sleeper.** It means financial aid,
 deferred tuition, employer sponsorship, and the Working Scholars shape
@@ -465,7 +437,7 @@ Master a course, get hired to TA it. Teaching is a position on the
 University business with shifts, wages, and a roster.
 
 This is the practicum thesis's **load-balance mechanism** staged in
-the exact venue study.com cares about: a lab section run by a player
+the exact venue an ed-tech partner cares about: a lab section run by a player
 next to one run by an NPC, indistinguishable to a student, with a live
 handoff available. Seats ration in the real world because seats are
 people; here they don't, because the world staffs what players don't
@@ -477,9 +449,9 @@ library), and the person who has mastered a course sells sections.
 
 ---
 
-## The social layer — their structural gap
+## The social layer — the content library's structural gap
 
-From the strategy doc: study.com's product has essentially no social
+Self-paced online courses have essentially no social
 dimension, self-paced structurally means self-isolated, and the
 loneliness of the deferred goal is plausibly *the* stall-churn driver.
 Pitch-weight: co-headline with completion.
@@ -755,7 +727,7 @@ should know:
 - **⚑ Their schema.** Course/chapter/lesson field list, lesson types,
   objective tagging, prerequisite modelling, item schema, rubric
   format. Blocks the catalogue shape and the generator's output
-  format. See the brief.
+  format.
 - **⚑ What ACE/NCCRS require as assessment evidence.** Determines
   whether the **deed** mode can ever count toward credit, or whether
   it is strictly a motivation and capability layer. Materially changes
@@ -786,8 +758,8 @@ should know:
 
 ## Build order (sketch)
 
-1. **Course catalogue + reader** — the data-Idea catalogue in their
-   taxonomy, lessons as documents, the browser on the help pattern.
+1. **Course catalogue + reader** — the data-Idea catalogue as a
+   recursive `CourseNode` tree, lessons as documents, the browser on the help pattern.
 2. **The item generator + examination** — on Magic 101, using the
    shipped magic/fire/materials subsystems as the answer key. *The
    demo centerpiece.*
@@ -814,9 +786,9 @@ inquiry build.
   laws, the wrong paper. That's the inquiry slate; this slate consumes
   its predict gate as one assessment mode.
 - The **content of any course.** Magic 101's syllabus is synthesized
-  later against the study.com product analysis; the Compact course
+  later; the Compact course
   isn't authored yet.
-- **Real integration engineering** with study.com. One outbound
+- **Real integration engineering** with an ed-tech partner. One outbound
   credential event feed is the whole technical ask for a pilot, and it
   is not designed here.
 - Anything that would imply this **replaces regulated practica.**

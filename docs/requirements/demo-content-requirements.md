@@ -1,10 +1,9 @@
 # Demo content — requirements
 
-The content-authoring tract of the education-video effort: the small,
+The content-authoring tract of the education video effort: the small,
 permanent world beats the five videos film against. Seeded by
 [demo-slate.md](../slates/builds/demo-slate.md) (items 2–5, 7), with
-briefs in [education-videos.md](../education-videos.md) (§ Pre-script
-gap audit) and the ceremony doctrine in
+the video briefs' pre-script gap audit and the ceremony doctrine in
 [lens-deck-salvage.md](../lens-deck-salvage.md). Everything here is
 world-content that earns its place independent of the videos — the
 never-half-grown rule applies: each piece ships as a real, complete
@@ -87,8 +86,7 @@ fixture of the world, not a film set.
   behavior loop. The wishbook's aid-post fiction lands later at
   Ferrow Delving with organic patients.
 - **The mobile-floor check** and **the resonance feel-test** —
-  verification and theme work tracked in
-  [education-videos.md](../education-videos.md), not content.
+  verification and theme work tracked with the video briefs, not content.
 - **Video scripts** — downstream of this build.
 - **The acquisition build** — the session's captured rulings
   ([slates/builds/acquisition-slate.md](../slates/builds/acquisition-slate.md):
@@ -130,8 +128,7 @@ explicitly:
   medic verbs function on whoever is brought in.
 - **V2's "months in the role" stage is only partially served** by
   this build — the room and stock exist; the standing rounds loop
-  does not. The video-side gap stays open in
-  [education-videos.md](../education-videos.md)'s audit.
+  does not. The video-side gap stays open in the video briefs' audit.
 
 ### The campus slice rides the authored design, not an invented one
 
@@ -1171,8 +1168,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
   [eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city) (the
   city plan: campus at the north head, the rivers), `~/play/eotl/mudlib/zone/null/eternal/`
   (the EC source — road prose origins, the Heart)
-- Video briefs: [education-videos.md](../education-videos.md);
-  wishbook loops: [the wishbook](../slates/tails/staging-leftovers-slate.md#4-the-wishbook)
+- Wishbook loops: [the wishbook](../slates/tails/staging-leftovers-slate.md#4-the-wishbook)
 - Ceremony doctrine: [lens-deck-salvage.md](../lens-deck-salvage.md)
 - Campus plan: [the grand tour](../slates/tails/staging-leftovers-slate.md#5-the-grand-tour-launch-content-bundles)
 - Subsystem docs: [advancement](../subsystems/advancement.md)

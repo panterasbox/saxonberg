@@ -173,7 +173,7 @@ shape — and that shape **contradicts** two kept sections, flagged below.
 - `# Phase A` → `## The mechanism — author the prior, not the evidence` · `## ⭐ Stated effort, not stated band — DECIDED` · `## ⭐ The crowd costs nothing` · `## Background is a content-trust surface` · `## Players have backgrounds too` · `## Open questions (Phase A)` (1–5) — all `Left`
 - `## The sibling ledgers` (the table — mixed, see Uncertain) · `### ⚠ Gap 1 — authored acquaintance` (`Left`; `introduces` brain still the only way an NPC learns an identity) · `### Scope`
 - `# Phase B` → every section (`## Two engine facts` · `## The three buckets` · `## Export the evidence, not the estimate` · `## The adapter — four rules` · `## Difficulty is world-relative` · `## The claim faucet` · `## The three variants` · `## Identity, consent, revocation` · `## Acceptance policy is a published artifact` · `## Open questions (Phase B)`) — nothing in code
-- `## What this slate does NOT cover` · `## Cross-references` (spine; every link's target still exists, including `docs/study-com/`)
+- `## What this slate does NOT cover` · `## Cross-references` (spine; every link's target still exists)
 
 ### Doctrine — kept, for the coordinator to home
 - `## The one idea` — the thesis: one answer to *"what did this character do before now"*, three provenances (native / authored / foreign), *an import is just a background whose author was another world*
