@@ -276,7 +276,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public awkwardnessOf(item: Stuff): number {
       const self = this as unknown as Stuff;
       const stature = MixinApi.isPosed(self) ? self.getStature() : null;
-      if (!MixinApi.isTangible(item) || !MixinApi.isTangible(self)) return 1;
+      if (!MixinApi.isContainable(item) || !MixinApi.isContainable(self)) return 1;
       const longest = item.getDimensions()?.longest() ?? 0;
       const vol = item.getVolumeM3() ?? 0;
       const body = self.getVolumeM3() ?? 0;

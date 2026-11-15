@@ -87,7 +87,7 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * @hook ⭐ The folding seam (size and carrying D3): a folded flexible
      * thing packs smaller. A number until the folding build's crease model
-     * replaces it; a rigid thing's pack ignores it (`Tangible.getPackedVolumeM3`).
+     * replaces it; a rigid thing's pack ignores it (`Containable.getPackedVolumeM3`).
      */
     foldPackingFactor(): number {
       return this.isFolded() ? SIZE_DEFAULTS.FOLDED_PACKING : 1;

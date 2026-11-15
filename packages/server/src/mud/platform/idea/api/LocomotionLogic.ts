@@ -334,7 +334,7 @@ export class LocomotionLogic extends ApiLogic {
     if (mode.getName() !== 'run' || !MixinApi.isLoadBearing(actor) || !MixinApi.isAttired(actor)) return null;
     const stature = MixinApi.isPosed(actor) ? actor.getStature() : null;
     for (const held of actor.heldThings()) {
-      const longest = MixinApi.isTangible(held) ? held.getDimensions()?.longest() ?? 0 : 0;
+      const longest = MixinApi.isContainable(held) ? held.getDimensions()?.longest() ?? 0 : 0;
       const tooLong = stature !== null && stature > 0 && longest > stature * LOAD_BEARING_DEFAULTS.RUN_AWKWARD;
       if (!tooLong && actor.awkwardnessOf(held) <= LOAD_BEARING_DEFAULTS.RUN_AWKWARD_FACTOR) continue;
       return {

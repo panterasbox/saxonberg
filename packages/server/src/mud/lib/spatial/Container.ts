@@ -439,7 +439,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!this.hasInterior()) {
         return { ok: false, reason: 'no-room', facts: { container: self as Stuff, item, dims: null } };
       }
-      const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
+      const box = (MixinApi.isContainable(item) ? item.getFitBox() : null);
       if (box === null) return null;
       const interior = interiorOf(self);
       if (interior === null) return null;
@@ -1197,7 +1197,7 @@ function interiorOf(c: Stuff & Container): Dimensions | null {
     if (ext === null || !(ext > 0)) return null;
     return new Dimensions(ext, ext, ext);
   }
-  if (!MixinApi.isTangible(c)) return null;
+  if (!MixinApi.isContainable(c)) return null;
   if (MixinApi.isBulkable(c)) {
     const litres = c.getInteriorCapacity()?.rawValue() ?? 0;
     if (litres > 0) {
@@ -1226,7 +1226,7 @@ function interiorOf(c: Stuff & Container): Dimensions | null {
  * is). Unknown size takes no room.
  */
 function fillOf(item: Stuff, b: ContainerBounds): number {
-  const box = (MixinApi.isTangible(item) ? item.getFitBox() : null);
+  const box = (MixinApi.isContainable(item) ? item.getFitBox() : null);
   if (box === null) return 0;
   const stands = box.orientationWithin(b.interior, b.closed) ?? box;
   return stands.clippedTo(b.interior);

@@ -340,7 +340,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         if (mass > capacity * CARRYING_DEFAULTS.ONE_HAND_FRACTION) return 2;
       }
       const stature = MixinApi.isPosed(self) ? self.getStature() : null;
-      const longest = MixinApi.isTangible(item) ? item.getDimensions()?.longest() ?? null : null;
+      const longest = MixinApi.isContainable(item) ? item.getDimensions()?.longest() ?? null : null;
       if (stature !== null && stature > 0 && longest !== null && longest > stature * CARRYING_DEFAULTS.TWO_HAND_LENGTH) {
         return 2;
       }
@@ -1240,7 +1240,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     public gearNoise(): 0 | 1 {
       const self = this as unknown as Stuff & Container;
       const loud = (x: Stuff): boolean => {
-        if (!MixinApi.isTangible(x) || x.getShape()?.isRigid() === false) return false;
+        if (!MixinApi.isTangible(x) || !MixinApi.isContainable(x) || x.getShape()?.isRigid() === false) return false;
         if (MixinApi.isIntegrity(x)) return x.ringSound().rings;
         return x.getMaterial()?.hasTag('metal') ?? false;
       };

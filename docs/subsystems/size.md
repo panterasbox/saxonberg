@@ -22,7 +22,8 @@ a body. This doc is the measure that doc asks.
 | `Dimensions` | `lib/spatial/Dimensions.ts` | a value object: a box, `width · depth · height` in meters, and every tape-measure read on it |
 | `SIZE_DEFAULTS` | beside `Dimensions` | the dials (packing, interior fraction, hang safety, the room words, standard gravity) — numbers, not an Api |
 | `Form` rows | `platform/idea/Form` at `/platform/idea/Form/<name>` | a shape a thing can have: `rod` · `sheet` · `block` · `round` · `flexible` |
-| size reads | `TangibleMixin` (`lib/material/Tangible.ts`) | `shape`, `dimensions?`, `getDimensions`, `getVolumeM3`, `getFitBox`, `getPackedVolumeM3` |
+| size reads | `ContainableMixin` (`lib/spatial/Containable.ts`) | `shape`, `dimensions?`, `getShape`/`ensureShape`, `getDimensions`, `getVolumeM3`, `getFitBox`, `getPackedVolumeM3`, `foldPackingFactor` |
+| the matter's volume | `TangibleMixin` (`lib/material/Tangible.ts`) | `getMatterVolumeM3` — mass ÷ density, and nothing else of size |
 | container reads | `ContainerMixin` (`lib/spatial/Container.ts`) | `mouth?`, `shapedTo?`, `bounds`, `fitRefusal`, `closureLevel`, `reconcilePressing` |
 | the hanging length | `PlacingMixin` (`lib/spatial/Placing.ts`) | `hangingLengthM`, `bearsKg`, `roomFor`, the member fit in `canPlace` |
 | a way's gap | `Exit` (`lib/boundary/Exit.ts`) | `clearance`, `turn?`/`getTurn`, `clearanceRefusal` |
@@ -68,7 +69,7 @@ rows ship under `content/platform/idea/Form/`:
 A thing names its form by its `shape:` field (`shape: rod`). ⚠ The field
 is `shape`, not `form`: the glass pack's `Sheet`/`Gather` and
 `Construction` already own `form`/`getForm()`. The class default is the
-static `defaultShape` — `block` on `Tangible`, `flexible` on `Garment`,
+static `defaultShape` — `block` on `Containable`, `flexible` on `Garment`,
 `Line`, `Sack` and `Pack`, `sheet` on `Sheet`. A word with numbers behind
 it is a row, never an enum (`lint:closed-vocabularies`): **a sixth form
 — a cone, a ring — is a row and no code.**
@@ -102,8 +103,19 @@ loaded has no known size, and **nothing unknown is ever refused**.
   `FOLDED_PACKING` (0.6). The folding build replaces the number with its
   crease model; nothing else changes.
 
-`massAndBulkWords()` is how a person reads it off a list (`0.4 kg, 0.2 L`
-— `inventory --weight`).
+How a person reads it off a list (`0.4 kg, 0.2 L` — `inventory --weight`)
+is the inventory controller's words, not the model's (the W8 rule).
+
+⭐ **Size is `Containable`'s; only the matter is `Tangible`'s** (W10f,
+owner 2026-11-14). `Tangible` says *this is made of materials* — so it
+answers mass and the matter's own volume and stops. Shape, the box, the
+bulk, the packing and the fit exist so a thing can be fitted into,
+through or onto something, which is what `Containable` is for; every
+composer of `Containable` means it. `getVolumeM3()` starts from
+`getMatterVolumeM3()` where the host is `Tangible` (narrowed by
+`MixinApi.isTangible`) and is `null` where it is not. A place is not
+`Containable`, and never needed a thing's size: its size is its extent
+(`getLinearExtent()`, `bounds()`).
 
 ## ⭐⭐ A container bounds only the sides it closes
 

@@ -321,7 +321,7 @@ export function HaulableMixin<
     public coverFor(): Stuff | null {
       const self = this as unknown as Stuff & Container;
       for (const c of self.getContents()) {
-        if (!MixinApi.isTangible(c) || c.getShapeName() !== 'sheet') continue;
+        if (!MixinApi.isContainable(c) || !MixinApi.isTangible(c) || c.getShapeName() !== 'sheet') continue;
         if (c.getMaterial()?.hasTag('textile') === true) return c;
       }
       return null;

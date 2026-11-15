@@ -31,6 +31,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
+import { Quantity } from '../../../../lib/quantity';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
@@ -372,8 +373,25 @@ export default class InventoryController extends CommandController<InventoryMode
           ? Mml.compose`${Mml.thing(x)} [builder]`
           : Mml.thing(x);
         if (!weight) return named;
-        return Mml.compose`${named} (${MixinApi.isTangible(x) ? x.massAndBulkWords() : 'weightless'})`;
+        return Mml.compose`${named} (${InventoryController.massAndBulkWords(x)})`;
       }),
     );
+  }
+
+  /**
+   * ⭐ A thing's mass and its bulk as a person reads them off a list —
+   * `0.4 kg, 0.2 L` (`inventory --weight`, size and carrying D28). The bulk
+   * is left off when it is not known; a thing made of nothing is
+   * `weightless`. Words live in the controller (W8, W10f): the model
+   * answers the numbers.
+   */
+  private static massAndBulkWords(x: Stuff): string {
+    if (!MixinApi.isTangible(x)) return 'weightless';
+    // Two significant figures — a reading off a list, not a weighing.
+    const mass = `${Number(x.getMass().rawValue().toPrecision(2))} kg`;
+    const m3 = MixinApi.isContainable(x) ? x.getVolumeM3() : null;
+    if (m3 === null) return mass;
+    const litres = Quantity.of(m3, 'm³').to('L').rawValue();
+    return `${mass}, ${Number(litres.toPrecision(2))} L`;
   }
 }

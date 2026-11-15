@@ -862,10 +862,10 @@ export class Creature extends CreatureBase {
     for (const slot of WORN_BULK_SLOTS) {
       if (!this.getSlotSpec(slot)) continue;
       for (const worn of this.getOccupants(slot)) {
-        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn)) continue;
+        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn) || !MixinApi.isContainable(worn)) continue;
         let inside = worn.getMatterVolumeM3() ?? 0;
         for (const c of worn.getContents()) {
-          if (MixinApi.isTangible(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
+          if (MixinApi.isContainable(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
         }
         const authored = worn.hasAuthoredSize() ? (worn.getDimensions()?.boxVolume() ?? 0) : 0;
         const bulk = Math.max(worn.getPackedVolumeM3() ?? 0, authored, inside);
@@ -883,7 +883,7 @@ export class Creature extends CreatureBase {
     for (const item of this.getContents()) {
       const pair = MixinApi.isContainable(item) ? item.getPlacement() : null;
       if (pair === null || !wornIds.has(pair.host.stuffId) || !MixinApi.isPlacing(pair.host)) continue;
-      if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isTangible(item)) continue;
+      if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isContainable(item)) continue;
       // Its authored box when it has one (a pannier keeps its frame's
       // shape); else what it packs to.
       const box = item.hasAuthoredSize() ? item.getDimensions() : item.getFitBox();
