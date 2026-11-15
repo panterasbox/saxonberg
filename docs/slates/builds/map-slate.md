@@ -992,7 +992,9 @@ the game's content as you explore*:
    section's spare space is a **preview**: hover an exit (a rose arm or a
    name) and a strip under it shows that exit and the boundary it is on —
    where it leads as your map knows it, what stands in it and its state —
-   before you click. Click an open way: `go`. Tooltip actions: **open** a shut door,
+   before you click. ⚠ **One click moves you** — the preview is shown only
+   while the pointer is over an exit and holds nothing clickable; it never
+   becomes a select-then-confirm step. Click an open way: `go`. Tooltip actions: **open** a shut door,
    **unlock** one you hold the key to, **look through** a window — getting
    through is navigation; anything else done to a door is its own card's.
    ⭐⭐ **A boundary is a Thing whose behavior is its mixins** (the owner,
