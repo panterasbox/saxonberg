@@ -765,7 +765,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
   }, 180_000);
 
   it('14b. [instant · staged] the pack on the ground: shut, another sees only the pack; open, they see in and take — and the owner cannot fight-draw from it', async () => {
-    const a = await person('scdrop', `${STEADING}/hayloft`);
+    const a = await person('scdrop', `${STEADING}/hayloft`, { wizard: true, parcels: ['/world/newbie-wilds'] });
     const pack = await give(a, T.backpack);
     const pistol = await give(a, T.pistol);
     expectDone(await say(a, `put #${pistol} in #${pack}`));
@@ -790,15 +790,22 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await new Promise((r) => setTimeout(r, 6_000));
     // The pistol back in the pack, which never left A's feet.
     expectDone(await say(a, `put #${pistol} in #${pack}`));
-    // Open: B sees in, and takes — theft on the ledger; nothing new.
+    // Open: B sees in, and takes — theft on the ledger; nothing new: the
+    // title does not move with the hand (read off the chattel record — a
+    // look names an owner only as the viewer perceives them, run 15).
+    const ownerOf = async (): Promise<string> =>
+      (await say(a, `eval --parcel /world/newbie-wilds (async () => JSON.stringify(await StuffApi.findById('${pistol}').chattelOwner()))()`)).w;
+    const before = await ownerOf();
     expect(squash(await b.prose('look in backpack'))).toMatch(key('14b', /pistol/i));
     expectDone(await say(b, 'get pistol from backpack'));
     expect(await inv(b)).toMatch(/pistol/i);
-    // Still A's on the ledger: the chattel's owner reads in `look` — A, who
-    // is in the room, reads it as theirs; B, who holds it, does not. (`title`
-    // is real property, not a movable's owner — run 15.)
-    expect(squash(await a.prose(`look #${pistol}`)), 'still A\'s on the ledger').toMatch(/Owned by you/i);
-    expect(squash(await b.prose(`look #${pistol}`)), 'not the taker\'s').not.toMatch(/Owned by you/i);
+    const bIdentity = (await say(a, `eval --parcel /world/newbie-wilds StuffApi.findById('${(await idOf(b)).slice(1)}').getIdentityPath()`)).w.replace(/^.*?:\s*/, '').replace(/"/g, '');
+    const after = await ownerOf();
+    record.push(`14b title: before ${before} · after ${after} · taker ${bIdentity}`);
+    expect(before, 'the pistol has a title').toMatch(/templatePath/);
+    expect(after.replace(/^.*?:\s*/, ''), 'the title did not move with the hand').toBe(before.replace(/^.*?:\s*/, ''));
+    expect(bIdentity, 'the taker has an identity').toMatch(/^\/platform\/agent\/Avatar\//);
+    expect(after, 'never the taker\'s').not.toContain(bIdentity);
   }, 240_000);
 
   it('15. [instant · staged] knocked out mid-fight: the sword falls, the belt stays; the letter is found only by searching, and only by the searcher', async () => {
