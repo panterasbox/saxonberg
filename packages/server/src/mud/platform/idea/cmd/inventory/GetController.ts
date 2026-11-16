@@ -72,9 +72,15 @@ export default class GetController extends CommandController<GetModel> {
     // and show, and what you FOUND there by searching. A body that can
     // resist (conscious) will not be robbed; one that cannot is.
     if (source && source.isAgent() && source.stuffId !== giver.stuffId && stuff.length === 0) {
+      // ⚠ ANYWHERE on them, not one level down (finalize drive run 15,
+      // step 15): since W9 a pocket's contents are its garment's, so the
+      // letter a search found in a coat's inner pocket is the coat's, and a
+      // top-level read answered "You don't find any 'letter'". What you
+      // perceive is the gate — a find is belief's, held only by its finder.
       const word = raw.toLowerCase();
-      const shown = PerceptionApi.visibleContentsOf(giver, source);
-      stuff = [...shown.held, ...shown.worn, ...shown.carried].filter((t) =>
+      const onThem = MixinApi.isContainer(source) ? source.getDeepContents() : [];
+      stuff = onThem.filter((t) =>
+        PerceptionApi.perceives(giver, t) &&
         t.perceivedKeywordsFor(giver).some((k) => k.toLowerCase() === word),
       );
       const resists = MixinApi.isVitals(source) ? source.searchRefusal(giver) : null;
