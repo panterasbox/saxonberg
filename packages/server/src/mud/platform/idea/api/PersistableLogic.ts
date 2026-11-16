@@ -1012,8 +1012,8 @@ async function restoreItem(
     // ⭐ A body admits what it carried (the flip's veto, D11; W8 — every
     // body, so a hog or a fish restored with contents is not refused): the
     // record is replayed — re-seated and re-placed by the passes after
-    // this, and whatever is still loose is placed by a carrier's
-    // `onRestored` (D32), or reported by a non-carrier's.
+    // this; whatever is still loose is a broken record, reported loudly by
+    // the body's `onRestored` and never placed (no migrations).
     if (host instanceof Creature) host.admitWhile(clone, put);
     else put();
   }

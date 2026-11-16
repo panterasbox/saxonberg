@@ -653,8 +653,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             sides = { width: false, depth: false, height: false };
           }
         } else {
-          // Loose in a place, there is nowhere further to go — and loose on
-          // a body is the body's (until the flip, W7).
+          // Loose in a place, there is nowhere further to go — and nothing
+          // sits loose on a body (its arrival rule; a body presses only what
+          // is in a pocket, D26).
           if (self.isPlace() || agent) continue;
           sides = closed;
         }

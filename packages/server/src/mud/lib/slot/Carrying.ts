@@ -19,21 +19,31 @@
  * classes that carry: `Character`, `DraftAnimal`, `KeptAnimal` and
  * ranching's `WorkingAnimal`.
  *
- * ## What it knows
+ * ## What it knows — its thirteen members (plus the `arrivalFor` hook)
  *
- * - **Hands** (D9–D10): `handSlots`, `freeHands`, `handsFor`.
- * - **Tiers** (D15): `tierOf` — hand · ready · packed · elsewhere.
- * - **Putting away** (D-W10-2): `stow` — off the hands into the first of
- *   the carrier's places that takes it, in D11's order; nothing takes it →
- *   refused, it stays in the hand. No homes: nothing remembers where a
- *   thing came from (retired W10, 2026-11-14).
+ * - **Hands** (D9–D10): `freeHands`; `wieldPlanFor` — the slots a wield
+ *   takes on THIS body (a free second hand when its weight or length takes
+ *   two). Which slots are hands is `Attired.handSlots`.
+ * - **Tiers** (D15): `tierOf` — hand · ready · packed · elsewhere;
+ *   `isHonest` — on this body by a slot, a worn host, or inside such a thing
+ *   (loose in the contents is not).
+ * - **Arriving** (W8, 2026-11-13): `routeArrival` — what nothing ON the body
+ *   takes lands on it and goes on into a bag it carries, or down where it
+ *   stands (called by `move` alone); `wouldSetDown` — that routing read dry.
  * - **Readying** (D-W10-3): `ready` — the named thing comes into a FREE
  *   hand, or a refusal naming what holds the hands; nothing is put away for
  *   you. In a fight it is the generalized weapon switch. Its callers are the
  *   explicit *keep it in hand* acts (`get X from <on you>`, `fight switch`,
- *   `fight draw`); an instrument is used where it sits.
- * - **Routing** (W8, 2026-11-13): `routeArrival` — on the body, then a bag or the floor.
- * - **Letting go** (D13): `releaseHeld`.
+ *   `fight draw`); an instrument is used where it sits. `bringToHand` — its
+ *   body, and a switch's landing.
+ * - **Putting away** (D-W10-2): `stow` — off the hands into the first of
+ *   the carrier's places that takes it, in D11's order; nothing takes it →
+ *   refused, it stays in the hand. No homes: nothing remembers where a
+ *   thing came from (retired W10, 2026-11-14). `stowPlaceFor` — where it
+ *   would go, read dry.
+ * - **Letting go** (D13): `releaseHeld`; `returnBorrowed` (D37 — a guest
+ *   gives back what it borrowed).
+ * - **Sound** (D36): `gearNoise`.
  *
  * ## Composition
  *
@@ -822,8 +832,9 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
     public ready(item: Stuff): ReadyRefusal | ReadiedOutcome | null {
       const self = this as unknown as Stuff;
-      // A body whose plan names no hands (an old fixture, a beast's
-      // mouth before W6) switches the shipped way in a fight.
+      // A body whose plan names no hands (a beast's jaws) switches the
+      // shipped way in a fight; the landing grips the weapon in the slot it
+      // claims (`bringToHand`).
       if (this.asBody().handSlots().length === 0) {
         if (!MixinApi.isCombatant(self) || !CombatApi.sessionFor(self)) return null;
         const started = self.beginWeaponSwitch(item);

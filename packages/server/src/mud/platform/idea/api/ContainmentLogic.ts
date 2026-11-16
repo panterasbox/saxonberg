@@ -442,7 +442,7 @@ function isRegionZeroWord(to: ContainerStuff, word: string): boolean {
  */
 function pressAfterArrival(item: ContainableStuff, to: ContainerStuff): void {
   // A body presses only what is in a pocket (D26) — anything else on it is
-  // held, worn or (until the flip) loose, and nothing is asked.
+  // held, worn or hung, and nothing is asked.
   if (to.isAgent() && item.getPlacement() === null) return;
   void Promise.resolve().then(() => {
     if (item.isDestroyed() || to.isDestroyed() || item.getContainer() !== to) return;
