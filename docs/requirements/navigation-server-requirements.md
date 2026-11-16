@@ -207,6 +207,12 @@ place section as a fact of your setting; `z` only as grid position.
 A claim for a room in a copy names the copy, with the copy's own
 coordinates — never the row's zone, which every copy shares.
 
+⭐ **Moving water is the exception** (agreed with zone instancing,
+2026-11-16): a patch of river or sea is the water within hail of you as it
+passes, not a place you could come back to. A claim made in one records
+**the river or the sea and where on it you were**, never the passing
+patch.
+
 ### Your map is yours alone **[DECIDED — the firewall]**
 The client receives your claims and the present section for where you
 stand; nothing derived from the world's index, and nothing from another
