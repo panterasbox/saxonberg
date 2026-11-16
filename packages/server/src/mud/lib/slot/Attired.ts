@@ -177,6 +177,16 @@ export interface Attired {
    * is placed on a worn host. The model read behind MQL's `:worn`.
    */
   wears(item: Stuff): boolean;
+  /**
+   * ⭐ What this body wears that makes it bigger (size and carrying D19,
+   * W7; moved here from `Creature` at finalize, R5 — it is about what is
+   * worn): **deeper** by the containers on its back or torso (a pack —
+   * the cube root of their bulk), **wider** by what HANGS from a worn host
+   * (a pannier, a pouch on the belt — each by its thinnest side, and they
+   * add). A pocket's things do not widen; what the hands hold is measured
+   * on its own. Read by `Creature.envelope` and a way's clearance.
+   */
+  wornBulk(): { things: Stuff[]; depthM: number; hung: Stuff[]; sideM: number };
   /** The foot sites — the leaf parts below what serves locomotion (a
    * biped's feet; a quadruped's legs, which have no foot part). */
   footSites(): string[];
@@ -540,6 +550,9 @@ function readConcealmentOffset(host: Stuff & Slotted & Attired): number {
   return weighted * weight;
 }
 
+/** The slots whose worn containers make a body deeper (a pack; D19). */
+const WORN_BULK_SLOTS: readonly string[] = ['back', 'torso'];
+
 export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class AttiredMixin extends Base {
     /*
@@ -798,6 +811,65 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         for (const o of occupants) if (o.stuffId === item.stuffId) return true;
       }
       return false;
+    }
+
+    /**
+     * See the interface docstring. What the body wears that makes it bigger
+     * (D19, size-and-carrying W7):
+     *
+     * - **deeper** — the containers occupying its back or torso (a pack), and
+     *   the depth they add: the cube root of their bulk, each the most of its
+     *   packed self, its authored box, or its walls and what is in it (a
+     *   hollow thing's derived size measures only its walls, D4-b);
+     * - **wider** — what HANGS from a worn host (a pannier from the pack
+     *   saddle, a pouch from the belt: a placement whose member `hangs`).
+     *   ⭐ The rule: a hung thing rides flat against the flank, so it stands
+     *   out by its **thinnest side**; hung things go either side, so their
+     *   thicknesses add — a pannier pair, one each side, widens a 0.58 m
+     *   mule by 0.6 m, and the steading's 0.8 m paddock gate refuses it
+     *   laden (drive 18). A pocket's things do not widen (they are in the
+     *   garment); what the hands hold is measured on its own.
+     */
+    public wornBulk(): { things: Stuff[]; depthM: number; hung: Stuff[]; sideM: number } {
+      const self = this as unknown as Stuff & Slotted & Attired;
+      const contents: readonly Stuff[] = MixinApi.isContainer(self) ? self.getContents() : [];
+      const things: Stuff[] = [];
+      let volume = 0;
+      for (const slot of WORN_BULK_SLOTS) {
+        if (!self.getSlotSpec(slot)) continue;
+        for (const worn of self.getOccupants(slot)) {
+          if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn) || !MixinApi.isShaped(worn)) continue;
+          let inside = worn.getMatterVolumeM3() ?? 0;
+          for (const c of worn.getContents()) {
+            if (MixinApi.isShaped(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
+          }
+          const authored = worn.hasAuthoredSize() ? (worn.getDimensions()?.boxVolume() ?? 0) : 0;
+          const bulk = Math.max(worn.getPackedVolumeM3() ?? 0, authored, inside);
+          if (bulk > 0) {
+            things.push(worn);
+            volume += bulk;
+          }
+        }
+      }
+      // What hangs from a worn host stands out from the flank by its thinnest side.
+      const wornIds = new Set<string>();
+      for (const occ of self.getAllOccupants().values()) for (const o of occ) wornIds.add(o.stuffId);
+      const hung: Stuff[] = [];
+      let sideM = 0;
+      for (const item of contents) {
+        const pair = MixinApi.isContainable(item) ? item.getPlacement() : null;
+        if (pair === null || !wornIds.has(pair.host.stuffId) || !MixinApi.isPlacing(pair.host)) continue;
+        if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isShaped(item)) continue;
+        // Its authored box when it has one (a pannier keeps its frame's
+        // shape); else what it packs to.
+        const box = item.hasAuthoredSize() ? item.getDimensions() : item.getFitBox();
+        const thin = box !== null ? Math.min(box.width, box.depth, box.height) : 0;
+        if (thin > 0) {
+          hung.push(item);
+          sideM += thin;
+        }
+      }
+      return { things, depthM: volume > 0 ? Math.cbrt(volume) : 0, hung, sideM };
     }
 
     public footSites(): string[] {

@@ -282,9 +282,6 @@ export type BodyConditionBand = (typeof BODY_CONDITION_BANDS)[number];
 /** A rider sits this share of its stature above its mount's back (D19). */
 const SEATED_SHARE = 0.6;
 
-/** The slots whose worn containers make a body deeper (a pack; D19). */
-const WORN_BULK_SLOTS: readonly string[] = ['back', 'torso'];
-
 /** Why a body cannot take a posture where it is (size and carrying D21). */
 export type PoseRefusal = ActRefusal<'ceiling-too-low', { ceilingM: number; statureM: number }>;
 
@@ -797,7 +794,7 @@ export class Creature extends CreatureBase {
    *   crouched 0.6, prone and horizontal 0.4);
    * - width = girth = `2·√(mass / (π · stature · density))`, a cylinder of
    *   the body's own density;
-   * - what it wears on its back or torso (a pack — {@link wornBulk}) rides
+   * - what it wears on its back or torso (a pack — `Attired.wornBulk`) rides
    *   on top when it goes low (prone, horizontal), and trails behind it
    *   upright, where a way's face does not see it;
    * - mounted, the pair: the mount's height plus the rider's seated share
@@ -844,62 +841,6 @@ export class Creature extends CreatureBase {
       }
     }
     return null;
-  }
-
-  /**
-   * ⭐ What the body wears that makes it bigger (D19, size-and-carrying W7):
-   *
-   * - **deeper** — the containers occupying its back or torso (a pack), and
-   *   the depth they add: the cube root of their bulk, each the most of its
-   *   packed self, its authored box, or its walls and what is in it (a
-   *   hollow thing's derived size measures only its walls, D4-b);
-   * - **wider** — what HANGS from a worn host (a pannier from the pack
-   *   saddle, a pouch from the belt: a placement whose member `hangs`).
-   *   ⭐ The rule: a hung thing rides flat against the flank, so it stands
-   *   out by its **thinnest side**; hung things go either side, so their
-   *   thicknesses add — a pannier pair, one each side, widens a 0.58 m
-   *   mule by 0.6 m, and the steading's 0.8 m paddock gate refuses it
-   *   laden (drive 18). A pocket's things do not widen (they are in the
-   *   garment); what the hands hold is measured on its own.
-   */
-  public wornBulk(): { things: Stuff[]; depthM: number; hung: Stuff[]; sideM: number } {
-    const things: Stuff[] = [];
-    let volume = 0;
-    for (const slot of WORN_BULK_SLOTS) {
-      if (!this.getSlotSpec(slot)) continue;
-      for (const worn of this.getOccupants(slot)) {
-        if (things.includes(worn) || !MixinApi.isContainer(worn) || !MixinApi.isTangible(worn) || !MixinApi.isShaped(worn)) continue;
-        let inside = worn.getMatterVolumeM3() ?? 0;
-        for (const c of worn.getContents()) {
-          if (MixinApi.isShaped(c)) inside += c.getFitBox()?.boxVolume() ?? 0;
-        }
-        const authored = worn.hasAuthoredSize() ? (worn.getDimensions()?.boxVolume() ?? 0) : 0;
-        const bulk = Math.max(worn.getPackedVolumeM3() ?? 0, authored, inside);
-        if (bulk > 0) {
-          things.push(worn);
-          volume += bulk;
-        }
-      }
-    }
-    // What hangs from a worn host stands out from the flank by its thinnest side.
-    const wornIds = new Set<string>();
-    for (const occ of this.getAllOccupants().values()) for (const o of occ) wornIds.add(o.stuffId);
-    const hung: Stuff[] = [];
-    let sideM = 0;
-    for (const item of this.getContents()) {
-      const pair = MixinApi.isContainable(item) ? item.getPlacement() : null;
-      if (pair === null || !wornIds.has(pair.host.stuffId) || !MixinApi.isPlacing(pair.host)) continue;
-      if (!pair.host.placementOf(pair.name).getHangs() || !MixinApi.isShaped(item)) continue;
-      // Its authored box when it has one (a pannier keeps its frame's
-      // shape); else what it packs to.
-      const box = item.hasAuthoredSize() ? item.getDimensions() : item.getFitBox();
-      const thin = box !== null ? Math.min(box.width, box.depth, box.height) : 0;
-      if (thin > 0) {
-        hung.push(item);
-        sideM += thin;
-      }
-    }
-    return { things, depthM: volume > 0 ? Math.cbrt(volume) : 0, hung, sideM };
   }
 
   /** This body's own envelope — on foot, no mount. */
