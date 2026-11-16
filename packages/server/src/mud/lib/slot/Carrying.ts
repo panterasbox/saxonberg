@@ -415,22 +415,19 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const self = this as unknown as Stuff & Slotted;
       const seen = new Set<string>();
       let cur: Stuff = item;
-      for (let i = 0; i < 32; i++) {
-        if (seen.has(cur.stuffId)) return false;
+      while (!seen.has(cur.stuffId) && MixinApi.isContainable(cur)) {
         seen.add(cur.stuffId);
-        const up: Stuff | null = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-        if (up === null) return false;
-        if (up.stuffId !== self.stuffId) {
-          // Inside something else: honest when that is, and it is not a body.
-          if (up.isAgent()) return false;
-          cur = up;
-          continue;
-        }
+        const chain = [cur, ...cur.getContainerChain()];
+        const at = chain.findIndex((c) => c.stuffId === self.stuffId);
+        if (at <= 0) return false;
+        // Inside something else on the way: honest when that is, and it is not a body.
+        if (chain.slice(1, at).some((c) => c.isAgent())) return false;
         // Directly on this body: a slot occupant, or placed on an honest host.
+        const direct = chain[at - 1]!;
         for (const [, occ] of self.getAllOccupants()) {
-          if ([...occ].some((o) => o.stuffId === cur.stuffId)) return true;
+          if ([...occ].some((o) => o.stuffId === direct.stuffId)) return true;
         }
-        const placed = MixinApi.isContainable(cur) ? cur.getPlacement() : null;
+        const placed = MixinApi.isContainable(direct) ? direct.getPlacement() : null;
         if (placed === null || placed.host.stuffId === self.stuffId) return false;
         cur = placed.host;
       }
@@ -888,12 +885,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     private packOf(item: Stuff): Stuff | null {
       const self = this as unknown as Stuff & Slotted;
       const packs = [...self.getOccupants(PACKED_SLOT)];
-      let cur: Stuff | null = item;
-      for (let i = 0; cur !== null && i < 32; i++) {
-        if (packs.some((p) => p.stuffId === cur!.stuffId)) return cur;
-        cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-      }
-      return null;
+      const chain = MixinApi.isContainable(item) ? [item, ...item.getContainerChain()] : [item];
+      return chain.find((c) => packs.some((p) => p.stuffId === c.stuffId)) ?? null;
     }
 
     /**
@@ -1086,21 +1079,12 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
 /** Is `host` the thing `item` itself, or inside it? */
 function within(host: Stuff, item: Stuff): boolean {
-  let cur: Stuff | null = host;
-  for (let i = 0; cur !== null && i < 32; i++) {
-    if (cur.stuffId === item.stuffId) return true;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-  }
-  return false;
+  if (host.stuffId === item.stuffId) return true;
+  return MixinApi.isContainable(host) && host.getContainerChain().some((c) => c.stuffId === item.stuffId);
 }
 
-/** Is `item` inside some other agent than `me`? */
+/** Is `item` inside some other agent than `me`? The first body up its chain answers. */
 function insideAnotherBody(me: Stuff, item: Stuff): boolean {
-  let cur: Stuff | null = MixinApi.isContainable(item) ? item.getContainer() : null;
-  for (let i = 0; cur !== null && i < 32; i++) {
-    if (cur.stuffId === me.stuffId) return false;
-    if (cur.isAgent()) return true;
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-  }
-  return false;
+  const body = MixinApi.isContainable(item) ? item.getContainerChain().find((c) => c.isAgent()) : undefined;
+  return body !== undefined && body.stuffId !== me.stuffId;
 }

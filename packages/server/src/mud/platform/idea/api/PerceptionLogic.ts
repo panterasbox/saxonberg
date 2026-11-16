@@ -1078,28 +1078,13 @@ function concealmentAdmits(viewer: Stuff, target: Stuff, attention?: number): bo
  * placement member that encloses, else the container), stopping at a Place.
  */
 function upward(s: Stuff): Stuff[] {
-  const out: Stuff[] = [];
-  let cur: Stuff = s;
-  for (let i = 0; i < 32; i++) {
-    if (!MixinApi.isContainable(cur)) break;
-    const up = cur.getEnclosingScope();
-    if (up === null) break;
-    out.push(up);
-    if (up.isPlace()) break;
-    cur = up;
-  }
-  return out;
+  return MixinApi.isContainable(s) ? s.getContainerChain({ scopes: true }) : [];
 }
 
 /** Rule 1: the viewer itself, or anything on the viewer's body at any depth. */
 function onBodyOf(viewer: Stuff, target: Stuff): boolean {
   if (target.stuffId === viewer.stuffId) return true;
-  let cur: Stuff | null = target;
-  for (let i = 0; cur !== null && i < 32; i++) {
-    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-    if (cur !== null && cur.stuffId === viewer.stuffId) return true;
-  }
-  return false;
+  return MixinApi.isContainable(target) && target.getContainerChain().some((c) => c.stuffId === viewer.stuffId);
 }
 
 /**
@@ -1157,17 +1142,10 @@ function seeThrough(holder: Stuff): boolean {
  * its lid (in a shut wardrobe, the coat beside you is in view).
  */
 function holdersAdmit(viewer: Stuff, target: Stuff): boolean {
-  const around = new Set<string>([viewer.stuffId]);
-  let up: Stuff | null = viewer;
-  for (let i = 0; up !== null && i < 32; i++) {
-    up = MixinApi.isContainable(up) ? up.getContainer() : null;
-    if (up !== null) around.add(up.stuffId);
-  }
+  if (!MixinApi.isContainable(target)) return true;
   let cur: Stuff = target;
-  for (let i = 0; i < 32; i++) {
-    if (!MixinApi.isContainable(cur)) return true;
-    const scope = cur.getEnclosingScope();
-    if (scope === null || around.has(scope.stuffId) || scope.isPlace()) return true;
+  for (const scope of target.getContainerChain({ scopes: true, shortOf: viewer })) {
+    if (scope.isPlace() || !MixinApi.isContainable(cur)) return true;
     if (isAnotherBody(viewer, scope)) {
       if (!bodyShows(viewer, scope, cur)) return false;
     } else {
@@ -1263,12 +1241,8 @@ function foundOnBy(viewer: Stuff, thing: Stuff, body: Stuff): boolean {
  */
 function tierOfImpl(carrier: Stuff, thing: Stuff): CarryTier {
   if (MixinApi.isCarrying(carrier)) return carrier.tierOf(thing);
-  let up: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
-  for (let i = 0; up !== null && i < 32; i++) {
-    if (up.stuffId === carrier.stuffId) return 'ready';
-    up = MixinApi.isContainable(up) ? up.getContainer() : null;
-  }
-  return 'elsewhere';
+  const on = MixinApi.isContainable(thing) && thing.getContainerChain().some((c) => c.stuffId === carrier.stuffId);
+  return on ? 'ready' : 'elsewhere';
 }
 
 /** The order the binder ties on, nearest first. */

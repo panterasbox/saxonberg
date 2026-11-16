@@ -158,6 +158,19 @@ export interface Containable {
   getEnclosingPlace(): (Stuff & Container) | null;
 
   /**
+   * ⭐ **The chain above me, innermost first** — the one walk up
+   * containment, owned here (size and carrying finalize A4: nine readers
+   * each rolled their own). By default each link is the container
+   * (`getContainer`), to the root. `scopes: true` steps by what stands
+   * between instead ({@link getEnclosingScope} — an enclosing chamber's
+   * host before its container) and stops AT the first Place (included).
+   * `shortOf: actor` stops before the first link that is the actor or holds
+   * it — what holds the actor is the actor's side of every lid. Bounded and
+   * cycle-safe; a link that is not Containable ends the chain after itself.
+   */
+  getContainerChain(opts?: { scopes?: boolean; shortOf?: Stuff }): Stuff[];
+
+  /**
    * ⭐ **Why `actor` cannot lay hands on me, if a holder is why** — read
    * upward through `getEnclosingScope()`, innermost first:
    *
@@ -414,6 +427,28 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.environment;
     }
 
+    /** See the interface docstring (size and carrying finalize A4). */
+    getContainerChain(opts: { scopes?: boolean; shortOf?: Stuff } = {}): Stuff[] {
+      const around = new Set<string>();
+      const actor = opts.shortOf;
+      if (actor !== undefined) {
+        around.add(actor.stuffId);
+        if (MixinApi.isContainable(actor)) for (const c of actor.getContainerChain()) around.add(c.stuffId);
+      }
+      const out: Stuff[] = [];
+      const seen = new Set<string>([(this as unknown as Stuff).stuffId]);
+      let cur: Stuff = this as unknown as Stuff;
+      for (let i = 0; i < 32 && MixinApi.isContainable(cur); i++) {
+        const up: Stuff | null = opts.scopes === true ? cur.getEnclosingScope() : cur.getContainer();
+        if (up === null || seen.has(up.stuffId) || around.has(up.stuffId)) break;
+        seen.add(up.stuffId);
+        out.push(up);
+        if (opts.scopes === true && up.isPlace()) break;
+        cur = up;
+      }
+      return out;
+    }
+
     /**
      * Walk the container chain to the topmost non-null environment.
      * Returns `null` when already at the root.
@@ -492,17 +527,8 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     ): ActRefusal<'enclosed-shut', { by: Stuff; region?: string }> | PackedRefusal | null {
       // What holds the actor holds the actor's side of the lid too: in a
       // shut wardrobe, the coat beside you is not behind its door.
-      const around = new Set<string>([actor.stuffId]);
-      let up: Stuff | null = actor;
-      for (let i = 0; up !== null && i < 32; i++) {
-        up = MixinApi.isContainable(up) ? up.getContainer() : null;
-        if (up !== null) around.add(up.stuffId);
-      }
       let cur: Stuff = this as unknown as Stuff;
-      for (let i = 0; i < 32; i++) {
-        if (!MixinApi.isContainable(cur)) return null;
-        const scope = cur.getEnclosingScope();
-        if (scope === null || around.has(scope.stuffId)) return null;
+      for (const scope of this.getContainerChain({ scopes: true, shortOf: actor })) {
         if (scope.isPlace()) return null;
         // ⭐ In the pack on the actor's back: *take it off first* (D17).
         if (
