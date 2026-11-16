@@ -483,7 +483,8 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // Open, within reach: the compass in it is used where it sits.
     const then = await say(b, 'measure strike with compass');
     expect(reasonOf(then.r) ?? '').not.toMatch(/packed|shut/);
-    expect(then.w).toMatch(/compass/i);
+    // The reading's own answer — the steading has no named orebody — not a reach refusal.
+    expect(then.w).toMatch(/orebody/i);
     expectDone(await say(b, 'close backpack'));
     expectRefused(await say(b, 'measure strike with compass'), /is shut — `open backpack` first/i);
   }, 180_000);
@@ -518,26 +519,34 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
       for (let i = 0; i < 20 && (await beat()) > 0; i++) await new Promise((r) => setTimeout(r, 1_000));
     };
     expectDone(await say(f, 'attack wolf'));
+    // ⭐ A weapon comes by `fight switch`; anything else by the hand act
+    // itself — `get … from …` in a fight is a guarded beat (D-W10-5). A
+    // compass or a key is not a weapon, and an instrument is used where it
+    // sits (W10), so the drive times the GET, never a switch to it.
     expectDone(await say(f, 'fight switch sword'));
     const fromScabbard = await beat();
     await settle();
     expectDone(await say(f, 'unwield sword'));
     await settle();
-    expectDone(await say(f, 'fight switch compass'));
+    const pouchGet = await say(f, 'get compass from pouch');
+    expect(pouchGet.w).toMatch(/guard drops/i);
     const fromPouch = await beat();
     await settle();
     // ⭐ The buttoned pocket is SHUT: refused naming `open`, then opening it is its own beat.
-    expectRefused(await say(f, 'fight switch key'), key('6', /breast pocket is shut — `open "breast pocket"` first/i));
+    expectRefused(await say(f, `get #${keyId} from "breast pocket"`), key('6', /breast pocket is shut — `open "breast pocket"` first/i));
     const opened = await say(f, 'open "breast pocket"');
     expect(opened.w).toMatch(/guard drops/i);
     const unfasten = await beat();
     await settle();
     expectDone(await say(f, 'drop compass'));
-    expectDone(await say(f, 'fight switch key'));
+    expectDone(await say(f, `get #${keyId} from "breast pocket"`), /guard drops/i);
     const fromPocket = await beat();
     await settle();
     record.push(`fight beats: scabbard ${fromScabbard}, pouch ${fromPouch}, unfasten ${unfasten}, pocket ${fromPocket}`);
-    expect(fromScabbard, 'a scabbard is the quick draw').toBeLessThan(fromPouch);
+    // The seconds add and ROUND to beats (requirements § Readying): at the
+    // 3 s combat tick a scabbard's draw (1.5 s) and a pouch's reach (3 s)
+    // are one beat each, so the scabbard is never the slower.
+    expect(fromScabbard, 'a scabbard is the quick draw').toBeLessThanOrEqual(fromPouch);
     expect(unfasten + fromPocket, 'the buttoned pocket costs more than the open pouch').toBeGreaterThan(b2('6') ? unfasten + fromPocket : fromPouch);
     // A mug in the other hand: the greatsword is refused naming the mug and `drop mug`.
     await give(f, T.mug);
