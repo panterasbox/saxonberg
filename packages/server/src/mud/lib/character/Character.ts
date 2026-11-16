@@ -208,12 +208,15 @@ export abstract class Character extends CharacterBase {
    * wire characters from collapsing of cold at the seventh game hour.
    * One recipe now, in the mudlib, called by both.
    *
-   * Tolerant of a missing or unwearable garment, exactly as `embody`
-   * is: a bad path costs that garment, not the character.
+   * A missing or unwearable garment is SKIPPED WITH A DIAGNOSTIC on the
+   * garment row's own channel: a bad path costs that garment, not the
+   * character, and its author is told (P3 — never silent).
    *
-   * Idempotent: a garment whose slots are already occupied by something
-   * this body is wearing is skipped, so a re-clone or a second call
-   * does not stack two shirts on one chest.
+   * A garment whose slots are already occupied by something this body is
+   * wearing will not seat, so a second call does not stack two shirts on
+   * one chest — the second shirt is destructed and reported like any
+   * other garment that would not go on (callers call it once; `costume`
+   * holds a once-flag for exactly this).
    */
   public async wearGarments(paths: readonly string[]): Promise<void> {
     if (paths.length === 0) return;
@@ -224,17 +227,35 @@ export abstract class Character extends CharacterBase {
       ? (self.getSpecies()?.getBodyPlanPath() ?? null)
       : null;
     for (const path of paths) {
+      // ⭐ SKIP WITH A DIAGNOSTIC (P3): a garment that cannot be minted or
+      // put on costs that garment — the person still enrolls or spawns —
+      // and the author of the row hears about it on the row's own channel.
+      // A garment that was minted but could not be put on is destructed,
+      // never left in null.
+      let garment: Stuff | null = null;
       try {
-        const garment = await StuffApi.clone(path);
-        if (!MixinApi.isContainable(garment)) continue;
+        garment = await StuffApi.clone(path);
+        if (!MixinApi.isContainable(garment)) {
+          throw new TypeError(`${path} is not containable, so it cannot be worn or carried`);
+        }
         // ⭐ Put on by its claim — a seating, said exactly (size and
         // carrying W8); what claims nothing on this body (a pouch) the body
         // places (`move`: it hangs from the belt put on before it).
         const slots = bodyPlanPath && MixinApi.isWearable(garment) ? garment.getSlotClaim(bodyPlanPath) : [];
         if (slots.length > 0 && MixinApi.isSlottable(garment)) this.seatInSlots(garment, slots);
         else ContainmentApi.move(garment, self as never);
-      } catch {
-        /* a bad garment costs that garment, not the character */
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        if (garment) StuffApi.destruct(garment);
+        const { DiagnosticApi } = await import('../../api/diagnostics');
+        void DiagnosticApi.record({
+          path,
+          severity: 'warning',
+          message: `could not put this garment on ${self.getIdentityPath()}: ${reason}`,
+        }).catch(() => {
+          // A diagnostic that cannot be written must not take down the
+          // person it describes (the TemplateApplier precedent).
+        });
       }
     }
   }

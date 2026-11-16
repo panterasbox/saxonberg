@@ -49,7 +49,8 @@ export class NPC extends NPCBase {
    * ⚠ The dressing is deliberately **not awaited into** the clone
    * pipeline's critical path beyond what `onCreate` already is: a
    * garment that fails to clone must not take the person down with it,
-   * which is why `wearGarments` swallows per-garment failures.
+   * which is why `wearGarments` skips a failed garment with a
+   * diagnostic rather than throwing.
    *
    * ⚠⚠ It takes and FORWARDS `context`, and until 2026-10-01 it did
    * neither: the body was
