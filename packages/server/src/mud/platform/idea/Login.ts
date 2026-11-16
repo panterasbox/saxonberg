@@ -35,7 +35,6 @@ import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
-import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
 import { Template } from "../../lib/stuff/Template";
@@ -340,24 +339,9 @@ export default class Login extends LoginBase {
       }
     }
 
-    // Dress in the aspiration's themed outfit (tolerant of content gaps).
-    if (aspiration && species) {
-      for (const garmentPath of aspiration.outfit) {
-        try {
-          const garment = await StuffApi.clone(garmentPath);
-          if (!MixinApi.isContainable(garment)) continue;
-          // ⭐ Put on by its claim — a seating, said exactly (size and
-          // carrying W8); a bag that claims no slot the body places (it
-          // hangs from the belt listed before it).
-          const plan = SpeciesApi.tryGetBodyPlanPath(avatar);
-          const claim = plan !== null && MixinApi.isWearable(garment) ? garment.getSlotClaim(plan) : [];
-          if (claim.length > 0 && MixinApi.isSlottable(garment)) avatar.seatInSlots(garment, claim);
-          else ContainmentApi.move(garment, avatar);
-        } catch {
-          /* skip this garment */
-        }
-      }
-    }
+    // Dress in the aspiration's themed outfit — the body's own recipe
+    // (`Character.wearGarments`), tolerant of content gaps.
+    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
 
     return avatar;
   }
