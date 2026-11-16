@@ -16,8 +16,7 @@ seven — fill the two ⚑ placeholders once and reuse.
 > 2. **The playlist URL**, which doesn't exist until the playlist does.
 >
 > Verified and safe to use as-is: `https://www.panterasbox.com` and
-> `https://gitlab.com/panterasbox/saxonberg` (both cited in the StudyWorld
-> white paper).
+> `https://gitlab.com/panterasbox/saxonberg`.
 
 ---
 

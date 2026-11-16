@@ -376,8 +376,7 @@ The obvious use case is the least interesting one.
    but `claim`s, and world instances that accept them at their own
    discount. This is the education vertical with a wire protocol, and it
    is the variant that should drive the export format. See
-   [college-slate](./college-slate.md) and
-   [../../study-com-transfer-network.md](../../study-com/transfer-network.md).
+   [college-slate](./college-slate.md).
 
 ## Identity, consent, revocation
 

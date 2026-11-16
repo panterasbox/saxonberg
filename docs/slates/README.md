@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**423 slates.** 148 greenfield · 117 continuations · 71 waves · 87 tails.
+**427 slates.** 151 greenfield · 118 continuations · 71 waves · 87 tails.
 
-## ⭐ Greenfield — nothing shipped yet (148)
+## ⭐ Greenfield — nothing shipped yet (151)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -49,7 +49,7 @@ respect.
 | [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the butcher-or-offer fork + the recognition-never-reward guardrail … |
 | [amendment-library](./builds/amendment-library-slate.md) | the catalog Document + module registry + the adoption path over Art. X · the v1 standard-library modules as amendment documents (due process · free expression · term limits … |
 | [api-normalization](./builds/api-normalization-slate.md) | ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`, `worldclock`) plus 19 Apis with no singleton at all; mechanical, no boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s surface is two test hooks · answer *where a system-less utility lives* before deleting `array`/`path-pattern` … |
-| [assessment](./builds/assessment-slate.md) | assessment as the general measure (§ 1) · exams over taxonomy nodes, quick win to deep, adaptive (§ 3) · the issuer model — institution and standards body as one mechanism (§ 4) · our own item banks, trades first, ahead of any study.com deal (§ 5) … |
+| [assessment](./builds/assessment-slate.md) | assessment as the general measure (§ 1) · exams over taxonomy nodes, quick win to deep, adaptive (§ 3) · the issuer model — institution and standards body as one mechanism (§ 4) · our own item banks, trades first, ahead of any partner deal (§ 5) … |
 | [attestation](./builds/attestation-slate.md) | the `attestation_events` collection (Q1: its own, or a facet of `authoring_events`) · the closed assertion vocabulary (`approves`/`objects`/`notes` — `objects` non-blocking by default; superseded, never retracted) · the go-live predicate on the CMS save/publish split · the per-group policy grammar (data, not code — Q2) … |
 | [attribution](./builds/attribution-slate.md) | ⭐ **the observe-only sampler** (§ 4 — the one new instrument, and the thing to prototype first) · the **bucketed use counter** (§ 4a — the denominator) · the offline RAM rating table (§ 4d) · the mint ledger … |
 | [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · what a hand-placed ecology member IS (the glowcap: table member or furniture) · a `forage` verb, and whether it differs from `harvest` (`gather` is taken by ranching) · *cultivated* as a category (husbandry.md uses the word only for the durability rule) … |
@@ -67,7 +67,7 @@ respect.
 | [client-parcel](./builds/client-parcel-slate.md) | the sixth axis in the five-axis table · `/client` as a namespace root + a path→directory row · the `ParcelRecord` + title · the client committee's charter (three sentences, § 6) … |
 | [client-surface](./builds/client-surface-slate.md) | sizes as width classes (icon · line · panel · unit … |
 | [client-vocabulary](./builds/client-vocabulary-slate.md) | `CardId` + the client vocabulary as row-extensible catalogues · a `nature` facet on `SubscribableFieldDescriptor` · cards as routing destinations · a routing table per arrangement … |
-| [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
+| [college](./builds/college-slate.md) | the course catalogue + reader (recursive `CourseNode`) · the procedural item generator + examination on Magic 101 (the centerpiece; the seed, evaluator contract, misconception-bank distractors and the discrimination invariant) · enrollment as contract + Transcript wiring · the lecture and exam halls + the watch-embed lesson card … |
 | [combat-depth](./builds/combat-depth-slate.md) | access to moves (no unlocks; body, gear, situation, knowledge, magic; new Disciplines; schools as styles) · after the fight and ⭐ the chase · sport as a ruleset · the gym's properties, creature profiles, `assess` calibration … |
 | [committee](./builds/committee-slate.md) | the three-question facade · per-committee **seats** (generalising `OFFICE_APPARATUS`) · the model menu as rows · the optional `answerableFor` resolver + its shipped implementations … |
 | [construction](./builds/construction-slate.md) | the `ConstructionSite` as a third kind of `Structure` beside the building and the `Ship` · site KINDS (a building site, a shipyard slip, a bridge site) instanced per project, places budding by phase · the project's ELEMENTS with a derived bill, raised by their trades in a derived order (W7's `maintain` from zero) · completion popping the authored or minted structure into place … |
@@ -94,6 +94,7 @@ respect.
 | [eternal-university-drafts](./builds/eternal-university-drafts-slate.md) | the campus districts and roads (Eternal Way · Silver Street · Limbo Lane · the Quad) … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [expressive-acts](./builds/expressive-acts-slate.md) | acts declared by properties (`performs:` on an emote) · the twenty-act starter set and eleven manner words · emote packs and the two-layer opt-in · the polity's mapping … |
+| [failure-model](./builds/failure-model-slate.md) | the throwables conversation: who is at fault decides the channel (refuse · skip · throw) · when a refusal may be thrown · where error classes live · what reaches the player, the wizard and a script · the `return null` census (absorbs silent-write-census) · content errors at load, not use · floating promises · pack-extensible reasons |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [feedback](./builds/feedback-slate.md) | the one fixed axis (template + engagement) · the solicited experience prompt at engagement termination · a template as a |
 | [festival](./builds/festival-slate.md) | the show (measured and judged classes, the schedule, the judge, the ribbon as a deed) · the showground that buds for the event's window · the festival row and who may declare one · the kit … |
@@ -132,12 +133,13 @@ respect.
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [moderation](./builds/moderation-slate.md) | everything in § 19 (the go-live list) · the raid dial's shape · what the mod queue shows · channel domains … |
 | [mountain](./builds/mountain-slate.md) | the horizon feature split out of `Structure` · the mountain as rising ground (elevation bands on the zone, the biome by altitude) · mountain weather (lapse rate, orographic rain, rain shadow) · the body at height (thin air, cold, altitude sickness) … |
+| [mql-lists](./builds/mql-lists-slate.md) | naming several things in one argument (`get apple and pear`) · how a view declares a list · lists and quoting — greedy object args are gone (controller-liquidity), so this is real design |
 | [newbie-wilds](./builds/newbie-wilds-slate.md) | the area zone + room map (threshold · crossroads hub · shared hunting woods · the wolfshead's lair … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
 | [off-grid](./builds/off-grid-slate.md) | the phone as the starting carrier, the implant elective · the corrected ladder (the implant is future, the cell phone modern) · what each carrier addresses · coverage as field strength, built by relays and nodes … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
-| [organism-biology](./builds/organism-biology-slate.md) | everything below · ⚠ three physics rulings still with the owner (§ 12) |
+| [organism-biology](./builds/organism-biology-slate.md) | everything below. Every ruling is decided (§ 12, 2026-11-09), so this is ready for requirements. |
 | [organized-religion](./builds/organized-religion-slate.md) | the charter readout (structure derived, the vibe a claim) · the three polities on the Organization substrate · territorial vs gathered · title decides the schism … |
 | [pace](./builds/pace-slate.md) | the pace ruling (encounter · session · absence · calendar) … |
 | [paper-and-printing](./builds/paper-and-printing-slate.md) | the printed thing as the **static rung of a display** (never a special class) · the honest dynamics per rung (frozen, unpowered, costly to copy, irrevocable) · paper from rags (beat, form, couch, press, dry, size), the watermark, parchment · iron-gall and printing ink … |
@@ -153,6 +155,7 @@ respect.
 | [privacy](./builds/privacy-slate.md) | the privacy surface and its flagging lint · spoiler privilege earned by publication · the install-and-eval trail · the operator residual … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [radioactivity](./builds/radioactivity-slate.md) | radiation as the eighth channel, its fold attenuation through matter by decay mode · dose vs contamination · dose as a body stock, radiation sickness in phases over the `marrow` reserve, seeded long-term risk · contamination as a decaying toxin burden (effective half-life) … |
+| [reading](./builds/reading-slate.md) | the conversation not yet had: languages in a text game · scrolls and spellbooks against their mundane counterparts · newspapers, pamphlets and the printing design · reading what is written on a surface |
 | [real-world-anchors](./builds/real-world-anchors-slate.md) | a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and its note on how we differ … |
 | [recipes](./builds/recipes-slate.md) | the honesty audit of cooking and baking (first, and gating) · declared intent on every cook · your own recipe written into your book · nearest-recipe distance and the deviation each kind expresses … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
@@ -193,7 +196,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (117)
+## ⭐ Continuations — substrate shipped, a build's worth remains (118)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -266,7 +269,7 @@ are the named remainders.
 | [lounge](./builds/lounge-slate.md) | the flavor tag-set + `route` matchmaking + `seedMember` (the pizza-as-consensus toy: the served pie, the ordered slice, the standing order, the robot last mile + the pass + the pizza line, the published menu) · start-a-table growth · the departure ceremony · the lounge furniture (the contested screen + the remote as a standing signal, the info screen, the derived channel lineup + broadcasting as a business, the notice board, the window, the lost-and-found + the bin, unbuckling) … |
 | [malting-and-extract](./builds/malting-and-extract-slate.md) | malt **extract** (the hinge — it rides the shipped `evaporative` mechanism) · **specialty malts + diastatic power** (the range that makes malt a product rather than an ingredient) · malted milk, which gives dairy its first sink · malt vinegar as a feedstock for the acid hurdle preservation already owns … |
 | [mana-economy-design-pack](./builds/mana-economy-design-pack.md) | the two Material fields (mana density · mana conductivity — canon in arcane-science.md, no field on `Material` yet) · mana deposits + prospecting/refining (partition + volatility, purity as a `Grade`) · ambient mana density of place driving recovery … |
-| [material-decomposition](./builds/material-decomposition-slate.md) | the base keeps only what every material has · chemical identity as the class axis (element · compound · mixture) … |
+| [material-decomposition](./builds/material-decomposition-slate.md) | (the decomposition shipped in !555) § 7, the next Idea-tree pass: species split into person, kept and aquatic; maturation split by mechanism; the dead fields removed (condition `contagion`, discipline `conferrals`, sentinel `lifespanMin`) · § 8, the data-gap burn-down per trade (`lint:material-kinds --gaps`) |
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks · decision-graded `ActSignature` sub-checks … |
 | [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons, the district as an Organization + the hoist toll · sulfides, roasting and flux · beneficiation (the dressing floor + tailings) … |
 | [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump (`LiftMixin`, the called cage) · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock + the timberman + sounding/convergence … |

@@ -14,12 +14,10 @@
 > in the arcana pack; `ConsumableMaterial` as a no-field taxonomy subclass; the fixed-vocabulary rule —
 > *"a curated, closed vocabulary an author selects from"* ([race.md](../../subsystems/race.md) §
 > Material substrate).
-> **Left:** the base keeps only what every material has · chemical identity as the class axis
-> (element · compound · mixture) · capability mixins by the process that reads them · family backing
-> classes · sentinel rows removed · `nutrients` split in two · electrical conductivity made universal ·
-> material-side mixin names that cannot collide with the thing-side ones · wiki pages per mixin ·
-> species split into person, kept and aquatic · maturation split by mechanism · the dead fields
-> removed (condition `contagion`, discipline `conferrals`, sentinel `lifespanMin`)
+> **Left:** (the decomposition shipped in !555) § 7, the next Idea-tree pass: species split into person,
+> kept and aquatic; maturation split by mechanism; the dead fields removed (condition `contagion`,
+> discipline `conferrals`, sentinel `lifespanMin`) · § 8, the data-gap burn-down per trade
+> (`lint:material-kinds --gaps`)
 > **Size:** a build
 
 ## 0. The ask **[DECIDED — the owner]**

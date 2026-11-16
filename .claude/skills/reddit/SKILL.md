@@ -15,6 +15,39 @@ low-karma account look like spam.
 Read the memory file `reddit-participation.md` first: it holds the log of
 what has been posted and the owner's latest feedback.
 
+## ⭐⭐⭐ Why we are on Reddit at all **[the owner, 2026-11-13]**
+
+Karma is what keeps the owner from **posting on r/Destiny**, the hub of the DGG sphere
+(Destiny, Hutch, IRI and the wider community around them). That is where he wants to share
+the **manifesto video series** as a forum post and draw his first community participation,
+to support the post-New-Year livestream and the Pantera's Box instance. He wants
+**playtesters, not players**: slow growth, pre-1.0, models unproven, and the governance
+model itself is part of the test, as a metagame. He is not trying to become a famous
+streamer.
+
+So **the main lane is commenting in r/Destiny** (he can comment there, not post): it earns
+the karma that sub's hidden threshold counts, and makes the username familiar there before
+the manifesto goes up. The design subreddits below are a side lane. **Roles: I draft, the
+owner approves.**
+
+### The r/Destiny lane
+
+- **Every pass scouts r/Destiny `/new` and `/rising` first** (two loads), for threads under
+  about an hour old. DGG threads move fast; early is everything.
+- **Draft only where the owner has real standing:** games, streaming, AI, online governance
+  and moderation, tech, film and TV. ⛔ **Political opinion threads are the owner's own
+  voice**: surface them if one fits, but never put a political position in his mouth; he
+  writes or states the position, and I only tighten it.
+- **The sub's rules decide the shape:** argue ideas, not people (1, 6); no soapboxing or
+  lecturing (7); no outrage bait (8); **never name another subreddit** (9); source any
+  factual claim (10).
+- ⭐ **GTAB (rule 15)**: trusted members hold charges for 3-day bans that `!objection`
+  reverses. It is community moderation with an appeal, close kin to our own holds-and-appeals
+  design, and the community lives it daily. Know it; it is the bridge to the manifesto.
+- **The posting threshold is unknown** (a hidden AutoModerator rule). Asking the mods for
+  the number is the owner's call.
+- **Track progress**: note the comment karma total at each pass.
+
 ## The rules
 
 - **Scope and posture:** the tiers below. ⛔ Not Claude or AI-coding
@@ -100,8 +133,9 @@ citizen here."*
 
 - **At most about 8 page loads to scout a pass**, paced **4–5 seconds**
   apart, plus only the threads actually read.
-- **Rotate by weekday.** Every pass scouts the Home tier's 3 busiest
-  (gamedesign, MUD, worldbuilding) plus that day's rotation:
+- **Rotate by weekday.** Every pass scouts **r/Destiny first** (the main lane, above), then,
+  as a side lane, the Home tier's 3 busiest (gamedesign, MUD, worldbuilding) plus that
+  day's rotation:
 
   | day | rotation |
   |---|---|

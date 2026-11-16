@@ -35,7 +35,8 @@ we have to make this stuff performant."*
   side-effect cache whose only sanctioned reader is `MmlRenderer`'s
   click resolution ([card-surface.md § Client stuff registry](../../subsystems/card-surface.md)).
 - **Server-side personal knowledge** — the per-player `map` document
-  (`/home/<key>/map/<locality address>`), claims with `channel`, `band`,
+  (`/home/<key>/map/<locality address>`), claims with `channel` (`walked · seen · searched · published · charted ·
+  told`; a `band` is a claim kind, water between places),
   `firstSeen`, `lastSeen`, read by `NavigationApi.readMap(viewerKey,
   prefix)` ([location-graph.md](../../subsystems/location-graph.md)).
   It renders as MML today and reaches no client model.
@@ -66,6 +67,17 @@ id. Since then the server gained what is actually authoritative here:
 4. **Selectors are the only way in.** The minimap, every lens, the room
    view and the Zone tab are derived views over the three stores,
    memoized. A new lens is a selector, not a new wire.
+
+### ⚠ Paths in the replica travel spoiler-tagged **[DECIDED — the owner's spoiler position]**
+
+A map claim names its place by **identity path** and labels it with its
+**template path**. Paths are a spoiler on the appetite axis
+([spoiler-slate § Paths are a spoiler](../tails/spoiler-slate.md)): the
+replica carries them **tagged**, the client collapses them unless the
+player's appetite opens them, and nothing in the pane keys its display on
+a path a player has not chosen to see. (The replica may still use them as
+record keys internally — keys are not display.)
+[navigation-server-slate § S9](./navigation-server-slate.md).
 
 ## Performance **[LEAN]**
 

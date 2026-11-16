@@ -23,7 +23,7 @@ Its real shape:
 - **deletes 29 docs** — `discovery-slate`, `physiology-slate`,
   `mind-slate`, `pharma-slate`, `species-slate`, `vocations.md`, the
   apartment requirements+plan pair, and more;
-- **reverts commit `aaf20abf`** — `education-videos.md` (−223),
+- **reverts commit `aaf20abf`** — the education videos doc (−223),
   `cooperative-slate.md` (−603), the seven manifesto files,
   `locomotion-as-activity-slate.md`;
 - ⭐ **the only genuine work in it is

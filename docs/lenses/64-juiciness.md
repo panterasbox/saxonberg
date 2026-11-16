@@ -120,8 +120,7 @@ roadmap; this lens says what determines whether that roadmap is playable:
 > product is *learning as the side effect of a life you are choosing to
 > lead*, and the life is work, then **juiciness is what converts the work
 > into the life.** It is load-bearing, not decorative — and
-> [engagement-and-positioning.md](../study-com/engagement-and-positioning.md)
-> already says the business case out loud: *"everyone has content; nobody
+> the education pitch already said the business case out loud: *"everyone has content; nobody
 > has engagement. **Fun is the moat.**"*
 
 ⭐ Which makes prose work **engineering** rather than finishing. The

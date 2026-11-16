@@ -4,6 +4,9 @@
 > **Left:** the census gate · sorting each guard as a read (legitimate
 > skip) or a write (a defect) · the burn-down.
 > **Size:** a tail (a gate, then a sweep).
+> **Absorbed by:** [failure-model-slate.md](../builds/failure-model-slate.md)
+> (2026-11-10): this census is the write half of the broader throw /
+> refuse / return-nothing conversation.
 
 The policy is in [spatial.md § Writes on a detached subject](../../subsystems/spatial.md):
 a write whose subject stands nowhere checks first, never invents a place,

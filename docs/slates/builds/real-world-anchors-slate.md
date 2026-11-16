@@ -4,11 +4,10 @@
 > subjects (a page is about a template, a mixin, a command), the render pipeline, the reveal model;
 > the wiki and `help` as out-of-fiction surfaces ([wiki.md](../../subsystems/wiki.md)); reality-shaped
 > rows — species, materials, conditions, foods, Disciplines — and Principle 4, *reality-shaped models
-> seed from real data* ([design-philosophy.md](../../design-philosophy.md)); study.com's taxonomy,
-> whose only external anchor is a DBpedia subject id ([integration-spec](../../study-com/integration-spec.md)).
+> seed from real data* ([design-philosophy.md](../../design-philosophy.md)).
 > **Left:** a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and
 > its note on how we differ · the wiki's and `help`'s *in the real world* line · DBpedia derived from
-> the anchor for the study.com crosswalk · ingesting Wikidata data at authoring time · a census of
+> the anchor for an external-catalog crosswalk · ingesting Wikidata data at authoring time · a census of
 > anchor coverage, then a ratchet · authoring support for finding the right id
 > **Size:** a build
 
@@ -17,8 +16,7 @@
 *"I wanna talk about connecting to Wikipedia. Not literally, but a lot of our models are real things,
 and it'd be cool to provide links to Wikipedia, like from our own wiki, where appropriate. … I'd
 imagine there'd be pages for most game concepts and any processes you have to learn to understand how
-they work in the game. There's a lot of that now, and more coming with all the trades. I know there's
-that DBpedia thing that study.com uses too."*
+they work in the game. There's a lot of that now, and more coming with all the trades."*
 
 ## 1. Wikipedia, DBpedia, Wikidata
 
@@ -28,15 +26,16 @@ that DBpedia thing that study.com uses too."*
 | **DBpedia** | a project that *extracts* structured data from Wikipedia's infoboxes and categories; each article gets an address built from its **title** | CC-BY-SA, inherited |
 | **Wikidata** | the structured knowledge base that *feeds* Wikipedia — infobox data, cross-language links; each thing has a permanent id (cheese is `Q10943`) | ⭐ **CC0 — public domain** |
 
-Wikipedia does not use DBpedia; DBpedia is built from Wikipedia. study.com uses DBpedia because its
-concepts carry a `dbpedia_subject_id`.
+Wikipedia does not use DBpedia; DBpedia is built from Wikipedia. Some external course catalogs
+anchor their concepts to DBpedia subjects.
 
 ## 2. ⭐⭐⭐ The anchor is a Wikidata id **[DECIDED — the owner]**
 
 - **Permanent** — a DBpedia address is an article title and breaks when the article is renamed; a
   Wikidata id never changes.
 - **Every language** — one id reaches every Wikipedia, and DBpedia's own records link back to it.
-- **DBpedia is derived** — the address study.com needs comes from the anchor, never stored beside it.
+- **DBpedia is derived** — the address a DBpedia-anchored catalog needs comes from the anchor, never
+  stored beside it.
 
 ## 3. ⭐⭐ Anchors live on the rows **[DECIDED — the owner]**
 
@@ -75,10 +74,11 @@ literacy the platform exists to teach.
 - ⛔ **Nothing at runtime** — anchors are authored and data is ingested at authoring time; the game
   never calls Wikipedia or Wikidata while running.
 
-## 6. ⭐ The study.com crosswalk gets candidates for free **[LEAN]**
+## 6. ⭐ An external-catalog crosswalk gets candidates for free **[LEAN]**
 
-The crosswalk from our Disciplines to study.com's concepts is described as wholly authored. With
-anchors on Disciplines, our *metallurgy* and a study.com concept whose DBpedia subject is *Metallurgy*
+A crosswalk from our Disciplines to an external course catalog's concepts would otherwise be wholly
+authored. With anchors on Disciplines, our *metallurgy* and a catalog concept whose DBpedia subject is
+*Metallurgy*
 **match mechanically** — still confirmed by hand, no longer hunted for.
 
 ## 7. The build **[LEAN]**
