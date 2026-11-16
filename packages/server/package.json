@@ -63,6 +63,8 @@
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",
     "lint:completion-this": "tsx scripts/check-completion-this.ts",
     "lint:carry-moves": "tsx scripts/check-carry-moves.ts",
+    "lint:data-ideas": "tsx scripts/check-data-ideas.ts --lint",
+    "lint:view-keys": "tsx scripts/check-view-keys.ts --lint",
     "lint:controller-gates": "tsx scripts/check-controller-gates.ts",
     "lint:greedy-object": "tsx scripts/check-greedy-object.ts",
     "lint:lineage-keys": "tsx scripts/check-lineage-keys.ts",

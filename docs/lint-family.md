@@ -1442,6 +1442,55 @@ run found one site the sweep had missed (`returnBorrowed` re-asking a
 body it had already found by `isCarrying`). See
 [carrying.md](./subsystems/carrying.md).
 
+### `lint:data-ideas` — metadata is a Document, not an Idea (2026-11-16)
+
+`scripts/check-data-ideas.ts`, ceiling **13** (size and carrying W10k).
+It mechanizes [review-questions.md](./review-questions.md) **P10**: the
+size and carrying build shipped `Form` as a `SingletonMixin(Idea)` with
+five rows, right after the documents build had converted that pattern
+away (document-store.md § *Idea or document*), and it cost a
+`lint:boundary-roles` rise and a load-on-use workaround before W10j
+retired it. The gate counts every class on an `idea/` branch (the kernel's
+`platform/idea/**` and `world/**/idea/**`, every pack's `src/**/idea/**`)
+that reaches `lib/stuff/Idea` and is **data-only**: neither its own body
+nor any class or mixin factory it composes on the way to `Idea` has a
+lifecycle hook (`on*`/`can*`/`pre*`/`post*`/`around*`, a static block), an
+`async` method or `await`, a value reference to an `*Api` or `*Logic`, or a
+timer. Fields, `fieldMeta`, accessors, `get*`/`set*` methods and pure
+computation over the class's own fields are data — a document's value class
+holds those just as well. Out by construction: controllers (`cmd/`),
+logic singletons (`api/`, `*Logic`, anything reaching `ApiLogic`) and the
+catalogues and registries that serve documents.
+
+⚠ Syntax only, so the test's third limb (*could it be a link in a query
+chain?*) is invisible to it, and a direct call on another Stuff reads as
+computation. That makes it a **census of candidates**, not a verdict:
+Discipline, Spell and Corpo stay Ideas by limb 3 (document-store.md) and are
+counted anyway. `--report` names all thirteen; each is a candidate for a
+document conversion to be argued by the test, and each conversion lowers
+the ceiling. A new data-only Idea class fails — it is a document kind, or
+it has the behavior that makes it an Idea. The fixture test plants the
+retired `Form` and sees it counted.
+
+### `lint:view-keys` — the command def predicts everything (2026-11-16)
+
+`scripts/check-view-keys.ts`, ceiling **59 keys, pinned by name** (size
+and carrying W10k). It mechanizes review-questions.md **P9**: the
+`readies:` view field made the dispatcher put away what you held and draw
+a tool before the controller ran — nothing in the def or `help` said so,
+and it was retired. `command.schema.json` is `additionalProperties: false`
+at every surface, so its key list IS everything a def can say. The gate
+reads the `properties` of the four surfaces — the view (17), a
+subcommand (7), an arg (`$defs/positional`, 18) and an option
+(`$defs/option`, which `payload:` shares, 17) — against
+`PINNED_VIEW_KEYS`, each key with one line on what it does to the command.
+A key the pin does not name **fails** until it is added with its line in a
+reviewed change (ask P9 first: a convenience is the player's — an option,
+an arg type, a verb, an alias — never a dispatcher flag). A key the schema
+dropped **passes** with a note to drop it from the pin. ⭐ The ratchet is by
+name, not by count: a count would let one key be swapped for another
+unseen.
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

@@ -136,7 +136,9 @@ alias. Never a dispatcher flag. *Evidence:* the `readies:` view field (the
 dispatcher put the held thing away and drew the tool before the controller
 ran); "homes" (a hidden per-item memory the player had to track to predict
 `remove`); `inventory` duplicating `query`'s display options. All three were
-retired. Owner: *"the whole point of the command def is it's supposed to be
+retired. *Gated by `lint:view-keys`*: every key a view, a subcommand, an arg
+or an option may carry is pinned by name with what it does; a new key fails
+until it is added in a reviewed change. Owner: *"the whole point of the command def is it's supposed to be
 the one document that, if you get your head around it, you can predict
 everything a command will do … if you're making help worse you're really
 doing something wrong."*
@@ -147,7 +149,10 @@ is a **document** with a value class over it (`Placement` is the precedent),
 never a new `Idea` class with rows. *Evidence:* `Form` shipped as a
 `SingletonMixin(Idea)` with five rows, right after the documents build had
 converted that pattern away. It cost a `lint:boundary-roles` rise and a
-load-on-use workaround.
+load-on-use workaround. *Gated by `lint:data-ideas`*: a census of the `Idea`
+classes whose bodies are data only (fields, accessors, pure computation — no
+hook, Api call, await or timer); a new one fails, and each one counted today
+is a candidate for a document conversion.
 
 ### P11. Does any caller branch on what the destination is, to decide how to call a primitive?
 `if (isX(dest)) dest.special(item) else Api.primitive(item, dest)` means the
