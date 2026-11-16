@@ -153,9 +153,9 @@ slung there without the claim naming it).
 
 ⭐ **A carrier's hand is the exception** (size and carrying W4/W7): the
 claim says where `wield` puts a thing, not which hands may close on it.
-Any `Carrying.handSlots()` slot takes any slottable thing — the second
+Any `Attired.handSlots()` slot takes any slottable thing — the second
 hand by weight, a readied compass, a lead rope's end, a mug — and the
-grip (`Carrying.handsFor`) is what can refuse.
+grip (`Carrying.wieldPlanFor`) is what can refuse.
 
 > ⭐ **Prosthetics are the augmentation build's, not embodiment's.** A
 > stand-in for a lost limb is a **"replace" augment** — vitals owns the
@@ -289,32 +289,38 @@ hand. That pool is gone. The rule now:
 > whatever you carry in it. Everything on a body is held, worn, or placed
 > on something worn.**
 
-- **Hands are derived, not named.** `Carrying.handSlots()` is the slots of
+- **Hands are derived, not named.** `Attired.handSlots()` is the slots of
   the body plan whose part `serves: [manipulation]` — the biped's
   `hand:left`/`hand:right`, the `canid` plan's `mouth`. A horse has none.
 - **A hand takes any good.** `Good` and `Vessel` compose `SlottableMixin`,
   and a carrier's hand slot admits any slottable thing whatever its
-  `accepts` — the grip decides (`Carrying.handsFor`: one hand, two, or too
+  `accepts` — the grip decides (`Carrying.wieldPlanFor`: one hand, two, or too
   heavy, from the holder's own carry capacity and stature, or two because
   the thing's *use* needs two — a bow, a musket, a pike). Every other slot
   still asks its `accepts`. A garment in a hand is **held, not worn**
   (`Attired.wornStack` skips hands); `wear` dresses what is held.
-- **`get`, `give`, `buy` and every other way onto a body go through
-  `Carrying.receive`** — a free hand, else a pocket, a hung pouch or a worn
-  bag that fits, else a refusal in words that names what the hands hold and
-  the next command. A dual-wielder handed a spellbook takes it in a pocket
-  or a bag if one fits, and is told *"your hands are full"* if none does.
+- **`get`, `give`, `buy` and every other way onto a body are
+  `ContainmentApi.move(item, body)`** — the body places it (a free hand,
+  else a pocket or a hook, by `carry.order`), a carrier routes the rest
+  into a bag it carries, else sets it down at its feet with the line
+  (*Your hands are full — you set the cup down.*). Only `get` refuses
+  rather than pick a thing up to set it back down (`Carrying.wouldSetDown`),
+  in words that name what the hands hold. A dual-wielder handed a
+  spellbook takes it in a pocket or a bag if one fits, else it lands at
+  their feet.
   That friction is the point now: what you hold is a choice that costs you
   something (see [carrying.md](./carrying.md)).
 - **Readying is `get X from` / `fight switch`; nothing frees a hand for
   you** (size and carrying W10). `get compass from pouch` brings it into a
   FREE hand, or is refused naming what the hands hold and the ways out
   (`drop`, `unwield`, `put`); an instrument verb (`measure`, `read`,
-  `light`, `pour`, the crafting tools) uses the tool where it sits. In a
-  fight a hand act costs a beat by holder.
+  `light`, `pour`, the crafting tools) uses the tool where it sits; a
+  thing in a shut container or a packed pack is refused, naming the fix
+  (`open`, take the pack off). In a fight every hand act is a priced beat
+  by where it comes out of.
 - **`wield` is still a commitment.** `wield`/`wear`/`mount`/a posture seat
   occupy slots because each is a body-level commitment; `equip` reads
-  `Carrying.wieldSlots(item, claim)`, which widens a one-hand claim to two
+  `Carrying.wieldPlanFor(item, claim)`, which widens a one-hand claim to two
   when the holder's weight or reach says so, and refuses `too-heavy` /
   `hands-needed` / `hands-on-cart` in words.
 
@@ -327,15 +333,19 @@ carrying competes too, which is the honest tension.
 
 - **Size and carrying (2026-11-12, `39d4ba23e..50f562ed4`).** *Hand slots
   are for activities, not storage* was reversed: hands hold any good, the
-  ambient carry pool retired, `receive` is the one way onto a body, and
-  `equip` consults the holder's grip (`wieldSlots`/`wieldRefusal`). The
+  ambient carry pool retired, `receive` was the one way onto a body (W8:
+  folded into `ContainmentApi.move` — the body places what arrives), and
+  `equip` consults the holder's grip (`wieldSlots`/`wieldRefusal`, now
+  `Carrying.wieldPlanFor`). Finalize (2026-11-16; the whole build
+  `39d4ba23e..HEAD`): `handSlots` is `Attired`'s, `handsFor` folded into
+  `wieldPlanFor`, readying never frees a hand for you. The
   hand-slot `fitsSlot` short-circuit lives on `Wieldable` (a carrier's
   hand) and on `Slotted.canOccupy` (any slottable in a hand).
 
 ## Cross-references
 
 - [slot.md](./slot.md) — substrate.
-- [carrying.md](./carrying.md) — hands, `receive`, the tiers, readying.
+- [carrying.md](./carrying.md) — hands, `move` onto a body, the tiers, readying.
 - [size.md](./size.md) — what fits, the envelope.
 - [race.md](./race.md) — BodyPlan's `slots: SlotSpec[]` declaration.
 - [command-spec.md](./command-spec.md) — verb authoring.

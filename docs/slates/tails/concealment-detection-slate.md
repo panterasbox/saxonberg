@@ -139,6 +139,11 @@ threat-scoped, no new substrate.
   [stealth.md](../../subsystems/stealth.md) § "Ambush denies the poise
   contest"). The remaining unbuilt slice (frisking, searching the downed)
   is carried in `Left`, above.
+- **Seeing over** (size-and-carrying finalize, 2026-11-16; salvaged from size-slate § 6.3). Bodies now
+  have a stature: the tall see over a wall or a crowd, the short cannot
+  see over the bar. An occluder with a height and a viewer's eye height
+  would make a crowd or a counter a concealment band — the perception
+  gate reads it, nothing new decides it.
 
 ## Cross-references
 

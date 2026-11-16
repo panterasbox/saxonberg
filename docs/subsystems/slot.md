@@ -97,14 +97,14 @@ Two-part check:
 
 ⭐ **A carrier's hand is the one exception to Part 1** (size and carrying
 W7). On a host that composes `CarryingMixin`, a slot in
-`Carrying.handSlots()` — a slot whose `bodyPart` serves manipulation —
+`Attired.handSlots()` — a slot whose `bodyPart` serves manipulation —
 admits **any slottable thing**, whatever its `accepts` names and whatever
 the thing's claim says: a claim says where `wield`/`wear` put a thing, not
 what a hand may close on. `Good` and `Vessel` compose `SlottableMixin` for
 this (applied once — over a base that already composes it the factory
 returns the base, since two layers would redeclare its `@Final` methods),
 so a hand holds a mug, a sack, a coat. The grip decides instead
-(`Carrying.handsFor` — one hand, two, or too heavy). Every non-hand slot
+(`Carrying.wieldPlanFor` — one hand, two, or too heavy). Every non-hand slot
 still asks its `accepts`. See [carrying.md](./carrying.md).
 
 Future affordance mixins ship a new mixin, register it in `Mixins`,
@@ -267,6 +267,14 @@ is `verbs: [treat]` and `dress` names no view at all.)
   throws if multi-occupant.
 - `occupyAll(host, candidate, slots)` — multi-slot atomic
   claim with rollback on partial failure.
+- ⭐ **`seatInSlots(item, slots)`** (and `seatInSlot`) — the explicit
+  **occupy these slots** act (owner, finalize 2026-11-16): the item into
+  this host's contents, then the slots, under the seating mark
+  (`isSeating` — what `Creature.arrivalFor` admits), a failed claim rolled
+  back out. Its callers name the slots: an outfit or a loadout
+  (`wear`/`equip`, intake), `put`'s slot route, `unequip`'s re-seat, the
+  chokepoint's own `seat` arrival. A loadout that cannot seat throws. It
+  is not a way around `move` — `move` decides WHERE; this is told.
 - `transferOccupancy(candidate, from, to)` — vacate-then-
   occupy with rollback. Used by every posture verb to swap the
   actor's posture-bearing slot atomically.
@@ -479,8 +487,13 @@ slots and the `canid` plan its `mouth` hand; a carrier's hand slot admits
 any slottable thing, and `Good`/`Vessel` became slottable so a hand can
 hold any good. `get` from a non-body slot still vacates through
 `tryReleaseFromSlots`, and the taken thing now goes through
-`Carrying.receive` (a hand, a pocket, a bag) rather than loose into the
-taker's contents. See [carrying.md](./carrying.md).
+`ContainmentApi.move(item, taker)` — the body places it (a hand, a pocket)
+and a carrier routes the rest into a bag (W8 folded `Carrying.receive`
+into `move`; `get` asks `Carrying.wouldSetDown` first and refuses a
+pick-up that would only be set back down) — rather than loose into the
+taker's contents. Finalize (2026-11-16; the whole build `39d4ba23e..HEAD`):
+`seatInSlots` stays the explicit *occupy these slots* act. See
+[carrying.md](./carrying.md).
 
 ## History
 

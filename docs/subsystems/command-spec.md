@@ -2530,3 +2530,12 @@ Build range `14af1e8ba..726c1f195`. What shifted between design and code:
 flags were deleted (one reach rule, D17); `mustNotBeShutAway` folded into
 `canReach`; `readies:` joined `FieldDefinition`. `get` became the
 receiving act and `put X in <person>` handing ([carrying.md](./carrying.md)).
+
+⟲ **Superseded at review (W10, owner 2026-11-14 — *the command def
+predicts everything*):** `readies:` was **retired** from `FieldDefinition`
+— no implicit interpreter act; an instrument verb uses the tool where it
+sits, and a thing in a shut or packed holder is refused naming the fix.
+`get` is not a separate receiving act any more: every way onto a body is
+`ContainmentApi.move` (W8/W10i), and `get` alone refuses a pick-up the
+routing would only set back down (`Carrying.wouldSetDown`). The whole
+build is `39d4ba23e..HEAD` (MR !576).

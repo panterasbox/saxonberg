@@ -271,7 +271,7 @@ carries you and the tow carries the cart.
 
 | Verb | Action |
 |---|---|
-| `hitch <cart>` | The giver becomes the hauler (self-haul). ⭐ **The handles take hands** (size and carrying D18): `hitch` refuses `hands-on-cart` when `Carrying.freeHands()` is fewer than the cart's `handedness` (`need = min(handedness, handSlots)`), and while hitched `freeHands()` is reduced by it — `receive`, `ready` and `wield` say *"Your hands are on the handcart — `unhitch` it first."* |
+| `hitch <cart>` | The giver becomes the hauler (self-haul). ⭐ **The handles take hands** (size and carrying D18): `hitch` refuses `hands-on-cart` when `Carrying.freeHands()` is fewer than the cart's `handedness` (`need = min(handedness, handSlots)`), and while hitched `freeHands()` is reduced by it — `get`, `ready` and `wield` say *"Your hands are on the handcart — `unhitch` it first."* |
 | `hitch <cart> to <mount>` | Harness a draft creature (`HaulerMixin`) as the hauler instead; the rider's hands stay free. |
 | `unhitch [target]` | Bare = release the giver's own cart; `unhitch <mount>` / `<cart>` releases that one. |
 
@@ -300,10 +300,11 @@ surfaces at move time. Validators `mustBeHaulable` / `mustBeHauler`.
 ### Leading an animal
 
 Leading is not haulage — the animal walks its own way. `tie rope to
-mule` resolves to the animal's **halter** (`Carrying.halter()` — the
-first worn `Tieable`; `/trade/tanning/thing/Halter` =
+mule` resolves to the animal's **halter** (the lead lookup in `Rope` —
+the first worn `Tieable`; `/trade/tanning/thing/Halter` =
 `Tieable(Garment)` on `collar`): the rope hangs `from` the halter and
-its free end is received into the leader's hand; no halter → `no-halter`.
+its free end goes into a free hand of the leader; no halter → `no-halter`,
+no free hand → `hands-full`, and nothing moved.
 In `Mobile.crossExit`'s conveyance region, beside the tow, each held line
 end whose far end is on a handless or haltered body in the same place
 (`Mobile.ledAnimals`) is led: the animal's own `canTraverse` is asked

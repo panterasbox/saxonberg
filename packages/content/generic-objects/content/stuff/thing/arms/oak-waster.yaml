@@ -24,7 +24,7 @@ data:
   # ⭐ A practice sword. It trains the same craft as the steel — that is what it is FOR.
   exercises: [blades]
   # ⭐ Size and carrying (W6 arms audit): its shape is a ROD and its box
-  # its blade/shaft, so the length rule (`Carrying.handsFor` — longer than
+  # its blade/shaft, so the length rule (`Carrying.wieldPlanFor` — longer than
   # 0.6 of the holder's stature takes two hands) reads it.
   shape: rod
   dimensions: { width: 0.05, depth: 0.03, height: 0.9 }

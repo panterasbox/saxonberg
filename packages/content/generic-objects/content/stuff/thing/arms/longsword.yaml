@@ -1,6 +1,6 @@
 # A longsword — a long blade with a grip long enough for a second hand
 # (size and carrying W6, drive 7). ⭐ It claims ONE hand: whether it takes
-# two is the holder's (`Carrying.handsFor`), by its length against the
+# two is the holder's (`Carrying.wieldPlanFor`), by its length against the
 # holder's stature. A human (1.75 m) holds it in one; a gnome (1.0 m)
 # needs both. Its 1.0 m is the arithmetic of that: the length rule's
 # threshold is 0.6 of stature (1.05 m for a human, 0.6 m for a gnome).

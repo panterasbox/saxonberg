@@ -37,7 +37,8 @@ me                        the command-giver
 here                      the place you are in (past a boat, a cart,
                           a bed) — `me:e` is what immediately holds you
 peers                     everything in the room except the giver
-inventory                 the giver's contents (and inside open bags)
+inventory                 everything the giver carries, nearest first
+                          (hand · ready · packed), never into another body
 person                    everything on your person (you, your implant
                           apps, installed gear + its apps, carried
                           items + their apps)
@@ -159,8 +160,8 @@ seed yields a list of Stuff (possibly empty).
 | `here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed (`getEnclosingPlace`); what immediately holds you is `me:e` |
 | `peers` | the place's contents minus the giver, one level into open things there, and the vessel you sit in |
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
-| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first and the giver itself last (you can reach yourself, but a noun names someone else before you) — **what you could lay hands on now**: held, worn, inside the open vessels you carry (all the way down), the room's top level and one level into open things here; never inside a shut thing. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) |
-| `inventory` | the giver's contents, and inside the open vessels among them (the giver itself is `me`) |
+| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first and the giver itself last (you can reach yourself, but a noun names someone else before you) — **what you could lay hands on now**: everything you carry, nearest first (hand · ready · packed — a thing in a shut bag or the pack on your back is in the list, and the verb says why a hand cannot get at it), the room's top level and one level into open things here, never inside a shut thing there. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) plus the object's own `reachRefusal` |
+| `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed); the giver itself is `me`. A mid-chain `bob:inventory` is read from OUTSIDE — what Bob holds and wears, one level into the open things there |
 | `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `online` | every connected command-giver |
 | `it` / `him` / `her` | last single match of matching gender |
@@ -174,8 +175,8 @@ seed yields a list of Stuff (possibly empty).
 There are no reach rungs (the `--top` / `--open` / `--deep` flags were
 retired 2026-11-11). A bare name binds **the nearest thing you perceive
 that answers to it**: in your hand, then what is ready (worn, hung from
-your belt, in a pocket or an open bag you wear), then what is packed (in
-the pack on your back), then the room — its top level and one level into
+your belt, in a pocket or a bag you wear anywhere but your back), then what
+is packed (in the pack on your back), then the room — its top level and one level into
 the open things there. Two equally near ask *which one?*. A thing you
 cannot get a hand on is still bound, and the verb says why: *"The box is
 shut."*, *"The rucksack is on your back — take it off first."* The chain

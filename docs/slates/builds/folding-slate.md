@@ -185,6 +185,7 @@ mathematics — lens 1 at its strongest.
 | O4 | wrinkle rates per fiber and per activity | authored on fiber material rows (the grain), checked against real behavior |
 | O5 | the iron's scorch thresholds per fiber | real values, on the fiber rows |
 | O6 | does `Sheet`'s fold count retire | yes — it becomes three *in half* creases; `format()` reads the creases |
+| O7 | the attach point in what shipped (size-and-carrying finalize, 2026-11-16) | `Shaped.foldPackingFactor()` (`lib/spatial/Shaped.ts`, an `@hook`) is the one number a flexible thing's packed volume multiplies by today (`1` unfolded; a `Foldable` answers smaller when folded); the crease model replaces the number — O3's volume model now exists (`getPackedVolumeM3`, `fitRefusal`) |
 
 ## 12. Reuse ledger
 

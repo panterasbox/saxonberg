@@ -537,6 +537,14 @@ matching several chambers of one host binds the host with no region
 *which one?*. A non-enclosing sibling ambiguity (a range's hot plate and
 firebox) still asks by preposition.
 
+⭐ **A programmatic move has nobody to ask** (owner, finalize 2026-11-16):
+`ContainmentApi.move(item, host)` with no chamber named fills alike
+chambers by fit, and into chambers that DIFFER it **throws** a
+`ContainmentError` naming them — the caller names one
+(`move(key, coat, 'inner pocket')`). A brain, a restock or a staging line
+that means a particular chamber says so; the engine never picks a
+difference for it.
+
 **A chamber that closes** is a closure the player drives:
 `Placing.isRegionOpen` / `fastenRegion(name, shut)`, the host's persistent
 `shutRegions` (per instance; `null` = the row's default, every `closes`
@@ -589,12 +597,18 @@ hosts, which would constrain several identical tables in one hall.
   hops), else my immediate container. MQL's `here`, the room a sound is
   heard in (`Scene`) and the room a horizon is seen from read it
   (controller-liquidity D7).
-- ⭐ `reachRefusal(actor)` — the innermost shut lid between me and the
-  actor, as `{reason: 'enclosed-shut', facts: {by}}`, or `null`. The verb's
-  question; MQL addresses through lids ([perception.md](./perception.md)).
-- On `Container`: ⭐ `getReachableContents(rung)` — the per-container
-  reach walk (`top` · `open` · `deep`), the step under
-  `PerceptionApi.reach` — the one list `canReach` and the MQL pools read
+- ⭐ `reachRefusal(actor)` — why `actor` cannot lay hands on me, innermost
+  first: `{reason: 'packed', facts: {by}}` (inside the pack the actor
+  wears on the `back` — *take it off first*; checked before the lid at the
+  same holder) or `{reason: 'enclosed-shut', facts: {by, region?}}` (a shut
+  thing, or a shut chamber of it, between me and the actor), or `null`.
+  The verb's question; MQL addresses through lids
+  ([perception.md](./perception.md)).
+- On `Container`: ⭐ `getReachableContents()` — what a hand could take
+  from in here reaching in from OUTSIDE: my contents and one level into
+  every OPEN thing among them (never into a body). **No rung** (D17 — the
+  `top`/`open`/`deep` rungs are gone); a carrier's own tree is
+  `PerceptionApi.reach`'s, nearest first
   ([perception.md](./perception.md)).
 
 ⭐ Its two readers ask different questions, and the difference is one
@@ -933,9 +947,10 @@ controller knowing the difference.
 its pocket regions, so `put key in coat` takes the one pocket that fits
 or asks *"Which — the left pocket or the right pocket of the coat?"*
 (`PlacementChoice`/`PlaceRefusal` carry `regions` when the matched offers
-share a primary word); `put key in left pocket` names it. `put` into a
-container the putter carries sets that thing's **home**. `put X in
-<person>` is handing, not putting.
+share a primary word); `put key in left pocket` names it. Chambers ALIKE
+in character are filled by fit — the first that takes it, named in the
+prose; chambers that DIFFER ask (§ Chambers). `put X in <person>` is
+handing, not putting.
 
 `give X to Y` is the **handed** idiom: after the giver's release gate,
 `move(X, Y)` — onto them, a bag they carry, or, with nowhere for it, set
@@ -1428,3 +1443,11 @@ it into `in` — a pocket is a region of a Container — `from` gained
 pockets and `give` hands over with plain `move` (W10i: `directMove`
 retired). See [carrying.md](./carrying.md)
 and [size.md](./size.md).
+
+**Finalize (2026-11-16; the whole build is `39d4ba23e..HEAD`, MR !576).**
+Pockets are chambers of a Container (W9; one interior OR a set of
+chambers, D-W10-14); alike chambers fill by fit, differing ones ask — and
+a programmatic `move` into differing chambers with none named throws;
+`reachRefusal` gained `packed` and the region of a shut chamber;
+`getReachableContents()` lost its rungs; `put`'s home-setting retired with
+homes (W10).

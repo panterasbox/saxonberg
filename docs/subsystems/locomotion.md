@@ -211,7 +211,7 @@ fall a rope causes — see [cordage.md](cordage.md).
 3a. **awkward load** — `run` only (`LocomotionLogic.awkwardGate`, gate
    `awkwardLoad`): a held thing longer than the runner's stature ×
    `RUN_AWKWARD`, or more awkward than `RUN_AWKWARD_FACTOR`
-   (`Carrying.awkwardnessOf`), refuses *"You can't run with the pole —
+   (`LoadBearing.awkwardnessOf`), refuses *"You can't run with the pole —
    it's too awkward to carry at a run. Walk it."* Sneak and walk are not
    gated (size and carrying D35).
 4. **exit.canTraverse** — checks `blocked`, `door`, `media` (mode

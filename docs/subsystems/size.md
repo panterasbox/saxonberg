@@ -9,7 +9,7 @@ chest, a cart and a room.
 
 Nothing is stored that can be derived. A thing's size is authored only
 where it is the point (a bole's length, a sheath shaped to its blade, a
-pack's room); everything else is mass over density in a form's
+pack's room); everything else is mass over density in a shape's
 proportions.
 
 The companion doc is [carrying.md](./carrying.md) — where a thing goes on
@@ -27,7 +27,8 @@ a body. This doc is the measure that doc asks.
 | container reads | `ContainerMixin` (`lib/spatial/Container.ts`) | `mouth?`, `shapedTo?`, `bounds`, `fitRefusal`, `closureLevel`, `reconcilePressing` |
 | the hanging length | `PlacingMixin` (`lib/spatial/Placing.ts`) | `hangingLengthM`, `bearsKg`, `roomFor`, the member fit in `canPlace` |
 | a way's gap | `Exit` (`lib/boundary/Exit.ts`) | `clearance`, `turn?`/`getTurn`, `clearanceRefusal` |
-| a body's outline | `Creature` (`lib/creature/Creature.ts`) | `envelope`, `wornBulk`, `mountedPair`, `acceptPosture` |
+| a body's outline | `Creature` (`lib/creature/Creature.ts`) | `envelope`, `mountedPair`, `acceptPosture` |
+| what a body wears that widens it | `AttiredMixin` (`lib/slot/Attired.ts`) | `wornBulk` (owner, finalize 2026-11-16: worn bulk is the covering half's read) |
 | gravity, sync | `AtmosphericMixin` (`lib/biome/Atmospheric.ts`) | `gravityNow()` |
 
 No Api, no logic singleton, no collection. Every piece is a method on the
@@ -109,7 +110,7 @@ exact behavior, recorded rather than diverged from.
   (`interiorCapacity`), a stack its count × one unit (a `Coin` pile's mass
   is the pile's and overrides), an assembly Σ its recorded
   `PartLine.volumeM3`, a body its own density, a rope π(d/2)²·L.
-- `getDimensions()` — the authored box when there is one, else the form's
+- `getDimensions()` — the authored box when there is one, else the shape's
   aspect scaled to `getVolumeM3()`. A flexible thing answers its **flat**
   box. `null` when the volume is unknown.
 - `getFitBox()` — what the tape measure uses: the dimensions for a rigid
@@ -144,7 +145,7 @@ size: its size is its extent (`getLinearExtent()`, `bounds()`).
 `Container.bounds(): {interior, closed, mouth}`:
 
 - **interior** — known only from an **authored box** (× `INTERIOR_FRACTION`
-  0.9, the walls), a vessel's `interiorCapacity` (in its rigid form's
+  0.9, the walls), a vessel's `interiorCapacity` (in its rigid shape's
   proportions; a flexible one's as a block) or a **place's cube**
   (`getLinearExtent()`, height its ceiling). ⚠ A hollow thing's DERIVED
   size measures its walls, so a container with no authored box has no
@@ -179,9 +180,11 @@ move into a room never reads its exposure unless the strict case fails.
 ⭐ **It is asked at the chokepoint.** `Container.canAddContainable`'s
 default body is `fitRefusal`, so every `ContainmentApi.move` into a
 container meets it and a programmatic violation throws `ContainmentError`.
-The verbs word it before anything moves, through
-`Container.canReceive(item)` — the dry read every container answers (the
-tape measure, the container's own veto, and a body's `arrivalFor`). Specialized
+The verbs word it before anything moves: `put` through
+`ContainmentApi.putPlanFor` (which asks `fitRefusal` and the container's
+own veto, region by region, before any write), and a pick-up onto a
+carrier through `Carrying.wouldSetDown(item)` — the routing's answer read
+dry ([carrying.md](./carrying.md)). `canReceive` is retired (W8i). Specialized
 overrides (a pump's well, a store, a hive, a copper, a rearing tray) own
 their whole answer. **A body has no bounds** — it is sized by its
 envelope, and what it carries is [carrying.md](./carrying.md)'s question.
@@ -282,7 +285,7 @@ height: 1.4}}`). A site that differs from its kind authors
   1.75 m body crawls at 0.7 m), a swimmer is a crawler's height.
 - **width** = girth, `2·√(mass / (π · stature · bodyDensity))` — a
   cylinder of the body's own density — plus what hangs at its flanks.
-- **the worn bulk** (`wornBulk()`): containers on `back`/`torso` add
+- **the worn bulk** (`Attired.wornBulk()`): containers on `back`/`torso` add
   depth (the cube root of their summed bulk) — riding ON TOP of a low
   body, trailing BEHIND an upright one where a door's face does not see
   it; things hung `from` a worn host ride flat against the flank by their
@@ -382,3 +385,9 @@ body's stature (on `Creature`, not `Posed` — `Posed` keeps only the
   class in `lib/spatial/`, served by `ShapeCatalogue`. Kernel shapes are
   resident with the containment Api's needs, so `getShape()` is sync and
   `ensureShape()` is deleted.
+- **Finalize (2026-11-16; the whole build is `39d4ba23e..HEAD`, MR
+  !576).** `canReceive` is retired — `put` words a fit through
+  `ContainmentApi.putPlanFor`, a pick-up through `Carrying.wouldSetDown`;
+  `wornBulk` moves from `Creature` to `Attired` (the covering half reads
+  what is worn); size is `ShapedMixin` (W10g) and a shape a `shape`
+  document (W10j).

@@ -65,6 +65,7 @@ thing; a builder lens inside your extents.
   a hand can grip depends on strength, size and condition.
 - **Using a tool is one command.** Naming an instrument readies it — what's in the hand goes home, the
   tool comes out — at a cost that depends on where it lived.
+  ⟲ superseded (finalize 2026-11-16): no readying (D-W10-1/2/3/10 — *the command def predicts everything*): an instrument verb uses the tool where it sits; nothing goes home, nothing is freed for you; a thing in a shut holder or the pack on your back is refused, naming the fix (`open`, `remove backpack`).
 - **Bodies and openings meet** — a low door makes you stoop, a crawlway makes you crawl, a ladder
   wants both hands, the wardrobe sticks on the stairs' turn.
 - **An expedition is a packing problem** — food, water, light and tools against a body's room and
@@ -102,6 +103,7 @@ differ from the defaults.
 - **Every player's persisted inventory** is loose today. ⚠ At the flip, each loose thing must find a
   place on first load — a hand, then a pocket or pack that fits, and what fits nowhere goes **home**
   (the player's residence) with a message, never to the floor and never lost.
+  ⟲ superseded (finalize 2026-11-16): the pre-flip restore is **cut** (owner ruling at finalize — no migrations: no pre-flip record exists to place). `placeLoose` and the residence overflow are gone; a restore puts back exactly what was captured.
 - **Every caller that puts a thing on a body** — the count is the flip's gate (§ The flip).
 - **The lounge and the newbie wilds — a new player's first minutes** (owner review, 2026-11-11). The
   first `get` goes to a hand, the second to the other, the third to a pocket it fits, so the first wall
@@ -142,6 +144,7 @@ differ from the defaults.
     take no new hand. **What the engine grants** (the login kit, the Arrival Note, the bank card) is
     placed like the flip's first load: hand, pocket, pack, the overflow to your residence with a
     message — never the floor, never lost.
+    ⟲ superseded (finalize 2026-11-16): there is no residence overflow; a granted thing is `move`d like any other — the body places it, a carrier routes the rest into a bag, else sets it down at its feet with the line (W8i/W10i).
 
 ## Surface decisions
 
@@ -151,6 +154,7 @@ differ from the defaults.
   **sheet** (paper, board, pane, hide), **block** (brick, box, chest), **round** (apple, pot, cheese),
   **flexible** (cloth, rope, a bag, a pelt). Volume derives from mass and density; an assembly sums its
   parts; bulk has its amount. Dimensions are authored only where special.
+  ⟲ superseded (finalize 2026-11-16): there is no *form class* — a thing's shape is a `shape` **document** (`/platform/shapes/<name>`, W10j), read through `ShapedMixin` (W10g); the five shapes are unchanged.
 - **Flexible things deform** — a packed volume and no fixed dimensions, so a coat squeezes through an
   opening a board cannot. **Folding** changes a flexible thing's packed size (it unblocks the folding
   design).
@@ -211,12 +215,15 @@ differ from the defaults.
   lantern has nowhere to go. Drop it (`drop lantern`) or put it away first."* In a fight, dropping is
   instant and stowing costs a beat, so the player makes the trade; a dropped lantern still lights the
   room. A shield may live slung on your back, if a pack isn't there.
+  ⟲ superseded (finalize 2026-11-16): homes are retired (D-W10-2/3): readying never puts anything away — a hand in the way is refused `hands-needed`, naming what it holds and the ways out (`drop`, free; `unwield`/`put`, a beat). Only the draw half is priced.
 - **Nothing loose on a body**; choosing where a received thing goes is the carrier's own act — a free
   hand, else the first worn container it fits, else a refusal in words (*"your hands are full and it
   won't fit in your pockets"*). The order is the player's setting.
+  ⟲ superseded (finalize 2026-11-16): every way onto a body is `ContainmentApi.move` (W8/W10i); a carrier routes what it cannot hold into a bag it carries, else **sets it down at its feet** with the line. Only `get` refuses (`Carrying.wouldSetDown` — a pick-up that would only be set back down).
 - **Pockets** are small regions of their garment that hold things, at the ready tier; garments declare them,
   with defaults by kind (trousers two; a coat outer and inner). Inner pockets stay concealed when the
   coat is outermost; outer pockets are quicker.
+  ⟲ superseded (finalize 2026-11-16): a pocket is a **chamber** — an enclosing region of its garment, which is a Container with no inside of its own; the pocketed thing is the garment's contents (W9, D-W10-14). Chambers alike in character are filled by fit (the first that takes it); chambers that DIFFER ask *which?*; a programmatic `move` into differing chambers with none named throws.
 
 ### Readying and reach **[DECIDED]**
 
@@ -224,6 +231,7 @@ differ from the defaults.
   it came from" can lie about where it should go*, so **putting is how the player corrects it** — `put
   compass in belt pouch` makes the pouch its home. No separate verb: putting away is putting (owner
   review, 2026-11-11).
+  ⟲ superseded (finalize 2026-11-16): homes are **retired** (W10, D-W10-2) — nothing remembers where a thing lives; `stow` puts a held thing in the first place on the body that takes it, in the carry order.
 - **Naming an instrument readies it**: what is in the hand goes home, the tool comes out, the act runs
   — *"you sheathe your sword and pull out your compass."* Outside a fight it is nearly instant. **In a
   fight it costs time, priced by where things go and come from** (owner review, 2026-11-11): readying is
@@ -235,9 +243,11 @@ differ from the defaults.
   (*"Mara fumbles at her coat pocket"*, *"Mara's hand drops to her holster"*) so an opponent can read how
   long you are open. One rule for a weapon, a compass, a flask or a bandage. Skill does not shorten it
   in this build (→ [combat-slate](../slates/builds/combat-slate.md)).
+  ⟲ superseded (finalize 2026-11-16): naming an instrument does **not** ready it (`readies:` retired, D-W10-1/10): the tool is used where it sits. In a fight every hand act is the switch's guarded beat, priced by holder — the **draw half only** (nothing is put away for you, so there is no away half). The put-away pricing is retired; a buttoned pocket or flapped pouch is **refused while shut** — `open` is its own beat (D-W10-5/13).
 - **Reach tiers**: **in hand** (now) · **ready** (worn at waist, chest, thigh, wrist — one draw) ·
   **packed** (on the back — take it off and open it first) · **elsewhere** (the room, a cart, a led animal's panniers). Mounted, **your own saddlebags are ready** —
   one draw from the saddle, slower than a belt holster.
+  ⟲ superseded (finalize 2026-11-16): the tiers are **hand · ready · packed** (+ *elsewhere*) — `Carrying.tierOf`; the ledger (`query --ledger`) shows worn things in their own **Worn** section.
 - **Targeting is permissive about your own things; the refusal is instructive**: *"your compass is
   packed in your backpack — take it off first."* (`remove backpack`: the pack is worn, so taking it
   off is the same act as taking off a coat.)
@@ -468,6 +478,7 @@ on a body; port every caller; then flip — the invariant on, hands and pockets 
 model retired, `get` and `inventory` meaning their new things, every persisted inventory placed (§
 Collisions). ⚠ The flip itself still wants **no sibling build mid-drive**, because their drives assume
 today's `get`; it is short because the porting came first.
+⟲ superseded (finalize 2026-11-16): there is no separate *receiving act*: W8 folded it into `move` — the destination decides (`Container.arrivalFor`) and a carrier routes what it cannot hold; `directMove` and every synonym were retired (W10i). "Every persisted inventory placed" is cut (no migrations).
 
 ## Lens pass
 
@@ -504,16 +515,19 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    burden in words. `i --flat` shows one list; `alias get i` says what it runs (`query --ledger me:i`).
 3. *instant · player* — Wearing a coat: `put key in coat pocket`, then `i`: the key's home is the
    pocket. `put mug in coat pocket` is refused by its size, saying so.
+   ⟲ superseded (finalize 2026-11-16): no homes; `put key in coat` fills an alike pocket by fit and names it, or asks *which?* among differing chambers; the ledger shows the key under the coat.
 4. *instant · staged* — `put pouch on belt`, `put holster on belt`, `put canteen on belt` until `i`
    says there is no room on the belt; one more attachment is refused, naming the belt. Then, holding a
    sword with a compass put away in a belt pouch: `measure` something that
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
+   ⟲ superseded (finalize 2026-11-16): `measure` uses the compass where it sits (no readying, no sheathing); a compass in a shut pouch is refused naming `open`.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
    *"your compass is packed in your backpack — take it off first."* `remove backpack`, and it works.
 6. *short · staged* — In a fight, holding a sword: readying the compass from a belt pouch (sheathe +
    medium draw) takes two beats; dropping the sword instead and drawing it takes one; a pistol from a
    quick-draw holster with an empty hand takes one; the compass from a buttoned coat pocket takes longer
    than from the open pouch. The narration names where each hand goes.
+   ⟲ superseded (finalize 2026-11-16): there is no sheathe half: with a hand in the way the switch is refused `hands-needed`; the draw is priced by holder; a buttoned pocket is refused while shut (`open` is the beat).
 7. *short · staged* — In a fight, holding a lantern and a shield: `fight draw sword` is refused, naming
    the lantern and offering to drop it; `drop lantern` is instant and the room stays lit; `fight draw
    sword` costs a beat; `wield greatsword` is refused, naming the shield. A staged large body (the
@@ -560,6 +574,7 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     *refused, the cup still yours*). Hitch a handcart — `get lantern` is refused, naming your hands on the
     cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
     room no longer sees it.
+    ⟲ superseded (finalize 2026-11-16): the saddlebag compass is used where it sits, not readied; tack goes on with `put <tack> on <beast>` — `give saddle to mule` sets the saddle down.
 19. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a
     cup set on the table drifts off; a full pack reads as no weight on the burden line, yet still won't
     pass the hatch and still takes both hands.
@@ -570,6 +585,7 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     pocketing exactly what they had — no item loose, none on the floor, none duplicated; a pre-flip
     character's loose inventory has been placed (hands, pockets, pack, and the overflow at home, with the
     message).
+    ⟲ superseded (finalize 2026-11-16): the pre-flip placement is cut (no migrations); the step asserts only that every character comes back exactly as captured.
 22. *instant · player* — (R5) `look` in the new or changed places — the low-door room, the crawlway, the
     stair, the pond — by day and with a headlamp at night.
 
@@ -584,10 +600,12 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - A verb finds the nearest thing you perceive, with no reach option to learn; a player picks up, readies and
   puts away tools in single commands, and every refusal names what
   would work.
+  ⟲ superseded (finalize 2026-11-16): there is no readying (D-W10-1/2/3/10): a tool is used where it sits; a thing shut away or packed is refused, naming the fix.
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
   say, in words a player can act on.
 - `i` (`query --ledger me:i`) shows a player's hand, ready, worn and packed things at a glance, and the
   burden in words.
+  ⟲ superseded (finalize 2026-11-16): the tiers are hand · ready · packed (+ elsewhere); worn is the ledger's own **Worn** section, not a tier.
 - No verb shows, names, counts or asks about a thing its viewer does not perceive — refusals, prompts,
   `query`, scripts, the client's cards and autocomplete alike — while the query language itself names
   the same things for every viewer.
@@ -596,8 +614,10 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 - Every character restored after a restart carries exactly what they carried.
 - Hands are scarce in a fight: a held light, a shield and a two-handed weapon compete, two hands come
   from a thing's use or from its weight against the holder, and nothing is ever dropped for you.
+  ⟲ superseded (finalize 2026-11-16): every hand act in a fight is a priced beat — the draw half only; nothing is put away for you either.
 - A pack animal carries only what it wears, as much as its body bears, and comes with you on a held
   rope that takes a hand.
+  ⟲ superseded (finalize 2026-11-16): tack goes on with `put <tack> on <beast>`; `give saddle to mule` sets the saddle down (a beast is not handed tack).
 - A hitched cart fills the hands it says, fits a way by its size, and a parked one stays where it was
   left, load and all.
 - A belt — or anything things hang from — holds attachments by its length, says how much room is left

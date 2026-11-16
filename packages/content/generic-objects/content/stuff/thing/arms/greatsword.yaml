@@ -1,6 +1,6 @@
 # A greatsword — a long, heavy blade (size and carrying W6, drive 7).
 # ⭐ It claims ONE hand: two hands by WEIGHT or LENGTH are the holder's to
-# decide (`Carrying.handsFor`), never the row's. A human (1.75 m) needs
+# decide (`Carrying.wieldPlanFor`), never the row's. A human (1.75 m) needs
 # both — its 1.15 m is past 0.6 of their stature (1.05 m) — and is refused
 # it beside a shield; the big draconic body (2.0 m, threshold 1.2 m) wields
 # it in one hand.

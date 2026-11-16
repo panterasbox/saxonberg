@@ -8,8 +8,8 @@
 > frees a hand, opens a pouch or remembers a home for you. The conveniences the engine used to
 > perform implicitly are the player's to write, with `def`/`do` ([scripting.md](../../subsystems/scripting.md))
 > and aliases ([shell-alias.md](../../subsystems/shell-alias.md)).
-> **Left:** the four language gaps below
-> **Size:** a slate of small expansions, each authored out-of-band per scripting.md § *Growing the language*
+> **Left:** try-else · waiting on combat's beat · a fits predicate · aliases with arguments · an alias `$1`-else-default form
+> **Size:** a build — five small language expansions, each authored out-of-band per scripting.md § *Growing the language*
 
 ## What a player writes today
 
@@ -40,5 +40,10 @@ print exactly what each step did.
 4. **Aliases with arguments.** `alias` expands a word; `def` takes positional params but lives
    in a script document. A player-level `alias ready = def …` round trip is the gap `help alias`
    should name.
+5. **An alias `$1`-else-default form** (size-and-carrying finalize, 2026-11-16). `i` and
+   `inventory` are removable default aliases for `query --ledger me:i` (W10h-b), so `i <target>`
+   no longer works — the alias has no slot for an argument. Needed: an alias form that takes
+   `$1` when given and a default otherwise (`i` → `query --ledger ${1:-me}:i`), so `i bob` and
+   `i backpack` read the ledger of what was named.
 
-No code in W10; this slate holds the four and the two `def`s.
+No code in W10; this slate holds the five and the two `def`s.

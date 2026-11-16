@@ -13,8 +13,12 @@ pricing) reference this doc rather than re-derive the rule.
 An actor reaches (size-and-carrying D17, 2026-11-11 — the rungs `top` ·
 `open` · `deep` are gone): itself; its **whole carried tree**, never into
 another body, nearest first by tier — *hand* · *ready* (worn, hung from
-what is worn, a pocket, an open worn container — nothing is carried
-loose since the carrying flip) · *packed* (inside a worn container in the `back` slot)
+what is worn, a pocket, a worn container anywhere but the back — nothing
+is carried loose since the carrying flip) · *packed* (inside a worn
+container in the `back` slot). A thing behind a shut lid or packed is IN
+the list; the act's `canReach` refuses it by the object's own
+`reachRefusal` (`enclosed-shut {by, region?}` · `packed {by}`), naming the
+fix
 (`Carrying.tierOf`, the carrier's own read); what stands
 in its place and in the vessel it sits in (`getEnclosingPlace` — in a
 boat on the river, both) and **one level** into the open things there (the

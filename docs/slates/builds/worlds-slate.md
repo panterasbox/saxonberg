@@ -154,3 +154,9 @@ how fast, and what it can never do — before content leans on it.
 4. **Travel between bodies** — the network, orbital transfer, or both. ⭐ Flight stays within one
    body's air and rockets are not flight; the pad is the seam ([flight-slate](./flight-slate.md) § 10a).
 5. **Several suns** — `CelestialApi` assumes one.
+6. **Zero-g locomotion** (size-and-carrying finalize, 2026-11-16). Size and carrying made weight follow the
+   place's gravity (`Atmospheric.gravityNow()`; a pack weighs nothing at
+   zero g, a thing not pressed into an open container drifts out) and
+   refuses to assume Earth — but walking, climbing and running still
+   assume a floor. How a body moves with nothing pressing it down (push
+   off, handholds, a tether) is this slate's.

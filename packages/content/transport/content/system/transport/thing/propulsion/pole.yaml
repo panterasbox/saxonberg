@@ -16,7 +16,7 @@ data:
   reachM: 2.5
   # ⭐ Its size (size and carrying drive, step 8): twelve feet of ash is a
   # ROD 3.66 m long. With no box its 4 kg derived to a small cube, so the
-  # length rule (`Carrying.handsFor`) never saw it and a person could hold
+  # length rule (`Carrying.wieldPlanFor`) never saw it and a person could hold
   # it in one hand beside a lantern. A pole longer than you are tall takes
   # both hands; it is rows like this the arms audit (W6-h) fixed.
   shape: rod

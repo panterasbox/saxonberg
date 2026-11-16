@@ -38,8 +38,9 @@ weight is [encumbrance.md](./encumbrance.md). The slots are
 | **the question** — `Carrying.wouldSetDown(item)` | `lib/slot/Carrying.ts` | the routing's answer read dry, by the same resolution: `null` when `move` keeps it (on the body or in a bag it carries), else the `ArrivalRefusal` it would set it down with. Never moves. Its callers: `get` (refuses a pick-up that would only be set back down) and a staged body's `props:` (an author diagnostic). ⛔ Not a way around the routing — `directMove` was retired (owner, 2026-11-15) and `lint:carry-moves` holds both its name and the `isCarrying(x) ? … : move(…, x)` branch at 0 |
 | **the invariant** — nothing loose | `Creature.arrivalFor` (every body) | admits only what arrives placed, an agent, a thing being seated (`Slotted.isSeating`), or one the body is admitting (`Creature.admitWhile`, gated `AnyOf(SelfOnly, FromModule(PersistableLogic))` — the restore, and the routing's first move). Else `refuse` `nowhere-to-carry`. **Fails closed**: no species row loaded is no escape |
 | **the seating mark** | `Slotted.seatInSlot` / `seatInSlots` | contents first, then the slots, under a mark (`try/finally`, a failed claim rolled back out) |
-| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and its dry question; tiers, `stow`, readying into a free hand, letting go, the restore's overflow — **13** interface members (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · placeLoose · returnBorrowed · routeArrival · wouldSetDown`) |
+| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and its dry question; tiers, `stow`, readying into a free hand, letting go — **12** interface members (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · returnBorrowed · routeArrival · wouldSetDown`) plus the `arrivalFor` override |
 | the hands | `Attired` (`handSlots`, `heldThings`, `wears`) | the slot substrate's fact — any body's hands by its plan |
+| the worn bulk | `Attired.wornBulk()` | what is worn on `back`/`torso` and hung at the flanks — the envelope's depth and width ([size.md](./size.md)); moved off `Creature` at finalize (owner, 2026-11-16) |
 | `CARRYING_DEFAULTS` | top of `Carrying.ts` | the grip dials (one-hand fraction, two-hand length); the awkwardness dials are `LOAD_BEARING_DEFAULTS`' |
 | `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` |
 | pockets | `PlacingMixin` named regions over the `/platform/placements/in` document, on a `Garment` that is a `Container` with no inside of its own | a region of a garment, never an object; the pocketed thing is the garment's contents (W9) |
@@ -128,17 +129,16 @@ rack, a battery bay, `put`'s slot route, the chokepoint's own `seat`, and
 `unequip`'s re-seat into the hand a refused `stow` left) — a loadout that
 cannot seat should throw loudly, which `seatInSlots` does.
 
-### The one overflow — the restore
+### No restore-time placement (cut at finalize)
 
-`Carrying.onRestored` (after `Creature`'s, which stands the species row
-up) → `placeLoose()`: anything a restore finds loose goes through the
-body's own resolution — on it, else a bag it carries — else to a player's **residence** (a live room at
-`ParcelApi.heldUnitOf`) with a line (*"your crate would not fit anywhere
-on you; it is in your room"*), else at their feet, said so; an NPC's is a
-diagnostic. This is the carrier's explicit choice, never `move`'s
-behavior. A restored **non-carrier** with loose contents is admitted and
-reported (`Creature.onRestored` → a diagnostic). The restore itself
-admits every body (`PersistableLogic.restoreItem` → `admitWhile`).
+There is no overflow. The invariant holds at every `move`, so a snapshot
+holds nothing loose, and a restore puts back exactly what was captured
+(`PersistableLogic.restoreItem` → `admitWhile`). The pre-flip restore —
+`placeLoose`, the residence overflow, `placesLooseOnRestore` and the
+player's placement at `enter` — was **cut** (owner, finalize 2026-11-16:
+*no migrations* — no record from before the flip exists to place). A
+restored body that nonetheless finds something loose on itself reports
+it as a diagnostic (`Creature.onRestored`) and moves nothing.
 
 `Carrying.isHonest(item)` is the walk the invariant means: a slot
 occupant, or placed on a host that is itself honest on the body, or
@@ -350,7 +350,11 @@ the right pocket, the breast pocket (buttoned) or the inner pocket (inside)
 of the coat?"*; `put key in "inner pocket"` names it. A bare `pocket`
 matching several chambers of one garment binds the garment (no region) and
 the same rule decides; the same word answered by two garments is the
-binder's *which one?*. `look coat` shows each pocket once with its
+binder's *which one?*. ⭐ A **programmatic** `move(key, coat)` with no
+chamber named has nobody to ask: into alike chambers it takes the first
+that fits; into chambers that DIFFER it **throws** a `ContainmentError`
+naming the chambers (owner, finalize 2026-11-16) — the caller names one
+(`move(key, coat, 'inner pocket')`). `look coat` shows each pocket once with its
 difference word. ⭐ **A container is one interior OR a set of chambers,
 never both** (D-W10-14): `Container.hasInterior()` is derived — true iff
 it offers no enclosing region — and volume and fit are per chamber, never
@@ -431,11 +435,8 @@ Death still moves everything to the corpse. Logout drops nothing.
 
 ## Restores and guests
 
-- **First-load placement** (D32) is code on the restore hook, never a
-  script: `Carrying.onRestored()` → `placeLoose()`, which takes each loose
-  thing out of the body and lets the body place it (its `arrivalFor`) —
-  hands, pockets, packs — else the residence, else the feet (the one
-  overflow, above).
+- **No first-load placement.** D32's `placeLoose` was cut at finalize
+  (above): nothing loose is ever captured, so nothing needs placing.
 - **An owned host keeps its pairs across a restart**: a pair whose host
   is an owner-persisted good is captured as `hostChattelId`, and an owned
   good placed on a host records `placedOn` on its estate entry; the
@@ -520,6 +521,13 @@ yet) is not judged by weight. The combat seconds are app settings
 - **A competence term in readying** (the combat slate).
 - **Autocomplete** must obey the perception filter when it exists.
 - **The roof rack** (an outside surface on an `Exitable` host).
+- **A hand into a pack someone WEARS** — the pickpocket's act — is
+  refused today (reach never goes into another body, D17); it is designed
+  in [policing-slate § Rails](../slates/builds/policing-slate.md).
+- **The scripting conveniences** the engine no longer performs (try-else,
+  waiting on a beat, a fits predicate, aliases with arguments and a
+  `$1`-else-default form) →
+  [scripting-hand-economy-slate](../slates/builds/scripting-hand-economy-slate.md).
 
 ## History
 
@@ -570,3 +578,15 @@ yet) is not judged by weight. The combat seconds are app settings
   because a pick-up that is only set back down changes nothing.
   `lint:carry-moves` holds the name and the `isCarrying(x) ? … :
   move(…, x)` branch at 0.
+- **Finalize (2026-11-16; the whole build is `39d4ba23e..HEAD`, MR
+  !576).** Owner rulings: the pre-flip restore is **cut** (`placeLoose`,
+  the residence overflow, `placesLooseOnRestore` — no migrations), so
+  `Carrying`'s interface is **12** plus the `arrivalFor` override;
+  `wornBulk` moves to `Attired`; `seatInSlots` stays the explicit *occupy
+  these slots* act; the routing's set-down line stays in the mixin; and a
+  programmatic `move` into a host whose chambers DIFFER, with no chamber
+  named, **throws** ([spatial.md](./spatial.md)). The review waves W8–W10k
+  (Carrying is one job · a carrier routes · pockets are chambers · the
+  cuts · `ShapedMixin` · `inventory` retired for `query --ledger` ·
+  `directMove` retired · `shape` documents · `lint:data-ideas` /
+  `lint:view-keys`) are recorded above and in the build's commits.

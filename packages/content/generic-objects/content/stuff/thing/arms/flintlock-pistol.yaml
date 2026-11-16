@@ -1,7 +1,7 @@
 # A flintlock pistol — the holster's pistol (size and carrying W6, drive 6:
 # a pistol from a quick-draw holster with an empty hand takes one beat).
 # One hand: it is held and fired in one, so it claims one; whether a small
-# body needs two is the holder's (`Carrying.handsFor`).
+# body needs two is the holder's (`Carrying.wieldPlanFor`).
 class: /platform/thing/equipment/Launcher
 data:
   shortDescription: flintlock pistol

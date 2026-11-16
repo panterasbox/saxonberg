@@ -83,7 +83,7 @@ Two coupling factors shape the sum:
   non-`Vessel` container passes weight through at `1.0`.
 - **Placement** — a per-attachment surcharge fixed at the top-level
   attach point and carried down the subtree unchanged. A **hand** slot
-  (`Carrying.handSlots()` — a slot whose body part serves manipulation)
+  (`Attired.handSlots()` — a slot whose body part serves manipulation)
   couples at `HELD_SURCHARGE` (1.25); every other slot, and everything
   placed on a worn host, at the `1.0` floor. A backpack worn on the back
   applies the worn floor to itself *and* its contents; a chest held in the
@@ -92,9 +92,10 @@ Two coupling factors shape the sum:
 ⭐ **Slots before the rest.** A worn or held thing is in the contents too;
 when the contents pass went first it reached a worn coat before its slot
 did and charged it the held surcharge. A **held** load is also multiplied
-by its **awkwardness**, `Carrying.awkwardnessOf`: `1 + AWKWARD_LENGTH ×
+by its **awkwardness**, `LoadBearing.awkwardnessOf`: `1 + AWKWARD_LENGTH ×
 max(0, longest/stature − 1) + AWKWARD_BULK × volume/bodyVolume`
-(`CARRYING_DEFAULTS` in `lib/slot/Carrying.ts`) — a 3 m pole costs more to
+(`LOAD_BEARING_DEFAULTS` in `lib/encumbrance/LoadBearing.ts` — the gauge's,
+since W8) — a 3 m pole costs more to
 carry than its mass, and a pole the same mass strapped to a pack does not.
 
 ⭐ **Weight is mass × the place's gravity**: the total (and the lift
@@ -122,10 +123,12 @@ both stores is counted once. The walk reads only the method surface
 
 Until the carrying flip (2026-11-12), `get` claimed no hand: a thing picked
 up sat *loose* in the body's contents and paid the held surcharge under the
-name `LOOSE_CARRY_SURCHARGE`. That model is gone. `get` is the receiving act
-(`Carrying.receive`), which puts the thing in a hand, a pocket, a hung pouch
-or a worn bag — and `Creature.canAddContainable` refuses `loose-on-body` for
-any other way on. The surcharge kept its number and took its honest name,
+name `LOOSE_CARRY_SURCHARGE`. That model is gone. Every way onto a body is
+`ContainmentApi.move(item, body)`: the body places it (`Creature.arrivalFor`
+admits nothing loose; a carrier's puts it in a hand, a pocket or on a hook)
+and a carrier routes the rest into a worn or carried bag, else sets it down
+at its feet — so nothing is ever loose on a body to be charged
+([carrying.md](./carrying.md)). The surcharge kept its number and took its honest name,
 `HELD_SURCHARGE`, and it is paid only by what a hand holds. A worn `Pack` is
 still strictly better than carrying the same load in your arms: the
 contents drop from the held surcharge to the worn floor, and the hands stay

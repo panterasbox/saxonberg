@@ -945,8 +945,8 @@ and the inside of an open worn container; a shut container light does not
 pass (Beer–Lambert, `e^(−α·t) < 0.3`) hides what is in it; your own things
 are always yours to perceive (see [perception.md](./perception.md)
 § *The holder rules*). The reason the rule moved out of the language is
-the reason it was put in: `query bob:i`, `look bob:i:knife`, `inventory
-bob` and a script must get the same answer — they do, because each is a
+the reason it was put in: `query bob:i`, `look bob:i:knife`, `query
+--ledger bob:i` and a script must get the same answer — they do, because each is a
 surface and each calls the one filter, and MQL can no longer disagree with
 any of them.
 
@@ -1049,7 +1049,7 @@ Bareword filters that can appear in chain position
 |---|---|
 | `visible` | a CLASS word: composes `Visible` (*presents to the eye*). ⚠ Since size and carrying D23 it does NOT ask `perceives` — the surface does |
 | `loose` | the holder's `getLooseContents()` |
-| `held` | on a carrier, a **hand** slot (`Carrying.handSlots()`); a non-carrier holder keeps the wieldable-slot rule. A coupe in a rack is not held |
+| `held` | on a carrier, a **hand** slot (`Attired.handSlots()`); a non-carrier holder keeps the wieldable-slot rule. A coupe in a rack is not held |
 | `worn` | on a carrier, a **non-hand** slot (a coat in your hand is held, not worn) |
 | `carried` | on the holder and not worn — a hand, a pocket, hung from a worn host — so `contents`/`worn` still partition everything (size and carrying W7-k) |
 

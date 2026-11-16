@@ -49,10 +49,10 @@ data:
         - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
         - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.027 }
     # ⭐ The jaws (size and carrying D9): `serves: [manipulation]` makes the
-    # `mouth` slot a hand — `Carrying.handSlots()` reads exactly that — so
+    # `mouth` slot a hand — `Attired.handSlots()` reads exactly that — so
     # a dog is not handless: it takes a thing in its mouth. A share of the
     # head's flesh, not new mass. On a halter or a collar it is still LED
-    # (`Carrying.halter()`), whatever its mouth holds.
+    # (the lead lookup in `Rope`: the first worn `Tieable`), whatever its mouth holds.
     - key: body.head.mouth
       parent: body.head
       serves: [manipulation]

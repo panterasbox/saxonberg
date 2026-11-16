@@ -1083,11 +1083,12 @@ focus-fire keyed on `graph.incomingEdges`), it grants its holder a large
   live is `already-switching`. Outside a session nothing waits
   (D-W10-13). An instrument is used where it sits — `measure` in a fight
   takes no beat.
-- **Two hands by weight, two by use** — `Carrying.handsFor` decides a
+- **Two hands by weight, two by use** — `Carrying.wieldPlanFor` decides a
   grip from the holder's own carry capacity and stature; a weapon row
   claims two hands only when its *use* needs two (bow, musket, spear), so
   an ogre swings a greatsword one-handed and a gnome needs both for a
-  longsword. `equip`/`wield` read `wieldSlots`/`wieldRefusal`. A shield is
+  longsword. `equip`/`wield` read `wieldPlanFor` (the slots, or
+  `too-heavy` / `hands-needed` / `hands-on-cart`). A shield is
   slung on the `back` slot (`Shield.fitsSlot('back')`).
 - **Dual-wield** — two weapons: the off-hand adds a guard bonus **band-gated**
   on competence (a novice fumbles it — a net penalty; you grow into it, the
