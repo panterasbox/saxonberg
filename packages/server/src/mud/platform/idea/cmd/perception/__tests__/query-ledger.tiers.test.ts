@@ -23,7 +23,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import Place from '../../../../../lib/stuff/Place';
 import Location from '../../../../../lib/location/Location';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, wornGarment, pack, type Body } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 
@@ -57,7 +57,7 @@ const query = (me: Body, model: Record<string, unknown> = {}, set: Stuff[] = meI
 describe('query --ledger — yourself by tier (D28)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     said = [];
     // Everything on your own body is perceived; the test is the grouping.
     vi.spyOn(PerceptionApi, 'perceived').mockImplementation((_v, xs) => [...xs]);

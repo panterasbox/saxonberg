@@ -6,14 +6,14 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { installForms, material, thing, place, Item, Chest } from './size-fixture';
+import { installShapes, material, thing, place, Item, Chest } from './size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 describe('Sealable — the lid will not shut on an overhang', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

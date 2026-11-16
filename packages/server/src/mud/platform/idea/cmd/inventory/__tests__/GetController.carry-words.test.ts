@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, carryWords } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import GetController from '../GetController';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -19,7 +19,7 @@ import Holder from '../../../../../lib/stuff/Holder';
 describe('the carrying words are the controller\'s', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => {
     vi.restoreAllMocks();

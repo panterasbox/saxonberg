@@ -8,7 +8,7 @@ import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { installForms } from './size-fixture';
+import { installShapes } from './size-fixture';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, tool, pack, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { stampTemplatePathForTest } from '../../security/__tests__/test-setup';
@@ -19,7 +19,7 @@ import type { Stuff } from '../../stuff/Stuff';
 describe('Container — shapedTo (D27)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

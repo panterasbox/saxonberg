@@ -24,7 +24,7 @@ import { WieldableMixin } from '../../slot/Wieldable';
 import { SlottableMixin } from '../../slot/Slottable';
 import type { Stuff } from '../../stuff/Stuff';
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, pack, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -47,7 +47,7 @@ const pannier = () => {
 describe('Creature.wornBulk — side load (W7)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     buildAllModes();
   });
   afterEach(() => {

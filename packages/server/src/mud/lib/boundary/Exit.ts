@@ -909,8 +909,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       if (pair !== null && pair.rider === mover) return null;
       const current = mode != null ? LocomotionApi.modeOf(mode) : null;
       const profile = current?.getBodyProfile() ?? 'upright';
-      // What it carries is measured by its shape — loaded on use (W1).
-      for (const c of mover.getContents()) if (MixinApi.isShaped(c)) await c.ensureShape();
       const env = mover.envelope(profile, { lengthwise });
       if (gap !== null && env !== null && !opens(env, gap, lengthwise)) {
         if (pair !== null) return { ok: false, reason: 'too-big-for-way', facts: { ...base, dismount: true } };
@@ -934,12 +932,12 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       for (const body of bodies) {
         if (!MixinApi.isCarrying(body)) continue;
         for (const held of body.heldThings()) {
-          const thing = await this.thingRefusal(held, gap, turn);
+          const thing = this.thingRefusal(held, gap, turn);
           if (thing !== null) return { ok: false, reason: thing.reason, facts: { ...base, ...thing.facts } };
         }
       }
     } else if (MixinApi.isShaped(mover)) {
-      const own = await this.thingRefusal(mover, gap, turn);
+      const own = this.thingRefusal(mover, gap, turn);
       if (own !== null) {
         return { ok: false, reason: own.reason === 'held-too-big' ? 'too-big-for-way' : own.reason, facts: { ...base, ...own.facts } };
       }
@@ -948,7 +946,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     if (MixinApi.isHauling(mover) && mover.isHitched()) {
       const cart = mover.getHauledCart() as Stuff | null;
       if (cart !== null && MixinApi.isShaped(cart)) {
-        await cart.ensureShape();
         // ⭐ A cart goes through on its wheels: UPRIGHT and end-on — its
         // width across the gap, its height under the lintel, never turned
         // on its side the way a crate is fitted (the drive, step 18: a
@@ -966,17 +963,16 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * A thing measured on its own against this way: its cross-section
    * against the gap, and — rigid — its longest side against the turn.
    */
-  private async thingRefusal(
+  private thingRefusal(
     thing: Stuff,
     gap: BoundaryOpening | null,
     turn: number | null,
-  ): Promise<{ reason: 'held-too-big' | 'wont-turn'; facts: { thing: Stuff; lengthM?: number } } | null> {
+  ): { reason: 'held-too-big' | 'wont-turn'; facts: { thing: Stuff; lengthM?: number } } | null {
     if (!MixinApi.isShaped(thing)) return null;
-    await thing.ensureShape();
     const box = thing.getFitBox();
     if (box === null) return null;
     if (gap !== null && !box.fitsThrough(gap)) return { reason: 'held-too-big', facts: { thing } };
-    const rigid = thing.getShape()?.isRigid() ?? true;
+    const rigid = thing.getShape().isRigid();
     if (turn !== null && rigid && box.longest() > turn + 1e-9) {
       return { reason: 'wont-turn', facts: { thing, lengthM: box.longest() } };
     }

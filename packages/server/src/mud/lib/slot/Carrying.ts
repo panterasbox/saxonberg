@@ -1165,7 +1165,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     public gearNoise(): 0 | 1 {
       const self = this as unknown as Stuff & Container;
       const loud = (x: Stuff): boolean => {
-        if (!MixinApi.isTangible(x) || !MixinApi.isShaped(x) || x.getShape()?.isRigid() === false) return false;
+        if (!MixinApi.isTangible(x) || !MixinApi.isShaped(x) || !x.getShape().isRigid()) return false;
         if (MixinApi.isIntegrity(x)) return x.ringSound().rings;
         return x.getMaterial()?.hasTag('metal') ?? false;
       };

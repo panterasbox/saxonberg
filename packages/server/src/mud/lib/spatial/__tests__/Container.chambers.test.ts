@@ -15,7 +15,7 @@ import type { PlacementEntry } from '../Placing';
 import type { Containable } from '../Containable';
 import type { Stuff } from '../../stuff/Stuff';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from './size-fixture';
+import { installShapes } from './size-fixture';
 import { makeBody, tool, wornGarment, pack, carry } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import Location from '../../location/Location';
@@ -36,7 +36,7 @@ const put = (item: Stuff, target: Stuff, by: Stuff, prep?: string) =>
 describe('Container — chambers (D-W10-14)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

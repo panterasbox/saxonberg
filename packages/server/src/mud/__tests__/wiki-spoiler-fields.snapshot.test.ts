@@ -43,6 +43,9 @@
  * **Size and carrying W10 (2026-11-14).**
  *   - `PlacingMixin.shutRegions` — level 0: which buttoned chambers are
  *     shut now, per instance; `look coat` says *(shut)* to anyone looking.
+ *   - W10j: `Form.aspect` · `Form.name` · `Form.rigid` LEAVE the surface —
+ *     the `Form` Idea retired and a shape is a `shape` document now, which
+ *     no panel enumerates. A removal, so no spoiler question to answer.
  *
  * **Client surface (2026-10-31).**
  *   - ⚠ `Corpse.ofIdentityPath` — **`spoiler: 2`**. Whose body it is: the

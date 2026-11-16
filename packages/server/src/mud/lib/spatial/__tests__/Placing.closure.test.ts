@@ -13,7 +13,7 @@ import { PerceptionApi } from '../../../api/perception';
 import { Placements } from '../Placement';
 import type { PlacementEntry } from '../Placing';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from './size-fixture';
+import { installShapes } from './size-fixture';
 import { makeBody, tool, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import Location from '../../location/Location';
@@ -42,7 +42,7 @@ async function scene() {
 describe('Placing — a chamber that closes (D-W10-12)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

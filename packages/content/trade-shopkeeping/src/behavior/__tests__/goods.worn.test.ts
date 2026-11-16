@@ -21,7 +21,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { makeBody, wornGarment } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
-import { installForms } from '@saxonberg/server/mud/lib/spatial/__tests__/size-fixture';
+import { installShapes } from '@saxonberg/server/mud/lib/spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Stock extends StockBase {}
@@ -36,7 +36,7 @@ function ctx(host: unknown, config: Record<string, unknown>): BrainContext {
 describe("a keeper's goods are what she carries, never what she wears", () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

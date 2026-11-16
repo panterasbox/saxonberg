@@ -12,7 +12,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { MixinApi } from '../../../../api/mixin';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms, material, thing } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes, material, thing } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import Pack from '../Pack';
@@ -23,7 +23,7 @@ import Good from '../../Good';
 describe('carrying gear — the W6 seams', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

@@ -10,7 +10,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi, type MediumRead } from '../../../api/biome';
 import { Quantity } from '../../quantity';
 import { Placements } from '../Placement';
-import { installForms, material, thing, place, Item, OpenBox, Chest, Surface } from './size-fixture';
+import { installShapes, material, thing, place, Item, OpenBox, Chest, Surface } from './size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 const CORK = '/stuff/idea/material/_press/cork';
@@ -28,7 +28,7 @@ describe('Container — pressing', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => {
     vi.restoreAllMocks();

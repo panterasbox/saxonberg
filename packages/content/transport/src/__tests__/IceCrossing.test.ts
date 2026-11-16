@@ -70,7 +70,7 @@ function body(kg: number): Stuff & Containable {
   (s as unknown as { getMass: () => Quantity<'kg'> }).getMass = () => Quantity.of(kg, 'kg');
   // The traverse gate measures what comes through (size and carrying D21):
   // this mover has no size, so it is never refused for one.
-  Object.assign(s, { ensureShape: async () => null, getFitBox: () => null, getShape: () => null });
+  Object.assign(s, { getFitBox: () => null });
   return s as unknown as Stuff & Containable;
 }
 

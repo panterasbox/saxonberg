@@ -19,7 +19,7 @@ import { DetailedMixin } from '../../description/Detailed';
 import { PersistableMixin } from '../../persistence/Persistable';
 import { ConsignmentShelfMixin } from '../ConsignmentShelf';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -30,7 +30,7 @@ const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height
 describe('consign takes what you carry, never what you wear', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

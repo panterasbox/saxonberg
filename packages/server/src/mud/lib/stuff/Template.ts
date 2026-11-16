@@ -645,8 +645,6 @@ export abstract class Template extends Document {
             !singleton &&
             ((host as unknown as Place).getLinearExtent() ?? 0) > 0
           ) {
-            // Its form loads on use — here, before the sync tape measure.
-            if (MixinApi.isShaped(inst)) await inst.ensureShape();
             const refusal = host.fitRefusal(inst);
             if (
               refusal !== null &&

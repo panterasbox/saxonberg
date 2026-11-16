@@ -12,7 +12,7 @@ import { FoldableMixin } from '../../slot/Foldable';
 import { AssembledMixin } from '../../craft/Assembled';
 import { DurableMixin } from '../../material/Durable';
 import { SIZE_DEFAULTS } from '../Dimensions';
-import { installForms, material, thing, Item } from './size-fixture';
+import { installShapes, material, thing, Item } from './size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import Good from '../../stuff/Good';
 
@@ -29,7 +29,7 @@ describe('Shaped — size', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

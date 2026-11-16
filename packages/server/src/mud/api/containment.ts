@@ -46,6 +46,7 @@ import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
+import ShapeCatalogue from '../platform/idea/ShapeCatalogue';
 import { Placements } from '../lib/spatial/Placement';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
@@ -170,8 +171,15 @@ export type PutPlan = ActPlan<
 >;
 
 export class ContainmentApi {
-  /** ⭐ The kernel's placement words, stood by the boot routine (no host readies them). */
-  static readonly needs: readonly ApiNeed[] = [() => ContainmentApi.placements().ensureKernel()];
+  /**
+   * ⭐ The kernel's placement words and shapes, stood by the boot routine
+   * (no host readies them) — so a sync `placementOf` and a sync `getShape`
+   * always find theirs.
+   */
+  static readonly needs: readonly ApiNeed[] = [
+    () => ContainmentApi.placements().ensureKernel(),
+    () => ContainmentApi.shapes().ensureKernel(),
+  ];
 
   /**
    * ⭐ The placements — the ways a thing sits in its container (`on` a
@@ -182,6 +190,17 @@ export class ContainmentApi {
    */
   public static placements(): PlacementCatalogue {
     return StuffApi.singletonSync('/platform/idea/PlacementCatalogue', () => new PlacementCatalogue());
+  }
+
+  /**
+   * ⭐ The shapes — the shapes a thing can have (`rod`, `sheet`, `block`,
+   * `round`, `flexible`), any pack's `content/shapes/`, served by
+   * {@link ShapeCatalogue}. The kernel's are resident with this Api's
+   * needs; a row's `shape` setter loads its own; `Shaped.getShape` reads
+   * one resident.
+   */
+  public static shapes(): ShapeCatalogue {
+    return StuffApi.singletonSync('/platform/idea/ShapeCatalogue', () => new ShapeCatalogue());
   }
 
   /**

@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody, wornBag, wornGarment } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Quantity } from '../../quantity';
@@ -31,7 +31,7 @@ function good(name: string, kg: number, box: [number, number, number]): Good {
 describe('Carrying.stow — off the hands, by the one order (D-W10-2)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

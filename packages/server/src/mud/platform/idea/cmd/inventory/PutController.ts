@@ -135,9 +135,6 @@ export default class PutController extends CommandController<PutModel> {
     // ⭐ Where it would go, and every refusal before any write, is the
     // world's (`ContainmentApi.putPlanFor` — the slot, the interior, the
     // region; controller-liquidity W8). This words it.
-    // Sizes load on use (size and carrying P7): the forms the tape measure
-    // reads, before the sync plan asks it.
-    for (const s of [item, target]) if (MixinApi.isShaped(s)) await s.ensureShape();
     const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, {
       prep,
       by: giver,

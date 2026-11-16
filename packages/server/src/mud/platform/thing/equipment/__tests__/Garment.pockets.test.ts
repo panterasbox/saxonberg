@@ -23,7 +23,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { CaptureContext, ContentPlacement } from '../../../../lib/persistence/PersistenceSlice';
 import Garment from '../Garment';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms, material } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes, material } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, garment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../lib/location/Location';
@@ -49,7 +49,7 @@ const put = (item: Stuff, target: Stuff, by: Stuff, prep?: string, region?: stri
 describe('Garment — pockets as regions (D26)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => {
     vi.restoreAllMocks();

@@ -22,7 +22,7 @@ import { CombatTerms } from '../../../../lib/combat/CombatTerms';
 import type { CombatSession } from '../../../../lib/combat/CombatSession';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, pack } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import EventRegistry from '../../EventRegistry';
@@ -47,7 +47,7 @@ function ctx(giver: Stuff, loc: Stuff, verb: string) {
 describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     StuffApi.clearAll();
     SchedulerApi._clearAllForTesting();
     const reg = await StuffApi.create(() => {

@@ -196,9 +196,10 @@ adding.
   (`width · depth · height` m) with the tape-measure reads on it
   (`crossSection`, `fitsThrough`, `orientationWithin`, `hangingWidthM`)
   and the `SIZE_DEFAULTS` dials beside it; its proportions come from the
-  `Form` rows (`platform/idea/Form`, a singleton Idea per row at
-  `/platform/idea/Form/<name>` — `rod` · `sheet` · `block` · `round` ·
-  `flexible`; a sixth form is a row, no code) — see
+  `shape` documents (`lib/spatial/Shape.ts`'s `Shape` value class over
+  `/platform/shapes/<name>` — `rod` · `sheet` · `block` · `round` ·
+  `flexible`; a sixth shape is a file, no code; no longer an instanceable
+  Idea since W10j) — see
   [size.md](./subsystems/size.md);
   `lib/description/NounPhrase.ts`'s
   `NounPhrase` — a stem, a register and a count, from which the article,

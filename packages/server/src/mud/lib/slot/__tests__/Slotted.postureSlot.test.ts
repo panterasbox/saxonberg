@@ -15,14 +15,14 @@ import Good from '../../../platform/thing/Good';
 import Handcart from '../../../platform/thing/equipment/Handcart';
 import Location from '../../location/Location';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('a posture-bearing slot is for a body, never for a put thing', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

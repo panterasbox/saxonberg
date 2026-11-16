@@ -12,7 +12,7 @@ import { DiagnosticApi } from '../../../api/diagnostics';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import Good from '../Good';
-import { installForms, place } from '../../spatial/__tests__/size-fixture';
+import { installShapes, place } from '../../spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Mast extends Good {
@@ -38,7 +38,7 @@ const ROWS = [
 beforeEach(() => {
   installV1QuantityTagTables();
   installV1QuantityMarshallers();
-  installForms();
+  installShapes();
   vi.spyOn(PersistenceManager, 'get').mockReturnValue({
     save: vi.fn(async () => 'x'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {

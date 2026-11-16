@@ -20,7 +20,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Placements } from '../../../lib/spatial/Placement';
 import { buildAllModes } from '../../../lib/locomotion/__tests__/test-helpers';
-import { installForms } from '../../../lib/spatial/__tests__/size-fixture';
+import { installShapes } from '../../../lib/spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, pack, wornGarment } from '../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -33,7 +33,7 @@ const row = (pkg: string, ...path: string[]): { data: Record<string, unknown> } 
 describe('the steading paddock gate (drive 18)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     buildAllModes();
   });
   afterEach(() => StuffApi.clearAll());

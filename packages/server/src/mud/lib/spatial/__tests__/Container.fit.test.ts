@@ -9,7 +9,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Placements } from '../Placement';
 import {
-  installForms, material, thing, place, Item, OpenBox, Chest, Surface,
+  installShapes, material, thing, place, Item, OpenBox, Chest, Surface,
 } from './size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -21,7 +21,7 @@ describe('Container — fit', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => {
     vi.restoreAllMocks();

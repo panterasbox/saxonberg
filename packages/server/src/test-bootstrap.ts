@@ -298,6 +298,14 @@ function rememberKernelDocuments(): void {
         ContainmentApi.placements().parse(data, path),
       ),
   );
+  each(
+    "shapes",
+    (path, data) =>
+      void ContainmentApi.shapes().remember(
+        path,
+        ContainmentApi.shapes().parse(data, path),
+      ),
+  );
   // The topic vocabulary, as the first scene's warm would leave it — so a
   // suite's scenes deliver synchronously, as every scene after a world's
   // first does.

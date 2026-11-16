@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Placements } from '../Placement';
-import { installForms, thing, place, Item, Surface } from './size-fixture';
+import { installShapes, thing, place, Item, Surface } from './size-fixture';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { PlacingMixin } from '../Placing';
 import Good from '../../stuff/Good';
@@ -22,7 +22,7 @@ class Bare extends PlacingMixin(Good) {
 describe('Placing — entries (D26)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

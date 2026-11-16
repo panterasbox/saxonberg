@@ -17,7 +17,7 @@ import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, carry, hold, Bag } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../../lib/location/Location';
@@ -42,7 +42,7 @@ let said: string[];
 describe('tack: `put saddle on mule` (D-W10-8)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     said = [];
     const real = MessageApi.scene.bind(MessageApi);
     vi.spyOn(MessageApi, 'scene').mockImplementation((...args: Parameters<typeof MessageApi.scene>) => {

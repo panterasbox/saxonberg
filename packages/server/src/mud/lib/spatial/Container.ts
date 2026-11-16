@@ -40,6 +40,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi, OMNI_SCOPE } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { Shapes } from './Shape';
 import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
@@ -146,8 +147,6 @@ export type Arrival =
 /** The region reasons a pocket's own fit (`Placing.canPlace`) gives that are the tape measure's. */
 const TAPE_REASONS = new Set(['too-big-for-mouth', 'too-big-inside', 'no-room', 'not-shaped-for']);
 
-/** The form a container's interior takes when its own form gives (a sack, filled, is a block). */
-const BLOCK_FORM = '/platform/idea/Form/block';
 
 /**
  * Public shape provided by ContainerMixin.
@@ -1199,12 +1198,11 @@ function interiorOf(c: Stuff & Container): Dimensions | null {
   if (MixinApi.isBulkable(c)) {
     const litres = c.getInteriorCapacity()?.rawValue() ?? 0;
     if (litres > 0) {
+      // The shape a container's interior takes when its own gives (a sack,
+      // filled, is a block).
       const own = c.getShape();
-      const form =
-        own !== null && own.isRigid()
-          ? own
-          : StuffApi.findByTemplatePath<NonNullable<typeof own>>(BLOCK_FORM) ?? null;
-      return form === null ? null : form.dimensionsFor(litres / 1000);
+      const shape = own.isRigid() ? own : ContainmentApi.shapes().need(Shapes.BLOCK);
+      return shape.dimensionsFor(litres / 1000);
     }
   }
   if (c.hasAuthoredSize()) {

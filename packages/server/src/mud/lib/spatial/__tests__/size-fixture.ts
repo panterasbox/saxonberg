@@ -1,11 +1,11 @@
 /**
- * The size fixture (size and carrying W1): the five forms resident at their
- * row paths, materials with a density (and a strength), things with a mass
+ * The size fixture (size and carrying W1): the five shapes resident at their
+ * document paths, materials with a density (and a strength), things with a mass
  * and a form, containers with an authored box, and places whose exposure is
  * stated rather than built — so a test reads as the requirements' table.
  */
 import { vi } from 'vitest';
-import Form from '../../../platform/idea/Form';
+import { ContainmentApi } from '../../../api/containment';
 import Material from '../../material/Material';
 import Good from '../../stuff/Good';
 import Location from '../../location/Location';
@@ -18,7 +18,7 @@ import type { DimensionsSpec } from '../Dimensions';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { StuffApi } from '../../../api/stuff';
 
-const FORMS: Record<string, { aspect: DimensionsSpec; rigid: boolean }> = {
+const SHAPES: Record<string, { aspect: DimensionsSpec; rigid: boolean }> = {
   rod: { aspect: { width: 1, depth: 1, height: 20 }, rigid: true },
   sheet: { aspect: { width: 50, depth: 70, height: 1 }, rigid: true },
   block: { aspect: { width: 1, depth: 1.5, height: 2 }, rigid: true },
@@ -26,16 +26,15 @@ const FORMS: Record<string, { aspect: DimensionsSpec; rigid: boolean }> = {
   flexible: { aspect: { width: 6, depth: 8, height: 1 }, rigid: false },
 };
 
-/** The five shipped forms, resident at `/platform/idea/Form/<name>`. */
-export function installForms(): void {
-  for (const [name, f] of Object.entries(FORMS)) {
-    makeStuffAtPath(() => {
-      const form = new Form();
-      form.setName(name);
-      form.setAspect(f.aspect);
-      form.setRigid(f.rigid);
-      return form;
-    }, `/platform/idea/Form/${name}`);
+/**
+ * The five shipped shapes, resident at `/platform/shapes/<name>` — as the
+ * bootstrap already keeps them; stated here so a test reads its numbers.
+ */
+export function installShapes(): void {
+  const shapes = ContainmentApi.shapes();
+  for (const [name, f] of Object.entries(SHAPES)) {
+    const path = `/platform/shapes/${name}`;
+    shapes.remember(path, shapes.parse({ aspect: f.aspect, rigid: f.rigid }, path));
   }
 }
 
@@ -61,7 +60,7 @@ export class Chest extends SealableMixin(ContainerMixin(Good)) {}
 /** A surface and a hook in one (a table; a rail). */
 export class Surface extends PlacingMixin(Good) {}
 
-/** Make a thing of `material`, `kg`, an optional form and an optional authored box. */
+/** Make a thing of `material`, `kg`, an optional shape and an optional authored box. */
 export function thing<T extends Good>(
   make: () => T,
   opts: { material?: Material; kg?: number; shape?: string; box?: DimensionsSpec },

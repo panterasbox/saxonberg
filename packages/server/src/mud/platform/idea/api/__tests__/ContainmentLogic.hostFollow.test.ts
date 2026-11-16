@@ -14,7 +14,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms, thing, place, Item, Surface, Chest } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes, thing, place, Item, Surface, Chest } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
 
 const POCKETS: PlacementEntry[] = [
@@ -26,7 +26,7 @@ const key = () => tool('key', 0.02, [0.06, 0.025, 0.003]);
 describe('ContainmentLogic — the host-follow (D33)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

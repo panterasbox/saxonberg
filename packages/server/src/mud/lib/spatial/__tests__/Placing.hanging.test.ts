@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Placements } from '../Placement';
-import { installForms, material, thing, place, Item, Surface } from './size-fixture';
+import { installShapes, material, thing, place, Item, Surface } from './size-fixture';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 const STEEL = '/stuff/idea/material/_hang/steel';
@@ -18,7 +18,7 @@ describe('Placing — the hanging rule', () => {
   beforeEach(() => {
     installV1QuantityTagTables();
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => StuffApi.clearAll());
 

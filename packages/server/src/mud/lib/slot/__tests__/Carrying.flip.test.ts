@@ -14,7 +14,7 @@ import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
 import Location from '../../location/Location';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, wornBag, carryWords } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -48,7 +48,7 @@ function quietScenes(): void {
 describe('the flip — nothing loose on a body', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     quietScenes();
   });
   afterEach(() => {

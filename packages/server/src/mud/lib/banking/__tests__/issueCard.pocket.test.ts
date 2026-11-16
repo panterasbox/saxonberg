@@ -21,7 +21,7 @@ import PaymentCard from '../../../platform/thing/PaymentCard';
 import Location from '../../location/Location';
 import { makeBody, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import { installForms } from '../../spatial/__tests__/size-fixture';
+import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from './banking-test-harness';
 
@@ -30,7 +30,7 @@ const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height
 describe('an issued card goes in a pocket, never a hand when a pocket takes it', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
     installBankingHarness();
     vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
       makeStuffAtPath(() => new PaymentCard(), '/stuff/thing/PaymentCard')) as unknown as typeof StuffApi.clone);

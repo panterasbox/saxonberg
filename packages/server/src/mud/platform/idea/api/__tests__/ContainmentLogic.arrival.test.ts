@@ -15,7 +15,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Placements } from '../../../../lib/spatial/Placement';
 import type { PlacementEntry } from '../../../../lib/spatial/Placing';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { installForms, thing, place, OpenBox } from '../../../../lib/spatial/__tests__/size-fixture';
+import { installShapes, thing, place, OpenBox } from '../../../../lib/spatial/__tests__/size-fixture';
 import { PlacingMixin } from '../../../../lib/spatial/Placing';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import Good from '../../../../lib/stuff/Good';
@@ -37,7 +37,7 @@ const kw = (t: Stuff): string => (t as unknown as { getKeywords(): string[] }).g
 describe('ContainmentApi.move onto a body — the body places what arrives (W8)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    installForms();
+    installShapes();
   });
   afterEach(() => {
     vi.restoreAllMocks();

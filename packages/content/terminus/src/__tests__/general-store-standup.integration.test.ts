@@ -97,10 +97,6 @@ const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import
 const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
 const TANNING_SRC = fileURLToPath(new URL("../../../trade-tanning/src", import.meta.url));
 const GENERIC_SRC = fileURLToPath(new URL("../../../generic-objects/src", import.meta.url));
-// ⭐ The platform's Form rows (size and carrying W1): a row that authors
-// `shape: rod` (a holster, a scabbard) resolves its Form on hydrate, and
-// this harness stands rows up without the platform pack.
-const FORM_DIR = fileURLToPath(new URL("../../../platform/content/platform/idea/Form/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -423,13 +419,10 @@ describe("general-store standup (real seeds)", () => {
       seedDoc("counter"),
       ...goods,
       ...shelfPaths.map(objDoc),
-      ...readdirSync(FORM_DIR)
-        .filter((n) => n.endsWith(".yaml"))
-        .map((n) => {
-          const row = YAML.parse(readFileSync(`${FORM_DIR}${n}`, "utf-8")) as { class: string; data: Record<string, unknown> };
-          return { path: `/platform/idea/Form/${n.replace(/\.yaml$/, "")}`, class: row.class, data: row.data };
-        }),
     ];
+    // ⭐ A row that authors `shape: rod` (a holster, a scabbard) resolves
+    // its shape on hydrate — the platform's shapes are documents the
+    // bootstrap keeps resident (`rememberKernelDocuments`).
     installStore(docs);
     // The materials the stocked rows cite — loaded with each good in a
     // world (constituents, load-on-use W8); this store has no material

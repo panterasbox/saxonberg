@@ -21,8 +21,8 @@ a body. This doc is the measure that doc asks.
 |---|---|---|
 | `Dimensions` | `lib/spatial/Dimensions.ts` | a value object: a box, `width · depth · height` in meters, and every tape-measure read on it |
 | `SIZE_DEFAULTS` | beside `Dimensions` | the dials (packing, interior fraction, hang safety, the room words, standard gravity) — numbers, not an Api |
-| `Form` rows | `platform/idea/Form` at `/platform/idea/Form/<name>` | a shape a thing can have: `rod` · `sheet` · `block` · `round` · `flexible` |
-| size reads | `ShapedMixin` (`lib/spatial/Shaped.ts`, beside `Containable`) | `shape`, `dimensions?`, `getShape`/`ensureShape`, `getDimensions`, `getVolumeM3`, `getFitBox`, `getPackedVolumeM3`, `foldPackingFactor` |
+| `shape` documents | `lib/spatial/Shape.ts` (value class) over `content/shapes/<name>.yaml` → `/platform/shapes/<name>`, served by `ShapeCatalogue` (`ContainmentApi.shapes()`) | a shape a thing can have: `rod` · `sheet` · `block` · `round` · `flexible` |
+| size reads | `ShapedMixin` (`lib/spatial/Shaped.ts`, beside `Containable`) | `shape`, `dimensions?`, `getShape`/`setShape`, `getDimensions`, `getVolumeM3`, `getFitBox`, `getPackedVolumeM3`, `foldPackingFactor` |
 | the matter's volume | `TangibleMixin` (`lib/material/Tangible.ts`) | `getMatterVolumeM3` — mass ÷ density, and nothing else of size |
 | container reads | `ContainerMixin` (`lib/spatial/Container.ts`) | `mouth?`, `shapedTo?`, `bounds`, `fitRefusal`, `closureLevel`, `reconcilePressing` |
 | the hanging length | `PlacingMixin` (`lib/spatial/Placing.ts`) | `hangingLengthM`, `bearsKg`, `roomFor`, the member fit in `canPlace` |
@@ -53,12 +53,16 @@ new Dimensions(width, depth, height)   // meters; a non-positive side throws
 as the mouth and the clearance type — an opening is not a thing, so it is
 not a `Dimensions`.
 
-## Forms — `shape:` on a row
+## Shapes — `shape:` on a row
 
-A form sets a thing's **proportions**; its volume sets the scale. Five
-rows ship under `content/platform/idea/Form/`:
+A shape sets a thing's **proportions**; its volume sets the scale. ⭐ A
+shape is a **document** (W10j — the `Form` Idea it was retired: metadata
+nothing writes, read by name). Five ship in the platform pack's
+`content/shapes/`, stored at `/platform/shapes/<name>`; each file is the
+data (`aspect: {width, depth, height}`, `rigid:`), no `class:`/`data:`
+wrapper:
 
-| form | aspect (w : d : h) | rigid | a … |
+| shape | aspect (w : d : h) | rigid | a … |
 |---|---|---|---|
 | `rod` | 1 : 1 : 20 | yes | sword, pole, scroll |
 | `sheet` | 50 : 70 : 1 | yes | paper, board, pane, hide |
@@ -66,20 +70,35 @@ rows ship under `content/platform/idea/Form/`:
 | `round` | 1 : 1 : 1 | yes | apple, pot, cheese |
 | `flexible` | 6 : 8 : 1 | no | cloth, rope, a bag, a pelt |
 
-A thing names its form by its `shape:` field (`shape: rod`). ⚠ The field
-is `shape`, not `form`: the glass pack's `Sheet`/`Gather` and
-`Construction` already own `form`/`getForm()`. The class default is the
+A thing names its shape by its `shape:` field (`shape: rod`) — a bare
+word is the platform's (`/platform/shapes/rod`), a path any pack's
+(`shape: /trade/glass/shapes/cone`). ⚠ The field, the kind and the
+directory are `shape`, not `form`: the potter's `form` kind (the words an
+instrument makes — `mug`, `bottle`, `brick`, `lib/craft/FormSpec.ts`)
+owns `form`/`content/forms/`, and the glass pack's `Sheet`/`Gather` and
+`Construction` own `form`/`getForm()`. The class default is the
 static `defaultShape` — `block` on `Shaped`, `flexible` on `Garment`,
 `Line`, `Sack` and `Pack`, `sheet` on `Sheet`. A word with numbers behind
-it is a row, never an enum (`lint:closed-vocabularies`): **a sixth form
-— a cone, a ring — is a row and no code.**
+it is a document, never an enum (`lint:closed-vocabularies`): **a sixth
+shape — a cone, a ring — is one file and no code.**
 
-⭐ **Forms load on use.** `getShape()` reads the resident row; a miss
-starts the load (from the omni scope only — a commons row is never minted
-inside a circle) and answers *unknown* this once. The async seams that ask
-a size — `put`, the dispatcher's readying step, the traverse gate, a
-prop's install — `await ensureShape()` first. A thing whose form is not
-loaded has no known size, and **nothing unknown is ever refused**.
+⭐ **Shapes are resident by construction, as placements are** (documents
+D7). The kernel's five load with `ContainmentApi`'s `needs`
+(`ShapeCatalogue.ensureKernel`, one prefix read, a no-op when resident) —
+so every class default and every bare word is always there. A pack's
+shape loads through the `shape` setter (`setShape`), which the applier
+awaits on hydrate and on restore, and which throws on a shape nobody
+wrote (P3). `getShape()` is therefore a plain sync read (`need`); a miss
+is an engine defect and throws `DocumentNotResidentError` by path — never
+*unknown*. `ensureShape()` and the "unknown this once" read are gone with
+the Idea (W10j), and with them the awaits in `put`, the traverse gate and
+a prop's install. A thing's size is unknown only when its VOLUME is (no
+mass, no material) — and **nothing unknown is ever refused**.
+
+⚠ Like a placement, a kernel shape edited live (a CMS save, an installer
+sync) is forgotten by the go-live and is not re-read until the next
+`ContainmentApi` async static stands its needs again — the placements'
+exact behavior, recorded rather than diverged from.
 
 ## Volume and size derive
 
@@ -291,8 +310,8 @@ against `turn` when rigid.
 
 ### The clearance gate tells you what works
 
-`Exit.clearanceRefusal(mover, mode)` (async — it awaits `ensureShape` on
-held things), asked by `Exit.canTraverse`:
+`Exit.clearanceRefusal(mover, mode)` (async — it asks a way a mover
+would pass instead), asked by `Exit.canTraverse`:
 
 | reason | when | the words name |
 |---|---|---|
@@ -357,3 +376,9 @@ body's stature (on `Creature`, not `Posed` — `Posed` keeps only the
   wading by stature and the shut, tight holder. Before it, nothing in the
   engine had a size: a crate went into a pocket and a pole round any
   stair.
+- **W10j — shapes are documents (2026-11-16, owner ruling).** The `Form`
+  singleton Idea (`/platform/idea/Form/<name>`, five rows) retired: a
+  shape is a `shape` document at `/platform/shapes/<name>`, `Shape` a value
+  class in `lib/spatial/`, served by `ShapeCatalogue`. Kernel shapes are
+  resident with the containment Api's needs, so `getShape()` is sync and
+  `ensureShape()` is deleted.
