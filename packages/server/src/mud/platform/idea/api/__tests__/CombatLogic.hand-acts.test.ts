@@ -134,6 +134,39 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     expect(me.handActSeconds(pouch, 'unfasten')).toBe(3);
   });
 
+  // ⭐ Finalize drive run 15 (steps 6 and 14b): the beat ran on the session,
+  // so a fight that ENDED with a hand act on it dropped the act in silence —
+  // `get pistol from pack` then `fight yield` left the pistol in the pack,
+  // and an `open` whose fight ended left the pocket buttoned.
+  it('a fight that ends with a hand act on its beat lands the act — outside a fight it is instant', () => {
+    const { me, state } = fight();
+    let landed = 0;
+    expect(me.beginHandAct(3, () => { landed++; }).ok).toBe(true);
+    expect(state.weaponSwitch).not.toBeNull();
+    opened[0]!.dissolve();
+    expect(landed).toBe(1);
+    expect(state.weaponSwitch).toBeNull();
+  });
+
+  it('…and a body that LEAVES the fight lands its act as it goes', () => {
+    const { me, state } = fight();
+    let landed = 0;
+    expect(me.beginHandAct(3, () => { landed++; }).ok).toBe(true);
+    opened[0]!.removeParticipant(me);
+    expect(landed).toBe(1);
+    expect(state.weaponSwitch).toBeNull();
+  });
+
+  it('…but a body that went DOWN never finishes it, and is told so', () => {
+    const { me, state } = fight();
+    let landed = 0;
+    expect(me.beginHandAct(3, () => { landed++; }).ok).toBe(true);
+    state.down = true;
+    opened[0]!.dissolve();
+    expect(landed).toBe(0);
+    expect(state.weaponSwitch).toBeNull();
+  });
+
   it('outside a session every act lands at once', async () => {
     const room = makeStuff(() => new Location());
     const { me, plan } = makeBody();
