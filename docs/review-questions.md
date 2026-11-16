@@ -121,6 +121,66 @@ wins a collision and the niche row is renamed; one verb per act; the
 collision ladder before first-come. *Evidence:* `NamedField` (*"terrible name
 … we have a Named mixin"*), the painter / bow line, `SeaRoom` / `RiverBed`.
 
+⭐ **P9–P14 were added 2026-11-16 from one review** (size and carrying,
+MR !576). It shipped every one of these defects, and each broke doctrine the
+owner had already set. Ask each of them of **every** item on the plan's
+new-substrate list, and of every wave's additions, *before* code. The answer
+goes in the plan.
+
+### P9. Could a player predict it from the command def and `help`?
+The command def is the view and the help page. If a command does something
+its def and `help` don't say (moves a thing, swaps hands, chooses for you),
+it is wrong, however convenient. A convenience is the player's to express:
+options, the arg types, an explicit verb they already know, or a script or
+alias. Never a dispatcher flag. *Evidence:* the `readies:` view field (the
+dispatcher put the held thing away and drew the tool before the controller
+ran); "homes" (a hidden per-item memory the player had to track to predict
+`remove`); `inventory` duplicating `query`'s display options. All three were
+retired. Owner: *"the whole point of the command def is it's supposed to be
+the one document that, if you get your head around it, you can predict
+everything a command will do … if you're making help worse you're really
+doing something wrong."*
+
+### P10. Is new metadata a Document?
+A vocabulary or table that nothing writes and that is read by name or path
+is a **document** with a value class over it (`Placement` is the precedent),
+never a new `Idea` class with rows. *Evidence:* `Form` shipped as a
+`SingletonMixin(Idea)` with five rows, right after the documents build had
+converted that pattern away. It cost a `lint:boundary-roles` rise and a
+load-on-use workaround.
+
+### P11. Does any caller branch on what the destination is, to decide how to call a primitive?
+`if (isX(dest)) dest.special(item) else Api.primitive(item, dest)` means the
+primitive is incomplete. The destination decides, *inside* the primitive
+(`arrivalFor` in `move`). A caller never needs a rolodex of interfaces to
+stage a state. *Evidence:* the `isCarrying ? receive/directMove : move` port
+idiom at ~70 sites, then again at 14; `lint:carry-moves` now holds it at 0.
+
+### P12. Is this a new name for something an existing call already does?
+No synonyms for a primitive (`deliver`, `receive*`, `directMove`,
+`routeMove`). One call, and its behavior honestly decided by who owns it. If
+the only difference is "it can refuse", that is not a new verb. *Evidence:*
+four synonyms for `move` were proposed and withdrawn in one review.
+
+### P13. Does the concept belong on the mixin whose doc says what it is?
+Read the host mixin's header sentence. If the new members aren't about that
+sentence, they go elsewhere. A census split (`lint:mixin-clusters`) is
+evidence of two concepts in one mixin, not a ceiling to raise. *Evidence:*
+geometry added to `Tangible` (*"made of materials"*), then moved to
+`Containable`, where the clusters gate split it, and finally to
+`ShapedMixin`. Also a 35-member `Carrying` that answered every adjacent
+mixin's question.
+
+### P14. Does it move, retarget or decide on its own, invisibly?
+A primitive never lies (`move` to X ends in X, or every onward step is
+itself a true move). Selection happens only among things that are truly
+alike: ask when the choices differ in a way the world cares about. There
+is no "main" or default unless the author can see the reason for it.
+Delay is never a cost outside a budgeted clock (combat's beats). *Evidence:*
+`move(item, body)` silently became `move(item, bag)`; "fridge then freezer"
+as an invented main chamber; "closed is never a tier" erasing authored
+closures.
+
 ---
 
 ## B — build

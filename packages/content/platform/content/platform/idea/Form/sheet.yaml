@@ -1,6 +1,0 @@
-# Sheet — broad and thin: paper, a board, a pane, a hide, a panel.
-class: /platform/idea/Form
-data:
-  name: sheet
-  aspect: { width: 50, depth: 70, height: 1 }
-  rigid: true
