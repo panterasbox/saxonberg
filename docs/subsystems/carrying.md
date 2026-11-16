@@ -17,10 +17,12 @@ takes to get it out in a fight.
 
 An author needs one call: **`move`**. No caller ever chooses how a
 carrier takes a thing (owner: *"I don't want people to have to care what
-they're moving to determine which method to use … the only time you go
-around move() is when you need to go around the routing"*). Going around
-the routing is **`carrier.directMove(item, route?)`** — exactly there, or
-nothing moves and the refusal comes back.
+they're moving to determine which method to use"*). ⭐⭐ **There is no way
+around the routing** (owner, 2026-11-15: `directMove` retired): a purchase,
+a tip, a gift, a store withdrawal, an untie or a reclaim that the recipient
+cannot carry lands at their feet with the routing's line — honest, nothing
+lost. To **ask** without moving, `carrier.wouldSetDown(item)` reads the
+same resolution dry.
 
 The tape measure every placement asks is [size.md](./size.md). The
 weight is [encumbrance.md](./encumbrance.md). The slots are
@@ -30,13 +32,13 @@ weight is [encumbrance.md](./encumbrance.md). The slots are
 
 | Piece | Where | What it is |
 |---|---|---|
-| **the hook** — `arrivalFor(item, how?)` | `ContainerMixin` (`lib/spatial/Container.ts`), beside `canAddContainable` | where an arrival goes IN this container: `contents` (the default, every ordinary container) · `seat` (slots) · `pair` (a worn host's region) · `refuse`. Every kind is in the destination — a bag is not the body. `how.onBody` asks a carrier for its own places only |
+| **the hook** — `arrivalFor(item, how?)` | `ContainerMixin` (`lib/spatial/Container.ts`), beside `canAddContainable` | where an arrival goes IN this container: `contents` (the default, every ordinary container) · `seat` (slots) · `pair` (a worn host's region) · `refuse`. Every kind is in the destination — a bag is not the body |
 | **the chokepoint** | `ContainmentLogic.move` | a destination that is an agent is asked `arrivalFor`; `move` performs `seat` / `pair` / `contents`. A `refuse` on a **carrier** goes to the carrier's routing (`Carrying.routeArrival`, gated to `ContainmentLogic`); on a non-carrier it **throws** a `ContainmentError` (`reason`, `facts`, a message naming the body, the item, the hands and what was tried) |
 | **the routing** — `Carrying.routeArrival` | `lib/slot/Carrying.ts` | decides where it goes on BEFORE it lands (no bag and nowhere to stand → throws, nothing moved); then a TRUE move onto the body (admitted for the moment it is loose — its witnesses fire), then a second true move: into the first worn or carried bag it fits, else down at the body's enclosing place with the line (*Your hands are full — you set the cup down.*; peers: *Mara sets the cup down.*) |
-| **the bypass** — `Carrying.directMove(item, route?)` | `lib/slot/Carrying.ts` | the routing made explicit, in `Arrival`'s vocabulary (`CarryRoute`): no route = ON the body (hand / pocket / hook); `seat` these slots · `pair` a worn host's region · `into` a bag it carries · `carried` (on the body, else the first bag — `get`'s). Returns `null` or the `ArrivalRefusal`, nothing moved. Never the floor |
+| **the question** — `Carrying.wouldSetDown(item)` | `lib/slot/Carrying.ts` | the routing's answer read dry, by the same resolution: `null` when `move` keeps it (on the body or in a bag it carries), else the `ArrivalRefusal` it would set it down with. Never moves. Its callers: `get` (refuses a pick-up that would only be set back down) and a staged body's `props:` (an author diagnostic). ⛔ Not a way around the routing — `directMove` was retired (owner, 2026-11-15) and `lint:carry-moves` holds both its name and the `isCarrying(x) ? … : move(…, x)` branch at 0 |
 | **the invariant** — nothing loose | `Creature.arrivalFor` (every body) | admits only what arrives placed, an agent, a thing being seated (`Slotted.isSeating`), or one the body is admitting (`Creature.admitWhile`, gated `AnyOf(SelfOnly, FromModule(PersistableLogic))` — the restore, and the routing's first move). Else `refuse` `nowhere-to-carry`. **Fails closed**: no species row loaded is no escape |
 | **the seating mark** | `Slotted.seatInSlot` / `seatInSlots` | contents first, then the slots, under a mark (`try/finally`, a failed claim rolled back out) |
-| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and `directMove`; tiers, `stow`, readying into a free hand, letting go, the restore's overflow — **13** interface members (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · placeLoose · returnBorrowed · routeArrival · directMove`) |
+| **the capability** — `CarryingMixin` | `lib/slot/Carrying.ts`, composed on `Character`, `DraftAnimal`, `KeptAnimal` and ranching's `WorkingAnimal` | overrides `arrivalFor` with D11's order; the routing and its dry question; tiers, `stow`, readying into a free hand, letting go, the restore's overflow — **13** interface members (`freeHands · tierOf · isHonest · ready · stow · bringToHand · releaseHeld · wieldPlanFor · gearNoise · placeLoose · returnBorrowed · routeArrival · wouldSetDown`) |
 | the hands | `Attired` (`handSlots`, `heldThings`, `wears`) | the slot substrate's fact — any body's hands by its plan |
 | `CARRYING_DEFAULTS` | top of `Carrying.ts` | the grip dials (one-hand fraction, two-hand length); the awkwardness dials are `LOAD_BEARING_DEFAULTS`' |
 | `carry.order` | `Carrying`'s `static settings` | `hands-first` (default) · `pockets-first` |
@@ -61,13 +63,12 @@ led by it. A `Corpse` is a Thing. Narrow with `MixinApi.isCarrying(x)`
 
 ```typescript
 ContainmentApi.move(item, carrier);           // routed: on it, its bag, or at its feet
-carrier.directMove(item);                     // ON it, or the refusal (nothing moved)
-carrier.directMove(item, { kind: 'into', container: satchel });  // that route, or the refusal
+carrier.wouldSetDown(item);                   // asks only: null (kept) or the set-down's refusal
 ```
 
-`Carrying.arrivalFor` is one resolution (`resolveReceive(item, bags)`),
-which the routing (`bags` true) and `directMove` (`bags` false — the body's
-own places) both read — so the two can never disagree. In order, after the
+`Carrying.arrivalFor` is one resolution (`resolveReceive(item)`), which the
+routing and `wouldSetDown` both read — so the two can never disagree. In
+order, after the
 body's admissions (`super.arrivalFor`):
 
 1. **Already in a hand** — `contents`, nothing to do.
@@ -101,31 +102,31 @@ fish's inside is a stomach, not a pocket. A key moved out of its pocket
 onto its owner asks the hook like any arrival and goes to a hand.
 
 ⭐ **The refusal is the tutorial**, worded by the verb's controller
-(`carryRefusalWords`) from `directMove`'s answer: *"Your hands are full —
+(`carryRefusalWords`) from `wouldSetDown`'s answer (`get`): *"Your hands are full —
 the mug and the lantern — and the map won't fit in your pockets. Put
 something away (`put mug in left pocket`) or set it down (`drop
 lantern`)."*
 
-### The idioms — one call, one bypass
+### The idioms — one call
 
 There is exactly one movement verb (owner: *"every time you invent a
 synonym for `move()` you're making it harder for everyone else in the
-game"*), and it routes for a carrier. The bypass exists only to go around
-the routing:
+game"*), and it routes for a carrier. Nothing goes around it (owner,
+2026-11-15 — the refusing form and any new name for it were both
+rejected):
 
 | idiom | written as | used by |
 |---|---|---|
 | **everything** | `ContainmentApi.move(item, dest)` | made things (crafting's `landOutput`, the taps, the harvests, a catch, the cuts, the casts, a drink made for you, a minted card / key / receipt / coins the ledger has moved), staging (`hand`, a kit), restores, an NPC arming itself, `unequip` |
-| **handed** — goods FIRST, then the money | `carrier.directMove(goods)` — refused, it is worded and nothing else happens; a later write that fails moves the goods back | `buy` (the shelf's `handOver` before `settleSale`, `handBack` on a failed settle), `give`, `put X in <person>`, a rack or shelf reclaim, a store withdrawal, untying a line, a tip jar, a lead tied to a carrier |
-| **carried, short of the floor** | `carrier.directMove(item, { kind: 'carried' })` | `get` (and `get X from <body>`), `equip` out of a wardrobe — refused, the thing stays where it was (a fixture is rehung, a slot re-seated) |
-| **staged exactly** | `carrier.directMove(item)` | `props:` onto a body (a refused prop is a diagnostic, not placed), the daypack at intake |
+| **handed** — the money, then the goods | `ContainmentApi.move(goods, carrier)` after the write — routed; with nowhere for it, set down at their feet with the line. ⚠ The old *"refused before money moves"* requirement (D-W7a) is **retired** (owner, 2026-11-15) | `buy` (the shelf's `handOver` after `settleSale`), `give`, `put X in <person>`, a rack or shelf reclaim, a store withdrawal, untying a line, a tip jar, a lead tied to a carrier, `equip` out of a wardrobe, the daypack at intake |
+| **carried, or refused** | `carrier.wouldSetDown(item)` first, then `move` | `get` (and `get X from <body>`): a pick-up the routing would only set back down is refused before anything moves (off a wall, out of a slot) — `get` carries; a set-down is `drop`'s or `put`'s act |
+| **staged** | `wouldSetDown` then `move` | `props:` onto a body — what the routing would set down is a diagnostic, not placed |
 | **wear it** | `body.seatInSlots(garment, claim)` | outfits, loadouts; a bag that claims no slot is `move`d and hung |
 
 `seatInSlots` stays its own entry point: it is `Slotted`'s primitive (a
-rack, a battery bay, `put`'s slot route, the chokepoint's own `seat`), so
-folding the body loadouts into `directMove(item, { kind: 'seat', … })`
-would remove no entry point — and a loadout that cannot seat should throw
-loudly, which `seatInSlots` does.
+rack, a battery bay, `put`'s slot route, the chokepoint's own `seat`, and
+`unequip`'s re-seat into the hand a refused `stow` left) — a loadout that
+cannot seat should throw loudly, which `seatInSlots` does.
 
 ### The one overflow — the restore
 
@@ -475,9 +476,9 @@ a conscious one refuses (*"Bob won't let you"*).
 
 | verb | what it does here |
 |---|---|
-| `get` | `directMove(item, { kind: 'carried' })` — a hand, then a pocket or bag it fits (never a bag in your hand, never the floor); a no-slot pouch onto the belt; refused, nothing moves. `get X from <on you>` → `bringToHand` into a free hand, or `hands-needed` |
+| `get` | `move` — a hand, then a pocket or bag it fits; a no-slot pouch onto the belt. When the routing would only set it down, `get` refuses first (`wouldSetDown`) and nothing moves — off a wall or out of a slot included. `get X from <on you>` → `bringToHand` into a free hand, or `hands-needed` |
 | `put X in/on/from Y` | onto a host or into a container; chambers by the rule above; `put <tack> on <beast>` seats tack on a body that cannot dress itself (`Slotted.openSlotFor`) |
-| `give X to Y` | the release gate, then `Y.directMove(X)` — onto them, or re-seated exactly in the hand it left; a non-carrier takes nothing; tack is not handed (`put saddle on mule`) |
+| `give X to Y` | the release gate, then `move(X, Y)` — onto them, a bag they carry, or set down at their feet with the line (a mule handed a saddle sets it down — tack is `put saddle on mule`); a non-carrier takes nothing, refused before the release |
 | `unwield` | `stow` — off the hands by the one order, told where; nothing takes it → refused, it stays in hand |
 | `drop` | to the place; instant, and free in a fight |
 | `query --ledger me:i` (the `i` and `inventory` default aliases — W10h) | by tier — *In hand* · *Ready* (each pocket and hanging member by name with the room left along a hanging length, each ready container with its perceived contents) · *Worn* · *Packed* (each pack as *N things, M kg* unless the set names what is in it — `me:I`, `rucksack:i`) — then the burden in words. Display options `--weight` `--flat`; narrowing is the query's (`me:i:held`, `me:i:worn`, `me:i:carried`; no `ready`/`packed` word); `query --ledger <container>:i`, `query --ledger <person>:i` |
@@ -556,3 +557,16 @@ yet) is not judged by weight. The combat seconds are app settings
   vocabulary, and a handed act moves the goods FIRST and the money after.
   `Carrying`'s interface is 16 (`routeArrival`, gated to the chokepoint,
   and `directMove`).
+- **W10i — `move` is the only call (owner, 2026-11-15).** `directMove`
+  is retired with its `CarryRoute` and the `how.onBody` read. Every site
+  that moved a thing onto a body — `give`, `buy`, a tip jar, a store
+  withdrawal, a reclaim, an untie, `put X in <person>`, `equip` out of a
+  wardrobe, the daypack, a lead onto a carrier — calls
+  `ContainmentApi.move(item, body)`, and what the body cannot carry is set
+  down at its feet with the routing's line. ⚠ D-W7a's *"a handed thing is
+  pre-checked before money moves"* is **retired**: the shelf settles, then
+  hands over (`handBack` is gone with the refusal path). `get` keeps its
+  refusal — through `wouldSetDown`, the routing's own answer read dry —
+  because a pick-up that is only set back down changes nothing.
+  `lint:carry-moves` holds the name and the `isCarrying(x) ? … :
+  move(…, x)` branch at 0.

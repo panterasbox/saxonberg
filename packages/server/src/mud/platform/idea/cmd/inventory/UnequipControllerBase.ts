@@ -340,7 +340,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
       const refused = wieldy ? giver.stow(target) : null;
       if (refused !== null) {
         drop();
-        giver.directMove(target, { kind: 'seat', slots: [...left] });
+        if (MixinApi.isSlottable(target)) giver.seatInSlots(target, [...left]);
         const kw = (MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined) ?? target.presentationPhrase().bare();
         MessageApi.scene(giver)
           .topic(TOPIC)

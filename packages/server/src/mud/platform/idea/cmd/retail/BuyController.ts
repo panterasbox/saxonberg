@@ -65,13 +65,7 @@ export default class BuyController extends CommandController<BuyModel> {
       MessageApi.scene(giver).topic(TOPIC).toSelf(out.self).toPeers(out.peers).send();
       return;
     }
-    // ⭐ A refusal the buyer's body reported is worded here (size and
-    // carrying W8); the seller words only its own half.
-    const carry = out.facts?.carry;
-    const line = carry !== undefined
-      ? Mml.compose`${Mml.text(this.carryRefusalWords(giver, carry))} ${out.line}`
-      : out.line;
-    MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+    MessageApi.scene(giver).topic(TOPIC).toSelf(out.line).send();
     context.note(out.note);
   }
 }

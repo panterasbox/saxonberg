@@ -141,7 +141,7 @@ describe('Garment — the belt (D27)', () => {
     const { me, plan } = makeBody();
     const belt = await wornGarment(me, plan, 'belt', 'waist', [Placements.FROM]);
     const p = pouch();
-    expect(me.directMove(p)).toBeNull();
+    ContainmentApi.move(p, me);
     expect(p.getContainer()).toBe(me);
     expect(p.getPlacement()?.host).toBe(belt);
     expect(p.getPlacement()?.name).toBe(Placements.FROM);

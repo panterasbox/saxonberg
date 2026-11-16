@@ -254,15 +254,14 @@ export interface Container {
    * routing would take it past the body — a bag, the floor). The tape
    * measure ({@link canAddContainable}) still runs on whatever container
    * the thing finally enters. `how.placed`: it arrives with a placement
-   * pair on a host here. `how.onBody`: ask only whether the body itself
-   * takes it (a carrier's `directMove`), not where its routing would go.
+   * pair on a host here.
    * ⭐ A container with no interior ({@link hasInterior} — a coat) answers
    * its first enclosing region that takes the thing (`pair` on itself), or
    * `refuse` with that region's reason (size and carrying W9, D-W9-4).
    *
    * @hook Override to place an arrival; call `super` for the admissions.
    */
-  arrivalFor(item: Stuff & Containable, how?: { placed?: boolean; onBody?: boolean }): Arrival;
+  arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival;
 
   // ── size (size and carrying D4–D5, D22) ──
 
@@ -507,7 +506,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * @hook
      */
-    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean; onBody?: boolean }): Arrival {
+    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
       if (how?.placed === true || this.hasInterior()) return { kind: 'contents' };
       // ⭐ No inside of its own (W9, D-W9-4): the destination decides the
       // region — its first enclosing one that takes the thing.

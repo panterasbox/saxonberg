@@ -277,12 +277,11 @@ describe('a lead hangs from the halter (size and carrying W7)', () => {
     expect(me.heldThings().some((h) => h instanceof RopeEnd)).toBe(true);
   });
 
-  it('a tieable that offers nothing to hang from, on a body with nowhere to carry, is nothing to tie a lead to', async () => {
+  it('a tieable that offers nothing to hang from, on a carrier with nowhere to carry: tied, and the rope is set down (W10i — move routes)', async () => {
     const { me, mule, r } = await setup(false);
-    expect(await r.tieTo(me as unknown as Stuff, mule as unknown as Stuff, null)).toMatchObject({
-      ok: false,
-      reason: 'no-halter',
-    });
-    expect(r.getContainer()).toBe(me);
+    const room = mule.getContainer();
+    expect(await r.tieTo(me as unknown as Stuff, mule as unknown as Stuff, null)).toMatchObject({ ok: true });
+    expect(r.getContainer()).toBe(room);
+    expect(me.heldThings().some((h) => h instanceof RopeEnd)).toBe(true);
   });
 });

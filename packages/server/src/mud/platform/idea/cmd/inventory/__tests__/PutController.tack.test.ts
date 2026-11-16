@@ -1,8 +1,9 @@
 /**
  * ⭐ Tack goes on by `put <tack> on <beast>` (size and carrying D-W10-8): a
  * body with no hands (a mule — it cannot dress itself) takes a slot claim
- * from `put`; a person is still refused; and HANDING tack is refused in the
- * beast's own answer — a mule does not saddle itself.
+ * from `put`; a person is still refused; and HANDED tack is not put on — a
+ * mule does not saddle itself; it has nowhere to carry it and sets it down
+ * (W10i: `move` is the only call, owner 2026-11-15).
  */
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -20,6 +21,7 @@ import { installForms } from '../../../../../lib/spatial/__tests__/size-fixture'
 import { makeBody, tool, carry, hold, Bag } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../../lib/location/Location';
+import { Actor } from '../../../../../lib/creature/Actor';
 
 const one = (stuff: Stuff | null, raw: string, prep?: string): MqlOneResult => ({ stuff, raw, ...(prep ? { prep } : {}) });
 
@@ -99,7 +101,7 @@ describe('tack: `put saddle on mule` (D-W10-8)', () => {
     expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
   });
 
-  it('`give saddle to mule` is refused `nowhere-to-carry`, in the third person; you keep it', async () => {
+  it('`give saddle to mule` is given, and the mule — nowhere to carry it — sets it down; it is not put on', async () => {
     const { room, me, mule, saddle } = scene();
     const c = ctx(me, room, 'give');
     await makeStuff(() => new GiveController()).execute(
@@ -107,20 +109,27 @@ describe('tack: `put saddle on mule` (D-W10-8)', () => {
       c,
     );
     expect(mule.getOccupants('back').has(saddle)).toBe(false);
-    expect(me.tierOf(saddle)).toBe('hand');
-    expect(said.join('\n')).toMatch(/has nowhere to take/i);
+    expect(me.tierOf(saddle)).toBe('elsewhere');
+    expect(saddle.getContainer()).toBe(room);
+    expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(false);
   });
 
-  it('a refused give re-seats into the hand it left — not the first free one', async () => {
-    const { room, me, plan, mule, saddle } = scene();
-    // The saddle in the first hand; the knife in the right.
+  it('a body that does not carry takes nothing: refused before the release, the knife stays in the hand it was in', async () => {
+    const { room, me, plan, saddle } = scene();
+    class Fish extends Actor {}
+    const fish = makeStuff(() => new Fish());
+    ContainmentApi.move(fish, room);
+    // The saddle out of the first hand; the knife in the right.
     ContainmentApi.move(saddle, room);
     const knife = hold(me, plan, tool('knife', 0.3), 'hand:right');
+    const c = ctx(me, room, 'give');
     await makeStuff(() => new GiveController()).execute(
-      { item: one(knife, 'knife'), recipient: one(mule, 'mule', 'to') } as ModelData as never,
-      ctx(me, room, 'give'),
+      { item: one(knife, 'knife'), recipient: one(fish, 'fish', 'to') } as ModelData as never,
+      c,
     );
     expect(me.getOccupants('hand:right').has(knife)).toBe(true);
     expect(me.getOccupants('hand:left').has(knife)).toBe(false);
+    expect(said.join('\n')).toMatch(/has nowhere to take .* You keep it/i);
+    expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
   });
 });

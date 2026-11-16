@@ -22,7 +22,6 @@
  * the price map a menu, a tariff and a counter share; this is the act.
  */
 
-import type { ArrivalRefusal } from '../spatial/Container';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Note } from "@saxonberg/types";
@@ -52,11 +51,6 @@ export type SaleOutcome =
       ok: false;
       line: Mml;
       note: Note;
-      /**
-       * Why the BUYER could not take the good, as the body reported it
-       * (size and carrying W8) — the verb words it before the seller's line.
-       */
-      facts?: { carry?: ArrivalRefusal };
     };
 
 export interface ForSale {

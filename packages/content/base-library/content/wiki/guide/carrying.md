@@ -149,10 +149,16 @@ what would work.
 
 ## Giving and buying {#giving}
 
-When you give someone a thing, they have to have somewhere to put it. If
-their hands are full and nothing fits, you are told, and you keep it. A
-shop works the same way: if you cannot carry what you are buying, it
-stays on the shelf and you are not charged.
+When you give someone a thing, it goes where their body puts it: a hand,
+a pocket, a bag. If nothing fits, they set it down at their feet, and
+everyone sees it. A shop works the same way: you pay, and if you cannot
+carry what you bought, you set it down where you stand. It is yours
+either way. The same goes for coins from a tip jar, a crate drawn from a
+store, a thing taken back off a shelf, and a rope you untie.
+
+Picking something up is different. If `get` has nowhere to put a thing,
+it does not pick it up only to set it down again: you are told what you
+are holding, and the thing stays where it was.
 
 Things you make, catch or harvest go into your hands or bags if they
 fit. If they do not, they are set down where you stand.

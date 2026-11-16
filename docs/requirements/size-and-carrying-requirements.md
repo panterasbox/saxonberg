@@ -115,8 +115,8 @@ differ from the defaults.
     satchel, a guardian an empty modular belt) — a grain an author may change. **Nobody starts with a
     rucksack or a frame pack**: the expedition's pack is a purchase.
   - ⭐ **Enrolling at the Eternal University gives you a backpack** — an Eternal U daypack, free, handed
-    to you by Katie at intake when your dorm is provisioned. It is *handed*: if your hands are full, she
-    leaves it in your new room. A daypack, not an expedition pack — the frame pack is still the
+    to you by Katie at intake when your dorm is provisioned. It is *handed*: if your hands are full, you
+    set it down at your feet, said so (owner, 2026-11-15 — was: she leaves it in your new room). A daypack, not an expedition pack — the frame pack is still the
     leatherworker's sale.
   - **A wiki guide to carrying** (hands, pockets, the reach tiers, readying, belts, what fits), linking
     `help` rather than repeating it.
@@ -133,10 +133,11 @@ differ from the defaults.
     always with a line (*"your hands are full — you set the loaf on the bench"*). Size decides on its
     own: a cart or a wardrobe is always set down. What already lands in a vessel or a mould is
     unchanged. A set-down thing is an ordinary thing in the room — it persists, and others can take it.
-  - **A handed thing is offered; if you can't take it, nothing changes hands** — buying, `give`,
-    trading, payment in goods. Checked before anything moves, money included: *"your hands are full —
-    the shopkeeper keeps the loaf until you have one free"* (nothing charged); *"Bob's hands are full"*
-    (you keep it).
+  - **A handed thing changes hands; if you can't carry it, you set it down** — buying, `give`,
+    trading, payment in goods, a store withdrawal, a reclaim, an untie. ⚠ **Retired (owner,
+    2026-11-15):** *"checked before anything moves, money included"* — the sale settles and the loaf
+    is yours; with nowhere for it, *"your hands are full — you set the loaf down"*. Honest, nothing
+    lost. `get` alone still refuses a pick-up it would only set back down.
   - **Stacks merge** — coins onto the coins in your purse, an apple onto the apples in your hand — and
     take no new hand. **What the engine grants** (the login kit, the Arrival Note, the bank card) is
     placed like the flip's first load: hand, pocket, pack, the overflow to your residence with a
@@ -497,8 +498,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    pocket, because a mug would not fit one; a fourth that fits nowhere is
    refused in words. The refusal names the hands' contents and the
    next command in the character's own pocket names. At Duncan Hall, `talk to Katie` through intake —
-   an Eternal U daypack is handed over; a second fresh character arriving with full hands finds it in
-   their new room instead.
+   an Eternal U daypack is handed over; a second fresh character arriving with full hands sets it
+   down at their feet, said so (retired 2026-11-15: *finds it in their new room*).
 2. *instant · player* — `i` shows the tiers: in hand, ready (the pocket's contents), worn, and the
    burden in words. `i --flat` shows one list; `alias get i` says what it runs (`query --ledger me:i`).
 3. *instant · player* — Wearing a coat: `put key in coat pocket`, then `i`: the key's home is the
@@ -554,8 +555,9 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
     readies in one draw; at a low door, *"you'd have to dismount"*; the laden mule at a narrow gate,
     *"the panniers won't fit."* With both hands full, `cook` a loaf — it is set on the bench, said so;
-    `buy bread` — refused before any money moves, the purse unchanged; `give cup to` a character with
-    full hands — refused, the cup still yours. Hitch a handcart — `get lantern` is refused, naming your hands on the
+    `buy bread` — paid, then set down at your feet, said so; `give cup to` a character with full
+    hands — they set it down at their feet (retired 2026-11-15: *refused before any money moves* /
+    *refused, the cup still yours*). Hitch a handcart — `get lantern` is refused, naming your hands on the
     cart; at a narrow door the cart won't fit; throw a tarp over its load, and another character in the
     room no longer sees it.
 19. *instant · staged* — A wizard sets one room's gravity to zero: a dropped cup floats in the room; a

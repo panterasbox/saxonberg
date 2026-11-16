@@ -230,11 +230,11 @@ export class ContainmentApi {
    * nothing sits loose on a body, so `move` THROWS a `ContainmentError`
    * naming why (`reason` + `facts`). Every other destination is exact.
    *
-   * ⭐ To go AROUND the routing — a handed act that must refuse before money
-   * moves, a staging that pins an exact state — ask the carrier:
-   * `carrier.directMove(item[, route])` puts it exactly there (on the body,
-   * or the named hand / pocket / bag) or moves nothing and returns the
-   * refusal.
+   * ⭐ There is no way AROUND the routing (`directMove` retired, owner
+   * 2026-11-15): a purchase, a gift, a store's withdrawal that the body
+   * cannot carry lands at its feet with the line — honest, nothing lost.
+   * To ASK first, `carrier.wouldSetDown(item)` reads the same resolution
+   * dry (`get`, which refuses a pick-up that would only be set back down).
    *
    * The other layer is a thing moving ITSELF ({@link MobileMixin}'s
    * `traverse`), which crosses exits and arrives through this primitive.

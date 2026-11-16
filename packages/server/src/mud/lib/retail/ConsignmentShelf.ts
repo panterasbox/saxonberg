@@ -22,7 +22,6 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
-import type { Placing } from "../spatial/Placing";
 import type { Containable } from "../spatial/Containable";
 import { MixinApi } from "../../api/mixin";
 import { ContainmentApi } from "../../api/containment";
@@ -335,15 +334,12 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       // seed row and its house operates the minted counter, not the seed.
       const venuePath = (this as unknown as Stuff).getIdentityPath();
       let paid: { tail: string; receipt: SettlementReceipt } | null;
-      // ⭐ Handed (D-W7a): the good moves to the buyer FIRST — a buyer who
-      // cannot take it is told before any money moves, the purse and the
-      // shelf untouched; a sale that does not settle hands it back.
+      // ⭐ The money, then the good (owner, 2026-11-15): a sale that does not
+      // settle moves nothing; a settled one is handed over — `move` routes
+      // it onto the buyer, or sets it down at their feet with the line.
       // The ask is read while the good is still on the shelf (a terms price
       // reads the stock on hand).
       const termsAsk = listing.basis === "terms" ? this.termsAskFor(item, listing) : null;
-      const from = { container: item.getContainer(), pair: item.getPlacement() };
-      const cannot = this.handOver(item, giver, sale.word);
-      if (cannot !== null) return cannot;
       if (termsAsk !== null) {
         // ⭐ Rung 0 — supplier terms (economic bootstrap D11): the buyer pays
         // the SHOP'S ask in full (the shop's sale, its taxable revenue); the
@@ -352,10 +348,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
         // cogs, the supplier's as sales; the ladder's rung-1 gate counts it).
         // Two posts, one command — the `remitDemoTax` precedent.
         paid = await EmploymentApi.settleSale(venuePath, termsAsk, termsAsk, "a purchase");
-        if (!paid) {
-          this.handBack(item, from);
-          return this.refusedBroke(item, sale.word, termsAsk);
-        }
+        if (!paid) return this.refusedBroke(item, sale.word, termsAsk);
         await this.settleTerms(venuePath, consignorPrimary, listing.askMinor, item);
       } else {
         const ask = listing.askMinor;
@@ -378,17 +371,17 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
           "a purchase",
           splits,
         );
-        if (!paid) {
-          this.handBack(item, from);
-          return this.refusedBroke(item, sale.word, ask);
-        }
+        if (!paid) return this.refusedBroke(item, sale.word, ask);
       }
       const buyer = await this.purchaserOf(giver, paid.receipt);
       if (MixinApi.isChattel(item)) {
         await item.transferChattel(buyer); // stamp → buyer (or their house)
       }
       if (MixinApi.isChattel(item)) this.removeListing(item.getChattelId());
-      return this.bought(giver, item, paid.tail, buyer);
+      // Named before the move: a piece that meets its like merges into it.
+      const named = item.getPresentation();
+      this.handOver(item, giver);
+      return this.bought(giver, item, paid.tail, buyer, named);
     }
 
     /**
@@ -435,35 +428,13 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * ⭐ Hand it over FIRST — before any money moves (D-W7a; owner,
-     * 2026-11-13: the goods move, then the money): onto the buyer (a hand
-     * or a pocket — `directMove`, never routed on to a bag or the floor),
-     * or nothing moves and the sale is refused: *"the shopkeeper keeps the
-     * loaf until you have one free"*. Null when it is theirs to hold now
-     * (a buyer that is no carrier takes it plainly). A sale that then fails
-     * to settle puts it back ({@link handBack}).
+     * Hand a sold good over (owner, 2026-11-15): `move` routes it onto the
+     * buyer — a hand, a pocket, a bag — or, with nowhere for it, sets it
+     * down at their feet with the routing's line. Honest; nothing lost. A
+     * buyer that holds nothing (no body) leaves it where it is, theirs.
      */
-    protected handOver(item: Stuff & Containable, giver: Stuff, word: string): SaleOutcome | null {
-      if (!MixinApi.isContainer(giver)) return null;
-      if (!MixinApi.isCarrying(giver)) {
-        ContainmentApi.move(item, giver);
-        return null;
-      }
-      const refused = giver.directMove(item);
-      if (refused === null) return null;
-      // ⭐ The shelf words only its own half (size and carrying W8): the
-      // good stays, nothing is charged. Why the buyer cannot take it rides
-      // as facts (`facts.carry`) for the verb to word.
-      const why = Mml.compose`${Mml.thing(item)} stays on the shelf until you have a free hand. Nothing is charged.`;
-      const out = this.refused(why, "buyer-cannot-take", word);
-      return out.ok ? out : { ...out, facts: { carry: refused } };
-    }
-
-    /** A sale that did not settle: the good goes back where it was taken from. */
-    protected handBack(item: Stuff & Containable, from: { container: (Stuff & Container) | null; pair: { host: Stuff & Placing; name: string } | null }): void {
-      if (item.isDestroyed()) return;
-      if (from.pair !== null) ContainmentApi.move(item, from.pair.host, from.pair.name);
-      else ContainmentApi.move(item, from.container);
+    protected handOver(item: Stuff & Containable, giver: Stuff): void {
+      if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     }
 
     /** What the buyer and the room are told of a sale. */

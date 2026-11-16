@@ -619,12 +619,13 @@ export default class Rope extends CuttableMixin(
     const rope = this as unknown as Stuff & Line;
     const hangs = MixinApi.isPlacing(halter) && halter.getPlacements().includes(Placements.FROM)
       && halter.canPlace(rope, Placements.FROM).ok;
-    // Hung from the halter, else ONTO the animal (`directMove` — a hand or
-    // its own regions, never routed on to its pack or the ground); a body
-    // that does not carry takes nothing that does not hang.
+    // Hung from the halter, else ONTO the animal (owner, 2026-11-15: the
+    // one call — it routes); a body that does not carry takes nothing that
+    // does not hang.
     if (hangs && MixinApi.isPlacing(halter)) ContainmentApi.move(rope, halter, Placements.FROM);
-    else if (!MixinApi.isCarrying(animal) || animal.directMove(rope) !== null) {
-      return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
+    else {
+      if (!MixinApi.isCarrying(animal)) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
+      ContainmentApi.move(rope, animal);
     }
     this._anchor = halter;
     this.anchorPath = halter.getTemplatePath();
@@ -658,14 +659,9 @@ export default class Rope extends CuttableMixin(
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
-      // Handed back to you (D-W7a): onto you first (`directMove`), or it
-      // stays tied and nothing changes.
-      const taken = MixinApi.isCarrying(by)
-        ? by.directMove(this as unknown as Stuff & Line)
-        : (ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container), null);
-      if (taken !== null) {
-        return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load: anchor } };
-      }
+      // Handed back to you (owner, 2026-11-15): onto you, or — with
+      // nowhere for it — set down at your feet with the line.
+      ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container);
       if (this.hungVia !== null) {
         this.hungVia = null;
         await this.castOff();

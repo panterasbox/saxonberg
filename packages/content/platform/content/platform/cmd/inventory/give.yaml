@@ -12,10 +12,11 @@ help: |
   to scenery.
 
   What you hand someone goes where THEIR body puts it — a free hand, a
-  pocket, a hook on their belt or saddle, a bag they wear; a body with
-  no hands and nothing to hang it from refuses, a body whose hands and
-  pockets are full refuses, and you keep it exactly where it was. Tack
-  is not handed — `put saddle on mule`.
+  pocket, a hook on their belt or saddle, a bag they carry; with nowhere
+  for it, they set it down at their feet, and everyone sees them do it.
+  Nothing is lost. A creature that carries nothing at all (a fish)
+  refuses, and you keep it exactly where it was. Tack goes on with
+  `put saddle on mule` — handed, a mule just sets it down.
 examples:
   - cmd: give coin to the merchant
     note: Hand over a single item

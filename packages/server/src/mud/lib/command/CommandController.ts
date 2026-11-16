@@ -502,7 +502,7 @@ export abstract class CommandController<
 
   /**
    * ⭐ The words for a carrying refusal — in the second person, each naming
-   * what works. The body returns facts (`directMove`, `ready`,
+   * what works. The body returns facts (`wouldSetDown`, `ready`,
    * `wieldPlanFor`); this is where they become a sentence, in one place,
    * for every verb that takes or hands. Exhaustive: a new reason does not
    * compile until it is worded.

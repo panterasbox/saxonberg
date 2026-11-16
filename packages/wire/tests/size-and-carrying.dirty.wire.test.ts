@@ -321,7 +321,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await toHour(9, 12);
   }, 240_000);
 
-  it('1. [instant · player] get: a hand, the other hand, a pocket; a fourth refused in words; Katie hands the daypack, or it waits in your room', async () => {
+  it('1. [instant · player] get: a hand, the other hand, a pocket; a fourth refused in words; Katie hands the daypack, or it is set down at your feet', async () => {
     const a = await person('scget');
     await lay(a, T.mug);
     await lay(a, T.lantern);
@@ -354,7 +354,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
 
   }, 300_000);
 
-  it('1b. [instant · player] a newcomer with full hands: the daypack is not handed, and they are told where it is', async () => {
+  it('1b. [instant · player] a newcomer with full hands: the daypack is set down at their feet, said so (W10i — move is the only call)', async () => {
     // ⚠ Blocked in this world by a pre-existing residence defect (drive
     // record): Duncan Hall's SECOND let throws at `addExit` ("non-cardinal
     // direction 'unit-2' requires the destination to be in a different
@@ -369,8 +369,8 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await choose(k2, /./);
     const told = squash(await k2.listen(8_000));
     record.push(`${k2.handle}: after Katie: ${told}`);
-    expect(await flat(k2), 'full hands: not handed').not.toMatch(/daypack/i);
-    expect(told, 'told where the daypack is').toMatch(key('1b', /daypack/i));
+    expect(await flat(k2), 'full hands: not carried').not.toMatch(/daypack/i);
+    expect(told, 'the routing\'s line: set down').toMatch(key('1b', /hands are full — you set .*daypack down/i));
   }, 180_000);
 
   it('2. [instant · player] `i` (query --ledger me:i) shows the tiers and the burden in words; --flat is one list', async () => {
@@ -823,10 +823,12 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
 
   it('18. [instant · player] a mule carries in what it wears and is led on a rope; a cart fills your hands, will not pass a narrow gate, and a tarp hides its load', async () => {
     const m = await person('scmule', YARD);
-    // Tack the mule: a mule does not saddle itself — `give` is refused,
-    // `put … on` seats it (W10, D-W10-8).
+    // Tack the mule: a mule does not saddle itself — handed the saddle, it
+    // has nowhere to carry it and sets it down (W10i: `move` is the only
+    // call, owner 2026-11-15); `put … on` seats it (W10, D-W10-8).
     expectDone(await say(m, 'get "pack saddle"'));
-    expectRefused(await say(m, 'give saddle to mule'), key('18', /nowhere to take/i));
+    expectDone(await say(m, 'give saddle to mule'), key('18', /mule sets .*saddle down/i));
+    expectDone(await say(m, 'get "pack saddle"'));
     expectDone(await say(m, 'put saddle on mule'), /put .* saddle on/i);
     expectDone(await say(m, 'get pannier'));
     expectDone(await say(m, 'give pannier to mule'));
@@ -864,15 +866,16 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(await inv(m), 'one hand holds the rope').toMatch(/In hand: (a|the|an end of a) rope/i);
     expectDone(await say(m, 'go northwest'));
 
-    // `give cup to` a person whose hands are full: refused, the cup still yours.
+    // `give cup to` a person whose hands are full: given — they set it down
+    // at their feet, said so (W10i: the handed pre-check is retired).
     const full = await person('scfull', YARD);
     await give(full, T.lantern);
     await give(full, T.mug);
     const cup = await give(m, T.mug);
     await inv(m); // (where the cup went, for the record)
     const gv = await say(m, `give #${cup} to ${await idOf(full)}`);
-    expectRefused(gv, /hands are full|nowhere to take/i);
-    expect(await flat(m)).toMatch(/mug/);
+    expectDone(gv, key('18', /sets .*mug down/i));
+    expect(await flat(m)).not.toMatch(/mug/);
 
     // A cart: hitched, your hands are on it.
     const h = await person('sccart', YARD);

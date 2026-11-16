@@ -15,12 +15,12 @@ help: |
   What arrives on you without your naming a place goes where your
   body puts it: a free hand first (your pockets first if you set
   `carry.order` to `pockets-first` — `settings describe carry.order`),
-  else a pocket or a hook on your belt it fits, else a bag you wear; if
-  nothing takes it you are told what your hands hold and what to `drop`
-  or `put` away, and nothing moves.
+  else a pocket or a hook on your belt it fits, else a bag you wear or
+  carry; if nothing takes it you are told what your hands hold and what
+  to `drop` or `put` away, and nothing moves.
 
-  `get` never puts a thing in a bag you are carrying in your hand, and
-  never on the floor — nothing takes it, nothing moves. `get X from
+  `get` carries: it never picks a thing up only to set it down again —
+  nothing takes it, nothing moves, wherever it lay. `get X from
   <something on you>` — your belt, a pocket, the pouch on your belt —
   takes it in a free hand; with both hands full you are told what you
   hold and what to `drop` or put away. A shut pouch or a buttoned pocket

@@ -668,13 +668,13 @@ export abstract class Template extends Document {
               continue;
             }
           }
-          // ⭐ A body is staged EXACTLY (size and carrying W8; owner,
-          // 2026-11-13): onto it — a hand, a pocket, a hook (`directMove`, never
-          // routed on to a bag or the floor) — or, with no place for it (a
-          // fish, a full pair of hands), the author is told and the thing is
-          // not placed, as for a prop too big.
+          // ⭐ A body is staged with what it CARRIES (size and carrying W8;
+          // owner, 2026-11-15): `move` routes it — a hand, a pocket, a hook,
+          // a bag it carries. When the routing would only set it down (a
+          // full pair of hands), or the body does not carry (a fish), the
+          // author is told and the thing is not placed, as for a prop too big.
           const refused = MixinApi.isCarrying(host)
-            ? (host.directMove(inst)?.reason ?? null)
+            ? (host.wouldSetDown(inst)?.reason ?? null)
             : host.isAgent()
               ? 'does-not-carry'
               : null;
@@ -692,7 +692,7 @@ export abstract class Template extends Document {
             StuffApi.destruct(inst);
             continue;
           }
-          if (!host.isAgent()) ContainmentApi.move(inst, host);
+          ContainmentApi.move(inst, host);
         }
       }
       // ⚠ Keyed by BOTH identity and path, so a placement key may name

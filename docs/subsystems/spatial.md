@@ -186,10 +186,10 @@ Detach is `ContainmentApi.move(item, null)`. A direct
   stands, with a line. Nothing is retargeted; no caller chooses. On a
   non-carrier `move` **throws** a `ContainmentError` (`reason`, `facts`):
   the rule that nothing sits loose is every `Creature`'s and fails closed.
-  ⭐ The one way **around** the routing is `carrier.directMove(item,
-  route?)` — exactly onto the body (or the named hand / pocket / bag), or
-  nothing moves and the refusal is returned; a handed act moves its goods
-  this way FIRST and writes the money after. See
+  ⭐ There is **no way around** the routing (owner, 2026-11-15:
+  `directMove` retired): a handed act writes its money, then `move`s the
+  goods, and what the recipient cannot carry is set down at their feet
+  with the line. `carrier.wouldSetDown(item)` only asks (`get`). See
   [carrying.md](./carrying.md).
 
 Witness hooks are optional methods on the relevant interface — declare
@@ -938,11 +938,10 @@ container the putter carries sets that thing's **home**. `put X in
 <person>` is handing, not putting.
 
 `give X to Y` is the **handed** idiom: after the giver's release gate,
-`Y.directMove(X)` — onto them (a hand, a pocket), never routed on to their
-bag or their feet — or nothing changes hands and the refusal is worded to
-the giver (*"Bob has nowhere to take it — their hands are full. You keep
-it."*), the thing back in the hand it left. A recipient that does not
-carry takes nothing. The recipient is gated by the `mustBeAgent`
+`move(X, Y)` — onto them, a bag they carry, or, with nowhere for it, set
+down at their feet with the routing's line (owner, 2026-11-15). A
+recipient that does not carry takes nothing: *"The fish has nowhere to
+take it. You keep it."* — asked before the release. The recipient is gated by the `mustBeAgent`
 validator. See [carrying.md](./carrying.md).
 
 ## Locations, Coordinates, Zones
@@ -1426,5 +1425,6 @@ entries became named regions (`pocket` the fourth member until W9 folded
 it into `in` — a pocket is a region of a Container — `from` gained
 `hangs`/`fastens`, the member fit in `canPlace`, the hanging length);
 `moveCore` carries a host's placed things with it (D33); `put` names
-pockets and `give` hands over with `directMove`. See [carrying.md](./carrying.md)
+pockets and `give` hands over with plain `move` (W10i: `directMove`
+retired). See [carrying.md](./carrying.md)
 and [size.md](./size.md).

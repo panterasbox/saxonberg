@@ -73,22 +73,14 @@ export default class GiveController extends CommandController<GiveModel> {
       );
     }
 
-    // ⭐ A HANDED thing is offered (size and carrying D-W7a): onto them —
-    // a hand or a pocket, never routed on to their bag or their feet
-    // (`directMove`, owner 2026-11-13) — or nothing changes hands. A body
-    // that does not carry takes nothing handed to it (its own answer, read
-    // dry); a recipient that is no body takes it plainly.
-    // ⭐ Asked dry BEFORE anything leaves the giver's hand (D-W10-9): a
-    // refused give keeps the thing exactly where it was — the hand it is
-    // in, whatever `carry.order` says — because it never moved. A carrier
-    // answers for its own places only (`onBody` — what `directMove` takes).
-    const dry = recipient.arrivalFor(
-      item as Stuff & Containable,
-      MixinApi.isCarrying(recipient) ? { placed: false, onBody: true } : undefined,
-    );
-    if (dry.kind === 'refuse') {
-      const full = dry.refusal.reason === 'nowhere-to-carry' && dry.refusal.facts.held.length > 0;
-      this.keptWords(giver, recipient, item, full, context);
+    // ⭐ A HANDED thing is taken (owner, 2026-11-15): a body that carries
+    // takes anything — onto them, into a bag they carry, or, with nowhere
+    // for it, down at their feet with the routing's line (honest; nothing
+    // lost). A body that does not carry (a fish) takes nothing handed to
+    // it: its own answer, read dry BEFORE anything leaves the giver's hand,
+    // so a refused give keeps the thing exactly where it was.
+    if (!MixinApi.isCarrying(recipient) && recipient.arrivalFor(item as Stuff & Containable).kind === 'refuse') {
+      this.keptWords(giver, recipient, item, context);
       return;
     }
     // **Leaving your inventory means leaving your body first** — the
@@ -115,16 +107,8 @@ export default class GiveController extends CommandController<GiveModel> {
       }
     }
 
-    const refused = MixinApi.isCarrying(recipient)
-      ? recipient.directMove(item as Stuff & Containable)
-      : (ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container), null);
-    if (refused !== null) {
-      // Back where it was let go of: `move` routes it to the giver's free hand.
-      ContainmentApi.move(item as Stuff & Containable, giver as unknown as Stuff & Container);
-      this.keptWords(giver, recipient, item, refused.reason === 'nowhere-to-carry' && refused.facts.held.length > 0, context);
-      return;
-    }
-
+    // Told before it moves: a recipient with nowhere to carry it sets it
+    // down, and that line follows the give.
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You give ${Mml.thing(item)} to ${Mml.actor(recipient)}.`)
@@ -138,18 +122,15 @@ export default class GiveController extends CommandController<GiveModel> {
       .topic('sense.survey')
       .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
+    ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
   }
 
-  /** The recipient had nowhere to take it, and the giver keeps it. */
-  private keptWords(giver: Stuff, recipient: Stuff, item: Stuff, full: boolean, context: CommandContext): void {
+  /** The recipient does not carry, and the giver keeps it. */
+  private keptWords(giver: Stuff, recipient: Stuff, item: Stuff, context: CommandContext): void {
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(
-        full
-          ? Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)} — their hands are full. You keep it.`
-          : Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`,
-      )
+      .toSelf(Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`)
       .send();
-    context.note({ kind: 'controller-rejected', reason: 'recipient-hands-full', detail: item.getPresentation() });
+    context.note({ kind: 'controller-rejected', reason: 'recipient-cannot-carry', detail: item.getPresentation() });
   }
 }

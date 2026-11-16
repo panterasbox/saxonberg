@@ -11,8 +11,9 @@
  * TRUE move onto the body, its witnesses firing — and sends it on with a
  * second true move: into the first worn or carried bag it fits, else down
  * where the body stands, with the line. Nothing is retargeted; no caller
- * chooses. `carrier.directMove(item)` goes around the routing (the body's
- * own regions, or a refusal). The RULE that nothing sits loose is every
+ * chooses, and there is no way around the routing (`directMove` retired,
+ * owner 2026-11-15 — a handed thing that cannot be carried lands at the
+ * body's feet, honestly). The RULE that nothing sits loose is every
  * body's (`Creature.arrivalFor`); a body that does not carry (a fish) is
  * not routed, and `move` throws. The capability composes only on the
  * classes that carry: `Character`, `DraftAnimal`, `KeptAnimal` and
@@ -117,20 +118,6 @@ export type ReadyRefusal =
   | ActRefusal<'too-heavy'>
   | ActRefusal<'not-on-you'>
   | ActRefusal<'already-switching'>;
-
-/**
- * ⭐ A route on a carrier, named (owner, 2026-11-13) — the routing's own
- * choices in `Arrival`'s vocabulary: `seat` these slots (a hand, a wear
- * claim), `pair` on a worn host's region (a pocket, the belt's `from`),
- * `into` a bag this body carries, or `carried` — the routing short of the
- * floor (on the body, else the first bag it fits: what `get` does).
- * {@link Carrying.directMove} takes THIS route or refuses; `move` takes the
- * first route that takes it, and sets it down when none does.
- */
-export type CarryRoute =
-  | Extract<Arrival, { kind: 'seat' | 'pair' }>
-  | { kind: 'into'; container: Stuff & Container }
-  | { kind: 'carried' };
 
 /** Every refusal a carrier words. */
 export type CarryRefusal = ReceiveRefusal | ReadyRefusal;
@@ -240,18 +227,15 @@ export interface Carrying {
    */
   routeArrival(item: Stuff & Containable, refusal: ArrivalRefusal): Stuff & Container;
   /**
-   * ⭐⭐ The routing made explicit (owner, 2026-11-13): `item` takes exactly
-   * one route or nothing moves and the refusal is returned. No `route`:
-   * ON the body — a hand, a pocket, a hook, the body's own choice of its
-   * regions (never onward to a bag). A `route` names which: `seat` these
-   * slots, `pair` on a worn host's region, `into` a bag this body carries,
-   * `carried` — on the body, else the first bag it fits.
-   * Never the floor — that is not on the carrier; only `move`'s routing
-   * sets a thing down. For a handed act that must refuse before money moves
-   * (`buy`, `give`, `put X in <person>`, a store's withdrawal) and staging
-   * that pins an exact state; everything else calls `ContainmentApi.move`.
+   * ⭐ Would the routing set `item` down (owner, 2026-11-15)? Null when
+   * `ContainmentApi.move(item, this)` keeps it — on the body (a hand, a
+   * pocket, a hook) or in a bag this body carries; else the refusal the
+   * routing would set it down with, read dry by the same resolution
+   * {@link routeArrival} performs. A question, never a way to move: its
+   * callers are `get` (which refuses rather than pick a thing up only to
+   * set it back down) and a staged body's `props:` (an author's diagnostic).
    */
-  directMove(item: Stuff & Containable, route?: CarryRoute): ArrivalRefusal | null;
+  wouldSetDown(item: Stuff & Containable): ArrivalRefusal | null;
   /**
    * ⭐ D37: before a guest body is reaped, what it borrowed goes back — a
    * good titled to someone else to its owner (their hands, else set down
@@ -468,18 +452,17 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
      * the body is answered (`seat`, `pair`, `contents`); a bag, or nothing,
      * answers `refuse` — a thing in a satchel is in the satchel, not on the
      * body — and `move` hands it to {@link routeArrival}, which lands it on
-     * the body and moves it on. `how.onBody` asks the body's own places
-     * only (`directMove`).
+     * the body and moves it on.
      *
      * @hook
      */
-    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean; onBody?: boolean }): Arrival {
+    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
       const base = super.arrivalFor(item, how);
       if (base.kind === 'contents') return base;
       // The routing's first choice (bags in `carry.order`); a bag it would
       // choose is not ON the body, so it answers `refuse` and `move` routes
-      // it there. `onBody`: the body's own places only.
-      return this.arrivalOf(this.resolveReceive(item, how?.onBody !== true));
+      // it there.
+      return this.arrivalOf(this.resolveReceive(item));
     }
 
     /** The bag {@link resolveReceive} chose (a worn container, a stack's), else null. */
@@ -516,63 +499,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     /** The things this carrier is routing right now (the re-entry guard). Runtime only. */
     private _routing = new Set<string>();
 
-    /** See {@link Carrying.directMove}. Through the chokepoint, after the route's own dry answer. */
-    public directMove(item: Stuff & Containable, route?: CarryRoute): ArrivalRefusal | null {
-      const self = this as unknown as Stuff & Container & Slotted;
-      if (route === undefined) {
-        const arrival = this.arrivalFor(item, { placed: false, onBody: true });
-        if (arrival.kind === 'refuse') return arrival.refusal;
-        ContainmentApi.move(item, self);
-        return null;
-      }
-      const nowhere = (tried: Stuff[]): ArrivalRefusal => ({
-        ok: false,
-        reason: 'nowhere-to-carry',
-        facts: { item, held: this.asBody().heldThings(), tried },
-      });
-      switch (route.kind) {
-        case 'carried': {
-          const where = this.resolveReceive(item, true);
-          const onBody = this.arrivalOf(where);
-          if (onBody.kind !== 'refuse') {
-            ContainmentApi.move(item, self);
-            return null;
-          }
-          const bag = this.bagOf(where);
-          if (bag === null) return onBody.refusal;
-          ContainmentApi.move(item, bag);
-          return null;
-        }
-        case 'seat': {
-          const ok =
-            MixinApi.isSlottable(item) &&
-            route.slots.length > 0 &&
-            route.slots.every(
-              (slot) =>
-                self.canOccupy(item as Stuff & Slottable, slot) &&
-                self.getOccupants(slot).size < (self.getSlotSpec(slot)?.capacity ?? 1),
-            );
-          if (!ok) return nowhere([]);
-          self.seatInSlots(item as Stuff & Containable & Slottable, route.slots);
-          return null;
-        }
-        case 'pair': {
-          if (this.tierOf(route.host) === 'elsewhere' || !route.host.canPlace(item, route.region).ok) {
-            return nowhere([route.host]);
-          }
-          ContainmentApi.move(item, route.host, route.region);
-          return null;
-        }
-        case 'into': {
-          const bag = route.container;
-          if (this.tierOf(bag) === 'elsewhere' || within(bag, item)) return nowhere([bag]);
-          // The routing's own test of a bag (`placeTakes`): its tape measure.
-          const fit = bag.fitRefusal(item);
-          if (fit !== null) return fit;
-          ContainmentApi.move(item, bag);
-          return null;
-        }
-      }
+    /** See {@link Carrying.wouldSetDown}. */
+    public wouldSetDown(item: Stuff & Containable): ArrivalRefusal | null {
+      if (this.bagOf(this.resolveReceive(item)) !== null) return null;
+      const arrival = this.arrivalFor(item, { placed: false });
+      return arrival.kind === 'refuse' ? arrival.refusal : null;
     }
 
     /**
@@ -592,7 +523,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/ContainmentLogic#ContainmentLogic'))
     public routeArrival(item: Stuff & Containable, refusal: ArrivalRefusal): Stuff & Container {
       const self = this as unknown as Stuff & Container & Containable;
-      const bag = this.bagOf(this.resolveReceive(item, true));
+      const bag = this.bagOf(this.resolveReceive(item));
       const here = bag === null ? self.getEnclosingPlace() : null;
       if (bag === null && here === null) {
         throw new ContainmentError(
@@ -641,13 +572,11 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     /**
      * ⭐ Where `item` would go on this body, by D11's order — the one
      * resolution `move` performs (via `arrivalFor`) and {@link routeArrival}
-     * performs (`bags` true: a worn or carried bag too), and that
-     * `directMove` reads with `bags` false (only the places that are the
-     * body) — so the routing and its bypass can never disagree.
+     * performs (a worn or carried bag too), and that {@link wouldSetDown}
+     * reads — so the routing and the question can never disagree.
      */
     private resolveReceive(
       item: Stuff,
-      bags: boolean,
     ):
       | { kind: 'held' }
       | { kind: 'merge'; into: Stuff; item: Stuff }
@@ -657,9 +586,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (this.tierOf(item) === 'hand') return { kind: 'held' };
       const hang = this.hangHostFor(item);
       if (hang !== null) return { kind: 'place', place: { host: hang, region: Placements.FROM }, item };
-      const self = this as unknown as Stuff;
       const merge = this.mergeTargetFor(item);
-      if (merge !== null && (bags || merge.stuffId === self.stuffId)) return { kind: 'merge', into: merge, item };
+      if (merge !== null) return { kind: 'merge', into: merge, item };
       const hands = this.handsFor(item);
       if (hands === null) return { kind: 'refused', refusal: { ok: false, reason: 'too-heavy' } };
       const order: CarryOrder = this.carryOrder();
@@ -667,11 +595,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       const handOk = this.freeHands() >= hands && MixinApi.isSlottable(item);
       const hand = { kind: 'hand' as const, slots: open.slice(0, hands) };
       // Never into itself, nor into something it holds.
-      // ⭐ `bags` false: only the places that ARE the body (a worn pocket);
-      // a bag is a container of its own — the routing's second move.
       const every = this.carryPlaces().filter((p) => !within(p.host, item));
-      const places = bags ? every : every.filter((p) => p.region !== undefined);
-      const fits = places.find((p) => this.placeTakes(p, item)) ?? null;
+      const fits = every.find((p) => this.placeTakes(p, item)) ?? null;
       const place = fits !== null ? { kind: 'place' as const, place: fits, item } : null;
       if (order === 'hands-first') {
         if (handOk) return hand;
@@ -708,7 +633,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           facts: {
             item,
             held,
-            tried: [...new Set(places.map((p) => p.host))],
+            tried: [...new Set(every.map((p) => p.host))],
             away,
             needsBoth: hands !== null && hands > held.length && this.freeHands() > 0,
           },
@@ -770,7 +695,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           // To the owner — `move` routes it: on them, their bag, else set
           // down where the owner stands.
           const body = StuffApi.findByIdentityPath(ownerPath).find((b) => MixinApi.isCarrying(b) && !b.isDestroyed());
-          if (body !== undefined && MixinApi.isCarrying(body)) {
+          if (body !== undefined && MixinApi.isContainer(body)) {
             ContainmentApi.move(item as Stuff & Containable, body);
           } else if (place !== null) ContainmentApi.move(item, place as Stuff & Container);
           out.push(item);
@@ -818,7 +743,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           ContainmentApi.move(item as Stuff & Containable, self);
           continue;
         }
-        const bag = this.bagOf(this.resolveReceive(item, true));
+        const bag = this.bagOf(this.resolveReceive(item));
         if (bag !== null) {
           ContainmentApi.move(item as Stuff & Containable, bag);
           continue;

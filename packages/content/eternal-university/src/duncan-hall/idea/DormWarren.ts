@@ -204,11 +204,11 @@ export default class DormWarren extends DormWarrenBase {
   }
 
   /**
-   * The daypack is HANDED (D-W7a): it goes onto the newcomer exactly
-   * (`directMove` — a hand, a pocket; it moves or nothing does); if they
-   * cannot take it — hands full, nowhere it fits — it waits in their new
-   * room, never on the floor of the lobby and never lost. Best-effort: a
-   * row that will not stand up never voids the let.
+   * The daypack is HANDED (owner, 2026-11-15): `move` routes it onto the
+   * newcomer — a hand, a pocket, a bag — or, with nowhere for it, sets it
+   * down at their feet with the line; never lost. A tenant that holds
+   * nothing (no body) has it wait in their new room. Best-effort: a row
+   * that will not stand up never voids the let.
    */
   protected async handDaypack(
     tenant: Stuff,
@@ -221,7 +221,12 @@ export default class DormWarren extends DormWarrenBase {
       console.warn(`DormWarren: the daypack did not stand up for ${unitExtent}: ${(err as Error).message}`);
       return 'none';
     }
-    if (MixinApi.isCarrying(tenant) && tenant.directMove(pack) === null) return 'handed';
+    // ⭐ Handed (owner, 2026-11-15): `move` routes it — onto them, into a
+    // bag they carry, or down at their feet with the line. Nothing lost.
+    if (MixinApi.isContainer(tenant)) {
+      ContainmentApi.move(pack, tenant);
+      return 'handed';
+    }
     // ⚠ Standing the room up can fail (the size-and-carrying drive found
     // `admit` refusing the unit's own door — "non-cardinal direction
     // 'unit-2' requires the destination to be in a different zone", the

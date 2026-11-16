@@ -12,9 +12,9 @@ help: |
   than one counter is in reach, say which: `buy torch from the second
   counter`.
 
-  What you buy goes where your body puts it (`help give` — the same
-  rule); with nowhere for it the sale is refused before anything is
-  charged.
+  You pay, then what you buy goes where your body puts it (`help give`
+  — the same rule); with nowhere for it, you set it down at your feet.
+  It is yours either way.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

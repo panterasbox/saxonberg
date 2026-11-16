@@ -87,27 +87,16 @@ export abstract class HeldGoodsControllerBase<
       return;
     }
 
-    // ⭐ Handed back (D-W7a): onto you first (`directMove` — a hand, a
-    // pocket), or it stays where it is and the listing with it.
-    const refused = MixinApi.isCarrying(giver) ? giver.directMove(item) : null;
-    if (refused !== null) {
-      this.reject(giver, context, Mml.text(this.carryRefusalWords(giver, refused)), {
-        kind: "controller-rejected",
-        reason: refused.reason,
-        detail: thing,
-      });
-      return;
-    }
-
-    // Custody → you; clear the listing. No chattel op (ownership never left).
-    if (!MixinApi.isCarrying(giver) && MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
+    // Clear the listing (no chattel op — ownership never left), say it,
+    // then custody → you: ⭐ handed back (owner, 2026-11-15) — onto you, or,
+    // with nowhere for it, set down at your feet, the routing's line after.
     if (MixinApi.isChattel(item)) shelf.removeHolding(item.getChattelId());
-
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You take ${Mml.thing(item)} back ${words.off}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} takes ${Mml.thing(item)} back ${words.offPeers}.`)
       .send();
+    if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     }
 
   protected reject(

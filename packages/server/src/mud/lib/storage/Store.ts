@@ -998,13 +998,9 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
-        // Handed (D-W7a): onto you first (a hand or a pocket — `directMove`),
-        // or it stays in store and nothing is settled.
-        const refused = MixinApi.isCarrying(actor) ? actor.directMove(live) : null;
-        if (refused !== null) {
-          return { ok: false, reason: 'hands-full', line: `Your hands are full — the keeper keeps ${live.getPresentation()} until you have one free.` };
-        }
-        if (!MixinApi.isCarrying(actor)) ContainmentApi.move(live, actor as unknown as Stuff & Container);
+        // Handed (owner, 2026-11-15): onto you, or — with nowhere for it —
+        // set down at your feet with the routing's line.
+        ContainmentApi.move(live, actor as unknown as Stuff & Container);
         r.amountKg = 0;
         r.settledAtS = nowS();
         const receiptPath = await this.fileReceipt(business, r);

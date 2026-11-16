@@ -257,8 +257,9 @@ export class ContainmentLogic extends ApiLogic {
         // ⭐⭐ Would it arrive — asked before any write so it is a sentence,
         // not a thrown ContainmentError (size and carrying W8). Every
         // container answers: the tape measure (D4), a container that says
-        // what it is FOR, a person HANDED it — ON them (their hands, a
-        // pocket, a hook), never routed on to their bag or their feet.
+        // what it is FOR, a body that does not carry (a fish). A person who
+        // carries takes anything handed — the routing sets down what they
+        // cannot hold (owner, 2026-11-15).
         const refused = MixinApi.isContainer(target) ? arrivalRefusal(target, item) : null;
         if (refused !== null) {
           switch (refused.reason) {
@@ -305,16 +306,9 @@ export class ContainmentLogic extends ApiLogic {
         const named = item.getPresentation();
         if (route.kind === 'slot') {
           (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
-        } else if (route.kind === 'zero' && MixinApi.isCarrying(target)) {
-          // Handed: exactly onto the person, or nothing moves (the routing
-          // is gone around — owner, 2026-11-13). Refused now (the plan's
-          // read went stale), it goes back to the putter.
-          const carry = target.directMove(item);
-          if (carry !== null) {
-            ContainmentApi.move(item, by as ContainerStuff);
-            return { ok: false, reason: 'refused-by-carrier', facts: { carry } };
-          }
         } else if (route.kind === 'zero') {
+          // ⭐ A person handed it routes it (owner, 2026-11-15): onto them,
+          // into a bag they carry, or down at their feet with the line.
           ContainmentApi.move(item, target as ContainerStuff);
         } else {
           ContainmentApi.move(item, target as PlacingStuff, route.name);
@@ -699,12 +693,13 @@ function callHook<T>(
 /**
  * Would `item` arrive in `target` — the destination's own answer read dry
  * (its `arrivalFor`; for contents, the tape measure and the veto), before
- * any write. A carrier answers for its own regions only: the plan words a
- * refusal rather than letting `move` route the thing on.
+ * any write. A carrier's `refuse` is not a refusal: `move` routes it (on,
+ * into a bag, or set down — `Carrying.routeArrival`), exactly as `move`'s
+ * own switch reads it.
  */
 function arrivalRefusal(target: ContainerStuff, item: ContainableStuff): ArrivalRefusal | null {
-  const arrival = target.arrivalFor(item, { placed: false, onBody: true });
-  if (arrival.kind === 'refuse') return arrival.refusal;
+  const arrival = target.arrivalFor(item, { placed: false });
+  if (arrival.kind === 'refuse') return MixinApi.isCarrying(target) ? null : arrival.refusal;
   if (arrival.kind !== 'contents') return null;
   const fit = target.fitRefusal(item);
   if (fit !== null) return fit;

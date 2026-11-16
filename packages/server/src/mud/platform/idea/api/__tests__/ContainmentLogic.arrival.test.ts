@@ -3,8 +3,8 @@
  * ROUTES what arrives — a hand, the other hand, a pocket it fits; else it
  * reaches the body (a true move, its witnesses fire) and the body moves it
  * on into a bag it carries, else sets it down where it stands, with a line.
- * Nothing is retargeted. `carrier.directMove(item[, route])` goes around the
- * routing: exactly there, or nothing moves and the refusal comes back. A
+ * Nothing is retargeted, and nothing goes around the routing (`directMove`
+ * retired, owner 2026-11-15); `carrier.wouldSetDown(item)` only asks. A
  * body that does not carry (a fish) is not routed — `move` throws.
  */
 import '../../../../../test-bootstrap';
@@ -44,7 +44,7 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     StuffApi.clearAll();
   });
 
-  it('a mug lands in a hand; a second in the other; a key in a pocket; a fourth is refused by directMove and set down by move', async () => {
+  it('a mug lands in a hand; a second in the other; a key in a pocket; a fourth would be set down (asked dry), and move sets it down', async () => {
     const { me, plan } = makeBody();
     const here = makeStuff(() => new Location());
     ContainmentApi.move(me, here);
@@ -58,8 +58,8 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     ContainmentApi.move(k, me);
     expect(k.getPlacement()).toEqual({ host: trousers, name: 'left pocket' });
     expect(me.isHonest(k)).toBe(true);
-    // Around the routing: exactly onto the body, or nothing moves.
-    const refused = me.directMove(m3);
+    // Asked, not moved: the routing would set it down.
+    const refused = me.wouldSetDown(m3);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(m3.getContainer()).toBeNull();
     // The one call routes it: it reaches the body, and is set down.
@@ -136,19 +136,18 @@ describe('ContainmentApi.move onto a body — the body places what arrives (W8)'
     expect(m3.getContainer()).toBeNull();
   });
 
-  it('directMove takes the named route or refuses: into the bag; a full hand refused', () => {
+  it('wouldSetDown only asks: a bag that takes it keeps it (null); a full body with no bag would set it down', () => {
     const { me, plan } = makeBody();
     ContainmentApi.move(me, makeStuff(() => new Location()));
-    const sack = wornBag(me, plan, 'sack', 'back');
-    const cup = tool('cup', 0.2, [0.05, 0.05, 0.08]);
-    expect(me.directMove(cup, { kind: 'into', container: sack })).toBeNull();
-    expect(cup.getContainer()).toBe(sack);
-    const m = mug();
-    ContainmentApi.move(m, me);
+    ContainmentApi.move(mug(), me);
+    ContainmentApi.move(mug(), me);
     const other = mug();
-    const held = me.getOccupant('hand:right') === m ? 'hand:right' : 'hand:left';
-    expect(me.directMove(other, { kind: 'seat', slots: [held] })?.reason).toBe('nowhere-to-carry');
+    expect(me.wouldSetDown(other)?.reason).toBe('nowhere-to-carry');
     expect(other.getContainer()).toBeNull();
+    wornBag(me, plan, 'sack', 'back');
+    const cup = tool('cup', 0.2, [0.05, 0.05, 0.08]);
+    expect(me.wouldSetDown(cup)).toBeNull();
+    expect(cup.getContainer()).toBeNull();
   });
 
   it('a fish does not carry: move onto it throws, nothing moved', () => {

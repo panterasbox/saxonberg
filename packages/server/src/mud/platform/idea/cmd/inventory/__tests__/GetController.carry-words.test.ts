@@ -1,6 +1,6 @@
 /**
  * ⭐ The carrying words leave the model (size and carrying W8): the body
- * reports facts — a refusal from `directMove`/`ready`, an outcome from
+ * reports facts — a refusal from `wouldSetDown`/`ready`, an outcome from
  * `bringToHand` — and the verb's controller words them
  * (`CommandController.carryRefusalWords`; `get`'s private `drawWords` —
  * D-W10-3: a draw into a free hand, nothing put away).
@@ -31,7 +31,7 @@ describe('the carrying words are the controller\'s', () => {
     hold(me, plan, tool('knife', 0.2), 'hand:right');
     hold(me, plan, tool('torch', 0.5), 'hand:left');
     const cup = tool('cup', 0.2);
-    const r = me.directMove(cup);
+    const r = me.wouldSetDown(cup);
     expect(r?.reason).toBe('nowhere-to-carry');
     expect(carryWords(me, r)).toMatch(/^Your hands are full — .* — and the cup has nowhere to go\. Set something down/);
   });

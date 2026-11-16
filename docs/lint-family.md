@@ -1426,6 +1426,22 @@ arrives, and a body with no honest place makes `move` throw. A direct
 count — the run-time throw (named, with what the hands hold and what was
 tried) is the backstop it used to be the blind spot of.
 
+### `lint:carry-moves` — `move` is the only call onto a body (2026-11-15)
+
+`scripts/check-carry-moves.ts`, ceilings **0 / 0** (size and carrying
+W10i). The owner retired `Carrying.directMove` — the one way around a
+carrier's routing — and with it the shape every handed site had grown:
+`isCarrying(x) ? x.directMove(item) : ContainmentApi.move(item, x)`, a
+second movement rule chosen by what the destination is. The gate counts
+(1) any `directMove` identifier and (2) an `if`, ternary, `&&` or `||`
+whose condition asks `isCarrying(X)` and whose arm moves onto that same
+`X` (`ContainmentApi.move|forceMove(…, X)`). A question is not counted —
+`isCarrying(x) ? x.wouldSetDown(item) : null`, `if (!isCarrying(a))
+return …` — nor a carrier-only branch that moves somewhere else. Its first
+run found one site the sweep had missed (`returnBorrowed` re-asking a
+body it had already found by `isCarrying`). See
+[carrying.md](./subsystems/carrying.md).
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

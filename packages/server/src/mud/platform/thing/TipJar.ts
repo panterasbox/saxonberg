@@ -78,13 +78,11 @@ export default class TipJar extends TipJarBase {
     if (MixinApi.isContainer(actor)) {
       for (const c of [...this.getContents()]) {
         if (c instanceof Coin) {
-          // Handed (D-W7a): coins you cannot take stay in the jar. Counted
-          // first — a stack that meets its like merges and is gone.
+          // Counted first — a stack that meets its like merges and is gone.
           const q = c.getQuantity();
-          // Onto you (`directMove` — a hand, a pocket, the purse's like), or it stays.
-          if (MixinApi.isCarrying(actor)) {
-            if (actor.directMove(c) !== null) continue;
-          } else ContainmentApi.move(c, actor);
+          // Onto you (owner, 2026-11-15): a hand, a pocket, the purse's
+          // like — or, with nowhere for them, set down at your feet.
+          ContainmentApi.move(c, actor);
           took += q;
         }
       }

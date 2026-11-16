@@ -153,9 +153,9 @@ async function dispatch(text: string): Promise<void> {
     if (!shelf || !item) return;
     const price = shelf.priceFor(item.getTemplatePath() ?? '') ?? 0;
     if (balance < price) return; // a refused buy leaves the good where it is
-    // As `buy` does (size and carrying W8): no hand for it, no sale.
-    if (keeper.directMove(item as never) !== null) return;
+    // As `buy` does (owner, 2026-11-15): paid, then handed — `move` routes it.
     balance -= price;
+    ContainmentApi.move(item as never, keeper as never);
     return;
   }
   if (verb === 'put') {

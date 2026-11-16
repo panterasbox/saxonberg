@@ -117,12 +117,9 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(
     const load = this.getLashedTo();
     if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
-    // Handed back to you (D-W7a): onto you first (`directMove`), or it
-    // stays lashed and nothing changes.
-    const taken = MixinApi.isCarrying(by) ? by.directMove(this) : (ContainmentApi.move(this, by as Stuff & Container), null);
-    if (taken !== null) {
-      return { ok: false, reason: 'hands-full', facts: { gear: this as unknown as Stuff, load } };
-    }
+    // Handed back to you (owner, 2026-11-15): onto you, or — with nowhere
+    // for it — set down at your feet with the line.
+    ContainmentApi.move(this, by as Stuff & Container);
     this._lashedTo = null;
     if (line !== null) await line.endUntied(by, load);
     return { ok: true, line: `You cast the end of the line off ${load.getPresentation()} and take it up.` };

@@ -1,12 +1,13 @@
 /**
  * ⭐ Katie's intake hands a newcomer an Eternal U daypack (size and
- * carrying D29). It is HANDED: it goes onto the newcomer only when they can
- * take it (`directMove` — it moves or nothing does); otherwise it waits in the
- * newly let room. A row that will not stand up never voids the let.
+ * carrying D29). It is HANDED (owner, 2026-11-15): `move` routes it onto the
+ * newcomer, or, with nowhere for it, sets it down at their feet — never
+ * refused, never lost. A row that will not stand up never voids the let.
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
+import { withHands, tool } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
@@ -52,15 +53,15 @@ describe('the daypack at intake (D29)', () => {
     expect(pack.getContainer()).toBe(tenant);
   });
 
-  it('⭐ a newcomer who cannot take it finds it in the new room — never refused, never lost', async () => {
-    const { w, tenant, pack, room } = setup();
-    vi.spyOn(tenant, 'directMove').mockReturnValue({
-      ok: false,
-      reason: 'nowhere-to-carry',
-      facts: { item: pack, held: [], tried: [] },
-    });
-    expect(await w.give(tenant, UNIT)).toBe('in-room');
-    expect(pack.getContainer()).toBe(room);
+  it('⭐ a newcomer whose hands are full has it set down at their feet — never refused, never lost', async () => {
+    const { w, tenant, pack } = setup();
+    const lobby = makeStuff(() => new Location());
+    ContainmentApi.move(tenant, lobby);
+    ContainmentApi.move(tool('mug', 0.35, [0.09, 0.09, 0.1]), tenant);
+    ContainmentApi.move(tool('lantern', 1, [0.15, 0.15, 0.3]), tenant);
+    expect(tenant.wouldSetDown(pack)).not.toBeNull();
+    expect(await w.give(tenant, UNIT)).toBe('handed');
+    expect(pack.getContainer()).toBe(lobby);
   });
 
   it('a daypack row that will not stand up is skipped; the let is not voided', async () => {

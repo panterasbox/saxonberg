@@ -80,7 +80,7 @@ describe('the flip — nothing loose on a body', () => {
     expect(me.heldThings()).toEqual(expect.arrayContaining([mug, lantern]));
     ContainmentApi.move(key, me);
     expect(key.getPlacement()?.host).toBe(trousers);
-    const refused = me.directMove(map);
+    const refused = me.wouldSetDown(map);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(map.getContainer()).toBe(room);
     const words = carryWords(me, refused!);
@@ -100,7 +100,7 @@ describe('the flip — nothing loose on a body', () => {
     for (const x of mugs) ContainmentApi.move(x, room);
     ContainmentApi.move(mugs[0]!, me);
     ContainmentApi.move(mugs[1]!, me);
-    const refused = me.directMove(mugs[2]!);
+    const refused = me.wouldSetDown(mugs[2]!);
     expect(refused?.reason).toBe('nowhere-to-carry');
     expect(carryWords(me, refused!)).toMatch(/^Your hands are full — both mugs — and another mug won't fit in your pockets\. Set something down \(`drop mug`\)\.$/);
   });
@@ -152,13 +152,13 @@ describe('the flip — nothing loose on a body', () => {
     expect(c.getContainer()).toBe(satchel);
   });
 
-  it('⭐ made: with nowhere to go, `move` routes it — it reaches the maker and is set down; directMove refuses', async () => {
+  it('⭐ made: with nowhere to go, `move` routes it — it reaches the maker and is set down; wouldSetDown says so first', async () => {
     const { room, me } = await newcomer();
     ContainmentApi.move(tool('hammer', 1, [0.3, 0.05, 0.03]), me);
     ContainmentApi.move(tool('saw', 1, [0.5, 0.15, 0.02]), me);
     const loaf = good('loaf', 0.5, [0.25, 0.12, 0.1]);
-    // Around the routing: exactly onto the body, or nothing moves.
-    expect(me.directMove(loaf)?.reason).toBe('nowhere-to-carry');
+    // Asked, not moved: the routing would set it down.
+    expect(me.wouldSetDown(loaf)?.reason).toBe('nowhere-to-carry');
     expect(loaf.getContainer()).toBeNull();
     // The one call: never refused, never lies — set down where they stand.
     ContainmentApi.move(loaf, me);
