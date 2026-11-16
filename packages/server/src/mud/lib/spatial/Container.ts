@@ -595,15 +595,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!(rho > 0)) return false;
         if (mediumRho === null) {
           const medium = BiomeApi.mediumFor(self);
-          if (!medium.immersed) {
-            mediumRho = 0;
-          } else {
-            try {
-              mediumRho = BiomeApi.densityOf(medium.tag).rawValue() || 1000;
-            } catch {
-              mediumRho = 1000;
-            }
-          }
+          // ⚠ No fallback (finalize A6, P3): an immersing medium whose
+          // density the table does not know is code asked the impossible —
+          // `densityOf` throws naming the tag, rather than water being
+          // assumed for it.
+          mediumRho = medium.immersed ? BiomeApi.densityOf(medium.tag).rawValue() : 0;
         }
         return rho < mediumRho;
       };
@@ -669,11 +665,12 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         const dest: Stuff | null = inRegion ? surroundings() : placed !== null ? self : place;
         if (dest === null || !MixinApi.isContainer(dest)) continue;
         if (placed === null && dest.stuffId === self.stuffId) continue;
-        try {
-          ContainmentApi.move(c, dest);
-        } catch {
-          continue;
-        }
+        // ⭐ The world may say no (finalize A6, P3): where it would go will
+        // not take it (full, too small, chambers that differ) — asked dry
+        // first, so it stays put (a skip). The move itself is unguarded: a
+        // throw past the dry read is a bug, and it surfaces.
+        if (ContainmentApi.arrivalRefusal(c, dest) !== null) continue;
+        ContainmentApi.move(c, dest);
         left.push(c);
         const from: Stuff = placed !== null ? (placed.host as unknown as Stuff) : self;
         try {

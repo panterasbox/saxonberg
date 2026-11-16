@@ -291,7 +291,21 @@ export class LocomotionLogic extends ApiLogic {
     // that way" at every door, and never met a door's SIZE.
     if (MixinApi.isHauling(actor) && actor.isHitched()) {
       const cart = actor.getHauledCart();
-      if (cart !== null) await this.loadMode(cart.getPassageModeName()).catch(() => null);
+      // ⚠ A cart naming a passage mode with no row is an authored reference
+      // that points nowhere (finalize A6, P3): said to the author, and the
+      // haulage gate below refuses the way as it would any unloaded mode.
+      if (cart !== null) {
+        await this.loadMode(cart.getPassageModeName()).catch(async (err: unknown) => {
+          const { DiagnosticApi } = await import('../../../api/diagnostics');
+          await DiagnosticApi.record({
+            path: cart.getTemplatePath() ?? cart.stuffId,
+            severity: 'error',
+            message:
+              `passage mode '${cart.getPassageModeName()}' would not load — ` +
+              `${err instanceof Error ? err.message : String(err)}`,
+          });
+        });
+      }
     }
     const haul = this.checkHaulage(actor, exit, mode);
     // ⭐ The host rides the ok guard to the crossing (cordage D11).

@@ -431,8 +431,15 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           if (from !== self && item.getContainer() === self && !item.isDestroyed()) {
             try {
               ContainmentApi.move(item, from);
-            } catch {
-              /* the original error is the one the caller needs */
+            } catch (back) {
+              // ⚠ Not swallowed (finalize A6, P3): the claim failed AND the
+              // put-back failed, so the thing is loose on this body. Both are
+              // said, the claim's error first (it is the cause).
+              throw new Error(
+                `seatInSlots: ${item.stuffId} would not seat (${err instanceof Error ? err.message : String(err)}), ` +
+                  `and would not go back where it came from (${back instanceof Error ? back.message : String(back)})`,
+                { cause: err },
+              );
             }
           }
           throw err;

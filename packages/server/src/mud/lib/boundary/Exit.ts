@@ -991,11 +991,20 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     gap: BoundaryOpening,
   ): Promise<{ lower?: string; pack?: Stuff }> {
     const height = current?.getProfileHeight() ?? 1;
-    for (const name of body.getSpecies()?.getBodyPlan()?.getLocomotionModes() ?? []) {
+    const plan = body.getSpecies()?.getBodyPlan() ?? null;
+    for (const name of plan?.getLocomotionModes() ?? []) {
       try {
         await LocomotionApi.loadMode(name);
-      } catch {
-        /* a plan naming a mode with no row: never a candidate */
+      } catch (err) {
+        // ⚠ A plan naming a mode with no row is never a candidate — and is
+        // an authored reference that points nowhere, said to the author
+        // (finalize A6, P3: a skip with a diagnostic, never a silent one).
+        const { DiagnosticApi } = await import('../../api/diagnostics');
+        await DiagnosticApi.record({
+          path: plan?.getTemplatePath() ?? body.getTemplatePath() ?? body.stuffId,
+          severity: 'error',
+          message: `locomotion mode '${name}' would not load — ${err instanceof Error ? err.message : String(err)}`,
+        });
       }
     }
     const lower = LocomotionApi.eligibleModes(body)

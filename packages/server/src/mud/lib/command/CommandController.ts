@@ -484,8 +484,23 @@ export abstract class CommandController<
       await act();
       return false;
     }
+    // ⚠ The landing runs on combat's beat, after this controller has
+    // returned: a throw in it has no caller to reach (finalize A6, P3), so
+    // it is recorded as the runtime throw it is — never an unhandled
+    // rejection, never swallowed.
+    const path = giver.getTemplatePath() ?? giver.stuffId;
     const begun = giver.beginHandAct(seconds, () => {
-      void act();
+      void Promise.resolve()
+        .then(act)
+        .catch(async (err: unknown) => {
+          const { DiagnosticApi } = await import('../../api/diagnostics');
+          await DiagnosticApi.record({
+            path,
+            severity: 'error',
+            message: `a hand act's landing threw — ${err instanceof Error ? err.message : String(err)}`,
+            stack: err instanceof Error ? (err.stack ?? null) : null,
+          });
+        });
     });
     MessageApi.scene(giver)
       .topic('act.deed')
