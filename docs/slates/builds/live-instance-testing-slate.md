@@ -7,7 +7,7 @@
 > ([deployment.md](../../deployment.md)); the persistence spine and its drift guard
 > ([persistence.md](../../subsystems/persistence.md)); the press ticker
 > ([press.md](../../subsystems/press.md)).
-> **Left:** agent residents (§ 5b) · the test harness OFF on the live instance · snapshot + restore of the live database ·
+> **Left:** agent residents (§ 5b) and the cast (§ 5c) · the test harness OFF on the live instance · snapshot + restore of the live database ·
 > the snapshot copied into the soak lane · migration rehearsal and its loss record · the post-deploy
 > clean-drive check · observation probes · resident test characters · the appeal path for migration
 > loss
@@ -174,6 +174,67 @@ arithmetic** ([identity.md](../../subsystems/identity.md)), so what an agent's a
 excluded at decision time. Likewise the conservation probe (§ 4) reads the marked ledgers so it can
 tell the agents' money apart.
 
+## 5c. ⭐⭐⭐ The cast — microvision at the bar, macrovision everywhere else **[LEAN; talked through 2026-11-16]**
+
+**Two scales, one cast (the owner, 2026-11-16).** *"Games need macrovision and microvision
+both."* Most of the design is broad; **the lounge and Dave's Bar are the one corner scrutinized to
+every detail**, in the hope that the choices made there mature the systems everywhere else. They are
+also the game's **backstop**: a character can be kept forever without leaving them. Free water at
+the bar, free pizza in the lounge, money from a shift behind the bar. A hire needs proven bartending,
+either by **performing for Dave** against his criteria or by **passing an exam at the university**
+(Terminus), which is [assessment-slate](./assessment-slate.md) § 8's *performance, assessment or
+both*. The rest of the world's content (Rejection, Hinkley Hills, …) is **placeholder**, kept until
+its systems are proven. The economy behind it (mining, farming, the chains) is still high-value
+testing.
+
+**⭐⭐ The backstop is survivable but thin (DECIDED — the owner).** A character who never works
+lives; a character who wants anything more takes a shift. So a resident who lives on the floor and
+stays content is a **balance finding**, and one who goes hungry is a **defect**.
+
+**⭐⭐ Content independence is the evidence.** *"We should be able to rewrite all the content and
+the agents should still be able to figure out the systems — that's actually evidence we're testing
+right."* No charter names a place, an NPC or a recipe. Each names only real-world knowledge and
+general MUD habits. An agent that succeeds has learned the **systems**, so a cold re-run on
+rewritten content is the gate for retiring placeholder content.
+
+Names stay clear of the bar's NPCs (Augie, Dave, Mara, Remy, Sloane).
+
+### The bar cast — the backstop, lived in
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Wren Halloway** | the newcomer — a **lineage**, a fresh Wren every week or two, each retired after her first week (the first hour happens once per character) | does the first hour lead someone to the backstop without being told? |
+| **Odile Fenn** | the regular — never works, never leaves; water, pizza, conversation; the heaviest chat user | is the floor survivable, and thin? Hungry = defect; content = balance finding |
+| **Abel Crane** | the audition — wants Dave to hire him, by performing | can Dave's criteria be discovered and met? |
+| **Iris Kemble** | the exam — same goal, by the university and a bartending/mixology exam | is the exam path real, and how does it compare to Abel's? Abel vs. Iris is the cleanest balance read of performance against assessment we will ever get |
+| **Ezra Vale** | the organizer — works shifts, earns standing, organizes the staff, runs for something from the barstool (pubs are where politics has always happened) | does labor turn into a voice? The live case of what marked standing does at a tally (§ 5b) |
+
+### The systems cast — the economy, over content that will change
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Maud Tiller** | the grower — real agronomy, a full agricultural year (a real month at 12x) | is the food faucet sound: soil, weather, husbandry, spoilage, selling? |
+| **Silas Brack** | the smith — real metallurgy, ore to a tool he made and sold | is the materials faucet and its longest chain sound? |
+| **Tobias Marsh** | the drifter — the only resident with no trade; roams, follows the work, picks up whatever pays | does a player find the economy from the outside? And the cold re-run whenever placeholder content is rewritten |
+
+### Off the live world
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Rook Sable** | the adversary — **the soak-lane snapshot only** (§ 8) | first target: **the free faucets**. Can the floor be hoarded, resold or farmed with alts? The backstop has to survive Rook |
+
+### What the bar cast tells the bar's content
+
+The cast's friction logs point at the three places the bar needs real content: **Dave's audition**
+(the criteria and how a player learns them), **the university's item bank** for the Disciplines Dave
+hires on, and **demand behind the bar**. With `call: regulars` (capability, then your regular, then
+the freest, then rotation), Abel, Iris and Ezra compete with the NPC staff for orders, which tests
+whether a new hire gets fed any work.
+
+**Size and order.** The bar cast first, before the stream goes live. The systems cast after New
+Year. Ezra when governance votes are real. Rook whenever the snapshot exists. Eight on the live
+world at most: past that, more agents mostly buy more of the same mind; personas buy coverage.
+
 ## 6. ⭐⭐ The deploy check **[LEAN]**
 
 After every deploy and before the stream goes live: the **clean** drives — chat, navigation, login,
@@ -260,7 +321,7 @@ subsystem at a time, starting with the core experiences the stream depends on.
 - The harness-off mechanism (§ 3).
 - What a marked character's accrued standing does at a tally — counted, discounted, escrowed, or
   excluded at decision time (§ 5b); it is earned regardless.
-- Agent residents: how many, which goals and personas, the daily token budget (§ 5b).
+- The daily token budget per agent (§ 5b); the charter format itself (§ 5c).
 - Where the loss record lives and who files the appeal (§ 7).
 - The live database tier and its backups (§ 8).
 - Whether a probe trip files in the same tracker label as soak (`soak`) or its own (`live`).
