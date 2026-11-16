@@ -20,6 +20,7 @@
 
 import { mkdirSync, writeFileSync } from 'fs';
 import { basename, dirname, join } from 'path';
+import { inspect } from 'util';
 import type { File, Task } from 'vitest';
 import type { Reporter } from 'vitest/reporters';
 import { readRunReport, type FileRecord } from '../harness/registry';
@@ -54,11 +55,30 @@ const stateOf = (t: Task): State => {
   return 'skip';
 };
 
+/**
+ * Any thrown value as text. ⚠ Not `String(v)`: vitest serializes errors
+ * across the worker boundary into `Object.create(null)` objects, which have
+ * no `toString` — `String()` throws on them, and that throw once cost a
+ * whole run its result.json (sugar, 2026-11-15).
+ */
+const textOf = (v: unknown): string => {
+  if (typeof v === 'string') return v;
+  if (v !== null && typeof v === 'object') {
+    const { stack, message } = v as { stack?: unknown; message?: unknown };
+    if (typeof stack === 'string' && stack !== '') return stack;
+    if (typeof message === 'string') return message;
+  }
+  return inspect(v, { depth: 3 });
+};
+
 const errorsOf = (t: Task): TestResult['errors'] =>
-  (t.result?.errors ?? []).map((e) => ({
-    message: String(e.message ?? e),
-    stack: String(e.stack ?? ''),
-  }));
+  (t.result?.errors ?? []).map((e) => {
+    const { message, stack } = (e ?? {}) as { message?: unknown; stack?: unknown };
+    return {
+      message: typeof message === 'string' ? message : textOf(e),
+      stack: typeof stack === 'string' ? stack : '',
+    };
+  });
 
 /** Every test under a task, in file order, named by its suite path. */
 const testsOf = (task: Task, path: string[] = []): TestResult[] => {
@@ -129,14 +149,12 @@ export default class ResultReporter implements Reporter {
             tests,
           };
         }),
-        errors: errors.map((e) =>
-          e instanceof Error ? (e.stack ?? e.message) : String(e)
-        ),
+        errors: errors.map(textOf),
       };
       mkdirSync(dirname(RESULT_PATH), { recursive: true });
       writeFileSync(RESULT_PATH, JSON.stringify(result, null, 2) + '\n');
     } catch (e) {
-      console.warn(`wire: result.json not written — ${String(e)}`);
+      console.warn(`wire: result.json not written — ${textOf(e)}`);
     }
   }
 }

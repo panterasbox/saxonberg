@@ -325,7 +325,16 @@ beforeAll(async () => {
   const opened = await k.cmd('bank open');
   expect(refusedFor(opened)).toBeNull();
   k.close();
-  k = await Session.open(handle, { startLocation: BYRE });
+  // ⭐ Seated on the committees over the herds' home ground: since
+  // controller liquidity (D9) only a keeper drafts — whoever holds the
+  // herd's home ground, or a hand on shift for the business that works it.
+  // The dairy book, the calf register and the flock are the Delight's; the
+  // nannies' home is Rejection's goat pen (a stranger's `draft` is refused
+  // `not-keeper`). A seat is a group row, so it outlives every `goTo`.
+  k = await Session.open(handle, {
+    startLocation: BYRE,
+    committees: ['/world/terminus/hearts-delight', '/world/terminus/rejection'],
+  });
   await k.drainProse();
 }, 300_000);
 
@@ -427,9 +436,11 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
 /* ───────────── 10–12. heat, and the curd ───────────── */
 
 suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
-  it('⭐ `pour pail into vat`; `heat vat` sets it on the fire', async () => {
+  it('⭐ `pour pail into vat`; `put vat on hearth` sets it on the fire', async () => {
     await doing(k, 'pour me:i:pail into vat');
-    const heat = await doing(k, 'heat vat');
+    // `heat <pot>` retired (controller liquidity W7c): a vessel that is not
+    // a build is SET ON the fire, which is `put`.
+    const heat = await doing(k, 'put vat on hearth');
     expect(heat).toMatch(/set .* on|fire|hearth/i);
   });
 
@@ -651,7 +662,7 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     // The whole pail: the vat takes 25 L, and a pail left half full is a
     // pail that cannot be emptied on a wet floor.
     await doing(k, 'pour me:i:pail into vat');
-    await doing(k, 'heat vat');
+    await doing(k, 'put vat on hearth');
     let t = await kelvinOf(k, 'vat');
     for (let i = 0; i < 40 && t < 362; i++) {
       await advance('5 minutes');
@@ -806,7 +817,10 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     await doing(k, 'get butter-crock');
     await goTo(COOKHOUSE);
     await untilHour(12);
-    // The cookhouse oven is cold until somebody feeds it.
+    // The cookhouse oven is cold until somebody feeds it. ⚠ Its cordwood is
+    // shared with every file that cooks there (cooking, food-safety,
+    // cleanliness each take a log), so bring one, as cleanliness does.
+    await mint(COOKHOUSE, '/stuff/thing/items/dry-log');
     await act(k, 'get log');
     // ⚠ Fuel first: `stoke log into oven` (the view's own help says
     // `stoke hearth with charcoal`, which binds the charcoal as the fire).

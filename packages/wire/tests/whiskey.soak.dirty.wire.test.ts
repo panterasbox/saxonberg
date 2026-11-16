@@ -6,9 +6,10 @@
  * staged honestly — the CLOCK producing the whiskey is what is checked.
  * The blocking file keeps everything around them.
  *
- * The chain, in order: mash, ferment six days, light the still, charge
- * it from the vat, draw the spirit into the cask, bung it, sixty days,
- * and the cask holds whiskey.
+ * The chain, in order: buy malt, mill it to grist at the floor's quern,
+ * mash, ferment six days, light the still, charge it from the vat, draw
+ * the spirit into the cask, bung it, sixty days, and the cask holds
+ * whiskey.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -42,6 +43,7 @@ declareFile({
 });
 
 const FLOOR = '/world/terminus/goods-yards/crowsfoot/location/floor';
+const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 
 let k: Session;
@@ -215,6 +217,39 @@ afterAll(() => k?.close());
 
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐ the wash ferments, and new-make becomes whiskey', () => {
+  it('the distiller mills her own grist: malt bought, ground at the quern', async () => {
+    // ⚠ (soak repair 2026-11-16) The mash wants GRIST since the grain
+    // chain (whole malt does not mash), and the floor's own malt sack is
+    // the maltings' empty one. So the distiller does what a player would:
+    // buys a sack of malt at the cash-and-carry and grinds it at the
+    // floor's quern, both hands on the handle — her own grist, not the
+    // counter's dearer sack of it.
+    k.close();
+    k = await Session.open(handle, { startLocation: CASH_AND_CARRY });
+    // ⚠ `"malt sack"`, not `malt`: the grist sack answers to `malt` too.
+    let bought = await say(k, 'buy "malt sack"');
+    for (let i = 0; i < 6 && bought.status !== 'ok'; i++) {
+      await advance('1 hour');
+      bought = await say(k, 'buy "malt sack"');
+    }
+    expectOk(bought);
+    k.close();
+    k = await Session.open(handle, { startLocation: FLOOR });
+    await waitForDaylight(k);
+    const sacks = await k.query('me:i:[keyword.malt]', { fields: ['displayName'] });
+    const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
+    expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
+    const milling = await say(k, `mill #${sack} at quern`);
+    const id = engagementIdOf(milling);
+    // A quern grinds a quarter-kilo a game-minute: the sack is under two
+    // hours of cranking, carried by the clock.
+    await advance('2 hours');
+    if (id) await k.awaitActivity(id, 120_000);
+    await new Promise((r) => setTimeout(r, 500));
+    const grist = await k.query('reachable:[keyword.grist]', { fields: ['displayName'] });
+    expect(grist.length, `no grist after the grind: ${await carried(k)}`).toBeGreaterThan(0);
+  }, 900_000);
+
   it('the wash ferments over six game days', async () => {
     const mashed = await say(k, 'order wash-mash');
     await settle(k, mashed);
@@ -229,7 +264,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ the wash ferments, and new-make become
     const lit = await say(k, 'light still');
     expect(refusedFor(lit)).not.toBe('no-fuel');
     const poured = await say(k, 'pour vat into still');
-    expect(refusedFor(poured)).not.toMatch(/bulk|slot|cannot-pour/i);
+    // `?? ''`: a pour that is not refused has no reason, and `toMatch`
+    // wants a string.
+    expect(refusedFor(poured) ?? '').not.toMatch(/bulk|slot|cannot-pour/i);
   }, 300_000);
 
   it('⭐ the cask takes the spirit, is bunged, and after sixty days holds whiskey', async () => {
