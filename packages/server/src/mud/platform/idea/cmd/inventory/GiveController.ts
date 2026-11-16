@@ -77,9 +77,10 @@ export default class GiveController extends CommandController<GiveModel> {
     // takes anything — onto them, into a bag they carry, or, with nowhere
     // for it, down at their feet with the routing's line (honest; nothing
     // lost). A body that does not carry (a fish) takes nothing handed to
-    // it: its own answer, read dry BEFORE anything leaves the giver's hand,
-    // so a refused give keeps the thing exactly where it was.
-    if (!MixinApi.isCarrying(recipient) && recipient.arrivalFor(item as Stuff & Containable).kind === 'refuse') {
+    // it: the recipient's own answer, read dry by `move`'s own read BEFORE
+    // anything leaves the giver's hand, so a refused give keeps the thing
+    // exactly where it was.
+    if (ContainmentApi.arrivalRefusal(item as Stuff & Containable, recipient as Stuff & Container) !== null) {
       this.keptWords(giver, recipient, item, context);
       return;
     }

@@ -299,6 +299,19 @@ export class ContainmentApi {
   }
 
   /**
+   * ⭐ Would `item` arrive in `target` — the destination's own answer read
+   * DRY, before any write: its `arrivalFor` (a body that does not carry, a
+   * fish, refuses), and for contents the tape measure and the container's
+   * veto. A carrier's refusal is not one (`move` routes it — on, into a
+   * bag, or set down). Null: `move(item, target)` would take it. A question,
+   * never a way to move — the read `putPlanFor` asks, for a verb (`give`)
+   * that must refuse before anything leaves the giver's hand.
+   */
+  public static arrivalRefusal(item: ContainableStuff, target: ContainerStuff): ArrivalRefusal | null {
+    return logic().arrivalRefusal(item, target);
+  }
+
+  /**
    * Force-bypass variant of `move()`. Pre-flight invariants still
    * fire (those are programmatic-contract guards, not policy);
    * `canMove` / `canRemoveContainable` / `canAddContainable`

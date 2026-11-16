@@ -197,6 +197,12 @@ export class ContainmentLogic extends ApiLogic {
     item.setContainer(env);
   }
 
+  /** See {@link ContainmentApi.arrivalRefusal}. */
+  @CallSecurity(ContainmentApiCallers)
+  public arrivalRefusal(item: ContainableStuff, target: ContainerStuff): ArrivalRefusal | null {
+    return arrivalRefusal(target, item);
+  }
+
   /** See {@link ContainmentApi.putPlanFor}. */
   @CallSecurity(ContainmentApiCallers)
   public putPlanFor(
