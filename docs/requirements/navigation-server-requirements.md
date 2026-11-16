@@ -64,9 +64,19 @@ ship. Seeding slate:
   is already separate from `z` (a test holds it).
 - **Spoilers** — the wiki's reveal model (capability deletes, appetite
   keeps and tags).
-- **In flight:** size-and-carrying (build-1, in finalize) adds the words for
-  a load and what it bars (clearance, hands needed) and the stoop and crawl
-  paces.
+- **Size and carrying** (build-1; it merges before this build starts, so it
+  is treated as shipped): a way now refuses by **clearance** (your body
+  against its opening, a held thing against it, a long thing against a
+  stair's turn, a cart, a led animal, a rider) and by **hands** (a ladder
+  wants both), and the refusal **names what would work** — *"you'd have to
+  stoop — `stoop north`"*, *"remove backpack"*, *"you'd have to dismount"*.
+  `stoop` and `crawl` are paces; a low ceiling refuses `stand`. Things are in
+  a hand, ready, worn or packed; a load has words for what it costs; a
+  pack animal is led on a rope that takes a hand; a hitched cart fills the
+  hands its row says. ⭐ Its perceiving rule: **anything that shows a result
+  shows only what you perceive** — the client's cards included. And a
+  **builder lens** (`lens on`) lets you perceive everything inside extents
+  you hold, labeled builder information.
 
 **Therefore what is genuinely new here is:** where a place is, on every
 claim; your map reaching the client and staying current; a first-visit
@@ -82,6 +92,9 @@ a ship as your Locality; and the retirement of `locate`.
 - **Copies are separate places.** A room in a copy of a row (a house on a
   lot, a dorm room, a ship's decks) is recorded under **that copy**, so
   house A and house B never merge on your map.
+- **Your map reaches your client whole** — every claim with how you know it
+  (walked, seen, searched, published, charted, told and by whom) and when,
+  so two claims that disagree arrive side by side.
 - **Your map reaches your client and stays right** — after a move, after a
   gap, across a reconnect, a restart and a second device — and nobody
   else's map ever does.
@@ -95,9 +108,11 @@ a ship as your Locality; and the retirement of `locate`.
   outermost first (each with its government and kind), the horizon as you
   arrive, the building, the ways, the place and you — and only the sections
   that changed are sent.
-- **The ways say whether you can take them** and, if not, which gate —
-  always the same answer trying it would give — and describe a boundary by
-  what it is made of, so a new kind of boundary needs no client change.
+- **The ways say whether you can take them** and, if not, which gate **and
+  what would work** (stoop, crawl, take the pack off, dismount, free a
+  hand) — always the same answer, in the same words, trying it would give —
+  and describe a boundary by what it is made of, so a new kind of boundary
+  needs no client change.
 - **Aboard a ship, the ship is your Locality**, and where she is (made
   fast at a wharf, at sea, on a river's reach) is a second position; the
   jurisdiction aboard is the one `government` gives.
@@ -111,6 +126,12 @@ a ship as your Locality; and the retirement of `locate`.
 
 - **The pane, the map renderer, the tooltips** → the navigation build and
   the [tooltip-slate](../slates/builds/tooltip-slate.md).
+- **The builder lens on the map** — your own extents drawn from the world
+  rather than from your knowledge, labeled builder information →
+  [map-slate](../slates/builds/map-slate.md). Lens 2 wants it (an author
+  should see the zone they are drawing); it is its own decision about the
+  firewall, so not here. With the lens on, this build's copy is still only
+  your knowledge.
 - **One horizon computation for land and sea** (S20; bearing and range
   ashore) → [geography-slate](../slates/builds/geography-slate.md), its own
   build. This build sends today's horizon as data.
@@ -158,8 +179,12 @@ no client change and no kernel edit.
 - **Holdings, dorm rooms, ships of a kind, mines** — copies of one row.
 - **The map card** — today's only push; the new sections must not break
   the text navigator that reads it.
-- **size-and-carrying** (build-1) — the *you* section shows a load in its
-  words; whichever merges second reconciles.
+- **size-and-carrying** (build-1, merged first) — the ways section speaks
+  its gates and its *what would work*; the *you* section its hands, paces,
+  load words, mount, led animal and cart; the place section its low
+  ceiling; and every section obeys its perceiving rule. The sites it built
+  (the low door, the crawlway, the tight stair, the ladder, the mule, the
+  handcart) are where this drive checks the ways.
 
 ## Surface decisions
 
@@ -203,6 +228,21 @@ alongside* the quay; on a river, the reach and how far along; at sea, *at
 sea* — the reckoning itself only at the helm (`course`); a passenger knows
 what they can see.
 
+### What the ways and the you section say **[DECIDED]**
+A way: its direction, where it goes as you know it, its state, whether it
+leaves the zone, one-way, muffled, what it needs (swim, climb, a free hand),
+a track's length, its opening, and **can you take it now** — and if not,
+the gate and what would work, in size-and-carrying's words. You: your pace
+(including stoop and crawl), your posture, what each hand holds, the load
+in its words and what it bars, the light you carry, and anything with you —
+a mount, an animal on a rope, a cart in hand. Nothing on either is a number
+a player must interpret where the game already has words.
+
+### Only what you perceive **[DECIDED — size-and-carrying's rule]**
+Crowding counts the people you perceive; a hider you have not found is not
+in it. A held thing shows on the you section; another's covered pockets
+never reach a place section.
+
 ### Sections, and only what changed **[DECIDED]**
 Zone · Localities · horizon · building · ways · place · you. Each is sent
 when it changes — a move, a Locality changing under you, a door you can
@@ -215,30 +255,59 @@ pane for where you are, `scry` for the costly far sight.
 
 ## Lens pass
 
-1. **Pedagogy** — keeps the lookout a skill (the horizon is a glance) and
-   the reckoning the navigator's. No Discipline is exercised by the data
-   itself; a cartography Discipline waits until a map can be wrong in a
-   way skill corrects.
-2. **Creative expression** — the ordinary case is no code: a new zone,
-   Locality, building or boundary describes itself. A pack's bespoke
-   boundary is projected by what it composes.
-3. **3a immersion** — removes two betrayals: the omniscient `locate`, and
-   *no government claims this ground* aboard a ship that `government` says
-   is flagged. **3b participation** — what a player knows becomes
-   something the client can show, which is what lets maps be traded,
-   charted and lied about later.
-4. **Values** — the firewall *is* the value: the interface never knows more
-   than you. Paths as spoilers keeps the curious one click away, never
-   prevented.
-5. **Continuity** — the same data in every epoch; a ship or a cart of
-   another age answers the same sections.
-6. **Economy** — produces nothing in the world; the pilot's and the chart's
-   claims gain the places' positions, so what they sell is worth more.
-7. **Governance** — the jurisdiction aboard is the same read as the
-   `government` verb; judges no one.
+Altitudes: **invariant** (the platform's law) · **grain** (a default an
+author may change) · **title** (a realm's or a player's own).
 
-⚠ **Gap:** for the interval until the pane ships, nothing reads this — the
-drive is the only reader.
+1. **Pedagogy.** *Generates:* source criticism. Every claim on the copy
+   carries how you know it (walked, seen, searched, published, charted,
+   told — and by whom), so a wrong chart or a lying pilot is *legible*: the
+   pane can show a told claim beside the walked one that contradicts it,
+   and a player learns to weigh sources by being burned (the old chart of
+   the Greywater already does this). The ways teach the physical model —
+   *why* you cannot pass is a derivable reason (your height, the pack's
+   width, both hands for a ladder), never a stat. The horizon stays a
+   glance so the lookout stays a skill. **Invariant:** the interface never
+   explains more than the world would. **Gap:** no Discipline reads a
+   map yet; a cartography Discipline waits until a map can be wrong in a way
+   skill corrects (it can now be wrong — the seed of it is here).
+2. **Creative expression.** *Generates:* mazes, secret doors and misleading
+   country that work with no code, because the map shows only what you know
+   and paths are spoilers (a hidden room's row name never leaks). A
+   Locality decides what a first visit teaches — its name, its government,
+   its kind; a closed city could keep its government to itself — **grain**.
+   A pack's new boundary (a portcullis, a bead curtain, a force field) is
+   described by what it is made of, with no client change — **invariant**.
+   The zone's derived label is wording — **grain**. The builder lens on the
+   map is the creative-expression ask this build leaves for the map slate.
+3. **3a Immersion** — removes two betrayals: the omniscient `locate`, and
+   *no government claims this ground* on a flagged ship. A dark room
+   teaches nothing; a hider you have not found is not in the crowd; a door
+   is as you saw it, not as it is. **3b Participation** — *generates:*
+   knowledge as a good. Claims with positions are what a guide, a pilot, a
+   chart-seller or a lying map-maker sells; the copy is what they would be
+   selling into. The polity can do what we did not plan: a guild publishes
+   a false map, a town sells the true one, a smuggler keeps a route off
+   every chart — each recorded as told by whom. (Selling and copying maps is
+   the *your map grows* build; this build makes the goods real.)
+4. **Values.** The firewall is the value: **the interface never knows more
+   than you** — **invariant**. Paths are spoilers on the appetite axis: the
+   curious are one click away, never prevented — **invariant** (where paths
+   sit among the levels is **grain**). Your map is yours: no one else's
+   copy reaches you, and yours reaches no one — **invariant** until a
+   player chooses to share it (later, by a verb).
+5. **Continuity.** The same sections in every epoch: a ship of sail or
+   steam, a cart or a truck answers *can you take this way* through the same
+   gate; a GPS-era realm publishes claims on the `published` channel and the
+   pane does not change. *Who holds the obsolete half:* `locate`'s jobs —
+   all rehomed (`query`, `course` at the helm, the pane, `scry`).
+6. **Economy.** Produces no goods; makes knowledge goods (charts, the
+   pilot's claims) worth more, since they now carry where things are — the
+   demand was there first (the pilot ships). Consumes server bandwidth on
+   every move — measured before the shape is fixed; who pays is the
+   operator.
+7. **Governance.** The jurisdiction aboard is the `government` verb's own
+   read; a Locality's government is learnable on a first visit unless it
+   declares otherwise. Judges no one.
 
 ## The drive
 
@@ -265,9 +334,20 @@ Every step asserts **what the client received**, over the real socket.
    trying it refuses in those words. The copy records the door as seen.
    Another character opens it; the first character's copy still says what
    they saw.
+6a. `instant` · player — At size-and-carrying's low door, before trying it:
+   the way says *you'd have to stoop — `stoop north`*; `go north` refuses in
+   exactly those words; `stoop north` goes through, and the you section
+   says you are stooping. At the crawlway with a pack on: the way says the
+   pack won't go and to take it off; `remove backpack`, and the way says
+   you can crawl it. At the ladder with a lantern and a sword in hand: the
+   way says it wants both hands.
 7. `instant` · player — `route to` a distant known room: the plan arrives
    as data (legs, cost, its least certain step) and says what the prose
    says. A place you do not know is refused the same in both.
+7a. `instant` · player — `read` the old chart of the Greywater, then the
+   survey: the copy holds both claims about the Westerlies, each saying how
+   you know it (charted, and from which chart), with its position — the
+   contradiction is visible as data.
 8. `instant` · player — Walk into a Locality for the first time: the
    Localities section gains it with its government and kind, and the copy
    gains the first visit. The realm and the city of Terminus are told apart
@@ -291,10 +371,16 @@ Every step asserts **what the client received**, over the real socket.
     position names the reach and how far along.
 14. `instant` · player — The place section in the Delve by day and in a
     pitch-dark room: light, sky, water, crowding, elevation — and in the
-    dark, the copy gains nothing from `look`. (Light.)
-15. `instant` · player — The you section: your pace, the load you bear in
-    its words and what it bars, the light you carry, your posture, a mount.
-    Pick up something heavy: only the you section is sent again.
+    dark, the copy gains nothing from `look`. (Light.) A second character
+    hidden in the room is not in the crowding until found. In the low room,
+    the place says the ceiling is low.
+15. `instant` · player — The you section: your pace, your posture, what
+    each hand holds, the load in its words and what it bars, the light you
+    carry. `get pole`: both hands, and only the you section is sent again;
+    the ladder's way now says it wants a free hand. Lead the mule on a rope:
+    the you section shows it and one hand on the rope; at the narrow gate
+    the way says the panniers won't fit. Mounted on the horse at the low
+    door: the way says *you'd have to dismount*.
 16. `instant` · player — A move sends only the sections that changed; the
     sizes of a full push and a typical move are recorded in the plan.
 17. `short` · staged — Restart the world. On reconnect the copy is the
@@ -321,8 +407,11 @@ None — nothing here waits on the clock.
 - A route arrives as data that agrees with `route`'s prose.
 - Where the player stands arrives in sections — zone, Localities, horizon,
   building, ways, place, you — and a move sends only what changed.
-- Every way says whether it can be taken now, and its refusal matches
-  trying it word for word.
+- Every way says whether it can be taken now, and if not, what would work —
+  stoop, crawl, take off the pack, dismount, free a hand — matching trying
+  it word for word.
+- Every claim on the copy says how you know it, so two claims that
+  disagree are both there, each with its source.
 - Aboard a ship, the ship is the last Locality and the jurisdiction matches
   `government`.
 - The horizon arrives on arrival and never while standing still.
