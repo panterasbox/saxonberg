@@ -360,6 +360,20 @@ export class VisionModality extends Modality {
         env = bearer.getContainer() ?? env;
       }
     }
+    // ⭐ A body is never the light a thing is seen by. The open-container
+    // step above climbs ONE level, and from an open bag or a coat with an
+    // open pocket that level is the person carrying it — whose inside is
+    // dark — so a letter a search had found in a coat read "You see
+    // something" (finalize drive run 15, step 15). What a body bears reads
+    // the light that body stands in, whoever's body it is.
+    if (
+      !(env instanceof Place) &&
+      (env as Stuff).isAgent() &&
+      MixinApi.isSlotted(env as Stuff) &&
+      MixinApi.isContainable(env)
+    ) {
+      env = env.getContainer() ?? env;
+    }
     const band = this.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];
     const raw = Light.compareBand(band, required) >= 0;

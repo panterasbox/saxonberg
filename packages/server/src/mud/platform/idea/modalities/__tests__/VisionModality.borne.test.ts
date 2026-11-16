@@ -76,6 +76,18 @@ describe('what another body bears is seen in the light they stand in', () => {
     expect(vision().canSee(viewer, letter)).toBe(true);
   });
 
+  it('⭐ …and in an OPEN one too — the open bag is no light, and neither is the person carrying it', () => {
+    // Finalize drive run 15, step 15: a coat with an open pocket is an open
+    // container, so the walk climbed one level from the coat and landed ON
+    // the person — whose inside is dark — and the found letter read
+    // "You see something".
+    const { bag, letter } = borne();
+    bag.setOpen(true);
+    expect(vision().canSee(viewer, letter)).toBe(true);
+    room.setAmbientFlux(0);
+    expect(vision().canSee(viewer, letter)).toBe(false);
+  });
+
   it('⚠ and it is the ROOM\'s light — a dark room hides it', () => {
     const { letter } = borne();
     room.setAmbientFlux(0);
