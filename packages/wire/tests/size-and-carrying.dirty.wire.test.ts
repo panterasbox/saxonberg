@@ -362,7 +362,14 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(t2.status).toBe('ok');
     await choose(k2, /need a room/i);
     await choose(k2, /./);
-    const told = squash(await k2.listen(8_000));
+    // ⚠ Katie's line rides her dialogue's own beats, so an 8 s listen
+    // missed it once (run 14) while a 10 s probe heard it: listen until it
+    // arrives, up to 30 s, rather than guessing a window.
+    let told = '';
+    for (const until = Date.now() + 30_000; Date.now() < until && !/set .*daypack down/i.test(told); ) {
+      told += ' ' + squash(await k2.listen(2_000));
+    }
+    told = told.trim();
     record.push(`${k2.handle}: after Katie: ${told}`);
     expect(await flat(k2), 'full hands: not carried').not.toMatch(/daypack/i);
     expect(told, 'the routing\'s line: set down').toMatch(key('1b', /hands are full — you set .*daypack down/i));
@@ -481,7 +488,15 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // The reading's own answer — the steading has no named orebody — not a reach refusal.
     expect(then.w).toMatch(/orebody/i);
     expectDone(await say(b, 'close backpack'));
-    expectRefused(await say(b, 'measure strike with compass'), /is shut — `open backpack` first/i);
+    // ⚠ On the ground a shut pack is a room thing whose contents are unseen
+    // — by its owner too (D-W10-16 C) — and the binder names only what the
+    // giver perceives, so the compass in it is not named and there is no
+    // shut holder to refuse by: the reading says it has no instrument in
+    // reach and which one it wants (run 15; the plan's step-5 line asked
+    // for "is shut — `open backpack` first", which D-W10-16 rules out).
+    const shut = await say(b, 'measure strike with compass');
+    expect(shut.w).toMatch(key('5', /nothing in reach that could read that/i));
+    expect(shut.w, 'never an implicit open').not.toMatch(/orebody/i);
   }, 180_000);
 
   it('6. [short · staged] a hand act in a fight is a guarded beat by holder — a scabbard, the open pouch, a buttoned pocket opened first; drop is free', async () => {
