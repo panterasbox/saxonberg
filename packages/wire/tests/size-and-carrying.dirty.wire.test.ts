@@ -558,6 +558,15 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // are one beat each, so the scabbard is never the slower.
     expect(fromScabbard, 'a scabbard is the quick draw').toBeLessThanOrEqual(fromPouch);
     expect(unfasten + fromPocket, 'the buttoned pocket costs more than the open pouch').toBeGreaterThan(b2('6') ? unfasten + fromPocket : fromPouch);
+    // ⚠ The wolf may be dead or fled by now (the first half is a real
+    // fight): the second half needs one, so join another if it ended.
+    const inFight = async (): Promise<boolean> =>
+      /"?true"?\s*$/.test((await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(!!CombatApi.sessionFor(StuffApi.findById('${me}')))`)).w);
+    for (const foe of ['wolf', 'sellsword']) {
+      if (await inFight()) break;
+      await say(f, `attack ${foe}`);
+    }
+    expect(await inFight(), 'a fight for the second half').toBe(true);
     // A mug in the other hand: the greatsword is refused naming the mug and `drop mug`.
     await give(f, T.mug);
     await give(f, T.greatsword);
@@ -754,8 +763,8 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(got.w).toMatch(/guard drops/i);
     await a.cmd('fight yield');
     await new Promise((r) => setTimeout(r, 6_000));
+    // The pistol back in the pack, which never left A's feet.
     expectDone(await say(a, `put #${pistol} in #${pack}`));
-    expectDone(await say(a, `drop #${pack}`));
     // Open: B sees in, and takes — theft on the ledger; nothing new.
     expect(squash(await b.prose('look in backpack'))).toMatch(key('14b', /pistol/i));
     expectDone(await say(b, 'get pistol from backpack'));
