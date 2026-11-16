@@ -606,10 +606,12 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     const slots = as === null ? [] : EquipControllerBase.slotsFor(item, plan, as, giver);
     // ⭐ Out of the hand it was held in, then on (size and carrying W7): a
     // held coat is put on, a held sword moved to the hand it is wielded in.
-    if (MixinApi.isCarrying(giver) && MixinApi.isSlottable(item)) {
-      for (const h of giver.handSlots()) if (giver.getOccupants(h).has(item)) giver.vacate(h, item);
+    // One call (finalize R6, P11): the body's explicit "occupy these slots"
+    // act moves it onto the body and out of any slot it held there first.
+    if (!MixinApi.isContainable(item) || !MixinApi.isSlottable(item)) {
+      throw new Error(`EquipControllerBase.put: ${item.stuffId} cannot be seated (equippable said it could)`);
     }
-    giver.occupyAll(item as Parameters<typeof giver.occupyAll>[0], [...slots]);
+    giver.seatInSlots(item, [...slots]);
   }
 
   /**
@@ -641,10 +643,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
       const full = slots.find((sl) => giver.isSlotFull(sl)) ?? 'slot';
       // ⭐ A full HAND names what holds it (size and carrying D16): a
       // shield beside a two-hander is refused naming the two-hander.
-      const holding =
-        MixinApi.isCarrying(giver) && giver.handSlots().includes(full)
-          ? [...giver.getOccupants(full)][0] ?? null
-          : null;
+      const holding = giver.handSlots().includes(full) ? [...giver.getOccupants(full)][0] ?? null : null;
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(

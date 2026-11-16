@@ -149,10 +149,16 @@ export interface Slotted {
    */
   seatInSlot(item: Stuff & Containable & Slottable, slot: string): void;
   /**
-   * ⭐ Seat `item` across `slots` at once (a two-handed grip, a garment's
-   * whole claim, a mule's pack saddle) — contents first, then every slot,
-   * all or none (`occupyAll`). The body's way to WEAR or HOLD a thing,
-   * said exactly (size and carrying W8).
+   * ⭐ **The explicit "occupy these slots" act** (size and carrying W8;
+   * finalize R4): seat `item` across `slots` at once (a two-handed grip, a
+   * garment's whole claim, a mule's pack saddle). It MOVES then OCCUPIES —
+   * `ContainmentApi.move(item, this)` first (contents are where the thing
+   * physically is), then every slot, all or none (`occupyAll`). A thing that
+   * already occupies slots on this host comes out of them first (a held
+   * coat put on, a sword moved to the hand it is wielded in). A claim that
+   * will not seat leaves nothing behind: the old slots are taken again, the
+   * thing goes back where it came from, and the claim's error is thrown.
+   * Unlike `move(item, body)`, which the body ROUTES, this names the slots.
    */
   seatInSlots(item: Stuff & Containable & Slottable, slots: readonly string[]): void;
   /**
@@ -419,6 +425,10 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       const had = this._seating.has(id);
       const self = this as unknown as Stuff & Container;
       const from = item.getContainer();
+      // Out of any slot it holds on this host first (finalize R6): the slots
+      // it moves to are named, and its old ones are taken again on a refusal.
+      const prior = [...this.getAllOccupants()].filter(([, occ]) => occ.has(item)).map(([slot]) => slot);
+      for (const slot of prior) this.vacate(slot, item);
       this._seating.add(id);
       try {
         ContainmentApi.move(item, self);
@@ -426,6 +436,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           if (slots.length === 1) this.occupy(item, slots[0]!);
           else this.occupyAll(item, slots);
         } catch (err) {
+          for (const slot of prior) this.occupy(item, slot, { restoring: true });
           // A claim that will not seat leaves nothing loose behind: back
           // where it came from (a fresh thing, nowhere), then the throw.
           if (from !== self && item.getContainer() === self && !item.isDestroyed()) {

@@ -68,6 +68,18 @@ describe('Carrying — hands (D9/D10)', () => {
     expect(me.heldThings().map((t) => t.getPresentation())).toEqual(['a knife']);
   });
 
+  it('⭐ seatInSlots moves a held thing out of its hand into the slots it names, and back on a refusal (finalize R4/R6)', () => {
+    const { me, plan } = makeBody();
+    const knife = hold(me, plan, tool('knife', 0.3), 'hand:right');
+    me.seatInSlots(knife, ['hand:left']);
+    expect(me.getOccupants('hand:right').has(knife)).toBe(false);
+    expect(me.getOccupants('hand:left').has(knife)).toBe(true);
+    // A claim that will not seat (no such slot) leaves it where it was.
+    expect(() => me.seatInSlots(knife, ['no-such-slot'])).toThrow();
+    expect(me.getOccupants('hand:left').has(knife)).toBe(true);
+    expect(me.isHonest(knife)).toBe(true);
+  });
+
   it("a hitched cart's handles take the hands it says", () => {
     const n = makeBody();
     const me = makeStuff(() => new HaulingBody());
