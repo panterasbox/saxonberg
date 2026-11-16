@@ -213,11 +213,13 @@ export default class PutController extends CommandController<PutModel> {
         : ContainmentApi.placements().need(name);
     const template = member.getProse();
     // ⭐ The region's own name when the host names it (a coat's `left
-    // pocket` — `in the left pocket of the coat`), else nothing (W9).
+    // pocket` — `in the left pocket of the coat`), else NOTHING (W9) —
+    // `undefined`, never `''`: Liquid reads an empty string as true, and
+    // `{% if name %}` said *"in the  of a belt pouch"* (finalize drive).
     const regionName =
       MixinApi.isPlacing(target) && target.namedRegions().includes(name) && (route.kind === 'region' || chamber !== null)
         ? name
-        : '';
+        : undefined;
     const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {
