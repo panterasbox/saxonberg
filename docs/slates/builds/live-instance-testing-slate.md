@@ -7,7 +7,7 @@
 > ([deployment.md](../../deployment.md)); the persistence spine and its drift guard
 > ([persistence.md](../../subsystems/persistence.md)); the press ticker
 > ([press.md](../../subsystems/press.md)).
-> **Left:** the test harness OFF on the live instance · snapshot + restore of the live database ·
+> **Left:** agent residents (§ 5b) and the cast (§ 5c) · the test harness OFF on the live instance · snapshot + restore of the live database ·
 > the snapshot copied into the soak lane · migration rehearsal and its loss record · the post-deploy
 > clean-drive check · observation probes · resident test characters · the appeal path for migration
 > loss
@@ -99,7 +99,7 @@ if nobody tends it. A probe states its assumption ("the Delight herd is tended b
 the way a route plan states its hypotheses — a trip is then either a defect or a false assumption,
 and the triage says which.
 
-## 5. ⭐⭐ Resident test characters **[LEAN; visibility OPEN]**
+## 5. ⭐⭐ Resident test characters **[LEAN; visibility DECIDED]**
 
 A handful of accounts that **live** in the world and do small things on its clock: tend a plot, keep
 a cask, hold an account, rent a room. A light script logs each in once a real day, does a chore, and
@@ -110,11 +110,130 @@ harvests depleted; the account whose terms changed under it).
 ⭐ Not [live-drive](./live-drive-slate.md): that is an *agent* playing on the stream. These are
 scripts, deterministic and boring on purpose.
 
-**Open — visibility** (lens 3a, immersion vs. lens 4, values): visible in-world as openly-marked
-staff characters (honest, and a player meeting one learns something true about how the world is
-kept), or kept somewhere players never walk (no fiction to betray, but a world with hidden
-residents). Lean: **visible and marked** — the measurement doctrine's *the mirror shows you* applies
-to the platform's own instruments.
+**Visibility — DECIDED (the owner, 2026-11-16):** every test character, scripted or agent, is
+**marked internally**, always; whether a *player* sees the mark is **a spoiler, answered by the
+spoiler system** ([spoiler-slate](../tails/spoiler-slate.md)) like any other — on the appetite
+axis, as paths are: kept and tagged, hidden by default, one click to see, never prevented. The mark
+is what lets the engine and the polity treat these characters differently; the spoiler system only
+decides who looks at it.
+
+## 5b. ⭐⭐⭐ Agent residents — a newcomer's eyes, not a population **[LEAN; talked through 2026-11-16]**
+
+The third kind of character in the live world, between § 5's scripts and
+[live-drive](./live-drive-slate.md)'s agent on the stream: a few characters played by an **LLM
+agent** that hold a **long goal** (own a parcel; run a stall that turns a profit; hold an office)
+and pursue it on the world's own clock. At 12x a real month is a game year, the scale such goals
+need.
+
+**What the word "playtester" buys, and what it does not.** A playtest yields three things; an agent
+gives one, half of another, and none of the third:
+
+1. **Where the game breaks or confuses** — yes, and well. The agent has read every MUD manual and
+   every real textbook on the trades; if it cannot work out from `help` and the room how to do a
+   thing, a new player very likely cannot. Its confusion is evidence about discoverability.
+2. **Whether it is fun** — half. It is never bored and its time costs nothing, so it cannot report
+   tedium as a feeling; it *can* report effort as a count (*the third loaf took 14 commands and 2
+   game days; I repeated this sequence 9 times*).
+3. **What the population will do** — no. N agents on one model are one mind in N hats: cooperative,
+   uninterested, unaggrieved. No economic or political outcome they produce is evidence about
+   people. The governance experiment needs humans.
+
+**The rules:**
+
+- **They play through the player's socket only** (`packages/wire`): no eval, no source, no database,
+  no help beyond the in-game one. The evidence firewall applies to the tester — an agent that can
+  read the code is auditing, not playing.
+- **⭐ Derivability is the headline test** (lens 1). The agent carries real-world knowledge, so a
+  failure sorts three ways: the world departs from reality (a design finding), the world is right
+  but hides the way (a discoverability defect), or the agent was wrong about reality (nothing). No
+  other studio can run this test; their worlds are not meant to be derivable.
+- **Short sessions, long goals** — § 4's principle: no session lasts a month. An agent logs in once
+  a real day, reads its memory, pursues its goal for a fixed budget of turns, writes a report and
+  logs out. Its memory lives **in the game** where it can (`recall`, notes it keeps), so the
+  memory tools are tested too.
+- **The output is reading, not pass/fail:** a **friction log** (*wanted X, tried A, B, C; help said
+  Y*) — the main product; bugs as issues with the transcript (the bug docket); **goal progress
+  against game time** (*a month earned 40 coins; a plot costs 4,000*), a balance signal read with
+  limb 3 in mind.
+- **⭐ Agents explore; scripts guard.** When an agent finds a path that matters, it is frozen into a
+  § 5 script or a § 4 probe. The two kinds of resident stay separate: scripts are cheap and
+  deterministic and a trip is a defect; agents are expensive and nondeterministic and produce
+  reports.
+- **Personas differ by what they know:** a player who has never seen a MUD; a MUD veteran with
+  Diku habits; a domain expert (a real brewer). ⛔ **The adversary** — red-teaming the economy,
+  hunting exploits, gaming the counts, where LLMs are genuinely strong — plays the **snapshot in
+  the soak lane** (§ 8), never the live world.
+- **A budget the owner sets** — tokens per character per day, fixed, like the soak runner's.
+
+**⭐⭐ Standing — they EARN it (the owner, 2026-11-16).** An agent resident accrues standing,
+renown, money and labor credit like anyone: that accrual is part of what is being measured (*can a
+newcomer earn a voice, and how fast?*). The internal mark (§ 5) is what makes it governable
+afterward — the engine measures, the polity decides (lens 7). ⚠ The Compact is players-only **by
+arithmetic** ([identity.md](../../subsystems/identity.md)), so what an agent's accrued standing
+*does* at a tally is a real open question, not a default: counted, discounted, held in escrow, or
+excluded at decision time. Likewise the conservation probe (§ 4) reads the marked ledgers so it can
+tell the agents' money apart.
+
+## 5c. ⭐⭐⭐ The cast — microvision at the bar, macrovision everywhere else **[LEAN; talked through 2026-11-16]**
+
+**Two scales, one cast (the owner, 2026-11-16).** *"Games need macrovision and microvision
+both."* Most of the design is broad; **the lounge and Dave's Bar are the one corner scrutinized to
+every detail**, in the hope that the choices made there mature the systems everywhere else. They are
+also the game's **backstop**: a character can be kept forever without leaving them. Free water at
+the bar, free pizza in the lounge, money from a shift behind the bar. A hire needs proven bartending,
+either by **performing for Dave** against his criteria or by **passing an exam at the university**
+(Terminus), which is [assessment-slate](./assessment-slate.md) § 8's *performance, assessment or
+both*. The rest of the world's content (Rejection, Hinkley Hills, …) is **placeholder**, kept until
+its systems are proven. The economy behind it (mining, farming, the chains) is still high-value
+testing.
+
+**⭐⭐ The backstop is survivable but thin (DECIDED — the owner).** A character who never works
+lives; a character who wants anything more takes a shift. So a resident who lives on the floor and
+stays content is a **balance finding**, and one who goes hungry is a **defect**.
+
+**⭐⭐ Content independence is the evidence.** *"We should be able to rewrite all the content and
+the agents should still be able to figure out the systems — that's actually evidence we're testing
+right."* No charter names a place, an NPC or a recipe. Each names only real-world knowledge and
+general MUD habits. An agent that succeeds has learned the **systems**, so a cold re-run on
+rewritten content is the gate for retiring placeholder content.
+
+Names stay clear of the bar's NPCs (Augie, Dave, Mara, Remy, Sloane).
+
+### The bar cast — the backstop, lived in
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Wren Halloway** | the newcomer — a **lineage**, a fresh Wren every week or two, each retired after her first week (the first hour happens once per character) | does the first hour lead someone to the backstop without being told? |
+| **Odile Fenn** | the regular — never works, never leaves; water, pizza, conversation; the heaviest chat user | is the floor survivable, and thin? Hungry = defect; content = balance finding |
+| **Abel Crane** | the audition — wants Dave to hire him, by performing | can Dave's criteria be discovered and met? |
+| **Iris Kemble** | the exam — same goal, by the university and a bartending/mixology exam | is the exam path real, and how does it compare to Abel's? Abel vs. Iris is the cleanest balance read of performance against assessment we will ever get |
+| **Ezra Vale** | the organizer — works shifts, earns standing, organizes the staff, runs for something from the barstool (pubs are where politics has always happened) | does labor turn into a voice? The live case of what marked standing does at a tally (§ 5b) |
+
+### The systems cast — the economy, over content that will change
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Maud Tiller** | the grower — real agronomy, a full agricultural year (a real month at 12x) | is the food faucet sound: soil, weather, husbandry, spoilage, selling? |
+| **Silas Brack** | the smith — real metallurgy, ore to a tool he made and sold | is the materials faucet and its longest chain sound? |
+| **Tobias Marsh** | the drifter — the only resident with no trade; roams, follows the work, picks up whatever pays | does a player find the economy from the outside? And the cold re-run whenever placeholder content is rewritten |
+
+### Off the live world
+
+| who | the role | the question they answer |
+|---|---|---|
+| **Rook Sable** | the adversary — **the soak-lane snapshot only** (§ 8) | first target: **the free faucets**. Can the floor be hoarded, resold or farmed with alts? The backstop has to survive Rook |
+
+### What the bar cast tells the bar's content
+
+The cast's friction logs point at the three places the bar needs real content: **Dave's audition**
+(the criteria and how a player learns them), **the university's item bank** for the Disciplines Dave
+hires on, and **demand behind the bar**. With `call: regulars` (capability, then your regular, then
+the freest, then rotation), Abel, Iris and Ezra compete with the NPC staff for orders, which tests
+whether a new hire gets fed any work.
+
+**Size and order.** The bar cast first, before the stream goes live. The systems cast after New
+Year. Ezra when governance votes are real. Rook whenever the snapshot exists. Eight on the live
+world at most: past that, more agents mostly buy more of the same mind; personas buy coverage.
 
 ## 6. ⭐⭐ The deploy check **[LEAN]**
 
@@ -183,11 +302,11 @@ subsystem at a time, starting with the core experiences the stream depends on.
 - **1 pedagogy** — neutral; it protects the worlds the teaching happens in.
 - **2 creative expression** — the loss record protects what players *made* across a migration; the
   aged world is where personalization (a derivative of supply-chain depth) actually accumulates.
-- **3a immersion** — the harness off (§ 3) is immersion's floor on a shared world; resident
-  characters are the one fork (§ 5).
+- **3a immersion** — the harness off (§ 3) is immersion's floor on a shared world; whether a player
+  sees a resident's mark is the spoiler system's answer (§ 5).
 - **3b participation** — appeals through governance make migration loss a thing the polity handles,
   not a support ticket.
-- **4 values** — the loss-volume gate (§ 7.3) and the residents' visibility (§ 5) have no derivable
+- **4 values** — the loss-volume gate (§ 7.3) and what marked standing does at a tally (§ 5b) have no derivable
   answer; both are the owner's.
 - **5 continuity** — a migration is continuity's test made literal: *does the new object answer the
   same commands*; the rehearsal runs exactly that test.
@@ -200,7 +319,9 @@ subsystem at a time, starting with the core experiences the stream depends on.
 ## 11. Open
 
 - The harness-off mechanism (§ 3).
-- Resident characters: visible and marked, or out of the way (§ 5).
+- What a marked character's accrued standing does at a tally — counted, discounted, escrowed, or
+  excluded at decision time (§ 5b); it is earned regardless.
+- The daily token budget per agent (§ 5b); the charter format itself (§ 5c).
 - Where the loss record lives and who files the appeal (§ 7).
 - The live database tier and its backups (§ 8).
 - Whether a probe trip files in the same tracker label as soak (`soak`) or its own (`live`).
