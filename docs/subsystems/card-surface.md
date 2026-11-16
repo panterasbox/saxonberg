@@ -830,7 +830,7 @@ from the requirements' decision 10.** That decision keyed it on the
 topic `shell.result`, on the premise that *every structured command
 result already carries it*. The per-card prose audit falsifies the
 premise: `look`'s two cards ride **`sense.survey`**, which twelve other
-verbs share (`get`, `drop`, `inventory`, `wear`, …). A topic key would
+verbs share (`get`, `drop`, `query`, `wear`, …). A topic key would
 either miss `look` entirely or silence all twelve. The marker is exact
 by construction — the producer that opens the card is the producer that
 stamps the frame.

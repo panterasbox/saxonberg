@@ -103,8 +103,8 @@ loaded has no known size, and **nothing unknown is ever refused**.
   `FOLDED_PACKING` (0.6). The folding build replaces the number with its
   crease model; nothing else changes.
 
-How a person reads it off a list (`0.4 kg, 0.2 L` — `inventory --weight`)
-is the inventory controller's words, not the model's (the W8 rule).
+How a person reads it off a list (`0.4 kg, 0.2 L` — `query --weight`, so
+`i --weight`) is `QueryController`'s words, not the model's (the W8 rule).
 
 ⭐ **Size is its own concept — `Shaped`, beside `Containable`; only the
 matter is `Tangible`'s** (W10f + W10g, owner 2026-11-14/15). `Tangible`

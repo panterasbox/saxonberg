@@ -312,7 +312,7 @@ options:                      # optional; verb-scoped
     description: "Verbose output"
 ```
 
-A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
+A zero-arg verb (e.g. `ping`) has neither `args` nor
 `subcommands` — that's fine.
 
 ### ⭐⭐ One view, one word (controllers-are-io D16)
@@ -334,11 +334,15 @@ decides nothing.
 
 ### `defaultAliases:` — a shortcut, declared on the view
 
-`defaultAliases: [{name, description?}]` beside `verbs:`. The criterion is
+`defaultAliases: [{name, description?, body?}]` beside `verbs:`. The criterion is
 narrow on purpose: a one- or two-character MUD-standard shortcut for a verb
-typed many times a session (`l`, `i`, `h`, `?`, `'`), and nothing else. Reached
+typed many times a session (`l`, `h`, `?`, `'`), and nothing else. Reached
 only while the view is afforded; `alias unset` tombstones it, persisted; scripts
-use real verbs. See [shell-alias.md](./shell-alias.md).
+use real verbs. ⭐ `body:` states the whole line when it is more than the verb,
+and must begin with the view's verb (`lint:one-word` (c)): `query`'s view mints
+`i` and `inventory` → `query --ledger me:i` (size-and-carrying W10h — there is
+no inventory verb; the player's words are appended, so `i --weight` works).
+See [shell-alias.md](./shell-alias.md).
 
 ### `category:` (D24)
 

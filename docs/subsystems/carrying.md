@@ -197,7 +197,7 @@ slots and the placement pairs, never stored:
 
 The slot named `back` is what makes a pack's inside packed: a satchel
 row claims `[torso]` and is ready, a rucksack claims `[back]`. Two rows,
-no flag. `inventory` buckets what is directly on a body by `tierOf`
+no flag. `query --ledger` (`i`) buckets what is directly on a body by `tierOf`
 (held · regions · worn · ready containers · packed containers — the
 controller's `tiersOf`; a worn garment's pockets print by region under
 *Ready*, and a **holder** is a container with an inside of its own — a
@@ -242,7 +242,7 @@ the row's default, *every `closes` chamber starts shut*). `open "breast
 pocket"` / `close "breast pocket"` — the binder's `via.region` names the
 chamber. Its readers: `Containable.reachRefusal` (`enclosed-shut { by,
 region }`), `PerceptionLogic.holdersAdmit` (a shut chamber hides), pressing
-(`height: !isRegionOpen`), and `look`/`inventory` (*(shut)*).
+(`height: !isRegionOpen`), and `look`/`query --ledger` (*(shut)*).
 
 ## ⭐⭐ Putting away — `stow`
 
@@ -368,7 +368,8 @@ What hangs is bounded by **length** (each thing its hanging width, the
 first always taken) and **strength** (the material's
 `tensileStrengthMPa`); a worn belt's length is its wearer's waist
 ([size.md](./size.md)). `roomFor(region)` answers in words — *plenty*,
-*one more pouch*, *a small thing*, *none* — and `i belt` prints it.
+*one more pouch*, *a small thing*, *none* — and `i` prints it beside what
+hangs there (*Hanging from your leather belt: … Room left: none.*).
 `put holster on belt` → *"You clip the holster to your belt"*; `get
 holster from belt` takes it off. A hung thing is **fastened**: it stays
 put in water and zero g. Hung rigid metal **clanks** (below). What hangs
@@ -466,7 +467,7 @@ Perception decides, not MQL ([perception.md](./perception.md)): on
 another body you see what is in their hands, the outermost layer at each
 slot, what hangs from their belt, and an uncovered, unfastened pocket's
 contents — never an inner pocket, a buttoned one, or a shut bag.
-`inventory <person>` lists exactly that. `search <body>` on a body that
+`query --ledger <person>:i` lists exactly that. `search <body>` on a body that
 cannot resist (a corpse, the unconscious) finds what its pockets cover;
 a conscious one refuses (*"Bob won't let you"*).
 
@@ -479,7 +480,7 @@ a conscious one refuses (*"Bob won't let you"*).
 | `give X to Y` | the release gate, then `Y.directMove(X)` — onto them, or re-seated exactly in the hand it left; a non-carrier takes nothing; tack is not handed (`put saddle on mule`) |
 | `unwield` | `stow` — off the hands by the one order, told where; nothing takes it → refused, it stays in hand |
 | `drop` | to the place; instant, and free in a fight |
-| `inventory` (`i`) | by tier — *In hand* · *Ready* (each pocket and hanging member by name, each ready container with its perceived contents) · *Worn* · *Packed* (each pack as *N things, M kg*) — then the burden in words. `--all` `--flat` `--held` `--ready` `--worn` `--packed` `--weight`; `i <container>`, `i belt` (what hangs and the room left), `i <person>` |
+| `query --ledger me:i` (the `i` and `inventory` default aliases — W10h) | by tier — *In hand* · *Ready* (each pocket and hanging member by name with the room left along a hanging length, each ready container with its perceived contents) · *Worn* · *Packed* (each pack as *N things, M kg* unless the set names what is in it — `me:I`, `rucksack:i`) — then the burden in words. Display options `--weight` `--flat`; narrowing is the query's (`me:i:held`, `me:i:worn`, `me:i:carried`; no `ready`/`packed` word); `query --ledger <container>:i`, `query --ledger <person>:i` |
 | `wear` / `wield` / `equip` | `seatInSlots` by the claim; the grip by `wieldPlanFor` |
 | `fight draw` / `fight switch` | `ready` in a session |
 | an instrument verb (`measure`, `analyze`, `read`, `light`, `pour`, `fill`, `shape`, `cut`, `fit` …) | uses the tool where it sits; `canReach` refuses shut (*`open` it first*) and packed (*take it off first*) |

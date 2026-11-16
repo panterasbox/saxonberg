@@ -42,7 +42,7 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
 
   **The event's receive side is locked to the `ConsumerLogic` +
   `ProducerLogic` pair** via `EventApi.restrictSubscribe`.
-  `command.dispatched` fires on *private* commands too — `inventory`,
+  `command.dispatched` fires on *private* commands too — `query`,
   `settings`, a private `look`, a whisper, a DM, char-gen inputs — none
   in-world-observable. EventApi's subscribe is open by default and `on` is
   author-reachable, so an ungated broadcast would be a per-subject activity

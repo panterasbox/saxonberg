@@ -567,7 +567,7 @@ working no matter what happened to the body. A dead player still talks,
 walks the commons, reads the forums and shows up in `who`.
 
 Tagging is by **acts on matter**, not by folder: reading verbs in material
-categories (`inventory`, `wallet`, `menu`, `spells`) stay untagged, because
+categories (`wallet`, `menu`, `spells`) stay untagged, because
 a shade checking its empty pockets touches nothing. `tpa` stays untagged
 too — a shade holds no travel credential, so the shipped gate already
 refuses it, and a second refusal would just be a worse error message.

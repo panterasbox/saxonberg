@@ -398,8 +398,8 @@ character a lens it does not hold), never a wizard check.
 list the viewer perceives, in order, then the head ordinal — is the one
 filter every surface applies (`lint:perceived-surfaces` holds the count at
 0): the binder, `query`, `find`, the script island, the subscriptions and
-cards, `look`, `inventory`, `sense`. **`perceivedHow`** answers `plain` ·
-`builder` · `null`; `look`, `inventory`, `query` and `find` mark a line
+cards, `look`, `sense`. **`perceivedHow`** answers `plain` ·
+`builder` · `null`; `look`, `query` and `find` mark a line
 `[builder]` when only the lens shows it. `visibleContentsOf` is now a
 GROUPING (worn · held · carried) of what `perceives` admits.
 

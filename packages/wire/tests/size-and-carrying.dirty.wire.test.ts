@@ -211,15 +211,28 @@ async function don(s: Session, template: string): Promise<string> {
   return id;
 }
 
-/** `inventory` with options, as one squashed string. */
+/**
+ * `i` with options, as one squashed string — the default alias for `query
+ * --ledger me:i` (size-and-carrying W10h: there is no inventory verb).
+ */
 async function inv(s: Session, opts = ''): Promise<string> {
-  return (await say(s, `inventory${opts ? ` ${opts}` : ''}`)).w;
+  return (await say(s, `i${opts ? ` ${opts}` : ''}`)).w;
 }
 
-/** The burden line's words (the last tier line of `inventory`). */
+/** Everything on you, one list (`query --flat me:I` — what `inventory --flat` was). */
+async function flat(s: Session): Promise<string> {
+  return (await say(s, 'query --flat me:I')).w;
+}
+
+/** What one holder holds, grouped (`query --ledger <holder>:i` — what `i <holder>` was). */
+async function ledgerOf(s: Session, holder: string): Promise<string> {
+  return (await say(s, `query --ledger ${holder}:i`)).w;
+}
+
+/** The burden line's words (the last tier line of `i`). */
 const BURDEN = /(light|a fair load|well laden|heavily burdened|more than you can bear)/i;
 
-/** The kilograms `inventory --weight` gives a thing (`name … N kg`), or null. */
+/** The kilograms `i --weight` gives a thing (`name … N kg`), or null. */
 function kgOf(text: string, name: RegExp): number | null {
   const m = new RegExp(`${name.source}[^,.;]*?([0-9.]+) kg`, 'i').exec(text);
   return m ? Number(m[1]) : null;
@@ -324,7 +337,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const fourth = await say(a, 'get bowl');
     expectRefused(fourth, key('1', /hands are full — the mug and the punched-tin lantern/i));
     expect(fourth.w, 'the refusal names the next command').toMatch(/`(drop|put) [^`]+`/);
-    expect(await inv(a, '--flat')).not.toMatch(/bowl/);
+    expect(await flat(a)).not.toMatch(/bowl/);
     survivors.push({ s: a, flat: '' });
 
     // Katie: a newcomer with free hands is handed the daypack.
@@ -337,7 +350,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await choose(k, /./);
     const daypack = squash(await k.listen(6_000));
     record.push(`${k.handle}: after Katie: ${daypack}`);
-    expect(await inv(k, '--flat')).toMatch(/daypack/i);
+    expect(await flat(k)).toMatch(/daypack/i);
 
   }, 300_000);
 
@@ -356,11 +369,11 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await choose(k2, /./);
     const told = squash(await k2.listen(8_000));
     record.push(`${k2.handle}: after Katie: ${told}`);
-    expect(await inv(k2, '--flat'), 'full hands: not handed').not.toMatch(/daypack/i);
+    expect(await flat(k2), 'full hands: not handed').not.toMatch(/daypack/i);
     expect(told, 'told where the daypack is').toMatch(key('1b', /daypack/i));
   }, 180_000);
 
-  it('2. [instant · player] inventory shows the tiers and the burden in words; --flat is one list', async () => {
+  it('2. [instant · player] `i` (query --ledger me:i) shows the tiers and the burden in words; --flat is one list', async () => {
     const a = survivors[0]!.s;
     const tiers = await inv(a);
     expect(tiers).toMatch(/In hand:/);
@@ -369,9 +382,12 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(tiers, 'the burden line').toMatch(key('2', BURDEN));
     // ⭐ No article inside a possessive: "your shirt's breast pocket".
     expect(tiers).not.toMatch(/your an? /i);
-    const flat = await inv(a, '--flat');
-    expect(flat).toMatch(/^You have:/);
-    expect(flat).not.toMatch(/In hand:|Worn:/);
+    // `i --flat`: the alias's line with the option appended — one list.
+    const one = await inv(a, '--flat');
+    expect(one).toMatch(/^You have:/);
+    expect(one).not.toMatch(/In hand:|Worn:/);
+    // ⭐ The alias says what it runs (W10h).
+    expect((await say(a, 'alias get i')).w).toMatch(key('2', /i = query --ledger me:i/));
   }, 120_000);
 
   it('3. [instant · player] a coat\'s pockets differ, so it asks and says how; the trousers\' are alike, so they pick; a mug is refused by its size', async () => {
@@ -405,7 +421,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // claims no slot is hung from the worn belt as it is received.
     const pouch = await give(b, T.pouch);
     await give(b, T.scabbard);
-    // Pouches until one does not hang: then `i belt` says there is no room,
+    // Pouches until one does not hang: then `i` says there is no room on the belt,
     // and `put` of one more is refused, naming the belt.
     let belt = '';
     let hung = 2;
@@ -415,9 +431,9 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
       if (/In hand: a leather belt pouch/i.test(await inv(b))) break;
       hung++;
     }
-    belt = (await say(b, 'i belt')).w;
+    belt = await inv(b);
     record.push(`belt holds ${hung}: ${belt}`);
-    expect(belt, 'i belt says when there is no room').toMatch(key('4', /Room left: (none|a small thing)/i));
+    expect(belt, '`i` says when there is no room on the belt').toMatch(key('4', /Room left: (none|a small thing)/i));
     const more = await say(b, `put #${last} on belt`);
     expectRefused(more, /belt/i);
     expectDone(await say(b, `drop #${last}`));
@@ -650,7 +666,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await give(v, T.sword);
     const o = await person('scother', `${STEADING}/paddock`);
     const OTHER = await idOf(v);
-    const seen = await say(o, `i ${OTHER}`);
+    const seen = { w: await ledgerOf(o, OTHER) };
     expect(seen.w, 'what they hold').toMatch(/arming sword/i);
     expect(seen.w, 'their outer layer').toMatch(key('12', /linen coat/i));
     expect(seen.w, 'the knife on their belt').toMatch(/knife|sheath/i);
@@ -676,7 +692,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect((await say(v, 'query me:I:letter')).w).toMatch(/letter/i);
   }, 240_000);
 
-  it('14. [instant · staged] a shut backpack: inventory lists its contents; a wizard removes one; it is gone from the list', async () => {
+  it('14. [instant · staged] a shut backpack: the ledger lists its contents; a wizard removes one; it is gone from the list', async () => {
     const s = await person('scshut', `${STEADING}/hayloft`, { wizard: true, parcels: ['/world/newbie-wilds'] });
     const pack = await give(s, T.backpack);
     await give(s, T.mug);
@@ -686,11 +702,11 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(await say(s, `close #${pack}`));
     const w = await say(s, `wear #${pack}`);
     await finish(s, w.r);
-    const before = await inv(s, '--packed');
+    const before = await ledgerOf(s, `#${pack}`);
     expect(before).toMatch(/mug/);
     expect(before).toMatch(key('14', /bowl/));
     expectDone(await say(s, `testharness vanish #${bowl}`));
-    const after = await inv(s, '--packed');
+    const after = await ledgerOf(s, `#${pack}`);
     expect(after).toMatch(/mug/);
     expect(after).not.toMatch(/bowl/);
   }, 180_000);
@@ -708,7 +724,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(seen).toMatch(/backpack/i);
     expect(seen, 'shut: its contents are unseen').not.toMatch(/pistol/i);
     expectRefused(await say(b, 'get pistol from backpack'), key('14b', /is shut — `open backpack` first/i));
-    expect((await say(b, 'i backpack')).w).toMatch(/shut/i);
+    expect(await ledgerOf(b, 'backpack')).toMatch(/shut/i);
     // Before the handover, with the pistol in A's open pack at A's feet:
     // within reach, not ready — `fight draw`/`fight switch` reach only what is ON you.
     expectDone(await say(a, `open #${pack}`));
@@ -742,7 +758,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(out, /unconscious/);
     const here = squash(await s.prose('look here'));
     expect(here, 'the sword fell to the floor').toMatch(/arming sword/i);
-    const seen = await say(s, `i ${OTHER}`);
+    const seen = { w: await ledgerOf(s, OTHER) };
     expect(seen.w, 'the belt stays on them').toMatch(/belt/i);
     expect(seen.w).not.toMatch(/arming sword/i);
     const first = await say(s, `get letter from ${OTHER}`);
@@ -759,7 +775,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const o = await person('scbystander', `${STEADING}/lookout`);
     expect((await say(o, `query ${OTHER}:I:letter`)).w).not.toMatch(/letter/i);
     expectDone(await say(s, `get letter from ${OTHER}`));
-    expect(await inv(s, '--flat')).toMatch(/letter/i);
+    expect(await flat(s)).toMatch(/letter/i);
     // Once it is in your own pocket, nobody's earlier find shows it.
     expect((await say(o, `query ${OTHER}:I:letter`)).w).not.toMatch(/letter/i);
   }, 240_000);
@@ -780,7 +796,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(await say(p, 'swim west'), /reed bank/i);
     const wetLook = (await say(p, `look #${wet}`)).w;
     const dryLook = (await say(p, `look #${dry}`)).w;
-    const packed = await inv(p, '--packed');
+    const packed = await ledgerOf(p, `#${pack}`);
     record.push(`after the swim: pack letter "${wetLook}" · oilskin letter "${dryLook}" · packed "${packed}"`);
     // The pack's letter is no letter any more (it went to pulp in the water).
     expect(wetLook, 'the pack letter is gone').toMatch(key('16', /don't see any/i));
@@ -815,7 +831,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expectDone(await say(m, 'get pannier'));
     expectDone(await say(m, 'give pannier to mule'));
     expectDone(await say(m, 'give pannier to mule'));
-    expect((await say(m, 'i mule')).w).toMatch(/pannier/i);
+    expect(await ledgerOf(m, 'mule')).toMatch(/pannier/i);
     // Two days of food for one: most of a pack, said in words.
     for (let i = 0; i < 6; i++) await give(m, T.rations);
     const heavy = await inv(m, '--weight');
@@ -856,7 +872,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await inv(m); // (where the cup went, for the record)
     const gv = await say(m, `give #${cup} to ${await idOf(full)}`);
     expectRefused(gv, /hands are full|nowhere to take/i);
-    expect(await inv(m, '--flat')).toMatch(/mug/);
+    expect(await flat(m)).toMatch(/mug/);
 
     // A cart: hitched, your hands are on it.
     const h = await person('sccart', YARD);
@@ -974,11 +990,11 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     await give(keep, T.pouch);
     await give(keep, T.mug);
     await give(keep, T.key);
-    const before = await inv(keep, '--flat');
+    const before = await flat(keep);
     const pre = await person('scpreflip', YARD);
     preFlip = pre.handle;
     // The steading mule step 18 tacked: what it wears is its own record.
-    const tackBefore = (await say(keep, 'i mule')).w;
+    const tackBefore = await ledgerOf(keep, 'mule');
     record.push(`mule before restart: ${tackBefore}`);
     expect(tackBefore, 'the mule wears its tack').toMatch(/saddle/i);
     const keepHandle = keep.handle;
@@ -990,7 +1006,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const back = await Session.open(keepHandle, {});
     open.push(back);
     await back.drainProse();
-    const after = await inv(back, '--flat');
+    const after = await flat(back);
     record.push(`restart: before "${before}" · after "${after}"`);
     const set = (t: string): string[] => t.replace(/^You have: /, '').replace(/\.$/, '').split(/ (?=an? )/).map((x) => x.trim()).sort();
     expect(set(after), 'the same things, none loose, none duplicated').toEqual(b2('21') ? [...set(before), 'B2 inverted at step 21'] : set(before));
@@ -1006,7 +1022,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // What fits nowhere (the lantern: both hands are full, no pocket takes
     // it) is not on the body — it waits at home or at the feet, and the
     // player hears where (said at `enter`, with the session attached).
-    expect(await inv(p, '--flat')).not.toMatch(/lantern/i);
+    expect(await flat(p)).not.toMatch(/lantern/i);
     expect(told, 'the player is told where the lantern went').toMatch(
       key('21', /lantern would not fit anywhere on you; it is (in your room|at your feet)/i),
     );
@@ -1014,7 +1030,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // by daylight: the yard is open to the sky, and the restart may land at
     // night ("someone … wearing something").
     await toHour(9, 12);
-    const tackAfter = (await say(back, 'i mule')).w;
+    const tackAfter = await ledgerOf(back, 'mule');
     record.push(`mule after restart: ${tackAfter}`);
     expect(tackAfter, 'the mule keeps its tack across the restart').toMatch(/saddle/i);
     expect(tackAfter).toMatch(/pannier/i);

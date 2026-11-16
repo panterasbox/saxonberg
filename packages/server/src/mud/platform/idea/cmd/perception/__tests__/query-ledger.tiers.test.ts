@@ -1,14 +1,16 @@
 /**
- * ⭐ `inventory` walks the whole tree by tier (size and carrying D28): in
- * hand · ready (pockets, the belt, a satchel with what is in it) · worn ·
- * packed (each pack as N things, M kg; `--all` opens it) · the burden in
- * words. `--flat`, `--weight`, one section by name; a container; a person
- * (what you perceive); `i belt` with the room left in words.
+ * ⭐ `query --ledger me:i` (the `i` / `inventory` aliases — size and
+ * carrying W10h; the view walks the whole tree by tier, D28): in hand ·
+ * ready (pockets, the belt and the room left along it, a satchel with what
+ * is in it) · worn · packed (each pack as N things, M kg; a set that names
+ * what is in it — `me:I` — opens it) · the burden in words. `--flat`,
+ * `--weight`; narrowing is the query's (`me:i:held`); a container; a
+ * person (what you perceive).
  */
 import '../../../../../../test-bootstrap';
 import { carry } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import InventoryController from '../InventoryController';
+import QueryController from '../QueryController';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
@@ -31,19 +33,28 @@ function ctx(me: Body): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: me as never,
     location: makeStuff(() => new Place()) as never,
-    commandText: 'inventory', executionId: 't', commandId: 't', verb: 'inventory',
-    command: CommandDefinition.fromYaml(`verbs: [inventory]\ncontroller: X\ndescription: d\n`, '<t>'),
+    commandText: 'query --ledger me:i', executionId: 't', commandId: 't', verb: 'query',
+    command: CommandDefinition.fromYaml(`verbs: [query]\ncontroller: X\ndescription: d\n`, '<t>'),
   });
 }
 
-const inventory = (me: Body, model: Record<string, unknown> = {}): Promise<string> =>
+type Holder = Stuff & { getContents(): Stuff[]; getDeepContents(): Stuff[] };
+/** `me:i` — what MQL names: the holder's own contents. */
+const meI = (me: Body): Stuff[] => [...(me as unknown as Holder).getContents()];
+/** `me:I` — the whole tree under the holder. */
+const meDeep = (me: Body): Stuff[] => [...(me as unknown as Holder).getDeepContents()];
+
+/** `query <options> <set>` with the set already bound (default `--ledger me:i`). */
+const query = (me: Body, model: Record<string, unknown> = {}, set: Stuff[] = meI(me)): Promise<string> =>
   withRootContext(null, 'tiers.test', async () => {
     said = [];
-    makeStuff(() => new InventoryController()).execute(model as never, ctx(me));
+    makeStuff(() => new QueryController()).execute(
+      { set: { stuff: set, raw: 'me:i' }, ledger: true, ...model } as never, ctx(me),
+    );
     return said.join('\n');
   });
 
-describe('inventory — by tier (D28)', () => {
+describe('query --ledger — yourself by tier (D28)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     installForms();
@@ -90,7 +101,7 @@ describe('inventory — by tier (D28)', () => {
 
   it('the default view: in hand · ready · worn · packed, and the burden', async () => {
     const { me } = await kitted();
-    const out = await inventory(me);
+    const out = await query(me);
     expect(out).toMatch(/In hand: [^\n]*sword/);
     expect(out).toMatch(/Ready:/);
     expect(out).toMatch(/In your [^\n]*coat[^\n]*'s left pocket: [^\n]*key/);
@@ -117,7 +128,7 @@ describe('inventory — by tier (D28)', () => {
     carry(me, key);
     ContainmentApi.move(key, coat, 'left pocket');
     expect(key.getContainer()).toBe(coat);
-    const out = await inventory(me);
+    const out = await query(me);
     expect(out).toMatch(/In your [^\n]*coat[^\n]*'s left pocket: [^\n]*key/);
     expect(out).toMatch(/Worn: [^\n]*shirt/);
     expect(out).toMatch(/Worn: [^\n]*coat/);
@@ -126,41 +137,46 @@ describe('inventory — by tier (D28)', () => {
     expect(out).not.toMatch(/coat[^\n]*: empty/);
   });
 
-  it('`--all` opens the packs; `--packed` is that section alone', async () => {
-    const { me } = await kitted();
-    expect(await inventory(me, { all: true })).toMatch(/rucksack[^\n]*: [^\n]*map/);
-    const packed = await inventory(me, { packed: true });
-    expect(packed).toMatch(/map/);
-    expect(packed).not.toMatch(/In hand|Ready|Worn/);
+  it('⭐ a set that names what is in a pack opens it (`me:I`, which `--all` was); narrowing is the query\'s', async () => {
+    const { me, rucksack } = await kitted();
+    expect(await query(me, {}, meDeep(me))).toMatch(/rucksack[^\n]*: [^\n]*map/);
+    // `me:i:held` — the query narrows; the ledger groups what it named.
+    const held = await query(me, {}, meI(me).filter((x) => x !== rucksack && /sword/.test(x.getPresentation())));
+    expect(held).toMatch(/In hand: [^\n]*sword/);
+    expect(held).not.toMatch(/Ready|Worn|Packed/);
   });
 
-  it('`--flat` is one list of everything', async () => {
+  it('`--flat` is one list of what the set names', async () => {
     const { me } = await kitted();
-    const out = await inventory(me, { flat: true });
+    const out = await query(me, { flat: true }, meDeep(me));
     expect(out).toMatch(/You have: /);
     for (const w of ['sword', 'compass', 'map', 'coin', 'key', 'belt']) expect(out).toContain(w);
     expect(out).not.toMatch(/Ready:/);
   });
 
-  it('`--weight` gives each thing its mass and bulk', async () => {
+  it('`--weight` gives each thing its mass and bulk — in the ledger, and as a list alone', async () => {
     const { me } = await kitted();
-    expect(await inventory(me, { held: true, weight: true })).toMatch(/sword[^\n]*\(1\.2 kg/);
+    expect(await query(me, { weight: true })).toMatch(/In hand: [^\n]*sword[^\n]*\(1\.2 kg/);
+    expect(await query(me, { ledger: false, weight: true })).toMatch(/You have: [\s\S]*sword[^\n]*\(1\.2 kg/);
   });
 
-  it('a container lists what is in it', async () => {
+  it('⭐ your own pack named by `rucksack:i`: the pack, opened, with what the set named (W10h-e)', async () => {
     const { me, rucksack } = await kitted();
     vi.spyOn(PerceptionApi, 'visibleContentsOf').mockImplementation((_v, t) => ({
       worn: [], held: [], carried: [...(t as Stuff & { getContents(): Stuff[] }).getContents()], shut: false,
     }));
-    const out = await inventory(me, { target: { stuff: rucksack, raw: 'rucksack' } });
-    expect(out).toMatch(/In it: [^\n]*map[^\n]*rope|In it: [^\n]*rope[^\n]*map/);
+    const out = await query(me, {}, [...(rucksack as unknown as Holder).getContents()]);
+    expect(out).toMatch(/Packed:\n\s*[^\n]*rucksack[^\n]*: [^\n]*(map[^\n]*rope|rope[^\n]*map)/);
+    expect(out).not.toMatch(/sword|satchel/);
   });
 
   it('a person: what you perceive on them', async () => {
     const { me } = await kitted();
     const { me: ruth } = makeBody();
-    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({ worn: [], held: [tool('lantern', 1)], carried: [], shut: false });
-    const out = await inventory(me, { target: { stuff: ruth, raw: 'ruth' } });
+    const lantern = tool('lantern', 1);
+    ContainmentApi.move(lantern as never, ruth as never);
+    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({ worn: [], held: [lantern], carried: [], shut: false });
+    const out = await query(me, {}, [lantern]);
     expect(out).toMatch(/Holding: [^\n]*lantern/);
     expect(PerceptionApi.visibleContentsOf).toHaveBeenCalledWith(me, ruth);
   });
@@ -173,17 +189,18 @@ describe('inventory — by tier (D28)', () => {
   it('⭐ a body carries — never "In it"', async () => {
     const { me } = await kitted();
     const { me: ruth } = makeBody();
-    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({ worn: [], held: [], carried: [tool('lantern', 1)], shut: false });
-    const out = await inventory(me, { target: { stuff: ruth, raw: 'ruth' } });
+    const lantern = tool('lantern', 1);
+    ContainmentApi.move(lantern as never, ruth as never);
+    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockReturnValue({ worn: [], held: [], carried: [lantern], shut: false });
+    const out = await query(me, {}, [lantern]);
     expect(out).toMatch(/── Carrying: [^\n]*lantern/);
     expect(out).not.toMatch(/In it:/);
   });
 
-  it('`i belt`: what hangs from it and the room left, in words', async () => {
-    const { me, belt } = await kitted();
-    const out = await inventory(me, { target: { stuff: belt, raw: 'belt' } });
-    expect(out).toMatch(/Hanging from it: [^\n]*pouch/);
-    expect(out).toMatch(/Room left: (plenty|one more pouch|a small thing|none)\./);
+  it('⭐ the belt: what hangs from it and the room left, in words (D27 — once `i belt`)', async () => {
+    const { me } = await kitted();
+    const out = await query(me);
+    expect(out).toMatch(/Hanging from your [^\n]*belt[^\n]*: [^\n]*pouch[^\n]*\. Room left: (plenty|one more pouch|a small thing|none)\./);
     expect(out).not.toMatch(/\d+(\.\d+)? m\b/);
   });
 });

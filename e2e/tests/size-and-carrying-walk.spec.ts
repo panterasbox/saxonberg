@@ -129,8 +129,9 @@ test.describe('size and carrying, in a browser', () => {
       // A key handed to full hands goes to a pocket (hands first, D11).
       await hand(handle, KEY);
 
-      // Step 2: the tiers and the burden, in words.
-      const tiers = await sayAwaiting(page, 'inventory', /In hand:/);
+      // Step 2: the tiers and the burden, in words — `i`, the default alias
+      // for `query --ledger me:i` (W10h: there is no inventory verb).
+      const tiers = await sayAwaiting(page, 'i', /In hand:/);
       expect(tiers, 'both mugs in hand').toMatch(/In hand: (two mugs|a mug and a mug|[^\n]*mug[^\n]*mug)/i);
       expect(tiers).toMatch(/Worn:/);
       expect(tiers, 'the burden in words').toMatch(/light|a fair load|well laden|heavily burdened|more than you can bear/i);

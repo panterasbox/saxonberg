@@ -1,14 +1,14 @@
 /**
- * ⭐ `inventory [<thing>]` — the LEDGER (maritime revision 2): complete
- * and grouped, through the one visibility rule `look` reads too; `look
- * in <thing>` is the same ledger, and `look` itself summarises past four.
+ * ⭐ `query --ledger <holder>:i` — the LEDGER (maritime revision 2; the
+ * `inventory` verb folded into it, size-and-carrying W10h): complete and
+ * grouped, through the one visibility rule `look` reads too; `look in
+ * <thing>` is the same ledger, and `look` itself summarises past four.
  */
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import InventoryController from '../InventoryController';
-import LookController from '../../perception/LookController';
-import QueryController from '../../perception/QueryController';
+import LookController from '../LookController';
+import QueryController from '../QueryController';
 import { MqlApi } from '../../../../../api/mql';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
@@ -74,38 +74,42 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-const inventory = (target?: Stuff): Promise<void> =>
+/** `query --ledger <holder>:i` — the set is what MQL names: the holder's contents. */
+const ledgerOf = (holder: Body = me): Promise<void> =>
   withRootContext(null, 'ledger.test', async () => {
-    makeStuff(() => new InventoryController()).execute(
-      (target ? { target: { stuff: target, raw: 'x' } } : {}) as never, ctx('inventory'),
+    const set = [...holder.getContents()] as Stuff[];
+    makeStuff(() => new QueryController()).execute(
+      { set: { stuff: set, raw: 'x:i' }, ledger: true } as never, ctx('query'),
     );
   });
 
-describe('inventory', () => {
+/** Put each thing in `holder` — what `:i` will name. */
+const into = (holder: Body, xs: Stuff[]): Stuff[] => {
+  for (const x of xs) ContainmentApi.move(x as never, holder as never);
+  return xs;
+};
+
+describe('query --ledger', () => {
   it('⭐ yourself: grouped — wearing, holding, carrying', async () => {
-    visible = { worn: [named('shirt')], held: [named('sword')], carried: [named('coin')], shut: false };
-    await inventory();
+    const [shirt, sword, coin] = into(me, [named('shirt'), named('sword'), named('coin')]);
+    visible = { worn: [shirt!], held: [sword!], carried: [coin!], shut: false };
+    await ledgerOf();
     expect(said.join('\n')).toMatch(/You are wearing: [^\n]*shirt[^]*You are holding: [^\n]*sword[^]*You are carrying: [^\n]*coin/);
   });
 
   it('⭐ another person: what they wear and hold, through the one rule', async () => {
-    visible = { worn: [named('cloak')], held: [named('lantern')], carried: [], shut: false };
-    await inventory(other);
+    const [cloak, lantern] = into(other, [named('cloak'), named('lantern')]);
+    visible = { worn: [cloak!], held: [lantern!], carried: [], shut: false };
+    await ledgerOf(other);
     const out = said.join('\n');
     expect(out).toMatch(/Wearing: [^\n]*cloak/);
     expect(out).toMatch(/Holding: [^\n]*lantern/);
     expect(PerceptionApi.visibleContentsOf).toHaveBeenCalledWith(me, other);
   });
 
-  it('a shut container refuses in words', async () => {
-    visible = { worn: [], held: [], carried: [], shut: true };
-    await inventory(other);
-    expect(said.join('\n')).toMatch(/is shut/);
-  });
-
   it('nothing at all: says so', async () => {
-    await inventory();
-    expect(said.join('\n')).toMatch(/You are not carrying anything/);
+    await ledgerOf();
+    expect(said.join('\n')).toMatch(/You see nothing there/);
   });
 });
 
@@ -131,7 +135,7 @@ describe('look and the ledger', () => {
     };
     await look({ target: { stuff: other, raw: 'ruth' } });
     const out = said.join('\n');
-    expect(out).toMatch(/Wearing: [^\n]*ring a[^\n]*ring d[^\n]*and 2 more things — `inventory ruth`/);
+    expect(out).toMatch(/Wearing: [^\n]*ring a[^\n]*ring d[^\n]*and 2 more things — `query --ledger ruth:i`/);
     expect(out).not.toMatch(/ring e/);
     expect(out).toMatch(/Holding: [^\n]*lantern/);
   });
@@ -143,7 +147,7 @@ describe('`query --ledger` and a shut holder (maritime revision 2′)', () => {
       await makeStuff(() => new QueryController()).execute(model as never, ctx('query'));
     });
 
-  it('⭐ `query --ledger bob:i` is the same grouped ledger `inventory bob` gives — of just what the query named', async () => {
+  it('⭐ `query --ledger bob:i` groups just what the query named', async () => {
     const ring = named('ring');
     const lantern = named('lantern');
     const hat = named('hat');

@@ -390,5 +390,5 @@ tiring hauler can hit it). See
   slot everywhere, `LOOSE_CARRY_SURCHARGE` became `HELD_SURCHARGE` and
   is paid by hand slots only (× the load's awkwardness); the walk reads
   slots before the placed contents; weight is mass × `gravityNow() / 9.81`
-  of the bearer's place. `burdenWords()` gives `inventory` its line. See
+  of the bearer's place. `burdenWords()` gives `query --ledger me:i` (`i`) its line. See
   [carrying.md](./carrying.md) and [size.md](./size.md).

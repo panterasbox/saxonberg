@@ -1,7 +1,7 @@
 # A leather belt (size and carrying D27) — the modular belt: things hang
 # `from` it, each taking its own width, and its length is its wearer's
 # waist (a gnome's holds fewer pouches than an ogre's). It bears what its
-# leather bears. Room is said in words (`i belt`).
+# leather bears. Room is said in words (`i`, beside what hangs from it).
 class: /platform/thing/equipment/Garment
 data:
   shortDescription: leather belt

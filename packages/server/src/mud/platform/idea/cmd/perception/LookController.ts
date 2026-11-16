@@ -30,7 +30,7 @@ import type {
   CommandModel,
   } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import InventoryController from '../inventory/InventoryController';
+import QueryController from './QueryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { Postures } from '../../../../lib/slot/Postured';
@@ -76,7 +76,7 @@ export default class LookController extends CommandController<LookModel> {
     const target = model.target;
     const raw = target?.raw ?? '';
     const one = target?.stuff ?? null;
-    // `look in <thing>` is the LEDGER — the same as `inventory <thing>`.
+    // `look in <thing>` is the LEDGER — the same as `query --ledger <thing>:i`.
     if (one && (target?.prep === 'in' || target?.prep === 'inside')) {
       return this.lookInto(one, context);
     }
@@ -104,10 +104,10 @@ export default class LookController extends CommandController<LookModel> {
     return this.lookAtTarget(one, context);
   }
 
-  /** `look in <thing>`: the ledger, as `inventory <thing>` shows it. */
+  /** `look in <thing>`: the ledger, as `query --ledger <thing>:i` shows it. */
   private lookInto(thing: Stuff, context: CommandContext): void {
     const viewer = context.commandGiver;
-    const body = MixinApi.isContainer(thing) ? InventoryController.ledger(viewer, thing) : null;
+    const body = MixinApi.isContainer(thing) ? QueryController.ledger(viewer, thing) : null;
     const line = body ?? (MixinApi.isContainer(thing)
       ? Mml.compose`${Mml.actor(thing)} is shut.`
       : Mml.compose`There is nothing inside ${Mml.thing(thing)}.`);
@@ -769,7 +769,7 @@ export default class LookController extends CommandController<LookModel> {
     // through `PerceptionApi.perceives`' holder rules — on a person what is
     // in their hands and their outer layers, never what their clothes
     // cover; in a shut box nothing you cannot see through). Past four it
-    // summarises and says how to see the rest — the ledger is `inventory`.
+    // summarises and says how to see the rest — the ledger is `query --ledger`.
     const v = seen.holds;
     if (v) {
       const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() ?? '' : '';
@@ -783,7 +783,7 @@ export default class LookController extends CommandController<LookModel> {
         const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
         section(
           more > 0
-            ? Mml.compose`── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
+            ? Mml.compose`── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`query --ledger ${keyword}:i\`.`
             : Mml.compose`── ${heading}: ${list}.`,
           {
             shape: 'list',

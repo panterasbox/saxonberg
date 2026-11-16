@@ -375,6 +375,11 @@ weight is a lesson the game teaches by being right (lens 1).
   presentation: **all** (expand everything), **flat** (the old single list), **ready / packed / worn /
   held** (filter a tier), **weight** (mass and volume per thing), a container's own contents, or a
   person's (what you perceive on them). Details — an engraving — stay in `look`, not the inventory.
+- ⭐ **Revised in owner review (2026-11-15): there is no inventory command.** Listing a set of objects
+  and choosing how to show it is `query`; the tiered view is how `query` shows a set *as a ledger*, and
+  the weight and flat views are its other display options — display only. Narrowing (a tier, a
+  container, a person, everything with the packs opened) is the query's own. `i` and `inventory` stay
+  as the player's shortcuts, visible and removable: they run `query --ledger me:i`.
 
 ### Perceiving **[DECIDED 2026-11-11, owner review]**
 
@@ -494,12 +499,12 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
    next command in the character's own pocket names. At Duncan Hall, `talk to Katie` through intake —
    an Eternal U daypack is handed over; a second fresh character arriving with full hands finds it in
    their new room instead.
-2. *instant · player* — `inventory` shows the tiers: in hand, ready (the pocket's contents), worn, and the
-   burden in words. `inventory --flat` shows one list.
-3. *instant · player* — Wearing a coat: `put key in coat pocket`, then `inventory`: the key's home is the
+2. *instant · player* — `i` shows the tiers: in hand, ready (the pocket's contents), worn, and the
+   burden in words. `i --flat` shows one list; `alias get i` says what it runs (`query --ledger me:i`).
+3. *instant · player* — Wearing a coat: `put key in coat pocket`, then `i`: the key's home is the
    pocket. `put mug in coat pocket` is refused by its size, saying so.
-4. *instant · staged* — `put pouch on belt`, `put holster on belt`, `put canteen on belt` until `i belt`
-   says there is no room; one more attachment is refused, naming the belt. Then, holding a
+4. *instant · staged* — `put pouch on belt`, `put holster on belt`, `put canteen on belt` until `i`
+   says there is no room on the belt; one more attachment is refused, naming the belt. Then, holding a
    sword with a compass put away in a belt pouch: `measure` something that
    needs the compass — *"you sheathe your sword and pull out your compass"*, and the reading runs.
 5. *instant · player* — Put the compass in a backpack worn on the back, then `measure` again — refused:
@@ -524,14 +529,14 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
     stair whose turn is too tight — refused by its
     size, saying so; the same crate through a wide doorway passes. A pole stands in an open barrel,
     sticking out; put in a chest, `close chest` is refused — *"the pole sticks out."*
-12. *instant · player* — Another character in the room: `i them` shows what they hold, their outer layer,
+12. *instant · player* — Another character in the room: `query --ledger them:i` shows what they hold, their outer layer,
     the knife on their belt — not the letter in their inner pocket.
 13. *instant · player* — ⭐ Probe the covered letter: `get letter from them`, `get paper from them`
     (no *"which one?"*), `query them:I:letter`, and a script `if (them:I:letter) { say yes }` — each
     answer is identical to the answer for a person with no letter at all. The same query typed by the
     letter's bearer finds it.
-14. *instant · staged* — A shut backpack: `inventory` lists its contents; a wizard removes one item;
-    `inventory` no longer lists it — you see what's in your own bag when you look.
+14. *instant · staged* — A shut backpack: `query --ledger backpack:i` lists its contents; a wizard
+    removes one item; the ledger no longer lists it — you see what's in your own bag when you look.
 15. *instant · staged* — Knock a character unconscious mid-fight — the sword in their hand falls to the
     floor; their worn belt stays on them. `get letter from them` is answered as for a person with no
     letter; `search them` — a few moments, the room told — and the letter in their inner pocket is
@@ -543,7 +548,7 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
 17. *short · staged* — The soak expedition's staged twin: a wizard advances the clock four hours on an
     online body carrying food and water — what it ate and drank is gone from its pack, and the burden
     line is lighter.
-18. *instant · player* — Pack two game days of food and water for one person — `inventory --weight` and
+18. *instant · player* — Pack two game days of food and water for one person — `i --weight` and
     the burden line show it is most of a pack; `put` it in a mule's panniers and the burden falls; keep
     adding and the mule refuses in words. `tie rope to mule` and hold the end — the mule comes with you
     through the next way, and you have one hand free. Mounted on a horse, a compass in your saddlebags
@@ -579,7 +584,8 @@ Every step instant or short; *player* means player verbs only, *staged* means wi
   would work.
 - A low door, a crawlway, a ladder, a stair's turn and a pond each behave as their size and the body's
   say, in words a player can act on.
-- `inventory` shows a player's hand, ready, worn and packed things at a glance, and the burden in words.
+- `i` (`query --ledger me:i`) shows a player's hand, ready, worn and packed things at a glance, and the
+  burden in words.
 - No verb shows, names, counts or asks about a thing its viewer does not perceive — refusals, prompts,
   `query`, scripts, the client's cards and autocomplete alike — while the query language itself names
   the same things for every viewer.

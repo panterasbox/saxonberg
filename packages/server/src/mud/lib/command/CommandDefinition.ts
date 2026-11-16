@@ -528,7 +528,8 @@ export class CommandDefinition {
     lines.push(`${verb.toUpperCase()}: ${this.description}`);
     lines.push('');
 
-    const aliases = [...new Set(defs.flatMap((d) => d.defaultAliases.map((a) => a.name)))];
+    // ⭐ An alias that runs a whole line says what it runs (`i = query --ledger me:i`).
+    const aliases = [...new Set(defs.flatMap((d) => d.defaultAliases.map((a) => (a.body ? `${a.name} = ${a.body}` : a.name))))];
     if (aliases.length > 0) {
       lines.push(`Aliases: ${aliases.join(', ')}`);
       lines.push('');

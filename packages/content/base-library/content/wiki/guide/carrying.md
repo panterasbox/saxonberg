@@ -64,10 +64,15 @@ A shut thing is shut wherever it is. A buttoned pocket or a pouch with its
 flap down has to be opened first (`open pouch`, `open "breast pocket"`),
 and nothing opens itself.
 
-`inventory` (or just `i`) lists what you carry in that order, then tells
-you how heavy your load feels.
+`i` (or `inventory`) lists what you carry in that order, then tells you
+how heavy your load feels. Both are shortcuts for `query --ledger me:i` —
+`alias list` shows them — so the query's options work on them too:
+`i --weight` gives each thing's weight and bulk, `i --flat` one plain
+list. To see only part, narrow the query: `query --ledger me:i:held`,
+`query --ledger me:i:worn`. `query --ledger me:I` opens the packs on your
+back as well.
 
-<help verb="inventory"/>
+<help verb="query"/>
 
 ## Putting things away {#readying}
 
@@ -103,7 +108,7 @@ its sheath, a canteen on a clip. A bandolier, a harness, the straps of a
 pack and a pack saddle work the same way.
 
 - `put holster on belt` clips it on. `get holster from belt` takes it off.
-- `i belt` shows what hangs from it and how much room is left.
+- `i` shows what hangs from it and how much room is left along it.
 
 A belt only holds so much. It is as long as your waist is round, so a
 small body's belt holds fewer pouches than a big one's, and it will only

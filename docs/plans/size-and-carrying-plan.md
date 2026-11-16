@@ -1074,7 +1074,10 @@ references), `ParcelApi.heldUnitOf`, `AccessApi.heldExtents`, `PerceptionApi.per
   `--held`, `--ready`, `--worn`, `--packed`, `--weight` (mass and volume per thing);
   `inventory <container>` lists it; `inventory <person>` lists what you perceive on them
   (D24). `i cart` lists a hitched cart (elsewhere); the burden line shows the draft. The
-  card's `contents` read returns the same perceived tree.
+  card's `contents` read returns the same perceived tree. ⚠ **Superseded by W10h**: there
+  is no `inventory` verb — the tiers are `query --ledger`'s rendering of a set, `--weight`
+  and `--flat` are `query`'s, the tier filters are the query's narrowing, and `i` /
+  `inventory` are default aliases for `query --ledger me:i`.
 - **D29 — the starter kit is pockets, and the lounge has cups.** Every aspiration outfit's
   trousers (`/stuff/thing/clothes/student-trousers`) gain two `placements:` pocket
   entries (D26's trouser mouths) and the tops one or two (the field jacket four); the
@@ -3816,6 +3819,14 @@ fields' plain English, not the field names.
 - **W10-s resolved (b)** — carved, not raised: the census was right that what holds a thing and how big it is are two ideas.
 - **W10-t — `Idea`-based test bodies that compose `Containable` alone are not `Shaped`**, and need not be: they ask no size. `PutController`'s count test therefore needed no change to its clone mock after all (the W10f narrowing was reverted with the narrowing it answered). The size test is `lib/spatial/__tests__/Shaped.test.ts`; the wiki spoiler-fields snapshot relabels `shape`/`dimensions` `TangibleMixin` → `ShapedMixin` against the pre-W10f tree, and nothing else.
 
+**✅ Done — W10h — inventory is a query** (owner ruling, 2026-11-15: *there is no dedicated inventory command; listing a result set of objects and choosing how to display it is `query`*). The `inventory` view, its controller row and `InventoryController` are deleted. `query` took the display options this build made for inventory — display only, never narrowing: `--ledger` groups the set under each holder, yourself by tier (in hand · ready, with the room left along a hanging length · worn · packed, a pack told as *N things, M kg* unless the set names something in it · the burden in words), another person or a container as worn / held / carried; `--weight` adds each thing's mass and bulk (alone, a flat list with weights); `--flat` is one list. The tiering, the tally and the mass words moved into `QueryController` (`ledger` is its public static for `look in`, `@internal` as it was on `InventoryController`). `i` and `inventory` are default player aliases on the `query` view for `query --ledger me:i`. Decisions:
+
+- **W10h-a — the alias states its line.** A view's `defaultAliases:` entry takes an optional `body:` (schema, `ViewDefaultAlias`, `AliasMixin`'s view walk; `help query` prints `i = query --ledger me:i`); `lint:one-word` (c) refuses a body that does not begin with the view's own verb, so the alias reaches a player only while `query` does. The mixin-static tier could already say a whole line, but its home is a body's own shortcuts (`n`, `stop`); `query`'s shortcut belongs on `query`'s view. `alias list` shows `i = query --ledger me:i    [view: query]` and the same for `inventory`.
+- **W10h-b — no argument defaulting to `me`.** Neither defaults tier can say *`$1`, else `me`* — the expander has no default form, and `$1` counts flags, so `i --weight` would become `--weight:i`. The honest closest: the body is the whole line and the player's words are APPENDED (csh rule), so `i --weight` / `i --flat` work and a holder is the query written out — `query --ledger crate:i`, or `look in crate` (the same ledger). `i <thing>` is not a form. `look`'s past-four summary names `query --ledger <keyword>:i`.
+- **W10h-c — the tier filters are the query's, and no word was added.** `held`, `worn` and `carried` are shipped MQL predicates (`me:i:held`, `me:i:worn`, `me:i:carried`). `ready` and `packed` have none and get none (*MQL grammar stays small*): a tier is the body's relation to a thing (`Carrying.tierOf`), and the narrowings a player wants are already sayable — one pack is `rucksack:i`, everything with the packs opened is `me:I` (what `--all` was).
+- **W10h-d — `i belt` folds into `i`.** `belt:i` names nothing (`:i` descends a Container; a belt only has regions), so the room along a hanging length is told on the tiered line itself: *Hanging from your leather belt: … Room left: none.*
+- **W10h-e — a holder you are carrying shows what the set named in it.** A set naming the insides of a pack (`rucksack:i`, `me:I:map`) lists the pack, opened, with just those; a ready holder the set named itself lists all it holds (as `inventory` did).
+
 ## Reachability wiring
 
 | capability | verb | affordance | data | load | arg gate |
@@ -3824,10 +3835,10 @@ fields' plain English, not the field names.
 | the builder lens | `$P/cmd/author/lens.yaml`, category `author` | `AuthorMixin.self` | none | `heldExtents` resolved at `lens on` | `values: [on, off]`, optional |
 | readying an instrument | no new verb — `readies: true` on `measure`/`analyze`/`read`/`light`/`pour`/`fill`/the craft tools' tool args | the views already afford them | the holster row's `shapedTo` | the bound thing | `readies:` runs after binding, before the controller |
 | pockets | `put <x> in <garment or pocket>` (shipped `put`) | `Garment`'s pocket offers via `putPlanFor` (Placing members) | `placements:` pocket entries on garment rows; the `pocket` Placement document | `Placing.setPlacements` `ensure`s the document when the row hydrates (as every placement does) | `canPlace(item, name)` → the member fit |
-| the belt and every from-host | `put <x> on <belt>` / `get <x> from <belt>` / `i <belt>` (shipped `put`, `get`, `inventory`) | the host row's `placements: [from]` via `putPlanFor` | the belt/bandolier/harness/strap/saddle/ring/rail rows; `hangs`/`fastens` on the `from` document; `tensileStrengthMPa` on material rows | the `from` document is resident with every placement; the material is the row's | `canPlace(item, 'from')` → length + mass; `roomFor` words the rest |
-| the builder lens, `query`, `find`, scripts, cards, `look`, `inventory` | shipped verbs | — | — | — | every surface's list passes `PerceptionApi.perceived(viewer, …)` before binding, prompting or showing; `lint:perceived-surfaces` holds it |
+| the belt and every from-host | `put <x> on <belt>` / `get <x> from <belt>` / `i` (shipped `put`, `get`, `query --ledger`; W10h) | the host row's `placements: [from]` via `putPlanFor` | the belt/bandolier/harness/strap/saddle/ring/rail rows; `hangs`/`fastens` on the `from` document; `tensileStrengthMPa` on material rows | the `from` document is resident with every placement; the material is the row's | `canPlace(item, 'from')` → length + mass; `roomFor` words the rest |
+| the builder lens, `query`, `find`, scripts, cards, `look` | shipped verbs | — | — | — | every surface's list passes `PerceptionApi.perceived(viewer, …)` before binding, prompting or showing; `lint:perceived-surfaces` holds it |
 | `remove backpack` | shipped `remove` | `Wearable` | the `Pack` row claims `[back]` | — | — |
-| tiered inventory | `inventory` + options | `requiresAnimate` (as today) | — | — | `inventory <person>` is gated by `perceived` |
+| tiered inventory | `query --ledger` + `--weight`/`--flat`; `i`/`inventory` default aliases (W10h) | `requiresAnimate` (as today) | — | — | `query --ledger <person>:i` is gated by `perceived` |
 | the mule and the lead | `tie <rope> to <halter>` (shipped `tie`) | `Tieable` on the halter row | halter, mule, saddlebags, panniers rows | the rope's anchor is the halter | `tie`'s load scope reaches the worn halter on a peer (perceived: outermost) |
 | the tarp | shipped `cover` | the cart row's coverable answer | tarpaulin row | — | `cover`'s target scope |
 | headlamp | shipped `wear` + `light` | `PortableLight` is Wearable + Switchable | the smithing row's `slotClaims` | — | — |

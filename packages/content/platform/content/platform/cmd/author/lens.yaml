@@ -2,7 +2,7 @@
 # wizard check: `lens on` reads the extents you hold
 # (`AccessApi.heldExtents`) once and keeps them on your character for the
 # session; inside them you perceive everything — a concealed trap, a hidden
-# way, what a shut chest holds — and `look`, `inventory`, `query` and
+# way, what a shut chest holds — and `look`, `query` and
 # `find` label such a line `[builder]`. Outside your extents, and with the
 # lens off, you play plainly. A player's body is never under the lens.
 verbs: [lens]

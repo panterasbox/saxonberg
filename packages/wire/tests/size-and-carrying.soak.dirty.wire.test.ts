@@ -15,7 +15,7 @@
  * of the pack (`remove backpack`, `eat`, `drink`, `wear backpack`). The day
  * runs on the world's own clock at 12×: real time, not a jump. What the
  * drive holds the world to is that what was eaten and drunk is GONE from
- * the pack and the weight `inventory --weight` gives falls stop by stop,
+ * the pack and the weight `query --ledger --weight me:I` gives falls stop by stop,
  * with the burden line in words never heavier than it was.
  *
  * Its staged twin is the blocking drive's step 17 (a four-hour clock jump).
@@ -60,9 +60,12 @@ async function say(text: string): Promise<string> {
   return w;
 }
 
-/** The pack's weight as `inventory --weight` gives it, and the burden word. */
+/**
+ * The pack's weight as `query --ledger --weight me:I` gives it (the packs
+ * opened — what `inventory --weight --all` was before W10h), and the burden word.
+ */
 async function packRead(): Promise<{ kg: number; burden: number }> {
-  const w = await say('inventory --weight --all');
+  const w = await say('query --ledger --weight me:I');
   const kg = Number(/backpack[^:]*:?[^.]*?([0-9.]+) kg/i.exec(w)?.[1] ?? NaN);
   const word = BURDEN_ORDER.findIndex((b) => new RegExp(b, 'i').test(w));
   return { kg, burden: word };

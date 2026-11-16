@@ -1267,6 +1267,13 @@ export interface SubcommandDefinition {
 export interface ViewDefaultAlias {
   name: string;
   description?: string;
+  /**
+   * ⭐ The line the alias runs, when it is more than the bare verb
+   * (`i` → `query --ledger me:i`, size-and-carrying W10h). It begins with
+   * the view's own verb (`lint:one-word` (c)), so it reaches a player only
+   * while the verb does; absent, the body is the verb.
+   */
+  body?: string;
 }
 
 export interface CommandView {

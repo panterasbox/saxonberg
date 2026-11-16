@@ -904,7 +904,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        'platform/cmd/inventory/inventory.yaml',
         'platform/cmd/inventory/get.yaml',
         'platform/cmd/inventory/drop.yaml',
         'platform/cmd/inventory/put.yaml',

@@ -87,8 +87,9 @@ first:
 ## Shortcuts {#shortcuts}
 
 A few verbs you type all the time have built-in short forms: `l` for
-`look`, `i` for `inventory`, `h` and `?` for `help`, `'` for `say`, and
-the compass letters for `go`. Make your own with `alias set`. If a
+`look`, `h` and `?` for `help`, `'` for `say`, and the compass letters for
+`go`. `i` and `inventory` run a whole line, `query --ledger me:i` — what
+you carry, grouped by how near it is to your hand. Make your own with `alias set`. If a
 built-in one gets in your way, `alias unset` turns it off, and it stays
 off.
 
