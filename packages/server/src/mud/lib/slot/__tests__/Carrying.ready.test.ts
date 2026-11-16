@@ -58,7 +58,10 @@ describe('Carrying — tiers and readying (D15/D16)', () => {
     const r = me.ready(compass) as { ok: boolean; reason?: string; facts?: { held: unknown[] } } | null;
     expect(r?.reason).toBe('hands-needed');
     expect(r?.facts?.held).toHaveLength(2);
-    expect(carryWords(me, r!)).toMatch(/That takes a free hand — you're holding the (sword|lantern) and the (sword|lantern)\. `drop (sword|lantern)` \(free in a fight\), or put one away first \(`unwield (sword|lantern)`/);
+    expect(carryWords(me, r!)).toMatch(/That takes a free hand — you're holding the (sword|lantern) and the (sword|lantern)\. `drop (sword|lantern)` or `drop (sword|lantern)` \(free in a fight\), or put one away first \(`unwield (sword|lantern)`/);
+    // ⭐ Each thing held is offered to drop (requirements step 7: the lantern, though the shield is named last).
+    expect(carryWords(me, r!)).toMatch(/`drop sword`/);
+    expect(carryWords(me, r!)).toMatch(/`drop lantern`/);
     // Nothing moved: the sword and the lantern in hand, the compass in the pouch.
     expect(me.tierOf(sword)).toBe('hand');
     expect(compass.getContainer()).toBe(pouch);

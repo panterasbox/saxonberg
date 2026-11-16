@@ -546,7 +546,11 @@ export abstract class CommandController<
             ? `put ${kw(away.held)} in ${away.region.includes(' ') ? `"${away.region}"` : away.region}`
             : `put ${kw(away.held)} in ${kw(away.host)}`;
         const aways = [`unwield ${kw(last)}`, ...(put !== null ? [put] : [])].map((c) => `\`${c}\``).join(', ');
-        return `That takes ${need} — you're holding ${this.heldList(list)}. \`drop ${kw(last)}\` (free in a fight), or put one away first (${aways}).`;
+        // ⭐ Each thing held is offered to drop (requirements step 7: with a
+        // lantern and a shield it is the lantern you set down — the room
+        // stays lit — though the shield was named last).
+        const drops = list.map((h) => `\`drop ${kw(h)}\``).join(' or ');
+        return `That takes ${need} — you're holding ${this.heldList(list)}. ${drops} (free in a fight), or put one away first (${aways}).`;
       }
       case 'not-on-you':
         return "That isn't yours to use.";

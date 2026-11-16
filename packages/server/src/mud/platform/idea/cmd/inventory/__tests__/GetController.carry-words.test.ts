@@ -65,6 +65,6 @@ describe('the carrying words are the controller\'s', () => {
     const r = me.ready(compass);
     expect(r !== null && !r.ok ? r.reason : null).toBe('hands-needed');
     const said = carryWords(me, r);
-    expect(said).toMatch(/^That takes a free hand — you're holding the (mug|lantern) and the (mug|lantern)\. `drop (mug|lantern)` \(free in a fight\), or put one away first \(`unwield (mug|lantern)`, `put (mug|lantern) in satchel`\)\.$/);
+    expect(said).toMatch(/^That takes a free hand — you're holding the (mug|lantern) and the (mug|lantern)\. `drop (mug|lantern)` or `drop (mug|lantern)` \(free in a fight\), or put one away first \(`unwield (mug|lantern)`, `put (mug|lantern) in satchel`\)\.$/);
   });
 });
