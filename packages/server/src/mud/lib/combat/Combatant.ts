@@ -143,7 +143,7 @@ export interface Combatant {
    * beat's end. Refused `already-switching` while a beat is live, and
    * `not-in-combat` outside a session (a caller asks only inside one).
    */
-  beginHandAct(seconds: number, land: () => void): { ok: boolean; reason?: string };
+  beginHandAct(seconds: number, land: (abandoned?: boolean) => void): { ok: boolean; reason?: string };
   /** ⭐ What a hand act with `item` costs in a fight, in seconds, by its holder (`to`: see {@link HandActDestination}). */
   handActSeconds(item: Stuff, to?: HandActDestination): number;
   /** `words`: why not, in the carrier's own words, when a carry rule refused it. */
@@ -648,7 +648,7 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** See {@link Combatant.beginHandAct}. */
-    public beginHandAct(seconds: number, land: () => void): { ok: boolean; reason?: string } {
+    public beginHandAct(seconds: number, land: (abandoned?: boolean) => void): { ok: boolean; reason?: string } {
       return combatLogic().beginHandAct(this as unknown as Stuff, seconds, land);
     }
 

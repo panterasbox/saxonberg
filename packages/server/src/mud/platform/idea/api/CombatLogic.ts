@@ -454,7 +454,7 @@ export class CombatLogic extends ApiLogic {
 
   /** See {@link Combatant.beginHandAct} (size and carrying D-W10-5). */
   @CallSecurity(CombatantCallers)
-  public beginHandAct(actor: Stuff, seconds: number, land: () => void): { ok: boolean; reason?: string } {
+  public beginHandAct(actor: Stuff, seconds: number, land: (abandoned?: boolean) => void): { ok: boolean; reason?: string } {
     return beginGuardedAct(actor, seconds, land);
   }
 
@@ -4394,7 +4394,7 @@ function beginSwitchImpl(
 function beginGuardedAct(
   actor: Stuff,
   seconds: number,
-  land?: () => void,
+  land?: (abandoned?: boolean) => void,
   target: Stuff | null = null,
   fast = false,
 ): { ok: boolean; reason?: string } {

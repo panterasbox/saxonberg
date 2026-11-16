@@ -1792,7 +1792,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             });
             recordControllerThrow(controllerPath, error);
           } finally {
-            if (controller) StuffApi.destruct(controller);
+            if (controller) controller.releaseAfterDispatch();
             emitDispatchResponse(context);
           }
         });
@@ -1812,7 +1812,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         recordControllerThrow(controllerPath, error);
       } finally {
-        if (controller) StuffApi.destruct(controller);
+        if (controller) controller.releaseAfterDispatch();
       }
     }
 

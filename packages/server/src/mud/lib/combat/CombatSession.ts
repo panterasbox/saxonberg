@@ -429,6 +429,7 @@ export class CombatSession {
         .topic("act.deed")
         .toSelf(Mml.compose`Your hand falls away before it finishes.`)
         .send();
+      land(true);
       return;
     }
     land();

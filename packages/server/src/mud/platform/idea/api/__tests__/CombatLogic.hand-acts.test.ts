@@ -23,11 +23,13 @@ import type { CombatSession } from '../../../../lib/combat/CombatSession';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installShapes } from '../../../../lib/spatial/__tests__/size-fixture';
-import { makeBody, tool, hold, wornBag, pack } from '../../../../lib/slot/__tests__/carrying-fixture';
+import { makeBody, tool, hold, wornBag, pack, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import EventRegistry from '../../EventRegistry';
 import Location from '../../../../lib/location/Location';
 import PutController from '../../cmd/inventory/PutController';
+import GetController from '../../cmd/inventory/GetController';
+import OpenController from '../../cmd/boundary/OpenController';
 
 const opened: CombatSession[] = [];
 const one = (stuff: Stuff | null, raw: string, prep?: string): MqlOneResult => ({ stuff, raw, ...(prep ? { prep } : {}) });
@@ -105,6 +107,75 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     expect(mug.getContainer()).toBe(pouch);
   });
 
+  // Finalize drive run 15, steps 6 and 14b: the get and the open never landed.
+  it('`get pistol from pack` (open, at your feet) starts a beat, and the pistol comes to hand at the landing', async () => {
+    const { room, me, state } = fight();
+    const bag = pack('backpack', 1, [0.3, 0.2, 0.45]);
+    ContainmentApi.move(bag, room);
+    const pistol = tool('pistol', 1, [0.03, 0.06, 0.2]);
+    ContainmentApi.move(pistol, bag);
+    await makeStuff(() => new GetController()).execute(
+      { targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never,
+      ctx(me, room, 'get'),
+    );
+    expect(state.weaponSwitch).not.toBeNull();
+    expect(pistol.getContainer()).toBe(bag);
+    const land = state.weaponSwitch!.getLanding()!;
+    state.weaponSwitch = null;
+    land();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(me.tierOf(pistol)).toBe('hand');
+  });
+
+  // ⚠⚠ The dispatcher destructs its controller clone when `execute`
+  // returns, and a landing that calls back into the controller then ran on a
+  // DESTROYED Stuff — an inert no-op, in silence (the server log's
+  // `[inert] pickUpNow()` / `openChamber()`). These go through the
+  // dispatcher's own release, as the live game does.
+  it('`get pistol from pack`, released by the dispatcher, and the fight ends before the beat: the pistol comes to hand', async () => {
+    const { room, me, state } = fight();
+    const bag = pack('backpack', 1, [0.3, 0.2, 0.45]);
+    ContainmentApi.move(bag, room);
+    const pistol = tool('pistol', 1, [0.03, 0.06, 0.2]);
+    ContainmentApi.move(pistol, bag);
+    const get = makeStuff(() => new GetController());
+    await get.execute(
+      { targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never,
+      ctx(me, room, 'get'),
+    );
+    get.releaseAfterDispatch();
+    expect(get.isDestroyed(), 'kept for its landing').toBe(false);
+    expect(state.weaponSwitch).not.toBeNull();
+    opened[0]!.dissolve();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(me.tierOf(pistol)).toBe('hand');
+    expect(get.isDestroyed(), 'released once it landed').toBe(true);
+  });
+
+  it('a controller with no landing pending is released at once', async () => {
+    const get = makeStuff(() => new GetController());
+    get.releaseAfterDispatch();
+    expect(get.isDestroyed()).toBe(true);
+  });
+
+  it('`open "breast pocket"` in a fight unbuttons it at the landing, after the dispatcher has let go', async () => {
+    const { room, me, plan, state } = fight();
+    const coat = await wornGarment(me, plan, 'coat', 'torso', [{ member: '/platform/placements/in', name: 'breast pocket', mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0005, closes: true }]);
+    expect(coat.isRegionOpen('breast pocket')).toBe(false);
+    const open = makeStuff(() => new OpenController());
+    await open.execute(
+      { target: { stuff: coat, raw: 'breast pocket', via: { region: 'breast pocket' } } } as ModelData as never,
+      ctx(me, room, 'open'),
+    );
+    open.releaseAfterDispatch();
+    expect(state.weaponSwitch).not.toBeNull();
+    const land = state.weaponSwitch!.getLanding()!;
+    state.weaponSwitch = null;
+    land();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(coat.isRegionOpen('breast pocket')).toBe(true);
+  });
+
   it('a second hand act while one is live is `already-switching`', () => {
     const { me } = fight();
     expect(me.beginHandAct(3, () => {}).ok).toBe(true);
@@ -160,10 +231,12 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
   it('…but a body that went DOWN never finishes it, and is told so', () => {
     const { me, state } = fight();
     let landed = 0;
-    expect(me.beginHandAct(3, () => { landed++; }).ok).toBe(true);
+    let abandoned = 0;
+    expect(me.beginHandAct(3, (gaveUp?: boolean) => { if (gaveUp) abandoned++; else landed++; }).ok).toBe(true);
     state.down = true;
     opened[0]!.dissolve();
     expect(landed).toBe(0);
+    expect(abandoned, 'told it was abandoned, so it lets go of what it held').toBe(1);
     expect(state.weaponSwitch).toBeNull();
   });
 

@@ -41,8 +41,10 @@ export class WeaponSwitch {
      * (size and carrying D-W10-5): a hand act in a fight — `put`, `get`,
      * `wield`, `unwield`, `remove`, `open`/`close` — is this guarded beat,
      * and its act runs at the beat's end. Absent: the swap to `target`.
+     * Called with `abandoned` when the act never finishes (its body went
+     * down as the fight ended): it runs nothing and lets go of what it held.
      */
-    private readonly land?: () => void,
+    private readonly land?: (abandoned?: boolean) => void,
   ) {
     this.remaining = Math.max(1, Math.round(beats));
   }
@@ -68,7 +70,7 @@ export class WeaponSwitch {
   }
 
   /** The hand act that lands at completion, if this beat is one (else the swap). */
-  getLanding(): (() => void) | undefined {
+  getLanding(): ((abandoned?: boolean) => void) | undefined {
     return this.land;
   }
 

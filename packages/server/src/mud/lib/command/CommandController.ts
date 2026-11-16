@@ -470,6 +470,28 @@ export abstract class CommandController<
     return source.getPresentation();
   }
 
+  /** Guarded landings still to come on combat's beat — each keeps this clone alive past dispatch. */
+  private landingsPending = 0;
+  /** The dispatcher is done with this clone; the last landing releases it. */
+  private released = false;
+
+  /**
+   * The dispatcher's one call when `execute` returns: destruct this
+   * per-dispatch clone now — or, while a guarded hand act's landing is
+   * still to come on combat's beat, as soon as it lands (size and carrying
+   * D-W10-5; finalize drive run 15).
+   */
+  public releaseAfterDispatch(): void {
+    this.released = true;
+    if (this.landingsPending === 0 && !this.isDestroyed()) StuffApi.destruct(this as unknown as Stuff);
+  }
+
+  /** One landing done (run or abandoned): the last one after release lets the clone go. */
+  private landed(): void {
+    this.landingsPending = Math.max(0, this.landingsPending - 1);
+    if (this.released) this.releaseAfterDispatch();
+  }
+
   /**
    * ⭐ **A hand act in a fight is the switch's guarded beat** (size and
    * carrying D-W10-5; D-W10-13 — combat only, never a lag): in a live
@@ -489,10 +511,17 @@ export abstract class CommandController<
     // returned: a throw in it has no caller to reach (finalize A6, P3), so
     // it is recorded as the runtime throw it is — never an unhandled
     // rejection, never swallowed.
+    // ⚠⚠ …and `act` closes over THIS controller, a per-dispatch clone the
+    // dispatcher destructs when `execute` returns: the landing then called
+    // an inert, destroyed Stuff and did nothing, in silence (finalize drive
+    // run 15 — `[inert] pickUpNow()` / `openChamber()`). The pending landing
+    // keeps the clone alive; `releaseAfterDispatch` lets it go once it lands
+    // (or is abandoned — a body that went down never finishes it).
     const path = giver.getTemplatePath() ?? giver.stuffId;
-    const begun = giver.beginHandAct(seconds, () => {
+    this.landingsPending++;
+    const begun = giver.beginHandAct(seconds, (abandoned?: boolean) => {
       void Promise.resolve()
-        .then(act)
+        .then(() => (abandoned === true ? undefined : act()))
         .catch(async (err: unknown) => {
           const { DiagnosticApi } = await import('../../api/diagnostics');
           await DiagnosticApi.record({
@@ -501,8 +530,10 @@ export abstract class CommandController<
             message: `a hand act's landing threw — ${err instanceof Error ? err.message : String(err)}`,
             stack: err instanceof Error ? (err.stack ?? null) : null,
           });
-        });
+        })
+        .finally(() => this.landed());
     });
+    if (!begun.ok) this.landingsPending--;
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(
