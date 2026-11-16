@@ -45,7 +45,6 @@ import type { Stuff } from './Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { PropSpec } from './Props';
-import type Place from './Place';
 
 /**
  * Doc shape we pull off the `content` collection. The `class` field drives
@@ -643,7 +642,7 @@ export abstract class Template extends Document {
             kind === 'props' &&
             host.isPlace() &&
             !singleton &&
-            ((host as unknown as Place).getLinearExtent() ?? 0) > 0
+            (host.getLinearExtent() ?? 0) > 0
           ) {
             const refusal = host.fitRefusal(inst);
             if (

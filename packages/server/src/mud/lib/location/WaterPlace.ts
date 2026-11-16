@@ -812,7 +812,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       // Both places are asked (`Place.structureNow`): a keyed room's
       // structure is its warren's.
       const from = (via?.getSource() ?? null) as Stuff | null;
-      const ship = from !== null && from.isPlace() ? (from as unknown as Place).structureNow() : null;
+      const ship = from !== null && from.isPlace() ? from.structureNow() : null;
       // ⭐ From one of her rooms into another (a compartment is
       // a water place) is not over her side.
       const ownRoom = ship !== null && (this as unknown as Place).structureNow() === ship;

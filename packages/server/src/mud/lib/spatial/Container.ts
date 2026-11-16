@@ -63,7 +63,6 @@ import type { ActRefusal } from '../craft/ActPlan';
 import type { Placing } from './Placing';
 import type { BoundaryOpening } from '../boundary/Conduit';
 import type { ClosureLevel } from '../bulk/Bulkable';
-import type Place from '../stuff/Place';
 import { Dimensions, SIZE_DEFAULTS, type ClosedSides } from './Dimensions';
 import { BiomeApi } from '../../api/biome';
 import { MessageApi } from '../../api/message';
@@ -1190,7 +1189,7 @@ function interiorOf(c: Stuff & Container): Dimensions | null {
   if (c.isPlace()) {
     // Places stay cubes; an open top is an open SIDE (`closedSidesOf`), so
     // the height is the cell's whether or not a ceiling closes it.
-    const ext = (c as unknown as Place).getLinearExtent();
+    const ext = c.getLinearExtent();
     if (ext === null || !(ext > 0)) return null;
     return new Dimensions(ext, ext, ext);
   }

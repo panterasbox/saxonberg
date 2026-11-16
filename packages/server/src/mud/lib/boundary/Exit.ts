@@ -53,7 +53,6 @@ import type { Containable } from '../spatial/Containable';
 import type { Boundary } from './Boundary';
 import type { BoundaryOpening } from './Conduit';
 import type { ActRefusal } from '../craft/ActPlan';
-import type Place from '../stuff/Place';
 import type { WayRecord, WayState } from '@saxonberg/types';
 import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
@@ -861,7 +860,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     const gaps: BoundaryOpening[] = [];
     if (!this._spansGround) {
       const src: Stuff | undefined = this.source;
-      const face = src != null && src.isPlace() ? (src as unknown as Place).getLinearExtent() : null;
+      const face = src != null && src.isPlace() ? src.getLinearExtent() : null;
       if (face !== null && face > 0) gaps.push({ width: face, height: face });
     }
     const own = this.getOpening();
