@@ -1084,6 +1084,28 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     }
 
     public bringToHand(item: Stuff): ReadiedOutcome | ReadyRefusal {
+      const self = this as unknown as Stuff & Slotted;
+      // ⭐ A body whose plan names no hands grips a weapon in the slot the
+      // weapon claims on that plan (a beast's jaws) — the switch's landing
+      // for a handless body, here on the body rather than in combat's
+      // caller (finalize A2, P11).
+      if (this.asBody().handSlots().length === 0) {
+        const from = this.carriedAt(item);
+        const plan = SpeciesApi.tryGetBodyPlanPath(self);
+        const grip = MixinApi.isWieldable(item) && plan !== null ? item.getSlotClaim(plan)[0] : undefined;
+        if (grip === undefined || !MixinApi.isSlottable(item) || !self.getSlotNames().includes(grip)) {
+          return { ok: true, item, moved: false, from };
+        }
+        const it = item as Stuff & Slottable;
+        for (const occ of [...self.getOccupants(grip)]) {
+          if (MixinApi.isSlottable(occ)) self.vacate(grip, occ);
+        }
+        for (const [slot, occ] of self.getAllOccupants()) {
+          if (occ.has(it)) self.vacate(slot, it);
+        }
+        self.occupy(it, grip);
+        return { ok: true, item, moved: true, from };
+      }
       const refusal = this.readyRefusal(item);
       if (refusal !== null) return refusal;
       const from = this.carriedAt(item);
@@ -1091,7 +1113,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       if (!this.wantsHand(item)) return still;
       const slots = this.gripSlotsFor(item);
       if (slots === null || !MixinApi.isContainable(item) || !MixinApi.isSlottable(item)) return still;
-      const self = this as unknown as Stuff & Slotted;
       const it = item as Stuff & Containable & Slottable;
       // Out of whatever slot it sat in (a sheath), then into the hand(s).
       // Nothing is remembered (D-W10-2): where it goes after is `stow`'s
