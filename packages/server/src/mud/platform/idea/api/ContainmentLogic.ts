@@ -6,7 +6,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Arrival, ArrivalRefusal, Container } from '../../../lib/spatial/Container';
+import type { ArrivalRefusal, Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Placing } from '../../../lib/spatial/Placing';
 import type { PlacementChoice } from '../../../lib/spatial/PlacementOffers';
@@ -134,7 +134,7 @@ export class ContainmentLogic extends ApiLogic {
     // the thing, refuses, and `move` throws naming why. (A key moved out of
     // its pocket onto its owner asks too, and goes to a hand.)
     if (to !== null && placement === undefined && MixinApi.isContainer(to)) {
-      const arrival = callHook<Arrival>(to, 'arrivalFor', [item, { placed: false }]) ?? { kind: 'contents' };
+      const arrival = to.arrivalFor(item, { placed: false });
       switch (arrival.kind) {
         case 'contents':
           break;
