@@ -474,12 +474,13 @@ export abstract class CommandController<
    * ⭐ **A hand act in a fight is the switch's guarded beat** (size and
    * carrying D-W10-5; D-W10-13 — combat only, never a lag): in a live
    * session the act starts a beat of `seconds` with `act` as its landing,
-   * says *"— your guard drops"*, and returns `true`; with a beat already
+   * says *"— your guard drops"* (after `reach`, the verb's own words for
+   * where the hand goes, when it has them), and returns `true`; with a beat already
    * live it says so and returns `true` (nothing ran). Outside a session it
    * runs (and awaits) `act()` now and returns `false`. The one session check for every
    * hand verb; `drop` never asks.
    */
-  protected async guarded(giver: Stuff, seconds: number, act: () => unknown): Promise<boolean> {
+  protected async guarded(giver: Stuff, seconds: number, act: () => unknown, reach?: Mml): Promise<boolean> {
     if (!MixinApi.isCombatant(giver) || !CombatApi.sessionFor(giver)) {
       await act();
       return false;
@@ -506,7 +507,7 @@ export abstract class CommandController<
       .topic('act.deed')
       .toSelf(
         begun.ok
-          ? Mml.compose`You reach — your guard drops.`
+          ? (reach !== undefined ? Mml.compose`${reach} — your guard drops.` : Mml.compose`You reach — your guard drops.`)
           : Mml.compose`You're already reaching for something.`,
       )
       .send();

@@ -44,6 +44,7 @@ describe('Carrying.stow — off the hands, by the one order (D-W10-2)', () => {
     ContainmentApi.move(mug, room);
     ContainmentApi.move(mug, me);
     expect(me.tierOf(mug)).toBe('hand');
+    expect(me.stowPlaceFor(mug)).toBeNull();
     const r = me.stow(mug);
     expect(r?.reason).toBe('nowhere-to-carry');
     expect(me.tierOf(mug)).toBe('hand');
@@ -58,6 +59,9 @@ describe('Carrying.stow — off the hands, by the one order (D-W10-2)', () => {
     const mug = good('mug', 0.35, [0.09, 0.09, 0.1]);
     ContainmentApi.move(mug, room);
     ContainmentApi.move(mug, me);
+    // Asked dry first (the unwield line names it before the hand moves).
+    expect(me.stowPlaceFor(mug)?.host).toBe(satchel);
+    expect(me.tierOf(mug)).toBe('hand');
     expect(me.stow(mug)).toBeNull();
     expect(mug.getContainer()).toBe(satchel);
   });

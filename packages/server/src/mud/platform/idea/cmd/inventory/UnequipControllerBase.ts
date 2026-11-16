@@ -97,13 +97,30 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
       // time is its own, unchanged.
       const pack = !wieldy && giver.getSlotNames().includes('back') && giver.getOccupants('back').has(target as never);
       if ((wieldy || pack) && MixinApi.isCombatant(giver)) {
-        await this.guarded(giver, giver.handActSeconds(target, wieldy ? giver : 'take-off'), takeOff);
+        // ⭐ Where the hand goes is said as it starts (the drive: *"You
+        // reach — your guard drops."* named nothing): the place `stow` would
+        // put it, read dry from the routing's own facts.
+        const reach = wieldy ? UnequipControllerBase.reachLine(giver, target) : undefined;
+        await this.guarded(giver, giver.handActSeconds(target, wieldy ? giver : 'take-off'), takeOff, reach);
         return;
       }
       takeOff();
       return;
     }
     this.strip(context, giver);
+  }
+
+  /** *"You reach to put the sword up in your scabbard"* — where `stow` would put it, or undefined when nothing would take it. */
+  private static reachLine(giver: Stuff, target: Stuff): Mml | undefined {
+    const place = MixinApi.isCarrying(giver) ? giver.stowPlaceFor(target) : null;
+    if (place === null) return undefined;
+    const host = place.host.presentationPhrase().bare();
+    const where = place.region !== undefined
+      ? place.region === 'from'
+        ? `on your ${host}`
+        : `in the ${place.region} of your ${host}`
+      : `in your ${host}`;
+    return Mml.compose`You reach to put ${Mml.thing(target)} up ${Mml.text(where)}`;
   }
 
   /**

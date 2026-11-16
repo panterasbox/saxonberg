@@ -192,6 +192,13 @@ export interface Carrying {
    */
   stow(held: Stuff): ArrivalRefusal | null;
   /**
+   * ⭐ Where {@link stow} would put `held` — the first of this body's places
+   * that takes it, in D11's order — or null when nothing takes it (stow
+   * would refuse). A question, never a way to move: read by a verb that
+   * says where a hand is going before the act lands (`unwield` in a fight).
+   */
+  stowPlaceFor(held: Stuff): CarryPlace | null;
+  /**
    * Seat `item` in the free hand(s) it needs now — the body of `ready`,
    * and the completion of a fight's switch. Quiet: the caller tells.
    */
@@ -930,7 +937,7 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     }
 
     /** Where `held` would be put away: the first carry place it fits, in D11's order. */
-    private stowPlaceFor(held: Stuff): CarryPlace | null {
+    public stowPlaceFor(held: Stuff): CarryPlace | null {
       return this.carryPlaces().find((p) => !within(p.host, held) && this.placeTakes(p, held)) ?? null;
     }
 
