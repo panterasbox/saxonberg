@@ -437,14 +437,15 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const out: Stuff[] = [];
       const seen = new Set<string>([(this as unknown as Stuff).stuffId]);
-      let cur: Stuff = this as unknown as Stuff;
-      for (let i = 0; i < 32 && MixinApi.isContainable(cur); i++) {
-        const up: Stuff | null = opts.scopes === true ? cur.getEnclosingScope() : cur.getContainer();
-        if (up === null || seen.has(up.stuffId) || around.has(up.stuffId)) break;
+      // Each link is the one this link's own read names: its container, or
+      // what stands between (its enclosing scope).
+      let up: Stuff | null = opts.scopes === true ? this.getEnclosingScope() : this.getContainer();
+      for (let i = 0; i < 32 && up !== null; i++) {
+        if (seen.has(up.stuffId) || around.has(up.stuffId)) break;
         seen.add(up.stuffId);
         out.push(up);
         if (opts.scopes === true && up.isPlace()) break;
-        cur = up;
+        up = !MixinApi.isContainable(up) ? null : opts.scopes === true ? up.getEnclosingScope() : up.getContainer();
       }
       return out;
     }
