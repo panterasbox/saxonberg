@@ -76,10 +76,10 @@ location graph's record (today's ashore horizon sees only structures
 already loaded, a defect against *load on use*).
 
 ⭐ **Precision is skill-banded** (the owner): everyone in view gets the
-glance (eight points, rough miles); `measure bearing` with a compass and
+rough direction (eight points, rough miles); `measure bearing` with a compass and
 the Navigation Discipline narrows it — the shipped instrumentation rule
 (*competence resolves detail, never access*). The client is sent the
-glance, never the true bearing.
+rough direction, never the true bearing.
 
 ## Reuse ledger for the plan
 
@@ -88,7 +88,7 @@ glance, never the true bearing.
 | a point on the chart | `GeoPosition` (`lib/expanse/GeoPosition.ts`); the Expanse's `origin` | **reuse** for Locality and structure points |
 | bearing and range between two points | the Expanse's sight math (`sightingsAmong`, `contactsFrom`) | **generalize** out of the sea into the one rule |
 | visibility by heights and curvature, by hour | `Expanse.sightingsAmong(…, hour, …)`, the craft's `sightHeightFor` | **reuse** |
-| the glance | `PerceptionApi.glance(bearingDeg, rangeNm)` | **reuse** unchanged |
+| the rough direction (*NE, some 6 miles off*) | `PerceptionApi.glance(bearingDeg, rangeNm)` — a formatter, not a command | **reuse** unchanged |
 | the horizon's shape | `HorizonView {things[{stuff, bearingDeg, rangeNm}], traffic, atSea}` — bearing and range already nullable | **reuse**; ashore fills them |
 | the three horizons | `horizonAtSea`, `horizonOnRiver`, `horizonAshore` in `PerceptionLogic` | **replace** with one; the river's `LineFrame.sightablesNear` and the sea's `sightables()` stay as the moving-thing sources |
 | the precise reading | `measure bearing` — `BearingReading` row, hand-bearing compass (`capabilities: [bearing]`), Navigation Discipline | **reuse**; check it accepts a land subject |

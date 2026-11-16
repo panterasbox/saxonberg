@@ -27,14 +27,16 @@ requirements are in flight on `reqs/zone-instancing`).
 - **The chart.** The Greywater has a fixed point on the chart (42°N,
   8.47°W) and every sea position derives from it. Shore landings have sea
   positions, so a headland already sees sails with bearing and range.
-- **The three horizons.** `query horizon` and `scan horizon`; the
-  horizon is computed on arrival and never pushed (noticing is an act:
-  `watch horizon`, the hired lookout). At sea, sightings come with a
-  glance — *NE, some 6 miles off*. On a river and ashore, names only.
+- **The three horizons.** `query horizon` lists what is in view beyond
+  your room (`look` describes one thing; listing a set is `query`'s);
+  `watch horizon` keeps a watch and tells you what comes and goes. The
+  horizon is computed on arrival and never pushed. At sea each sighting
+  comes with a **rough direction** — a compass point and a rough distance,
+  *NE, some 6 miles off*. On a river and ashore, names only.
   ⚠ Ashore, only structures that are **already loaded** are seen: a
   distant tower nobody has visited since boot is invisible.
-- **Precision is already skill-banded.** The horizon's glance is eight
-  compass points and a rough distance; `measure bearing <thing>` (the
+- **Precision is already skill-banded.** The horizon's rough direction is
+  eight compass points and a rough distance; `measure bearing <thing>` (the
   Navigation Discipline, a hand-bearing compass; the bare eye reads to
   ten degrees) narrows it. A bearing on a fixed thing whose place is
   known fixes you. `measure latitude` (a sextant, a clear sky) reads
@@ -63,7 +65,7 @@ requirements are in flight on `reqs/zone-instancing`).
 each real Locality and for the structures worth seeing; one horizon rule
 for land, river and sea, worked out per place and kept; seeing far
 things without loading them; and the authored lists recast as overrides.
-The glance, `measure bearing`, the Discipline, the compass and the sight
+The rough direction, `measure bearing`, the Discipline, the compass and the sight
 rule all ship already. The reuse ledger is in the slate
 ([geography-slate § Reuse ledger for the plan](../slates/builds/geography-slate.md)).
 
@@ -75,7 +77,7 @@ rule all ship already. The reuse ledger is in the slate
 - **One horizon.** Ashore, afloat and on a river, what you can see beyond
   your room is decided by one rule: the heights of you and the thing, the
   ground's elevation, the curve of the earth, the light. Ashore gains the
-  sea's glance: *the lighthouse, NE, some 6 miles off*.
+  sea's rough direction: *the lighthouse, NE, some 6 miles off*.
 - **The view is a place's, worked out ahead of time.** A place's skyline
   is computed once and kept; it changes only when something tall is
   built or pulled down, or a point moves. Arriving somewhere costs a
@@ -85,7 +87,7 @@ rule all ship already. The reuse ledger is in the slate
   happened to load it.
 - **Standing higher sees farther.** A room with its own point (the top of
   a tower, the lighthouse gallery) has its own skyline.
-- **Precision is what you can read.** Everyone in view sees the glance;
+- **Precision is what you can read.** Everyone in view gets the rough direction;
   `measure bearing` with a compass, and the Navigation Discipline,
   narrow it, ashore exactly as at sea. Bearings on two known landmarks
   tell you where you are.
@@ -132,8 +134,8 @@ a tall structure gains a point; nothing else.
 
 - **The navigation-server build.** It sends the horizon as data, and at
   sea it sends bearing and range. ⚠ Under this build's rule what reaches
-  the client is the **glance** you could read (the compass point and the
-  rough distance), never the true bearing; `measure bearing` is how you
+  the client is the **rough direction** you could read (the compass point
+  and the rough distance), never the true bearing; `measure bearing` is how you
   get more. That is a change to what the navigation-server build sends at
   sea; agree it with that build before either plan is written.
 - **The Harbor, Wharfside, the Estuary, the headland, University Avenue,
@@ -143,7 +145,7 @@ a tall structure gains a point; nothing else.
 - **Wharfside, the Harbor and the other city districts** stand under the
   Terminus or Terminus City Locality today; with only the city's point
   they would all stand at the city's center. A district far enough from
-  the center that its glance would be wrong gets its own Locality as
+  the center that its rough direction would be wrong gets its own Locality as
   content: a named place in the fiction, never a meta partition.
 - **Gannet Rock** is a fixed thing on the sea already, with its own
   position; it must not get a second, disagreeing point.
@@ -163,14 +165,14 @@ moving is an act. The skyline is per Locality, plus one per room with its
 own point. Nothing is computed per room per arrival.
 
 ### A point with a radius **[DECIDED]**
-Enough for a glance and for *you are here*; cheap to author. Outlines
+Enough for a rough direction and for *you are here*; cheap to author. Outlines
 wait for a need.
 
 ### Inside your own Locality: *close by* **[DECIDED]**
 When you and the thing are both within your Locality's radius and you
 have no point of your own, it is *close by*, with no compass point, since
 a bearing from the center would be wrong for half the people standing
-there. With points on both, the glance is real.
+there. With points on both, the rough direction is real.
 
 ### What is worth seeing **[DECIDED — lens 2]**
 Prominence is derived: a structure's height and its landmark flag decide
@@ -178,9 +180,9 @@ what is listed, most prominent first, and a skyline shows a handful,
 never every chimney. An author marks a landmark; nobody ranks by hand.
 
 ### Precision is skill-banded **[DECIDED — the owner, lens 1]**
-The glance (eight points, rough miles) is what anyone sees; the compass
+The rough direction (eight points, rough miles) is what anyone gets; the compass
 and the Discipline narrow it through `measure bearing`, the shipped
-reading. Data sent to the client carries the glance, not the truth.
+reading. Data sent to the client carries the rough direction, not the truth.
 
 ### Night and weather **[DECIDED — lens 3a]**
 The sea's rule already takes the hour: unlit things are not seen in the
@@ -235,7 +237,7 @@ Hollow Mere, the lighthouse on Gannet Rock, the Terminal, the Hesper.
 1. `instant` · player — Restart the world and go straight to the Market
    without visiting anywhere else. Under open sky, `query horizon`: the
    Terminal and the lighthouse on Gannet Rock are listed, landmarks
-   first, each with a glance (*NE, some N miles off*). Neither had been
+   first, each with a rough direction (*NE, some N miles off*). Neither had been
    visited since the restart.
 2. `instant` · player — `measure bearing lighthouse` with no compass:
    a bearing to ten degrees. With a hand-bearing compass: narrower.
@@ -252,8 +254,8 @@ Hollow Mere, the lighthouse on Gannet Rock, the Terminal, the Hesper.
 8. `instant` · player — In a place whose override blocks the view past a
    ridge: the lighthouse is not listed, though the rule would see it.
 9. `instant` · player — On the Estuary headland: the Hesper at sea,
-   with a glance, as today; then aboard the Hesper at sea: the Terminal
-   and the headland's landmarks, with a glance, by the same rule.
+   with a rough direction, as today; then aboard the Hesper at sea: the Terminal
+   and the headland's landmarks, with a rough direction, by the same rule.
 10. `instant` · player — Each of the 11 places that authored a horizon
     list: what it saw before this build it still sees (or the drive
     record says why the change is right).
@@ -268,7 +270,7 @@ Hollow Mere, the lighthouse on Gannet Rock, the Terminal, the Hesper.
 14. `instant` · player — ⭐ Restart; from the Market again: the same
     horizon as step 1.
 15. `instant` · player — With the map card open in the Market, the
-    horizon section shows the same glances `query horizon` gave: no
+    horizon section shows the same rough directions `query horizon` gave: no
     exact bearings reach the client.
 
 ### Soak drive
@@ -281,7 +283,7 @@ None: nothing in this build moves on a span of the clock.
   and a rough distance, landmarks first.
 - A tower is seen from afar whether or not anyone has visited it since
   the world started.
-- From two places, the same landmark's glances are consistent with one
+- From two places, the same landmark's rough directions are consistent with one
   position for it.
 - Things inside your own Locality are *close by* unless you stand
   somewhere with its own point.
@@ -298,7 +300,7 @@ None: nothing in this build moves on a span of the clock.
 - A place's climate latitude agrees with its position unless its zone
   states its own.
 - Test-fixture worlds behave as today.
-- The client is never sent a bearing more precise than the glance.
+- The client is never sent a bearing more precise than the rough direction.
 - Arriving somewhere costs no more than `look` does today.
 
 ## Cross-references

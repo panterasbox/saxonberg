@@ -53,7 +53,7 @@ ship. Seeding slate:
   your map reaches the client.
 - **`route`** plans over your own map and states its assumptions — in prose
   only.
-- **The horizon** — `query horizon` / `scan horizon`: at sea with bearing
+- **The horizon** — `query horizon` (and `watch horizon`, a standing watch): at sea with bearing
   and range, ashore by name only. ⭐ Nothing on the horizon is ever pushed:
   noticing is the lookout's act (`watch horizon`, the hired lookout).
 - **`government`** answers aboard a ship (the port, then the flag); the
@@ -172,8 +172,8 @@ no client change and no kernel edit.
 - **The maritime and river drives** use `locate me`; they read the
   reckoning through `course` instead. `locate` is named in eight subsystem
   docs.
-- **The horizon watch and the hired lookout** — the horizon section is a
-  glance on arrival, never a feed (decision below).
+- **The horizon watch and the hired lookout** — the horizon section is
+  read once on arrival, never a feed (decision below).
 - **The Hesper and the Corrigan, the river boats, the dinghy** — a ship as
   your Locality; a boat on the Kestrel carried across Localities.
 - **Holdings, dorm rooms, ships of a kind, mines** — copies of one row.
@@ -188,7 +188,7 @@ no client change and no kernel edit.
 
 ## Surface decisions
 
-### The horizon is a glance, not a feed **[DECIDED — lens 1]**
+### The horizon is read on arrival, not a feed **[DECIDED — lens 1]**
 The horizon section is computed when you arrive somewhere, as `look` is. A
 sail coming into view while you stand still reaches you only through
 `watch horizon` or a lookout — the shipped rule that noticing is an act.
@@ -271,8 +271,8 @@ author may change) · **title** (a realm's or a player's own).
    and a player learns to weigh sources by being burned (the old chart of
    the Greywater already does this). The ways teach the physical model —
    *why* you cannot pass is a derivable reason (your height, the pack's
-   width, both hands for a ladder), never a stat. The horizon stays a
-   glance so the lookout stays a skill. **Invariant:** the interface never
+   width, both hands for a ladder), never a stat. The horizon is read on
+   arrival only, so the lookout stays a skill. **Invariant:** the interface never
    explains more than the world would. **Gap:** no Discipline reads a
    map yet; a cartography Discipline waits until a map can be wrong in a way
    skill corrects (it can now be wrong — the seed of it is here).
