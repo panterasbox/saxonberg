@@ -75,6 +75,7 @@ const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const STORE = '/world/terminus/general-store/shop-floor';
 const B = '/world/terminus/hearts-delight/brickfield/location';
 const SHED = `${B}/moulding-shed`;
 const HACKS = `${B}/hacks`;
@@ -177,6 +178,10 @@ async function held(): Promise<string> {
 /** Rest the way a person would: sit out a night on the clock. */
 async function rest(): Promise<void> {
   await drink();
+  // ⭐ And eats: endurance comes back by spending what the body has eaten
+  // (soak repair 2026-11-16 — the miner was refused `too-tired` from
+  // step 10 on, across 8- and 12-hour rests, because it never ate).
+  await say('eat rations');
   await say('sit');
   await advance('8 hours');
   await say('stand');
@@ -284,6 +289,10 @@ beforeAll(async () => {
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
   await dress(k);
   await dressFounder();
+  // Rations for the days the drive spans, bought as a person would.
+  await goTo(STORE);
+  for (let i = 0; i < 8; i++) await say('buy rations');
+  await goTo(QUARRY);
   at = QUARRY; // where a rest's drink comes back to
   await k.drainProse();
 }, 3_600_000);
@@ -596,13 +605,13 @@ suite('⭐ 14 — the keeper does it', () => {
     await goTo(SHOP);
     await goTo(GLASSHOUSE);
     let relined = await examine('kiln');
-    for (let h = 0; h < 2 && /burnt through|worn thin/i.test(relined); h++) {
+    for (let h = 0; h < 2 && /burnt through|worn thin|worn through/i.test(relined); h++) {
       await goTo(SHOP);
       await advance('1 hour');
       await goTo(GLASSHOUSE);
       relined = await examine('kiln');
     }
     expect(relined, 'the keeper relined it').not.toEqual(worn);
-    expect(relined).not.toMatch(/burnt through|worn thin/i);
+    expect(relined).not.toMatch(/burnt through|worn thin|worn through/i);
   }, 7_200_000);
 });
