@@ -155,7 +155,6 @@ export type TapRefusal =
   /** Nothing standing (`driedOff` — an `expire` tap given up for the season). */
   | ActRefusal<'nothing-standing', { key: string; driedOff: boolean }>
   | ActRefusal<'no-vessel'>
-  | ActRefusal<'no-material'>
   /** Something else in the vessel already (`held` — its material's name). */
   | ActRefusal<'material-mismatch', { held: string; vessel: Stuff }>
   /** A sap tree: every cut open and nothing run yet (`spiled` — it has one). */
@@ -919,8 +918,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       const shape = tap.yieldShape ?? 'mass';
       if (shape === 'volume') {
         if (!vessel) return { ok: false, reason: 'no-vessel' };
-        const material = yieldMaterial(tap);
-        if (!material) return { ok: false, reason: 'no-material' };
+        const material = await yieldMaterial(tap);
         const slot = BulkableApi.slotFor(vessel, undefined);
         const held = slot?.getMaterial() ?? null;
         if (slot && held && held !== material) {
@@ -1023,8 +1021,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       by: Stuff | null = null,
     ): Promise<number> {
       if (!vessel) return 0;
-      const material = yieldMaterial(tap);
-      if (!material) return 0;
+      const material = await yieldMaterial(tap);
       const to = BulkableApi.slotFor(vessel, undefined);
       if (!to) return 0;
       const source = await StuffApi.clone<Stuff & Bulkable>(
@@ -1147,9 +1144,15 @@ function defaultTakeMs(shape: 'mass' | 'volume' | 'count'): number {
  * row — the vessel is the object, so there is nothing to clone. Stated
  * on `TapSpec.yieldShape` too, because it is the one place the field's
  * meaning changes with another field's value.
+ *
+ * ⚠⚠ LOADED, never peeked: the take is the act that names the material, so
+ * it is the act's door (`ensure`, load-on-use D2). A `peek` here missed every
+ * milk row nothing else had loaded, and every cow answered "There is nothing
+ * to draw." while `look` read her heavy (soak repair, 2026-11-16). A row that
+ * does not exist throws — an authoring defect, loud.
  */
-function yieldMaterial(tap: TapSpec): Material | null {
-  return MaterialApi.materials().peek(tap.yieldRow) ?? null;
+function yieldMaterial(tap: TapSpec): Promise<Material> {
+  return MaterialApi.materials().ensure(tap.yieldRow);
 }
 
 /**
