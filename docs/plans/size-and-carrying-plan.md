@@ -4192,3 +4192,20 @@ No pitch-dark rooms by day, the stoop refusal names its form, the inventory
 tiers and the burden read in words, and the letter in the inner pocket shows
 on neither `i #id` nor `look #id` (which show the coat over the shirt, never
 the shirt under it). Final run, the world rebooted on `592a8fcba`: 3/3 ✓.
+
+## Handoff to /finalize (2026-11-16)
+
+The build and the owner's review are done: W0–W7 built, then review waves W8 (Carrying is one job) · W8i (a carrier routes what arrives) · W9 (what is IN a thing is its contents; pockets are chambers) · W10 (the cuts: `readies:` and homes retired, shut means shut, chambers that differ ask) · W10f/g (size is `ShapedMixin`; Tangible keeps matter only) · W10h (`inventory` retired; `i`/`inventory` are default aliases for `query --ledger me:i`) · W10i (`directMove` retired — `move` is the only call; handed things are no longer pre-checked) · W10j (forms are `shape` documents) · W10k (`lint:data-ideas`, `lint:view-keys`). Every wave's ✅ line and "Decided while building" block above is the record. **`/finalize` runs in a fresh session from this section.**
+
+**State at handoff:** branch `build/size-and-carrying` (MR !576), pushed, worktree clean; master is ~40 commits ahead (the navigation design docs + a docs cleanup) — merge it first. `.build-phase` reads `review`; set it to `suite` before the full suite (the hook refuses it otherwise).
+
+**Owed, in order:**
+1. Merge `origin/master`; drop this worktree's dev DB; `pnpm install` only if the pack graph moved.
+2. The full suite once (`tools/suite`). The last full run predates W8–W10k.
+3. The blocking drive (`packages/wire/tests/size-and-carrying.dirty.wire.test.ts`) on one world, `WIRE_PORT=2014` (a cold boot may need `WIRE_BOOT_TIMEOUT=900000`). ⚠ Steps rewritten during review and **never run against a world:** 1b, 3, 4, 5, 6, 7, 14b, 18 — expect fixes. Step 6 reads the fight beat via `eval` through `CombatApi.sessionFor(...)` (unverified that `eval` reaches it); step 14b asserts the theft via `title #pistol` (output shape unverified). Prove each rewritten checkpoint can fail (B2). Append the result to § Drive record.
+4. The browser walk (`e2e/tests/size-and-carrying-walk.spec.ts`) once — step 2 now types `i`.
+5. The code audit against `docs/review-questions.md` **P1–P14** (P9–P14 were added from this review — run them over the whole branch diff, not only the review waves).
+6. The sweep: CLAUDE.md one-line map entries for `docs/subsystems/carrying.md` and `size.md`; lower `lint:controller-resolution`'s ceiling to its measured 0; the three W10g commits (`4f272fc9c` · `7e7ac607f` · `263de1f26`) may be squashed at merge; the docs W8h left untouched (slot, embodiment, encumbrance, combat, command-spec, retail, identity, vitals) checked for stale carrying claims.
+7. Retirements: the requirements doc retires — first annotate the sections W10 superseded (§ Readying and reach: homes / naming an instrument readies it; the handed pre-check, D-W7a's handed half, retired 2026-11-15). This plan: keep only what is deferred (or retire it if the slates hold it all). `docs/slates/builds/size-slate.md`: graduate into `carrying.md`/`size.md`, salvaging open questions; `carrying-a-person-slate.md` stays. Slates this review spawned: `scripting-hand-economy-slate` (try-else, waiting on combat's beat, a fits predicate, aliases with arguments — and an alias `$1`-or-default form, since `i <target>` no longer works), pickpocketing (reach into a worn pack) — confirm both exist and are indexed.
+
+**Known oddities (decide or note at /finalize):** `buy`'s set-down line arrives before "You buy the loaf…"; `give saddle to mule` now sets the saddle down (tack goes on with `put saddle on mule`); Rejection's fuel-yard 20 m³ gasometer fits only while that yard is open-sky; `lint:data-ideas` counts 13 data-only Ideas (candidates for future document conversions, listed in its `--report`).
