@@ -1,6 +1,6 @@
 # Navigation server pass — requirements
 
-**Status:** DRAFT — 2026-11-16.
+**Status:** AGREED — 2026-11-16 (the builder lens on the map parked to map-slate).
 
 **Kind:** feature (server half of the navigation build)
 **Leads from:** kernel. **First consumer:** the navigation pane
