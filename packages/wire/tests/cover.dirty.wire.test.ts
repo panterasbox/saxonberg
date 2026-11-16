@@ -232,10 +232,10 @@ async function drink(): Promise<void> {
 /** Where the hand last stood (set by {@link goTo}). */
 let here = '';
 
-async function goTo(where: string): Promise<void> {
+async function goTo(where: string, committees?: string[]): Promise<void> {
   here = where;
   p?.close();
-  p = await Session.open(handle, { startLocation: where });
+  p = await Session.open(handle, { startLocation: where, ...(committees ? { committees } : {}) });
   await p.drainProse();
 }
 
@@ -311,6 +311,10 @@ function bandOf(said: string): number {
  */
 async function collegeHead(index: number): Promise<number> {
   await goTo(YARD);
+  // ⭐ Only a keeper drafts (controller liquidity D9): a hand on shift for
+  // the farm that works the herd's ground. A body leaving the world ends
+  // its shift, and every `goTo` is a fresh login — so clock on in the yard.
+  await doing(p, 'clock on');
   const said = await doing(p, `draft ${index}`);
   await doing(p, 'return cow');
   const band = bandOf(said);
@@ -376,9 +380,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   it('13a. the college herd is on the home field, and is moved by a keeper only', async () => {
     await goTo(YARD);
     expect(await read(p, 'look herdbook')).toMatch(/grazing the (far side of the )?home field/i);
-    // A stranger is refused — the herd, and the field.
-    await refused(p, 'move college herd to back paddock', 'not-keeper');
+    // A stranger is refused — the herd, and the field. ⚠ Asked from the
+    // home field: `move` finds the field among the ways from where the
+    // keeper stands, and the back paddock is reached only through the home
+    // field — from the yard it is `no-such-field`, which is asked BEFORE
+    // the keeper (controller liquidity W3).
     await doing(p, 'go field');
+    await refused(p, 'move college herd to back paddock', 'not-keeper');
     await refused(p, 'plant wheat', 'not-held');
     await doing(p, 'go yard');
     // Hired: the labourer's seat.
@@ -635,7 +643,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect(await read(p, 'look')).toMatch(/head of the Delight flock are grazing it/i);
     // ⭐ And she milks: the pasture and the rick behind it kept her in
     // condition, and milk follows condition.
-    await goTo(BYRE);
+    // ⭐ Seated on the Delight's committee: only a keeper drafts (controller
+    // liquidity D9) — whoever holds the herd's home ground, or a hand on
+    // shift for the business that works it — and the dairy's one seat is
+    // the dairy lad's. Seated only now: step 9 needs the hand a stranger
+    // on the Delight's bench.
+    await goTo(BYRE, ['/world/terminus/hearts-delight']);
     await act(p, 'get 1 pail');
     const cow = await doing(p, 'draft 1 from dairy');
     expect(bandOf(cow), 'the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);

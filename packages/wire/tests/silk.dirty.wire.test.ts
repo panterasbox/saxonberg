@@ -488,7 +488,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 10–11. boil the cloth white, and dye
       await say(s, 'stoke log into brazier');
       const lit = await say(s, 'light brazier');
       expect(refusedFor(lit) ?? 'ok', 'the dyehouse brazier lights').toMatch(/ok|already/);
-      expectOk(await say(s, 'heat copper'));
+      // ⚠ (soak repair 2026-11-16) Set ON the fire, not `heat`ed: a vessel
+      // that is not a build is `put … on` the fire (controller liquidity
+      // W7c — `heat` is for a build or an instrument held in the flame).
+      expectOk(await say(s, 'put copper on brazier'));
       expectOk(await say(s, 'put bolt in copper'));
       expect(await read(s, 'look bolt in copper')).toMatch(/stiff in the gum|gum/i);
       let look = '';

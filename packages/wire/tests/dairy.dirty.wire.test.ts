@@ -315,11 +315,16 @@ beforeAll(async () => {
   const opened = await k.cmd('bank open');
   expect(refusedFor(opened)).toBeNull();
   k.close();
-  // ⭐ Seated on the Delight's committee: since controller liquidity (D9)
-  // only a keeper drafts — whoever holds the herd's home ground, or a hand
-  // on shift for the business that works it — and the dairy book's home is
-  // the Delight (finalize: a stranger's `draft` is refused `not-keeper`).
-  k = await Session.open(handle, { startLocation: BYRE, committees: ['/world/terminus/hearts-delight'] });
+  // ⭐ Seated on the committees over the herds' home ground: since
+  // controller liquidity (D9) only a keeper drafts — whoever holds the
+  // herd's home ground, or a hand on shift for the business that works it.
+  // The dairy book, the calf register and the flock are the Delight's; the
+  // nannies' home is Rejection's goat pen (a stranger's `draft` is refused
+  // `not-keeper`). A seat is a group row, so it outlives every `goTo`.
+  k = await Session.open(handle, {
+    startLocation: BYRE,
+    committees: ['/world/terminus/hearts-delight', '/world/terminus/rejection'],
+  });
   await k.drainProse();
 }, 300_000);
 

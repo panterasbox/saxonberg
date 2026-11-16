@@ -666,7 +666,11 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
         'the chandlery floor is standing',
       ).toMatch(/dip|pot|wick|candle|vat/);
 
-      for (const word of ['melt', 'dip']) {
+      // ⚠ (soak repair 2026-11-16) `dip` alone: one view, one word —
+      // melting is the first step of the dip, not a second verb (the
+      // view's own header), and `melt` was deleted. The carcass chain's
+      // step 16 made the same move.
+      for (const word of ['dip']) {
         const out = await say(chandler, word);
         const said = (await out.said()).toLowerCase();
         expect(

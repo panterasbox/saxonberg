@@ -251,7 +251,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ the wash ferments, and new-make become
   }, 900_000);
 
   it('the wash ferments over six game days', async () => {
+    // ⚠ (soak repair 2026-11-16) The order is ASSERTED: a mash refused for
+    // want of grist used to pass on whatever the vat already read.
     const mashed = await say(k, 'order wash-mash');
+    expectOk(mashed);
     await settle(k, mashed);
     await advance('6 days');
     await waitForDaylight(k);

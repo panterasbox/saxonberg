@@ -166,6 +166,13 @@ suite('the ley and the furrow', () => {
 suite('the herdbook — you file, you do not hold the pen', () => {
   beforeAll(async () => {
     expectOk(await p.cmd('go yard'));
+    // ⚠ (soak repair 2026-11-16) Only a keeper drafts (controller
+    // liquidity D9): a hand on shift for the farm that works the herd's
+    // ground. Refused, `draft 3` answers "the college herd is not yours to
+    // draft from" — which the alternation below would have passed on. So
+    // the labourer's seat, and clock on (the cover drive's shape).
+    expectOk(await p.cmd('job apply for labourer'));
+    expectOk(await p.cmd('clock on'));
     await p.drainProse();
   }, 60_000);
 

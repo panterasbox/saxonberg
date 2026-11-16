@@ -361,12 +361,14 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   it('⭐ drive 13 — tar boils to pitch through the shipped arrow', async () => {
     // Zero code: `purifiedByBoiling` is the arrow between two authored
     // materials, and the phase engine fires it once the tar has been held
-    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c): `heat`
-    // sets the vessel on the fire and the pot holds at the boil; this line
-    // proves the verb routes (the swap itself is Thermal.purify.test.ts's
-    // claim).
-    const boiled = await say(f, 'heat condenser');
-    understood(boiled, 'heat condenser');
+    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c), and a
+    // vessel is not `heat`ed in the hands either (controller liquidity
+    // W7c): it is SET ON the fire, `put … on`, and the pot holds at the
+    // boil there; this line proves the verb routes (the swap itself is
+    // Thermal.purify.test.ts's claim). ⚠ (soak repair 2026-11-16) The
+    // condenser may still stand on the retort from drive 11.
+    const boiled = await say(f, 'put condenser on retort');
+    understood(boiled, 'put condenser on retort');
   }, 180_000);
 });
 

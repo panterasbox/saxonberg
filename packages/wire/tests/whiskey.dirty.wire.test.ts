@@ -89,6 +89,7 @@ declareFile({
 });
 
 const FLOOR = '/world/terminus/goods-yards/crowsfoot/location/floor';
+const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 
 let k: Session;
@@ -434,12 +435,48 @@ suite.skipIf(!isOwnedTestWorld())(
 /* ───────────────── 4. the run — charge, heat, smell, cut ───────────────── */
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
+  it('the distiller mills her own grist: malt bought, ground at the quern', async () => {
+    // ⚠ (soak repair 2026-11-16) The mash wants GRIST since the grain
+    // chain (whole malt does not mash), and the floor's own malt sack is
+    // the maltings' empty one. So the distiller does what a player would:
+    // buys a sack of malt at the cash-and-carry and grinds it at the
+    // floor's quern, both hands on the handle — her own grist, not the
+    // counter's dearer sack of it. (The whiskey.soak twin's step.)
+    k.close();
+    k = await Session.open(handle, { startLocation: CASH_AND_CARRY });
+    // ⚠ `"malt sack"`, not `malt`: the grist sack answers to `malt` too.
+    let bought = await say(k, 'buy "malt sack"');
+    for (let i = 0; i < 6 && bought.status !== 'ok'; i++) {
+      await advance('1 hour');
+      bought = await say(k, 'buy "malt sack"');
+    }
+    expectOk(bought);
+    k.close();
+    k = await Session.open(handle, { startLocation: FLOOR });
+    await waitForDaylight(k);
+    const sacks = await k.query('me:i:[keyword.malt]', { fields: ['displayName'] });
+    const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
+    expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
+    const milling = await say(k, `mill #${sack} at quern`);
+    const id = engagementIdOf(milling);
+    // A quern grinds a quarter-kilo a game-minute: the sack is under two
+    // hours of cranking, carried by the clock.
+    await advance('2 hours');
+    if (id) await k.awaitActivity(id, 120_000);
+    await new Promise((r) => setTimeout(r, 500));
+    const grist = await k.query('reachable:[keyword.grist]', { fields: ['displayName'] });
+    expect(grist.length, `no grist after the grind: ${await carried(k)}`).toBeGreaterThan(0);
+  }, 900_000);
+
   it('⭐ the wash is mashed and the vat reads', async () => {
     // Mash first. The vat is the still-house's own. ⛔ The six-day
     // ferment is a SPAN step and lives in whiskey.soak.dirty (the
     // soak-harness census); what blocks is that the mash runs and the
     // vat reads.
+    // ⚠ (soak repair 2026-11-16) The order is ASSERTED: a mash refused
+    // for want of grist used to pass on whatever the vat already read.
     const mashed = await say(k, 'order wash-mash');
+    expectOk(mashed);
     await settle(k, mashed);
     const vat = await read(k, 'look vat');
     expect(vat.length).toBeGreaterThan(20);

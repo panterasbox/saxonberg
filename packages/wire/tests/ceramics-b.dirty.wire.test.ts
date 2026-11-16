@@ -269,13 +269,14 @@ beforeAll(async () => {
   handle = uniqueHandle('liner');
   const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
-  bank.close();
+  // ⭐ The payee must still be in the world: a closed session leaves it at once.
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
     expectOk(await gov.cmd(`reserve override 400 to ${handle} "wire: ceramics drive B"`));
   } finally {
     gov.close();
   }
+  bank.close();
   // ⛔ STAGED (soak-harness census): the walk to the warm season lives in
   // ceramics-b.soak.dirty; here the firebricks arrive bone-dry (step 10).
   await toHour(9, 15);
