@@ -85,6 +85,19 @@ export default class GetController extends CommandController<GetModel> {
       }
       if (stuff.length > 0 && MixinApi.isCarrying(giver)) return this.takeFromBody(giver, source, stuff, context);
     }
+    // ⭐ Shut means shut (D-W10-12): nothing in a shut thing is perceived,
+    // so nothing is named — the refusal names the next command, as `put`'s
+    // and the reach gate's do (finalize drive, step 14b: it read *"You
+    // don't find any 'pistol' in a canvas backpack"*, as if looked in).
+    if (source && stuff.length === 0 && !source.isAgent() && MixinApi.isSealable(source) && !source.isOpen()) {
+      const kw = (MixinApi.isPerceptible(source) ? source.getPrimaryKeyword() : undefined) ?? source.presentationPhrase().bare();
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.thing(source)} is shut — \`open ${kw.includes(' ') ? `"${kw}"` : kw}\` first.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'shut', detail: `${source.getPresentation()} is closed` });
+      return;
+    }
     if (source && stuff.length === 0) {
       MessageApi.scene(giver)
         .topic('sense.survey')
