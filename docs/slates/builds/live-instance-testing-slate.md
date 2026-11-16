@@ -241,8 +241,8 @@ subsystem at a time, starting with the core experiences the stream depends on.
 - **1 pedagogy** — neutral; it protects the worlds the teaching happens in.
 - **2 creative expression** — the loss record protects what players *made* across a migration; the
   aged world is where personalization (a derivative of supply-chain depth) actually accumulates.
-- **3a immersion** — the harness off (§ 3) is immersion's floor on a shared world; resident
-  characters are the one fork (§ 5).
+- **3a immersion** — the harness off (§ 3) is immersion's floor on a shared world; whether a player
+  sees a resident's mark is the spoiler system's answer (§ 5).
 - **3b participation** — appeals through governance make migration loss a thing the polity handles,
   not a support ticket.
 - **4 values** — the loss-volume gate (§ 7.3) and what marked standing does at a tally (§ 5b) have no derivable
