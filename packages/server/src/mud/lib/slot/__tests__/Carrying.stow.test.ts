@@ -11,7 +11,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installShapes } from '../../spatial/__tests__/size-fixture';
-import { makeBody, wornBag, wornGarment } from './carrying-fixture';
+import { makeBody, wornBag, wornGarment, pack, tool } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
@@ -64,6 +64,29 @@ describe('Carrying.stow — off the hands, by the one order (D-W10-2)', () => {
     expect(me.tierOf(mug)).toBe('hand');
     expect(me.stow(mug)).toBeNull();
     expect(mug.getContainer()).toBe(satchel);
+  });
+
+  // ⭐ Finalize drive run 15, step 6: `unwield sword` put an arming sword up
+  // in the belt pouch beside its own scabbard — the pouch hung first, and an
+  // open pouch lets a rod stand out of its mouth. A holder SHAPED for the
+  // thing (the scabbard for its sword, the holster for its pistol) is where
+  // it is put away, before the order's first fit.
+  it('a holder shaped for the thing takes it before the first place that merely fits', () => {
+    const room = makeStuff(() => new Location());
+    const { me, plan } = makeBody();
+    ContainmentApi.move(me, room);
+    const satchel = wornBag(me, plan, 'satchel', 'torso');
+    const scabbard = pack('scabbard', 0.3, [0.06, 0.02, 0.95], 'WieldableMixin');
+    scabbard.setSlotClaims({ [plan]: ['waist'] });
+    me.seatInSlot(scabbard as never, 'waist');
+    const sword = tool('sword', 1.2, [0.05, 0.01, 0.9]);
+    ContainmentApi.move(sword, room);
+    ContainmentApi.move(sword, me);
+    expect(me.tierOf(sword)).toBe('hand');
+    expect(satchel.fitRefusal(sword)).toBeNull(); // the satchel would take it too
+    expect(me.stowPlaceFor(sword)?.host).toBe(scabbard);
+    expect(me.stow(sword)).toBeNull();
+    expect(sword.getContainer()).toBe(scabbard);
   });
 
   it('a key goes to a pocket before the satchel', async () => {

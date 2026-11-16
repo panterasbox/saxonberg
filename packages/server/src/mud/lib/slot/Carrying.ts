@@ -762,8 +762,8 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
 
     /**
      * ⭐ The places a thing may go on this body short of a hand, in D11's
-     * order: worn pockets, what hangs from a worn host, worn containers off
-     * the back, then the pack on the back.
+     * order: a holder shaped for its kind, worn pockets, what hangs from a
+     * worn host, worn containers off the back, then the pack on the back.
      */
     private carryPlaces(): CarryPlace[] {
       const self = this as unknown as Stuff & Slotted & Container;
@@ -816,7 +816,14 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
           hung.push({ host: c });
         }
       }
-      return [...pockets, ...hung, ...ready, ...packed];
+      // ⭐ A holder SHAPED for its kind — a scabbard, a holster — comes
+      // first: it takes nothing else (`isShapedFor`), so it changes the
+      // order only for the thing it was made for, and that thing is put up
+      // there rather than standing out of an open pouch hung before it
+      // (finalize drive run 15, step 6). Off the back is still off the back.
+      const near = [...pockets, ...hung, ...ready];
+      const shaped = near.filter((p) => p.region === undefined && (p.host as Stuff & Container).getShapedTo() !== null);
+      return [...shaped, ...near.filter((p) => !shaped.includes(p)), ...packed];
     }
 
     /** Would `place` take `item` — the region's `canPlace`, the container's tape measure? */

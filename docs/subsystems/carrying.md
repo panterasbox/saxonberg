@@ -203,7 +203,7 @@ no flag. `query --ledger` (`i`) buckets what is directly on a body by `tierOf`
 controller's `tiersOf`; a worn garment's pockets print by region under
 *Ready*, and a **holder** is a container with an inside of its own — a
 satchel, never a coat); the carrier's private `carryPlaces()` is the
-arrival walk's order: worn pockets, then containers hung from or pocketed
+arrival walk's order: a holder shaped for the thing's kind, worn pockets, then containers hung from or pocketed
 on a worn host (a purse in a coat pocket is one — W9), then worn
 containers with an inside off the back, then the back. A `CarryPlace` is
 `{ host: Container; region? }` — a pocket's host is a Container now.
@@ -249,7 +249,8 @@ region }`), `PerceptionLogic.holdersAdmit` (a shut chamber hides), pressing
 
 `stow(held): ArrivalRefusal | null` is **the route off the hands**: the
 first of the carrier's places that takes it, in D11's order and nothing
-else — a pocket of a worn garment, a hook on a worn host (`from`), a
+else — a holder shaped for its kind (a scabbard, a holster: it takes nothing
+else, so it reorders only for its own thing — finalize run 15), a pocket of a worn garment, a hook on a worn host (`from`), a
 container hung or pocketed there, a worn bag off the back, the pack on the
 back (`carryPlaces()`). Nothing takes it → `nowhere-to-carry { item, held,
 tried }`, **nothing moves, it stays in the hand** — never the floor (that
