@@ -4,7 +4,8 @@
  * derived (true iff it offers no enclosing region). Volume and fit are per
  * chamber, never summed. Chambers alike in every way the world cares about
  * are the container's to fill (the first that fits); chambers that differ
- * are the player's to choose (`put` asks).
+ * are the player's to choose (`put` asks) and the caller's to name (`move`
+ * with no region word throws, finalize R3).
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -87,5 +88,21 @@ describe('Container — chambers (D-W10-14)', () => {
     carry(me, k);
     const asked = put(k, coat, me, 'in');
     expect(asked).toMatchObject({ ok: false, reason: 'preposition-ambiguous', facts: { regions: ['left pocket', 'right pocket', 'breast pocket', 'inner pocket'] } });
+  });
+
+  it('⭐ differing chambers: `move(x, host)` with no region word throws naming them — never picks (finalize R3)', async () => {
+    const room = makeStuff(() => new Location());
+    const p = pack('satchel', 0.5, [0.3, 0.1, 0.25]);
+    ContainmentApi.move(p, room);
+    await p.setPlacements(DIFFER);
+    const k = key();
+    ContainmentApi.move(k, room);
+    // Asked dry, the same refusal — so a verb or a drift refuses or skips.
+    expect(ContainmentApi.arrivalRefusal(k, p)).toMatchObject({ reason: 'refused-by-container' });
+    expect(() => ContainmentApi.move(k, p)).toThrow(/"left pocket", "right pocket", "breast pocket", "inner pocket", which differ/);
+    expect(k.getContainer()).toBe(room);
+    // Named, it goes exactly there.
+    ContainmentApi.move(k, p, 'inner pocket');
+    expect(k.getPlacement()).toEqual({ host: p, name: 'inner pocket' });
   });
 });

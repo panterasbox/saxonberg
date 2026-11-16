@@ -507,13 +507,23 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
       if (how?.placed === true || this.hasInterior()) return { kind: 'contents' };
       // ⭐ No inside of its own (W9, D-W9-4): the destination decides the
-      // region — its first enclosing one that takes the thing.
+      // region — among chambers that are ALIKE (two side pockets), the first
+      // that takes the thing. ⭐⭐ Chambers that DIFFER are never chosen
+      // between (finalize R3, P14 — "fridge then freezer" is an invented
+      // main chamber): with no region word it refuses, naming them, and
+      // `move` throws that worded `ContainmentError`. The caller names one.
       const self = this as unknown as Stuff & Container;
       let reason: string | null = null;
       let shut: string | null = null;
       if (MixinApi.isPlacing(self)) {
-        for (const name of self.getPlacements()) {
-          if (!self.placementOf(name).getEncloses()) continue;
+        const chambers = self.getPlacements().filter((n) => self.placementOf(n).getEncloses());
+        if (!self.alikeChambers(chambers)) {
+          const said =
+            `${self.presentationPhrase().definite()} has ${chambers.map((n) => `"${n}"`).join(', ')}, ` +
+            'which differ — say which';
+          return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said } } };
+        }
+        for (const name of chambers) {
           const veto = self.canPlace(item, name);
           if (veto.ok) return { kind: 'pair', host: self, region: name };
           if (veto.reason === 'shut') shut ??= name;
