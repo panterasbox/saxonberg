@@ -502,12 +502,12 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
   it('6. [short · staged] a hand act in a fight is a guarded beat by holder — a scabbard, the open pouch, a buttoned pocket opened first; drop is free', async () => {
     const f = await person('scbeat', TREELINE, { wizard: true, parcels: ['/world/newbie-wilds'] });
     await don(f, T.belt);
-    await give(f, T.pouch);
-    await give(f, T.scabbard);
+    const pouch = await give(f, T.pouch);
+    const scabbard = await give(f, T.scabbard);
     await give(f, T.sword);
-    expectDone(await say(f, 'put sword in scabbard'));
-    await give(f, T.compass);
-    expectDone(await say(f, 'put compass in pouch'));
+    expectDone(await say(f, `put sword in #${scabbard}`));
+    const compass = await give(f, T.compass);
+    expectDone(await say(f, `put #${compass} in #${pouch}`));
     // A key in the coat's buttoned breast pocket (the shirt off, so the
     // coat's is the only breast pocket); the pocket starts shut.
     const shirt = await say(f, 'remove shirt');
@@ -525,32 +525,65 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
       const r = await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(CombatApi.sessionFor(StuffApi.findById('${me}'))?.getState(StuffApi.findById('${me}'))?.weaponSwitch?.getRemaining() ?? 0)`);
       return Number(/"?([0-9.]+)"?\s*$/.exec(r.w)?.[1] ?? NaN);
     };
+    // ⚠ A one-beat act can land before the next command reads it (run 15:
+    // the pouch reach read 0, its landing line already in the reply). An
+    // act that said its guard dropped took a beat at least.
+    const beatAfter = async (said: string): Promise<number> => {
+      const n = await beat();
+      return /guard drops/i.test(said) ? Math.max(1, n) : n;
+    };
     const settle = async (): Promise<void> => {
       for (let i = 0; i < 20 && (await beat()) > 0; i++) await new Promise((r) => setTimeout(r, 1_000));
     };
-    expectDone(await say(f, 'attack wolf'));
+    // ⚠ Every hand act below is asserted IN a fight, and a real fight ends
+    // (run 15: the arming sword killed the treeline wolf, then the
+    // sellsword, mid-step). So the fight is a bout with a sparring partner
+    // — another person, the frictionless non-lethal default — and when one
+    // ends a fresh partner steps in.
+    const inFight = async (): Promise<boolean> =>
+      /"?true"?\s*$/.test((await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(!!CombatApi.sessionFor(StuffApi.findById('${me}')))`)).w);
+    const keepFighting = async (): Promise<void> => {
+      for (let i = 0; i < 3 && !(await inFight()); i++) {
+        const partner = await person('scspar', TREELINE);
+        await say(f, `attack ${await idOf(partner)}`);
+      }
+    };
+    // A guarded act, IN a fight: if the bout ended between the check and the
+    // act, the act landed at once (as outside a fight it should) — put it
+    // back with `undo` and go again with a fresh partner.
+    const inFightAct = async (cmd: string, undo?: string): Promise<{ r: CommandResult; w: string }> => {
+      for (let i = 0; i < 4; i++) {
+        await keepFighting();
+        const out = await say(f, cmd);
+        if (/guard drops/i.test(out.w) || (out.r.status !== 'ok' && !/not in a fight/i.test(out.w))) return out;
+        if (undo !== undefined && out.r.status === 'ok') await say(f, undo);
+      }
+      throw new Error(`${cmd}: never ran inside a fight`);
+    };
     // ⭐ A weapon comes by `fight switch`; anything else by the hand act
     // itself — `get … from …` in a fight is a guarded beat (D-W10-5). A
     // compass or a key is not a weapon, and an instrument is used where it
     // sits (W10), so the drive times the GET, never a switch to it.
-    expectDone(await say(f, 'fight switch sword'));
-    const fromScabbard = await beat();
+    const drew = await inFightAct('fight switch sword');
+    expectDone(drew);
+    const fromScabbard = await beatAfter(drew.w);
     await settle();
     expectDone(await say(f, 'unwield sword'));
     await settle();
-    const pouchGet = await say(f, 'get compass from pouch');
+    const pouchGet = await inFightAct(`get #${compass} from #${pouch}`, `put #${compass} in #${pouch}`);
     expect(pouchGet.w).toMatch(/guard drops/i);
-    const fromPouch = await beat();
+    const fromPouch = await beatAfter(pouchGet.w);
     await settle();
     // ⭐ The buttoned pocket is SHUT: refused naming `open`, then opening it is its own beat.
     expectRefused(await say(f, `get #${keyId} from "breast pocket"`), key('6', /breast pocket is shut — `open "breast pocket"` first/i));
-    const opened = await say(f, 'open "breast pocket"');
+    const opened = await inFightAct('open "breast pocket"', 'close "breast pocket"');
     expect(opened.w).toMatch(/guard drops/i);
-    const unfasten = await beat();
+    const unfasten = await beatAfter(opened.w);
     await settle();
-    expectDone(await say(f, 'drop compass'));
-    expectDone(await say(f, `get #${keyId} from "breast pocket"`), /guard drops/i);
-    const fromPocket = await beat();
+    expectDone(await say(f, `drop #${compass}`));
+    const fromBreast = await inFightAct(`get #${keyId} from "breast pocket"`, `put #${keyId} in "breast pocket"`);
+    expectDone(fromBreast, /guard drops/i);
+    const fromPocket = await beatAfter(fromBreast.w);
     await settle();
     record.push(`fight beats: scabbard ${fromScabbard}, pouch ${fromPouch}, unfasten ${unfasten}, pocket ${fromPocket}`);
     // The seconds add and ROUND to beats (requirements § Readying): at the
@@ -558,22 +591,14 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     // are one beat each, so the scabbard is never the slower.
     expect(fromScabbard, 'a scabbard is the quick draw').toBeLessThanOrEqual(fromPouch);
     expect(unfasten + fromPocket, 'the buttoned pocket costs more than the open pouch').toBeGreaterThan(b2('6') ? unfasten + fromPocket : fromPouch);
-    // ⚠ The wolf may be dead or fled by now (the first half is a real
-    // fight): the second half needs one, so join another if it ended.
-    const inFight = async (): Promise<boolean> =>
-      /"?true"?\s*$/.test((await say(f, `eval --parcel /world/newbie-wilds JSON.stringify(!!CombatApi.sessionFor(StuffApi.findById('${me}')))`)).w);
-    for (const foe of ['wolf', 'sellsword']) {
-      if (await inFight()) break;
-      await say(f, `attack ${foe}`);
-    }
-    expect(await inFight(), 'a fight for the second half').toBe(true);
     // A mug in the other hand: the greatsword is refused naming the mug and `drop mug`.
     await give(f, T.mug);
     await give(f, T.greatsword);
-    const gs = await say(f, 'fight switch greatsword');
+    const gs = await inFightAct('fight switch greatsword');
     expectRefused(gs, /mug[\s\S]*`drop mug`|`drop mug`[\s\S]*mug/i);
-    // `put mug in pouch` in the fight: the guard drops, and the mug lands at the beat's end.
-    const put = await say(f, 'put mug in pouch');
+    // `put key in pouch` in the fight: the guard drops, and the key lands at
+    // the beat's end. (A mug will not pass a belt pouch's mouth — run 15.)
+    const put = await inFightAct(`put #${keyId} in #${pouch}`, `get #${keyId} from #${pouch}`);
     expect(put.w).toMatch(/guard drops/i);
     expect(await beat()).toBeGreaterThan(0);
     await settle();
@@ -769,7 +794,11 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect(squash(await b.prose('look in backpack'))).toMatch(key('14b', /pistol/i));
     expectDone(await say(b, 'get pistol from backpack'));
     expect(await inv(b)).toMatch(/pistol/i);
-    expect((await say(b, `title #${pistol}`)).w, 'still A\'s on the ledger').toMatch(new RegExp(a.handle, 'i'));
+    // Still A's on the ledger: the chattel's owner reads in `look` — A, who
+    // is in the room, reads it as theirs; B, who holds it, does not. (`title`
+    // is real property, not a movable's owner — run 15.)
+    expect(squash(await a.prose(`look #${pistol}`)), 'still A\'s on the ledger').toMatch(/Owned by you/i);
+    expect(squash(await b.prose(`look #${pistol}`)), 'not the taker\'s').not.toMatch(/Owned by you/i);
   }, 240_000);
 
   it('15. [instant · staged] knocked out mid-fight: the sword falls, the belt stays; the letter is found only by searching, and only by the searcher', async () => {
