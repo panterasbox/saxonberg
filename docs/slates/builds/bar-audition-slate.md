@@ -229,16 +229,20 @@ What the record needs:
 It is an advancement question as much as a crafting one. Declared intent (recipes § 1) is what
 makes a miss recordable at all: without a declaration, an off-spec drink failed at *nothing*.
 
-## 10. ⭐⭐ Both routes cost nothing **[LEAN]**
+## 10. ⭐⭐ Both routes are open to someone with no money **[LEAN]**
 
 The backstop is survivable but thin, so the character trying to climb off the floor is broke by
-definition. **Both routes to a hire must be free**:
+definition. **Both routes to a hire must be reachable with no money**:
 - the audition's well is stocked by the house;
-- the classroom's well is stocked by the university;
-- the exam has no fee;
+- the classroom's well is stocked by the university, from its endowment
+  ([classroom-and-credential-slate](./classroom-and-credential-slate.md) § 7);
+- **enrollment may be paid in time**, through an obligation clause, rather than in money. That is
+  campus-grounds Part 4's synthesis: *enrollment is a contract whose consideration may be money,
+  time, or both.* The college slate's "enrollment costs money" stands for anyone who can pay; it
+  is never the only consideration;
 - the study material is Wikipedia.
 
-If either route costs money, the backstop becomes a trap. A probe can assert this
+If either route needs money, the backstop becomes a trap. A probe can assert this
 (live-instance-testing § 4).
 
 ## 11. Open
