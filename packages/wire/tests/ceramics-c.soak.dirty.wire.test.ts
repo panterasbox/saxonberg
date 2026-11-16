@@ -296,6 +296,45 @@ async function freshIn(s: Session, query: string, act: () => Promise<unknown>): 
 }
 let novicesFirstMug = '';
 
+/**
+ * ⭐⭐ The potter's own pieces BY ID, each captured by the act that made it
+ * (15), keyed by the word its form answers to (`plant pot` → `pot`). A
+ * piece's look no longer says whose it is: the "Made by" line is the
+ * vessel's verdict, quiet on an UNUSED vessel — green and bisque ware is
+ * empty — and the maker's name in it is the viewer's knowledge
+ * (client-surface W0). Filtering on "Made by <handle>" found nothing.
+ */
+const made: Record<string, string[]> = {};
+const madeOf = (key: string, i = 0): string | undefined => made[key]?.[i];
+/** The novice's first mug, by id (15). */
+let novicesMug: string | undefined;
+/** The two glazed crocks, by id (18). */
+let ashpot: string | undefined;
+let leadpot: string | undefined;
+
+/** Throw one piece and keep its id under `key` — the piece the act left in hand. */
+async function throwPiece(s: Session, key: string, form: string): Promise<{ id: string | undefined; said: string }> {
+  let said = '';
+  const id = await freshIn(s, `me:i:${key}`, async () => {
+    said = (await act(s, `shape clay into ${form}`, '1 hour')).said;
+  });
+  if (id) (made[key] ??= []).push(id);
+  return { id, said };
+}
+
+/** A piece's detail prose, by id, wherever it is. */
+async function detailOf(s: Session, id: string | undefined): Promise<string> {
+  if (!id) return '';
+  const rows = (await s.query(`#${id}`, { fields: 'detail' }).catch(() => [])) as { longDescription?: unknown }[];
+  return String(rows[0]?.longDescription ?? '');
+}
+
+/** The ids `query` lists — what is in reach there. */
+async function idsIn(s: Session, query: string): Promise<Set<string>> {
+  const rows = (await s.query(query, { fields: 'ref' }).catch(() => [])) as { stuffId?: string }[];
+  return new Set(rows.map((r) => r.stuffId ?? '').filter((x) => x !== ''));
+}
+
 beforeAll(async () => {
   // ⭐ A potter makes in the working season: wet ware on an unheated shop
   // floor bursts in a frost (run 31's jug and bowls, in A's winter).
@@ -320,9 +359,13 @@ afterAll(() => {
 suite('⭐ 15 — throw at your band', () => {
   it('a novice throws a heavy, thick-walled mug', async () => {
     novice = await clayFor(novice, 2);
-    const thrown = await act(novice, 'shape clay into mug', '1 hour');
-    expect(thrown.said, `the novice's mug: ${thrown.said}`).toMatch(/mug/i);
-    novicesFirstMug = await examine(novice, 'me:i:mug');
+    let thrown = '';
+    novicesMug = await freshIn(novice, 'me:i:mug', async () => {
+      thrown = (await act(novice, 'shape clay into mug', '1 hour')).said;
+    });
+    expect(thrown, `the novice's mug: ${thrown}`).toMatch(/mug/i);
+    expect(novicesMug, 'the novice\'s mug, by id').toBeDefined();
+    novicesFirstMug = await examine(novice, `#${novicesMug}`);
     expect(novicesFirstMug, 'the novice mug reads its wall').toMatch(/heavy|thick/i);
   }, 1_800_000);
 
@@ -336,40 +379,51 @@ suite('⭐ 15 — throw at your band', () => {
 
   it('a practiced potter throws a LIGHT mug, and a tall jug holding 3 pints, and names it', async () => {
     potter = await clayFor(potter, 6);
-    await act(potter, 'shape clay into mug', '1 hour');
-    const mug = await examine(potter, 'me:i:mug');
+    const mugId = (await throwPiece(potter, 'mug', 'mug')).id;
+    expect(mugId, 'the practiced mug, by id').toBeDefined();
+    const mug = await examine(potter, `#${mugId}`);
     expect(mug, 'the practiced mug').toMatch(/light|thin/i);
     expect(mug).not.toEqual(novicesFirstMug);
-    const jug = await act(potter, 'shape clay into tall jug holding 3 pints', '1 hour');
+    const jug = await throwPiece(potter, 'jug', 'tall jug holding 3 pints');
     expect(jug.said, `the jug: ${jug.said}`).toMatch(/jug/i);
-    expect(await examine(potter, 'me:i:jug')).toMatch(/tall|pint/i);
-    const named = await say(potter, "name jug Mother's jug");
+    expect(jug.id, 'the jug, by id').toBeDefined();
+    expect(await examine(potter, `#${jug.id}`)).toMatch(/tall|pint/i);
+    const named = await say(potter, `name #${jug.id} Mother's jug`);
     expect(named).toMatch(/mother/i);
     expect(await held(potter), 'the jug answers to its name').toMatch(/Mother's jug/i);
     // The rest of the day's pieces — two crocks, a jar, a thin bowl, a
-    // handle, a plant pot — for 16 onward.
-    for (const form of ['crock', 'crock', 'jar', 'jar', 'bowl', 'bowl', 'handle', 'plant pot']) {
-      await act(potter, `shape clay into ${form}`, '1 hour');
+    // handle, a plant pot — for 16 onward, each kept by id.
+    for (const [key, form] of [
+      ['crock', 'crock'],
+      ['crock', 'crock'],
+      ['jar', 'jar'],
+      ['jar', 'jar'],
+      ['bowl', 'bowl'],
+      ['bowl', 'bowl'],
+      ['handle', 'handle'],
+      ['pot', 'plant pot'],
+    ] as const) {
+      await throwPiece(potter, key, form);
     }
     expect(await held(potter)).toMatch(/crock/i);
+    expect(made['crock']?.length ?? 0, 'the two crocks, by id').toBe(2);
   }, 3_600_000);
 });
 
 suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
   it('at leather-hard: a foot turned, a handle joined, the potter’s stamp pressed in', async () => {
-    // On the boards to dry (there is no `drop all`: each piece by name).
-    for (const piece of ['mug', 'jug', 'crock', 'crock', 'jar', 'jar', 'bowl', 'bowl', 'handle', 'pot']) {
-      await potter.cmd(`drop "${piece}"`);
-    }
+    // On the boards to dry (there is no `drop all`: each piece by id).
+    for (const id of Object.values(made).flat()) await potter.cmd(`drop #${id}`);
     await potter.drainProse();
-    await say(novice, 'drop mug');
-    const lh = await until(potter, 'here:i:jug', /leather-hard/i, '6 hours', 40);
+    await say(novice, `drop #${novicesMug}`);
+    const jug = madeOf('jug');
+    const lh = await until(potter, `#${jug}`, /leather-hard/i, '6 hours', 40);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
-    // The potter's OWN mug, by its maker: a bare `get mug` took the novice's
-    // thick one too, and `carve` bound that one, still too soft (run 22).
-    const mugs = (await potter.query('here:i:mug', { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[];
-    const mine = mugs.find((m) => String(m.longDescription ?? '').includes(`Made by ${potter.handle}`));
-    expect(mine?.stuffId, `the potter's own mug: ${JSON.stringify(mugs.map((m) => m.longDescription?.slice(0, 120)))}`).toBeDefined();
+    // The potter's OWN mug, by the id 15 kept: a bare `get mug` took the
+    // novice's thick one too, and `carve` bound that one, still too soft
+    // (run 22).
+    const mine = { stuffId: madeOf('mug') };
+    expect(mine.stuffId, 'the potter\'s own mug').toBeDefined();
     await say(potter, `get #${mine!.stuffId}`);
     // ⚠ An engaged act: the foot is turned when the trimming is DONE, so
     // jump past it (run 27 read the mug while the tool was still on it).
@@ -377,39 +431,35 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(foot, `trim: ${foot}`).toMatch(/foot|trim|pare/i);
     expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
     trimmedMug = mine!.stuffId;
-    await say(potter, 'get jug');
+    await say(potter, `get #${jug}`);
     // ⚠ The handle firms up on its own clock: "still too soft to join — it
     // would sag off" (run 28). It firms ON THE BOARD, in the shop's air — a
     // handle held in the hand never dried at all (run 34: soft and wet after
     // a day in the potter's fist). The jug stays in hand meanwhile, so it is
     // not let past leather-hard while it waits. An hour at a time.
-    // By identity: the potter NPC pulls handles too. The drive's own is
-    // "Made by" the potter — already on the boards (16 began by setting every
-    // piece down, run 35) or still in hand.
-    const mineOf = async (where: string): Promise<string | undefined> =>
-      ((await potter.query(where, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[])
-        .find((h) => String(h.longDescription ?? '').includes(`Made by ${potter.handle}`))?.stuffId;
-    const inHand = await mineOf('me:i:handle');
-    const pulled = inHand ?? (await mineOf('here:i:handle'));
+    // By identity: the potter NPC pulls handles too. The drive's own is the
+    // id 15 kept — already on the boards (16 began by setting every piece
+    // down, run 35) or still in hand.
+    const pulled = madeOf('handle');
     expect(pulled, 'the potter\'s pulled handle').toBeDefined();
-    if (inHand) await say(potter, `drop #${pulled}`);
+    if ((await idsIn(potter, 'me:i:handle')).has(pulled!)) await say(potter, `drop #${pulled}`);
     const handle = await until(potter, `#${pulled}`, /leather-hard|bone-dry/i, '1 hour', 24);
     expect(handle, `the handle firm enough to join: ${handle}`).toMatch(/leather-hard/i);
     await say(potter, `get #${pulled}`);
-    const fit = await act(potter, 'fit handle to jug', '30 minutes');
+    const fit = await act(potter, `fit #${pulled} to #${jug}`, '30 minutes');
     expect(refusedFor(fit.r), `join: ${fit.said}`).toBeNull();
-    expect(await examine(potter, 'me:i:jug')).toMatch(/handle/i);
+    expect(await examine(potter, `#${jug}`)).toMatch(/handle/i);
     await say(potter, 'get stamp');
-    const stamped = await say(potter, 'impress stamp on jug');
+    const stamped = await say(potter, `impress stamp on #${jug}`);
     expect(stamped, `stamp: ${stamped}`).toMatch(/mark/i);
-    expect(await examine(potter, 'me:i:jug')).toMatch(/bears .+ mark/i);
+    expect(await examine(potter, `#${jug}`)).toMatch(/bears .+ mark/i);
     for (const ware of ['crock', 'jar', 'bowl']) {
-      await say(potter, `get "${ware}"`);
-      await say(potter, `impress stamp on "${ware}"`);
+      const id = madeOf(ware);
+      if (!id) continue;
+      await say(potter, `get #${id}`);
+      await say(potter, `impress stamp on #${id}`);
     }
-    for (const piece of ['mug', 'jug', 'crock', 'crock', 'jar', 'jar', 'bowl', 'bowl', 'handle', 'pot']) {
-      await potter.cmd(`drop "${piece}"`);
-    }
+    for (const id of Object.values(made).flat()) await potter.cmd(`drop #${id}`);
     await potter.drainProse();
   }, 3_600_000);
 
@@ -448,29 +498,30 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
   }, 3_600_000);
 
   it('bone-dry ware will not trim', async () => {
-    const dry = await until(potter, 'here:i:bowl', /bone-dry/i, '1 day', 30);
+    // The potter's own bowl, by the id 15 kept (the shop's NPC throws bowls too).
+    const bowl = madeOf('bowl');
+    expect(bowl, 'the potter\'s bowl').toBeDefined();
+    const dry = await until(potter, `#${bowl}`, /bone-dry/i, '1 day', 30);
     expect(dry).toMatch(/bone-dry/i);
-    await say(potter, 'get bowl');
-    const refused = await run(potter, 'carve foot on bowl');
+    await say(potter, `get #${bowl}`);
+    const refused = await run(potter, `carve foot on #${bowl}`);
     expect(refusedFor(refused.r), `trim bone-dry: ${refused.said}`).not.toBeNull();
     expect(refused.said).toMatch(/dry|crack/i);
-    expect(await examine(potter, 'me:i:bowl')).not.toMatch(/turned foot/i);
-    await say(potter, 'drop bowl');
+    expect(await examine(potter, `#${bowl}`)).not.toMatch(/turned foot/i);
+    await say(potter, `drop #${bowl}`);
   }, 3_600_000);
 });
 
 suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
   it('the cones read the heat — and a practiced potter reads more of it', async () => {
-    await until(potter, 'here:i:jug', /bone-dry/i, '1 day', 30);
+    await until(potter, `#${madeOf('jug')}`, /bone-dry/i, '1 day', 30);
     // ⭐ EVERY piece bone-dry, not just the jug: a crock still damp went in
     // and the bisque's steam burst it — "It froze wet, and the frost has
     // burst it apart" (the burst line reads for heat as for frost), and 18
     // glazed that one (run 36). A day at a time until none of the potter's
-    // own reads damp.
+    // own (by the ids 15 kept) reads damp.
     for (let day = 0; day < 10; day++) {
-      const ours = ((await potter.query('here:i', { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[])
-        .map((r) => String(r.longDescription ?? ''))
-        .filter((d) => d.includes(`Made by ${potter.handle}`));
+      const ours = await Promise.all(Object.values(made).flat().map((id) => detailOf(potter, id)));
       if (!ours.some((d) => /leather-hard|soft, wet|takes a thumbprint/i.test(d))) break;
       await advance('1 day');
       await toHour(8, 15);
@@ -478,12 +529,13 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     // ⚠ The loading is proven by the acts, not by `kiln:i`: that query
     // lists NOTHING though the kiln holds the ware (run 28's probe — an eval
     // read six pieces inside; the MQL finding, recorded in the plan).
+    // ⭐ By id: a word bound whichever like piece came first.
     const loaded: string[] = [];
-    for (const ware of ['jug', 'mug', 'crock', 'crock', 'jar', 'bowl', 'plant pot']) {
-      await say(potter, `get "${ware}"`);
-      // ⚠ Quoted: `put plant pot in kiln` matches no shape of `put` (a
-      // two-word object is quoted on a command line — run 27).
-      loaded.push(await say(potter, `put ${ware.includes(' ') ? `"${ware}"` : ware} in kiln`));
+    for (const [key, i] of [['jug', 0], ['mug', 0], ['crock', 0], ['crock', 1], ['jar', 0], ['bowl', 0], ['pot', 0]] as const) {
+      const id = madeOf(key, i);
+      if (!id) continue;
+      await say(potter, `get #${id}`);
+      loaded.push(await say(potter, `put #${id} in kiln`));
     }
     expect(loaded.join(' '), 'the ware in the kiln').toMatch(/put [^.]*(jug|crock)[^.]* in an updraft kiln/i);
     await mint(SHOP, CHARCOAL, 4);
@@ -506,8 +558,8 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await act(potter, 'fire kiln for 10 hours', '10 hours');
     await say(potter, 'douse kiln');
     await advance('1 day'); // cooled — a kiln opened hot dunts (18)
-    await say(potter, 'get jug from kiln');
-    const bisque = await examine(potter, 'me:i:jug');
+    await say(potter, `get #${madeOf('jug')} from kiln`);
+    const bisque = await examine(potter, `#${madeOf('jug')}`);
     expect(bisque, 'the bisque jug').toMatch(/porous|terracotta|earthenware|fired/i);
     expect(bisque).not.toMatch(/thumbprint|bone-dry/i);
     expect(bisque).toMatch(/Mother's jug|mark/i);
@@ -545,40 +597,39 @@ suite('⭐ 18 — glaze', () => {
     // Two bisque crocks, dipped inside.
     // One at a time: a plural `crocks` bound nothing in the kiln and fell
     // through to lifting the kiln (run 28 — "fixed in place").
-    await say(potter, 'get crock from kiln');
-    await say(potter, 'get crock from kiln');
-    // ⭐ Named by identity: 17 already took one bisque crock out to read it,
-    // and a bare `name crock leadpot` bound the crock just named ashpot — a
-    // named piece is not renamed (run 35). The potter's own two, in hand.
-    const crocks = ((await potter.query('me:i:crock', { fields: 'detail' }).catch(() => [])) as {
-      stuffId?: string;
-      longDescription?: string;
-    }[]).filter(
-      (c) =>
-        String(c.longDescription ?? '').includes(`Made by ${potter.handle}`) &&
-        // A sound one: a burst or slumped piece takes no glaze (run 36).
-        !/burst|slumped/i.test(String(c.longDescription ?? '')),
-    );
+    // ⭐ By identity — the potter's own two, by the ids 15 kept: 17 already
+    // took one bisque crock out to read it, and a bare `name crock leadpot`
+    // bound the crock just named ashpot — a named piece is not renamed (run
+    // 35).
+    for (const id of made['crock'] ?? []) await say(potter, `get #${id} from kiln`);
+    const crocks: string[] = [];
+    for (const id of made['crock'] ?? []) {
+      // A sound one, in hand: a burst or slumped piece takes no glaze (run 36).
+      if (!(await idsIn(potter, 'me:i:crock')).has(id)) continue;
+      if (!/burst|slumped/i.test(await detailOf(potter, id))) crocks.push(id);
+    }
     expect(crocks.length, 'two sound bisque crocks in hand').toBeGreaterThanOrEqual(2);
-    await say(potter, `name #${crocks[0]!.stuffId} ashpot`);
+    ashpot = crocks[0]!;
+    leadpot = crocks[1]!;
+    await say(potter, `name #${ashpot} ashpot`);
     // ⚠ A dip is an engaged act: waited out, or the next one finds the
     // potter's "hands busy with something else" (run 28).
-    const dippedAsh = (await act(potter, 'dip ashpot inside in "ash tub"', '10 minutes')).said;
+    const dippedAsh = (await act(potter, `dip #${ashpot} inside in "ash tub"`, '10 minutes')).said;
     expect(dippedAsh).toMatch(/coat|glaze|dip/i);
-    await say(potter, `name #${crocks[1]!.stuffId} leadpot`);
-    await act(potter, 'dip leadpot inside in "lead tub"', '10 minutes');
-    expect(await examine(potter, 'me:i:leadpot')).toMatch(/glaze|coat|wet/i);
-    await say(potter, 'put ashpot in kiln');
-    await say(potter, 'put leadpot in kiln');
+    await say(potter, `name #${leadpot} leadpot`);
+    await act(potter, `dip #${leadpot} inside in "lead tub"`, '10 minutes');
+    expect(await examine(potter, `#${leadpot}`)).toMatch(/glaze|coat|wet/i);
+    await say(potter, `put #${ashpot} in kiln`);
+    await say(potter, `put #${leadpot} in kiln`);
     await fireKiln(potter, '10 hours');
     await say(potter, 'douse kiln');
     await advance('1 day');
     // Unloaded by daylight: a ten-hour firing ends after dark, and in the dark
     // shop the kiln is "something" with nothing to be found in it (run 39).
     await toHour(8, 14);
-    await say(potter, 'get ashpot from kiln');
-    await say(potter, 'get leadpot from kiln');
-    const glazed = await examine(potter, 'me:i:leadpot');
+    await say(potter, `get #${ashpot} from kiln`);
+    await say(potter, `get #${leadpot} from kiln`);
+    const glazed = await examine(potter, `#${leadpot}`);
     expect(glazed, 'the glost-fired crock').toMatch(/glaz|gloss/i);
     expect(glazed, 'its base').toMatch(/mark.+fired|fired/i);
   }, 7_200_000);
@@ -593,25 +644,22 @@ suite('⭐ 18 — glaze', () => {
     // ⭐ By id, one sound piece of each of the potter's own: a word bound
     // whichever piece came first, and the ear then rang a different one.
     const loaded: string[] = [];
-    // (MQL takes no quotes: the plant pot is asked for by `pot`.)
+    // ⚠ Only the potter's own pieces of each form, by the ids 15 kept — a
+    // crock answers to "pot" too, and run 37 loaded ashpot into the hot kiln
+    // (20b then found no ashpot) — and only ones in reach (on the boards or
+    // in hand), not still in the kiln from 17.
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
     for (const ware of ['mug', 'jar', 'bowl', 'pot']) {
-      const rows = [
-        ...((await potter.query(`here:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
-        ...((await potter.query(`me:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
-      ];
-      // ⚠ Only what the word NAMES: a crock answers to "pot" too, and run 37
-      // loaded ashpot into the hot kiln (20b then found no ashpot).
-      const names = ware === 'pot' ? /plant pot|flower pot/i : new RegExp(`\\b${ware}\\b`, 'i');
-      const piece = rows.find(
-        (r) =>
-          r.stuffId &&
-          names.test(String((r as { displayName?: string }).displayName ?? '')) &&
-          String(r.longDescription ?? '').includes(`Made by ${potter.handle}`) &&
-          !/crack|dunt|burst|slumped|leather-hard|soft, wet/i.test(String(r.longDescription ?? '')),
-      );
+      let piece: string | undefined;
+      for (const id of made[ware] ?? []) {
+        if (!reach.has(id)) continue;
+        if (/crack|dunt|burst|slumped|leather-hard|soft, wet/i.test(await detailOf(potter, id))) continue;
+        piece = id;
+        break;
+      }
       if (!piece) continue;
-      await say(potter, `get #${piece.stuffId}`);
-      if (/put /i.test(await say(potter, `put #${piece.stuffId} in kiln`))) loaded.push(piece.stuffId!);
+      await say(potter, `get #${piece}`);
+      if (/put /i.test(await say(potter, `put #${piece} in kiln`))) loaded.push(piece);
     }
     expect(loaded.length, 'ware in the kiln to dunt').toBeGreaterThan(0);
     await fireKiln(potter, '6 hours');
@@ -643,8 +691,9 @@ suite('⭐ 19 — lead leaches', () => {
     await toHour(8, 14);
     // ⚠ Setup by the founder: vinegar is a winemaker's spoilt wine, and
     // the drive only needs a sour liquid in two crocks — the LEACH is the act.
-    await say(potter, 'drop ashpot');
-    await say(potter, 'drop leadpot');
+    expect(leadpot && ashpot, 'the two glazed crocks from 18').toBeTruthy();
+    await say(potter, `drop #${ashpot}`);
+    await say(potter, `drop #${leadpot}`);
     // ⚠ The vinegar is SETUP, handed in a pail (the row's own
     // `interiorMaterial`, as a data overlay) and poured by the potter: the
     // founder's eval is parcel-bound and holds no authority over the
@@ -652,26 +701,26 @@ suite('⭐ 19 — lead leaches', () => {
     // ⚠ By id: the potter carries other pails, and `pour pail` bound an
     // empty one — "There's nothing to pour" (run 36).
     const vinegar = await hand(potter, PAIL, { interiorMaterial: '/trade/winemaking/idea/material/wine-vinegar', interiorAmount: 2 });
-    await say(potter, `pour #${vinegar} into leadpot --amount 1L`);
-    await say(potter, `pour #${vinegar} into ashpot --amount 1L`);
+    await say(potter, `pour #${vinegar} into #${leadpot} --amount 1L`);
+    await say(potter, `pour #${vinegar} into #${ashpot} --amount 1L`);
     await say(potter, `drop #${vinegar}`);
     await advance('7 days');
-    await say(potter, 'get leadpot');
-    const look = await examine(potter, 'me:i:leadpot');
-    const smell = await say(potter, 'smell leadpot');
-    const taste = await say(potter, 'taste leadpot');
+    await say(potter, `get #${leadpot}`);
+    const look = await examine(potter, `#${leadpot}`);
+    const smell = await say(potter, `smell #${leadpot}`);
+    const taste = await say(potter, `taste #${leadpot}`);
     for (const sense of [look, smell, taste]) expect(sense, 'no sense reports the lead').not.toMatch(/\blead\b(?! glaze)/i);
-    const chem = await say(potter, 'analyze chemistry leadpot');
+    const chem = await say(potter, `analyze chemistry #${leadpot}`);
     // ⚠ The CONTENTS line, not the word: /lead/ matched the crock's own
     // name, "leadpot", so this passed with nothing read (run 39).
     expect(chem, `the lead crock's vinegar: ${chem}`).toMatch(/dissolved lead/i);
-    await say(potter, 'get ashpot');
-    const clean = await say(potter, 'analyze chemistry ashpot');
+    await say(potter, `get #${ashpot}`);
+    const clean = await say(potter, `analyze chemistry #${ashpot}`);
     expect(clean, `the ash crock's vinegar: ${clean}`).toMatch(/contents:/i);
     expect(clean).not.toMatch(/dissolved lead/i);
     // ⚠ `drink leadpot`, not `drink from leadpot`: the second is no shape
     // of the verb, and its refusal says "drink" — which this regex matched.
-    const drank = await act(potter, 'drink leadpot --amount 100ml');
+    const drank = await act(potter, `drink #${leadpot} --amount 100ml`);
     expect(refusedFor(drank.r), `drink: ${drank.said}`).toBeNull();
     expect(drank.said).toMatch(/you drink|sour|vinegar/i);
   }, 3_600_000);
@@ -699,12 +748,16 @@ suite('⭐ 21 — the weeping jar', () => {
     await say(potter, 'get thermometer');
     // ⭐ By identity, and a BISQUE jar: porous terracotta, bare. 18b's short
     // hot firing leaves a jar only part-fired ("fired alluvial clay"), whose
-    // tight body does not weep (run 38).
+    // tight body does not weep (run 38). The potter's own jars, by the ids
+    // 15 kept, that are in reach (on the boards or in hand) — 17's bisque
+    // jar out of the kiln first.
     type JarRow = { stuffId?: string; longDescription?: string };
-    const jarRows = [
-      ...((await potter.query('here:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
-      ...((await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
-    ];
+    for (const id of made['jar'] ?? []) await say(potter, `get #${id} from kiln`);
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
+    const jarRows: JarRow[] = [];
+    for (const id of made['jar'] ?? []) {
+      if (reach.has(id)) jarRows.push({ stuffId: id, longDescription: await detailOf(potter, id) });
+    }
     // ⚠ A query's detail is the row's prose; a flaw is the LOOK's (the
     // Integrity augmenter) — so a jar 18's hot opening dunted reads sound
     // here. Each candidate is looked at before it is taken (run 3 of the
@@ -729,15 +782,19 @@ suite('⭐ 21 — the weeping jar', () => {
     await examine(potter, `#${full}`); // the record: what it was before the fill
     await say(potter, `fill #${full} from butt`);
     await examine(potter, `#${full}`); // the record: sound, or cracked by the fill
-    await say(potter, 'fill leadpot from butt');
+    // ⭐ The glazed crock BY ID: with none, `measure temperature leadpot`
+    // read the room, and the glazed-vs-room check compared the room with
+    // itself (soak repair).
+    expect(leadpot, 'the lead-glazed crock from 18').toBeDefined();
+    await say(potter, `fill #${leadpot} from butt`);
     await say(potter, `drop #${full}`);
-    await say(potter, 'drop leadpot');
+    await say(potter, `drop #${leadpot}`);
     await advance('6 hours');
     const jar = await examine(potter, `#${full}`);
     expect(jar, 'the unglazed jar').toMatch(/weep|beads|damp|wet/i);
     const room = await say(potter, 'measure temperature');
     const jarT = await say(potter, `measure temperature #${full}`);
-    const potT = await say(potter, 'measure temperature leadpot');
+    const potT = await say(potter, `measure temperature #${leadpot}`);
     const k = (t: string): number => Number(/([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(t)?.[1] ?? NaN);
     expect(k(jarT), `jar ${jarT} vs room ${room}`).toBeLessThan(k(room) - 1);
     expect(Math.abs(k(potT) - k(room)), `glazed ${potT} vs room ${room}`).toBeLessThan(2);
@@ -763,6 +820,8 @@ suite('⭐ 22 — the filter (W8)', () => {
    * act under test.
    */
   let w: Session;
+  /** The crock each round stood its filter in, by room. */
+  const crockIn = new Map<string, string>();
   async function filterRound(room: string, water: string): Promise<void> {
     w = await goTo(w, SQUARE);
     // ⚠ The stall stocks one filter: the second round found it sold out
@@ -781,18 +840,26 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'get crock');
     await say(w, 'get filter');
     expect(await held(w), 'the crock goes with the filterer').toMatch(/crock/i);
+    // ⭐ By id from here: the yard already holds the potter's crocks and
+    // filters, and bare names bound the FIRST — the filter poured into was
+    // not the one standing in the crock, and both read empty (finalize).
+    const idOf = async (q: string): Promise<string> =>
+      String(((await w.query(q, { fields: 'ref' }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId ?? '');
+    const crockId = await idOf('me:i:crock');
+    const filterId = await idOf('me:i:filter');
+    expect(crockId && filterId, 'the filterer holds a crock and a filter').toBeTruthy();
     w = await goTo(w, room);
-    // The crock stands on the ground and the filter goes in it: `put … in
-    // crock` names a crock HERE, not one in hand (run 28).
-    await say(w, 'drop crock');
-    const set = await run(w, 'put filter in crock');
+    // The crock stands on the ground and the filter goes in it.
+    await say(w, `drop #${crockId}`);
+    const set = await run(w, `put #${filterId} in #${crockId}`);
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
     // ⚠ The pail of each water is SETUP, handed already filled (the row's
     // own `interiorMaterial`/`interiorAmount`, as a data overlay): the
     // founder's eval is parcel-bound, and it holds no authority over the
     // brickfield (runs 31 and 34). The FILTER is the act under test.
     const pail = await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
-    const poured = await say(w, `pour #${pail} into filter`);
+    const poured = await say(w, `pour #${pail} into #${filterId}`);
+    crockIn.set(room, crockId);
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
     await say(w, `drop #${pail}`);
   }
@@ -808,7 +875,7 @@ suite('⭐ 22 — the filter (W8)', () => {
       contents?: { primaryKeyword?: string }[];
       longDescription?: string;
     }[];
-    const crock = rows.find((r) => (r.contents ?? []).some((c) => c.primaryKeyword === 'filter'));
+    const crock = rows.find((r) => r.stuffId === crockIn.get(room));
     if (!crock?.stuffId) return null;
     const look = String(crock.longDescription ?? '');
     const chem = await say(w, `analyze chemistry #${crock.stuffId}`);
@@ -846,14 +913,11 @@ suite('⭐ 23 — breakage and mending', () => {
     // A second thin bowl, fired, for the earth floor.
     potter = await goTo(potter, SHOP);
     // The bowls are on the boards, or in hand from 18b's firing (run 35).
-    // ⭐ By id, sound ones of the potter's own: `drop bowl` let go of a
-    // STACK of two, so one broke on stone and nothing was left for the
-    // earth (run 36). And the novice's thick mug by its maker — wherever 17
-    // and 18b carried it, the novice held none (run 36).
+    // ⭐ By id, sound ones of the potter's own (the ids 15 kept): `drop bowl`
+    // let go of a STACK of two, so one broke on stone and nothing was left
+    // for the earth (run 36). And the novice's thick mug by its id —
+    // wherever 17 and 18b carried it, the novice held none (run 36).
     type Row = { stuffId?: string; longDescription?: string };
-    const rows = async (s: Session, q: string): Promise<Row[]> =>
-      (await s.query(q, { fields: 'detail' }).catch(() => [])) as Row[];
-    const by = (r: Row, who: Session): boolean => String(r.longDescription ?? '').includes(`Made by ${who.handle}`);
     const sound = (r: Row): boolean => !/crack|dunt|burst|slumped/i.test(String(r.longDescription ?? ''));
     // Sound bowls first; a dunted one will do for the second (18b's hot
     // opening dunts what it holds — run 37 found one sound bowl).
@@ -862,8 +926,15 @@ suite('⭐ 23 — breakage and mending', () => {
     // alluvial clay" held on the setts). Green ware is no use either.
     const ruined = (r: Row): boolean =>
       /burst|slumped|still [a-z ]*clay|It is green/i.test(String(r.longDescription ?? ''));
-    const allBowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
-      .filter((r) => r.stuffId && by(r, potter) && !ruined(r));
+    // 17 bisqued one of them, and it can still be in the kiln: out first.
+    for (const id of made['bowl'] ?? []) await say(potter, `get #${id} from kiln`);
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
+    const allBowls: Row[] = [];
+    for (const id of made['bowl'] ?? []) {
+      if (!reach.has(id)) continue;
+      const r = { stuffId: id, longDescription: await detailOf(potter, id) };
+      if (!ruined(r)) allBowls.push(r);
+    }
     // The THIN one goes on the stone — a thick wall stands the drop (run 40
     // dropped a sound but not thin bowl, and it held).
     const thin = (r: Row): boolean => /wall thin/i.test(String(r.longDescription ?? ''));
@@ -881,15 +952,11 @@ suite('⭐ 23 — breakage and mending', () => {
     const stoneBowl = bowls[0]!;
     const earthBowl = bowls[1] ?? (await hand(potter, '/trade/ceramics/thing/bowl'));
     for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
-    // 17 bisqued by the word, and the novice's mug can still be in the kiln
-    // (run 39): anything mug-shaped in there comes out first.
-    for (let i = 0; i < 4; i++) {
-      if (!/pick up/i.test(await say(potter, 'get mug from kiln'))) break;
-    }
-    const thick = [...(await rows(potter, 'here:i:mug')), ...(await rows(potter, 'me:i:mug')), ...(await rows(novice, 'me:i:mug'))]
-      .find((r) => r.stuffId && by(r, novice));
-    expect(thick?.stuffId, 'the novice\'s thick mug').toBeDefined();
-    const mug = `#${thick!.stuffId}`;
+    // ⭐ The novice's thick mug by the id 15 kept (17 loads by id now, so it
+    // never went into the kiln — run 39 found it there when 17 loaded by
+    // the word).
+    expect(novicesMug, 'the novice\'s thick mug').toBeDefined();
+    const mug = `#${novicesMug}`;
     await say(potter, `drop "${mug}"`).catch(() => '');
     await say(novice, `get "${mug}"`);
     // Stone: the market square's granite setts.
@@ -974,7 +1041,9 @@ suite('⭐ 20 — flame and body', () => {
     const crock = `#${crockId}`;
     // The grogged body: grog trodden into clay in the temper pit.
     potter = await goTo(potter, TEMPER);
-    await say(potter, 'put clay in pit');
+    // ONE lump: a bare `put clay` tipped all eight the potter carried, and
+    // kneaded together they were one mass too heavy to lift (paint finalize).
+    await say(potter, 'put 1 clay in pit');
     expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
     await act(potter, 'knead pit', '30 minutes');
     await say(potter, 'get clay from pit');
@@ -1049,23 +1118,17 @@ suite('⭐ 24 — the shelf', () => {
     await toHour(8, 14);
     novice = await goTo(novice, SHOP);
     potter = await goTo(potter, SHOP);
-    // ⭐ Each mug by its MAKER, wherever it is now: the novice's first one
-    // had changed hands by 24 — it was in the potter's (run 35).
-    const mugBy = async (maker: string): Promise<string> => {
-      for (const [s, where] of [[novice, 'me:i:mug'], [potter, 'me:i:mug'], [potter, 'here:i:mug']] as const) {
-        const rows = (await s.query(where, { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[];
-        const mine = rows.find((r) => String(r.longDescription ?? '').includes(`Made by ${maker}`));
-        if (mine) return String(mine.longDescription);
-      }
-      return '';
-    };
+    // ⭐ Each mug by its ID, wherever it is now: the novice's first one had
+    // changed hands by 24 — it was in the potter's (run 35) — and a mug's
+    // look no longer names its maker (the verdict is quiet on unused ware).
     // …and, wherever 16–20 carried it (the kiln, the square), the reading
     // 15 took of it: the same mug, read when it was made (run 38 found it
     // in nobody's reach).
-    const first = (await mugBy(novice.handle)) || novicesFirstMug;
+    const first = (await detailOf(novice, novicesMug)) || novicesFirstMug;
     potter = await clayFor(potter, 1);
-    await act(potter, 'shape clay into mug', '1 hour');
-    const latest = await mugBy(potter.handle);
+    const latestId = (await throwPiece(potter, 'mug', 'mug')).id;
+    expect(latestId, 'the practiced potter\'s latest mug, by id').toBeDefined();
+    const latest = await detailOf(potter, latestId);
     expect(first).toMatch(/heavy|thick/i);
     expect(latest).toMatch(/light|thin/i);
     expect(first).not.toEqual(latest);
@@ -1077,23 +1140,44 @@ suite('⭐ 25 — the stall', () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
-    // The practiced potter's bisque plant pot from 17, consigned into the
-    // stall's own plant-pot line.
+    // The practiced potter's bisque plant pot from 17 — by the id 15 kept —
+    // consigned into the stall's own plant-pot line.
+    const plantPot = madeOf('pot');
+    expect(plantPot, 'the potter\'s plant pot, by id').toBeDefined();
     potter = await goTo(potter, SHOP);
-    await say(potter, 'get "plant pot" from kiln').catch(() => '');
+    await say(potter, `get #${plantPot} from kiln`).catch(() => '');
+    await say(potter, `get #${plantPot}`).catch(() => '');
     expect(await held(potter)).toMatch(/plant pot|pot/i);
     potter = await goTo(potter, SQUARE);
-    const consigned = await say(potter, 'shelf consign "plant pot" --ask 3');
+    const consigned = await say(potter, `shelf consign #${plantPot} --ask 3`);
     expect(consigned).toMatch(/consign|stall|ask|for sale/i);
     // ⚠ Not `stall:i`: a consigned piece is a line on the stall's stock, not
     // a thing in it, and the read listed nothing (run 37). What the buyer
     // gets is the record — the potter's own pot, by its maker.
     novice = await goTo(novice, SQUARE);
-    const bought = await say(novice, 'buy "plant pot"');
+    // ⭐ The maker's mark is as the VIEWER knows it (ceramics.md): a stranger
+    // reads "Made by a human" (soak repair). The potter introduces
+    // themself in the buyer's hearing first, so the buyer knows whose pot
+    // it is.
+    const potterName = String(
+      ((await potter.query('me', { fields: ['displayName'] }))[0] as { displayName?: unknown } | undefined)?.displayName ?? '',
+    );
+    expect(potterName, 'the potter has a name').toBeTruthy();
+    expectOk(await potter.cmd('introduce'));
+    await novice.drainProse();
+    // ⚠ The stall's own plant-pot line sells ahead of a consignment (the
+    // Stock order: a shelf good first, then a listing — retail.md): buy
+    // until the consigned pot is the one in hand, or the stall has none.
+    let bought = '';
+    for (let i = 0; i < 4 && !(await idsIn(novice, 'me:i')).has(plantPot!); i++) {
+      bought = await say(novice, 'buy "plant pot"');
+      if (!/you buy/i.test(bought)) break;
+    }
     expect(bought).toMatch(/you buy/i);
-    const pot = await examine(novice, 'me:i:pot');
+    expect((await idsIn(novice, 'me:i')).has(plantPot!), 'the consigned pot, bought').toBe(true);
+    const pot = await examine(novice, `#${plantPot}`);
     expect(pot, 'the bought pot reads its body').toMatch(/earthenware|terracotta|fired/i);
-    expect(pot, 'the consigned pot, its maker on it').toContain(`Made by ${potter.handle}`);
+    expect(pot, 'the consigned pot, its maker on it').toContain(`Made by ${potterName}`);
   }, 1_800_000);
 
   it('the general store’s plant-pot line is the pottery’s row — local first, an import dearer', async () => {
