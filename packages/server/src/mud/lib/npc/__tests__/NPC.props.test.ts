@@ -28,6 +28,7 @@ import { StagedMixin } from '../../stuff/Staged';
 import { Template } from '../../stuff/Template';
 import ThingClass from '../../../platform/thing/Thing';
 import type { Stuff } from '../../stuff/Stuff';
+import { withHands, tool, Tool } from '../../slot/__tests__/carrying-fixture';
 
 const SAW = '/stuff/thing/saw';
 const PERSON = '/stuff/agent/somebody';
@@ -53,13 +54,17 @@ describe('NPC props — a person born holding things', () => {
   });
 
   it('places each prop INTO the person, once', async () => {
-    const n = person();
+    // ⚠ A person is staged with what it CARRIES (size and carrying W8): a
+    // body with no plan has no hand to put the saw in, and the applier
+    // says so and places nothing — so this person has hands.
+    const n = withHands(person());
     vi.spyOn(Template, 'findByPath').mockResolvedValue({ path: SAW, class: '/platform/thing/Thing' } as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(ThingClass as never);
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new ThingClass())) as never);
+    // …and the saw is a tool a hand can hold.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => tool('saw', 1)) as never);
     await n.applyProps([SAW]);
     await n.applyProps([SAW]);
-    const held = n.getContents().filter((c: Stuff) => c instanceof ThingClass);
+    const held = n.getContents().filter((c: Stuff) => c instanceof Tool);
     expect(held).toHaveLength(1);
   });
 
