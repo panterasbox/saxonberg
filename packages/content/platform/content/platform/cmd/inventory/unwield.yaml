@@ -22,6 +22,6 @@ args:
     type: object
     required: true
     scope: "inventory"
-    requires: WieldableMixin
+    requires: SlottableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
