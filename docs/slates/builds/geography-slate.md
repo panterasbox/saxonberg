@@ -2,7 +2,9 @@
 
 **Status:** slated 2026-11-14, from the navigation pane's horizon section
 ([map-slate § The whole card](./map-slate.md)); the owner: *"this sounds
-better than what we have now."* **Size:** a build — server-led, with
+better than what we have now."* **Requirements drafted 2026-11-16**
+([geography-requirements](../../requirements/geography-requirements.md)),
+in parallel with the navigation-server and zone-instancing builds. **Size:** a build — server-led, with
 content (anchors for the shipped Localities and landmarks). **Priority:**
 with the navigation server work ([navigation-server-slate § S20](./navigation-server-slate.md)).
 
@@ -43,6 +45,61 @@ spatial or geographic at all"* (the owner); zones are the meta layer
   cannot see past the ridge*) and reach (*from this tower you see the whole
   bay*).
 
+## The cost model — sparse landmarks, a kept skyline **[DECIDED — the owner, 2026-11-16]**
+
+The owner: *"there's a reason MUDs never did this shit."* The precedents
+that handled distance agree on one shape, and it is the build's:
+
+- **Skyrim's distant LOD** — far objects flagged *visible when distant*,
+  baked at authoring time; only nearby cells simulate.
+- **EVE Online** — static celestials always on the overview; ships
+  beyond the grid only through the **directional scan**, an act with a
+  range (our `watch horizon` and the lookout).
+- **Google Earth** — a hierarchy of cells; labels by **prominence at the
+  zoom**; a *what is near here* query is a few cells, never a scan.
+- **Achaea's wilderness** — `SURVEY`, a low survival skill, adds *the
+  approximate direction of well-known places*: coarse, skill-gated.
+- **Koster, *A Spatial Representation of the Virtual World*** — the
+  **sparse** map stores only landmarks; a place's view composed from
+  proximity, visibility and notability. He knew of no server that did
+  the prose well — so the skyline is plain lines, never woven prose.
+- **Diku/Circle `scan`** — a walk along exits for who is near; no
+  skyline at all.
+
+So: **far and static is precomputed per place (per Locality, plus a room
+with its own point) and kept**, redone only when something tall is built
+or pulled down or a point moves; **far and moving is found only by an
+act**, bounded by the geometric horizon √(2Rh) (about 4.6 km from eye
+height, 35 km from a 100 m tower). **Nothing is loaded in order to be
+seen** — the skyline reads points and heights from the rows or the
+location graph's record (today's ashore horizon sees only structures
+already loaded, a defect against *load on use*).
+
+⭐ **Precision is skill-banded** (the owner): everyone in view gets the
+glance (eight points, rough miles); `measure bearing` with a compass and
+the Navigation Discipline narrows it — the shipped instrumentation rule
+(*competence resolves detail, never access*). The client is sent the
+glance, never the true bearing.
+
+## Reuse ledger for the plan
+
+| concept | what does it today | this build |
+|---|---|---|
+| a point on the chart | `GeoPosition` (`lib/expanse/GeoPosition.ts`); the Expanse's `origin` | **reuse** for Locality and structure points |
+| bearing and range between two points | the Expanse's sight math (`sightingsAmong`, `contactsFrom`) | **generalize** out of the sea into the one rule |
+| visibility by heights and curvature, by hour | `Expanse.sightingsAmong(…, hour, …)`, the craft's `sightHeightFor` | **reuse** |
+| the glance | `PerceptionApi.glance(bearingDeg, rangeNm)` | **reuse** unchanged |
+| the horizon's shape | `HorizonView {things[{stuff, bearingDeg, rangeNm}], traffic, atSea}` — bearing and range already nullable | **reuse**; ashore fills them |
+| the three horizons | `horizonAtSea`, `horizonOnRiver`, `horizonAshore` in `PerceptionLogic` | **replace** with one; the river's `LineFrame.sightablesNear` and the sea's `sightables()` stay as the moving-thing sources |
+| the precise reading | `measure bearing` — `BearingReading` row, hand-bearing compass (`capabilities: [bearing]`), Navigation Discipline | **reuse**; check it accepts a land subject |
+| latitude | `measure latitude`; `SpatialZone.latitude` (7 rows) feeding climate | **reuse**; Locality point as the fallback |
+| elevation | `SpatialZone.elevation` (21 rows), `ZoneApi.elevationFor` | **read only** (the owner) |
+| height, landmark | `Structure.getHeightM()`, `isLandmark()` | **reuse**; prominence derives from them |
+| the authored lists | `SpatialZone.horizon`, `Place.getHorizon()` (11 rows) | **recast** as block / reach overrides |
+| which structures exist where, without loading | `NavigationApi.attachedWithinNow` (live only) and the `location_graph` record | ⚠ **the gap** — the skyline needs points and heights without loading; find the record that carries them before adding one |
+| a Locality | `platform/idea/Locality.ts` — no position field | **extend** with a point and radius |
+| Gannet Rock's position | a fixed sightable on the Greywater | **reuse** — must not get a second, disagreeing point |
+
 ## What it buys beyond the horizon
 
 - The illustrated maps' **"you are here"** gets a real position for every
@@ -52,24 +109,24 @@ spatial or geographic at all"* (the owner); zones are the meta layer
 - **Latitude has one honest home** — zones carry `latitude` today for
   climate; it can come from (or move to) the Locality's anchor.
 
+## Decided at requirements (2026-11-16)
+
+1. **Point or footprint** — a point with a radius.
+2. **Elevation** — stays on the zone (the owner); read, not moved.
+3. **Latitude** — from the Locality's point unless a zone states its own.
+4. **Content** — points for the realm's real Localities and the
+   structures worth seeing; districts too far from their Locality's center
+   get a Locality of their own; the test-fixture worlds get none.
+5. **The candidate set** — static: landmark and tall structures, ranked by
+   prominence; moving: craft and river traffic, by an act only.
+
 ## Open
 
-1. **Point or footprint** — a Locality anchor as a point, a point with a
-   radius, or a rough outline. Lean: **a point with a radius** — enough for
-   a horizon's range and for *"you are here"*, cheap to author; an outline
-   waits for a need.
-2. **Elevation** — the owner: elevation is a setting fact, determined by
-   biome and place. Whether the Locality anchor carries a ground elevation,
-   and how it relates to zone `elevation` today
-   ([navigation-server-slate § S13](./navigation-server-slate.md)).
-3. **Latitude's move** — derive the climate's latitude from the anchor, or
-   keep zones' `latitude` as an override.
-4. **Content** — anchors for the 24 shipped Localities and points for the
-   landmark structures; the test-fixture Localities (narnia, north, south,
-   pair, circle, moor) may need none.
-5. **The candidate set** — which things are sightable at all (landmark
-   structures, craft, named features), and the spatial query that finds
-   them within range without a scan.
+1. **Moving things on land** seen from afar (a caravan, smoke) — would
+   join the act-only rule.
+2. **Outlines** for a Locality, when a need appears.
+3. **A player-built structure's landmark flag** — prominent by height
+   alone today; whether an owner may also claim the flag (lens 4).
 
 ## Cross-references
 
