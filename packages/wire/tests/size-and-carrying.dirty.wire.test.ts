@@ -12,8 +12,7 @@
  * Each step names its pace and who acts, as the requirements tag it:
  * `instant` · `short` (a clock jump under a day) and `player` (player verbs
  * only) · `staged` (setup through the harness — `hand`, `testharness
- * gravity|afflict|species|clock-advance`, the pre-flip `stageLooseSnapshot`,
- * a wizard's `destruct`). There is no span step: the two-hour expedition is
+ * gravity|afflict|species|clock-advance`, a wizard's `destruct`). There is no span step: the two-hour expedition is
  * the soak drive (`size-and-carrying.soak.dirty.wire.test.ts`); step 17 is
  * its staged twin.
  *
@@ -38,7 +37,6 @@ import {
   advanceWorldClock,
   worldClockNow,
   isOwnedTestWorld,
-  stageLooseSnapshot,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../src/runner/boot';
@@ -299,9 +297,6 @@ function key(step: string, re: RegExp): RegExp {
 
 /** People who must come back from the restart (step 21) exactly as they were. */
 const survivors: { s: Session; flat: string }[] = [];
-
-/** The handle of a person whose staged record is pre-flip (step 21). */
-let preFlip = '';
 
 /**
  * A person by the id their card carries (`#id`, what a client sends when a
@@ -996,15 +991,17 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     expect((await say(n, 'look pond')).w, 'the pond by headlamp').toMatch(/pond|water/i);
   }, 300_000);
 
-  it('21. [short · staged] restart: everyone comes back as they were; a pre-flip character\'s loose things are placed', async () => {
+  it('21. [short · staged] restart: everyone comes back as they were', async () => {
+    // ⭐ The pre-flip staging is cut (finalize, owner: no migrations — no
+    // pre-flip record exists to place): a restore puts back exactly what
+    // was captured, and a loose thing found on a restored body is a loud
+    // diagnostic, never placed.
     const keep = await person('screstart', YARD);
     await don(keep, T.belt);
     await give(keep, T.pouch);
     await give(keep, T.mug);
     await give(keep, T.key);
     const before = await flat(keep);
-    const pre = await person('scpreflip', YARD);
-    preFlip = pre.handle;
     // The steading mule step 18 tacked: what it wears is its own record.
     const tackBefore = await ledgerOf(keep, 'mule');
     record.push(`mule before restart: ${tackBefore}`);
@@ -1013,8 +1010,6 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     for (const s of open.splice(0)) s.close();
     await new Promise((r) => setTimeout(r, 3_000));
     await restartWorld();
-    const staged = await stageLooseSnapshot(preFlip, [T.mug, T.bowl, T.lantern, T.key]);
-    record.push(`pre-flip staged: ${JSON.stringify(staged)}`);
     const back = await Session.open(keepHandle, {});
     open.push(back);
     await back.drainProse();
@@ -1023,21 +1018,6 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the blocking drive', ()
     const set = (t: string): string[] => t.replace(/^You have: /, '').replace(/\.$/, '').split(/ (?=an? )/).map((x) => x.trim()).sort();
     expect(set(after), 'the same things, none loose, none duplicated').toEqual(b2('21') ? [...set(before), 'B2 inverted at step 21'] : set(before));
     expect(await inv(back)).not.toMatch(/Loose:/);
-    const p = await Session.open(preFlip, {});
-    open.push(p);
-    const told = squash(`${p.arrival()} ${await p.listen(4_000)}`);
-    const placed = await inv(p);
-    record.push(`pre-flip: told "${told}" · ${placed}`);
-    expect(placed).not.toMatch(/Loose:/);
-    expect(placed).toMatch(/In hand:/);
-    expect(placed).toMatch(/pocket: a key/i);
-    // What fits nowhere (the lantern: both hands are full, no pocket takes
-    // it) is not on the body — it waits at home or at the feet, and the
-    // player hears where (said at `enter`, with the session attached).
-    expect(await flat(p)).not.toMatch(/lantern/i);
-    expect(told, 'the player is told where the lantern went').toMatch(
-      key('21', /lantern would not fit anywhere on you; it is (in your room|at your feet)/i),
-    );
     // The cast mule comes back wearing what it wore (its own record) — read
     // by daylight: the yard is open to the sky, and the restart may land at
     // night ("someone … wearing something").

@@ -2,9 +2,10 @@
  * ⭐⭐ The flip across a restart (size and carrying W7, D11/D32, drive 21):
  * a body restored from its snapshot comes back holding, wearing and
  * pocketing exactly what it had — the restore admits its own record past
- * the loose-on-body veto (`Carrying.admitWhile`, gated to the body and
- * `PersistableLogic`), re-seats and re-places, and `onRestored` places
- * anything still loose (a pre-flip inventory).
+ * the loose-on-body veto (`Creature.admitWhile`, gated to the body and
+ * `PersistableLogic`), re-seats and re-places. A thing found loose on a
+ * restored body is a broken record, said loudly (`Creature.onRestored`'s
+ * error diagnostic) and never placed — there is no pre-flip migration.
  */
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -24,7 +25,7 @@ import { MixinApi } from '../../api/mixin';
 import { ChattelApi } from '../../api/chattel';
 import ChattelRegistry from '../idea/ChattelRegistry';
 import { TemplatePaths } from '../../lib/paths';
-import { MessageApi } from '../../api/message';
+import { DiagnosticApi } from '../../api/diagnostics';
 import Location from '../../lib/location/Location';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
@@ -206,93 +207,30 @@ describe('the flip across a restart (drive 21)', () => {
     expect(contents.every((x) => reborn.isHonest(x))).toBe(true);
   });
 
-  it('⭐ D32: a pre-flip inventory (a thing loose on the body) is placed on its first load', async () => {
+  it('⭐ a thing loose on a restored body is a loud error, left where the record put it (no migrations)', async () => {
     const room = makeStuff(() => new Location());
     const avatar = makeAvatar('flip-bob');
     ContainmentApi.move(avatar, room);
-    const t = await trousers();
-    avatar.seatInSlots(t, ['legs']);
-    // A pre-flip record: the key loose in the contents (only a test can
-    // stand in for the old world — the veto refuses it now).
+    // A broken record: the key loose in the contents (only a test can make
+    // one — the veto refuses it in the world).
     const k = good(KEY, 'key');
     const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
     ContainmentApi.move(k, avatar);
     admit.mockRestore();
-    expect(avatar.isHonest(k)).toBe(false);
     const key = Avatar.getTemplatePath('flip-bob');
     await PersistableApi.capture(avatar, key);
     logout(avatar);
 
+    const record = vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined as never);
     const reborn = makeAvatar('flip-bob');
     ContainmentApi.move(reborn, room);
     await PersistableApi.materialize(reborn, key);
-    // ⭐ A PLAYER's body places what it finds loose when its session
-    // attaches (`enter`), not mid-restore — so the lines it says are heard.
-    await reborn.placeLoose();
-    const k2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY);
-    expect(k2).toBeDefined();
-    expect(reborn.isHonest(k2!)).toBe(true);
-  });
-
-  /**
-   * ⭐ The drive's step 21: the restore's *"would not fit anywhere on you;
-   * it is in your room"* was spoken mid-restore, before the session
-   * attached, and the player never heard it live. Like the estate touch on
-   * a return (`announceSessionPresence`), what happened while you were
-   * away is settled — and said — when you come back: the restore leaves a
-   * player's loose things for `enter` to place.
-   */
-  it('⭐ a player restore says nothing before the session attaches; `enter` places and says it', async () => {
-    const room = makeStuff(() => new Location());
-    const avatar = makeAvatar('flip-cat');
-    ContainmentApi.move(avatar, room);
-    const k = good(KEY, 'key');
-    const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
-    ContainmentApi.move(k, avatar);
-    admit.mockRestore();
-    const key = Avatar.getTemplatePath('flip-cat');
-    await PersistableApi.capture(avatar, key);
-    logout(avatar);
-
-    const reborn = makeAvatar('flip-cat');
-    ContainmentApi.move(reborn, room);
-    const placeLoose = vi.spyOn(reborn, 'placeLoose');
-    await PersistableApi.materialize(reborn, key);
-    expect(placeLoose).not.toHaveBeenCalled();
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'error', message: expect.stringMatching(/loose thing.*\/test\/flip\/key/) }),
+    );
+    // Nothing guessed a place for it.
     const k2 = (reborn.getContents() as Stuff[]).find((x) => x.getTemplatePath() === KEY);
     expect(k2 && reborn.isHonest(k2)).toBe(false);
-  });
-
-  /**
-   * ⭐ The drive's step 21, run 12: a restored player arriving in the DARK
-   * heard "something would not fit anywhere on you" — the line is said once
-   * the thing is off the body, so the sight gate obscured the player's own
-   * lantern. It is named as its owner knows it, with no perception gate.
-   */
-  it('⭐ what fits nowhere is named as yours, never "something"', async () => {
-    const room = makeStuff(() => new Location());
-    const avatar = makeAvatar('flip-dee');
-    ContainmentApi.move(avatar, room);
-    const cup = good(CUP, 'tin cup');
-    // Loose on the body (a pre-flip record), and no place on it takes it.
-    const admit = vi.spyOn(avatar, 'isAdmitting').mockReturnValue(true);
-    ContainmentApi.move(cup, avatar);
-    admit.mockRestore();
-    vi.spyOn(avatar, 'arrivalFor').mockReturnValue({
-      kind: 'refuse',
-      refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item: cup, held: [], tried: [] } },
-    });
-    const told: string[] = [];
-    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
-      const b: Record<string, unknown> = {};
-      b.topic = () => b;
-      b.toSelf = (m: { toString(): string }) => { told.push(m.toString()); return b; };
-      b.send = () => {};
-      return b as never;
-    });
-    expect(await avatar.placeLoose()).toContain(cup);
-    expect(cup.getContainer()).toBe(room);
-    expect(told.join(' ')).toMatch(/Your tin cup would not fit anywhere on you; it is at your feet\./);
   });
 
   it('⭐ a snapshot carrying a retired `homes` slice restores with no error and no homes (W10)', async () => {

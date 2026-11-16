@@ -34,8 +34,6 @@
  *   `fight draw`); an instrument is used where it sits.
  * - **Routing** (W8, 2026-11-13): `routeArrival` — on the body, then a bag or the floor.
  * - **Letting go** (D13): `releaseHeld`.
- * - **The restore** (D32): `placeLoose` — the one overflow (the residence,
- *   else where the body stands), the carrier's own explicit choice.
  *
  * ## Composition
  *
@@ -214,8 +212,6 @@ export interface Carrying {
   wieldPlanFor(item: Stuff, claim: readonly string[]): { ok: true; slots: string[] } | ReadyRefusal;
   /** ⭐ D36: 1 when something held or hung on this body clanks (rigid and ringing), else 0. */
   gearNoise(): 0 | 1;
-  /** ⭐ D32: place everything loose on this body (a restore's first load). */
-  placeLoose(): Promise<Stuff[]>;
   /**
    * ⭐⭐ The carrier's arrival handling when nothing ON it takes `item`
    * (owner, 2026-11-13) — called by `ContainmentApi.move` alone (gated).
@@ -658,23 +654,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
       return null;
     }
 
-    /** The room this body leases (its residence, D32), when it is standing; else null. */
-    private async residenceRoom(): Promise<(Stuff & Container) | null> {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isHasInteractive(self) && !self.getIdentityPath()?.startsWith('/platform/agent/Avatar/')) return null;
-      const holder = self.getIdentityPath();
-      if (!holder) return null;
-      const { ParcelApi } = await import('../../api/parcel');
-      const unit = await ParcelApi.heldUnitOf(holder).catch(() => null);
-      if (unit === null) return null;
-      const extent = unit.getExtent();
-      const byPath = StuffApi.findByTemplatePath(extent);
-      const live = [...StuffApi.findByIdentityPath(extent), ...(byPath ? [byPath] : [])].find(
-        (x) => MixinApi.isContainer(x) && x.isPlace(),
-      );
-      return live !== undefined ? (live as Stuff & Container) : null;
-    }
-
     public returnBorrowed(): Stuff[] {
       const self = this as unknown as Stuff & Container & Slotted;
       const me = self.getIdentityPath() ?? self.getTemplatePath() ?? '';
@@ -721,103 +700,6 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
         }
       }
       return out;
-    }
-
-    /**
-     * ⭐ D32: put every thing loose on this body where a carried thing goes
-     * — on a restore (`onRestored`), or after anything that could have left
-     * one loose. A pre-flip inventory is placed on its first load.
-     */
-    public async placeLoose(): Promise<Stuff[]> {
-      const self = this as unknown as Stuff & Container & Containable;
-      const loose = self.getContents().filter((c) => !this.isHonest(c) && !c.isAgent());
-      for (const item of loose) {
-        if (item.isDestroyed() || this.isHonest(item)) continue;
-        const at = self.getContainer();
-        // Out of the body first, so it arrives (and with nowhere to be, it stays).
-        if (at === null) continue;
-        ContainmentApi.move(item as Stuff & Containable, at as Stuff & Container);
-        // The body's own answer (its arrival rule, read dry): on it, else a
-        // bag it carries, else the one overflow — each landing one true move.
-        if (this.arrivalFor(item as Stuff & Containable).kind !== 'refuse') {
-          ContainmentApi.move(item as Stuff & Containable, self);
-          continue;
-        }
-        const bag = this.bagOf(this.resolveReceive(item));
-        if (bag !== null) {
-          ContainmentApi.move(item as Stuff & Containable, bag);
-          continue;
-        }
-        await this.overflow(item as Stuff & Containable, at as Stuff & Container);
-      }
-      return loose;
-    }
-
-    /**
-     * ⭐ The one overflow (D32): what a restore found loose and no place on
-     * the body takes goes to a player's RESIDENCE with a line queued to
-     * them (*your crate would not fit anywhere on you; it is in your
-     * room*), or — an NPC, or a player with no room standing — stays where
-     * the body stands, the author told (`DiagnosticApi`). Never lost.
-     */
-    private async overflow(item: Stuff & Containable, here: Stuff & Container): Promise<void> {
-      const self = this as unknown as Stuff & Containable;
-      // ⭐ Named as its owner knows it, never "something" (the drive, step
-      // 21). The line is said once the thing is OFF the body, so the sight
-      // gate would obscure it; `bare` consults no perception gate
-      // (presentation.md) — it is yours, you know what it is.
-      const yours = `Your ${item.presentationPhrase().bare()}`;
-      const home = await this.residenceRoom();
-      if (home !== null) {
-        ContainmentApi.move(item, home);
-        if (MixinApi.isSensor(self)) {
-          MessageApi.scene(self)
-            .topic('act.deed')
-            .toSelf(Mml.compose`${yours} would not fit anywhere on you; it is in your room.`)
-            .send();
-        }
-        return;
-      }
-      if (item.getContainer() !== here) ContainmentApi.move(item, here);
-      if (MixinApi.isSensor(self) && MixinApi.isHasInteractive(self)) {
-        MessageApi.scene(self)
-          .topic('act.deed')
-          .toSelf(Mml.compose`${yours} would not fit anywhere on you; it is at your feet.`)
-          .send();
-        return;
-      }
-      const { DiagnosticApi } = await import('../../api/diagnostics');
-      await DiagnosticApi.record({
-        path: self.getTemplatePath() ?? self.stuffId,
-        severity: 'warning',
-        message:
-          `${item.getTemplatePath() ?? item.stuffId} found no place on ` +
-          `${self.getTemplatePath() ?? self.stuffId} (no free hand, nothing worn it fits) and was ` +
-          `set down where it stands — give the body something to carry it in, or fewer things.`,
-        channel: 'location-graph',
-      });
-    }
-
-    /**
-     * ⭐ D32: a restored carrier puts anything it finds loose where a
-     * carried thing goes — the first load after the flip places a pre-flip
-     * inventory. Chained from `Persistable.onRestored`, after `Creature`'s
-     * (the species row first).
-     */
-    public async onRestored(): Promise<void> {
-      await super.onRestored();
-      if (this.placesLooseOnRestore()) await this.placeLoose();
-    }
-
-    /**
-     * Whether the restore itself places what it finds loose (D32). A body
-     * nobody attaches to places it at once; a PLAYER's body waits for its
-     * session (`Avatar.enter`), so the lines it says are heard live.
-     *
-     * @hook Default `true`. `Avatar` answers `false` and places at `enter`.
-     */
-    protected placesLooseOnRestore(): boolean {
-      return true;
     }
 
     /** The slots `item` claims on this body when put on — empty when it is not worn here. */

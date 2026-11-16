@@ -755,14 +755,15 @@ export class Creature extends CreatureBase {
 
   /**
    * A restored body stands its species row up (size and carrying drive,
-   * step 21: after a restart nothing has loaded it). What it finds loose on
-   * itself is reported, never moved here — a carrier places it
-   * (`Carrying.onRestored` → `placeLoose`); a body that does not carry has
-   * no place for it, and no such record is expected (no migrations).
+   * step 21: after a restart nothing has loaded it). A restore puts back
+   * exactly what was captured — held, worn, pocketed, hung — so a thing
+   * found LOOSE on a restored body is a broken record, never a migration
+   * to perform (owner, finalize: no migrations; the pre-flip placement is
+   * cut). It is said loudly to the author (an `error` diagnostic) and left
+   * exactly where the record put it; nothing guesses a place for it.
    */
   public async onRestored(): Promise<void> {
     await this.ensureSpecies();
-    if (MixinApi.isCarrying(this)) return;
     const loose = this.getContents().filter(
       (c) => !c.isAgent() && c.getPlacement() === null && !this.isSlotOccupant(c),
     );
@@ -770,11 +771,12 @@ export class Creature extends CreatureBase {
     const { DiagnosticApi } = await import('../../api/diagnostics');
     await DiagnosticApi.record({
       path: this.getTemplatePath() ?? this.stuffId,
-      severity: 'warning',
+      severity: 'error',
       message:
         `restored with ${loose.length} loose thing(s) (` +
         loose.map((c) => c.getTemplatePath() ?? c.stuffId).join(', ') +
-        ') — this body does not carry, so nothing places them.',
+        ') — a captured body holds, wears, pockets or hangs everything on it; ' +
+        'this record is broken (nothing places a loose thing on a restore).',
       channel: 'location-graph',
     });
   }

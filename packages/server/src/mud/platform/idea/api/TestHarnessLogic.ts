@@ -162,14 +162,6 @@ export interface SpeciesReport {
   readonly massKg: number;
 }
 
-/** What staging a pre-flip snapshot did (size and carrying drive 21). */
-export interface LooseSnapshotReport {
-  /** The record edited, by its scope (the identity path). */
-  readonly scope: string;
-  /** The template paths appended loose to its container slice. */
-  readonly loose: readonly string[];
-}
-
 /**
  * @internal — the logic singleton behind `TestHarnessApi`. Registers at
  * `/platform/idea/api/test-harness`; methods admit only the
@@ -348,32 +340,6 @@ export class TestHarnessLogic extends ApiLogic {
       species: speciesPath,
       massKg: body.getMass().rawValue(),
     };
-  }
-
-  /**
-   * See {@link TestHarnessApi.stageLooseSnapshot}: a PRE-FLIP record — the
-   * character's stored snapshot with things appended LOOSE to its
-   * container slice (no worn entry, no placement), as a body carried them
-   * before the flip. The character must not be resident: a live body
-   * would capture over the edit on its next save.
-   */
-  @CallSecurity(TestHarnessApiCallers)
-  public async stageLooseSnapshot(scope: string, templates: readonly string[]): Promise<LooseSnapshotReport> {
-    if (templates.length === 0) throw new Error('testharness snapshot: name at least one thing to leave loose');
-    const records = await PersistedRecord.findByScope(scope);
-    const rec = records[0];
-    if (rec === undefined) throw new Error(`testharness snapshot: no stored record for '${scope}'`);
-    const slice = Object.values(rec.state).find(
-      (sl): sl is MixinSlice & { contents: ContentEntry[] } =>
-        typeof sl === 'object' && sl !== null && Array.isArray((sl as { contents?: unknown }).contents),
-    );
-    if (slice === undefined) throw new Error(`testharness snapshot: '${scope}' records no contents`);
-    for (const t of templates) {
-      slice.contents.push({ templatePath: t, state: {}, placement: {} });
-    }
-    rec.state = { ...rec.state };
-    await rec.save();
-    return { scope, loose: [...templates] };
   }
 
   /**

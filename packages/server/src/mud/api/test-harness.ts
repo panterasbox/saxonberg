@@ -25,7 +25,6 @@ import {
   type GravityReport,
   type AfflictReport,
   type SpeciesReport,
-  type LooseSnapshotReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
@@ -40,7 +39,6 @@ export type {
   GravityReport,
   AfflictReport,
   SpeciesReport,
-  LooseSnapshotReport,
 };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
@@ -199,19 +197,6 @@ export class TestHarnessApi {
   public static setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'setSpecies', () =>
       logic().setSpecies(handle, speciesPath),
-    );
-  }
-
-  /**
-   * ⭐ A PRE-FLIP record (size and carrying R4, drive 21): append things
-   * LOOSE to a stored character's container slice — no worn entry, no
-   * placement — so its next load is a pre-flip body's first. The character
-   * must not be resident (its next capture would write over the edit).
-   */
-  @TestOnly('In a test world, stage a pre-flip record with the wire harness\u2019s stageLooseSnapshot().')
-  public static stageLooseSnapshot(scope: string, templates: readonly string[]): Promise<LooseSnapshotReport> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'stageLooseSnapshot', () =>
-      logic().stageLooseSnapshot(scope, templates),
     );
   }
 

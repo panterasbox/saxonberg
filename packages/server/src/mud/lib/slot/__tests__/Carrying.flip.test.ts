@@ -165,25 +165,6 @@ describe('the flip — nothing loose on a body', () => {
     expect(loaf.getContainer()).toBe(room);
   });
 
-  it('⭐ D32: a restore places what it finds loose; what fits nowhere is never lost', async () => {
-    const { room, me } = await newcomer();
-    const key = good('key', 0.02, [0.06, 0.025, 0.003]);
-    const crate = good('crate', 4, [0.6, 0.5, 0.5]);
-    const a = tool('hammer', 1, [0.3, 0.05, 0.03]);
-    const b = tool('saw', 1, [0.5, 0.15, 0.02]);
-    // A pre-flip inventory: loose in the contents. Only the body itself and
-    // the restore may admit a thing (the gate refuses a test), so the
-    // record's replay is stood in for by admitting everything for a moment.
-    const admitAll = vi.spyOn(me, 'isAdmitting').mockReturnValue(true);
-    for (const x of [a, b, key, crate]) ContainmentApi.move(x, me);
-    admitAll.mockRestore();
-    expect(me.isHonest(key)).toBe(false);
-    await me.placeLoose();
-    expect(me.isHonest(a) && me.isHonest(b) && me.isHonest(key)).toBe(true);
-    // The crate fit nowhere on a body with full hands: set at its feet, not lost.
-    expect(crate.getContainer()).toBe(room);
-  });
-
   it('⭐ D37: a guest gives back what it borrowed — another\'s good to its owner, a found thing dropped', async () => {
     const { room, me } = await newcomer();
     const found = good('pebble', 0.05, [0.03, 0.03, 0.03]);
