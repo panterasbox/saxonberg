@@ -11,7 +11,7 @@ block / reach overrides. Seeded by
 accounted for row by row in § New substrate.
 
 ⚠ **Three places where grounding contradicts the requirements' premises** are
-in § Risks & opens (Q1–Q3). They are the owner's; each has a stated build
+in § Risks & opens (Q1–Q6), all decided by the owner 2026-11-17; each was a stated build
 default so `/build` does not stall.
 
 ## Grounding
@@ -355,10 +355,11 @@ Per-place table (the check drive step 10 runs):
 the smallest honest one: at the read, when
 `CelestialApi.skyFactorAt(now, viewer latitude)` is at or below
 `perception.skyline.darkSkyFactor` (dial, default 0), a **static** mark is
-listed only if `showsLight` is true. Moving craft are untouched (they are
-seen by night today, and hiding them is a sea-wide behavior change nobody
-decided). The lighthouse row gains `showsLight: true`; the Terminal does
-not. → Q2 for what *lit* should come to mean.
+listed only if `showsLight` is true. ⭐ **Registered craft take the same
+test** (the owner, Q2): an unlit ship is not seen by night — a sea-wide
+change, decided. The seeded passing traffic is unchanged. The lighthouse
+row gains `showsLight: true`; the Terminal does not; the Hesper, the
+Corrigan and the ferries do (riding lights), the small boats do not.
 
 **D7 — Latitude.** `ZoneLogic.climateSiteFor` — the one resolver — resolves
 the zone chain's `latitude` as today; when the chain declares none it asks
@@ -574,7 +575,7 @@ invalidation. *Acceptance:* `skylineNow` answers from rows alone with
 `StuffApi.findByTemplatePath(structure) === undefined`. *Commit:*
 `feat(geography): the location graph keeps what stands tall, and a skyline per vantage`.
 
-**W3 — The content stage.** D12, D6 (rows).
+**W3 — The content stage.** D12, D6 (rows), Q1, Q2 (craft rows), Q5 (Mayfield Row's address).
 `packages/content/platform/content/platform/idea/Locality/terminus-city.yaml`;
 `packages/content/world-seed/content/stuff/idea/Locality/{hinkley-hills,hearts-delight,rejection}.yaml`;
 `packages/content/hollow-mere/content/stuff/idea/Locality/hollow-mere.yaml`;
@@ -726,49 +727,40 @@ Neither build gates on the other; the second to merge rebases.
 
 ## Risks & opens
 
-**For the owner**
+**Decided by the owner (2026-11-17)** — all six took the recommendation.
 
-- **Q1 — Hollow Mere's latitude.** Its zone authors `latitude: -58`
-  (sub-antarctic, and the southern hemisphere's reversed seasons), which the
-  requirements keep as an override; but drive step 12 wants `measure
-  latitude` there to agree with its position **and** the weather to match
-  its latitude, and step 11 needs it within sight of Hinkley Hills. Both
-  cannot hold. Options: (a) drop the override, put it at ~42.2°N and keep
-  the mere freezing with a `climateOffsetK` (the documented *frost hollow*
-  tool) — its seasons flip to the realm's; (b) keep −58 and move step 12 to
-  a place with no override; (c) accept that the sextant reads 58°S there.
-  *Build default:* (a), with the freeze proved by `WeatherApi.climateAt`
-  arithmetic in a pack test and the cold-storage soak named for the lane.
-  Waponi Woo has the same shape (zone 30°, node 38°N) and no drive step;
-  the default leaves it alone.
-- **Q2 — What *lit* means.** The premise that the sea already hides unlit
-  things by night is false (no such term exists). *Build default:* an
-  authored `showsLight` on the structure, static marks only; craft are seen
-  by night as today. The alternatives are a derived read (a real lamp; the
-  street-lighting service — lens 5's *oil, then electric*), and whether a
-  ship without lights should vanish at night.
-- **Q3 — A river's craft have no direction.** A line has kilometers, not a
-  chart position, so on a river sightings stay name-only. The goal *one
-  horizon … on a river* is met for the fixed skyline (a bank has a
-  Locality) and not for river traffic. Bridging a line to the chart is a
-  piece of the river's model, not of this build. *Build default:* leave it,
-  recorded in the slate.
-- **Q4 — The Estuary as its own place.** Its rooms are addressed under
-  `terminus/city/wharfside/…`, so one new **Wharfside** Locality at the
-  waterfront covers the bank and the estuary alike with no re-addressing. A
-  separate *Estuary* Locality means re-addressing eleven rows. *Build
-  default:* Wharfside only.
-- **Q5 — Rooms no positioned Locality covers.** Mayfield Row and Seznick
-  House (`terminus/mayfield-row/…`), the Delight valley road
-  (`terminus/delight-valley/…`) and anything else addressed outside
-  `terminus/city` and the towns fall to the realm root, which gets no
-  point, so they have no skyline. *Build default:* W3 runs a census
-  (outdoor places with no chart point) and reports the list in the drive
-  record; it fixes only what the drive stands in. Whether Mayfield Row's
-  address is simply a typo for `terminus/city/mayfield-row` is the owner's.
-- **Q6 — The grain of *kept*.** D2 keeps a skyline per point owner **and
-  eye altitude**, finer than *per Locality*, because one Locality spans
-  0 m and 100 m. Flagged so it is not a surprise at review.
+- **Q1 — Hollow Mere's latitude → (a).** Drop the zone's `latitude: -58`;
+  Hollow Mere's Locality point sits at ~42.2°N, and the mere keeps its
+  freeze through a `climateOffsetK` (the frost-hollow tool), proved by
+  `WeatherApi.climateAt` arithmetic in a pack test, the cold-storage soak
+  named for the lane. Its seasons become the realm's. *Lens 3a chose: a
+  place cannot be twenty miles off and in the southern hemisphere.*
+  Waponi Woo's zone latitude (30° against its node's 38°N) is left alone —
+  no drive step stands on it; listed for the slate.
+- **Q2 — What *lit* means → an authored `showsLight`, now; derived later.**
+  The flag on `Structure`, as planned. ⭐ **Ships too:** an unlit craft is
+  not seen by night — the same D6 test applies to registered craft at the
+  read (a `Ship` is a `Structure`, so the field already reaches it), which
+  also answers the quiet-form worry on the host: craft are a large share
+  of the *yes* rows. W3 authors it on the Hesper, the Corrigan and the
+  ferries (riding lights) and leaves the small boats unlit. The seeded
+  passing traffic is unchanged by night (ambient, no row to author) —
+  recorded in the slate. Deriving *lit* from a real lamp or the street
+  lighting → geography-slate § Open.
+- **Q3 — River craft → name-only**, the line-to-chart bridge recorded in
+  the slate.
+- **Q4 — Wharfside only**, no re-addressing.
+- **Q5 — Mayfield Row is a typo.** Its shops are already under
+  `terminus/city/mayfield-row/…` (3 rows); the street
+  (`mayfield-row/street.yaml`) and Seznick House
+  (`seznick-house/lobby.yaml`) say `terminus/mayfield-row`. W3 corrects both
+  to `terminus/city/mayfield-row[/seznick-house]`, with the same
+  before/after `trace address` guard as Wharfside (map filing, government,
+  weather) and a grep for the old prefix in tests and `job.yaml`/
+  `painters-round.yaml`/`necropolis/ground.yaml`/`pack.yaml`. The Delight
+  valley road (`terminus/delight-valley/…`) is countryside between towns:
+  no skyline, reported by the census in the drive record.
+- **Q6 — Kept per point owner and eye altitude**, as D2 says.
 
 **Engineering risks**
 

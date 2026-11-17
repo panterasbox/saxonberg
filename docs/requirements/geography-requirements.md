@@ -67,8 +67,9 @@ requirements are in flight on `reqs/zone-instancing`).
 each real Locality and for the structures worth seeing; one horizon rule
 for land, river and sea, worked out per place and kept; seeing far
 things without loading them; and the authored lists recast as overrides.
-The rough direction, `measure bearing`, the Discipline, the compass and the sight
-rule all ship already. The reuse ledger is in the slate
+The rough direction, the Discipline, the compass and the sight rule ship
+already; `measure bearing` and `measure latitude` ship **afloat only** —
+taking them ashore is part of this build (corrected 2026-11-17). The reuse ledger is in the slate
 ([geography-slate § Reuse ledger for the plan](../slates/builds/geography-slate.md)).
 
 ## Goals
@@ -154,7 +155,13 @@ a tall structure gains a point; nothing else.
 - **The Hesper** and other craft: their sea positions are unchanged; the
   shore sees them as today, and they see the land by the same rule.
 - **The climate.** 7 zones author latitude. They keep it as an override;
-  places that author none read their Locality's.
+  places that author none read their Locality's. ⚠ **Hollow Mere**
+  authors 58°S to make it cold, which cannot stand twenty miles from
+  Terminus: the override goes, Hollow Mere sits at the realm's latitude,
+  and it keeps its freeze as a local cold hollow (the owner, 2026-11-17).
+- **Mayfield Row and Seznick House** are addressed outside the city by a
+  typo; they move under the city's address so the city's point covers
+  them.
 - **Copies** (zone instancing): a copy stands at its Locality's point.
 
 ## Surface decisions
@@ -186,10 +193,14 @@ The rough direction (eight points, rough miles) is what anyone gets; the compass
 and the Discipline narrow it through `measure bearing`, the shipped
 reading. Data sent to the client carries the rough direction, not the truth.
 
-### Night and weather **[DECIDED — lens 3a]**
-The sea's rule already takes the hour: unlit things are not seen in the
-dark; a lit light is. Ashore follows it: by night the lighthouse is seen,
-an unlit tower is not.
+### Night **[DECIDED — lens 3a; corrected 2026-11-17]**
+⚠ The draft said the sea's rule already hides unlit things in the dark; it
+does not (planning found no such term). So night is new, everywhere: by
+night a structure is seen from afar only if it shows a light — the
+lighthouse, a ship's riding lights. An unlit tower and an unlit ship are
+not. *Lit* is authored on the row for now; deriving it from a real lamp or
+the street lighting waits (geography-slate § Open). The seeded passing
+traffic is unchanged.
 
 ### Elevation stays on the zone **[DECIDED — the owner]**
 Read, not moved.
