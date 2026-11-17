@@ -52,6 +52,7 @@ import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
+import type { MapClaimPosition } from '../location/MapClaim';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 import { Placements } from '../spatial/Placement';
@@ -316,6 +317,41 @@ export default class Place extends PlaceBase {
     if (own !== undefined) return own;
     const name = this.getDurableHandle() ?? this.getTemplatePath();
     return name ? NavigationApi.structureAt(name) : null;
+  }
+
+  /**
+   * ⭐⭐ What a claim about this place names, and where it is
+   * (navigation-server D2) — the place's own answer, so the cartographer
+   * calls one method and never branches on what kind of place it is in.
+   *
+   * - `place`: its durable handle; else, a room its warren minted under a
+   *   key, `<row>#<key>` (the same string a persistable room answers —
+   *   house A and house B are two places on a map, not one, and not
+   *   none); else `null` and nothing is written (a lounge satellite).
+   * - `at.zone`: the copy's frame identity when its warren lays out its
+   *   own frame, else its zone's path. `at.x/y/z`: its cell, written at
+   *   perception and never afterwards; `level` is its storey (`z`).
+   *
+   * @hook A moving place answers its river or sea instead. Default: as above.
+   */
+  public mapSubject(): { place: string; at: MapClaimPosition } | null {
+    const self = this as unknown as Stuff;
+    const warren = MixinApi.isWarrenMember(self) ? self.getWarren() : null;
+    const minted = warren?.mintedKeyOf(self) ?? null;
+    const row = self.getTemplatePath();
+    const place = self.getDurableHandle() ?? (minted !== null && row ? `${row}#${minted}` : null);
+    if (place === null) return null;
+    const zone = warren?.frameIdentityOf(self) ?? self.getZone()?.getTemplatePath() ?? null;
+    const at: MapClaimPosition = {};
+    if (zone) at.zone = zone;
+    if (MixinApi.isCartesianCoordinates(self)) {
+      const [x, y, z] = self.getCoordinates();
+      at.x = x;
+      at.y = y;
+      at.z = z;
+      at.level = z;
+    }
+    return { place, at };
   }
 
   /**

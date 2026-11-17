@@ -1074,7 +1074,22 @@ subscription. **Record the measured sizes in this plan** — a snapshot of
 sections, a typical move, a map snapshot — and re-check them against the
 MQL shelf subscription's for scale. **Commit:** `feat(navigation): your map and where you are, as subscriptions; the navigator reads one`.
 
-### W3 — What a claim knows
+### W3 — What a claim knows ✅
+
+> **Done.** `Place.mapSubject()` (+ `MovingPlaceMixin` override),
+> `Warren.frameIdentityOf` / `FloorplanWarren` (zone-instancing has not
+> merged — the sibling rule applies when it does), `Expanse.mapLocality()`
+> (the one filing rule for a chart, a passenger's sea and a reckoning),
+> `Locality.getKind()` / `_learnable`, `Perceiver.learnReckoning` →
+> `Cartographer.recordReckoning`, called by the helm's readout. Decisions:
+> - The reckoned claim's channel is `seen` (it is what the navigator made out
+>   at the helm); `reckoned` in the growth key keeps it beside a passenger's.
+> - A Locality claim is written when the covering chain CHANGES (a runtime
+>   field on the cartographer), for every Locality in the chain — the first
+>   visit appends, later entries bump.
+> - `map` (the verb's rendering) skips Locality claims, so it says what it
+>   said; `route` skips them too.
+> - `recordTimetable` and `recordTraversal` now warn instead of swallowing.
 
 D2, D3, D4.
 

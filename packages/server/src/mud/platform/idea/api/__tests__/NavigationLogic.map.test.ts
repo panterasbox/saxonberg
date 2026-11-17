@@ -260,3 +260,52 @@ describe('⭐ charted and told — each with a writer (maritime D9)', () => {
     expect(saved?.claims.map((c) => c.toldBy)).toEqual(['/test/pilot/a', '/test/pilot/b']);
   });
 });
+
+describe('⭐ what a claim knows (navigation-server D2, D4)', () => {
+  it('a way seen shut, then locked, is TWO claims; seeing it shut again bumps the first', async () => {
+    const edge = { kind: 'edge' as const, dir: 'north', toLabel: '/test/map/zone/yard' };
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'shut' })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'locked', lastSeen: 200 })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'shut', lastSeen: 300 })]);
+    const states = saved!.claims.map((c) => [c.state, c.lastSeen]);
+    expect(states).toEqual([
+      ['shut', 300],
+      ['locked', 200],
+    ]);
+  });
+
+  it('a position fills a held claim that had none, and is never rewritten', async () => {
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim()]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ at: { zone: '/test/z', x: 1, y: 2, z: 0 }, lastSeen: 200 })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ at: { zone: '/test/z', x: 9, y: 9, z: 9 }, lastSeen: 300 })]);
+    expect(saved!.claims).toHaveLength(1);
+    expect(saved!.claims[0]!.at).toEqual({ zone: '/test/z', x: 1, y: 2, z: 0 });
+    expect(saved!.claims[0]!.lastSeen).toBe(300);
+  });
+
+  it('two charts are two sources; the helm\'s reckoning sits beside a passenger\'s sea', async () => {
+    const sea = { place: '/test/sea', label: '/test/sea' };
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({ ...sea, channel: 'charted', via: '/test/chart/old' }),
+      claim({ ...sea, channel: 'charted', via: '/test/chart/new' }),
+      claim({ ...sea, at: { zone: '/test/sea' } }),
+      claim({ ...sea, at: { zone: '/test/sea', geo: { latDeg: 50, lonDeg: -4 }, reckoned: true, errorNm: 2 } }),
+    ]);
+    expect(saved!.claims).toHaveLength(4);
+  });
+
+  it('⭐ the copy is told exactly what a write grew or bumped, keyed, paths tagged', async () => {
+    const { SubscriptionApi } = await import('../../../../api/subscription');
+    const poke = vi.spyOn(SubscriptionApi, 'poke');
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ label: '/test/map/zone/hall' })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ label: '/test/map/zone/hall' })]); // nothing new
+    expect(poke).toHaveBeenCalledTimes(1);
+    const hint = poke.mock.calls[0]![2] as { ownerKey: string; locality: string; claims: { key: string; place: unknown; label: unknown }[] };
+    expect(hint.ownerKey).toBe(VIEWER);
+    expect(hint.locality).toBe(LOCALITY);
+    expect(hint.claims).toHaveLength(1);
+    expect(hint.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
+    expect(hint.claims[0]!.label).toEqual({ path: '/test/map/zone/hall', spoiler: 1 });
+    expect(typeof hint.claims[0]!.key).toBe('string');
+  });
+});

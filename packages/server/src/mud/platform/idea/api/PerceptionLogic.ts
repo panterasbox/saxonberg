@@ -1436,11 +1436,17 @@ async function observePlace(
   // ⭐⭐ The body runs the perception gate, tells whatever it keeps (a map,
   // a memory, nothing) and hands back the exits this viewer may know about
   // — the same ones the verb renders, because computing them twice is how
-  // the transcript and the map could ever disagree. In the dark: the ways
-  // out you can feel along a wall for, never the people you cannot see.
-  const exits = MixinApi.isPerceiver(viewer)
-    ? viewer.learnSurroundings(place, dark ? [] : seen)
-    : [];
+  // the transcript and the map could ever disagree. ⭐ In the dark
+  // (navigation-server D2): the ways out you can feel along a wall for are
+  // rendered, but NOTHING is learned — a dark `look` writes no claim, and
+  // never the people you cannot see.
+  const exits = dark
+    ? MixinApi.isExitable(place)
+      ? place.obviousExitsFor(viewer)
+      : []
+    : MixinApi.isPerceiver(viewer)
+      ? viewer.learnSurroundings(place, seen)
+      : [];
   // Passive hints (honest fog): the full contents + every exit (hidden
   // ones included), narrowed to the close-but-unperceived. Nothing is
   // nearly seen in a place too dark to describe.

@@ -13,6 +13,7 @@
 
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import type Place from '../../stuff/Place';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Floorplan } from '../Floorplan';
 import { FloorplanWarren } from '../FloorplanWarren';
@@ -197,6 +198,13 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(cell(w.entryRoom())).toEqual([0, 0, 0]);
     expect(cell(w.roomForLeaf('hold'))).toEqual([0, 0, -1]);
     expect(w.laysOutOwnFrame()).toBe(true);
+    // ⭐ navigation-server D2: a copy is a frame of its own — every room's
+    // claim says so, with its cell in that frame and its storey.
+    const hold = w.roomForLeaf('hold') as unknown as Place;
+    const subject = hold.mapSubject();
+    expect(subject?.at).toMatchObject({ x: 0, y: 0, z: -1, level: -1 });
+    expect(subject?.at.zone).toBe(w.frameIdentityOf(hold as never));
+    expect(w.frameIdentityOf(hold as never)).toBeTruthy();
   });
 
   it('⭐⭐ one capture of the warren (its rooms are its dependents) then a re-wake: the born-with prop lands ONCE', async () => {

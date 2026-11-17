@@ -17,6 +17,7 @@
 
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import type Place from '../../../lib/stuff/Place';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
 import ShipWarren, { AUTHORED_SHIP_WARREN } from '../ShipWarren';
@@ -251,6 +252,16 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(deckA.getDurableHandle()).toBeNull();
     expect((deckA as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckA)).toBe('a1/deck');
     expect((deckB as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckB)).toBe('b2/deck');
+    // ⭐ navigation-server D2: two ships of a kind are two places on a map
+    // and two frames — the deck's claim names `<row>#<key>`, its frame
+    // `<kind folder>/<serial>`.
+    const subjA = (deckA as unknown as Place).mapSubject();
+    const subjB = (deckB as unknown as Place).mapSubject();
+    expect(subjA?.place).toBe(`${DECK}#a1/deck`);
+    expect(subjB?.place).toBe(`${DECK}#b2/deck`);
+    const folder = DECK.replace(/\/[^/]+$/, '');
+    expect(subjA?.at.zone).toBe(`${folder}/a1`);
+    expect(subjB?.at.zone).toBe(`${folder}/b2`);
     // Her plan's way below is wired keyed, to HER hold.
     const down = (deckA as unknown as Exitable).getExit('down');
     expect(down?.getDestination()?.getDurableHandle()).toBe(`${HOLD}#a1/hold`);

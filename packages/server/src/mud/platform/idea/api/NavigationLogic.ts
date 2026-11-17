@@ -1178,6 +1178,13 @@ export class NavigationLogic extends ApiLogic {
           held.lastSeen = claim.lastSeen;
           changed.add(held);
         }
+        // ⭐ `at` is NOT in the key: a bump that brings a position to a held
+        // claim with none fills it; a held position is never rewritten
+        // (navigation-server D2 — written at perception, never afterwards).
+        if (claim.at && !held.at) {
+          held.at = { ...claim.at };
+          changed.add(held);
+        }
         continue;
       }
       const added = { ...claim };
@@ -1193,6 +1200,20 @@ export class NavigationLogic extends ApiLogic {
    * (see {@link growMap}); the copy a client holds replaces by it.
    */
   private static keyOf(c: MapClaim): string {
-    return [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel, c.where ?? '', c.toldBy ?? ''].join('|');
+    // ⭐ `state` (a way seen shut, then locked), `via` (two charts) and
+    // `reckoned` (the helm's reckoning beside a passenger's sea) are in the
+    // key: each is a different claim, never a bump (navigation-server D2, D4).
+    return [
+      c.kind,
+      c.place,
+      c.dir ?? '',
+      c.toLabel ?? '',
+      c.channel,
+      c.where ?? '',
+      c.toldBy ?? '',
+      c.state ?? '',
+      c.via ?? '',
+      c.at?.reckoned ? 'reckoned' : '',
+    ].join('|');
   }
 }

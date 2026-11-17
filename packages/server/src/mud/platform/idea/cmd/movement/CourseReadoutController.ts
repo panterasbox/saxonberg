@@ -68,6 +68,8 @@ export default class CourseReadoutController extends CourseControllerBase {
     if (reckoned) {
       const bracket = plot ? plot.statedBracket(nm, band) : 'exactly';
       lines.push(`Your position, by reckoning: ${reckoned.toString()} — ${bracket}.`);
+      // ⭐ A reckoning given is a reckoning learned (navigation-server D2).
+      if (MixinApi.isPerceiver(giver)) giver.learnReckoning(craft, bracket);
     }
     if (nm >= 1) {
       lines.push('A sight, a sounding or a landmark would tighten it.');

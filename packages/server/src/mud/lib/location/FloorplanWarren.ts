@@ -461,6 +461,21 @@ export abstract class FloorplanWarren extends FloorplanBase {
     return null;
   }
 
+  /**
+   * ⭐ A copy's frame identity: {@link zoneFromFor} applied to the WARREN's
+   * key — a holding's key, a ship of a kind's `<kind folder>/<serial>`.
+   * `null` for a warren that lays its rooms on its zone's grid (a mine)
+   * and for a room it did not mint (see {@link Warren.frameIdentityOf}).
+   */
+  public override frameIdentityOf(member: Stuff): string | null {
+    if (!this.laysOutOwnFrame()) return null;
+    const key = this.warrenKey();
+    const minted = this.mintedKeyOf(member);
+    if (!key || minted === null) return null;
+    const spec = (this._plan?.rooms ?? []).find((r) => this.roomKeyOf(r.leaf) === minted);
+    return spec ? this.zoneFromFor(spec, key) : key;
+  }
+
   /** Let go of a member filed by key (a mine's abandoned cell). */
   protected forgetKey(key: string): void {
     this._roomsByKey.delete(key);

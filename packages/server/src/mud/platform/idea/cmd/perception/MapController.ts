@@ -155,6 +155,9 @@ export default class MapController extends CommandController<MapModel> {
           bands.push(claim);
           continue;
         }
+        // A first-visit Locality claim is about the region, not a place in
+        // it (navigation-server D3): the copy carries it; this list does not.
+        if (claim.kind === 'locality') continue;
         const view = places.get(claim.place) ?? {
           place: claim.place,
           name: '',

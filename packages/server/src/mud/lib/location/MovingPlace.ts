@@ -39,6 +39,7 @@ import type { FramePos } from '../expanse/Frame';
 import type { Moving } from '../expanse/Moving';
 import { AppApi } from '../../api/app';
 import type { Drift } from './Drift';
+import type { MapClaimPosition } from './MapClaim';
 
 /** How far a hail carries on open water when nobody says otherwise, m. */
 const DEFAULT_HAIL_M = 100;
@@ -99,6 +100,26 @@ export function MovingPlaceMixin<
 
     public getDrift(): Drift | null {
       return this._drift;
+    }
+
+    /**
+     * ⭐ A claim about moving water names the RIVER or the SEA it is on,
+     * never the patch (navigation-server D2): one claim per river per
+     * Locality, bumped as you drift. On a line it says where on the
+     * course (to 0.1 km); on a chart it says the sea alone — a position at
+     * sea is somebody's reckoning (`Perceiver.learnReckoning`), never the
+     * truth.
+     */
+    public mapSubject(): { place: string; at: MapClaimPosition } | null {
+      const self = this as unknown as Positioned;
+      const frame = self.framePath();
+      if (!frame) return null;
+      const pos = self.framePos();
+      const at: MapClaimPosition = { zone: frame };
+      if (pos?.frame === 'line') {
+        at.line = { course: pos.at.course, km: Math.round(pos.at.km * 10) / 10 };
+      }
+      return { place: frame, at };
     }
 
     /**

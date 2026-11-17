@@ -42,6 +42,7 @@ import { NAV_SECTION_NAMES } from '@saxonberg/types';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
 import type Place from '../stuff/Place';
+import type { Voyaging } from '../expanse/Voyaging';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
@@ -122,6 +123,14 @@ export interface Perceiver extends Sensor {
    * subject (lint:object-verbs).
    */
   navigation(names?: readonly NavSectionName[]): Promise<NavSections>;
+
+  /**
+   * ⭐ I just took `craft`'s reckoning at her helm — the third `learn*`
+   * beside `learnSurroundings` and `learnTimetable` (navigation-server
+   * D2): what I was told, in the bracket I can state it to, goes on my
+   * map. Never her true position.
+   */
+  learnReckoning(craft: Stuff & Voyaging, bracket: string): void;
 
   /**
    * ⭐⭐ **A place is being described to me — work out what I can
@@ -345,6 +354,12 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ...(sample ? { weather: sample.type, season: sample.season } : {}),
         ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
       };
+    }
+
+    /** See {@link Perceiver.learnReckoning}. */
+    learnReckoning(craft: Stuff & Voyaging, bracket: string): void {
+      const viewer = this as unknown as Stuff;
+      if (MixinApi.isCartographer(viewer)) viewer.recordReckoning(craft, bracket);
     }
 
     /** See {@link Perceiver.learnTimetable}. */

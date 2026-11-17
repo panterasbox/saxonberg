@@ -159,6 +159,19 @@ export abstract class Warren extends Idea {
     return null;
   }
 
+  /**
+   * ⭐ The identity of the frame `member` stands in, when this warren lays
+   * out its OWN — a copy (a house of a lot, a ship of a kind) is a frame of
+   * its own, and two copies of one plan are two places on a map, never one
+   * (navigation-server D2). The same path zone instancing will mint; it
+   * retires with {@link laysOutOwnFrame} then.
+   *
+   * @hook Default: none — members stand on their zone's grid.
+   */
+  public frameIdentityOf(_member: Stuff): string | null {
+    return null;
+  }
+
   public addMember(m: MemberStuff): boolean {
     if (this._members.has(m)) return true;
     if (MixinApi.isWarrenMember(m)) {
