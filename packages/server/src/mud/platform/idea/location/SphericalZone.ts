@@ -24,6 +24,11 @@ function focusKey(coords: [number, number, number]): string {
 }
 
 export default class SphericalZone extends SingletonMixin(LocationZoneMixin(SpatialZone)) {
+  /** ⭐ See {@link SpatialZone.frameFacts}. */
+  public override frameFacts(): { kind: 'sphere'; cellSizeM?: number; label: string } {
+    return { kind: 'sphere', label: this.getPresentation() };
+  }
+
   /**
    * Debug / authoring aid: locations indexed by rounded focus tuple.
    * Multiple locations may share a key (nothing prevents overlap); the

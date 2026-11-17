@@ -526,6 +526,13 @@ export class PerceptionLogic extends ApiLogic {
     return isAnotherPersonImpl(viewer, target);
   }
 
+  /** See {@link PerceptionApi.lightBandFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public lightBandFor(viewer: Stuff, place: Stuff): { band: LightBand; dark: boolean } | null {
+    const band = perceivedBandImpl(viewer, place);
+    return band === null ? null : { band, dark: LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band) };
+  }
+
   /** See {@link PerceptionApi.glance}. */
   @CallSecurity(PerceptionApiCallers)
   public glance(bearingDeg: number, rangeNm: number): string {

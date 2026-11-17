@@ -154,6 +154,10 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
    * last segment of its path (navigation-server D2). One rule for a chart
    * of it, a passenger's sea claim and the navigator's reckoning.
    */
+  public override frameFacts(): { kind: 'chart'; label: string } {
+    return { kind: 'chart', label: this.getPresentation() };
+  }
+
   public mapLocality(): string {
     const address = this.getAddress();
     if (address) return address;

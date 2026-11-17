@@ -268,6 +268,9 @@ function recordControllerThrow(
 
 function emitDispatchResponse(ctx: CommandContext): void {
   const giverAsStuff = ctx.commandGiver as unknown as Stuff;
+  // ⭐ After every command of yours, what moving needs from you may have
+  // changed (navigation-server D7): your hands, the ways, the place.
+  if (MixinApi.isSaxonbergClient(giverAsStuff)) giverAsStuff.refreshNavigation(['you', 'ways', 'place']);
   // Framework-failure prose sweep: dispatcher / validator / MQL notes
   // get an auto-rendered `shell.error` scene so the player
   // sees WHY without the client rendering envelopes. Controller-side

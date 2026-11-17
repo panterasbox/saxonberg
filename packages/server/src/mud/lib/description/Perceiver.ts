@@ -32,6 +32,10 @@ import type { Sensor } from '../message/Sensor';
 import type { Stuff } from '../stuff/Stuff';
 import type {
   BuildingSection,
+  HorizonSection,
+  Lie,
+  YouSection,
+  ZoneSection,
   LocalitiesSection,
   NavSectionName,
   NavSections,
@@ -267,10 +271,13 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
       };
+      await section('zone', () => this.zoneSection(place));
       await section('localities', () => this.localitiesSection(place));
+      await section('horizon', () => this.horizonSection());
       await section('building', () => this.buildingSection(place));
       await section('ways', () => this.waysSection(place));
       await section('place', () => this.placeSection(place));
+      await section('you', () => this.youSection());
       return out;
     }
 
@@ -284,10 +291,22 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       const address = resolution?.address ?? null;
       // The sync chain read stands on the index the awaited `resolveFor`
       // built (`AddressApi.needs`, load-on-use W5).
+      // ⭐ Each Locality says what it does not withhold: its kind and whose
+      // it is (navigation-server D3).
       const chain = address
         ? AddressApi.coverageChainOf(address)
-            .map((l) => ({ name: l.getName(), address: l.getAddress() }))
-            .filter((l) => l.name.length > 0)
+            .filter((l) => l.getName().length > 0)
+            .map((l) => {
+              const learnable = l.getLearnable();
+              const govKey = learnable.includes('government') ? l.getGovernmentKey() : null;
+              const gov = govKey ? GovernmentApi.getGovernment(govKey) : null;
+              return {
+                name: l.getName(),
+                address: l.getAddress(),
+                ...(learnable.includes('kind') ? { kind: l.getKind() } : {}),
+                ...(gov ? { government: { key: gov.key, name: gov.name } } : {}),
+              };
+            })
             .reverse()
         : [];
       // ⭐ Whose ground this is, by the one question `government` asks
@@ -295,14 +314,145 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       const jurisdiction = MixinApi.isContainer(place)
         ? (await GovernmentApi.subjectTo(place)).map((g) => ({ key: g.key, name: g.name }))
         : [];
+      // ⭐ Aboard a craft the last crumb is the ship, and the outermost says
+      // where she lies (D10); a body in moving water with no ship gets the
+      // same from the place's own position.
+      const structure = place.isPlace() ? await (place as unknown as Place).structure() : null;
+      const craft = structure as unknown as Stuff | null;
+      if (craft && MixinApi.isVoyaging(craft)) {
+        return { v: 0, chain, ship: { name: craft.getPresentation() }, outer: await craft.lies(), jurisdiction };
+      }
+      if (MixinApi.isMovingPlace(place)) {
+        const pos = place.framePos();
+        const frame = await place.liveFrame().catch(() => null);
+        const outer: Lie | undefined =
+          pos?.frame === 'line'
+            ? { at: 'river', river: frame ? (frame as unknown as Stuff).getPresentation() : 'the river', km: Math.round(pos.at.km * 10) / 10 }
+            : pos?.frame === 'chart'
+              ? { at: 'sea' }
+              : undefined;
+        return { v: 0, chain, ...(outer ? { outer } : {}), jurisdiction };
+      }
       return { v: 0, chain, jurisdiction };
     }
 
-    /** The building you are in — its name, for now (W5 grows it). */
+    /** The zone you stand in, as a frame: what kind, its cell, a label — never its extent. */
+    private async zoneSection(place: Stuff): Promise<ZoneSection | undefined> {
+      const zone = place.getZone();
+      if (!zone) return undefined;
+      const { SpatialZone } = await import('../zone/SpatialZone');
+      const facts = zone instanceof SpatialZone ? zone.frameFacts() : { label: (zone as unknown as Stuff).getPresentation() };
+      // ⭐ In a copy, the copy's identity (a house of a lot, a ship of a kind).
+      const subject = place.isPlace() ? (place as unknown as Place).mapSubject() : null;
+      const id = subject?.at.zone ?? zone.getTemplatePath() ?? null;
+      return { v: 0, ...(id ? { id: { path: id, spoiler: 1 as const } } : {}), ...facts };
+    }
+
+    /**
+     * What stands on the horizon, landmarks first — the rough direction and
+     * miles `scan horizon` says, ⛔ never a bearing in degrees (a precise
+     * bearing is `measure bearing`'s skill). Read from warm state only.
+     */
+    private async horizonSection(): Promise<HorizonSection> {
+      const { PerceptionApi } = await import('../../api/perception');
+      const viewer = this as unknown as Stuff;
+      const view = PerceptionApi.horizonFor(viewer);
+      const { default: Structure } = await import('../structure/Structure');
+      const things = view.things.map((t) => {
+        const landmark = t.stuff instanceof Structure ? t.stuff.isLandmark() : false;
+        const point = t.bearingDeg !== null && t.rangeNm !== null
+          ? PerceptionApi.glance(t.bearingDeg, t.rangeNm).split(',')[0]!.trim()
+          : null;
+        return {
+          stuffId: t.stuff.stuffId,
+          name: t.stuff.getPresentation(),
+          landmark,
+          ...(point !== null && t.rangeNm !== null
+            ? {
+                glance: {
+                  point,
+                  ...(t.rangeNm < 1 ? { closeBy: true } : { roughMiles: Math.round(t.rangeNm) }),
+                },
+              }
+            : {}),
+        };
+      });
+      things.sort((a, b) => Number(b.landmark) - Number(a.landmark));
+      return { v: 0, atSea: view.atSea, things, traffic: view.traffic.length };
+    }
+
+    /**
+     * You, as moving needs you: your pace, posture, what each hand holds,
+     * your load in its words, the light you carry, what you ride, lead and
+     * pull.
+     */
+    private async youSection(): Promise<YouSection> {
+      const { LocomotionApi } = await import('../../api/locomotion');
+      const me = this as unknown as Stuff;
+      const out: YouSection = { v: 0, pace: LocomotionApi.defaultModeFor(me) };
+      if (MixinApi.isPosed(me)) out.posture = me.getPosture();
+      if (MixinApi.isCarrying(me)) {
+        const held = me.heldThings();
+        const slots = me.handSlots();
+        out.hands = slots.map((slot, i) => ({
+          slot,
+          ...(held[i] ? { holds: held[i]!.getPresentation() } : {}),
+        }));
+        out.freeHands = me.freeHands();
+        const led = me.ledAnimals().map((a) => a.getPresentation());
+        if (led.length > 0) out.led = led;
+      }
+      if (MixinApi.isLoadBearing(me)) {
+        const load = me.burdenWords();
+        if (load) out.load = load;
+      }
+      if (MixinApi.isContainer(me)) {
+        const light = me.getContents().find(
+          (t) => MixinApi.isLightSource(t) && t.getEmittedFlux().rawValue() > 0,
+        );
+        if (light) out.light = light.getPresentation();
+      }
+      const { Creature } = await import('../creature/Creature');
+      if (me instanceof Creature) {
+        const pair = me.mountedPair();
+        if (pair && pair.rider === (me as unknown)) out.mount = pair.mount.getPresentation();
+      }
+      if (MixinApi.isHauling(me)) {
+        const cart = me.getHauledCart();
+        if (cart) out.cart = cart.getPresentation();
+      }
+      return out;
+    }
+
+    /**
+     * The building you are in: its name, the storey you are on and how many,
+     * whether this is its entrance, its height, a landmark, whether its
+     * title is sold. Outside one: the buildings standing here.
+     */
     private async buildingSection(place: Stuff): Promise<BuildingSection | null> {
       // ⭐ The place is asked: a keyed room's structure is its warren's.
       const structure = place.isPlace() ? await (place as unknown as Place).structure() : null;
-      return structure ? { v: 0, name: structure.getName() } : null;
+      if (structure) {
+        const path = place.getTemplatePath() ?? '';
+        const storeys = structure.getStoreys();
+        const at = storeys.findIndex((st) => st.key === structure.storeyOf(path)?.key);
+        const entrance = structure.getEntrance();
+        return {
+          v: 0,
+          name: structure.getName(),
+          ...(at >= 0 ? { storey: at } : {}),
+          ...(storeys.length > 0 ? { storeys: storeys.length } : {}),
+          ...(entrance !== null && (entrance === path || entrance === place.getDurableHandle()) ? { entrance: { here: true as const } } : {}),
+          heightM: structure.getHeightM(),
+          landmark: structure.isLandmark(),
+          titleSold: structure.isTitleSold(),
+        };
+      }
+      if (!place.isPlace()) return null;
+      const landed = (place as unknown as Place)
+        .landedStructuresNow()
+        .map((b) => ({ name: b.getName(), landmark: b.isLandmark() }));
+      return landed.length > 0 ? { v: 0, landed } : null;
     }
 
     /**
@@ -332,13 +482,42 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await WeatherApi.sampleFor(place).catch(() => undefined)
         : undefined;
       const day = await Promise.resolve(CelestialApi.isDayAt(place)).catch(() => undefined);
+      const [{ PerceptionApi }, { ZoneApi }] = await Promise.all([
+        import('../../api/perception'),
+        import('../../api/zone'),
+      ]);
+      const viewer = this as unknown as Stuff;
+      // ⭐ The band `look` renders by, read without looking — nothing learned.
+      const light = PerceptionApi.lightBandFor(viewer, place);
+      const band = light?.band ?? null;
+      const dark = light?.dark ?? false;
+      // Who else is here that you perceive — a hidden body is not, until found.
+      const crowd = MixinApi.isContainer(place)
+        ? place.getContents().filter((t) => t !== viewer && t.isAgent() && PerceptionApi.perceives(viewer, t)).length
+        : 0;
+      // ⭐ The total height above the sea (owner, 2026-11-17): the zone's
+      // elevation plus the room's height within it — z cells of the cell size.
+      const ground = await ZoneApi.elevationFor(place).catch(() => null);
+      const zone = place.getZone();
+      const { default: CartesianZone } = await import('../../platform/idea/location/CartesianZone');
+      const cell = zone instanceof CartesianZone ? zone.getCellSize() : null;
+      const elevationM = ground !== null ? ground + (at && cell !== null ? at.z * cell : 0) : null;
+      const ceiling = place instanceof Location ? place.getCeilingHeight() : null;
+      const stature = MixinApi.isPosed(viewer) ? viewer.getStature() : null;
       return {
         v: 0,
         stuffId: place.stuffId,
         name: place.getPresentation(),
         ...(at ? { at } : {}),
+        ...(band !== null ? { light: band } : {}),
+        dark,
+        ...(MixinApi.isSkyExposed(place) ? { openSky: place.isSkyExposed() } : {}),
         ...(sample ? { weather: sample.type, season: sample.season } : {}),
         ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
+        ...(MixinApi.isWaterPlace(place) ? { water: place.stateNow() } : {}),
+        crowd,
+        ...(ceiling !== null && stature !== null ? { lowCeiling: ceiling.rawValue() < stature } : {}),
+        ...(elevationM !== null ? { elevationM: Math.round(elevationM * 10) / 10 } : {}),
       };
     }
 

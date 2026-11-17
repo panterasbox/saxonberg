@@ -1156,7 +1156,24 @@ way out of a fight carries `flee`; a way to an unloaded place carries
 mixin and descriptor appears in `facts`. **Record the ways cost.**
 **Commit:** `feat(navigation): the ways say whether you can take them, in the words trying gives`.
 
-### W5 — The other sections and their triggers
+### W5 — The other sections and their triggers ✅
+
+> **Done.** All seven sections; triggers: arrival (all), the dispatch beat
+> (`you`, `ways`, `place`, in `emitDispatchResponse`), a moving place moving
+> (`MovingPlaceMixin.onFrameMoved` base + `ReachPatch`'s `super`), a voyage's
+> watch (`Voyage.beat`). Decisions and gaps:
+> - The light read is `PerceptionApi.lightBandFor(viewer, place)` → `{band,
+>   dark}`; the dark judgement stays beside the band (a second `.includes`
+>   of the dark list was a new closed vocabulary to `lint:closed-vocabularies`).
+> - Horizon `glance.point` is the compass word `PerceptionApi.glance` gives;
+>   `closeBy` under a mile, else `roughMiles`; landmarks first; traffic a count.
+> - ⚠ **Gaps, recorded:** `you.bars` (the words the load trips, asked with no
+>   exit) and `place.staged/searched/found` are not computed; the building's
+>   `entrance` says only `{ here: true }` (the name + first direction toward
+>   it, from your map, waits for the pane). The `you.hands` pairing is by
+>   order (held things against hand slots).
+> - Elevation: `ZoneApi.elevationFor(place)` + `z × cellSize` on a grid — the
+>   total (geography's `heightAboveSeaM` replaces it when it merges).
 
 D7, D10.
 

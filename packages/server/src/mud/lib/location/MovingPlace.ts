@@ -38,6 +38,7 @@ import type { Positioned } from '../expanse/Positioned';
 import type { FramePos } from '../expanse/Frame';
 import type { Moving } from '../expanse/Moving';
 import { AppApi } from '../../api/app';
+import { MixinApi } from '../../api/mixin';
 import type { Drift } from './Drift';
 import type { MapClaimPosition } from './MapClaim';
 
@@ -91,11 +92,17 @@ export function MovingPlaceMixin<
     /**
      * The place has moved in its frame.
      * @hook Override to tell the occupants what changed — *the run opens
-     *   out into a long brown pool* — through `tellAboard`. Default: nothing.
+     *   out into a long brown pool* — through `tellAboard`; call `super`
+     *   first. Default: the occupants' where-you-are is refreshed.
      */
     public async onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void> {
       void from;
       void to;
+      // ⭐ The place moved: whoever is in it may stand in a new Locality
+      // (navigation-server D7). An override calls this first.
+      for (const who of (this as unknown as Container).getContents()) {
+        if (MixinApi.isSaxonbergClient(who)) who.refreshNavigation(['localities', 'zone', 'place']);
+      }
     }
 
     public getDrift(): Drift | null {
