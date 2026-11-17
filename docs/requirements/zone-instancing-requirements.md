@@ -9,7 +9,7 @@ as itself ([navigation-server-requirements](./navigation-server-requirements.md)
 S15, on its own branch). Ships of a kind (the smack), the authored ships and
 moving water follow in the same build.
 
-Seeded by [zone-instancing-slate](../slates/builds/zone-instancing-slate.md).
+Seeded by [zone-instancing-slate](../slates/engine/zone-instancing-slate.md).
 A place that the game makes many copies of — a house on a lot, a dorm room,
 a smack's decks, the patch of river around a drifting boat — is today a set
 of rooms in **one shared zone** (the zone of the row every copy is made
@@ -257,7 +257,7 @@ clock-driven outcome. All steps are blocking.
 
 ## Cross-references
 
-- Seeding slate: [zone-instancing-slate](../slates/builds/zone-instancing-slate.md)
+- Seeding slate: [zone-instancing-slate](../slates/engine/zone-instancing-slate.md)
 - Subsystems: [zone.md](../subsystems/zone.md) ·
   [holding.md](../subsystems/holding.md) · [ship.md](../subsystems/ship.md)
   · [harbor.md](../subsystems/harbor.md) · [river.md](../subsystems/river.md)

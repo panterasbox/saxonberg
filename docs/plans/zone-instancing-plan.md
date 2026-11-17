@@ -1,7 +1,7 @@
 # Zone instancing — implementation plan
 
 Executes [zone-instancing-requirements](../requirements/zone-instancing-requirements.md)
-(seeded by [zone-instancing-slate](../slates/builds/zone-instancing-slate.md)).
+(seeded by [zone-instancing-slate](../slates/engine/zone-instancing-slate.md)).
 **Kind:** refactor/sweep. **Lead end:** kernel. **First consumer:** the
 holdings (Hinkley Hills, Hearts Delight, Seznick House, Duncan Hall); ships
 of a kind, moving water and the authored ships follow in the same build.
@@ -1169,7 +1169,7 @@ D4; any need for a second `isOfKind()`-style flag; any lint ceiling rise.
 ## Deferred seams
 
 - **A ship's own identity as a minted copy** (Risk 1) → a note for
-  [navigation-server-slate](../slates/builds/navigation-server-slate.md)
+  [navigation-server-slate](../slates/engine/navigation-server-slate.md)
   S10/S11's follow-up, or a short slate of its own if the owner asks.
 - **Copying a whole locality or district** → the requirements' non-goal;
   `ZoneMintingMixin` and `MintedZone` are the attach point (a copy of a
