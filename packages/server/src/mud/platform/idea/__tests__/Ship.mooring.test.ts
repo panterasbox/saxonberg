@@ -75,11 +75,32 @@ function ends(room: Stuff & Container): RopeEnd[] {
   return room.getContents().filter((x): x is RopeEnd => x instanceof RopeEnd);
 }
 
+/**
+ * Her rooms are her warren's copy (zone-instancing D12). These tests are
+ * about her lines, her berth and her book, not how her rooms are minted
+ * (`ShipWarren.test`), so her warren is a stand-in whose one room is the
+ * fixture's deck.
+ */
+function standFixtureWarren(s: Ship, deckOf: () => Stuff & Container): void {
+  const warren = {
+    entryRoom: () => deckOf(),
+    liveRooms: () => [deckOf()],
+    isDestroyed: () => false,
+    stow: () => undefined,
+  };
+  vi.spyOn(s, 'standWarren').mockResolvedValue(warren as never);
+  vi.spyOn(s, 'watchRoomNow').mockImplementation(() => deckOf());
+  // Her rooms are told by her warren, not a path (D12); the fixture's deck
+  // is no warren's member, so membership is answered for it here.
+  vi.spyOn(s, 'hasMember').mockImplementation((p: string) => p === (deckOf().getTemplatePath() ?? ''));
+}
+
 function newShip(): Ship {
   const s = makeStuffAtPath(() => new Ship(), SHIP);
   s.setName('the Hesper');
   s.setEntrance(DECK);
   s.setExtent('/test/hesper');
+  standFixtureWarren(s, () => deck as unknown as Stuff & Container);
   return s;
 }
 

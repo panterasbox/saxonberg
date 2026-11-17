@@ -1025,6 +1025,47 @@ Drive step 8 added and run, with the harbors drive
 (`harbors.dirty.wire.test.ts`) re-run whole as the regression proof.
 
 - Commit: `feat(zone-instancing): B3 — the authored ships are single copies of their kind`.
+- ✅ **Done.** Notes for review:
+  - `Ship`: `serial()` → `mintedSerial()`; a `serial` field (authored);
+    `copyKey()` keys her warren for every ship. Collapsed:
+    `watchRoomNow`/`watchRoom` (her warren's entry room), `liveMembers`,
+    `standKind`'s early return (an authored ship is now ADOPTED BY HER
+    FRAME like any ship), `onDestruct`'s release, `memberExtent` (always
+    `''`: her rooms are told by her warren). ⭐ **Sleep is unified** (the
+    owner, 2026-11-17): `sleepIfEmpty`/`sleep` lost the `isOfKind()` gate.
+    Remaining `isOfKind()` reads are origin as DATA only: which company row
+    is hers (minted vs her `house:`) and a stand-up warning.
+  - `ShipWarren`: `adoptResident`, `releaseRooms`, `planRows`,
+    `AUTHORED_SHIP_WARREN` deleted; `planOf` serves every ship.
+    `Compartment.joinShip` deleted (every ship room is a warren member).
+  - Content: the four authored ships author `warren:` (the `authored` row)
+    and `serial:`; their zone rows are `MintedZone`s minted by it.
+    `deriveAttachments`: `expanse`/`line`/`berth` attach a craft for any
+    Structure row; `extent` attaches a structure only when not a plan.
+  - Lint rule 5 (`serial`: one word, unique per warren, shadowing no row)
+    — proven by deleting the Hesper's serial.
+  - ⭐ **Found and fixed — a person aboard any ship came back nowhere after
+    she slept.** A keyed ship room's placement `{container, containerKey}`
+    went to the institutions' `admitFor`, which no serial matches (true of
+    every SMACK before this build; true of the authored ships after D12).
+    `HostPlacement` gains `structure` (the room's warren's structure); a
+    restore that no institution covers stands her up
+    (`ExpanseApi.standUpCraft`) and takes the room her warren minted under
+    the key. Test: `ShipWarren.test` (a smack; shown failing without it).
+  - ⚠ **A wizard `goto`/a harness `startLocation` naming an authored
+    ship's room ROW while she is asleep is refused (D4)** — accepted, not
+    softened: no player path names a row (her way aboard and a saved place
+    go through her). The six drives that open sessions at her rows stand
+    her up first (`stageShip(handle, {})` — an empty stage now stands her
+    up where she lies, with her rooms).
+  - The six wire drives + two e2e specs that started AT the dorm row (the
+    A2 debt) now start at the furnishing archetype
+    `/stuff/location/room/bedroom` — the same kind of orphan interior the
+    dorm row used to be, outside any copied zone.
+  - Test seams: the mooring/charter/harbor suites build a ship by hand
+    around a fixture deck; under D12 her deck is her warren's, so they give
+    her a stand-in warren (`standFixtureWarren`: entry room, live rooms,
+    membership) — they test lines, berths and books, not instancing.
 
 #### B4 — Frames retire
 

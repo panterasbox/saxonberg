@@ -23,7 +23,6 @@ import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
-import { AUTHORED_SHIP_WARREN } from '../ShipWarren';
 import BerthExit from '../BerthExit';
 import GovernmentCatalogue from '../GovernmentCatalogue';
 import TemplateApplier from '../TemplateApplier';
@@ -53,6 +52,9 @@ import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-s
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { matchesDocumentQuery } from '../../../lib/document/__tests__/document-query';
+
+/** The warren row every authored ship names (zone-instancing D12). */
+const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;

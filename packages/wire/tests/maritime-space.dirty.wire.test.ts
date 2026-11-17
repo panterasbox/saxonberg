@@ -42,6 +42,7 @@ import {
   expectRefused,
   expectNote,
   advanceWorldClock,
+  stageShip,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
@@ -315,6 +316,9 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
   });
 
   it('28 · ⭐⭐ `look` at another person: what they wear and hold — never their implant; `inventory` them the same', async () => {
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const other = await Session.open(LANDSMAN, { startLocation: DECK });
     try {
       const id = (await other.queryOne('me'))?.stuffId;
@@ -501,6 +505,9 @@ suite('19 · 20 · 25 · sight at sea', () => {
   });
 
   it('19 · ⭐ somebody below decks sees nothing of it', async () => {
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const s = await Session.open(LANDSMAN, { startLocation: HOLD });
     try {
       expect(await look(s, 'query horizon')).toMatch(/You see nothing there/);

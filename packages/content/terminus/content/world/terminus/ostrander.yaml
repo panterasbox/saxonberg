@@ -5,7 +5,11 @@
 # ⭐ Like the Hesper, her rooms are ordinary rooms in their own zone; what
 # makes her a SHIP is her Ship (`ostrander/structure`), whose position is
 # on the river's LINE rather than the sea's chart.
-class: /platform/idea/location/CartesianZone
+# ⭐ A zone that is COPIED (zone-instancing D12): her rooms stand in a copy
+# of it, `<this row>/ostrander`, made by her warren as every ship's are — the
+# row's own instance holds no room.
+class: /platform/idea/location/MintedZone
 data:
   name: The Ostrander
   cellSize: 4.0
+  mintedBy: /platform/idea/ShipWarren/authored

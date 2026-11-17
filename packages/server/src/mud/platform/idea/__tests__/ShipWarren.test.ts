@@ -19,7 +19,7 @@ import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
-import ShipWarren, { AUTHORED_SHIP_WARREN } from '../ShipWarren';
+import ShipWarren from '../ShipWarren';
 import BerthExit from '../BerthExit';
 import Compartment from '../../location/Compartment';
 import Thing from '../../thing/Thing';
@@ -43,6 +43,9 @@ import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+
+/** The warren row every authored ship names (zone-instancing D12). */
+const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -130,7 +133,16 @@ function installStore(): void {
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
   // An authored ship: one row, her rooms rows of their own under her extent,
   // joined by the ways her rows author (a saloon aft, as the Ostrander's).
-  add(AUTHORED, '/platform/idea/Ship', { name: 'the Hesper', extent: '/test/hesper', entrance: A_DECK });
+  // ⭐ Every ship is a copy (zone-instancing D12): an authored ship names
+  // the authored warren and a serial, and her zone row is copied by it.
+  add(AUTHORED, '/platform/idea/Ship', {
+    name: 'the Hesper',
+    extent: '/test/hesper',
+    entrance: A_DECK,
+    warren: AUTHORED_SHIP_WARREN,
+    serial: 'hesper',
+  });
+  add('/test/hesper', '/platform/idea/location/MintedZone', { name: 'the Hesper', cellSize: 4, mintedBy: AUTHORED_SHIP_WARREN });
   add(A_DECK, '/platform/location/Compartment', {
     shortDescription: "Hesper's deck",
     exits: { down: { destination: A_HOLD }, west: { destination: A_SALOON } },
@@ -384,7 +396,27 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     ContainmentApi.move(who, deck);
     await PersistableApi.capture(who as unknown as Stuff, 'rover-2');
     const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-2');
-    expect(rec?.place).toEqual({ container: DECK, containerKey: 'p1/deck' });
+    expect(rec?.place).toEqual({ container: DECK, containerKey: 'p1/deck', structure: `${KIND}/p1` });
+  });
+
+  it('⭐ somebody who left a smack\'s deck is put back on it after she sleeps — through her, by the key (zone-instancing B3)', async () => {
+    const ship = await mint('p2');
+    const deck = await deckOf(ship);
+    class Rover extends PersistableMixin(ContainableMixin(Idea)) {}
+    const who = makeStuffAtPath(() => new Rover(), '/test/rover-p2') as unknown as Stuff & Containable;
+    vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
+    ContainmentApi.move(who, deck);
+    await PersistableApi.capture(who as unknown as Stuff, 'rover-p2');
+    // He is gone (signed out); she sleeps whole.
+    StuffApi.destruct(who as unknown as Stuff);
+    await ship.sleep();
+    expect(deck.isDestroyed()).toBe(true);
+    // He comes back: his placement stands her up and lands him on her deck.
+    const again = makeStuffAtPath(() => new Rover(), '/test/rover-p2') as unknown as Stuff & Containable;
+    await PersistableApi.restoreOrSeed(again as unknown as Stuff, 'rover-p2');
+    const there = again.getContainer() as unknown as Stuff | null;
+    expect(there?.getTemplatePath()).toBe(DECK);
+    expect((there as unknown as { getWarren(): ShipWarren | null }).getWarren()?.mintedKeyOf(there!)).toBe('p2/deck');
   });
 
   it('⭐ review 2: the deck stamps itself a shore of the sea she lies on as her warren wakes it (the one wake hook)', async () => {
@@ -519,10 +551,9 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((deck as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deck!)).toBe('r1/deck');
   });
 
-  it('⭐ B6: somebody on an authored ship\'s deck is placed by the ROOM, never by the shared authored-warren row', async () => {
-    // Two authored ships: two warrens off the one `authored` row, each keyed by her path.
+  it('⭐ B6: somebody on an authored ship\'s deck is placed by the ROOM, keyed under her serial', async () => {
     const ship = await StuffApi.singleton<Ship>(AUTHORED);
-    const deck = await StuffApi.singleton<Stuff & Container>(A_DECK);
+    const deck = (await ship.watchRoom())!;
     class Rover extends PersistableMixin(ContainableMixin(Idea)) {}
     const who = makeStuffAtPath(() => new Rover(), '/test/rover') as unknown as Stuff & Containable;
     vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
@@ -532,54 +563,52 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(warren?.getTemplatePath()).toBe(AUTHORED_SHIP_WARREN);
     await PersistableApi.capture(who as unknown as Stuff, 'rover-1');
     const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-1');
-    expect(rec?.place).toEqual({ container: A_DECK });
+    expect(rec?.place).toEqual({ container: A_DECK, containerKey: 'hesper/deck', structure: AUTHORED });
   });
 
-  it('⭐ an authored ship adopts every room her ways reach from her entrance — the saloon too — and nothing else', async () => {
+  it('⭐ an authored ship\'s rooms are a copy her warren stands — every room her ways reach, and nothing else (zone-instancing D12)', async () => {
     const ship = await StuffApi.singleton<Ship>(AUTHORED);
-    const deck = await StuffApi.singleton<Stuff & Container>(A_DECK);
-    const hold = await StuffApi.singleton<Stuff & Container>(A_HOLD);
-    const saloon = await StuffApi.singleton<Stuff & Container>(A_SALOON);
-    const stray = await StuffApi.singleton<Stuff & Container>(A_STRAY);
-    // Followed, never searched: no descendant scan of her extent.
     const scan = vi.spyOn(Template, 'findDescendants');
-    await ship.aboard();
+    const deck = (await ship.watchRoom())!;
+    // Followed, never searched: no descendant scan of her extent.
     expect(scan).not.toHaveBeenCalled();
     const warren = (deck as unknown as { getWarren(): ShipWarren | null }).getWarren();
     expect(warren).toBeInstanceOf(ShipWarren);
     expect(warren!.liveRooms().map((r) => r.getTemplatePath()).sort()).toEqual([A_DECK, A_HOLD, A_SALOON].sort());
-    for (const room of [hold, saloon]) {
-      expect((room as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBe(warren);
-    }
+    // ⭐ Her copy of her zone, named as every ship's is.
+    const zone = deck.getZone()!;
+    expect(zone.getTemplatePath()).toBe('/test/hesper');
+    expect(zone.getIdentityPath()).toBe('/test/hesper/hesper');
+    for (const room of warren!.liveRooms()) expect(room.getZone()).toBe(zone);
     // A room under her extent that no way of hers reaches is not her room.
-    expect((stray as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBeNull();
+    expect(warren!.liveRooms().map((r) => r.getTemplatePath())).not.toContain(A_STRAY);
+    expect(await (deck as unknown as Compartment).structure()).toBe(ship);
   });
 
-  it('⭐ an authored ship adopts the rooms under her extent, and never sleeps', async () => {
+  it('⭐ an authored ship sleeps when nobody is aboard and she is not under way, and wakes as herself (the owner, 2026-11-17)', async () => {
     const ship = await StuffApi.singleton<Ship>(AUTHORED);
     expect(ship.getDurableHandle()).toBe(AUTHORED);
     expect(ship.isOfKind()).toBe(false);
-    const deck = await StuffApi.singleton<Stuff & Container>(A_DECK);
-    const hold = await StuffApi.singleton<Stuff & Container>(A_HOLD);
-    const who = await StuffApi.clone<Stuff & Containable>(CRATE);
+    const deck = (await ship.watchRoom())!;
+    const hold = (deck as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    const crate = await StuffApi.clone<Stuff & Containable>(CRATE);
+    ContainmentApi.move(crate, hold);
+    class Rover extends PersistableMixin(ContainableMixin(Idea)) {}
+    const who = makeStuffAtPath(() => new Rover(), '/test/rover-2') as unknown as Stuff & Containable;
     vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
     ContainmentApi.move(who, deck);
-    const aboard = await ship.aboard();
-    expect(aboard).toEqual([]); // a crate is no organism; the read ran through her warren
-    const warren = (deck as unknown as { getWarren(): ShipWarren | null }).getWarren();
-    expect(warren).toBeInstanceOf(ShipWarren);
-    expect((hold as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBe(warren);
-    expect(warren!.ship()).toBe(ship);
-    // The deck is asked: its warren says (a path read is the location graph's alone).
-    expect(await (deck as unknown as Compartment).structure()).toBe(ship);
-
-    // The last one off an authored ship: she stands while her zone does.
-    ContainmentApi.move(who, hold);
+    // The last one off: she sleeps whole, as a ship of a kind does.
     ContainmentApi.move(who, await StuffApi.singleton<Stuff & Container>(LANDING));
-    await tick();
-    await tick();
-    expect(ship.isDestroyed()).toBe(false);
-    expect(deck.isDestroyed()).toBe(false);
+    for (let i = 0; i < 10 && !ship.isDestroyed(); i++) await tick();
+    expect(ship.isDestroyed()).toBe(true);
+    expect(deck.isDestroyed()).toBe(true);
+    // Woken by reference: the same zone name, her hold still holds the crate.
+    const back = await ExpanseApi.standUpCraft(AUTHORED);
+    expect(back).toBeInstanceOf(Ship);
+    const deck2 = (await (back as unknown as Ship).watchRoom())!;
+    expect(deck2.getZone()!.getIdentityPath()).toBe('/test/hesper/hesper');
+    const hold2 = (deck2 as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    expect(hold2.getContents().filter((c) => c.getTemplatePath() === CRATE)).toHaveLength(1);
   });
 
   describe('each ship of a kind is a zone of her own (zone-instancing B1)', () => {

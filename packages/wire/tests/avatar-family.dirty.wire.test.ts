@@ -88,7 +88,12 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
+// ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
+// orphan room with no unit, no door and no copy — which can no longer exist:
+// each let unit is a zone of its own and its row refuses a room
+// (zone-instancing D4). The furnishing archetype is the same kind of row,
+// outside any copied zone.
+const DORM = '/stuff/location/room/bedroom';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 

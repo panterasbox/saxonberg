@@ -288,6 +288,9 @@ suite('A1 — the port', () => {
 
   it('3. (short · staged) a regular alongside the same quay — two ways, each named for its ship; a third, too long for what is left, is sent to the roads and says so', async () => {
     // The Kittiwake's helm: the founder holds the office that appoints her company.
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/harbor/ships/ketch/structure', {});
     let f = await founderAt(KETCH_DECK);
     await f.cmd(`house appoint me to master at ${KETCH_CO}`);
     await stageShip(KETCH, { at: { node: BAR } });
@@ -303,6 +306,9 @@ suite('A1 — the port', () => {
     expect(quay, quay).toMatch(/\bkittiwake\b/i);
     // The Corrigan (35 m): 70 − 30 − 20 leaves 20 m on the Town Quay, and the
     // Fish Quay is 25 — sent to the roads by room, once the bar would take her.
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/harbor/ships/coaster/structure', {});
     f = await founderAt(COASTER_DECK);
     await f.cmd(`house appoint me to master at ${COASTER_CO}`);
     await stageShip(COASTER, { at: { node: BAR } });
@@ -355,6 +361,9 @@ suite('A1 — the port', () => {
     // From 06:15 a rising tide always follows within the office's day: the
     // admitted window is under six hours and the refused one under seven.
     await toHour(6.25);
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/harbor/ships/coaster/structure', {});
     const f = await founderAt(COASTER_DECK);
     for (let i = 0; i < 8; i++) {
       if (i > 0) await advanceWorldClock('1 hour');
@@ -380,6 +389,9 @@ suite('A1 — the port', () => {
   it('7. (instant · player) a ship with no line aboard is refused at the quay: she has no lines to make fast', async () => {
     await stageShip(HESPER, { at: { node: BAR } });
     // (staged) The founder takes her two lines off her bitts.
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const f = await founderAt(HESPER_DECK);
     expectOk(await f.cmd('get "1 mooring line"'));
     expectOk(await f.cmd('get "1 mooring line"'));

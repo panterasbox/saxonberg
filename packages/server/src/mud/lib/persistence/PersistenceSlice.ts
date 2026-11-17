@@ -305,6 +305,13 @@ export interface HostPlacement {
    * owning institution's admit.
    */
   containerKey?: string;
+  /**
+   * ⭐ The STRUCTURE a keyed room belongs to when no institution covers its
+   * key — a ship's room, keyed under her serial (zone-instancing D12: every
+   * ship's rooms are a copy her warren stands). Restore stands her up and
+   * takes the room her warren minted under `containerKey`.
+   */
+  structure?: string;
   startLocation?: string;
   /**
    * The way DOWN from the anchor to where the host actually stood, as the

@@ -562,8 +562,13 @@ export default class LocationGraphRegistry extends Idea {
       }
       if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
            typeof data.berth === 'string') &&
-          !plans.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
-        if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
+          row.class && (await this.isStructureClass(row.class))) {
+        // A plan's extent is the kind its copies are made from: it attaches
+        // nothing. ⭐ Her sea, her line and her berth attach her whatever
+        // her rooms are — an authored ship is a copy of her plan too
+        // (zone-instancing D12), and a kind row authors none of them, so a
+        // KIND still attaches to no sea.
+        if (typeof data.extent === 'string' && !plans.has(row.path)) add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to
         // theirs (river D2): the river loads what is attached to it.

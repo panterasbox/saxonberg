@@ -16,6 +16,10 @@ class: /platform/idea/Steamer
 data:
   name: the Ostrander
   extent: /world/terminus/ostrander
+  # ⭐ Her rooms are a copy her warren stands, as every ship's are
+  # (zone-instancing D12): keyed and named by her serial.
+  warren: /platform/idea/ShipWarren/authored
+  serial: ostrander
   entrance: /world/terminus/ostrander/deck
   shortDescription: Ostrander
   register: definite

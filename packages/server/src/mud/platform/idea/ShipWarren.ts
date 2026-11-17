@@ -15,8 +15,9 @@
  *   ({@link structureOf}): a smack's deck row is every smack's, so no
  *   `extent` prefix can tell two of them apart;
  * - **where the rooms stand** — a ship's key is a serial, not a path, so
- *   a room's zone is resolved under its own row's folder (the kind's
- *   zone, authored once) rather than from the key ({@link zoneFromFor});
+ *   her rooms stand in HER copy of her kind's zone, `<kind zone>/<serial>`
+ *   (zone-instancing D11), named by the one rule the capability owns
+ *   ({@link zoneFromFor});
  * - **the sea over the side** — a deck that cites a `sea` feature
  *   stamps itself a shore of whatever sea she lies on as it wakes
  *   (`Compartment.onWarrenWake`, the one wake hook);
@@ -28,24 +29,18 @@
  *   the row gear she was short of then is kept short ({@link stow},
  *   {@link fitOut}).
  *
- * ⭐ **An authored ship adopts.** The Hesper names no `warren:`; her warren
- * is the platform's `/platform/idea/ShipWarren/authored` row; it copies
- * NO plan — an authored ship's own rows already ARE the place, and they
- * are served — and it takes her resident rooms under her `extent` as
- * members instead of minting any ({@link adoptResident}) — FOLLOWED from
- * her `entrance` through the ways her rows author, never searched.
- *
- * ⭐ **The plan is the ship's**: a warren row
- * names nothing; a ship of a kind hands her warren her own row's
+ * ⭐ **The plan is the ship's**: a warren row names how its copies are
+ * named and joined and nothing else; a ship hands her warren her own row's
  * `extent` and `entrance` ({@link planOf}). The ship owns the plan, as a
- * holding's programme row owns its own. One kind of
- * ship room (`Compartment`), two ways of instancing it: keyed for a kind,
- * by its own row for an authored ship.
+ * holding's programme row owns its own. ⭐ **Every ship is a copy**
+ * (zone-instancing D12): a ship of a kind is keyed by her minted serial, an
+ * authored ship (the Hesper, `warren: /platform/idea/ShipWarren/authored`)
+ * by her authored `serial` — one way of instancing her rooms, whichever
+ * way she came to be.
  */
 
 import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
 import { ZoneMintingMixin } from '../../lib/location/ZoneMinting';
-import { Floorplan } from '../../lib/location/Floorplan';
 import type { FloorplanRoom } from '../../lib/location/Floorplan';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
@@ -58,9 +53,6 @@ import type { FieldMeta } from '../../lib/mixin';
 import type Ship from './Ship';
 
 type MemberStuff = Stuff & Container;
-
-/** The row an authored ship's warren is cloned from (no plan: it adopts). */
-export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
@@ -81,9 +73,6 @@ export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
 
   /** Her rooms are hers, not a holding's: a ship's warren is no address's. */
   private _ship: Ship | null = null;
-
-  /** Runtime cache of her room rows (an authored ship's plan, followed from her entrance). */
-  private planRows: Promise<string[]> | null = null;
 
   /** Set once, by the ship that stands this warren up. */
   public attachShip(ship: Ship): void {
@@ -115,7 +104,7 @@ export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
    */
   protected override planOf(): { owner: string; data: Record<string, unknown> } | null {
     const ship = this.ship();
-    if (ship === null || !ship.isOfKind()) return null;
+    if (ship === null) return null;
     return {
       owner: ship.getTemplatePath() ?? 'a ship of a kind',
       data: { extent: ship.getExtent(), entrance: ship.getEntrance() ?? '' },
@@ -138,8 +127,7 @@ export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
       this.checkCopyRooms(zone, this.liveRooms());
       await this.recordCopy(zone, this.copyRooms());
     }
-    if (this.ship()?.isOfKind() !== true) await this.adoptResident();
-    else this.fitOut(this.shortOf);
+    this.fitOut(this.shortOf);
   }
 
   /** Her minted rooms that keep no record of their own, with their leaf. */
@@ -249,43 +237,6 @@ export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
       }
     }
     this.shortOf = shortOf;
-  }
-
-  /**
-   * ⭐ An authored ship's rooms are rows of their own, loaded as any room
-   * is (walked to, by her berth, by her zone): whichever of them stand now
-   * become members. Which rows are hers is her PLAN, read as a kind's is —
-   * her `entrance`, then every room a way inside her `extent` leads to
-   * ({@link Floorplan}): followed, never searched. Asked again on every
-   * read of her rooms — a room that loaded later joins then.
-   */
-  public async adoptResident(): Promise<void> {
-    const ship = this.ship();
-    if (ship === null) return;
-    const extent = ship.getExtent();
-    const entrance = ship.getEntrance() ?? '';
-    if (extent === '' || entrance === '') return;
-    if (this.planRows === null) {
-      this.planRows = new Floorplan(ship.getTemplatePath() ?? 'an authored ship', { extent, entrance })
-        .load()
-        .then((plan) => plan.rooms.map((r) => r.row));
-    }
-    for (const path of await this.planRows) {
-      // An authored room is a row of its own: its one instance, by its path.
-      const room = StuffApi.findByIdentityPath<Stuff>(path).find((r) => !r.isDestroyed()) ?? null;
-      if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) continue;
-      if (this.hasMember(room)) continue;
-      this.addMember(room);
-    }
-  }
-
-  /**
-   * Let go of every adopted room without destructing it — an authored
-   * ship's rooms are rows in their own right, and stand on when her warren
-   * goes (an HMR of the ship, a shutdown).
-   */
-  public releaseRooms(): void {
-    for (const m of this.getMembers()) this.removeMember(m);
   }
 
   /**

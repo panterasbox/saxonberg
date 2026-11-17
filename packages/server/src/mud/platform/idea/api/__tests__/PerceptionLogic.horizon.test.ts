@@ -215,6 +215,10 @@ async function afloat(path: string, extent: string, heightM: number, at: GeoPosi
   }
   const s = makeStuffAtPath(() => new Ship(), path);
   s.setExtent(extent);
+  // A ship's rooms are told by her warren (zone-instancing D12); this
+  // fixture's rooms are plain rooms under her extent, so membership is
+  // answered by the path here.
+  vi.spyOn(s, 'hasMember').mockImplementation((p: string) => p === extent || p.startsWith(`${extent}/`));
   s.setHeightM(heightM);
   s.setKeywords(name);
   s.setShortDescription(name[0]!);

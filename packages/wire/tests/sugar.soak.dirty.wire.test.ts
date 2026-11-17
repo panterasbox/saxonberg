@@ -32,6 +32,7 @@ import {
   advanceWorldClock,
   worldClockNow,
   isOwnedTestWorld,
+  stageShip,
 } from '../src/harness';
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
@@ -841,11 +842,17 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, STORE);
     await buy(sailor, 'block');
     sailor.close();
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     sailor = await goTo(sailorHandle, HOLD);
     await say(sailor, 'drop block');
     expect(await say(sailor, 'look'), 'nothing in the hold before the restart').toMatch(/raw sugar|block/i);
     sailor.close();
     await restartWorld();
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const back = await goTo(sailorHandle, HOLD);
     try {
       expect(await say(back, 'look'), 'the hold forgot its cargo').toMatch(/raw sugar|block/i);

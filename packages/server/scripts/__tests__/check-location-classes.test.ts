@@ -457,4 +457,20 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
     expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: false, exits: [] }])).toEqual([room]);
     expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: true, exits: [] }])).toEqual([]);
   });
+
+  it('5: an authored ship names a serial, one word, unique to her warren', () => {
+    const W = '/test/t/idea/ships';
+    const warren: Row = { file: 'p/content/test/t/idea/ships.yaml', cls: '/platform/idea/ShipWarren', coords: false, exits: [], fields: { zoneNaming: 'under-row', joins: 'berth' } };
+    const ship = (name: string, serial?: string): Row => ({
+      file: `p/content/test/t/${name}/structure.yaml`,
+      cls: '/platform/idea/Ship',
+      coords: false,
+      exits: [],
+      fields: { warren: W, berth: '/test/quay', ...(serial !== undefined ? { serial } : {}) },
+    });
+    expect(copyDeclarations([warren, ship('a')]).join('\n')).toMatch(/names her serial/);
+    expect(copyDeclarations([warren, ship('a', 'one'), ship('b', 'one')]).join('\n')).toMatch(/serial 'one' is .* too/);
+    expect(copyDeclarations([warren, ship('a', 'one'), ship('b', 'two')]).filter((f) => /serial/.test(f))).toEqual([]);
+  });
 });
+

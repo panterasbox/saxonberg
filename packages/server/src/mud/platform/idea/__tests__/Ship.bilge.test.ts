@@ -17,7 +17,6 @@ import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
-import { AUTHORED_SHIP_WARREN } from '../ShipWarren';
 import BilgeWell from '../../thing/BilgeWell';
 import TemplateApplier from '../TemplateApplier';
 import { Document } from '../../../lib/persistence/Document';
@@ -33,6 +32,9 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+
+/** The warren row every authored ship names (zone-instancing D12). */
+const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;

@@ -247,7 +247,12 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     // exactly as a keyed room's record would.
     const minted = w?.mintedKeyOf(anchor) ?? null;
     const row = anchor.getIdentityPath();
-    if (minted !== null && row) return { container: row, containerKey: minted, ...nested };
+    if (minted !== null && row) {
+      // ⭐ Whose room it is (a ship's), so restore can stand HER up and
+      // re-enter the room through her — no institution covers a serial.
+      const structure = w?.structureOf(anchor)?.getDurableHandle() ?? null;
+      return { container: row, containerKey: minted, ...(structure ? { structure } : {}), ...nested };
+    }
   }
   const container = anchor.getIdentityPath();
   return container ? { container, ...nested } : null;
@@ -380,6 +385,12 @@ async function resolvePlacementAnchor(
     );
     const room = await CirculationWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
+    // A structure's keyed room (a ship's deck): stand her up, then take the
+    // room her warren minted under the key.
+    if (place.structure) {
+      const theirs = await keyedRoomOfStructure(place.structure, place.container, place.containerKey);
+      if (theirs !== null) return theirs;
+    }
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +
         `'${place.container}#${place.containerKey}' unresolvable — ` +
@@ -404,6 +415,33 @@ async function resolvePlacementAnchor(
       );
     }
     if (target && MixinApi.isContainer(target)) return target as Stuff & Container;
+  }
+  return null;
+}
+
+/**
+ * The room `key` of `structure` — a ship's keyed room — once she stands:
+ * the live `row` instance her warren minted under that key, or null. She is
+ * stood up by her handle as any craft is (a record, or her row).
+ */
+async function keyedRoomOfStructure(
+  structure: string,
+  row: string,
+  key: string,
+): Promise<(Stuff & Container) | null> {
+  try {
+    const { ExpanseApi } = await import('../../../api/expanse');
+    const ship = await ExpanseApi.standUpCraft(structure);
+    if (ship === null) return null;
+    // Her rooms stand with her (her warren wakes as she does).
+    if (MixinApi.isVoyaging(ship)) await ship.watchRoom();
+  } catch (err) {
+    console.warn(`PersistableLogic.restorePlacement: structure '${structure}' did not stand up:`, err);
+    return null;
+  }
+  for (const r of StuffApi.findByIdentityPath<Stuff>(row)) {
+    if (r.isDestroyed() || !MixinApi.isWarrenMember(r) || !MixinApi.isContainer(r)) continue;
+    if (r.getWarren()?.mintedKeyOf(r) === key) return r as Stuff & Container;
   }
   return null;
 }

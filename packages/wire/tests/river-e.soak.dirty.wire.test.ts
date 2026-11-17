@@ -43,6 +43,7 @@ import {
   expectOk,
   advanceWorldClock,
   worldClockNow,
+  stageShip,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -206,6 +207,9 @@ suite('stage E — the ferry, and the sea', () => {
   }, 600_000);
 
   it('35. the Hesper stopped at sea: her boat into the water beside her; over the side, and her course waits', async () => {
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const master = await session(uniqueHandle('rem'), DECK);
     const hand = await session(uniqueHandle('reh'), DECK);
     // ⭐ Only her master takes the helm: the founder, who holds

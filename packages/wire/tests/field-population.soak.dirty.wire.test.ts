@@ -96,7 +96,12 @@ const CANS = [
 const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';
 const CANE_PIECE = '/world/terminus/waponi-woo/location/cane-piece';
-const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
+// ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
+// orphan room with no unit, no door and no copy — which can no longer exist:
+// each let unit is a zone of its own and its row refuses a room
+// (zone-instancing D4). The furnishing archetype is the same kind of row,
+// outside any copied zone.
+const DORM = '/stuff/location/room/bedroom';
 
 /**
  * The founder's jurisdiction for staging the home field. ⚠ Not

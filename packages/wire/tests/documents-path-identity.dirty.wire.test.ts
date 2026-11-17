@@ -83,7 +83,12 @@ declareFile({
 
 const YARD = '/world/terminus/wharfside/tannery/location/yard';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
+// ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
+// orphan room with no unit, no door and no copy — which can no longer exist:
+// each let unit is a zone of its own and its row refuses a room
+// (zone-instancing D4). The furnishing archetype is the same kind of row,
+// outside any copied zone.
+const DORM = '/stuff/location/room/bedroom';
 const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
 const POTTERS = '/world/terminus/hearts-delight/brickfield/location/potters-shop';
 const BAR = '/world/lounge/location/bar';

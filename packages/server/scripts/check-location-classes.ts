@@ -595,7 +595,10 @@ function copiedRowFiles(rows: readonly Row[]): Set<string> {
  *    copied by that warren;
  * 4. every location row under a `MintedZone` row authors `coords:` (bar
  *    `OWN_FRAME`, a moving place seated by its zone) — a copy is a zone of
- *    its own, so its rows say where they stand on its grid.
+ *    its own, so its rows say where they stand on its grid;
+ * 5. an authored ship (a row naming a minting warren and lying somewhere —
+ *    `expanse`, `line` or `berth`) authors `serial`: one word, unique among
+ *    the ships of that warren, naming no row under her extent.
  *
  * The runtime holds the same line (`ZoneMintingMixin.wakeCopyZone` throws
  * on an undeclared row; `MintedZone` refuses a room on the row itself);
@@ -650,6 +653,30 @@ export function copyDeclarations(rows: readonly Row[]): string[] {
     if (!w || !isZoneMintingClass(w.cls)) continue;
     planExtentFinding(r.file, f.warren, f.extent, byPath, out);
   }
+  // 5. An authored ship — a row that names a minting warren and lies
+  //    somewhere (`expanse`, `line` or `berth`) — is keyed by her serial.
+  const serials = new Map<string, Map<string, string>>();
+  for (const r of rows) {
+    const f = r.fields ?? {};
+    if (!f.warren || !(f.expanse || f.line || f.berth)) continue;
+    const w = byPath.get(f.warren);
+    if (!w || !isZoneMintingClass(w.cls)) continue;
+    const serial = f.serial ?? "";
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(serial)) {
+      out.push(`${r.file}: an authored ship names her serial — one lower-case word her copy is named by (serial:), got '${serial}'`);
+      continue;
+    }
+    const seen = serials.get(f.warren) ?? new Map<string, string>();
+    serials.set(f.warren, seen);
+    const other = seen.get(serial);
+    if (other !== undefined) out.push(`${r.file}: serial '${serial}' is ${other}'s too — two ships of one warren cannot share a name`);
+    else seen.set(serial, r.file);
+    const extent = (f.extent ?? "").replace(/\/+$/, "");
+    if (extent && byPath.has(`${extent}/${serial}`)) {
+      out.push(`${r.file}: serial '${serial}' names a row under her extent ('${extent}/${serial}') — her copy would shadow it`);
+    }
+  }
+
   // 4.
   const ownFrame = new Set(OWN_FRAME);
   for (const file of copiedRowFiles(rows)) {
