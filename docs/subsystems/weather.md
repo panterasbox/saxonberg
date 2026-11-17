@@ -153,9 +153,13 @@ levers, each a `SpatialZone` field (the region in space) resolved
 through the zone chain (`SpatialZone.climateSite()`,
 `ZoneApi.climateSiteFor`): `latitude` (signed;
 the hemisphere), `elevation`, `continentality` (0 coast … 1 continent)
-and `climateOffsetK` (the anomaly nothing local derives). An unauthored
-chain is `DEFAULT_CLIMATE_SITE` — 42°, sea level, 0.5, 0 — so every
-reader of latitude answers exactly as before latitude was a field. A
+and `climateOffsetK` (the anomaly nothing local derives). ⭐ A chain that
+states no `latitude` takes the CHART's (the geography build): the place's
+nearest positioned Locality's point (`Locality._position`, reached through
+the place's own memoized locality — address.md), so the sextant, the sun and
+the climate cannot disagree; a zone that states one keeps it (Hollow Mere
+states 58° S — geography-slate § Open 4). Only then the realm default
+`DEFAULT_CLIMATE_SITE` — 42°, sea level, 0.5, 0. A
 river authors its own (`site:` on the Watercourse row) because a reach
 is not a place a zone chain reaches.
 

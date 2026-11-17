@@ -20,8 +20,12 @@ data:
   instrumentNoun: "a sextant"
   # No eye rung: you cannot judge a latitude by looking.
   eyeCeiling: untrained
+  # ⭐ Afloat or ashore (geography D11): at sea it mends the reckoning's
+  # latitude; ashore, under an open sky, it reads the latitude the place's
+  # climate reads — the same one the sun keeps.
   improves: >-
-    how far north you are, and nothing about how far along
+    how far north you are, at sea or ashore, and nothing about how far
+    along
   stakes: >-
     a landfall made on the wrong side of a headland; a course laid from
     a reckoning forty miles adrift

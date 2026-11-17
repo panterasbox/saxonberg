@@ -1085,6 +1085,11 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   public setHouse(value: string | null): void { this.house = value ?? null; }
 
   /** Her height as a target — the truck. */
+  /** Her riding lights — her row's `showsLight` (geography D6). */
+  override isLitByNight(): boolean {
+    return this.getShowsLight();
+  }
+
   override getTargetHeightM(): number {
     return this.getHeightM();
   }

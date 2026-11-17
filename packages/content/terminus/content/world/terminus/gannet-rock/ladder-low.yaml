@@ -1,0 +1,19 @@
+# The iron ladder up the outside of the light on Gannet Rock — one storey
+# of it (geography W3: the tower's cells meet one above the other, so the
+# lantern gallery is reached a storey at a time). Open to the sky.
+class: /platform/location/Locale
+data:
+  shortDescription: iron ladder up the light
+  keywords: [ladder, rungs, tower, iron]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    Iron rungs bolted up the outside of the tower, the white paint flaking off them, the landing and its ring a long step below. The wind leans on you here; the birds do not care.
+  coords:
+    x: 0
+    y: 0
+    z: 1
+  exits:
+    up:
+      destination: /world/terminus/gannet-rock/ladder-high
+      bidirectional: true

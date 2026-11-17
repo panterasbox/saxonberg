@@ -7,6 +7,10 @@
  * (`Voyaging.takeLatitude`), and the east-west error stays where it was.
  * Longitude needs a clock, which is another build.
  *
+ * ⭐ Ashore too (geography D11): the latitude a place's climate reads —
+ * the one resolver, which takes a Locality's point on the chart when the
+ * zone states none — under an open sky, with nothing to mend.
+ *
  * ⭐ The weather denial is free and spoken in the sky's own terms: under
  * anything but a clear sky there is no sun to bring down, and the refusal
  * says what the sky is doing. So does a sun below the horizon.
@@ -25,6 +29,8 @@ import { ExpanseApi } from '../../../api/expanse';
 import { WeatherApi } from '../../../api/weather';
 import { CelestialApi } from '../../../api/celestial';
 import { WorldClockApi } from '../../../api/worldclock';
+import { BiomeApi } from '../../../api/biome';
+import { ZoneApi } from '../../../api/zone';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Place from '../../../lib/stuff/Place';
@@ -52,16 +58,27 @@ export default class LatitudeReading extends Reading {
   ): Promise<void> {
     const giver = this.actorOf(context);
     const craft = await this.craftOf(giver);
-    const truth = craft?.getExpansePosition() ?? null;
-    if (!craft || !truth) {
+    const place = this.placeOf(giver);
+    // ⭐ Afloat, the craft's own latitude; ashore (geography D11), the
+    // latitude the place's climate reads — the one resolver, so the sextant,
+    // the sun and the weather cannot disagree. Ashore the sky must be open.
+    const atSea = craft?.getExpansePosition() ?? null;
+    let lat: number | null = atSea?.latDeg ?? null;
+    if (lat === null && place !== null) {
+      if (!(BiomeApi.exposureOf(place)?.skyVisible() ?? false)) {
+        this.decline(context, Mml.compose`You cannot see the sky from here to take a sight.`, 'no-horizon');
+        return;
+      }
+      lat = (await ZoneApi.climateSiteFor(place)).latitudeDeg;
+    }
+    if (lat === null) {
       this.decline(
         context,
-        Mml.compose`You have no sea horizon to bring the sun down to.`,
+        Mml.compose`You have no horizon to bring the sun down to.`,
         'no-horizon',
       );
       return;
     }
-    const place = this.placeOf(giver);
     if (place) {
       const sky = await WeatherApi.skyReadFor(place);
       if (sky.currentType !== 'clear') {
@@ -73,7 +90,7 @@ export default class LatitudeReading extends Reading {
         return;
       }
       const profile = await CelestialApi.profileFor(place);
-      if (!CelestialApi.isDay(profile, truth.latDeg, WorldClockApi.getNow().rawValue())) {
+      if (!CelestialApi.isDay(profile, lat, WorldClockApi.getNow().rawValue())) {
         this.decline(
           context,
           Mml.compose`The sun is below the horizon; there is nothing to take a sight of.`,
@@ -84,9 +101,10 @@ export default class LatitudeReading extends Reading {
     }
     const half = HALF_WIDTH_DEG[band] ?? HALF_WIDTH_DEG.untrained;
     const places = half >= 1 ? 0 : half >= 0.1 ? 1 : 2;
-    const lat = truth.latDeg;
     const shown = `${Math.abs(lat).toFixed(places)}° ${lat >= 0 ? 'N' : 'S'} ± ${half}°`;
-    craft.takeLatitude(lat, half * 60);
+    // Afloat the sight mends the reckoning's latitude; ashore there is no
+    // reckoning to mend.
+    if (craft !== null && atSea !== null) craft.takeLatitude(lat, half * 60);
     this.report(
       context,
       Mml.compose`Latitude ${shown}. It tells you how far north you are, and nothing about how far along.\n`,
@@ -99,7 +117,10 @@ export default class LatitudeReading extends Reading {
   public override async truth(target: Stuff | null): Promise<number | null> {
     if (!target) return null;
     const craft = await this.craftOf(target);
-    return craft?.getExpansePosition()?.latDeg ?? null;
+    const atSea = craft?.getExpansePosition()?.latDeg ?? null;
+    if (atSea !== null) return atSea;
+    const place = this.placeOf(target);
+    return place !== null ? (await ZoneApi.climateSiteFor(place)).latitudeDeg : null;
   }
 
   private async craftOf(who: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {

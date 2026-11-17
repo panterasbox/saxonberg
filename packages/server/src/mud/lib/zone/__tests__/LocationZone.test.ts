@@ -31,12 +31,14 @@ describe('LocationZoneMixin', () => {
     expect(raw.getLocations).toBeUndefined();
   });
 
-  it('a frame still carries the region fields — a horizon names zones; the frame has no extent', () => {
+  it('a frame still carries the region fields — a horizon override; the frame has no extent', () => {
     const frame = makeStuff(() => new FixtureFrame());
-    frame.setHorizon(['/test/x']);
-    expect(frame.getHorizon()).toEqual(['/test/x']);
-    frame.setHorizon([]);
-    expect(frame.getHorizon()).toEqual([]);
+    frame.setHorizon({ reach: ['/test/x'] });
+    expect(frame.getHorizon()?.reach).toEqual(['/test/x']);
+    frame.setHorizon({ block: 'all' });
+    expect(frame.getHorizon()?.blockAll).toBe(true);
+    // ⚠ The retired list-of-zones form throws (geography D5).
+    expect(() => frame.setHorizon(['/test/x'] as never)).toThrow(RangeError);
     expect(frame.getExtentM()).toBeNull();
   });
 
@@ -59,11 +61,11 @@ describe('⭐ what a place can see loads with the place (maritime review, 2026-1
     StuffApi.clearAll();
   });
 
-  it('a zone that gets a room stands up what its horizon names, once — and a zone only SEEN never looks out', async () => {
+  it('a zone that gets a room stands up what its horizon reaches — and a zone only SEEN never looks out', async () => {
     const seen = makeStuff(() => new CartesianZone());
-    seen.setHorizon(['/test/beyond']);
+    seen.setHorizon({ reach: ['/test/beyond'] });
     const here = makeStuff(() => new CartesianZone());
-    here.setHorizon(['/test/seen']);
+    here.setHorizon({ reach: ['/test/seen'] });
     const stood: string[] = [];
     const spy = vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {
       stood.push(p);
@@ -71,16 +73,19 @@ describe('⭐ what a place can see loads with the place (maritime review, 2026-1
     });
     here.addLocation(makeStuff(() => new Location()), 0, 0, 0);
     here.addLocation(makeStuff(() => new Location()), 1, 0, 0);
-    await Promise.resolve();
-    // Once per target, however many rooms; never what the SEEN zone sees.
-    expect(stood).toEqual(['/test/seen']);
+    // Kicked, not awaited: wait for it to land.
+    await vi.waitFor(() => expect(stood).toContain('/test/seen'));
+    await new Promise((r) => setTimeout(r, 50));
+    // What the rooms' horizon reaches, and never what the SEEN zone sees.
+    expect(new Set(stood)).toEqual(new Set(['/test/seen']));
     spy.mockRestore();
   });
 
-  it('nothing named, nothing stood up', () => {
+  it('nothing named and on no chart, nothing stood up', async () => {
     const here = makeStuff(() => new CartesianZone());
     const spy = vi.spyOn(StuffApi, 'singleton');
     here.addLocation(makeStuff(() => new Location()), 0, 0, 0);
+    await new Promise((r) => setTimeout(r, 100));
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

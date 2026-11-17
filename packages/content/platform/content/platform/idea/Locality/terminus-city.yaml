@@ -33,4 +33,9 @@ data:
   # the D13 board label must stay "Terminus".
   name: Terminus
   _address: terminus/city
+  # ⭐ Where it stands on the chart (geography D12) — 3.5 km from the bar
+  # on 300°, the land being the north-west quadrant of the Greywater. Inside
+  # its radius the city is one place: its tower is *close by*.
+  _position: { latDeg: 42.0472, lonDeg: -8.5802 }
+  _radiusM: 2000
   _governmentKey: terminus-city

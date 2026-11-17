@@ -13,5 +13,9 @@ data:
     x: 0
     y: 0
     z: 0
+  exits:
+    up:
+      destination: /world/terminus/gannet-rock/ladder-low
+      bidirectional: true
   props:
     - /platform/thing/mooring-ring

@@ -173,7 +173,19 @@ export class ZoneLogic extends ApiLogic {
     }
     const zone = outermost.getZone();
     if (zone === null) return { ...DEFAULT_CLIMATE_SITE };
-    return zone.climateSite();
+    // ⭐ Geography D7: a chain that states no latitude takes the chart's —
+    // the nearest positioned Locality over where the thing stands — so the
+    // sextant, the sun and the climate cannot disagree.
+    const stated = await zone.lookupField<number>('latitude');
+    if (stated !== null && stated !== undefined) return zone.climateSite();
+    // The place's own memoized Locality (its address walk) — asked of the
+    // place, so this resolver imports nothing of addressing (a module cycle).
+    let charted: number | null = null;
+    if (MixinApi.isAtmospheric(outermost)) {
+      await outermost.resolveWeatherLocality();
+      charted = outermost.weatherLocality()?.positionedLocality()?.getPosition()?.latDeg ?? null;
+    }
+    return zone.climateSite(charted);
   }
 
   /** See {@link ZoneApi._clearClassCaches}. */
