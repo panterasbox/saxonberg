@@ -1025,4 +1025,55 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**2026-11-17 — `packages/wire/tests/geography.wire.test.ts`, owned world on
+port 2016, a freshly dropped `saxonberg_build3`: 14 / 14 green** (590 s,
+restart included). Runs 1–5 found, in order:
+
+1. ⛔ **The geometry was in Earth degrees** — this world is a third of
+   Earth's radius (a degree is 20 nm, the horizon √⅓ as far). Hinkley read
+   the Terminal *about a mile* south and nobody raised the light. D12
+   re-planned in place (above); the points re-derived. The Market honestly
+   cannot raise the light (14.1 nm reach, 18.7 nm off); Hinkley Hills and the
+   headland can. Commit `2cdb35590`.
+2. ⛔ **Night never fell** — the sky factor never reaches 0 (starlight), so
+   D6's `darkSkyFactor: 0` never tripped and the unlit Terminal was listed
+   at 1 a.m. Night for the skyline is now `CelestialApi.lampDuskFactor()`
+   (when the town's lamps burn); the dial is gone. Commit `2dfddeca1`.
+3. The drive's own mistakes: `pinWeather(type, scope)` arguments swapped;
+   Gannet Rock is covered by no Locality, so its sky is the global field
+   and is not pinned (recorded each run — clear every time); `query
+   horizon` sent before the arrival `look` (in play `autoLookOnArrival`
+   does it); the listing renders `name , direction` (the shipped
+   renderer's spacing — not this build's).
+4. ⚠ A first boot died on duplicate-key errors: my own hand-launched timing
+   server, still installing packs and not yet listening, raced the harness
+   boot (the port-based preflight cannot see a server that has not bound).
+   Not a defect; recorded so nobody repeats it.
+
+What it read (abridged): the Market — *the terminal clock tower, close by*;
+Hinkley Hills — *the clock tower, to the south, some 5 miles off* / *the light
+on Gannet Rock, to the east, some 18 miles off*; a bearing on the light
+**073° ± 10°** by eye, **± 5°** with the compass (an untrained reader — the
+compass's own floor), *a second bearing crosses it*; the tower from the
+Market *too near to take a bearing across*; the landing *nothing*, the
+gallery *the Hesper, to the south-west, some 10 miles off*; a 55–95° sector
+at Hinkley lane hides the light and it returns when lifted; the headland
+brow the light *to the north-east* and the harbor's ships with directions;
+the deck of the Hesper at the bar the clock tower *to the north-west*; the
+mill *nothing*; the sextant at Hinkley *42.3° N ± 0.2°*; the Weeping Moor
+*nothing*; no `sense.survey` frame carries `bearingDeg` or a three-digit
+bearing; by night at Hinkley the lit light only; after a restart the same.
+In the Harbor the Corrigan is named with no direction — she is on the
+river's line (Q3, name only).
+
+Not driven (the unit suite's, each with the tool owed): **2**'s narrowing by
+competence (no harness tool stages a Discipline band); **11** a tower written
+and pulled down (`edit -c` takes a structured payload the harness cannot
+send). **Soak drive:** none.
+
+⚠ **Boot time, open:** the first cold boot did not answer inside the
+harness's 420 s (the documented cold boot is 245–251 s); runs since used
+`WIRE_BOOT_TIMEOUT=1200000`. A sibling world (build-4's) was booting on the
+same box at the time, so this is unmeasured, not a finding. The new cost
+per loaded room is `Place.standUpHorizon` (kicked, never awaited): one
+locality walk and a kept-skyline read.
