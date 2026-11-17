@@ -53,6 +53,10 @@ class: /platform/idea/Locality
 data:
   name: Rejection
   _address: terminus/rejection
+  # ⭐ Where it stands on the chart (geography D12) — 46 km from the bar
+  # on 320°, at the Kestrel's headwaters.
+  _position: { latDeg: 42.3171, lonDeg: -8.8281 }
+  _radiusM: 3000
   # ── the watershed (D21) ───────────────────────────────────────────
   _reach: kestrel:headwaters
   # ⚠ The locality's OWN catchment, not the reach's: the Kestrel's

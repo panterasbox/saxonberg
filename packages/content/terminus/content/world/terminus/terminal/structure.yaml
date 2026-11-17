@@ -19,3 +19,7 @@ data:
     with a white face on each side, keeping the station's true time.
   landmark: true
   heightM: 25
+  # ⭐ Its own point on the chart (geography D12): the station stands a
+  # little west of the city's, so from the Market it is *close by* and
+  # from the river bank it has a direction.
+  position: { latDeg: 42.0160, lonDeg: -8.5075 }

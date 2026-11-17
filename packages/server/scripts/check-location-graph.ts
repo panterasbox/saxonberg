@@ -435,6 +435,61 @@ function conditionalKindFindings(idx: InheritanceIndex): string[] {
   return out;
 }
 
+/**
+ * ⭐ (geography) **Every landmark stands somewhere on the chart.** A
+ * landmark is what a skyline names first, so one with no point is a
+ * landmark nobody can see — silently. Its point is its own `position`,
+ * else the sea node whose landing lies in its `extent`, else a positioned
+ * Locality over the address it stands at. A craft (a row naming an
+ * expanse, a line or a berth) is read at the act and is exempt.
+ */
+function landmarkPointFindings(idx: InheritanceIndex): string[] {
+  const data = (path: string): Record<string, unknown> | null => {
+    const row = idx.rows.get(path);
+    return row ? effectiveRow(path, idx.rows, idx.rules).data : null;
+  };
+  const landings: string[] = [];
+  const positioned: string[] = [];
+  for (const row of idx.rows.values()) {
+    const d = effectiveRow(row.path, idx.rows, idx.rules).data;
+    const cut = row.path.lastIndexOf("/");
+    if (typeof d.destination === "string" && d.focus && cut > 0 && data(row.path.slice(0, cut))?.origin) {
+      landings.push(d.destination);
+    }
+    if (typeof d._address === "string" && d._position && typeof d._position === "object") {
+      positioned.push(d._address);
+    }
+  }
+  const addressOver = (path: string): string | null => {
+    for (let p = path; p.length > 0; p = p.slice(0, Math.max(0, p.lastIndexOf("/")))) {
+      const d = data(p);
+      if (typeof d?._address === "string" && d._address !== "") return d._address;
+      if (typeof d?.address === "string" && d.address !== "") return d.address;
+      if (p.lastIndexOf("/") <= 0) break;
+    }
+    return null;
+  };
+  const out: string[] = [];
+  for (const row of idx.rows.values()) {
+    const d = effectiveRow(row.path, idx.rows, idx.rules).data;
+    if (d.landmark !== true || typeof d.extent !== "string") continue;
+    if (typeof d.expanse === "string" || typeof d.line === "string" || typeof d.berth === "string") continue;
+    if (d.position && typeof d.position === "object") continue;
+    const extent = d.extent.replace(/\/+$/, "");
+    if (landings.some((l) => l === extent || l.startsWith(`${extent}/`))) continue;
+    const from = typeof d.entrance === "string" && d.entrance !== "" ? d.entrance : extent;
+    const address = addressOver(from);
+    if (address !== null && positioned.some((a) => address === a || address.startsWith(`${a}/`))) continue;
+    out.push(
+      `${row.path} — a landmark with no point on the chart: give it a ` +
+        `\`position\`, stand it at a sea node's landing, or put a positioned ` +
+        `Locality over its address (${address ?? "none"}). A skyline cannot ` +
+        `name what stands nowhere.`,
+    );
+  }
+  return out;
+}
+
 function main(): void {
   const report = process.argv.includes("--report");
   // ⚠ ONE index for the whole run — building it walks every authored
@@ -484,6 +539,18 @@ function main(): void {
     failed = true;
     console.error("");
     for (const c of conditionals) console.error(`  ✖ ${c}`);
+  }
+
+  const landmarks = landmarkPointFindings(idx);
+  console.log(
+    `  ${landmarks.length > 0 ? "✖" : "ok"} ` +
+      `${"landmark-without-a-point".padEnd(32)} ` +
+      `${landmarks.length} (error)`,
+  );
+  if (landmarks.length > 0) {
+    failed = true;
+    console.error("");
+    for (const c of landmarks) console.error(`  ✖ ${c}`);
   }
 
   if (failed) {

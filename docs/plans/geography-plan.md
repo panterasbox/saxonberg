@@ -655,6 +655,42 @@ clean; `measure`/climate at every realm place moves by < 0.5° of latitude
 except where Q1 says otherwise; the horizon is still today's (W4 has not
 landed). *Commit:* `content(geography): the realm on the chart`.
 
+✅ **W3 done**, re-planned in two places (decided by the build, flagged
+in the MR for the owner):
+- ⚠ **Q5 reversed — Mayfield Row is NOT a typo.** Its street row says so
+  in its own words: *"THE LAMPS NOBODY PAYS FOR. Mayfield Row addresses
+  `terminus/mayfield-row` — OUTSIDE the city — so its covering locality is
+  the realm, which funds no lighting… they stand cold every night."* The
+  address is deliberate content (lens 3a: the fiction's own story), and the
+  re-address would have lit those lamps. Left as authored; Seznick House
+  stands at the realm root (no point), so it is on no skyline but its own
+  ground, which is unchanged.
+- ⚠ **Q1 deferred — Hollow Mere keeps its zone's −58°.** Measured: at its
+  Locality's 42.2° N with the same offset the mere first freezes on
+  **day 203** (bears 59 kg; 103 kg on day 205; 1,559 kg on day 223; open
+  water day 123–173 of the next year), and on a fresh world's day 0 it is
+  ~44 t of winter ice. Three merged drives stand on day-0 Hollow Mere —
+  `storage-and-ice` (blocking + soak, day-indexed from 0),
+  `controllers-are-io` (17b wades north from the shore into the water)
+  and `underwater` (19, the frog in the pool) — so taking Q1 here means
+  re-timing other builds' drives. D7 already keeps a stated zone
+  latitude, so geography needs nothing from it. The Locality's point is
+  authored (the chart is right); the climate contradiction is named on the
+  row. Drive step 12 moves to Hinkley Hills (no zone latitude).
+- Gannet Rock's gallery is reached by an **iron ladder up the outside of
+  the tower** (two rooms, z 1 and 2; the gallery z 3 = 30 m, eye 32 m):
+  `lint:locations` requires a way inside a zone to join adjacent cells.
+  Open to the sky, so lit by day.
+- Wharfside's row copies the city's grid street lighting (streets settle
+  with their FINEST covering locality); the government key walks the
+  chain, the city pins no weather and declares no reach, so nothing else
+  is shadowed.
+- Lit ships: the Hesper, the Corrigan, the Ostrander (river). The
+  Kittiwake (a ketch) is unlit. The Nesbit ferry is a service row, not a
+  structure — nothing to author.
+- `lint:location-graph` gained **landmark-without-a-point** (error);
+  proved it fails by deleting the Terminal's and the city's points.
+
 **W4 — One horizon.** D3, D5, D6, D9, D10; S9, S10.
 `platform/idea/api/PerceptionLogic.ts` (l.1517–1700 replaced; `observe`'s
 place branch), `api/perception.ts` (the interface block + `horizonFor`'s
