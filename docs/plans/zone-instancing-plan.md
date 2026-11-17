@@ -1060,9 +1060,16 @@ reconciles.
 - *`LocationGraphRegistry.deriveAttachments`:* geography appends one call
   at its end and one in each of `attachStructure`/`detachStructure`. This
   build's D12 changes the attach rule in its body. Merge both.
-- *The authored ship rows:* geography adds `showsLight: true` to the
-  Hesper's and the Corrigan's rows. B3 adds `warren:`/`serial:` and
-  re-classes the zone rows. Merge both.
+- *The authored ship rows:* geography adds `showsLight: true` to all four
+  authored ships' Ship (`structure.yaml`) rows. B3 adds `warren:`/`serial:`
+  to the same rows and re-classes their zone rows. Merge both. Under D12
+  the Ship stays her own row, and only her zone and rooms become a copy,
+  so `showsLight` hydrates on her exactly as before. B3 verifies it.
+- *Seznick House's address:* geography fixes the base to
+  `terminus/city/mayfield-row/seznick-house`, so every unit address
+  `HoldingWarren.addressFor` stamps shifts. No step of this drive asserts
+  a Seznick address. A2's tests that do, assert the base read from the
+  row, never a literal.
 - *`ZoneLogic`:* geography's D7 makes `climateSiteFor` fall back to the
   address's latitude when a zone chain declares none. Under D2 a holding's
   chain runs through its lot, as before; a ship's runs through her kind
