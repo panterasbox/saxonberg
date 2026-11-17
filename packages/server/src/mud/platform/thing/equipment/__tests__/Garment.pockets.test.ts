@@ -182,25 +182,29 @@ describe('Garment — pockets as regions (D26)', () => {
     expect(me.tierOf(k)).toBe('hand');
   });
 
-  it('⭐ `move(mug, coat)` with no pocket that takes it throws, naming the mouth', async () => {
+  it('⭐ `move(mug, coat)` into pockets that differ, none named, throws — say which (R3)', async () => {
     const { me, plan } = makeBody();
     ContainmentApi.move(me, makeStuff(() => new Location()));
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
     const m = mug();
-    let thrown: unknown = null;
-    try {
-      ContainmentApi.move(m, coat);
-    } catch (err) {
-      thrown = err;
-    }
-    expect(thrown).toBeInstanceOf(ContainmentError);
-    expect((thrown as Error).message).toMatch(/in the coat — too big for its mouth/);
+    const throws = (region?: string): Error => {
+      let thrown: unknown = null;
+      try {
+        if (region === undefined) ContainmentApi.move(m, coat);
+        else ContainmentApi.move(m, coat, region);
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).toBeInstanceOf(ContainmentError);
+      return thrown as Error;
+    };
+    // A programmatic move never chooses among chambers that differ (R3):
+    // no main pocket, no guess.
+    expect(throws().message).toMatch(/which differ — say which/);
     expect(m.getContainer()).toBeNull();
-    // With no word, a key goes to the first pocket that takes it.
-    const k = key();
-    ContainmentApi.move(k, coat);
-    expect(k.getContainer()).toBe(coat);
-    expect(k.getPlacement()).toEqual({ host: coat, name: 'left pocket' });
+    // ⭐ Named, the pocket measures it: a mug is too big for its mouth.
+    expect(throws('left pocket').message).toMatch(/left pocket \(too-big-for-mouth\)/);
+    expect(m.getContainer()).toBeNull();
   });
 
   it('⭐ `look coat` lists the key once, under its pocket', async () => {
