@@ -1023,3 +1023,16 @@ steady-light hold, then back to the loop, with what is dirtied meanwhile
 coalescing into the set. A card's first prose renders under a hold too
 (`CardRegistry`). Measured in controllers-are-io W10 (D27).
 
+⭐⭐ **And a re-resolve re-projects only what changed** (crowded-rooms D3,
+2026-11). Each subscription keeps a **row memo**: per projected row (top
+level and nested), its record and every Stuff whose fire would make it
+stale — itself, its nested rows, what its descriptors' own resolves read.
+A fire marks its target stale (`markDirty(sub, staleId)`); a belief poke
+its subject; a fire on the holder, or a ledger poke, drops the memo. On the
+next pass a row none of whose reads is stale is returned as it was (and
+re-installs the dependencies it recorded); a parent whose child changed is
+recomputed, and its other children are hits. One arrival into a room of
+thirty now computes ONE child row, not thirty-one (`mql-subscription.
+wake-matrix.test.ts` § D3, proven to read 31 with the memo disabled). The
+first projection — a card opening, a login — is still one unit of N rows.
+

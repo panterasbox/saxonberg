@@ -33,6 +33,10 @@ help: |
   and full hold one card each — growing another into the slot returns
   the first to its own size. The room card and the primary terminal fill
   roles and cannot be closed.
+
+  A live card you cannot see — in the tray, behind a medium or full card,
+  scrolled away, or in a hidden tab — stops updating until it is on screen
+  again, and is current the moment it is.
 validators:
   - /lib/command/validators/requiresHasInteractive
 examples:

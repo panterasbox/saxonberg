@@ -76,6 +76,25 @@ describe('Application — MQL subscription routes', () => {
     spy.mockRestore();
   });
 
+  it('⭐ mql-subscription-pause / -resume routes reach the session verbs (crowded-rooms D5)', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    const pause = vi.fn();
+    const resume = vi.fn();
+    (interactive as never as Record<string, unknown>).pauseSubscription = pause;
+    (interactive as never as Record<string, unknown>).resumeSubscription = resume;
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(interactive);
+    app.processUserMessage('sock-1', {
+      type: 'mql-subscription-pause',
+      payload: { type: 'mql-subscription-pause', subscriptionId: 'card-1' },
+    });
+    app.processUserMessage('sock-1', {
+      type: 'mql-subscription-resume',
+      payload: { type: 'mql-subscription-resume', subscriptionId: 'card-1' },
+    });
+    expect(pause).toHaveBeenCalledWith('card-1');
+    expect(resume).toHaveBeenCalledWith('card-1');
+  });
+
   it('mql-unsubscribe route reaches interactive.cancelMqlSubscription', () => {
     const interactive = makeFakeInteractive('sock-1');
     const spy = vi.fn();

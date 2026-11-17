@@ -14,7 +14,7 @@
  * `crowd.soak.wire.test.ts`. No `eval`, no wizard: thirty ordinary players.
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { Worker } from 'worker_threads';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -32,6 +32,12 @@ const CROWD_SIZE_DEFAULT = CROWD_SIZE;
 /** What `runCrowd` may be told (crowded-rooms D11): the crowd's size. */
 export interface CrowdOptions {
   size?: number;
+  /**
+   * ⭐ Run with the crowd STANDING in the square, after the speech and
+   * before they leave, with the freeze sampler still running (crowded-rooms
+   * W6: the card phases, the mould, the logins into the full square).
+   */
+  during?: (crowd: Session[]) => Promise<void>;
 }
 
 /** p50/p95/max of a set of round trips, in milliseconds. */
@@ -96,6 +102,12 @@ export interface CrowdRecord {
    * profile is sliced by (crowded-rooms W0).
    */
   marks: Record<string, number | null>;
+  /**
+   * CPU the box spent OUTSIDE this harness and its server across the run,
+   * in cores — over half a core marks a quiet-box phase inconclusive
+   * (crowded-rooms D12). Null off Linux.
+   */
+  foreignCores: number | null;
   /** What the server remembers of bodies after the crowd signed out. */
   statsObjectsBefore: number | null;
   statsObjectsAfter: number | null;
@@ -239,6 +251,7 @@ function speakersTo(text: string, whom: string): string[] {
 export async function runCrowd(label: string, opts: CrowdOptions = {}): Promise<CrowdRecord> {
   const CROWD_SIZE = opts.size ?? CROWD_SIZE_DEFAULT;
   const loadStart = boxLoad();
+  const foreign = foreignMeter();
   const statsObjectsBefore = await objectCount();
   const marks: Record<string, number | null> = {};
   const mark = async (name: string): Promise<void> => {
@@ -312,6 +325,8 @@ export async function runCrowd(label: string, opts: CrowdOptions = {}): Promise<
     }
 
     await mark('speechEnd');
+    if (opts.during) await opts.during(crowd);
+    await mark('duringEnd');
     const record: CrowdRecord = {
       size: CROWD_SIZE,
       box: { loadStart, loadEnd: [], cores: 0 },
@@ -328,6 +343,7 @@ export async function runCrowd(label: string, opts: CrowdOptions = {}): Promise<
       idleLinesPerMinute,
       loop: await stop(),
       marks,
+      foreignCores: await foreign(),
       statsObjectsBefore,
       statsObjectsAfter: null,
     };
@@ -350,3 +366,88 @@ function report(label: string, record: CrowdRecord): void {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(record, null, 2));
 }
+
+/** Busy and total jiffies across the box, from `/proc/stat`'s first line. */
+function boxJiffies(): { busy: number; total: number } | null {
+  try {
+    const cpu = readFileSync('/proc/stat', 'utf8').split('\n')[0]!.trim().split(/\s+/).slice(1).map(Number);
+    const idle = (cpu[3] ?? 0) + (cpu[4] ?? 0);
+    const total = cpu.reduce((a, b) => a + b, 0);
+    return { busy: total - idle, total };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Start a meter of the CPU the box spends outside this process and its
+ * server (crowded-rooms D12): the box's busy time, less the server's own
+ * (`/stats.cpu`) and this process's (its workers included).
+ */
+export function foreignMeter(): () => Promise<number | null> {
+  const t0 = performance.now();
+  const box0 = boxJiffies();
+  const me0 = process.cpuUsage();
+  const server0 = serverStats();
+  return async () => {
+    const box1 = boxJiffies();
+    const server1 = await serverStats();
+    const s0 = await server0;
+    if (!box0 || !box1 || !s0?.cpu || !server1?.cpu) return null;
+    const wallS = (performance.now() - t0) / 1000;
+    if (!(wallS > 0)) return null;
+    const hz = 100; // USER_HZ on Linux
+    const boxCores = (box1.busy - box0.busy) / hz / wallS;
+    const serverCores = (server1.cpu.user + server1.cpu.system - s0.cpu.user - s0.cpu.system) / 1e6 / wallS;
+    const me = process.cpuUsage(me0);
+    const meCores = (me.user + me.system) / 1e6 / wallS;
+    return Math.round(Math.max(0, boxCores - serverCores - meCores) * 1000) / 1000;
+  };
+}
+
+/**
+ * ⭐ The quiet-box precheck (crowded-rooms D12): a timing run starts only on
+ * a box whose 1-minute load is under 1.0 and that runs no other Saxonberg
+ * server or vitest outside this process's own tree. Returns the reason the
+ * box is NOT quiet, or null.
+ */
+export function quietBoxRefusal(ownServerPid: number | null): string | null {
+  const load = boxLoad()[0];
+  if (load !== undefined && load >= 1.0) return `1-minute load ${load} (needs < 1.0)`;
+  const ancestors = new Set<number>();
+  for (let pid = process.pid; pid > 1; ) {
+    ancestors.add(pid);
+    try {
+      pid = Number(readFileSync(`/proc/${pid}/stat`, 'utf8').split(') ')[1]!.split(' ')[1]);
+    } catch {
+      break;
+    }
+  }
+  const mine = (pid: number): boolean => {
+    for (let p = pid; p > 1; ) {
+      if (ancestors.has(p) || p === ownServerPid) return true;
+      try {
+        p = Number(readFileSync(`/proc/${p}/stat`, 'utf8').split(') ')[1]!.split(' ')[1]);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  };
+  const foreign: string[] = [];
+  for (const entry of readdirSync('/proc')) {
+    const pid = Number(entry);
+    if (!Number.isInteger(pid) || pid <= 1) continue;
+    let cmd = '';
+    try {
+      cmd = readFileSync(`/proc/${pid}/cmdline`, 'utf8').replace(/\0/g, ' ');
+    } catch {
+      continue;
+    }
+    if (!/preload\.js|vitest/.test(cmd)) continue;
+    if (mine(pid)) continue;
+    foreign.push(`${pid} ${cmd.slice(0, 80)}`);
+  }
+  return foreign.length > 0 ? `other worlds or suites running: ${foreign.join('; ')}` : null;
+}
+

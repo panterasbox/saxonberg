@@ -18,6 +18,8 @@ import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
   MqlQueryMessage,
+  MqlSubscriptionPauseMessage,
+  MqlSubscriptionResumeMessage,
 } from '@saxonberg/types';
 import type { InboundHandler } from './index';
 
@@ -68,6 +70,24 @@ export const handleMqlUnsubscribe: InboundHandler = (ctx, message) => {
   ctx.interactive.cancelMqlSubscription(
     payload.subscriptionId,
   );
+};
+
+/**
+ * ⭐ The client says a subscription it holds is not on screen (crowded-rooms
+ * D4) — a card scrolled away, minimized, behind a `full` card, or the tab
+ * hidden. One fact, one source: the server never infers it.
+ */
+export const handleMqlSubscriptionPause: InboundHandler = (ctx, message) => {
+  const payload = message.payload as MqlSubscriptionPauseMessage | undefined;
+  if (!payload || typeof payload.subscriptionId !== 'string') return;
+  ctx.interactive.pauseSubscription(payload.subscriptionId);
+};
+
+/** ⭐ …and on screen again: one fresh result, then deltas. */
+export const handleMqlSubscriptionResume: InboundHandler = (ctx, message) => {
+  const payload = message.payload as MqlSubscriptionResumeMessage | undefined;
+  if (!payload || typeof payload.subscriptionId !== 'string') return;
+  ctx.interactive.resumeSubscription(payload.subscriptionId);
 };
 
 export const handleMqlQuery: InboundHandler = (ctx, message) => {

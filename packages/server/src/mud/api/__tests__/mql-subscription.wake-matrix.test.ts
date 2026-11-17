@@ -254,5 +254,104 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
     await new Promise((r) => setTimeout(r, 300));
     expect(spy.mock.calls.length, 'exactly the thirty room cards').toBe(30);
     spy.mockRestore();
+  }, 60_000);
+
+  /**
+   * ⭐⭐ Row-level dirt (crowded-rooms D3): a re-resolve re-projects only the
+   * rows whose reads fired. A child row is computed through
+   * `projectFields`, which describes it for the viewer — so `describeFor`
+   * counts the child rows computed (the room's own row reads a viewer-blind
+   * name).
+   */
+  describe('⭐⭐ a re-resolve re-projects only what changed (D3)', () => {
+    async function roomOfThirty(): Promise<{ place: Place; interactive: Interactive; things: Thing[] }> {
+      const place = await StuffApi.create(() => new Place());
+      const { interactive } = await viewerIn(place, 'Alice', `memo-${Math.random()}`);
+      const things: Thing[] = [];
+      for (let i = 0; i < 30; i++) things.push(await good(() => new Thing(), `thing${i}`, place));
+      MqlSubscriptionApi.handleSubscribe({
+        interactive, subscriptionId: 'room', query: '', cardinality: 'one',
+        fields: [...DETAIL_FIELDS], subjectId: place.stuffId, silent: true,
+      });
+      await MqlSubscriptionApi._drainScheduledForTesting();
+      return { place, interactive, things };
+    }
+    async function rowsComputedBy(mutate: () => unknown): Promise<number> {
+      const spy = vi.spyOn(Stuff.prototype, 'describeFor');
+      await mutate();
+      await MqlSubscriptionApi._drainScheduledForTesting();
+      const n = spy.mock.calls.length;
+      spy.mockRestore();
+      return n;
+    }
+
+    it('one arrival costs one child row (the newcomer), not thirty-one', async () => {
+      const { place } = await roomOfThirty();
+      expect(await rowsComputedBy(() => good(() => new Thing(), 'newcomer', place))).toBe(1);
+    });
+
+    it('a rename re-projects one row', async () => {
+      const { things } = await roomOfThirty();
+      expect(await rowsComputedBy(() => things[7]!.setName('renamed'))).toBe(1);
+    });
+
+    it('a row that left is dropped, and nothing else is recomputed', async () => {
+      const { things } = await roomOfThirty();
+      const elsewhere = await StuffApi.create(() => new Place());
+      expect(await rowsComputedBy(() => ContainmentApi.move(things[3]!, elsewhere))).toBe(0);
+    });
+  });
+
+  /** ⭐⭐ A card you cannot see (crowded-rooms D4/D5): paused, it costs nothing. */
+  describe('⭐⭐ pause and resume (D4/D5)', () => {
+    it('a paused subscription has no index entries, is never re-resolved and emits nothing across fifty mutations', async () => {
+      const place = await StuffApi.create(() => new Place());
+      const { avatar, interactive } = await viewerIn(place, 'Alice', 'pause');
+      const sent: Array<{ type: string }> = [];
+      vi.mocked(avatar.onEnvelope).mockImplementation((t) => {
+        sent.push(t as unknown as { type: string });
+      });
+      const box = await good(() => new Box(), 'box', place);
+      MqlSubscriptionApi.handleSubscribe({
+        interactive, subscriptionId: 'card', query: '', cardinality: 'one',
+        fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true,
+      });
+      interactive.pauseSubscription('card');
+      expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(), 'no entries').toBe(0);
+      const spy = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+      for (let i = 0; i < 50; i++) box.setName(`box${i}`);
+      await MqlSubscriptionApi._drainScheduledForTesting();
+      expect(spy, 'never re-resolved').not.toHaveBeenCalled();
+      expect(sent.filter((e) => e.type.startsWith('mql-subscription'))).toEqual([]);
+
+      interactive.resumeSubscription('card');
+      const results = sent.filter((e) => e.type === 'mql-subscription-result') as unknown as Array<{
+        subscriptionId: string;
+        result: Array<{ displayName?: string }>;
+      }>;
+      expect(results, 'exactly one result on resume').toHaveLength(1);
+      expect(results[0]!.subscriptionId).toBe('card');
+      expect(results[0]!.result[0]?.displayName).toBe('box49');
+      expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(), 'entries back').toBeGreaterThan(0);
+      // …and it wakes again.
+      expect(await wakes(interactive, { subjectId: box.stuffId, fields: DETAIL_FIELDS }, () => box.setName('again'))).toBeGreaterThan(0);
+      spy.mockRestore();
+    });
+
+    it('a cancel forgets the pause; an unknown id is a skip', async () => {
+      const place = await StuffApi.create(() => new Place());
+      const { interactive } = await viewerIn(place, 'Alice', 'pause2');
+      const box = await good(() => new Box(), 'box', place);
+      const sub = { interactive, subscriptionId: 'c', query: '', cardinality: 'one' as const, fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true };
+      MqlSubscriptionApi.handleSubscribe(sub);
+      interactive.pauseSubscription('c');
+      expect(interactive.isSubscriptionPaused('c')).toBe(true);
+      interactive.cancelMqlSubscription('c');
+      MqlSubscriptionApi.handleSubscribe(sub);
+      expect(interactive.isSubscriptionPaused('c'), 'a reopened id starts shown').toBe(false);
+      expect(() => interactive.pauseSubscription('nope')).not.toThrow();
+      expect(() => interactive.resumeSubscription('nope')).not.toThrow();
+    });
   });
 });
+

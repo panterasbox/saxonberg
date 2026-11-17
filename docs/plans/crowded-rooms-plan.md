@@ -1348,7 +1348,16 @@ subscriptions and none of thirty bound to a barrel there. **Commit:**
 `refactor(mql-subscription): a dependency is the Stuff that was read; the
 coarse dispatch policy is retired`.
 
-### W3 — Row-level dirt, and a cheap row
+### W3 — Row-level dirt, and a cheap row ✅
+
+*Done 2026-11-17, after W4 rung 1* (the row's cost is D14's). The memo is
+per subscription (`RowMemo`: rows by `stuffId|fields`, `stale` ids, an
+`invalid` flag); `ProjectionCollector` (enter / leave / read) replaces the
+plain collector so `projectFields` can return a memoized nested row. A
+fire names its target; a fire on the holder or a ledger poke drops the
+memo. Tests: one arrival into thirty computes 1 child row (31 with the
+memo disabled), a rename 1, a departure 0. ⚠ The row bench (D7, < 1 ms) is
+taken from the re-profile rather than a unit bench.
 
 D3, D7. `MqlSubscriptionRegistry.ts` (memo, `stale`, memo-aware
 projection, reconciled index maintenance); the row cost W0 named, in its
@@ -1365,6 +1374,20 @@ than one row. `mql-subscription.md § A crowd makes a card lag` rewritten.
 changed`.
 
 ### W4 — The idle world — rung 1 ✅ (D13, D14, D15, D17, D21)
+
+*Rung 2 done 2026-11-17.* The re-profile after rung 1 (busy box, load
+1.3 → 27): idle 0.62 cores (0.81 at W0), profile busy 57.5% (63.8%), 414
+loop stalls over 100 ms, `walkWrites` 0. The new leader (~25%) is class A
+reading ITSELF — an NPC's `get` runs the reach validator → carry capacity →
+the condition band → a conditions and thermoregulation reconcile — which
+D13's table classes as the body's own act (legitimate). So rung 2 is D18's
+in-the-integration cuts: **D16** (`_reconcileClo`, the worn clo read once
+per reconcile; `bodyInsulation` was 17.4%) and the pre-named **sub-step
+guard** on `reconcileThermalRegulation` (below `REG_STEP_SEC` do nothing
+and do not re-stamp — the metabolism shape), with one exemption found by
+the thermal suite: a pending heat load integrates at once (a fireball's
+heat shows on the next read). The idle step under 12% is measured by the
+quiet-box run (W6); if it is not reached, D18's owner levers apply.
 
 *Rung 1 done 2026-11-17, ahead of W3* (build decision: W3's row cost (D7)
 is class B2, which is D14 — the memo is measured on cheap rows, so the body
@@ -1453,7 +1476,14 @@ shares.
 as it stands` · `perf(thermal): one insulation read per reconcile` ·
 `perf(<owner>): <class>`.
 
-### W5 — Login into a crowd, and back after a restart
+### W5 — Login into a crowd, and back after a restart — ✅ (by D13/D14/D17; proven by drive step 10)
+
+*2026-11-17.* The login's two leading costs (B3, the roster's unheld light
+walks; B1/B2 under the arrival) are fixed by W4 rung 1. ⚠ D19's unit test
+(`PersistableLogic.crowd-restore.test.ts`) was not written; the restart is
+proven end to end by the timing drive's step 10 (thirty log back in and
+each reads the place they quit, per player), and the login profile is taken
+from the quiet-box run.
 
 D17, D19. After W3 (the row) and W4 (D13, D14).
 
@@ -1487,7 +1517,16 @@ real restart, and the 2 s p95, are drive step 10's (W6).
 **Commit:** `perf(connection): logging in to a crowd; the roster is one
 frame`.
 
-### W6 — The drive's harness, the docs, and a first quiet run
+### W6 — The drive's harness, the docs, and a first quiet run — harness ✅
+
+*2026-11-17.* `runCrowd(label, { size, during })` (the `during` hook runs
+steps 6–9 with the crowd standing and the freeze sampler on),
+`foreignMeter` (box busy less server and harness), `quietBoxRefusal` (the
+precheck), `Session.pauseSubscription` / `resumeSubscription`, and
+`tests/crowd-timing.dirty.wire.test.ts` (steps 1–11, skipped by name
+without `WIRE_QUIET=1`). `restartWorld` is the private copy (navigation-
+server's lift has not merged). The procedure is in testing.md § The quiet
+box. The quiet run itself is in the Drive record.
 
 D11, D12 — everything but the hidden card.
 
@@ -1509,7 +1548,20 @@ D11, D12 — everything but the hidden card.
 
 **Commit:** `build(crowded-rooms W6): the timing drive and its record`.
 
-### W7 — A card you cannot see pauses (last)
+### W7 — A card you cannot see pauses (last) — ✅ (D5 FALLBACK)
+
+*2026-11-17.* Navigation-server's D1 was not on master, so the fallback:
+`mql-subscription-pause` / `-resume` on the current transport; the paused
+flag on the registry's `SubscriptionState` (a cancel forgets it); resume
+answers one `mql-subscription-result`; `CardRegistry.rebind` re-applies a
+pause after its cancel-and-reopen; the session verbs on `Interactive`
+(gated `MqlSubCallers`, as `handleUnsubscribe`). Client: `useCardShown` in
+`useCardFeed.ts` (one hook per card body, 500 ms debounced pause, immediate
+resume, the document's visibility) and the result handler. build-2 was told
+by message and will port at whichever merge is second. ⚠ The
+rebind-while-paused path has no unit test (the drive's step 7 crosses it
+only if the watcher rebinds); the e2e walk is `e2e/tests/crowded-rooms-
+walk.spec.ts`.
 
 D4, D5. Starts with D5's check; primary path unless D1 is not on master.
 

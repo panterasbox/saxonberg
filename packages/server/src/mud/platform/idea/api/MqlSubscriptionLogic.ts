@@ -130,6 +130,24 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().handleUnsubscribe(interactive, subscriptionId);
   }
 
+  /** See {@link MqlSubscriptionRegistry.handlePause} — the session's verb. */
+  @CallSecurity(MqlSubCallers)
+  public handlePause(interactive: Interactive, subscriptionId: string): void {
+    resolveRegistry().handlePause(interactive, subscriptionId);
+  }
+
+  /** See {@link MqlSubscriptionRegistry.handleResume} — the session's verb. */
+  @CallSecurity(MqlSubCallers)
+  public handleResume(interactive: Interactive, subscriptionId: string): void {
+    resolveRegistry().handleResume(interactive, subscriptionId);
+  }
+
+  /** See {@link MqlSubscriptionRegistry.isPaused} — the session's verb. */
+  @CallSecurity(MqlSubCallers)
+  public isPaused(interactive: Interactive, subscriptionId: string): boolean {
+    return resolveRegistry().isPaused(interactive, subscriptionId);
+  }
+
   /** See {@link MqlSubscriptionApi.cancelAllForInteractive}. */
   @CallSecurity(MqlSubCallers)
   public cancelAllForInteractive(interactive: Interactive): void {

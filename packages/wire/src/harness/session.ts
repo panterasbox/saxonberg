@@ -1093,6 +1093,20 @@ export class Session {
     this.ws.send(JSON.stringify({ type: 'client-state-write', payload: { key, value } }));
   }
 
+  /**
+   * ⭐ Say a card is not on screen, as the client does when it is trayed,
+   * scrolled away or behind a full card (crowded-rooms D4) — the id is the
+   * card's `instanceId`.
+   */
+  pauseSubscription(subscriptionId: string): void {
+    this.ws.send(JSON.stringify({ type: 'mql-subscription-pause', payload: { subscriptionId } }));
+  }
+
+  /** …and on screen again: the server answers one fresh `mql-subscription-result`. */
+  resumeSubscription(subscriptionId: string): void {
+    this.ws.send(JSON.stringify({ type: 'mql-subscription-resume', payload: { subscriptionId } }));
+  }
+
   /** Still connected — `close()` has not been called and the socket is open. */
   isOpen(): boolean {
     return !this.closed && this.ws.readyState === WebSocket.OPEN;

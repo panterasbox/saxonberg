@@ -101,6 +101,21 @@ export interface SubscribableFieldDescriptor {
   durableKey?: (stuff: Stuff) => string | undefined;
 }
 
+/**
+ * What a live subscription's projection is told while it runs (crowded-rooms
+ * D1, D3) — see `MqlSubscriptionApi.collectProjections`. `enter` may return
+ * a memoized record (a row none of whose reads has fired since), which
+ * `projectFields` returns as is; otherwise the row is projected and `leave`
+ * is told what it came to. `read` is a descriptor's own resolve's record.
+ *
+ * @internal the registry's
+ */
+export interface ProjectionCollector {
+  enter(stuff: Stuff, fields: FieldSet): Record<string, unknown> | undefined;
+  leave(stuff: Stuff, fields: FieldSet, record: Record<string, unknown>): void;
+  read(stuffs: readonly Stuff[], fields: FieldSet | null): void;
+}
+
 /* ─────────────────────── Field-set aliases ─────────────────────── */
 
 export type FieldAlias = 'ref' | 'detail';
@@ -323,8 +338,14 @@ export class MqlSubscriptionApi {
   ): Record<string, unknown> {
     // A live subscription's projection is collecting what it projects
     // (crowded-rooms D1): a nested row is a dependency like a top-level one.
-    const sink = MqlSubscriptionApi.#projectionSink;
-    if (sink !== null) sink(stuff, fieldNames);
+    // ⭐ A live subscription's projection is collecting (crowded-rooms D1,
+    // D3): a nested row is a dependency like a top-level one, and a row
+    // whose reads have not fired since it was last projected is reused.
+    const projector = MqlSubscriptionApi.#projector;
+    if (projector !== null) {
+      const hit = projector.enter(stuff, fieldNames);
+      if (hit !== undefined) return hit;
+    }
     const descriptors = collectSubscribableFields(stuff);
     const out: Record<string, unknown> = { stuffId: stuff.stuffId };
     for (const name of fieldNames) {
@@ -347,6 +368,7 @@ export class MqlSubscriptionApi {
       if (value === undefined) continue;
       out[name] = value;
     }
+    if (projector !== null) projector.leave(stuff, fieldNames, out);
     return out;
   }
 
@@ -425,7 +447,7 @@ export class MqlSubscriptionApi {
   }
 
   /** The live projection's collector — see {@link collectProjections}. */
-  static #projectionSink: ((stuff: Stuff, fields: FieldSet | null, read?: true) => void) | null = null;
+  static #projector: ProjectionCollector | null = null;
 
   /**
    * True while a live subscription's projection is collecting
@@ -433,7 +455,7 @@ export class MqlSubscriptionApi {
    * to track what it read only then. An accessor: unwrapped, free.
    */
   static get collecting(): boolean {
-    return MqlSubscriptionApi.#projectionSink !== null;
+    return MqlSubscriptionApi.#projector !== null;
   }
 
   /**
@@ -457,9 +479,9 @@ export class MqlSubscriptionApi {
     ),
   )
   public static noteRead(stuffs: readonly Stuff[], fields?: FieldSet): void {
-    const sink = MqlSubscriptionApi.#projectionSink;
-    if (sink === null) return;
-    for (const s of stuffs) sink(s, fields ?? null, true);
+    const projector = MqlSubscriptionApi.#projector;
+    if (projector === null) return;
+    projector.read(stuffs, fields ?? null);
   }
 
   /**
@@ -471,16 +493,13 @@ export class MqlSubscriptionApi {
    * @internal the registry's
    */
   @CallSecurity(SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'))
-  public static collectProjections<T>(
-    run: () => T,
-    onProject: (stuff: Stuff, fields: FieldSet | null, read?: true) => void,
-  ): T {
-    const prev = MqlSubscriptionApi.#projectionSink;
-    MqlSubscriptionApi.#projectionSink = onProject;
+  public static collectProjections<T>(run: () => T, projector: ProjectionCollector): T {
+    const prev = MqlSubscriptionApi.#projector;
+    MqlSubscriptionApi.#projector = projector;
     try {
       return run();
     } finally {
-      MqlSubscriptionApi.#projectionSink = prev;
+      MqlSubscriptionApi.#projector = prev;
     }
   }
 }
