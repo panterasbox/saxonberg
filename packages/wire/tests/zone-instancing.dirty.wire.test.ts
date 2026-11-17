@@ -297,15 +297,6 @@ async function withPrompts(s: Session, line: string, answers: string[]): Promise
   return { r, said };
 }
 
-/** The zones the live copies of a plan room stand in (every copy's room shares its row). */
-function zonesOf(roomRow: string): string {
-  return (
-    `StuffApi.findAllByTemplatePath('${roomRow}')` +
-    `.filter((r) => !r.isDestroyed() && r.getZone())` +
-    `.map((r) => r.getZone().getIdentityPath()).sort()`
-  );
-}
-
 /** The live copy filed at `identity`: its row and the rooms standing in it. */
 interface CopyRead {
   row: string | null;
@@ -548,9 +539,15 @@ suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
       await doing(s, 'go north');
       expect(await doing(s, `go ${name.toLowerCase()}`)).toMatch(/smack's deck/i);
     }
-    smackZones = await ev<string[]>(zonesOf(`${SMACK_ZONE}/deck`), '/world/terminus', YARD);
-    expect(smackZones.length).toBeGreaterThanOrEqual(2);
-    expect(new Set(smackZones).size).toBe(smackZones.length);
+    // Her deck's zone, as the harness reports it (an eval in a world
+    // jurisdiction may not read rooms whose rows are under `/stuff`).
+    smackZones = [];
+    for (const name of [NAME1, NAME2]) {
+      const z = (await stageShip(name, {})).zone ?? '';
+      note(`${name}'s deck stands in: ${z}`);
+      smackZones.push(z);
+    }
+    expect(new Set(smackZones).size).toBe(2);
     for (const z of smackZones) expect(z).toMatch(new RegExp(`^${SMACK_ZONE}/[^/]+$`));
   }, 900_000);
 
@@ -560,9 +557,8 @@ suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
     open.push(s);
     expect(await read(s, 'look')).toMatch(/Alongside: [^.]*the Hesper/i);
     expect(await doing(s, 'go hesper')).toMatch(/deck/i);
-    const zones = await ev<string[]>(zonesOf('/world/terminus/hesper/deck'), '/world/terminus', HESPER_BERTH);
-    expect(zones).toEqual(['/world/terminus/hesper/hesper']);
-    hesperZone = zones[0]!;
+    hesperZone = (await stageShip(HESPER, {})).zone ?? '';
+    expect(hesperZone).toBe('/world/terminus/hesper/hesper');
   }, 600_000);
 
   it('9. [instant · staged] a stop stood on the Kestrel is a copy of the stop zone, joined to the river', async () => {
@@ -629,13 +625,11 @@ suite.skipIf(!isOwnedTestWorld())('stage A — a restart (10, holdings)', () => 
     const h = await goTo(uniqueHandle('zihesper2'), HESPER_BERTH);
     open.push(h);
     await doing(h, 'go hesper');
-    expect(await ev<string[]>(zonesOf('/world/terminus/hesper/deck'), '/world/terminus', HESPER_BERTH)).toEqual([hesperZone]);
+    expect((await stageShip(HESPER, {})).zone).toBe(hesperZone);
     const y = await goTo(uniqueHandle('ziyard'), YARD);
     open.push(y);
     expect(await read(y, 'look')).toMatch(new RegExp(`Alongside: [^.]*the ${NAME1}`));
-    await stageShip(NAME1, {});
-    await stageShip(NAME2, {});
-    const smacksAgain = await ev<string[]>(zonesOf(`${SMACK_ZONE}/deck`), '/world/terminus', YARD);
-    for (const z of smackZones) expect(smacksAgain).toContain(z);
+    const smacksAgain = [(await stageShip(NAME1, {})).zone, (await stageShip(NAME2, {})).zone];
+    expect(smacksAgain).toEqual(smackZones);
   }, 900_000);
 });
