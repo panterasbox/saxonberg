@@ -46,6 +46,8 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../modalities/__tests__/test-helpers';
 import { WalkWriteError } from '../../security/errors';
+import { Creature } from '../../creature/Creature';
+import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
 class PurityHoop extends MouldMixin(
@@ -97,6 +99,33 @@ function fill<T extends Stuff>(v: T, mat: Syrup, litres: number, tempK: number):
   return v;
 }
 
+/**
+ * EVERY persistent field of a thing, generically (crowded-rooms D15): the
+ * `fieldMeta` of every class in its chain, as a capture enumerates them —
+ * never a hand list, so a body's respiration, wetness, faculty, hygiene and
+ * soiling stamps are in it with its reserves, thermal stamps and conditions.
+ */
+function persistentSnapshot(t: Stuff): Record<string, string> {
+  const out: Record<string, string> = {};
+  const raw = t as unknown as Record<string, unknown>;
+  for (let ctor = (t as object).constructor as { fieldMeta?: Record<string, { persistent?: boolean }> } | null;
+    ctor && ctor !== Object;
+    ctor = Object.getPrototypeOf(ctor) as typeof ctor) {
+    const meta = Object.prototype.hasOwnProperty.call(ctor, 'fieldMeta') ? ctor.fieldMeta : undefined;
+    for (const [k, m] of Object.entries(meta ?? {})) {
+      if (!m?.persistent || k in out) continue;
+      try {
+        out[k] = JSON.stringify(raw[k], (_key, v: unknown) =>
+          v && typeof v === 'object' && 'stuffId' in (v as object) ? `#${(v as { stuffId: string }).stuffId}` : v,
+        ) ?? 'undefined';
+      } catch {
+        out[k] = '<unserializable>';
+      }
+    }
+  }
+  return out;
+}
+
 /** Every field a read that wrote would have changed. */
 function snapshot(things: Record<string, Stuff>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -127,6 +156,7 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
   beforeEach(async () => {
     seedKernelContentStore();
     installV1QuantityMarshallers();
+    installCorpseMintStub();
     buildAllModalities();
     const events = await StuffApi.create(() => new EventRegistry());
     stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
@@ -173,6 +203,13 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
     const loaf = makeStuff(() => new PurityLoaf());
     loaf.receivePercolant(2);
     ContainmentApi.move(loaf, place);
+    // ⭐ A body (D15): fed, with an open wound, its clocks seeded.
+    const person = makeStuff(() => new Creature());
+    person.setLifecycleState('alive');
+    person.afflict({ kind: 'trauma', type: 'laceration', site: 'body.arm.left', severity: 3, dressed: false });
+    person.getVitalSign('bloodVolume');
+    person.getReserve('flesh');
+    ContainmentApi.move(person, place);
 
     // Let time pass with no wake firing: the hoop is a day past its set,
     // the loaf two days into its leach, the pan cooling toward the street.
@@ -182,6 +219,7 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
 
     const things = { hoop, pan, warm, loaf } as Record<string, Stuff>;
     const before = snapshot(things);
+    const bodyBefore = persistentSnapshot(person);
     const fires = vi.spyOn(MqlSubscriptionApi, 'fireFieldChange');
     const clones = vi.spyOn(StuffApi, 'clone');
     const moves = vi.spyOn(ContainmentApi, 'move');
@@ -198,6 +236,7 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
     expect(moves).not.toHaveBeenCalled();
     expect(destructs).not.toHaveBeenCalled();
     expect(snapshot(things)).toEqual(before);
+    expect(persistentSnapshot(person), 'a body in the room, field for field').toEqual(bodyBefore);
     expect(ExecutionContextApi.worldHeldStill, 'every walk released its hold').toBe(false);
   });
 

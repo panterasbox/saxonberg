@@ -1364,7 +1364,22 @@ than one row. `mql-subscription.md § A crowd makes a card lag` rewritten.
 **Commit:** `perf(mql-subscription): a re-resolve re-projects only what
 changed`.
 
-### W4 — The idle world
+### W4 — The idle world — rung 1 ✅ (D13, D14, D15, D17, D21)
+
+*Rung 1 done 2026-11-17, ahead of W3* (build decision: W3's row cost (D7)
+is class B2, which is D14 — the memo is measured on cheap rows, so the body
+fixes go first). D13 `getBodyDensity` reads `reserves['flesh']` raw; D14
+`hasCausticAtHead` reads `this.conditions`; D15 the three body reconcilers
+stand off inside the hold (after their reentrancy guards), and
+`walk-purity` stages a wounded body snapshotted over every persistent field
+generically; D21 the dying deadline joins `nextInterestingAt` (`afflict`
+already re-books, so `beginDying` needed no line); D17 the roster row is
+synchronous and the snapshot, the `add` fan and `who` compose under one
+held light, sending after. Tests: `lib/creature/__tests__/
+crowded-rooms.body-reads.test.ts` (D13 proven to fail on the old read).
+⚠ D17's dedicated walk-count test was not written (a presence snapshot
+needs connected avatars); the re-profile is its evidence. D16 waits on the
+re-profile, as designed.
 
 D13, D14, D15, D16, D18, D21. Starts after W1 (it uses the hold and
 extends `walk-purity`). Each test below is written first and red.

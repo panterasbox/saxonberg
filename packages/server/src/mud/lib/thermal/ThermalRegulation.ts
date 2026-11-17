@@ -42,6 +42,7 @@ import { Evaporation } from '../material/Evaporation';
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";
+import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
@@ -323,6 +324,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     public reconcileThermalRegulation(): void {
       if (this._thermalRegReconciling) return;
+      // ⭐ The room's reading holds the world still (crowded-rooms D15): a
+      // card's projection of a body reads it as its last reconcile left it.
+      if (ExecutionContextApi.worldHeldStill) return;
       const D = THERMAL_DEFAULTS;
 
       const nowS = this.regNowSeconds();

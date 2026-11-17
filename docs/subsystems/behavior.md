@@ -56,6 +56,14 @@ advances when something *reads* it, the only reader is this brain's
 reconciles, so an empty counter cannot starve anybody. It says the hungry
 line and counts the morning instead.
 
+⚠ **This rule broke for one build and is restored** (crowded-rooms D13–D15,
+2026-11): size and carrying's fit check read a body's SIZE, which read its
+flesh through the reconciling getter — so every crossing into a room
+integrated every body standing in it, and a cast member in a busy square
+drained toward starvation while one in a quiet shop did not. A size read
+and a sight gate now read the stored stocks; a body integrates only at its
+own changes, its own acts' reads and a deliberate read of it.
+
 ### The beat
 
 `cadence` is **real** time (a jittered timer) and there is no clock-hour
