@@ -60,8 +60,9 @@ ship. Seeding slate:
   where-you-are push does not — it says *no government claims this
   ground*.
 - **`locate`** — an omniscient *where is anything*, on every player.
-- **Discovery** of hidden things is already recorded per player; elevation
-  is already separate from `z` (a test holds it).
+- **Discovery** of hidden things is already recorded per player.
+  Elevation today is the zone's alone — `z` is ignored (a test holds it);
+  the owner's rule (2026-11-17) reverses that, in the geography build.
 - **Spoilers** — the wiki's reveal model (capability deletes, appetite
   keeps and tags).
 - **Size and carrying** (build-1; it merges before this build starts, so it
@@ -196,12 +197,16 @@ Pedagogy decides it: the lookout is a skill, and a pane that pushed every
 change would be a free radar.
 
 ### Today's horizon, as data **[DECIDED]**
-At sea, each sighting with its bearing and range; ashore, each by name,
+At sea, each sighting with its rough direction and miles — the words `scan horizon` uses (*to the north-east, some 18 miles off*), never a bearing in degrees, which is `measure bearing`'s skill (lens 1); ashore, each by name,
 landmarks first. Bearing and range ashore wait on the geography build.
 
-### Elevation is a setting, z a position **[DECIDED — the owner]**
-Already true in the world (the slate was wrong). Elevation travels in the
-place section as a fact of your setting; `z` only as grid position.
+### Height is the zone's plus z **[DECIDED — the owner, 2026-11-17]**
+*"z tells you elevation within a zone, but it doesn't tell you the total
+height — you need the zone to tell you that."* A room's height is its
+zone's elevation plus its height within the zone (z × cell size). The
+place section sends that total; `z` also travels as grid position. The
+shipped elevation read ignores z — reversing it is the geography build's
+(it owns height).
 
 ### A copy is recorded as itself **[DECIDED]**
 A claim for a room in a copy names the copy, with the copy's own

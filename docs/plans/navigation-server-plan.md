@@ -673,8 +673,12 @@ Section contents (words wherever the game has words):
   copy's identity and its zone's cell. Never extent or levels.
 - **localities** — `{ chain: { name, address, kind?, government? }[],
   ship?: { name }, outer?: Lie, jurisdiction: { key, name }[] }`.
-- **horizon** — `{ atSea, things: { stuffId, name, landmark, bearingDeg?,
-  rangeNm? }[], traffic }`, landmarks first.
+- **horizon** — `{ atSea, things: { stuffId, name, landmark, glance?:
+  { point, closeBy?, roughMiles? } }[], traffic }`, landmarks first — the
+  rough direction and miles `scan horizon` says (`PerceptionApi.glance`),
+  ⛔ **never `bearingDeg`**: a precise bearing is `measure bearing`'s skill
+  (geography plan § Sibling builds; lens 1). Its drive asserts no envelope
+  carries a bearing in degrees.
 - **building** — inside: `{ name, storey?, storeys, entrance?, heightM,
   landmark, titleSold }`; `entrance` is `{ here: true }` or, when your map
   holds it, its name and the first direction of `routeOnMap` to it.
@@ -684,7 +688,11 @@ Section contents (words wherever the game has words):
   `opening?`, `facts`, and `take`.
 - **place** — `{ stuffId, name, at?: { x, y, z }, light, dark, openSky,
   weather?, season?, daylight?, water?, staged, crowd, lowCeiling,
-  elevationM?, searched, found }`.
+  elevationM?, searched, found }` — `elevationM` is the **total**: the
+  zone's elevation plus the room's height within it (z × cell size; owner,
+  2026-11-17). Read it through the geography build's height accessor when
+  it has merged; until then `ZoneApi.elevationFor` (zone only) and let
+  geography's reversal correct it.
 - **you** — `{ pace, posture, hands: { slot, holds? }[], freeHands, load,
   bars: string[], light?, mount?, led?: string[], cart? }`.
 
@@ -1190,6 +1198,20 @@ No soak drive.
 No step needs a state nothing can stage.
 
 ## Risks & opens
+
+⚠ **Sibling rules (collision check, 2026-11-17).**
+- **zone-instancing (build-4):** if this build merges first, their wave B4
+  replaces every `frameIdentityOf` call with the room's stamped zone
+  identity (`place.getZone()?.getIdentityPath()`, the same string) and
+  deletes it with `laysOutOwnFrame`. If they merge first, write `at.zone`
+  from the stamped zone identity and **do not add `frameIdentityOf`**.
+  `getCoords()` stays valid either way (copy rooms get authored
+  coordinates).
+- **geography (build-3):** owns `PerceptionLogic`'s horizon computation
+  and the `HorizonSighting`/`HorizonView` block; this build only
+  serializes it (never `bearingDeg`), and owns height's reversal
+  (elevation = zone + z × cell size).
+
 
 ⚠ **Zone instancing (build-4, `docs/plans/zone-instancing-plan.md` on
 `reqs/zone-instancing`, D5/D12/D15)** changes two kinds of room path: a dorm
