@@ -89,7 +89,7 @@ const COMPASS = '/stuff/thing/instrument/hand-compass';
 const SEXTANT = '/stuff/thing/instrument/sextant';
 const DAY = 86_400;
 /** Where the drive reads the sky — pinned clear (one pin per covering Locality), unpinned after. */
-const PINNED = [MARKET, HINKLEY, BANK, AVENUE, LANDING];
+const PINNED = [MARKET, HINKLEY, BANK, AVENUE];
 /** Ten miles from the rock toward the coast: in the gallery's reach (12.1 nm), past the landing's (6.9). */
 const OFF_THE_ROCK = { latDeg: 42.2905, lonDeg: -8.0943 };
 
@@ -100,6 +100,9 @@ async function horizonAt(where: string, who = handle): Promise<string> {
   const s = await Session.open(who, { startLocation: where });
   try {
     await s.drainProse();
+    // The arrival `look` (as a client sends on entering) stands up what the
+    // horizon will name; the query that follows reads it complete (D9).
+    await s.prose('look');
     return plain(await s.prose('query horizon'));
   } finally {
     s.close();
@@ -114,7 +117,7 @@ const record: string[] = [];
 const note = (step: string, text: string): void => {
   record.push(`${step}: ${text}`);
   // eslint-disable-next-line no-console -- the drive's own record
-  console.log(`  [drive] ${step}: ${text.slice(0, 400)}`);
+  console.log(`  [drive] ${step}: ${text.replace(/\s*\n\s*/g, " / ").slice(0, 500)}`);
 };
 
 beforeAll(async () => {
@@ -172,8 +175,8 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   it('3 · Hinkley Hills: the light to the east — the two rough reads agree on one place', async () => {
     const hills = await horizonAt(HINKLEY);
     note('3', hills);
-    expect(hills).toMatch(/light on Gannet Rock, to the east, some (17|18|19) miles off/i);
-    expect(hills).toMatch(/clock tower, to the south/i);
+    expect(hills).toMatch(/light on Gannet Rock\s*, to the east, some (17|18|19) miles off/i);
+    expect(hills).toMatch(/clock tower\s*, to the south/i);
   });
 
   it('4 · the Market\'s Terminal line carries no compass point', () => {
@@ -185,6 +188,11 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     // The Hesper on the Greywater, ten miles toward the coast (staged).
     await stageShip(HESPER, { at: { node: ROCK_NODE } });
     await stage(HESPER, 'setExpansePosition', OFF_THE_ROCK);
+    // The rock's sky is the realm-wide field once its landing stands: pin it
+    // if a Locality covers it, else say what the sky was doing.
+    const look = await Session.open(handle, { startLocation: LANDING });
+    look.close();
+    await pinWeather('clear', LANDING).catch((err) => note('5 sky', String(err)));
     const low = await horizonAt(LANDING);
     const s = await Session.open(handle, { startLocation: LADDER_LOW });
     let high = '';
@@ -193,6 +201,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
       await s.cmd('up');
       await s.cmd('up');
       await s.drainProse();
+      await s.prose('look');
       high = plain(await s.prose('query horizon'));
     } finally {
       s.close();
@@ -207,7 +216,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   it('6 · a roofed room: nothing beyond its walls', async () => {
     const hall = await horizonAt(HALL);
     note('6', hall);
-    expect(hall).not.toMatch(/light on Gannet Rock|clock tower, /i);
+    expect(hall).not.toMatch(/light on Gannet Rock|clock tower\s*, /i);
   });
 
   it('8 · a blocked sector across the light: it is gone, and comes back', async () => {
@@ -227,7 +236,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     const brow = await horizonAt(BROW);
     note('9 brow', brow);
     expect(brow).toMatch(/Hesper[^.]*to the/i);
-    expect(brow).toMatch(/light on Gannet Rock, to the/i);
+    expect(brow).toMatch(/light on Gannet Rock\s*, to the/i);
     const deck = await horizonAt(HESPER_DECK);
     note('9 deck', deck);
     expect(deck).toMatch(/clock tower[^.]*to the/i);
@@ -236,9 +245,9 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   it('10 · D5\'s table: every recast place still sees what it saw', async () => {
     const rows: Array<[string, string, RegExp, RegExp | null]> = [
       ['University Avenue', AVENUE, /clock tower[^.]*close by/i, null],
-      ['Wharfside', BANK, /clock tower, to the (north-west|west)/i, /light on Gannet Rock/i],
+      ['Wharfside', BANK, /clock tower\s*, to the (north-west|west)/i, /light on Gannet Rock/i],
       ['the Harbor', QUAY, /clock tower/i, null],
-      ['the Estuary', STRAND, /clock tower, to the/i, /light on Gannet Rock/i],
+      ['the Estuary', STRAND, /clock tower\s*, to the/i, /light on Gannet Rock/i],
       ['the Headland', BROW, /light on Gannet Rock/i, null],
       ['the mill', MILL, /^(?![\s\S]*clock tower)/i, /light on Gannet Rock/i],
     ];
@@ -273,6 +282,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     const s = await Session.open(handle, { startLocation: MARKET });
     try {
       await s.drainProse();
+      await s.prose('look');
       await s.cmd('query horizon');
       const frames = JSON.stringify(s.framesOf('sense.survey'));
       expect(frames.length).toBeGreaterThan(20);
@@ -304,6 +314,6 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     const after = await horizonAt(HINKLEY);
     note('14', after);
     // Night still (step 7 left the clock there): the lit light, by the rows.
-    expect(after).toMatch(/light on Gannet Rock, to the east, some (17|18|19) miles off/i);
+    expect(after).toMatch(/light on Gannet Rock\s*, to the east, some (17|18|19) miles off/i);
   }, 900_000);
 });

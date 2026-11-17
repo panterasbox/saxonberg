@@ -38,7 +38,3 @@ settings:
   # prominent first (how tall each stands in the eye).
   - key: perception.skyline.size
     value: "7"
-  # At or below this sky factor it is night for the skyline: only a
-  # structure that shows a light is seen (geography D6).
-  - key: perception.skyline.darkSkyFactor
-    value: "0"

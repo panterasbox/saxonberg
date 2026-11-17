@@ -1679,13 +1679,15 @@ function standing(live: Stuff | null, path: string): Stuff | null {
 }
 
 /**
- * Is it night for the skyline (geography D6)? The sky's factor at the
- * viewer's latitude at or below `perception.skyline.darkSkyFactor`.
+ * Is it night for the skyline (geography D6)? When the sky at the viewer's
+ * latitude is below the factor at which a town's lamps burn
+ * (`CelestialApi.lampDuskFactor`) — dusk means one thing to the street
+ * lighting and to the horizon. (The sky never reaches 0: starlight.)
  */
 function isDarkAt(room: Stuff, vantage: Vantage): boolean {
   const lat = MixinApi.isAtmospheric(room) ? room.climateSite().latitudeDeg : vantage.at.latDeg;
   const now = WorldClockApi.getNow().rawValue();
-  return CelestialApi.skyFactorAt(now, lat) <= dialNumber('perception.skyline.darkSkyFactor', 0);
+  return CelestialApi.skyFactorAt(now, lat) < CelestialApi.lampDuskFactor();
 }
 
 /**
