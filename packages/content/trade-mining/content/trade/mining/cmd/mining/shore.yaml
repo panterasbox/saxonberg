@@ -23,7 +23,8 @@ args:
   # controller still fell back to a walk when nobody named a set.
   # `[capability.timber-set]` is that fallback, said declaratively.
   #
-  # ⚠ The seed is `me:i` — what you CARRY — not `reachable`. Shoring
+  # ⚠ The seed is `person` — what you CARRY, where it sits — not
+  # `reachable`. Shoring
   # stands the set you brought; a set already standing in the drift is
   # the timbering, not stock. A `reachable` default bound the drift's own
   # set and "wrestled something into place" in the dark (found by the
@@ -32,6 +33,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i:[capability.timber-set]"
+    default: "person:[capability.timber-set]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

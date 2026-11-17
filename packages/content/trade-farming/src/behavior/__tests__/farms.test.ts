@@ -335,7 +335,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           await asPrincipal(who, () =>
             makeStuff(() => new WaterController()).execute(
               // ⚠ `source` is BOUND BY THE VIEW (`water.yaml`, defaulting
-              // through `me:i:[mixin.BulkableMixin]`) — the same standing
+              // through `person:[mixin.BulkableMixin or class.WaterHose]`) — the same standing
               // warning `consign`'s shelf carries below.
               {
                 target: { stuff: target, raw: rest.join(' ') },

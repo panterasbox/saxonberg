@@ -222,7 +222,7 @@ type WaterExecModel = Parameters<WaterController['execute']>[0];
 /**
  * What the binder binds for `water.yaml`'s `source`: the NAMED vessel
  * when one was named, else every vessel the giver carries (the view's
- * `me:i:[mixin.BulkableMixin]` default). ⚠ A controller test SKIPS the
+ * `person:[mixin.BulkableMixin or class.WaterHose]` default). ⚠ A controller test SKIPS the
  * binder, so the carried walk that used to live in the controller is
  * reproduced here, once, as the fixture (`lint:controller-resolution`).
  */

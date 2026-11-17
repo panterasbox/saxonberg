@@ -29,6 +29,7 @@ import { MixinApi } from '../../../../../api/mixin';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../../Condition';
 import type { Trauma } from '../../../Condition';
+import { makeBody } from '../../../../../lib/slot/__tests__/carrying-fixture';
 
 let captured: string;
 let note: ReturnType<typeof vi.fn>;
@@ -207,7 +208,9 @@ describe('RinseController', () => {
   it('⭐ a CARRIED jug is water in reach, exactly as it is for `wash`', async () => {
     ensureWater();
     const room = makeStuff(() => new Place());
-    const me = makeStuff(() => new Creature());
+    // ⚠ A body that CARRIES (since size and carrying W8 a bare Creature
+    // takes nothing into itself — `move` refuses a body with no hands).
+    const me = makeBody().me as unknown as Creature;
     ContainmentApi.move(me, room);
     const jug = waterJug();
     ContainmentApi.move(jug, me);

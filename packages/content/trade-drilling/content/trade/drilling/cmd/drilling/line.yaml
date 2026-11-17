@@ -46,6 +46,8 @@ args:
     prepositions: [with, using]
     # ⚠ The liner by name, never "the first thing in your pack" — the hole
     # destroyed whatever bound (C8). `canLine` refuses anything else.
-    default: "me:i:liner"
+    default: "person:liner"
     scope: ["inventory", "reachable"]
     requires: TangibleMixin
+    validators:
+      - /lib/command/validators/canReach

@@ -23,9 +23,13 @@
  * giver perceives — so it never names a thing the giver could not see.
  *
  * ⭐ A DEFAULTED list passes whole (D-W10-7): a slot bound from its view's
- * `default:` (`reachable:[mixin.ToolMixin]`) is the author's pool, not the
- * player's word — the controller narrows it (`PerceptionApi.reachableAmong`)
- * rather than the whole command being refused for a packed spare.
+ * `default:` (`person:[capability.suture]`) is the author's pool, not the
+ * player's word — and because the slot declares this validator the BINDER
+ * has already narrowed it to what is to hand where it sits
+ * (`PerceptionApi.reachableAmong`; finalize run 16), so a packed spare never
+ * refuses the command. When none of the pool is to hand the binder binds it
+ * as though named, unflagged, and this validator says why: *"Your medic's
+ * pouch is shut — `open pouch` first."*
  *
  * ⭐ A FEATURE of the place you stand in is to hand: a match that arrived
  * through a detail or a held substance on the room or vessel around you

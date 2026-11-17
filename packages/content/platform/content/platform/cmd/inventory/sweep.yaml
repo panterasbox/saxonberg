@@ -40,6 +40,8 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "me:i:[capability.sweeping or capability.flue-brushing],reachable:[capability.sweeping or capability.flue-brushing]"
+    default: "person:[capability.sweeping or capability.flue-brushing],reachable:[capability.sweeping or capability.flue-brushing]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

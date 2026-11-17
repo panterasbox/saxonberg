@@ -74,6 +74,8 @@ import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
 import { MqlApi } from '../../api/mql';
+import { PerceptionApi } from '../../api/perception';
+import type { Containable } from '../spatial/Containable';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
 import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
@@ -375,14 +377,23 @@ export interface TreatmentRequest {
 }
 
 /** Why a treatment was refused. */
-export type TreatmentReason = 'no-wound' | 'wound-interior' | 'wrong-treatment';
+export type TreatmentReason = 'no-wound' | 'wound-interior' | 'wrong-treatment' | 'remedy-out-of-reach';
 
 /** A refused treatment. */
 export interface TreatmentRefusal {
   ok: false;
   reason: TreatmentReason;
-  /** `by` offered, `wanted` what the worst of it declares relieves it. */
-  facts: { by?: string; wanted?: string | null };
+  /**
+   * `by` offered, `wanted` what the worst of it declares relieves it.
+   * `away` (`remedy-out-of-reach`): the remedy the treater CARRIES but
+   * cannot use where it sits, and why — a shut holder or a pack on the back
+   * (size and carrying, finalize run 16) — so the line names `open pouch`.
+   */
+  facts: {
+    by?: string;
+    wanted?: string | null;
+    away?: NonNullable<ReturnType<Containable['reachRefusal']>>;
+  };
 }
 
 /** What came of a treatment. */
@@ -476,7 +487,14 @@ const TREAT_FLUID_LITRES = 0.25;
 type Treatment =
   | { by: 'dressing'; item: Stuff & Dressing }
   | { by: 'fluid'; item: Stuff }
-  | { by: 'medicine' };
+  | {
+      by: 'medicine';
+      /**
+       * A remedy the treater carries but not to hand (shut away, packed),
+       * with what it would have been and why it cannot be reached.
+       */
+      away?: { by: 'dressing' | 'fluid'; why: NonNullable<ReturnType<Containable['reachRefusal']>> };
+    };
 
 const TREATER_BAND_SCORE: Record<string, number> = {
   untrained: 0,
@@ -561,9 +579,21 @@ function treatmentFrom(req: TreatmentRequest): Treatment {
     commandGiver: req.by as never,
     scope: 'reachable',
   }).stuff;
-  for (const item of reachable) {
+  // ⭐ Used WHERE IT SITS (size and carrying D-W10-1; finalize run 16): a
+  // bandage in an open medic's pouch on your belt is to hand, one behind
+  // its shut flap or packed on your back is not — shut means shut.
+  const near = PerceptionApi.reachableAmong(req.by, reachable);
+  for (const item of near) {
     const t = remedyOf(item);
     if (t) return t;
+  }
+  // Nothing to hand: the first remedy carried but put away is kept, so a
+  // wound that wants it can say `open pouch` rather than "wrong treatment".
+  for (const item of reachable) {
+    if (near.includes(item) || !MixinApi.isContainable(item)) continue;
+    const t = remedyOf(item);
+    const why = t ? item.reachRefusal(req.by) : null;
+    if (t && t.by !== 'medicine' && why !== null) return { by: 'medicine', away: { by: t.by, why } };
   }
   return { by: 'medicine' };
 }
@@ -3970,6 +4000,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             )
         ) {
           return { ok: false, reason: 'wound-interior', facts: {} };
+        }
+        // ⭐ What it wants is on you, put away (finalize run 16): say how to
+        // get at it, not that bare hands are the wrong treatment.
+        if (treatment.by === 'medicine' && treatment.away && treatment.away.by === resolutionOf(worst)) {
+          return { ok: false, reason: 'remedy-out-of-reach', facts: { away: treatment.away.why } };
         }
         // Something IS wrong — this is just not what it wants. That refusal
         // is the teaching.

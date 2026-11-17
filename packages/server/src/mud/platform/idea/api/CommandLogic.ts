@@ -117,6 +117,12 @@ const CommandApiCallers = SecurityPolicies.AnyOf(
  */
 const commands: Map<string, CommandDefinition> = new Map();
 
+/**
+ * The reach validator's path: a defaulted slot that declares it is narrowed
+ * to what is to hand where it sits (size and carrying, finalize run 16).
+ */
+const CAN_REACH = '/lib/command/validators/canReach';
+
 // Get path to command YAML directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1575,6 +1581,24 @@ export class CommandLogic extends ApiLogic {
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
       const admissible = admitsAll(terms);
 
+      // ⭐⭐ The slot took its author's `default:` (size and carrying
+      // D-W10-7) — the pool is the author's, not the player's word.
+      const isDefault =
+        def.default !== undefined && raw === ShellApi.expandVariables(def.default, giver);
+      // ⭐ …and a defaulted slot that declares `canReach` is used WHERE IT
+      // SITS (finalize run 16 — the tool defaults read the carried tree
+      // since W9): the pool narrows to what is to hand (held, worn, in an
+      // open pocket or pouch on you, or on the floor beside you). When none
+      // of it is, the pool binds as though named, so `canReach` words why —
+      // *"Your medic's pouch is shut — `open pouch` first."* The def
+      // predicts it: the default is the pool, `canReach` the rule.
+      const narrowsDefault = isDefault && (def.validators ?? []).includes(CAN_REACH);
+      const toHand = (pool: Stuff[]): { pool: Stuff[]; near: boolean } => {
+        if (!narrowsDefault || pool.length === 0) return { pool, near: false };
+        const near = PerceptionApi.reachableAmong(giver, pool, { location: context.location ?? null });
+        return near.length > 0 ? { pool: near, near: true } : { pool, near: false };
+      };
+
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
@@ -1608,19 +1632,20 @@ export class CommandLogic extends ApiLogic {
           });
           return { result: 'failed' };
         }
+        const narrowed = toHand(r.stuff);
         // Apply cardinality / onExcess policy. Returns the
         // filtered stuff list or null on policy-driven failure.
-        const filtered = await this.applyCardinalityPolicy(def, r.stuff, fname, context, {
+        const filtered = await this.applyCardinalityPolicy(def, narrowed.pool, fname, context, {
           ...(r.isSet ? { isSet: true } : {}),
           ...(r.quantity ? { quantity: r.quantity } : {}),
           ...(raw ? { raw } : {}),
         });
         if (filtered === null) return { result: 'failed' };
         const bound: MqlManyResult = { stuff: filtered, raw };
-        // ⭐ The slot took its author's `default:` (size and carrying
-        // D-W10-7): the pool is the author's, not the player's word, so a
-        // validator passes it whole and the controller narrows it.
-        if (def.default !== undefined && raw === ShellApi.expandVariables(def.default, giver)) {
+        // ⭐ A defaulted pool passes `canReach` whole — narrowed above when
+        // the slot declares it; a pool none of which is to hand is bound as
+        // named, so the validator says why.
+        if (isDefault && (!narrowsDefault || narrowed.near)) {
           bound.defaulted = true;
         }
         // ⭐ The controller needs to know it was handed a SET (`look
@@ -1653,10 +1678,10 @@ export class CommandLogic extends ApiLogic {
             // head ordinal picks among the perceived (D23).
             for (const scope of tries) {
               const r = withOrdinal(await scopedMany(raw, giver, scope, fname, context));
-              const top = r.stuff[0];
+              const top = toHand(r.stuff).pool[0];
               if (top !== undefined) {
                 stuff = [top];
-                via = r.vias ? r.vias[0] : r.via;
+                via = r.vias ? r.vias[Math.max(0, r.stuff.indexOf(top))] : r.via;
                 quantity = r.quantity;
                 isSet = r.isSet === true;
                 break;
@@ -1675,15 +1700,16 @@ export class CommandLogic extends ApiLogic {
               admissible,
             );
             const got = walked.result;
-            if (got.stuff.length > 0) {
-              stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
+            const pool = toHand(got.stuff).pool;
+            if (pool.length > 0) {
+              stuff = useTop ? [pool[0] as Stuff] : pool;
               // ⭐ Taking the TOP of several: its own `via`, not the set's
               // consensus (found in the maritime browser walk: `fill skin
               // from sea` on the deck matched the deck's `sea` feature AND
               // the sea chest, the consensus was nothing, and the deck lost
               // the feature it was named by). The result carries each
               // match's own now, so nothing is resolved twice.
-              via = useTop && got.vias ? got.vias[0] : got.via;
+              via = useTop && got.vias ? got.vias[Math.max(0, got.stuff.indexOf(pool[0] as Stuff))] : got.via;
               quantity = got.quantity;
               isSet = got.isSet === true;
             }
