@@ -33,7 +33,7 @@ contributing its term.
 
 | mixin | its term |
 |---|---|
-| **Container / Vessel** | ⭐ **fit** — interior volume against your body (the [size slate](./size-slate.md)'s envelope), and **the opening** you must pass |
+| **Container / Vessel** | ⭐ **fit** — interior volume against your body (the [size slate](../../subsystems/size.md)'s envelope), and **the opening** you must pass |
 | **contents** (bulk, loose goods) | a full wine barrel cannot hold you; a half-full rain barrel puts you **in water** ([underwater](./underwater-slate.md)'s water-as-state); ⭐ a hay cart's contents are cover — you hide *among* them |
 | **Sealable** | lid shut: hidden from sight, ⭐ muffled for sound, cut off from smell (the dog); ⚠ **airtight means no air** — a sealed cask suffocates you ([respiration](../../subsystems/respiration.md)) |
 | **material** — light and sound | ⭐ light passes by Beer–Lambert (ships): glass hides nothing, and **a thin curtain shows your silhouette to a lamp held behind it**; thick wood muffles, thin cloth does not |

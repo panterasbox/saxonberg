@@ -27,7 +27,7 @@ overrides. **Size:** a wave, after build-2 merges.
 
 `Exit.getOpening()` (the way's) and `Boundary.getOpening()` (the object's) exist and are checked
 against the face. Nothing yet asks *does this wagon, wardrobe or horse fit through* — that is
-[size](../builds/size-slate.md) (requirements: `size-and-carrying-requirements.md`)'s first read. Most ways author no
+[size](../../subsystems/size.md) (requirements: `size-and-carrying-requirements.md`)'s first read. Most ways author no
 opening (null = the whole face); doorways, stairs and hatches will want their kind rows to say one.
 
 ## 3. The compass rose and the interzone list

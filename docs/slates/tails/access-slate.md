@@ -351,7 +351,7 @@ waves.
 
 ## ⭐⭐ Inspection — authority over people inside your extent **[DECIDED — the owner, 2026-11-07]**
 
-Out of the size build ([size-and-carrying-requirements](../../requirements/size-and-carrying-requirements.md)
+Out of the size build ([size-and-carrying-requirements](../../subsystems/carrying.md)
 § Authority). Inside an extent you hold, queries reach the true state of **your content**: rooms,
 fixtures, vessels, stock, staged NPCs. **Other players are not your content.** But the owner: *"if some
 player enters my content and reports an issue I need to be able to inspect them up and down to

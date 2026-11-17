@@ -101,7 +101,7 @@ multi-act controller became protocol mixins or one controller per form (two
 new words, `spud` and `paste`); permissions moved onto the methods that
 write; reach is one walk (`PerceptionApi.reach`); `survey` retired into
 `analyze rooms` and `measure paint`. What it left: the loose ends of size →
-[size-slate](./slates/builds/size-slate.md), list grammar →
+[size-slate](./subsystems/size.md), list grammar →
 [mql-lists-slate](./slates/builds/mql-lists-slate.md).
 
 ## ⭐ Shipped: controllers are input and output (2026-11)
