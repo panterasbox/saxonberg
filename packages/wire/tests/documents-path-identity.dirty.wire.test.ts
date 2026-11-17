@@ -83,7 +83,7 @@ declareFile({
 
 const YARD = '/world/terminus/wharfside/tannery/location/yard';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
 const POTTERS = '/world/terminus/hearts-delight/brickfield/location/potters-shop';
 const BAR = '/world/lounge/location/bar';

@@ -193,7 +193,7 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell
   '/world/terminus/wharfside/lavoir/location/laundry', // a low doorway onto the open lavoir, its only light
   '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
-  '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
+  '/world/terminus/eternal/duncan-hall/unit/room', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
   '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
   '/world/terminus/hinkley-hills/house/indoors/hall', // a tall sash window beside the door

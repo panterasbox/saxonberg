@@ -159,7 +159,7 @@ const FURNISHED = [
   // builds that *"`DormRoom` IS a room archetype … and it has been
   // carrying the correct composition all along"*. The warren assigns
   // its position at runtime, which is exactly what this list is for.
-  "eternal-university/content/world/terminus/eternal/duncan-hall/location/dormroom.yaml",
+  "eternal-university/content/world/terminus/eternal/duncan-hall/unit/room.yaml",
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",

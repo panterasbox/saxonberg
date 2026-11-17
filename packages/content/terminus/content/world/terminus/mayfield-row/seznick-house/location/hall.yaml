@@ -3,6 +3,11 @@
 # furnishes it with owned goods; the landlord's shell is the walls.
 class: /platform/location/PersistentRoom
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
   # to and look at. The room follows the sun: bright at noon, dark

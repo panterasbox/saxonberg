@@ -7,8 +7,8 @@
 class: /system/residence/idea/HoldingBuilding
 extends: /system/residence/idea/holding-building
 data:
-  extent: /world/terminus/eternal/duncan-hall/location/dormroom
-  entrance: /world/terminus/eternal/duncan-hall/location/dormroom
+  extent: /world/terminus/eternal/duncan-hall/unit/room
+  entrance: /world/terminus/eternal/duncan-hall/unit/room
   shortDescription: dorm room
   keywords: [dorm, room, "dorm room", building]
   longDescription: >-

@@ -47,6 +47,8 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
+/** The unit plan's zone row — the room row's parent. */
+const UNIT_ZONE = DormRoom.SCOPE.slice(0, DormRoom.SCOPE.lastIndexOf('/'));
 const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
@@ -92,9 +94,18 @@ function seedDomain(): void {
   // D16 step 2: the unit's degenerate one-room programme row.
   // A one-room plan, the programme's own (harbors review 3; no blueprint
   // row): its extent is the room's row.
+  // ⭐ Each let unit is a copy of the unit's zone (zone-instancing D5),
+  // named by the unit extent; its one room is keyed `<extent>/room`.
+  add(UNIT_ZONE, '/platform/idea/location/MintedZone', {
+    name: 'a dorm unit',
+    cellSize: 3,
+    mintedBy: DormWarren.PROGRAMME_PATH,
+  });
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
-    extent: DormRoom.SCOPE,
+    extent: UNIT_ZONE,
     entrance: DormRoom.SCOPE,
+    zoneNaming: 'key',
+    joins: 'parcel',
     // ⭐ Its one building, authored.
     buildings: ['/test/dorm-building'],
     upkeepTerm: 'institution-all',
@@ -105,6 +116,7 @@ function seedDomain(): void {
     entrance: DormRoom.SCOPE,
   });
   add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
+    coords: { x: 0, y: 0, z: 0 },
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
@@ -267,10 +279,11 @@ describe('DormWarren — D1 on real content', () => {
     // Fixtures seeded imperatively on the no-record branch.
     expect(fixtureLabels(a)).toEqual(['a footlocker', 'a narrow bed', 'a plain desk']);
 
-    // Two distinct D1 records, one scope, distinct owners (the unit keys).
+    // Two distinct D1 records, one scope, distinct owners (each unit's
+    // room, keyed under its unit — zone-instancing D5).
     const recs = snapshots().filter((s) => s.scope === DormRoom.SCOPE);
     expect(recs).toHaveLength(2);
-    expect(recs.map((s) => s.owner).sort()).toEqual([k1, k2].sort());
+    expect(recs.map((s) => s.owner).sort()).toEqual([`${k1}/room`, `${k2}/room`].sort());
 
     // Evict both; re-admit k1 → materializes the same three fixtures.
     await w.dropUnit(k1);

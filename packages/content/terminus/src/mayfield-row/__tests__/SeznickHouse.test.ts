@@ -137,17 +137,28 @@ function seedDomain(): void {
   });
   // ⭐ The unit's plan, the programme's own (harbors review 3; no
   // blueprint row): ordinary rows under its extent.
+  // Each let unit is a copy of the plan's zone, named for the unit's
+  // extent (zone-instancing D1).
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
     extent: `${HOUSE}/location`,
     entrance: `${HOUSE}/location/hall`,
+    zoneNaming: 'key',
+    joins: 'parcel',
+  });
+  add(`${HOUSE}/location`, '/platform/idea/location/MintedZone', {
+    name: 'Seznick House units',
+    cellSize: 3,
+    mintedBy: PROGRAMME,
   });
   add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
+    coords: { x: 0, y: 0, z: 0 },
     exits: { north: { destination: `${HOUSE}/location/main` } },
   });
   add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
+    coords: { x: 0, y: 1, z: 0 },
     exits: { south: { destination: `${HOUSE}/location/hall` } },
   });
   add(CORRIDOR, '/platform/location/PersistentLocation', {

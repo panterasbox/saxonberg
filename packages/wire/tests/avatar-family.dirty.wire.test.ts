@@ -88,7 +88,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 

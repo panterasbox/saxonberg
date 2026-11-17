@@ -194,10 +194,7 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
     // and checked after — a room stamped elsewhere missed its copy.
     const plan = await this.loadPlan();
     const key = this.holdingKey();
-    const zone =
-      plan !== null && key !== null && this.getZoneNaming() !== ''
-        ? await this.wakeCopyZone(plan.extent, key)
-        : null;
+    const zone = plan !== null && key !== null ? await this.wakeCopyZone(plan.extent, key) : null;
     await super.wake();
     if (zone !== null) this.checkCopyRooms(zone, this.getMembers() as unknown as Stuff[]);
     await this.hangKeyedDoors();
@@ -213,7 +210,9 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
   protected override addressFor(spec: FloorplanRoom): string | null {
     const base = this.addressBase || this.derivedAddressBase();
     if (!base) return null;
-    return spec.leaf ? `${base}/${spec.leaf}` : base;
+    // A one-room plan's room IS the holding: its address is the base (the
+    // dorm's `terminus/city/campus/duncan-hall`), never `<base>/room`.
+    return this.planRooms().length === 1 ? base : `${base}/${spec.leaf}`;
   }
 
   private derivedAddressBase(): string {

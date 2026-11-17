@@ -81,7 +81,7 @@ const YARD = '/world/terminus/goods-yards/yard';                           // ru
 const LANE = '/world/terminus/hinkley-hills/location/lane';                // rung 2, graded dirt
 const HEATH = '/world/moor/stormy-heath';                                  // an authored peat floor
 const SMITHY = '/world/terminus/hearthworks/location/smithy';              // the forge floor
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';      // an interior, minted
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';      // an interior, minted
 const CLEARING = '/world/terminus/rejection/hanging-wood/oak-clearing';    // a Wood, on grade
 const HALL = '/world/terminus/terminal/location/hall';                     // a big interior, unauthored
 

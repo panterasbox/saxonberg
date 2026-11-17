@@ -311,9 +311,9 @@ export default class DormWarren extends DormWarrenBase {
    * Stand one unit up, whole — through the unit's keyed
    * {@link HoldingWarren} instance (D16 step 2, the degenerate
    * one-room floorplan): clone the programme row, restore-or-seed it
-   * keyed on the unit extent, wake it (which stands the `DormRoom` up
-   * keyed on the SAME extent — no leaf, so the D1 record shape is
-   * byte-identical to the pre-programme dorm). The institution's
+   * keyed on the unit extent, wake it (which stands the unit's zone up —
+   * a copy of `duncan-hall/unit` named for the extent — and its
+   * `DormRoom` in it, keyed `<extent>/room`; zone-instancing D5). The institution's
    * member is the programme; `admit` still answers the room (the
    * base's entry resolution).
    */

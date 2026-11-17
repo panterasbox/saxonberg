@@ -13,7 +13,7 @@ import { openWorldAs, runCommand } from './helpers';
 
 const YARD = '/world/terminus/wharfside/tannery/location/yard';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

@@ -100,7 +100,7 @@ const CANS = [
 const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';
 const CANE_PIECE = '/world/terminus/waponi-woo/location/cane-piece';
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 
 /**
  * The founder's jurisdiction for staging the home field. ⚠ Not

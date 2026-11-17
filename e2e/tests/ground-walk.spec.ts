@@ -29,7 +29,7 @@ const YARD = '/world/terminus/goods-yards/yard';
 const LANE = '/world/terminus/hinkley-hills/location/lane';
 const HEATH = '/world/moor/stormy-heath';
 const SMITHY = '/world/terminus/hearthworks/location/smithy';
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 const CLEARING = '/world/terminus/rejection/hanging-wood/oak-clearing';
 
 /**

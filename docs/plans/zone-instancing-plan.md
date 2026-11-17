@@ -843,6 +843,29 @@ Decisions: D5 (leaf, the dorm restructure), D9.
 - Acceptance: a dorm unit, a Seznick unit and the farmstead each stand in
   their own zone; the dorm's `unit-N` door and `out` hang with no refusal.
 - Commit: `feat(zone-instancing): A2 — farmstead, Seznick and dorm units are copies`.
+- ✅ **Done.** Notes for review:
+  - The A1 transitional condition is gone: every holding programme
+    declares its copies, and an undeclared one throws at wake.
+  - **The dorm room moved** to `duncan-hall/unit/room.yaml` under the new
+    zone row `duncan-hall/unit.yaml`. Its key is `<unit extent>/room`.
+    `DormRoom.isUnit(extent)` now asks which copy the room stands in
+    (`getZone().getIdentityPath()`), not its key.
+  - **Fixtures converted** to declared copies, each with a `MintedZone`
+    row, `zoneNaming`/`joins` and cells: residence `HoldingWarren` and
+    `TitleVerb`; terminus `SeznickHouse`; the three dorm suites. The
+    TitleVerb one-room plan now has a zone row of its own, so its yard is
+    keyed `<lot>/yard`.
+  - ⚠ **Owed at Checkpoint A:** six wire drives and two e2e specs open a
+    session AT the dorm room ROW (`startLocation: DORM`). The harness
+    stands a room row up as a singleton, which now lands on the
+    `duncan-hall/unit` row's own instance and is refused (D4, as
+    designed). Files: `wire/tests/{avatar-family,documents-path-identity,field-population,field-population.soak,ground,instrumentation}`
+    and `e2e/tests/{documents-path-identity-walk,ground-walk}.spec.ts`.
+    They are re-homed to a let unit or another interior when a world is
+    standing to check them; none of them is in `pnpm test`.
+  - `handDaypack`'s note about the `unit-N` refusal stays until drive
+    step 6 shows the door hanging in a real world (the fixtures carry no
+    corridor zone row, so they cannot prove it).
 
 #### A3 — The index records copies
 

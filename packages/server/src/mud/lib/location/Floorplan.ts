@@ -28,10 +28,9 @@
  *
  * Membership is FOLLOWED, never searched: the entrance, and every room a
  * way inside the extent leads to from a room already found — the ways
- * the author wrote. A one-room plan (the dorm's) names its room as both
- * its extent and its entrance. A room's LEAF is the last segment of its
- * row path (unique within the plan); a one-room plan has none — its copy
- * is keyed by the warren's own key.
+ * the author wrote. A room's LEAF is the last segment of its row path
+ * (unique within the plan) — a one-room plan's room too (the dorm's
+ * `unit/room`), so a copy's rooms are always keyed under the copy.
  *
  * ⭐⭐ **Its buildings are authored too**.
  * The owner's `buildings:` names each building of the kind, the main one
@@ -51,8 +50,8 @@ import type { ExitInstruction } from '../boundary/Exitable';
 export interface FloorplanRoom {
   /** The room's row — what every copy clones from. */
   row: string;
-  /** The key under copy N (`<N>/<leaf>`); absent for a one-room plan. */
-  leaf?: string;
+  /** The key under copy N (`<N>/<leaf>`) — the last segment of its row path. */
+  leaf: string;
   /** Is this the plan's entrance? */
   entry: boolean;
   /** The row's authored exits, by direction. */
@@ -146,15 +145,14 @@ export class Floorplan {
         queue.push(way.destination);
       }
     }
-    const single = places.length === 1;
     const leaves = new Set<string>();
     const rooms = places.map((t): FloorplanRoom => {
       const d = (t.data ?? {}) as Record<string, unknown>;
-      const leaf = single ? undefined : t.path.slice(t.path.lastIndexOf('/') + 1);
-      if (leaf !== undefined) {
-        if (leaves.has(leaf)) throw new Error(`Floorplan '${this.path}': two rooms are '${leaf}'`);
-        leaves.add(leaf);
-      }
+      // ⭐ Every room has a leaf, a one-room plan's too (zone-instancing D5):
+      // the copy's identity is the zone, its rooms are under it.
+      const leaf = t.path.slice(t.path.lastIndexOf('/') + 1);
+      if (leaves.has(leaf)) throw new Error(`Floorplan '${this.path}': two rooms are '${leaf}'`);
+      leaves.add(leaf);
       return {
         row: t.path,
         leaf,

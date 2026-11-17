@@ -54,6 +54,8 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
+/** The unit plan's zone row — the room row's parent. */
+const UNIT_ZONE = DormRoom.SCOPE.slice(0, DormRoom.SCOPE.lastIndexOf('/'));
 const PH = TemplateApplier.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
@@ -102,9 +104,18 @@ function seedDomain(): void {
   // D16 step 2: the unit's degenerate one-room programme row.
   // A one-room plan, the programme's own (harbors review 3; no blueprint
   // row): its extent is the room's row.
+  // ⭐ Each let unit is a copy of the unit's zone (zone-instancing D5),
+  // named by the unit extent; its one room is keyed `<extent>/room`.
+  add(UNIT_ZONE, '/platform/idea/location/MintedZone', {
+    name: 'a dorm unit',
+    cellSize: 3,
+    mintedBy: DormWarren.PROGRAMME_PATH,
+  });
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
-    extent: DormRoom.SCOPE,
+    extent: UNIT_ZONE,
     entrance: DormRoom.SCOPE,
+    zoneNaming: 'key',
+    joins: 'parcel',
     // ⭐ Its one building, authored.
     buildings: ['/test/dorm-building'],
     upkeepTerm: 'institution-all',
@@ -115,6 +126,7 @@ function seedDomain(): void {
     entrance: DormRoom.SCOPE,
   });
   add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
+    coords: { x: 0, y: 0, z: 0 },
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
@@ -501,7 +513,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     // The ROOM's record (the programme's own D16 record rides the same
     // owner — filter by scope).
     expect(
-      snapshots().filter((s) => s.owner === k1 && s.scope === DormRoom.SCOPE),
+      snapshots().filter((s) => s.owner === `${k1}/room` && s.scope === DormRoom.SCOPE),
     ).toHaveLength(1);
     ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
 
@@ -519,7 +531,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();
-    expect(evict).toHaveBeenCalledWith(`${DormRoom.SCOPE}#${k1}`);
+    expect(evict).toHaveBeenCalledWith(`${DormRoom.SCOPE}#${k1}/room`);
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(0); // record cleared
     expect(await ParcelApi.hasUseGrant(k1, '/platform/agent/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed

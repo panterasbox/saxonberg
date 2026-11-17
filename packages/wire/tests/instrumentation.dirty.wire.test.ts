@@ -62,7 +62,7 @@ declareFile({
 /** The instrument case — the one room where a dial can be borrowed. */
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 /** A dorm room: interior, unlit, and nobody's instrument in it. */
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+const DORM = '/world/terminus/eternal/duncan-hall/unit/room';
 /** Open ground with a sky over it — where a sundial has something to cast. */
 const CROSSING = '/world/terminus/university-avenue/location/crossing';
 /** A working face at Rejection — where a sample comes from. */

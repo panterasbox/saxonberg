@@ -122,7 +122,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
 
   it("a dorm address resolves the three-deep chain", async () => {
     // The address the duncan-hall room seeds declare.
-    const dorm = seedData("world/terminus/eternal/duncan-hall/location/dormroom.yaml");
+    const dorm = seedData("world/terminus/eternal/duncan-hall/unit/room.yaml");
     expect(dorm._address).toBe("terminus/city/campus/duncan-hall");
     const chain = await GovernmentApi.governmentChainAt(String(dorm._address));
     expect(chain.map((g) => g.key)).toEqual([
