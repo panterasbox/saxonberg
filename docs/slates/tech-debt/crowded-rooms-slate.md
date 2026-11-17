@@ -103,3 +103,20 @@ clock, or a named person who starts it, is part of this build.
   room, a lifeboat or a lift holds* is derivable from size — a physical
   ceiling beside this slate's performance one. Whether the two meet (the
   physical number as the cap, or each its own) is open.
+
+## Reuse ledger for the plan
+
+Written at /requirements, 2026-11-17 ([requirements](../../requirements/crowded-rooms-requirements.md)).
+Every row is one the plan must account for: reused, generalized, or
+*genuinely new* with what was searched.
+
+| concept the build needs | what already does it | reuse / generalize |
+|---|---|---|
+| a card re-checked when its subject changes | `MqlSubscriptionRegistry` dependency index (`(KIND, attr, value)` → subscriptions; re-derived per re-resolve) | **generalize** — its field events fire *globally* ("conservative-coarse dispatch", mql-subscription.md); narrowing to the moved body is the N² fix |
+| the drain that gives replies priority | `MqlSubscriptionRegistry.drainDirty` time slices (D27) | **reuse**; the slice cannot cut *inside* one re-resolve, so the one-stall-per-card fix is in the re-resolve, not the drain |
+| a card's liveness following attention | `CardRegistry` (client-surface D4: the newest holds the subscription; pinning keeps it) | **generalize** — attention today is server-side recency; "on screen" is a client fact the server lacks |
+| the client telling the server what it holds | navigation-server W1's one subscription protocol (in flight, build-2) | **reuse, sequenced** — the seen/unseen signal should ride that protocol, not a new envelope |
+| NPC background work | the one deliberation beat per agent (`lib/behavior/BehaviorBeat.ts`, `Behaved`), `lint:idle-cadence` | **reuse** — cut the cost per beat; content's authored cadences untouched |
+| a read that writes | `lib/mould/Mould.ts` calls `reconcileSetting()` inside its contents read (lines ~581, ~599) | **fix** — the reconcile moves out of the read path |
+| the crowd drive and its record | `packages/wire` `runCrowd`, `crowd.dirty` + `crowd.soak` wire files, `/healthz` loop sampling | **reuse** — add the card, mould, restart and N=100 phases and the box-load record |
+| a quiet-box run | none | genuinely new as a *procedure* (stop sibling worlds, record load), not as code — searched `tools/` for a load gate |
