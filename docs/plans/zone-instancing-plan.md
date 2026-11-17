@@ -1262,3 +1262,51 @@ Read first, in this order:
 ## Drive record
 
 *(appended at build time)*
+
+### Checkpoint A — stage A drive record (2026-11-17)
+
+`packages/wire/tests/zone-instancing.dirty.wire.test.ts`, run on a freshly
+dropped `saxonberg_build4` world (`WIRE_PORT=2019`,
+`WIRE_FRAME_TIMEOUT=120000` — the machine ran at load ~13 on 8 cores with
+sibling suites): **7/7 green** (steps 1–6 and the holdings half of 10).
+
+- 1–2: two Hinkley lots sold; lot-2 is across the lane and its house is
+  laid out MIRRORED north–south (door south of the yard, gate north) —
+  every room walked in the reflected order.
+- 3: `map terminus/hinkley-hills` lists `…/lot-2/<room>` for the owner and
+  `…/lot-3/<room>` for the neighbor, neither's under the other.
+- 4: the founder's read finds a live `MintedZone` copy at
+  `/world/terminus/hinkley-hills/lots/lot-2` (row `…/hinkley-hills/house`,
+  8 rooms); `government` names the Hinkley Hills Improvement District in
+  the hall as on the lane. (A copy's zone stands only while somebody is in
+  it — the read is taken from the hall.)
+- 6: Katie lets a unit; `unit-1` opens to the student; their room stands in
+  a copy `/world/terminus/eternal/duncan-hall/dorms/f1-r1` of
+  `duncan-hall/unit`, the one room `unit/room`. The `unit-N` refusal the
+  size-and-carrying drive recorded is gone.
+- 10: restart; the house returns as a copy at the same identity with the
+  same rooms, the map still lists it, and the student logs back in INSIDE
+  their unit, its copy under the same name.
+
+**Found by the drive, fixed (pre-existing, not this build's):**
+- `CirculationWarren.admitFor` took a holding's key to be the first
+  segment under the institution's parent — `…/hinkley-hills/lots` for a
+  Hinkley lot — so a character parked in their yard could not be
+  re-entered. Now the covering parcel (`3e212a296`).
+- `CirculationWarren.reconcile` reaped a minted corridor with a person
+  standing in it once the unit beside it slept, evacuating them to the
+  void. A node with an occupant is kept (`5e78eb625`).
+
+**Findings, recorded and NOT fixed here (pre-existing, outside the build):**
+- After a restart Duncan Hall's lobby has no `up` until the dorm's warren
+  stands, and nothing the lobby loads stands it (the warren is attached to
+  its dorms extent, installed in its `onCreate`). A student re-homed to the
+  lobby cannot climb. → residence / Duncan Hall.
+- A Hinkley reach that is reaped and later re-stood keeps the lane's way
+  to it BLOCKED: destructing the reach blocks the inverse of each of its
+  ways (`Exitable.onDestruct`), and `PlatWarren.wireCirculationNode` returns
+  early when the predecessor already has the onward direction. → residence
+  (plat circulation). Only seen on a world that has sold past the first
+  reach, which is why the drive runs on a fresh world.
+- `terminus/general-store-standup.integration.test.ts` failed once under
+  load and passed alone.

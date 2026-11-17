@@ -227,13 +227,12 @@ export default class DormWarren extends DormWarrenBase {
       ContainmentApi.move(pack, tenant);
       return 'handed';
     }
-    // ⚠ Standing the room up can fail (the size-and-carrying drive found
-    // `admit` refusing the unit's own door — "non-cardinal direction
-    // 'unit-2' requires the destination to be in a different zone", the
-    // same failure the move-in theme logs): the daypack must never void a
-    // let that has already happened. It is then set down at the tenant's
-    // feet (size and carrying W8: `move` has no overflow; this is the
-    // explicit second call).
+    // Best-effort: the daypack must never void a let that has already
+    // happened, so a room that will not stand has it set down at the
+    // tenant's feet (size and carrying W8: `move` has no overflow; this is
+    // the explicit second call). (The `unit-N` door refusal the
+    // size-and-carrying drive found is gone: each unit is a zone of its
+    // own — zone-instancing — and the zone-instancing drive walks the door.)
     try {
       const room = await this.admit(unitExtent);
       ContainmentApi.move(pack, room);
