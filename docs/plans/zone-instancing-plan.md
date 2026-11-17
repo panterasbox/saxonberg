@@ -1411,3 +1411,28 @@ sibling suites): **7/7 green** (steps 1–6 and the holdings half of 10).
   reach, which is why the drive runs on a fresh world.
 - `terminus/general-store-standup.integration.test.ts` failed once under
   load and passed alone.
+
+### B5 — first full-drive run (2026-11-17, fresh world) — INCOMPLETE
+
+Stopped by the host for low memory during step 9/10 (not a failure of the
+drive). Results up to then:
+
+- **Steps 1–6 green** (stage A, as at Checkpoint A).
+- **7 — drive-script defect, not the build:** both smacks bought at the
+  yard and boarded (`go petrel…`, `go fulmar…` → *the smack's deck*). The
+  zone READ failed: the founder's `eval --parcel /world/terminus` may not
+  read the decks (their rows are under `/stuff/…`) — *sandbox boundary
+  denied*. The read needs another route (a jurisdiction that covers them,
+  or a read through the ship). Open.
+- ⚠ **8 — a real finding, not yet diagnosed:** from the estuary mouth (her
+  berth, freshly stood), `go hesper` answered *"Something went wrong in
+  GoController: material '/stuff/idea/material/earth/tidal-mud' was read
+  but is not resident"*. `tidal-mud` is the estuary mouth's own `floor:`.
+  Not D6's `peekDestination` (it only looks things up). Needs a live world:
+  reproduce, then decide whether it is this build's (arriving on her COPY
+  deck) or pre-existing (the first stand-up of the estuary mouth).
+- **9 — the step's soft skip hid a failure:** the eval threw (it takes no
+  `await`), and the step returned early, so it "passed" checking nothing.
+  Rewritten as a promise chain with no early return (`evRaw`); a failure
+  now fails the step.
+- 10 (restart) did not run.

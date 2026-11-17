@@ -239,6 +239,31 @@ function unitCopies(): string {
   );
 }
 
+/**
+ * A founder's read whose code already evaluates to a JSON STRING (or a
+ * promise of one) — for reads that need a promise chain.
+ */
+async function evRaw<T = unknown>(code: string, extent: string, where: string): Promise<T> {
+  const s = await Session.open('founder', { startLocation: where, wizard: true, committees: [extent] });
+  try {
+    await s.drainProse();
+    const r = await s.cmd(`eval --parcel ${extent} ${code}`);
+    let said = (await r.said()).trim();
+    const VALUE = /^\S+: ("(?:[^"\\]|\\.)*")\s*$/m;
+    for (let i = 0; i < 8 && !VALUE.test(said) && !/\berror:|sandbox boundary denied/i.test(said); i++) {
+      said += `\n${await s.listen(1_000)}`;
+    }
+    expect(said, `eval threw: ${code}`).not.toMatch(/\berror:|sandbox boundary denied/i);
+    const m = VALUE.exec(said);
+    expect(m, `eval answered no value: ${said.slice(-400)}`).toBeTruthy();
+    const value = JSON.parse(JSON.parse(m![1]!) as string) as T;
+    note(`(founder eval ${code.slice(0, 120)} → ${JSON.stringify(value).slice(0, 300)})`);
+    return value;
+  } finally {
+    s.close();
+  }
+}
+
 /** The prompt a frame carries. */
 function promptOf(p: unknown): { id: string } {
   type Body = { promptId?: string };
@@ -541,17 +566,17 @@ suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
   }, 600_000);
 
   it('9. [instant · staged] a stop stood on the Kestrel is a copy of the stop zone, joined to the river', async () => {
-    const stop = await ev<{ row: string; id: string; copy: boolean }>(
-      `await (async () => { const w = await StuffApi.singleton('${REACH_WARREN}'); ` +
-        `const s = await w.stopAt('kestrel', 1, 'mid'); const z = s.getZone(); ` +
-        `return { row: z.getTemplatePath(), id: z.getIdentityPath(), copy: z.isCopy() }; })()`,
+    // A promise chain that ENDS in a string (the eval prints a resolved
+    // value; it does not take `await`). It fails the step if it cannot
+    // stand the stop — never a quiet pass.
+    const stop = await evRaw<{ row: string; id: string; copy: boolean }>(
+      `StuffApi.singleton('${REACH_WARREN}')` +
+        `.then((w) => w.stopAt('kestrel', 1, 'mid'))` +
+        `.then((s) => s.getZone())` +
+        `.then((z) => JSON.stringify({ row: z.getTemplatePath(), id: z.getIdentityPath(), copy: z.isCopy() }))`,
       '/world/terminus',
       YARD,
-    ).catch((err: unknown) => {
-      note(`9: the stop could not be staged from an eval (${String(err).slice(0, 200)})`);
-      return null;
-    });
-    if (stop === null) return;
+    );
     expect(stop.row).toBe('/system/water/location/reach/stop');
     expect(stop.id.startsWith('/system/water/location/reach/stop/')).toBe(true);
     expect(stop.copy).toBe(true);
