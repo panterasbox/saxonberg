@@ -697,6 +697,8 @@ describe('Avatar', () => {
       getUserId: () => string;
       getSocketId: () => string;
       getSessionId: () => string;
+      cancelSubscription: () => void;
+      subscribe: () => null;
     }
 
     function fakeInteractive(): FakeInteractive {
@@ -706,6 +708,10 @@ describe('Avatar', () => {
         getUserId: () => 'user-1',
         getSocketId: () => 'sock-1',
         getSessionId: () => 'sess-1',
+        // The session subscriptions (navigation-server D1): none here, so
+        // the payload reads directly.
+        cancelSubscription: () => {},
+        subscribe: () => null,
       };
     }
 

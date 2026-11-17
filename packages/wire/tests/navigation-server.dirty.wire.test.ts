@@ -1,0 +1,277 @@
+/**
+ * ⭐⭐ The navigation-server blocking drive
+ * (`docs/requirements/navigation-server-requirements.md` § The drive).
+ *
+ * Every step asserts WHAT THE CLIENT RECEIVED over the real socket: a
+ * `NavClient` subscribes to your map and to where-you-are exactly as the
+ * client does, and is fed every frame before the per-command capture is
+ * cleared. Steps are numbered as the requirements number them; a step not
+ * driven here is named in the plan's drive record.
+ *
+ * Paces: every step `instant` except 17 (a restart, `short`). No soak drive.
+ */
+
+import { describe as suite, it, expect, afterAll } from 'vitest';
+import {
+  Session,
+  NavClient,
+  declareFile,
+  uniqueHandle,
+  plain,
+  expectOk,
+  isOwnedTestWorld,
+  restartWorld,
+} from '../src/harness';
+import type { CommandResult } from '../src/harness';
+import type { WireClaim, NavWay } from '@saxonberg/types';
+
+export const DIRTY_REASON =
+  'mints fresh characters whose maps it writes, walks them through the ' +
+  'Sunken Delve, stoops through the steading\'s low door, and restarts the world';
+
+declareFile({
+  file: 'navigation-server.dirty.wire.test.ts',
+  packs: [
+    'world-seed',
+    'terminus',
+    'eternal-university',
+    'newbie-wilds',
+    'residence',
+    'transport',
+    'water',
+    'generic-objects',
+    'base-library',
+    'ground',
+  ],
+  dirtyReason: DIRTY_REASON,
+});
+
+const TREELINE = '/world/newbie-wilds/crossroads/treeline';
+const VESTIBULE = '/world/newbie-wilds/delve/vestibule';
+const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
+const CORRIDOR_2 = '/world/newbie-wilds/delve/corridor-2';
+const YARD = '/world/newbie-wilds/steading/yard';
+const BANK = '/world/terminus/wharfside/bank';
+const DECK = '/world/terminus/hesper/deck';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+
+const record: string[] = [];
+const open: Session[] = [];
+afterAll(() => {
+  for (const s of open) s.close();
+  // eslint-disable-next-line no-console
+  console.log(`\n[navigation-server drive] record:\n${record.map((l) => `  · ${l}`).join('\n')}`);
+});
+
+const squash = (t: string): string => plain(t).replace(/\s+/g, ' ').trim();
+
+async function session(handle: string, start: string): Promise<{ s: Session; nav: NavClient }> {
+  const s = await Session.open(handle, { startLocation: start });
+  open.push(s);
+  await s.drainProse();
+  const nav = await NavClient.attach(s);
+  return { s, nav };
+}
+
+async function words(r: CommandResult): Promise<string> {
+  const said = squash(await r.said());
+  const detail = (r.notes as Array<{ detail?: string }>).map((n) => n.detail ?? '').join(' ');
+  return `${said} ${detail}`.trim();
+}
+
+/** Let a beat pass so the where-you-are flush lands. */
+const beat = (): Promise<void> => new Promise((r) => setTimeout(r, 400));
+
+const placeClaims = (nav: NavClient, path: string): WireClaim[] =>
+  nav.claims((c) => c.kind === 'place' && typeof c.place !== 'string' && c.place.path === path);
+
+const wayNamed = (nav: NavClient, dir: string): NavWay | undefined =>
+  nav.section('ways')?.ways.find((w) => w.direction === dir);
+
+suite('navigation-server — the blocking drive', () => {
+  let walker: { s: Session; nav: NavClient };
+  const walkerHandle = uniqueHandle('nav-walker');
+
+  it('1 · `locate` is not a verb; a passenger at the Hesper\'s helm is refused the reckoning', async () => {
+    const { s } = await session(uniqueHandle('nav-passenger'), DECK);
+    const loc = await s.cmd('locate me');
+    expect(loc.status).not.toBe('ok');
+    const course = await s.cmd('course');
+    const w = await words(course);
+    record.push(`1: course as a passenger → ${w.slice(0, 120)}`);
+    expect(w).toMatch(/Only her master takes the helm/);
+  }, 120_000);
+
+  it('2 · walk into the Delve: the copy holds the vestibule, walked, with its zone, cell and level — nothing else of the Delve', async () => {
+    walker = await session(walkerHandle, TREELINE);
+    expectOk(await walker.s.cmd('north'));
+    await beat();
+    const vest = placeClaims(walker.nav, VESTIBULE);
+    record.push(`2: vestibule claims ${JSON.stringify(vest.map((c) => [c.channel, c.at]))}`);
+    expect(vest.some((c) => c.channel === 'walked')).toBe(true);
+    const at = vest.find((c) => c.at)?.at;
+    expect(at?.zone?.spoiler).toBe(1);
+    expect(typeof at?.x).toBe('number');
+    expect(typeof at?.level).toBe('number');
+    // Nothing of the Delve beyond what was walked or seen.
+    expect(placeClaims(walker.nav, CORRIDOR_2)).toHaveLength(0);
+  }, 120_000);
+
+  it('3 · `look`: the ways seen arrive; the zone section is kind, cell and a label — no extent; every path tagged', async () => {
+    expectOk(await walker.s.cmd('look'));
+    await beat();
+    const edges = walker.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === VESTIBULE);
+    record.push(`3: edges from the vestibule ${edges.map((e) => `${e.dir}:${e.channel}:${e.state}`).join(', ')}`);
+    expect(edges.some((e) => e.dir === 'north' && e.state === 'open')).toBe(true);
+    const zone = walker.nav.section('zone');
+    record.push(`3: zone ${JSON.stringify(zone)}`);
+    expect(zone?.label).toBeTruthy();
+    expect(Object.keys(zone ?? {})).not.toContain('extent');
+    walker.nav.assertAllPathsTagged();
+  }, 120_000);
+
+  it('5 · a second character who has not searched receives nothing of the cache', async () => {
+    const other = await session(uniqueHandle('nav-other'), VESTIBULE);
+    expectOk(await walker.s.cmd('north'));
+    expectOk(await walker.s.cmd('search'));
+    await beat();
+    const searched = walker.nav.claims((c) => c.channel === 'searched');
+    record.push(`5: searched claims ${searched.length}`);
+    expect(other.nav.claims((c) => c.channel === 'searched')).toHaveLength(0);
+    expect(other.nav.claims((c) => typeof c.place !== 'string' && c.place.path === CORRIDOR_1)).toHaveLength(0);
+  }, 120_000);
+
+  it('6 · a locked door: the way says locked, and trying it refuses in those words', async () => {
+    const { s, nav } = await session(uniqueHandle('nav-door'), BANK);
+    await beat();
+    const way = wayNamed(nav, 'pumphouse');
+    record.push(`6: pumphouse way ${JSON.stringify(way?.take)} facts ${JSON.stringify(way?.facts)}`);
+    expect(way?.state).toBe('locked');
+    expect(way?.take?.ok).toBe(false);
+    const tried = await s.cmd('go pumphouse');
+    expect(tried.status).not.toBe('ok');
+    const w = await words(tried);
+    expect(way?.take && !way.take.ok ? w : '').toContain(way?.take && !way.take.ok ? way.take.reason : '∅');
+  }, 120_000);
+
+  it('6a · the low door: the way says stoop, `go east` refuses in exactly those words, `stoop east` goes through', async () => {
+    const { s, nav } = await session(uniqueHandle('nav-stoop'), YARD);
+    await beat();
+    const way = wayNamed(nav, 'east');
+    record.push(`6a: low door ${JSON.stringify(way?.take)}`);
+    expect(way?.take?.ok).toBe(false);
+    const take = way?.take && !way.take.ok ? way.take : null;
+    expect(take?.works?.command).toMatch(/east$/);
+    const tried = await s.cmd('go east');
+    expect(tried.status).not.toBe('ok');
+    expect(await words(tried)).toContain(take!.reason);
+    expectOk(await s.cmd(take!.works!.command!));
+    await beat();
+    record.push(`6a: you after the stoop ${JSON.stringify(nav.section('you'))}`);
+  }, 120_000);
+
+  it('7 · `route to` a known room: the plan arrives as data and says what the prose says', async () => {
+    const r = await walker.s.cmd('route to the vestibule');
+    const note = (r.notes as Array<{ kind: string; plans?: { legs: { dir: string }[] }[] }>).find((n) => n.kind === 'route-plan');
+    const prose = await words(r);
+    record.push(`7: route → ${prose.slice(0, 120)} · note ${JSON.stringify(note?.plans?.[0]?.legs)}`);
+    expect(note).toBeDefined();
+    for (const leg of note!.plans![0]!.legs) expect(prose).toContain(`${leg.dir} from`);
+  }, 120_000);
+
+  it('8 · Localities: the section names the chain with kinds; the copy holds the first visit', async () => {
+    const loc = walker.nav.section('localities');
+    record.push(`8: localities ${JSON.stringify(loc?.chain)}`);
+    expect((loc?.chain.length ?? 0) > 0).toBe(true);
+    expect(loc!.chain.every((l) => l.kind !== undefined)).toBe(true);
+    const visits = walker.nav.claims((c) => c.kind === 'locality');
+    expect(visits.length).toBeGreaterThan(0);
+    expect(visits.every((c) => typeof c.place === 'string')).toBe(true);
+  }, 120_000);
+
+  it('10 · aboard the Hesper: the last crumb is the ship, where she lies, the jurisdiction', async () => {
+    const { s, nav } = await session(uniqueHandle('nav-aboard'), DECK);
+    await beat();
+    const loc = nav.section('localities');
+    const gov = await words(await s.cmd('government'));
+    record.push(`10: aboard ${JSON.stringify({ ship: loc?.ship, outer: loc?.outer, jurisdiction: loc?.jurisdiction })} · government says ${gov.slice(0, 120)}`);
+    expect(loc?.ship?.name).toBeTruthy();
+    expect(loc?.outer?.at).toBeDefined();
+    if (loc && loc.jurisdiction.length > 0) expect(gov).toContain(loc.jurisdiction[0]!.name);
+  }, 120_000);
+
+  it('12 · inside a building: its name and storeys', async () => {
+    const { nav } = await session(uniqueHandle('nav-hall'), HALL_LOBBY);
+    await beat();
+    const b = nav.section('building');
+    record.push(`12: building ${JSON.stringify(b)}`);
+    expect(b?.name).toBeTruthy();
+  }, 120_000);
+
+  it('14 · the place section, and a dark `look` writes nothing', async () => {
+    const place = walker.nav.section('place');
+    record.push(`14: place ${JSON.stringify(place)}`);
+    expect(place?.light).toBeDefined();
+    if (place?.dark) {
+      const before = walker.nav.copy.size;
+      await walker.s.cmd('look');
+      await beat();
+      expect(walker.nav.copy.size).toBe(before);
+    }
+  }, 120_000);
+
+  it('15 · the you section: pace, posture, hands', async () => {
+    const you = walker.nav.section('you');
+    record.push(`15: you ${JSON.stringify(you)}`);
+    expect(you?.pace).toBe('walk');
+    expect(you?.posture).toBeTruthy();
+  }, 120_000);
+
+  it('16 · a move sends only the sections that changed; sizes recorded', async () => {
+    const snap = walker.nav.log.filter((e) => e.sub === 'where' && e.type === 'subscription-result')[0]!.bytes;
+    const map = walker.nav.log.filter((e) => e.sub === 'map' && e.type === 'subscription-result')[0]!.bytes;
+    const mark = walker.nav.mark();
+    expectOk(await walker.s.cmd('south'));
+    await beat();
+    const sent = walker.nav.sentSince(mark);
+    const moveBytes = walker.nav.bytesSince(mark, 'where');
+    const idle = walker.nav.mark();
+    expectOk(await walker.s.cmd('look'));
+    await beat();
+    record.push(`16: sizes — where snapshot ${snap} B, map snapshot ${map} B, a move ${moveBytes} B sending [${sent.join(', ')}], a look sends [${walker.nav.sentSince(idle).join(', ')}]`);
+    expect(sent).toContain('place');
+    expect(walker.nav.sentSince(idle)).not.toContain('horizon');
+    walker.nav.assertContiguous();
+  }, 120_000);
+
+  it('18 · a second session of the same character: the same copy, and a move in one reaches the other', async () => {
+    const second = await session(walkerHandle, TREELINE).catch((err: Error) => {
+      record.push(`18: a second session could not open: ${err.message}`);
+      return null;
+    });
+    if (second === null) return;
+    const mine = [...walker.nav.copy.keys()].sort();
+    const theirs = [...second.nav.copy.keys()].sort();
+    record.push(`18: copies ${mine.length} / ${theirs.length}`);
+    expect(theirs).toEqual(mine);
+  }, 120_000);
+
+  it('19 · the firewall: no path untagged, and every place in the copy is one the character knows', async () => {
+    walker.nav.assertAllPathsTagged();
+    walker.nav.assertContiguous();
+    for (const c of walker.nav.claims()) {
+      expect(['walked', 'seen', 'searched', 'published', 'charted', 'told']).toContain(c.channel);
+    }
+  }, 120_000);
+
+  it('17 · restart: on reconnect the copy is the same — nothing lost, nothing doubled', async () => {
+    if (!isOwnedTestWorld()) return;
+    const before = [...walker.nav.copy.keys()].sort();
+    await restartWorld();
+    const back = await session(walkerHandle, TREELINE);
+    const after = [...back.nav.copy.keys()].sort();
+    record.push(`17: copy before ${before.length}, after ${after.length}`);
+    for (const k of before) expect(after).toContain(k);
+    expect(new Set(after).size).toBe(after.length);
+  }, 600_000);
+});

@@ -222,7 +222,7 @@ export class LocomotionMode extends SingletonMixin(Idea) {
     enablementMixin: { persistent: true },
     medium: { persistent: true },
     hands: { persistent: true },
-    refusals: { persistent: true, authorable: true },
+    refusals: { persistent: true },
   };
 
   /**

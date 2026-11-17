@@ -108,7 +108,7 @@ describe('the stock card', () => {
     bottle.debitBulk('interior', 0.25);
     await MqlSubscriptionApi._drainScheduledForTesting();
     const delta = h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .find((d) => d.subscriptionId === card.instanceId);
     expect(delta).toBeDefined();
     const changes = delta!.changes as { op: string; key: string; fields?: Record<string, unknown> }[];
