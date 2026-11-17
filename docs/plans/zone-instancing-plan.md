@@ -570,12 +570,28 @@ berth roll, the charter book, the dues, the staging tool.
   row that authors them. A kind row authors none, so "a kind attaches to no
   sea" still holds, and an authored ship is still stood up by her sea and
   her berth.
-- **Kept, deliberately, and said here:** an authored ship still never
-  sleeps (`sleepIfEmpty`/`sleep` stay gated on `isOfKind()`), her company
-  is still her authored `house:` row, and she is never commissioned. Those
-  are facts about who made her, not about what she is to board; changing
-  her sleep would change what her lookout and her company do, which the
-  requirements' non-goals forbid.
+- ⭐ **The owner, 2026-11-17: unify behavior; where she came from is a
+  separate question.** *"We want both authored content and minted content
+  to exist in the game, and to have as much in common as possible."* The
+  authored ships are placeholders until the game knows what watercraft it
+  wants, so their keys are not worth protecting for their own sake. That
+  gives the rule: **no code branches on a ship's origin for what she DOES.**
+  - **Sleep is unified.** An authored ship sleeps when nobody interactive
+    is aboard and she is not under way, the same rule as a ship of a kind.
+    Drop the `isOfKind()` gate on `sleepIfEmpty`/`sleep`. She stands again
+    on reference (her berth, her sea, a session at her deck) as any ship
+    does. The build verifies what wakes her (her `BerthExit` on the quay,
+    `stageShip`, a parked character aboard), and that her lookout and her
+    company's standing survive a sleep and a wake. That is a test, not a
+    reason to keep the gate.
+  - **Origin stays data, not a branch.** Her company is her authored
+    `house:` row rather than one minted at commissioning, and she has no
+    commissioning, because she was written rather than built. Both are
+    facts about where her data came from. The code reads "her company"
+    either way, and nothing she does differs.
+  - **Her handle stays her row** (no `<kind>/<serial>` re-key). Re-keying
+    would only change which string the register, berth roll and charter
+    book file her under; it unifies nothing she does.
 
 ### D13 — Moving water
 
@@ -883,7 +899,10 @@ Order inside the wave:
    its declarations. `deriveAttachments` change in the same commit step.
 3. Delete adoption (`adoptResident`, `releaseRooms`, `planRows`,
    `AUTHORED_SHIP_WARREN`) and collapse the rooms-side `isOfKind()`
-   branches listed in D12.
+   branches listed in D12, plus the sleep gate (D12, the owner's
+   2026-11-17 ruling). Then grep `isOfKind()` in `Ship.ts`/`ShipWarren.ts`:
+   any branch left must read origin as data (company row, commissioning),
+   never change what she does.
 4. Lint rule 5.
 5. Tests and drives that open a session AT an authored ship's room row
    (the six wire files in Grounding, plus `e2e/`): stand her up first
@@ -894,8 +913,9 @@ Order inside the wave:
 Verify, each with a test: the Hesper stands up from a cold world by her sea
 and by her berth; her way aboard appears on the estuary mouth; her company
 stands and her lookout is on deck; `charter` at her hold's book works; her
-hold's cargo survives a restart; she is not evicted while anyone is aboard
-and does not sleep when empty; the Ostrander (on the river, `overside`)
+hold's cargo survives a restart; she is not evicted while anyone is aboard;
+she sleeps when empty and not under way, and wakes on reference (her berth,
+a session at her deck) with her lookout, company and cargo intact; the Ostrander (on the river, `overside`)
 and the two harbor ships do the same.
 
 Drive step 8 added and run, with the harbors drive
