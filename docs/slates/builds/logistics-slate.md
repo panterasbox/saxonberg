@@ -837,6 +837,28 @@ Everything else (Hinkley Hills, newbie-wilds, Terminus departure terminals A–C
   are few and sit where ground freight already concentrates, so everything else still moves over
   ground.
 
+**⭐ The light on a terminal's name says what kind it is (DECIDED — the owner, 2026-11-16).** Today
+the name's color carries two axes at once: direction (blue arrival, red departure, purple both)
+and status (amber, grey) ([fasttravel.md](../../subsystems/fasttravel.md)). Adding cargo would make
+three. So:
+
+| the light | means |
+|---|---|
+| **unlit** (the name in plain text) | no power: out of service, or *dry* (below the arming floor). The owner: *"out of service should just be the light is off, it doesn't need a color."* |
+| **blue** | passenger |
+| **red** | freight |
+| **purple** | both (red and blue light make purple, the shipped palette's own mixing rule) |
+
+- **Direction moves into words.** Terminus already names its rooms the arrival gate and the
+  departure gates, and almost every terminal is both ways anyway.
+- **Amber moves to the departure board.** It never described the terminal: it means *the
+  terminal's own charge is short for the selected ride* (it still runs a ride you power, and a
+  cheaper ride unfunded; *"`overdrawn` is a relationship, not a property"*). The board already shows
+  per-route fares and how your ride's mana will be paid, so the route line says it: *"this route:
+  bring your own mana."*
+- The lounge terminal, the one that matters most, stays purple.
+- `look` still spells everything out in words, so nothing depends on color alone.
+
 **Unit loads, up to the container.** The owner: *"it needs to scale up to at least airplane sizes
 if not cargo ships … the shipping container … that also rides on trucks too."* Containerization's
 insight was one standard unit every mode handles without unloading (Intermodal container,
