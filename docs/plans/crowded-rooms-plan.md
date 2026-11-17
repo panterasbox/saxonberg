@@ -23,6 +23,23 @@ the classes, and every fix wave removes one class behind a census.
 > W0 (D10); pause/resume is the last wave, on navigation-server's D1
 > protocol with one fallback (D5).
 
+## ✅ Owner rulings at plan sign-off (2026-11-17)
+
+The owner accepted every recommendation ("go with your leans on all of it"):
+
+1. **A walk reads as banked.** The smell or a card's description of a thing
+   nobody has deliberately read shows its last reconcile; Thermal reads its
+   curve forward. No conversion of the 89 augmenters to pure projections.
+2. **The tripwire throws only in test worlds;** in production it records a
+   diagnostic, counts on `/stats` and lets the write proceed.
+3. **A setting mould wakes once per game hour** (a constant, not a dial).
+4. **Quiet-box runs:** the build agent takes the suite lock and asks
+   sibling sessions to stop their worlds, and never kills one. If the box
+   cannot be had, the MR opens with the timing gate named as outstanding.
+5. **The `trade-chandlery` Hopper override is deleted in the pack** (W1),
+   per "any other case on those walks is fixed the same way". Requirements
+   problems 2 and 3 below stand as the plan resolves them.
+
 ## ⚠ Requirements problems
 
 The amendment settled the two that mattered (the reach of *reading never
