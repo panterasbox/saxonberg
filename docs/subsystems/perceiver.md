@@ -207,3 +207,12 @@ environment + inventory.
   wielded instrument as the source. A verb can be afforded by many
   source objects (innate `'self'`, instrument, future skill / implant);
   the source object — not a category enum — is the discriminator.
+
+## `navigation(names)` (navigation-server, 2026-11)
+
+`Perceiver.navigation(names?)` answers what this body perceives from here,
+now, in seven sections — zone, localities, horizon, building, ways, place,
+you — each read in its own try (a failed read is absent, never a guess).
+It replaced `whereabouts()`. `learnReckoning(craft, bracket)` is the third
+`learn*`: a reckoning taken at a helm goes on the map. The sections reach the
+client through the where-you-are subscription ([subscription.md](./subscription.md)).

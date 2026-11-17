@@ -611,7 +611,7 @@ value to every connected Interactive.
   `avatar.setClientState(key, value)` (schema check happens
   there) then `avatar.save()`.
 - **Server → client on server-initiated mutation.**
-  `{ type: 'client-state-update', payload: { key, value } }` —
+  `{ type: 'client-state subscription change', payload: { key, value } }` —
   outbound push parallel to `client-state-write`. Server code
   that mutates a key out-of-band (the `cockpit` verb is the v1
   caller) calls `host.pushClientStateUpdate(key, value)` so the
@@ -644,7 +644,7 @@ last close does.
 
 > **A second client implements the connection set and the
 > client-state mechanism — the `Interactive` frames and the
-> `client-state-write` / `client-state-update` / welcome-snapshot
+> `client-state-write` / a change on the client-state subscription / welcome-snapshot
 > trio — and nothing about modes, arrangements, cards-per-mode or
 > shelves, which are one client's vocabulary declared on one mixin.**
 

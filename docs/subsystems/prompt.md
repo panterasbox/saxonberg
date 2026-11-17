@@ -140,8 +140,8 @@ input and the variation lives in what the caller does with the answer.
 Inbound message type        Routes to
 ─────────────────────       ────────────────────────────
 command                     CommandGiver.executeCommand
-mql-subscribe               MqlSubscriptionApi
-mql-unsubscribe             MqlSubscriptionApi
+subscribe               MqlSubscriptionApi
+unsubscribe             MqlSubscriptionApi
 prompt-response             interactive.handlePromptResponse  ← bypasses command bus
 prompt-cancel               interactive.handlePromptCancel    ← bypasses command bus
 ```

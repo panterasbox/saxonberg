@@ -522,7 +522,7 @@ and is closed by making the card **own** the handle:
 zero orphans after closing, sweeping, rearranging and disconnecting.
 
 ⭐ It is also what lets a live card's updates keep riding
-`mql-subscription-delta` — no new envelope, no join table.
+`subscription-delta` — no new envelope, no join table.
 
 ## The tiers
 
@@ -875,7 +875,7 @@ was never built because the server cannot know a viewport, so it would
 be a fake fact. Two stored *preferences* assert nothing about which is
 in force: the server ships both resolved answers on
 `ConnectionEstablishedPayload.resultDisplay` (re-pushed as
-`client-state-update` on every write, so the setting takes effect
+a change on the client-state subscription on every write, so the setting takes effect
 without a reconnect) and the client — which genuinely knows its own
 width — picks. Same split as `cockpit.shelf`.
 
@@ -1324,7 +1324,7 @@ interface MqlQueryErrorEnvelope {
 
 `Application.processUserMessage` routes inbound `'mql-query'`
 messages through `handleQuery` — same shape as the existing
-`'mql-subscribe'` route. Server-side programmatic one-shot
+`'subscribe'` route. Server-side programmatic one-shot
 reads call `MqlApi.resolveOne` / `resolveMany` + `projectFields`
 directly; this surface is the wire-facing channel.
 
@@ -1403,8 +1403,8 @@ interface StuffRegistrySlice {
 ```
 
 **Populated** by every subscription consumer the client owns.
-When the wire client receives an `mql-subscription-result` or
-`mql-subscription-delta` envelope, it walks every record and
+When the wire client receives an `subscription-result` or
+`subscription-delta` envelope, it walks every record and
 calls `useStore.getState().upsertStuffMetadata([...records])`
 before dispatching to widget handlers. Nested ref-shape fields
 (currently just `contents`; future `equipped`, `inventory`,

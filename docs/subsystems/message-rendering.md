@@ -911,7 +911,7 @@ source, which sends `{ op: 'replace', key, fields: value }` as a
 `subscription-delta` to every session of the body.
 
 Parallel to the existing `client-state-write` inbound (client →
-server), which stays a REQUEST. (The old `client-state-update` message
+server), which stays a REQUEST. (The old a change on the client-state subscription message
 and its boot-time DI seam are retired.)
 
 ## Acceptance shape (Wave 1)
@@ -944,7 +944,7 @@ sweep distilled them to:
   truth for topic descriptors after `MessageApi.Topics` retirement).
 - [connection.md](./connection.md) — `HasInteractiveMixin`,
   `_clientState` storage, welcome-payload snapshot,
-  `client-state-update` outbound push.
+  a change on the client-state subscription outbound push.
 - [card-surface.md](./card-surface.md) — consumes
   `MmlRenderer.commandFor` and the stuff registry the markdown
   parser's `mudref:` links resolve against.

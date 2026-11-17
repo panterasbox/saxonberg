@@ -1,7 +1,15 @@
 # MQL subscription substrate
 
+> ⭐ **On the one subscription wire (navigation-server, 2026-11).** This
+> registry is the MQL source (`/platform/idea/MqlSubscriptionRegistry`) behind [subscription.md](./subscription.md): `subscribe` /
+> `unsubscribe`, answered by `subscription-result` (rev 0) / `-delta` (rev + 1) /
+> `-error`. Its own message types are retired; the registry keeps what a
+> subscription MEANS (its index, its diff) and the protocol keeps the id
+> table, `rev` and the emits.
+
+
 Server-side substrate routing **live MQL queries**: a client sends an
-`mql-subscribe` message naming a query + the fields it wants
+`subscribe` message naming a query + the fields it wants
 projected; the substrate registers the subscription under a
 per-Interactive id, ships the initial result, and re-projects on every
 relevant state change until the client unsubscribes or disconnects.
@@ -352,7 +360,7 @@ interface MqlQueryErrorEnvelope {
 
 `Application.processUserMessage` routes inbound `'mql-query'`
 messages through `MqlSubscriptionApi.handleQuery` — same shape
-as the existing `'mql-subscribe'` route. Holder and cardinality
+as the existing `'subscribe'` route. Holder and cardinality
 checks mirror `handleSubscribe` so a client's error-handling
 code can branch by `reason` uniformly across subscribes and
 queries.
@@ -826,7 +834,7 @@ substrate's re-projection without any descriptor changes.
 
 ## What doesn't ship at all (v1)
 
-- `mql-subscribe-update` — change a subscription's query without
+- `subscribe-update` — change a subscription's query without
   un/re-subscribing.
 - Heartbeat / explicit `'closed'` envelope.
 - Wire projection fields for `mixins[]` / `capabilities[]`.
@@ -1049,7 +1057,7 @@ Three seams survive the split:
   first resolve on its own `card-opened`; emitting a second envelope for
   one open is how a card ends up briefly showing nothing while the
   client reconciles two shapes for the same content.
-- **`mql-subscription-delta`** still carries a live card's updates,
+- **`subscription-delta`** still carries a live card's updates,
   because the ids are the same by construction. No new envelope, no
   join table.
 

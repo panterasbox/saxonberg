@@ -1162,3 +1162,18 @@ it describes.
 
 See [location-graph.md](./location-graph.md) and
 [parcel.md](./parcel.md).
+
+## A way's verdict and its facts (navigation-server, 2026-11)
+
+`Exit.wayFor(viewer)` is this way as the viewer would take it now: the
+`WayRecord`, the way's and its boundary's facts by composition (descriptors
+with `aspect: 'way'` — `Boundary`'s `state`/`opening`/`swingsShut`,
+`Lockable`'s `locked`/`keyHeld`, `Door`'s `freeHere`), and `take` — the
+cascade `go` runs (`LocomotionApi.canTraverseExit`), asked with
+`{ probe: true }`. A probe materializes nothing (no ship stood up, no patch
+minted, no house provisioned) and leaves a fight engaged; it answers *no* in
+trying's own words (with `works`: the lower mode and command, the pack, the
+dismount), *yes*, *yes as far as you know* (`unseen`) or *yes, and it is
+fleeing* (`flee`). The mode words its own refusals (`LocomotionMode.refusals`),
+never the controller. `Exit.wayChanged()` (on open, lock, a gangway) tells
+whoever stands at the way.

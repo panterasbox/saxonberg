@@ -650,7 +650,7 @@ column's card feed — one birth path gated on a command view's
 live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
-dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
+dispatch-response. Inbound `subscribe` / `unsubscribe`
 messages route through `Application.processUserMessage` to the
 substrate, which projects an MQL query's result + re-projects on
 relevant state changes. Outbound envelopes ride the same
