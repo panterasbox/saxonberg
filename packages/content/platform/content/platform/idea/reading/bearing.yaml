@@ -20,9 +20,13 @@ data:
   # The eye rung is open, and coarse: a glance over the bow gives a
   # bearing to ten degrees.
   eyeCeiling: untrained
+  # ⭐ Afloat or ashore (geography D11): read off the one horizon. Afloat
+  # a bearing on a thing that never moves mends your reckoning; ashore it
+  # is a line you stand on, and a second crosses it. A tower in your own
+  # streets is too near to take a bearing across.
   improves: >-
-    which way a thing in view lies, and — when it never moves — where you
-    are
+    which way a thing in view lies, at sea or ashore, and — when it never
+    moves — where you are
   stakes: >-
     a light raised and never used; a landfall made from a reckoning a
     bearing would have mended
