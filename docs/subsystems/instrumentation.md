@@ -220,6 +220,17 @@ channel's own discipline is empty because a nose bands per word
   true latitude and the bracket is by band, so a novice and a practised
   hand get the same answer with a different bracket. Refused under any
   non-`clear` sky in the sky's own word, and with the sun down.
+  ⭐ Ashore too (geography D11): under an open sky it reads the latitude
+  the place's climate reads (`ZoneApi.climateSiteFor`, which takes a
+  positioned Locality's point when the zone states none), mending nothing.
+- **`bearing`** (`/platform/idea/reading/bearing`) — `measure bearing <it>`
+  with a hand-bearing compass, or `analyze bearing` by eye (±10°). The
+  subject is read off the ONE horizon (`PerceptionApi.horizonFor`), afloat
+  or ashore: afloat a bearing on a fixed mark mends the reckoning to within
+  range × tan(bracket); ashore it is a line you stand on (a second crosses
+  it); a sail tells you where she lies. A thing *close by* (in your own
+  Locality) is refused `too-close`. The bracket narrows by band — the one
+  place a viewer gets more than the rough direction.
 
 ## Two channels from the drilling trade (2026-10)
 

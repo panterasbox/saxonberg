@@ -2,6 +2,8 @@ import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LatitudeReading from '../LatitudeReading';
 import { ExpanseApi } from '../../../../api/expanse';
+import { ZoneApi } from '../../../../api/zone';
+import { BiomeApi } from '../../../../api/biome';
 import { WeatherApi } from '../../../../api/weather';
 import { CelestialApi } from '../../../../api/celestial';
 import { MessageApi } from '../../../../api/message';
@@ -90,5 +92,22 @@ describe('LatitudeReading', () => {
     await measure('expert');
     expect(told.join(' ')).toContain('The sky is overcast');
     expect(takeLatitude).not.toHaveBeenCalled();
+  });
+
+  it('⭐ ashore (geography D11): the climate\'s latitude, under an open sky, mending nothing', async () => {
+    vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(null as never);
+    vi.spyOn(BiomeApi, 'exposureOf').mockReturnValue({ skyVisible: () => true } as never);
+    vi.spyOn(ZoneApi, 'climateSiteFor').mockResolvedValue({ latitudeDeg: 42.09, elevationM: 0, continentality: 0, offsetK: 0 });
+    await measure('competent');
+    expect(told[0]).toMatch(/Latitude 42\.1° N ± 0\.2°/);
+    expect(takeLatitude).not.toHaveBeenCalled();
+    expect(await reading.truth(sailor)).toBeCloseTo(42.09, 4);
+  });
+
+  it('ashore under a roof there is no sky to take a sight of', async () => {
+    vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(null as never);
+    vi.spyOn(BiomeApi, 'exposureOf').mockReturnValue({ skyVisible: () => false } as never);
+    await measure('competent');
+    expect(told[0]).toMatch(/cannot see the sky/);
   });
 });

@@ -20,6 +20,8 @@ import { DurableMixin } from '../material/Durable';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
+import { GeoPosition, type GeoPositionRecord } from '../expanse/GeoPosition';
 import type { CoatReachRefusal } from '../material/Faced';
 import { MixinApi } from '../../api/mixin';
 import {
@@ -33,6 +35,34 @@ export default abstract class Building
   extends DurableMixin(FacedMixin(StructureBase))
   implements Maintainable
 {
+  static fieldMeta: FieldMeta = {
+    position: { persistent: true, authorable: true },
+  };
+
+  /**
+   * ⭐ Where this building stands on the chart (geography build), or
+   * `null` — *where my Locality is*, a real answer. A building stands still,
+   * which is why the point is here and not on {@link StructureBase}: a ship
+   * is a structure too, and her place is her fix. A light on a rock with a
+   * sea node needs none; it stands where the sea has its rock.
+   */
+  protected position: GeoPositionRecord | null = null;
+
+  /** Where it stands on the chart, or `null` (where its Locality is). */
+  public getPosition(): GeoPosition | null {
+    return this.position === null ? null : new GeoPosition(this.position);
+  }
+
+  /** Set (or clear) the point; a non-finite latitude or longitude throws. */
+  public setPosition(value: GeoPositionRecord | null): void {
+    this.position = value === null || value === undefined ? null : new GeoPosition(value).toJSON();
+  }
+
+  /** Its authored point first, else where the sea has it (a light on its rock). */
+  public override chartPoint(): GeoPosition | null {
+    return this.getPosition() ?? super.chartPoint();
+  }
+
   /** A building's outside is always out in the weather, read from a landing. */
   public override weatherScope(): Stuff | null {
     return this.outsideScope();

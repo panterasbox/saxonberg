@@ -554,7 +554,8 @@ function standsIn(s: Stuff): (Stuff & Container) | null {
  * teleportation's hard part is SPECIFICATION, not distance; the
  * authored `cost` prices the survey, and this prices the lift.
  *
- * - `Δh` from `ZoneApi.elevationFor`, which walks out to the outermost
+ * - `Δh` between TOTAL heights (`ZoneApi.elevationFor`, the ground, plus
+ *   the place's storey — geography D13), the ground walking out to the outermost
  *   container. An unzoned endpoint contributes **0** — documented as
  *   "level", not as an error: a place nobody gave an elevation is not a
  *   place that is expensive to reach.
@@ -574,10 +575,14 @@ async function relocationCostImpl(spec: RelocationSpec): Promise<number> {
   const toScene = placeOf(spec.to);
   if (!fromScene || !toScene) return 0;
 
-  const [h1, h2] = await Promise.all([
-    ZoneApi.elevationFor(fromScene),
-    ZoneApi.elevationFor(toScene),
-  ]);
+  // ⭐ Geography D13 (the owner, Q7): the climb is between TOTAL heights —
+  // the zone's ground plus the storey — so a stair costs what it climbs.
+  const totalOf = async (scene: Stuff): Promise<number | null> => {
+    const ground = await ZoneApi.elevationFor(scene);
+    const storey = scene.isPlace() ? scene.heightAboveGroundM() : 0;
+    return ground === null && storey === 0 ? null : (ground ?? 0) + storey;
+  };
+  const [h1, h2] = await Promise.all([totalOf(fromScene), totalOf(toScene)]);
   const deltaH = h1 === null || h2 === null ? 0 : h2 - h1;
   if (deltaH <= 0) return 0;
 

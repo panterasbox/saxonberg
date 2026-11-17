@@ -45,7 +45,6 @@
  * its own water.
  */
 
-import { BiomeApi } from '../../api/biome';
 import { NavigationApi } from '../../api/navigation';
 import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -58,9 +57,9 @@ import { AppApi } from '../../api/app';
 import Band from '../../platform/idea/Band';
 import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
+import { Vantage } from '../perception/Vantage';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
-import type Structure from '../structure/Structure';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
@@ -144,9 +143,6 @@ function fnvUnit(input: string): number {
   }
   return (h >>> 0) / 0x100000000;
 }
-
-/** Feet in a metre — the horizon formula is stated in feet. */
-const FT_PER_M = 3.28084;
 
 export abstract class Expanse extends SingletonMixin(SpatialZone) implements Frame {
   static fieldMeta: FieldMeta = {
@@ -657,47 +653,15 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 
   /**
-   * The buildings this sea names that stand at one of its nodes — a light
-   * on a rock — each where its node is (a building on a rock has no
-   * position of its own; it is where its rock is).
-   */
-  private landmarks(): { stuff: Structure; at: GeoPosition }[] {
-    const out: { stuff: Structure; at: GeoPosition }[] = [];
-    const seen = new Set<Structure>();
-    for (const node of this.loadedNodes) {
-      const dest = node.getDestination();
-      const at = node.getExpansePosition();
-      if (!dest || at === null) continue;
-      // The structures attached at the node's landing (a light on its
-      // rock), standing now.
-      for (const p of NavigationApi.attachedNow(dest, 'structure')) {
-        // Structural, not `instanceof`: a value import of `Structure` here
-        // would close a module cycle (it is a type import for that reason).
-        const s = StuffApi.findByTemplatePath<Stuff & Partial<Structure>>(p) as Structure | undefined;
-        if (!s || typeof s.hasMember !== 'function' || seen.has(s) || s.isDestroyed()) continue;
-        if (MixinApi.isPositioned(s) || !s.hasMember(dest)) continue;
-        seen.add(s);
-        out.push({ stuff: s, at });
-      }
-    }
-    return out;
-  }
-
-  /**
-   * ⭐ Everything on this sea that can be SEEN, synchronously: its
-   * landmarks (fixed — a light is what a bearing fixes by) and the craft
-   * registered on it. The expanse is the scope that holds the answer; a
-   * horizon asks it, never the registry (maritime review). Before the
-   * first compile it starts one and answers with the craft alone.
+   * ⭐ The CRAFT on this sea that can be seen, synchronously — what moves,
+   * read at the act. What stands still (a light on its rock, a tower on
+   * the shore) is the skyline's (`NavigationApi.skylineNow`, geography D3),
+   * read off the content rows; the sea no longer names its landmarks.
+   * Before the first compile it starts one.
    */
   public sightables(): Sighted[] {
     if (this.compiled === null) void this.compile().catch(() => undefined);
-    const out: Sighted[] = this.landmarks().map(({ stuff, at }) => ({
-      craft: stuff,
-      at,
-      heightM: stuff.getHeightM(),
-      fixed: true,
-    }));
+    const out: Sighted[] = [];
     for (const c of this.craft()) {
       const at = c.getExpansePosition();
       if (at !== null) out.push({ craft: c, at, heightM: c.getTargetHeightM(), fixed: false });
@@ -714,11 +678,9 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
    * low hull.
    */
   public sightRangeNm(observerHeightM: number, targetHeightM: number): number {
-    const a = Math.sqrt(Math.max(0, observerHeightM) * FT_PER_M);
-    const b = Math.sqrt(Math.max(0, targetHeightM) * FT_PER_M);
-    // ⭐ (sugar D12) The horizon is closer on a smaller world: the range
-    // scales with √(R / R_earth) — 0.675 of Earth's on a third-size planet.
-    return 1.17 * Math.sqrt(BiomeApi.planetRadiusM() / 6_371_000) * (a + b);
+    // ⭐ The sight core is shared with the land (geography D3): a Vantage.
+    // Where the eye stands does not change its reach, so any point serves.
+    return new Vantage(this.getOrigin() ?? new GeoPosition(0, 0), observerHeightM).reachNm(targetHeightM);
   }
 
   /**
@@ -747,8 +709,8 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
 
   /**
    * Who `observer`, looking out from `from`, can perceive on `channel`:
-   * every other craft on this expanse in range, every fixed positioned
-   * Structure in range (a lighthouse), and this hour's seeded traffic.
+   * every other craft on this expanse in range, and this hour's seeded
+   * traffic. (A light on its rock is the skyline's now — geography D3.)
    * Only craft on the SAME expanse are compared — the graph is the broad
    * phase.
    */
@@ -764,7 +726,6 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     // ⭐ The weather shortens sight (maritime R10): fog to a tenth, rain
     // to a little over half. A signal is a gun or a lamp — unaffected.
     const seeing = channel === 'visual' ? await visibilityFor(observer) : 1;
-    // Landmarks first: a light is a light, whatever else has it listed.
     const candidates = this.sightables();
     return this.sightingsAmong(
       here, from.sightHeightFor(observer), channel, hourIndex, candidates, seeing, from,
@@ -790,21 +751,22 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     exclude: Stuff | null = null,
   ): Contact[] {
     const signalNm = numSetting('expanse.signalRangeNm', 12);
+    const vantage = new Vantage(here, eye);
     const rangeFor = (targetM: number): number =>
-      channel === 'signal' ? signalNm : this.sightRangeNm(eye, targetM) * seeing;
+      channel === 'signal' ? signalNm : vantage.reachNm(targetM) * seeing;
 
     const out: Contact[] = [];
     const seen = new Set<string>();
     for (const { craft: c, at, heightM, fixed } of candidates) {
       if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId) || c.isDestroyed()) continue;
-      const d = here.distanceNm(at);
-      if (d > rangeFor(heightM)) continue;
+      const line = vantage.lineTo(at, heightM);
+      if (line.rangeNm > rangeFor(heightM)) continue;
       seen.add(c.stuffId);
       out.push({
         craft: c,
         name: MixinApi.isNamed(c) ? c.getName() : 'a sail',
-        bearingDeg: here.bearingTo(at),
-        rangeNm: Math.round(d * 10) / 10,
+        bearingDeg: line.bearingDeg,
+        rangeNm: Math.round(line.rangeNm * 10) / 10,
         channel,
         fixed,
       });

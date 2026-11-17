@@ -43,3 +43,6 @@ data:
   berth: /world/terminus/estuary/estuary-mouth
   moored: true
   speedKn: 6
+  # ⭐ Seen by night (geography D6/Q2) — her riding lights. A ship that shows none
+  # is not seen after dark.
+  showsLight: true

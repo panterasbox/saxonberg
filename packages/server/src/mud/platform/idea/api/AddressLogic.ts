@@ -209,6 +209,16 @@ export class AddressLogic extends ApiLogic {
     return registry().coverageChainOf(address);
   }
 
+  /** See {@link AddressApi.positionedLocalityOf}. Sync. */
+  @CallSecurity(AddressApiCallers)
+  public positionedLocalityOf(address: string | null): Locality | null {
+    if (!address) return null;
+    for (const l of registry().coverageChainOf(address)) {
+      if (l.getPosition() !== null) return l;
+    }
+    return null;
+  }
+
   /** See {@link AddressApi.findByAddress}. Exact-match. */
   @CallSecurity(AddressApiCallers)
   public findByAddress(address: string): Locality | null {

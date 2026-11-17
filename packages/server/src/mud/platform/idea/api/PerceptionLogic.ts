@@ -49,15 +49,16 @@ import type {
 import { PlayerApi } from '../../../api/player';
 import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
 import type {
-  HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
+  HorizonView, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
-import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
 import type Structure from '../../../lib/structure/Structure';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
-import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
+import { Expanse } from '../../../lib/expanse/Expanse';
+import { Vantage } from '../../../lib/perception/Vantage';
+import { CelestialApi } from '../../../api/celestial';
 import { BiomeApi } from '../../../api/biome';
 import { WeatherApi } from '../../../api/weather';
 
@@ -492,26 +493,7 @@ export class PerceptionLogic extends ApiLogic {
   /** See {@link PerceptionApi.horizonFor}. */
   @CallSecurity(PerceptionApiCallers)
   public horizonFor(viewer: Stuff): HorizonView {
-    // ⭐ Scoped, never registry-wide (maritime review, 2026-10-13): the
-    // craft you stand on is the STRUCTURE CATALOGUE's answer (which
-    // building is this room in), what you can see at sea is THAT craft's
-    // EXPANSE's (its landmarks and registered craft), and ashore a named
-    // zone's structures are the catalogue's again. Nothing asks the
-    // registry for every craft in the world.
-    const atSea = horizonAtSea(viewer);
-    if (atSea !== null) return atSea;
-    // ⭐ A bank on a river sees the river AND what its horizon names (the
-    // tower over the roofs): the line's answer adds to the declaration,
-    // never replaces it (the maritime drive found the bank blind).
-    const ashore = horizonAshore(viewer);
-    const river = horizonOnRiver(viewer);
-    if (river === null) return ashore;
-    const seen = new Set(river.things.map((t) => t.stuff));
-    return {
-      things: [...river.things, ...ashore.things.filter((t) => !seen.has(t.stuff))],
-      traffic: [...river.traffic, ...ashore.traffic],
-      atSea: false,
-    };
+    return horizonImpl(viewer);
   }
 
   /** See {@link PerceptionApi.visibleContentsOf}. */
@@ -542,7 +524,14 @@ export class PerceptionLogic extends ApiLogic {
   public async observe(actor: Stuff, target: Stuff): Promise<Observation> {
     await this.preloadForSenseGate(actor);
     const place = MixinApi.isContainable(actor) ? actor.getContainer() : null;
-    if (place !== null && target === place) return observePlace(actor, place);
+    if (place !== null && target === place) {
+      // ⭐ Geography D9: the arrival `look` stands up what the horizon will
+      // name, so the sync read that follows is complete.
+      if (place.isPlace()) {
+        await place.standUpHorizon().catch((err) => console.warn('observe: the horizon did not stand up:', err));
+      }
+      return observePlace(actor, place);
+    }
     return observeThing(actor, target);
   }
 
@@ -1513,9 +1502,6 @@ const COMPASS_POINTS = [
   'to the south', 'to the south-west', 'to the west', 'to the north-west',
 ] as const;
 
-/** An observer's eye above the ground they stand on, meters. */
-const SHORE_EYE_M = 2;
-
 const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
 
 type Craft = Stuff & Positioned & Voyaging;
@@ -1555,139 +1541,180 @@ function expanseAt(path: string | null): Expanse | null {
   return e instanceof Expanse ? e : null;
 }
 
-/** Contacts as horizon sightings and traffic. */
-function toView(contacts: readonly Contact[], atSea: boolean, seen = new Set<string>()): HorizonView {
-  const things: HorizonSighting[] = [];
-  const traffic: HorizonTraffic[] = [];
-  for (const c of contacts) {
-    if (c.craft) {
-      if (seen.has(c.craft.stuffId)) continue;
-      seen.add(c.craft.stuffId);
-      things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
-    } else {
-      traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+/**
+ * ⭐⭐ **The horizon — one rule** (geography D3). Where the viewer stands
+ * on the chart and how high their eye is decide it, whatever the frame:
+ *
+ * - **static** — the location graph's kept skyline from this vantage
+ *   (`NavigationApi.skylineNow`: every structure worth seeing, read off the
+ *   rows, cut to a handful), then filtered at the read by the weather, the
+ *   night (only what shows a light) and the place's `block`;
+ * - **moving** — the craft of the frame the viewer is on or reaches (a
+ *   deck's own sea; a shore place's `reach`ed sea; a river's line by name),
+ *   read at the act — plus the sea's seeded traffic.
+ *
+ * No sky, no horizon. A viewer with no chart point (a test world) sees only
+ * what a frame names. Inside the viewer's Locality radius a structure is
+ * *close by* — no direction is invented; a viewer with a point of their
+ * own always gets the real bearing and range.
+ */
+function horizonImpl(viewer: Stuff): HorizonView {
+  const room = roomOf(viewer);
+  const craft = craftAboard(viewer);
+  const at = craft?.getExpansePosition() ?? null;
+  const ownSea = at !== null ? expanseAt(craft?.getExpanse() ?? null) : null;
+  const atSea = ownSea !== null;
+  if (room === null || !room.isPlace()) return atSea ? { ...EMPTY_HORIZON, atSea } : EMPTY_HORIZON;
+  // Below decks, indoors: there is no horizon — the watch is kept where the sky is.
+  if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return { things: [], traffic: [], atSea };
+  const override = room.horizonOverride();
+  if (override?.blockAll) return { things: [], traffic: [], atSea };
+
+  // ── where the eye is ──
+  let vantage: Vantage | null = null;
+  let keepAs: string | null = null;
+  let nearM = 0;
+  let own: string | null = null;
+  if (craft !== null && at !== null) {
+    vantage = new Vantage(at, craft.sightHeightFor(viewer));
+    own = craft.getTemplatePath();
+  } else {
+    const v = room.horizonVantage();
+    if (v !== null) ({ vantage, keepAs, nearM, own } = v);
+  }
+  const seeing = seeingFrom(room);
+  const dark = vantage !== null && isDarkAt(room, vantage);
+  const blocked = (b: number | null, r: number | null): boolean => override?.blocks(b, r) ?? false;
+  const view: HorizonView = { things: [], traffic: [], atSea };
+  const seen = new Set<string>();
+  if (craft !== null) seen.add(craft.stuffId);
+
+  // ── what stands still: the kept skyline ──
+  let missing = false;
+  if (vantage !== null) {
+    for (const e of NavigationApi.skylineNow(vantage, { own, keepAs, nearM })) {
+      if (!e.near && e.rangeNm > e.clearNm * seeing) continue;
+      if (dark && !e.showsLight) continue;
+      const closeBy = e.near;
+      const rangeNm = Math.round(e.rangeNm * 10) / 10;
+      if (blocked(closeBy ? null : e.bearingDeg, closeBy ? null : rangeNm)) continue;
+      const stuff = standing(e.live, e.path);
+      if (stuff === null) {
+        missing = true;
+        continue;
+      }
+      if (seen.has(stuff.stuffId)) continue;
+      seen.add(stuff.stuffId);
+      view.things.push(
+        closeBy
+          ? { stuff, bearingDeg: null, rangeNm: null, closeBy: true, fixed: true }
+          : { stuff, bearingDeg: e.bearingDeg, rangeNm, fixed: true },
+      );
     }
   }
-  return { things, traffic, atSea };
+
+  // Something it names is not standing yet: stand the place's horizon up
+  // for the next read (kicked; a sync read never waits).
+  if (missing) void room.standUpHorizon().catch(() => undefined);
+
+  // ── what the override reaches: a structure named whatever the rule says ──
+  const seas: Expanse[] = ownSea !== null ? [ownSea] : [];
+  for (const target of override?.reach ?? []) {
+    const sea = expanseAt(target);
+    if (sea !== null) {
+      if (!seas.includes(sea)) seas.push(sea);
+      continue;
+    }
+    // A reach names a sea or a STRUCTURE row (`lint:location-graph`).
+    const s = StuffApi.findByTemplatePath<Stuff & Structure>(target);
+    if (!s || s.isDestroyed() || seen.has(s.stuffId) || target === own) continue;
+    const structure = s;
+    if (dark && !structure.getShowsLight()) continue;
+    const point = structure.chartPoint();
+    const line = vantage !== null && point !== null ? vantage.lineTo(point, structure.getHeightM()) : null;
+    const rangeNm = line !== null ? Math.round(line.rangeNm * 10) / 10 : null;
+    if (blocked(line?.bearingDeg ?? null, rangeNm)) continue;
+    seen.add(s.stuffId);
+    view.things.push({ stuff: s, bearingDeg: line?.bearingDeg ?? null, rangeNm, fixed: true });
+  }
+
+  // ── what moves: the craft of the seas in reach, read now ──
+  if (vantage !== null) {
+    const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
+    for (const sea of seas) {
+      const contacts = sea.sightingsAmong(
+        vantage.at, vantage.eyeM, 'visual', hour, sea.sightables(), seeing, craft,
+      );
+      for (const c of contacts) {
+        if (blocked(c.bearingDeg, c.rangeNm)) continue;
+        if (c.craft === null) {
+          view.traffic.push({ name: c.name, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm });
+          continue;
+        }
+        if (seen.has(c.craft.stuffId)) continue;
+        // ⭐ Geography D6 / Q2: an unlit ship is not seen by night.
+        if (dark && !(MixinApi.isPositioned(c.craft) && c.craft.isLitByNight())) continue;
+        seen.add(c.craft.stuffId);
+        view.things.push({ stuff: c.craft, bearingDeg: c.bearingDeg, rangeNm: c.rangeNm, fixed: c.fixed });
+      }
+    }
+  }
+
+  // ── a river's line: who is on the water, by name (no chart on a line — Q3) ──
+  for (const s of riverSightings(viewer, room)) {
+    if (seen.has(s.stuffId) || blocked(null, null)) continue;
+    seen.add(s.stuffId);
+    view.things.push({ stuff: s, bearingDeg: null, rangeNm: null });
+  }
+  return view;
 }
 
-/** Every resident craft on the sea at `seaPath`, a structure with no deck being FIXED. */
 /**
- * At sea: the viewer's root is a craft on an expanse, and the range is
- * COMPUTED from two heights — the viewer's eye (a lookout seat is the
- * masthead) and each target's. `null` when the viewer is not afloat.
+ * The thing a skyline entry names, standing — or `null` (geography D9: the
+ * this-once skip; the caller kicks the place's stand-up. The arrival `look`
+ * and the room's load stand the handful up, so this is rare).
  */
-function horizonAtSea(viewer: Stuff): HorizonView | null {
-  const craft = craftAboard(viewer);
-  const here = craft?.getExpansePosition() ?? null;
-  const sea = expanseAt(craft?.getExpanse() ?? null);
-  if (craft === null || here === null || sea === null) return null;
-  // Below decks there is no horizon: the watch is kept where the sky is.
-  const room = roomOf(viewer);
-  if (room === null || !(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return { things: [], traffic: [], atSea: true };
-  const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
-  const contacts = sea.sightingsAmong(
-    here, craft.sightHeightFor(viewer), 'visual', hour,
-    sea.sightables(), seeingFrom(room), craft,
-  );
-  return toView(contacts, true);
+function standing(live: Stuff | null, path: string): Stuff | null {
+  if (live !== null) return live.isDestroyed() ? null : live;
+  const s = StuffApi.findByTemplatePath<Stuff>(path);
+  return s && !s.isDestroyed() ? s : null;
 }
 
 /**
- * ⭐ On a river (river D26): the viewer's room is on a river's line — the
- * water itself, or a bank standing on it — and what is in sight is the
- * frame's answer (whoever is in the water, to the next bend or as far as
- * height carries). `null` when the room is on no river.
+ * Is it night for the skyline (geography D6)? When the sky at the viewer's
+ * latitude is below the factor at which a town's lamps burn
+ * (`CelestialApi.lampDuskFactor`) — dusk means one thing to the street
+ * lighting and to the horizon. (The sky never reaches 0: starlight.)
  */
-function horizonOnRiver(viewer: Stuff): HorizonView | null {
-  const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
-  if (room === null) return null;
+function isDarkAt(room: Stuff, vantage: Vantage): boolean {
+  const lat = MixinApi.isAtmospheric(room) ? room.climateSite().latitudeDeg : vantage.at.latDeg;
+  const now = WorldClockApi.getNow().rawValue();
+  return CelestialApi.skyFactorAt(now, lat) < CelestialApi.lampDuskFactor();
+}
+
+/**
+ * ⭐ On a river (river D26): the craft on the line the viewer's room is on
+ * (the water itself, or a bank standing on it), to the next bend or as far
+ * as height carries — by name only.
+ */
+function riverSightings(viewer: Stuff, room: Stuff & Container): Stuff[] {
   const framePath =
     (MixinApi.isPositioned(room) ? room.getLine() : null) ??
     (MixinApi.isFrameSited(room) ? room.getFrameSite()?.frame ?? null : null);
-  if (!framePath) return null;
+  if (!framePath) return [];
   const frame = StuffApi.findByTemplatePath<Stuff>(framePath);
-  if (!frame || !MixinApi.isLineFrame(frame)) return null;
-  if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return EMPTY_HORIZON;
-  const things: HorizonView['things'] = [];
+  if (!frame || !MixinApi.isLineFrame(frame)) return [];
+  const out: Stuff[] = [];
   for (const s of frame.sightablesNear(room, RIVER_EYE_M)) {
     const stuff = s as Stuff;
     if (!stuff || stuff === viewer || stuff.isDestroyed()) continue;
-    things.push({ stuff, bearingDeg: null, rangeNm: null });
+    out.push(stuff);
   }
-  return { things, traffic: [], atSea: false };
+  return out;
 }
 
 /** A person's eye above the water or the bank, m. */
 const RIVER_EYE_M = 1.7;
-
-/**
- * Ashore: the nearest `horizon` declaration names ZONES; a Structure in
- * one is in view when the room is open to the sky and its height — plus
- * the elevation between — clears the distance the zones' size implies.
- * A named EXPANSE is read like a deck from the nearest landing, at the
- * zone's elevation (maritime R11: the headland).
- *
- * ⭐ Distance is approximated from the zones' extents in meters (cell size
- * × the grid's span): from inside a named zone, half its span; from
- * another zone, half of each. Crude by design — a grain, tuned by
- * `perception.horizonRatio`, which optics widen later.
- */
-function horizonAshore(viewer: Stuff): HorizonView {
-  const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
-  if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) return EMPTY_HORIZON;
-  // (rubber build) a horizon is seen from where the sky is.
-  if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return EMPTY_HORIZON;
-  // The branch predicate is the narrowing (no value import of Place —
-  // it closes a load cycle through the MQL pipeline).
-  const place = room as unknown as Place;
-  const zone = room.getZone() as SpatialZone | null;
-  const named = place.getHorizon() ?? zone?.peekField<string[]>('horizon') ?? null;
-  if (!Array.isArray(named) || named.length === 0) return EMPTY_HORIZON;
-
-  const here = room.getTemplatePath() ?? '';
-  const ratio = dialNumber('perception.horizonRatio', 20);
-  const myExtent = zone?.getExtentM() ?? 0;
-  const myElev = zone?.peekField<number>('elevation') ?? 0;
-
-  const view: HorizonView = { things: [], traffic: [], atSea: false };
-  const seen = new Set<string>();
-  for (const zonePath of named) {
-    const sea = expanseAt(zonePath);
-    if (sea !== null) {
-      const from = sea.peekShorePositionFor(here);
-      if (from === null) continue;
-      const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
-      const contacts = sea.sightingsAmong(
-        from, Math.max(0, myElev) + SHORE_EYE_M, 'visual', hour,
-        sea.sightables(), seeingFrom(room),
-      );
-      const v = toView(contacts, false, seen);
-      view.things.push(...v.things);
-      view.traffic.push(...v.traffic);
-      continue;
-    }
-    const target = StuffApi.findByTemplatePath<SpatialZone>(zonePath);
-    const theirExtent = target?.getExtentM() ?? 0;
-    const theirElev = target?.peekField<number>('elevation') ?? 0;
-    const within = here === zonePath || here.startsWith(`${zonePath}/`);
-    const distanceM = within ? theirExtent / 2 : (myExtent + theirExtent) / 2;
-    // The structures attached within the named zone (the location graph's
-    // record) — stood up when the first room looking out at it was
-    // (`LocationZone.lookOutFrom`). Only what is standing is seen.
-    for (const sp of NavigationApi.attachedWithinNow(zonePath, 'structure')) {
-      // Structural: `Structure` is a type import here (a module cycle).
-      const s = StuffApi.findByTemplatePath(sp) as (Stuff & Partial<Structure>) | undefined;
-      if (!s || typeof s.hasMember !== 'function' || typeof s.getHeightM !== 'function') continue;
-      if (s.isDestroyed() || seen.has(s.stuffId) || s.hasMember(here)) continue;
-      const clearanceM = s.getHeightM() + Math.abs(theirElev - myElev);
-      if (clearanceM * ratio < distanceM) continue;
-      seen.add(s.stuffId);
-      view.things.push({ stuff: s, bearingDeg: null, rangeNm: null });
-    }
-  }
-  return view;
-}
 
 /** The room `who` stands in — through any vessel (a boat) to the Place. */
 function roomOf(who: Stuff): (Stuff & Container) | null {

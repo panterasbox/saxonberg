@@ -42,6 +42,7 @@ export interface Positioned {
   setExpanse(path: string | null): void;
   sightHeightFor(observer: unknown): number;
   getTargetHeightM(): number;
+  isLitByNight(): boolean;
   getLine(): string | null;
   getLinePosition(): LinePositionRecord | null;
   placeOnLine(line: string | null, value: LinePositionRecord | null): void;
@@ -193,6 +194,18 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getTargetHeightM(): number {
       return 0;
+    }
+
+    /**
+     * Does this craft show a light by night (geography D6, Q2) — riding
+     * lights, a lantern at the masthead? After dark only a lit craft is
+     * seen.
+     *
+     * @hook Default `false` — a boat in the dark is not seen. A ship
+     *   answers her row's `showsLight`.
+     */
+    isLitByNight(): boolean {
+      return false;
     }
   };
 }

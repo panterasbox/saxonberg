@@ -6,6 +6,12 @@ class: /platform/idea/Locality
 data:
   name: Hollow Mere
   _address: terminus/hollow-mere
+  # ⭐ Where it stands on the chart (geography D12) — 26 km from the bar
+  # on 335°. ⚠ Its ZONE still states 58° S for its climate (the mere's ice is
+  # tuned to a fresh world's day 0); the chart and the climate disagree
+  # here until that is re-timed — geography-slate § Open 4.
+  _position: { latDeg: 42.6362, lonDeg: -8.8712 }
+  _radiusM: 1500
   _reach: hollowmere:mere
   _catchmentKm2: 3
   _weatherPin:
