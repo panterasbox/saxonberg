@@ -116,6 +116,38 @@ game.
   ([logistics-slate § Cargo through terminals](../trades/logistics-slate.md)). Whether the avenue
   carries passenger traffic waits on logistics.
 
+## 3a. ⚠ Correction — the avenue is the city's front door, never a quiet street **[DECIDED — the owner, 2026-11-17]**
+
+*"University is not a quiet street. It's the exit just outside the passenger hub for the entire
+city; it can't be quiet. So any content you have written around that premise needs to be
+revisited."*
+
+The shipped rows carry the old premise of **a crossing guard for a road with no traffic**. Every
+line below goes when the content is rewritten:
+
+| row | the line |
+|---|---|
+| Gus | his status, *"watching the empty road"* (and the comment header's *"a crossing with no traffic"*) |
+| Gus | the idle *"checks both ways down the empty avenue"*; the line *"Quiet today. Quiet's good."* |
+| Gus | the crossing ritual: the paddle check *"down the empty avenue"*; the escort *"across the ten feet of empty road"* |
+| Gus | his face: *"a lifetime of squinting down a bright and empty road"* |
+| the crossing | the description's close: *"watching a road that no cart ever comes down"* |
+| the beacon | *"STOP in steady red over an empty road … nothing out here obeys it either way"* |
+| the paddle | *"He never lets the imaginary traffic merely slow"* |
+
+- What stays true: the crossing is *"loud with strangers,"* and nobody lives there. Gus's
+  gravity, his kit and the props' own story (§ 3) stay; only the emptiness goes.
+- Gus's job is real, and busy: walking a stream of arrivals across the city's busiest street. That
+  is the premise this slate's §§ 4–6 already assume.
+- **Cargo stays off the avenue**, the owner hopes. The cargo terminal's load-bearing link is to the
+  supply chain, not to this street, and any route drawn between the cargo terminal and the avenue
+  is speculative ([logistics-slate § Cargo through terminals](../trades/logistics-slate.md)).
+  Dave's Bar gets its goods by the wharf cargo terminal and the lounge's back of house, never across
+  this crossing; until there is a supply chain, its well is imported
+  ([bar-audition § 19](./bar-audition-slate.md)).
+- **The rest of Terminus waits** until the economic features are mostly stable (the owner), with the
+  bar's experience driving the long-term content decisions.
+
 ## 4. ⭐⭐ Gus — the witness and the alarm **[LEAN]**
 
 A crossing guard has **no power of his own**. He isn't a constable. What he has is presence and a
