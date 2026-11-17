@@ -223,7 +223,27 @@ export interface EstateEntry {
    * placement. Without it a placed good came back loose on the body.
    */
   placedOn?: ContentPlacement;
+  /**
+   * ⭐ Present iff the good is **inside a container in its place** — rations
+   * in a pannier hung on a mule, a key in a satchel on its owner
+   * (`Containable.getKeptWithin`): the containers from the place inward. A
+   * container's own contents slice skips an owned good (D2), so without
+   * this the good came back loose on the place — on a body, a broken record
+   * (size and carrying, finalize run 15, step 21).
+   */
+  within?: KeptWithinStep[];
 }
+
+/**
+ * One step of {@link EstateEntry.within}, outermost first: an untitled
+ * container by its row and its ordinal among the untitled things of that
+ * row in the step's holder (the place's own record restores them in
+ * order), or a container somebody owns by its chattel id (its owner's
+ * estate restores it).
+ */
+export type KeptWithinStep =
+  | { in: string; nth: number; chattelId?: undefined }
+  | { chattelId: string; in?: undefined; nth?: undefined };
 
 /**
  * `EstateMixin`'s slice — every stamped good its host holds title to,

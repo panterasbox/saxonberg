@@ -254,8 +254,12 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           continue;
         }
         // Where it rests NOW — the entry's was written when it was placed.
-        const { rests: _was, placedOn: _on, ...kept } = entry;
+        const { rests: _was, placedOn: _on, within: _in, ...kept } = entry;
         const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
+        // ⭐ Inside a container in its place (rations in a pannier on the
+        // mule, a key in a satchel on its owner): the way in, so the
+        // restore puts it back in the container, not loose (finalize).
+        const within = MixinApi.isContainable(live) ? live.getKeptWithin() : null;
         // ⭐ In the owner's keeping and placed on a host there (a pouch on
         // the belt): the host by contents index, or by chattel id when the
         // host is owned too (size and carrying W7). ⭐ Or in a region of a
@@ -285,6 +289,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           state: ctx.captureState(live),
           ...(rests ? { rests } : {}),
           ...(placedOn ? { placedOn } : {}),
+          ...(within ? { within } : {}),
         });
       }
       return {

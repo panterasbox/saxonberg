@@ -520,6 +520,7 @@ export class ChattelLogic extends ApiLogic {
       : null;
     const placed = good as Stuff;
     const rests = MixinApi.isContainable(placed) ? placed.getRestingPlace() : null;
+    const within = MixinApi.isContainable(placed) ? placed.getKeptWithin() : null;
     host._putEstateEntry(
       {
         chattelId: good.getChattelId(),
@@ -528,6 +529,7 @@ export class ChattelLogic extends ApiLogic {
         place,
         ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
         ...(rests ? { rests } : {}),
+        ...(within ? { within } : {}),
       },
       good as Stuff,
     );

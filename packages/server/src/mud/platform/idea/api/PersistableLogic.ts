@@ -37,6 +37,7 @@ import type {
   HydrateContext,
   EstateEntry,
 } from "../../../lib/persistence/PersistenceSlice";
+import { ESTATE_INVENTORY } from "../../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
@@ -571,6 +572,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     // room's next overlay re-attaches it as a fixture (residences D11).
     const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
     const rests = MixinApi.isContainable(good) ? good.getRestingPlace() : null;
+    const within = MixinApi.isContainable(good) ? good.getKeptWithin() : null;
     // ⭐ A good that persists ITSELF rides as a reference: its own record
     // is authoritative, and copying its state here would make a second
     // copy of a live creature that is still writing the first.
@@ -586,6 +588,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
       ...(ownKey ? { key: ownKey } : {}),
       ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
       ...(rests ? { rests } : {}),
+      ...(within ? { within } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (live && MixinApi.isEstate(live)) {
@@ -935,6 +938,17 @@ async function restoreState(
     const placement = at.placement ?? Placements.ON;
     await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
     ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
+  }
+
+  // (7) ⭐ Owned goods kept INSIDE a container on this host (a ration in a
+  // satchel its owner carries — finalize, run 15): back into it, now that
+  // the containers are restored, re-worn and re-hung.
+  if (MixinApi.isEstate(target)) {
+    for (const entry of target.getEstateEntries()) {
+      if (entry.within === undefined || entry.place !== ESTATE_INVENTORY) continue;
+      const item = target.getEstateLive(entry.chattelId);
+      if (item) putBackWithin(item, entry, target, target);
+    }
   }
 }
 
@@ -1301,6 +1315,9 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
   const placeId = placeIdOf(host);
   if (!placeId) return;
   const placed = await ChattelApi.placedIn(placeId);
+  // Goods kept inside a container here — put back once every good is down,
+  // so a container somebody owns (overlaid too) is there to take them.
+  const inside: { good: Stuff; entry: EstateEntry; owner: Stuff | null }[] = [];
   for (const { chattelId, owner } of placed) {
     if (owner?.kind !== "player") continue;
     const ownerHost = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
@@ -1340,6 +1357,8 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
     if (good && entry.mounted && MixinApi.isAdornable(host)) {
       if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
       host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
+    } else if (good && entry.within) {
+      inside.push({ good, entry, owner: ownerHost ?? null });
     } else if (good && entry.rests && MixinApi.isContainable(good)) {
       // ⭐ A good left ON something goes back on it: the room's fixtures
       // are already restored, so the surface is here — or it is gone, or
@@ -1354,6 +1373,62 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
       ownerHost._putEstateEntry(entry, good);
     }
   }
+  for (const { good, entry, owner } of inside) putBackWithin(good, entry, host, owner);
+}
+
+/**
+ * ⭐ Put a restored good back inside the container its estate entry names
+ * (`within` — size and carrying, finalize run 15, step 21): the steps from
+ * `place` inward, an untitled container by its row and ordinal (the
+ * place's own record restored them in order), an owned one from its
+ * owner's estate. A step that names nothing here, or a container that will
+ * not take it, is said and the good is left where the restore put it — on
+ * a body, that is R1's loud diagnostic; nothing guesses another container.
+ */
+function putBackWithin(good: Stuff, entry: EstateEntry, place: Stuff, owner: Stuff | null): void {
+  const steps = entry.within;
+  if (!steps || steps.length === 0 || !MixinApi.isContainable(good)) return;
+  let cur: Stuff = place;
+  for (const step of steps) {
+    if (!MixinApi.isContainer(cur)) break;
+    const holder: Stuff & Container = cur;
+    let next: Stuff | null = null;
+    if (step.chattelId !== undefined) {
+      const live = owner && MixinApi.isEstate(owner) ? owner.getEstateLive(step.chattelId) : null;
+      next = live && MixinApi.isContainable(live) && live.getContainer() === holder ? live : null;
+    } else {
+      next =
+        holder
+          .getContents()
+          .filter((c) => c.getTemplatePath() === step.in && !(MixinApi.isChattel(c) && c.isOwnerPersisted()))[
+          step.nth
+        ] ?? null;
+    }
+    if (next === null) {
+      console.warn(
+        `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) was kept inside ` +
+          `${step.chattelId ?? `${step.in} #${step.nth}`} in ` +
+          `${place.getTemplatePath() ?? place.stuffId}, which is not there — left where it was restored.`,
+      );
+      return;
+    }
+    cur = next;
+  }
+  if (!MixinApi.isContainer(cur) || good.getContainer() === cur) return;
+  const rests = entry.rests;
+  if (rests && rests.on === cur.getTemplatePath() && MixinApi.isPlacing(cur) && cur.canPlace(good, rests.placement).ok) {
+    ContainmentApi.move(good, cur, rests.placement);
+    return;
+  }
+  const veto = cur.canAddContainable ? cur.canAddContainable(good) : { ok: true as const };
+  if (!veto.ok) {
+    console.warn(
+      `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) no longer goes in ` +
+        `${cur.getTemplatePath() ?? cur.stuffId} — left where it was restored.`,
+    );
+    return;
+  }
+  ContainmentApi.move(good, cur);
 }
 
 /** Read one estate entry out of an offline owner's stored record. */
