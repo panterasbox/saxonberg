@@ -1,0 +1,1033 @@
+# Crowded rooms — implementation plan
+
+Executes [crowded-rooms-requirements](../requirements/crowded-rooms-requirements.md)
+(as amended 2026-11-17: *the room's own reading never writes; nothing
+depends on who looked*): thirty people in one place answer like an empty
+room, a card nobody can see costs nothing, an empty world idles under 15%
+of a core, and what the room reads for everyone never changes the world.
+**Kind:** refactor/sweep (performance). **Lead end:** kernel. No pack gains
+a class, a row or a verb; one pack class loses an override (requirements
+problem 1). Seeding slate and its reuse ledger:
+[crowded-rooms-slate](../slates/tech-debt/crowded-rooms-slate.md).
+
+The build is organized by **cost class, not symptom**: W0 measures and names
+the classes, and every fix wave removes one class behind a census.
+
+> **Revised 2026-11-17 after an independent review** (rulings R1–R5 and the
+> two sequencing corrections). What changed: the mould no longer settles on
+> `look` — it banks at its own changes and completes on the game clock (D8);
+> walk purity is behavioral and enforced by a tripwire, not a method-name
+> lint (D9); membership dependencies come from the MQL resolve itself and
+> the index is the shipped `target` index with a field filter (D1); belief
+> invalidation is designed (D2); W4/W5 are re-planned at a checkpoint after
+> W0 (D10); pause/resume is the last wave, on navigation-server's D1
+> protocol with one fallback (D5).
+
+## ⚠ Requirements problems
+
+The amendment settled the two that mattered (the reach of *reading never
+writes*, and the mould depending on who looked). Three remain; none reopens
+scope.
+
+1. **"No pack changes" vs the census.** `trade-chandlery`'s `Hopper`
+   overrides `getContents()` to reconcile its heaps — the mould's defect in
+   a pack. The requirements say both *"no pack changes"* and *"any other
+   case on those walks is fixed the same way"*. The plan follows the
+   second: the override is deleted in the pack (W1). The heap's own fix is
+   in the kernel's `PercolatingMixin`.
+2. **Login "while thirty are in the square" vs the drive.** Drive steps 2
+   and 10 log players in at the avenue block, so the login they time is
+   into a crowd of up to twenty-nine *at the block*. The plan keeps those
+   steps and adds five logins directly into the full square, timed in the
+   same p95.
+3. **The `/healthz` freeze gate measures the harness too.** The round trip
+   is timed in the vitest process that also holds thirty sockets. The plan
+   gates on `/healthz` as required, samples from a worker thread, and
+   records the server's own loop-delay beside it as diagnosis — never as
+   the argument for a pass (D12).
+
+## Grounding
+
+Verified by opening the files on `reqs/crowded-rooms` at `5a764d06c` plus
+the uncommitted requirements amendment. Line numbers are approximate.
+
+### The subscription index and its drain
+
+- `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts`.
+  `index: Map<KIND, Map<by, Map<value, Set<SubscriptionState>>>>` (~l.270).
+  `deriveAndInstallDependencies` (~l.659) installs, per result Stuff and
+  requested descriptor, `(stuff.fieldChanged, 'field', <dep name>)` — the
+  field NAME only. The holder flags install `('field','focus')` and
+  `('field','container')`, also name-only. The index **already has a
+  per-Stuff shape**: `ChangeSource` entries with `by: 'target'` install
+  `(KIND, 'target', stuff.stuffId)` (~l.707), and `routeFire` (~l.798)
+  matches any `by` against `payload[by]`.
+- `FieldChangedPayload` is `{ target: StuffId, field, oldValue, newValue }`
+  (`lib/events/FieldChangedEvent.ts`); every fire already names its target.
+- `markDirty(sub)` carries no reason. `drainDirty` (~l.828) runs one
+  subscription per iteration, `DRAIN_SLICE_MS = 20`, rest × 2; it cannot
+  cut inside `reresolveAndEmit` (~l.891), which re-projects every row and
+  tears down and re-derives every dependency.
+- Projection: `projectStuffInto` → each descriptor's sync `read`.
+  `Container`'s `contents` (`lib/spatial/Container.ts` ~l.944) runs
+  `MqlApi.resolveMany('#<id>:i:visible:carried:[…] - me')`,
+  `PerceptionApi.perceived`, `getLooseContents`, then one nested
+  `MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer)` per child.
+  `Placing`'s `placed` (`lib/spatial/Placing.ts` ~l.294) nests the same
+  call. `displayName` is projected through `describeFor(viewer, stuff)`.
+- Descriptors (`static subscribableFields`) live in 24 files. Fire sites:
+  22 `fireFieldChange(` and 8 `new FieldChangedEvent(` outside tests.
+  ⚠ **The placement fires are in
+  `platform/idea/api/ContainmentLogic.ts`** (~l.164–166, ~l.384–388,
+  ~l.419–421, ~l.572–576, ~l.623–624), each an inline
+  `_setPlacement` + `fireFieldChange(item, 'placement', …)` +
+  `if (isThermal(item)) item.restamp()`. Nothing fires on the placing host.
+- MQL results already carry facts about the resolve: `ordinal`,
+  `defaulted`, `RegistryScan` (`api/mql/types.ts` ~l.236–322). Containment
+  is read at 11 sites in `api/mql/resolver.ts` and `predicates.ts`.
+  Shell variables (`$focus`) are expanded **before** MQL
+  (`resolveByQuery`, ~l.229).
+- `lib/belief/BeliefStore.ts`: `learnIdentityOf` (~l.761), `adjustRegard`,
+  `setRegard`, `clearRegard` write what `describeFor` reads; none fires
+  anything the index hears.
+- `durableKey` pokes (`notifyDurableSubject`) are exact, and are the
+  shipped shape for *one producer poking one consumer* with string keys.
+
+### Cards
+
+- `platform/idea/CardRegistry.ts`: live = `def.live && mql && (placed ||
+  role || pinned)` (`wantsLive`, ~l.1218). `subscribe` (~l.1228) opens the
+  subscription server-side, `silent: true`, `subscriptionId ===
+  instanceId`; a `needsSubject` card is subject-bound and re-gated by
+  `PerceptionApi.perceives` on every re-resolve. `rebind` (~l.1304)
+  cancels and re-subscribes the `here` card under the same `instanceId`.
+- Live kinds (`lib/connection/Cards.ts`): `subject` (the `here` room card
+  every session holds; `fields: 'detail'`) and `stock`
+  (`reachable:[mixin.BulkableMixin]`). The shelf's `chrome: 'self'` is
+  `me`, woken by `durableKey`.
+- The server has no fact for *on screen*. The client does:
+  `CardArea.tsx` (~l.145) drops `minimized`, `medium` and `full` cards from
+  the gallery; `lib/stream/onAir.ts` listens for `visibilitychange`; there
+  is no `IntersectionObserver` in the client. Card deltas arrive in
+  `components/cards/useCardFeed.ts` (~l.200–215) keyed by `instanceId`.
+
+### Navigation-server's D1, as settled (build-2; W1 not merged)
+
+Wire: `subscribe {subscriptionId, source, params?}`, `unsubscribe`,
+`subscription-result {subscriptionId, rev: 0, snapshot}`,
+`subscription-delta {subscriptionId, rev, changes}`, `subscription-error`.
+`SubscriptionRegistry` owns the id table, `rev` and the emits; sources
+compose `SubscriptionSourceMixin` (`openSubscription` / `closeSubscription`
+/ `pokeSubscriptions`) and get a handle (`push` / `fail` / `end`). Session
+verbs on `Interactive`: `subscribe(id, source, params, {silent})`,
+`cancelSubscription`, `cancelAllSubscriptions`, `hasSubscription`. A card's
+subscription id is its `instanceId` — the client already names it;
+`CardRegistry` opens it `{silent: true}`, the snapshot rides `card-opened`,
+deltas ride `subscription-delta` from `rev` 1. A break in `rev` is a
+defect; repair is a new snapshot. `closeSubscription` touches only the
+source's index, never `CardRegistry`'s card set. Build-2 declined to carry
+pause/resume; this build does. Its W1 says dependency indexing, the
+scheduler and diffing are untouched — it moves the three emits
+(`MqlSubscriptionRegistry` ~l.429, ~l.957, ~l.1078) and the id table.
+
+Other siblings: **geography** edits `PerceptionLogic.ts` ~l.494–520 and
+~l.1517–1700 (this build no longer edits `observeThing` at all).
+**zone-instancing** shares only append-only `packages/wire/src/harness/
+world.ts`. **soak-repair** touches `runner/boot.ts`, where W0 adds a few
+lines.
+
+### The mould, the heap, and what the room's walks reach
+
+- `lib/mould/Mould.ts`: `getContents()` (~l.598) calls
+  `reconcileSetting()`. `reconcileSetting` (~l.613–735) reads temperature
+  (running the thermal reconcile), integrates `rate(now's load, now's
+  wetness or temperature) × elapsed since setStamp`, credits drainings to
+  another vessel, and at the set clears the pool and calls `castFromSet` —
+  an **unawaited** `castInto` whose failure is `console.error`ed.
+  `setState()` (~l.580) also reconciles and is what `mouldAugmenter`
+  (~l.212, a `markupAugmenter`) reads. `receivedPour` (~l.778) starts the
+  stamp at the pour.
+- The integration is **path-dependent today**: the rate is read at the
+  moment somebody reads, and applied to the whole stretch since the last
+  read.
+- `platform/thing/ScrewPress.ts` `turnBy` (~l.76) banks every mould on its
+  bed at the OLD load before `turns` changes — the one place a load change
+  is already handled correctly.
+- `LookController.lookInto` (~l.108) renders the ledger and never calls
+  `PerceptionApi.observe`; only `lookAtTarget` does.
+- `trade-chandlery/src/thing/Hopper.ts` ~l.104 overrides `getContents()`
+  to call `reconcilePercolation()` on its heaps.
+  `lib/material/Percolating.ts`: `percolantL`, `percolationReach`,
+  `percolationStamp` persisted; the rate is constant
+  (`1 / percolationDays()`); `onPercolated(from, to)` is the host's hook.
+- **What the walks call.** `VisionModality.ts` ~l.240, ~l.589, ~l.622,
+  `SoundModality.ts` ~l.160, `SmellModality.ts` ~l.220, ~l.286,
+  `AmbientLit.ts` ~l.368 call `getContents()`. `SmellModality.ts` also
+  calls `thing.getTemperature()` (~l.61) and `getBulkAmount` /
+  `getBulkPayload` / `getBulkMaterial('interior')` (~l.308–328).
+  `Thermal.getTemperature()` (`lib/thermal/Thermal.ts` ~l.754) runs
+  `reconcileThermal`, which integrates the curve and then runs the phase
+  change (a pool freezes and casts), kinetics, coats and shock.
+  `Bulkable.getBulkAmount` / `getBulkPayload` / `getBulkMaterialPath`
+  (~l.1110, ~l.1155, ~l.1499) run the seepers and the face exchange. A
+  card's `longDescription` runs `getMarkupLong(viewer)` and therefore every
+  `markupAugmenter` on the host — **89 files declare one**.
+- **The shipped precedent for a read that must not write:**
+  `Bulkable.getHeldKeywords` (~l.729) raises `_peeking`, and both
+  reconcilers stand off while it is raised (~l.1232, ~l.1299); its comment:
+  *"A keyword read does not reconcile: reads don't write … What it holds is
+  what its last reconcile left."* Thermal keeps a `TrajectoryLog` whose
+  last entry is the forward segment from the stamp (~l.1100, ~l.1240).
+- **Game-clock wakes exist.** `WorldClockApi.at(deadline, cb, {host, tag})`
+  / `after` (`api/worldclock.ts` ~l.249–262) fire on game time, cancel with
+  their host, and fire across a test `advance`. The precedent for a
+  persisted due time re-armed by its setter is
+  `lib/craft/Comminuting.ts` ~l.425–460 (`pendingGrind.dueAtS`,
+  `setPendingGrind`, `landPendingGrind` awaited).
+- `Soilable.reconcileAiring()` (`lib/cleanliness/Soilable.ts` ~l.665) is a
+  shipped `@hook` on its own mixin, awaited by `observeThing` behind
+  `MixinApi.isSoilable`. It is not reached by a walk and is unchanged.
+
+### NPC idle cost
+
+- `lib/behavior/Behaved.ts`: one beat per agent (`_scheduleBeat` ~l.484),
+  20 s watched, 120 s unwatched; `_deliberate` (~l.545) asks `urgency()` of
+  every candidate whose brain is not presence-gated. 41 brains declare
+  `presenceGated = false` (9 kernel, 32 in trade packs) — the labor that
+  runs with nobody logged in, through real dispatch and `Scene.send`.
+- `lib/message/Scene.ts` `#dispatch` (~l.270) renders every frame for every
+  sensor in the place and does not ask whether any has a live session.
+- 16 `ScheduleApi.recurring` sites tick regardless of population.
+- behavior.md's own figure is 18 beats a minute at 36 agents, which cannot
+  be 60% of a core. **No file opened here says where the cost is.**
+
+### The drive's tooling
+
+- `packages/wire/src/harness/crowd.ts`: `runCrowd(label)`, `CROWD_SIZE` a
+  module constant, `/healthz` sampled on the harness's main thread, no box
+  load, no card phase, no restart. `crowd.dirty` (count, blocking) and
+  `crowd.soak` (generous bounds) wire files.
+- `services/Server.ts` ~l.166–190: `/healthz`, `/stats`.
+- `runner/boot.ts`: owned boot on `WIRE_PORT` (build-1: **2014**), scrubs
+  `NODE_OPTIONS`. `restartWorld()` is a private function in four test files
+  (`size-and-carrying.dirty.wire.test.ts` ~l.249).
+- `hand(session, template, data?)`, `stage(…)` in `harness/world.ts`; the
+  hoop is `/trade/dairying/thing/hoop`.
+- `tools/lib/suite-lock.sh` is the cross-worktree lock. Nothing reads the
+  box's load. Eight cores.
+
+## ⭐⭐ New substrate
+
+No new mixin, Api, logic singleton, class, registry, document kind,
+collection, verb or view key. Everything added:
+
+| # | addition | ledger row | why it is not something existing |
+|---|---|---|---|
+| N1 | the shipped `(KIND, 'target', stuffId)` index entry gains a **field filter**, and field dependencies are installed there for every Stuff a projection read | *a card re-checked when its subject changes* — **generalize** | no new index, key shape or listener; the name-only `('field', name)` entries are deleted |
+| N2 | `touched` on `MqlOne` / `MqlMany` (opt-in through `MqlContext`): the Stuff a resolve read — containers enumerated, candidates tested | same row — **generalize** | the `RegistryScan` / `ordinal` precedent: a fact about the resolve rides its result. Searched `api/mql/types.ts`: no trace of what was read exists |
+| N3 | **row-level dirt and a projection memo** in the registry | *the drain that gives replies priority* — **reuse**; the ledger puts the fix *in the re-resolve* | the drain is untouched |
+| N4 | `Placing.placedChanged(item)` and `Containable.placementChanged(was, now)` — the two bodies `ContainmentLogic` inlines five times, moved onto the mixins that own the fields; `placedChanged` also fires `placed` on the host | same row as N1 | not hooks: each has a real kernel body (the fire, and the Thermal restamp). `MouldMixin` extends both |
+| N5 | `MqlSubscriptionApi.notifyBelief(viewerId, subjectId)` and the synthetic index kind behind it | same row as N1 | the `notifyDurableSubject` shape, one more key. Searched `lib/belief`: no event exists, and a broadcast would wake every viewer |
+| N6 | `MouldMixin.setDueAtS` (persisted, re-armed by its setter) and `setLoadN` (the load the current stretch has been under); the same pair of ideas on `PercolatingMixin` (`percolationDueAtS`) | *a read that writes* — **fix** | `Comminuting.pendingGrind.dueAtS` is the precedent; no new clock, `WorldClockApi.at` |
+| N7 | `PerceptionApi.holdWorldStill()` / `isWorldHeldStill()` — the room-reading window — and the tripwire at the write chokepoints | *a read that writes* — the gate that holds the fix | generalizes `Bulkable._peeking` from one object to the walk. Searched `api/perception.ts`: `holdLightSteady` memoizes light and says nothing about writes; widening it would stop a deliberate `look`'s own reconciles |
+| N8 | `Thermal.peekTemperature()` and `Bulkable.peekBulk(affordance)` — the banked value, read without reconciling | same row | `peekBulk` makes `_peeking` a method; `peekTemperature` reads the `TrajectoryLog`'s forward segment. *Peek* is the tree's word (`materials().peek`) |
+| N9 | two client→server messages for a subscription the server opened: `subscription-pause` / `subscription-resume {subscriptionId}` in navigation-server's protocol (fallback names in D5) | *the client telling the server what it holds* — **reuse, sequenced** | nothing in either protocol stops and restores a server-opened subscription: the client cannot re-open a card, having no field that names one |
+| N10 | `Interactive.pauseSubscription(id)` / `resumeSubscription(id)` and the paused set on the registry that owns the id table | *a card's liveness following attention* — **generalize** | two more session verbs beside `cancelSubscription` |
+| N11 | client: one visibility observer in the card feed; `pauseSubscription` / `resumeSubscription` on `services/websocket.ts` | same row | genuinely new on the client — searched `packages/client/src` for `IntersectionObserver` (none) and `visibilitychange` (only `onAir.ts`) |
+| N12 | `/stats` gains `cpu` and a **cumulative** `loop` histogram | *the crowd drive and its record* — reuse | fields on the shipped diagnostics read |
+| N13 | wire tooling: `runCrowd(label, opts)` phases, the box-load record and quiet-box precheck, `crowd-timing.dirty.wire.test.ts`, `WIRE_CPU_PROF`, `Session.pauseSubscription`, `e2e/tests/crowded-rooms-walk.spec.ts` | *the crowd drive* — reuse; *a quiet-box run* — genuinely new as a procedure (searched `tools/` for a load gate) | the precheck is a few lines in the crowd harness |
+| N14 | whatever W4 and W5 change | *NPC background work* — **reuse** | not designed until the W0 checkpoint (D10) |
+
+**Deleted:** `MouldMixin.getContents`, `Hopper.getContents`,
+`Mould.castFromSet`'s unawaited swallow, `setState()`'s reconcile, the
+name-only index entries and the *Conservative-coarse dispatch policy*, the
+five inline placement fire/restamp blocks in `ContainmentLogic`.
+
+**Dropped from the first draft:** the `observeThing` settle branch, the
+`lint:walk-reads` method-name gate, `locationDependent` on the card
+catalogue, the composite `field@target` key, the note-to-siblings file.
+
+### P9–P14, per item
+
+| item | P9 predictable from def and `help` | P10 metadata is a Document | P11 no caller branches on the destination | P12 no synonym | P13 on the mixin whose sentence it fits | P14 nothing moves or decides invisibly |
+|---|---|---|---|---|---|---|
+| N1 field filter on `target` entries | no command changes | none | one entry shape for every dependency | reuses the shipped index; nothing parallel | the registry's header lists `index` as state it holds | a card wakes when a Stuff it read fires a field it read |
+| N2 `touched` | none | none | the resolver records the same way for every seed and predicate | not a second result; one optional field, like `ordinal` | `api/mql/types.ts`, where facts about a resolve live; `MqlApi` stays two functions | read-only; opt-in so no other caller pays |
+| N3 memo and dirt | none | none | every projected Stuff is memoized alike | one re-resolve path with a memo | the registry (*`dirty` / `scheduled`*) | a memoized row is reused only while nothing it read has fired; the wake matrix pins it |
+| N4 `placedChanged` / `placementChanged` | none | none | `ContainmentLogic` calls the same two methods at all five sites, whatever the host is — the mould decides inside its own override | they are the existing inline bodies, named once | `placed` is `Placing`'s field, `placement` is `Containable`'s | fires are synchronous with the stamp; the mould banks before the new load counts |
+| N5 `notifyBelief` | none | none | n/a | the durable-subject poke with a second key kind, not a new event | `MqlSubscriptionApi` already holds `notifyDurableSubject` | scoped to the one viewer whose belief changed |
+| N6 mould and heap due times | `help look` unchanged; a set mould reads *set* whoever looks | none | n/a | `reconcileSetting` keeps its name and callers | the set site is `MouldMixin`'s subject; percolation is `PercolatingMixin`'s | **the point of the change:** the cast appears at its due time on the game clock, the same whether anyone watched |
+| N7 the window and tripwire | none | none | n/a | not `holdLightSteady` (different promise) | `PerceptionApi` owns what a walk may do | the window is opened by name at the four walks; a write inside it **throws** in a test world and is reported elsewhere — never silently skipped |
+| N8 `peekTemperature` / `peekBulk` | none | none | the walk calls the peek on every thing alike | deliberately a second read with a different contract: *as banked, writes nothing* vs *bring to now* | on the mixins that own the values | a peek never changes what a later deliberate read finds |
+| N9 pause / resume messages | non-diegetic; `help client-card` gains one sentence | none | n/a | not `unsubscribe` + `subscribe`: the client cannot re-open a server-opened subscription | `packages/types`, with the protocol | the client states the fact; the server never infers it; default is *shown* |
+| N10 session verbs, paused set | none | none | `resume` is the same act for every source: open again, answer a snapshot | beside `cancelSubscription`, not a second cancel | `Interactive` carries the session's subscription verbs (`cancelMqlSubscription` and siblings, ~l.480; D1's `subscribe` / `cancelSubscription` / `hasSubscription`) | a paused id stays paused until the client resumes, the card closes or the socket ends |
+| N11 client observer | none | none | one rule for every card | `live` keeps its meaning | card feed | pause is debounced 500 ms, resume immediate: no delay is added to anything on screen |
+| N12 `/stats` | n/a | n/a | n/a | fields on the shipped route | `Server.ts` | cumulative, so two readers cannot disturb each other |
+| N13 wire tooling | n/a | n/a | n/a | `runCrowd` stays the one crowd staging | `packages/wire` | the precheck refuses a busy box by name |
+
+## Plan-level decisions
+
+### D1 — A dependency is the Stuff that was read, with the fields that were read
+
+**Question.** How the engine knows which cards show the mover.
+
+**Choice.** The index keeps its shape. Every dependency on a Stuff is the
+shipped `(stuff.fieldChanged, 'target', stuffId)` entry; its value becomes
+`Map<SubscriptionState, FieldFilter>` where a filter is a set of field
+names or *any*. `routeFire` already finds the bucket by `payload.target`;
+it then keeps the subscriptions whose filter admits `payload.field`.
+
+What installs entries, all captured while the subscription resolves and
+projects (projection is synchronous, so the collector is one slot on the
+registry):
+
+| source of the dependency | entry |
+|---|---|
+| a Stuff projected (top-level or nested) with field set F | `target = that Stuff`, filter = the union of F's `dependsOnFields` |
+| a Stuff an MQL resolve **touched** (N2) — the query's own resolve, and any resolve inside a descriptor's `read` | `target = that Stuff`, filter = *any* |
+| the holder, for a query-bound subscription | filter = *any* (every relative seed and every shell variable answers from the asker) |
+| the holder and the subject, for a subject-bound subscription | filter = `container` (the two facts its perception gate re-reads) |
+| `ChangeSource` (`by: 'target'`), `durableKey` | unchanged |
+
+Each touched entry remembers **which projected row's read made the
+resolve** (or the subscription itself, for its own query), so a fire on a
+touched Stuff marks that row stale and its membership is re-read.
+
+The `focusDependent` / `locationDependent` flags are subsumed by the
+holder entry. They stay in the wire type, accepted and unused, with a
+comment; removing them is navigation-server's `params` to do, so the two
+builds do not both edit that type.
+
+**Why not flags.** A flag is the subscriber guessing what its query reads.
+The resolve knows.
+
+### D2 — The firing side names the Stuff whose projection changed; belief pokes its own viewer
+
+- **Placement.** `ContainmentLogic`'s five stamp sites call
+  `item.placementChanged(was, now)` (fires `placement` on the item, runs
+  the Thermal restamp) and `host.placedChanged(item)` on the old and the
+  new host (fires `placed` on that host). **Nothing is fired on the
+  container**: its loose `contents` changed only as a consequence, and the
+  container's card wakes because its `contents` resolve *touched* the item
+  (D1).
+- **Belief.** `BeliefStore`'s mutators (`learnIdentityOf`, `adjustRegard`,
+  `setRegard`, `clearRegard`, and the discovery and disguise writes the W2
+  census lists) end with `MqlSubscriptionApi.notifyBelief(viewer.stuffId,
+  subject.stuffId)`. Every projected row whose fields include
+  `displayName` installs `('__viewer-belief', 'key',
+  '<viewerId>|<subjectId>')` for its own viewer. The poke marks that row
+  stale in **that viewer's** subscriptions and nobody else's.
+- **What a body wears.** `Stuff`'s `displayName` descriptor
+  (`lib/stuff/Stuff.ts` ~l.223) adds `occupants` to its
+  `dependsOnFields`: a change of dress changes how everyone perceives the
+  wearer, so it is a fire on the wearer.
+- **The census** (W0, acted on in W2): all 30 fire sites against all 24
+  descriptor files. A descriptor whose `read` consults another Stuff
+  without projecting or resolving it is rewritten to do one or the other,
+  so the dependency is captured. No `dependsOn(stuff)` callback is added.
+- **Residual, written in the doc:** a card does not wake on light alone
+  (daylight is continuous and fires nothing); the next wake re-gates it.
+
+### D3 — Dirt carries its reason; a re-resolve re-projects only stale rows
+
+`markDirty(sub, staleStuffId)`. Each `SubscriptionState` holds a memo
+`Map<'<stuffId>|<fieldSetKey>', record>` and a `stale` set. During a
+re-resolve a projection request for a memoized, non-stale Stuff returns
+the memo. A stale row re-reads its own fields; its `contents` read re-runs
+membership and the perception filter and hits the memo for every child
+that did not change. After the pass, untouched memo entries are dropped,
+`stale` clears, and index entries are reconciled against the memo (only
+changed rows are torn down and reinstalled). `refreshForInteractive` and a
+resume (D4) clear the memo.
+
+The first projection (a card opening, a login, a resume) stays one unit of
+N rows; D7 bounds what a row costs. That unit is the next ceiling.
+
+### D4 — The client says what is on screen; the server never guesses
+
+One fact, one source. The client reports per live card when it stops being
+shown (pause) and when it is shown again (resume). *Shown* = the card has
+a mounted body (not in the tray, not displaced by a `medium`/`full` card,
+not filtered out by a card view), its element intersects the viewport, and
+the document is visible. Pause after 500 ms continuously unseen; resume at
+once. The server does not pause a card because it knows it is `minimized`:
+that would be a second source that could disagree. A client that never
+reports keeps every card current, as today.
+
+`CardState.live` keeps its meaning (*holds a subscription*); no `seen`
+field is added to any card type or envelope. Card *events* (`card-touched`
+on a rebind, `card-arranged`) still flow: the pause is of state.
+
+### D5 — Pause/resume rides navigation-server's D1; one fallback; the wave is last
+
+W7 is the last wave. It never waits on build-2.
+
+**Primary — D1 has merged to master when W7 starts** (the check: `git
+ls-tree origin/master packages/server/src/mud/api/subscription.ts`). Merge
+master, then:
+
+- Wire: `subscription-pause` / `subscription-resume {subscriptionId}`,
+  two more client→server messages in that protocol.
+- The paused set lives on `SubscriptionRegistry`, keyed by session and id,
+  beside the id table.
+- **Pause** calls the source's `closeSubscription(handle)` and keeps the
+  id, source and params. The source drops its index entries, memo and dirt
+  for that handle — nothing is computed or sent. `CardRegistry` is not
+  told and its card set is untouched (D1's own rule for
+  `closeSubscription`).
+- **Resume** calls `openSubscription(handle, params)` and sends a fresh
+  `subscription-result` with `rev: 0`. That is D1's repair act — a new
+  snapshot — so no new `rev` rule exists: the client's tracker treats a
+  result as a reset whenever it arrives.
+- **Card routing.** The id is the card's `instanceId`; the client already
+  holds it. `useCardFeed` gains a `subscription-result` handler that, for
+  an id that is a card, replaces the card's records. Until now a card's
+  only snapshot rode `card-opened`; a result for a card id means *resumed*.
+- **A paused id that is opened again** (the `here` card rebinding while
+  minimized — `cancelSubscription` then `subscribe` under the same id):
+  `cancelSubscription` from the card's *close* forgets the pause;
+  `CardRegistry.rebind` is a cancel-and-reopen and must not. So `rebind`
+  reopens through the same session verb with the paused mark kept: the
+  open answers its snapshot (it rides `card-touched`, an event, the
+  mover's own cost) and the registry closes the source side again at once.
+
+**Fallback — D1 has not merged when W7 starts.** Same behavior on the
+current transport under its current naming: `mql-subscription-pause` /
+`mql-subscription-resume` beside `mql-subscribe`; the paused set on
+`MqlSubscriptionRegistry`; resume answers a fresh
+`mql-subscription-result`; the session verbs forward through
+`MqlSubscriptionLogic` as `cancelMqlSubscription` does. The build tells
+build-2 **by message** that its W1 migration moves two more message types
+and the paused set. No note file.
+
+Either way W2/W3 keep their diff inside the resolve, projection and
+dependency blocks of `reresolveAndEmit` and `handleSubscribe` and leave
+the three emit lines as they are, so whichever build merges second
+re-applies a few lines.
+
+### D6 — (folded into D4)
+
+### D7 — A row is cheap, by the profile
+
+The slate's *~10–15 ms a row* for five reference fields is a defect class
+of its own. W0's crowd profile attributes it (suspects from the read path:
+`describeFor` and its perception gate, `primaryKeyword`, the nested MQL
+resolve). W3 fixes the named cost in the member that owns it. Target: a
+reference row under 1 ms with the light held, asserted by a unit bench
+over a staged room of thirty.
+
+### D8 — The mould and the heap: bank at your own changes, finish on the game clock
+
+**The rule.** A set's progress is integrated only at moments that do not
+depend on who is reading: the mould's own changes, and its own wake.
+
+- **State.** `setProgress`, `setStamp`, `setPressed`, `setDrainedKg` as
+  shipped, plus `setLoadN` — the load the stretch since `setStamp` has been
+  under — and `setDueAtS`, whose setter cancels and re-arms
+  `WorldClockApi.at(due, …, { host, tag: 'mould-set' })`
+  (the `setPendingGrind` shape, so a restart or a reload re-arms from the
+  persisted value; a due time already past fires at once).
+- **Bank** (`reconcileSetting`, name and callers kept): integrate from
+  `setStamp` to now at the **stored** `setLoadN` and the rate's other
+  inputs read now; credit drainings; then store the load as it is now,
+  stamp, and re-arm the wake for `now + min(time to finish at the current
+  rate, MOULD_SET_STEP_S)`. The step (one game hour, a constant in
+  `Mould.ts`) bounds the error from the continuous inputs — wetness drying
+  and the cure's temperature — and makes the schedule a function of the
+  mould's state alone.
+- **Who calls bank** — each is a primitive the mould already hosts:
+
+  | change | where |
+  |---|---|
+  | a pour arrives | `receivedPour` (shipped) |
+  | something is set on it or taken off | `placedChanged(item)` — `MouldMixin` extends `Placing`'s (N4) |
+  | it is set on, or taken off, a host that bears on it; it moves | `placementChanged` (N4) and `Containable`'s shipped `onMoved` witness |
+  | a press it stands on is turned | `ScrewPress.turnBy` (shipped, unchanged — with a stored load, banking before the turn is still exact) |
+  | something enters or leaves it | `Container`'s shipped `onContainableAdded` / `onContainableRemoved` witnesses |
+  | the wake | the `WorldClockApi.at` callback |
+
+- **Completion happens in the wake**, and the cast is **awaited** there:
+  `await this.castInto(pool)` inside the callback's guarded root, with
+  `assertCanRelease` checked first as today. `castFromSet`'s unawaited
+  `.catch(console.error)` is deleted.
+- **Reads are pure.** `getContents` is no longer overridden. `setState()`
+  reads the banked fields and writes nothing; `mouldAugmenter` is
+  unchanged and therefore pure. `IronPot.getAlkaliKg` (a deliberate read)
+  may still bank; its `reconcileSetting` override now also runs at every
+  wake, so its salts cast on the clock.
+- **`get … from`** sees the truth because the truth exists by then: the
+  cast was minted at its due time. No removal veto does any work.
+- **A freezing pan.** The freeze is thermal's; the mould's wake keeps the
+  temperature read it has today, so a filled pan below its melting point
+  freezes at a wake rather than at whoever smells it.
+
+**The heap.** `PercolatingMixin` gets the same shape and is simpler (its
+rate is constant): `receivePercolant` sets `percolationDueAtS`; the wake
+runs `reconcilePercolation` (so `onPercolated` fires at completion); the
+due time is re-derived when the heap moves (`onMoved`), since
+`percolationDays()` reads its host. `getReach()` stays a deliberate
+reconciling read. `Hopper.getContents` is deleted; a hopper's liquor reads
+keep bringing its heaps current through `Bulkable.reconcileSeepers`, which
+is a deliberate read.
+
+**`Soilable`** is untouched: `reconcileAiring` is already one narrowed
+hook on its own mixin, reached only from a deliberate `look`.
+`observeThing` learns no new kind.
+
+### D9 — The room's reading holds the world still
+
+**The window.** `PerceptionApi.holdWorldStill()` returns a release, like
+`holdLightSteady()`. The four walks the requirements name open it for
+their own (synchronous) duration: the light walk (`VisionModality`), the
+sound gather, the smell fold, and a subscription's projection
+(`projectStuffInto` in the registry, both at subscribe and at re-resolve).
+A deliberate `look`'s own render is **not** inside it, so a look's
+augmenters may still bring a thing up to date; the light walk that look
+runs is.
+
+**Inside the window:**
+
+- A reconcile-on-read getter that a walk reaches answers **as banked**:
+  the reconciler stands off, exactly as `Bulkable`'s two do under
+  `_peeking`. The walks themselves call the explicit peeks where one
+  exists (`SmellModality` → `peekTemperature`, `peekBulk`); `Thermal`'s
+  peek reads the forward segment of its `TrajectoryLog`, so a cooling pot
+  still smells cooler without anything being stamped.
+- **The tripwire.** The write chokepoints — `fireFieldChange` and
+  `EventApi.fire` of a `FieldChangedEvent`, `StuffApi.clone` / `create` /
+  `destruct`, `ContainmentApi.move`, `PersistableApi.capture` — check
+  `isWorldHeldStill()`. In a test world (`SecurityApi.isTestEnvironment()`,
+  which every wire world is) a write inside the window throws a typed
+  `WalkWriteError` naming the walk and the write. Elsewhere it is recorded
+  through `DiagnosticApi` and counted on `/stats`, and proceeds — a
+  player's `say` is not broken by a pack's defect.
+
+**The census is behavioral.** `lib/perception/__tests__/
+walk-purity.test.ts` stages one place holding a filled hoop past its set
+time, a hopper with a charged heap, a pan of water below freezing, a lit
+lamp and a ripening provision; snapshots every persistent field of each;
+runs the light, sound and smell walks and a `DETAIL_FIELDS` projection of
+the place and of each thing; asserts no `FieldChangedEvent`, no clone, no
+destruct, no move, and field-for-field equality with the snapshot. Each
+reconciler it catches gets its stand-off line. **Scope:** only what these
+walks reach. The other reconcile-on-read sites are not touched.
+
+**The gate** is the tripwire: a new walk-time write fails the first test
+or wire drive that walks over it. There is no method-name lint.
+
+### D10 — W4 and W5 are designed at a checkpoint after W0, and the build does not stop
+
+The idle and login fixes cannot be designed before the profile exists.
+W0 ends at a **re-plan-in-place checkpoint**:
+
+1. The build agent writes the W0 record into this plan.
+2. It re-invokes the `planner` agent with the W0 record and this plan, to
+   design W4 and W5 as decisions with file lists, host placement and
+   P1–P14 answers.
+3. It gets a second review of that design from an agent given the plan
+   and the code, **not** the planner's conclusion.
+4. It records the decisions here (D13 onward) and continues. `/build` does
+   not stop for sign-off; what it decided is in the plan and the MR.
+
+**Hypotheses only**, to be confirmed or discarded by the profile:
+
+| class | what it would look like | census |
+|---|---|---|
+| I1 unwatched `urgency()` | self time under `_deliberate` → a brain's `urgency` | the 41 `presenceGated = false` brains: what each reads per beat |
+| I3 work nobody perceives | `Scene.#render` → `Mml.toString` → `describeFor` → light, with no live session in the place | which unwatched acts send Scenes |
+| I4 standing ticks | a `recurring` callback's self time | the 16 sites: period × cost when empty |
+| login L1 | the `here` card's first projection (D7) | — |
+| login L2 | the arrival Scene to thirty; the greeters' beats; `materialize` | — |
+
+(The first draft's "stuck critical" class is withdrawn: nothing opened
+shows an agent held on the short beat in an idle world, and the one known
+`critical` re-beat is the sugar pan's, which is correct.)
+
+**Constraints the checkpoint design must obey.** Content's cadences, the
+three beat dials and every brain's `presenceGated` declaration are not
+edited. A fix changes the engine's cost per beat, never whether declared
+unwatched work runs. No guard of the form *if nobody is watching* goes on
+a base-class member; the presence fact belongs to the caller that has it.
+Classes are fixed in order of share until the idle step measures under
+12%; a class under 2% is left and recorded. If the profile says the cost
+is content's own authored work, that is the owner's call.
+
+### D11 — One hundred is a size, not a second drive
+
+`runCrowd(label, { size })`; the 100 phase runs after the restart in the
+same file inside a `try` that turns a crash, a timed-out login or a dead
+world into the recorded finding. Its record goes beside the thirty's in
+the Drive record and the slate's status block.
+
+### D12 — The timing gate, the quiet box, and what counts as evidence
+
+- The timing assertions live in `crowd-timing.dirty.wire.test.ts`, which
+  runs only with `WIRE_QUIET=1` and otherwise reports itself skipped by
+  name with the reason. It adds no lane. `crowd.dirty` keeps the greeting
+  count on every MR; `crowd.soak` keeps its generous bounds after merge.
+- **The quiet-box procedure** (written into `docs/testing.md` in W6):
+  1. Take the suite lock (`tools/lib/suite-lock.sh`).
+  2. List other Saxonberg servers (`pgrep -af preload.js`, then
+     `readlink /proc/<pid>/cwd`). Ask the sessions that own them to stop
+     them. ⛔ Never kill a sibling's world.
+  3. Drop this worktree's database; run
+     `WIRE_QUIET=1 WIRE_BOOT=1 WIRE_PORT=2014 pnpm wire crowd-timing`.
+  4. **The precheck**, the file's first act: 1-minute load under 1.0, and
+     no Saxonberg server or vitest process **outside its own process
+     tree** (it walks `/proc/<pid>/stat` parents from each candidate; the
+     vitest it runs in, that vitest's workers and the server it booted are
+     its own). A failure stops the run with `box not quiet: <what>`.
+  5. Throughout: `/proc/loadavg` at start and end, and per phase the CPU
+     the box spent outside that same tree (`/proc/stat` minus the tree's
+     own). More than half a core of foreign CPU in a phase marks it
+     **inconclusive**, which fails under that name and is re-run.
+- `/healthz` is sampled from a worker thread. `/stats.loop` is a
+  **cumulative** histogram since boot (`monitorEventLoopDelay`, never
+  reset): `count`, `over100` (derived from its percentile map), `maxMs`,
+  `p99Ms`. The harness reads it at each phase boundary and subtracts, so
+  two readers cannot disturb each other.
+- Every number written into this plan, the MR or the slate comes from such
+  a run with the load beside it. W0's profiles are for **shares**, not
+  times, and may be taken on a busy box.
+
+## ⭐⭐ Host placement
+
+No mixin or class is added. For every new field and member:
+
+| what | host | what that claims about everything else on the host |
+|---|---|---|
+| field filter, memo, `stale`, the collector, the belief kind, (fallback) the paused set | `MqlSubscriptionRegistry` | one singleton; nothing else composes it |
+| the paused set (primary) | `SubscriptionRegistry`'s id table | any source's subscription can be paused — true: pause is *close and keep the id* |
+| `pauseSubscription` / `resumeSubscription` | `Interactive` | every session holds subscriptions; no guard |
+| `touched` | the MQL result types | any resolve *can* report what it read; opt-in, so absent unless asked |
+| `placedChanged(item)` | `Placing` | every placing host's `placed` projection changes when its placed set does — true of every host that composes it |
+| `placementChanged(was, now)` | `Containable` | every containable has a placement that can change — true; it is where the `placement` field lives |
+| `setDueAtS`, `setLoadN` | `MouldMixin` | every mould is a set site. A reusable ingot mould that only freezes never arms a wake (no drain or cure material) — the fields rest at zero, as `setProgress` does today. Not an answer of "no" from most hosts: every composer can hold a setting pool |
+| `percolationDueAtS` | `PercolatingMixin` | every percolating solid has liquid work through it over time — the mixin's whole subject |
+| `peekTemperature` | `Thermal` | every thermal body has a banked curve |
+| `peekBulk` | `Bulkable` | every bulk holder has a banked slot |
+| `holdWorldStill` | `PerceptionApi` / `PerceptionLogic` | process-level counter, like the light hold |
+| `notifyBelief` | `MqlSubscriptionApi` | beside `notifyDurableSubject` |
+
+**The guard test.** No wave adds a guard that re-narrows a host. The
+stand-off line in a reconciler is not a host guard — it asks *is the room
+reading*, not *what am I*. If the checkpoint's W4 design wants *if nobody
+is watching* on a base member, that is a finding (D10).
+
+## Convention conformance
+
+- **`props:` / `cast:`**, places not rooms, the five namespace axes: no row
+  or place is added. The drive stages a hoop with `hand` + `drop`.
+- **Module scope declares**: the collector, memo and hold counter are
+  instance fields; the loop histogram is created when the route is set up.
+- **Import boundary**: nothing in `src/mud/**` gains an outside import;
+  `perf_hooks` is imported in `services/Server.ts`.
+- **Module categories**: none new. No exported helper: the client observer
+  lives in `useCardFeed.ts`, the precheck in `harness/crowd.ts`,
+  `WalkWriteError` beside `DetachedError` in the errors module that holds
+  it.
+- **Verbs on objects**: `interactive.pauseSubscription(id)`;
+  `host.placedChanged(item)`. `notifyBelief` takes two strings, as
+  `notifyDurableSubject` takes one (`lint:object-verbs`).
+- **Api ↔ Logic**: no Api added; the new `PerceptionApi` and
+  `MqlSubscriptionApi` statics forward to their logic singletons.
+- **Privacy**: registry state is TypeScript `private` (it is a Stuff
+  behind the proxy).
+- **P3 refuse / skip / throw.** A walk-time write **throws** in a test
+  world and is reported elsewhere. The mould's cast is awaited and its
+  failure reaches the wake's guarded root; `assertCanRelease` still throws
+  `DetachedError` before the pool is touched. A pause or resume for an id
+  the session does not hold is a skip. A busy box is a refusal by name.
+- **P4 no duck typing.** No `?.()` on an unnamed member. `ContainmentLogic`
+  calls `placedChanged` behind `MixinApi.isPlacing`, as it already narrows
+  for `canPlace`. The shipped `getCircleScope?.()` cast in `reresolveAll`
+  is not widened.
+- **P5 the mixin decides.** No controller changes. The mould decides when
+  it sets; the client decides only what is on its own screen.
+- **P6 persistence.** `setDueAtS`, `setLoadN`, `percolationDueAtS` are
+  `runtimeState` fields persisted with the fields beside them, by whatever
+  already captures their host; no class newly persists anything. The live
+  `ClockHandle` is transient and re-armed by the setter. Paused ids, memos
+  and dirt die with the socket.
+- **P7 load on use.** No boot entry (`lint:boot-entries` must not move). A
+  mould that is not loaded has no wake; its setter re-arms when it loads.
+- **P8 names.** `pause` / `resume`; `peek…` for a banked read;
+  `holdWorldStill` beside `holdLightSteady`; `placedChanged` /
+  `placementChanged` for the two fields they announce; `touched`.
+- **Lint gates** (`pnpm -C packages/server lint:family`, per wave):
+  `lint:object-verbs`, `lint:lib-statics`, `lint:mixin-clusters` (Mould,
+  Percolating, Placing, Containable, Thermal and Bulkable each gain
+  members), `lint:module-scope`, `lint:imports`, `lint:duck-typing`,
+  `lint:envelope`, `lint:idle-cadence`, `lint:boot-entries`,
+  `lint:test-bootstrap`, `lint:controller-decisions`. No ceiling is raised
+  without a caller audit; a `lint:mixin-clusters` split is evidence, not a
+  number to move.
+- **American English.** Shipped `MouldMixin` / `mould.md` keep their
+  spelling.
+
+## Waves
+
+Each wave ends at one commit, passes `pnpm test:near`, every touched
+pack's own vitest and `lint:family`, and is landable alone. ⛔ `pnpm test`
+is not run in any wave.
+
+### W0 — Measure, then re-plan W4 and W5 in place
+
+No behavior change.
+
+- `services/Server.ts`: `/stats` gains `cpu` and the cumulative `loop`
+  (N12).
+- `runner/boot.ts`: `WIRE_CPU_PROF=<dir>` passes `--cpu-prof
+  --cpu-prof-dir=<dir>` to the spawned server (set after the
+  `NODE_OPTIONS` scrub). A profile is written at a clean exit: stop the
+  world with SIGTERM as `restartWorld` does.
+- `harness/crowd.ts`: the box-load record, the worker-thread sampler,
+  `runCrowd(label, opts)` with `size`.
+- **Three profiles**, shares only: ten minutes idle; the existing crowd
+  run at 30; the last five logins of that run.
+- **Three static censuses**: the 30 fire sites × 24 descriptor files and
+  `BeliefStore`'s mutators (D2); the 41 unwatched brains; the 16 recurring
+  sites.
+- **The W0 record**, appended to this plan: class shares; where a
+  reference row's time goes (D7); the login's contributors; a baseline row
+  for the slate from one quiet-box run of the existing crowd file if the
+  box can be had, else marked *not quiet*.
+- **The checkpoint (D10):** planner re-invoked on the record, unanchored
+  second review, decisions recorded as D13 onward, W4/W5 rewritten below.
+
+**Acceptance.** The plan carries the W0 record and designed W4/W5.
+**Commit:** `build(crowded-rooms W0): the instruments, the cost-class
+record, W4 and W5 designed`.
+
+### W1 — The room's reading holds the world still; the mould and the heap set by the clock
+
+D8, D9.
+
+- `api/perception.ts` + `platform/idea/api/PerceptionLogic.ts`:
+  `holdWorldStill` / `isWorldHeldStill` (outside geography's ranges).
+  Opened in `VisionModality`'s light walk, the sound gather, the smell
+  fold, and the registry's projection.
+- The tripwire at the chokepoints named in D9; `WalkWriteError`; the
+  `/stats` counter.
+- `lib/thermal/Thermal.ts`: `peekTemperature`; `reconcileThermal` stands
+  off inside the window. `lib/bulk/Bulkable.ts`: `peekBulk`; the two
+  reconcilers' `_peeking` test also admits the window.
+  `SmellModality.ts` calls the peeks.
+- `lib/spatial/Placing.ts`, `Containable.ts`,
+  `platform/idea/api/ContainmentLogic.ts`: N4 — the five sites call the two
+  methods.
+- `lib/mould/Mould.ts`: D8 in full. `lib/material/Percolating.ts`: the
+  due time and wake. `trade-chandlery/src/thing/Hopper.ts`: the override
+  and its guard deleted.
+- `walk-purity.test.ts` (D9), written first and red. Then every reconciler
+  it catches.
+- Mould tests: a hoop poured and left sets at its due time with nobody
+  reading (advance the injected clock; assert the wheel exists before any
+  read); two hoops poured together, one looked at every game minute and
+  one never, hold **identical** state and cast at the same game second; a
+  weight set on the follower halfway changes the finish time by the
+  arithmetic, whether or not anyone looked between; a restart mid-set
+  (capture, materialize) re-arms and finishes on time; a wake whose cast
+  cannot release throws `DetachedError` to its root, not to the console.
+  The same three shapes for a heap.
+- B4: grep every caller that drove a set by reading —
+  `grep -rn "getContents()\|setState()" packages/content/trade-{dairying,
+  sugar,ceramics,potash,chandlery} packages/server/src/mud/lib/mould` —
+  tests advance the clock instead; the dairy, sugar, ceramics and potash
+  wire files that take a cast out after a clock jump need no change if the
+  wake fired, and are read to confirm it.
+- `docs/subsystems/mould.md`, `potash.md`, `perception.md`: what drives a
+  set; the window; what a peek is.
+
+**Acceptance.** `walk-purity` green; the mould, dairying, sugar, ceramics,
+potash and chandlery suites green; `pnpm wire crowd.dirty` runs with the
+tripwire armed and throws nothing. **Commit:** `fix(perception): the
+room's reading holds the world still; a mould sets by the clock, not by
+who looked`.
+
+### W2 — Exact dispatch
+
+D1, D2.
+
+- `api/mql/types.ts`, `resolver.ts`, `predicates.ts`, `scope-walk.ts`:
+  `touched`, behind `MqlContext.trackTouched`.
+- `MqlSubscriptionRegistry.ts`: the collector; field-filtered `target`
+  entries; the holder and subject entries; the belief kind and
+  `notifyBelief`; the name-only entries removed.
+- `api/mql-subscription.ts` + `MqlSubscriptionLogic.ts`: `projectFields`
+  reports to the collector (a no-op outside one); `notifyBelief`.
+- `lib/belief/BeliefStore.ts`: the pokes. `lib/stuff/Stuff.ts`:
+  `occupants` on `displayName`. Other fire-site fixes per the census.
+- ⭐ **The wake matrix** —
+  `api/__tests__/mql-subscription.wake-matrix.test.ts`: for every field in
+  `REF_FIELDS` and `DETAIL_FIELDS`, a scripted mutation (a) wakes a
+  subject-bound subscription on the thing, (b) wakes one on its container
+  when the container's projection shows it, (c) does not wake one on an
+  unrelated thing in the same place, (d) does not wake one in another
+  place. Plus: an item moved from a desk to the floor and back wakes the
+  room's card and the desk's both ways; a newcomer wakes a `reachable:…`
+  subscription that declared no flag; viewer A introduced to X re-projects
+  X's row for A and marks nothing dirty for B. A field with no mutation
+  site is listed by name as a residual, so a new field without a row
+  fails.
+- `docs/subsystems/mql-subscription.md`: the dispatch-policy and
+  holder-flags sections rewritten to the contract.
+
+**Acceptance.** The `mql-subscription.*` and `card-*` test families,
+`Application.mql-subscribe.test.ts`, the sandbox subscription escape test
+and the MQL suites green; the matrix green; a count shows one body walking
+into a staged room of thirty marks dirty the thirty room-bound
+subscriptions and none of thirty bound to a barrel there. **Commit:**
+`refactor(mql-subscription): a dependency is the Stuff that was read; the
+coarse dispatch policy is retired`.
+
+### W3 — Row-level dirt, and a cheap row
+
+D3, D7. `MqlSubscriptionRegistry.ts` (memo, `stale`, memo-aware
+projection, reconciled index maintenance); the row cost W0 named, in its
+owner.
+
+Tests: thirty subscriptions on a staged room of thirty — one arrival costs
+each exactly one row projection plus its membership read; a rename
+re-projects one row per subscription; a row that left is dropped from the
+memo; the wake matrix still green; the row bench under 1 ms; no single
+`reresolveAndEmit` in the arrival case exceeds the drain slice by more
+than one row. `mql-subscription.md § A crowd makes a card lag` rewritten.
+
+**Commit:** `perf(mql-subscription): a re-resolve re-projects only what
+changed`.
+
+### W4 — The idle world
+
+*Designed at the W0 checkpoint (D10); hypotheses I1, I3, I4 above.*
+Whatever is designed: a count-per-beat or count-per-tick test for each
+class before and after; `lint:idle-cadence` unmoved; no content row or
+dial edited; `pnpm wire crowd.dirty` still green (the greeting count is
+the shipped half of D27 and W4 is the wave that can break it);
+`behavior.md § Cost` updated with the measured cost per beat.
+**Commit(s):** `perf(behavior): <class>`.
+
+### W5 — Login into a crowd, and back after a restart
+
+*Designed at the W0 checkpoint.* The restart half is correctness first:
+thirty players who quit at the avenue block materialize there; if the
+drive shows otherwise it is a defect fixed here. Acceptance: a profile of
+one login into thirty shows no synchronous unit over 100 ms.
+**Commit:** `perf(connection): logging in to a crowd`.
+
+### W6 — The drive's harness, the docs, and a first quiet run
+
+D11, D12 — everything but the hidden card.
+
+- `harness/crowd.ts`: the on-screen card phase (step 6), the mould phase
+  (8), the leave (9), the five logins into the square, the precheck and
+  foreign-CPU record.
+- `packages/wire/tests/crowd-timing.dirty.wire.test.ts`: steps 1–6 and
+  8–11 as ordered tests, `packs: ['platform', 'terminus',
+  'trade-dairying']`. `restartWorld()` from the harness if
+  navigation-server's lift has merged, else the private copy the four
+  shipped files carry.
+- B2: every timing checkpoint is made to fail once on purpose (a bound of
+  0 ms; a `look` at the hoop with the tripwire disarmed and the override
+  restored locally) before its green is believed.
+- Docs: `docs/testing.md` (the quiet-box procedure, `WIRE_QUIET`,
+  `WIRE_CPU_PROF`, the tripwire), `connection.md` and `messaging.md` where
+  W4/W5 changed them. Index files are left to the sweep.
+- One quiet-box run of steps 1–6 and 8–11, recorded.
+
+**Commit:** `build(crowded-rooms W6): the timing drive and its record`.
+
+### W7 — A card you cannot see pauses (last)
+
+D4, D5. Starts with D5's check; primary path unless D1 is not on master.
+
+- `packages/types`: the two messages.
+- Server: `Interactive.pauseSubscription` / `resumeSubscription`; the
+  paused set and its behaviors on the registry D5 selects; the inbound
+  handlers and their registration; `CardRegistry.close` forgets the pause,
+  `rebind` keeps it.
+- Client: `services/websocket.ts`; `useCardFeed.ts` (the observer, the
+  debounce, the result handler for a card id); `CardArea.tsx` / `Card.tsx`
+  only to hand the observer each card's body element. On reconnect every
+  card starts shown; nothing is replayed.
+- Harness: `Session.pauseSubscription` / `resumeSubscription`; drive
+  step 7 added to `crowd-timing`.
+- `packages/content/platform/content/platform/cmd/shell/client-card.yaml`:
+  the help sentence.
+- `e2e/tests/crowded-rooms-walk.spec.ts` (B3): a browser in the square
+  with the room card; scroll it away and minimize it while a second player
+  walks in and out; restore; the card is current.
+- Tests: a paused subscription has no index entries, never enters the
+  dirty set and emits nothing across fifty mutations of its subject;
+  resume emits exactly one result equal to a fresh resolve, at `rev` 0 on
+  the primary path; a rebind while paused stays paused; a close forgets;
+  an unknown id is a skip. Client: the observer pauses a card scrolled
+  out, a minimized one and one behind a `full` card, resumes each at once,
+  and applies the snapshot.
+- `docs/subsystems/card-surface.md`: shown vs live.
+- If on the fallback: the message to build-2.
+- **The full blocking drive on a quiet box**, all eleven steps, into the
+  Drive record and the slate's status block. Then `tools/suite` (the one
+  full run) alongside the MR.
+
+**Commit:** `feat(card-surface): a card nobody can see pauses and catches
+up when shown`.
+
+## Reachability wiring
+
+No new verb. The capabilities and their five links:
+
+| capability | verb | affordance | data | load | arg gate |
+|---|---|---|---|---|---|
+| a mould sets on the clock | none — the pour starts it | n/a | `setDueAtS` persisted | ⚠ the wake exists only while the mould is loaded: the **setter** must re-arm on materialize, and a past due time must fire — the restart test proves it | n/a |
+| a load change banks | shipped `put` / `get` / `turn` | shipped | `setLoadN` | ⚠ all five `ContainmentLogic` sites must call both methods; a missed site is a silent mis-set — the matrix's desk test and the mould's weight test cover two, a grep for `_setPlacement(` covers the rest | n/a |
+| exact wake | none | n/a | `target` entries | the collector must be active in **both** `handleSubscribe` and `reresolveAndEmit`, and `trackTouched` set on **both** the query resolve and descriptor resolves, or the first resolve installs nothing — the matrix subscribes fresh for every row | n/a |
+| belief re-projects a row | shipped `introduce` etc. | shipped | the belief kind | every `BeliefStore` mutator must poke; the census lists them | n/a |
+| a card pauses and resumes | none — a protocol message | the client's observer; ⚠ silent if never attached to a card body — the e2e walk is the proof | the two types; the paused set | the handlers **registered** in `backend/inbound/index.ts` (an unregistered type is dropped without a word — the unit test sends through `Application.processUserMessage`) | `subscriptionId` a string the session holds; else skip |
+| the tripwire | none | n/a | the hold counter | armed only where `isTestEnvironment()` — a wire world must report true (`SAXONBERG_TEST_WORLD`, set in `boot.ts`) | n/a |
+| the timing gate | `WIRE_QUIET=1 pnpm wire crowd-timing` | the procedure in `docs/testing.md` | `.wire/crowd-*.json` | skipped by name without the env | the precheck |
+
+## Acceptance-criteria coverage
+
+| acceptance criterion | waves | proved by |
+|---|---|---|
+| `say hello` under 250 ms p95 at thirty | W2, W3, W4 | drive steps 3–4 |
+| no freeze over 100 ms across arrival, talk, leaving | W1, W2, W3, W5 | step 5 |
+| login under 2 s p95 | W3, W5 | steps 2, 10, the five into the square |
+| an on-screen card shows a change within 2 s | W2, W3 | step 6 |
+| a hidden card receives nothing, and is current within 2 s of being shown | W7 | step 7; the e2e walk |
+| idle world under 15% of a core over ten minutes | W4 | step 1 |
+| a mould looked at and into in empty-room time; nothing the room reads for everyone writes; a mould left alone sets on time whether or not anyone looks | W1 | step 8; `walk-purity`; the two-hoops test; the tripwire armed in every wire world |
+| each arriver greeted once by each greeter; an NPC walking in greets nobody | every wave; W4 at risk | `crowd.dirty` per wave; step 2 |
+| after a restart thirty log in under 2 s p95 and stand where they quit | W5 | step 10 |
+| the one-hundred record exists with the load beside it | W6, W7 | step 11; Drive record; the slate |
+
+Nothing is unmapped.
+
+## Test & gate strategy
+
+**Unit**: `walk-purity`; the mould's and heap's clock tests (arithmetic —
+a set's outcome is proved here, on the injected clock, never in the
+drive); the wake matrix; dirty counts; memo reuse and eviction; the row
+bench; pause / resume / rebind / close; the per-class beat tests the
+checkpoint designs. Anything touching the wired runtime imports
+`test-bootstrap`.
+
+**Only the drive can prove:** every timing number, the freeze bound, the
+idle share, the restart, and that a real client reports what is on screen.
+
+**The blocking drive** — `crowd-timing.dirty.wire.test.ts`, quiet box,
+fresh database:
+
+| step | pace | kind | how it is staged |
+|---|---|---|---|
+| 1 the idle world | `short` (ten wall minutes) | `staged` | two `/stats` reads ten minutes apart, before anyone logs in |
+| 2 thirty arrive | `instant` | `player` | `Session.open` at the avenue block, `go southwest` |
+| 3 one person speaks | `instant` | `player` | — |
+| 4 in turn, then all at once | `instant` | `player` | — |
+| 5 no freeze | `instant` | `staged` | the worker-thread `/healthz` sampler across 2–4 and 6–9 |
+| 6 a card you can see | `instant` | `player` | `look` leaves the `here` card live; another walks in; the delta is timed |
+| 7 a card you cannot see | `instant` | `player` | `client-card minimize`, the harness says pause as a client does; five walk in and out; `client-card restore` + resume; zero envelopes for that id in between, one snapshot within 2 s |
+| 8 a mould in the crowd | `instant` | `player` (the hoop is staged) | `hand(session, '/trade/dairying/thing/hoop', …curd…)`, `drop`; ten `look` and `look in` |
+| 9 thirty leave | `instant` | `player` | walk back, `session.close()` |
+| 10 a restart | `short` | `staged` | SIGTERM + owned boot; thirty `Session.open` on the same handles |
+| 11 one hundred | `instant` | `player`, reported | `runCrowd('hundred', { size: 100 })` inside the recording `try` |
+
+There is **no span step**, so no staged twin is owed. Step 8 asserts the
+cost of the look, not that the cheese set; that the cheese sets on time
+unwatched is the unit test's.
+
+**The soak drive:** none new; `crowd.soak` stays the post-merge watch and
+is updated in the same commit if `runCrowd`'s record shape changes.
+
+**Gates:** per wave, `pnpm test:near`, touched packs' vitest,
+`lint:family`; `pnpm lint` for the client in W7. ⛔ The full suite runs at
+code-complete (through `tools/suite`, never bare, never in the background)
+and at `/finalize`, and a green run stands until a source file changes.
+
+## Risks & opens
+
+- **The tripwire is a census that runs late.** It throws in every test
+  world, but the full suite runs only at code-complete, so a walk-time
+  write in a subsystem no wave's `test:near` reaches surfaces then. Each
+  is one stand-off line. If there are many, they are fixed as a class in
+  one commit, not waived.
+- **A stale card nobody notices** is W2/W3's failure mode. The wake matrix
+  is exhaustive over the two field sets and fails on an unlisted field.
+  No periodic refresh is added to paper over a missed fire.
+- **`touched` costs a set add per candidate** on subscription resolves
+  only. If the W3 bench shows it matters, the resolver records containers
+  enumerated and lets candidates ride their container's entry.
+- **The mould's step constant** trades accuracy for wakes: one wake per
+  setting mould per game hour while it sets. A cellar of two hundred hoops
+  is two hundred wakes an hour, each a handful of arithmetic; W4's idle
+  profile will show it if it is wrong.
+- **W4 and W5 are designed mid-build.** The checkpoint's second review is
+  the control. If the idle cost is content's own authored work, the 15%
+  target is the owner's to trade against content's rates.
+- **The quiet box is not the build agent's to take.** It can lock out
+  suites and refuse to run; it cannot stop a sibling's world.
+- **Merge order with navigation-server.** Either order works (D5).
+- **`--cpu-prof` through `tsx`** needs a clean exit. If it does not write,
+  take the profile as controllers-are-io did
+  (`git show 2fa4b0e72:docs/plans/controllers-are-io-plan.md`,
+  l.2372–2377); do not add a profiling route.
+- **Stop and ask:** any fix that would change what a brain does unwatched;
+  any new event class; any second source for *shown*; any reconciler whose
+  as-banked answer inside the window would be visibly wrong to a player.
+
+## Deferred seams
+
+- **The first projection is one unit of N rows.** Destination: the
+  crowded-rooms slate's status block, with the hundred's record.
+- **Pausing the shelf, a forum board, the map copy.** The protocol pauses
+  any subscription; this build wires cards. Destination:
+  `docs/slates/engine/mql-subscription-slate.md`.
+- **Light as a wake**, and the two unused holder flags in the wire type.
+  Same slate.
+- **Reconcile-on-read sites the room's walks do not reach** — do any of
+  them make a thing's state depend on who looked? Destination:
+  `docs/slates/tech-debt/silent-write-census-slate.md`.
+- **Room capacity** and **the soak lane's clock**: routed by the
+  requirements.
+
+## Critical files
+
+1. `docs/requirements/crowded-rooms-requirements.md`.
+2. `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts`.
+3. `packages/server/src/mud/api/mql-subscription.ts`;
+   `api/mql/types.ts`, `resolver.ts`, `predicates.ts`.
+4. `docs/subsystems/mql-subscription.md` — § Holder-level dependency
+   flags, § Meta-bus dependency index, § Conservative-coarse dispatch
+   policy, § A crowd makes a card lag.
+5. `lib/spatial/Container.ts` ~l.930–1070; `Placing.ts` ~l.280–330;
+   `platform/idea/api/ContainmentLogic.ts` ~l.155–170, ~l.370–425,
+   ~l.565–625.
+6. `lib/mould/Mould.ts` ~l.205–240, ~l.530–800;
+   `lib/material/Percolating.ts`; `lib/craft/Comminuting.ts` ~l.425–460;
+   `platform/thing/ScrewPress.ts`;
+   `packages/content/trade-chandlery/src/thing/Hopper.ts`;
+   `packages/content/trade-potash/src/thing/IronPot.ts`.
+7. `lib/thermal/Thermal.ts` ~l.750–775, ~l.1100, ~l.1166–1300;
+   `lib/bulk/Bulkable.ts` ~l.715–745, ~l.1205–1305, ~l.1495;
+   `platform/idea/modalities/SmellModality.ts`, `VisionModality.ts`,
+   `SoundModality.ts`; `api/perception.ts` ~l.210–230.
+8. `lib/belief/BeliefStore.ts` ~l.755–890.
+9. `platform/idea/CardRegistry.ts` ~l.1195–1340.
+10. `lib/behavior/Behaved.ts` ~l.440–680; `lib/message/Scene.ts`
+    ~l.255–400; `docs/subsystems/behavior.md` § The deliberation beat.
+11. `packages/wire/src/harness/crowd.ts`; `runner/boot.ts`;
+    `tests/crowd.dirty.wire.test.ts`; `services/Server.ts` ~l.160–190.
+12. `packages/client/src/components/cards/useCardFeed.ts`, `CardArea.tsx`;
+    `services/websocket.ts` ~l.790–860.
+13. `git show origin/build/navigation-server:docs/plans/navigation-server-plan.md`
+    — § D1, § W1.
+14. `docs/review-questions.md` (the B questions); `docs/testing.md`
+    § Attach or own, § Test the WAKE.
+
+## Drive record
+
+*(appended at build time)* — the W0 record and the checkpoint's decisions
+(D13 onward); W6's first quiet run; W7's full blocking drive with the load
+beside every number; the one-hundred record; what each found. The soak
+drive is the existing `crowd.soak`.

@@ -86,9 +86,13 @@ station concourse is the same crowd. The capability has no epoch.
 - **An empty world idles cheaply.** With nobody logged in, the default
   world uses under 15% of a CPU core over ten minutes. Today it uses
   about 60%.
-- **Reading is never writing.** Looking at a thing, its contents or a
-  room never saves anything. The mould is the known case; any other
-  found on the way is fixed the same way.
+- **The room's own reading never writes.** What the room reads for
+  everyone in it (the light, the sound and the smell of each thing it
+  holds, and a card's view of it) never changes the world. The mould is
+  the known case: today it casts its wheel when anyone speaks in the
+  room. And a thing's state never depends on who happened to look: a
+  mould sets by the clock and its own changes, the same whether anyone
+  watched. Any other case on those walks is fixed the same way.
 - **We know where the next ceiling is.** The same drive runs at one
   hundred people and records its numbers. They are reported, not gated.
 - **The timing is honest.** Every number this build claims comes from a
@@ -168,10 +172,15 @@ numbers. A run on a busy machine is not evidence either way. It is
 re-run, never argued from. *Owner, 2026-11-17.* The soak file keeps its
 generous bounds as a regression watch after merge.
 
-### Reading never writes
-A read that saves is a defect, whichever subsystem it is found in. The
-mould is fixed here, and any other found by the profile is fixed the
-same way.
+### The room's reading never writes; nothing depends on who looked
+Narrowed at /plan, 2026-11-17. A *deliberate* act may still bring a
+thing up to date when it reads it (reconcile-on-read is shipped doctrine
+in forty-four places). What may not write is the reading the room does
+for everyone: a light walk, sound, smell and a card's projection. Moving
+the mould's write onto `look` alone would make its cheese depend on who
+looked and when, so the mould banks its progress at its own changes and
+completes on the game clock. Lens 3a chose it: the world cannot differ
+by who was watching.
 
 ## Lens pass
 
@@ -261,7 +270,7 @@ bounds.
 - With nobody logged in, the default world averages under 15% of a CPU
   core over ten minutes.
 - Looking at, and into, a mould in the crowd answers in empty-room time.
-  No look anywhere saves what it looked at.
+  Nothing the room reads for everyone writes, and a mould left alone sets on time whether or not anyone looks.
 - Each arriving player is still greeted once by each greeter, and an NPC
   walking in still greets nobody.
 - After a restart, thirty players log back in under 2 s at p95 and stand
