@@ -5,7 +5,7 @@ both `templatePath` and the zone tree — plus the **Locality** tier that
 claims a subtree, and the upward **longest-prefix resolve-walk** that
 answers "which Locality covers this place?". This is the first build of
 the delivery/addressing vision
-([delivery-slate](../slates/builds/delivery-slate.md)), carved to its
+([delivery-slate](../slates/trades/delivery-slate.md)), carved to its
 single load-bearing unit, and the substrate the
 [weather build](./weather.md) named as its dependency (weather Wave 1 has
 since shipped on it): weather is a field over the locality tree, and a
@@ -306,14 +306,14 @@ simplification.
 
 ## Cross-references
 
-- [delivery-slate](../slates/builds/delivery-slate.md) — the seeding
+- [delivery-slate](../slates/trades/delivery-slate.md) — the seeding
   slate; this is its "Addressing foundation" separable unit. Q4/Q6
   resolved here for this unit; providers/anchors/carrier/aether/Layer-2
   remain deferred.
 - [weather.md](./weather.md) — the first consumer (Wave 1 shipped); the
   `resolveLocalityFor` seam above is its load-bearing dependency. Its
   deferred surface lives in
-  [weather-slate](../slates/tails/weather-slate.md).
+  [weather-slate](../slates/engine/weather-slate.md).
 - [biome.md](./biome.md) — the resolve-chain shape this mirrors, the
   Pattern-A ref, the slim-roster precedent, and `SkyExposedMixin`
   (weather's indoor gate).

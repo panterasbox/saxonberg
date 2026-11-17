@@ -78,14 +78,13 @@ model to agree or correct; it is the frame every later step hangs on.
 ### 1. Identify the slate(s)
 
 If the user named slates, load them. If they didn't, read
-`docs/slates/README.md` — the index divides the backlog into
-`builds/` (new substrate, grouped into named multi-phase builds),
-`tails/` (deferred tails of shipped subsystems), and `deferred-rpg/`
-(game-design behind the platform line) — and ask which slate(s) or
-which build seeds this cycle. Slate files live in those subfolders,
-not at the `docs/slates/` root. Multiple slates can feed one
-requirements doc when the features are tightly coupled — a single
-`builds/` build is the common case.
+`docs/slates/README.md` — the backlog is foldered by KIND of work
+(`tech-debt/`, `engine/`, `trades/`, `society/`, `world/`, `client/`,
+`platform/`), and each folder's README lists its slates by status with
+size and what is left — and ask which slate(s) seed this cycle. Slate
+files live in those subfolders, not at the `docs/slates/` root.
+Multiple slates can feed one requirements doc when the features are
+tightly coupled — a single slate sized `a build` is the common case.
 
 ### 2. Survey what already exists — at the PRODUCT level
 

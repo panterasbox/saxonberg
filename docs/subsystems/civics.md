@@ -6,10 +6,10 @@ identity (the `Corpo` recipe) authored by a committee; **jurisdiction
 is declared on the `Locality`** and derived as a chain over the address
 coverage walk; **residency derives from a character's domicile**;
 **seats are employment positions**. Seeded by the diegetic-government
-design capture ([staging-leftovers § diegetic government](../slates/tails/staging-leftovers-slate.md#1-diegetic-government)
+design capture ([staging-leftovers § diegetic government](../slates/platform/staging-leftovers-slate.md#1-diegetic-government)
 — the two-layer premise, the six enforcement powers, the jargon
 standard); the Terminus government stack is
-locked in [terminus-city.md §8](../slates/builds/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30). (The
+locked in [terminus-city.md §8](../slates/world/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30). (The
 build's requirements + plan were retired at the pre-merge sweep, per
 the workflow.)
 
@@ -287,13 +287,13 @@ district (staging); ⭐ **the operating-scale term** — a government's
 operating classes (*smallholding · estate · plantation*) as rows,
 measured by the engine and judged by an officer seat, the third
 dimension of the land-use covenant
-([land-use-covenant-slate § The operating-scale term](../slates/builds/land-use-covenant-slate.md)).
+([land-use-covenant-slate § The operating-scale term](../slates/society/land-use-covenant-slate.md)).
 
 ## Cross-references
 
-- [staging-leftovers § diegetic government](../slates/tails/staging-leftovers-slate.md#1-diegetic-government)
+- [staging-leftovers § diegetic government](../slates/platform/staging-leftovers-slate.md#1-diegetic-government)
   — premise, six powers, jargon standard, capital-district future
-- [eternal-university-drafts § the government stack](../slates/builds/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30) §8 — the
+- [eternal-university-drafts § the government stack](../slates/world/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30) §8 — the
   government stack + the city's charter-text structure
 - [address.md](./address.md) — Locality, the coverage walk, tier fields
 - [corpo.md](./corpo.md) — the data-Idea/catalogue recipe

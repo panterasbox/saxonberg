@@ -328,7 +328,7 @@ rooms. See [carrying.md](./carrying.md).
 
 **The rule** (logistics D14, shipped 2026-09-03; surfaced 2026-07-31 by
 the "can freight ride the TPA?" question — see
-[freight-slate](../slates/builds/freight-slate.md) § *The TPA
+[freight-slate](../slates/trades/freight-slate.md) § *The TPA
 question*):
 
 > **Teleport ripples what is *on* you and refuses what you are

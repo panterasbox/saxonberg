@@ -1,7 +1,7 @@
 # OBS setup — the show's scenes
 
 How OBS is set up for the weekly stream. The design is
-[broadcast-ready-slate](../../../docs/slates/builds/broadcast-ready-slate.md);
+[broadcast-ready-slate](../../../docs/slates/platform/broadcast-ready-slate.md);
 this is the hands-on half. Written against **OBS 32.1.2 on Windows** with
 obs-websocket 5.7.3 (built in) and Elgato's Stream Deck plugin installed.
 

@@ -7,7 +7,7 @@
  * that should have caught it could not see the largest reservoir of durable
  * coin. These are the two holes this build closes.
  *
- * See docs/slates/builds/money-integrity-slate.md for the full surface — most
+ * See docs/slates/tech-debt/money-integrity-slate.md for the full surface — most
  * of it is a later cycle. This file covers only what this build claims.
  */
 

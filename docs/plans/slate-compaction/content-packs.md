@@ -12,7 +12,7 @@ directory with only `node_modules`, no manifest), `packages/server/package.json`
 
 ---
 
-## docs/slates/builds/content-packs-slate.md — 3323 → 922 · Status PARTIAL → PARTIAL
+## docs/slates/platform/content-packs-slate.md — 3323 → 922 · Status PARTIAL → PARTIAL
 
 The slate's `Left` was 38 words; the body was 3,323 lines of which roughly
 2,400 described the installer, the requires phase, the boot union, the
@@ -186,7 +186,7 @@ the slate said 43 packs, the doc says 39; there are **47**.
 
 ---
 
-## docs/slates/builds/venue-and-supply-slate.md — 552 → 463 · Status PARTIAL → PARTIAL
+## docs/slates/trades/venue-and-supply-slate.md — 552 → 463 · Status PARTIAL → PARTIAL
 
 Two weeks old and mostly live, but three of its *this ships* sections are
 now carried by subsystem docs, and two of its premises have moved under
@@ -233,7 +233,7 @@ is no longer true; and `trade-ranching` shipped (the farmstead build), so
 
 ---
 
-## docs/slates/tails/pack-seams-slate.md — 189 → 171 · Status PARTIAL → PARTIAL
+## docs/slates/platform/pack-seams-slate.md — 189 → 171 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## The directional rule` body (23–34, 12) — code: `PackLogic` derives `dependsOn` from `package.json`; `gateRequires` coverage (*a path must lie under a claim of the pack or a host*); doc: `content-packs.md § The manifest`, `§ The requires phase` (the gate, item 4). Heading + note left. ⚠ The sentence *a pack may reference template paths only in packs it depends on* is NOT enforced — cross-pack reference validation is deferred (`§ Deferred`), and `newbie-wilds/…/crossroads.yaml` names `/world/eternal` with no dependency line
@@ -266,7 +266,7 @@ is no longer true; and `trade-ranching` shipped (the farmstead build), so
 
 ---
 
-## docs/slates/tails/content-pack-units.md — 158 → 115 · Status PARTIAL → PARTIAL
+## docs/slates/platform/content-pack-units.md — 158 → 115 · Status PARTIAL → PARTIAL
 
 A status index by design. The three Part A tables are mixed (most rows ✅
 now) and are kept whole under the paragraph rule; the per-pack table, the

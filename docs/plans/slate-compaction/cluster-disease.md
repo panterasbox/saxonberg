@@ -5,7 +5,7 @@
 
 ## Cluster
 
-- `docs/slates/builds/disease-slate.md` — 342 lines — **canonical**
+- `docs/slates/engine/disease-slate.md` — 342 lines — **canonical**
 - `docs/slates/builds/disease-design-pack.md` — 214 lines — secondary
 
 ## Canonical — why the slate
@@ -108,7 +108,7 @@ subsystem doc was touched.
 
 ## Links re-pointed (outside `docs/slates/README.md` / `docs/roadmap.md`)
 
-- `docs/slates/tails/tenancy-design-pack.md` l.111 — `[disease](../builds/disease-design-pack.md)` → `[disease](../builds/disease-slate.md)`
+- `docs/slates/society/tenancy-design-pack.md` l.111 — `[disease](../builds/disease-design-pack.md)` → `[disease](../builds/disease-slate.md)`
 
 Not re-pointed, deliberately:
 - `docs/slates/README.md` l.126 — the `disease (pack)` row; the sweep's (README is generated).

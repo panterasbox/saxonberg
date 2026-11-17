@@ -20,9 +20,9 @@ what `look` says**, sorted by the interface that said it, and gives the
 2026-10-17 UX pass filed against these surfaces, and three privacy leaks
 the design's specimen trace found.
 
-Seeding slates: [client-surface-slate.md](../slates/builds/client-surface-slate.md)
+Seeding slates: [client-surface-slate.md](../slates/client/client-surface-slate.md)
 (the decisions) and the client half of
-[illustration-slate.md](../slates/builds/illustration-slate.md) (§ 1a
+[illustration-slate.md](../slates/platform/illustration-slate.md) (§ 1a
 the declared shape, § 4 one rule per shape per card size). Comps:
 [`docs/design/client-surface/`](../design/client-surface/README.md).
 
@@ -59,12 +59,12 @@ Surveyed 2026-10-30 against master.
   which interface said which line.
 - **Illustrations**: one image key per row; the client center-crops it
   into a 6.5rem band.
-- **Overlapping slates**: [card-sizes-slate.md](../slates/builds/card-sizes-slate.md)
+- **Overlapping slates**: [card-sizes-slate.md](../slates/client/card-sizes-slate.md)
   (this build revises its sizes, focal/full, the panel, the phone and the
   Thing card — see Surface decisions); [card-ux-brief.md](../card-ux-brief.md);
   [cockpit-composition.md](../cockpit-composition.md) (its laws hold; its
   tiers and splits are replaced);
-  [carded-prose-slate.md](../slates/tails/carded-prose-slate.md)
+  [carded-prose-slate.md](../slates/client/carded-prose-slate.md)
   (superseded by `look` as segments); `client-cockpit-slate` (its "mobile
   is not a stream + button bar" is reversed for explore).
 
@@ -107,10 +107,10 @@ path, the sweep and the arrangement storage are reused, not rebuilt.
 
 - **Forum split into board / thread / composer cards; CMS split into
   tree / file / diagnostics / git cards; the web tab; the broadcast
-  contract** → [card-sizes-slate.md](../slates/builds/card-sizes-slate.md).
+  contract** → [card-sizes-slate.md](../slates/client/card-sizes-slate.md).
   Until then the forum and CMS open as the cards they are today.
 - **Pop-out card windows; the streamer deck's future** →
-  [broadcast-ready-slate.md](../slates/builds/broadcast-ready-slate.md).
+  [broadcast-ready-slate.md](../slates/platform/broadcast-ready-slate.md).
   The deck keeps working where it is.
 - **Card bodies by branch (Location, Zone, Warren, the agency ladder),
   the person marker, the Idea card and its catalogue** → card-sizes
@@ -119,15 +119,15 @@ path, the sweep and the arrangement storage are reused, not rebuilt.
   build only *shows* the fallback.
 - **Per-mixin wording.** The card shows what each interface says today;
   improving what each one says is mixin-by-mixin work →
-  [client-surface-slate.md](../slates/builds/client-surface-slate.md)
+  [client-surface-slate.md](../slates/client/client-surface-slate.md)
   § "What each mixin says is left to the build" — deliberately left to
   the trades that own them, except the two quieted here.
 - **The illustration generator** (declared shapes at generation, the
   style row, regenerating the 19, generator directives) →
-  [illustration-slate.md](../slates/builds/illustration-slate.md). This
+  [illustration-slate.md](../slates/platform/illustration-slate.md). This
   build only carries and honors the shape.
 - **Icons for branches and interfaces** →
-  [iconography-slate.md](../slates/builds/iconography-slate.md). Letters
+  [iconography-slate.md](../slates/client/iconography-slate.md). Letters
   stand in.
 - **Prose color with a settings screen (#88), the document card (#57),
   place surfaces design (#79), disambiguation locations (#98), the
@@ -487,14 +487,14 @@ None — no step needs the clock.
 
 ## Cross-references
 
-- [client-surface-slate.md](../slates/builds/client-surface-slate.md),
-  [illustration-slate.md](../slates/builds/illustration-slate.md)
-- [card-sizes-slate.md](../slates/builds/card-sizes-slate.md) (revised
+- [client-surface-slate.md](../slates/client/client-surface-slate.md),
+  [illustration-slate.md](../slates/platform/illustration-slate.md)
+- [card-sizes-slate.md](../slates/client/card-sizes-slate.md) (revised
   here, ⟲), [card-ux-brief.md](../card-ux-brief.md),
   [cockpit-composition.md](../cockpit-composition.md),
-  [carded-prose-slate.md](../slates/tails/carded-prose-slate.md)
+  [carded-prose-slate.md](../slates/client/carded-prose-slate.md)
   (superseded by segments),
-  [broadcast-ready-slate.md](../slates/builds/broadcast-ready-slate.md)
+  [broadcast-ready-slate.md](../slates/platform/broadcast-ready-slate.md)
 - [card-surface.md](../subsystems/card-surface.md),
   [cockpit.md](../subsystems/cockpit.md),
   [client-shell.md](../subsystems/client-shell.md),

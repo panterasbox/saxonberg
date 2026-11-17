@@ -42,7 +42,7 @@ Four things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/bulkable-slate.md — 900 → 409 · Status PARTIAL → PARTIAL
+## docs/slates/engine/bulkable-slate.md — 900 → 409 · Status PARTIAL → PARTIAL
 
 The thermos slice shipped as designed and bulk.md is a faithful operational
 reference for it; what the slate still carried was (a) the shipped design
@@ -124,7 +124,7 @@ floors.
 
 ---
 
-## docs/slates/tails/aluminium-can-slate.md — 391 → 344 · Status PARTIAL → PARTIAL
+## docs/slates/trades/aluminium-can-slate.md — 391 → 344 · Status PARTIAL → PARTIAL
 
 A stress test, not a build list — the brief's *"largely doctrine; keep
 and label"* held. Grep for every Left item: `requiredClosureFor` returns

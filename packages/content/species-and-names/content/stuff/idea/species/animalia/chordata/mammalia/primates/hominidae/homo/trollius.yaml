@@ -4,7 +4,7 @@
 # *living people*, mundane (§17.D): the "brutish/lowly brute" framing is
 # prejudice, NOT biology — the overlooked-caretaker-caste allegory. See
 # docs/staging/eternal-university/npcs/property-manager.md (Katie) and
-# docs/slates/builds/species-expansion-slate.md.
+# docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/trollius.png

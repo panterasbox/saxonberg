@@ -41,7 +41,7 @@ mechanical: the author-surface projection admits public **Api statics**
 and public **instance methods**, so a static on a `lib/` class is
 *callable by anyone and visible to nobody*. ⭐ 24 other value classes in
 this tree still break that; see
-[value-object-statics-slate](../slates/tails/value-object-statics-slate.md).
+[value-object-statics-slate](../slates/tech-debt/value-object-statics-slate.md).
 
 `Stuff.getPresentation()` is `presentationPhrase().render()`. Its
 signature never changed, so all ~265 callers, the wire's `displayName`,
@@ -358,7 +358,7 @@ which is a guard.
 **See also:** [messaging](./messaging.md) (the render seam) ·
 [belief](./belief.md) (recognition, disguise) ·
 [identity](./identity.md) (the rungs) · [chat](./chat.md) ·
-[naming slate](../slates/tails/naming-slate.md) (minimal-distinguishing
+[naming slate](../slates/engine/naming-slate.md) (minimal-distinguishing
 rendering — claimed in a docstring for years, **never built**).
 
 ## ⭐ `broadcasting` — the on-air marker (broadcast-ready D9)

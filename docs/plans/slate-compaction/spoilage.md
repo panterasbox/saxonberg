@@ -25,7 +25,7 @@ smoke-cure}.yaml` · `package.json` `lint:perishable` / `lint:pathogens`.
 
 ---
 
-## docs/slates/builds/food-safety-slate.md — 586 → 120 · Status PARTIAL → PARTIAL
+## docs/slates/trades/food-safety-slate.md — 586 → 120 · Status PARTIAL → PARTIAL
 
 The slate's own second status block said it: everything shipped in MR
 !244 except molds. Verified true — and `spoilage.md` carries nearly all of
@@ -72,7 +72,7 @@ attach points are the body.
 
 ---
 
-## docs/slates/builds/fridge-design-pack.md — 491 → 482 · Status PARTIAL → PARTIAL
+## docs/slates/trades/fridge-design-pack.md — 491 → 482 · Status PARTIAL → PARTIAL
 
 Almost entirely unbuilt, and the greps agree: no `ClimateControl`, no
 `PoweredMixin`, no `Coolbox` anywhere (`arcana`'s `ManaPowered` is a
@@ -109,7 +109,7 @@ slate worries about is still real. Only the spoilage prerequisite shipped.
 
 ---
 
-## docs/slates/tails/preservation-slate.md — 462 → 194 · Status PARTIAL → PARTIAL
+## docs/slates/trades/preservation-slate.md — 462 → 194 · Status PARTIAL → PARTIAL
 
 The *mechanism* half shipped whole and the slate said so. What it did
 not say is that several of its own [DECIDED] calls landed in a different
@@ -156,7 +156,7 @@ salt — is the body.
 
 ---
 
-## docs/slates/builds/disease-slate.md — 402 → 342 · Status PARTIAL → PARTIAL
+## docs/slates/engine/disease-slate.md — 402 → 342 · Status PARTIAL → PARTIAL
 
 The growth term shipped, in a different shape than the [DECIDED] section
 designed; `ContagionSpec` did not (zero consumers — the only `contagion`
@@ -194,7 +194,7 @@ matches nothing; `openNeighboursOf` is still `function`-private at
 
 ---
 
-## docs/slates/tails/hearth-and-larder-design-pack.md — 324 → 308 · Status PARTIAL → PARTIAL
+## docs/slates/world/hearth-and-larder-design-pack.md — 324 → 308 · Status PARTIAL → PARTIAL
 
 Both `Left` items verified open: `thermal.md` l.333–336 still calls the
 indoor room-ambient bump *"a follow-on"*; `compost` exists only as a bulk

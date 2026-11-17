@@ -8,7 +8,7 @@ additions. Read this before editing under `lib/wiki/`, `obj/Wiki*`, or
 Design lineage: the wiki requirements + plan docs (the complete design
 and the build carve) were **retired at the pre-merge sweep** — this doc
 superseded both. The open design surface that outlived them is
-[wiki-slate.md](../slates/tails/wiki-slate.md).
+[wiki-slate.md](../slates/platform/wiki-slate.md).
 
 ---
 
@@ -95,7 +95,7 @@ game class opts into.
 
 ### The typed subject
 
-> ⭐ **2026-10-30 → [real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md)** — a
+> ⭐ **2026-10-30 → [real-world-anchors-slate](../slates/platform/real-world-anchors-slate.md)** — a
 > subject's row may carry a Wikidata anchor (is · models · contrasts, with a note on how we differ),
 > rendered as an *in the real world* line here and in `help`, never in-world.
 
@@ -206,7 +206,7 @@ definition. A surface that drops the level on the wire (as
 bug, not a content one.
 
 The epistemic half is the deferred
-[identification-slate](../slates/builds/identification-slate.md) —
+[identification-slate](../slates/engine/identification-slate.md) —
 `analyze X with Y`, real Material chemistry, partial identification,
 misidentification: knowledge as something **earned per viewer** rather
 than revealed by preference. The two are complements and should both
@@ -958,7 +958,7 @@ Three shared substrates the wiki depends on and does not own:
   is the substrate's job. Criteria 69 and 71 belong with it — the
   publish event itself, and its carrying the level of what changed so
   delivery can gate on it. See
-  [notification-slate.md](../slates/builds/notification-slate.md).
+  [notification-slate.md](../slates/client/notification-slate.md).
 
 The one half-criterion: **39** is satisfied for `<image key>`
 resolution and not for a subject-bound page surfacing its subject's

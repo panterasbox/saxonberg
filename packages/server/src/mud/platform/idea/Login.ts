@@ -326,7 +326,7 @@ export default class Login extends LoginBase {
       // deliberately left alone: this is the login path, and its purpose
       // (avoiding a throwaway template row) is real. It is the first
       // entry the census ceiling is allowed to fall by —
-      // docs/slates/builds/instance-addressing-slate.md owns the fix.
+      // docs/slates/tech-debt/instance-addressing-slate.md owns the fix.
       { dataOverlay: data, asIdentityPath: path },
     );
 

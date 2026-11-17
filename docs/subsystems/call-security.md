@@ -1143,7 +1143,7 @@ ungated + sealed when the writers span packs.
 > future gate primitive (interface admission — `FromTemplateMethod` has
 > since shipped, § above)
 > are captured in
-> [the call-security pass slate](../slates/builds/call-security-pass-slate.md)
+> [the call-security pass slate](../slates/tech-debt/call-security-pass-slate.md)
 > — that pass is its own build. The planned
 expansion is **trust-layer policies** (ownership via `ParcelApi`,
 authorship via `ProvenanceApi`, group membership via `GroupApi`) as
@@ -2011,7 +2011,7 @@ a constant, paid per dispatch.
 
 Five changes, none of them the thing the first profile pointed at. The
 full investigation, with the numbers at each step, is
-[call-security-performance-slate.md](../slates/tails/call-security-performance-slate.md).
+[call-security-performance-slate.md](../slates/tech-debt/call-security-performance-slate.md).
 
 1. **⭐ The caller proof is taken per CALL SITE, not per call.**
    `ExecutionContextApi.run` walked the stack on every call to prove its

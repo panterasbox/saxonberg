@@ -319,7 +319,7 @@ the floor and relieved on recovery above it.
 ⚠ An in-place atmosphere flip (a room becoming water under a standing
 body) is still not a trigger; the water's flood answers its own case by
 reconciling its occupants (underwater.md). See
-`docs/slates/tails/respiration-slate.md`.
+`docs/slates/engine/respiration-slate.md`.
 
 ## Voluntary breath control — `inhale` / `exhale`
 

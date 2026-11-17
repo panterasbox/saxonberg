@@ -3,7 +3,7 @@
 Branch `design/slate-cluster-merge`. Procedure:
 `.claude/skills/compact-slate/SKILL.md` § The cluster-merge pass.
 
-**Canonical:** `docs/slates/builds/alignment-slate.md` (343 → 381 lines) —
+**Canonical:** `docs/slates/society/alignment-slate.md` (343 → 381 lines) —
 named as the successor by every other file in the cluster, and the larger
 remaining design by a wide margin.
 
@@ -13,9 +13,9 @@ remaining design by a wide margin.
   already absorbed everything but one unowned block (the DRG
   interdependent-roles / co-op conflict model) and explicitly deferred
   that decision to this pass.
-- `docs/slates/builds/faith-slate.md` (338 lines) — checked for duplicated
+- `docs/slates/society/faith-slate.md` (338 lines) — checked for duplicated
   open design against the canonical. None found.
-- `docs/slates/builds/altar-slate.md` (173 lines) — checked for duplicated
+- `docs/slates/society/altar-slate.md` (173 lines) — checked for duplicated
   open design against the canonical. None found.
 
 ---
@@ -41,11 +41,11 @@ cluster pass).
 
 **Links re-pointed** (outside `docs/slates/README.md` /
 `docs/roadmap.md`, which are the sweep's):
-- `docs/slates/builds/affiliation-slate.md` — table row + *Connections*
+- `docs/slates/society/affiliation-slate.md` — table row + *Connections*
   list entry, both → `./alignment-slate.md`
-- `docs/slates/builds/eternal-university-narrative-slate.md` — the
+- `docs/slates/world/eternal-university-narrative-slate.md` — the
   deferred-alignment-readout citation → `./alignment-slate.md`
-- `docs/slates/builds/eternal-university-slate.md` — the Chapel/Mission
+- `docs/slates/world/eternal-university-slate.md` — the Chapel/Mission
   clergy citation → `./alignment-slate.md`
 
 **Left untouched** (historical / index, not this pass's to edit):

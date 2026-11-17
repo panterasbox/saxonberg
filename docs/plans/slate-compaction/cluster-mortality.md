@@ -5,9 +5,9 @@
 
 ## Cluster
 
-- `docs/slates/builds/mortal-vessel-slate.md` — 195 lines — **canonical**
+- `docs/slates/engine/mortal-vessel-slate.md` — 195 lines — **canonical**
 - `docs/slates/builds/mortality-slate.md` — 154 lines — secondary
-- `docs/slates/builds/end-of-life-slate.md` — 265 lines — **KEPT whole**
+- `docs/slates/society/end-of-life-slate.md` — 265 lines — **KEPT whole**
   (a different subject; link re-points only — see below)
 
 ## Canonical — why mortal-vessel
@@ -163,7 +163,7 @@ left or arrived.
 
 ## Link re-points (every reference to the retired file outside `README.md` / `roadmap.md`)
 
-- `docs/slates/builds/end-of-life-slate.md` — five mentions (l.89, 166,
+- `docs/slates/society/end-of-life-slate.md` — five mentions (l.89, 166,
   175–178, 231–235, 262–263): each now names `mortal-vessel-slate` (and,
   where the target is the vendor question, its `§ Absorbed from
   mortality-slate — The re-embodiment service`), keeping the historical
@@ -181,7 +181,7 @@ left or arrived.
 - `docs/slates/README.md` l.152–153 — **not touched** (the sweep's): its
   `mortality` row now points at a deleted file and its `mortal-vessel` row
   carries the pre-merge `Left`.
-- `docs/slates/builds/combat-experience-slate.md` l.522, 577 — link
+- `docs/slates/engine/combat-experience-slate.md` l.522, 577 — link
   mortal-vessel (the canonical), unaffected.
 
 ## Status block — `mortal-vessel-slate.md`

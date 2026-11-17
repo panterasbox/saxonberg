@@ -346,7 +346,7 @@ every actor is context-derived inside the gated logic.
 
 Two of the livelihood slate's load-bearing decisions are the reason the
 substrate has the shape it has (graduated from
-[livelihood-slate.md](../slates/builds/livelihood-slate.md) § *Load-bearing
+[livelihood-slate.md](../slates/society/livelihood-slate.md) § *Load-bearing
 decisions (the spine)*, items 3 · 5 · 6):
 
 - **The labor market routes fun, it doesn't generate it.** A contract or

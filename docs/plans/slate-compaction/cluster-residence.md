@@ -4,12 +4,12 @@ Branch `design/slate-cluster-merge`. Procedure:
 `.claude/skills/compact-slate/SKILL.md` § The cluster-merge pass. Files in
 scope (line counts at the start of this pass):
 
-- `docs/slates/tails/residence-ladder-design-pack.md` (329)
-- `docs/slates/tails/tenancy-design-pack.md` (285)
-- `docs/slates/tails/dorm-warren-slate.md` (247)
-- `docs/slates/builds/estate-nesting-slate.md` (101)
-- `docs/slates/tails/household-design-pack.md` (425)
-- `docs/slates/builds/bathroom-slate.md` (144)
+- `docs/slates/society/residence-ladder-design-pack.md` (329)
+- `docs/slates/society/tenancy-design-pack.md` (285)
+- `docs/slates/world/dorm-warren-slate.md` (247)
+- `docs/slates/engine/estate-nesting-slate.md` (101)
+- `docs/slates/world/household-design-pack.md` (425)
+- `docs/slates/world/bathroom-slate.md` (144)
 
 Out of cluster, pointers only: `room-condition-design-pack.md` (owns the
 `(actor, target, extent)` attribution constraint), `stewardship-slate.md`

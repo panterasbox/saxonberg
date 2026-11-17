@@ -6,7 +6,7 @@
 # refutes, never biology (lifecycleStates: alive/dead; material flesh;
 # omnivore). The stigmatized death-caste allegory. See
 # docs/staging/eternal-university/npcs/medical-examiner.md (Dr. Vance)
-# and docs/slates/builds/species-expansion-slate.md.
+# and docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/ghulius.png

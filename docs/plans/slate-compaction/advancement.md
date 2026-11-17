@@ -12,7 +12,7 @@ grepped 2026-09-18 against `packages/server/src/mud/lib/advancement/`
 
 ---
 
-## docs/slates/builds/advancement-slate.md — 811 → 644 · Status PARTIAL → PARTIAL
+## docs/slates/society/advancement-slate.md — 811 → 644 · Status PARTIAL → PARTIAL
 
 The substrate half (Catalog · Transcript · `ActSignature` · Competence ·
 conferral · the Dave's-Bar seed) is in code and in `advancement.md`; the
@@ -70,7 +70,7 @@ YAML or controller; no `Law`. The cuts are all in the substrate half.
 
 ---
 
-## docs/slates/builds/college-slate.md — 772 → 771 · Status UNBUILT → UNBUILT
+## docs/slates/society/college-slate.md — 772 → 771 · Status UNBUILT → UNBUILT
 
 Nothing it designs exists — grep: no `Course`, no item generator, no
 `enroll`-as-contract, no exam hall; `HelpCatalogue` is the only
@@ -100,7 +100,7 @@ catalogue-with-browser. Every section is kept.
 
 ---
 
-## docs/slates/builds/education-integration-slate.md — 369 → 370 · Status UNBUILT → UNBUILT
+## docs/slates/society/education-integration-slate.md — 369 → 370 · Status UNBUILT → UNBUILT
 
 No cuts. The second `> **Status: design conversation, captured…**`
 paragraph is one paragraph with the slate's scope in it, so it stays
@@ -122,7 +122,7 @@ paragraph is one paragraph with the slate's scope in it, so it stays
 
 ---
 
-## docs/slates/builds/help-slate.md — 307 → 225 · Status PARTIAL → PARTIAL
+## docs/slates/platform/help-slate.md — 307 → 225 · Status PARTIAL → PARTIAL
 
 Wave 1 is in `help.md`; two things the slate designed shipped in a
 different shape and `help.md` had not stated them: standalone concept
@@ -166,7 +166,7 @@ the taxonomy/mechanics projectors are not in code.
 
 ---
 
-## docs/slates/tails/trade-roster-slate.md — 267 → 268 · Status PARTIAL → PARTIAL
+## docs/slates/trades/trade-roster-slate.md — 267 → 268 · Status PARTIAL → PARTIAL
 
 No body cuts — the roster tables and the gap report are single tables,
 and the only shipped content is rows inside them. The status block was
@@ -203,7 +203,7 @@ not 15 or 13.
 
 ---
 
-## docs/slates/builds/medic-judgment-slate.md — 243 → 244 · Status PARTIAL → PARTIAL
+## docs/slates/trades/medic-judgment-slate.md — 243 → 244 · Status PARTIAL → PARTIAL
 
 No body cuts. The reasoning layer is unbuilt exactly as the slate says:
 `harm.md:523` still reads *dresses a body's worst bleeding wound* and
@@ -229,7 +229,7 @@ audit finding and the inquiry parallel — content, not history — and stays.
 
 ---
 
-## docs/slates/builds/inquiry-slate.md — 212 → 213 · Status PARTIAL → PARTIAL
+## docs/slates/society/inquiry-slate.md — 212 → 213 · Status PARTIAL → PARTIAL
 
 No body cuts. grep: no `Law` class or catalogue, no `predict` verb
 (`predict` matches are prose in `Fade.ts` / `Freshness.ts`), no

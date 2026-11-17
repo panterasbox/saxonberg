@@ -1,6 +1,6 @@
 # Slate compaction ledger — batch `corpo`
 
-Assigned slate: `docs/slates/builds/corpos-slate.md`
+Assigned slate: `docs/slates/society/corpos-slate.md`
 
 Doc-insert allowlist: `docs/subsystems/corpo.md`. Anything belonging in
 another doc goes to this file's *Handoff* section, never into that doc
@@ -32,7 +32,7 @@ pointed to.
 
 ---
 
-## docs/slates/builds/corpos-slate.md — 242 → 163 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/corpos-slate.md — 242 → 163 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## The world frame` (12 lines) — code: `packages/content/corpo-*`

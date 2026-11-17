@@ -33,7 +33,7 @@ the gated `ConditionLogic` singleton at `/platform/idea/api/condition`). Reserve
 > Follow the shipped driver precedent — metabolism, respiration, thermal, and
 > magic all call the body's own `VitalsMixin.afflict()` / `relieve()` directly
 > from their mixin — or add a gated `ConditionApi.afflict` first. See
-> [disease-slate](../slates/builds/disease-slate.md).
+> [disease-slate](../slates/engine/disease-slate.md).
 
 The Api is deliberately **bounded**: internal drivers keep calling the body
 methods directly; it ADDS a producer facade, it does not re-route them.
@@ -672,7 +672,7 @@ floor) whenever the body is in a live `CombatSession` or was harmed within
 `afflict` for trauma/shock). This is the **intent-agnostic** answer to
 combat-logging: intent is undetectable, so we gate on the *situation*,
 identically online, linkdead or logged off. See the
-[absent-body slate](../slates/tails/absent-body-slate.md).
+[absent-body slate](../slates/engine/absent-body-slate.md).
 
 ### The offline carve
 
@@ -738,7 +738,7 @@ documents path identity build, 2026-11-09.)
 > ⭐⭐⭐ **A second operation is a FILE** — the extensible spine is done.
 
 What is still deferred is the **richness**, not the mechanism →
-[surgery-specialty-slate](../slates/builds/surgery-specialty-slate.md):
+[surgery-specialty-slate](../slates/trades/surgery-specialty-slate.md):
 the theatre as a room that matters, the surgical team (anaesthetist +
 assistant), asepsis as a system, instrument grade (the
 `gradeConditionScale(kit)` hook left at 1.0), complications, and elective
@@ -748,7 +748,7 @@ vs unsalvageable amputation.
 post-mortem examination** — the same machinery with its danger
 parameters zeroed (no anaesthesia to give, no blood to lose), where what
 is at stake is the **evidence** rather than the patient. See
-[autopsy-slate](../slates/tails/autopsy-slate.md).
+[autopsy-slate](../slates/trades/autopsy-slate.md).
 
 ### Hygiene and the festering wound
 
@@ -795,7 +795,7 @@ still correct, only less timely.*
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset`.
 - **Combat resolution** — attack verbs, poise, blame ledger,
   `combat.body.*` events, offensive `ActSignature`
-  ([combat-slate.md](../slates/builds/combat-slate.md)); harm
+  ([combat-slate.md](../slates/engine/combat-slate.md)); harm
   provides the substrate combat writes into and the `inflict` door it
   calls.
 - **Instrument + medicine first-aid branches**, fuller consumable-crafting
@@ -826,7 +826,7 @@ still correct, only less timely.*
   the `LocomotionApi` seam the limp rides
 - [slot.md](./slot.md) / [embodiment.md](./embodiment.md) — the worn-
   coverage presence check
-- [combat-slate.md](../slates/builds/combat-slate.md) — the
+- [combat-slate.md](../slates/engine/combat-slate.md) — the
   downstream consumer
 
 ## History
@@ -898,7 +898,7 @@ An external bleed's lost blood lands on the body (`bleedOut` in
 there, with the bleeder recorded on the stain; at
 `BLOOD_DRIP_SEVERITY` a share drips on the floor. A rupture drains the same
 way and stains nothing. Dressings that stay on the wound and are changed
-when soaked are [dressings-slate](../slates/tails/dressings-slate.md).
+when soaked are [dressings-slate](../slates/trades/dressings-slate.md).
 
 ## ⭐⭐ The patient decides (controllers-are-io D11)
 

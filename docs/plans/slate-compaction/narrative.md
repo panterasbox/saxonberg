@@ -1,12 +1,12 @@
 # Slate compaction ledger — batch: narrative
 
-Agent scope: `docs/slates/builds/eternal-university-narrative-slate.md`.
+Agent scope: `docs/slates/world/eternal-university-narrative-slate.md`.
 No subsystem docs in my insert-list (none assigned) — any graduation
 goes to Handoff, verbatim, for the coordinator to place.
 
 ---
 
-## docs/slates/builds/eternal-university-narrative-slate.md — 1072 → 1055 · Status UNBUILT → UNBUILT
+## docs/slates/world/eternal-university-narrative-slate.md — 1072 → 1055 · Status UNBUILT → UNBUILT
 
 This is a story bible for an entirely unauthored arc ("An Honest Count").
 Verified against code: no census/enumerator/deduction-board mechanic

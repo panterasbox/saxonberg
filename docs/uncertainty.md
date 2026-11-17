@@ -244,7 +244,7 @@ almanacs actually sold.
 **Luck as content-only superstition.** Zero mechanical backing. NPCs
 believe it, the wiki argues about it, and a player who keeps records can
 **disprove** it. Same method, opposite answer from the astrology case —
-which is exactly the pairing [discovery-slate](./slates/builds/discovery-slate.md)
+which is exactly the pairing [discovery-slate](./slates/engine/discovery-slate.md)
 already builds with pharma.
 
 Both are compatible; neither requires a Luck field on anything.
@@ -278,7 +278,7 @@ for free.
 
 ⚠ **The essentialism guard.** A moon that modifies **the world** is
 ecology. A moon that modifies **people** is astrology-as-essentialism —
-the exact thing [mind-slate](./slates/builds/mind-slate.md) bans (*"ADHD
+the exact thing [mind-slate](./slates/engine/mind-slate.md) bans (*"ADHD
 casters are good at Fire" is astrology*). Periodic terms attach to
 places, seasons, and populations. Never to a character sheet.
 
@@ -338,7 +338,7 @@ This section is the cash-out, and it is deliberately honest about the
 parts that are load-bearing and unbuilt.
 
 > **The full mechanical design is
-> [tradition-slate.md](./slates/tails/tradition-slate.md)** — objects,
+> [tradition-slate.md](./slates/society/tradition-slate.md)** — objects,
 > verbs, the worked scene, and the failure analysis. This section holds
 > only the rules that constrain it.
 
@@ -358,7 +358,7 @@ slate's failure analysis.
 This section's first pass proposed that a framework is a corpus of
 claims *some true, some false, with nothing marking which*, and that
 authoring convincing false ones was the central content job. **The
-[inquiry](./slates/builds/inquiry-slate.md) design refutes that**: its
+[inquiry](./slates/society/inquiry-slate.md) design refutes that**: its
 predict gate checks a player's number for a novel case against the real
 evaluator, so *you cannot publish a falsehood that survives
 verification*. An authored false claim about the world dies on the first
@@ -421,12 +421,12 @@ stones falling from the sky).[^falseneg] A naturalist who is
 | *what should I do about it?* | the player, from their tenets |
 
 Forums and the wiki **host** the first two arguments; they adjudicate
-neither ([deduction-slate](./slates/builds/deduction-slate.md)'s hard
+neither ([deduction-slate](./slates/world/deduction-slate.md)'s hard
 line — *truth is shown, not argued or voted*).
 
 ⚠ **The real dependency:** all of this rides an **inquiry substrate that
 is designed and not built.** Objects, verbs and the failure analysis are
-in [tradition-slate.md](./slates/tails/tradition-slate.md), which adds no
+in [tradition-slate.md](./slates/society/tradition-slate.md), which adds no
 new collection and no new Api — but is worth nothing without inquiry
 underneath it.
 
@@ -467,7 +467,7 @@ available in a world where the ritual might have been true.
 
 ## ⚠⚠ Where this dies
 
-Full analysis in [tradition-slate.md](./slates/tails/tradition-slate.md).
+Full analysis in [tradition-slate.md](./slates/society/tradition-slate.md).
 The one that belongs in the codex because it constrains *every* system
 here, not just religion:
 
@@ -475,7 +475,7 @@ here, not just religion:
 > author STIPULATED.** A stipulated fact gets datamined once and dies. A
 > computed one moves, goes stale, and must be re-established — the
 > property that makes [the almanac a recurring
-> product](./slates/builds/discovery-slate.md) and the null-law model
+> product](./slates/engine/discovery-slate.md) and the null-law model
 > undatamineable.
 
 The load-bearing risk specific to tradition is that **attention order is
@@ -507,7 +507,7 @@ proposal to add variance *in order to* make a science playable is also a
 proposal to manufacture the substrate for a bypass.
 
 The precedent is already ours. From
-[economy-slate.md](./slates/builds/economy-slate.md):
+[economy-slate.md](./slates/society/economy-slate.md):
 
 > The thing that poisoned Diablo 3's auction house was never the price
 > list — it was **instant, anonymous, fire-and-forget settlement.** List
@@ -640,7 +640,7 @@ copies of one exponential and produced `lib/Decay.ts`. The
 same shape applies here — **a census of *gauges whose rate reads another
 reconcile-on-read quantity, and which of the four answers they use*** —
 and then **census-then-ratchet**. See
-[reconcile-chains-slate](./slates/builds/reconcile-chains-slate.md).
+[reconcile-chains-slate](./slates/tech-debt/reconcile-chains-slate.md).
 
 ## ⭐⭐ What is insurable — derived from Part 1
 
@@ -755,4 +755,4 @@ contain `Math.random` outside tests; **none is on a resolution path.**
     this document's parent (retired 2026-09-29; the surviving claims are
     in [lens-deck-salvage.md](./lens-deck-salvage.md)). The Diablo 3 settlement diagnosis and the
     stalls/exchange rule are ours, from
-    [economy-slate.md](./slates/builds/economy-slate.md).
+    [economy-slate.md](./slates/society/economy-slate.md).

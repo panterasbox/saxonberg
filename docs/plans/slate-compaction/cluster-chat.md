@@ -1,9 +1,9 @@
 # Chat / comms / forums — cluster-merge ledger
 
-Cluster: **chat / comms / forums**. Files: `docs/slates/tails/chat-slate.md`
-(355 lines) · `docs/slates/tails/comms-slate.md` (314) ·
-`docs/slates/tails/forums-slate.md` (252) ·
-`docs/slates/tails/argument-map-slate.md` (143). Procedure:
+Cluster: **chat / comms / forums**. Files: `docs/slates/engine/chat-slate.md`
+(355 lines) · `docs/slates/engine/comms-slate.md` (314) ·
+`docs/slates/platform/forums-slate.md` (252) ·
+`docs/slates/society/argument-map-slate.md` (143). Procedure:
 `.claude/skills/compact-slate/SKILL.md` § *The cluster-merge pass*. Prior
 compaction (not repeated here): `docs/plans/slate-compaction/chat.md`
 (chat + comms), whose *Uncertain* section listed the four overlaps this
@@ -41,7 +41,7 @@ slate exists** (`find docs -iname '*moderat*'` → manifesto images only).
 
 ---
 
-## docs/slates/tails/comms-slate.md — secondary for the channel-shaped items · 314 → 314
+## docs/slates/engine/comms-slate.md — secondary for the channel-shaped items · 314 → 314
 
 ### Conservation table
 
@@ -82,7 +82,7 @@ Not retired: the KEEP body is nearly the whole file.
 
 ---
 
-## docs/slates/tails/forums-slate.md — secondary for the chat-surface extensions · 252 → 246
+## docs/slates/platform/forums-slate.md — secondary for the chat-surface extensions · 252 → 246
 
 ### Conservation table
 
@@ -119,7 +119,7 @@ Not retired: the KEEP body is the whole board design.
 
 ---
 
-## docs/slates/tails/argument-map-slate.md — internal duplicate only · 143 → 137
+## docs/slates/society/argument-map-slate.md — internal duplicate only · 143 → 137
 
 Cross-file: forums-slate cites this file as authoritative for the
 organizer and copies none of its design; nothing moves in either
@@ -142,7 +142,7 @@ direction. The assigned internal duplicate:
 
 ---
 
-## docs/slates/tails/chat-slate.md — owner of the channel-shaped items · 355 → 395
+## docs/slates/engine/chat-slate.md — owner of the channel-shaped items · 355 → 395
 
 ### What it absorbed
 
@@ -216,10 +216,10 @@ inbound links to any moved heading — checked with grep). `language-slate.md`,
 ## `git diff --stat` (self-check, this cluster's files only)
 
 ```
-docs/slates/tails/argument-map-slate.md |  14 +--
-docs/slates/tails/chat-slate.md         |  42 +++++++-
-docs/slates/tails/comms-slate.md        |  12 +--
-docs/slates/tails/forums-slate.md       |  28 +++---
+docs/slates/society/argument-map-slate.md |  14 +--
+docs/slates/engine/chat-slate.md         |  42 +++++++-
+docs/slates/engine/comms-slate.md        |  12 +--
+docs/slates/platform/forums-slate.md       |  28 +++---
 docs/plans/slate-compaction/cluster-chat.md  (new)
 ```
 

@@ -4,7 +4,7 @@
 and layout changes in a design tool that can't read GitLab. It gathers the
 **48 issues filed in the live usability pass of 2026-10-17** (GitLab label
 `origin::ux-pass-2026-10-17`) and the decisions recorded since, mostly in the
-[card-sizes slate](./slates/builds/card-sizes-slate.md). Issue numbers (`#50`)
+[card-sizes slate](./slates/client/card-sizes-slate.md). Issue numbers (`#50`)
 are kept so anything here can be traced back. It leaves out implementation
 detail on purpose.
 
@@ -170,7 +170,7 @@ A card is about one subject. Size is how much of your attention it gets.
    window, and a popped-out card counts as *where your attention is*, so it stays
    live. The motivating case: a streamer parks the stream controls card on a
    monitor that is not captured
-   ([broadcast-ready](./slates/builds/broadcast-ready-slate.md)). Chromeless means
+   ([broadcast-ready](./slates/platform/broadcast-ready-slate.md)). Chromeless means
    an installed app window; a plain popup keeps a minimal address bar.
 
 ### Identity on every card and link

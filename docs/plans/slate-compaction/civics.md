@@ -8,7 +8,7 @@ batch is cuts + re-stamps only. Line numbers below are the ORIGINAL file's.
 
 ---
 
-## docs/slates/builds/legal-code-slate.md — 1640 → 1627 · Status PARTIAL → PARTIAL
+## docs/slates/society/legal-code-slate.md — 1640 → 1627 · Status PARTIAL → PARTIAL
 
 The whole slate is UNBUILT design over a shipped substrate that is not its
 own. Grep (`packages/server/src/mud/**`, `packages/content/**`): no `law`
@@ -90,7 +90,7 @@ rule is a surface over the shipped conviction substrate.
 
 ---
 
-## docs/slates/tails/household-design-pack.md — 443 → 434 · Status PARTIAL → PARTIAL
+## docs/slates/world/household-design-pack.md — 443 → 434 · Status PARTIAL → PARTIAL
 
 Grep: no `householdOf` / `household` anywhere in `packages/server/src/mud`.
 The tenure substrate is live — `ParcelRegistry.grantUse` / `revokeUse` /

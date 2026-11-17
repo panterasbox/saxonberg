@@ -23,7 +23,7 @@ the target's live Composure.
 > be *taught as a college course* — a spell authored off the price
 > list silently makes the curriculum a lie.
 
-Design source: `docs/slates/builds/capability-magic-slate.md`
+Design source: `docs/slates/engine/capability-magic-slate.md`
 Part IV (the locked model). Consumers this build deliberately does NOT
 include: the inquiry substrate (discovery/publishing), the magic-items
 tier (Consumable/BUC), Transform/polymorph — each its own later build

@@ -30,7 +30,7 @@ more words and with no code citations.
 
 ---
 
-## docs/slates/builds/fire-combustion-slate.md — 547 → 128 · Status PARTIAL → PARTIAL
+## docs/slates/engine/fire-combustion-slate.md — 547 → 128 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Intro framing (`the next frontier-physics build…`, `Fire is the

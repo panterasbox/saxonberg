@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch `electricity`
 
 Slates: `docs/slates/tails/electricity-slate.md`,
-`docs/slates/builds/power-utility-slate.md`.
+`docs/slates/trades/power-utility-slate.md`.
 Doc I may insert into: `docs/subsystems/electricity.md` only.
 
 ## Findings (code verification, before cutting)
@@ -80,7 +80,7 @@ Doc I may insert into: `docs/subsystems/electricity.md` only.
 
 ### Superseded — cut, one-line pointer kept
 - `## Open questions` bullet *"Deferred hard: power/circuits/devices..."*
-  — superseded by `docs/slates/builds/power-utility-slate.md`, which now
+  — superseded by `docs/slates/trades/power-utility-slate.md`, which now
   owns this as a full build-sized slate. One-line pointer kept in place.
 
 ### Resolved-open-questions — cut, one-line pointer kept
@@ -123,7 +123,7 @@ Doc I may insert into: `docs/subsystems/electricity.md` only.
 
 ---
 
-## `docs/slates/builds/power-utility-slate.md` — 194 → 182 lines · Status PARTIAL → PARTIAL
+## `docs/slates/trades/power-utility-slate.md` — 194 → 182 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Where the model stands` (9 lines) — restates electricity.md's own

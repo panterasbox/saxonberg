@@ -7,7 +7,7 @@ Write list: `pets.md` · `ranching.md` · `streaming.md` · `location.md`
 
 ---
 
-## docs/slates/builds/pets-slate.md — 1432 → 994 · Status PARTIAL → PARTIAL
+## docs/slates/engine/pets-slate.md — 1432 → 994 · Status PARTIAL → PARTIAL
 
 ⚠ The assignment read this slate's `Left:` as EMPTY and expected ABSORBED.
 It was not empty — the stamp was written `**Left (Wave 2):**`, which the
@@ -135,7 +135,7 @@ The slate is a large PARTIAL. Re-stamped with a plain `**Left:**`.
 
 ---
 
-## docs/slates/builds/lounge-slate.md — 2373 → 2166 · Status PARTIAL → PARTIAL
+## docs/slates/world/lounge-slate.md — 2373 → 2166 · Status PARTIAL → PARTIAL
 
 Most of the body (l.430–2373, *Lounge, revisited*) is unbuilt design for
 exactly the things `Left` names — grep: `pizza` 0 files, `jukebox` 0,

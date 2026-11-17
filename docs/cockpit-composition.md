@@ -4,7 +4,7 @@ A short design reference every cockpit **layout** is built against, so the
 client is one consistent system rather than a pile of bespoke screens.
 Layouts (`world` / `forum` / `livestream-viewer` / `streamer` / `builder` /
 …) are *variations on this grammar*, not exceptions to it. See the
-[client-cockpit slate](./slates/tails/client-cockpit-slate.md) and the
+[client-cockpit slate](./slates/client/client-cockpit-slate.md) and the
 [cockpit subsystem doc](./subsystems/cockpit.md).
 
 ## The laws (truisms every layout obeys)

@@ -3,7 +3,7 @@
 The bottling trade, as a stub: it **fills vessels**. It does not make
 them and it does not make what goes in them — that is the trade-as-
 process rule, and the can-making and refining trades are both gaps
-today (see `docs/slates/builds/aluminium-can-slate.md`).
+today (see `docs/slates/trades/aluminium-can-slate.md`).
 
 Ships: seven mixer + juice materials (the carbonated ones tagged
 `carbonated`), `ice` (frozen water — `meltingPoint`,

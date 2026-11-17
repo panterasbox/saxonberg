@@ -21,7 +21,7 @@ fix.
 
 ---
 
-## docs/slates/tails/host-slot-activities-slate.md — 398 → 410 · Status PARTIAL → PARTIAL
+## docs/slates/engine/host-slot-activities-slate.md — 398 → 410 · Status PARTIAL → PARTIAL
 
 This slate already carries its own **⚠ AUDIT 2026-08-08** correction
 block (added when GitLab #9 was closed against it), which had already

@@ -11,7 +11,7 @@ This began as property build **phase 0a** — title only — and has since grown
 the **use-grant (lease)** half, which is live (see
 [§ `grants[]`](#grants--the-use-grant-lease-and-it-is-live)). Still later
 phases: payment-coupled `sell` and rent economics, and the compute-allowance
-economy (see [property-slate.md](../slates/builds/property-slate.md)).
+economy (see [property-slate.md](../slates/society/property-slate.md)).
 Chattel/possession shipped separately —
 [chattel.md](./chattel.md).
 
@@ -232,7 +232,7 @@ resource allowance, separate from any locality's, and the authority to set
 it is genuinely unresolved because *the executive is the same branch that
 provisions parcels in the first place.* `ParcelRecord.allowance` is inert
 and the allowance cascade is unbuilt, so nothing here decides it — see
-[balance-slate](../slates/builds/balance-slate.md).
+[balance-slate](../slates/society/balance-slate.md).
 
 > **⚠ Area is NEVER derived from room geometry.** `Location.getSizeScale()`
 > is m² as well, but it is a **photometric denominator** (flux ÷ area →
@@ -612,7 +612,7 @@ made it unnecessary and it was deleted (`ownerOf` → `null`).
   base case generalized into `ParcelApi.selfHomeOwnerOf`.
 - [provenance.md](./provenance.md) — the `authoring_events` ledger; authorship
   is credit, orthogonal to title (the un-fusing).
-- [property-slate.md](../slates/builds/property-slate.md) — the design surface
+- [property-slate.md](../slates/society/property-slate.md) — the design surface
   (§A parcel = a Zone + hierarchy, §B separate collection + author≠owner, §K
   dorm = implicit default parcel; and the later phases).
 

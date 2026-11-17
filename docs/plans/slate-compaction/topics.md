@@ -6,7 +6,7 @@ Line numbers below are the ORIGINAL file's (403 lines) unless noted.
 
 ---
 
-## docs/slates/tails/console-filtering-slate.md — 403 → 395 · Status PARTIAL → PARTIAL
+## docs/slates/client/console-filtering-slate.md — 403 → 395 · Status PARTIAL → PARTIAL
 
 This slate had already been through one round of correction (visible
 "Correction (what shipped)" / "Resolved" blockquotes) from whoever built

@@ -5,9 +5,9 @@
 > these designs on … none of it is thorough based on narrative or culture or definitive lore.
 > Anticipating that all the best we can is where this design will live or die."* So these are written
 > **the way an author would write them**, and the **organism-biology model is derived from what they
-> demand**, not the other way round. Seeds: [bestiary-slate](../slates/builds/bestiary-slate.md),
-> [spellbook-slate](../slates/builds/spellbook-slate.md) § 6, and
-> [mana-economy-design-pack](../slates/builds/mana-economy-design-pack.md) Part 11.
+> demand**, not the other way round. Seeds: [bestiary-slate](../slates/world/bestiary-slate.md),
+> [spellbook-slate](../slates/engine/spellbook-slate.md) § 6, and
+> [mana-economy-design-pack](../slates/engine/mana-economy-design-pack.md) Part 11.
 >
 > ⚠ Species paths in the entries are each drafter's suggestion and are **not reconciled** with each
 > other or with the shipped row layout.
@@ -2799,7 +2799,7 @@ should give it another name (see *People and it*).
     something else, some things just are, and each running game community will derive from that
     culture of their own."* The engine never denies content, each realm's polity governs its own, and
     the host is a separate actor with its own legal floor. See
-    [bestiary-slate](../slates/builds/bestiary-slate.md) § 14a.
+    [bestiary-slate](../slates/world/bestiary-slate.md) § 14a.
   - **How a realm handles it, picked:** ⭐ **the base pack ships `goblin` as a person species only,
     with no monster row of the same name.** **Lens 1 chose it.** A goblin who raids *because the
     market is closed* teaches something derivable (raid-or-trade, the reivers). A goblin who raids

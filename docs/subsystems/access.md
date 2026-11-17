@@ -130,7 +130,7 @@ The substrate ships these predicates:
    a human author, which makes **its budget the extent it holds** rather
    than an invented quota, and **the titleholder the author of record**
    for whatever is generated under them. See
-   [content-generation-slate](../slates/builds/content-generation-slate.md).
+   [content-generation-slate](../slates/platform/content-generation-slate.md).
 5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
    True iff `subject` is in `'streamers'`. Gates the livestream
    control plane (the `stream` verb; later scene / lower-third /

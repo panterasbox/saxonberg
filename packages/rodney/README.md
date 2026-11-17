@@ -15,7 +15,7 @@ Saxonberg rings from `docs/design/brand/`, and two of the civic voices
 (Spectral for engraved capitals, Public Sans for chrome). The engine (feed client, scenes, the rules that
 pick them) is platform; the skin is one streamer's, and becomes a theme the
 day a second streamer runs Rodney. See
-[broadcast-ready-slate](../../docs/slates/builds/broadcast-ready-slate.md).
+[broadcast-ready-slate](../../docs/slates/platform/broadcast-ready-slate.md).
 
 ## Overlays
 

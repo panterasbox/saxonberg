@@ -23,7 +23,7 @@ each outside comments). The sampling slate is almost entirely unbuilt.
 
 ---
 
-## docs/slates/builds/mining-slate.md — 1743 → 1069 · Status PARTIAL → PARTIAL
+## docs/slates/trades/mining-slate.md — 1743 → 1069 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block + the *STAGE A SHIPPED* block + *where code disagrees, code wins* (12–53, 42 lines) — history; doc: `mining.md` throughout (the four corrections are all stated there: `RoomWarren`, metres, locality type rows, per-face depletion on the room)
@@ -111,7 +111,7 @@ each outside comments). The sampling slate is almost entirely unbuilt.
 
 ---
 
-## docs/slates/builds/metal-chain-slate.md — 1354 → 744 · Status PARTIAL → PARTIAL
+## docs/slates/trades/metal-chain-slate.md — 1354 → 744 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale *Captured / Status: decided design, pre-requirements* lines (12–15, 4) + the *STAGE A SHIPPED* block (23–52, 30) — history; the framing para (16–22, *this slate owns the supply chain*) is KEPT
@@ -179,7 +179,7 @@ each outside comments). The sampling slate is almost entirely unbuilt.
 
 ---
 
-## docs/slates/builds/rejection-slate.md — 597 → 440 · Status PARTIAL → PARTIAL
+## docs/slates/world/rejection-slate.md — 597 → 440 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the *STAGE A SHIPPED* block (22–50, 29) — history; doc: `mining.md`. The *merged design / Placement DECIDED / three jobs* framing (13–20) KEPT
@@ -219,7 +219,7 @@ each outside comments). The sampling slate is almost entirely unbuilt.
 
 ---
 
-## docs/slates/tails/field-substrate-slate.md — 334 → 243 · Status PARTIAL → PARTIAL
+## docs/slates/engine/field-substrate-slate.md — 334 → 243 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the *STAGE A SHIPPED (metal chain, 2026-09-02)* block (14–32, 19) — history; doc: `mining.md § The geology field`
@@ -253,7 +253,7 @@ each outside comments). The sampling slate is almost entirely unbuilt.
 
 ---
 
-## docs/slates/builds/sampling-and-labs-slate.md — 318 → 316 · Status PARTIAL → PARTIAL
+## docs/slates/trades/sampling-and-labs-slate.md — 318 → 316 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the second status line `> **Status: design conversation, captured. Not requirements.**` (18–19, 2) — the one-status-block rule; the canonical block above it stands

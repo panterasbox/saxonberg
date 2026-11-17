@@ -1,6 +1,6 @@
 # Launch worklist — the guild-derived gap list
 
-> **What this is.** The [guild-slate](./slates/builds/guild-slate.md)
+> **What this is.** The [guild-slate](./slates/society/guild-slate.md)
 > launch roster was audited charter-by-charter (*who pays · which law
 > layer · world-native fantasy?*), and every audited demand anchor
 > points at a system or content pass the world needs. **Guilds
@@ -59,7 +59,7 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
      wants the bellows; tin has chemistry but no ore, which is what keeps
      bronze a later stage; and salt-as-preservation-staple is untouched.
      *Serves: Delvers, Ironwrights.*
-   - **Fishing v1** [T2 — [fishing-slate](./slates/tails/fishing-slate.md)] — the accessible
+   - **Fishing v1** [T2 — [fishing-slate](./slates/trades/fishing-slate.md)] — the accessible
      income floor (the body's rest); first real gameplay consumer of
      weather; drives perishability; the salt-cod interlock with
      mining; the net wave's commons/quota = more polity paper.
@@ -81,7 +81,7 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
    **sinks** (rent, rates) and the residence progression every player
    rides. *Serves: Landwrights; the money supply's drain side.*
    **2026-07-31:** the missing connective tissue is now designed in
-   [stewardship-slate](./slates/builds/stewardship-slate.md) — **land
+   [stewardship-slate](./slates/society/stewardship-slate.md) — **land
    use** (a closed vocabulary typing what a parcel admits; absent from
    the corpus today), the **allowance cascade** (Compact → locality →
    parcel, with the sandbox drawing Compact-direct), the ladder's
@@ -178,21 +178,21 @@ precedents):
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
 - **Preservation / spoilage** [T2 —
-  [preservation-slate](./slates/tails/preservation-slate.md)] — **the
+  [preservation-slate](./slates/trades/preservation-slate.md)] — **the
   keystone deferral of the extraction family.** Mining's salt ("preservation
   is the killer app" [DECIDED]) and fishing ("the natural driver to finally
   build perishability") both point at it and stop. Without it winter is a
   pause not an economy, salt is a rock, the salt-cod route is decorative,
   and the preserving crafting branch has no reason to exist. Small: the
   growth term plus a freshness gauge copying `Wet.ts`.
-- **Disease** [T2 — [disease-slate](./slates/builds/disease-slate.md)] —
+- **Disease** [T2 — [disease-slate](./slates/engine/disease-slate.md)] —
   spans farming / ranching / aquaculture / pets / player health. The
   `contagion` seam is already cut on every shipped `Condition`; the delta is
   a growth term (**shared with preservation — build it there first**) and a
   `ContagionSpec`. *Good husbandry is immunity.* Crops are the first proving
   ground; pets and players last.
 - **The health vertical** [T2/T3 —
-  [health-vertical-slate](./slates/builds/health-vertical-slate.md)] —
+  [health-vertical-slate](./slates/trades/health-vertical-slate.md)] —
   clinical practice, public health, and the teaching seam, over disease +
   harm. The College of Physic's demand anchor already names *polity
   public-health paper*; the demo slate's **aid post** is its stage. The
@@ -205,7 +205,7 @@ precedents):
   **2026-07-30: the shared conventions are now DECIDED** (density dial ·
   custody = `ChattelMixin` on the Creature stack · one family-wide clock ·
   two yield shapes) — see
-  [ranching-slate](./slates/builds/ranching-slate.md). What's left open is
+  [ranching-slate](./slates/trades/ranching-slate.md). What's left open is
   ranching's own content design (yield feel, herd UX, the breeding game).
 - **The procgen doctrine capture** — due when the first extraction
   vertical builds its generation grammar (mining/fishing). The
@@ -236,7 +236,7 @@ precedents):
 
 ## Cross-references
 
-[guild-slate](./slates/builds/guild-slate.md) (the roster + audit this
+[guild-slate](./slates/society/guild-slate.md) (the roster + audit this
 list derives from) · [slates/README.md](./slates/README.md) (the
 by-area catalogue) · [build-menu.md](./build-menu.md) (the size-ordered
 session menu — this list is the priority axis it deliberately isn't) ·

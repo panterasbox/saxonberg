@@ -1,12 +1,12 @@
 # Wizard / access — cluster-merge ledger
 
 Cluster: **wizard / access**. Files:
-`docs/slates/builds/wizard-axis-cleanup-slate.md` (183 lines) ·
-`docs/slates/builds/wizard-duty-slate.md` (335) ·
-`docs/slates/builds/wizard-bar-slate.md` (233) ·
-`docs/slates/tails/access-slate.md` (329) ·
-`docs/slates/builds/call-security-pass-slate.md` (231) ·
-`docs/slates/builds/agency-slate.md` (215). Procedure:
+`docs/slates/tech-debt/wizard-axis-cleanup-slate.md` (183 lines) ·
+`docs/slates/society/wizard-duty-slate.md` (335) ·
+`docs/slates/society/wizard-bar-slate.md` (233) ·
+`docs/slates/platform/access-slate.md` (329) ·
+`docs/slates/tech-debt/call-security-pass-slate.md` (231) ·
+`docs/slates/engine/agency-slate.md` (215). Procedure:
 `.claude/skills/compact-slate/SKILL.md` § *The cluster-merge pass*.
 Prior compaction passes (done, not repeated; each carries the per-section
 code verification): `unlinked-7.md` (wizard-axis-cleanup), `unlinked-4.md`
@@ -57,7 +57,7 @@ through agency.
 
 ---
 
-## docs/slates/builds/wizard-duty-slate.md — secondary at the census seam · canonical at the duty seam (336 → 310)
+## docs/slates/society/wizard-duty-slate.md — secondary at the census seam · canonical at the duty seam (336 → 310)
 
 Secondary to `wizard-axis-cleanup-slate` for ONE section (§ *Axis
 hygiene*); canonical for everything else (wizard-bar's parent). Moves
@@ -101,7 +101,7 @@ diffed: identical.
 ### Link re-points outside the cluster
 - `docs/subsystems/residence.md:225` — *"the re-gate to the agency axis belongs to [wizard-duty-slate § Axis hygiene]"* → now points at `wizard-axis-cleanup-slate` (§ *The inventory*, the absorbed live-defect subsection). The only inbound link to a moved section (`grep -rn "Axis hygiene\|probable live defect"` over `docs/`).
 
-## docs/slates/builds/wizard-bar-slate.md — secondary (233 → 239)
+## docs/slates/society/wizard-bar-slate.md — secondary (233 → 239)
 
 Secondary to `wizard-duty-slate` (its self-declared *parent*). Its own
 subject — the bar as an institution — is KEPT whole. Two restatements
@@ -133,7 +133,7 @@ counted and why the size changed.
 - Size: a build → **a wave**. Re-derived from what remains once the record is counted with the parent: an authored standard, a roster read over the wizards group (`AccessRegistry` members), a hearing process that rides the courts/institutions slates, and a recommendation feeding a `wizard revoke` that already ships. ⚠ Coordinator may override — the bar's own body argues the record is *"engine-physics, below the constitution"*, and if the coordinator prefers the record to stay counted here the size returns to *a build*.
 - Status line unchanged (*no bar, no roster, no complaint process, no break-glass record* is still true).
 
-## docs/slates/builds/wizard-axis-cleanup-slate.md — canonical at the census seam (183 → 233)
+## docs/slates/tech-debt/wizard-axis-cleanup-slate.md — canonical at the census seam (183 → 233)
 
 Receives; nothing cut. Grew by 50 lines: 46 lines of insertion
 (the two `### Absorbed from wizard-duty-slate — …` subsections under
@@ -160,7 +160,7 @@ headings/blank lines) and a `Left` that grew by two lines.
 
 ---
 
-## docs/slates/tails/access-slate.md — KEEP (329 → 337)
+## docs/slates/platform/access-slate.md — KEEP (329 → 337)
 
 Its own subject: the `can()` seam and its unbuilt action-level
 consumers. No section restates a wizard-slate section; the wizard
@@ -190,7 +190,7 @@ them.
 
 Status block unchanged — `Left` still matches the body.
 
-## docs/slates/builds/call-security-pass-slate.md — KEEP (231 → 235)
+## docs/slates/tech-debt/call-security-pass-slate.md — KEEP (231 → 235)
 
 Its own subject: trust = TEMPLATE + FUNCTION, the `@Audited`
 permit-and-watch rail, the ungated-and-sealed set. Nothing here
@@ -208,7 +208,7 @@ sibling is `access-slate § Audit (a free win)`.
 
 Status block unchanged.
 
-## docs/slates/builds/agency-slate.md — KEEP (215 → 221)
+## docs/slates/engine/agency-slate.md — KEEP (215 → 221)
 
 Its own subject: principal/agent in the execution context. ⚠ *Code-trust
 NEVER flows through agency* stays here as the agency guard (it is not a

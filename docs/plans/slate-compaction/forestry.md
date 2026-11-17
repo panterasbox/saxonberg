@@ -4,7 +4,7 @@ Held out of the big pass because its build was in flight; run
 2026-09-23, after the `trade-forestry` pack merged (MR !262, 2026-09-18).
 Subsystem doc writable by this pass: `docs/subsystems/forestry.md` only.
 
-## `docs/slates/tails/forestry-slate.md` — 638 → 390 lines · Status PARTIAL → PARTIAL
+## `docs/slates/trades/forestry-slate.md` — 638 → 390 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 

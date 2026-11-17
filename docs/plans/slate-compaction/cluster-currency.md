@@ -26,7 +26,7 @@ untouched** — its own subject, no merge.
 
 ---
 
-## docs/slates/tails/multi-currency-slate.md — 221 → 164 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/multi-currency-slate.md — 221 → 164 lines · Status PARTIAL → PARTIAL
 
 ### Conservation table
 
@@ -61,7 +61,7 @@ pass. File re-stamped, not deleted.
 
 ---
 
-## Canonical re-stamp — docs/slates/builds/currency-slate.md — 225 → 269 lines · Status PARTIAL → PARTIAL
+## Canonical re-stamp — docs/slates/society/currency-slate.md — 225 → 269 lines · Status PARTIAL → PARTIAL
 
 Gained one new heading (`## Absorbed from multi-currency-slate — Half B
 mechanics`, 32 lines) and one new sub-bullet under its existing Open
@@ -92,7 +92,7 @@ kept headings. No file outside the cluster was touched.
 
 ---
 
-## docs/slates/builds/money-integrity-slate.md — 250 → 250 lines (no edits)
+## docs/slates/tech-debt/money-integrity-slate.md — 250 → 250 lines (no edits)
 
 Read whole; headings checked individually against both other files'
 subject matter (second issuer, peg, money-changer, acceptance lists,

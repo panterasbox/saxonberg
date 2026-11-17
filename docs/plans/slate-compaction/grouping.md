@@ -1,9 +1,9 @@
 # Slate-compaction ledger — batch: grouping
 
 Insert-doc (may write): `docs/subsystems/grouping.md`
-Slate: `docs/slates/builds/affiliation-slate.md`
+Slate: `docs/slates/society/affiliation-slate.md`
 
-## `docs/slates/builds/affiliation-slate.md` — 166 → 127 lines · Status PARTIAL → PARTIAL
+## `docs/slates/society/affiliation-slate.md` — 166 → 127 lines · Status PARTIAL → PARTIAL
 
 Verified against code: `packages/server/src/mud/platform/idea/GroupRegistry.ts`,
 `packages/server/src/mud/lib/party/{Party,PartyGroupProvider,PartyMember,PartyRecord}.ts`,

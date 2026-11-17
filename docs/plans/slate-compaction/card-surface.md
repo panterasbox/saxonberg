@@ -31,7 +31,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/client-slate.md — 1205 → 208 · Status PARTIAL → PARTIAL
+## docs/slates/client/client-slate.md — 1205 → 208 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second + third status blockquotes *"design surface for a multi-wave client cycle"* / *"server subsystem work stops after the ranged build"* (24–38, 15) — history; S1 shipped (`messaging.md`, `topics.md`, `mql-subscription.md`), every track below shipped
@@ -192,7 +192,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/client-cockpit-slate.md — 796 → 397 · Status PARTIAL → PARTIAL
+## docs/slates/client/client-cockpit-slate.md — 796 → 397 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the narrative *"**Status.** Design surface staked out…"* paragraph (22–32, 11) — history; the current block covers it
@@ -253,7 +253,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/client-shell-slate.md — 665 → 490 · Status PARTIAL → PARTIAL
+## docs/slates/client/client-shell-slate.md — 665 → 490 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the two older status blockquotes *"Track A lead SHIPPED"* / *"shape proposed"* (10–42, 33) — history; the current block + the kept `## Principle` carry the thesis
@@ -294,7 +294,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/social-inspection-slate.md — 340 → 196 · Status PARTIAL → PARTIAL
+## docs/slates/engine/social-inspection-slate.md — 340 → 196 · Status PARTIAL → PARTIAL
 
 ⚠ Everything this slate designed shipped (`who.yaml` with `--here`/`--friends`/`--country`, `profile.yaml` with `finger`, `score.yaml` with `me`, `WhoController.ts`, `ProfileController.ts`, `ProfileLogic.ts` behind `SocialApi.composeRow/composeCard`, `privacy.showStatus` on `NotifyPolicy.ts:164`, the `who` card row, the new-arrival badge) — and **no subsystem doc states the disclosure model.** `social-graph.md` has `who` only as a Liquid variable and the sandbox roster-row note; `card-surface.md` has the `who` card row. The design paragraphs go to Handoff → `social-graph.md` verbatim; the slate carries a pointer to this ledger.
 

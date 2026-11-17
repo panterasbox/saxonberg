@@ -138,7 +138,7 @@ reporter strapped an iPhone to his forehead and sold video of his own chores.
 |---|---|
 | Shotton: a world model must understand physics, cause and effect, and how people respond | Our design brief, word for word. The difference is method (below) |
 | Cameron: predict the next frame; it should *look and feel real* | We derive, not predict: every outcome traces to a rule a player can learn and the polity can amend (lens 1, a derivable world) |
-| Niantic: players' play became robot training data, unknown to them | The measurement doctrine: *the feed hides the measurement; the mirror shows you* ([measurement.md](./measurement.md)); the sponsorship guardrail: no player data is sold, ever ([sponsorship-slate](./slates/builds/sponsorship-slate.md) § 3) |
+| Niantic: players' play became robot training data, unknown to them | The measurement doctrine: *the feed hides the measurement; the mirror shows you* ([measurement.md](./measurement.md)); the sponsorship guardrail: no player data is sold, ever ([sponsorship-slate](./slates/platform/sponsorship-slate.md) § 3) |
 | Data gig work at a measly payout | Labor standing: contribution recorded and turned into voice ([influence.md](./subsystems/influence.md)); *labor, not producer* |
 
 **⭐⭐ Our response.** *Their world models optimize for looking real; ours is built

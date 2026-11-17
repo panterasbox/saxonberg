@@ -10,8 +10,8 @@ with a build agent, at least the first pass. Once we have some foundation laid d
 more articles with just a documentation agent."* This build lays that foundation: a public page anyone
 can be linked to, the real-world anchor every page wants, packs able to ship their own pages, and one
 trade written end to end so the page shapes are settled for everything after. Seeding slates:
-[wiki-content-slate](../slates/builds/wiki-content-slate.md),
-[real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md); the wiki itself is
+[wiki-content-slate](../slates/platform/wiki-content-slate.md),
+[real-world-anchors-slate](../slates/platform/real-world-anchors-slate.md); the wiki itself is
 [wiki.md](../subsystems/wiki.md).
 
 ## What already exists
@@ -30,7 +30,7 @@ trade written end to end so the page shapes are settled for everything after. Se
 - **The coverage rule** — every path a pack ships under a claimed root must lie under a claim of that
   pack or a host, wiki pages included.
 - **`help`'s REST routes** — read-only, all behind `requireAuth` today.
-- **The deep-link intent route** is designed ([deep-links-slate](../slates/builds/deep-links-slate.md))
+- **The deep-link intent route** is designed ([deep-links-slate](../slates/client/deep-links-slate.md))
   and **not built**; its intents include *read*.
 - **Sericulture** — the trade, its rearing tray, the disease nobody can see, the cocoon's deadline,
   selection by `R = h²S`, the reel (fishing's verb), the silk house
@@ -53,17 +53,17 @@ written as the template for every other.
 
 - **Writing the other trades' pages** → documentation agents after this build, against the pilot's
   shapes.
-- **Material pages** → after the [material-decomposition build](../slates/builds/material-decomposition-slate.md),
+- **Material pages** → after the [material-decomposition build](../slates/tech-debt/material-decomposition-slate.md),
   so they are written against mixins, not 347 rows.
 - **DBpedia derivation and the external-catalog crosswalk candidates** →
-  [real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md) § 6.
+  [real-world-anchors-slate](../slates/platform/real-world-anchors-slate.md) § 6.
 - **An authoring tool for finding Wikidata ids** → the anchors slate § 7; the pilot's ids are found by
   hand.
 - **Ingesting Wikidata data into rows** → the anchors slate, when a seeding pass needs it.
 - **The deep links' other intents** (watch, visit, join, claim, invite) →
-  [deep-links-slate](../slates/builds/deep-links-slate.md).
+  [deep-links-slate](../slates/client/deep-links-slate.md).
 - **A static export of the wiki** → nowhere, deliberately (stale, no live panels, CI minutes).
-- **Progress-gated reveals** → [wiki-slate](../slates/tails/wiki-slate.md) Q6.
+- **Progress-gated reveals** → [wiki-slate](../slates/platform/wiki-slate.md) Q6.
 
 ## Placement
 
@@ -182,9 +182,9 @@ None — nothing here depends on game time.
 
 ## Cross-references
 
-- [wiki-content-slate](../slates/builds/wiki-content-slate.md) ·
-  [real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md) ·
-  [deep-links-slate](../slates/builds/deep-links-slate.md) ·
-  [material-decomposition-slate](../slates/builds/material-decomposition-slate.md)
+- [wiki-content-slate](../slates/platform/wiki-content-slate.md) ·
+  [real-world-anchors-slate](../slates/platform/real-world-anchors-slate.md) ·
+  [deep-links-slate](../slates/client/deep-links-slate.md) ·
+  [material-decomposition-slate](../slates/tech-debt/material-decomposition-slate.md)
 - [wiki.md](../subsystems/wiki.md) · [content-packs.md](../subsystems/content-packs.md) ·
   [sericulture.md](../subsystems/sericulture.md) · [help.md](../subsystems/help.md)
