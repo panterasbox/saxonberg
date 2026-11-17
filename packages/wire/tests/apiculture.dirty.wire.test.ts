@@ -147,16 +147,16 @@ async function say(s: Session, text: string): Promise<CommandResult> {
   } catch (err) {
     if (!/raised a PROMPT/.test(String(err))) throw err;
     const pending = await s.awaitPrompt(5_000);
-    const payload = (
-      pending as unknown as {
-        payload?: {
+    // ⚠ The prompt frame carries `promptId` and `outcome` at the TOP level
+    // (the cleanliness lesson); an older shape nested them in `payload`.
+    type PromptFrame = {
           promptId?: string;
           outcome?: {
             notes?: Array<{ matches?: Array<{ stuffId?: string }> }>;
           };
         };
-      }
-    ).payload;
+    const frame = pending as unknown as PromptFrame & { payload?: PromptFrame };
+    const payload = frame.payload?.promptId ? frame.payload : frame;
     const id = payload?.promptId;
     // ⚠⚠ **An `mqlObject` prompt wants the stuffId, not an index.**
     // `PromptLogic.handleResponse` does `StuffApi.findById(response)`, so
@@ -255,18 +255,25 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
   it('⚠⚠ the keeper buys a LIGHT first, because the world has nights', async () => {
     // The shop floor and the valley both read *"it is pitch dark"* at the
     // wrong hour, and the tell of an unlit place is every object reading
-    // "something". A player walking ten miles after dark buys a lantern;
+    // "something". A player walking ten miles after dark buys a light;
     // so does this one, and the store sells them, which is the whole
     // reason that line is on the counter.
+    //
+    // ⚠ (soak repair 2026-11-17) A TORCH, not the lantern: the fire build
+    // made a lamp need fuel, the store sells its lantern dry and sells no
+    // oil, so `light lantern` answers `no-fuel` and the whole valley was
+    // walked in the dark (the cherries and the super read "something").
+    // A torch IS its fuel — its bed ships charged — and burns for a couple
+    // of game hours, far longer than this file runs.
     //
     // ⚠ The balance is NOT read here: `bank` is not afforded on a shop
     // floor (*"I don't understand 'bank'"*) — the account lives at the
     // banking hall, which is where the funding happened. What proves the
     // money arrived is that the purchases below go through.
-    const lamp = await say(k, 'buy lantern');
+    const lamp = await say(k, 'buy torch');
     expect(refusedFor(lamp)).toBeNull();
-    expectOk(await say(k, 'light lantern'));
-    expect(await carried(k)).toMatch(/lantern/i);
+    expectOk(await say(k, 'light torch'));
+    expect(await carried(k)).toMatch(/torch/i);
   }, 300_000);
 
   it('⭐⭐ the general store sells the whole kit — and PRICES it', async () => {
@@ -476,20 +483,20 @@ suite('⭐ the acts are all the platform’s, except one', () => {
 
   it('⚠ a hive is not a cupboard — it refuses what does not belong in it', async () => {
     // The refusal is where the object says what it is for. ⚠ The gloves
-    // are WORN by now, so the lantern is the honest probe: something
-     // carried, ordinary, and no business being in a beehive.
-    await say(k, 'put lantern in hive');
+    // are WORN by now, so the torch is the honest probe: something
+    // carried, ordinary, and no business being in a beehive.
+    await say(k, 'put torch in hive');
     // ⚠⚠ Asserted on the WORLD, not on the note. `canAddContainable`'s
     // veto throws a `ContainmentError` inside the chokepoint and `put`
     // turns it into an envelope this helper does not read — the unit
     // suite proves the veto fires; what only a live world can say is
-    // whether the lantern ended up in the hive. *What is solid is the
+    // whether the torch ended up in the hive. *What is solid is the
     // WORLD* — the extraction drive's own lesson.
-    const inside = await k.query('here:i:hive:i:lantern', {
+    const inside = await k.query('here:i:hive:i:torch', {
       fields: ['displayName'],
     });
-    expect(inside.length, 'a hive took a lantern').toBe(0);
-    expect(await carried(k), 'the lantern is still in hand').toMatch(/lantern/i);
+    expect(inside.length, 'a hive took a torch').toBe(0);
+    expect(await carried(k), 'the torch is still in hand').toMatch(/torch/i);
   }, 120_000);
 
   it('⭐⭐ 12. `rob` is the trade’s ONE verb, and out of the flow the refusal is the SEASON’s', async () => {
@@ -504,7 +511,25 @@ suite('⭐ the acts are all the platform’s, except one', () => {
     expect(reason, `rob answered '${reason}'`).not.toBe('unknown-verb');
     expect(reason).not.toBe('not-producing');
     expect(reason).not.toBe('no-such-tap');
-    if (reason === null) expect(await carried(k)).toMatch(/comb/i);
+    if (reason !== null) return;
+    // ⚠ (soak repair 2026-11-17) No rejection note is NOT a take. A shut
+    // SEASON is information, not a refusal: `TapActController` says it in
+    // the inform voice with no `controller-rejected` note, so `reason` is
+    // null for a take AND for a closed season. Tell them apart by what was
+    // SAID — the take lifts frames, the season says so — and a take must
+    // leave comb in hand.
+    const said = (await out.said()).replace(/<[^>]*>/g, '');
+    const took = /frame/i.test(said);
+    const closed =
+      /season|out of the flow|in bloom|nothing out there|too cold|too warm|nothing left to give/i.test(
+        said,
+      );
+    expect(took || closed, `rob said neither a take nor a season: ${said}`)
+      .toBe(true);
+    if (took) {
+      await settle(k, out);
+      expect(await carried(k), 'a take leaves comb in hand').toMatch(/comb/i);
+    }
   }, 120_000);
 
   it('⭐ `split` rides the platform’s verb with no registration, and refuses honestly', async () => {
@@ -642,9 +667,9 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
       await chandler.drainProse();
       // ⚠⚠ A QUERY, not prose — and the master merge taught it. The fire
       // build made a lamp need fuel and sells the general store's lantern
-      // DRY, so this file's own "buy a LIGHT first" checkpoint is red on
-      // master (`light lantern` → `no-fuel`) and every session after it
-      // walks in the dark. A prose read then returns *"it is pitch dark.
+      // DRY, so this file's own "buy a LIGHT first" checkpoint went red
+      // (`light lantern` → `no-fuel`; it buys a torch now) and every
+      // session after it walked in the dark. A prose read then returns *"it is pitch dark.
       // You can make out no…"*, which tests the light and not the world.
       //
       // ⚠ And the query is not light-proof either — `here:i` is

@@ -570,6 +570,29 @@ suite('⭐ 13 — wear a crucible', () => {
   }, 7_200_000);
 });
 
+/**
+ * ⭐ The furnace's LINING, in its own words: every sentence of a read that
+ * names its linings. A reline is asserted on these and nothing else — the
+ * whole read changes when the kiln merely dries out ("It is soaked
+ * through"), and soak run 2026-11-17 passed `not.toEqual(worn)` on exactly
+ * that while the lining had not been touched.
+ */
+function liningWords(read: string): string {
+  return (read.match(/[^.]*\blinings?\b[^.]*\./gi) ?? []).map((s) => s.trim()).join(' ');
+}
+
+/**
+ * The `relines` brain's threshold: a keeper relines only below
+ * `ceramics.lining.relineBelow` (0.4 —
+ * packages/content/trade-ceramics/src/behavior/relines.ts `wornThin`).
+ */
+const RELINE_BELOW = 0.4;
+
+/** The number an `eval` answered (`a brick kiln: 0.36…`). */
+function evalNumber(said: string): number {
+  return Number(/(-?[0-9.]+)\s*$/.exec(said)?.[1] ?? NaN);
+}
+
 suite('⭐ 14 — the keeper does it', () => {
   it('the glasshouse kiln, worn and left, is relined by its keeper with no player present', async () => {
     // ⚠ The roster tick runs only for a LOADED business: visit the
@@ -591,13 +614,17 @@ suite('⭐ 14 — the keeper does it', () => {
     const fresh = await examine('kiln');
     // ⚠ No ';' in an eval line (the command line splits on it), and `self`
     // is the --on target (an arrow's `this` is not).
-    await say(
-      "eval --parcel /world/terminus/rejection --on kiln (Array.from({ length: 20 }).forEach(() => self.wearLine('lining', 1)), self.liningHealth())",
+    const health = evalNumber(
+      await say(
+        "eval --parcel /world/terminus/rejection --on kiln (Array.from({ length: 20 }).forEach(() => self.wearLine('lining', 1)), self.liningHealth())",
+      ),
     );
+    // Worn past the keeper's threshold, or his brain is rightly idle.
+    expect(health, 'the lining worn below the keeper\'s threshold').toBeLessThan(RELINE_BELOW);
     const worn = await examine('kiln');
     expect(worn, 'the kiln worn').toMatch(/lining/i);
-    expect(worn, 'the kiln worn').toMatch(/worn|thin|burnt through/i);
-    expect(worn).not.toEqual(fresh);
+    expect(liningWords(worn), 'the kiln worn').toMatch(/worn|thin|burnt through/i);
+    expect(liningWords(worn)).not.toEqual(liningWords(fresh));
     // The keeper takes one beat (fired from here: `--on` finds the keeper
     // where the wizard stands), then nobody is here — the character goes to
     // the Delight, and the clock moves at most two hours, an hour at a time.
@@ -611,7 +638,9 @@ suite('⭐ 14 — the keeper does it', () => {
       await goTo(GLASSHOUSE);
       relined = await examine('kiln');
     }
-    expect(relined, 'the keeper relined it').not.toEqual(worn);
-    expect(relined).not.toMatch(/burnt through|worn thin|worn through/i);
+    // ⭐ On the LINING's words, never the whole read (see `liningWords`).
+    expect(liningWords(relined), 'the keeper relined it').not.toEqual(liningWords(worn));
+    expect(liningWords(relined), 'the keeper relined it').toMatch(/linings/i);
+    expect(liningWords(relined)).not.toMatch(/burnt through|worn thin|worn through/i);
   }, 7_200_000);
 });

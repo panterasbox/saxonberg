@@ -429,7 +429,9 @@ suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
   it('⭐ `pour pail into vat`; `put vat on hearth` sets it on the fire', async () => {
     await doing(k, 'pour me:i:pail into vat');
     // `heat <pot>` retired (controller liquidity W7c): a vessel that is not
-    // a build is SET ON the fire, which is `put`.
+    // a build is SET ON the fire, which is `put` — and `put` sets down what
+    // you HOLD (`scope: inventory`), so the vat is lifted first.
+    await doing(k, 'get vat');
     const heat = await doing(k, 'put vat on hearth');
     expect(heat).toMatch(/set .* on|fire|hearth/i);
   });
@@ -491,10 +493,14 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     const drawn = await doing(k, 'pour pan into me:i:pail');
     note(`skim: ${drawn}`);
     const pail = await read(k, 'look me:i:pail');
-    expect(pail).toMatch(/thin|blue|skim/i);
+    expect(pail).toMatch(/It holds thin and faintly blue/i);
     const pan = await read(k, 'look pan');
     note(`look pan (skimmed) → ${pan}`);
-    expect(pan).toMatch(/cream|yellow|rich/i);
+    // ⚠ The CONTENTS line, never the prose: the pan's own description says
+    // *"while the cream comes up"*, which matched `/cream/` on a pan still
+    // holding skim. Cream reads as its appearance (`cream.yaml`).
+    expect(pan).toMatch(/It holds thick, rich and pale yellow/i);
+    expect(pan).not.toMatch(/It holds thin and faintly blue/i);
   });
 
   it('⭐⭐ the churn, carried down where it is cool, breaks the cream into butter', async () => {
@@ -509,8 +515,10 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     const t = await kelvinOf(k, 'churn');
     note(`cream in the churn at ${t} K`);
     const churned = await doing(k, 'churn');
-    expect(churned).toMatch(/come|butter|thump/i);
-    expect(churned).not.toMatch(/will not come|greasy/i);
+    // ⚠ Only the break: *"nothing comes of it. Only cream will churn."*
+    // matched `/come/` on a churn of skim.
+    expect(churned).toMatch(/The butter has come/i);
+    expect(churned).not.toMatch(/will not come|greasy|Only cream will churn/i);
   });
 
   it('⭐ `pour churn into can` — buttermilk; the butter stays', async () => {
@@ -523,7 +531,9 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     note(`buttermilk: ${drawn}`);
     const churn = await read(k, 'look churn');
     note(`look churn (drawn) → ${churn}`);
-    expect(churn).toMatch(/run out|dregs|butter|gold/i);
+    // The contents line: the churn's prose *"smell of old butter"* matched
+    // `/butter/` on an empty churn.
+    expect(churn).toMatch(/It holds pale gold and close-grained/i);
   });
 });
 
@@ -556,7 +566,8 @@ suite('5. milk left warm turns; milk in the cheese room keeps', () => {
     await doing(k, 'pour churn into butter-crock');
     const crock = await read(k, 'look butter-crock');
     note(`look butter-crock → ${crock}`);
-    expect(crock).toMatch(/gold|butter|grain/i);
+    // The contents line: a BUTTER crock's name matched `/butter/` empty.
+    expect(crock).toMatch(/It holds pale gold and close-grained/i);
     // Left on the creamery floor for the cook to collect.
     await doing(k, 'drop butter-crock');
   });
@@ -654,6 +665,8 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     // The whole pail: the vat takes 25 L, and a pail left half full is a
     // pail that cannot be emptied on a wet floor.
     await doing(k, 'pour me:i:pail into vat');
+    // `put` sets down what you hold: lift the vat onto the fire.
+    await doing(k, 'get vat');
     await doing(k, 'put vat on hearth');
     let t = await kelvinOf(k, 'vat');
     for (let i = 0; i < 40 && t < 362; i++) {
@@ -859,14 +872,31 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
 suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () => {
   let stranger: Session;
 
-  it('⭐ a cow milked by hands nine hours unwashed', async () => {
+  it('⭐ a cow milked by hands fouled in the byre and never washed', async () => {
     // ⚠ The ewe's milk is spilled in the yard: a floor already holding a
     // puddle of another milk refuses a second (a bulk finding).
     await goTo(YARD);
     await emptyPail();
     await goTo(BYRE);
+    // ⚠ There is no hands clock (cleanliness W0 retired it): a hand is as
+    // dirty as the last acts left it. A cow's take puts a share of the
+    // byre floor's manure on the milker's hands AFTER the take
+    // (`Producing.soilTheTaker`), and the milk is inoculated only by a
+    // hand already past the dirty threshold (`stampTheHand`). So the
+    // hands are fouled the dairy's own way — milking other cows first,
+    // unwashed — until they read filthy.
+    let me = await read(k, 'look me');
+    for (const cow of [0, 4, 2]) {
+      if (/hands are filthy/i.test(me)) break;
+      await doing(k, `draft ${cow} from dairy`);
+      await act(k, 'milk cow into me:i:pail');
+      await doing(k, 'return cow');
+      await emptyPail();
+      me = await read(k, 'look me');
+    }
+    note(`look me (hands, before the milking) → ${me}`);
+    expect(me).toMatch(/hands are filthy/i);
     await doing(k, 'draft 3 from dairy');
-    await advance('9 hours');
     const milked = await doing(k, 'milk cow into me:i:pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     await doing(k, 'return cow');

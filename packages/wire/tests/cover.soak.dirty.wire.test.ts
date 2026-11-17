@@ -180,8 +180,12 @@ async function advance(seconds: number): Promise<void> {
   let left = seconds;
   while (left > 0) {
     const step = Math.min(left, 10 * DAY);
-    // ⭐ And it DRINKS. A logged-in body's clock runs through a jump.
-    if (park && step >= DAY) await drink();
+    // ⭐ And it DRINKS, and EATS. A logged-in body's clock runs through a
+    // jump.
+    if (park && step >= DAY) {
+      await drink();
+      await eat();
+    }
     const { before, after } = await advanceWorldClock(`${Math.max(1, Math.round(step / 60))} minutes`);
     expect(after - before, 'world-time did not move').toBeGreaterThan(step * 0.9);
     left -= step;
@@ -226,6 +230,18 @@ async function drink(): Promise<void> {
   await act(p, 'drink standpipe');
   await act(p, 'drink standpipe');
   if (back && back !== SQUARE) await goTo(back);
+}
+
+/**
+ * A ration off the general store's counter, eaten there. ⭐ A body that
+ * goes the year unfed has nothing in it by the winter: soak run on
+ * 2026-11-17 could not lift one 25 kg cut of hay (`too-heavy-to-lift`, all
+ * fourteen) after months of jumps with nothing eaten. Called while the
+ * hand is parked at the store, the way ceramics-b's miner eats at a rest.
+ */
+async function eat(): Promise<void> {
+  if ((await p.query('me:i:rations')).length === 0) await act(p, 'buy rations');
+  await act(p, 'eat rations');
 }
 
 /** Where the hand last stood (set by {@link goTo}). */
@@ -296,7 +312,9 @@ beforeAll(async () => {
   expectOkish(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
-    expectOkish(await gov.cmd(`reserve override 80 to ${handle} "wire: cover funding"`));
+    // ⭐ 80 for the tools and seed, and the rest for a year's rations (3
+    // apiece, one a jump — see `eat`).
+    expectOkish(await gov.cmd(`reserve override 250 to ${handle} "wire: cover funding"`));
   } finally {
     gov.close();
   }
@@ -448,6 +466,24 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     note(`stages seen: ${[...seen].join(', ')}`);
     expect(seen.size).toBeGreaterThanOrEqual(3);
     expect([...seen].join(' ')).toMatch(/ripe and ready to cut/);
+    // ⭐ The field's summary line is its MAJORITY stand: it reads ripe while
+    // the gate end, on the poorer ground, is still in ear (soak run
+    // 2026-11-17 — step 7 was refused `not-mature` at the gate end, which
+    // read ripe by step 8). Step 7 cuts the gate end and then the middle,
+    // so wait, a couple of days at a time, until BOTH fields read ripe.
+    const ripe = (said: string): boolean =>
+      /At the gate end it is ripe/i.test(said) && /At the middle it is ripe/i.test(said);
+    let fields = await read(p, 'look here');
+    for (let i = 0; i < 15 && !ripe(fields); i++) {
+      await advance(2 * DAY);
+      await daylight();
+      await goTo(HOME_FIELD);
+      fields = await read(p, 'look');
+      // For the record (it pins the focus on the stand: read the room first).
+      await read(p, 'look "gate end wheat"');
+    }
+    expect(fields, 'the gate end and the middle both ripe').toMatch(/At the gate end it is ripe/i);
+    expect(fields, 'the gate end and the middle both ripe').toMatch(/At the middle it is ripe/i);
   }, 3_600_000);
 
   it('9. the bench’s ripe wheat is the farm’s when a stranger cuts it; sowing there is refused', async () => {
@@ -456,8 +492,19 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(STORE);
     await doing(p, 'buy "seed wheat"');
     await goTo(BENCH);
-    const looked = await read(p, 'look');
-    expect(looked).toMatch(/ripe and ready to cut/i);
+    // ⭐ The field this step cuts is the lane end, and it is the lane end
+    // that must be ripe: the bench's summary line is its majority stand,
+    // and the top end, where the soil runs out, is failing and may never
+    // ripen (soak run 2026-11-17: "in ear" overall, the lane end ripe).
+    // Bounded: a couple of days at a time until the lane end reads ripe.
+    let looked = await read(p, 'look');
+    for (let i = 0; i < 15 && !/At the lane end it is ripe/i.test(looked); i++) {
+      await advance(2 * DAY);
+      await daylight();
+      await goTo(BENCH);
+      looked = await read(p, 'look');
+    }
+    expect(looked).toMatch(/At the lane end it is ripe/i);
     await refused(p, 'plant seed', 'not-held');
     // Put the seed down: what is in hand next is the cut, and the cut is
     // the farm's — the sack of seed is the stranger's own.
@@ -616,7 +663,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // ⭐ A season away costs the seat: a holder absent past
     // employment.absenceVacatesAfterDays is vacated (economic bootstrap
     // D16), and the drive has been logged out for months. Back to the
-    // yard, take the seat again, and clock on.
+    // yard, take the seat again, and clock on — by day: the look below is
+    // taken in the field, and a dark field reads "Shapes and edges, no
+    // more" (soak run 2026-11-17).
+    await daylight();
     await goTo(YARD);
     await act(p, 'job apply for labourer');
     await doing(p, 'clock on');
@@ -649,8 +699,17 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
   }, 3_600_000);
 
   it('16. hay in the trough feeds them, and the trough empties', async () => {
-    await goTo(HOME_FIELD);
     expect(mown, 'the home field was mown for hay in the summer').toBe(true);
+    // ⭐ A cut of hay is a 25 kg bale, and a body lifts it fed and with its
+    // hands free: eat first, and set the tools down in the field (soak run
+    // 2026-11-17: every cut "doesn't budge").
+    await goTo(STORE);
+    await eat();
+    await goTo(HOME_FIELD);
+    for (const tool of ['sickle', 'scythe']) {
+      if ((await p.query(`me:i:${tool}`)).length > 0) await doing(p, `drop ${tool}`);
+    }
+    await read(p, 'inventory');
     // What a person does: pick up a cut, put it in the trough, until the
     // field has none left or the trough has six. (⚠ The harness query
     // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —

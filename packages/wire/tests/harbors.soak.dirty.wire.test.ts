@@ -280,14 +280,30 @@ suite('S2 — at anchor in deep water', () => {
     expectOk(await s.cmd(`go ${kept.toLowerCase()}`));
     await stageShip(kept, { at: { node: ROADS }, hull: 'weathered', bilgeL: 0 });
     // Twenty days: every day her owner sounds the well and pumps her dry.
+    // ⚠ (soak repair, 2026-11-17) Once her hull crosses into worn (~day 4)
+    // she makes ~3,100 L a day, each stroke costs ~22 real seconds, and the
+    // leather packing wears out in ~15 (blocking step 16): the unbounded
+    // loop ran five hours into the timeout. So the loop is held to a
+    // real-time budget and every day's sounding is logged — and NOTHING is
+    // staged: whether a diligent owner with a hand pump can keep a worn
+    // hull afloat is exactly the question, and if she cannot, the assertion
+    // below says so and the log shows the day it turned.
+    const pumpDeadline = Date.now() + 2 * 3_600_000;
     for (let d = 0; d < 20; d++) {
       await advanceWorldClock('1 day');
-      for (let stroke = 0; stroke < 60; stroke++) {
-        const read = await say(s, 'measure bilge');
+      let read = await say(s, 'measure bilge');
+      console.log(`bilge day ${d + 1} (before): ${read.slice(0, 160)}`);
+      for (let stroke = 0; stroke < 40 && Date.now() < pumpDeadline; stroke++) {
         if (/well is dry|little water sloshing/.test(read)) break;
-        await say(s, 'pump well');
+        const pumped = await say(s, 'pump well');
         await s.listen(22_000);
+        read = await say(s, 'measure bilge');
+        if (/packing|will not draw|won't draw/i.test(pumped)) {
+          console.log(`bilge day ${d + 1}: the pump gave out — ${pumped.slice(0, 160)}`);
+          break;
+        }
       }
+      console.log(`bilge day ${d + 1} (after): ${read.slice(0, 160)}`);
     }
     // The twin floats; her sister has gone down.
     const twin = await say(s, 'measure bilge');

@@ -372,6 +372,15 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
   it('⭐⭐ AC 7 — at the mill basin: a skein of raw silk, its fineness in words; pupae left', async () => {
     const s = await at(MILL);
     try {
+      // DIAG (soak repair 2026-11-17): AC 14 found the spinner DEAD at the
+      // mill. Record her state the first time the drive arrives, so the
+      // next run says whether she was dead before the drive got here.
+      try {
+        const spinner = (await read(s, 'look sefa')).replace(/<[^>]*>/g, '');
+        console.log('DIAG spinner on arrival', await names(s, 'here:i:sefa'), '::', spinner);
+      } catch (err) {
+        console.log('DIAG spinner on arrival — the read failed:', String(err));
+      }
       // The basin wants hot water — light its brazier first.
       await say(s, 'stoke charcoal into brazier');
       const lit = await say(s, 'light brazier');
@@ -396,6 +405,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
       const thrown = await say(s, 'spin hank');
       expect(refusedFor(thrown), '`spin hank` throws two alike skeins').toBeNull();
       await settle(s, thrown);
+      // DIAG (soak repair 2026-11-17): the hand reel next refused `too-few`
+      // for ten — record what is left in hand after two basin reelings.
+      console.log('DIAG cocoons in hand after the basin', await names(s, 'me:i:cocoon'));
     } finally {
       s.close();
     }
@@ -453,8 +465,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
           // query printed the REELER's hands (a student outfit, a skein, the
           // pupae, ten cocoons) and `reeler` printed nothing — the record
           // had to be read backwards.
-          console.log('DIAG crib', await names(m, 'here:i:"cocoon crib":i'));
-          console.log('DIAG silks', await names(m, 'here:i:"silk shelf":i'));
+          // ⚠ (soak repair 2026-11-17) MQL's literal is `'…'` — a `"` is
+          // the SHELL's quote and `s.query` has no shell, so the old
+          // `"cocoon crib"` failed the parse and killed the step.
+          console.log('DIAG crib', await names(m, "here:i:'cocoon crib':i"));
+          console.log('DIAG silks', await names(m, "here:i:'silk shelf':i"));
           console.log('DIAG reeler', await names(m, 'here:i:liss:i'));
         } finally {
           m.close();

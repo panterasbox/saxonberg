@@ -272,6 +272,9 @@ suite('stage D — a ship on the river', () => {
       // one: at the mouth, stay for it (the browser walk saw her go out over
       // the bar a watch after she reached it; this loop never waited).
       const where = await say(master, 'course');
+      // ⚠ (soak repair, 2026-11-17) 31 undetermined: each half-hour's
+      // readout, so the next run shows where she stopped going down.
+      console.log(`down [${i}] course: ${where.slice(0, 200)} | heard: ${sea.slice(-200)}`);
       if (/at the mouth|0 meters above the mouth/.test(where)) {
         sea += ' ' + squash(await master.listen(70_000));
         break;

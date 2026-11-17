@@ -167,14 +167,14 @@ async function say(s: Session, text: string): Promise<CommandResult> {
   } catch (err) {
     if (!/raised a PROMPT/.test(String(err))) throw err;
     const pending = await s.awaitPrompt(5_000);
-    const payload = (
-      pending as unknown as {
-        payload?: {
+    // ⚠ The prompt frame carries `promptId` and `outcome` at the TOP level
+    // (the cleanliness lesson); an older shape nested them in `payload`.
+    type PromptFrame = {
           promptId?: string;
           outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> };
         };
-      }
-    ).payload;
+    const frame = pending as unknown as PromptFrame & { payload?: PromptFrame };
+    const payload = frame.payload?.promptId ? frame.payload : frame;
     const id = payload?.promptId;
     const first = payload?.outcome?.notes
       ?.map((n) => n.matches?.[0]?.stuffId)

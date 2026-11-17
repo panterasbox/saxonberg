@@ -212,7 +212,7 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     for (let i = 0; i < 12 && !cut; i++) {
       const { r, said } = await act(p, 'harvest wheat --at "the wheat field"');
       cut = refusedFor(r) === null && /cut|reap|sheaf|grain/i.test(said);
-      if (refusedFor(r) === 'not-ready') await season(10).then(toTheBench);
+      if (refusedFor(r) === 'not-mature') await season(10).then(toTheBench);
     }
     expect(cut, 'the wheat on the marked field was cut').toBe(true);
   }, 3_600_000);

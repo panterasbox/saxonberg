@@ -118,6 +118,21 @@ async function morning(): Promise<void> {
   for (let h = hours; h > 0; h -= 5) await advanceWorldClock(`${Math.min(5, h)} hours`);
 }
 
+/**
+ * Jump the clock to the absolute game second `target`, in chunks of five
+ * hours at most. ⚠ (soak repair, 2026-11-17) Each chunk overshoots by the
+ * minutes the world takes to settle it (~2 min a jump), so the clock is
+ * read again before every chunk and the last one lands on the target —
+ * "06:40" had become 06:47, and "+15 minutes" past the 07:00 boat.
+ */
+async function jumpTo(target: number): Promise<void> {
+  for (let i = 0; i < 20; i++) {
+    const left = target - (await worldClockNow());
+    if (left <= 0) return;
+    await advanceWorldClock(`${Math.min(left, 5 * 3600)} seconds`);
+  }
+}
+
 async function funded(handle: string): Promise<void> {
   const s = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await s.cmd('bank open'));
@@ -195,8 +210,8 @@ suite('stage E — the ferry, and the sea', () => {
     // To 06:40 — tomorrow's, if the morning is past it.
     const now = await worldClockNow();
     const t = now % DAY;
-    const toMin = Math.ceil(((6 * 3600 + 40 * 60 - t + DAY) % DAY) / 60);
-    for (let left = toMin; left > 0; left -= 300) await advanceWorldClock(`${Math.min(300, left)} minutes`);
+    const at0640 = now + ((6 * 3600 + 40 * 60 - t + DAY) % DAY);
+    await jumpTo(at0640);
     const between = await rider.cmd('go across');
     const no = squash(await between.said());
     console.log(`06:40 go across: ${between.status} ${no}`);
@@ -204,7 +219,7 @@ suite('stage E — the ferry, and the sea', () => {
     expect(no, no).toMatch(/next boat from here leaves at 07:00/);
     // Boarding for the seven o'clock: at 06:55 you go — once the ferryman
     // has her over, if the six o'clock left her across.
-    await advanceWorldClock('15 minutes');
+    await jumpTo(at0640 + 15 * 60);
     let went = false;
     let last = '';
     for (let i = 0; i < 12 && !went; i++) {
@@ -252,7 +267,10 @@ suite('stage E — the ferry, and the sea', () => {
     const over = await hand.cmd('go side');
     expect(over.status, squash(await over.said())).toBe('ok');
     expect(await look(hand)).toMatch(/In the sea|open sea/i);
-    const waits = await say(master, 'course gannet');
+    // ⚠ (soak repair, 2026-11-17) She lies in the bar, a confined linear
+    // passage: only its two ends are a course (`course gannet` was refused
+    // "only runs two ways"). The roads are its other end.
+    const waits = await say(master, 'course roads');
     expect(waits, waits).toMatch(/people in the water/);
     const up = await hand.cmd('go hesper');
     expect(up.status, squash(await up.said())).toBe('ok');

@@ -208,6 +208,7 @@ suite('stage B — bodies in moving water', () => {
     // The name the rescuer now knows them by — their character's, not the login.
     const met = squash(await r.listen(4_000));
     const known = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? swimmer.handle;
+    console.log(`met: ${met.slice(0, 200)} | known as: ${known}`);
     expectOk(await r.cmd('introduce'));
     expectOk(await swimmer.cmd('west'));
     await morning();
@@ -220,15 +221,23 @@ suite('stage B — bodies in moving water', () => {
     expect(await moved(swimmer, at, 180)).toBe(true);
 
     // 11: the watch tells when somebody in the water comes into view.
+    // ⚠ (soak repair, 2026-11-17) Only the watch's ARRIVAL line counts —
+    // "You make out <them>" (HorizonWatch) — not any line that names them:
+    // their `introduce` and `west` on the towpath carry the same name, and
+    // matched it before they were ever in the water.
+    const first = known.split(' ')[0]!;
     const seen = squash(await r.listen(120_000));
-    expect(seen, seen).toMatch(new RegExp(known.split(' ')[0]!, 'i'));
+    console.log(`seen: ${seen.slice(0, 400)} | swimmer at: ${(await here(swimmer)).slice(0, 200)}`);
+    expect(seen, seen).toMatch(new RegExp(`You make out [^.]*\\b${first}\\b`, 'i'));
 
     // …and within hail the bank has a way to the water: throw, haul.
     let thrown = false;
     for (let i = 0; i < 30 && !thrown; i++) {
-      const out = await r.cmd(`throw line to ${known.split(' ')[0]!.toLowerCase()}`);
+      const out = await r.cmd(`throw line to ${first.toLowerCase()}`);
       thrown = out.status === 'ok';
       if (i % 5 === 0) console.log(`throw try ${i}: ${out.status} ${squash(await out.said()).slice(0, 200)}`);
+      // ⚠ (soak repair, 2026-11-17) 11–13 undetermined: where the swimmer is at every wait.
+      if (!thrown) console.log(`throw try ${i}: swimmer at ${(await here(swimmer)).slice(0, 200)}`);
       if (!thrown) await r.listen(5_000);
     }
     expect(thrown, 'the swimmer never came within reach of the bank').toBe(true);
