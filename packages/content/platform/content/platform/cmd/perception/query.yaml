@@ -18,7 +18,12 @@ help: |
   the query names, each thing as it stands to you.
 
     query horizon      what you can see from here, beyond your room —
-                       landmarks first, then what you can make out
+                       landmarks first, then a handful of the tallest
+                       things in view, each with a rough direction
+                       (a compass point and rough miles), or "close
+                       by" when it stands in your own place; by night
+                       only what shows a light. `measure bearing`
+                       takes the exact bearing.
     query peers        who and what is here with you
     query all brass    every brass thing in reach
     query bob:i        what Bob wears and holds (never his pockets)

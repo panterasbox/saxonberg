@@ -707,10 +707,48 @@ the `lint:location-graph` script (a `reach` target resolves), the 11
 unit forms of AC 1–6, 8–10, 12, 14; `watch horizon` still reports a sail
 coming and going. *Commit:* `feat(geography): one horizon for land, river and sea`.
 
+✅ **W4 done.** One rule (`horizonImpl`), as D3/D5/D6/D9/D10 say. What the
+build decided beyond the plan:
+- **`lib/perception/HorizonOverride.ts`** — a second new file (a value
+  class): the `{block, reach}` shape is validated on TWO hosts (`SpatialZone`,
+  `Place`) and read by three callers (the horizon, the stand-up, the
+  transport pack's `LaneCatalogue.seaNodeNamed`, which used the old list to
+  find the seas a place looks out on — it reads `reach` now). One concept,
+  no static; `blocks(bearing, range)` lives on it.
+- **`Place.horizonOverride()`** (own, else the zone walk), **`Place.horizonVantage()`**
+  (chart point + standing eye + kept-skyline key + near radius + own
+  structure) and **`Place.standUpHorizon()`** (D9's one stand-up, kicked by
+  `LocationZone.lookOutFrom`, awaited by `observe`'s place branch and by the
+  bearing reading). ⚠ `peekField('horizon')` reflects through `getHorizon()`
+  and returns the VALUE OBJECT, not the record — `horizonOverride` takes
+  either.
+- **`Positioned.isLitByNight()`** hook (default `false`, `Ship` answers its
+  row's `showsLight`): a craft at sea may be a boat that is not a
+  `Structure`, so *is she lit* must be answerable on every craft without a
+  duck probe.
+- The sync read never stands a path up itself (`lint:get-or-create`); a
+  skyline entry not standing is skipped and the PLACE's stand-up is kicked.
+- The six `horizon: []` rows became `block: all` (all six — it keeps
+  today's answer exactly; the plan's "delete where no room is open to the
+  sky" is cosmetic). The estuary, harbor and headland `reach` the Greywater;
+  University Avenue and Wharfside lost theirs.
+- `lint:location-graph` gained **horizon-reach-unresolved** (and refuses the
+  list form). `lint:duck-typing` ceiling 474 → 471. `perception.horizonRatio`
+  removed. `peekShorePositionFor` stays — the water pack's `WaterExpanse`
+  calls it.
+- ⚠ Sea-side change: `Expanse.sightables()` is craft only, so `contactsFrom`
+  (the hail) no longer lists a light on a rock; the bearing reading reads the
+  horizon instead (W5).
+
 **W5 — The readings ashore.** D11.
 `platform/idea/reading/BearingReading.ts`, `LatitudeReading.ts`, their rows'
 prose, their tests, the help topics. *Acceptance:* AC 7, AC 11. *Commit:*
 `feat(geography): a bearing and a latitude are taken ashore`.
+
+✅ **W5 done.** As D11. Ashore a bearing on a fixed mark reports *a line
+you stand on; a second crosses it*; `closeBy` declines `too-close`; the
+latitude ashore needs an open sky (`no-horizon` under a roof) and mends
+nothing. Rows' `improves:` and `query`'s help say so.
 
 **W6 — The drive, the walk, the docs.**
 `packages/wire/tests/geography.wire.test.ts` (§ Test & gate strategy),

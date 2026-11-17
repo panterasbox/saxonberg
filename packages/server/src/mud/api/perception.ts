@@ -92,14 +92,25 @@ export interface ReachOptions {
   pools?: readonly ReachPool[];
 }
 
-/** One thing in view beyond the room (maritime R4). */
+/**
+ * One thing in view beyond the room (maritime R4; geography D3).
+ *
+ * ⛔ The TRUE bearing stays on the server (geography D10): a client is told
+ * the rough direction (`PerceptionApi.glance` — a compass point and rough
+ * miles) or *close by*, never `bearingDeg`. Only an instrument reading
+ * (`measure bearing`) narrows it, by the reader's competence.
+ */
 export interface HorizonSighting {
   /** The structure or craft. */
   stuff: Stuff;
-  /** Degrees true from the viewer, when it can be said (at sea). */
+  /** Degrees true from the viewer; `null` when it cannot be said (close by, a river's line). */
   bearingDeg: number | null;
-  /** Nautical miles, at sea; `null` ashore (the zones give no number). */
+  /** Nautical miles; `null` when it cannot be said. */
   rangeNm: number | null;
+  /** Inside the viewer's own Locality — in your own place, no direction invented. */
+  closeBy?: boolean;
+  /** A thing that never moves (a light, a tower) — what a bearing fixes by. */
+  fixed?: boolean;
 }
 
 /**
@@ -132,7 +143,7 @@ export interface VisibleContents {
 export interface HorizonView {
   things: HorizonSighting[];
   traffic: HorizonTraffic[];
-  /** `true` at sea (ranges computed), `false` ashore (zones named). */
+  /** `true` when the viewer is aboard a craft at sea. */
   atSea: boolean;
 }
 
@@ -664,25 +675,28 @@ export class PerceptionApi {
   }
 
   /**
-   * ⭐ **The horizon** (maritime R4) — what `viewer` can see from where
-   * they stand that is NOT in their room, recomputed now:
+   * ⭐ **The horizon** (maritime R4; geography D3 — one rule for land,
+   * river and sea) — what `viewer` can see from where they stand that is
+   * NOT in their room, recomputed now:
    *
-   * - **at sea** (the viewer's root is a craft on an expanse): every craft
-   *   and fixed structure in range from the viewer's own eye height (the
-   *   lookout seat sees from the masthead), plus this hour's seeded
-   *   traffic in words;
-   * - **ashore**: the nearest `horizon` declaration (the room's, then the
-   *   zone walk) names ZONES; a Structure standing in one is in view when
-   *   the viewer's room is open to the sky and its height — plus the
-   *   elevation between — clears the distance the zones' size in metres
-   *   implies over `perception.horizonRatio`.
+   * - **what stands still** — the kept skyline from where the viewer
+   *   stands on the chart and how high their eye is (the location graph's
+   *   record of what stands tall where, read off the content rows; a
+   *   handful, landmarks first), less what the weather hides, what the
+   *   night hides (only what shows a light), and what the place's
+   *   `horizon.block` blocks; inside the viewer's own Locality a thing is
+   *   `closeBy`, with no direction;
+   * - **what moves** — the craft of the sea the viewer is on or their
+   *   place `reach`es, read now, plus the seeded traffic; a river's craft
+   *   by name.
    *
-   * ⛔ The viewer's own structure is never on its own horizon.
+   * No sky, no horizon. ⛔ The viewer's own structure is never on its own
+   * horizon. ⛔ A client is never sent `bearingDeg` (see {@link HorizonSighting}).
    *
    * ⭐ SYNCHRONOUS — it is the MQL `horizon` seed's pool, and the resolver
-   * cannot wait. It reads warm state only: the resident structures and
-   * craft (structures are booted and never culled), the resident zones'
-   * fields, the compiled sea, and the cached sky. Nothing to call first.
+   * cannot wait. It reads warm state only; what it would name that is not
+   * standing yet is skipped this once and stood up (a deliberate `look` at
+   * the place awaits that stand-up first).
    */
   public static horizonFor(viewer: Stuff): HorizonView {
     return logic().horizonFor(viewer);

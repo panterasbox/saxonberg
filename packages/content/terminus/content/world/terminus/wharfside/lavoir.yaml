@@ -9,4 +9,6 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Lavoir
   cellSize: 4.0
-  horizon: []
+  # Nothing beyond the walls is seen from in here (geography D5).
+  horizon:
+    block: all

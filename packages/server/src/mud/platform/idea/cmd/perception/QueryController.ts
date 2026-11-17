@@ -212,8 +212,10 @@ export default class QueryController extends CommandController<QueryModel> {
     const onHorizon = new Map(view.things.map((t) => [t.stuff.stuffId, t]));
     const room = context.location;
     const featuredPaths = room instanceof Place ? room.getFeatured() : [];
-    const where = (b: number | null, r: number | null): string =>
-      b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
+    // ⭐ The rough direction only — a compass point and rough miles — or
+    // *close by* inside your own place (geography D10). Never a bearing.
+    const where = (b: number | null, r: number | null, closeBy = false): string =>
+      closeBy ? ', close by' : b === null || r === null ? '' : `, ${PerceptionApi.glance(b, r)}`;
     const featured: Mml[] = [];
     const rest: Mml[] = [];
     for (const [i, item] of items.entries()) {
@@ -233,7 +235,7 @@ export default class QueryController extends CommandController<QueryModel> {
         featuredPaths.includes(item.getTemplatePath() ?? ''));
       // ⭐ `[builder]`: perceived only through the builder lens (D25).
       const lens = PerceptionApi.perceivedHow(viewer, item) === 'builder' ? ' [builder]' : '';
-      const line = Mml.compose`${Mml.thing(item, { form: 'presence' })}${seen ? where(seen.bearingDeg, seen.rangeNm) : ''}${lens}`;
+      const line = Mml.compose`${Mml.thing(item, { form: 'presence' })}${seen ? where(seen.bearingDeg, seen.rangeNm, seen.closeBy === true) : ''}${lens}`;
       (isFeatured ? featured : rest).push(line);
     }
     // When the set IS what is in view, the passers-by at sea are told too.

@@ -490,6 +490,35 @@ function landmarkPointFindings(idx: InheritanceIndex): string[] {
   return out;
 }
 
+/**
+ * ⭐ (geography D5) **A horizon reaches something real.** A `horizon.reach`
+ * entry names a SEA (an expanse row — it authors an `origin`) or a
+ * STRUCTURE row (it authors an `extent`); anything else is read as nothing,
+ * silently. And the retired list-of-zones form is refused outright.
+ */
+function horizonReachFindings(idx: InheritanceIndex): string[] {
+  const out: string[] = [];
+  for (const row of idx.rows.values()) {
+    const d = effectiveRow(row.path, idx.rows, idx.rules).data;
+    const h = d.horizon as unknown;
+    if (h === undefined || h === null) continue;
+    if (Array.isArray(h) || typeof h !== "object") {
+      out.push(`${row.path} — \`horizon\` is { block?, reach? } (the list-of-zones form is retired, geography D5)`);
+      continue;
+    }
+    const reach = (h as { reach?: unknown }).reach;
+    if (reach === undefined) continue;
+    for (const target of Array.isArray(reach) ? reach : [reach]) {
+      const t = typeof target === "string" && idx.rows.has(target)
+        ? effectiveRow(target, idx.rows, idx.rules).data
+        : null;
+      if (t && (t.origin || typeof t.extent === "string")) continue;
+      out.push(`${row.path} — horizon.reach '${String(target)}' is neither a sea (an expanse row) nor a structure row`);
+    }
+  }
+  return out;
+}
+
 function main(): void {
   const report = process.argv.includes("--report");
   // ⚠ ONE index for the whole run — building it walks every authored
@@ -539,6 +568,18 @@ function main(): void {
     failed = true;
     console.error("");
     for (const c of conditionals) console.error(`  ✖ ${c}`);
+  }
+
+  const reaches = horizonReachFindings(idx);
+  console.log(
+    `  ${reaches.length > 0 ? "✖" : "ok"} ` +
+      `${"horizon-reach-unresolved".padEnd(32)} ` +
+      `${reaches.length} (error)`,
+  );
+  if (reaches.length > 0) {
+    failed = true;
+    console.error("");
+    for (const c of reaches) console.error(`  ✖ ${c}`);
   }
 
   const landmarks = landmarkPointFindings(idx);

@@ -61,7 +61,6 @@ import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import { Vantage } from '../perception/Vantage';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
-import type Structure from '../structure/Structure';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
@@ -655,47 +654,15 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 
   /**
-   * The buildings this sea names that stand at one of its nodes — a light
-   * on a rock — each where its node is (a building on a rock has no
-   * position of its own; it is where its rock is).
-   */
-  private landmarks(): { stuff: Structure; at: GeoPosition }[] {
-    const out: { stuff: Structure; at: GeoPosition }[] = [];
-    const seen = new Set<Structure>();
-    for (const node of this.loadedNodes) {
-      const dest = node.getDestination();
-      const at = node.getExpansePosition();
-      if (!dest || at === null) continue;
-      // The structures attached at the node's landing (a light on its
-      // rock), standing now.
-      for (const p of NavigationApi.attachedNow(dest, 'structure')) {
-        // Structural, not `instanceof`: a value import of `Structure` here
-        // would close a module cycle (it is a type import for that reason).
-        const s = StuffApi.findByTemplatePath<Stuff & Partial<Structure>>(p) as Structure | undefined;
-        if (!s || typeof s.hasMember !== 'function' || seen.has(s) || s.isDestroyed()) continue;
-        if (MixinApi.isPositioned(s) || !s.hasMember(dest)) continue;
-        seen.add(s);
-        out.push({ stuff: s, at });
-      }
-    }
-    return out;
-  }
-
-  /**
-   * ⭐ Everything on this sea that can be SEEN, synchronously: its
-   * landmarks (fixed — a light is what a bearing fixes by) and the craft
-   * registered on it. The expanse is the scope that holds the answer; a
-   * horizon asks it, never the registry (maritime review). Before the
-   * first compile it starts one and answers with the craft alone.
+   * ⭐ The CRAFT on this sea that can be seen, synchronously — what moves,
+   * read at the act. What stands still (a light on its rock, a tower on
+   * the shore) is the skyline's (`NavigationApi.skylineNow`, geography D3),
+   * read off the content rows; the sea no longer names its landmarks.
+   * Before the first compile it starts one.
    */
   public sightables(): Sighted[] {
     if (this.compiled === null) void this.compile().catch(() => undefined);
-    const out: Sighted[] = this.landmarks().map(({ stuff, at }) => ({
-      craft: stuff,
-      at,
-      heightM: stuff.getHeightM(),
-      fixed: true,
-    }));
+    const out: Sighted[] = [];
     for (const c of this.craft()) {
       const at = c.getExpansePosition();
       if (at !== null) out.push({ craft: c, at, heightM: c.getTargetHeightM(), fixed: false });
@@ -743,8 +710,8 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
 
   /**
    * Who `observer`, looking out from `from`, can perceive on `channel`:
-   * every other craft on this expanse in range, every fixed positioned
-   * Structure in range (a lighthouse), and this hour's seeded traffic.
+   * every other craft on this expanse in range, and this hour's seeded
+   * traffic. (A light on its rock is the skyline's now — geography D3.)
    * Only craft on the SAME expanse are compared — the graph is the broad
    * phase.
    */
@@ -760,7 +727,6 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     // ⭐ The weather shortens sight (maritime R10): fog to a tenth, rain
     // to a little over half. A signal is a gun or a lamp — unaffected.
     const seeing = channel === 'visual' ? await visibilityFor(observer) : 1;
-    // Landmarks first: a light is a light, whatever else has it listed.
     const candidates = this.sightables();
     return this.sightingsAmong(
       here, from.sightHeightFor(observer), channel, hourIndex, candidates, seeing, from,

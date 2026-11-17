@@ -7,13 +7,45 @@
  */
 import { Idea } from '../../stuff/Idea';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
-import type { AttachmentKind } from '../../../api/navigation';
+import type { AttachmentKind, SkylineEntry, SkylineQuery } from '../../../api/navigation';
+import type { GeoPosition } from '../../expanse/GeoPosition';
+import type { Vantage } from '../../perception/Vantage';
 import type { Stuff } from '../../stuff/Stuff';
 
 type Attached = Record<string, Array<[string, AttachmentKind]>>;
 
+/** A structure on the fake skyline: where it stands and how tall (top above the sea). */
+export interface FakeMark {
+  path: string;
+  at: GeoPosition;
+  heightM: number;
+  topM?: number;
+  landmark?: boolean;
+  showsLight?: boolean;
+}
+
 class FakeAttachmentRegistry extends Idea {
   public table: Attached = {};
+  /** The skyline's marks (geography) — read like the real registry's, without the handful cut. */
+  public marks: FakeMark[] = [];
+  public skylineNow(vantage: Vantage, query: SkylineQuery): SkylineEntry[] {
+    const out: SkylineEntry[] = [];
+    for (const m of this.marks) {
+      if (query.own === m.path) continue;
+      const line = vantage.lineTo(m.at, m.topM ?? m.heightM);
+      const near = (query.nearM ?? 0) > 0 && line.rangeNm * 1852 <= (query.nearM ?? 0);
+      if (!near && line.rangeNm > line.clearNm) continue;
+      out.push({
+        path: m.path, live: null, at: m.at, ...line, near,
+        heightM: m.heightM, landmark: m.landmark === true, showsLight: m.showsLight === true,
+      });
+    }
+    return out.sort((a, b) => Number(b.landmark) - Number(a.landmark));
+  }
+  public async skylineReady(): Promise<void> {}
+  public markPointNow(path: string): GeoPosition | null {
+    return this.marks.find((m) => m.path === path)?.at ?? null;
+  }
   public live = new Map<string, Stuff>();
   public attachStructure(extent: string, structure: Stuff): void {
     this.live.set(extent, structure);
