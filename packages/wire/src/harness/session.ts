@@ -286,7 +286,7 @@ export class Session {
   /**
    * Every non-message envelope since the last `cmd()` (a ring of
    * {@link CAPTURE_RING}) — `card-opened`, `card-touched`,
-   * `client-state-update`… The assertion surface for what the client is
+   * client-state change… The assertion surface for what the client is
    * told beyond prose (client-surface W0).
    */
   private readonly envelopes: CapturedEnvelope[] = [];

@@ -27,7 +27,7 @@
  */
 
 import type {
-  ReleaseFeedFrame,
+  ReleaseRow,
   CharGenRosterPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -47,7 +47,11 @@ import type {
   AffordanceResultEnvelope,
   AffordanceErrorEnvelope,
 } from "@saxonberg/types";
-import { INTENTIONAL_LEAVE_CLOSE_CODE, SUBSCRIPTION_SOURCES } from "@saxonberg/types";
+import {
+  INTENTIONAL_LEAVE_CLOSE_CODE,
+  SESSION_SUBSCRIPTIONS,
+  SUBSCRIPTION_SOURCES,
+} from "@saxonberg/types";
 import { nanoid } from "nanoid";
 import { useStore, type PromptEntry, type StuffMetadata } from "../store/index";
 
@@ -269,28 +273,6 @@ class WebSocketClient {
           break;
       }
     });
-    // The release news-ticker (`publication.press`). Empty body
-    // (payload-bearing), so it never renders a scrollback line. The
-    // initial snapshot rides the welcome payload (`releaseWindow`);
-    // these frames carry live `upsert` / `remove` deltas — route by
-    // `action` to the store.
-    this.onTopic("publication.press", (frame) => {
-      const payload = frame.payload as ReleaseFeedFrame | undefined;
-      if (!payload || payload.kind !== "release") return;
-      const store = useStore.getState();
-      switch (payload.action) {
-        case "snapshot":
-          store.applyReleaseSnapshot(payload.rows);
-          break;
-        case "upsert":
-          store.applyReleaseUpsert(payload.row);
-          break;
-        case "remove":
-          store.applyReleaseRemove(payload.releaseId);
-          break;
-      }
-    });
-
     // The wiki card's side-channel (`publication.wiki`). Empty body —
     // the article's prose already went to the scroll on
     // `shell.result`; this is the structured twin, carrying the
@@ -635,26 +617,7 @@ class WebSocketClient {
     try {
       const frame: unknown = JSON.parse(data);
 
-      // Server→client raw push for `ClientStateMixin` keys. Bypasses
-      // the Sensor pipeline (no frameId, no topic) — substrate
-      // plumbing, not narrative. Dispatched directly to the store.
-      if (
-        typeof frame === "object" &&
-        frame !== null &&
-        (frame as { type?: unknown }).type === "client-state-update" &&
-        (frame as { frameId?: unknown }).frameId === undefined
-      ) {
-        const update = frame as {
-          type: "client-state-update";
-          payload: { key: string; value: unknown };
-        };
-        useStore
-          .getState()
-          .setLocalClientState(update.payload.key, update.payload.value);
-        return;
-      }
-
-      // The heartbeat's reply. Like `client-state-update` this is
+      // The heartbeat's reply. This is
       // substrate plumbing with no `frameId` and no topic, so it needs
       // its own branch above the envelope discriminator — without one
       // it falls through to the catch-all as a topic-less MessageFrame
@@ -705,6 +668,10 @@ class WebSocketClient {
         // the store rather than in a component — one answer, two
         // consumers, and the chips cannot drift from the menu.
         this.applyAffordanceSideEffects(envelope);
+
+        // Side-effect: the two subscriptions the server opens for every
+        // session — your client state and the press ticker.
+        this.applySessionSubscriptions(envelope);
 
         const handlers = this.envelopeHandlers.get(envelope.type);
         if (handlers) {
@@ -1143,7 +1110,32 @@ class WebSocketClient {
    * Two render paths, one of them holding the data — the third time this
    * build has been bitten by that exact shape.
    */
+  /**
+   * ⭐ Your client state and the press ticker are subscriptions the SERVER
+   * opens at session entry (navigation-server D1): their snapshots rode
+   * `connection-established` (`clientState`, `releaseWindow`), and their
+   * changes ride `subscription-delta` under the session ids.
+   */
+  private applySessionSubscriptions(envelope: Envelope): void {
+    if (envelope.type !== "subscription-delta") return;
+    const env = envelope as SubscriptionDeltaEnvelope;
+    const store = useStore.getState();
+    if (env.subscriptionId === SESSION_SUBSCRIPTIONS.clientState) {
+      for (const change of env.changes) {
+        store.setLocalClientState(change.key, change.fields);
+      }
+      return;
+    }
+    if (env.subscriptionId === SESSION_SUBSCRIPTIONS.pressFeed) {
+      for (const change of env.changes) {
+        if (change.op === "remove") store.applyReleaseRemove(change.key);
+        else store.applyReleaseUpsert(change.fields as ReleaseRow);
+      }
+    }
+  }
+
   private isMqlFeed(subscriptionId: string): boolean {
+    if (subscriptionId.startsWith("session:")) return false;
     const source = this.sourceOf(subscriptionId);
     return source === null || source === SUBSCRIPTION_SOURCES.mql;
   }

@@ -1,4 +1,4 @@
-import { SUBSCRIPTION_SOURCES } from "@saxonberg/types";
+import { SESSION_SUBSCRIPTIONS, SUBSCRIPTION_SOURCES } from "@saxonberg/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   SubscriptionDeltaEnvelope as MqlSubscriptionDeltaEnvelope,
@@ -68,6 +68,46 @@ function deliver(envelope: unknown): void {
     }
   ).handleMessage(JSON.stringify(envelope));
 }
+
+describe("the session subscriptions (client state, the press ticker)", () => {
+  beforeEach(() => {
+    resetClient();
+  });
+
+  it("a client-state change sets the key; it never feeds the stuff registry", () => {
+    attachMockWs();
+    deliver({
+      type: "subscription-delta",
+      frameId: 1,
+      subscriptionId: SESSION_SUBSCRIPTIONS.clientState,
+      rev: 1,
+      changes: [{ op: "replace", key: "cockpit.mode", fields: "build" }],
+    });
+    expect(useStore.getState().clientState["cockpit.mode"]).toBe("build");
+    expect(useStore.getState().stuffRegistry.size).toBe(0);
+  });
+
+  it("a press change upserts and removes a release", () => {
+    attachMockWs();
+    const row = { releaseId: "r1", headline: "h", kind: "changelog", body: "", publishedAt: 1, pinned: false };
+    deliver({
+      type: "subscription-delta",
+      frameId: 1,
+      subscriptionId: SESSION_SUBSCRIPTIONS.pressFeed,
+      rev: 1,
+      changes: [{ op: "replace", key: "r1", fields: row }],
+    });
+    expect(useStore.getState().feed["r1"]).toMatchObject({ headline: "h" });
+    deliver({
+      type: "subscription-delta",
+      frameId: 2,
+      subscriptionId: SESSION_SUBSCRIPTIONS.pressFeed,
+      rev: 2,
+      changes: [{ op: "remove", key: "r1" }],
+    });
+    expect(useStore.getState().feed["r1"]).toBeUndefined();
+  });
+});
 
 describe("websocket subscription consumer", () => {
   beforeEach(() => {

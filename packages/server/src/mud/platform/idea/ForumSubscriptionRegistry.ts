@@ -180,7 +180,7 @@ export default class ForumSubscriptionRegistry extends SubscriptionSourceMixin(I
 
   /** ⭐ The forum source wakes itself — the forum event ledger marks what changed. */
   @CallSecurity(SubscriptionSourceCallers)
-  public override pokeSubscriptions(_holder: Stuff, _hint?: unknown): void {
+  public override pokeSubscriptions(_holder: Stuff | null, _hint?: unknown): void {
     // its event listener is the poke
   }
 

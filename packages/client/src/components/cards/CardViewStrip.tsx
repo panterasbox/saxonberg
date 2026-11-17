@@ -91,7 +91,7 @@ const KindToggle = styled.button<{ $on: boolean }>`
 `;
 
 export function CardViewStrip(): React.ReactElement {
-  // Subscribed, not read once: a `client-state-update` push must
+  // Subscribed, not read once: a client-state change must
   // repaint the strip without a remount.
   const clientState = useStore((s) => s.clientState);
   void clientState;

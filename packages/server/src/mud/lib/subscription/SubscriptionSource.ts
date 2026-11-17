@@ -17,8 +17,8 @@
  * is repaired by asking for the snapshot again. Something that happened
  * once (a dispatch, a prompt, a card being born) has no copy to keep.
  *
- * Composers: the MQL and forum registries, `MapCopySource`,
- * `WhereaboutsSource`, `ClientStateSource`, `PressFeedSource`.
+ * Composers: the MQL and forum registries, `ClientStateSource`,
+ * `PressFeedSource`, `MapCopySource`, `WhereaboutsSource`.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -71,10 +71,11 @@ export interface SubscriptionSource {
   closeSubscription(sub: Subscription): void;
   /**
    * Somebody says this holder's answer may have changed — the body's own
-   * poke. A source that wakes itself (an event index, a ledger) says so
-   * and does nothing.
+   * poke; `null` when the answer is everyone's (the press ticker). A
+   * source that wakes itself (an event index, a ledger) says so and does
+   * nothing.
    */
-  pokeSubscriptions(holder: Stuff, hint?: unknown): void;
+  pokeSubscriptions(holder: Stuff | null, hint?: unknown): void;
 }
 
 export function SubscriptionSourceMixin<TBase extends MixinConstructor>(
@@ -102,7 +103,7 @@ export function SubscriptionSourceMixin<TBase extends MixinConstructor>(
     }
 
     /** @hook A source poked by the body recomputes. Default: it wakes itself. */
-    pokeSubscriptions(holder: Stuff, hint?: unknown): void {
+    pokeSubscriptions(holder: Stuff | null, hint?: unknown): void {
       void holder;
       void hint;
     }

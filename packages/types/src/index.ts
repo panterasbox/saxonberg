@@ -313,15 +313,6 @@ export interface PublicReleaseRow {
 }
 
 /**
- * Payload of a `world.press.feed` frame (the news-ticker fan-out;
- * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
- * (empty body, structured payload). The client routes by `action`:
- * `snapshot` replaces the whole feed, `upsert` inserts/replaces one row by
- * `releaseId`, `remove` deletes by `releaseId`. The initial `snapshot`
- * arrives on connect via `ConnectionEstablishedPayload.releaseWindow`
- * (the welcome payload, not a frame) — there is no request RPC.
- */
-/**
  * One heading in an article, as the wiki card's outline shows it.
  * `anchor` is the **sticky** anchor — the durable citation target, not
  * a slug re-derived from the title, so a reworded heading keeps it.
@@ -372,17 +363,24 @@ export interface WikiPageFrame {
   preview?: boolean;
 }
 
+/**
+ * What changed in the press ticker's live window — the hint the press
+ * poke carries to the press-feed source (`SUBSCRIPTION_SOURCES.pressFeed`),
+ * which pushes it as a `replace` (upsert) or `remove` keyed by
+ * `releaseId`. The initial window is the source's snapshot, carried on
+ * `ConnectionEstablishedPayload.releaseWindow`.
+ */
 export type ReleaseFeedFrame =
   | { kind: 'release'; action: 'upsert'; row: ReleaseRow }
-  | { kind: 'release'; action: 'remove'; releaseId: string }
-  | { kind: 'release'; action: 'snapshot'; rows: ReleaseRow[] };
+  | { kind: 'release'; action: 'remove'; releaseId: string };
 
 /**
  * One row of the `social.rules` client-state projection — a flattened,
  * wire-safe view of a `NotifyRule` for the "Social / Notifications"
  * settings card. The server pushes the viewer's effective ordered list
  * (stored rules spliced into the virtual reserved baseline) via
- * `host.pushClientStateUpdate('social.rules', SocialRulesState)` after
+ * `host.pushClientStateUpdate('social.rules', SocialRulesState)` (a
+ * change on the client-state subscription) after
  * every `notify` mutation; the card reads it as a **read-only cache** —
  * the per-character rule store stays the single source of truth, and all
  * writes go back through the `notify` verb.
@@ -414,7 +412,7 @@ export interface SocialRuleProjection {
 /**
  * The `social.rules` client-state projection value — the viewer's
  * effective ordered notify-rule list, top = highest precedence. Pushed
- * server→client (`client-state-update`) after every `notify` mutation
+ * server→client (a change on the client-state subscription) after every `notify` mutation
  * (and on a bare `notify` list) so the settings card re-renders without a
  * reconnect snapshot. Not a persisted client-state key — a pure push
  * cache.
@@ -2330,6 +2328,22 @@ export type ForumSubscriptionErrorReason = 'parse' | 'resolve' | 'closed';
 export const SUBSCRIPTION_SOURCES = {
   mql: '/platform/idea/MqlSubscriptionRegistry',
   forum: '/platform/idea/ForumSubscriptionRegistry',
+  /** Your client state — a keyed store, a change per key replaced. */
+  clientState: '/platform/idea/ClientStateSource',
+  /** The press ticker's live window — a change per release. */
+  pressFeed: '/platform/idea/PressFeedSource',
+} as const;
+
+/**
+ * ⭐ The subscriptions the SERVER opens for every played session at
+ * session entry, silently, like a live card's: their snapshots ride
+ * `connection-established` (`clientState`, `releaseWindow`) so the first
+ * render has them, and their changes ride `subscription-delta` under
+ * these ids. A reconnect is a new session entry, so a new snapshot.
+ */
+export const SESSION_SUBSCRIPTIONS = {
+  clientState: 'session:client-state',
+  pressFeed: 'session:press-feed',
 } as const;
 
 /**
@@ -2405,6 +2419,18 @@ export interface SubscriptionSources {
     params: ForumSubscriptionParams;
     snapshot: ForumSubscriptionSnapshot;
     fields: ForumEntryRecord | ForumSubjectRecord;
+  };
+  /** Change key: the client-state key; `replace` carries the value. */
+  '/platform/idea/ClientStateSource': {
+    params: undefined;
+    snapshot: Record<string, unknown>;
+    fields: unknown;
+  };
+  /** Change key: the releaseId; `replace` carries the row, `remove` none. */
+  '/platform/idea/PressFeedSource': {
+    params: undefined;
+    snapshot: ReleaseRow[];
+    fields: ReleaseRow;
   };
 }
 
@@ -4243,23 +4269,6 @@ export interface CharGenRosterPayload {
  */
 export interface ClientStateWriteMessage {
   type: 'client-state-write';
-  payload: { key: string; value: unknown };
-}
-
-/**
- * Outbound server→client push of a `ClientStateMixin` value. Server
- * code that mutates a client-state key out-of-band (e.g. the `style`
- * verb writes the overlay, an admin rewrites a player's tab layout)
- * pushes the new value so the client can re-render immediately
- * without waiting for the reconnect snapshot.
- *
- * Distinct from `ClientStateWriteMessage` (which is the *client's*
- * optimistic mutation, server-validated). The two messages share no
- * shape beyond `{key, value}` because the contracts differ — write is
- * a request, update is an authoritative push.
- */
-export interface ClientStateUpdateMessage {
-  type: 'client-state-update';
   payload: { key: string; value: unknown };
 }
 

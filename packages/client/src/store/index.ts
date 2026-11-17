@@ -538,7 +538,7 @@ interface StoreState
   applyRosterRemove: (handle: string) => void;
 
   /**
-   * The release news-ticker feed (`publication.press` topic). `feed`
+   * The release news-ticker feed (the press-feed subscription). `feed`
    * maps each release's stable `releaseId` → the {@link ReleaseRow}
    * projection; `feedOrder` is the display order (pins first, then by
    * `publishedAt` desc — a STABLE tiebreaker over the already-server-
@@ -546,7 +546,7 @@ interface StoreState
    * re-sort only keeps the keyed map deterministic). The initial
    * `snapshot` rides the welcome payload (`releaseWindow` in
    * `setConnected`); live `upsert` / `remove` frames flow through
-   * `services/websocket.ts` (the `publication.press` handler).
+   * `services/websocket.ts` (the press-feed subscription handler).
    */
   feed: Record<string, ReleaseRow>;
   feedOrder: string[];
@@ -1268,7 +1268,7 @@ export const useStore = create<StoreState>((set, get) => ({
       return { roster, rosterOrder: orderRoster(roster) };
     }),
 
-  // Release news-ticker feed (publication.press). Keyed by stable
+  // Release news-ticker feed (the press-feed subscription). Keyed by stable
   // releaseId; ordering recomputed on every mutation (pins first, then
   // publishedAt desc) as a stable tiebreaker over the server's order.
   feed: {},
@@ -1492,7 +1492,7 @@ export const useStore = create<StoreState>((set, get) => ({
       /*
        * ⭐ `shell.result` seeds into clientState rather than into a
        * field of its own, because the WRITE path pushes it there: a
-       * `client-state-update` from `SettingsSetController` is how the
+       * client-state change from `SettingsSetController` is how the
        * setting takes effect without a reconnect. Two homes for one
        * answer would drift the first time only one of them was written.
        */

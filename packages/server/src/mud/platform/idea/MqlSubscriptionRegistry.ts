@@ -407,7 +407,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
 
   /** ⭐ The MQL source wakes itself — its event index marks what changed. */
   @CallSecurity(SubscriptionSourceCallers)
-  public override pokeSubscriptions(_holder: Stuff, _hint?: unknown): void {
+  public override pokeSubscriptions(_holder: Stuff | null, _hint?: unknown): void {
     // its dependency index is the poke
   }
 

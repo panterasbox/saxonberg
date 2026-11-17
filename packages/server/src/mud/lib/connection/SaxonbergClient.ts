@@ -13,7 +13,7 @@
  *
  * > **A second client implements the connection set and the
  * > client-state mechanism — the `Interactive` frames and the
- * > `client-state-write` / `client-state-update` / welcome-snapshot
+ * > `client-state-write` / client-state change / welcome-snapshot
  * > trio — and nothing about modes, arrangements, cards-per-mode or
  * > shelves, which are one client's vocabulary declared on one mixin.**
  *

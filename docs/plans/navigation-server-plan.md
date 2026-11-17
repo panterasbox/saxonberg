@@ -957,6 +957,20 @@ port. **Commit:** `feat(navigation): retire locate; the jurisdiction aboard is g
 > - The client keeps `subscribeMql` / `subscribeForum` as the two shipped
 >   sources' typed doors onto one `subscribe(source, params)`;
 >   `unsubscribeForum` is gone (one `unsubscribe`).
+>
+> **Second commit ✅ — client state and the press ticker.**
+> - `ClientStateSource` and `PressFeedSource` (platform/idea, rows in the
+>   platform pack). The SERVER opens both for every played session at entry,
+>   silently (ids `SESSION_SUBSCRIPTIONS.clientState` / `.pressFeed`), and
+>   their snapshots ride `connection-established.clientState` /
+>   `.releaseWindow` — so the settings' first render is unchanged. Changes
+>   ride `subscription-delta`.
+> - `pushClientStateUpdate(key, value)` is now a poke; the boot-time DI seam
+>   (`setClientStateUpdatePush`, a sanctioned `eslint-disable` exception) and
+>   `client-state-update` are gone. The press fan pokes with a `null` holder
+>   (the answer is everyone's): `pokeSubscriptions(holder: Stuff | null, …)`.
+> - Nothing else turned up as state wearing an event (the card lifecycle,
+>   prompts, activity, reactions and dispatch stay events).
 
 D1 (the protocol and the migration only — **no new source yet**).
 

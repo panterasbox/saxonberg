@@ -202,7 +202,7 @@ export const GLANCE_ROWS = 3;
 
 /**
  * The player's shelf: server-authoritative, with the shipped default
- * standing in until the first `client-state-update` lands, filtered to
+ * standing in until the first client-state change lands, filtered to
  * known ids so a shelf saved before a row was retired cannot ask for a
  * row that is gone.
  *

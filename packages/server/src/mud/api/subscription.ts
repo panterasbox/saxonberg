@@ -47,10 +47,10 @@ function registry(): SubscriptionRegistry {
 export class SubscriptionApi {
   /**
    * ⭐ A body's own poke: the source at `source` is told `holder`'s
-   * answer may have changed. A source nobody subscribed to is not standing
-   * and is not stood up to be told.
+   * answer may have changed (`null`: everyone's). A source nobody
+   * subscribed to is not standing and is not stood up to be told.
    */
-  static poke(source: string, holder: Stuff, hint?: unknown): void {
+  static poke(source: string, holder: Stuff | null, hint?: unknown): void {
     registry().poke(source, holder, hint);
   }
 

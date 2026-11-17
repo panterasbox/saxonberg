@@ -431,7 +431,9 @@ set. Two kinds are recognized:
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
+  fills at boot. Today: none (`setClientStateUpdatePush` retired with the
+  one subscription protocol, navigation-server W1 — the push is a poke on
+  the client-state source).
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.

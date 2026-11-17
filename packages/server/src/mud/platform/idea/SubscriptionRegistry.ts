@@ -202,7 +202,7 @@ export default class SubscriptionRegistry extends Idea {
 
   /** See {@link SubscriptionApi.poke}. */
   @CallSecurity(SubscriptionApiCallers)
-  public poke(source: string, holder: Stuff, hint?: unknown): void {
+  public poke(source: string, holder: Stuff | null, hint?: unknown): void {
     const src = StuffApi.findByTemplatePath<Stuff>(source);
     // ⭐ A source nobody has subscribed to has not been stood up: poking
     // it costs nothing, and nothing is loaded to be told.
