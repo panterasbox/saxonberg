@@ -1,32 +1,14 @@
 /**
- * ClimbController — climb verb. Verb-templated rejection prose:
- * climbs that fail at capability read "this climb looks too hard for
- * you"; missing-Climbable reads "there's nothing to climb {direction}".
+ * ClimbController — climb verb. Its refusals are worded by its mode row
+ * (`refusals`, navigation-server D8): "This climb looks too hard for
+ * you", "There's nothing to climb {dir}".
  */
 
-import { LocomotionControllerBase, type LocomotionModel } from './LocomotionControllerBase';
+import { LocomotionControllerBase } from './LocomotionControllerBase';
 import type { CommandContext } from '../../../../api/command';
-import type { LocomotionMode } from '../../LocomotionMode';
-import type { TraversalGuard } from '../../../../lib/boundary/Exit';
 
 export default class ClimbController extends LocomotionControllerBase {
   protected modeName(_context: CommandContext): string {
     return 'climb';
-  }
-
-  protected override composeRejection(
-    guard: TraversalGuard,
-    mode: LocomotionMode,
-    model: LocomotionModel,
-  ): string {
-    if (guard.gate === 'enablement') {
-      const bound = model.target?.stuff;
-      const direction = bound?.isExit() ? bound.getDirection() : 'that way';
-      return `There's nothing to climb ${direction}.`;
-    }
-    if (guard.gate === 'capability') {
-      return 'This climb looks too hard for you.';
-    }
-    return super.composeRejection(guard, mode, model);
   }
 }

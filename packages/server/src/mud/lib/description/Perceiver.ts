@@ -305,30 +305,16 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       return structure ? { v: 0, name: structure.getName() } : null;
     }
 
-    /** The ways out you can perceive — a concealed exit is not here. */
+    /**
+     * The ways out you can perceive — a concealed exit is not here — each
+     * saying whether you can take it now, in trying's words
+     * (`Exit.wayFor`, navigation-server D8). Nothing is materialized.
+     */
     private async waysSection(place: Stuff): Promise<WaysSection> {
       const viewer = this as unknown as Stuff;
-      const here = place.getZone();
-      const ways = MixinApi.isExitable(place)
-        ? place.obviousExitsFor(viewer).map((exit) => {
-            // ⚠ A deferred way (a berth, a holding's front door) has no
-            // destination until someone crosses it, and `getDestination`
-            // THREW for it — `map` on the bank died with *destination not
-            // materialized* (the boundary browser walk). Resolve as before,
-            // and fall back to what is standing.
-            let dest: Stuff | null;
-            try {
-              dest = exit.getDestination();
-            } catch {
-              dest = exit.peekDestination();
-            }
-            return {
-              ...exit.wayRecord(),
-              ...(dest ? { destination: dest.getPresentation() } : {}),
-              crossesZone: !!dest && dest.getZone() !== here,
-            };
-          })
-        : [];
+      if (!MixinApi.isExitable(place) || !MixinApi.isContainable(viewer)) return { v: 0, ways: [] };
+      const ways = [];
+      for (const exit of place.obviousExitsFor(viewer)) ways.push(await exit.wayFor(viewer));
       return { v: 0, ways };
     }
 

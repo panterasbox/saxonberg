@@ -69,6 +69,13 @@ export interface ChangeSource {
 
 export interface SubscribableFieldDescriptor {
   name: string;
+  /**
+   * ⭐ `'way'`: this field is also a FACT of a way it stands in
+   * (navigation-server D9) — a boundary's state, its bolt, whether your
+   * key fits — projected into the ways section by composition, so a pack's
+   * boundary mixin appears with no kernel edit.
+   */
+  aspect?: 'way';
   read?: (stuff: Stuff, viewer: Stuff & Sensor) => unknown;
   perDetailRead?: (
     stuff: Stuff,
@@ -326,6 +333,25 @@ export class MqlSubscriptionApi {
           : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ Every field `stuff` declares under `aspect` (navigation-server D9),
+   * read for `viewer` — a keyed record of words and numbers and booleans,
+   * no fixed shape. A read that answers `undefined` is absent.
+   */
+  public static projectAspect(
+    stuff: Stuff,
+    aspect: 'way',
+    viewer: Stuff & Sensor,
+  ): Record<string, string | number | boolean> {
+    const out: Record<string, string | number | boolean> = {};
+    for (const d of collectSubscribableFields(stuff).values()) {
+      if (d.aspect !== aspect || !d.read) continue;
+      const v = d.read(stuff, viewer);
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') out[d.name] = v;
     }
     return out;
   }

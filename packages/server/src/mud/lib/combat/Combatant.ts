@@ -29,7 +29,7 @@ import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
 import type Exit from "../boundary/Exit";
-import type { TraversalGuard } from "../boundary/Exit";
+import type { TraversalGuard, TraverseOptions } from "../boundary/Exit";
 import type { Channel } from "../material/Channel";
 import type { CombatHookContext } from "./CombatHookContext";
 import { CHANNELS } from "../material/Channel";
@@ -98,6 +98,11 @@ export type DefendOutcome =
 export type HandActDestination = Stuff | 'unfasten' | 'take-off';
 
 export interface Combatant {
+  /**
+   * `Mobile.traverse`'s mover witness: walking out of a fight is fleeing it.
+   * Asked as a probe (navigation-server D8) it says so and does nothing.
+   */
+  beforeTraverse(via: Exit, opts?: TraverseOptions): TraversalGuard;
   /**
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
    * delivery profile, one injury through `inflict`). A thing has mass and it
@@ -612,14 +617,17 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * pin that holds you refuses the crossing. A no-op when not
      * fighting. Chains any inner `beforeTraverse` first.
      */
-    public beforeTraverse(via: Exit): TraversalGuard {
+    public beforeTraverse(via: Exit, opts?: TraverseOptions): TraversalGuard {
       const inner = (Base.prototype as {
-        beforeTraverse?: (v: Exit) => TraversalGuard;
+        beforeTraverse?: (v: Exit, o?: TraverseOptions) => TraversalGuard;
       }).beforeTraverse;
       if (typeof inner === "function") {
-        const said = inner.call(this, via);
+        const said = inner.call(this, via, opts);
         if (!said.ok) return said;
       }
+      // ⭐ Asked as a probe (navigation-server D8): you may go, and going is
+      // fleeing — said, never done; the real crossing disengages.
+      if (opts?.probe) return this.moraleBand() !== null ? { ok: true, flee: true } : { ok: true };
       const broke = this.disengage();
       return broke.ok
         ? { ok: true }

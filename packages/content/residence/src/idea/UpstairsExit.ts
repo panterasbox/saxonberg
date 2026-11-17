@@ -9,7 +9,7 @@
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import { type TraversalGuard, type TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -49,9 +49,9 @@ export default class UpstairsExit extends DeferredDestinationExit {
 
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
-    const base = await super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode, opts);
     if (!base.ok) return base;
     const warren = this.warren();
     if (warren && !warren.nodeReachable(this.targetNode)) {

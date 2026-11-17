@@ -37,6 +37,7 @@ import {
   type ChannelTable,
   type ChannelValues,
 } from './Conduit';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { FieldMeta } from '../mixin';
 import { Colour } from '../perception/Colour';
 import { NavigationApi } from '../../api/navigation';
@@ -59,6 +60,23 @@ const DEFAULT_OPENING: BoundaryOpening = { width: 1, height: 2 };
 const BoundaryBase = Thing;
 
 export class Boundary extends BoundaryBase {
+  /**
+   * ⭐ A way's facts (navigation-server D9): what stands in it says its
+   * state in a word, the gap it leaves, and whether it swings shut behind.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    { name: 'state', aspect: 'way', read: (stuff) => (stuff as unknown as Boundary).stateWord() },
+    {
+      name: 'opening',
+      aspect: 'way',
+      read: (stuff) => {
+        const o = (stuff as unknown as Boundary).getOpening();
+        return `${Math.round(o.width * 100) / 100} × ${Math.round(o.height * 100) / 100} m`;
+      },
+    },
+    { name: 'swingsShut', aspect: 'way', read: (stuff) => (stuff as unknown as Boundary).swingsShut() },
+  ];
+
   static fieldMeta: FieldMeta = {
     sideA: { ref: 'instance', lifetime: 'weak' },
     sideB: { ref: 'instance', lifetime: 'weak' },
@@ -88,6 +106,16 @@ export class Boundary extends BoundaryBase {
   // --- sides ---------------------------------------------------------------
 
   /** The two sides, A first; either may be empty. */
+  /**
+   * ⭐ This boundary's state changed: both ways through it tell whoever
+   * stands at them (navigation-server D9).
+   */
+  public waysChanged(): void {
+    for (const side of [this.sideA, this.sideB]) {
+      if (side && !side.isDestroyed()) side.wayChanged();
+    }
+  }
+
   public getSides(): readonly [Exit | null, Exit | null] {
     return [this.sideA, this.sideB];
   }

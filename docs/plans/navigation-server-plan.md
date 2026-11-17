@@ -1112,7 +1112,26 @@ holds the sea with no position (asserted in step 10). Unit tests for
 (holding, ship of a kind, mine → `null`), `mapSubject` (plain keyed room,
 persistable room, patch). **Commit:** `feat(navigation): a claim records where the place is, and what you saw`.
 
-### W4 — The ways
+### W4 — The ways ✅
+
+> **Done.** Decisions the build made:
+> - **The mode words its own refusals** (`LocomotionMode.refusals`, a row
+>   field — fly, ride, climb, drive, swim): the five controllers'
+>   `composeRejection` overrides are deleted and the base prints
+>   `guard.reason` (its switch holds only fallbacks for reasonless
+>   guards). `canTraverseExit` applies the mode's words over any gate it
+>   words. So the probe's reason and `go`'s are one string.
+> - The probe's place veto is the one `go` actually has: `WaterPlace.canExit`
+>   (declared on its interface, asked through `isWaterPlace`). `canEnter`
+>   has no implementer anywhere — not probed (`lint:duck-typing`).
+> - `beforeTraverse` is asked for a `Combatant` only (`flee`); `Beast`'s
+>   floor check honors the probe (reads only a standing far side) but the
+>   verdict does not ask it.
+> - Way facts by composition: `Boundary` (`state`, `opening`, `swingsShut`),
+>   `LockableMixin` (`locked`, `keyHeld`), `Door` (`freeHere`), via
+>   `MqlSubscriptionApi.projectAspect`. `wayChanged` from `Boundary.setOpen`
+>   (platform twin), `Door.setLocked`, `Ship.setGangwayLocked`.
+> - `ride <dir>` unverified until the drive (step 15).
 
 D8, D9.
 

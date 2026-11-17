@@ -37,7 +37,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 
 /** The weather segment — six game hours, the snow's own memo period. */
 const SEGMENT_S = 6 * 3_600;
@@ -95,10 +95,10 @@ export default class SnowboundExit extends Exit {
    */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     await this.refreshCrossing();
-    const base = await super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode, opts);
     if (base.ok || base.gate !== 'blocked') return base;
     return {
       ok: false,

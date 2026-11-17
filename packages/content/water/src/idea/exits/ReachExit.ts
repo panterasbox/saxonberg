@@ -15,7 +15,7 @@
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -102,10 +102,13 @@ export default class ReachExit extends DeferredDestinationExit {
 
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     const refusal = await (await this.warren()).refusalFor(this, mover);
     if (refusal !== null) return { ok: false, gate: 'blocked', reason: refusal };
+    // ⭐ A probe stops here (navigation-server D8): working the far side
+    // out would mint it. Nothing the water refuses — as far as you know.
+    if (opts?.probe) return { ok: true, unseen: true };
     // ⭐ Worked out HERE, where the crossing asks (at its start and again at
     // arrival), so whatever reads the far side synchronously afterwards
     // reads the water as it is now.
@@ -114,7 +117,7 @@ export default class ReachExit extends DeferredDestinationExit {
     } catch (err) {
       return { ok: false, gate: 'blocked', reason: (err as Error).message };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   /** The water wires both ends as it moves; never checked by path. */

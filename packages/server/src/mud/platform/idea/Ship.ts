@@ -1658,7 +1658,11 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   public setGangwayLocked(v: boolean): void {
     this.gangwayLocked = v === true;
     const exit = this.berthExit;
-    if (exit !== null && !exit.isDestroyed()) exit.configureBerth(this as unknown as Stuff & Berthed);
+    if (exit !== null && !exit.isDestroyed()) {
+      exit.configureBerth(this as unknown as Stuff & Berthed);
+      // ⭐ Her gangway is a way people see (navigation-server D9).
+      exit.wayChanged();
+    }
     this.persistMooring();
   }
   public getGangwayKeyway(): string { return this.gangwayKeyway; }

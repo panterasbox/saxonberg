@@ -22,6 +22,7 @@
 
 import Boundary from './Boundary';
 import { LockableMixin } from '../../lib/boundary/Lockable';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { FieldMeta } from '../../lib/mixin';
 import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -31,6 +32,25 @@ import { MixinApi } from '../../api/mixin';
 const DoorBase = LockableMixin(Boundary);
 
 export default class Door extends DoorBase {
+  /** ⭐ A way's fact (navigation-server D9): you stand on its free side. */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'freeHere',
+      aspect: 'way',
+      read: (stuff, viewer) => {
+        const free = (stuff as unknown as Door).getFreeFrom();
+        if (!free || !MixinApi.isContainable(viewer)) return undefined;
+        return viewer.getContainer()?.getTemplatePath() === free;
+      },
+    },
+  ];
+
+  /** The bolt thrown or drawn: the ways through it are told (navigation-server D9). */
+  public override setLocked(value: boolean): void {
+    super.setLocked(value);
+    this.waysChanged();
+  }
+
   static fieldMeta: FieldMeta = {
     closesBehind: { persistent: true, authorable: true },
     freeFrom: { ref: 'identity:relation', persistent: true, authorable: true },

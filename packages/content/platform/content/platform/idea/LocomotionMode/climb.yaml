@@ -18,3 +18,8 @@ data:
   # ⭐ A ladder wants both hands (size and carrying D20): the mode gate
   # refuses `hands-needed`, naming what you hold.
   hands: 2
+  # ⭐ This mode's own words for a gate (navigation-server D8): the way's
+  # verdict and trying it print the same sentence.
+  refusals:
+    enablement: "There's nothing to climb {dir}."
+    capability: "This climb looks too hard for you."

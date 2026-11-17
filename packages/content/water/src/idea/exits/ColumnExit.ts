@@ -14,7 +14,7 @@
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -167,7 +167,7 @@ export default class ColumnExit extends DeferredDestinationExit {
 
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     // The water's own facts first — they hold whatever stroke you use.
     const surface = this.surface();
@@ -196,6 +196,6 @@ export default class ColumnExit extends DeferredDestinationExit {
       // The water may have gone down since the way was made (the tide).
       return { ok: false, gate: 'blocked', reason: 'There is no deeper water that way now.' };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 }

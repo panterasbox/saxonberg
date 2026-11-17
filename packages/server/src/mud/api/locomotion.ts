@@ -19,7 +19,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type Exit from '../lib/boundary/Exit';
-import type { TraversalGuard } from '../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../lib/boundary/Exit';
 import type {
   LocomotionMode,
   BodyProfile,
@@ -207,8 +207,9 @@ export class LocomotionApi {
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
+    opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
-    return logic().canTraverseExit(actor, exit, mode, direction);
+    return logic().canTraverseExit(actor, exit, mode, direction, opts);
   }
 
   // ── enablement walk ──────────────────────────────────────────────

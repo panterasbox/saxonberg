@@ -30,7 +30,7 @@
  * road (the ford's rule).
  */
 
-import Exit, { type ExitOptions, type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import Exit, { type ExitOptions, type TraversalGuard, type TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -216,7 +216,7 @@ export default class FerryExit extends Exit {
   }
 
   /** ⭐ Not when the ferry is across, and not at this water (D31). */
-  public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {
+  public override async canTraverse(mover: Stuff & Containable, mode?: string, opts?: TraverseOptions): Promise<TraversalGuard> {
     // ⭐ To the timetable (W12): in its hours a passenger boards only when
     // boarding is called at this landing, and is told when the next boat
     // goes. Out of its hours the service is on call, and the bell rules.
@@ -252,7 +252,7 @@ export default class FerryExit extends Exit {
     if (cable !== null && water !== null && this.cableSpeedMps(cable, water.currentMps) < MIN_CABLE_MPS) {
       return { ok: false, gate: 'blocked', reason: 'There is no current to drive her; she hangs slack on the cable.' };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   /** ⭐ The crossing takes as long as a pole takes her across. */

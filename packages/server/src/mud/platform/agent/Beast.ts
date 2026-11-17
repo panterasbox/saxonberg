@@ -36,7 +36,7 @@ import { Actor } from '../../lib/creature/Actor';
 import { BehavedMixin } from '../../lib/behavior/Behaved';
 import { MixinApi } from '../../api/mixin';
 import type Exit from '../../lib/boundary/Exit';
-import type { TraversalGuard } from '../../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 const BeastBase = BehavedMixin(Actor);
@@ -49,16 +49,17 @@ export class Beast extends BeastBase {
    * is the horse's instinct and not the engine's mercy. Chains any inner
    * `beforeTraverse` first.
    */
-  public beforeTraverse(via: Exit): TraversalGuard {
-    const inner = (BeastBase.prototype as { beforeTraverse?: (v: Exit) => TraversalGuard })
+  public beforeTraverse(via: Exit, opts?: TraverseOptions): TraversalGuard {
+    const inner = (BeastBase.prototype as { beforeTraverse?: (v: Exit, o?: TraverseOptions) => TraversalGuard })
       .beforeTraverse;
     if (typeof inner === 'function') {
-      const said = inner.call(this, via);
+      const said = inner.call(this, via, opts);
       if (!said.ok) return said;
     }
     let dest: Stuff | null = null;
     try {
-      dest = via.getDestination();
+      // ⭐ A probe reads only a far side that stands (navigation-server D8).
+      dest = opts?.probe ? via.peekDestination() : via.getDestination();
     } catch {
       return { ok: true }; // a lazy destination not yet faulted in: nothing to judge
     }

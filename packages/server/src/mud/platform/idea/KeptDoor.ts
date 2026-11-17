@@ -16,7 +16,7 @@
  * honest shape.
  */
 
-import Exit, { type TraversalGuard } from '../../lib/boundary/Exit';
+import Exit, { type TraversalGuard, type TraverseOptions } from '../../lib/boundary/Exit';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -45,9 +45,9 @@ export default class KeptDoor extends Exit {
 
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
-    const base = await super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode, opts);
     if (!base.ok) return base;
     const keeper = this.keeper(mover);
     if (keeper === null) return base;

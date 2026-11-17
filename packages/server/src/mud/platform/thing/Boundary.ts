@@ -36,6 +36,12 @@ export default class Boundary extends SealableMixin(BoundaryBase) {
     this.fixed = value === true;
   }
 
+  /** Opened or shut: the ways through it are told (navigation-server D9). */
+  public override setOpen(value: boolean): void {
+    super.setOpen(value);
+    this.waysChanged();
+  }
+
   public override canClose(by: Stuff): VetoResult {
     if (this.fixed) {
       return { ok: false, reason: `${GrammarApi.cap(this.getPresentation())} is fixed open; it does not shut.` };
