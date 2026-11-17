@@ -91,6 +91,22 @@ export class NavClient {
     });
   }
 
+  /**
+   * Wait until the navigation subscriptions have been quiet for `quietMs`
+   * (capped at `capMs`) — a section flush runs on its own beat, after the
+   * command that caused it.
+   */
+  async settle(quietMs = 600, capMs = 8000): Promise<void> {
+    const start = Date.now();
+    for (;;) {
+      const since = Date.now() - this.lastFrameAt;
+      if (since >= quietMs || Date.now() - start >= capMs) return;
+      await new Promise((r) => setTimeout(r, Math.min(100, quietMs - since)));
+    }
+  }
+
+  private lastFrameAt = Date.now();
+
   /** A section as last received. */
   section<K extends NavSectionName>(name: K): NavSections[K] {
     return this.sections[name];
@@ -155,6 +171,7 @@ export class NavClient {
     const id = frame.subscriptionId;
     const sub = id === this.whereId ? 'where' : this.ids && id === this.ids.map ? 'map' : null;
     if (sub === null) return;
+    this.lastFrameAt = Date.now();
     const type = frame.type as NavLogEntry['type'];
     if (type !== 'subscription-delta') {
       if (type === 'subscription-error') this.log.push({ sub, type, rev: null, bytes, frame });

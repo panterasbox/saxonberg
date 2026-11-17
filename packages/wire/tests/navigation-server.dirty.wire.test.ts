@@ -48,7 +48,7 @@ declareFile({
 });
 
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
-const VESTIBULE = '/world/newbie-wilds/delve/vestibule';
+const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
 const YARD = '/world/newbie-wilds/steading/yard';
 const BANK = '/world/terminus/wharfside/bank';
 const DECK = '/world/terminus/hesper/deck';
@@ -70,6 +70,7 @@ async function session(handle: string, start: string): Promise<{ s: Session; nav
   open.push(s);
   await s.drainProse();
   const nav = await NavClient.attach(s);
+  navs.push(nav);
   return { s, nav };
 }
 
@@ -79,8 +80,12 @@ async function words(r: CommandResult): Promise<string> {
   return `${said} ${detail}`.trim();
 }
 
-/** Let a beat pass so the where-you-are flush lands. */
-const beat = (): Promise<void> => new Promise((r) => setTimeout(r, 400));
+/** Let the where-you-are flush land: a beat, then quiet. */
+const beat = async (): Promise<void> => {
+  await new Promise((r) => setTimeout(r, 300));
+  for (const n of navs) await n.settle();
+};
+const navs: NavClient[] = [];
 
 const placeClaims = (nav: NavClient, path: string): WireClaim[] =>
   nav.claims((c) => c.kind === 'place' && typeof c.place !== 'string' && c.place.path === path);
@@ -109,6 +114,11 @@ suite('navigation-server — the blocking drive', () => {
     walker = await session(walkerHandle, BANK);
     expectOk(await walker.s.cmd('north'));
     await beat();
+    // The arrival's `walked` claim is written after the walked edge — it
+    // reaches the copy on its own beat.
+    await expect
+      .poll(() => placeClaims(walker.nav, SQUARE).some((c) => c.channel === 'walked'), { timeout: 15_000 })
+      .toBe(true);
     const sq = placeClaims(walker.nav, SQUARE);
     record.push(`2: square claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
     expect(sq.some((c) => c.channel === 'walked')).toBe(true);
@@ -210,6 +220,8 @@ suite('navigation-server — the blocking drive', () => {
     record.push(`14: place (square) ${JSON.stringify(place)}`);
     expect(place?.light).toBeDefined();
     const caver = await session(uniqueHandle('nav-caver'), TREELINE);
+    // The Delve's mouth is lit; its first corridor is not.
+    expectOk(await caver.s.cmd('north'));
     expectOk(await caver.s.cmd('north'));
     await beat();
     const dark = caver.nav.section('place');
@@ -219,7 +231,7 @@ suite('navigation-server — the blocking drive', () => {
     await caver.s.cmd('look');
     await beat();
     expect(caver.nav.copy.size).toBe(before);
-    expect(placeClaims(caver.nav, VESTIBULE).filter((c) => c.channel === 'seen')).toHaveLength(0);
+    expect(placeClaims(caver.nav, CORRIDOR_1).filter((c) => c.channel === 'seen')).toHaveLength(0);
   }, 120_000);
 
   it('15 · the you section: pace, posture, hands', async () => {
@@ -252,9 +264,10 @@ suite('navigation-server — the blocking drive', () => {
       return null;
     });
     if (second === null) return;
+    await beat();
     const mine = [...walker.nav.copy.keys()].sort();
     const theirs = [...second.nav.copy.keys()].sort();
-    record.push(`18: copies ${mine.length} / ${theirs.length}`);
+    record.push(`18: copies ${mine.length} / ${theirs.length}; only mine ${JSON.stringify(mine.filter((k) => !theirs.includes(k)))}`);
     expect(theirs).toEqual(mine);
   }, 120_000);
 
@@ -268,11 +281,12 @@ suite('navigation-server — the blocking drive', () => {
 
   it('17 · restart: on reconnect the copy is the same — nothing lost, nothing doubled', async () => {
     if (!isOwnedTestWorld()) return;
+    await beat();
     const before = [...walker.nav.copy.keys()].sort();
     await restartWorld();
     const back = await session(walkerHandle, TREELINE);
     const after = [...back.nav.copy.keys()].sort();
-    record.push(`17: copy before ${before.length}, after ${after.length}`);
+    record.push(`17: copy before ${before.length}, after ${after.length}; missing ${JSON.stringify(before.filter((k) => !after.includes(k)))}`);
     for (const k of before) expect(after).toContain(k);
     expect(new Set(after).size).toBe(after.length);
   }, 600_000);

@@ -1467,4 +1467,56 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/navigation-server.dirty.wire.test.ts`, `WIRE_BOOT=1
+WIRE_PORT=2013`, 2026-11-17. Seven runs; what each found:
+
+1. **Defect (fixed, f-commit `fix(navigation-server): your map's copy read…`)**:
+   every map subscription answered an error — `readMapCopy` called the
+   gated `readMap` on itself and the gate refused it. A unit test had mocked
+   the read; an unmocked one now reads the copy through the Api.
+2. **The drive's premise was wrong for the Delve**: it is pitch black even
+   by day past its mouth and covered by no Locality, so a walk there writes
+   nothing (correctly). Steps 2–8 moved to lit, addressed Terminus (the bank
+   → the market square); step 14 drives the dark corridor for exactly that.
+   **Duncan Hall has no Building row** — step 12 moved to the chandlery.
+3. **Defect (fixed)**: the building section's name was `getName()` (empty for
+   a Building) — now `getPresentation()`.
+4. **The harness read too early**: a flush lands on its own beat after the
+   command. `NavClient.settle()` waits for quiet; step 2 polls for the
+   arrival's `walked` claim (written after the walked edge).
+5. Run 4: **15/16** (only the lit-vestibule premise); run 5: **15/16** (only
+   step 2's timing, fixed); runs 6–7 under sibling load (load average ~20 on
+   8 cores): a boot past 420 s and 30 s subscribe timeouts — every failing
+   step had passed in run 4 or 5.
+
+**What the record shows** (run 4/5):
+- 1 · `locate` unknown; a passenger at the helm: *Only her master takes the
+  helm*.
+- 2–3 · the square `walked` with `{zone (tagged), x, y, z, level}`; edges
+  with their state; zone `{kind: grid, cellSizeM: 3, label}`, no extent.
+- 6 · the pump-house door: `{ok:false, gate:locked, reason: "The pump-house
+  door is locked."}`, facts `{locked, keyHeld:false, state, opening, …}` —
+  and `go pumphouse` says those words.
+- 6a · the low door: `{gate: clearance, reason: "You'd have to stoop —
+  \`stoop east\`.", works: {mode: stoop, command: stoop east}}`; `go east`
+  says it word for word; `stoop east` goes through.
+- 7 · `route to the bank`: the note's legs equal the prose.
+- 8 · localities: Terminus (realm, the Realm of Terminus) › Terminus
+  (settlement, the City of Terminus) › The Counting-Houses (district).
+- 10 · aboard: ship *the Hesper*, outer `{at: berth, landing: the mouth of
+  the estuary}`, jurisdiction the City then the Realm — as `government` says.
+- 12 · the chandlery: name, entrance-here, 7 m, not a landmark, title unsold.
+- 14 · the square bright, elevation 35 m; the Delve corridor pitch-black,
+  `dark: true`, and a `look` there adds nothing to the copy.
+- 16 · **sizes**: where-you-are snapshot 3.8 KB, map snapshot 6.3 KB (36
+  claims); a cross-zone move 3.8 KB sending six sections (not `you`); a
+  `look` that changes nothing sends nothing.
+- 17 · restart: 36 claims before, 36 after, none missing, none doubled.
+- 18 · a second session of one character opens (two live sessions ARE
+  supported — risk 12 settled) and holds the same 36 claims.
+- 19 · no untagged path anywhere in the log; `rev` contiguous.
+
+**Not driven (recorded):** 4 (the Delve's levels — dark), 7a (charts), 9
+(two holdings), 11 (horizon at the headland), 13 (the Kestrel), 15's
+mounted/led/pole cases. Their substrate is unit-tested (W3 copy identity,
+W4 probe and led animals, W5 sections).

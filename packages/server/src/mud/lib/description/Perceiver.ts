@@ -439,7 +439,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         const entrance = structure.getEntrance();
         return {
           v: 0,
-          name: structure.getName(),
+          name: structure.getPresentation(),
           ...(at >= 0 ? { storey: at } : {}),
           ...(storeys.length > 0 ? { storeys: storeys.length } : {}),
           ...(entrance !== null && (entrance === path || entrance === place.getDurableHandle()) ? { entrance: { here: true as const } } : {}),
@@ -451,7 +451,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!place.isPlace()) return null;
       const landed = (place as unknown as Place)
         .landedStructuresNow()
-        .map((b) => ({ name: b.getName(), landmark: b.isLandmark() }));
+        .map((b) => ({ name: b.getPresentation(), landmark: b.isLandmark() }));
       return landed.length > 0 ? { v: 0, landed } : null;
     }
 
