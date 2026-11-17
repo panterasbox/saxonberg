@@ -4,6 +4,7 @@
 
 import { KeyedHosts } from '../../../lib/persistence/KeyedHosts';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
+import { Creature } from '../../../lib/creature/Creature';
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { MixinApi, type AnyConstructor } from "../../../api/mixin";
@@ -36,6 +37,7 @@ import type {
   HydrateContext,
   EstateEntry,
 } from "../../../lib/persistence/PersistenceSlice";
+import { ESTATE_INVENTORY } from "../../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
@@ -570,6 +572,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     // room's next overlay re-attaches it as a fixture (residences D11).
     const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
     const rests = MixinApi.isContainable(good) ? good.getRestingPlace() : null;
+    const within = MixinApi.isContainable(good) ? good.getKeptWithin() : null;
     // ⭐ A good that persists ITSELF rides as a reference: its own record
     // is authoritative, and copying its state here would make a second
     // copy of a live creature that is still writing the first.
@@ -585,6 +588,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
       ...(ownKey ? { key: ownKey } : {}),
       ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
       ...(rests ? { rests } : {}),
+      ...(within ? { within } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (live && MixinApi.isEstate(live)) {
@@ -784,21 +788,6 @@ async function restoreState(
     for (const entry of containerSlice.contents) {
       restored.push(await restoreItem(entry, target, principal));
     }
-    // Placement pass — a placed item re-`place`s onto its `Placing`
-    // sibling, under the placement (a path) the slice recorded. ⭐ The
-    // placement loads first (documents D7), so the restored thing's sync
-    // reads — its enclosing scope, `look`'s drill-in — find it.
-    for (const [i, entry] of containerSlice.contents.entries()) {
-      const idx = entry.placement.hostIndex;
-      if (idx === undefined) continue;
-      const item = restored[i];
-      const host = restored[idx];
-      if (item && host && MixinApi.isPlacing(host)) {
-        const placement = entry.placement.placement ?? Placements.ON;
-        await ContainmentApi.placements().ensure(placement);
-        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
-      }
-    }
   }
 
   // (3) Slotted occupancy — re-wear each worn item into its slots via the
@@ -834,6 +823,29 @@ async function restoreState(
     }
   }
 
+  // (3b) Placement pass — a placed item re-`place`s onto its `Placing`
+  // sibling, under the placement the slice recorded: a member path, or a
+  // host's own region name (size and carrying D26). ⭐ A region of THIS
+  // container (no `hostIndex` — a pocket's key, W9) went straight into its
+  // region in `restoreItem` and is skipped here. ⭐ The
+  // member loads first (documents D7), so the restored thing's sync reads —
+  // its enclosing scope, `look`'s drill-in — find it. ⭐ AFTER the slotted
+  // pass: a worn belt's hanging length is its wearer's waist (D27), so its
+  // pouches are re-hung on the belt as worn, not as a strap lying flat.
+  if (containerSlice) {
+    for (const [i, entry] of containerSlice.contents.entries()) {
+      const idx = entry.placement.hostIndex;
+      if (idx === undefined) continue;
+      const item = restored[i];
+      const host = restored[idx];
+      if (item && host && MixinApi.isPlacing(host)) {
+        const placement = entry.placement.placement ?? Placements.ON;
+        await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
+        ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
+      }
+    }
+  }
+
   // (4) Any layer carrying its OWN async restore hook. `Container` and
   // `Slotted` are handled by the explicit passes above (their ordering
   // against each other is load-bearing and cannot be a generic loop); this
@@ -854,12 +866,24 @@ async function restoreState(
       await applier.apply(live, data, { mode: 'restore' });
     },
   };
-  for (const c of MixinApi.getPersistenceContributors(
+  const contributors = MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
-  )) {
+  );
+  for (const c of contributors) {
     if (!c.hydrateSlice) continue;
     const slice = state[c.key];
     if (slice) await c.hydrateSlice(target, slice, ctx);
+  }
+  // A slice no layer claims (a retired one — size-and-carrying W10's
+  // carrier homes) is skipped, and said, never an error.
+  const claimed = new Set(contributors.map((c) => c.key));
+  for (const key of Object.keys(state)) {
+    if (!claimed.has(key)) {
+      console.warn(
+        `PersistableLogic: skipped an unclaimed '${key}' slice restoring ` +
+          `${target.getTemplatePath() ?? target.stuffId} — no layer restores it.`,
+      );
+    }
   }
 
   // (5) ⭐⭐ Worn goods the host OWNS — re-worn only now, because they are
@@ -884,6 +908,46 @@ async function restoreState(
           { restoring: true },
         );
       }
+    }
+  }
+
+  // (6) ⭐ Placements that name an OWNED good (size and carrying W7, closing
+  // D26-h's gap) — a pouch hung from a bought belt, a bought key in a
+  // pocket. Neither end of such a pair has a content index the (3b) pass
+  // could resolve, so they wait for the estate (4) and the owned goods'
+  // re-wearing (5), then re-place exactly as (3b) does.
+  const pairs: { item: Stuff | null; at: ContentPlacement }[] = [];
+  if (containerSlice) {
+    for (const [i, entry] of containerSlice.contents.entries()) {
+      if (entry.placement.hostChattelId !== undefined) pairs.push({ item: restored[i] ?? null, at: entry.placement });
+    }
+  }
+  if (MixinApi.isEstate(target)) {
+    for (const entry of target.getEstateEntries()) {
+      if (entry.placedOn !== undefined) pairs.push({ item: target.getEstateLive(entry.chattelId), at: entry.placedOn });
+    }
+  }
+  for (const { item, at } of pairs) {
+    const host =
+      at.hostIndex !== undefined
+        ? (restored[at.hostIndex] ?? null)
+        : at.hostChattelId !== undefined && MixinApi.isEstate(target)
+          ? target.getEstateLive(at.hostChattelId)
+          : null;
+    if (!item || !host || !MixinApi.isPlacing(host) || !MixinApi.isContainable(item)) continue;
+    const placement = at.placement ?? Placements.ON;
+    await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
+    ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
+  }
+
+  // (7) ⭐ Owned goods kept INSIDE a container on this host (a ration in a
+  // satchel its owner carries — finalize, run 15): back into it, now that
+  // the containers are restored, re-worn and re-hung.
+  if (MixinApi.isEstate(target)) {
+    for (const entry of target.getEstateEntries()) {
+      if (entry.within === undefined || entry.place !== ESTATE_INVENTORY) continue;
+      const item = target.getEstateLive(entry.chattelId);
+      if (item) putBackWithin(item, entry, target, target);
     }
   }
 }
@@ -939,10 +1003,10 @@ async function restoreItem(
     const refEntry = entry as RefEntry;
     const nested = await cloneHost(refEntry.ref, refEntry.key);
     if (nested && MixinApi.isContainable(nested) && MixinApi.isContainer(host)) {
-      ContainmentApi.move(
-        nested as Stuff & Containable,
-        host as Stuff & Container,
-      );
+      const put = (): void =>
+        ContainmentApi.move(nested as Stuff & Containable, host as Stuff & Container);
+      if (host instanceof Creature && !nested.isAgent()) host.admitWhile(nested, put);
+      else put();
     }
     return nested;
   }
@@ -951,12 +1015,46 @@ async function restoreItem(
   clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
-    ContainmentApi.move(
-      clone as Stuff & Containable,
-      host as Stuff & Container,
-    );
+    // ⭐ A region of the host itself (a pocket — W9, D-W9-7): straight into
+    // it, one move. A stale record (the row lost the pocket, or its member
+    // no longer encloses) is logged and the host's arrival decides.
+    const region = await selfRegionOf(entry, host);
+    const put = (): void =>
+      region !== null
+        ? ContainmentApi.move(clone as Stuff & Containable, host as unknown as Stuff & Placing, region)
+        : ContainmentApi.move(clone as Stuff & Containable, host as Stuff & Container);
+    // ⭐ A body admits what it carried (the flip's veto, D11; W8 — every
+    // body, so a hog or a fish restored with contents is not refused): the
+    // record is replayed — re-seated and re-placed by the passes after
+    // this; whatever is still loose is a broken record, reported loudly by
+    // the body's `onRestored` and never placed (no migrations).
+    if (host instanceof Creature) host.admitWhile(clone, put);
+    else put();
   }
   return clone;
+}
+
+/**
+ * The region of `host` itself that `entry` records (size and carrying W9,
+ * D-W9-7) — `placement` with no host field — when the host still offers it
+ * and its member still encloses; else `null` (a stale record is logged).
+ */
+async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | null> {
+  if (entry.placement === undefined) return null;
+  const at = entry.placement;
+  if (at.placement === undefined || at.hostIndex !== undefined || at.hostChattelId !== undefined) return null;
+  const offered =
+    MixinApi.isPlacing(host) && host.getPlacements().includes(at.placement)
+      ? host.getPlacementEntry(at.placement)
+      : null;
+  if (offered !== null && (await ContainmentApi.placements().ensure(offered.member)).getEncloses()) {
+    return at.placement;
+  }
+  console.warn(
+    `PersistableLogic: ${host.getTemplatePath() ?? host.stuffId} offers no enclosing region ` +
+      `'${at.placement}' any more — the restored thing lands where the host's arrival puts it`,
+  );
+  return null;
 }
 
 /**
@@ -1217,6 +1315,9 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
   const placeId = placeIdOf(host);
   if (!placeId) return;
   const placed = await ChattelApi.placedIn(placeId);
+  // Goods kept inside a container here — put back once every good is down,
+  // so a container somebody owns (overlaid too) is there to take them.
+  const inside: { good: Stuff; entry: EstateEntry; owner: Stuff | null }[] = [];
   for (const { chattelId, owner } of placed) {
     if (owner?.kind !== "player") continue;
     const ownerHost = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
@@ -1256,6 +1357,8 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
     if (good && entry.mounted && MixinApi.isAdornable(host)) {
       if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
       host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
+    } else if (good && entry.within) {
+      inside.push({ good, entry, owner: ownerHost ?? null });
     } else if (good && entry.rests && MixinApi.isContainable(good)) {
       // ⭐ A good left ON something goes back on it: the room's fixtures
       // are already restored, so the surface is here — or it is gone, or
@@ -1270,6 +1373,62 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
       ownerHost._putEstateEntry(entry, good);
     }
   }
+  for (const { good, entry, owner } of inside) putBackWithin(good, entry, host, owner);
+}
+
+/**
+ * ⭐ Put a restored good back inside the container its estate entry names
+ * (`within` — size and carrying, finalize run 15, step 21): the steps from
+ * `place` inward, an untitled container by its row and ordinal (the
+ * place's own record restored them in order), an owned one from its
+ * owner's estate. A step that names nothing here, or a container that will
+ * not take it, is said and the good is left where the restore put it — on
+ * a body, that is R1's loud diagnostic; nothing guesses another container.
+ */
+function putBackWithin(good: Stuff, entry: EstateEntry, place: Stuff, owner: Stuff | null): void {
+  const steps = entry.within;
+  if (!steps || steps.length === 0 || !MixinApi.isContainable(good)) return;
+  let cur: Stuff = place;
+  for (const step of steps) {
+    if (!MixinApi.isContainer(cur)) break;
+    const holder: Stuff & Container = cur;
+    let next: Stuff | null = null;
+    if (step.chattelId !== undefined) {
+      const live = owner && MixinApi.isEstate(owner) ? owner.getEstateLive(step.chattelId) : null;
+      next = live && MixinApi.isContainable(live) && live.getContainer() === holder ? live : null;
+    } else {
+      next =
+        holder
+          .getContents()
+          .filter((c) => c.getTemplatePath() === step.in && !(MixinApi.isChattel(c) && c.isOwnerPersisted()))[
+          step.nth
+        ] ?? null;
+    }
+    if (next === null) {
+      console.warn(
+        `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) was kept inside ` +
+          `${step.chattelId ?? `${step.in} #${step.nth}`} in ` +
+          `${place.getTemplatePath() ?? place.stuffId}, which is not there — left where it was restored.`,
+      );
+      return;
+    }
+    cur = next;
+  }
+  if (!MixinApi.isContainer(cur) || good.getContainer() === cur) return;
+  const rests = entry.rests;
+  if (rests && rests.on === cur.getTemplatePath() && MixinApi.isPlacing(cur) && cur.canPlace(good, rests.placement).ok) {
+    ContainmentApi.move(good, cur, rests.placement);
+    return;
+  }
+  const veto = cur.canAddContainable ? cur.canAddContainable(good) : { ok: true as const };
+  if (!veto.ok) {
+    console.warn(
+      `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) no longer goes in ` +
+        `${cur.getTemplatePath() ?? cur.stuffId} — left where it was restored.`,
+    );
+    return;
+  }
+  ContainmentApi.move(good, cur);
 }
 
 /** Read one estate entry out of an offline owner's stored record. */

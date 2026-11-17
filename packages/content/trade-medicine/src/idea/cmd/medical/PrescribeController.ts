@@ -19,7 +19,6 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Prescription } from '@saxonberg/server/mud/lib/vitals/Prescription';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 
@@ -32,7 +31,7 @@ interface PrescribeModel extends CommandModel {
   doses?: number;
   /**
    * The prescription pad — the instrument the binder always resolves (the
-   * view defaults it to `me:i:[capability.prescribing]`). The controller
+   * view defaults it to `person:[capability.prescribing]`). The controller
    * gates on medical COMPETENCE, not on the pad, so it does not read this;
    * it is declared because the binder always populates it, and the tests
    * that hand-build this model must mirror that (`lint:binder-models`).
@@ -79,7 +78,11 @@ export default class PrescribeController extends CommandController<PrescribeMode
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
       writtenAtS: WorldClockApi.getNow().rawValue(),
     });
-    ContainmentApi.move(slip as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
+    // The slip is the act's product — into the prescriber's keeping (made,
+    // D-W7a; size and carrying W8: `move` routes it on a carrier — hands,
+    // pocket, bag, else set down where they stand).
+    const written = slip as unknown as Stuff & Containable;
+    if (MixinApi.isContainer(giver)) ContainmentApi.move(written, giver);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({

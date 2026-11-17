@@ -10,6 +10,21 @@ help: |
   The target has to be here with you and has to actually accept the
   item — you can't put a thing inside something that isn't a
   container.
+
+  `put <tack> on <animal>` — a pack saddle, a halter, panniers — puts it
+  on a beast that cannot dress itself; a person dresses themself (`wear`).
+
+  A thing with several pockets or chambers: when they are alike (two
+  side pockets) it puts yours in the first that takes it and tells you
+  which; when they differ — one buttons, one is inside under your coat —
+  you are asked which, and the ask says how they differ. `look coat`
+  shows its pockets and what differs; name one to choose — `put key in
+  "inner pocket"`. A shut pocket or pouch is shut: `open` it first.
+
+  What you name is searched on you first, then the room (`scope:
+  reachable`). In a fight, putting a thing away costs a beat by where it
+  goes — a holster or scabbard is quick, a pocket slower (`help fight
+  switch`).
 examples:
   - cmd: put coin in the pouch
     note: Tuck an item into a container
@@ -28,14 +43,22 @@ args:
     # matched no shape of `put` at all (the ceramics drive).
     scope: "inventory"
     requires: ContainableMixin
-    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory
   - name: target
     prepositionRequired: true
     type: object
     required: true
-    scope: "peers"
+    # ⭐ The nearest thing you perceive (size and carrying D17): your own
+    # coat, belt and pack before anything in the room. On `peers` alone,
+    # `put key in coat` put the key in the lounge's coat-check rack and
+    # `put sword in scabbard` in a scabbard lying on the floor (the drive).
+    # ⭐ Then what STANDS in the room, before the room itself: on
+    # `reachable` alone the place came first (its surface precedes what
+    # stands there), so `put boot-mould in oven` matched the works floor's
+    # own `oven` detail and set the mould on the floor (finalize run 16, the
+    # rubber drive). `reachable` last still names the place, a door, a way.
+    scope: ["person", "peers", "reachable"]
     # ⭐ One word per placement member this verb accepts, plus region
     # zero's. `pnpm -C packages/server lint:placement-words --list` is
     # what tells an author which verbs need a new member's word — a verb

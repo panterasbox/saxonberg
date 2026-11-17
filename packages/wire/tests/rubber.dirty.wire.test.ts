@@ -180,6 +180,9 @@ async function buyOne(s: Session, item: string): Promise<void> {
   // ⛔ One restock day at most (soak-harness census): a shelf that needs
   // longer is a span, and the step fails here rather than walking days.
   for (let attempt = 0; attempt < 2; attempt++) {
+    // ⚠ The CALLER passes the bare name and this quotes it once — callers
+    // used to pass `'"leather boots"'` as well, and `buy ""leather boots""`
+    // answered *Too many words* (finalize, run 15).
     const said = await say(s, `buy "${item}"`);
     if (/you buy/i.test(said)) return;
     expect(said, `buy ${item}: ${said}`).toMatch(/bare|none of it/i);
@@ -289,11 +292,16 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
     bank.close();
     const s = await at(handle, SHOP);
     await dress(s, 'remove trousers'); // intake dressed them in a sturdy pair
+    // ⭐ A taken-off pair is in a hand (size and carrying W8): set it down,
+    // as a player would, so the next pair comes to a free hand rather than
+    // being set down at the feet by a full pair of hands.
+    await say(s, 'drop trousers');
     await buyOne(s, 'breeches');
     const plain = await dress(s, 'wear breeches');
     expect(plain, `wear breeches: ${plain}`).toMatch(/you put on/i);
     expect(plain).toMatch(/tight/i);
     await dress(s, 'remove breeches');
+    await say(s, 'drop breeches');
     await buyOne(s, 'elastic');
     const elastic = await dress(s, 'wear elastic');
     expect(elastic, `wear elastic: ${elastic}`).toMatch(/you put on/i);
@@ -306,7 +314,7 @@ suite('⭐ 23 — an elastic waist fits a body a plain stock pair is tight on (A
 suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the stones, the latex set in the pan (AC 1)', () => {
   it('the seed is on the general store\'s counter', async () => {
     const s = await funded('dandelion-seed', SHOP);
-    await buyOne(s, '"dandelion seed"');
+    await buyOne(s, 'dandelion seed');
     expect(await examine(s, 'me:i:seed'), 'the seed').toMatch(/dandelion/i);
   }, 600_000);
 
@@ -323,6 +331,14 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     const h = w.handle;
     w.close();
     const s = await at(h, MILLSITE);
+    // ⭐ Both hands hold a pail (size and carrying W8: `get` refuses rather
+    // than pick a thing up only to set it down). Set the EMPTY one down by
+    // the stones, as a player would — the run-off pail is claimed from the
+    // floor as readily as from a hand — and take it back after.
+    const before = await s.query('me:i:pail', { fields: 'detail' });
+    const empty = before.findIndex((p) => !/water/i.test(String((p as { longDescription?: unknown }).longDescription ?? '')));
+    expect(empty, 'an empty pail to set down').toBeGreaterThanOrEqual(0);
+    await say(s, `drop me:i:pail:[${empty + 1}]`);
     await cloneInto(MILLSITE, s, '/trade/farming/thing/crop/dandelion-root', 'dandelion', 1);
     // ⚠ In the HAND: a recipe grind takes its input from the miller's own
     // reach (the grain arm takes a sack off the floor; this one does not).
@@ -334,6 +350,8 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     expectOk(milled);
     await new Promise((r) => setTimeout(r, 3_000));
     await s.drainProse();
+    // The root is milled away, so a hand is free: the pail back off the floor.
+    await say(s, 'get here:i:pail');
     // Two pails answer to "pail": find the one holding the milk.
     const pails = await s.query('me:i:pail', { fields: 'detail' });
     const texts = pails.map((p) => String((p as { longDescription?: unknown }).longDescription ?? ''));
@@ -609,12 +627,12 @@ suite('⭐⭐ 18 — wade the Drowned Substation (AC 8)', () => {
     const buyer = await funded('wader-leather', SHOP);
     // ⚠ A bare `buy leather` bought a leather WATERSKIN: the boots now
     // answer to the phrase they print (a naming-ratchet row, fixed here).
-    await buyOne(buyer, '"leather boots"');
+    await buyOne(buyer, 'leather boots');
     const lh = buyer.handle;
     // ⚠ Bought, not cloned: step 22's boots are live, and the clone gate
     // reads the first live instance's zone (the shop) and refuses.
     const seller = await funded('wader-rubber', SHOP);
-    await buyOne(seller, '"rubber boots"');
+    await buyOne(seller, 'rubber boots');
     // ⚠ Dress in the LIT shop: in the substation's dark `inventory` names
     // everything "something". Dressing is engaged — let it finish.
     for (const w of [buyer, seller]) {
@@ -698,7 +716,7 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     const wb = await funded('wool-coat', SHOP);
     await buyOne(wb, 'gambeson');
     const rb = await funded('rubber-coat', SHOP);
-    await buyOne(rb, '"rubberized coat"');
+    await buyOne(rb, 'rubberized coat');
     for (const [w, garment] of [[wb, 'gambeson'], [rb, 'coat']] as const) {
       await dress(w, `wear ${garment}`);
       const worn = await say(w, 'inventory');

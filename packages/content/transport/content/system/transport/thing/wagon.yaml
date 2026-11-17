@@ -47,3 +47,7 @@ data:
   # freight is not countable, and neither half needed a new mechanism.
   interiorBulk: true
   interiorCapacity: 900
+  # ⭐ Riding in it is SITTING in it (size and carrying D38): the bed is a
+  # posture-bearing slot like a bench's — `sit in wagon`, `lie in …`, `stand`.
+  staticSlots:
+    - { name: bed, accepts: SlottableMixin, capacity: 4, postures: [sit, lie] }

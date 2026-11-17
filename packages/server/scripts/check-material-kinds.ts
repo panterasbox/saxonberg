@@ -44,7 +44,11 @@ import {
 } from './pack-roots';
 
 /** Arm (d)'s ceiling: composed capability fields no row has authored yet. */
-export const DATA_GAP_CEILING = 6054; // controller-liquidity W15 merge: −3, re-pinned at the merged floor (sulfurous iron's `castTemplate` among them).
+// Size and carrying W6: +13 — ONE new row, `textile/oilskin` (`extends:` linen),
+// whose 13 gaps are exactly linen's own unauthored fields less the three the oil
+// changes (smells, wetStrength, ashFraction). A new material, not a regression:
+// no consumer reads a kind, and each gap is one its parent already carries.
+export const DATA_GAP_CEILING = 6067; // was 6054 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
 
 const GATE = 'check-material-kinds';
 const LIB = join(MUD, 'lib', 'material');

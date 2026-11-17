@@ -55,7 +55,7 @@ things worth standing in front of, plus the minimum to connect them"*;
 |---|---|---|
 | city street | setts | lamps, a drain, wheels |
 | high street | setts | lamps, a drain, wheels; frontage both sides |
-| alley | setts or earth | narrow (the [size slate](./size-slate.md)'s clearance); no wheels |
+| alley | setts or earth | narrow (the [size slate](../../subsystems/size.md)'s clearance); no wheels |
 | village lane | earth | wheels |
 | country road | gravel or earth | wheels |
 | track | earth | wheels when dry |

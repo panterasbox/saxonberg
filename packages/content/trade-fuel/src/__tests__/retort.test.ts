@@ -239,7 +239,10 @@ describe('the retort', () => {
     it('⭐ …and into a gasometer standing on the condenser', () => {
       const r = retort();
       const c = condenser();
-      const g = gasometer();
+      // A bell small enough for the test's yard cell: every size is known
+      // now (size and carrying W10j — shapes are resident), and a 20 m³
+      // bell does not fit a 3 m cell.
+      const g = gasometer(1000);
       ContainmentApi.move(c as never, r as never, Placements.ON);
       ContainmentApi.move(g as never, c as never, Placements.ON);
       r.receiveVolatiles(COAL_GAS, 500);

@@ -28,6 +28,7 @@
  * itself and says so; everything outside it has already come off.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -35,6 +36,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { SchedulerApi } from '../../../../api/scheduler';
+import { ContainmentApi } from '../../../../api/containment';
 import { DressingStep } from '../../../../lib/slot/DressingStep';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
@@ -82,13 +84,43 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     if (model.target?.stuff) {
       const careful = /^careful/i.test(manner);
       const target = model.target.stuff;
-      UnequipControllerBase.takeOff(target, this.heldSpeak(target), careful, false, context, giver, {
-        onDone: () => {},
-        onAbort: () => {},
-      });
+      const wieldy = this.heldSpeak(target);
+      const takeOff = (): void => {
+        UnequipControllerBase.takeOff(target, wieldy, careful, false, context, giver, {
+          onDone: () => {},
+          onAbort: () => {},
+        });
+      };
+      // ⭐ In a fight a hand act is a guarded beat (D-W10-5): putting a held
+      // thing up is a reach (where it goes is decided as it lands); a pack
+      // off the back is the switch's beats. Any other garment's dressing
+      // time is its own, unchanged.
+      const pack = !wieldy && giver.getSlotNames().includes('back') && giver.getOccupants('back').has(target as never);
+      if ((wieldy || pack) && MixinApi.isCombatant(giver)) {
+        // ⭐ Where the hand goes is said as it starts (the drive: *"You
+        // reach — your guard drops."* named nothing): the place `stow` would
+        // put it, read dry from the routing's own facts.
+        const reach = wieldy ? UnequipControllerBase.reachLine(giver, target) : undefined;
+        await this.guarded(giver, giver.handActSeconds(target, wieldy ? giver : 'take-off'), takeOff, reach);
+        return;
+      }
+      takeOff();
       return;
     }
     this.strip(context, giver);
+  }
+
+  /** *"You reach to put the sword up in your scabbard"* — where `stow` would put it, or undefined when nothing would take it. */
+  private static reachLine(giver: Stuff, target: Stuff): Mml | undefined {
+    const place = MixinApi.isCarrying(giver) ? giver.stowPlaceFor(target) : null;
+    if (place === null) return undefined;
+    const host = place.host.presentationPhrase().bare();
+    const where = place.region !== undefined
+      ? place.region === 'from'
+        ? `on your ${host}`
+        : `in the ${place.region} of your ${host}`
+      : `in your ${host}`;
+    return Mml.compose`You reach to put ${Mml.thing(target)} up ${Mml.text(where)}`;
   }
 
   /**
@@ -103,7 +135,7 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
    * and a shirt came off in the time of the shirt.
    */
   private strip(context: CommandContext, giver: Stuff & Slotted & Attired): void {
-    const stack = [...giver.wornStack()] as unknown as Stuff[];
+    const stack = PerceptionApi.perceived(giver, [...giver.wornStack()] as unknown as Stuff[]);
     if (stack.length === 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -250,6 +282,11 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
      * cursed item in your pack refuses nothing — the curse is a fact
      * about wearing it, not about owning it.
      */
+    // The hand(s) it is in now — where it goes back if nothing on you takes
+    // it (D-W10-2: `unwield` with nowhere to put a thing leaves it in hand).
+    const left = MixinApi.isSlottable(target)
+      ? [...target.occupiedSlots()].find(([host]) => host.stuffId === giver.stuffId)?.[1] ?? []
+      : [];
     const release = giver.tryReleaseFromSlots(
       target as Parameters<typeof giver.tryReleaseFromSlots>[0],
     );
@@ -304,13 +341,53 @@ export abstract class UnequipControllerBase extends CommandController<UnequipMod
     // ⭐ The hands that pulled it off take what was on its outside —
     // unless it was peeled off carefully (cleanliness D5).
     if (!wieldy && MixinApi.isHygienic(giver)) giver.doff(target, { careful });
+    // ⭐ Nothing loose on a body (size and carrying D11, W8; D-W10-2): a held
+    // thing put up goes off the hands by the one documented order (a
+    // pocket, a hook on the belt, a pouch or bag you wear, the pack) — and
+    // with none, it goes back in the hand it left and you are told; never
+    // the floor, never a guess. A worn thing taken off comes to hand (drive
+    // step 9's backpack), else is set down where you stand, said so. A body
+    // with no hands sets down what came off it.
+    if (
+      MixinApi.isCarrying(giver) &&
+      MixinApi.isContainable(target) &&
+      target.getContainer() === giver &&
+      !giver.isHonest(target)
+    ) {
+      const refused = wieldy ? giver.stow(target) : null;
+      if (refused !== null) {
+        drop();
+        if (MixinApi.isSlottable(target)) giver.seatInSlots(target, [...left]);
+        const kw = (MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined) ?? target.presentationPhrase().bare();
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`There is nowhere on you to put ${Mml.thing(target)} — it stays in your hand. \`drop ${kw}\`, or \`put\` it somewhere by name.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: refused.reason, detail: target.getPresentation() });
+        return 'refused';
+      }
+      // `move` routes it: a hand, a pocket, a bag, else set down (the
+      // routing's line). A handless body's tack would route straight back
+      // on, so it is set down where the body stands.
+      const here = giver.handSlots().length > 0 ? null : giver.getEnclosingPlace();
+      if (!giver.isHonest(target)) ContainmentApi.move(target, here ?? giver);
+    }
 
     if (!quiet) {
+      // ⭐ Where it went is said (D-W10-2: the one order, told, never silent).
+      const pair = MixinApi.isContainable(target) ? target.getPlacement() : null;
+      const at = MixinApi.isContainable(target) ? target.getContainer() : null;
+      const where =
+        pair !== null && pair.host.stuffId !== giver.stuffId
+          ? ` — ${pair.name === 'from' ? 'on' : 'in'} the ${pair.name === 'from' ? '' : `${pair.name} of the `}${pair.host.presentationPhrase().bare()}`
+          : at !== null && at.stuffId !== giver.stuffId
+            ? ` — in ${at.presentationPhrase().definite()}`
+            : '';
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           wieldy
-            ? Mml.compose`You put up ${Mml.thing(target)}.`
+            ? Mml.compose`You put up ${Mml.thing(target)}${where}.`
             : careful
               ? Mml.compose`You peel off ${Mml.thing(target)} carefully, inside out, touching only the inside.`
               : Mml.compose`You take off ${Mml.thing(target)}.`,

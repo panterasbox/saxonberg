@@ -261,6 +261,12 @@ board.
 - **S4 vs S3 boundary.** Does the *first* player-run store (a single
   proprietor, no franchising) ride S3, with franchising + the arena as
   S4? Or is any player ownership S4? (Open.)
+- **`buy`'s set-down line arrives first** (size-and-carrying finalize, 2026-11-16). With nowhere on the
+  buyer for the goods, the shelf settles and then hands over; the
+  routing's *"Your hands are full — you set the loaf down."* is said
+  inside the hand-over, so it arrives BEFORE *"You buy the loaf…"*.
+  Honest, but out of order: the sale's line should lead and the set-down
+  follow (the controller words both; the routing's line is the mixin's).
 
 ---
 

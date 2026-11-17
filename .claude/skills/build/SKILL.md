@@ -122,7 +122,10 @@ For each wave in order:
    often — never name a count, the roster is read from
    `package.json`).
 3. ⭐ **Check the build questions before committing** (review questions
-   B1, B4): did this wave add a mixin, Api, class, hook, registry or
+   B1, B4 — and ⛔ **P9–P14 for every addition the wave made**: a view or
+   schema field, a name, an Idea class, a caller branch on a mixin, a
+   member on a mixin whose header it does not fit, anything that moves or
+   decides invisibly; a failure is fixed in the wave, never relayed): did this wave add a mixin, Api, class, hook, registry or
    document kind the plan's **New substrate** list does not have? If
    so, fold it into what already does the job, or re-plan the wave in
    place with a line saying why it is genuinely new — and re-check the

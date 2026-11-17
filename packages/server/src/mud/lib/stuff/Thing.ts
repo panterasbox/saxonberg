@@ -2,7 +2,7 @@
  * Thing — the matter root: what is *in a place and made of something*.
  *
  * Composition:
- * `WetMixin(VisibleMixin(DetailedMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))))))`.
+ * `WetMixin(VisibleMixin(DetailedMixin(PerceptibleMixin(TangibleMixin(ShapedMixin(ContainableMixin(Stuff)))))))`.
  *
  * Things are the physical-object branch: they're contained somewhere,
  * made of material, describable (Visible), and referenceable by
@@ -59,6 +59,7 @@
 
 import { Stuff } from './Stuff';
 import { ContainableMixin } from '../spatial/Containable';
+import { ShapedMixin } from '../spatial/Shaped';
 import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
@@ -99,7 +100,7 @@ import type { FieldMeta } from '../mixin';
 // mode this build hit twice by other routes.
 const ThingBase = WetMixin(
   VisibleMixin(
-    DetailedMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+    DetailedMixin(PerceptibleMixin(TangibleMixin(ShapedMixin(ContainableMixin(Stuff))))),
   ),
 );
 

@@ -16,13 +16,23 @@ import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
+import { GrammarApi } from '../../../api/grammar';
 import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../../lib/slot/Postured';
 import type { EmissionData } from '../../../api/locomotion';
+import type { NoiseLevel } from '../LocomotionMode';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
 const MAX_PASSTHROUGH_DEPTH = 16;
+
+/** One band louder (size and carrying D36): what clanking gear does to a mode. */
+const LOUDER: Record<NoiseLevel, NoiseLevel> = {
+  silent: 'quiet',
+  quiet: 'normal',
+  normal: 'loud',
+  loud: 'loud',
+};
 
 const LocomotionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/locomotion#LocomotionApi'),
@@ -236,9 +246,13 @@ export class LocomotionLogic extends ApiLogic {
         reason: `You can't ${mode.getName()} from this posture.`,
       };
     }
+    const hands = this.handsGate(actor, mode);
+    if (hands !== null) return hands;
+    const awkward = this.awkwardGate(actor, mode);
+    if (awkward !== null) return awkward;
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
-    const deep = this.overYourHead(exit, mode);
+    const deep = this.overYourHead(actor, exit, mode);
     if (deep !== null) return deep;
     let enablement = this.checkEnablement(actor, mode, direction);
     // ⭐ The far side: an exit whose DESTINATION is the medium (the
@@ -251,9 +265,101 @@ export class LocomotionLogic extends ApiLogic {
       if (far !== null) enablement = far;
     }
     if (!enablement.ok) return enablement;
+    // ⭐ Driving takes the hands the controls take (size and carrying D18).
+    const host = enablement.host ?? null;
+    if (host !== null && MixinApi.isDrivable(host)) {
+      const no = host.driveRefusal(actor);
+      if (no !== null) {
+        const held = MixinApi.isCarrying(actor)
+          ? actor.heldThings().map((t) => t.presentationPhrase().indefinite())
+          : [];
+        const need = no.hands >= 2 ? 'both hands' : 'a free hand';
+        return {
+          ok: false,
+          gate: 'handsNeeded',
+          mode: mode.getName(),
+          reason: held.length > 0
+            ? `Driving ${host.presentationPhrase().definite()} takes ${need} — you're holding ${GrammarApi.joinList(held)}.`
+            : `Driving ${host.presentationPhrase().definite()} takes ${need}.`,
+          context: { hands: no.hands },
+        };
+      }
+    }
+    // ⭐ Load on use (size and carrying drive, step 18): the cart's passage
+    // mode (`wheeled`) is read synchronously by name, and nothing had stood
+    // its row up — every hitched cart was refused "You can't drag the cart
+    // that way" at every door, and never met a door's SIZE.
+    if (MixinApi.isHauling(actor) && actor.isHitched()) {
+      const cart = actor.getHauledCart();
+      // ⚠ A cart naming a passage mode with no row is an authored reference
+      // that points nowhere (finalize A6, P3): said to the author, and the
+      // haulage gate below refuses the way as it would any unloaded mode.
+      if (cart !== null) {
+        await this.loadMode(cart.getPassageModeName()).catch(async (err: unknown) => {
+          const { DiagnosticApi } = await import('../../../api/diagnostics');
+          await DiagnosticApi.record({
+            path: cart.getTemplatePath() ?? cart.stuffId,
+            severity: 'error',
+            message:
+              `passage mode '${cart.getPassageModeName()}' would not load — ` +
+              `${err instanceof Error ? err.message : String(err)}`,
+          });
+        });
+      }
+    }
     const haul = this.checkHaulage(actor, exit, mode);
     // ⭐ The host rides the ok guard to the crossing (cordage D11).
     return haul.ok && enablement.host ? { ...haul, host: enablement.host } : haul;
+  }
+
+  /**
+   * ⭐ A mode that takes hands (a climb takes both — size and carrying
+   * D20) refuses a body with fewer free, naming what it holds. A body with
+   * fewer hands than the mode asks gives all it has: the plan said it can
+   * move this way at all. ⚠ Free hands are `Carrying.freeHands` — W4
+   * subtracts a hitched cart's.
+   */
+  private handsGate(actor: Stuff, mode: LocomotionMode): TraversalGuard | null {
+    const wanted = mode.getHands();
+    if (wanted <= 0 || !MixinApi.isCarrying(actor)) return null;
+    const need = Math.min(wanted, actor.handSlots().length);
+    if (actor.freeHands() >= need) return null;
+    const held = actor.heldThings().map((t) => t.presentationPhrase().indefinite());
+    const verb = mode.getName();
+    const hands = need >= 2 ? 'both hands' : 'a free hand';
+    return {
+      ok: false,
+      gate: 'handsNeeded',
+      mode: verb,
+      reason: held.length > 0
+        ? `You need ${hands} to ${verb} — you're holding ${GrammarApi.joinList(held)}.`
+        : `You need ${hands} to ${verb}.`,
+      context: { hands: need, free: actor.freeHands() },
+    };
+  }
+
+  /**
+   * ⭐ An awkward held load limits running (size and carrying D35): a
+   * thing longer than you are tall, or awkward past
+   * `LOAD_BEARING_DEFAULTS.RUN_AWKWARD_FACTOR`, refuses `run` naming it — you
+   * walk the pole. Walking and sneaking are not gated.
+   */
+  private awkwardGate(actor: Stuff, mode: LocomotionMode): TraversalGuard | null {
+    if (mode.getName() !== 'run' || !MixinApi.isLoadBearing(actor) || !MixinApi.isAttired(actor)) return null;
+    const stature = MixinApi.isPosed(actor) ? actor.getStature() : null;
+    for (const held of actor.heldThings()) {
+      const longest = MixinApi.isShaped(held) ? held.getDimensions()?.longest() ?? 0 : 0;
+      const tooLong = stature !== null && stature > 0 && longest > stature * LOAD_BEARING_DEFAULTS.RUN_AWKWARD;
+      if (!tooLong && actor.awkwardnessOf(held) <= LOAD_BEARING_DEFAULTS.RUN_AWKWARD_FACTOR) continue;
+      return {
+        ok: false,
+        gate: 'awkwardLoad',
+        mode: 'run',
+        reason: `You can't run with ${held.presentationPhrase().definite()} — it's too awkward to carry at a run. Walk it.`,
+        context: { held: held.stuffId },
+      };
+    }
+    return null;
   }
 
   /**
@@ -262,11 +368,12 @@ export class LocomotionLogic extends ApiLogic {
    * refused, in the water's words — swim in, or go down to it. A frozen
    * water is the floor's question (the ice bears you or breaks).
    */
-  private overYourHead(exit: Exit, mode: LocomotionMode): TraversalGuard | null {
+  private overYourHead(actor: Stuff, exit: Exit, mode: LocomotionMode): TraversalGuard | null {
     if (mode.getMedium() !== 'ground') return null;
     const dest = exit.peekDestination();
     if (!dest || !MixinApi.isWaterPlace(dest)) return null;
-    if (dest.stateNow() !== 'swimming') return null;
+    // ⭐ Over YOUR head (size and carrying D22): by the body's stature.
+    if (dest.stateFor(actor) !== 'swimming') return null;
     return {
       ok: false,
       gate: 'blocked',
@@ -414,9 +521,13 @@ export class LocomotionLogic extends ApiLogic {
       mode = cursor.getEngagedMode() ?? this.resolveHostMode(cursor);
     }
     if (!mode) return null;
+    // ⭐ Loose, clanking gear is noise (size and carrying D36): a sword on a
+    // belt or a lantern in hand lifts the mode one band — what sneak's
+    // detection edge and stealth's attention already read.
+    const clanks = MixinApi.isCarrying(mover) ? mover.gearNoise() : 0;
     return {
       modeName: mode.getName(),
-      noiseLevel: mode.getNoiseLevel(),
+      noiseLevel: clanks === 1 ? LOUDER[mode.getNoiseLevel()] : mode.getNoiseLevel(),
       bodyProfile: mode.getBodyProfile(),
       groundContact: mode.getGroundContact(),
       resolvedHostChain: chain,

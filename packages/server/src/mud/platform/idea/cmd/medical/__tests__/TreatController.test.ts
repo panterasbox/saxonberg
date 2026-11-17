@@ -109,7 +109,12 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-/** A medic in a room, carrying `dressing`, with a bleeding foot wound. */
+/**
+ * A medic in a room, `dressing` to hand beside them, with a bleeding foot
+ * wound. ⚠ On the floor, not carried: the fixture creature has no hands and
+ * no plan, and since size and carrying W8 a body that does not carry takes
+ * nothing (`move` refuses) — the carried case is TreatController.pouch.test.ts.
+ */
 function medicWith(dressing: Good, path: string, severity = 1.5): {
   medic: MedicCreature;
   room: Place;
@@ -118,7 +123,7 @@ function medicWith(dressing: Good, path: string, severity = 1.5): {
   const medic = makeStuff(() => new MedicCreature());
   stampTemplatePathForTest(medic, path);
   ContainmentApi.move(medic, room);
-  ContainmentApi.move(dressing, medic);
+  ContainmentApi.move(dressing, room);
   medic.afflict({
     kind: 'trauma',
     type: 'laceration',
@@ -179,7 +184,7 @@ describe('TreatController', () => {
     const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, '/platform/agent/Avatar/medic-c');
     ContainmentApi.move(medic, room);
-    ContainmentApi.move(makeStuff(() => new Bandage()), medic);
+    ContainmentApi.move(makeStuff(() => new Bandage()), room);
     const ctrl = makeStuff(() => new TreatController());
 
     await ctrl.execute({}, ctxFor(medic, room));
@@ -323,7 +328,7 @@ describe('TreatController — stabilization', () => {
     dressing.recordHeat(373, 300);
     ContainmentApi.move(medic, room);
     ContainmentApi.move(patient, room);
-    ContainmentApi.move(dressing, medic);
+    ContainmentApi.move(dressing, room);
     return { medic, patient, room, dressing };
   }
 
@@ -435,7 +440,7 @@ describe('TreatController — the treatment matches the condition', () => {
     const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, path);
     ContainmentApi.move(medic, room);
-    if (item) ContainmentApi.move(item, medic);
+    if (item) ContainmentApi.move(item, room);
     medic.afflict(wound);
     return { medic, room };
   }

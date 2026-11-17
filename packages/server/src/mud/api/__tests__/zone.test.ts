@@ -209,7 +209,9 @@ describe('Zone is set at clone time, not on move', () => {
   it('move does not restamp the item zone', async () => {
     const park = makeStuff(() => new Location());
 
-    const zoneRef = { stuffId: 'zone-123' } as unknown as import('../../lib/zone/SpatialZone').SpatialZone;
+    // A zone answers its cell size (a place's size reads it — size and
+    // carrying D7); this one has none, so the place's room is unknown.
+    const zoneRef = { stuffId: 'zone-123', getCellSize: () => null } as unknown as import('../../lib/zone/SpatialZone').SpatialZone;
     Stuff._stampZone(park, zoneRef);
 
     // Item created without a zone — `ContainmentApi.move` does NOT

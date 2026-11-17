@@ -81,6 +81,8 @@ import {
 } from '../weather/WeatherType';
 import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { Quantity } from '../quantity';
 import type Material from '../material/Material';
 import type { Tooled } from '../craft/Tool';
@@ -1093,6 +1095,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           }
         }
         if (MixinApi.isContainer(by) && MixinApi.isContainable(thing)) {
+          // Made (D-W7a; W8): to whoever made it — `move` routes it on a
+          // carrier (hands, pocket, bag, else set down, and they are told).
           ContainmentApi.move(thing, by);
         }
         made.push(thing);

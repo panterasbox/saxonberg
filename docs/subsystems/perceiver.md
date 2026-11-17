@@ -85,16 +85,20 @@ is refused, pointed at `query`. **`query <set>`**
 horizon`, `query peers`, `query all brass`, `query bob:i` — the list is the
 content: no header, featured things first, each entry saying how it
 stands to you (a horizon thing's compass point and range). Options change
-only the rendering (`--ledger`); narrowing is the query's. **`inventory
-[<thing>]`** is `query --ledger <thing>:i`: the grouped ledger for
-yourself, a person or an open container; `look in <thing>` is the same
-ledger. ⭐⭐ **The one visibility rule lives in the query language** — MQL's
-`:i` step yields `PerceptionApi.visibleContentsOf(viewer, holder)`: on a
-person what they WEAR and HOLD (never pockets, never an implant), your own
-everything, a container if open, nothing if shut — so `look`, `query`,
-`inventory` and a script can never disagree. `look` at a person or
+only the rendering (`--ledger`, `--weight`, `--flat`); narrowing is the
+query's. ⭐ There is no `inventory` verb (size-and-carrying W10h): `i` and
+`inventory` are default aliases for `query --ledger me:i`, and `query
+--ledger <thing>:i` is the grouped ledger for a person or an open
+container; `look in <thing>` is the same ledger. ⭐⭐ **The one visibility rule is `PerceptionApi.perceives`, and
+every surface applies it** (size-and-carrying D23 — reversed from maritime
+revision 2′, when it lived in MQL's `:i`): MQL names the same things for
+everyone, and `look`, `query` and a script each pass the list
+through `PerceptionApi.perceived` — on a person what is in their hands and
+their outer layers, an open pocket, never what their clothes cover; your
+own everything; a container you can see into — so none of them can
+disagree. `look` at a person or
 container still shows what you would notice, summarised past four (*"and
-2 more things — `inventory chest`"*).
+2 more things — `query --ledger chest:i`"*).
 
 All nine are actor-side only. The five sense verbs are each gated by
 a `requires*` sensorium validator (see

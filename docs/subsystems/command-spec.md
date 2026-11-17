@@ -312,7 +312,7 @@ options:                      # optional; verb-scoped
     description: "Verbose output"
 ```
 
-A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
+A zero-arg verb (e.g. `ping`) has neither `args` nor
 `subcommands` — that's fine.
 
 ### ⭐⭐ One view, one word (controllers-are-io D16)
@@ -334,11 +334,15 @@ decides nothing.
 
 ### `defaultAliases:` — a shortcut, declared on the view
 
-`defaultAliases: [{name, description?}]` beside `verbs:`. The criterion is
+`defaultAliases: [{name, description?, body?}]` beside `verbs:`. The criterion is
 narrow on purpose: a one- or two-character MUD-standard shortcut for a verb
-typed many times a session (`l`, `i`, `h`, `?`, `'`), and nothing else. Reached
+typed many times a session (`l`, `h`, `?`, `'`), and nothing else. Reached
 only while the view is afforded; `alias unset` tombstones it, persisted; scripts
-use real verbs. See [shell-alias.md](./shell-alias.md).
+use real verbs. ⭐ `body:` states the whole line when it is more than the verb,
+and must begin with the view's verb (`lint:one-word` (c)): `query`'s view mints
+`i` and `inventory` → `query --ledger me:i` (size-and-carrying W10h — there is
+no inventory verb; the player's words are appended, so `i --weight` works).
+See [shell-alias.md](./shell-alias.md).
 
 ### `category:` (D24)
 
@@ -526,6 +530,10 @@ single dispatch-response envelope fires late. See
 [command-routing.md § Async dispatch](./command-routing.md#async-dispatch--detaching-the-controller-body)
 for the mechanism. Two things to know as an author:
 
+- ⭐ **A verb never waits on a holder; combat's tick is the one budgeted
+  clock** (size and carrying D-W10-13). A command resolves at once; a
+  hand act's holder cost exists only inside a live fight, as the switch's
+  guarded beat.
 - **Sync (the default) is already per-giver, never global.** A sync
   command blocks only the giver's own next command, not other players'
   input. You don't need `async` to avoid stalling the room — only to
@@ -734,39 +742,44 @@ out-of-set word itself, or keeps a word→value table for one, is carrying
 the view's job (`StyleController` and `CockpitShelfController` did, until
 controller-liquidity W7b moved both sets onto the view; W22 made them `type: enum`).
 
-### ⭐ `depth:` — how deep an object slot reaches (controller-liquidity D4)
+### ⭐ Reach is one rule — there is no `depth:` (size-and-carrying D17, 2026-11-11)
 
-`depth: top | open | deep` on an `object` / `objects` slot sets its
-default reach rung (`open` when omitted); the player overrides it for one
-invocation with the reserved `--top` / `--open` / `--deep` flags, which
-join `--async`/`--sync`/`--strict`/`--loose` (no view may name an option
-or arg any of them). The binder resolves the slot at `context.depth ??
-def.depth ?? 'open'` (`MqlContext.depth`), and the `inventory` / `person`
-/ `peers` / `reachable` pools walk at it — the one reach walk
-(`Container.getReachableContents`, [mql.md § Reach is one
-walk](./mql.md)):
+⚠ `depth: top | open | deep` and the reserved `--top` / `--open` /
+`--deep` flags (controller-liquidity D4) are **gone**; the reserved
+framework flags are `--async`/`--sync`/`--strict`/`--loose` again. An
+object slot binds by one rule: **the nearest thing the giver perceives
+wins** — the scope tries in order (`person` → `here` → `peers`), and inside
+the person the tiers hand · ready · packed (`PerceptionApi.reach` emits
+them in that order; [mql.md § Reach is one list and ONE
+rule](./mql.md)). Every scope try passes `PerceptionApi.perceived` before
+the cardinality policy, so a covered thing is never a *which one?*; the
+head ordinal (`2nd knife`) counts after it.
 
-| rung | reaches |
-|---|---|
-| `top` | held, worn, the room's top level |
-| `open` | and inside open vessels you carry, and one level into open things here |
-| `deep` | everything, shut or not — never another person's pockets |
+**The refusal fires after binding**, from the slot's validator: put
+`/lib/command/validators/canReach` on any slot whose act puts a hand on
+what it names (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`, the
+`inventory` verbs). It refuses in the object's own words —
+*"The box is shut."* (`enclosed-shut`), *"The rucksack is on your back —
+take it off first."* (`packed`), else *"you can't reach …"* — and passes a
+feature of the place you stand in (a match through a detail or a held
+substance on the room). `mustNotBeShutAway` is folded into it and
+deleted. Inspection verbs (`look apple`) carry no reach validator: the
+apple in your shut box is yours to look at.
 
-A bare name that finds nothing at the slot's rung is probed once at
-`deep`; a find behind a shut lid refuses the line with *"The box is
-shut."* (`validator-failed`, `reach:enclosed-shut`) and binds nothing. A
-rung typed on the line is never second-guessed. Which slots set what:
+### `readies:` — retired (size and carrying W10, 2026-11-14)
 
-- **`depth: top`** — a slot whose act needs the thing at hand and carries
-  `mustBeInInventory` (`drop`, `give`, `put`, `hang`, `remove`, `wear`,
-  `wield`, `unwield`): what is in a bag would bind and then be refused as
-  *you don't have it*.
-- **`open` (omitted)** — every other slot, inspection verbs included:
-  `look apple` with the apple in a shut box says the box is shut;
-  `look me:I:apple` addresses it.
-- **`mustNotBeShutAway`** — the validator on the verbs that put a hand on
-  what they name (`get`, `eat`, `drink`, `sip`, `fill`, `pour`, `read`):
-  an explicit chain addresses through a lid, the verb refuses it.
+*Retired W10, 2026-11-14 — an instrument is used where it is; `canReach` is
+the gate.* The field brought a bound tool to the giver's hand before the
+controller ran, putting away whatever was in the way — a behavior no
+player could predict from `help`. Now a tool is used where it sits (in
+hand, in an open holder on you, within reach) and stays there; a tool arg
+carries `validators: [canReach]`, whose refusals name the next command
+(*"Your pouch is shut — `open pouch` first."* / *"Your rucksack is on your
+back — take it off first (`remove rucksack`)."*). The schema refuses the
+key (`additionalProperties: false`), so a view still carrying it fails
+`lint:command-views`. ⭐ **The command def predicts everything a command
+does** — no implicit interpreter acts; a player's convenience is an
+option, an arg, a verb they know, or their own alias/`def`.
 
 ### `type: struct` — structured-input-only fields
 
@@ -1008,6 +1021,13 @@ field is required AND has no default AND the player typed nothing.
 normal validators / MQL resolution / type coercion pipeline. The
 controller never knows whether the populated field came from a typed
 arg or from `default:` — uniform call surface.
+
+⭐ **One fact rides the result** (size and carrying D-W10-7): an
+`objects` slot bound from its `default:` carries `defaulted: true` on its
+`MqlManyResult` (the `ordinal` precedent). `canReach` passes a defaulted
+list whole — the author's pool is not the player's word — and the
+controller narrows it (`PerceptionApi.reachableAmong`), so a packed spare
+in `reachable:[mixin.ToolMixin]` never refuses `measure`.
 
 If `default:` resolution fails (MQL no-match, validator veto, etc.),
 the field's standard failure surface fires; the framework does NOT
@@ -2503,3 +2523,19 @@ Build range `14af1e8ba..726c1f195`. What shifted between design and code:
   `char <n>` → `draught`, `tan` as a check → `look`). W18–W19 undid two
   false unifications (`stir`/`knead`/`churn`, `sweep`/`rake`). `survey`
   retired in W17 (`analyze rooms`, `measure paint`).
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. `depth:` and the reserved `--top`/`--open`/`--deep`
+flags were deleted (one reach rule, D17); `mustNotBeShutAway` folded into
+`canReach`; `readies:` joined `FieldDefinition`. `get` became the
+receiving act and `put X in <person>` handing ([carrying.md](./carrying.md)).
+
+⟲ **Superseded at review (W10, owner 2026-11-14 — *the command def
+predicts everything*):** `readies:` was **retired** from `FieldDefinition`
+— no implicit interpreter act; an instrument verb uses the tool where it
+sits, and a thing in a shut or packed holder is refused naming the fix.
+`get` is not a separate receiving act any more: every way onto a body is
+`ContainmentApi.move` (W8/W10i), and `get` alone refuses a pick-up the
+routing would only set back down (`Carrying.wouldSetDown`). The whole
+build is `39d4ba23e..HEAD` (MR !576).

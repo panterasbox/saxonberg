@@ -96,9 +96,11 @@ args:
     type: objects
     required: false
     prepositions: [using]
-    default: "me:i:[capability.scrubbing],reachable:[capability.scrubbing]"
+    default: "person:[capability.scrubbing],reachable:[capability.scrubbing]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
 options:
   hard:
     type: boolean

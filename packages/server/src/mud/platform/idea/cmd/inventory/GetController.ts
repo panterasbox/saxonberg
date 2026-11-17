@@ -17,6 +17,8 @@ import type {
   } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Carrying, ReadiedOutcome } from '../../../../lib/slot/Carrying';
+import type { Container } from '../../../../lib/spatial/Container';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
 import { MessageApi } from '../../../../api/message';
@@ -40,6 +42,9 @@ interface GetPayload {
 }
 
 export default class GetController extends CommandController<GetModel> {
+  /** The body refused one candidate this dispatch; the rest are not asked. */
+  private bodyRefused = false;
+
   async execute(
     model: GetModel,
     context: CommandContext
@@ -58,9 +63,47 @@ export default class GetController extends CommandController<GetModel> {
       context.note({ kind: 'empty-result', field: 'source', query: model.source.raw });
       return;
     }
-    const stuff = source
+    let stuff = source
       ? model.targets.stuff.filter((s) => GetController.heldBy(s, source))
       : model.targets.stuff;
+    // ⭐ From ANOTHER body (size and carrying D24a, the drive's step 15):
+    // the room's pool never reaches into a person, so what you name on
+    // them is looked for among what you perceive on them — what they hold
+    // and show, and what you FOUND there by searching. A body that can
+    // resist (conscious) will not be robbed; one that cannot is.
+    if (source && source.isAgent() && source.stuffId !== giver.stuffId && stuff.length === 0) {
+      // ⚠ ANYWHERE on them, not one level down (finalize drive run 15,
+      // step 15): since W9 a pocket's contents are its garment's, so the
+      // letter a search found in a coat's inner pocket is the coat's, and a
+      // top-level read answered "You don't find any 'letter'". What you
+      // perceive is the gate — a find is belief's, held only by its finder.
+      const word = raw.toLowerCase();
+      const onThem = MixinApi.isContainer(source) ? source.getDeepContents() : [];
+      stuff = onThem.filter((t) =>
+        PerceptionApi.perceives(giver, t) &&
+        t.perceivedKeywordsFor(giver).some((k) => k.toLowerCase() === word),
+      );
+      const resists = MixinApi.isVitals(source) ? source.searchRefusal(giver) : null;
+      if (resists !== null && stuff.length > 0) {
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.compose`${Mml.actor(source)} won't let you.`).send();
+        context.note({ kind: 'controller-rejected', reason: resists.reason, detail: source.getPresentation() });
+        return;
+      }
+      if (stuff.length > 0 && MixinApi.isCarrying(giver)) return this.takeFromBody(giver, source, stuff, context);
+    }
+    // ⭐ Shut means shut (D-W10-12): nothing in a shut thing is perceived,
+    // so nothing is named — the refusal names the next command, as `put`'s
+    // and the reach gate's do (finalize drive, step 14b: it read *"You
+    // don't find any 'pistol' in a canvas backpack"*, as if looked in).
+    if (source && stuff.length === 0 && !source.isAgent() && MixinApi.isSealable(source) && !source.isOpen()) {
+      const kw = (MixinApi.isPerceptible(source) ? source.getPrimaryKeyword() : undefined) ?? source.presentationPhrase().bare();
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.thing(source)} is shut — \`open ${kw.includes(' ') ? `"${kw}"` : kw}\` first.`)
+        .send();
+      context.note({ kind: 'controller-rejected', reason: 'shut', detail: `${source.getPresentation()} is closed` });
+      return;
+    }
     if (source && stuff.length === 0) {
       MessageApi.scene(giver)
         .topic('sense.survey')
@@ -74,10 +117,16 @@ export default class GetController extends CommandController<GetModel> {
         `GetController: commandGiver ${giver.stuffId} is not a Container`
       );
     }
+    // ⭐ From something on you — your belt, a pocket, the pouch on your
+    // belt — it comes to hand (size and carrying W7-d; the drive's `get
+    // lantern from belt`, the way's own `get <it> from <host>` advice).
+    if (source && MixinApi.isCarrying(giver) && giver.tierOf(source) !== 'elsewhere') {
+      return this.bringOut(giver, stuff, context);
+    }
 
     // `giver` is narrowed to `Stuff & Container`; carry the inventory
     // / location snapshots into both paths so neither has to re-cast.
-    const inventory = giver.getContents();
+    const inventory = PerceptionApi.perceived(giver, giver.getContents());
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
@@ -199,6 +248,84 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** `get X from <a body that cannot stop you>`: each is received, or the carrier says why not. */
+  private takeFromBody(giver: Stuff & Container & Carrying, body: Stuff, things: readonly Stuff[], context: CommandContext): void {
+    for (const thing of things) {
+      if (!MixinApi.isContainable(thing)) continue;
+      // ⭐ `get` carries (owner, 2026-11-15): the routing would only set it
+      // down, so it is refused and stays where it is.
+      const refused = giver.wouldSetDown(thing);
+      if (refused !== null) {
+        MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(this.carryRefusalWords(giver, refused))).send();
+        context.note({ kind: 'controller-rejected', reason: refused.reason, detail: thing.getPresentation() });
+        return;
+      }
+      ContainmentApi.move(thing, giver);
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You take ${Mml.thing(thing)} from ${Mml.actor(body)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} takes something from ${Mml.actor(body)}.`)
+        .send();
+    }
+  }
+
+  /** `get X from <a thing on you>`: each comes to hand, or the body says why not. */
+  private bringOut(giver: Stuff & Carrying, things: readonly Stuff[], context: CommandContext): void {
+    for (const thing of things) {
+      // ⭐ `ready` — into a free hand now, or (in a fight) the guarded beat
+      // priced by the holder, refused BEFORE the beat when hands are in the
+      // way (D-W10-3/-5).
+      const out = giver.ready(thing);
+      if (out === null) {
+        MessageApi.scene(giver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`You reach for ${Mml.thing(thing)} — your guard drops.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} reaches for something.`)
+          .send();
+        return;
+      }
+      if (out.ok) {
+        const words = this.drawWords(out);
+        if (words !== null && MixinApi.isSensor(giver)) {
+          MessageApi.scene(giver)
+            .topic('act.deed')
+            .toSelf(Mml.text(words.self))
+            .toPeers(Mml.compose`${Mml.actor(giver)} ${Mml.text(words.peer)}.`)
+            .send();
+        }
+        continue;
+      }
+      MessageApi.scene(giver).topic('act.deed').toSelf(Mml.text(this.carryRefusalWords(giver, out))).send();
+      context.note({ kind: 'controller-rejected', reason: out.reason, detail: thing.getPresentation() });
+      return;
+    }
+  }
+
+  /**
+   * ⭐ A thing drawn into a free hand, in words (D-W10-3): *"You pull out
+   * your compass from your belt pouch."* / *"You draw your sword."* `null`
+   * when nothing moved. Nothing else moved — nothing is put away for you.
+   */
+  private drawWords(out: ReadiedOutcome): { self: string; peer: string } | null {
+    if (!out.moved) return null;
+    const bare = (x: Stuff): string => x.presentationPhrase().bare();
+    const at = out.from;
+    if (at.container !== null && MixinApi.isContainer(at.container) && !at.container.isAgent() && at.container.getShapedTo() !== null) {
+      return { self: `You draw your ${bare(out.item)}.`, peer: `draws ${out.item.presentationPhrase().indefinite()}` };
+    }
+    let where: string | null = null;
+    if (at.host !== null) {
+      const host = bare(at.host);
+      const named = at.region !== null && MixinApi.isPlacing(at.host) && at.host.namedRegions().includes(at.region);
+      where = named ? `your ${host}${host.endsWith('s') ? "'" : "'s"} ${at.region}` : `your ${host}`;
+    } else if (at.container !== null) where = `your ${bare(at.container)}`;
+    else if (at.slot !== null) where = `your ${at.slot.split(':')[0]}`;
+    return {
+      self: where !== null ? `You pull out your ${bare(out.item)} from ${where}.` : `You pull out your ${bare(out.item)}.`,
+      peer: `pulls out ${out.item.presentationPhrase().indefinite()}`,
+    };
   }
 
   /** Is `s` in `holder`, or placed on it? */
@@ -336,6 +463,22 @@ export default class GetController extends CommandController<GetModel> {
     operand: Stuff,
     context: CommandContext,
   ): Promise<boolean> {
+    // ⭐ In a fight, picking a thing up is a guarded beat — a reach (D-W10-5);
+    // outside one it lands now (D-W10-13).
+    const giver = context.commandGiver;
+    const seconds = MixinApi.isCombatant(giver) ? giver.handActSeconds(operand) : 0;
+    let took = false;
+    const deferred = await this.guarded(giver, seconds, async () => {
+      took = await this.pickUpNow(operand, context);
+    });
+    return deferred ? true : took;
+  }
+
+  /** The take itself — see {@link pickUpOperand}. */
+  private async pickUpNow(
+    operand: Stuff,
+    context: CommandContext,
+  ): Promise<boolean> {
     if (!MixinApi.isContainable(operand)) {
       throw new Error(
         `GetController: operand ${operand.stuffId} is not Containable`
@@ -393,24 +536,6 @@ export default class GetController extends CommandController<GetModel> {
       return false;
     }
 
-    // Hands-occupied while hauling: you can't pick a thing up into your
-    // hands while gripping a cart's handle. Keyed on the giver being the
-    // hauler (a mounted rider whose horse hauls keeps their hands free).
-    if (MixinApi.isHauling(giver) && giver.isHitched()) {
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'hands-hauling',
-        detail: 'cannot pick up while hauling a cart',
-      });
-      MessageApi.scene(giver)
-        .topic('sense.survey')
-        .toSelf(
-          Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`,
-        )
-        .send();
-      return false;
-    }
-
     // Encumbrance lift gate — only a load-bearing giver (a creature with
     // the gauge) is gated; non-creature containers (a chest looting into
     // a bag) skip it. Diegetic decline: an envelope note + a scene line,
@@ -426,6 +551,48 @@ export default class GetController extends CommandController<GetModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(Mml.compose`You strain, but ${Mml.thing(operand)} doesn't budge.`)
+        .send();
+      return false;
+    }
+
+    // ⭐ Where it would go on you, asked BEFORE anything moves (size and
+    // carrying W7 — `get` is the receiving act): a free hand, a pocket it
+    // fits, a pack; else the refusal is the tutorial — your hands' contents,
+    // where it would not fit, and the next command in your own pockets'
+    // names. A cart's handles in your hands say so too.
+    if (MixinApi.isCarrying(giver)) {
+      // ⭐ Once the body has said it has nowhere for one, it is not asked
+      // for the next of the same name (the drive's runs 3 and 4: a
+      // keeper's `get 1 cola` against a full stock refused EVERY can in
+      // turn, each with a note and a scene, on every brain beat of a long
+      // clock jump — and the server ran out of heap).
+      if (this.bodyRefused) return false;
+      // ⭐⭐ `get` CARRIES (owner, 2026-11-15): `move` routes it — a hand, a
+      // pocket, a bag you carry — and when the routing would only set it
+      // down again, `get` refuses instead, before anything moves (off a
+      // wall, out of a slot): picking a thing up to set it back down is no
+      // change, and a set-down is `drop`'s or `put`'s act. The refusal is
+      // the tutorial: what your hands hold and the next command.
+      const down = giver.wouldSetDown(operand);
+      if (down !== null) {
+        this.bodyRefused = true;
+        context.note({
+          kind: 'controller-rejected',
+          reason: down.reason === 'hands-on-cart' ? 'hands-hauling' : down.reason,
+          detail: `${operand.getPresentation()}: ${down.reason}`,
+        });
+        MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.text(this.carryRefusalWords(giver, down))).send();
+        return false;
+      }
+    } else if (MixinApi.isHauling(giver) && giver.isHitched()) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'hands-hauling',
+        detail: 'cannot pick up while hauling a cart',
+      });
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`)
         .send();
       return false;
     }
@@ -480,6 +647,8 @@ export default class GetController extends CommandController<GetModel> {
     // already is MERGES into it and is destroyed, and a reference to a
     // destroyed thing threw in the scene (the assembly drive's pegs).
     const named = operand.getPresentation();
+    // ⭐ The one call: a carrier routes it (a hand, a pocket, a bag it
+    // carries — asked above that the routing keeps it).
     ContainmentApi.move(operand, giver);
     const merged = operand.isDestroyed();
     // Custody returns to a pair of hands; `move` records it (`inventory`).

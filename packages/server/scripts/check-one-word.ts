@@ -16,9 +16,12 @@
  *   (b) **controllers across verbs** — a controller (view-level
  *       `controller:`, resolved to its absolute path) named by views whose
  *       primary verbs differ;
- *   (c) **bad default aliases** — a `defaultAliases: [{name, description?}]`
- *       name declared twice, or equal to any view's verb or a script
- *       builtin (`lib/script/builtins.ts`).
+ *   (c) **bad default aliases** — a `defaultAliases: [{name, description?,
+ *       body?}]` name declared twice, or equal to any view's verb or a
+ *       script builtin (`lib/script/builtins.ts`); or a `body:` that does
+ *       not begin with the view's own verb (size-and-carrying W10h: `i` →
+ *       `query --ledger me:i` reaches a player only while `query` does, so
+ *       a body naming another verb would outlive its reach).
  */
 
 import { resolve } from "path";
@@ -88,6 +91,13 @@ export function census(contentDir: string = CONTENT): OneWordReport {
       if (allVerbs.has(name)) report.badAliases.push(`${where}  '${name}' is a verb`);
       if ((SCRIPT_BUILTINS as readonly string[]).includes(name)) {
         report.badAliases.push(`${where}  '${name}' is a script builtin`);
+      }
+      const body = (entry as { body?: unknown }).body;
+      if (body !== undefined) {
+        const first = typeof body === "string" ? body.trim().split(/\s+/)[0]?.toLowerCase() : undefined;
+        if (first !== verbsOf(v.doc)[0]) {
+          report.badAliases.push(`${where}  '${name}' runs a line that does not begin with this view's verb`);
+        }
       }
     }
   }

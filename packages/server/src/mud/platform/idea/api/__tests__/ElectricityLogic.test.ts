@@ -7,10 +7,13 @@
  */
 
 import "../../../../../test-bootstrap";
+import { CarryingMixin } from '../../../../lib/slot/Carrying';
+import { carry } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ElectricityApi } from '../../../../api/electricity';
 import { EnergizedMixin } from '../../../../lib/electricity/Energized';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
+import { SlottableMixin } from '../../../../lib/slot/Slottable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Place from '../../../../lib/stuff/Place';
@@ -32,7 +35,11 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import type { Trauma } from '../../Condition';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
 
-class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
+/** A body that carries (size and carrying W8: the capability is the carrier classes'). */
+class CarrierBody extends CarryingMixin(Creature) {}
+
+// Slottable: a hand holds it (size and carrying W7 — nothing loose on a body).
+class TestWire extends EnergizedMixin(SlottableMixin(ContainableMixin(NamedMixin(Idea)))) {
   static _mixinName = 'TestWire';
 }
 
@@ -119,9 +126,15 @@ function makeBody(room: Place | null): Creature {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
     { name: 'torso', accepts: 'WearableMixin', covers: ['body.torso'] },
+    // Two hands (size and carrying W7: a carried thing is held, not loose).
+    { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
+    { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
   plan.setBodyParts([
     { key: 'body.torso', parent: null, tissues: [] },
+    { key: 'body.hand.left', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
+    { key: 'body.hand.right', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
+
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.left.foot',
@@ -141,7 +154,7 @@ function makeBody(room: Place | null): Creature {
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/elec-${id}`);
 
-  const c = makeStuff(() => new Creature());
+  const c = makeStuff(() => new CarrierBody());
   c.setSpecies(species);
   if (room) ContainmentApi.move(c as never, room as never);
   return c;
@@ -215,7 +228,7 @@ describe('ElectricityLogic — the conduction walk', () => {
     floodFloor(room, null, 0); // dry floor, no conductive pool
     const body = makeBody(room);
     const wire = makeWire(room, 120);
-    ContainmentApi.move(wire as never, body as never); // wire in hand
+    carry(body, wire); // wire in hand
 
     expect(ElectricityApi.pathToGround(body)).toBe(false);
     expect(wire.currentThrough(body).rawValue()).toBe(0);

@@ -208,6 +208,8 @@ function skippedPhrase(skip: SkippedPart): string {
       return `${part} wants a fire hotter than any here`;
     case 'missing-tool':
       return `${part} wants ${TOOL_WORDS[skip.detail ?? ''] ?? `a ${skip.detail ?? 'tool'}`}`;
+    case 'tool-out-of-reach':
+      return `${part} waits on your kit — ${CraftingDecline.messageFor({ ok: false, reason: 'tool-out-of-reach', ...(skip.detail !== undefined ? { detail: skip.detail } : {}) }).replace(/\.$/, '')}`;
     case 'insufficient-input':
       return `there is no ${skip.detail ?? 'stock'} here to mend ${part} with`;
     case 'part-failed':

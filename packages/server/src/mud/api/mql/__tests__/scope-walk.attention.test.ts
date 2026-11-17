@@ -1,11 +1,12 @@
 /**
- * MQL scope-walk attention (the `MqlContext.attention` term).
+ * The attention term — MQL names, the watcher perceives.
  *
- * The scope walk gates every candidate through `PerceptionApi.perceives`.
- * By default that gate runs at the passive baseline — honest fog for
- * player-typed queries. A **code-only** caller (a detection consumer like
- * the `wary` sentry brain) may pass `attention` so `peers` resolves what it
- * perceives *when actively watching*. Asserts:
+ * ⚠ Meaning changed at size-and-carrying W3 (D23): the scope walk no longer
+ * gates candidates on `PerceptionApi.perceives`, and `MqlContext.attention`
+ * is gone. MQL names the concealed mover for everyone; a detection consumer
+ * (the `wary` sentry brain) filters what it NAMED through
+ * `PerceptionApi.perceives(viewer, x, attention)`. Asserts:
+ *   - MQL names the concealed mover whatever the attention;
  *   - absent attention → passive baseline (a concealed peer stays hidden);
  *   - attention below the band's requirement → still hidden;
  *   - attention at/above the requirement → surfaced;
@@ -19,6 +20,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MqlApi } from '../../mql';
+import { PerceptionApi } from '../../perception';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
 import { PerceptionMixin } from '../../../lib/perception/Perception';
 import { SensorMixin } from '../../../lib/message/Sensor';
@@ -52,13 +54,16 @@ function mover(level: ConcealmentLevel): Mover {
   return m;
 }
 
-function ctx(viewer: Viewer, attention?: number): MqlContext {
-  return { commandGiver: viewer as never, scope: 'peers', attention };
+function ctx(viewer: Viewer): MqlContext {
+  return { commandGiver: viewer as never, scope: 'peers' };
+}
+function named(viewer: Viewer): string[] {
+  return MqlApi.resolveMany('peers:living', ctx(viewer)).stuff.map((s) => s.stuffId);
 }
 function ids(viewer: Viewer, attention?: number): string[] {
-  return MqlApi.resolveMany('peers:living', ctx(viewer, attention)).stuff.map(
-    (s) => s.stuffId,
-  );
+  return MqlApi.resolveMany('peers:living', ctx(viewer))
+    .stuff.filter((s) => PerceptionApi.perceives(viewer, s, attention))
+    .map((s) => s.stuffId);
 }
 
 describe('MQL peers:living — the attention term', () => {
@@ -69,7 +74,9 @@ describe('MQL peers:living — the attention term', () => {
     ContainmentApi.move(viewer, room);
     ContainmentApi.move(hidden, room);
 
-    // Absent attention → passive baseline (0) → not surfaced (honest fog).
+    // MQL names it for everyone (D23).
+    expect(named(viewer)).toContain(hidden.stuffId);
+    // Absent attention → passive baseline (0) → not perceived (honest fog).
     expect(ids(viewer)).not.toContain(hidden.stuffId);
     // Below the requirement → still hidden.
     expect(ids(viewer, 3)).not.toContain(hidden.stuffId);

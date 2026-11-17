@@ -292,7 +292,8 @@ function keywordFor(item: Stuff): string | null {
 
 /** Is a loaf of that keyword in the buyer's hands now? */
 function heldLoaf(buyer: Buyer, keyword: string): Stuff | null {
-  for (const item of buyer.getContents()) {
+  // ⭐ Everything carried (W9): a bought loaf may be pocketed, not held.
+  for (const item of buyer.getCarriedContents()) {
     const s = item as unknown as Stuff;
     if (!isLoaf(s)) continue;
     if (MixinApi.isPerceptible(s) && s.hasKeyword(keyword)) return s;

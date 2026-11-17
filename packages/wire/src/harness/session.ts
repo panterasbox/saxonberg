@@ -281,6 +281,8 @@ async function login(
 export class Session {
   private ws!: WebSocket;
   private readonly proseFrames: string[] = [];
+  /** What the world said while this session entered (before the first probe). */
+  private arrivalProse = '';
   /**
    * Every non-message envelope since the last `cmd()` (a ring of
    * {@link CAPTURE_RING}) — `card-opened`, `card-touched`,
@@ -513,6 +515,10 @@ export class Session {
       JSON.stringify({ type: 'command', payload: { text: `play ${playerId}` } })
     );
     await this.settle();
+    // ⚠ `cmd` clears the prose buffer, so what entering said (the welcome,
+    // the arrival look, a restore's "would not fit anywhere on you") is kept
+    // here before the first probe — `arrival()` reads it.
+    this.arrivalProse = plain(this.proseFrames.join('\n'));
     const deadline = Date.now() + FRAME_TIMEOUT_MS;
     for (;;) {
       const look = await this.cmd('look');
@@ -1046,6 +1052,11 @@ export class Session {
     this.captureLast?.();
     this.captureLast = null;
     this.proseFrames.length = 0;
+  }
+
+  /** The prose the world sent while this session entered, as plain text. */
+  arrival(): string {
+    return this.arrivalProse;
   }
 
   /**

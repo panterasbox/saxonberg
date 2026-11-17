@@ -549,6 +549,10 @@ export interface LocomotionGateFailedNote {
     | 'locked'
     | 'unbuilt'
     | 'unpublished'
+    // ⭐ Size and carrying (D20/D21): what comes through does not fit the
+    // way; the mode wants more free hands than you have (a ladder).
+    | 'clearance'
+    | 'hands-needed'
     // ⭐ A guard this vocabulary has no word for reports its own raw name; it
     // used to read as `exit-mode` whatever it was (controllers-are-io D31).
     | (string & Record<never, never>);

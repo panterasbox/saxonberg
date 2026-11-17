@@ -18,7 +18,8 @@ help: |
   lies at, `maintain` with a caulker's kit (oakum and pitch) pays in her
   seams. A worn hull leaks into her bilge.
 
-  You need the kit in your hands; that is also what makes this verb
+  You need the kit to hand — held, or in an open pouch or satchel on you
+  (a shut one says to open it); that is also what makes this verb
   appear. It wears a little each time, and a worn-out kit is a trip to
   the store.
 
@@ -53,9 +54,14 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    # ⚠ `me:i` — IN HAND, as the controller walked before the default was
-    # declared; a scythe on the ground is picked up first. (`reachable` for a
-    # day widened every hand tool to the room. Naming one still reaches it.)
-    default: "me:i:[capability.upkeep]"
+    # ⚠ `person` — what you CARRY, used where it sits: held, worn, or in
+    # an open pocket or pouch on you (the binder narrows the default by
+    # `canReach`; a tool only behind a shut flap or packed on your back is
+    # refused, naming `open …` / `remove …`). A tool on the ground is picked
+    # up first. (`reachable` for a day widened every hand tool to the room.
+    # Naming one still reaches it.)
+    default: "person:[capability.upkeep]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

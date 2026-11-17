@@ -63,6 +63,12 @@ describe("(c) default aliases", () => {
     const r = census(tree({ look: "verbs: [look]\ncontroller: /x/L\ndefaultAliases: [{name: l}]\n" }));
     expect(r.badAliases).toEqual([]);
   });
+  it("⭐ a stated line must begin with the view's own verb (W10h)", () => {
+    const ok = census(tree({ query: "verbs: [query]\ncontroller: /x/Q\ndefaultAliases: [{name: i, body: 'query --ledger me:i'}]\n" }));
+    expect(ok.badAliases).toEqual([]);
+    const bad = census(tree({ query: "verbs: [query]\ncontroller: /x/Q\ndefaultAliases: [{name: i, body: 'look me'}]\n" }));
+    expect(bad.badAliases.some((b) => b.includes("does not begin with this view's verb"))).toBe(true);
+  });
 });
 
 describe("⭐ the live tree", () => {

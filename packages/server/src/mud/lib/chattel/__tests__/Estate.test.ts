@@ -33,6 +33,8 @@ import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
 import { SlottedMixin } from "../../slot/Slotted";
 import { SlottableMixin } from "../../slot/Slottable";
+import { PlacingMixin } from "../../spatial/Placing";
+import { Placements } from "../../spatial/Placement";
 import { ContainmentApi } from "../../../api/containment";
 import { Idea } from "../../stuff/Idea";
 import TemplateApplier from "../../../platform/idea/TemplateApplier";
@@ -519,5 +521,96 @@ describe("owner-based persistence — what is worn stays worn", () => {
     const contents = (restored as unknown as Container).getContents();
     expect(contents.length).toBe(1);
     expect(restored.getOccupant("torso")).toBe(contents[0]);
+  });
+});
+
+describe("owner-based persistence — what hangs stays hung (size and carrying W7)", () => {
+  class Belt extends PlacingMixin(SlottableMixin(Good)) {}
+  class Pouch extends Good {}
+  class Wearer extends PersistableMixin(
+    EstateMixin(SlottedMixin(ContainerMixin(Idea))),
+  ) {
+    static fieldMeta: FieldMeta = {};
+  }
+  const BELT_PATH = "/obj/test/Belt";
+  const POUCH_PATH = "/obj/test/Pouch";
+  const makeWearer = (): Wearer => {
+    const w = makeStuffAtPath(() => new Wearer(), ALICE_PATH);
+    w.setStaticSlots([{ name: "waist", accepts: "SlottableMixin" }]);
+    return w;
+  };
+  const mockClone = (): void => {
+    vi.spyOn(StuffApi, "clone").mockImplementation(
+      ((path: string) =>
+        Promise.resolve(
+          path === BELT_PATH
+            ? makeStuffAtPath(() => new Belt(), path)
+            : makeStuffAtPath(() => new Pouch(), path),
+        )) as unknown as typeof StuffApi.clone,
+    );
+  };
+  const belt = async (): Promise<Belt> => {
+    const b = makeStuffAtPath(() => new Belt(), BELT_PATH);
+    await b.setPlacements([Placements.FROM]);
+    return b;
+  };
+
+  async function roundTrip(ownBelt: boolean, ownPouch: boolean): Promise<Wearer> {
+    mockClone();
+    const alice = makeWearer();
+    const b = await belt();
+    ContainmentApi.move(b, alice);
+    if (ownBelt) {
+      await b.stampChattel(alice);
+      await b.setChattelPlace(ESTATE_INVENTORY);
+    }
+    alice.occupyAll(b, ["waist"]);
+    const p = makeStuffAtPath(() => new Pouch(), POUCH_PATH);
+    ContainmentApi.move(p, alice);
+    if (ownPouch) {
+      await p.stampChattel(alice);
+      await p.setChattelPlace(ESTATE_INVENTORY);
+    }
+    ContainmentApi.move(p, b, Placements.FROM);
+    expect(p.getPlacement()?.host).toBe(b);
+    await PersistableApi.capture(alice);
+
+    StuffApi.clearAll();
+    await boot();
+    mockClone();
+    const restored = makeWearer();
+    // The belt's placements re-hydrate from its row in life; the stand-in
+    // clone has none, so give the restored belt its `from` before materialize
+    // places onto it.
+    const real = StuffApi.clone;
+    vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
+      const made = (await (real as unknown as (p: string) => Promise<Stuff>)(path)) as Stuff;
+      if (made instanceof Belt) await made.setPlacements([Placements.FROM]);
+      return made;
+    }) as unknown as typeof StuffApi.clone);
+    await PersistableApi.materialize(restored);
+    return restored;
+  }
+
+  const hungOn = (w: Wearer): { pouch: Stuff | undefined; belt: Stuff | undefined } => {
+    const contents = (w as unknown as Container).getContents();
+    return {
+      pouch: contents.find((c) => c instanceof Pouch),
+      belt: contents.find((c) => c instanceof Belt),
+    };
+  };
+
+  it.each([
+    ["an owned belt, an unowned pouch", true, false],
+    ["an unowned belt, an owned pouch", false, true],
+    ["both owned", true, true],
+  ])("%s: the pouch comes back hung from the worn belt", async (_label, ownBelt, ownPouch) => {
+    const restored = await roundTrip(ownBelt, ownPouch);
+    const { pouch, belt: b } = hungOn(restored);
+    expect(b).toBeDefined();
+    expect(restored.getOccupant("waist")).toBe(b);
+    const pair = MixinApi.isContainable(pouch!) ? pouch.getPlacement() : null;
+    expect(pair?.host).toBe(b);
+    expect(pair?.name).toBe(Placements.FROM);
   });
 });

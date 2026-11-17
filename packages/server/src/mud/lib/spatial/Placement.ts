@@ -45,7 +45,11 @@ export const KERNEL_PLACEMENT_PREFIX = '/platform/placements/';
 export const Placements = {
   /** On a surface — a mug on a desk. */
   ON: '/platform/placements/on',
-  /** Inside a compartment with its own air — every container's inside. */
+  /**
+   * Inside — every container's inside (region zero), and a named region of
+   * a container (a coat's `left pocket`: the key is the coat's contents —
+   * size and carrying W9). The one member that encloses.
+   */
   IN: '/platform/placements/in',
   /** Hanging from a hook. */
   FROM: '/platform/placements/from',
@@ -60,6 +64,8 @@ export class Placement {
     private readonly encloses: boolean,
     private readonly prose: string,
     private readonly heading: string,
+    private readonly hangs: boolean = false,
+    private readonly fastens: boolean = false,
   ) {}
 
   /** This placement's path — its only name. */
@@ -85,6 +91,23 @@ export class Placement {
   /** Whether sitting here puts the thing INSIDE something (air, sight, reach). */
   public getEncloses(): boolean {
     return this.encloses;
+  }
+
+  /**
+   * ⭐ Does sitting here mean HANGING from a length (size and carrying D4)?
+   * A host's hanging members are bounded by its length and what it bears —
+   * a belt, a rail, a strap, a key ring (`Placing.hangingLengthM`).
+   */
+  public getHangs(): boolean {
+    return this.hangs;
+  }
+
+  /**
+   * ⭐ Is a thing sitting here FASTENED — clipped or tied (D5)? A fastened
+   * thing stays put under water and at zero gravity; `on` fastens nothing.
+   */
+  public getFastens(): boolean {
+    return this.fastens;
   }
 
   /** The Liquid sentence `put` / `dry` render (`actor` · `item` · `host`). */

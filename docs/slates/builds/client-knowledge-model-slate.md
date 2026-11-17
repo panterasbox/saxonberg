@@ -117,6 +117,12 @@ record keys internally — keys are not display.)
    record the map's lenses need (see map-slate's candidate list).
 5. **`stuffRegistry`'s migration** into the session cache, and whether
    `MmlRenderer` reads through a selector afterwards.
+6. **Autocomplete filters by perception** (size-and-carrying finalize, 2026-11-16). No object autocomplete
+   exists on either side; when the navigation pane or a later client build
+   adds one, its candidate list is a SURFACE — it passes
+   `PerceptionApi.perceived(viewer, …)` before a word is suggested (a
+   suggestion is a disclosure, like a refusal or a `which?`), and
+   `lint:perceived-surfaces` counts it.
 
 ## Cross-references
 

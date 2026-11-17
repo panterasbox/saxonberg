@@ -5,6 +5,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hose from '../thing/Hose';
 import LineEnd from '@saxonberg/server/mud/platform/thing/LineEnd';
@@ -39,8 +40,8 @@ afterEach(() => {
 describe('the air hose (cordage D2)', () => {
   it('⭐ made fast to a diver, its end is a hose\'s end — and it is no rope', async () => {
     const quay = makeStuffAtPath(() => new Location(), '/test/diving/hose-quay');
-    const tender = makeStuff(() => new Body());
-    const diver = makeStuff(() => new Body());
+    const tender = withHands(makeStuff(() => new Body()));
+    const diver = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(tender as never, quay as never);
     ContainmentApi.move(diver as never, quay as never);
     const hose = makeStuff(() => new Hose());

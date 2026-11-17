@@ -1,0 +1,19 @@
+# A pack saddle (size and carrying D27) — a wooden crosstree on felt pads,
+# worn on a pack animal's back: two panniers hang `from` it. The animal
+# bears what it carries by its own body, never an authored load.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: pack saddle
+  keywords: [saddle, "pack saddle", crosstree, tack]
+  register: indefinite
+  longDescription: >
+    A sawbuck of two crossed wooden trees on felt pads, with breeching and
+    breast straps and a hook at each end for a pannier.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 7
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/quadruped": ["back:1"]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.6, depth: 0.5, height: 0.35 }
+  constructionForm: hide
+  gradeBand: fair

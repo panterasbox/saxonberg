@@ -1,9 +1,9 @@
 /**
- * ⭐⭐ The one visibility rule lives in the query language (maritime
- * revision 2′): descending a holder with `:i` yields what the VIEWER may
- * see inside it (`PerceptionApi.visibleContentsOf`) — so `bob:i` names
- * what Bob wears and holds, never his pockets, for `query`, `look` and a
- * script alike. Your own things, and system mode, are everything.
+ * ⭐⭐ MQL names; acts perceive (size-and-carrying D23, 2026-11-11). ⚠
+ * Meaning REVERSED from maritime revision 2′: descending a holder with
+ * `:i` yields everything inside it for every viewer — `bob:i` names Bob's
+ * pockets too — and the surface that binds or shows it applies
+ * `PerceptionApi.perceived` (where a stranger's pockets drop out).
  */
 
 import '../../../../test-bootstrap';
@@ -17,6 +17,7 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
+import { SealableMixin } from '../../../lib/spatial/Sealable';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
@@ -25,6 +26,9 @@ class Holder extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
 }
 class Item extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'TestItem';
+}
+class Chest extends SealableMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))) {
+  static _mixinName = 'TestChest';
 }
 
 let room: Place;
@@ -48,46 +52,44 @@ afterEach(() => vi.restoreAllMocks());
 
 const ids = (xs: readonly Stuff[]): string[] => xs.map((x) => x.stuffId).sort();
 
-describe('`:i` names only what the viewer may see', () => {
-  it('⭐⭐ another holder: exactly what the visibility rule allows — the pockets stay pockets', () => {
-    const rule = vi.spyOn(PerceptionApi, 'visibleContentsOf').mockImplementation((v, t) =>
-      t === bob ? { worn: [shirt], held: [], carried: [], shut: false } : { worn: [], held: [], carried: [viewer, bob], shut: false },
-    );
-    const r = MqlApi.resolveMany('here:i:i', { commandGiver: viewer as never, scope: '' });
-    expect(ids(r.stuff)).toEqual([shirt.stuffId]);
-    expect(rule).toHaveBeenCalledWith(viewer, bob);
-  });
-
-  it('a shut holder yields nothing', () => {
-    vi.spyOn(PerceptionApi, 'visibleContentsOf').mockImplementation((v, t) =>
-      t === bob ? { worn: [], held: [], carried: [], shut: true } : { worn: [], held: [], carried: [viewer, bob], shut: false },
-    );
-    expect(MqlApi.resolveMany('here:i:i', { commandGiver: viewer as never, scope: '' }).stuff).toEqual([]);
-  });
-
-  it('⭐ your own things: everything (what you hid on yourself you still know)', () => {
+describe('`:i` names everything inside, for everyone (D23)', () => {
+  it('⭐⭐ another holder: MQL names the pockets too; the act perceives', () => {
     const rule = vi.spyOn(PerceptionApi, 'visibleContentsOf');
+    const r = MqlApi.resolveMany('here:i:i', { commandGiver: viewer as never, scope: '' });
+    expect(ids(r.stuff)).toEqual(ids([shirt, coin]));
+    expect(rule).not.toHaveBeenCalled();
+  });
+
+  it('a shut holder still names its contents; the system and a player get the same list', () => {
+    const player = MqlApi.resolveMany(`#${bob.stuffId}:i`, { commandGiver: viewer as never, scope: '' });
+    const system = MqlApi.resolveMany(`#${bob.stuffId}:i`, { commandGiver: null, scope: '' });
+    expect(ids(player.stuff)).toEqual(ids(system.stuff));
+  });
+
+  it('⭐ your own things: everything', () => {
     const r = MqlApi.resolveMany('me:i', { commandGiver: bob as never, scope: '' });
     expect(ids(r.stuff)).toEqual(ids([shirt, coin]));
-    expect(rule).not.toHaveBeenCalledWith(bob, bob);
   });
 });
 
-describe('`#<id>` names only what the viewer perceives (client-surface D7)', () => {
-  it('⭐ a perceived thing resolves by id — the card\'s links address by it', () => {
-    vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(true);
+describe('`#<id>` names the thing for everyone; the surface perceives (D23, keeping client-surface D7)', () => {
+  it('⭐ an id resolves whatever the viewer perceives', () => {
+    vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(false);
     const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: viewer as never, scope: '' });
     expect(ids(r.stuff)).toEqual([coin.stuffId]);
   });
 
-  it('⛔ an unperceived one resolves to nothing for a player', () => {
-    vi.spyOn(PerceptionApi, 'perceives').mockImplementation((_v, t) => t !== coin);
+  it('⛔ and `perceived` is what keeps an id from reaching a thing out of sight', () => {
+    const chest = makeStuff(() => new Chest());
+    ContainmentApi.move(chest as never, room as never);
+    ContainmentApi.move(coin as never, chest as never);
+    chest.setOpen(false);
     const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: viewer as never, scope: '' });
-    expect(r.stuff).toEqual([]);
+    expect(ids(r.stuff)).toEqual([coin.stuffId]);
+    expect(PerceptionApi.perceived(viewer, r.stuff)).toEqual([]);
   });
 
-  it('a system query is ungated', () => {
-    vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(false);
+  it('a system query names it too', () => {
     const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: null, scope: '' });
     expect(ids(r.stuff)).toEqual([coin.stuffId]);
   });

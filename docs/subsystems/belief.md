@@ -203,7 +203,7 @@ sighting). All triggers funnel through it.
 
 ## Viewer-relative targeting — the name-leak gate (`api/mql/scope-walk.ts`)
 
-Keyword resolution shares the naming step's source. `pushDirect` builds
+Keyword resolution shares the naming step's source. `candidateFor` builds
 each candidate's `name` from `stuff.describeFor(viewer)` and
 its `keywords` from `stuff.perceivedKeywordsFor(viewer)`
 (tokens of the *perceived* name — `knownAs` if recognized, salient

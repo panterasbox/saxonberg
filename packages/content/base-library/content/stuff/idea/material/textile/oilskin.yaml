@@ -1,0 +1,31 @@
+# Oilskin — linen cloth soaked in boiled linseed oil and dried hard: the
+# sailor's and the courier's waterproof (size and carrying D22). It IS
+# oiled linen, so it extends linen and states only what the oil changes.
+#
+# ⭐ `waterAbsorptionCapacity: 0` is the whole point: a SHUT holder whose
+# material takes no water is liquid-tight (`Container.closureLevel`), so
+# an oilskin pouch with its flap down keeps a letter dry through a swim,
+# where a shut canvas pack (25%) lets the water in. Open, it keeps nothing.
+# (Authored against the parent's 20%, so it is a value, not "not
+# applicable" — `lint:material-kinds` arm (c).)
+#
+# It lives with the other textile materials (base-library), not in the
+# textiles trade's tree, because a material row is the commons'.
+extends: /stuff/idea/material/textile/linen
+class: /platform/idea/material/Fiber
+data:
+  smells: [{ aroma: /base-library/aromas/oil/linseed, strength: 20 }]
+  name: oilskin
+  keywords: [oilskin, oilcloth, "oiled linen"]
+  appearance: stiff yellowed oilskin
+  density: 1300
+  toughness: 4
+  tensileStrengthMPa: 35
+  waterAbsorptionCapacity: 0
+  # The oil keeps the cloth's strength in the wet: it does not give way.
+  wetStrength: 1
+  ashFraction: 0.01
+  heatOfCombustion: 25
+  autoignitionTemperature: 600
+  # `oiled`: impermeable on purpose — the oil is what it is for (WetLaw).
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living", "oiled"]

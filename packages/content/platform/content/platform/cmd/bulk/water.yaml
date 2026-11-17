@@ -61,8 +61,12 @@ args:
     type: objects
     required: false
     # Named: anything in reach (a can on the floor). Bare: only what you
-    # CARRY — the default's seed is `me:i`, not `reachable`.
+    # CARRY, to hand where it sits — the default's seed is `person`, not
+    # `reachable`, narrowed by `canReach` (a can in a shut bag is refused,
+    # naming `open …`).
     scope: ["reachable"]
     prepositions: [with, from]
-    default: "me:i"
+    default: "person:[mixin.BulkableMixin or class.WaterHose]"
     requires: any
+    validators:
+      - /lib/command/validators/canReach

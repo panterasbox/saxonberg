@@ -874,7 +874,7 @@ class either doesn't persist it or supplies a custom Hydrator subclass.
 
 ```typescript
 static commandProvider = {
-  self: ['inventory.yaml', 'get.yaml', 'drop.yaml'],
+  self: ['get.yaml', 'drop.yaml', 'put.yaml'],
   environment: [],
   inventory: [],
   peers: [],

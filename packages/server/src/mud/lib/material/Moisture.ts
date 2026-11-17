@@ -229,12 +229,25 @@ function exposureOf(host: Stuff): number {
   // ⚠ `instanceof Place` rather than a mixin predicate: a `Vessel` is
   // Atmospheric too, and the question here is "is this the open world or
   // the inside of something". The `Display.ts` precedent.
-  if (!(where instanceof Place)) return 0;
+  // ⭐ …except a COMPARTMENT with its own air (a drying chamber): a stack
+  // put `in` the loft is the loft's contents since size and carrying W9, and
+  // the loft's air reaches all of it (what the loft's `in` placement gave it
+  // at the Placing default, 1). Not a thing you go inside (a coach's cabin).
+  if (!(where instanceof Place)) return isChamber(where) ? 1 : 0;
   const support = host.getPlacement()?.host ?? null;
   if (support !== null) return clamp01(support.getAirExposure());
   return clamp01(
     dial(AppSettingKeys.cureGroundExposure, WATER_DEFAULTS.GROUND_EXPOSURE),
   );
+}
+
+/**
+ * A compartment with its own air that is not a place you go inside — a
+ * drying loft, a smoke chamber (size and carrying W9: its occupants are its
+ * contents).
+ */
+function isChamber(where: Stuff): boolean {
+  return MixinApi.isAtmospheric(where) && !MixinApi.isExitable(where);
 }
 
 /**
@@ -244,12 +257,14 @@ function exposureOf(host: Stuff): number {
 function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
   if (!MixinApi.isContainable(host)) return null;
   const where = host.getContainer();
-  if (where === null || !(where instanceof Place)) return null;
-  // ⭐ The ENCLOSING scope's air, not the container's: a stack placed `in`
-  // a drying chamber has `container = the room` and enclosing scope = the
-  // chamber, and it is the chamber's air that dries it. Off a placement —
-  // or under one that does not enclose (`on` a rack) — the enclosing scope
-  // IS the container. (Seasoning's walk, kept when it folded in here.)
+  // ⭐ A place — or a compartment with its own air (a drying chamber: a
+  // stack put `in` the loft is the loft's contents since size and carrying
+  // W9, and it is the chamber's air that dries it).
+  if (where === null || (!(where instanceof Place) && !isChamber(where))) return null;
+  // ⭐ The ENCLOSING scope's air, not the container's, for a placed thing.
+  // Off a placement — or under one that does not enclose (`on` a rack) —
+  // the enclosing scope IS the container. (Seasoning's walk, kept when it
+  // folded in here.)
   let scope: Stuff | null = host.getEnclosingScope();
   while (scope !== null && !MixinApi.isContainer(scope) && !MixinApi.isAtmospheric(scope)) {
     scope = MixinApi.isContainable(scope) ? scope.getEnclosingScope() : null;

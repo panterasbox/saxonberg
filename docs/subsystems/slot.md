@@ -95,6 +95,18 @@ Two-part check:
    final say — `canOccupy` returns its result after the slot-side
    mixin check passes.
 
+⭐ **A carrier's hand is the one exception to Part 1** (size and carrying
+W7). On a host that composes `CarryingMixin`, a slot in
+`Attired.handSlots()` — a slot whose `bodyPart` serves manipulation —
+admits **any slottable thing**, whatever its `accepts` names and whatever
+the thing's claim says: a claim says where `wield`/`wear` put a thing, not
+what a hand may close on. `Good` and `Vessel` compose `SlottableMixin` for
+this (applied once — over a base that already composes it the factory
+returns the base, since two layers would redeclare its `@Final` methods),
+so a hand holds a mug, a sack, a coat. The grip decides instead
+(`Carrying.wieldPlanFor` — one hand, two, or too heavy). Every non-hand slot
+still asks its `accepts`. See [carrying.md](./carrying.md).
+
 Future affordance mixins ship a new mixin, register it in `Mixins`,
 and slots that want it declare `accepts: 'NewMixin'`. No central
 switch, no closed enum.
@@ -178,6 +190,14 @@ the `Chair`/`sit` posture-slot side this gates.
   rather than unbounded because "wear forty shirts" would otherwise be
   free insulation. The ladder decides the ORDER; this decides the
   DEPTH.
+- The biped's **carry slots** (size and carrying D15/D27) are not
+  coverings (no `covers`): `back` (capacity 1, `accepts: SlottableMixin`)
+  takes one thing — a pack, whose inside is *packed* (take it off to reach
+  in), or a slung shield (`Shield.fitsSlot('back')`); `waist` (capacity 4,
+  `accepts: WearableMixin`) takes a belt, a sash, a bumbag's strap — a
+  belt's hanging length is the wearer's waist and what hangs from it is
+  *ready*. The quadruped's `back:1` is the pack saddle's; the `canid`
+  plan's `mouth` is its one hand.
 - `UNBOUNDED_CAPACITY` (= `Number.MAX_SAFE_INTEGER`) — floor's
   `ground:1`. **Don't use `Infinity`** — it doesn't round-trip
   through JSON/BSON. The sentinel constant is JSON-safe and
@@ -247,6 +267,14 @@ is `verbs: [treat]` and `dress` names no view at all.)
   throws if multi-occupant.
 - `occupyAll(host, candidate, slots)` — multi-slot atomic
   claim with rollback on partial failure.
+- ⭐ **`seatInSlots(item, slots)`** (and `seatInSlot`) — the explicit
+  **occupy these slots** act (owner, finalize 2026-11-16): the item into
+  this host's contents, then the slots, under the seating mark
+  (`isSeating` — what `Creature.arrivalFor` admits), a failed claim rolled
+  back out. Its callers name the slots: an outfit or a loadout
+  (`wear`/`equip`, intake), `put`'s slot route, `unequip`'s re-seat, the
+  chokepoint's own `seat` arrival. A loadout that cannot seat throws. It
+  is not a way around `move` — `move` decides WHERE; this is told.
 - `transferOccupancy(candidate, from, to)` — vacate-then-
   occupy with rollback. Used by every posture verb to swap the
   actor's posture-bearing slot atomically.
@@ -451,6 +479,21 @@ without re-parsing prose.
 - [race.md](./race.md) — BodyPlan's `slots: SlotSpec[]`.
 - [command-spec.md](./command-spec.md) — `default:` field used by
   posture verbs for the `ground` fallback.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. The biped plan gained the `back` and `waist` carry
+slots and the `canid` plan its `mouth` hand; a carrier's hand slot admits
+any slottable thing, and `Good`/`Vessel` became slottable so a hand can
+hold any good. `get` from a non-body slot still vacates through
+`tryReleaseFromSlots`, and the taken thing now goes through
+`ContainmentApi.move(item, taker)` — the body places it (a hand, a pocket)
+and a carrier routes the rest into a bag (W8 folded `Carrying.receive`
+into `move`; `get` asks `Carrying.wouldSetDown` first and refuses a
+pick-up that would only be set back down) — rather than loose into the
+taker's contents. Finalize (2026-11-16; the whole build `39d4ba23e..HEAD`):
+`seatInSlots` stays the explicit *occupy these slots* act. See
+[carrying.md](./carrying.md).
 
 ## History
 

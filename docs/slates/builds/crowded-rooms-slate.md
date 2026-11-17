@@ -98,3 +98,8 @@ clock, or a named person who starts it, is part of this build.
   says that scope is not narrowing this cost.
 - Does a body's move need to dirty every card in the room, or only the rows that
   name it? That is the N² in one sentence.
+- **A room's capacity in bodies** (size-and-carrying finalize, 2026-11-16; salvaged from size-slate § 6.6).
+  Bodies now have an envelope and a place a cube, so *how many bodies a
+  room, a lifeboat or a lift holds* is derivable from size — a physical
+  ceiling beside this slate's performance one. Whether the two meet (the
+  physical number as the cap, or each its own) is open.

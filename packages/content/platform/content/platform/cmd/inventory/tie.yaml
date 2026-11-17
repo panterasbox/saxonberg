@@ -17,6 +17,9 @@ help: |
 
   `with <knot>` names the knot — a bowline, a clove hitch, a sheet bend, a
   reef knot. A bowline is what you get if you do not say.
+
+  An animal wearing a halter takes the lead on the halter, and you keep
+  the end in a free hand; no halter, no lead.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

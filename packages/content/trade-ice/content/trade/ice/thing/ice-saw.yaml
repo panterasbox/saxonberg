@@ -10,5 +10,7 @@ data:
     A saw nearly as tall as a man, its single handle crossways at the top
     and its teeth a finger long, raked to bite on the down stroke.
   mass: 6
+  # Nearly as tall as a man and a hand broad (the saw sling is cut to it).
+  dimensions: { width: 0.3, depth: 0.02, height: 1.5 }
   capabilities: ["ice-sawing"]
   _materialPath: /stuff/idea/material/alloy/steel

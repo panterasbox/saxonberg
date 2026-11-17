@@ -90,29 +90,32 @@ describe('desugar', () => {
     });
   });
 
+  // ⚠ Meaning changed at size-and-carrying W3 (D23): the head ordinal is
+  // lifted onto `ordinal`, never rewritten to a chain index — a surface
+  // picks the nth AFTER `PerceptionApi.perceived`.
   describe('ordinal-word prefix', () => {
     it('rewrites first rose', () => {
-      expect(rewrittenOf('first rose')).toBe('rose:[1]');
+      expect(desugar('first rose')).toMatchObject({ rewritten: 'rose', ordinal: 1 });
     });
 
     it('rewrites second rose', () => {
-      expect(rewrittenOf('second rose')).toBe('rose:[2]');
+      expect(desugar('second rose')).toMatchObject({ rewritten: 'rose', ordinal: 2 });
     });
 
     it('rewrites tenth rose', () => {
-      expect(rewrittenOf('tenth rose')).toBe('rose:[10]');
+      expect(desugar('tenth rose')).toMatchObject({ rewritten: 'rose', ordinal: 10 });
     });
 
     it('rewrites last rose to negative index', () => {
-      expect(rewrittenOf('last rose')).toBe('rose:[-1]');
+      expect(desugar('last rose')).toMatchObject({ rewritten: 'rose', ordinal: -1 });
     });
 
     it('strips article and rewrites ordinal together', () => {
-      expect(rewrittenOf('the second rose')).toBe('rose:[2]');
+      expect(desugar('the second rose')).toMatchObject({ rewritten: 'rose', ordinal: 2 });
     });
 
     it('preserves multi-word tail', () => {
-      expect(rewrittenOf('first red rose')).toBe('red rose:[1]');
+      expect(desugar('first red rose')).toMatchObject({ rewritten: 'red rose', ordinal: 1 });
     });
 
     it('passes through standalone ordinal as literal keyword', () => {
@@ -132,23 +135,23 @@ describe('desugar', () => {
 
   describe('numeric-suffix ordinal prefix', () => {
     it('rewrites 1st rose', () => {
-      expect(rewrittenOf('1st rose')).toBe('rose:[1]');
+      expect(desugar('1st rose')).toMatchObject({ rewritten: 'rose', ordinal: 1 });
     });
 
     it('rewrites 2nd rose', () => {
-      expect(rewrittenOf('2nd rose')).toBe('rose:[2]');
+      expect(desugar('2nd rose')).toMatchObject({ rewritten: 'rose', ordinal: 2 });
     });
 
     it('rewrites 3rd rose', () => {
-      expect(rewrittenOf('3rd rose')).toBe('rose:[3]');
+      expect(desugar('3rd rose')).toMatchObject({ rewritten: 'rose', ordinal: 3 });
     });
 
     it('rewrites 4th rose', () => {
-      expect(rewrittenOf('4th rose')).toBe('rose:[4]');
+      expect(desugar('4th rose')).toMatchObject({ rewritten: 'rose', ordinal: 4 });
     });
 
     it('rewrites 100th rose', () => {
-      expect(rewrittenOf('100th rose')).toBe('rose:[100]');
+      expect(desugar('100th rose')).toMatchObject({ rewritten: 'rose', ordinal: 100 });
     });
   });
 
@@ -225,7 +228,7 @@ describe('desugar', () => {
     });
 
     it('plain ordinal still works in isolation', () => {
-      expect(rewrittenOf('2nd rose')).toBe('rose:[2]');
+      expect(desugar('2nd rose')).toMatchObject({ rewritten: 'rose', ordinal: 2 });
     });
 
     it('plain count still works in isolation', () => {

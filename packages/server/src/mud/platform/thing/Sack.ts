@@ -35,6 +35,9 @@ import { Quantity } from '../../lib/quantity';
 const SackBase = VesselKindMixin(GradedReceptacle);
 
 export default class Sack extends SackBase {
+  /** ⭐ A sack gives, packs and squeezes (size and carrying D1). */
+  static defaultShape = 'flexible';
+
   constructor() {
     super();
     // A sack IS its interior — there is no sack-shaped outside holding a

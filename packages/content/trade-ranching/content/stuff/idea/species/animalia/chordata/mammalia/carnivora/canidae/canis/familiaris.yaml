@@ -21,7 +21,8 @@ data:
   smells: [{ aroma: /base-library/aromas/animal/dog, strength: 10 }]
   binomial: Canis familiaris
   commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ A canid (size and carrying W6): a dog's mouth is a hand.
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/canid
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

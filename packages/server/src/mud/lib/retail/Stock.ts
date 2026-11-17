@@ -599,6 +599,8 @@ export default class Stock extends StockBase {
     let item = shelfGood;
     const price = this.priceFor(item.getTemplatePath() ?? "");
     if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
+    // ⭐ The money, then the good (owner, 2026-11-15): a sale that does not
+    // settle moves nothing — the heap is named as one.
     const paid = await EmploymentApi.settleSale(
       (this as unknown as Stuff).getIdentityPath(),
       price,
@@ -612,15 +614,17 @@ export default class Stock extends StockBase {
     if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
       item = (await item.split(1)) as unknown as Stuff & Containable;
     }
-    const owner = await this.purchaserOf(giver, paid.receipt);
-    // ⚠ Stamped BEFORE it is handed over, and named before: a piece that
-    // arrives where its like already is merges INTO it and is destroyed
-    // (the resident absorbs the arrival), so a stamp or a name after the
-    // move would land on nothing.
-    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    // Named before the move: a piece that arrives where its like already
+    // is merges INTO it and is destroyed (the resident absorbs the arrival).
     const named = item.getPresentation();
-    // `move` records where it now is (the fishing drive's restart: a
-    // bought good never placed was in nobody's estate).
+    const owner = await this.purchaserOf(giver, paid.receipt);
+    // Stamped before the hand-over, so `move` records the buyer's custody
+    // (the fishing drive's restart: a bought good never placed was in
+    // nobody's estate); a piece that then merges into the buyer's like is
+    // gone, and its like is theirs.
+    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    // Handed: `move` routes it onto the buyer, or sets it down at their
+    // feet with the line.
     this.handOver(item, giver);
     return this.bought(giver, item, paid.tail, owner, named);
   }

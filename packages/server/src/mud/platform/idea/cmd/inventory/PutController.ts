@@ -101,20 +101,22 @@ export default class PutController extends CommandController<PutModel> {
 
     // The consumed preposition, lowercased by the binder, or undefined.
     const prep = model.target.prep;
+    // ⭐ A region the words named (`inner pocket`, D26) — the binder's facet.
+    const region = model.target.via?.region;
 
     // ⭐ A count (`put 1 clay in tub`) splits it off the stack first — the
     // `drop` path: the helper walks the operands, and a put refused here
     // restacks what it split (the ceramics drive: `put` had no count).
     const quantity = model.item.quantity;
     if (!quantity || !MixinApi.isStackable(item)) {
-      await this.putOne(item, target, prep, context);
+      await this.putOne(item, target, prep, context, region);
       return;
     }
     await StackableApi.applyQuantity<Stuff>(
       [item],
       quantity,
       async (operand) =>
-        (await this.putOne(operand, target, prep, context))
+        (await this.putOne(operand, target, prep, context, region))
           ? { ok: true, payload: operand }
           : { ok: false, reason: 'refused' },
       { field: 'item', query: model.item.raw },
@@ -122,16 +124,44 @@ export default class PutController extends CommandController<PutModel> {
   }
 
   /** Put ONE item (or one split-off stack) into the target; `true` when it went. */
-  private async putOne(item: Stuff, target: Stuff, prep: string | undefined, context: CommandContext): Promise<boolean> {
+  private async putOne(
+    item: Stuff,
+    target: Stuff,
+    prep: string | undefined,
+    context: CommandContext,
+    region?: string,
+  ): Promise<boolean> {
     const giver = context.commandGiver;
     // ⭐ Where it would go, and every refusal before any write, is the
     // world's (`ContainmentApi.putPlanFor` — the slot, the interior, the
     // region; controller-liquidity W8). This words it.
-    const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, { prep, by: giver });
+    const plan = ContainmentApi.putPlanFor(item as Stuff & Containable, target, {
+      prep,
+      by: giver,
+      ...(region !== undefined ? { region } : {}),
+    });
     if (!plan.ok) {
       PutController.refused(item, target, plan, context);
       return false;
     }
+    // ⭐ In a fight, putting a thing away is a guarded beat by where it goes
+    // (D-W10-5); outside one it lands now (D-W10-13).
+    const seconds = MixinApi.isCombatant(giver) ? giver.handActSeconds(item, target) : 0;
+    let went = false;
+    const deferred = await this.guarded(giver, seconds, async () => {
+      went = await this.land(item, target, plan, context);
+    });
+    return deferred ? true : went;
+  }
+
+  /** The put lands: the plan's completion, in words. */
+  private async land(
+    item: Stuff,
+    target: Stuff,
+    plan: Extract<ReturnType<typeof ContainmentApi.putPlanFor>, { ok: true }>,
+    context: CommandContext,
+  ): Promise<boolean> {
+    const giver = context.commandGiver;
     const done = await plan.onComplete();
     if (!done.ok) {
       PutController.refused(item, target, done, context);
@@ -139,6 +169,15 @@ export default class PutController extends CommandController<PutModel> {
     }
     const { route, named } = done.facts;
 
+    // ⭐ Tack on a beast that cannot dress itself (D-W10-8): put ON it.
+    if (route.kind === 'slot' && MixinApi.isVitals(target)) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You put ${Mml.thing(item)} on ${Mml.actor(target)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} on ${Mml.actor(target)}.`)
+        .send();
+      return true;
+    }
     if (route.kind === 'slot') {
       MessageApi.scene(giver)
         .topic('sense.survey')
@@ -160,9 +199,27 @@ export default class PutController extends CommandController<PutModel> {
     // ⚠ The name was read BEFORE the move: a stack that arrives where its
     // like already is MERGES into it and is destroyed.
     const what = item.isDestroyed() ? Mml.text(named) : Mml.thing(item);
-    const name = route.kind === 'zero' ? Placements.IN : route.name;
-    const member = ContainmentApi.placements().need(name);
+    // ⭐ A container that decided among alike chambers (D-W10-6) names the
+    // one it chose: the thing's own pair, read after the move.
+    const chosen =
+      route.kind === 'zero' && !item.isDestroyed() && MixinApi.isContainable(item) && MixinApi.isPlacing(target)
+        ? item.getPlacement()
+        : null;
+    const chamber = chosen !== null && chosen.host.stuffId === target.stuffId ? chosen.name : null;
+    const name = chamber ?? (route.kind === 'zero' ? Placements.IN : route.name);
+    const member =
+      (route.kind === 'region' || chamber !== null) && MixinApi.isPlacing(target)
+        ? target.placementOf(name)
+        : ContainmentApi.placements().need(name);
     const template = member.getProse();
+    // ⭐ The region's own name when the host names it (a coat's `left
+    // pocket` — `in the left pocket of the coat`), else NOTHING (W9) —
+    // `undefined`, never `''`: Liquid reads an empty string as true, and
+    // `{% if name %}` said *"in the  of a belt pouch"* (finalize drive).
+    const regionName =
+      MixinApi.isPlacing(target) && target.namedRegions().includes(name) && (route.kind === 'region' || chamber !== null)
+        ? name
+        : undefined;
     const word = route.kind === 'zero' ? (member.getPrepositions()[0] ?? 'in') : route.word;
     const scene = MessageApi.scene(giver).topic('sense.survey');
     if (template !== '') {
@@ -172,6 +229,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.compose`You`,
             item: what,
             host: Mml.thing(target),
+            name: regionName,
             s: '',
             es: '',
           }),
@@ -181,6 +239,7 @@ export default class PutController extends CommandController<PutModel> {
             actor: Mml.actor(giver),
             item: what,
             host: Mml.thing(target),
+            name: regionName,
             s: 's',
             es: 'es',
           }),
@@ -205,7 +264,20 @@ export default class PutController extends CommandController<PutModel> {
     switch (r.reason) {
       case 'wrong-preposition':
       case 'preposition-ambiguous': {
-        const { takes, got } = r.facts;
+        const { takes, got, regions } = r.facts;
+        // ⭐ Regions that share a word are asked for by NAME (D26), each with
+        // how it differs (D-W10-6): the ask is the lesson.
+        if (regions !== undefined) {
+          const differs = (n: string): string => {
+            if (!MixinApi.isPlacing(target)) return '';
+            const e = target.getPlacementEntry(n);
+            const words = [...(e?.closes === true ? ['buttoned'] : []), ...(e?.covered === true ? ['inside'] : [])];
+            return words.length > 0 ? ` (${words.join(', ')})` : '';
+          };
+          line = Mml.compose`Which — ${PutController.joinOr(regions.map((n) => `the ${n}${differs(n)}`))} of ${Mml.thing(target)}?`;
+          detail = `target offers ${regions.join(', ')}`;
+          break;
+        }
         // ⚠ A target that offers nothing at all (a person — you do not
         // put things IN the bartender) has no list to give (finalize: the
         // line read *"it takes ."*).
@@ -225,19 +297,59 @@ export default class PutController extends CommandController<PutModel> {
         line = Mml.compose`${Mml.thing(item)} would fit ${Mml.thing(target)}, but there is nowhere in it for that to sit.`;
         detail = 'a slot host must also hold its occupant';
         break;
-      case 'shut':
-        line = Mml.compose`${Mml.thing(target)} is shut.`;
+      case 'shut': {
+        // ⭐ Shut means shut — and the refusal names the next command
+        // (D-W10-12; never an implicit open).
+        const region = r.facts?.region;
+        const kw = (MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined) ?? target.presentationPhrase().bare();
+        line = region !== undefined
+          ? Mml.compose`The ${region} of ${Mml.thing(target)} is shut — \`open "${region}"\` first.`
+          : Mml.compose`${Mml.thing(target)} is shut — \`open ${kw.includes(' ') ? `"${kw}"` : kw}\` first.`;
         detail = `${target.getPresentation()} is closed`;
         break;
+      }
       case 'refused-by-container':
         line = r.facts.said
           ? Mml.fromMarkup(r.facts.said)
           : Mml.compose`${Mml.thing(item)} won't go in ${Mml.thing(target)}.`;
         detail = `host rejected item (${r.facts.said ?? ''})`;
         break;
+      case 'refused-by-carrier': {
+        // ⭐ Their body's facts, this verb's words — never the reason code
+        // (size and carrying W8; it used to render `nowhere-to-carry`).
+        const c = r.facts.carry;
+        line = c.reason === 'nowhere-to-carry' && c.facts.held.length > 0
+          ? Mml.compose`${Mml.actor(target)} has nowhere to take ${Mml.thing(item)} — their hands are full.`
+          : Mml.compose`${Mml.actor(target)} has nowhere to take ${Mml.thing(item)}.`;
+        detail = `carrier refused (${c.reason})`;
+        break;
+      }
       case 'cannot-rest':
-        line = Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
+        // ⭐ The hanging rule's two refusals (size and carrying D4) — a
+        // length used up, a weight it will not bear.
+        line =
+          r.facts.why === 'no-room-along'
+            ? Mml.compose`There's no room ${r.facts.word} ${Mml.thing(target)} for ${Mml.thing(item)}.`
+            : r.facts.why === 'too-heavy-for'
+              ? Mml.compose`${Mml.thing(target)} won't take the weight of ${Mml.thing(item)}.`
+              : r.facts.why === 'too-big-for-mouth'
+                ? Mml.compose`${Mml.thing(item)} is too big to go ${r.facts.word} ${Mml.thing(target)}.`
+                : r.facts.why === 'no-room'
+                  ? Mml.compose`There's no room left ${r.facts.word} ${Mml.thing(target)} for ${Mml.thing(item)}.`
+                  : Mml.compose`${Mml.thing(item)} won't go ${r.facts.word} ${Mml.thing(target)}.`;
         detail = `host rejected item (${r.facts.why})`;
+        break;
+      case 'wont-fit':
+        // ⭐ What a tape measure would say (size and carrying D4).
+        line =
+          r.facts.why === 'too-big-for-mouth'
+            ? Mml.compose`${Mml.thing(item)} won't go through the mouth of ${Mml.thing(target)}.`
+            : r.facts.why === 'too-big-inside'
+              ? Mml.compose`${Mml.thing(item)} is too big to go in ${Mml.thing(target)}.`
+              : r.facts.why === 'not-shaped-for'
+                ? Mml.compose`${Mml.thing(target)} isn't made to take ${Mml.thing(item)}.`
+                : Mml.compose`There's no room left in ${Mml.thing(target)} for ${Mml.thing(item)}.`;
+        detail = `it won't fit (${r.facts.why})`;
         break;
       case 'cursed-will-not-release':
         line =

@@ -86,6 +86,9 @@ export interface LineSignal {
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
 export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
+  /** ⭐ A line gives and coils (size and carrying D1). */
+  static defaultShape = 'flexible';
+
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) throws and pulls
@@ -169,6 +172,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   protected async mintEnd(into: Stuff & Container, tiedTo: Stuff | null = null): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
     end.attachTo(this, tiedTo);
+    // Into a person's hands (the flip, W7): received, else at their feet.
     ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];

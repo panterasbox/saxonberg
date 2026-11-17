@@ -86,6 +86,9 @@ describe('the tinker\'s round (D15)', () => {
       // metal for a head (the whole-need bound) — the browser walk.
       '/trade/smithing/thing/iron-offcuts',
     ]);
+    // ⭐ …and wears what the kit rides in (size and carrying, finalize): two
+    // hands take the hook and the stone; a body places only what it carries.
+    expect(tinker.data!.costume).toContain('/trade/tanning/thing/satchel');
   });
 
   it('⭐ the Rejection stop is the SMELTER — a fire for iron (D15, D19)', () => {

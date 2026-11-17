@@ -358,7 +358,11 @@ export default class MarketStalls extends Stock {
     const to = hands ?? (square && MixinApi.isContainer(square) ? square : null);
     for (const good of [...counter.getContents()]) {
       counter.removeListing?.(MixinApi.isChattel(good) ? good.getChattelId() : '');
-      if (to) ContainmentApi.move(good as unknown as Stuff & Containable, to);
+      if (to) {
+        // Back to you, else set down in the square (the stall is going away)
+        // — asked first, so a full renter is never a throw (size and carrying W8).
+        ContainmentApi.move(good as unknown as Stuff & Containable, to);
+      }
     }
     // The owner IS the pitch key, so this is one record.
     await PersistableApi.deleteAllFor(ids.key);

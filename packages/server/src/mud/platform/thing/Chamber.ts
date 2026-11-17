@@ -2,28 +2,24 @@
  * Chamber — a space inside a thing with its own air: a freezer
  * compartment, a drying loft, a smoke chamber, a boat's bow.
  *
- * `AtmosphericMixin(PlacingMixin(Thing))`. A chamber is matter that
+ * `AtmosphericMixin(ContainerMixin(Thing))`. A chamber is matter that
  * carries an atmosphere (an authored `temperature:`, `humidity:`, a biome
- * ref) and offers one placement, `in`, whose `Placement` row ENCLOSES. A
- * thing put `in` it keeps `container = the chamber's container` (the room
- * it stands in, or its host's interior) and gains the placement pair, so
- * `Containable.getEnclosingScope()` answers **the chamber** — and every
+ * ref) and holds things: a board put `in` the loft is the loft's
+ * CONTENTS — region zero, plain containment — so
+ * `Containable.getEnclosingScope()` answers **the chamber**, and every
  * reader that asks *what air reaches me* (`Thermal`'s ambient on both
  * sides, the seasoning clock, the biome chain walk's first step) lands
  * on the chamber's own air and walks outward from there.
  *
- * ⭐ **Occupancy by PLACEMENT, not containment** (assembly plan D15,
- * reconciling the fridge-design-pack with the chambered-vessels slate). A
- * compartment's occupants are placed `in` it, not held by it: no
- * contents list, no new depth for the scope walk or `canReach`, and the
- * same `put X in loft` every Placing host already answers.
- *
- * ⭐ **The one override that makes it work** is {@link occupants}: the
- * Atmospheric mixin's three occupant walks (the re-stamp fan-out on a
- * temperature change, and the envelope's heat sum and its provenance)
- * read `occupants()`, whose default is a Container's contents. The class
- * whose air is a placement is the class that says so — never an
- * `isPlacing` branch inside the mixin.
+ * ⭐⭐ **An enclosing relation is containment** (owner, 2026-11-13 — size
+ * and carrying W9, D-W9-12). Until W9 a chamber's occupants were PLACED
+ * `in` it (assembly plan D15: `container = the room`, the pair naming the
+ * chamber) — the second shipped `in`-as-sibling beside the pocket, and
+ * leaving it would make `getPlaced(IN)` mean two things. A board in a loft
+ * is in the loft's air because it is IN the loft. `Atmospheric.occupants()`
+ * defaults to a Container's contents, so the override that made the
+ * placement work is gone with it. `move(board, loft, Placements.IN)` still
+ * lands — region zero's own word on a plain container.
  *
  * ⚠ `DetailedMixin` is NOT re-composed here although the design doc's
  * formula names it: the `Thing` root has carried `Detailed` since the
@@ -38,30 +34,17 @@
  */
 
 import ThingBase from '../../lib/stuff/Thing';
-import { PlacingMixin } from '../../lib/spatial/Placing';
+import { ContainerMixin } from '../../lib/spatial/Container';
 import { AtmosphericMixin } from '../../lib/biome/Atmospheric';
-import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
-import { Placement, Placements } from '../../lib/spatial/Placement';
 
-const ChamberBase = AtmosphericMixin(PlacingMixin(ThingBase));
+const ChamberBase = AtmosphericMixin(ContainerMixin(ThingBase));
 
 export default class Chamber extends ChamberBase {
   static fieldMeta: FieldMeta = {};
 
-  /** A chamber's one way of holding a thing is having it inside. */
-  public placements: string[] = [Placements.IN];
-
   constructor() {
     super();
     this.fixedInPlace = true;
-  }
-
-  /**
-   * What is in this chamber's air: what is placed `in` it. See the class
-   * docstring — this is the whole of the Atmospheric seam's override.
-   */
-  protected override occupants(): readonly Stuff[] {
-    return this.getPlaced(Placements.IN);
   }
 }

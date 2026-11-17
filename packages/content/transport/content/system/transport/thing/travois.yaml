@@ -1,0 +1,24 @@
+# A travois (size and carrying W6) — two poles lashed in a V with a hide
+# stretched between them, the narrow end on a person's shoulders or a
+# pack animal's, the wide end dragging. ⭐ The oldest rig: no wheel, no
+# axle, nothing to break, so it goes where a body can walk (`passageMode:
+# walk`), and it drags hard (`draftFactor 0.25` — between the sledge and a
+# carry). Both hands on the poles.
+class: /system/transport/thing/HaulageRig
+data:
+  travelMode: wheeled
+  shortDescription: travois
+  keywords: [travois, drag, poles, frame]
+  register: indefinite
+  longDescription: |
+    Two long ash poles lashed together at one end, spreading to drag along the ground at the other, with a stiff hide laced across the gap between them to carry the load.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 15
+  draftFactor: 0.25
+  handedness: 2
+  passageMode: walk
+  interiorBulk: true
+  interiorCapacity: 120
+  # Riding on it is lying on it (D38) — badly, but a carried casualty does.
+  staticSlots:
+    - { name: bed, accepts: SlottableMixin, capacity: 1, postures: [lie] }

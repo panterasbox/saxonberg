@@ -29,6 +29,7 @@
  * boundary.
  */
 
+import type { ArrivalRefusal } from '../lib/spatial/Container';
 import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
@@ -45,6 +46,7 @@ import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
+import ShapeCatalogue from '../platform/idea/ShapeCatalogue';
 import { Placements } from '../lib/spatial/Placement';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
@@ -79,11 +81,21 @@ function logic(): ContainmentLogic {
  */
 export class ContainmentError extends Error {
   public readonly cause?: unknown;
+  /**
+   * The refusal's reason when a destination refused the arrival (size and
+   * carrying W8: `nowhere-to-carry`, `too-heavy`, …) — for a caller that
+   * catches and words it. The message is for the author.
+   */
+  public readonly reason?: string;
+  /** The refusal's facts (the item, what the hands hold, what was tried). */
+  public readonly facts?: unknown;
 
-  constructor(message: string, opts?: { cause?: unknown }) {
+  constructor(message: string, opts?: { cause?: unknown; reason?: string; facts?: unknown }) {
     super(message);
     this.name = 'ContainmentError';
     if (opts?.cause !== undefined) this.cause = opts.cause;
+    if (opts?.reason !== undefined) this.reason = opts.reason;
+    if (opts?.facts !== undefined) this.facts = opts.facts;
   }
 }
 
@@ -124,19 +136,27 @@ export type PutRoute =
  * `refused-by-container`: the container says what it is for (`said` is its
  * own sentence — `canAddContainable`'s veto); `cannot-rest`: the region
  * will not hold it; `cursed-will-not-release`: it will not leave the
- * putter's body.
+ * putter's body; `wont-fit`: the tape measure says no (size and carrying
+ * D4 — through the mouth, along the closed sides, or no room left).
  */
 export type PlaceRefusal =
   | {
       ok: false;
       reason: 'wrong-preposition' | 'preposition-ambiguous';
-      facts: { takes: readonly string[]; got?: string };
+      facts: { takes: readonly string[]; got?: string; regions?: readonly string[] };
     }
   | { ok: false; reason: 'slot-host-not-container'; facts?: undefined }
-  | { ok: false; reason: 'shut'; facts?: undefined }
+  | { ok: false; reason: 'shut'; facts?: { region?: string } }
   | { ok: false; reason: 'refused-by-container'; facts: { said: string | null } }
+  /** A person handed it and their body refused (size and carrying W8) — facts for the verb to word. */
+  | { ok: false; reason: 'refused-by-carrier'; facts: { carry: ArrivalRefusal } }
   | { ok: false; reason: 'cannot-rest'; facts: { word: string; why: string } }
-  | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } };
+  | { ok: false; reason: 'cursed-will-not-release'; facts: { dumpedTau: number } }
+  | {
+      ok: false;
+      reason: 'wont-fit';
+      facts: { why: 'too-big-for-mouth' | 'too-big-inside' | 'no-room' | 'not-shaped-for' };
+    };
 
 /**
  * A `put` that will go: the route, and the move at once (`durationMs: 0`).
@@ -151,8 +171,15 @@ export type PutPlan = ActPlan<
 >;
 
 export class ContainmentApi {
-  /** ⭐ The kernel's placement words, stood by the boot routine (no host readies them). */
-  static readonly needs: readonly ApiNeed[] = [() => ContainmentApi.placements().ensureKernel()];
+  /**
+   * ⭐ The kernel's placement words and shapes, stood by the boot routine
+   * (no host readies them) — so a sync `placementOf` and a sync `getShape`
+   * always find theirs.
+   */
+  static readonly needs: readonly ApiNeed[] = [
+    () => ContainmentApi.placements().ensureKernel(),
+    () => ContainmentApi.shapes().ensureKernel(),
+  ];
 
   /**
    * ⭐ The placements — the ways a thing sits in its container (`on` a
@@ -163,6 +190,17 @@ export class ContainmentApi {
    */
   public static placements(): PlacementCatalogue {
     return StuffApi.singletonSync('/platform/idea/PlacementCatalogue', () => new PlacementCatalogue());
+  }
+
+  /**
+   * ⭐ The shapes — the shapes a thing can have (`rod`, `sheet`, `block`,
+   * `round`, `flexible`), any pack's `content/shapes/`, served by
+   * {@link ShapeCatalogue}. The kernel's are resident with this Api's
+   * needs; a row's `shape` setter loads its own; `Shaped.getShape` reads
+   * one resident.
+   */
+  public static shapes(): ShapeCatalogue {
+    return StuffApi.singletonSync('/platform/idea/ShapeCatalogue', () => new ShapeCatalogue());
   }
 
   /**
@@ -180,9 +218,11 @@ export class ContainmentApi {
    * ⭐⭐ **The movement primitive — the one way a thing is put somewhere.**
    * `move(item, dest)` moves it into `dest`; `move(item, desk)` puts it ON
    * a placing host (into the host's environment, with the placement pair);
-   * `move(item, loft, Placements.IN)` names the placement (by path, or a
-   * typed word the host resolves) when a host offers more
-   * than one. `null` detaches it.
+   * `move(item, coat, 'left pocket')` names the region (by path, name, or a
+   * typed word the host resolves) when a host offers more than one — an
+   * enclosing region puts it IN the host, as its contents (W9);
+   * `move(board, loft, Placements.IN)` is region zero's own word on a plain
+   * container. `null` detaches it.
    *
    * Everything a move implies beyond geometry is DERIVED here, so no
    * caller has to remember it:
@@ -194,6 +234,26 @@ export class ContainmentApi {
    *     lands in; else the acting person, in a live command, where they
    *     stand; else its recorded maker. A good that already exists is
    *     never retitled by being moved — taking one is theft.
+   *
+   * ⭐⭐ **A carrier ROUTES what arrives** (size and carrying W8; owner,
+   * 2026-11-13). `move(item, person)` just works, and no caller chooses:
+   * the body places it ON itself — a free hand, a pocket, a hook on the
+   * belt (`Container.arrivalFor`) — and when its routing picks a bag, or
+   * nothing on it takes the thing, the carrier's own arrival handling
+   * (`Carrying.routeArrival`) takes it: a TRUE move onto the body (its
+   * witnesses fire), then a second true move — into the first worn or
+   * carried bag it fits, else down where the body stands, with a line to
+   * the body. Nothing is retargeted; observers see it reach the body and
+   * the body put it away or set it down. Only a body that has nowhere to
+   * set it down throws. A body that does not carry (a fish) is not routed:
+   * nothing sits loose on a body, so `move` THROWS a `ContainmentError`
+   * naming why (`reason` + `facts`). Every other destination is exact.
+   *
+   * ⭐ There is no way AROUND the routing (`directMove` retired, owner
+   * 2026-11-15): a purchase, a gift, a store's withdrawal that the body
+   * cannot carry lands at its feet with the line — honest, nothing lost.
+   * To ASK first, `carrier.wouldSetDown(item)` reads the same resolution
+   * dry (`get`, which refuses a pick-up that would only be set back down).
    *
    * The other layer is a thing moving ITSELF ({@link MobileMixin}'s
    * `traverse`), which crosses exits and arrives through this primitive.
@@ -222,7 +282,10 @@ export class ContainmentApi {
    * container), the word against the host's offers, a shut lid (refused
    * HERE, never in `move`, which brains and restocks use to fill closed
    * cupboards), the container's own say, the region's `canPlace`. The plan's
-   * completion releases the item from `by`'s body and moves it.
+   * completion releases the item from `by`'s body and moves it. `region`
+   * names one of a placing host's own regions (`inner pocket` — the
+   * binder's `via.region`, size and carrying D26); several regions sharing
+   * the word, unnamed, refuse `preposition-ambiguous` with their `regions`.
    *
    * Orchestration across three hosts (the putter, the item, the target), so
    * it is the Api's — the one movement case the act convention routes here.
@@ -230,9 +293,22 @@ export class ContainmentApi {
   public static putPlanFor(
     item: ContainableStuff,
     target: Stuff,
-    opts: { prep?: string; by: Stuff },
+    opts: { prep?: string; by: Stuff; region?: string },
   ): PutPlan | PlaceRefusal {
     return logic().putPlanFor(item, target, opts);
+  }
+
+  /**
+   * ⭐ Would `item` arrive in `target` — the destination's own answer read
+   * DRY, before any write: its `arrivalFor` (a body that does not carry, a
+   * fish, refuses), and for contents the tape measure and the container's
+   * veto. A carrier's refusal is not one (`move` routes it — on, into a
+   * bag, or set down). Null: `move(item, target)` would take it. A question,
+   * never a way to move — the read `putPlanFor` asks, for a verb (`give`)
+   * that must refuse before anything leaves the giver's hand.
+   */
+  public static arrivalRefusal(item: ContainableStuff, target: ContainerStuff): ArrivalRefusal | null {
+    return logic().arrivalRefusal(item, target);
   }
 
   /**

@@ -32,12 +32,17 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    # ⚠ `me:i` — IN HAND, as the controller walked before the default was
-    # declared; a scythe on the ground is picked up first. (`reachable` for a
-    # day widened every hand tool to the room. Naming one still reaches it.)
-    default: "me:i:[capability.digging]"
+    # ⚠ `person` — what you CARRY, used where it sits: held, worn, or in
+    # an open pocket or pouch on you (the binder narrows the default by
+    # `canReach`; a tool only behind a shut flap or packed on your back is
+    # refused, naming `open …` / `remove …`). A tool on the ground is picked
+    # up first. (`reachable` for a day widened every hand tool to the room.
+    # Naming one still reaches it.)
+    default: "person:[capability.digging]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
   - name: detail
     type: string
     required: false

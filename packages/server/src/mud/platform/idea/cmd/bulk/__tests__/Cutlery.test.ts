@@ -12,6 +12,8 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { withHands } from '../../../../../lib/slot/__tests__/carrying-fixture';
+import { CarryingMixin } from '../../../../../lib/slot/Carrying';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import EatController from "../EatController";
 import { Creature } from "../../../../../lib/creature/Creature";
@@ -52,7 +54,7 @@ import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__t
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
 // is not a somebody. This fixture gives its eater a name, so it says so.
-class TestEater extends SensorMixin(CommandGiverMixin(NamedMixin(Creature))) {
+class TestEater extends SensorMixin(CommandGiverMixin(NamedMixin(CarryingMixin(Creature)))) {
   static _mixinName = "TestEaterCutlery";
 }
 
@@ -159,7 +161,7 @@ describe("eating with cutlery (AC11a)", () => {
       return m;
     }, APPLE);
     loc = makeStuff(() => new Place()) as unknown as Stuff;
-    eater = makeStuff(() => new TestEater());
+    eater = withHands(makeStuff(() => new TestEater()));
     (eater as unknown as { setName(n: string): void }).setName("bob");
     ContainmentApi.move(eater as never, loc as never);
   });
@@ -303,7 +305,7 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
       return m;
     }, APPLE);
     loc2 = makeStuff(() => new Place()) as unknown as Stuff;
-    eater2 = makeStuff(() => new TestEater());
+    eater2 = withHands(makeStuff(() => new TestEater()));
     (eater2 as unknown as { setName(n: string): void }).setName('ann');
     ContainmentApi.move(eater2 as never, loc2 as never);
   });

@@ -115,6 +115,14 @@ subcommands:
       your guard is down — an opponent who reads it gets a free window — and
       then the new weapon is in your grip. Use it to bring the right tool to
       the range you're at (a dagger once you're inside a spear).
+
+      Only a weapon ON YOU — on your belt, in a pocket, in a sheath; a gun
+      in a pack at your feet is `get gun from pack`, a beat of its own. Your
+      hands must be free for it: a thing in the way is named, and `drop` is
+      instant — `unwield`/`put` cost their own beat. The beat is the
+      holder's: a holster or scabbard quick (1.5 s), an open pocket or pouch
+      a reach (3 s); a shut pouch or buttoned pocket is shut — `open` it, a
+      beat (3 s); nothing comes out of the pack on your back.
     examples:
       - cmd: 'fight switch "my dagger"'
         note: Trade your current weapon for a carried one
@@ -122,8 +130,13 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: ["inventory", "reachable"]
+        # ⭐ Only what is ON YOU (size and carrying D-W10-16): a sword on the
+        # floor or a gun in the pack at your feet is `get … from …`, never a
+        # switch. A shut holder says `open` it first (`canReach`).
+        scope: ["inventory"]
         requires: WieldableMixin
+        validators:
+          - /lib/command/validators/canReach
   draw:
     controller: /platform/idea/cmd/combat/FightDrawController
     description: "Draw a sidearm fast — the answer to being disarmed"
@@ -131,6 +144,14 @@ subcommands:
       Draw a sheathed sidearm (or a carried backup) in a single fast beat.
       This is the answer to `disarm`: losing your weapon is a tempo setback,
       not the end of the fight.
+
+      Only a weapon ON YOU — on your belt, in a pocket, in a sheath; a gun
+      in a pack at your feet is `get gun from pack`, a beat of its own. Your
+      hands must be free for it: a thing in the way is named, and `drop` is
+      instant — `unwield`/`put` cost their own beat. The beat is the
+      holder's: a holster or scabbard quick (1.5 s), an open pocket or pouch
+      a reach (3 s); a shut pouch or buttoned pocket is shut — `open` it, a
+      beat (3 s); nothing comes out of the pack on your back.
     examples:
       - cmd: fight draw
         note: Fast-draw a backup after being disarmed

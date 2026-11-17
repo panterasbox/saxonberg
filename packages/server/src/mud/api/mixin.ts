@@ -25,6 +25,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
+import type { Shaped } from '../lib/spatial/Shaped';
 import type { Placing } from '../lib/spatial/Placing';
 import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
@@ -203,6 +204,8 @@ import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Attired } from '../lib/slot/Attired';
+import type { Carrying } from '../lib/slot/Carrying';
+import type { Creature } from '../lib/creature/Creature';
 import type { Hygiene } from '../lib/cleanliness/Hygiene';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
@@ -1136,6 +1139,11 @@ export class MixinApi {
 
   public static isContainable(obj: Stuff): obj is Stuff & Containable {
     return this.hasMixin(obj, Mixins.Containable);
+  }
+
+  /** Has a size — a form, a box, a bulk, a fit (size and carrying W10g). */
+  public static isShaped(obj: Stuff): obj is Stuff & Shaped {
+    return this.hasMixin(obj, Mixins.Shaped);
   }
 
   public static isPlacing(obj: Stuff): obj is Stuff & Placing {
@@ -2093,6 +2101,16 @@ export class MixinApi {
    */
   public static isAttired(obj: Stuff): obj is Stuff & Slotted & Attired {
     return this.hasMixin(obj, Mixins.Attired);
+  }
+
+  /**
+   * A body that carries — hands, pockets, a pack — and places what is moved
+   * onto it (size and carrying W8). Composed on `Character`, `DraftAnimal`,
+   * `KeptAnimal` and ranching's `WorkingAnimal`; every other body refuses a
+   * loose arrival (`Creature.arrivalFor`).
+   */
+  public static isCarrying(obj: Stuff): obj is Creature & Carrying {
+    return this.hasMixin(obj, Mixins.Carrying);
   }
 
   /** A body kept clean — where an act's dirt lands, the hands, a bath (cleanliness). */

@@ -90,7 +90,9 @@ export const brain = class {
       let unpaid = 0;
       for (const heap of ash) {
         if (!(await brain.buy(heap, counter, account, hand))) unpaid += 1;
-        if (MixinApi.isContainable(heap)) ContainmentApi.move(heap, hand as unknown as Stuff & Container);
+        if (MixinApi.isContainable(heap)) {
+          ContainmentApi.move(heap, hand as unknown as Stuff & Container);
+        }
       }
       MessageApi.scene(hand)
         .topic('act.deed')

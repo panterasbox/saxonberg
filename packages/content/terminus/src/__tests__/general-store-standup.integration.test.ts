@@ -95,6 +95,8 @@ const COOKING_SRC = fileURLToPath(new URL("../../../trade-cooking/src", import.m
 const HAULAGE_SRC = fileURLToPath(new URL("../../../trade-haulage/src", import.meta.url));
 const TEXTILES_SRC = fileURLToPath(new URL("../../../trade-textiles/src", import.meta.url));
 const DYEING_SRC = fileURLToPath(new URL("../../../trade-dyeing/src", import.meta.url));
+const TANNING_SRC = fileURLToPath(new URL("../../../trade-tanning/src", import.meta.url));
+const GENERIC_SRC = fileURLToPath(new URL("../../../generic-objects/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -298,6 +300,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
+  { prefix: "/trade/cordage/", dir: () => fileURLToPath(new URL("../../../trade-cordage/content/trade/cordage/", import.meta.url)) },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
   { prefix: "/trade/chandlery/", dir: () => CHANDLERY_DIR },
   { prefix: "/trade/fuel/", dir: () => FUEL_DIR },
@@ -417,6 +420,9 @@ describe("general-store standup (real seeds)", () => {
       ...goods,
       ...shelfPaths.map(objDoc),
     ];
+    // ⭐ A row that authors `shape: rod` (a holster, a scabbard) resolves
+    // its shape on hydrate — the platform's shapes are documents the
+    // bootstrap keeps resident (`rememberKernelDocuments`).
     installStore(docs);
     // The materials the stocked rows cite — loaded with each good in a
     // world (constituents, load-on-use W8); this store has no material
@@ -441,6 +447,8 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
     ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
     ModuleApi.registerPackSource(CERAMICS_SRC, "/trade/ceramics");
+    ModuleApi.registerPackSource(TANNING_SRC, "/trade/tanning");
+    ModuleApi.registerPackSource(GENERIC_SRC, "/generic-objects");
     // ⚠⚠ The FABRIC forms (`woven`, `knit`, `felted`) are platform
     // documents now (load-on-use W2), resident in every suite from the
     // shipped files (`test-bootstrap`'s `rememberKernelDocuments`) — the

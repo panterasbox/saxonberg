@@ -4,11 +4,14 @@
  *
  * `PerceptionApi.reach` is the list; `canReach` / `reachableAmong` test
  * membership in it and MQL's `reachable` pool is a view of it. This file
- * pins that the two cannot diverge: for each staged scene, at each rung,
- * everything MQL's `reachable` resolves is `canReach`-true and everything
- * `canReach`-true that the scene holds is what MQL's `reachable` resolves —
- * but for the room and vessel that HOLD the actor (the list's `around`
- * pool), which MQL names and a hand is in, not on.
+ * pins that the two cannot diverge: for each staged scene, everything
+ * `canReach`-true is what MQL's `reachable` names AND the object does not
+ * refuse (`Containable.reachRefusal` — the shut lid, the pack on your
+ * back: one rule, size-and-carrying D17) — but for the room and vessel that
+ * HOLD the actor (the list's `around` pool), which MQL names and a hand is
+ * in, not on. ⚠ Meaning changed at W3: there are no rungs, and `reachable`
+ * NAMES a thing in your own shut box (the binder binds it, `canReach`
+ * refuses it with the lid's reason).
  *
  * It also pins the cost: one walk per call — `reachableAmong` over a
  * `get produce`-shaped floor stock walks each holder once, never once per
@@ -19,6 +22,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MqlApi } from '../mql';
 import { PerceptionApi } from '../perception';
 import { ContainmentApi } from '../containment';
+import { MixinApi } from '../mixin';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import Location from '../../lib/location/Location';
@@ -41,7 +45,6 @@ import {
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 import type { MqlContext } from '../mql/types';
-import type { ReachDepth } from '../command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 class Person extends CommandGiverMixin(
@@ -68,44 +71,45 @@ const apple = (word = 'apple'): Apple => named(makeStuff(() => new Apple()), wor
 const put = (what: Stuff, where: Stuff): void =>
   ContainmentApi.move(what as never, where as never);
 
-const RUNGS: readonly ReachDepth[] = ['top', 'open', 'deep'];
-
-/** MQL's `reachable` pool, whole, for `me` at `rung`. */
-function mqlReachable(me: Person, rung: ReachDepth): Set<string> {
-  const ctx: MqlContext = { commandGiver: me as never, scope: 'reachable', depth: rung };
+/** MQL's `reachable` pool, whole, for `me`. */
+function mqlReachable(me: Person): Set<string> {
+  const ctx: MqlContext = { commandGiver: me as never, scope: 'reachable' };
   return new Set(MqlApi.resolveMany('reachable', ctx).stuff.map((s) => s.stuffId));
 }
 
+/** Does the object refuse a hand (the lid, the pack on the back)? */
+const refuses = (me: Person, s: Stuff): boolean =>
+  MixinApi.isContainable(s) && s.reachRefusal(me) !== null;
+
 /**
  * The agreement: over every thing the scene staged plus everything MQL
- * offered, `canReach` and MQL's `reachable` say the same thing.
+ * offered, `canReach` is MQL's `reachable` minus what the object refuses.
  */
 function expectAgreement(me: Person, staged: readonly Stuff[]): void {
-  for (const rung of RUNGS) {
-    // What holds you (`around`) is named by MQL and never laid hands on —
-    // the one pool that is not reach, and it is explicit in the list.
-    const list = PerceptionApi.reach(me, { depth: rung });
-    const touched = new Set(list.filter((r) => r.pool !== 'around').map((r) => r.stuff.stuffId));
-    const heldIn = new Set(
-      list.filter((r) => r.pool === 'around' && !touched.has(r.stuff.stuffId)).map((r) => r.stuff.stuffId),
-    );
-    const named = mqlReachable(me, rung);
-    const mql = new Set([...named].filter((id) => !heldIn.has(id)));
-    for (const id of heldIn) expect(named.has(id)).toBe(true);
-    const universe = new Map<string, Stuff>();
-    for (const s of staged) universe.set(s.stuffId, s);
-    for (const r of list) universe.set(r.stuff.stuffId, r.stuff);
-    for (const s of universe.values()) {
-      const reach = PerceptionApi.canReach(me, s, { depth: rung });
-      expect(
-        { thing: s.getPresentation?.() ?? s.stuffId, rung, mql: mql.has(s.stuffId) },
-      ).toEqual({ thing: s.getPresentation?.() ?? s.stuffId, rung, mql: reach });
-    }
-    const among = new Set(
-      PerceptionApi.reachableAmong(me, [...universe.values()], { depth: rung }).map((s) => s.stuffId),
-    );
-    expect([...among].sort()).toEqual([...mql].filter((id) => universe.has(id)).sort());
+  // What holds you (`around`) is named by MQL and never laid hands on —
+  // the one pool that is not reach, and it is explicit in the list.
+  const list = PerceptionApi.reach(me);
+  const touched = new Set(list.filter((r) => r.pool !== 'around').map((r) => r.stuff.stuffId));
+  const heldIn = new Set(
+    list.filter((r) => r.pool === 'around' && !touched.has(r.stuff.stuffId)).map((r) => r.stuff.stuffId),
+  );
+  const named = mqlReachable(me);
+  const mql = new Set([...named].filter((id) => !heldIn.has(id)));
+  for (const id of heldIn) expect(named.has(id)).toBe(true);
+  const universe = new Map<string, Stuff>();
+  for (const s of staged) universe.set(s.stuffId, s);
+  for (const r of list) universe.set(r.stuff.stuffId, r.stuff);
+  const ok = new Set([...universe.values()].filter((s) => mql.has(s.stuffId) && !refuses(me, s)).map((s) => s.stuffId));
+  ok.add(me.stuffId);
+  for (const s of universe.values()) {
+    const reach = PerceptionApi.canReach(me, s);
+    expect({ thing: s.getPresentation?.() ?? s.stuffId, ok: ok.has(s.stuffId) }).toEqual({
+      thing: s.getPresentation?.() ?? s.stuffId,
+      ok: reach,
+    });
   }
+  const among = new Set(PerceptionApi.reachableAmong(me, [...universe.values()]).map((s) => s.stuffId));
+  expect([...among].sort()).toEqual([...ok].filter((id) => universe.has(id)).sort());
 }
 
 describe('reach is one list — MQL `reachable` ≡ canReach (W20)', () => {
@@ -156,11 +160,13 @@ describe('reach is one list — MQL `reachable` ≡ canReach (W20)', () => {
     put(inner, crate);
     put(e, inner);
     expectAgreement(me, [me, pack, bag, a, box, b, chest, c, crate, inner, d, e, road, yard]);
-    // The rungs say what they say, on both sides at once.
-    expect(PerceptionApi.canReach(me, a, { depth: 'open' })).toBe(true);
-    expect(PerceptionApi.canReach(me, a, { depth: 'top' })).toBe(false);
+    // One rule, on both sides at once: the bag's apple is to hand; the
+    // shut box's is NAMED and refused by its lid; the tin in the crate
+    // here is a level too deep.
+    expect(PerceptionApi.canReach(me, a)).toBe(true);
+    expect(mqlReachable(me).has(b.stuffId)).toBe(true);
     expect(PerceptionApi.canReach(me, b)).toBe(false);
-    expect(PerceptionApi.canReach(me, b, { depth: 'deep' })).toBe(true);
+    expect(b.reachRefusal(me)?.reason).toBe('enclosed-shut');
     expect(PerceptionApi.canReach(me, e)).toBe(false);
   });
 

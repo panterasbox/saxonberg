@@ -76,10 +76,20 @@ Derived on read, nothing stored:
 | `levelNow()` | the water's level above its datum, m — the read's `levelM`, 0 when unknowable (the tide moves it) |
 | `depthNow()` | `depthM + levelNow()`, floored at `rimM` when the basin is cut off |
 | `stateNow()` | `dry` (≤ 0) · `wading` (≤ `water.column.wadeM`, 1.5) · `swimming` · `frozen` (the read says frozen) |
+| `stateFor(body)` | the same, for one body: `wading` by its stature (below) |
 | `bandsNow()` | the column under it now (below) |
 
-An uncited `Pool` reads `swimming` (legacy deep water). ⚠ The wading depth
-is one dial for every body; the plan's per-stature factor was not built.
+An uncited `Pool` reads `swimming` (legacy deep water).
+
+⭐ **Wading is by stature** (size and carrying D22, 2026-11-11):
+`WaterPlace.stateFor(body)` reads a body's own state — it wades while the
+depth is under stature × `WADE_FRACTION` (0.85), so a gnome swims where a
+human wades. The place's `stateNow()` keeps the `water.column.wadeM` dial
+for everything with no body in it (the column's bands, the shore's words,
+a compartment); a body with no stature reads the place. The water floor
+bears by `stateFor`, and the over-your-head gate reads it. ⚠ Body parts
+carry no heights, so wading does not yet wet only the share below the
+water line.
 
 ⭐ **"Is this the water?" is `depthNow() > 0`** (harbors review 1). A
 ship's room composes `WaterPlace` so it can flood (`Compartment`: dry
@@ -268,7 +278,7 @@ it; `BiomeApi.mediumProps(tag)` is the record.
 | **fire** | `FireLogic` ignition refuses where the medium does not burn (`no-air`); `Burner.completeness()` is 0 under water; the water place **douses** whatever arrives in it and everything it carries. |
 | **sound** | a band's hop is the medium's `soundHopTau` (0.3, further than air) and arrives from no direction — `ring` a signal bell (the platform verb; the bell answers with what it `carries`) and every diver in the column hears it, placing it nowhere. |
 | **light** | `Band.getAmbientFlux()` is the surface's light now × `0.01^(depth / clarity)`; a night dive is black without your own light. Red goes first: carried as the band's color temperature (`6500 + 1500 × depth` K, capped). ⚠ A per-channel fold through the vision walk was not built. |
-| **wet** | everything arriving immersed is `wet(1)` (an `Attired` body `immerse()`s), recursively through what it carries — except inside an air pocket. |
+| **wet** | everything arriving immersed is `wet(1)` (an `Attired` body `immerse()`s), recursively through what it carries — except inside an air pocket, and except inside a holder that is **shut and liquid-tight** (`Container.closureLevel()` — a shut `Sealable` whose material takes no water: the oilskin pouch keeps a letter dry; a shut canvas pack does not — size and carrying D22). |
 | **vessels** | an open, empty vessel arriving fills from the place's water. |
 | **eating** | `Metabolic.canIngest()` refuses an immersed air-breather (*"You would take in water"*). |
 | **wash** | works in the water you are in, and says so (*"in the water round you"*). |
@@ -575,8 +585,8 @@ stocks the wand of glowlight). Breathe-water loads no gas.
 - **(g) Requirements not met:** **narcosis** (a goal of the build; no row
   and no check exist); the **bends' onset** — they strike on surfacing,
   where the plan said twenty minutes after (the condition then advances in
-  20-game-minute stages); **wading by stature** — `water.column.wadeM` is
-  one depth for every body.
+  20-game-minute stages). (**Wading by stature** shipped with size and
+  carrying, 2026-11-11 — above.)
 
 Also recorded, not built: sideways between neighboring columns; a
 per-channel color fold for light under water; bell-occupant gas loading;
@@ -616,6 +626,13 @@ Built as `reqs/underwater`, MR !408 (2026-10-18 – 10-21): the plan
 at the sweep and their standing decisions live here and in
 respiration.md. The build's commits are `origin/master...reqs/underwater`
 at its merge.
+
+### Size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. Wading by stature (`stateFor`), and the shut,
+liquid-tight holder that the immersion walk stops at. A swimmer's
+envelope is a crawler's height (`horizontal`), so an underwater squeeze
+measures like a crawlway ([size.md](./size.md)).
 
 ## River build (2026-10-21)
 

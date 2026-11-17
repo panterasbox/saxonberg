@@ -59,6 +59,7 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { ContainmentApi } from "../../api/containment";
+import { Creature } from "../creature/Creature";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
@@ -70,6 +71,7 @@ import {
   type MixinSlice,
   type CaptureContext,
   type HydrateContext,
+  type ContentPlacement,
 } from "../persistence/PersistenceSlice";
 
 /**
@@ -252,13 +254,42 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           continue;
         }
         // Where it rests NOW — the entry's was written when it was placed.
-        const { rests: _was, ...kept } = entry;
+        const { rests: _was, placedOn: _on, within: _in, ...kept } = entry;
         const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
+        // ⭐ Inside a container in its place (rations in a pannier on the
+        // mule, a key in a satchel on its owner): the way in, so the
+        // restore puts it back in the container, not loose (finalize).
+        const within = MixinApi.isContainable(live) ? live.getKeptWithin() : null;
+        // ⭐ In the owner's keeping and placed on a host there (a pouch on
+        // the belt): the host by contents index, or by chattel id when the
+        // host is owned too (size and carrying W7). ⭐ Or in a region of a
+        // thing on the owner (a key in a coat's pocket — the coat's contents,
+        // W9, D-W9-7): the coat by the same two names, and pass (6) moves the
+        // key from the owner into the coat's region as it hangs a pouch.
+        const pair = MixinApi.isContainable(live) ? live.getPlacement() : null;
+        const at = MixinApi.isContainable(live) ? live.getContainer() : null;
+        const inKeeping =
+          at === host ||
+          (pair !== null &&
+            at !== null &&
+            pair.host.stuffId === at.stuffId &&
+            MixinApi.isContainable(at) &&
+            at.getContainer() === host);
+        let placedOn: ContentPlacement | null = null;
+        if (pair !== null && inKeeping) {
+          const idx = ctx.indexOf(pair.host);
+          if (idx >= 0) placedOn = { hostIndex: idx, placement: pair.name };
+          else if (MixinApi.isChattel(pair.host) && pair.host.isOwnerPersisted()) {
+            placedOn = { hostChattelId: pair.host.getChattelId(), placement: pair.name };
+          }
+        }
         entries.push({
           ...kept,
           templatePath: live.getTemplatePath() ?? entry.templatePath,
           state: ctx.captureState(live),
           ...(rests ? { rests } : {}),
+          ...(placedOn ? { placedOn } : {}),
+          ...(within ? { within } : {}),
         });
       }
       return {
@@ -337,8 +368,12 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
             entry.templatePath,
             entry.key,
           )) as Stuff | null;
+          // The restore path (size and carrying W8): what the record says the
+          // owner carried is admitted, as `restoreItem` admits it — a keyed
+          // thing on a body arrives as the body's own record, not a hand-off.
           if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
-            ContainmentApi.move(live, host);
+            if (host instanceof Creature) host.admitWhile(live, () => ContainmentApi.move(live, host));
+            else ContainmentApi.move(live, host);
           }
           self._putEstateEntry(entry, live);
           continue;

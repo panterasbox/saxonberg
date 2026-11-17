@@ -212,6 +212,20 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
       return this.quantity;
     }
 
+    /**
+     * ⭐ A stack takes its count times one unit's room (size and carrying
+     * D2). `getMass()` is ONE unit's here — the convention the craft
+     * readers assume (`ManualBuild`, `Compounding`); a host whose mass is
+     * the stack's total (a coin pile, a ream) overrides this back to its
+     * matter. `null` when a unit's volume is unknown.
+     */
+    public getVolumeM3(): number | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return null;
+      const unit = self.getMatterVolumeM3();
+      return unit === null ? null : unit * this.quantity;
+    }
+
     public setQuantity(n: number): void {
       if (!Number.isInteger(n) || n < 1) {
         throw new Error(

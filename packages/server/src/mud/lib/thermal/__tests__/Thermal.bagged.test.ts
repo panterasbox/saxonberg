@@ -33,6 +33,8 @@
  */
 
 import "../../../../test-bootstrap";
+import { withHands } from '../../slot/__tests__/carrying-fixture';
+import { CarryingMixin } from '../../slot/Carrying';
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
 import Material from "../../material/Material";
@@ -69,7 +71,7 @@ class Loaf extends ThermalMixin(Good) {
 }
 /** A plain bag — post-narrowing, `Container(Thing)` and no air at all. */
 class Bag extends Vessel {}
-class Carrier extends Creature {}
+class Carrier extends CarryingMixin(Creature) {}
 
 let counter = 0;
 let realMs = 100_000;
@@ -209,7 +211,7 @@ describe("⭐⭐ a bagged thing reads the nearest air", () => {
     // left a bag on your back exactly as frozen as before — for
     // precisely the journey the drive walks.
     const shop = room(305);
-    const carrier = makeStuff(() => new Carrier());
+    const carrier = withHands(makeStuff(() => new Carrier()));
     const bag = makeStuff(() => new Bag());
     const bread = loaf(275);
 

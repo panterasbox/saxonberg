@@ -12,3 +12,7 @@ data:
   placements: [/platform/placements/on, /platform/placements/from]
   _materialPath: /stuff/idea/material/textile/linen
   mass: 3
+  # ⭐ Size and carrying (W1 finding): washing hangs `from` a line along
+  # its LENGTH, and 3 kg of linen derives to a 19 cm block — two shirts.
+  # The line is strung between two posts, so it says how long it runs.
+  dimensions: { width: 0.02, depth: 0.02, height: 2.5 }

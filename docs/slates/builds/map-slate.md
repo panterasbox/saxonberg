@@ -1019,7 +1019,7 @@ the game's content as you explore*:
    inspection card forward.
 8. **You** — your person as a navigator: *You · walking · light load · lamp
    lit*. Pace and endurance; load — what you can climb or swim with and
-   what fits through an opening ([size-and-carrying](../../requirements/size-and-carrying-requirements.md),
+   what fits through an opening ([size-and-carrying](../../subsystems/carrying.md),
    build-1's); the light you carry; posture; a mount or vehicle. The pace
    switch lives here.
 

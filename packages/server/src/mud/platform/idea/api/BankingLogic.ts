@@ -423,7 +423,7 @@ function cashSupply(holder: Stuff & Container, currency: string): CoinSupply[] {
 async function takeCoins(
   from: Stuff & Container,
   plan: readonly CoinLine[],
-  dispose: (piece: Stuff & Containable) => void,
+  dispose: (piece: Stuff & Containable) => void | Promise<void>,
 ): Promise<boolean> {
   for (const line of plan) {
     let need = line.count;
@@ -434,11 +434,11 @@ async function takeCoins(
       }
       const have = item.getQuantity();
       if (have <= need) {
-        dispose(item as unknown as Stuff & Containable);
+        await dispose(item as unknown as Stuff & Containable);
         need -= have;
       } else {
         const piece = await item.split(need);
-        dispose(piece as unknown as Stuff & Containable);
+        await dispose(piece as unknown as Stuff & Containable);
         need = 0;
       }
     }
@@ -462,7 +462,11 @@ async function moveCoins(
 ): Promise<boolean> {
   const plan = Coinage.planSpend(currency, cashSupply(from, currency), value);
   if (!plan) return false;
-  return takeCoins(from, plan, (piece) => ContainmentApi.move(piece, to));
+  return takeCoins(from, plan, async (piece) => {
+    // The ledger has already moved — a purse or a pocket, else set down
+    // where they stand; never refused after the ledger, never lost (W8).
+    ContainmentApi.move(piece, to);
+  });
 }
 
 /** Total cash-like value on hand in a container (Σ face-value × quantity). */
@@ -1938,7 +1942,10 @@ async function dispenseCoin(into: Stuff & Container, amount: Money): Promise<Stu
     stamped.currency = line.currency;
     stamped.denomination = line.denomination;
     (coin as unknown as Stackable).setQuantity(line.count);
-    ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+    // Cash the ledger has already moved (D-W7a): a purse or a pocket, else
+    // set down where they stand — never refused after the ledger, never lost.
+    const cash = coin as unknown as Stuff & Containable;
+    ContainmentApi.move(cash, into);
     if (!representative) representative = coin;
   }
   // `dispense` yields ≥1 line for a positive amount; the largest is returned
@@ -2150,7 +2157,16 @@ async function issueCardImpl(
   if (principal && MixinApi.isContainer(principal)) {
     // ⭐ A card is a held good — the move titles it to whoever it is
     // issued to and records where it is, or it is gone at the next restart.
-    ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+    // ⭐ And it is KEPT on you, not held (size and carrying, the drive's
+    // open finding): pockets first. Hands-first put every card in a hand,
+    // and a purchasing NPC never puts its house card away — one hand gone
+    // for good, so a keeper carried one good at a time and every beat's
+    // second `get` was refused.
+    // W8: the body places it (else it is set down where they stand), and a
+    // carrier puts it away at once — a pocket it fits becomes its home.
+    const kept = card as unknown as Stuff & Containable;
+    ContainmentApi.move(kept, principal);
+    if (MixinApi.isCarrying(principal) && principal.tierOf(kept) === 'hand') principal.stow(kept);
   }
   return card as Stuff & CredentialWallet;
 }

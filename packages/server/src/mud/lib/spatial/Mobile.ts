@@ -50,6 +50,7 @@ import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
+import { GrammarApi } from '../../api/grammar';
 import type { CommandGiver } from '../command/CommandGiver';
 import type Interactive from '../../platform/idea/Interactive';
 import {
@@ -253,6 +254,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // `enablementMixin: null` — nothing gates it, nothing conferred
         // it, and `go` was the only way out.
         'platform/cmd/movement/walk.yaml',
+        // ⭐ How a body gets through an opening is a mode (size and carrying
+        // D20): under a low lintel, on hands and knees. Anybody whose plan
+        // lists them may use them anywhere, so the mover confers them.
+        'platform/cmd/movement/stoop.yaml',
+        'platform/cmd/movement/crawl.yaml',
         'platform/cmd/boundary/open.yaml',
         'platform/cmd/boundary/close.yaml',
         // ⭐⭐ `lock`/`unlock` — **beside open/close, because they are the
@@ -964,6 +970,49 @@ function arriveDirection(exit: Exit): string | undefined {
  * the only callers are `traverse` itself (inside its engagement) and the
  * carried branch.
  */
+/**
+ * ⭐ On hands and knees, what you hold goes ahead of you (size and carrying
+ * D19/D21): a body moving `prone` with things in its hands is told it
+ * pushes them along, and so is the room. Narration, not a verb.
+ */
+function pushAhead(mover: Stuff & Containable & Mobile, mode: string): void {
+  if (LocomotionApi.modeOf(mode)?.getBodyProfile() !== 'prone') return;
+  if (!MixinApi.isCarrying(mover)) return;
+  const held = mover.heldThings();
+  if (held.length === 0) return;
+  const words = GrammarApi.joinList(held.map((t) => t.presentationPhrase().definite()));
+  const scene = MessageApi.scene(mover)
+    .topic('act.move')
+    .toPeers(Mml.compose`${Mml.actor(mover)} pushes ${words} ahead.`);
+  if (MixinApi.isSensor(mover)) scene.toSelf(Mml.compose`You push ${words} ahead of you.`);
+  scene.send();
+}
+
+/**
+ * ⭐ The animals `mover` leads (size and carrying D18): for each line end in
+ * its hands, the creature at the line's other end — the rope goes with
+ * the animal, made fast round its halter — when that creature stands
+ * beside it and can move.
+ */
+function ledAnimals(mover: Stuff): Array<Stuff & Mobile & Containable> {
+  if (!MixinApi.isCarrying(mover) || !MixinApi.isContainable(mover)) return [];
+  const here = mover.getContainer();
+  const out: Array<Stuff & Mobile & Containable> = [];
+  for (const held of mover.heldThings()) {
+    if (!MixinApi.isTetherEnd(held)) continue;
+    const far = held.tetheredTo();
+    if (far === null || far.stuffId === mover.stuffId || !far.isAgent()) continue;
+    if (!MixinApi.isMobile(far) || !MixinApi.isContainable(far) || far.getContainer() !== here) continue;
+    // Led, not hauled: a body with no hands of its own, or one that wears
+    // a halter (a dog's mouth is a hand; on its collar it is still led). A
+    // person on a line's end — a diver, a climber — walks their own way.
+    if (!MixinApi.isAttired(far)) continue;
+    if (far.handSlots().length > 0 && !far.wornStack().some((w) => MixinApi.isTieable(w))) continue;
+    if (!out.includes(far)) out.push(far);
+  }
+  return out;
+}
+
 async function crossExit(
   mover: Stuff & Containable & Mobile,
   exit: Exit,
@@ -993,6 +1042,23 @@ async function crossExit(
     source.verifyOutboundExits();
   }
 
+  // ⭐ A held lead brings its animal (size and carrying D18) — and the
+  // animal's own refusal stops you: the panniers that will not fit the
+  // door keep the leader on this side too. Pre-checked before anything
+  // moves, by the animal's own gates at the way.
+  const led = ledAnimals(mover);
+  for (const animal of led) {
+    const theirs = await exit.canTraverse(animal, LocomotionApi.defaultModeFor(animal));
+    if (!theirs.ok) {
+      return {
+        ...theirs,
+        reason: `${GrammarApi.cap(animal.getPresentation())} won't follow you: ${
+          typeof theirs.context?.['about'] === 'string' ? theirs.context['about'] : (theirs.reason ?? 'it balks.')
+        }`,
+      };
+    }
+  }
+
   // The place-side vetoes: may this mover leave the source, enter the
   // destination? (The mover's own say was `beforeTraverse`, earlier.)
   if (MixinApi.isExitable(source)) {
@@ -1005,6 +1071,7 @@ async function crossExit(
   }
 
   mover.announceDeparture(source, exit);
+  pushAhead(mover, mode);
   ContainmentApi.move(mover, destination);
   mover.announceArrival(destination, exit);
 
@@ -1078,6 +1145,18 @@ async function crossExit(
     const hauledCart = mover.getHauledCart();
     if (hauledCart && MixinApi.isContainable(hauledCart)) {
       ContainmentApi.move(hauledCart, destination);
+    }
+  }
+
+  // ⭐ The led animals follow, each crossing on its own legs — its own
+  // announcements, its own hooks, its rope with it. One that cannot now
+  // (a gate that changed since the pre-check) stays, and says nothing.
+  for (const animal of led) {
+    const went = await LocomotionApi.traverseWithDefault(animal, exit).catch(
+      (err: Error) => ({ ok: false as const, reason: err.message }),
+    );
+    if (!went.ok) {
+      console.warn(`lead: ${animal.stuffId} did not follow ${mover.stuffId}: ${went.reason ?? '?'}`);
     }
   }
 

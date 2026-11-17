@@ -55,6 +55,7 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import { Placement } from './Placement';
+import type { KeptWithinStep } from '../persistence/PersistenceSlice';
 import { Placements } from './Placement';
 
 /**
@@ -63,6 +64,9 @@ import { Placements } from './Placement';
  * The optional Witness methods fire from `ContainmentApi.move`.
  * Implement only the ones you care about.
  */
+/** It is packed in `by` — the pack on a back, take it off first (size and carrying D15). */
+export type PackedRefusal = ActRefusal<'packed', { by: Stuff }>;
+
 export interface Containable {
   setContainer(container: (Stuff & Container) | null): void;
   getContainer(): (Stuff & Container) | null;
@@ -114,6 +118,16 @@ export interface Containable {
   getRestingPlace(): { on: string; placement: string } | null;
 
   /**
+   * ⭐ The containers this sits inside short of the place that keeps its
+   * record (the nearest persisting holder — a room, a body), outermost
+   * first, as a record can keep them — or `null` when it sits in that place
+   * directly, or the way in cannot be named (a body that keeps no record
+   * between). An owner's estate carries it so a restore puts rations back
+   * in the pannier they were left in, not loose on the mule.
+   */
+  getKeptWithin(): KeptWithinStep[] | null;
+
+  /**
    * Privileged setter — only `ContainmentApi.move` may call. Runtime-rejected by the
    * call-security gate otherwise. Authors don't touch this directly;
    * the Api maintains the invariant that a placement is only set when
@@ -155,17 +169,35 @@ export interface Containable {
   getEnclosingPlace(): (Stuff & Container) | null;
 
   /**
-   * ⭐ **Why `actor` cannot lay hands on me, if a lid is why** — the
-   * innermost shut thing between me and the actor or the place, as
-   * `{ reason: 'enclosed-shut', facts: { by } }`; `null` when nothing shut
-   * stands in the way. Read upward through `getEnclosingScope()`, so a
-   * steak in a shut cold compartment is enclosed by the compartment
-   * though its container is the room. It never judges another person's
-   * pockets (that is perception's gate, not a lid). MQL ADDRESSES a thing
-   * in a shut box; the verb asks this and says *the box is shut*
-   * (controller-liquidity D6).
+   * ⭐ **The chain above me, innermost first** — the one walk up
+   * containment, owned here (size and carrying finalize A4: nine readers
+   * each rolled their own). By default each link is the container
+   * (`getContainer`), to the root. `scopes: true` steps by what stands
+   * between instead ({@link getEnclosingScope} — an enclosing chamber's
+   * host before its container) and stops AT the first Place (included).
+   * `shortOf: actor` stops before the first link that is the actor or holds
+   * it — what holds the actor is the actor's side of every lid. Bounded and
+   * cycle-safe; a link that is not Containable ends the chain after itself.
    */
-  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff }> | null;
+  getContainerChain(opts?: { scopes?: boolean; shortOf?: Stuff }): Stuff[];
+
+  /**
+   * ⭐ **Why `actor` cannot lay hands on me, if a holder is why** — read
+   * upward through `getEnclosingScope()`, innermost first:
+   *
+   *   - `packed` — I am inside a pack the actor wears on the `back` slot
+   *     (size-and-carrying D15/D17): *take it off first*. Checked before
+   *     the lid at the same holder, because opening it would not help.
+   *   - `enclosed-shut` — a shut thing between me and the actor or the
+   *     place (a steak in a shut cold compartment is enclosed by the
+   *     compartment though its container is the room): *the box is shut*.
+   *
+   * `null` when nothing stands in the way. It never judges another
+   * person's pockets (perception's gate, not a lid). MQL names a thing in
+   * a shut box; the binder binds it; the verb's `canReach` asks this and
+   * says why (D17 — the refusal fires after binding).
+   */
+  reachRefusal(actor: Stuff): ActRefusal<'enclosed-shut', { by: Stuff; region?: string }> | PackedRefusal | null;
 
   /**
    * ⭐ **Bolted down: no agent picks this up or carries it off.** The
@@ -310,14 +342,18 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Auxiliary placement host — an instance (live) ref. Holds a direct
      * reference to the `Placing` host this thing sits on or in (null
-     * when loose). Declared `{ ref: 'instance' }`, so the R2.3
+     * when loose). ⭐ For `on` and `from` the host is a SIBLING in the same
+     * container (a mug on a desk); for an enclosing member it is the
+     * container ITSELF (a key in a coat's pocket — the coat's contents,
+     * size and carrying W9). Declared `{ ref: 'instance' }`, so the R2.3
      * self-heal clears the slot when the host is destructed.
      *
      * An instance ref was chosen over identity templatePath stamping
      * because non-singleton hosts (several identical tables in a
      * dining hall) can't be addressed unambiguously by templatePath.
      * The pair survives a restart through the container's slice, which
-     * records the host's INDEX in the same contents list.
+     * records the host's INDEX in the same contents list — or, for a
+     * region of the container itself, the region's name alone (W9).
      */
     protected _placementHost: (Stuff & Placing) | null = null;
 
@@ -402,6 +438,29 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.environment;
     }
 
+    /** See the interface docstring (size and carrying finalize A4). */
+    getContainerChain(opts: { scopes?: boolean; shortOf?: Stuff } = {}): Stuff[] {
+      const around = new Set<string>();
+      const actor = opts.shortOf;
+      if (actor !== undefined) {
+        around.add(actor.stuffId);
+        if (MixinApi.isContainable(actor)) for (const c of actor.getContainerChain()) around.add(c.stuffId);
+      }
+      const out: Stuff[] = [];
+      const seen = new Set<string>([(this as unknown as Stuff).stuffId]);
+      // Each link is the one this link's own read names: its container, or
+      // what stands between (its enclosing scope).
+      let up: Stuff | null = opts.scopes === true ? this.getEnclosingScope() : this.getContainer();
+      for (let i = 0; i < 32 && up !== null; i++) {
+        if (seen.has(up.stuffId) || around.has(up.stuffId)) break;
+        seen.add(up.stuffId);
+        out.push(up);
+        if (opts.scopes === true && up.isPlace()) break;
+        up = !MixinApi.isContainable(up) ? null : opts.scopes === true ? up.getEnclosingScope() : up.getContainer();
+      }
+      return out;
+    }
+
     /**
      * Walk the container chain to the topmost non-null environment.
      * Returns `null` when already at the root.
@@ -446,6 +505,34 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return placed && on ? { on, placement: placed.name } : null;
     }
 
+    /** See the interface docstring. */
+    getKeptWithin(): KeptWithinStep[] | null {
+      // The one chain read (A4), cut at the first holder that keeps its own
+      // record — the chain ends there.
+      const chain = this.getContainerChain();
+      const at = chain.findIndex((c) => MixinApi.isPersistable(c));
+      if (at <= 0) return null;
+      const steps: KeptWithinStep[] = [];
+      for (let i = at - 1; i >= 0; i--) {
+        const cur = chain[i]!;
+        const holder = chain[i + 1]!;
+        // A body between that keeps no record, or a holder of no contents:
+        // no name a record could keep.
+        if (cur.isAgent() || !MixinApi.isContainer(holder)) return null;
+        if (MixinApi.isChattel(cur) && cur.isOwnerPersisted()) {
+          steps.push({ chattelId: cur.getChattelId() });
+          continue;
+        }
+        const row = cur.getTemplatePath();
+        if (!row) return null;
+        const alike = holder
+          .getContents()
+          .filter((c) => c.getTemplatePath() === row && !(MixinApi.isChattel(c) && c.isOwnerPersisted()));
+        steps.push({ in: row, nth: alike.findIndex((c) => c.stuffId === cur.stuffId) });
+      }
+      return steps;
+    }
+
     /**
      * See the interface docstring. Whether a member encloses is the
      * member's own claim, carried on its `Placement` row — so a pack
@@ -456,7 +543,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const placement = this.getPlacement();
       if (placement !== null) {
         // Resident with the host and with the restored thing (documents D7).
-        if (ContainmentApi.placements().need(placement.name).getEncloses()) {
+        if (placement.host.placementOf(placement.name).getEncloses()) {
           return placement.host as unknown as Stuff;
         }
       }
@@ -474,24 +561,28 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return first;
     }
 
-    /** See the interface docstring (controller-liquidity D6). */
+    /** See the interface docstring (controller-liquidity D6; size-and-carrying D17). */
     reachRefusal(
       actor: Stuff,
-    ): ActRefusal<'enclosed-shut', { by: Stuff }> | null {
+    ): ActRefusal<'enclosed-shut', { by: Stuff; region?: string }> | PackedRefusal | null {
       // What holds the actor holds the actor's side of the lid too: in a
       // shut wardrobe, the coat beside you is not behind its door.
-      const around = new Set<string>([actor.stuffId]);
-      let up: Stuff | null = actor;
-      for (let i = 0; up !== null && i < 32; i++) {
-        up = MixinApi.isContainable(up) ? up.getContainer() : null;
-        if (up !== null) around.add(up.stuffId);
-      }
       let cur: Stuff = this as unknown as Stuff;
-      for (let i = 0; i < 32; i++) {
-        if (!MixinApi.isContainable(cur)) return null;
-        const scope = cur.getEnclosingScope();
-        if (scope === null || around.has(scope.stuffId)) return null;
+      for (const scope of this.getContainerChain({ scopes: true, shortOf: actor })) {
         if (scope.isPlace()) return null;
+        // ⭐ In the pack on the actor's back: *take it off first* (D17).
+        if (
+          MixinApi.isSlotted(actor) &&
+          actor.getSlotNames().includes('back') &&
+          [...actor.getOccupants('back')].some((o) => o.stuffId === scope.stuffId)
+        ) {
+          return { ok: false, reason: 'packed', facts: { by: scope } };
+        }
+        // ⭐ In a chamber that closes, shut now (D-W10-12): shut means shut.
+        const pair = MixinApi.isContainable(cur) ? cur.getPlacement() : null;
+        if (pair !== null && pair.host.stuffId === scope.stuffId && MixinApi.isPlacing(scope) && !scope.isRegionOpen(pair.name)) {
+          return { ok: false, reason: 'enclosed-shut', facts: { by: scope, region: pair.name } };
+        }
         if (MixinApi.isSealable(scope) && !scope.isOpen()) {
           return { ok: false, reason: 'enclosed-shut', facts: { by: scope } };
         }

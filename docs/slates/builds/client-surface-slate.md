@@ -371,6 +371,11 @@ From the specimen trace, with file:line in `specimens/`:
    on room ([illustration-slate.md](illustration-slate.md)).
 5. The Idea card — oak, a species, a business have almost no player path
    today; the catalogue and its gate are in the card-sizes slate.
+6. **The belt strip** (size-and-carrying finalize, 2026-11-16). A belt — anything things hang `from` —
+   holds attachments by its length; the client could draw it as a strip,
+   each attachment as wide as it takes, with the room left. The server's
+   words (`query --ledger me:i` on the belt, `Placing.roomFor`) are the
+   whole of what shipped; the strip is a client rendering of the same facts.
 
 ## Lens pass
 
