@@ -435,8 +435,13 @@ export abstract class SpatialZone extends Zone {
    * not declare. The one place the levers are folded into a
    * `ClimateSite`; `ZoneApi.climateSiteFor` asks the zone a thing stands
    * in, and a conduit asks the zone it serves.
+   *
+   * `fallbackLatitudeDeg` is where the place stands on the chart
+   * (geography D7): a zone chain that states no latitude takes the
+   * Locality's point's before the realm default. A zone that states one
+   * keeps it.
    */
-  public async climateSite(): Promise<ClimateSite> {
+  public async climateSite(fallbackLatitudeDeg?: number | null): Promise<ClimateSite> {
     const [lat, elev, cont, off] = await Promise.all([
       this.lookupField<number>('latitude'),
       this.lookupField<number>('elevation'),
@@ -444,7 +449,7 @@ export abstract class SpatialZone extends Zone {
       this.lookupField<number>('climateOffsetK'),
     ]);
     return {
-      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+      latitudeDeg: lat ?? fallbackLatitudeDeg ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
       elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
       continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
       offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,

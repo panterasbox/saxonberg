@@ -563,7 +563,7 @@ Checked 2026-11-16 against `CLAUDE.md`, `docs/antipatterns.md`,
 
 Each ends at a pushed commit; `pnpm test:near` + `lint:family` at each.
 
-**W0 — `Vantage`; the sea delegates.** D3 (first half).
+**W0 — `Vantage`; the sea delegates.** ✅ done (65c478039) — as planned. D3 (first half).
 `lib/perception/Vantage.ts` (+ `__tests__/Vantage.test.ts`: the √(2Rh)
 figures — 4.6 km from eye height, 35 km from 100 m — the small-planet
 scale, bearing and range against `GeoPosition`). `lib/expanse/Expanse.ts`:
@@ -584,6 +584,25 @@ the chain walk; `chartPoint`'s four cases; latitude — zone states one →
 kept, none → the Locality's, neither → 42. *Acceptance:* no row authors a
 point yet, so nothing observable changes. *Commit:*
 `feat(geography): a Locality and a building have a point on the chart`.
+
+✅ **W1 done.** Built as planned, with three deviations, all for module
+cycles or doctrine:
+- **`Structure.chartPoint()`** (a hook; default `null` until W2 reads the
+  sea node off the mark; `Building` answers its `position` first). `Place`
+  cannot `instanceof Building` (a value import closes a cycle) and must
+  not duck-type, so the structure is asked. Not a new class or field.
+- **`Locality.positionedLocality()`** — `Place.chartPoint` asks its
+  memoized weather Locality rather than importing `AddressApi` (cycle).
+- **D7's fallback is resolved inside `ZoneLogic.climateSiteFor` through
+  the place's own memoized Locality** (`Atmospheric.resolveWeatherLocality`):
+  importing `AddressApi` into `ZoneLogic` closed a load cycle (biome → … →
+  Tombstone → Location → Place). Every climate reader still goes through
+  the one resolver.
+- D13: the readers take `(elevationFor ?? 0) + place.heightAboveGroundM()`
+  (async ground walk, not `heightAboveSeaM`'s sync `peekField`, so a cold
+  ancestor zone is not read as 0). The *stairwell is not a waterfall* test
+  keeps its `elevationFor` assertion; its "same pressure" half was the
+  premise D13 reverses and became the new thinner-air test.
 
 **W2 — The marks and the kept skyline.** D1, D2, D8; S5, S6.
 `platform/idea/LocationGraphRegistry.ts` (one call at the end of

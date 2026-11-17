@@ -453,6 +453,18 @@ export default class Location extends LocationBase {
   }
 
   /**
+   * ⭐ Above the zone's ground by its storey: `z × cellSize` (geography
+   * D4; the rule `SpatialZone` documents beside `elevation`). The zone's
+   * cell, not this room's own extent — a storey is the grid's.
+   */
+  public override heightAboveGroundM(): number {
+    const z = this._coords?.z ?? 0;
+    if (z === 0) return 0;
+    const cell = this.getZone()?.getCellSize() ?? 3;
+    return z * cell;
+  }
+
+  /**
    * Setter with side effect: stores the value AND registers this
    * location with its resolved CartesianZone via
    * `addLocation(this, x, y, z)`. Idempotent on the happy path

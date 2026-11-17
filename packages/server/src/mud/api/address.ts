@@ -145,6 +145,16 @@ export class AddressApi {
     return logic().coverageChainOf(address);
   }
 
+  /**
+   * ⭐ The most specific covering Locality that has a point on the chart
+   * (geography build) — where a room with no point of its own stands.
+   * Walks {@link AddressApi.coverageChainOf} from the finest outward; `null`
+   * when nothing over `address` is on the chart (a test world). Sync.
+   */
+  public static positionedLocalityOf(address: string | null): Locality | null {
+    return logic().positionedLocalityOf(address);
+  }
+
   /** The Locality claiming exactly `address`, or `null`. Exact-match. */
   public static findByAddress(address: string): Locality | null {
     return logic().findByAddress(address);

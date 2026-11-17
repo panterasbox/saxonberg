@@ -50,6 +50,7 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
+import type { GeoPosition } from '../expanse/GeoPosition';
 import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
@@ -193,6 +194,19 @@ const PlaceBase = AddressableMixin(
   ),
 );
 
+/**
+ * ⭐ Where a place stands on the chart (geography D4), and who answers for
+ * it: the craft or structure whose point it is (a point of its own, no
+ * radius), or the Locality it stands in (with the radius inside which a
+ * thing is *close by*).
+ */
+export interface ChartPoint {
+  at: GeoPosition;
+  owner: Stuff;
+  /** The Locality's radius in metres when the owner is one; `null` for a point of its own. */
+  radiusM: number | null;
+}
+
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
 // `world/practicum/warded-cell.yaml:18` authors it and the field's own
@@ -316,6 +330,58 @@ export default class Place extends PlaceBase {
     if (own !== undefined) return own;
     const name = this.getDurableHandle() ?? this.getTemplatePath();
     return name ? NavigationApi.structureAt(name) : null;
+  }
+
+  /**
+   * ⭐ **Where this place stands on the chart** (geography D4), synchronous:
+   *
+   * 1. a place with a position at sea (a patch of water), or whose
+   *    structure is a craft with one (a ship's deck) — that fix;
+   * 2. its structure's own point (a building's authored `position`, or the
+   *    sea node its rock stands at);
+   * 3. the nearest positioned Locality over its address, with that
+   *    Locality's radius;
+   * 4. `null` — not on any chart (a test world), by construction.
+   */
+  public chartPoint(): ChartPoint | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isPositioned(self)) {
+      const at = self.getExpansePosition();
+      if (at !== null) return { at, owner: self, radiusM: null };
+    }
+    const s = this.structureNow();
+    if (s !== null) {
+      const ss = s as unknown as Stuff;
+      const at = MixinApi.isPositioned(ss) ? ss.getExpansePosition() : s.chartPoint();
+      if (at !== null) return { at, owner: ss, radiusM: null };
+    }
+    const locality = this.weatherLocality()?.positionedLocality() ?? null;
+    const at = locality?.getPosition() ?? null;
+    if (locality === null || at === null) return null;
+    return { at, owner: locality as unknown as Stuff, radiusM: locality.getRadiusM() };
+  }
+
+  /**
+   * How high this place stands above the ground its zone stands on,
+   * metres. `0` on a place with no storey of its own; a {@link Location}
+   * answers `z × cellSize` (the rule `SpatialZone` documents).
+   */
+  public heightAboveGroundM(): number {
+    return 0;
+  }
+
+  /**
+   * ⭐ **This place's total height above the sea**, metres: its zone's
+   * `elevation` (the ground's) plus {@link heightAboveGroundM} — *z tells
+   * you the height within a zone, you need the zone for the total* (the
+   * owner, 2026-11-17). What an eye looks from, what the air pressure and
+   * magic's climb read (geography D13). The ground and its water read
+   * `ZoneApi.elevationFor` instead — a stairwell is not a waterfall.
+   */
+  public heightAboveSeaM(): number {
+    const ground = this.getZone()?.peekField<number>('elevation') ?? null;
+    const g = typeof ground === 'number' && Number.isFinite(ground) ? ground : 0;
+    return g + this.heightAboveGroundM();
   }
 
   /**
