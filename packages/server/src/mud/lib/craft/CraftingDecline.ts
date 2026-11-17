@@ -31,6 +31,18 @@ export type CraftingFailure =
   | FitFailure;
 
 export class CraftingDecline {
+  /**
+   * ⭐ A carried tool that is not to hand, as the next command (D-W10-1):
+   * *Your satchel is shut — `open satchel` first.*
+   */
+  private static outOfReach(detail: string | undefined): string {
+    const [how, kw = 'it', region] = (detail ?? '').split(':');
+    const word = kw.includes(' ') ? `"${kw}"` : kw;
+    if (how === 'packed') return `Your ${kw} is on your back — take it off first (\`remove ${word}\`).`;
+    if (region !== undefined) return `Your ${kw}'s ${region} is shut — \`open "${region}"\` first.`;
+    return `Your ${kw} is shut — \`open ${word}\` first.`;
+  }
+
   /** The diegetic line a decline `reason` (and its `detail`) reads as. */
   static messageFor(failure: CraftingFailure): string {
 
@@ -53,6 +65,8 @@ export class CraftingDecline {
         return "It isn't clear who you'd be ordering from here.";
       case 'missing-tool':
         return `There's no ${detail || 'tool'} here to make that with.`;
+      case 'tool-out-of-reach':
+        return CraftingDecline.outOfReach(detail);
       case 'insufficient-input':
         // The service acts' details read as states, not stock.
         if (detail === 'no-location') return "You can't make that here.";

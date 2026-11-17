@@ -9,6 +9,8 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { CorpoApi } from '../../../api/corpo';
 import { MixinApi } from '../../../api/mixin';
+import { PerceptionApi } from '../../../api/perception';
+import type { Containable } from '../../../lib/spatial/Containable';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -487,6 +489,29 @@ interface GatheredMatter {
    * only a thing that IS that part (its row, or its keyword).
    */
   parts: ItemCandidate[];
+  /**
+   * ⭐ Tools the maker CARRIES but cannot use where they sit (D-W10-1): in
+   * a shut holder, or packed in something on the back — kept so a refusal
+   * can name the next command (`open satchel`) instead of "no kit".
+   */
+  behind: (Stuff & Tooled)[];
+}
+
+/**
+ * ⭐ What the maker carries that is to hand where it sits (size and
+ * carrying D-W10-1; D17's one rule of reach): held, worn, and in an open
+ * pocket, pouch or satchel on them or hung there — the carried tree of
+ * `PerceptionApi.reach`, narrowed by `reachableAmong` (a shut holder or a
+ * pack on the back refuses, `Containable.reachRefusal`). `behind` is the
+ * rest of the carried tree. Until the finalize fix this read the maker's
+ * top-level contents only, so a kit in a worn satchel (W9: a bag's thing is
+ * the BAG's contents) was invisible to a mend.
+ */
+function carriedToHand(maker: Stuff): { near: Stuff[]; behind: Stuff[] } {
+  const carried = PerceptionApi.reach(maker, { pools: ['inventory'] }).map((r) => r.stuff);
+  const near = PerceptionApi.reachableAmong(maker, carried);
+  const ids = new Set(near.map((x) => x.stuffId));
+  return { near, behind: carried.filter((x) => !ids.has(x.stuffId)) };
 }
 
 /**
@@ -788,6 +813,7 @@ async function gatherMatter(
     items: [],
     glasses: [],
     parts: [],
+    behind: [],
   };
   if (!MixinApi.isContainer(location)) return gathered;
   for (const c of location.getContents()) {
@@ -813,12 +839,11 @@ async function gatherMatter(
       }
     }
   }
-  // The maker's own inventory — held kit and carried stock are reachable.
-  if (MixinApi.isContainer(maker)) {
-    for (const c of maker.getContents()) {
-      await collectCandidate(c, gathered);
-    }
-  }
+  // The maker's own carried things, where they sit (D-W10-1): held kit and
+  // carried stock, and what is in an open pocket or satchel on them.
+  const carried = carriedToHand(maker);
+  for (const c of carried.near) await collectCandidate(c, gathered);
+  for (const c of carried.behind) if (MixinApi.isTool(c)) gathered.behind.push(c);
   return gathered;
 }
 
@@ -3100,8 +3125,11 @@ function reachableTools(maker: Stuff | null): (Stuff & Tooled)[] {
   // ⭐ The reach pool, on-person-first. This hand-rolled the two hops,
   // which also MISSED a tool in a slot — a wielded hammer is reachable
   // by any reading of the word, and the pool includes slot occupants.
-  return ContainmentApi.reachableFrom(maker).filter(
-    (c): c is Stuff & Tooled => MixinApi.isTool(c),
+  // ⭐ …and what the maker carries where it sits (D-W10-1): a tool in an
+  // open satchel on them is to hand, one in a shut one is not.
+  const seen = new Set<string>();
+  return [...carriedToHand(maker).near, ...ContainmentApi.reachableFrom(maker)].filter(
+    (c): c is Stuff & Tooled => MixinApi.isTool(c) && !seen.has(c.stuffId) && seen.add(c.stuffId) !== undefined,
   );
 }
 
@@ -3394,7 +3422,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }
 
-  const { bottles, tools, items, glasses, parts } = await gatherMatter(location, maker);
+  const { bottles, tools, items, glasses, parts, behind } = await gatherMatter(location, maker);
   // ⭐ The output's bill, when it has one: a slot named for one of its
   // parts may take a MADE thing that is that part (assembly D3). The shipped
   // pick recipe asks for a `head` and a `haft`, and both are Tool rows — so
@@ -3568,7 +3596,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe's output-application kind), stamp, consume, wear.
   let output: Stuff;
   if (application === 'bulk' || application === 'edible') {
-    const pool = { bottles, tools, items, glasses, parts };
+    const pool = { bottles, tools, items, glasses, parts, behind };
     const glass = claimGlass(pool, recipe, await outputVesselKind(recipe));
     if (glass) {
       output = glass;
@@ -3903,12 +3931,13 @@ async function runMendLadder(
     return { ok: false, reason: 'insufficient-input', detail: 'not-durable' };
   }
   const catalogue = await requireCatalogue();
-  const { tools, items } = await gatherMatter(location, hand);
+  const { tools, items, behind } = await gatherMatter(location, hand);
   const m: MendContext = {
     hand,
     handPath: hand.getIdentityPath() ?? '',
     handName: hand.getPresentation() ?? '',
     tools,
+    behind,
     stock: new StockDraw(items, item),
     catalogue,
     commit,
@@ -3950,6 +3979,8 @@ interface MendContext {
   handPath: string;
   handName: string;
   tools: (Stuff & Tooled)[];
+  /** Tools the hand carries but cannot use where they sit (shut, packed). */
+  behind: (Stuff & Tooled)[];
   stock: StockDraw;
   catalogue: RecipeCatalogue;
   /** False for a diagnosis: find every fault, change nothing. */
@@ -4077,8 +4108,27 @@ function instrumentFor(
   }
   const capability = material?.hasTag('wood') ? 'cutting' : 'mending';
   const instrument = m.tools.find((t) => t.hasCapability(capability)) ?? null;
-  if (!instrument) return { ok: false, reason: 'missing-tool', detail: capability };
+  if (!instrument) {
+    // ⭐ Carried, but shut away or packed (D-W10-1): name the next command.
+    const away = m.behind.find((t) => t.hasCapability(capability));
+    const why = away && MixinApi.isContainable(away) ? away.reachRefusal(m.hand) : null;
+    if (why !== null) return { ok: false, reason: 'tool-out-of-reach', detail: outOfReachDetail(why) };
+    return { ok: false, reason: 'missing-tool', detail: capability };
+  }
   return { ok: true, instrument, capability };
+}
+
+/**
+ * A reach refusal as a decline's `detail` — `shut:<keyword>`,
+ * `shut:<keyword>:<region>` or `packed:<keyword>` — the holder by the word a
+ * player types for it, so the line can name the next command.
+ */
+function outOfReachDetail(why: NonNullable<ReturnType<Containable['reachRefusal']>>): string {
+  const by = why.facts.by;
+  const kw = (MixinApi.isPerceptible(by) ? by.getPrimaryKeyword() : undefined) ?? by.presentationPhrase().bare();
+  if (why.reason === 'packed') return `packed:${kw}`;
+  const region = (why.facts as { region?: string }).region;
+  return region !== undefined ? `shut:${kw}:${region}` : `shut:${kw}`;
 }
 
 /** A part row's unit mass, from its row (the salvage read). */
@@ -4694,8 +4744,7 @@ async function partInReachFor(
     .getParts()
     .find((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
   if (!line) return w;
-  const pool: Stuff[] = [];
-  if (MixinApi.isContainer(maker)) pool.push(...(maker.getContents() as Stuff[]));
+  const pool: Stuff[] = [...carriedToHand(maker).near];
   if (MixinApi.isContainer(location)) pool.push(...(location.getContents() as Stuff[]));
   for (const s of pool) {
     if (s === whole || s === maker || !MixinApi.isTangible(s)) continue;
@@ -4799,7 +4848,7 @@ function glueInReach(
   litres: number,
 ): { vessel: Stuff & Bulkable; material: string } | null {
   const pool: Stuff[] = [
-    ...(MixinApi.isContainer(maker) ? maker.getContents() : []),
+    ...carriedToHand(maker).near,
     ...(MixinApi.isContainer(location) ? location.getContents() : []),
   ];
   for (const v of pool) {
