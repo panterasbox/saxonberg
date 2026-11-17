@@ -364,6 +364,18 @@ async function sustain(s: Session): Promise<void> {
  * that one room.** A cascade is not diagnostic.
  */
 async function ensureDaylight(s: Session): Promise<void> {
+  // ⚠⚠ (soak repair 2026-11-17) The DAY first, by the clock. A room that is
+  // merely not pitch dark is not daylight: a fresh world boots at 00:35, the
+  // yard by night reads "Shapes and edges, no more" (dim, so the room check
+  // passed), and a lamplit street at night passed it too — then the walk
+  // went indoors, to a tannery and a chandlery nothing lights after dark.
+  // The harness's clock is not a game verb, so it has none of `analyze
+  // sky`'s failures (below). Then the room check, for what is still dark.
+  const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+  if (into < 8 * 3_600 || into > 15 * 3_600) {
+    const wait = into < 10 * 3_600 ? 10 * 3_600 - into : 86_400 - into + 10 * 3_600;
+    await advance(`${Math.ceil(wait / 3_600)} hours`, s);
+  }
   let room = '';
   for (let i = 0; i < 6; i += 1) {
     room = (await (await s.cmd('look')).said()).toLowerCase();
@@ -964,6 +976,7 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
     });
+    await ensureDaylight(k);
     await k.drainProse();
     // ⭐ ONE exit off the bank, and the three chain from the knacker.
     await walk(k, ['down']);
