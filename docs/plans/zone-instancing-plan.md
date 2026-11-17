@@ -1033,6 +1033,48 @@ only.
 
 ---
 
+## Sibling builds — where the files overlap
+
+Checked 2026-11-17 against `docs/plans/navigation-server-plan.md`
+(build-2, `build/navigation-server`) and `docs/plans/geography-plan.md`
+(build-3, `reqs/geography`). Neither gates this build; the second to merge
+reconciles.
+
+**navigation-server.** The one *semantic* overlap.
+- It adds `Warren.frameIdentityOf(member)` (its N8), which answers
+  `zoneFromFor(spec, warrenKey())` only when `laysOutOwnFrame()`, and reads
+  a copy's coordinates from `layOut`. B4 deletes both.
+- **If nav merges first:** B4 replaces every call to `frameIdentityOf` with
+  the room's stamped zone identity (`place.getZone()?.getIdentityPath()`),
+  which is the same string by D5, and deletes the method with
+  `laysOutOwnFrame`. Its `getCoords()` read is unchanged, because the
+  coordinates are now authored (D9).
+- **If this build merges first:** tell build-2 to write `at.zone` from the
+  stamped zone's identity and to drop `frameIdentityOf`.
+- **Room paths:** the dorm room and the authored ships' rooms (D15) are
+  recorded in its plan's Risks. Whichever build merges second updates the
+  drive's room paths.
+- `Cartographer.ts`: this build only reads it.
+
+**geography.** Textual overlaps only.
+- *`LocationGraphRegistry.deriveAttachments`:* geography appends one call
+  at its end and one in each of `attachStructure`/`detachStructure`. This
+  build's D12 changes the attach rule in its body. Merge both.
+- *The authored ship rows:* geography adds `showsLight: true` to the
+  Hesper's and the Corrigan's rows. B3 adds `warren:`/`serial:` and
+  re-classes the zone rows. Merge both.
+- *`ZoneLogic`:* geography's D7 makes `climateSiteFor` fall back to the
+  address's latitude when a zone chain declares none. Under D2 a holding's
+  chain runs through its lot, as before; a ship's runs through her kind
+  row, which declares none, so it falls back to the address. Compatible,
+  with no edit on either side.
+- *`LocationZone.lookOutFrom`:* geography rewrites it to stand up the
+  skyline. Copy rooms now reach `addLocation` (Risk 2), so each copy room's
+  wake runs geography's kick. That is unawaited and memoized, so it stays
+  a load-on-use cost. Verify that a house's wake does not stand up rooms.
+- *`packages/wire/src/harness/world.ts`:* all three builds append staging
+  helpers. Append-only.
+
 ## Risks & opens
 
 1. **How far "the authored ships become copies" goes (D12).** This plan
