@@ -2,7 +2,8 @@
  * PlacementOffers — ⭐ **the ways a host offers to be put into or onto**, in
  * listing order, and what a word means among them (controllers-are-io D11).
  *
- * Region zero first when the host is a plain container, then one per member
+ * Region zero first when the host is a container with an inside of its own
+ * (`Container.hasInterior` — not a coat), then one per member
  * its row offers. Region zero is the container's own interior and is NOT a
  * member — a chest has no compartments, it just holds things. It borrows its
  * words from the `in` row when the catalogue has one, which is what makes *one
@@ -37,13 +38,21 @@ export type PlacementChoice =
       takes: readonly string[];
       /** The word that was typed, when one was. */
       got?: string;
+      /**
+       * ⭐ When the offers that answered share their word and differ by
+       * NAME (a coat's `left pocket` and `right pocket`), the names — so
+       * the verb asks *which pocket?*, not *into or into?* (D26).
+       */
+      regions?: readonly string[];
     };
 
 export class PlacementOffers {
   private readonly offers: readonly PlacementOffer[];
+  private readonly host: Stuff;
 
   /** The offers `host` makes. */
   constructor(host: Stuff) {
+    this.host = host;
     const offers: PlacementOffer[] = [];
     // ⭐⭐ **One question, asked once.** *Is this an actor, whose insides
     // are its own?* is the `Agent` branch, and `MixinApi.isOpenContainer`
@@ -51,13 +60,15 @@ export class PlacementOffers {
     // means "you can reach or see one level into that" asks. ⚠ Minus the
     // lid: a SHUT chest offers region zero and refuses at the verb with a
     // reason, which is a better sentence than pretending it has no inside.
-    if (MixinApi.isContainer(host) && !host.isAgent()) {
+    // ⭐ …and only a container with an unnamed inside (W9, D-W9-3): a coat's
+    // insides are its pockets, so it offers those and no region zero.
+    if (MixinApi.isContainer(host) && !host.isAgent() && host.hasInterior()) {
       offers.push({ kind: 'zero', name: Placements.IN, words: ContainmentApi.placements().need(Placements.IN).getPrepositions() });
     }
     if (MixinApi.isPlacing(host)) {
       for (const name of host.getPlacements()) {
         // Resident with the host (documents D7): a miss throws by path.
-        offers.push({ kind: 'placement', name, words: ContainmentApi.placements().need(name).getPrepositions() });
+        offers.push({ kind: 'placement', name, words: host.placementOf(name).getPrepositions() });
       }
     }
     this.offers = offers;
@@ -94,14 +105,31 @@ export class PlacementOffers {
       }
     }
     if (matches.length === 1) return { ok: true, offer: matches[0]! };
+    // ⭐⭐ Chambers (size and carrying D-W10-6, owner final A): several
+    // ENCLOSING regions of one container answering the word. Alike in every
+    // way the world cares about (two plain side pockets) → the container
+    // decides — the zero-shaped offer, routed to `arrivalFor`, which takes
+    // the first that fits; any differ (one buttons, one is inside) → the
+    // player chooses, by name (below).
+    const host = this.host;
+    if (
+      MixinApi.isPlacing(host) &&
+      matches.every((o) => o.kind === 'placement' && host.placementOf(o.name).getEncloses()) &&
+      host.alikeChambers(matches.map((o) => o.name))
+    ) {
+      return { ok: true, offer: { kind: 'zero', name: Placements.IN, words: matches[0]!.words } };
+    }
     // Ambiguous: a range is a firebox AND a hot plate, and the player has
     // to say which. (Two members sharing a primary word is an authoring
     // collision `lint:placement-words` refuses, so a typed word reaching
     // here is a claim about content, and content changes.)
+    const takes = matches.map(primary);
+    const named = new Set(takes).size < takes.length;
     return {
       ok: false,
       reason: matches.length === 0 ? 'wrong-preposition' : 'preposition-ambiguous',
-      takes: matches.map(primary),
+      takes,
+      ...(named ? { regions: matches.map((o) => o.name) } : {}),
     };
   }
 }

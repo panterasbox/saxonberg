@@ -1,7 +1,7 @@
 /**
  * `wary` brain — the detection *response* logic. Detection itself is folded
  * into the MQL `peers:living` query resolved at the sentry's `alertness`
- * (proven in `api/mql/__tests__/scope-walk.attention.test.ts`); here that
+ * (the perceive half proven in `api/mql/__tests__/scope-walk.attention.test.ts`); here that
  * query is stubbed so the brain's OWN logic is under test: it challenges a
  * newly-detected intruder once (the seen-set delta), stays quiet while the
  * intruder stays detected, and re-arms when they leave and return.
@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { brain as wary } from '../wary';
 import { MqlApi } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
+import { PerceptionApi } from '../../../api/perception';
 import type { BrainContext } from '../brain';
 import type { Stuff } from '../../stuff/Stuff';
 import { BrainMoves } from '../BrainMoves';
@@ -47,6 +48,7 @@ beforeEach(() => {
   vi.spyOn(MqlApi, 'resolveMany').mockImplementation(
     () => ({ stuff: detected }) as never,
   );
+  vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(true);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -60,14 +62,18 @@ describe('wary brain — contract', () => {
     expect(wary.ambient).toBe(false);
   });
 
-  it('resolves detection via MQL peers:living at the config alertness', () => {
-    detected = [];
+  it('names movers via MQL peers:living, then PERCEIVES them at the config alertness (D23)', () => {
+    // ⚠ Meaning changed at size-and-carrying W3: the attention term left
+    // MQL; the brain perceives what MQL named.
+    const intruder = stub('intruder');
+    detected = [intruder];
     const c = ctx({ ...LINES, alertness: 7 });
     wary.act(c);
     expect(MqlApi.resolveMany).toHaveBeenCalledWith(
       'peers:living',
-      expect.objectContaining({ commandGiver: c.host, attention: 7 }),
+      expect.objectContaining({ commandGiver: c.host }),
     );
+    expect(PerceptionApi.perceives).toHaveBeenCalledWith(c.host, intruder, 7);
   });
 });
 

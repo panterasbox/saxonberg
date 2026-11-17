@@ -6525,10 +6525,47 @@ two disagreed — on the room itself and on doors of unseen ways. There is one
 list now, `PerceptionApi.reach`, tagged with MQL's pools (`person` ·
 `inventory` · `here` · `peers` · `reachable`; `around` is what holds you —
 named, not touched), and MQL's seeds filter it. Reach is not perception: a
-caller that needs both asks both. A thing behind a shut lid is ADDRESSED by
-MQL (`look me:I:apple`) but not reachable — a verb that puts a hand on it
-declares `mustNotBeShutAway` (`Containable.reachRefusal`). See
-[perception.md](./subsystems/perception.md) (controller-liquidity W20).
+caller that needs both asks both. A thing behind a shut lid is NAMED by
+MQL (`look me:I:apple`) and bound, but `canReach` refuses it in the
+object's words (`Containable.reachRefusal` — `enclosed-shut`, `packed`):
+a verb that puts a hand on what it names declares the `canReach`
+validator. See [perception.md](./subsystems/perception.md)
+(controller-liquidity W20; one rule since size-and-carrying D17).
+
+## Hiding things inside MQL
+
+```typescript
+// WRONG — the resolver decides what a viewer may see
+if (viewer && !PerceptionApi.perceives(viewer, candidate)) return; // in api/mql/**
+
+// CORRECT — MQL names the same list for everyone; the SURFACE perceives
+const named = MqlApi.resolveMany(text, { commandGiver: giver, scope });
+const shown = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
+```
+
+MQL names things the same for every viewer (size-and-carrying D23): the
+only viewer-dependence in the resolver is the asker's own words (`me`,
+`here`, the pronouns) and the object's own methods called with the asker
+(`perceivedKeywordsFor`, `getDetailIds`). Anything that binds, prompts,
+counts or shows a list runs it through `PerceptionApi.perceived` first —
+and a head ordinal counts after it. `lint:perceived-surfaces` holds every
+surface at zero exceptions. See [mql.md](./subsystems/mql.md).
+
+## Moving a thing onto a body — `move` just works; a synonym for it does not exist
+
+| Don't | Do |
+|---|---|
+| A synonym for `move` (`receive`, `deliver`, `routeMove`, a `receive*` family, a helper that "puts it on a body properly") | `ContainmentApi.move(x, dest)` — **`move` is the one call; a carrier routes what arrives** (owner, 2026-11-13): it reaches the body — a hand, a pocket, a hook — and, when nothing on it takes the thing, the body moves it on into a bag it carries, else sets it down at its feet with a line; every step a true move with its own witnesses, nothing retargeted. A non-carrier destination is exact. |
+| Choosing a method by what the destination is (`isCarrying(dest) ? … : move(…)`), a pre-check (`canReceive`, deleted), or a `try/catch` around `move` to find out | just `move`. **Nothing goes around the routing** (owner, 2026-11-15: `directMove` retired; a refusing form and any new name for it rejected). A handed act (`buy`, `give`, a withdrawal, a reclaim) writes the money, then `move`s the goods; what the recipient cannot carry is set down at their feet with the routing's line — honest, nothing lost. To ASK, `carrier.wouldSetDown(x)` (`get`'s refusal of a pick-up that would only be set back down). `lint:carry-moves` holds the name and the `isCarrying(x) ? … : move(…, x)` branch at 0. |
+| Hand-writing a made thing's fallback (`move to the maker, else move here` + a *you set it down* line) | plain `move(made, maker)` — the routing sets it down and says so; a path that wants somewhere else (the bench) moves it there explicitly |
+| `move` then `occupyAll` to put a garment on | `body.seatInSlots(garment, claim)` — *wear it* is a seating, said exactly |
+
+Owner (size and carrying W8): *"every time you invent a synonym for
+`move()` you're making it harder for everyone else in the game"* — and
+*"the one thing I don't want is for move to lie."* Nothing sits loose on a
+body (`Creature.arrivalFor`, every body, fail closed); a body that does
+not carry (a fish, a wolf) has no honest place, so `move` throws. See
+[carrying.md](./subsystems/carrying.md).
 
 ## A nested subcommand
 

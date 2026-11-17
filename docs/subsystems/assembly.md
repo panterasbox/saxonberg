@@ -552,14 +552,16 @@ are untouched.
 
 ## The compartment — `Chamber` and the drying loft
 
-`platform/thing/Chamber.ts` = `AtmosphericMixin(PlacingMixin(Thing))`: a
-space inside a thing with its own air. ⭐ **Occupancy by PLACEMENT, not
-containment** (D15, reconciling the fridge-design-pack with the
-chambered-vessels slate): `put board in loft` places it `in` the chamber,
-its container stays the room, `getEnclosingScope()` answers the chamber,
-and every *what air reaches me* read (thermal ambient, the seasoning
-clock, the biome walk) starts there. No change to scope-walk or
-`canReach`. The one override is `occupants()` → `getPlaced('in')`.
+`platform/thing/Chamber.ts` = `AtmosphericMixin(ContainerMixin(Thing))`:
+a space inside a thing with its own air. ⭐⭐ **Occupancy by CONTAINMENT**
+(size and carrying W9, owner 2026-11-13 — *an enclosing relation is
+containment*; D15's occupancy-by-placement is reversed): `put board in
+loft` makes it the loft's contents (region zero; `move(board, loft,
+Placements.IN)` is region zero's own word), `getEnclosingScope()` answers
+the chamber, and every *what air reaches me* read (thermal ambient, the
+seasoning clock — `Moisture` exposes a compartment with its own air at 1 —
+the biome walk) starts there. `Atmospheric.occupants()` is its contents;
+no override. The room reaches one level into the open loft.
 
 `lib/spatial/Chambered.ts` (`ChamberedMixin`) is the host half: a row
 declares `chambers: [{key, template}]`, an INSTRUCTION field applied at

@@ -8,6 +8,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rope from '../Rope';
 import RopeEnd from '../RopeEnd';
@@ -97,7 +98,7 @@ describe('the end across (harbors P6, review 1)', () => {
     const { quay, line, bollard, ship } = await moored();
     await line.tieTo(ship as unknown as Stuff, bollard as unknown as Stuff, 'clove-hitch');
     const end = endOn(quay)!;
-    const hand = makeStuff(() => new Body());
+    const hand = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(hand as never, quay as never);
     const out = await end.untieBy(hand as unknown as Stuff);
     expect(out.ok).toBe(true);
@@ -110,7 +111,7 @@ describe('the end across (harbors P6, review 1)', () => {
   it('cast off aboard by hand (`untie` the rope where it lies), the end comes in and the structure is told', async () => {
     const { quay, deck, line, bollard, ship } = await moored();
     await line.tieTo(ship as unknown as Stuff, bollard as unknown as Stuff, 'clove-hitch');
-    const hand = makeStuff(() => new Body());
+    const hand = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(hand as never, deck as never);
     const out = await line.untieBy(hand as unknown as Stuff);
     expect(out.ok).toBe(true);
@@ -128,7 +129,7 @@ describe('the end across (harbors P6, review 1)', () => {
 
   it('a thing that is no fixture, or one in the same room, is refused', async () => {
     const { deck, quay, line, ship } = await moored();
-    const loose = makeStuff(() => new Body());
+    const loose = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(loose as never, quay as never);
     expect(await line.tieTo(ship as unknown as Stuff, loose as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'not-a-fixture' });
     const bitts = makeStuff(() => new Bollard());

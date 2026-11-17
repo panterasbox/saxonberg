@@ -1,0 +1,26 @@
+# The pack mule (size and carrying D27/W6, drive 18) — a `DraftAnimal`
+# like the draft horse, but its work is what it carries on its back. It
+# has no hands: it carries only in what it WEARS — a pack saddle with a
+# pannier hung each side — and its own body says how much (the burden
+# model; overloaded, *the mule won't take more*). Tie a rope to its halter
+# and hold the end, and it comes with you through the next way.
+class: /platform/agent/DraftAnimal
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/asinus-mulus
+  lifecycleState: alive
+  keywords: [mule, "pack mule", animal]
+  shortDescription: pack mule
+  register: indefinite
+  longDescription: >-
+    A rangy brown mule with long ears and a pale muzzle, standing hipshot
+    with the air of an animal that has carried more than this and knows
+    exactly how much more it is prepared to.
+  mass: 400
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "swivels one long ear toward you and leaves the other where it was." }
+          - { kind: free, value: "shifts its weight and blows through its nose." }
+          - { kind: free, value: "considers the nearest bit of grass with great seriousness." }

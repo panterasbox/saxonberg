@@ -74,6 +74,8 @@ import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
 import { MqlApi } from '../../api/mql';
+import { PerceptionApi } from '../../api/perception';
+import type { Containable } from '../spatial/Containable';
 import { CompetenceBand } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
 import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
@@ -375,14 +377,23 @@ export interface TreatmentRequest {
 }
 
 /** Why a treatment was refused. */
-export type TreatmentReason = 'no-wound' | 'wound-interior' | 'wrong-treatment';
+export type TreatmentReason = 'no-wound' | 'wound-interior' | 'wrong-treatment' | 'remedy-out-of-reach';
 
 /** A refused treatment. */
 export interface TreatmentRefusal {
   ok: false;
   reason: TreatmentReason;
-  /** `by` offered, `wanted` what the worst of it declares relieves it. */
-  facts: { by?: string; wanted?: string | null };
+  /**
+   * `by` offered, `wanted` what the worst of it declares relieves it.
+   * `away` (`remedy-out-of-reach`): the remedy the treater CARRIES but
+   * cannot use where it sits, and why — a shut holder or a pack on the back
+   * (size and carrying, finalize run 16) — so the line names `open pouch`.
+   */
+  facts: {
+    by?: string;
+    wanted?: string | null;
+    away?: NonNullable<ReturnType<Containable['reachRefusal']>>;
+  };
 }
 
 /** What came of a treatment. */
@@ -476,7 +487,14 @@ const TREAT_FLUID_LITRES = 0.25;
 type Treatment =
   | { by: 'dressing'; item: Stuff & Dressing }
   | { by: 'fluid'; item: Stuff }
-  | { by: 'medicine' };
+  | {
+      by: 'medicine';
+      /**
+       * A remedy the treater carries but not to hand (shut away, packed),
+       * with what it would have been and why it cannot be reached.
+       */
+      away?: { by: 'dressing' | 'fluid'; why: NonNullable<ReturnType<Containable['reachRefusal']>> };
+    };
 
 const TREATER_BAND_SCORE: Record<string, number> = {
   untrained: 0,
@@ -561,9 +579,21 @@ function treatmentFrom(req: TreatmentRequest): Treatment {
     commandGiver: req.by as never,
     scope: 'reachable',
   }).stuff;
-  for (const item of reachable) {
+  // ⭐ Used WHERE IT SITS (size and carrying D-W10-1; finalize run 16): a
+  // bandage in an open medic's pouch on your belt is to hand, one behind
+  // its shut flap or packed on your back is not — shut means shut.
+  const near = PerceptionApi.reachableAmong(req.by, reachable);
+  for (const item of near) {
     const t = remedyOf(item);
     if (t) return t;
+  }
+  // Nothing to hand: the first remedy carried but put away is kept, so a
+  // wound that wants it can say `open pouch` rather than "wrong treatment".
+  for (const item of reachable) {
+    if (near.includes(item) || !MixinApi.isContainable(item)) continue;
+    const t = remedyOf(item);
+    const why = t ? item.reachRefusal(req.by) : null;
+    if (t && t.by !== 'medicine' && why !== null) return { by: 'medicine', away: { by: t.by, why } };
   }
   return { by: 'medicine' };
 }
@@ -800,6 +830,15 @@ export interface Vitals {
   beginDying(cause: string, windowSec?: number, blame?: unknown): void;
   /** Is this body in the rescuable interval before death? */
   isDying(): boolean;
+  /**
+   * ⭐ Will this body stop `by` going through what it carries
+   * (size-and-carrying D24a)? A body that can resist — conscious — refuses
+   * (*"Bob won't let you"*), before any search starts; a dead or
+   * unconscious one cannot, and `null` lets the search go ahead. Bound
+   * bodies and the conscious frisk are policing's (the compulsion gate),
+   * not this.
+   */
+  searchRefusal(by: Stuff): ActRefusal<'resists'> | null;
   /** Game-seconds left before the window expires, or `null` if not dying. */
   getDyingRemainingSec(): number | null;
   /**
@@ -1411,6 +1450,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.afflict(record);
     }
 
+    /** See the interface docstring (D24a). */
+    public searchRefusal(by: Stuff): ActRefusal<'resists'> | null {
+      const self = this as unknown as Stuff;
+      if (self.stuffId === by.stuffId) return null;
+      // A corpse has lost its agency (the Thing branch) — it cannot resist.
+      if (!self.isAgent()) return null;
+      return this.getConsciousness() === 'conscious' ? { ok: false, reason: 'resists' } : null;
+    }
+
     public isDying(): boolean {
       this.reconcileConditions();
       return this.hasDyingRecord();
@@ -1938,6 +1986,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public getConsciousness(): Consciousness {
       this.reconcileConditions();
+      return this.consciousnessRead();
+    }
+
+    /** {@link getConsciousness}'s read, without the reconcile. */
+    private consciousnessRead(): Consciousness {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -2628,7 +2681,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.bodyPartDeltas[k] = delta;
       }
 
-      // (2) release what the lost slots were carrying.
+      // (2) release what the lost slots were carrying — a carrier lets go
+      // its own way (size and carrying D13: the room hears it).
+      if (MixinApi.isCarrying(self)) {
+        self.releaseHeld(
+          plan
+            .getSlots()
+            .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
+            .map((spec) => spec.name),
+        );
+        return;
+      }
       if (!MixinApi.isSlotted(self)) return;
       const destination = MixinApi.isContainable(self)
         ? self.getContainer()
@@ -3049,8 +3112,47 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * active. The `_reconcilingConditions` guard makes the vital-sign reads
      * this method performs non-reentrant.
      */
+    /**
+     * Was this body conscious at the last reconcile? Runtime only — a
+     * restored body that comes back under lets go on its first read, which
+     * is the honest answer (an unconscious hand holds nothing).
+     */
+    private _wasConscious: boolean | null = null;
+
     private reconcileConditions(): void {
       if (this._reconcilingConditions) return;
+      this.reconcileConditionsNow();
+      this.noticeGripLost();
+    }
+
+    /**
+     * ⭐ A grip that fails lets go (size and carrying D13): when the body
+     * goes under — unconscious, dying (which reads unconscious), sedated —
+     * what its hands hold falls to the place. Worn things stay; death's
+     * own move to the corpse follows for everything else.
+     */
+    private noticeGripLost(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self) || self.getLifecycleState() === 'dead') return;
+      // Empty hands have nothing to let go: no consciousness read (it reads
+      // every active affliction's condition row) for a body holding nothing.
+      if (!MixinApi.isCarrying(self) || self.heldThings().length === 0) return;
+      // The read must not reconcile again: we just did.
+      this._reconcilingConditions = true;
+      let state: Consciousness;
+      try {
+        state = this.consciousnessRead();
+      } finally {
+        this._reconcilingConditions = false;
+      }
+      const was = this._wasConscious;
+      this._wasConscious = state === 'conscious';
+      if (state !== 'conscious' && was !== false) {
+        self.releaseHeld();
+      }
+    }
+
+    private reconcileConditionsNow(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       this.seedFromSpecies();
@@ -3898,6 +4000,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             )
         ) {
           return { ok: false, reason: 'wound-interior', facts: {} };
+        }
+        // ⭐ What it wants is on you, put away (finalize run 16): say how to
+        // get at it, not that bare hands are the wrong treatment.
+        if (treatment.by === 'medicine' && treatment.away && treatment.away.by === resolutionOf(worst)) {
+          return { ok: false, reason: 'remedy-out-of-reach', facts: { away: treatment.away.why } };
         }
         // Something IS wrong — this is just not what it wants. That refusal
         // is the teaching.

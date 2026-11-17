@@ -358,7 +358,7 @@ function makeWalkSack(litres: number): Receptacle {
 }
 
 type WaterExec = Parameters<WaterController['execute']>[0];
-// `water.yaml` binds the carried source (`me:i:[mixin.BulkableMixin]`); a
+// `water.yaml` binds the carried source (`person:[mixin.BulkableMixin or class.WaterHose]`); a
 // controller test skips the binder and hands the can in its shape.
 function waterModel(target: MqlOneResult, can: Stuff): WaterExec {
   const source = { stuff: [can], raw: '' } as unknown as MqlManyResult;

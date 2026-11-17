@@ -22,11 +22,24 @@ import {
   type ShipStageSpec,
   type ShipStagePlace,
   type ShipStageReport,
+  type GravityReport,
+  type AfflictReport,
+  type SpeciesReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
 
-export type { ClockJump, StageReport, WeatherPinReport, ShipStageSpec, ShipStagePlace, ShipStageReport };
+export type {
+  ClockJump,
+  StageReport,
+  WeatherPinReport,
+  ShipStageSpec,
+  ShipStagePlace,
+  ShipStageReport,
+  GravityReport,
+  AfflictReport,
+  SpeciesReport,
+};
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -152,6 +165,45 @@ export class TestHarnessApi {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'stageShip', () =>
       logic().stageShip(handle, spec),
     );
+  }
+
+  /**
+   * ⭐ Set a place's own gravity, m/s² (`null` clears it back to the chain):
+   * the size-and-carrying drive's zero-g room. Weight follows the place
+   * (D6), and whatever is no longer pressed into an open container leaves
+   * it at once (D5).
+   */
+  @TestOnly('In a test world, set a room\u2019s gravity with `testharness gravity-set <m/s²> [--at <place>]`.')
+  public static setGravity(scope: string, ms2: number | null): Promise<GravityReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'setGravity', () =>
+      logic().setGravity(scope, ms2),
+    );
+  }
+
+  /**
+   * ⭐ Put a resident character under a condition — a toxin-backed one
+   * (anaesthesia) dosed to its top band, any other afflicted at `stage` —
+   * and read the body once, so going under happens now (its hands let go).
+   */
+  @TestOnly('In a test world, afflict a character with `testharness afflict <name> <condition> [stage]`.')
+  public static afflict(handle: string, conditionPath: string, stage?: number): Promise<AfflictReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'afflict', () =>
+      logic().afflict(handle, conditionPath, stage),
+    );
+  }
+
+  /** ⭐ A staged body of another species: the species set and the mass re-seeded from it. */
+  @TestOnly('In a test world, stage a body of another species with `testharness species <name> <species>`.')
+  public static setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'setSpecies', () =>
+      logic().setSpecies(handle, speciesPath),
+    );
+  }
+
+  /** ⭐ Take a thing out of the world by id, wherever it is (a wizard's reach into a shut pack). */
+  @TestOnly('In a test world, remove a thing with `testharness vanish #<id>`.')
+  public static removeThing(stuffId: string): Promise<{ removed: string }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId));
   }
 
   /** The pin on the Locality covering `scope`, if any. */

@@ -942,8 +942,26 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const maker = MixinApi.isCrafted(charge) ? charge.getMaker() : '';
         if (payload && maker) payload.maker = maker;
         // The cast first, then the charge is spent (B104): a cast that cannot
-        // be made throws with the clay still a lump.
-        const cast = await this.castInto({ material, massKg, payload, moisture, stampMaterial: true });
+        // be made throws with the clay still a lump. ⭐ The charge stands
+        // aside while the cast is made (W10j): the cast is minted INTO the
+        // cavity the charge fills, and with every size known the tape
+        // measure refuses a second cavity-full — so the lump steps out to
+        // the press's own place, and goes back if the cast fails or some
+        // of it is left over.
+        const scope = MixinApi.isContainable(self) ? self.getContainer() : null;
+        const lump = MixinApi.isContainable(c as Stuff) ? (c as Stuff & Containable) : null;
+        const aside =
+          lump !== null && scope !== null && MixinApi.isContainer(scope) ? (scope as Stuff & Container) : null;
+        if (lump !== null && aside !== null) ContainmentApi.move(lump, aside);
+        let cast: Stuff;
+        try {
+          cast = await this.castInto({ material, massKg, payload, moisture, stampMaterial: true });
+        } catch (err) {
+          if (lump !== null && aside !== null && !lump.isDestroyed()) {
+            ContainmentApi.move(lump, self as Stuff & Container);
+          }
+          throw err;
+        }
         const leftKg = totalKg - massKg;
         if (leftKg > 1e-6) {
           charge.setMass(Quantity.of(leftKg / units, 'kg'));
@@ -952,9 +970,12 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         // ⭐ Shape-and-release: green strength holds the shape, so it leaves
         // the mould at once and sets outside it.
-        const scope = MixinApi.isContainable(self) ? self.getContainer() : null;
         if (scope !== null && MixinApi.isContainer(scope) && MixinApi.isContainable(cast)) {
           ContainmentApi.move(cast as Stuff & Containable, scope as Stuff & Container);
+        }
+        // What the cavity could not take stays in the mould, a lump.
+        if (lump !== null && aside !== null && !lump.isDestroyed()) {
+          ContainmentApi.move(lump, self as Stuff & Container);
         }
         return cast;
       }
@@ -1199,14 +1220,15 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // ⭐ A consumed mould is broken to release what set in it, and leaves
       // what it was made of (its sand to re-temper, its wax). Its place was
       // checked before the mint (`assertCanRelease`).
-      ContainmentApi.move(item, scope!);
+      const at = scope!;
+      ContainmentApi.move(item, at);
       if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
       if (this.breaksTo !== '') {
         const left = await StuffApi.clone<Stuff>(this.breaksTo);
         if (!MixinApi.isContainable(left)) {
           throw new TypeError(`Mould: '${this.breaksTo}' is not a thing that can be left behind`);
         }
-        ContainmentApi.move(left as Stuff & Containable, scope!);
+        ContainmentApi.move(left as Stuff & Containable, at);
       }
       await StuffApi.destruct(self as Stuff);
       return cast;

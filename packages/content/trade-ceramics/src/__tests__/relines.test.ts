@@ -39,6 +39,7 @@ function setup(health: number, heldBricks: number, failed = 3) {
     }),
     getContainer: () => room,
     getContents: () => held,
+    getCarriedContents: () => held,
     forceCommand: vi.fn(async (c: string) => {
       commands.push(c);
       if (c === 'buy firebrick' && room === store) {

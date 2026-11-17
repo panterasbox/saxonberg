@@ -42,6 +42,7 @@ export default class CutController extends ManualBuildController<CutModel> {
     const actor = context.commandGiver as unknown as Stuff;
     const target = (model.target?.stuff ?? null) as Stuff | null;
     const raw = model.target?.raw?.trim() || null;
+    // ⭐ Used where it sits (D-W10-7): the binder narrows a defaulted pool to what is to hand.
     const tools = (model.tools?.stuff ?? []) as Stuff[];
     const req: CutRequest = {
       actor,

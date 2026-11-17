@@ -33,6 +33,7 @@
  * answer to a player who tries.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -95,7 +96,8 @@ export default class FeedController extends CommandController<FeedModel> {
       target: named,
       // Named: taken as named. Bare: what you carry — the ground takes the
       // first sack of compost or a slow amendment.
-      sources: source ? [source] : MixinApi.isContainer(giver) ? giver.getContents() : [],
+      // ⭐ Carried where it sits (D-W10-1; W9): a sack in your satchel too.
+      sources: source ? [source] : PerceptionApi.perceived(giver, PerceptionApi.reachableAmong(giver, PerceptionApi.reach(giver, { pools: ['inventory'] }).map((r) => r.stuff))),
       named: source !== null,
       via: model.source?.via,
       part: patch && MixinApi.isSoil(patch) ? patch : null,

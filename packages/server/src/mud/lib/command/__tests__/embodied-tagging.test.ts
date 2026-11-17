@@ -14,7 +14,7 @@
  * half it belongs to.
  *
  * The test is "does this ACT ON MATTER" — not "which folder is it in".
- * Reading verbs in material categories (`inventory`, `wallet`, `menu`,
+ * Reading verbs in material categories (`wallet`, `menu`,
  * `spells`) are informational and stay untagged: a shade checking its
  * empty pockets is not touching anything.
  */
@@ -90,7 +90,6 @@ const READ_ONLY_IN_MATERIAL = new Set([
   'platform/cmd/banking/wallet.yaml',
   'platform/cmd/banking/reserve.yaml',
   'platform/cmd/retail/menu.yaml',
-  'platform/cmd/inventory/inventory.yaml',
   'system/arcana/cmd/magic/spells.yaml',
 ]);
 

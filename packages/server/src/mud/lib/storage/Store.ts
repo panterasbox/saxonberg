@@ -879,7 +879,9 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (!words.includes('receipt')) paper.setKeywords([...words, 'receipt']);
       }
       if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
-        ContainmentApi.move(paper, actor as unknown as Stuff & Container);
+        // The claim is already filed: to you, else set down where you stand.
+        const to = actor as unknown as Stuff & Container;
+        ContainmentApi.move(paper, to);
       }
       return { ...out, paper };
     }
@@ -996,6 +998,8 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
+        // Handed (owner, 2026-11-15): onto you, or — with nowhere for it —
+        // set down at your feet with the routing's line.
         ContainmentApi.move(live, actor as unknown as Stuff & Container);
         r.amountKg = 0;
         r.settledAtS = nowS();
@@ -1130,7 +1134,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       line.amountKg = Math.max(0, line.amountKg - paidKg);
       this.noteDraw(line, paidKg, forHouse);
       if (to !== null && MixinApi.isContainer(to)) {
-        for (const g of goods) if (MixinApi.isContainable(g)) ContainmentApi.move(g, to);
+        for (const g of goods) {
+          if (!MixinApi.isContainable(g)) continue;
+          // Drawn and debited: comes to you, else set down at the counter.
+          ContainmentApi.move(g, to);
+        }
       }
       if (line.amountKg <= LINE_EPSILON_KG) {
         const key = line.poolKey;

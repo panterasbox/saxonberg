@@ -30,13 +30,12 @@ import type {
   CommandModel,
   } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import InventoryController from '../inventory/InventoryController';
+import QueryController from './QueryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { Postures } from '../../../../lib/slot/Postured';
 import { StuffApi } from '../../../../api/stuff';
 import { ChattelApi } from '../../../../api/chattel';
-import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
@@ -77,7 +76,7 @@ export default class LookController extends CommandController<LookModel> {
     const target = model.target;
     const raw = target?.raw ?? '';
     const one = target?.stuff ?? null;
-    // `look in <thing>` is the LEDGER — the same as `inventory <thing>`.
+    // `look in <thing>` is the LEDGER — the same as `query --ledger <thing>:i`.
     if (one && (target?.prep === 'in' || target?.prep === 'inside')) {
       return this.lookInto(one, context);
     }
@@ -105,10 +104,10 @@ export default class LookController extends CommandController<LookModel> {
     return this.lookAtTarget(one, context);
   }
 
-  /** `look in <thing>`: the ledger, as `inventory <thing>` shows it. */
+  /** `look in <thing>`: the ledger, as `query --ledger <thing>:i` shows it. */
   private lookInto(thing: Stuff, context: CommandContext): void {
     const viewer = context.commandGiver;
-    const body = MixinApi.isContainer(thing) ? InventoryController.ledger(viewer, thing) : null;
+    const body = MixinApi.isContainer(thing) ? QueryController.ledger(viewer, thing) : null;
     const line = body ?? (MixinApi.isContainer(thing)
       ? Mml.compose`${Mml.actor(thing)} is shut.`
       : Mml.compose`There is nothing inside ${Mml.thing(thing)}.`);
@@ -413,7 +412,7 @@ export default class LookController extends CommandController<LookModel> {
             // ⭐ Identical things GROUP (client-surface D2, #71/#76): a shelf
             // of fourteen bottles is "14 bottles of gin", one chip that
             // expands, not fourteen words.
-            const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
+            const grouped = this.groupForList(items, actor, (item) => this.builderMark(item, actor, Mml.thing(item)));
             const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
             body = Mml.compose`${body}\n── You also see: ${seen}.`;
             segments.push({
@@ -686,18 +685,48 @@ export default class LookController extends CommandController<LookModel> {
     // says "Hanging from it" where a shelf says "On it".
     if (MixinApi.isPlacing(target)) {
       for (const member of target.getPlacements()) {
-        const placed = target.getPlaced(member);
+        // ⭐ What the actor perceives on it (D23): a covered or concealed
+        // thing placed there is not in the list.
+        const all = target.getPlaced(member);
+        const placed = PerceptionApi.perceived(actor, all);
+        const named = target.namedRegions().includes(member);
+        // ⭐ Each chamber once, with how it differs (D-W10-6): *(buttoned)*,
+        // *(inside)*, *(shut)* — and an empty one says so.
+        if (named) {
+          const e = target.getPlacementEntry(member);
+          const words = [
+            ...(e?.closes === true ? ['buttoned'] : []),
+            ...(e?.covered === true ? ['inside'] : []),
+            ...(e?.closes === true && !target.isRegionOpen(member) ? ['shut'] : []),
+          ];
+          const label = `In its ${member}${words.length > 0 ? ` (${words.join(', ')})` : ''}`;
+          if (all.length === 0) {
+            section(Mml.compose`── ${label}: empty.`, { shape: 'list', heading: label, sources: [LookController.lookSource(label)], items: [] });
+            continue;
+          }
+          if (placed.length === 0) continue;
+          const grouped = this.groupForList(placed, actor, (r) => this.builderMark(r, actor, Mml.actor(r)));
+          section(Mml.compose`── ${label}: ${Mml.list(grouped.parts)}.`, {
+            shape: 'list',
+            heading: label,
+            sources: [LookController.lookSource(label)],
+            items: grouped.items,
+          });
+          continue;
+        }
         if (placed.length === 0) continue;
         // A person sitting on a stool is placed on a host too. Identical
         // things group (D2), so a back-bar of fourteen bottles is one chip.
-        const grouped = this.groupForList(placed, actor, (r) => Mml.actor(r));
+        const grouped = this.groupForList(placed, actor, (r) => this.builderMark(r, actor, Mml.actor(r)));
         const list = Mml.list(grouped.parts);
         // ⭐ The heading is the MEMBER's, off its own `Placement` row —
         // so a hook says "Hanging from it" where a shelf says "On it",
         // with nothing here knowing the difference. A member with no
         // live row falls back rather than printing nothing.
-        const heading =
-          ContainmentApi.placements().need(member).getHeading() || 'With it';
+        // A named region heads its own line (`In its left pocket` — W9).
+        const heading = target.namedRegions().includes(member)
+          ? `In its ${member}`
+          : target.placementOf(member).getHeading() || 'With it';
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,
@@ -735,11 +764,12 @@ export default class LookController extends CommandController<LookModel> {
       const screen = (await target.readScreen(actor)) ?? Mml.compose`The screen is dark.`;
       section(Mml.compose`── ${screen}`, { shape: 'state', sources: [LookController.lookSource('Screen')] });
     }
-    // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
-    // visibility rule `inventory` reads too: on a person what they wear
-    // and hold (never their pockets or what is inside their body); in an
-    // open container its contents; a shut one shows nothing. Past four it
-    // summarises and says how to see the rest — the ledger is `inventory`.
+    // ⭐ What you would NOTICE it holding (maritime revision 2) — what it
+    // holds that you PERCEIVE (size-and-carrying D23/D24: `observe` ran it
+    // through `PerceptionApi.perceives`' holder rules — on a person what is
+    // in their hands and their outer layers, never what their clothes
+    // cover; in a shut box nothing you cannot see through). Past four it
+    // summarises and says how to see the rest — the ledger is `query --ledger`.
     const v = seen.holds;
     if (v) {
       const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() ?? '' : '';
@@ -748,12 +778,12 @@ export default class LookController extends CommandController<LookModel> {
       // in an NPC's hands as `something`.
       const group = (heading: string, xs: Stuff[]): void => {
         if (xs.length === 0) return;
-        const shown = xs.slice(0, LOOK_INLINE).map((c) => Mml.actor(c));
+        const shown = xs.slice(0, LOOK_INLINE).map((c) => this.builderMark(c, actor, Mml.actor(c)));
         const more = xs.length - shown.length;
         const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
         section(
           more > 0
-            ? Mml.compose`── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
+            ? Mml.compose`── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`query --ledger ${keyword}:i\`.`
             : Mml.compose`── ${heading}: ${list}.`,
           {
             shape: 'list',
@@ -765,7 +795,9 @@ export default class LookController extends CommandController<LookModel> {
       };
       group('Wearing', v.worn);
       group('Holding', v.held);
-      group('In it', v.carried);
+      // ⭐ A body is not a box: it is CARRYING what it neither wears nor
+      // holds (the browser walk read "In it: an aether implant and a key").
+      group(target.isAgent() ? 'Carrying' : 'In it', v.carried);
     }
 
     // Close look: attending to a container peers in for anything
@@ -845,6 +877,14 @@ export default class LookController extends CommandController<LookModel> {
    * +5 more" — carrying its members so the card expands it in place. A
    * person never groups; every person is somebody.
    */
+  /**
+   * ⭐ The builder lens's mark (size-and-carrying D25): a thing the actor
+   * perceives ONLY through `lens on` reads `[builder]` after its name.
+   */
+  private builderMark(x: Stuff, actor: Stuff, line: Mml): Mml {
+    return PerceptionApi.perceivedHow(actor, x) === 'builder' ? Mml.compose`${line} [builder]` : line;
+  }
+
   private groupForList(
     xs: readonly Stuff[],
     actor: Stuff,

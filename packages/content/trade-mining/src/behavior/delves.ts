@@ -135,7 +135,8 @@ export const brain = class {
       if (kw) await hand.forceCommand(`get ${CommandLineApi.word(kw)}`);
     }
 
-    const carried = (hand.getContents() as Stuff[]).filter((c) => isOre(c));
+    // Everything carried (W9: a lump that went to a pocket is its coat's).
+    const carried = (hand.getCarriedContents() as Stuff[]).filter((c) => isOre(c));
     if (carried.length === 0) return;
 
     const shelf = await StuffApi.singleton(shelfPath);

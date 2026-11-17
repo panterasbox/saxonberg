@@ -63,6 +63,7 @@ import { MadeFromMixin } from '../chattel/MadeFrom';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { FacedMixin } from '../material/Faced';
 import { IntegrityMixin } from '../material/Integrity';
+import { SlottableMixin } from '../slot/Slottable';
 import type { FieldMeta } from '../mixin';
 
 // ⭐ Faced (ceramics D5): every good has an outside something can be laid
@@ -72,7 +73,11 @@ import type { FieldMeta } from '../mixin';
 // damage record — a crack, a dunt, a misrun; how whole it is; how it takes
 // a blow; how it rings. Not on `Thing`: a wall's damage is construction's,
 // a body's is harm's.
-const GoodBase = FacedMixin(IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Thing)))));
+// ⭐ Slottable (size and carrying W7): a hand holds any good — the first
+// `get` goes to a hand, whatever the thing is; whether the hand CAN is the
+// grip's question (`Carrying.handsFor`), never the class's. A good that is
+// also worn or wielded composes Slottable again harmlessly (once).
+const GoodBase = SlottableMixin(FacedMixin(IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Thing))))));
 
 export default class Good extends GoodBase {
   static fieldMeta: FieldMeta = {};

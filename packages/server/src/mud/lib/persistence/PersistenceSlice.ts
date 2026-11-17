@@ -63,8 +63,21 @@ export interface ContentPlacement {
    */
   hostIndex?: number;
   /**
+   * ⭐ The chattel id of the host when it is a good the holder OWNS (an
+   * owner-persisted chattel — a bought belt, a bought coat): such a host is
+   * not in the contents slice (the estate carries it), so it has no index
+   * here. Restored after the estate and the owned goods are re-worn, so a
+   * pouch comes back hung on the bought belt as worn (size and carrying W7;
+   * D26-h's gap).
+   */
+  hostChattelId?: string;
+  /**
    * The placement's PATH (`/platform/placements/on`) the item is placed
-   * under — a document's only name. Undefined when it sits loose.
+   * under — a document's only name — or the host's own region name (`left
+   * pocket`). Undefined when it sits loose. ⭐ With neither `hostIndex` nor
+   * `hostChattelId`, it names a region of the container this slice belongs
+   * to: a coat's pocket, whose key is the coat's contents (size and
+   * carrying W9).
    */
   placement?: string;
 }
@@ -202,7 +215,35 @@ export interface EstateEntry {
    * drive's shirt came back beside its rack).
    */
   rests?: { on: string; placement: string };
+  /**
+   * Present iff the good is **in the owner's own keeping and placed on a
+   * host there** — a bought pouch hung from the belt, a bought key in a
+   * coat's pocket (size and carrying W7): the host as an index into the
+   * owner's contents slice or as an owned host's chattel id, and the
+   * placement. Without it a placed good came back loose on the body.
+   */
+  placedOn?: ContentPlacement;
+  /**
+   * ⭐ Present iff the good is **inside a container in its place** — rations
+   * in a pannier hung on a mule, a key in a satchel on its owner
+   * (`Containable.getKeptWithin`): the containers from the place inward. A
+   * container's own contents slice skips an owned good (D2), so without
+   * this the good came back loose on the place — on a body, a broken record
+   * (size and carrying, finalize run 15, step 21).
+   */
+  within?: KeptWithinStep[];
 }
+
+/**
+ * One step of {@link EstateEntry.within}, outermost first: an untitled
+ * container by its row and its ordinal among the untitled things of that
+ * row in the step's holder (the place's own record restores them in
+ * order), or a container somebody owns by its chattel id (its owner's
+ * estate restores it).
+ */
+export type KeptWithinStep =
+  | { in: string; nth: number; chattelId?: undefined }
+  | { chattelId: string; in?: undefined; nth?: undefined };
 
 /**
  * `EstateMixin`'s slice — every stamped good its host holds title to,

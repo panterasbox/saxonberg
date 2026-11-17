@@ -22,6 +22,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i:[capability.suture]"
+    default: "person:[capability.suture]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

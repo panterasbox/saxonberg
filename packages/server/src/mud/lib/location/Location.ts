@@ -422,12 +422,15 @@ export default class Location extends LocationBase {
   }
 
   /**
-   * Cube-cell ceiling height: `extent`. Floor-to-ceiling vertical
-   * extent. `null` falls through identically to `getVolume`.
+   * Cube-cell ceiling height: `extent` — ⭐ **where there is a ceiling**
+   * (size and carrying D7). A place open to the sky has none: `null`, so a
+   * mast stands upright in a walled yard and nothing under the sky is ever
+   * "too tall for the room". `null` too with no extent at all.
    */
   public override getCeilingHeight(): Quantity<'m'> | null {
     const c = this.getLinearExtent();
     if (c === undefined || c === null) return null;
+    if (this.exposure().top === 'open') return null;
     return Quantity.of(c, 'm');
   }
 

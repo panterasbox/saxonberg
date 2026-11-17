@@ -32,10 +32,11 @@
         "required": ["name"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
-          "description": { "type": "string" }
+          "description": { "type": "string" },
+          "body": { "type": "string", "minLength": 1, "description": "The line the alias runs when it is more than the bare verb (`query --ledger me:i`); it begins with this view's verb (`lint:one-word` (c)). Absent, the body is the verb." }
         }
       },
-      "description": "Default player aliases for this verb: a one- or two-character MUD-standard shortcut, nothing else (D16). A giver reaches one while the view is afforded; `alias unset` tombstones it. `lint:one-word` (c) refuses a duplicate name or one equal to a verb or builtin."
+      "description": "Default player aliases for this verb: a one- or two-character MUD-standard shortcut, nothing else (D16) — or a name the owner rules is the verb's own line (`inventory`, size-and-carrying W10h). A giver reaches one while the view is afforded; `alias unset` tombstones it. `lint:one-word` (c) refuses a duplicate name or one equal to a verb or builtin."
     },
     "unreachable": {
       "type": "string",
@@ -321,14 +322,6 @@
         },
         "values": {
           "$ref": "#/$defs/values"
-        },
-        "depth": {
-          "enum": [
-            "top",
-            "open",
-            "deep"
-          ],
-          "description": "How deep an `object` / `objects` slot reaches by default: `top` (held, worn, the place's top level) \u00b7 `open` (also inside open vessels you carry and open things here \u2014 the default) \u00b7 `deep` (everything, shut or not). The player overrides it per invocation with the reserved `--top` / `--open` / `--deep`."
         },
         "cardinality": {
           "$ref": "#/$defs/cardinality"

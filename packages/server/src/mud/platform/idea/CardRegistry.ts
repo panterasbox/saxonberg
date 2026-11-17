@@ -1509,12 +1509,11 @@ export default class CardRegistry extends CardRegistryBase {
     } else {
       const expanded = ShellApi.expandVariables(def.source.query, giver);
       const ctx = { commandGiver: giver, scope: expanded };
-      if (def.source.cardinality === 'one') {
-        const one = MqlApi.resolveOne(expanded, ctx);
-        stuffList = one.stuff ? [one.stuff] : [];
-      } else {
-        stuffList = MqlApi.resolveMany(expanded, ctx).stuff;
-      }
+      // ⭐ A card shows what its viewer PERCEIVES of what the query names
+      // (D23) — `one` is the first perceived, never a hidden top match.
+      const named = MqlApi.resolveMany(expanded, ctx);
+      const seen = PerceptionApi.perceived(viewer, named.stuff, named.ordinal);
+      stuffList = def.source.cardinality === 'one' ? seen.slice(0, 1) : seen;
     }
     state.records = stuffList.map(
       (s) =>

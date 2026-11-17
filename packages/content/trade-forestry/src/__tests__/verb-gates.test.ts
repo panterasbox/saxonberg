@@ -117,7 +117,7 @@ describe('tap.yaml — the arg gates and the three-way contest', () => {
     // `lint:controller-resolution`: a player must be able to say WHICH pail.
     const vessel = tapArgs().find((a) => a.name === 'vessel')!;
     expect(vessel.required).toBe(false);
-    expect(vessel.default).toBe('me:i:[mixin.BulkableMixin]');
+    expect(vessel.default).toBe('person:[mixin.BulkableMixin]');
   });
 
   it('⭐⭐ THE THREE-WAY CONTEST: the tree affords it, the wood refuses it, the treeline has neither', () => {

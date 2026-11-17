@@ -6,9 +6,10 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
+import type { ArrivalRefusal, Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Placing } from '../../../lib/spatial/Placing';
+import type { PlacementChoice } from '../../../lib/spatial/PlacementOffers';
 import type { Slotted } from '../../../lib/slot/Slotted';
 import type { Slottable } from '../../../lib/slot/Slottable';
 import type { VetoResult } from '../../../lib/errors';
@@ -25,6 +26,7 @@ import type {
   PutRoute,
 } from '../../../api/containment';
 import { ContainmentApi } from '../../../api/containment';
+import { Placements } from '../../../lib/spatial/Placement';
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -88,17 +90,80 @@ export class ContainmentLogic extends ApiLogic {
     to: ContainerStuff | PlacingStuff | null,
     placement?: string,
   ): void {
-    // ⭐ A destination that offers placements and holds nothing — a desk,
-    // a drying loft, a rack — is a PLACE ON something: the thing goes into
-    // the host's own environment and takes the placement pair. A word
-    // names which placement when the host offers more than one; with none,
-    // the host's own default. One primitive; the relation is derived.
-    if (
-      to !== null &&
-      MixinApi.isPlacing(to) &&
-      (placement !== undefined || !MixinApi.isContainer(to))
-    ) {
-      placeOn(item, to, placement);
+    // ⭐⭐ A word names a region (size and carrying W9, D-W9-5): the host's
+    // own region by name, else by the word it answers to. A region whose
+    // member ENCLOSES is a region of a Container — the thing goes IN it, as
+    // its contents, with the pair naming the region (`placeIn`: a key in a
+    // coat's pocket). Any other (`on`, `from`) is the sibling pair: the
+    // thing goes into the host's own environment (`placeOn`: a mug on a
+    // desk). A word that names no region is accepted on a container with an
+    // inside iff it is one of region zero's own words (`in`) — and throws
+    // otherwise: a word is never silently ignored.
+    if (to !== null && placement !== undefined) {
+      const key = MixinApi.isPlacing(to)
+        ? to.getPlacements().includes(placement)
+          ? placement
+          : to.resolvePlacement(placement)
+        : null;
+      if (key !== null) {
+        if (MixinApi.isContainer(to) && (to as unknown as PlacingStuff).placementOf(key).getEncloses()) {
+          placeIn(item, to as unknown as ContainerStuff & PlacingStuff, key);
+        } else {
+          placeOn(item, to as PlacingStuff, key);
+        }
+        return;
+      }
+      if (!(MixinApi.isContainer(to) && isRegionZeroWord(to, placement))) {
+        throw new ContainmentError(`move: ${(to as Stuff).stuffId} offers no placement '${placement}'`);
+      }
+    } else if (to !== null && MixinApi.isPlacing(to) && !MixinApi.isContainer(to)) {
+      // ⭐ A destination that offers placements and holds nothing — a desk,
+      // a rack — is a PLACE ON something: its own default, with no word.
+      placeOn(item, to, undefined);
+      return;
+    }
+    // ⭐⭐ THE DESTINATION places what arrives (size and carrying W8; W9,
+    // D-W9-4 — every Container, given no word): into its contents, a hand
+    // or its tack (`seat`), a pocket (`pair` — a body's worn coat, or a
+    // coat's own region when it has no inside of its own) — or refuses.
+    // ⭐⭐ A CARRIER routes a refused arrival (owner, 2026-11-13): its own
+    // arrival handling (`Carrying.routeArrival`) takes it — a true move
+    // onto the body — and sends it on with a second true move, into a bag
+    // it carries or down where it stands. Nothing is retargeted here. A
+    // body that does not carry (a fish), or a coat no pocket of which takes
+    // the thing, refuses, and `move` throws naming why. (A key moved out of
+    // its pocket onto its owner asks too, and goes to a hand.)
+    if (to !== null && placement === undefined && MixinApi.isContainer(to)) {
+      const arrival = to.arrivalFor(item, { placed: false });
+      switch (arrival.kind) {
+        case 'contents':
+          break;
+        case 'seat':
+          (to as unknown as Stuff & Slotted).seatInSlots(item as ContainableStuff & Slottable, arrival.slots);
+          return;
+        case 'pair':
+          this.move(item, arrival.host, arrival.region);
+          return;
+        case 'refuse':
+          if (MixinApi.isCarrying(to)) {
+            to.routeArrival(item, arrival.refusal);
+            return;
+          }
+          throw new ContainmentError(arrivalWords(item, to as Stuff, arrival.refusal), {
+            reason: arrival.refusal.reason,
+            facts: arrival.refusal.facts,
+          });
+      }
+    }
+    // ⭐ Moving a placed thing into the container it already stands in takes
+    // it OFF its host (size and carrying D5 — the cup drifts off the table
+    // into the room). The container did not change, so `moveCore` would be
+    // a no-op; the placement pair is the whole of the move.
+    if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
+      const was = item.getPlacement()?.name ?? '';
+      item._setPlacement(null);
+      MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
+      if (MixinApi.isThermal(item)) void item.restamp();
       return;
     }
     moveCore(item, to as ContainerStuff | null, false);
@@ -132,44 +197,90 @@ export class ContainmentLogic extends ApiLogic {
     item.setContainer(env);
   }
 
+  /** See {@link ContainmentApi.arrivalRefusal}. */
+  @CallSecurity(ContainmentApiCallers)
+  public arrivalRefusal(item: ContainableStuff, target: ContainerStuff): ArrivalRefusal | null {
+    return arrivalRefusal(target, item);
+  }
+
   /** See {@link ContainmentApi.putPlanFor}. */
   @CallSecurity(ContainmentApiCallers)
   public putPlanFor(
     item: ContainableStuff,
     target: Stuff,
-    opts: { prep?: string; by: Stuff },
+    opts: { prep?: string; by: Stuff; region?: string },
   ): PutPlan | PlaceRefusal {
     const { prep, by } = opts;
     let route: PutRoute;
+    // ⭐ A region named by its own words (`put cup in inner pocket` — the
+    // binder's `via.region`, D26) is the destination; the word must still be
+    // one that region answers to.
+    const named =
+      opts.region !== undefined && MixinApi.isPlacing(target) && target.getPlacements().includes(opts.region)
+        ? opts.region
+        : null;
     // ⭐ The slot rule stays first: a slot is more specific than a
     // container, so an item that fits an open slot goes in the slot.
-    const slot = MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
-    if (slot !== null) {
+    const slot = named === null && MixinApi.isSlotted(target) ? target.openSlotFor(item, prep) : null;
+    if (named !== null) {
+      const placing = target as PlacingStuff;
+      const words = placing.placementOf(named).getPrepositions();
+      if (prep !== undefined && !words.includes(prep)) {
+        return { ok: false, reason: 'wrong-preposition', facts: { takes: [words[0] ?? named], got: prep } };
+      }
+      const veto = placing.canPlace(item, named);
+      const word = words[0] ?? named;
+      if (!veto.ok) {
+        return veto.reason === 'shut'
+          ? { ok: false, reason: 'shut', ...(placing.isRegionOpen(named) ? {} : { facts: { region: named } }) }
+          : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
+      }
+      route = { kind: 'region', name: named, word };
+    } else if (slot !== null) {
       // A part that goes into a machine has to physically BE somewhere.
       if (!MixinApi.isContainer(target)) return { ok: false, reason: 'slot-host-not-container' };
       route = { kind: 'slot', slot };
     } else {
-      const choice =
+      const choice: PlacementChoice =
         MixinApi.isPlacing(target) || MixinApi.isContainer(target)
           ? target.placementFor(prep)
-          : ({ ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) } as const);
+          : { ok: false, reason: 'wrong-preposition', takes: [], ...(prep ? { got: prep } : {}) };
       if (!choice.ok) {
         return {
           ok: false,
           reason: choice.reason,
-          facts: { takes: choice.takes, ...(choice.got !== undefined ? { got: choice.got } : {}) },
+          facts: {
+            takes: choice.takes,
+            ...(choice.got !== undefined ? { got: choice.got } : {}),
+            ...(choice.regions !== undefined ? { regions: choice.regions } : {}),
+          },
         };
       }
       const offer = choice.offer;
       if (offer.kind === 'zero') {
         // A shut lid refuses at the verb — never in `move`.
         if (MixinApi.isSealable(target) && !target.isOpen()) return { ok: false, reason: 'shut' };
-        // ⭐ A container that says what it is FOR refuses in its own words —
-        // the hook `move` asserts, asked first so it is a sentence, not a
-        // thrown ContainmentError.
-        const veto = MixinApi.isContainer(target) ? target.canAddContainable?.(item) : undefined;
-        if (veto && !veto.ok) {
-          return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? null } };
+        // ⭐⭐ Would it arrive — asked before any write so it is a sentence,
+        // not a thrown ContainmentError (size and carrying W8). Every
+        // container answers: the tape measure (D4), a container that says
+        // what it is FOR, a body that does not carry (a fish). A person who
+        // carries takes anything handed — the routing sets down what they
+        // cannot hold (owner, 2026-11-15).
+        const refused = MixinApi.isContainer(target) ? arrivalRefusal(target, item) : null;
+        if (refused !== null) {
+          switch (refused.reason) {
+            case 'too-big-for-mouth':
+            case 'too-big-inside':
+            case 'no-room':
+            case 'not-shaped-for':
+              return { ok: false, reason: 'wont-fit', facts: { why: refused.reason } };
+            case 'refused-by-container':
+              return { ok: false, reason: 'refused-by-container', facts: { said: refused.facts.said } };
+            default:
+              // A body's refusal travels as facts — never a reason code
+              // rendered as a sentence (size and carrying W8).
+              return { ok: false, reason: 'refused-by-carrier', facts: { carry: refused } };
+          }
         }
         route = { kind: 'zero' };
       } else {
@@ -177,7 +288,7 @@ export class ContainmentLogic extends ApiLogic {
         const word = offer.words[0] ?? offer.name;
         if (!veto.ok) {
           return veto.reason === 'shut'
-            ? { ok: false, reason: 'shut' }
+            ? { ok: false, reason: 'shut', ...((target as PlacingStuff).isRegionOpen(offer.name) ? {} : { facts: { region: offer.name } }) }
             : { ok: false, reason: 'cannot-rest', facts: { word, why: veto.reason ?? '' } };
         }
         route = { kind: 'region', name: offer.name, word };
@@ -202,6 +313,8 @@ export class ContainmentLogic extends ApiLogic {
         if (route.kind === 'slot') {
           (target as Stuff & Slotted).seatInSlot(item as ContainableStuff & Slottable, route.slot);
         } else if (route.kind === 'zero') {
+          // ⭐ A person handed it routes it (owner, 2026-11-15): onto them,
+          // into a bag they carry, or down at their feet with the line.
           ContainmentApi.move(item, target as ContainerStuff);
         } else {
           ContainmentApi.move(item, target as PlacingStuff, route.name);
@@ -234,7 +347,7 @@ export class ContainmentLogic extends ApiLogic {
 }
 
 /**
- * Put `item` ON (or IN) a placing host: into the host's environment, then
+ * Put `item` ON (or FROM) a placing host: into the host's environment, then
  * the placement pair. `move` is a no-op when the container is unchanged
  * (a mug from one desk to another in the same room), so the placement
  * update, its card wake and the ambient restamp happen here regardless.
@@ -265,13 +378,80 @@ function placeOn(
       `move: host ${(host as Stuff).stuffId} rejects ${item.stuffId} (${veto.reason})`,
     );
   }
-  moveCore(item, targetEnv as ContainerStuff, false);
+  // ⭐ It arrives PLACED (D11): a body's veto admits a thing that comes
+  // with its pair on a host there.
+  moveCore(item, targetEnv as ContainerStuff, false, undefined, true);
   item._setPlacement(host, name);
   // Rung 1: the placement member just changed — wake every card showing it.
   MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
   // A member that encloses changes the thing's ambient scope even when the
   // container did not change.
   if (MixinApi.isThermal(item)) void item.restamp();
+  // ⭐ Pressed in, or it leaves (D5): a thing set on a table at zero gravity
+  // does not stay set. Deferred a tick — never move a thing from inside its
+  // own arrival.
+  pressAfterArrival(item, targetEnv as ContainerStuff);
+}
+
+/**
+ * ⭐ Put `item` IN a region of `host` (size and carrying W9, D-W9-5) — the
+ * enclosing twin of {@link placeOn}: the region's own fit (`canPlace` — its
+ * mouth, its room, a shut flap), then into the host's CONTENTS (the region
+ * measured it, so the container's interior is not asked), then the pair
+ * naming the region. A key from one pocket to the other changes no
+ * container; the pair is the whole of the move, as a mug from one desk to
+ * another.
+ */
+function placeIn(
+  item: ContainableStuff,
+  host: ContainerStuff & PlacingStuff,
+  key: string,
+): void {
+  const veto = host.canPlace(item, key);
+  if (!veto.ok) {
+    throw new ContainmentError(
+      `move: host ${(host as Stuff).stuffId} rejects ${item.stuffId} in its ${key} (${veto.reason})`,
+    );
+  }
+  const from = item.getContainer();
+  const was = item.getPlacement()?.name ?? '';
+  moveCore(item, host, false, undefined, false, key);
+  item._setPlacement(host, key);
+  // Rung 1: the region just changed — wake every card showing it.
+  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, key);
+  if (MixinApi.isThermal(item)) void item.restamp();
+  // `moveCore` asked the pressing when the container changed; from one
+  // region to another it did not move, so ask here.
+  if (from === host) pressAfterArrival(item, host);
+}
+
+/**
+ * Is `word` one of region zero's words on `to` — a container with an
+ * inside of its own, offering it (`in`, `into`, or the member's path)?
+ */
+function isRegionZeroWord(to: ContainerStuff, word: string): boolean {
+  if (to.isAgent() || !to.hasInterior()) return false;
+  if (word === Placements.IN) return true;
+  return ContainmentApi.placements().need(Placements.IN).getPrepositions().includes(word.trim().toLowerCase());
+}
+
+/**
+ * Ask the container a thing just arrived in whether it is pressed in
+ * (size and carrying D5), a tick later. A body or a container with no sides
+ * to speak of answers at once and moves nothing.
+ */
+function pressAfterArrival(item: ContainableStuff, to: ContainerStuff): void {
+  // A body presses only what is in a pocket (D26) — anything else on it is
+  // held, worn or hung, and nothing is asked.
+  if (to.isAgent() && item.getPlacement() === null) return;
+  void Promise.resolve().then(() => {
+    if (item.isDestroyed() || to.isDestroyed() || item.getContainer() !== to) return;
+    try {
+      to.reconcilePressing(item);
+    } catch (err) {
+      console.warn('ContainmentApi.move: pressing failed:', err);
+    }
+  });
 }
 
 /**
@@ -283,7 +463,10 @@ function placeOn(
 function moveCore(
   item: ContainableStuff,
   to: ContainerStuff | null,
-  force: boolean
+  force: boolean,
+  following?: Set<string>,
+  placed = false,
+  region?: string,
 ): void {
   if (to !== null) {
     // PRE-FLIGHT (1): Exitables may only land in Exitables.
@@ -329,6 +512,23 @@ function moveCore(
   const from = item.getContainer();
   if (from === to) return;
 
+  // ⭐⭐ What travels with it (size and carrying D33): everything placed on
+  // or from this thing — a tray's cups, a belt's pouches — lives in its OLD
+  // environment with a pair naming it, and goes where it goes, pair kept.
+  // (What is IN it — a coat's pocketed key — is its contents and travels
+  // as contents: W9, D-W9-8.) The whole bring-along is gathered (recursive,
+  // one cycle guard) and asked of the destination FIRST, so a refusal moves
+  // nothing; then each is moved after the host, by this function, keeping
+  // its pair (witnesses fire, custody follows).
+  const top = following === undefined;
+  const visited = following ?? new Set<string>([item.stuffId]);
+  const followers = from !== null && from !== to ? directFollowers(item, from) : [];
+  if (top && to !== null && !force && followers.length > 0) {
+    for (const f of bringAlong(item, from as ContainerStuff)) {
+      assertVetoOk(callHook<VetoResult>(to, 'canAddContainable', [f, { placed: true }]), 'canAddContainable');
+    }
+  }
+
   // VETO HOOKS — invoked uniformly; only the assert is conditional.
   // Witnesses fire on every call (observability) so the force path
   // matches the polished path's side effects.
@@ -337,7 +537,10 @@ function moveCore(
     ? callHook<VetoResult>(from, 'canRemoveContainable', [item])
     : undefined;
   const addVeto = to
-    ? callHook<VetoResult>(to, 'canAddContainable', [item])
+    ? callHook<VetoResult>(to, 'canAddContainable', [
+        item,
+        { placed: placed || following !== undefined, ...(region !== undefined ? { region } : {}) },
+      ])
     : undefined;
   if (!force) {
     assertVetoOk(moveVeto, 'canMove');
@@ -349,12 +552,23 @@ function moveCore(
   // the three cross-object updates atomically.
   item.setContainer(to);
 
+  // ⭐ A thing that leaves a holder leaves the holder's SLOTS (size and
+  // carrying drive, step 18): a lead rope tied to a mule's halter went
+  // with the mule and stayed in the leader's hand slot — a phantom that
+  // filled the hand, so nothing else could be held. Every caller that
+  // remembered to vacate first still does; this is the floor under them.
+  if (from !== null && from !== to && MixinApi.isSlotted(from) && MixinApi.isSlottable(item)) {
+    for (const [slot, occupants] of from.getAllOccupants()) {
+      if ([...occupants].some((o) => o.stuffId === item.stuffId)) from.vacate(slot, item);
+    }
+  }
+
   // Auxiliary-pair invariant: when the container actually changes, the
   // placement can no longer be valid (the apple is now in the chest;
   // whatever desk it was on can't still be holding it). Clearing here
   // keeps the move-as-container-change contract clean. `place`
   // re-stamps after this move() call, so the placed case is unaffected.
-  if (from !== to && item.getPlacement() !== null) {
+  if (from !== to && item.getPlacement() !== null && following === undefined) {
     item._setPlacement(null);
     // Rung 1: the placement is gone — wake the cards that showed it.
     MqlSubscriptionApi.fireFieldChange(
@@ -387,6 +601,32 @@ function moveCore(
     _mergeOnArrivalHook(item, to);
   }
 
+  // ⭐ Pressed in, or it leaves (size and carrying D5) — asked of the
+  // container a thing arrives in (a place holds what lies loose in it, so
+  // only a thing container is asked here; `placeOn` asks for what is set
+  // on a host).
+  if (to !== null && !to.isPlace() && MixinApi.isContainer(to)) {
+    pressAfterArrival(item, to);
+  }
+
+  // ⭐ The host-follow (D33): each thing placed on the moved host follows
+  // it, pair kept — and brings its own (a cup on a tray in a pocket).
+  for (const f of followers) {
+    if (visited.has(f.stuffId)) {
+      throw new ContainmentError(`move: placement cycle at ${f.stuffId} while moving ${item.stuffId}`);
+    }
+    visited.add(f.stuffId);
+    if (f.isAgent() || to === null) {
+      // A creature steps off what is carried away; a host gone from the
+      // world drops what was on it where it stood.
+      const was = f.getPlacement()?.name ?? '';
+      f._setPlacement(null);
+      MqlSubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
+      continue;
+    }
+    moveCore(f, to, force, visited, true);
+  }
+
   // ⭐⭐ CUSTODY is derived here, for every move by anyone: where an owned
   // good now is gets recorded (so it is where it was left after a
   // restart), and a fresh good — arriving from nowhere — is titled to
@@ -397,6 +637,45 @@ function moveCore(
       .followCustody({ fresh: from === null, to })
       .catch((err: unknown) => console.warn('ContainmentApi.move: custody record failed:', err));
   }
+}
+
+/**
+ * The things placed on `host` that live in `env` — what moves with it
+ * (D33). A host that offers no placements has none.
+ */
+function directFollowers(host: ContainableStuff, env: ContainerStuff): ContainableStuff[] {
+  if (!MixinApi.isPlacing(host)) return [];
+  const out: ContainableStuff[] = [];
+  for (const c of env.getContents()) {
+    if (c.stuffId === host.stuffId || !MixinApi.isContainable(c)) continue;
+    const pair = c.getPlacement();
+    if (pair !== null && (pair.host as Stuff).stuffId === host.stuffId) out.push(c);
+  }
+  return out;
+}
+
+/**
+ * The whole bring-along of moving `host` out of `env` — followers, their
+ * followers, … — creatures excluded (they step off). Throws on a cycle,
+ * before anything has moved.
+ */
+function bringAlong(host: ContainableStuff, env: ContainerStuff): ContainableStuff[] {
+  const out: ContainableStuff[] = [];
+  const seen = new Set<string>([host.stuffId]);
+  const queue: ContainableStuff[] = [host];
+  while (queue.length > 0) {
+    const h = queue.shift()!;
+    for (const f of directFollowers(h, env)) {
+      if (seen.has(f.stuffId)) {
+        throw new ContainmentError(`move: placement cycle at ${f.stuffId} while moving ${host.stuffId}`);
+      }
+      seen.add(f.stuffId);
+      if (f.isAgent()) continue;
+      out.push(f);
+      queue.push(f);
+    }
+  }
+  return out;
 }
 
 /**
@@ -415,6 +694,72 @@ function callHook<T>(
   const fn = (obj as Record<string, unknown>)[hookName];
   if (typeof fn !== 'function') return undefined;
   return (fn as (...a: unknown[]) => T).apply(obj, args);
+}
+
+/**
+ * Would `item` arrive in `target` — the destination's own answer read dry
+ * (its `arrivalFor`; for contents, the tape measure and the veto), before
+ * any write. A carrier's `refuse` is not a refusal: `move` routes it (on,
+ * into a bag, or set down — `Carrying.routeArrival`), exactly as `move`'s
+ * own switch reads it.
+ */
+function arrivalRefusal(target: ContainerStuff, item: ContainableStuff): ArrivalRefusal | null {
+  const arrival = target.arrivalFor(item, { placed: false });
+  if (arrival.kind === 'refuse') return MixinApi.isCarrying(target) ? null : arrival.refusal;
+  if (arrival.kind !== 'contents') return null;
+  const fit = target.fitRefusal(item);
+  if (fit !== null) return fit;
+  const veto = target.canAddContainable?.(item, { placed: false });
+  if (veto !== undefined && !veto.ok) {
+    return { ok: false, reason: 'refused-by-container', facts: { said: veto.reason ?? '' } };
+  }
+  return null;
+}
+
+/**
+ * The author's sentence for a refused arrival (size and carrying W8) — the
+ * `ContainmentError` message: *"move: the lantern has no place on Bob —
+ * hands hold the mug and the map; tried the coat, the satchel"*. A
+ * player's sentence is the controller's, from the refusal's facts.
+ */
+function arrivalWords(item: ContainableStuff, to: Stuff, r: ArrivalRefusal): string {
+  const name = (x: Stuff): string => {
+    try {
+      return x.presentationPhrase().definite();
+    } catch {
+      return x.getTemplatePath() ?? x.stuffId;
+    }
+  };
+  const head = `move: ${name(item)} has no place ${to.isAgent() ? 'on' : 'in'} ${name(to)}`;
+  switch (r.reason) {
+    case 'nowhere-to-carry': {
+      const held = r.facts.held.map(name);
+      const tried = r.facts.tried.map(name);
+      if (held.length === 0 && tried.length === 0) {
+        return `${head} — it does not carry (no hands, nothing worn it fits)`;
+      }
+      return (
+        `${head} — hands hold ${held.length > 0 ? held.join(' and ') : 'nothing'}; ` +
+        `tried ${tried.length > 0 ? tried.join(', ') : 'nothing worn'}`
+      );
+    }
+    case 'too-heavy':
+      return `${head} — more than it can lift`;
+    case 'cannot-grip':
+      return `${head} — it cannot grip (${r.facts.why})`;
+    case 'hands-on-cart':
+      return `${head} — its hands are on ${name(r.facts.cart)}`;
+    case 'refused-by-container':
+      return `${head} — ${r.facts.said}`;
+    case 'too-big-for-mouth':
+      return `${head} — too big for its mouth`;
+    case 'too-big-inside':
+      return `${head} — too big to go inside`;
+    case 'no-room':
+      return `${head} — no room`;
+    default:
+      return `${head} — ${r.reason}`;
+  }
 }
 
 function assertVetoOk(result: VetoResult | undefined, hookName: string): void {

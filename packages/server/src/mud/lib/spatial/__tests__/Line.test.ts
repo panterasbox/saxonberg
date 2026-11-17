@@ -8,6 +8,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withHands } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rope from '../../../platform/thing/Rope';
 import RopeEnd from '../../../platform/thing/RopeEnd';
@@ -34,8 +35,8 @@ async function scene(): Promise<{ quay: Location; water: Location; tender: Body;
   const quay = makeStuffAtPath(() => new Location(), '/test/diving/quay');
   const water = makeStuffAtPath(() => new Location(), '/test/diving/water');
   await water.addBidirectionalExit(quay as never, 'up', { opposite: 'down' });
-  const tender = makeStuff(() => new Body());
-  const swimmer = makeStuff(() => new Body());
+  const tender = withHands(makeStuff(() => new Body()));
+  const swimmer = withHands(makeStuff(() => new Body()));
   tender.setMass(Quantity.of(70, 'kg'));
   swimmer.setMass(Quantity.of(70, 'kg'));
   ContainmentApi.move(tender as never, quay as never);
@@ -129,7 +130,7 @@ describe('the line (underwater C1, cordage D1)', () => {
 describe('the rope\'s tie (cordage D8)', () => {
   it('⭐ tied to a person, they are on the free end; untied, they are off it', async () => {
     const { quay, tender, line } = await scene();
-    const mate = makeStuff(() => new Body());
+    const mate = withHands(makeStuff(() => new Body()));
     ContainmentApi.move(mate as never, quay as never);
     const out = await line.tieTo(tender as unknown as Stuff, mate as unknown as Stuff, null);
     expect(out.ok).toBe(true);

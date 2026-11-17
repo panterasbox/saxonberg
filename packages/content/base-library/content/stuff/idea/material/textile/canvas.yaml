@@ -19,6 +19,8 @@ data:
   thermalConductivity: 0.05
   hardness: 5
   toughness: 4
+  # Size and carrying D4: what a strap, a belt or a rail of it bears hung from.
+  tensileStrengthMPa: 30
   # Electrical conductivity (S/m) — dry plant fibre insulates.
   electricalConductivity: 1.0e-11
   # Water absorption capacity (% of dry mass): a heavy weave swells shut

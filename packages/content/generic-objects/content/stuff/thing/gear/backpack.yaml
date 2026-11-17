@@ -11,5 +11,14 @@ data:
     A sturdy canvas backpack with broad shoulder straps, built to carry
     a real load without biting into the shoulders.
   mass: 2
+  # ⭐ On the BACK (size and carrying D15): what is inside is packed — take
+  # it off to get at it. Its straps take what hangs from them (D27): a
+  # canteen clipped to a strap is ready.
   slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": [torso]
+    "/stuff/idea/species/BodyPlan/biped": [back]
+  placements: [/platform/placements/from]
+  # ⭐ Canvas, and the box it opens to (size and carrying W2/W6): a pack
+  # with no box widens no envelope, so drive 9's crawlway could never
+  # refuse it. 0.35 × 0.25 × 0.55 m — about 43 L inside.
+  _materialPath: /stuff/idea/material/textile/canvas
+  dimensions: { width: 0.35, depth: 0.25, height: 0.55 }

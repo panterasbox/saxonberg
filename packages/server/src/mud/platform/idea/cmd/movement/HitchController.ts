@@ -26,6 +26,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { HitchFacts, HitchRefusal } from '../../../../lib/slot/Hauler';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { GrammarApi } from '../../../../api/grammar';
 import { Mml } from '../../../../api/mml';
 
 type Composed = ReturnType<typeof Mml.compose>;
@@ -104,8 +105,13 @@ export default class HitchController extends CommandController<HitchModel> {
         return hauler.stuffId === giver.stuffId
           ? Mml.compose`You're already pulling something.`
           : Mml.compose`${Mml.thing(hauler)} is already pulling something.`;
-      case 'hands-occupied':
-        return Mml.compose`Your hands are full.`;
+      case 'hands-on-cart':
+        // The hands the hauler's grip needs, from the body's facts (D18).
+        if (r.facts.held.length === 0) return Mml.text(`That takes ${r.facts.hands === 1 ? 'a free hand' : 'both hands'}.`);
+        return Mml.text(
+          `That takes ${r.facts.hands === 1 ? 'a free hand' : 'both hands'} — you're holding ` +
+            `${GrammarApi.joinList(r.facts.held.map((h) => h.presentationPhrase().indefinite()))}.`,
+        );
       default: {
         const never: never = r;
         return never;

@@ -1,0 +1,17 @@
+# A frame pack (size and carrying D27/D15) — a canvas sack lashed to an
+# ash frame, for loads too big for a rucksack: worn on the back, packed.
+# The leatherworker's sale to anyone going far.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: frame pack
+  keywords: [pack, "frame pack", frame, canvas]
+  register: indefinite
+  longDescription: >
+    A tall canvas sack laced to an ash frame with a padded leather belt,
+    built to put a heavy load on the hips instead of the shoulders.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 3.5
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [back]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.45, depth: 0.35, height: 0.85 }

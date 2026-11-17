@@ -49,6 +49,7 @@ substrate in `lib/spatial/`:
 | `Vessel` | `lib/stuff/Vessel` | A *container-object* — a thing that holds things, at any scale (bag → cart → ship). Carries Thing's describable-physical baseline directly (`Visible` + `Perceptible` + `Tangible`) so a describable container needs no re-added `Visible`, plus Container + Containable — ⭐⭐ **and NOT `Atmospheric`: a bag is not a place.** The mixin composed here until the base-class narrowing build, giving a backpack, a till, a jar, a rack, a footlocker, a handcart, a bank counter and a barge each their own temperature, pressure, humidity, wind and biome; 37 rows over 15 composers, and none ever authored one of those fields. It is on `ExitableVessel` now ([biome.md](./biome.md)) — *a thing you can go inside is a place with air* — which is also the only place anybody's `context.location` can ever be a vessel, since a rider occupies a SLOT and stands in the room. A plain vessel is now a transparent step in the outward biome walk, exactly like a Box. ⭐ Since the base-class narrowing it is `ChattelMixin(ConcealableMixin(Holder))` — **a vessel is a holder that is also a GOOD**, so it carries exactly the two mixins that came off the `Thing` root, and `ContainerMixin(Good)` and `Vessel` are now the same mixin set. (An older reading of this row called it a top-level branch and *not* a `Thing` subtype; it traces through `Thing` and always did — *you can't pocket a ship* is a mass gate, not a type gate.) Carry/drag/ride stays emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
+| `ShapedMixin` | mixin | ⭐ A thing's SIZE, composed beside Containable on every host of it (`Thing`, `Creature`) — size is what fitting asks, but it is its own concept: `shape`/`dimensions` (authorable), `getShape`/`setShape` (the shape a `shape` document — `lib/spatial/Shape.ts`, `ContainmentApi.shapes()`; W10j), `getDimensions`/`setDimensions`/`hasAuthoredSize`, `getVolumeM3` (from `Tangible.getMatterVolumeM3` where the host is matter), `getPackedVolumeM3`, `foldPackingFactor` (`@hook`), `getFitBox`, the class `defaultShape`; `MixinApi.isShaped`. See [size.md](./size.md) (size and carrying W10g). |
 | `PlacingMixin` | mixin | **Placement**: the members this host offers (`placements`), the lazy `getPlaced` read, and the `canPlace` veto. Was `SurfacedMixin` until 2026-09-28. |
 | `Placement` | document value class | A **way of sitting**, as a `placement` document: `on` · `in` · `from`. Any pack ships one under `content/placements/`; a host cites it by path. |
 | `MobileMixin` | mixin | Locomotion: `traverse` (async)/`teleport` and movement narration. |
@@ -68,7 +69,7 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Idea
   │     └── Exit                    (data + canTraverse() guard, lazy destination)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
-  ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Containable)
+  ├── Thing                         (Wet + Visible + Detailed + Perceptible + Tangible + Shaped + Containable)
   │     ├── Good                    (Chattel + Concealable)            ← portable matter: owned, hidden
   │     ├── Boundary                (Sealable; two weak sides = the exits)  ← see boundary.md
   │     │     ├── Window            (Soilable; passes all but a body)
@@ -159,6 +160,37 @@ Detach is `ContainmentApi.move(item, null)`. A direct
 4. **Notification hooks** (post-mutation, never veto):
    `onContainableRemoved` on source, `onContainableAdded` on
    destination, `onMoved(from, to)` on the item.
+
+⭐ **Two destination vetoes every move meets** (size and carrying,
+2026-11-12):
+
+- **The tape measure.** `Container.canAddContainable`'s default body is
+  `fitRefusal(item)` — the mouth, the sides the container closes and its
+  room ([size.md](./size.md)). Specialized overrides (a pump's well, a
+  store, a hive) own their whole answer.
+- ⭐⭐ **A body places what arrives — `arrivalFor`; a carrier ROUTES** (size
+  and carrying W8; owner, 2026-11-13). Beside `canAddContainable`, every
+  container has `arrivalFor(item, how?)` — where IN it an arrival goes —
+  and `move` asks it of **every Container destination given no word**
+  (W9): `contents` (the default for a container with an inside; on a body,
+  admitted — placed, an agent, being seated, admitted by the restore),
+  `seat` (a hand, a mule's tack → `Slotted.seatInSlots`), `pair` (a worn
+  host's pocket or hook, or — for a container with no inside of its own,
+  `Container.hasInterior() === false`, a coat — its own first enclosing
+  region that takes the thing), or `refuse`. This is the `Placing`
+  precedent again: the destination decides where inside it the thing sits.
+  ⭐⭐ A `refuse` on a **carrier** is the carrier's: `Carrying.routeArrival`
+  (gated to the chokepoint) lands the thing ON the body — a true move, the
+  body's witnesses fire — and then moves it on with a second true move,
+  into the first bag it carries that fits, else down where the body
+  stands, with a line. Nothing is retargeted; no caller chooses. On a
+  non-carrier `move` **throws** a `ContainmentError` (`reason`, `facts`):
+  the rule that nothing sits loose is every `Creature`'s and fails closed.
+  ⭐ There is **no way around** the routing (owner, 2026-11-15:
+  `directMove` retired): a handed act writes its money, then `move`s the
+  goods, and what the recipient cannot carry is set down at their feet
+  with the line. `carrier.wouldSetDown(item)` only asks (`get`). See
+  [carrying.md](./carrying.md).
 
 Witness hooks are optional methods on the relevant interface — declare
 the ones you want, omit the rest. `containment.ts:157-165` dispatches
@@ -335,11 +367,19 @@ other.
 | Apple in inventory | the actor | `null` |
 | Apple on a desk inside a chest | the chest | `{ desk, 'on' }` |
 | Ham hanging from a hook in a room | the room | `{ hook, 'from' }` |
+| Key in a coat's pocket | the coat | `{ coat, 'left pocket' }` |
+| Board in the drying loft | the loft | `null` |
 
-⭐ **The host is always a SIBLING in the same contents list** — that is
-the structural insight the whole design rests on, and it is why the
-persisted form is an *index into the container's own slice*
-(`ContentPlacement`, below) rather than a reference.
+⭐⭐ **An enclosing relation is containment; a supporting or hanging
+relation is a pair** (owner, 2026-11-13 — size and carrying W9). For `on`
+and `from` the host is a **SIBLING** in the same contents list — a mug on a
+desk is in the room's air, light and view — which is why the persisted form
+is an *index into the container's own slice* (`ContentPlacement`, below)
+rather than a reference. For an **enclosing** member (`in`) the host is
+**the container itself**: a key in a coat's pocket is the coat's contents,
+and its pair names the region (`{ coat, 'left pocket' }`). `getPlacement()`
+answers the same for a pocketed key as it always did; `getContainer()` now
+answers the coat; `getEnclosingScope()` answered the coat already.
 
 The "apple in the room" intuition is preserved: the room's
 `getContents()` includes the apple directly, not through any indirect
@@ -349,7 +389,7 @@ A desk-with-drawer composes BOTH `Container` (the drawer-as-part,
 `container = desk`) AND `Placing` (the apples on top, `container =
 room`). The two collections are independent and non-overlapping.
 
-### ⚠⚠ Two composition refusals, enforced at registration
+### ⚠⚠ Three composition refusals, enforced at registration
 
 `PlacingMixin.__validateComposition__` throws on first registration of
 a concrete class (`assertComposable`, dispatched from
@@ -367,6 +407,11 @@ the throw, with a control class that must register cleanly.
    *which exits does each region afford* is a question the model
    refuses to answer. Put a `Fitting` or a `Chamber` in its contents
    instead (that is how a boot works), or write the class.
+3. **A Placing host offering an ENCLOSING member must compose
+   `ContainerMixin`** (W9) — what is in a region of a host is its
+   contents. The class half refuses a class default naming `in`; the row
+   half is `setPlacements`, which throws `TypeError` once the member
+   documents load and one encloses on a host that holds nothing.
 
 ### The `Placement` vocabulary — a member is a DOCUMENT
 
@@ -389,8 +434,47 @@ constants `Placements.ON` · `Placements.IN` · `Placements.FROM`
 | `prose` (one Liquid template) | `put`, `dry` |
 | `heading` | the `look` / `sense` drill-in |
 
-Three ship: `on` (`[on, onto]`), `in` (`[in, into]`, **`encloses:
-true`** — the only one), `from` (`[from, on]`).
+Three ship: `on` (`[on, onto]`), `in` (`[in, into]`, `encloses: true`)
+and `from` (`[from, on]`, **`hangs: true`, `fastens: true`** — a hung
+thing is clipped or tied: bounded by a length, and it stays put in water
+and zero g). A Placement document's `hangs`/`fastens` say what the
+relation does; `on` fastens nothing. (`pocket` was a fourth, `[into, in]`,
+from D26 until W9: a pocket is a named `in` region of a Container now.)
+
+⭐ **A host's `placements:` entries may be NAMED regions.** An entry is a
+bare path (one member, named by its leaf — the shipped rows) or
+`{member, name?, mouth?, volumeM3?, covered?, closes?}`:
+
+```yaml
+# a coat's row
+placements:
+  - { member: /platform/placements/in, name: left pocket,
+      mouth: { width: 0.16, height: 0.05 }, volumeM3: 0.0015 }
+  - { member: /platform/placements/in, name: breast pocket,
+      mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0004, closes: true }
+  - { member: /platform/placements/in, name: inner pocket, covered: true,
+      mouth: { width: 0.14, height: 0.03 }, volumeM3: 0.0006 }
+```
+
+`getPlacements()` returns region keys (`name ?? member`);
+`Placing.placementOf(key)` is the one read of a region's `Placement`, and
+`getPlacementEntry(key)` its entry — every reader of a placed pair goes
+through the host. A region's name is a word its host answers to
+(`Placing.namedRegions()`, folded into `getKeywords`; MQL's `via.region`
+facet), so `put key in inner pocket` binds the coat. `covered` hides a
+region from other people; `closes` fastens it (pressing and perception
+treat it as shut). The class default is the static
+`PlacingMixin.defaultPlacements` (`[on]`); `Garment` and `Pack` say `[]`,
+so a garment with no pockets honestly offers nothing. **A pocket is never
+an object**: it is a region of its garment, which is a `Container` with no
+inside of its own (`hasInterior() === false` — W9, D-W9-13: every garment,
+since any garment may have a pocket and that is the row's choice); the
+pocketed thing is the coat's contents with the pair `(coat, left pocket)`.
+`move(key, coat, 'left pocket')` is `placeIn` — the region's `canPlace`,
+then into the coat's contents (the container's own tape measure is not
+asked for a named region), then the pair. A pack with an inside AND a
+named `in` side pocket asks *which* for `put map in pack` — honest, and no
+shipped row does it.
 
 ⭐ **`from` lists `on` as a SECONDARY word**, which is how `put ham on
 hook` reaches a `from`-only host and gets told *"You hang the ham from
@@ -424,6 +508,49 @@ engine defect, never a refusal and never a default). What loads them:
   alike);
 - **the persistence restore pass** awaits `ContainmentApi.placements().ensure` for each
   restored item's `ContentPlacement`.
+
+### ⭐ Chambers — one interior OR a set of chambers, never both (size and carrying D-W10-14)
+
+*A container's chambers are the enclosing regions its row names
+(`placements:` entries whose member `encloses`), each with its own
+`volumeM3`, `mouth`, sides (`closes` is its top) and air; a container that
+names no chamber is one chamber — region zero, the whole interior; a
+container that names chambers has no interior beside them; a thing fits a
+chamber or it does not, and nothing adds chambers together.* One model
+covers a coat's pockets, a fridge with a freezer (two chambers, no
+interior) and a multi-chambered vessel. `Container.hasInterior()` is
+**derived** — true iff the host offers no enclosing region (`Garment`
+keeps its `false`: cloth has no inside even with no pockets) — so a row
+authoring both is unrepresentable rather than linted.
+
+**Which chamber.** A chamber's *character* is what the world acts on —
+its member (own air), `covered` (hidden under the outer layer), `closes` (a
+closure) — never its size (`Placing.chamberCharacter(name)`,
+`alikeChambers(names)`). Chambers that DIFFER are the player's choice:
+words matching several of them ask *which?*, naming each difference
+(*(buttoned)*, *(inside)*). Chambers ALIKE in every such respect are the
+container's to fill: `PlacementOffers.choose` answers the *container
+decides* offer, the chokepoint asks `arrivalFor`, and the first chamber
+that takes it (authored order) gets it, named in the prose. A bare word
+matching several chambers of one host binds the host with no region
+(`scope-walk`'s attribution); two hosts answering the word is the binder's
+*which one?*. A non-enclosing sibling ambiguity (a range's hot plate and
+firebox) still asks by preposition.
+
+⭐ **A programmatic move has nobody to ask** (owner, finalize 2026-11-16):
+`ContainmentApi.move(item, host)` with no chamber named fills alike
+chambers by fit, and into chambers that DIFFER it **throws** a
+`ContainmentError` naming them — the caller names one
+(`move(key, coat, 'inner pocket')`). A brain, a restock or a staging line
+that means a particular chamber says so; the engine never picks a
+difference for it.
+
+**A chamber that closes** is a closure the player drives:
+`Placing.isRegionOpen` / `fastenRegion(name, shut)`, the host's persistent
+`shutRegions` (per instance; `null` = the row's default, every `closes`
+chamber shut); `open "breast pocket"`. A shut chamber refuses the put and
+the reach (`enclosed-shut { by, region }`), hides its contents, and
+presses with a top.
 
 ### The cost of a new way of sitting
 
@@ -470,12 +597,18 @@ hosts, which would constrain several identical tables in one hall.
   hops), else my immediate container. MQL's `here`, the room a sound is
   heard in (`Scene`) and the room a horizon is seen from read it
   (controller-liquidity D7).
-- ⭐ `reachRefusal(actor)` — the innermost shut lid between me and the
-  actor, as `{reason: 'enclosed-shut', facts: {by}}`, or `null`. The verb's
-  question; MQL addresses through lids ([perception.md](./perception.md)).
-- On `Container`: ⭐ `getReachableContents(rung)` — the per-container
-  reach walk (`top` · `open` · `deep`), the step under
-  `PerceptionApi.reach` — the one list `canReach` and the MQL pools read
+- ⭐ `reachRefusal(actor)` — why `actor` cannot lay hands on me, innermost
+  first: `{reason: 'packed', facts: {by}}` (inside the pack the actor
+  wears on the `back` — *take it off first*; checked before the lid at the
+  same holder) or `{reason: 'enclosed-shut', facts: {by, region?}}` (a shut
+  thing, or a shut chamber of it, between me and the actor), or `null`.
+  The verb's question; MQL addresses through lids
+  ([perception.md](./perception.md)).
+- On `Container`: ⭐ `getReachableContents()` — what a hand could take
+  from in here reaching in from OUTSIDE: my contents and one level into
+  every OPEN thing among them (never into a body). **No rung** (D17 — the
+  `top`/`open`/`deep` rungs are gone); a carrier's own tree is
+  `PerceptionApi.reach`'s, nearest first
   ([perception.md](./perception.md)).
 
 ⭐ Its two readers ask different questions, and the difference is one
@@ -493,11 +626,17 @@ read is a walk and not a second step. See
 [thermal.md](./thermal.md) § *Two questions, one step apart*.
 
 **The pair IS persisted**, by the container's slice.
-`ContentPlacement { hostIndex?, placement? }` in
+`ContentPlacement { hostIndex?, hostChattelId?, placement? }` in
 `lib/persistence/PersistenceSlice.ts` records the host's **index
-within the same contents list** plus the member's **path**
-(`/platform/placements/on`);
-`PersistableLogic`'s placement pass re-`place`s on restore. (An older
+within the same contents list** (or its chattel id, when the host is an
+owned good the estate carries) plus the member's **path**
+(`/platform/placements/on`) or the host's region name;
+`PersistableLogic`'s placement pass re-`place`s on restore. ⭐ A region of
+the container ITSELF (a pocket's key, W9) records `{ placement: 'left
+pocket' }` with no host field, inside the coat's own slice; `restoreItem`
+moves the clone straight into that region (a stale record is logged and
+the host's arrival decides). An owned key in a coat's pocket rides the
+owner's estate with `placedOn` naming the coat, and pass (6) puts it back. (An older
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
 
@@ -510,9 +649,15 @@ crossing exits, arriving through `move`. There is no third call
 (`place` and `land` were folded in by the assembly build, 2026-10-12).
 
 A destination that offers placements and holds nothing — a desk, a
-drying loft, a rack — is a placement: `move(apple, desk)` puts it ON
-the desk (the host's default member), and `move(ham, rack, 'from')`
-names the member when a host offers several.
+rack — is a placement: `move(apple, desk)` puts it ON the desk (the
+host's default member), and `move(ham, rack, 'from')` names the member
+when a host offers several. ⭐ A word naming an ENCLOSING region of a
+Container (`move(key, coat, 'left pocket')`, or `in` on a desk with a
+drawer region) is `placeIn` — into the host's contents, pair kept (W9). A
+word that names no region is accepted on a container with an inside iff
+it is region zero's own (`in`, `into`, `Placements.IN`: plain contents —
+`move(board, loft, Placements.IN)`) and **throws** otherwise; a word is
+never silently ignored.
 
 ```typescript
 ContainmentApi.move(apple, desk);
@@ -556,11 +701,31 @@ ambient scope just changed.
 (no environment; `canPlace` vetoes). User-input failures are handled
 upstream by `put`, which reads the veto's `reason` into prose.
 
+### ⭐⭐ What is placed on a thing travels with it (D33, 2026-11-12)
+
+When `moveCore` moves a host, every thing whose placement pair names
+that host (found in the host's **old** environment) follows it into the
+new environment **with its pair kept** — a carried tray brings its cups;
+a belt taken off brings its pouches. ⭐ This is the SIBLING pair's rule
+(`on`, `from`). What is IN a thing — a coat's pocketed key — is its
+contents and travels as contents, with no follow at all (W9, D-W9-8). It is `moveCore` recursing on
+itself (never `ContainmentApi.move`, which would clear the pair), so
+witnesses fire and custody follows for each follower. Before anything
+moves, the whole bring-along (`bringAlong`, recursive, one cycle guard)
+is asked of the destination's `canAddContainable(f, { placed: true })`,
+each follower on its own — so a body admits a belt's pouches as placed,
+and a chest that cannot fit the tray's cups refuses the tray. A
+creature placed on a moved host steps off (pair cleared, stays); a host
+moved to `null` drops what was on it where it stood.
+
 ### `Placing.getPlaced(name?)`
 
 Lazy walk; no maintained forward collection. The host walks its own
-environment's contents and filters on `getPlacement()`. With a `name`,
-only that member's items. For typical room sizes the walk is cheap;
+environment's contents — and, when it is itself a Container, its own
+contents (an enclosing region: a pocket, W9) — and filters on
+`getPlacement()`. With a `name`, only that member's items.
+`Container.getLooseContents` never lists a thing in a region of the
+container (it is listed under its region). For typical room sizes the walk is cheap;
 hosts with very many placed items are content design that hasn't
 earned a forward index.
 
@@ -568,7 +733,14 @@ earned a forward index.
 
 Per-host gate, replacing the old boolean `canRest`. Default body, in
 order: the name is not offered → `no-such-placement`; the member
-`encloses` and the host is a closed `Sealable` → `shut`; else ok.
+`encloses` and the host is a closed `Sealable` → `shut`; **the member
+fit** (size and carrying D4) — a region whose member `encloses` (a
+pocket) checks the entry's `mouth` (`too-big-for-mouth`) and `volumeM3`
+over what it already holds (`no-room` — what it holds is the host's own
+contents in that region, W9); a member that `hangs` checks the
+summed hanging widths against `hangingLengthM()` (`no-room-along` — the
+first thing always hangs: a hook is a point) and the summed mass against
+`bearsKg()` (`too-heavy-for`); `on` bounds nothing — else ok.
 Authors override for shape-specific gates (a fragile shelf rejects
 heavy items, a wax tabletop rejects hot ones). ⭐ The `reason` is what
 the verb reads into its refusal, so name it for a player.
@@ -582,6 +754,26 @@ host-side (*"this host refuses X"*), not item-side.
 it, N, beyond the thing's own weight. `0` by default (a shelf, a bench, a
 floor); a `ScrewPress` answers its platen for what stands on its bed. A
 mould reads it as part of its load (`mould.md` § Pressing).
+
+### The hanging length — `hangingLengthM`, `bearsKg`, `roomFor`
+
+One mechanism for every thing others hang from — a belt, a bandolier, a
+pack's straps, a saddle, a key ring, a pegboard, a tool rail. No belt
+class: a belt is a `Garment` row claiming `[waist]` with `placements:
+[from]`.
+
+- `hangingLengthM()` — the host's longest side (a `round` host its
+  circumference — a key ring). `Garment` overrides it while worn: π × the
+  wearer's bare envelope width, × `SIZE_DEFAULTS.WAIST_FRACTION` (0.9) on
+  a `waist` slot — a gnome's belt holds fewer pouches than an ogre's.
+- `bearsKg()` — the material's `tensileStrengthMPa` × the host's
+  cross-section ÷ g ÷ `HANG_SAFETY` (4). Unset strength = unbounded.
+- `roomFor(key)` — what is left along the length, in words only
+  (`plenty` · `one more pouch` · `a small thing` · `none`), never a
+  number; `i belt` prints it.
+
+Each hung thing takes its `Dimensions.hangingWidthM()` (its middle side;
+a flexible thing its packed cube root). See [size.md](./size.md).
 
 ### `Placing.userFacingDetail`
 
@@ -751,11 +943,21 @@ The sentence is the MEMBER's: one Liquid template on its row,
 rendered per audience, so `from` says *hang* with nothing in the
 controller knowing the difference.
 
-`give X to Y` is inter-Agent transfer via `ContainmentApi.move`
-into the recipient's general Container. Items don't land in a
-hand slot — see [embodiment.md § Hand slots are for activities,
-not storage](./embodiment.md). The recipient is gated by the
-`mustBeAgent` validator (target `instanceof Agent`).
+⭐ **Pockets by name** (size and carrying D26): a garment's offers are
+its pocket regions, so `put key in coat` takes the one pocket that fits
+or asks *"Which — the left pocket or the right pocket of the coat?"*
+(`PlacementChoice`/`PlaceRefusal` carry `regions` when the matched offers
+share a primary word); `put key in left pocket` names it. Chambers ALIKE
+in character are filled by fit — the first that takes it, named in the
+prose; chambers that DIFFER ask (§ Chambers). `put X in <person>` is
+handing, not putting.
+
+`give X to Y` is the **handed** idiom: after the giver's release gate,
+`move(X, Y)` — onto them, a bag they carry, or, with nowhere for it, set
+down at their feet with the routing's line (owner, 2026-11-15). A
+recipient that does not carry takes nothing: *"The fish has nowhere to
+take it. You keep it."* — asked before the release. The recipient is gated by the `mustBeAgent`
+validator. See [carrying.md](./carrying.md).
 
 ## Locations, Coordinates, Zones
 
@@ -1225,3 +1427,27 @@ cited by path, resident by construction (`Place.onCreate` — since
 load-on-use W10 the boot, as `ContainmentApi`'s `needs` — the
 `placements` setter, the restore pass). See git log for the
 `reqs/documents-path-identity` branch.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. Containers bound what goes in them
+(`fitRefusal` in the default `canAddContainable`); a body places what
+arrives (`arrivalFor`, W8 — the W7 `loose-on-body` veto and the
+`receive` family it guarded are gone), a carrier routes the rest (W8i —
+onto the body, then a bag or the floor, every step a true move) and
+`move` throws on a non-carrier; placement
+entries became named regions (`pocket` the fourth member until W9 folded
+it into `in` — a pocket is a region of a Container — `from` gained
+`hangs`/`fastens`, the member fit in `canPlace`, the hanging length);
+`moveCore` carries a host's placed things with it (D33); `put` names
+pockets and `give` hands over with plain `move` (W10i: `directMove`
+retired). See [carrying.md](./carrying.md)
+and [size.md](./size.md).
+
+**Finalize (2026-11-16; the whole build is `39d4ba23e..HEAD`, MR !576).**
+Pockets are chambers of a Container (W9; one interior OR a set of
+chambers, D-W10-14); alike chambers fill by fit, differing ones ask — and
+a programmatic `move` into differing chambers with none named throws;
+`reachRefusal` gained `packed` and the region of a shut chamber;
+`getReachableContents()` lost its rungs; `put`'s home-setting retired with
+homes (W10).

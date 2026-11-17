@@ -16,7 +16,13 @@
  *   - an arithmetic binary expression (`*`, `/`, `%`, `**`, binary `-`;
  *     `+` is excluded because it is mostly string building);
  *   - a threshold — a comparison (`<`, `>`, `<=`, `>=`) with a numeric
- *     literal operand;
+ *     literal operand — ⚠ EXCEPT an emptiness test: a `.length`/`.size`
+ *     read against `0` (`xs.length > 0`, `0 < set.size`, `xs.length <= 0`)
+ *     or `1` (`xs.length >= 1`, `xs.length < 1`). Whether a list has
+ *     anything in it is not a rule of the act; the census counted it as
+ *     one until size-and-carrying W7, and code was being shaped to dodge
+ *     it (`length !== 0` written where `length > 0` was meant) — a gate
+ *     that miscounts gets its rule fixed, never its callers bent;
  *   - a numeric constant declaration — an UPPER_SNAKE `const` whose
  *     initializer holds a numeric literal (a table counts once);
  *   - an act-shape literal — a `durationMs:` / `durationS:` / `effortW:`
@@ -40,7 +46,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 614; // controller-liquidity W17: −5, `survey` retired (its controller's area, litres and band arithmetic went to the Structure and the readings); W18 (pinned here): −1, measured after the stir/knead/churn/rake split landed. // controller-liquidity W15 merge: −13, re-pinned at the merged floor (master's material decomposition + broadcast-ready's stream verb, split one controller per subcommand). // controller-liquidity W14: −2, the hone duration is the edge's. // controller-liquidity W9: −141, the metal chain's Fe–C model, kinetics, paces and wording tables moved onto the furnace, the working, the clamp and the smith's protocols. // controller-liquidity W13: −18, the let, the sale, the stall, the study and the clinic answer on their objects. // controller-liquidity W11: −135 (wood and fiber: fell, saw, scutch/spin/weave, sew/alter, dye/mordant, tan, print onto their objects). // controller-liquidity W12: −31 (the swing, the lining, the journey, the hot shop and the pilot on their objects). // controller-liquidity W10: −110, food and land — the stones, the carcass, the tract, the field, the book and the head answer their verbs. // controller-liquidity W7: −60, the multi-act splits and protocols. // controller-liquidity W1+W3: values, durations and refusals moved onto their objects. W6: −3, the cutting answers stopped carrying a verb tag to narrow on, and `fell` stopped cross-cutting. W8: −37, the kernel objects answer their verbs (water, body, fire, hitch, put, read, name, look observes once)
+export const CONTROLLER_DECISIONS_CEILING = 508; // size-and-carrying W7: −106, not a burn-down — the census stopped counting emptiness tests (`xs.length > 0`) as thresholds; the rule was wrong, and code had been bent to dodge it. // controller-liquidity W17: −5, `survey` retired (its controller's area, litres and band arithmetic went to the Structure and the readings); W18 (pinned here): −1, measured after the stir/knead/churn/rake split landed. // controller-liquidity W15 merge: −13, re-pinned at the merged floor (master's material decomposition + broadcast-ready's stream verb, split one controller per subcommand). // controller-liquidity W14: −2, the hone duration is the edge's. // controller-liquidity W9: −141, the metal chain's Fe–C model, kinetics, paces and wording tables moved onto the furnace, the working, the clamp and the smith's protocols. // controller-liquidity W13: −18, the let, the sale, the stall, the study and the clinic answer on their objects. // controller-liquidity W11: −135 (wood and fiber: fell, saw, scutch/spin/weave, sew/alter, dye/mordant, tan, print onto their objects). // controller-liquidity W12: −31 (the swing, the lining, the journey, the hot shop and the pilot on their objects). // controller-liquidity W10: −110, food and land — the stones, the carcass, the tract, the field, the book and the head answer their verbs. // controller-liquidity W7: −60, the multi-act splits and protocols. // controller-liquidity W1+W3: values, durations and refusals moved onto their objects. W6: −3, the cutting answers stopped carrying a verb tag to narrow on, and `fell` stopped cross-cutting. W8: −37, the kernel objects answer their verbs (water, body, fire, hitch, put, read, name, look observes once)
 export const DURATION_DECLS_CEILING = 38; // controller-liquidity W9: −20, the mine/smelt/burn/forge paces moved onto their objects. // controller-liquidity W13: −4, the study pace on the Spellbook; the let/sale/stall acts. // controller-liquidity W11: −11 (the paces moved onto the stock, the saw, the tree, the bath). // controller-liquidity W12: −7 (the line, crack, flatten and reheat paces on their objects). // controller-liquidity W10: −3 (plow, mow, the quern). // controller-liquidity W7: −16, the paces moved onto the protocols. // W5: harvest, plant, the bath, the pour. W8: −1
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";
@@ -78,6 +84,34 @@ function isNumeric(e: ts.Expression): boolean {
   return ts.isNumericLiteral(x);
 }
 
+/**
+ * ⭐ An emptiness test — `<collection>.length|size` compared with `0` (by
+ * `>` / `<=`) or `1` (by `>=` / `<`), either side. Not a threshold: it asks
+ * whether there is anything, never how much is enough.
+ */
+export function isEmptinessTest(n: ts.BinaryExpression): boolean {
+  const isCount = (e: ts.Expression): boolean =>
+    ts.isPropertyAccessExpression(e) && (e.name.text === "length" || e.name.text === "size");
+  const lit = (e: ts.Expression): string | null => (ts.isNumericLiteral(e) ? e.text : null);
+  const op = n.operatorToken.kind;
+  const K = ts.SyntaxKind;
+  if (isCount(n.left)) {
+    const v = lit(n.right);
+    return (
+      (v === "0" && (op === K.GreaterThanToken || op === K.LessThanEqualsToken)) ||
+      (v === "1" && (op === K.GreaterThanEqualsToken || op === K.LessThanToken))
+    );
+  }
+  if (isCount(n.right)) {
+    const v = lit(n.left);
+    return (
+      (v === "0" && (op === K.LessThanToken || op === K.GreaterThanEqualsToken)) ||
+      (v === "1" && (op === K.LessThanEqualsToken || op === K.GreaterThanToken))
+    );
+  }
+  return false;
+}
+
 function holdsNumber(n: ts.Node): boolean {
   if (ts.isNumericLiteral(n)) return true;
   return ts.forEachChild(n, holdsNumber) ?? false;
@@ -104,7 +138,9 @@ export function decisionsIn(sf: ts.SourceFile): Decision[] {
     } else if (ts.isBinaryExpression(n)) {
       const op = n.operatorToken.kind;
       if (ARITH.has(op)) add("arithmetic", n);
-      else if (COMPARE.has(op) && (isNumeric(n.left) || isNumeric(n.right))) add("threshold", n);
+      else if (COMPARE.has(op) && (isNumeric(n.left) || isNumeric(n.right)) && !isEmptinessTest(n)) {
+        add("threshold", n);
+      }
     } else if (
       ts.isVariableDeclaration(n) &&
       ts.isIdentifier(n.name) &&

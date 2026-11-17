@@ -78,8 +78,12 @@ export default class TipJar extends TipJarBase {
     if (MixinApi.isContainer(actor)) {
       for (const c of [...this.getContents()]) {
         if (c instanceof Coin) {
-          took += c.getQuantity();
+          // Counted first — a stack that meets its like merges and is gone.
+          const q = c.getQuantity();
+          // Onto you (owner, 2026-11-15): a hand, a pocket, the purse's
+          // like — or, with nowhere for them, set down at your feet.
           ContainmentApi.move(c, actor);
+          took += q;
         }
       }
     }

@@ -26,16 +26,19 @@ args:
   # so marl answers it today and a limekiln's quicklime answers it the day
   # somebody burns some, and this file names neither row.
   #
-  # ⚠ `me:i` — in hand or carried: you spread what you brought. And it is a
+  # ⚠ `person` — what you carry, where it sits (an open sack, not a shut
+  # one; `canReach` narrows the default): you spread what you brought. And it is a
   # declared arg rather than a walk over your pockets so a player can say
   # WHICH sack (`lint:controller-resolution`).
   - name: agent
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i:[material.liming]"
+    default: "person:[material.liming]"
     scope: ["reachable"]
     requires: [TangibleMixin]
+    validators:
+      - /lib/command/validators/canReach
   - name: detail
     type: string
     required: false

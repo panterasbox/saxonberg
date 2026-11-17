@@ -106,6 +106,8 @@ describe('ContainableMixin', () => {
 
 // A Placing host composed with Containable for placement round-trips.
 class TestSurface extends PlacingMixin(ContainableMixin(Idea)) {}
+/** ⭐ A host that may offer an enclosing region holds things (W9 refusal 3). */
+class TestRegionHost extends PlacingMixin(ContainerMixin(ContainableMixin(Idea))) {}
 
 describe('ContainableMixin.placement', () => {
   let room: ConcreteStuff;
@@ -202,7 +204,7 @@ describe('ContainableMixin — where a thing is is runtime state', () => {
 describe('ContainableMixin.getEnclosingScope', () => {
   let room: ConcreteStuff;
   let item: TestContainable;
-  let host: TestSurface;
+  let host: TestRegionHost;
 
   async function warmMembers(): Promise<void> {
     // The kernel's ways of sitting are resident — the test bootstrap stands
@@ -215,7 +217,7 @@ describe('ContainableMixin.getEnclosingScope', () => {
     await warmMembers();
     room = makeStuff(() => new ConcreteStuff());
     item = makeStuff(() => new TestContainable());
-    host = makeStuffAtPath(() => new TestSurface(), '/test/enclosing-host');
+    host = makeStuffAtPath(() => new TestRegionHost(), '/test/enclosing-host');
     ContainmentApi.move(host, room);
   });
 
@@ -235,10 +237,11 @@ describe('ContainableMixin.getEnclosingScope', () => {
     expect(item.getEnclosingScope()).toBe(room);
   });
 
-  it('⭐ an ENCLOSING member: the HOST — a region with its own air', () => {
-    host.setPlacements([Placements.IN]);
+  it('⭐ an ENCLOSING member: the HOST — a region with its own air, and its contents (W9)', async () => {
+    await host.setPlacements([Placements.IN]);
     ContainmentApi.move(item, host, Placements.IN);
     expect(item.getEnclosingScope()).toBe(host);
+    expect(item.getContainer()).toBe(host);
   });
 
   it('⚠ a host naming a placement no pack ships fails at the setter, naming it', async () => {
@@ -246,8 +249,8 @@ describe('ContainableMixin.getEnclosingScope', () => {
     await expect(host.setPlacements(['/t/placements/sideways'])).rejects.toThrow(/sideways/);
   });
 
-  it('⚠ a destructed host heals to the container, whatever the name said', () => {
-    host.setPlacements([Placements.IN]);
+  it('⚠ a destructed host heals to the container, whatever the name said', async () => {
+    await host.setPlacements([Placements.IN]);
     ContainmentApi.move(item, host, Placements.IN);
     expect(item.getEnclosingScope()).toBe(host);
     StuffApi.destruct(host);

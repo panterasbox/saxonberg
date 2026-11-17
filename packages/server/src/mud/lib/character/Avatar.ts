@@ -23,6 +23,7 @@ import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
 import { CombatApi } from "../../api/combat";
 import type { Containable } from "../spatial/Containable";
+import type { Slottable } from "../slot/Slottable";
 import type { Container } from "../spatial/Container";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
@@ -838,6 +839,10 @@ export default abstract class Avatar extends AvatarBase {
     context?: AvatarInitContext,
   ): Promise<void> {
     this.stampContext(context);
+    // ⭐ Load on use (size and carrying drive): the species row before the
+    // loadout — a body whose plan is not known is not judged, so an outfit
+    // received before it would not be worn by claim nor hung from the belt.
+    await this.ensureSpecies();
     await this.installDefaultLoadout();
     await this.chainOnCreate(context);
     // Schedules are never persisted, so a body re-books its reminders.
@@ -1385,11 +1390,7 @@ export default abstract class Avatar extends AvatarBase {
             // avatar and never lists as loose room contents, THEN occupy
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)
-            ContainmentApi.move(
-              implant as unknown as Stuff & Containable,
-              this as unknown as Stuff & Container,
-            );
-            this.occupy(implant, "cranial");
+            this.seatInSlot(implant as unknown as Stuff & Containable & Slottable, "cranial");
           }
         } catch {
           // No cranial slot on this body plan (sessile etc.) — can't
@@ -1630,6 +1631,8 @@ export default abstract class Avatar extends AvatarBase {
     // persists linkdead for reconnection). The client routes a dropped
     // guest to the start screen.
     if (this.isGuest) {
+      // ⭐ D37: what it borrowed goes back first — never destroyed with it.
+      this.returnBorrowed();
       StuffApi.destruct(this);
       return;
     }

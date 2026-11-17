@@ -42,6 +42,7 @@
  * is tied where a mooring line's is.
  */
 
+import { SIZE_DEFAULTS } from '../../lib/spatial/Dimensions';
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome, type TieRefusal } from '../../lib/spatial/Tieable';
@@ -59,6 +60,7 @@ import { SchedulerApi } from '../../api/scheduler';
 import type { TossOutcome } from '../../lib/spatial/Tossable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import type { Slotted } from '../../lib/slot/Slotted';
 import type { FieldMeta } from '../../lib/mixin';
 import { CuttableMixin, type CutAnswer, type CutDone, type CutRefusal, type CutRequest } from '../../lib/craft/Cuttable';
 import type { ActDone, ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
@@ -71,7 +73,9 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { TemplatePaths } from '../../lib/paths';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
+import { SpeciesApi } from '../../api/species';
 import { ContainmentApi } from '../../api/containment';
+import { Placements } from '../../lib/spatial/Placement';
 import { GrammarApi } from '../../api/grammar';
 import { MessageApi } from '../../api/message';
 import { StuffApi } from '../../api/stuff';
@@ -378,6 +382,22 @@ export default class Rope extends CuttableMixin(
     if (Math.abs(now - kg) > 1e-9) this.setMass(Quantity.of(kg, 'kg'));
   }
 
+  /**
+   * ⭐ A rope's room is its own cylinder, `π(d/2)²·L` (size and carrying
+   * D2) — the fibre and the air laid between its strands.
+   */
+  public override getVolumeM3(): number | null {
+    const r = this.diameterMm / 2000;
+    const v = Math.PI * r * r * this.lengthM;
+    return v > 0 ? v : null;
+  }
+
+  /** ⭐ Coiled, it packs with the air between its turns — not a cloth's crumple. */
+  public override getPackedVolumeM3(): number | null {
+    const v = this.getVolumeM3();
+    return v === null ? null : v * SIZE_DEFAULTS.COIL_PACKING;
+  }
+
   /** ⭐ What it breaks at, new and untied, kg (D6). */
   public breakingKg(): number {
     const material = this.getMaterial();
@@ -532,6 +552,19 @@ export default class Rope extends CuttableMixin(
     const name = made.knot.label;
     if (load.isAgent?.()) {
       if (load === by) return { ok: false, reason: 'self', facts: { gear: this as unknown as Stuff, load } };
+      // ⭐ An animal is led, not handed a rope (size and carrying D18): the
+      // rope goes round what it wears (the halter), and the free end comes
+      // to the tier's hand. A body with hands of its own takes the end.
+      // (A body whose plan is unknown is not judged handless.) ⭐ A body
+      // that WEARS a halter is led whatever its hands (W6: a dog's mouth
+      // serves manipulation, and a dog on a lead is still led).
+      if (
+        MixinApi.isAttired(load) &&
+        SpeciesApi.tryGetBodyPlanPath(load) !== null &&
+        (load.handSlots().length === 0 || load.wornStack().some((w) => MixinApi.isTieable(w)))
+      ) {
+        return this.tieLead(by, load, made.knot);
+      }
       await this.makeFast(load);
       this.knots = [...this.knots.filter((k) => k.end !== 'free'), { ...made.knot, end: 'free' }];
       this.coiledDown = false;
@@ -567,6 +600,47 @@ export default class Rope extends CuttableMixin(
   }
 
   /**
+   * ⭐ A lead (size and carrying D18): the fixed end round the halter the
+   * animal wears (a worn `Tieable`), the rope going with the animal; the
+   * free end into a free hand of the tier — held, never pocketed. No
+   * halter → `no-halter`; no free hand → `hands-full`, and nothing moved.
+   */
+  private async tieLead(by: Stuff, animal: Stuff, knot: KnotRecord): Promise<TieOutcome> {
+    const gear = this as unknown as Stuff;
+    // What a lead is made fast to: the first worn tieable (a halter, a collar).
+    const halter = MixinApi.isAttired(animal) ? (animal.wornStack().find((w) => MixinApi.isTieable(w)) ?? null) : null;
+    if (halter === null) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
+    if (!MixinApi.isCarrying(by) || by.freeHands() < 1) return { ok: false, reason: 'hands-full', facts: { gear, load: animal } };
+    // ⭐ The rope goes with the animal, HUNG from the halter it is made fast
+    // round (W7: the halter offers `from`, so it is never loose on the
+    // animal); a tieable that offers no `from` (a bare collar) has the rope
+    // received like anything else — and one that takes it nowhere is
+    // nothing to tie a lead to. Decided before anything moves.
+    const rope = this as unknown as Stuff & Line;
+    const hangs = MixinApi.isPlacing(halter) && halter.getPlacements().includes(Placements.FROM)
+      && halter.canPlace(rope, Placements.FROM).ok;
+    // Hung from the halter, else ONTO the animal (owner, 2026-11-15: the
+    // one call — it routes); a body that does not carry takes nothing that
+    // does not hang.
+    if (hangs && MixinApi.isPlacing(halter)) ContainmentApi.move(rope, halter, Placements.FROM);
+    else {
+      if (!MixinApi.isCarrying(animal)) return { ok: false, reason: 'no-halter', facts: { gear, load: animal } };
+      ContainmentApi.move(rope, animal);
+    }
+    this._anchor = halter;
+    this.anchorPath = halter.getTemplatePath();
+    this.knots = [...this.knots.filter((k) => k.end !== 'fixed'), { ...knot, end: 'fixed' }];
+    this.coiledDown = false;
+    // The free end comes to the hand the rope just left (`mintEnd` receives it).
+    await this.mintEnd(by as Stuff & Container);
+    return {
+      ok: true,
+      line: `You tie ${this.getPresentation()} to ${halter.getPresentation()} on ${animal.describeFor(by)}, ${knot.label}, and keep hold of the end.`,
+      peers: `ties a lead rope to ${animal.getPresentation()}.`,
+    };
+  }
+
+  /**
    * `untie rope` — the fixed end off its post, into your hands; or, held,
    * the free end off whoever is on it.
    */
@@ -585,6 +659,9 @@ export default class Rope extends CuttableMixin(
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
+      // Handed back to you (owner, 2026-11-15): onto you, or — with
+      // nowhere for it — set down at your feet with the line.
+      ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container);
       if (this.hungVia !== null) {
         this.hungVia = null;
         await this.castOff();
@@ -592,7 +669,6 @@ export default class Rope extends CuttableMixin(
       this._anchor = null;
       this.anchorPath = null;
       this.knots = this.knots.filter((k) => k.end !== 'fixed');
-      ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container);
       return { ok: true, line: `You untie ${this.getPresentation()} from ${anchor.getPresentation()} and take it up.` };
     }
     const across = this.acrossNow();
@@ -958,7 +1034,11 @@ export default class Rope extends CuttableMixin(
     this.cutEnds = Math.min(2, this.cutEnds + 1);
     this.coiledDown = false;
     const into = MixinApi.isContainer(actor) ? actor : (this.getContainer() as Stuff | null);
-    if (into !== null && MixinApi.isContainer(into)) ContainmentApi.move(piece as unknown as Stuff & Line, into);
+    // Made (D-W7a): to whoever cut it, else set down where they stand.
+    if (into !== null && MixinApi.isContainer(into)) {
+      const cut = piece as unknown as Stuff & Line;
+      ContainmentApi.move(cut, into);
+    }
     return { ok: true, facts: { kind: 'rope', takeM: take, leftM: this.lengthM } };
   }
 

@@ -59,6 +59,7 @@ import { MadeFromMixin } from '../chattel/MadeFrom';
 import { IntegrityMixin } from '../material/Integrity';
 import { ConcealableMixin } from '../concealment/Concealable';
 import type { FieldMeta } from '../mixin';
+import { SlottableMixin } from '../slot/Slottable';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container). It traces the `Thing`
@@ -78,7 +79,9 @@ import type { FieldMeta } from '../mixin';
 // order among them is moot, which is what makes this a free move: the
 // composed set is identical to what `ContainerMixin(Good)` produced.
 // An article, like a good: it carries the one damage record (IntegrityMixin).
-const VesselBase = IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Holder))));
+// ⭐ Slottable, as every good is (size and carrying W7): a hand holds a
+// bucket, a bottle, a chest light enough to lift — the grip decides.
+const VesselBase = SlottableMixin(IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Holder)))));
 
 export class Vessel extends VesselBase {
   /**

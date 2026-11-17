@@ -151,8 +151,7 @@ function makePot(soil: number, capacity = soil): PlantPot {
  * contained plant resolves to -1 and is silently dropped on restore.
  */
 function pot(plant: Plant, target: PlantPot): void {
-  ContainmentApi.move(plant, target);
-  target.occupy(plant, PLANT_SLOT);
+  target.seatInSlot(plant, PLANT_SLOT);
 }
 
 describe('Plant — the growing object', () => {

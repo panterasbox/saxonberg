@@ -536,6 +536,7 @@ const KNOWN_PROPS = new Set([
   "inherit",
   "seed",
   "birthOnly",
+  "appliedAfter",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",

@@ -16,7 +16,7 @@ help: |
   building meets the weather (the street before a house, the quay a ship
   lies alongside), onto the building itself: `paint cottage with pot`.
 
-  You need a brush in your hand. A coat takes paint in proportion to how
+  You need a brush to hand — held, or in an open pouch on you. A coat takes paint in proportion to how
   much surface there is: a board a cupful, a cottage several litres —
   `measure paint <building>` says roughly how much before you start. Two coats
   last longer than one.
@@ -63,6 +63,8 @@ args:
     type: object
     required: false
     prepositions: [using]
-    default: "me:i:[capability.painting]"
+    default: "person:[capability.painting]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

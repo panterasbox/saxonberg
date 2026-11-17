@@ -83,7 +83,8 @@ type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
 /** Everything the hand is carrying that came from `path`. */
 function carried(hand: Hand, path: string): Stuff[] {
-  return (hand.getContents() as Stuff[]).filter(
+  // Everything carried (W9: a pocketed thing is its coat's contents).
+  return (hand.getCarriedContents() as Stuff[]).filter(
     (c) => c.getTemplatePath() === path,
   );
 }

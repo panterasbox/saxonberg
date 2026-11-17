@@ -1,7 +1,7 @@
 /**
  * PortableLight — a carried light you actually light: a torch, a lantern.
  *
- * `LightSourceMixin(SwitchableMixin(Good))`. The shipped
+ * `Wearable(Slottable(LightSourceMixin(SwitchableMixin(Good))))`. The shipped
  * `LightSourceMixin` emits its authored flux unconditionally (v1 has no
  * lit/unlit state), and `SwitchableMixin` alone would be a *fake* toggle —
  * so this class **couples** the two: `getEmittedFlux()` returns the authored
@@ -29,10 +29,15 @@ import Good from "../../../lib/stuff/Good";
 import { LightSourceMixin } from "../../../lib/perception/LightSource";
 import { SwitchableMixin } from "../../../lib/boundary/Switchable";
 import { Quantity } from "../../../lib/quantity";
+import { SlottableMixin } from "../../../lib/slot/Slottable";
+import { WearableMixin } from "../../../lib/slot/Wearable";
 
-const PortableLightBase = LightSourceMixin(
+// ⭐ Wearable outermost (size and carrying D27): a portable light may be worn
+// or clipped — the headlamp is a row claiming `[head]`; a row that claims
+// nothing (the glowcap jar) wears nothing, as before.
+const PortableLightBase = WearableMixin(SlottableMixin(LightSourceMixin(
   SwitchableMixin(Good),
-);
+)));
 
 export default class PortableLight extends PortableLightBase {
   /** Emits the authored flux only while lit; dark (0 lumens) while off. */

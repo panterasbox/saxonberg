@@ -13,6 +13,8 @@
 import Good from './Good';
 import { TetherEndMixin } from '../../lib/spatial/TetherEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
+import { WieldableMixin } from '../../lib/slot/Wieldable';
+import { SlottableMixin } from '../../lib/slot/Slottable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../../api/mixin';
@@ -21,7 +23,9 @@ import type { CommandContributions } from '../../api/command';
 import type Line from '../../lib/spatial/Line';
 import type { LineOutcome } from '../../lib/spatial/Line';
 
-export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
+// ⭐ Held in a hand (size and carrying D18): a lead's end is gripped, so it
+// is `Wieldable` — the hand slots' `accepts` — and never pocketed.
+export default class LineEnd extends TieableMixin(TetherEndMixin(WieldableMixin(SlottableMixin(Good)))) {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds the end (item → holder) can signal up it and tie it to
@@ -113,8 +117,10 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
     const load = this.getLashedTo();
     if (load === null) return { ok: false, reason: 'not-tied', facts: { gear: this as unknown as Stuff } };
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', facts: { gear: this as unknown as Stuff } };
-    this._lashedTo = null;
+    // Handed back to you (owner, 2026-11-15): onto you, or — with nowhere
+    // for it — set down at your feet with the line.
     ContainmentApi.move(this, by as Stuff & Container);
+    this._lashedTo = null;
     if (line !== null) await line.endUntied(by, load);
     return { ok: true, line: `You cast the end of the line off ${load.getPresentation()} and take it up.` };
   }
@@ -123,7 +129,8 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
   public followLoad(): void {
     const load = this._lashedTo;
     const at = load !== null && !load.isDestroyed() && MixinApi.isContainable(load) ? load.getContainer() : null;
-    if (at !== null && at !== this.getContainer()) ContainmentApi.move(this, at as Stuff & Container);
+    if (at === null || at === this.getContainer()) return;
+    ContainmentApi.move(this, at as Stuff & Container);
   }
 
   /** ⭐ A tug up the line, from whoever holds this end. */

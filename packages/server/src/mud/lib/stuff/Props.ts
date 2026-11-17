@@ -82,7 +82,8 @@ export function PropsMixin<
      * mint a second set; persistent so the fact survives a capture/restore.
      */
     static fieldMeta: FieldMeta = {
-      props: { instruction: true, authorable: true, inherit: 'by-entry' },
+      // ⭐ Dressed first (`costume`), so a prop routes into a worn carrier.
+      props: { instruction: true, authorable: true, inherit: 'by-entry', appliedAfter: ['costume'] },
       _propsStaged: { persistent: true, runtimeState: true },
     };
 

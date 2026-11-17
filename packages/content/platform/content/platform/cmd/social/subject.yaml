@@ -28,8 +28,8 @@ subcommands:
         type: string
         field: group
         description: "Bind an existing guild:/mql:/contacts:/managed: ref (mints nothing)"
-      # ⚠ `--public`, not `--open`: `--open` is the reserved reach rung
-      # (controller-liquidity D4). The field keeps its name.
+      # ⚠ `--public`, not `--open`: `--open` was the reach rung
+      # (controller-liquidity D4, retired by size-and-carrying D17); the word stays.
       public:
         type: boolean
         field: open

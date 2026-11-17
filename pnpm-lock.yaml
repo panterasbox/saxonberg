@@ -823,6 +823,15 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:../tpa
+      '@saxonberg/content-trade-tanning':
+        specifier: workspace:*
+        version: link:../trade-tanning
+      '@saxonberg/content-transport':
+        specifier: workspace:*
+        version: link:../transport
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

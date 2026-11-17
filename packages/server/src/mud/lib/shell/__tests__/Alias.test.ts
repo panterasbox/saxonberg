@@ -525,6 +525,21 @@ describe('⭐ the view source (D16): a default alias is declared on the view', (
     const parsed = CommandLineApi.parsePipeline('? look').commands[0]!;
     expect(CommandLineApi.format(ShellApi.expandAliases(parsed, host).parsed)).toBe('help look');
   });
+
+  it('⭐ a view may state the whole line (W10h): `i` runs `query --ledger me:i`, options appended', () => {
+    const host = makeStuff(() => new ViewHost());
+    host.afforded = [
+      CommandDefinition.fromYaml(
+        'verbs: [query]\ndefaultAliases: [{name: i, body: "query --ledger me:i"}]\ncontroller: x\ndescription: d\n',
+        '<test>',
+      ),
+    ];
+    expect(host.getAlias('i')).toMatchObject({ name: 'i', body: 'query --ledger me:i', source: 'default', view: 'query' });
+    const bare = CommandLineApi.parsePipeline('i').commands[0]!;
+    expect(CommandLineApi.format(ShellApi.expandAliases(bare, host).parsed)).toBe('query --ledger me:i');
+    const opt = CommandLineApi.parsePipeline('i --weight').commands[0]!;
+    expect(CommandLineApi.format(ShellApi.expandAliases(opt, host).parsed)).toBe('query --ledger me:i --weight');
+  });
 });
 
 describe('AliasMixin — pipeline integration', () => {

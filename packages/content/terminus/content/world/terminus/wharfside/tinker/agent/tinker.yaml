@@ -6,6 +6,10 @@ extends: /stuff/agent/costume/student
 data:
   costume:
     - /stuff/thing/clothes/tweed-jacket
+    # ⭐ What his kit rides in (size and carrying, finalize): two hands take
+    # the hook and the stone, and the sewing roll and the box of offcuts go
+    # in the satchel at his side — ready, not packed.
+    - /trade/tanning/thing/satchel
   name: Abel Thorne
   keywords: [tinker, abel, thorne, mender]
   pronouns: he

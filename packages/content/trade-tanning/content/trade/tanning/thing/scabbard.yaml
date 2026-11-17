@@ -1,0 +1,18 @@
+# A scabbard (size and carrying D27/D16) — a sword's case of leather over
+# wooden slats: it takes a thing that is wielded (`shapedTo:
+# WieldableMixin`; the mouth and the length decide a sword), and a shaped holder is the draw. It hangs from
+# a belt or a baldric.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather scabbard
+  keywords: [scabbard, leather, "leather scabbard"]
+  register: indefinite
+  longDescription: >
+    A long scabbard of thin wooden slats covered in black leather, with an
+    iron chape at the tip and a throat that grips the blade.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.6
+  dimensions: { width: 0.07, depth: 0.025, height: 1.15 }
+  shape: rod
+  shapedTo: WieldableMixin
+  mouth: { width: 0.065, height: 0.02 }

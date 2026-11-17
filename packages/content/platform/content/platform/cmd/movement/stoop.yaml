@@ -1,0 +1,25 @@
+verbs: [stoop]
+category: movement
+controller: /platform/idea/cmd/movement/StoopController
+description: "Go through an exit bent low, under a low lintel."
+help: |
+  Go through an exit stooping — `stoop north`, `stoop door`. You go
+  bent over, lower than you stand and a little slower than a walk, but
+  no quieter: stooping is not sneaking. It is how you get under a low
+  door; a way you are too tall to walk says so and names this verb.
+
+  Crawling (`crawl`) goes lower still. Stooping never changes how you
+  stand once you are through — under a low ceiling, `stand` is refused.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    # Ways only, like `go` and `sneak`: the word names a way, or a vessel
+    # standing here entered by its entry-exit.
+    scope: ["me:e:exits", "reachable:[class.ExitableVessel]"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach
+    requires: any

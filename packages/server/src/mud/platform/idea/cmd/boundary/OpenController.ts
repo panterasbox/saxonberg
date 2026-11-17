@@ -30,6 +30,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Placing } from '../../../../lib/spatial/Placing';
 import type { Sealable, OpenFacts, OpenRefusal } from '../../../../lib/spatial/Sealable';
 
 type Composed = ReturnType<typeof Mml.compose>;
@@ -68,6 +69,15 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
+    // ⭐ A chamber that closes (size and carrying D-W10-12): `open "breast
+    // pocket"` — the binder's `via.region` names it, and the host drives it.
+    const region = target.via?.region;
+    if (region !== undefined && MixinApi.isPlacing(target.stuff)) {
+      const host = target.stuff;
+      await this.guarded(commandGiver, OpenController.seconds(commandGiver, host), () => this.openChamber(commandGiver, host, region, context));
+      return;
+    }
+
     // Direct hit (open oak) → the door is target.stuff; a way (open
     // north) → the door hung in it. MqlApi.effectiveTarget is that one
     // rule. The arrow wrapper preserves MixinApi as `this` —
@@ -98,11 +108,13 @@ export default class OpenController extends CommandController<OpenModel> {
     if (!answer.ok) {
       return this.refuse(context, 'act.deed', OpenController.refusal(answer, answer.facts?.why ?? null), answer.reason);
     }
-    await this.engagePlan(context, answer, {
+    // ⭐ In a fight, opening a thing is a guarded beat (D-W10-5): the
+    // unfasten on you, a reach in the room. Outside one it lands now.
+    await this.guarded(commandGiver, OpenController.seconds(commandGiver, sealable as unknown as Stuff), () => this.engagePlan(context, answer, {
       beginSelf: () => Mml.compose``,
       onRefused: (r) => Mml.compose`${OpenController.refusal(r, null)}`,
       onDone: (f) => OpenController.done(commandGiver, f),
-    });
+    }));
   }
 
   /** The opening, in words. */
@@ -135,5 +147,29 @@ export default class OpenController extends CommandController<OpenModel> {
         throw new Error(`OpenController: no words for ${String(unworded)}`);
       }
     }
+  }
+
+  /** `open "breast pocket"`: the chamber unbuttons itself if it can — the host decides (D-W10-12). */
+  private openChamber(giver: Stuff, host: Stuff & Placing, region: string, context: CommandContext): void {
+    const done = host.fastenRegion(region, false);
+    if (!done.ok) {
+      const line = done.reason === 'does-not-close'
+        ? `The ${region} doesn't fasten — it is always open.`
+        : 'It is already open.';
+      this.refuse(context, 'act.deed', line, done.reason ?? 'refused');
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You unbutton the ${region} of ${Mml.thing(host)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} unbuttons the ${region} of ${Mml.thing(host)}.`)
+      .send();
+  }
+
+  /** What opening or shutting `thing` costs in a fight: the unfasten beat on you, a reach in the room (D-W10-5). */
+  private static seconds(giver: Stuff, thing: Stuff): number {
+    if (!MixinApi.isCombatant(giver)) return 0;
+    const onYou = MixinApi.isCarrying(giver) && giver.tierOf(thing) !== 'elsewhere';
+    return giver.handActSeconds(thing, onYou ? 'unfasten' : undefined);
   }
 }

@@ -26,9 +26,11 @@ args:
   - name: trap
     type: object
     required: false
-    default: "me:i:[capability.trapping]"
+    default: "person:[capability.trapping]"
     scope: ["inventory"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
   - name: shore
     type: object
     required: false

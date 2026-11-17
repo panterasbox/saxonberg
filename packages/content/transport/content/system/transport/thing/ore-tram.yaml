@@ -30,3 +30,7 @@ data:
   # cannot leave the iron. The lane is the constraint, not the number.
   draftFactor: 0.05
   interiorCapacity: 900
+  # ⭐ Riding in it is SITTING in it (size and carrying D38): the bed is a
+  # posture-bearing slot like a bench's — `sit in ore-tram`, `lie in …`, `stand`.
+  staticSlots:
+    - { name: bed, accepts: SlottableMixin, capacity: 1, postures: [sit, lie] }

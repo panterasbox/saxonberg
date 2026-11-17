@@ -11,6 +11,10 @@ help: |
   Some sources, like a public urn or a fountain, never run dry, so
   you can refill as often as you like. When you want to move a
   precise amount between two holders instead, use `pour`.
+
+  Used where it sits — in hand, in an open holder on you, or within
+  reach; a shut holder says `open` it first, a pack on your back says
+  take it off.
 examples:
   - cmd: fill the flask from the urn
     note: Top a vessel up from a source
@@ -27,7 +31,7 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
   - name: source
     prepositionRequired: true
     type: object

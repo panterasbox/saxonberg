@@ -634,6 +634,61 @@ export abstract class Template extends Document {
           }
           ContainmentApi.move(inst, host, placement.name);
         } else {
+          // ⭐ Capacity is physical (size and carrying D7): an ENCLOSED place
+          // refuses authored content that does not fit — loudly, naming the
+          // thing, its size and the place, and the thing is not placed. An
+          // open place lets a big thing spill over, so it never refuses.
+          if (
+            kind === 'props' &&
+            host.isPlace() &&
+            !singleton &&
+            (host.getLinearExtent() ?? 0) > 0
+          ) {
+            const refusal = host.fitRefusal(inst);
+            if (
+              refusal !== null &&
+              MixinApi.isAtmospheric(host) &&
+              host.exposure().holdsAir()
+            ) {
+              const { DiagnosticApi } = await import('../../api/diagnostics');
+              const d = refusal.facts.dims;
+              await DiagnosticApi.record({
+                path: host.getTemplatePath() ?? host.stuffId,
+                severity: 'error',
+                message:
+                  `prop ${path} (${d ? `${d.width.toFixed(2)} × ${d.depth.toFixed(2)} × ${d.height.toFixed(2)} m` : 'unshaped'}) ` +
+                  `does not fit ${host.getTemplatePath() ?? host.stuffId} ` +
+                  `(${refusal.reason}); it is not placed. Size the row, or the place.`,
+                channel: 'location-graph',
+              });
+              StuffApi.destruct(inst);
+              continue;
+            }
+          }
+          // ⭐ A body is staged with what it CARRIES (size and carrying W8;
+          // owner, 2026-11-15): `move` routes it — a hand, a pocket, a hook,
+          // a bag it carries. When the routing would only set it down (a
+          // full pair of hands), or the body does not carry (a fish), the
+          // author is told and the thing is not placed, as for a prop too big.
+          const refused = MixinApi.isCarrying(host)
+            ? (host.wouldSetDown(inst)?.reason ?? null)
+            : host.isAgent()
+              ? 'does-not-carry'
+              : null;
+          if (refused !== null) {
+            const { DiagnosticApi } = await import('../../api/diagnostics');
+            await DiagnosticApi.record({
+              path: host.getTemplatePath() ?? host.stuffId,
+              severity: 'error',
+              message:
+                `prop ${path} has no place on ${host.getTemplatePath() ?? host.stuffId} ` +
+                `(${refused}); it is not placed. A body places what it carries — ` +
+                `give it hands or something worn to carry it in, or fewer things.`,
+              channel: 'location-graph',
+            });
+            StuffApi.destruct(inst);
+            continue;
+          }
           ContainmentApi.move(inst, host);
         }
       }

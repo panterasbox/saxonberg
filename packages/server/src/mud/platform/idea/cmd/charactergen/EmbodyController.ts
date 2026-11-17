@@ -30,7 +30,6 @@ import { StuffApi } from "../../../../api/stuff";
 import { AppApi } from "../../../../api/app";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
-import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
@@ -756,27 +755,10 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       }
     }
 
-    // 5. Dress in the aspiration's themed outfit (tolerant of missing
-    //    garments / slot mismatches — content may lag). Narrow the
-    //    freshly-cloned garment with the mixin predicates rather than
-    //    casting: a garment that isn't Containable/Wearable is skipped.
-    //    The avatar is always a Container + Slotted (it's an `Avatar`).
-    if (aspiration && species) {
-      const bodyPlanPath = species.getBodyPlanPath();
-      for (const garmentPath of aspiration.outfit) {
-        try {
-          const garment = await StuffApi.clone(garmentPath);
-          if (!MixinApi.isContainable(garment)) continue;
-          ContainmentApi.move(garment, avatar);
-          if (bodyPlanPath && MixinApi.isWearable(garment)) {
-            const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) avatar.occupyAll(garment, slots);
-          }
-        } catch {
-          /* skip this garment */
-        }
-      }
-    }
+    // 5. Dress in the aspiration's themed outfit — the body's own recipe
+    //    (`Character.wearGarments`: by claim, else placed; a garment that
+    //    will not go on costs that garment, not the character).
+    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
 
     // 5b. Seed the chronicle from the chosen aspiration — the prologue
     //     (author-trusted `claim`s) plus a founding `deed`. Kept strictly

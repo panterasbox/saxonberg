@@ -21,7 +21,6 @@ import { Idea } from "../../stuff/Idea";
 import { Creature } from "../../creature/Creature";
 import { PlayerApi } from "../../../api/player";
 import { ContainerMixin } from "../../spatial/Container";
-import { ContainableMixin } from "../../spatial/Containable";
 import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { LEDGER_KINDS } from "../../banking/LedgerEntry";
 import type { Stuff } from "../../stuff/Stuff";
@@ -36,6 +35,7 @@ import {
   col,
 } from "../../banking/__tests__/banking-test-harness";
 import { Collections } from "../../../../backend/PersistenceManager";
+import { Body, Tool, withHands } from "../../slot/__tests__/carrying-fixture";
 
 class TestIssuer extends BeliefStoreMixin(Idea) {
   static _mixinName = "TestIssuer";
@@ -43,7 +43,9 @@ class TestIssuer extends BeliefStoreMixin(Idea) {
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = "TestRoom";
 }
-class TestCrate extends ContainableMixin(Idea) {
+/** A crate a courier takes in hand (size and carrying W8: a body carries
+ *  what a hand can hold, so the cargo is a holdable thing). */
+class TestCrate extends Tool {
   static _mixinName = "TestCrate";
 }
 
@@ -123,8 +125,10 @@ describe("contract lifecycle", () => {
         )) as never,
     );
     issuer = makeStuffAtPath(() => new TestIssuer(), ISSUER);
-    courier = makeStuffAtPath(() => new Creature(), COURIER);
-    rival = makeStuffAtPath(() => new Creature(), RIVAL);
+    // Bodies with hands: a body carries what it is given (size and
+    // carrying W8) — a bare Creature does not carry, and refuses it.
+    courier = withHands(makeStuffAtPath(() => new Body(), COURIER));
+    rival = withHands(makeStuffAtPath(() => new Body(), RIVAL));
     bar = makeStuffAtPath(() => new TestRoom(), BAR);
     warehouse = makeStuffAtPath(() => new TestRoom(), WAREHOUSE);
     crate = makeStuffAtPath(() => new TestCrate(), CRATE);

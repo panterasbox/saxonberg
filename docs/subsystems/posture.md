@@ -164,6 +164,24 @@ the standard non-configurable case.
 | `stand` | no-arg | Slot-less posture flip — vacates any posture-bearing slot, sets `Stand`; ⭐ on a slotted floor the floor answers `acceptPosture(actor, 'stand')` (controller-liquidity W7c): `held` when it already bears you (only the posture changes), `rest` when standing means getting up ONTO it (the floor's `occupy` ends the swim) |
 | `stand <X>` | with arg | Stand on X (e.g., on a chair or table) |
 
+⭐ **A ceiling too low to stand under** (size and carrying D21): `stand`
+asks `Creature.acceptPosture('stand')` first, on both the host and the
+no-host path, and it refuses `ceiling-too-low` when the place's
+`getCeilingHeight()` is under the body's stature — in a crawlspace you
+stay down. Open sky has no ceiling. The read is on `Creature`, not
+`Posed`: on `Posed` it split the mixin into two disjoint ideas (posture
+held · posture allowed here); `Posed` keeps only the `getStature()` hook.
+See [size.md](./size.md).
+
+⭐ **A cart's bed is a seat** (size and carrying D38): `Handcart` and the
+transport pack's `HaulageRig` compose `Postured(Slotted(Sealable(…)))`
+and their rows declare a `bed` slot with `postures: [sit, lie]` and a
+capacity (wagon 4, dray 3, sledge 2, ore tram 1, handcart 1, travois 1 —
+`lie` only). `sit in cart` / `lie in cart` seat the rider in the cart's
+contents; the rider's weight joins the draft and the cart's move carries
+its seated riders; `stand` gets out. Riding in a cart is sitting in it —
+`mount`/`ride` stay the animals'. See [conveyance.md](./conveyance.md).
+
 The asymmetry: `sit` / `lie` / `kneel` no-arg occupy the floor slot
 (routed through `Slotted/Slottable`); `stand` no-arg does not (it's the
 implicit "free" posture, no slot needed).
@@ -266,3 +284,9 @@ error and no teleport.
 - **2026-10-18 (storage-and-ice, MR !378).** Bare `stand` on a slotted
   floor climbs out of the water onto it; `Slotted.canOccupyReason` lets a
   slot host refuse in its own words.
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. `stand` refuses `ceiling-too-low` under a ceiling
+lower than the body (`Creature.acceptPosture`); carts gained a `bed`
+posture slot so a rider sits in one.

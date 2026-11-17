@@ -37,6 +37,7 @@ import { EmployedMixin } from '../lib/employment/Employed';
 import { makeStuff, makeStuffAtPath } from '../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import BusinessEntity from '../platform/idea/Business';
+import { Body, withHands } from '../lib/slot/__tests__/carrying-fixture';
 
 const SCALE = 12;
 let real = 0;
@@ -233,7 +234,9 @@ afterEach(() => {
 describe("Dave's Bar — order, drink, feel it", () => {
   it('a patron orders a martini, drinks it, and their BAC rises', async () => {
     // The patron orders off the menu (resolve gates on the offer).
-    const patron = makeStuff(() => new Creature());
+    // A body with hands, to be handed the drink (size and carrying W8: a
+    // bare Creature does not carry, and refuses what it is given).
+    const patron = withHands(makeStuff(() => new Body()));
     patron.setMass(Quantity.of(70, 'kg'));
     ContainmentApi.move(patron, room);
 

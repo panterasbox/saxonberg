@@ -73,6 +73,9 @@ const SheetBase = TearableMixin(
 );
 
 export default class Sheet extends SheetBase {
+  /** ⭐ Paper is a sheet: broad and thin (size and carrying D1). */
+  static defaultShape = 'sheet';
+
   /**
    * ⭐ A sheet affords `paste` — carried or at your feet (controller-
    * liquidity W7c): pasting a label is afforded by what is pasted, the way
@@ -398,7 +401,9 @@ export default class Sheet extends SheetBase {
       other.setMass(Quantity.of(half, 'kg'));
     }
     const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-    if (where !== null && MixinApi.isContainer(where)) ContainmentApi.move(other, where);
+    if (where !== null && MixinApi.isContainer(where)) {
+      ContainmentApi.move(other, where);
+    }
     return {
       ok: true,
       line: text.length > 0

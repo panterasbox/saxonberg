@@ -16,6 +16,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { MagicApi } from '../../../api/magic';
@@ -116,7 +117,7 @@ describe('MagicApi.relocationCost — m·g·Δh, and nothing else', () => {
 
     const heavy = traveller(70);
     ContainmentApi.move(heavy as never, here as never);
-    ContainmentApi.move(massThing(30) as never, heavy as never);
+    carry(heavy, massThing(30));
     const loaded = await MagicApi.relocationCost({ traveller: heavy, to: up });
 
     // You pay to lift the pack too. The exact multiplier is the

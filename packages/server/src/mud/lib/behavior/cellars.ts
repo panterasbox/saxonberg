@@ -564,7 +564,8 @@ export const brain = class {
     } finally {
       hand.teleport(home);
       // Set the goods down where the work can reach them.
-      for (const c of [...hand.getContents()]) {
+      // Everything carried (W9: a bought good may be pocketed, not held).
+      for (const c of [...hand.getCarriedContents()]) {
         const kw = keywordOf(c);
         if (kw !== null && keywords.includes(kw)) {
           await hand.forceCommand(`drop ${CommandLineApi.word(kw)}`);

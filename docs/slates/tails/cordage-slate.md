@@ -20,7 +20,7 @@
   be longer than its walk**. Ropewalks were buildings a quarter-mile long (Chatham's
   Royal Navy ropery is about 346 m); the spinner walked backward down it, paying fiber
   out from around the waist. A place whose **length** is its capability — the
-  [size slate](../builds/size-slate.md)'s real measures at their most literal.
+  [size slate](../../subsystems/size.md)'s real measures at their most literal.
 
 ## 2. ⭐⭐ Strength, derived **[DECIDED — lens 1]**
 

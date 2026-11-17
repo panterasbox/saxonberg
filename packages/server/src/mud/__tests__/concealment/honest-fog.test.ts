@@ -1,13 +1,19 @@
 /**
  * Honest fog (Phase 2, D4) — the wire-shape assertion. A concealed,
  * undiscovered thing is absent from a low-perception viewer's world at the
- * server: it appears in **no** `look`-emitted frame, **no** MQL match set,
- * and **no** wire projection. After `recordDiscovery`, it appears in all
- * three. This is the no-metagaming proof — the client never receives data
- * about a thing the player can't perceive.
+ * server: it appears in **no** `look`-emitted frame, **no** perceived MQL
+ * match, and **no** wire projection. After `recordDiscovery`, it appears in
+ * all three. This is the no-metagaming proof — the client never receives
+ * data about a thing the player can't perceive.
+ *
+ * ⭐ MQL is universal (size and carrying, D23): the resolver NAMES the
+ * secret for everybody, and perception is applied only at the surfaces —
+ * `PerceptionApi.perceived` over the match set (the binder's filter, held
+ * by `lint:perceived-surfaces`; the binder itself is proven in
+ * `binder.perceived.test.ts`), the look render and the projection.
  *
  * Driven through the real paths (not mocks): the `LookController` render,
- * `MqlApi` scope resolution (scope-walk → `perceives`), and the
+ * `MqlApi` resolution filtered by `PerceptionApi.perceived`, and the
  * `ContainerMixin` `contents` subscribable-field projection.
  */
 
@@ -154,25 +160,30 @@ describe('honest fog — a concealed thing is absent until discovered', () => {
     expect(PerceptionApi.perceives(viewer, lamp as never)).toBe(true);
   });
 
-  it('the concealed thing appears in NO look frame, NO MQL match, NO projection', async () => {
+  it('the concealed thing appears in NO look frame, NO perceived MQL match, NO projection', async () => {
     // 1) look frame.
     const frame = await runLook(viewer, room);
     expect(frame).toContain(OBVIOUS_TOKEN); // the render did surface contents
     expect(frame).not.toContain(SECRET_TOKEN);
     expect(frame).not.toContain(secret.stuffId);
 
-    // 2) MQL scope resolution (scope-walk → perceives). The concealed
-    // keyword resolves to nothing; the obvious one resolves to the lamp.
-    const lampHits = MqlApi.resolveMany(OBVIOUS_TOKEN, {
+    // 2) MQL names everything for everyone (D23) — the resolver finds the
+    // secret by its keyword — and perception is the SURFACE's job: through
+    // `PerceptionApi.perceived` the concealed match is gone, while the
+    // obvious one survives.
+    const lampMatches = MqlApi.resolveMany(OBVIOUS_TOKEN, {
       commandGiver: viewer as never,
       scope: 'reachable',
-    }).stuff.map((s) => s.stuffId);
-    const secretHits = MqlApi.resolveMany(SECRET_TOKEN, {
+    }).stuff;
+    const secretMatches = MqlApi.resolveMany(SECRET_TOKEN, {
       commandGiver: viewer as never,
       scope: 'reachable',
-    }).stuff.map((s) => s.stuffId);
-    expect(lampHits).toContain(lamp.stuffId);
-    expect(secretHits).not.toContain(secret.stuffId);
+    }).stuff;
+    expect(secretMatches.map((s) => s.stuffId)).toContain(secret.stuffId);
+    const perceivedLamp = PerceptionApi.perceived(viewer as never, lampMatches);
+    const perceivedSecret = PerceptionApi.perceived(viewer as never, secretMatches);
+    expect(perceivedLamp.map((s) => s.stuffId)).toContain(lamp.stuffId);
+    expect(perceivedSecret).toEqual([]);
 
     // 3) wire projection of the room contents.
     const projected = projectContents(room, viewer);
@@ -188,10 +199,13 @@ describe('honest fog — a concealed thing is absent until discovered', () => {
     const frame = await runLook(viewer, room);
     expect(frame).toContain(SECRET_TOKEN);
 
-    const secretHits = MqlApi.resolveMany(SECRET_TOKEN, {
-      commandGiver: viewer as never,
-      scope: 'reachable',
-    }).stuff.map((s) => s.stuffId);
+    const secretHits = PerceptionApi.perceived(
+      viewer as never,
+      MqlApi.resolveMany(SECRET_TOKEN, {
+        commandGiver: viewer as never,
+        scope: 'reachable',
+      }).stuff,
+    ).map((s) => s.stuffId);
     expect(secretHits).toContain(secret.stuffId);
 
     const projectedIds = projectContents(room, viewer).map((p) => p.stuffId);

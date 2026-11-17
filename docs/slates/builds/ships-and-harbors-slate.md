@@ -679,7 +679,7 @@ enforces the safety rules whose violation the physics punishes. Ballast dumping
 silts the harbor (the dredger's work).
 
 Sizes in general — exits, bodies, what fits — went to
-[size-slate](./size-slate.md).
+[size-slate](../../subsystems/size.md).
 
 ## 19. Drill-down: pilots, quarantine, customs (2026-10-19)
 

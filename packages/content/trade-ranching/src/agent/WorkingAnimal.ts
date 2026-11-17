@@ -43,7 +43,7 @@
  * is a follow-on and it should land beside pets, not inside ranching.
  */
 
-import { KeptAnimal } from '@saxonberg/server/mud/lib/creature/KeptAnimal';
+import { KeptAnimal } from '@saxonberg/server/mud/platform/agent/KeptAnimal';
 import { HandledMixin } from '../lib/Handled';
 
 /**
@@ -66,6 +66,10 @@ import { HandledMixin } from '../lib/Handled';
  * already carries it — beside `BeliefStoreMixin`, which is what makes a
  * bond possible. A working animal is a kept animal that also has a job.
  */
+// ⭐ It carries (size and carrying W8): a harness, a pack saddle. The
+// carrying comes from the platform's `KeptAnimal` twin, which composes
+// `CarryingMixin` over the substrate rung — composing it again here
+// would stack the mixin twice.
 const WorkingAnimalBase = HandledMixin(KeptAnimal);
 
 export default class WorkingAnimal extends WorkingAnimalBase {}

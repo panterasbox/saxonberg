@@ -37,7 +37,8 @@ me                        the command-giver
 here                      the place you are in (past a boat, a cart,
                           a bed) — `me:e` is what immediately holds you
 peers                     everything in the room except the giver
-inventory                 the giver's contents (and inside open bags)
+inventory                 everything the giver carries, nearest first
+                          (hand · ready · packed), never into another body
 person                    everything on your person (you, your implant
                           apps, installed gear + its apps, carried
                           items + their apps)
@@ -159,8 +160,8 @@ seed yields a list of Stuff (possibly empty).
 | `here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed (`getEnclosingPlace`); what immediately holds you is `me:e` |
 | `peers` | the place's contents minus the giver, one level into open things there, and the vessel you sit in |
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
-| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) — **what you could lay hands on now**: held, worn, inside the open vessels you carry (all the way down), the room's top level and one level into open things here; never inside a shut thing. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) |
-| `inventory` | the giver's contents, and inside the open vessels among them (the giver itself is `me`) |
+| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first and the giver itself last (you can reach yourself, but a noun names someone else before you) — **what you could lay hands on now**: everything you carry, nearest first (hand · ready · packed — a thing in a shut bag or the pack on your back is in the list, and the verb says why a hand cannot get at it), the room's top level and one level into open things here, never inside a shut thing there. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) plus the object's own `reachRefusal` |
+| `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed); the giver itself is `me`. A mid-chain `bob:inventory` is read from OUTSIDE — what Bob holds and wears, one level into the open things there |
 | `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `online` | every connected command-giver |
 | `it` / `him` / `her` | last single match of matching gender |
@@ -169,26 +170,18 @@ seed yields a list of Stuff (possibly empty).
 | `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
 
-### ⭐ Reach rungs — `--top` · `--open` · `--deep`
+### ⭐ Reach is one rule — the nearest thing you perceive wins
 
-The giver-anchored pools (`inventory`, `person`, `peers`, `reachable`)
-walk at a **rung**. The grammar has **no word** for it — a plain word
-inside a query is always a name — so the rung is a reserved per-command
-flag and each argument's `depth:` in its view (default `open`):
-
-| Rung | Reaches |
-|---|---|
-| `--top` | what you hold and wear, and the room's top level |
-| `--open` *(default)* | and inside the open vessels you carry, all the way down, and one level into open things here |
-| `--deep` | everything, shut or not — never another person's pockets |
-
-A bare name that finds nothing at its rung is asked once more at `deep`;
-when what answers is behind a shut lid the command says so (*"The box is
-shut."*) rather than *nothing named that*, and binds nothing. A rung you
-type is taken at its word: `eat apple --top` with the apple in your bag
-finds none at hand. The chain transforms are not rungs: `me:I:apple`
-**addresses** the apple wherever it is (below), and the verb decides
-whether a hand can get at it.
+There are no reach rungs (the `--top` / `--open` / `--deep` flags were
+retired 2026-11-11). A bare name binds **the nearest thing you perceive
+that answers to it**: in your hand, then what is ready (worn, hung from
+your belt, in a pocket or a bag you wear anywhere but your back), then what
+is packed (in the pack on your back), then the room — its top level and one level into
+the open things there. Two equally near ask *which one?*. A thing you
+cannot get a hand on is still bound, and the verb says why: *"The box is
+shut."*, *"The rucksack is on your back — take it off first."* The chain
+transforms name things wherever they are (`me:I:apple`, below), and the
+verb decides whether a hand can get at it.
 
 ### ⭐⭐ There is no `world` seed
 
@@ -355,10 +348,15 @@ here:bookcase:e   pops back to (room, no via)
 here:bookcase:E   pops the whole detail path (same Stuff, no via)
 ```
 
-⭐ **MQL addresses; it never decides possibility.** `look me:I:apple`
+⭐ **MQL names; it never decides possibility, and never what you may
+see.** `bob:i` names everything Bob carries — for everyone; the verb that
+shows or binds it shows only what you perceive (his hands, his outer
+coat, an open pocket — never what his clothes cover). `look me:I:apple`
 finds the apple in your shut box and describes it; `eat me:I:apple` is
 refused by the verb — *"The box is shut."* (`Containable.reachRefusal`,
-read by the `mustNotBeShutAway` / `canReach` validators).
+read by the `canReach` validator). A head ordinal (`2nd knife`) counts only
+what you perceive; the chain index `knife:[2]` indexes MQL's list, the
+same for everyone.
 
 Objects without the relevant mixin contribute nothing — the chain
 silent-filters rather than erroring. A Stuff already at the root
@@ -397,19 +395,19 @@ A reserved predicate name keeps members where the predicate holds:
 | `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is (or stands in) the giver's place, or is in the vessel the giver sits in |
-| `visible` | object presents to the eye (composes Visible) and the giver perceives it — concealed-and-undiscovered things are not; the scope says *where* |
+| `visible` | a CLASS word: the object presents to the eye (composes Visible). ⚠ Since 2026-11-11 it does not ask whether the giver perceives it — MQL names the same things for everyone, and the verb that shows the result shows only what you perceive (size-and-carrying D23); the scope says *where* |
 | `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
-| `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
-| `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |
-| `held` | object is in hand: in a body's slot that accepts a Wieldable, or loose in a body's contents in no slot (today's carrying model — the carrying build retunes it). A coupe in a rack is not held |
+| `worn` | object occupies one of its holder's slots that is not a hand (a coat on a person, a coupe in a rack; a coat in your hand is held, not worn) |
+| `carried` | object is on its holder and not worn — in a hand, a pocket, hung from a belt — so `worn` and `carried` partition a holder |
+| `held` | object is in hand: in one of a body's hand slots (since 2026-11-12 nothing sits loose on a body — a thing is held, worn, or placed on something worn). A coupe in a rack is not held |
 
 ```
 peers:living              only Mobile peers
 peers:online              only connected peers
 me:i:visible              visible items in inventory
-me:i:worn                 what you are wearing (and holding)
-me:i:carried              what is in your pockets and pack
-me:i:held                 what is in your hands (today: anything loose on you)
+me:i:worn                 what you are wearing
+me:i:carried              what is in your hands, your pockets, on your belt
+me:i:held                 what is in your hands
 here:i:visible:loose:[not mixin.AdornmentMixin] - me
                           the room as `look` lists it
 ```

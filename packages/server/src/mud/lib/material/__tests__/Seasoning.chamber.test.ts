@@ -104,10 +104,11 @@ afterEach(() => {
 });
 
 describe('⭐ seasoning in a chamber', () => {
-  it("a stack placed IN the loft reads the loft's air — the scope IS the chamber", () => {
+  it("a stack IN the loft reads the loft's air — the scope IS the chamber", () => {
     const t = stack();
     ContainmentApi.move(t, loft, Placements.IN);
-    expect(t.getContainer()).toBe(yard);
+    // The loft's contents (W9: an enclosing relation is containment).
+    expect(t.getContainer()).toBe(loft);
     expect(t.getEnclosingScope()).toBe(loft);
 
     t.getSeasonedFraction(); // seed the stamp

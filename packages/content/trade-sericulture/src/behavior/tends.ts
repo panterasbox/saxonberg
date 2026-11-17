@@ -112,6 +112,7 @@ async function step(hand: Hand, direction: string): Promise<boolean> {
 /** Move by object, said aloud — the tray acts (see the header). */
 function handMoves(hand: Hand, thing: Stuff, to: Stuff & Container, line: string): void {
   if (!MixinApi.isContainable(thing)) return;
+  // A hand's own work: taken up, else set down where it stands.
   ContainmentApi.move(thing as Stuff & Containable, to);
   MessageApi.scene(hand).topic('act.deed').toPeers(Mml.compose`${Mml.actor(hand)} ${line}`).send();
 }
@@ -150,7 +151,8 @@ export const brain = class {
 
     const here = hand.getContainer();
     const at = here?.getTemplatePath() ?? '';
-    const carried = hand.getContents() as Stuff[];
+    // Everything carried (W9: a pocketed armful is its coat's contents).
+    const carried = hand.getCarriedContents() as Stuff[];
 
     // ---- at the walk: cut leaf, then go back ----
     if (at === walkPath) {
@@ -162,7 +164,7 @@ export const brain = class {
       const before = armfuls;
       await hand.forceCommand('harvest mulberry');
       // Nothing came of it (every tree cut) — go back with what there is.
-      if ((hand.getContents() as Stuff[]).filter(isLeaf).length <= before) {
+      if ((hand.getCarriedContents() as Stuff[]).filter(isLeaf).length <= before) {
         await step(hand, 'east');
       }
       return;

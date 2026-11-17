@@ -176,7 +176,7 @@ recognition is v2"*). This is **belief v2**:
    name, outfit, claimed facts — like the wardrobe's `outfit`; **while it is on,
    `introduce` and auto-introduce use its name.**
 2. ⭐⭐ **What a witness remembers** — beyond a name: species, stature, build (the
-   [size slate](./size-slate.md)'s envelope), face if seen, ⭐ **voice** (a gap — voice
+   [size slate](../../subsystems/size.md)'s envelope), face if seen, ⭐ **voice** (a gap — voice
    identity is not modeled, and voice is how people see through hoods), and **familiarity**
    (how often and how recently).
 3. ⭐⭐⭐ **The check — deterministic, never rolled** — **mismatch** (what you present against

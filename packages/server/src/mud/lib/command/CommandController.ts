@@ -28,14 +28,19 @@ import type {
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
+import { CombatApi } from '../../api/combat';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { PerceptionApi } from '../../api/perception';
 import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
 import { SchedulerApi } from '../../api/scheduler';
+import { GrammarApi } from '../../api/grammar';
+import type { CarryRefusal } from '../slot/Carrying';
+import type { ArrivalRefusal } from '../spatial/Container';
 import { ManualBuildStep } from '../craft/ManualBuildStep';
 import type { ActDone, ActPlan, AnyActRefusal } from '../craft/ActPlan';
 import type { ActWords } from './EngagedActController';
@@ -100,10 +105,14 @@ export abstract class CommandController<
   protected async resolveScreen(
     actor: Stuff & CommandGiver,
   ): Promise<{ display: Stuff & Display; mode: 'hand' | 'mind' } | null> {
-    const reachable = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
-      commandGiver: actor,
-      scope: 'reachable',
-    }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
+    // ⭐ A screen you do not perceive is not one you drive (D23).
+    const reachable = PerceptionApi.perceived(
+      actor,
+      MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+        commandGiver: actor,
+        scope: 'reachable',
+      }).stuff,
+    ).filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
 
     for (const d of reachable) {
       if (d.isCarriedBy(actor)) return { display: d, mode: 'hand' };
@@ -321,9 +330,11 @@ export abstract class CommandController<
     let best: C | null = null;
     let bestTier = -1;
     let tied = false;
+    // ⭐ Only a choice the giver perceives can be what its words meant (D23).
+    const seen = new Set(PerceptionApi.perceived(giver, scored.stuff));
     for (let i = 0; i < scored.stuff.length; i += 1) {
       const c = choices.find((x) => x === scored.stuff[i]);
-      if (!c) continue;
+      if (!c || !seen.has(c)) continue;
       const tier = tiers[i] ?? 0;
       if (tier > bestTier) {
         best = c;
@@ -424,7 +435,10 @@ export abstract class CommandController<
    */
   protected reachableMarks(giver: Stuff): Stuff[] {
     const out: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) out.push(...giver.getContents());
+    // ⭐ What the giver carries WHERE IT SITS (D-W10-1; W9: a pocket's thing
+    // is its coat's contents, a bag's the bag's) — held, worn, in an open
+    // pocket or satchel on them; never behind a shut lid or packed.
+    out.push(...PerceptionApi.reachableAmong(giver, PerceptionApi.reach(giver, { pools: ['inventory'] }).map((r) => r.stuff)));
     if (MixinApi.isContainable(giver)) {
       const env = giver.getContainer();
       if (env && MixinApi.isContainer(env)) {
@@ -433,7 +447,8 @@ export abstract class CommandController<
         }
       }
     }
-    return out;
+    // ⭐ A mark the giver does not perceive is no mark of theirs (D23).
+    return PerceptionApi.perceived(giver, out);
   }
 
   /**
@@ -456,5 +471,205 @@ export abstract class CommandController<
       return undefined;
     }
     return source.getPresentation();
+  }
+
+  /** Guarded landings still to come on combat's beat — each keeps this clone alive past dispatch. */
+  private landingsPending = new Set<object>();
+  /** The dispatcher is done with this clone; the last landing releases it. */
+  private released = false;
+
+  /**
+   * The dispatcher's one call when `execute` returns: destruct this
+   * per-dispatch clone now — or, while a guarded hand act's landing is
+   * still to come on combat's beat, as soon as it lands (size and carrying
+   * D-W10-5; finalize drive run 15).
+   */
+  public releaseAfterDispatch(): void {
+    this.released = true;
+    if (this.landingsPending.size === 0 && !this.isDestroyed()) StuffApi.destruct(this as unknown as Stuff);
+  }
+
+  /** One landing done (run or abandoned): the last one after release lets the clone go. */
+  private landed(landing: object): void {
+    this.landingsPending.delete(landing);
+    if (this.released) this.releaseAfterDispatch();
+  }
+
+  /**
+   * ⭐ **A hand act in a fight is the switch's guarded beat** (size and
+   * carrying D-W10-5; D-W10-13 — combat only, never a lag): in a live
+   * session the act starts a beat of `seconds` with `act` as its landing,
+   * says *"— your guard drops"* (after `reach`, the verb's own words for
+   * where the hand goes, when it has them), and returns `true`; with a beat already
+   * live it says so and returns `true` (nothing ran). Outside a session it
+   * runs (and awaits) `act()` now and returns `false`. The one session check for every
+   * hand verb; `drop` never asks.
+   */
+  protected async guarded(giver: Stuff, seconds: number, act: () => unknown, reach?: Mml): Promise<boolean> {
+    if (!MixinApi.isCombatant(giver) || !CombatApi.sessionFor(giver)) {
+      await act();
+      return false;
+    }
+    // ⚠ The landing runs on combat's beat, after this controller has
+    // returned: a throw in it has no caller to reach (finalize A6, P3), so
+    // it is recorded as the runtime throw it is — never an unhandled
+    // rejection, never swallowed.
+    // ⚠⚠ …and `act` closes over THIS controller, a per-dispatch clone the
+    // dispatcher destructs when `execute` returns: the landing then called
+    // an inert, destroyed Stuff and did nothing, in silence (finalize drive
+    // run 15 — `[inert] pickUpNow()` / `openChamber()`). The pending landing
+    // keeps the clone alive; `releaseAfterDispatch` lets it go once it lands
+    // (or is abandoned — a body that went down never finishes it).
+    const path = giver.getTemplatePath() ?? giver.stuffId;
+    const landing = {};
+    this.landingsPending.add(landing);
+    const begun = giver.beginHandAct(seconds, (abandoned?: boolean) => {
+      void Promise.resolve()
+        .then(() => (abandoned === true ? undefined : act()))
+        .catch(async (err: unknown) => {
+          const { DiagnosticApi } = await import('../../api/diagnostics');
+          await DiagnosticApi.record({
+            path,
+            severity: 'error',
+            message: `a hand act's landing threw — ${err instanceof Error ? err.message : String(err)}`,
+            stack: err instanceof Error ? (err.stack ?? null) : null,
+          });
+        })
+        .finally(() => this.landed(landing));
+    });
+    if (!begun.ok) this.landingsPending.delete(landing);
+    MessageApi.scene(giver)
+      .topic('act.deed')
+      .toSelf(
+        begun.ok
+          ? (reach !== undefined ? Mml.compose`${reach} — your guard drops.` : Mml.compose`You reach — your guard drops.`)
+          : Mml.compose`You're already reaching for something.`,
+      )
+      .send();
+    return true;
+  }
+
+  // ── carrying words (size and carrying W8: the body decides, the controller words) ──
+
+  /**
+   * ⭐ The words for a carrying refusal — in the second person, each naming
+   * what works. The body returns facts (`wouldSetDown`, `ready`,
+   * `wieldPlanFor`); this is where they become a sentence, in one place,
+   * for every verb that takes or hands. Exhaustive: a new reason does not
+   * compile until it is worded.
+   */
+  public carryRefusalWords(giver: Stuff, r: CarryRefusal | ArrivalRefusal): string {
+    const a = (s: Stuff): string => s.presentationPhrase().definite();
+    const kw = (x: Stuff): string =>
+      (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+    switch (r.reason) {
+      case 'too-big-for-mouth':
+      case 'too-big-inside':
+      case 'no-room':
+      case 'not-shaped-for':
+        return `${this.capFirst(a(r.facts.item))} won't fit.`;
+      case 'refused-by-container':
+        return `That won't go — ${r.facts.said}.`;
+      case 'too-heavy':
+        return "That's more than you can lift.";
+      case 'cannot-grip':
+        return `You can't hold it — ${r.facts.why}.`;
+      case 'hands-on-cart':
+        return `Your hands are on ${a(r.facts.cart)} — \`unhitch\` it first.`;
+      case 'nowhere-to-carry': {
+        if (!MixinApi.isAttired(giver) || giver.handSlots().length === 0) return 'You have nowhere to carry that.';
+        return this.nowhereWords(r.facts);
+      }
+      case 'packed':
+        return `It's packed in ${a(r.facts.by)} — take it off first (\`remove ${r.facts.by.presentationPhrase().bare()}\`).`;
+      case 'hands-needed': {
+        // ⭐ Nothing frees a hand for you (D-W10-3): what holds them is named,
+        // and the next commands are the whole hand economy — `drop` (free in
+        // a fight), or put one away (`unwield`, `put … in …`).
+        const list = r.facts.held;
+        const need = r.facts.hands === 1 ? 'a free hand' : 'both hands';
+        if (list.length === 0) return `That takes ${need}.`;
+        const last = list.at(-1)!;
+        const away = r.facts.away ?? null;
+        const put = away === null
+          ? null
+          : away.region !== undefined && MixinApi.isPlacing(away.host) && away.host.namedRegions().includes(away.region)
+            ? `put ${kw(away.held)} in ${away.region.includes(' ') ? `"${away.region}"` : away.region}`
+            : `put ${kw(away.held)} in ${kw(away.host)}`;
+        const aways = [`unwield ${kw(last)}`, ...(put !== null ? [put] : [])].map((c) => `\`${c}\``).join(', ');
+        // ⭐ Each thing held is offered to drop (requirements step 7: with a
+        // lantern and a shield it is the lantern you set down — the room
+        // stays lit — though the shield was named last).
+        const drops = list.map((h) => `\`drop ${kw(h)}\``).join(' or ');
+        return `That takes ${need} — you're holding ${this.heldList(list)}. ${drops} (free in a fight), or put one away first (${aways}).`;
+      }
+      case 'not-on-you':
+        return "That isn't yours to use.";
+      case 'already-switching':
+        return "You're already reaching for something.";
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
+  /**
+   * ⭐ The hands-full refusal is the tutorial (requirements § Collisions):
+   * what is in the hands, what did not fit and where it was tried, and the
+   * next command in this body's OWN names — *"Your hands are full — the cup
+   * and the lantern — and the map won't fit in your pockets. Put something
+   * away (`put cup in left pocket`) or set it down (`drop lantern`)."*
+   */
+  private nowhereWords(f: Extract<ArrivalRefusal, { reason: 'nowhere-to-carry' }>['facts']): string {
+    const def = (x: Stuff): string => x.presentationPhrase().definite();
+    const kw = (x: Stuff): string =>
+      (MixinApi.isPerceptible(x) ? x.getPrimaryKeyword() : undefined) ?? x.presentationPhrase().bare();
+    const { item, held, tried } = f;
+    // ⭐ Things alike are counted, and the refused one is ANOTHER of them
+    // (the browser walk: three mugs read "the mug and the mug").
+    const alike = held.some((h) => def(h) === def(item));
+    const it = alike ? `another ${item.presentationPhrase().bare()}` : def(item);
+    const where = [
+      ...new Set(
+        tried.map((h) =>
+          MixinApi.isPlacing(h) && h.namedRegions().length > 0 ? 'your pockets' : `your ${h.presentationPhrase().bare()}`,
+        ),
+      ),
+    ];
+    const fit = where.length > 0 ? ` won't fit in ${GrammarApi.joinList(where)}` : ' has nowhere to go';
+    if (held.length === 0) return `${this.capFirst(it)}${fit}, and your hands can't take it.`;
+    // ⭐ A thing that takes both hands while one is still free (drive step
+    // 8's pole beside a lantern) says so — "your hands are full" was untrue.
+    const both = f.needsBoth === true;
+    const hands = both
+      ? `${this.capFirst(it)} takes both hands — you're holding ${this.heldList(held)} —`
+      : `Your hands are full — ${this.heldList(held)} —`;
+    const away = f.away ?? null;
+    const awayCmd = away === null
+      ? null
+      : away.region !== undefined && MixinApi.isPlacing(away.host) && away.host.namedRegions().includes(away.region)
+        ? `put ${kw(away.held)} in ${away.region}`
+        : `put ${kw(away.held)} in ${kw(away.host)}`;
+    const drop = `drop ${kw(held.at(-1)!)}`;
+    const next = awayCmd !== null
+      ? `Put something away (\`${awayCmd}\`) or set it down (\`${drop}\`).`
+      : `Set something down (\`${drop}\`).`;
+    return `${hands} and ${both ? 'it' : it}${fit}. ${next}`;
+  }
+
+  /** What the hands hold, in words — two alike are "both mugs". */
+  private heldList(held: readonly Stuff[]): string {
+    const def = (x: Stuff): string => x.presentationPhrase().definite();
+    const first = held[0];
+    if (held.length === 2 && first !== undefined && held.every((h) => def(h) === def(first))) {
+      return `both ${GrammarApi.pluralize(first, first.presentationPhrase().bare())}`;
+    }
+    return GrammarApi.joinList(held.map(def));
+  }
+
+  /** `the cup` → `The cup`. */
+  private capFirst(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 }

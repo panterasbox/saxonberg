@@ -306,8 +306,7 @@ describe('plant / repot', () => {
     const pot = makePot(0.5);
     ContainmentApi.move(pot, room);
     const sitting = makePlantAt(freshPath('/trade/farming/thing/plant/_sitting'));
-    ContainmentApi.move(sitting, pot);
-    pot.occupy(sitting, PLANT_SLOT);
+    pot.seatInSlot(sitting, PLANT_SLOT);
     const seed = makeSeed();
     ContainmentApi.move(seed, giver);
 
@@ -358,8 +357,7 @@ describe('plant / repot', () => {
     ContainmentApi.move(small, room);
     ContainmentApi.move(large, room);
     const p = makePlantAt(freshPath('/trade/farming/thing/plant/_move'));
-    ContainmentApi.move(p, small);
-    small.occupy(p, PLANT_SLOT);
+    small.seatInSlot(p, PLANT_SLOT);
 
     // Let it live a while so its state is non-default.
     now = BASE + 20 * 86_400;
@@ -406,8 +404,7 @@ describe('plant / repot', () => {
     ContainmentApi.move(large, room);
     ContainmentApi.move(thimble, room);
     const p = makePlantAt(freshPath('/trade/farming/thing/plant/_grown'));
-    ContainmentApi.move(p, large);
-    large.occupy(p, PLANT_SLOT);
+    large.seatInSlot(p, PLANT_SLOT);
 
     // Grow it to `mature` (root demand 3.0) so the thimble cannot take it.
     for (let d = 4; d <= 200; d += 4) {
@@ -520,8 +517,7 @@ describe('plant / repot', () => {
     ContainmentApi.move(large, room);
     ContainmentApi.move(dry, room);
     const p = makePlantAt(freshPath('/trade/farming/thing/plant/_dry'));
-    ContainmentApi.move(p, large);
-    large.occupy(p, PLANT_SLOT);
+    large.seatInSlot(p, PLANT_SLOT);
 
     const ctrl = makeStuff(() => new RepotController());
     const ctx1 = makeContext(giver, room);

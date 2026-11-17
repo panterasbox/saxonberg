@@ -9,3 +9,10 @@ data:
   category: mug
   interiorBulk: true
   interiorCapacity: 0.35
+  # ⭐ Its size (size and carrying W6, drive 1): a 9 cm mug does not pass a
+  # trouser pocket's 3.5 cm mouth — the newcomer's third `get` finds the
+  # pocket and their mug does not. With no mass and no box its size was
+  # unknown, and an unknown size is never refused.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 0.35
+  dimensions: { width: 0.09, depth: 0.09, height: 0.1 }

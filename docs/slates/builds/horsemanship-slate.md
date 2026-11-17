@@ -68,7 +68,7 @@ small piece of tack with an outsized effect on the riding model and on history.
   (§ 1's spook against the seat).
 - **Standing in the saddle** — posting the trot (easier on horse and rider over distance),
   standing at the gallop, the mounted archer's stable platform.
-- **Mounting** — a step up: the [size slate](./size-slate.md)'s stature against the
+- **Mounting** — a step up: the [size slate](../../subsystems/size.md)'s stature against the
   horse's height; without stirrups a short rider needs a mounting block or a leg-up.
 - ⭐ **Bracing** — a couched lance needs stirrups and a high-backed saddle to put the
   horse's weight behind the point: mounted shock combat, for the cavalry when the

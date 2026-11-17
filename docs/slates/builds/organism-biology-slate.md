@@ -283,5 +283,5 @@ living-culture calls, the realm-lore suggestions, the goblin pick). They belong 
 
 [bestiary-slate](./bestiary-slate.md) · [the pilot](../../bestiary/pilot.md) ·
 [spellbook-slate](./spellbook-slate.md) · [mana-economy-design-pack](./mana-economy-design-pack.md) Part 11 ·
-[magic-items-slate](../tails/magic-items-slate.md) · [size-and-carrying-requirements](../../requirements/size-and-carrying-requirements.md) ·
+[magic-items-slate](../tails/magic-items-slate.md) · [size-and-carrying-requirements](../../subsystems/carrying.md) ·
 [rendering-slate](../tails/rendering-slate.md)
