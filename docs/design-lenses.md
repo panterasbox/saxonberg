@@ -304,7 +304,7 @@ specific works you would want to make, and check each one.** Not genres —
 **titles**, because a title has particulars and a genre does not.
 
 Worked, from the water audit
-([navigable-water-slate § 4](./slates/builds/navigable-water-slate.md)):
+([navigable-water-slate § 4](./slates/world/navigable-water-slate.md)):
 *Bridge on the River Kwai* mostly passes, because a bridge **is**
 `boundary.md`'s two-anchor abstraction. *Anaconda*, *Lake Placid* and
 *Friday the 13th* all fail on **one** missing thing — water as a place you
@@ -684,7 +684,7 @@ allocated.** ⚠ A worse loss than a trade: when the ferryman goes, a
 livelihood ends; when the ditch company goes, **the only body allocating
 the water ends**, and the water keeps being allocated right up until it
 does not. (Worked in
-[rgo-unification-slate](./slates/builds/rgo-unification-slate.md) §
+[rgo-unification-slate](./slates/tech-debt/rgo-unification-slate.md) §
 irrigation.)
 
 ⭐ **And the fourth row is the one that shows the lens has more in it than
@@ -696,7 +696,7 @@ nobody counts** — a different outcome entirely, which a
 ⚠ **Corollary for the backlog:** a trade worth building is often worth
 building **with its obsolescence dated**. Ice was designed that way
 deliberately
-([ice-trade-slate](./slates/tails/ice-trade-slate.md)); whaling's
+([ice-trade-slate](./slates/trades/ice-trade-slate.md)); whaling's
 successor is already shipped **in the same row as the thing it
 replaces**.
 

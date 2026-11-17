@@ -10,13 +10,13 @@ padlock, and a locksmith's shop in Mayfield Row.
 A lock today is a boolean and a token match. The bolt refuses and the key excuses — that much is
 right and stays — but nothing about a lock can be read, made, copied, picked or broken; a key is
 cloned from nothing, lives in your implant as well as your pocket, and *"every story about a lock
-is about defeating it, and you cannot defeat one"* ([lock-slate](../slates/builds/lock-slate.md)).
+is about defeating it, and you cannot defeat one"* ([lock-slate](../slates/engine/lock-slate.md)).
 This build makes a lock a made thing with a character, a key a cut piece of brass, and lockcraft a
 competence with a real deciding act — **the player's choice of approach**, informed by a reading
 whose detail is their knowledge and priced by their hand.
 
-Seeding slate: [lock-slate](../slates/builds/lock-slate.md), with the design session of 2026-11-02
-(§ 5 there and below). It sits beside the [assessment-slate](../slates/builds/assessment-slate.md),
+Seeding slate: [lock-slate](../slates/engine/lock-slate.md), with the design session of 2026-11-02
+(§ 5 there and below). It sits beside the [assessment-slate](../slates/society/assessment-slate.md),
 whose first consumer lockcraft is — and does not wait for it.
 
 ## What the thing is (R1)
@@ -79,7 +79,7 @@ profile for shape locks, seeded from the lock's identity), matching by shape, th
 computed act with a floor, reading a lock and a key, the defeat acts (pick, rake, impression,
 force), copying on blanks, a register of issued keys, seat-held keys, locks on things and the
 padlock, one row per technology, the locksmith's trade, and the lockcraft Disciplines. **Everything
-else is reuse** — the reuse ledger is [lock-slate § 6](../slates/builds/lock-slate.md), and the plan
+else is reuse** — the reuse ledger is [lock-slate § 6](../slates/engine/lock-slate.md), and the plan
 accounts for every row.
 
 ## Goals
@@ -230,11 +230,11 @@ lock (it is concealed), and dual control is a lock with two keyways. A lock name
 ## Non-goals
 
 - **Exams, the Locksmiths' Guild as an issuer, the exam interface** → the
-  [assessment-slate](../slates/builds/assessment-slate.md) build. Lockcraft is its first consumer;
+  [assessment-slate](../slates/society/assessment-slate.md) build. Lockcraft is its first consumer;
   neither waits.
 - **The finer lockcraft tree** → the deferred tree pass (assessment-slate § 10); an unreviewed
   pilot draft exists.
-- **Warrants and the constable** → [policing-slate](../slates/builds/policing-slate.md). A warrant
+- **Warrants and the constable** → [policing-slate](../slates/society/policing-slate.md). A warrant
   compels the key-holder to open or authorizes force; until then the counter-power is picking and
   forcing.
 - **Defeating a keycard** (forging the record) → nowhere in this build; it is another trade.
@@ -252,7 +252,7 @@ lock (it is concealed), and dual control is a lock with two keyways. A lock name
   never refuses leaving.
 - **The lockbox** (a combination box holding a key) → nowhere until something needs one (lens 6).
 - **Aether devices in general** — switches, meters, sensors, the works' pumps driven by mind → the
-  [aether-devices-slate](../slates/builds/aether-devices-slate.md) (cross-cutting, R3). This build
+  [aether-devices-slate](../slates/engine/aether-devices-slate.md) (cross-cutting, R3). This build
   ships only the aether lock, on the display's by-mind ladder.
 - **A clockmaker** → the time lock's clockwork is imported until a clockmaking trade exists.
 
@@ -363,7 +363,7 @@ The design session's answers, 2026-11-02 (lock-slate § 5):
 ⭐ **The range was run through all seven lenses on 2026-11-02** — lens 2 found that a lock is a set
 of conditions (the vault), lens 4 that no lock refuses leaving and that biometric stays out, lens 6
 that aether locks need a real consumer (Duncan Hall) and the lockbox has none, lens 7 that an access
-log must be readable by the person it is about. Detail: [lock-slate § 7](../slates/builds/lock-slate.md).
+log must be readable by the person it is about. Detail: [lock-slate § 7](../slates/engine/lock-slate.md).
 
 ## The drive
 
@@ -505,12 +505,12 @@ Paces: `instant` · `short` (up to a game day) · `staged` (a span's outcome set
 
 ## Cross-references
 
-- [lock-slate](../slates/builds/lock-slate.md) — seeding slate, § 5 the session, § 6 the reuse ledger
-- [assessment-slate](../slates/builds/assessment-slate.md) — exams, the guild, the finer tree
-- [policing-slate](../slates/builds/policing-slate.md) — warrants, the constable, cells
-- [aether-devices-slate](../slates/builds/aether-devices-slate.md) — devices driven by mind
+- [lock-slate](../slates/engine/lock-slate.md) — seeding slate, § 5 the session, § 6 the reuse ledger
+- [assessment-slate](../slates/society/assessment-slate.md) — exams, the guild, the finer tree
+- [policing-slate](../slates/society/policing-slate.md) — warrants, the constable, cells
+- [aether-devices-slate](../slates/engine/aether-devices-slate.md) — devices driven by mind
 - [display.md](../subsystems/display.md) — the by-mind ladder the aether lock rides
-- [off-grid-slate](../slates/builds/off-grid-slate.md) · [energy.md](../subsystems/energy.md) —
+- [off-grid-slate](../slates/engine/off-grid-slate.md) · [energy.md](../subsystems/energy.md) —
   coverage and power
 - [boundary.md](../subsystems/boundary.md) § Locks · [credential.md](../subsystems/credential.md) ·
   [assembly.md](../subsystems/assembly.md) · [spatial.md](../subsystems/spatial.md) (sealable

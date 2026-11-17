@@ -19,7 +19,7 @@ section instead of re-graduating it).
 
 ---
 
-## docs/slates/builds/git-workflow-slate.md — 360 → 93 · Status PARTIAL → PARTIAL
+## docs/slates/platform/git-workflow-slate.md — 360 → 93 · Status PARTIAL → PARTIAL
 
 Wave 1 (the entire source VCS spine — `GitApi`/`GitLogic`, the `git` verb,
 the CMS panel, the identity model, the permission-scoped security spine,
@@ -144,7 +144,7 @@ write list.
 
 ---
 
-## docs/slates/builds/provenance-slate.md — 290 → 293 · Status PARTIAL → PARTIAL
+## docs/slates/platform/provenance-slate.md — 290 → 293 · Status PARTIAL → PARTIAL
 
 Most of this slate is still-open forward design (Layer A generalized
 ownership, Layer C dependency-DAG, the team/contributor split, versioned

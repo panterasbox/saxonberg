@@ -33,7 +33,7 @@ pipeline, a deliberate documented choice in `maturation.md` itself).
 
 ---
 
-## docs/slates/tails/supply-chain-slate.md — 549 → 217 lines · Status PARTIAL → PARTIAL
+## docs/slates/trades/supply-chain-slate.md — 549 → 217 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `# Part 0 — the magic is four lines, and the fix is a deletion` (full
@@ -200,6 +200,6 @@ unless a doc is judged to be missing something on inspection:
 | doctrine | 2 (Part 4, Part 5's Von Thünen close) |
 | handoff | 8 docs, all already carrying the material (no inserts needed) |
 
-`git diff --stat`: `docs/slates/tails/supply-chain-slate.md` −429/+97;
+`git diff --stat`: `docs/slates/trades/supply-chain-slate.md` −429/+97;
 `docs/subsystems/maturation.md` untouched (0 lines changed); this ledger
 new. No file outside these two was touched.

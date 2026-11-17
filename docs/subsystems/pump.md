@@ -208,7 +208,7 @@ part model absorbs it.
   Terminus is its own source. Plumbing the city, a tap served by two mains
   (the aqueduct also serves Terminus, and is switched off), and taps that
   feel an overdraw are the water design pack's Left —
-  [water-design-pack](../slates/tails/water-design-pack.md).
+  [water-design-pack](../slates/engine/water-design-pack.md).
 
 ## Gates
 

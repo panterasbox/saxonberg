@@ -5,11 +5,11 @@
 
 ## Cluster
 
-- `docs/slates/builds/fridge-design-pack.md` — 472 lines — **canonical for cold storage**
-- `docs/slates/tails/preservation-slate.md` — 194 lines — **canonical for the preserving levers that remain** (`f_pH`, sealing)
-- `docs/slates/builds/room-condition-design-pack.md` — 314 lines — **canonical for room condition / hygiene** (`Soilable`, debris, `restQuality`)
-- `docs/slates/tails/hearth-and-larder-design-pack.md` — 296 lines — secondary (its own subjects: the hearth, the larder's economic story, the compost heap)
-- `docs/slates/builds/food-safety-slate.md` — 120 lines — secondary (its own subjects: molds, rancidity, the attach points)
+- `docs/slates/trades/fridge-design-pack.md` — 472 lines — **canonical for cold storage**
+- `docs/slates/trades/preservation-slate.md` — 194 lines — **canonical for the preserving levers that remain** (`f_pH`, sealing)
+- `docs/slates/engine/room-condition-design-pack.md` — 314 lines — **canonical for room condition / hygiene** (`Soilable`, debris, `restQuality`)
+- `docs/slates/world/hearth-and-larder-design-pack.md` — 296 lines — secondary (its own subjects: the hearth, the larder's economic story, the compost heap)
+- `docs/slates/trades/food-safety-slate.md` — 120 lines — secondary (its own subjects: molds, rancidity, the attach points)
 
 ## Canonicals — why three, per duplicated item
 

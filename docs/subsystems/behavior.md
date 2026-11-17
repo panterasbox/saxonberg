@@ -92,7 +92,7 @@ A **behavior spec** (`BehaviorSpec`) is `{ brain, trigger, config }` —
 > push; a brain should not poll**, so the first thing this measurement asks
 > for is a **richer witness-trigger vocabulary** (`ally-engaged`,
 > `combat-started`), after which the author writes *less*. See
-> [balance-slate § What an NPC declaration is denominated in](../slates/builds/balance-slate.md).
+> [balance-slate § What an NPC declaration is denominated in](../slates/society/balance-slate.md).
 
 the brain is a *path* to a code module, the trigger names *when*, the
 config is the brain's data. The list is a persistent field on
@@ -757,7 +757,7 @@ dangling brain path is caught at author time, not silently at spawn.
   game-clock guard `eats` and `prints` read.
 - [cms.md](./cms.md) — the content surface NPC templates are authored in;
   the deferred holodeck / sandbox / publish gate.
-- Seeding slate: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)
+- Seeding slate: [npc-behavior-slate.md](../slates/engine/npc-behavior-slate.md)
   (Waves 2/3, the Traits build, and the LLM/scripted brain tails live
   here). The Wave 1 requirements + plan were retired into this doc at the
   pre-merge sweep.

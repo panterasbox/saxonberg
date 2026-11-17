@@ -1,6 +1,6 @@
 # Slate compaction ledger — sandbox
 
-Batch key: `sandbox`. Slate: `docs/slates/tails/sandbox-slate.md`.
+Batch key: `sandbox`. Slate: `docs/slates/platform/sandbox-slate.md`.
 Subsystem docs I may insert into: `docs/subsystems/sandbox.md` only.
 Anything belonging elsewhere goes in Handoff, never into another doc.
 
@@ -12,7 +12,7 @@ often in far more detail and precision than the slate carries).
 Findings in progress below; cuts land as they are made, per the
 incremental-ledger rule.
 
-## `docs/slates/tails/sandbox-slate.md` — 596 → 180 · Status PARTIAL → PARTIAL
+## `docs/slates/platform/sandbox-slate.md` — 596 → 180 · Status PARTIAL → PARTIAL
 
 ### Graduated (SHIPPED · UNDOCUMENTED) — then cut
 - `## The doctrine — two channels…` + `## What "anything goes" means — the two gates` + the "Mutation-prohibition is rejected" paragraph — code: the whole write-path/dispatch mechanism these motivate (verified throughout `mud/api/security.ts`, `mud/lib/persistence/CollectionPolicy.ts`, `mud/api/sandbox.ts`); the two-gate framing and the "criminal vs structurally impossible" doctrine were nowhere in `sandbox.md` → inserted `sandbox.md § Doctrine — two channels, two gates` (16 lines)
@@ -49,7 +49,7 @@ incremental-ledger rule.
 - Size: a tail → a tail (unchanged — still small and opportunistic)
 
 ## Final check
-- `git diff --stat`: only `docs/slates/tails/sandbox-slate.md` and `docs/subsystems/sandbox.md` touched (plus this ledger, new file).
+- `git diff --stat`: only `docs/slates/platform/sandbox-slate.md` and `docs/subsystems/sandbox.md` touched (plus this ledger, new file).
 - Every heading/paragraph removed from the slate is accounted for above.
 - The status block's `Left` and the remaining body agree (verified by re-reading the compacted file).
 - No file outside the batch assignment was modified. No commit made.

@@ -13,17 +13,17 @@
 > **Status: phases 1–3 are SHIPPED. Phases 4–9 are a direction.** See
 > *The honest part*.
 
-**Member slates:** [farming](./slates/builds/farming-slate.md) ·
-[ranching](./slates/builds/ranching-slate.md) ·
-[pets](./slates/builds/pets-slate.md) ·
-[preservation](./slates/tails/preservation-slate.md) ·
-[disease](./slates/builds/disease-slate.md) ·
-[health-vertical](./slates/builds/health-vertical-slate.md) ·
-[stewardship](./slates/builds/stewardship-slate.md) ·
-[livelihood § 9](./slates/builds/livelihood-slate.md) ·
-[weather (tail)](./slates/tails/weather-slate.md).
+**Member slates:** [farming](./slates/trades/farming-slate.md) ·
+[ranching](./slates/trades/ranching-slate.md) ·
+[pets](./slates/engine/pets-slate.md) ·
+[preservation](./slates/trades/preservation-slate.md) ·
+[disease](./slates/engine/disease-slate.md) ·
+[health-vertical](./slates/trades/health-vertical-slate.md) ·
+[stewardship](./slates/society/stewardship-slate.md) ·
+[livelihood § 9](./slates/society/livelihood-slate.md) ·
+[weather (tail)](./slates/engine/weather-slate.md).
 **Conventions owner:** [ranching § The five shared
-conventions](./slates/builds/ranching-slate.md).
+conventions](./slates/trades/ranching-slate.md).
 
 ---
 
@@ -416,8 +416,8 @@ system* rule.
 ## Decide before phase 5 (cheaper to settle now)
 
 **The dorm-companion collision.**
-[stewardship](./slates/builds/stewardship-slate.md)'s ladder grants the dorm **a
-houseplant but not a companion**; [pets](./slates/builds/pets-slate.md) still
+[stewardship](./slates/society/stewardship-slate.md)'s ladder grants the dorm **a
+houseplant but not a companion**; [pets](./slates/engine/pets-slate.md) still
 lists *"does the dorm admit a companion?"* as open and flags it as blocking the
 Wave 1 on-ramp **for every new player**. Two docs, opposite states, neither
 aware of the other.

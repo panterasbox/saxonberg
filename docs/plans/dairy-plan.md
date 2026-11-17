@@ -1917,7 +1917,7 @@ Read first, in this order:
    (l.494–520, `burnOnGrab`) and `lib/perception/Touch.ts` (l.103);
    `packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts`
    (l.280–360, 399–535, 700–725) and its `__tests__/SmeltController.test.ts`;
-   `docs/slates/tails/glass-slate.md` §8.
+   `docs/slates/trades/glass-slate.md` §8.
 8. `packages/content/trade-tanning/` (the pack scaffold) and
    `packages/content/trade-cooking/src/thing/{CookPot,KitchenTool}.ts`.
 9. `packages/content/hearts-delight/` (every file) and

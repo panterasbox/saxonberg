@@ -117,9 +117,9 @@ export const CLOSED_VOCABULARY_CEILING = 3;
  * by nature, so none belongs in {@link CLOSED_BY_DESIGN}.
  */
 export const MIGRATING: Readonly<Record<string, string>> = {
-  MATURATION_MECHANISMS: 'docs/slates/builds/material-decomposition-slate.md',
-  DISPLAY_KINDS: 'docs/slates/tails/display-manifestation-slate.md',
-  DISPLAY_PAIRINGS: 'docs/slates/tails/display-manifestation-slate.md',
+  MATURATION_MECHANISMS: 'docs/slates/tech-debt/material-decomposition-slate.md',
+  DISPLAY_KINDS: 'docs/slates/client/display-manifestation-slate.md',
+  DISPLAY_PAIRINGS: 'docs/slates/client/display-manifestation-slate.md',
 };
 
 /**

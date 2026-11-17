@@ -634,7 +634,7 @@ chained, and locked — the gown's, not the town's.*
 
 > ⭐⭐ **What this model does NOT do, and where it is tracked.** A lens
 > pass over the shipped design
-> ([lock-slate](../slates/builds/lock-slate.md)) **fails lens 1
+> ([lock-slate](../slates/engine/lock-slate.md)) **fails lens 1
 > outright** — turning a key exercises no Discipline and nothing is
 > derivable — and lens 6, because a key is cloned from nothing in a
 > realm that has smelting and smithing. It also found that **you cannot
@@ -642,7 +642,7 @@ chained, and locked — the gown's, not the town's.*
 > `issueMasterKeyTo` has no production caller and no seat to hold it,
 > and that nothing records who holds a key to a given door. ⭐ The
 > Discipline that answers the first two is already designed —
-> `lockcraft`, on [policing-slate](../slates/builds/policing-slate.md).
+> `lockcraft`, on [policing-slate](../slates/society/policing-slate.md).
 
 **Enforcement** lives in `Exit.canTraverse` (see *Exits* above): the
 lock gate fires **before** the closed-door gate, reads only `this.door`
@@ -903,7 +903,7 @@ A door made by code is minted and **owned** by the code that made it
 - ⚠ **The gangway is not yet a boundary.** `BerthExit` and the deck's
   `AshoreExit` both delegate their lock to `Ship.gangwayLocked`, so they are
   already one lock with two faces; making it a minted boundary is the
-  follow-up ([boundary-slate § 1](../slates/tails/boundary-slate.md)). `Exit.wayState()` reads an exit's own lock
+  follow-up ([boundary-slate § 1](../slates/engine/boundary-slate.md)). `Exit.wayState()` reads an exit's own lock
   when it has no boundary, so the screens show it.
 
 ## A way's state on the wire — `WayRecord`
@@ -1059,7 +1059,7 @@ country (67 ways swept to 0). Verified by the blocking drive
 `packages/wire/tests/boundary.dirty.wire.test.ts` (5/5) and the browser walk
 `e2e/tests/boundary-walk.spec.ts` (3/3), which found `map` crashing on a
 deferred way (fixed in `Perceiver`). Left: the gangway as a minted boundary
-and the rest of [boundary-slate](../slates/tails/boundary-slate.md).
+and the rest of [boundary-slate](../slates/engine/boundary-slate.md).
 
 ### Size and carrying (2026-11-12)
 

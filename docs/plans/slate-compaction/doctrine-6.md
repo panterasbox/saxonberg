@@ -14,7 +14,7 @@
 
 ## Rows
 
-### Ledger `governance.md` — slate `docs/slates/builds/cooperative-slate.md`
+### Ledger `governance.md` — slate `docs/slates/society/cooperative-slate.md`
 
 Code check (2026-09-21): the polity substrate that exists is offices +
 committees (`lib/governance/Office.ts`, `api/compact.ts`), the three
@@ -91,7 +91,7 @@ vocation (`grep -rli 'impact statement|rater|disclosure'` under
 - renown · reputation-slate · `## Principle — measure, don't assign` — **GRADUATED → `renown.md` § Why measure, don't assign** (new section after the intro); the mechanism shipped (regard + renown, no roll) and the doc stated the stance in one clause without the argument (*you type your actual words* → charisma is an output → the scalar unbundles into three; no die-gating). Slate: heading + pointer, susceptibility still named as the deferred knob.
 - renown · standing-mint-slate · Parts 1, 5, 7, 8, 9 — **STAYS**; every mechanism they argue for is unbuilt (published weights as content, the impact statement, rater agencies, disclosure law, the audit vocation, wiki-carries-arguments), and two top-level docs name this slate as the canonical carrier — `measurement.md` § Silence on worth (*the argument is recorded in full in standing-mint-slate*) and `polity-decision-register.md` Tier 3 (*handed over intact*); the five tests already went to the register by the 2026-09-20 coordinator pass. The realm-level line *it is a morality score* is therefore neither MOVE (the owners point back here) nor DUPLICATE (they carry the conclusion, not the argument).
 
-### Ledger `emotes.md` — slate `docs/slates/tails/emotes-slate.md`
+### Ledger `emotes.md` — slate `docs/slates/engine/emotes-slate.md`
 
 Code check: `lib/social/Soul.ts` (`SoulMixin` on `Character`, the
 `social.emote.render` setting, `.payload({ verb, emoji, tags })` — the
@@ -100,7 +100,7 @@ per-channel toggle is the deferred Layer 2 (`emotes.md` § What's deferred).
 
 - emotes · emotes-slate · `## Principle` → the three claims — **GRADUATED → `emotes.md` § What emotes are vs. what they aren't** (*Why prose is primary*, new paragraph after the first); the doc stated claims 1–2 as facts and emoji-as-payload as a fact, but not why prose is primary (distinct · scales · abstracts — the `bogleg` lineage · keeps NPCs out of the uncanny valley) nor that the glyph is the recipient's choice, both of which the shipped shape realizes (server composes once, viewer's setting picks). Slate: heading + pointer, Layer 2 named as the still-deferred half.
 
-### Ledger `mixins.md` — slate `docs/slates/tails/mixin-slate.md`
+### Ledger `mixins.md` — slate `docs/slates/engine/mixin-slate.md`
 
 - mixins · mixin-slate · `## Principle` — **STAYS (contradicted)**; the first sentence (*a mixin earns its place by carrying state or behavior*) is the live test, but the *flag ⇒ property on `PropertiedMixin`* half is contradicted by the props rule (`CLAUDE.md`: a prop is only for a runtime-computed key; anything authored or narrowed on is a mixin field) and by `mixins.md` § Marker mixins (a pure flag for a cross-cutting lookup is a legitimate mixin), and the *sim-physics collapses to property tags* clause by what shipped (the slate's own § Properties on Thing marks it superseded). The contradiction was not in the mixins ledger's *Uncertain*, so a one-paragraph ⚠ note now sits beside the section in the slate; nothing inserted into `mixins.md` — the doc's § Before proposing a mixin already carries the test that replaced it (capability vs relation; base-class vs opt-in).
 

@@ -1,6 +1,6 @@
 # Slate compaction ledger — batch `connection`
 
-Assigned slate: `docs/slates/tails/auth-providers-slate.md`
+Assigned slate: `docs/slates/platform/auth-providers-slate.md`
 
 Doc-insert allowlist: `docs/subsystems/connection.md`. Anything
 belonging in another doc goes to this file's *Handoff* section, never
@@ -14,7 +14,7 @@ confirmed by reading `connection.md` § The Cast before starting.
 
 ---
 
-## docs/slates/tails/auth-providers-slate.md — 206 → 80 lines · Status PARTIAL → PARTIAL
+## docs/slates/platform/auth-providers-slate.md — 206 → 80 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Duplicate second status block (`> **Status: Waves 1+2 shipped

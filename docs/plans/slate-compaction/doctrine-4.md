@@ -66,7 +66,7 @@ capacity, or spill onto people who did not consent?"*); the coordinator
 may trim that one blockquote from the absorbed text, but the *never
 self-expression* rule and the *types are content, not substrate*
 corollary are new to the doc. After applying, replace the slate section
-(`docs/slates/builds/stewardship-slate.md` l.37–66) with a one-line
+(`docs/slates/society/stewardship-slate.md` l.37–66) with a one-line
 pointer. Verbatim:
 
 > ## The doctrine line — zoning governs use, never self-expression

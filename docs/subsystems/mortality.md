@@ -3,7 +3,7 @@
 The other half of every risk system in the game. Nine subsystems could
 kill a character; nothing could bring one back. This is the driver
 `vitals.md` § Layer 6 deferred and the consequence
-[mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md)
+[mortal-vessel-slate](../slates/engine/mortal-vessel-slate.md)
 designed: **dying as a rescuable state, death as one transition, the corpse
 as a forensic object, and the shade as a participant who kept everything
 except a body.**
@@ -115,7 +115,7 @@ Slow deaths leave the longest chance that someone reaches you.
 
 > ⚠⚠ **These are GAME seconds** (the record ticks on the world clock), so at 12× the real windows
 > run 2.5 s to 50 s — a bleed-out leaves time for about one typed command. Found 2026-10-29; the
-> proposed fix is encounter pace → [pace-slate](../slates/builds/pace-slate.md).
+> proposed fix is encounter pace → [pace-slate](../slates/engine/pace-slate.md).
 
 ### The clock runs while you are disconnected
 
@@ -575,7 +575,7 @@ refuses it, and a second refusal would just be a worse error message.
 `embodied-tagging.test.ts` pins the inventory, so a new verb in a material
 category fails until someone decides which half it belongs to.
 
-> ⭐ **2026-10-28 → [site-conditions-slate](../slates/builds/site-conditions-slate.md) § 1** — a
+> ⭐ **2026-10-28 → [site-conditions-slate](../slates/engine/site-conditions-slate.md) § 1** — a
 > shade perceives faintly (its senses fixed at *impaired*, capped near *dim*), and nothing heals
 > until re-embodiment (the owner).
 
@@ -820,7 +820,7 @@ accounts, chattel and parcel titles all come back with you.
 > it's supposed to work … it's supposed to be completely variable, with a whole economy around how
 > effective re-embodying is. … Death is not cheap."* The paragraph below describes what ships, not
 > what is intended; the vessel's quality is the open design →
-> [mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md) § *The vessel is not clean*.
+> [mortal-vessel-slate](../slates/engine/mortal-vessel-slate.md) § *The vessel is not clean*.
 
 Lost by design — this is the stake, not a leak: **gear** (to the corpse),
 **vitals and wounds** (reset — that *is* rebirth), **location,
@@ -879,7 +879,7 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
   hook. See [mortal-vessel-slate § Absorbed from mortality-slate — The
-  re-embodiment service](../slates/builds/mortal-vessel-slate.md). The
+  re-embodiment service](../slates/engine/mortal-vessel-slate.md). The
   seam it needs is already open: `reembody` returns the body, so a service
   applies its own terms to it.
 - ⚠ **The recuperation model — RESOLVED, not deferred.** This bullet used
@@ -895,10 +895,10 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and
   the coroner economy —
-  [end-of-life-slate](../slates/builds/end-of-life-slate.md) owns all
+  [end-of-life-slate](../slates/society/end-of-life-slate.md) owns all
   three (since 2026-09-10).
 - **Declarative reference lifetimes** —
-  [reference-lifetime-slate](../slates/tails/reference-lifetime-slate.md),
+  [reference-lifetime-slate](../slates/tech-debt/reference-lifetime-slate.md),
   surfaced by this build. `MortalArc` holds **no handle to the corpse**:
   it was redundant (a corpse is laid at the body's own container, so
   "beside your corpse" and "where you fell" are the same room) and

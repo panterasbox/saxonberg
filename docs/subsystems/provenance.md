@@ -3,7 +3,7 @@
 Who authored a content path — **derived from an append-only ledger, never
 read from a mutable stamp**. This is the **first concrete brick of the
 provenance substrate** (see
-[provenance-slate.md](../slates/builds/provenance-slate.md)); its immediate
+[provenance-slate.md](../slates/platform/provenance-slate.md)); its immediate
 consumer is the labor influence stock (see [influence.md](./influence.md)),
 which routes attributed-engagement credit to a content path's author.
 
@@ -113,4 +113,4 @@ and untouched.
 The contributor-set / co-authorship model (multiple weighted authors per
 path); the ownership hierarchy and the dependency-DAG credit graph; the
 git-in-runtime VCS; the explicit `release` action + team sandbox. See
-[provenance-slate.md](../slates/builds/provenance-slate.md).
+[provenance-slate.md](../slates/platform/provenance-slate.md).

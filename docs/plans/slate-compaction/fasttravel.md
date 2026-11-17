@@ -50,7 +50,7 @@ Batch-wide findings a reviewer should know first:
 
 ---
 
-## docs/slates/tails/fast-travel-slate.md — 280 → 159 · Status PARTIAL → PARTIAL
+## docs/slates/engine/fast-travel-slate.md — 280 → 159 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the second status block *"Status: SHIPPED (v1) → graduated…"* + the ⚠⚠ *"Two 'settled: deferred' rows below are now WRONG"* paragraph (12–36, 25) — history; the canonical block is kept and re-stamped; the rows it warned about are cut below
@@ -164,7 +164,7 @@ vehicle) is untouched.
 
 ---
 
-## docs/slates/builds/mana-economy-design-pack.md — 943 → 728 · Status PARTIAL → PARTIAL
+## docs/slates/engine/mana-economy-design-pack.md — 943 → 728 · Status PARTIAL → PARTIAL
 
 A decision record whose SCIENCE half landed in `docs/arcane-science.md` on
 2026-08-11 (the doc's own audit log names this pack) and whose BUILD half

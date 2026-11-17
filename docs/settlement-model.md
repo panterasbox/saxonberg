@@ -13,22 +13,22 @@
 > What survives is a **generator** — a needs template, a type taxonomy, a
 > density rule, and a growth mechanism. The actual venues live per-locality
 > in the localities themselves; the machinery lives in
-> [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md).
+> [venue-and-supply-slate](./slates/trades/venue-and-supply-slate.md).
 
 **Sources.** The colony sims, because they are literally *about* the
 question: **Banished** · **Farthest Frontier** · **Manor Lords** ·
 **Foundation** · (**Cities: Skylines** for zoning only).
 
-Related: [zoning-slate](./slates/builds/zoning-slate.md) (⭐ **the type
+Related: [zoning-slate](./slates/society/zoning-slate.md) (⭐ **the type
 taxonomy is its, not this doc's**) ·
-[venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) ·
-[towns-slate](./slates/builds/towns-slate.md) ·
-[stewardship-slate](./slates/builds/stewardship-slate.md) ·
+[venue-and-supply-slate](./slates/trades/venue-and-supply-slate.md) ·
+[towns-slate](./slates/world/towns-slate.md) ·
+[stewardship-slate](./slates/society/stewardship-slate.md) ·
 [vocations.md](./vocations.md) ·
 [parcel.md](./subsystems/parcel.md) · [holding.md](./subsystems/holding.md) ·
 [residence.md](./subsystems/residence.md) ·
 [address.md](./subsystems/address.md) ·
-[freight-slate](./slates/builds/freight-slate.md)
+[freight-slate](./slates/trades/freight-slate.md)
 
 ---
 
@@ -65,7 +65,7 @@ archetype list are the same list.
 > | **care** | ⚠ **the riskiest** | *"you must fund an almshouse"* would be fabricated. The honest version: injury already happens, and mutual aid is **voluntary** — a service bought, never an obligation levied. |
 >
 > ⭐ Which trades these needs charter is worked in
-> [rendering-slate](./slates/tails/rendering-slate.md): **one** genuinely
+> [rendering-slate](./slates/trades/rendering-slate.md): **one** genuinely
 > new pack (knacker → tanner → chandler, closing *light* and half of
 > *waste*), and everything else is already in the register as *designed*
 > or a named **GAP**.
@@ -106,7 +106,7 @@ a settlement — it is a **facility**.
 
 ## 2. The types — ⭐ site-driven vs exit-driven
 
-**The taxonomy is [zoning-slate](./slates/builds/zoning-slate.md)'s**, and
+**The taxonomy is [zoning-slate](./slates/society/zoning-slate.md)'s**, and
 it is better than sorting by size: it sorts by *why the place is there*.
 
 **Site-driven** — the thing is there, you go to it:
@@ -506,7 +506,7 @@ von Thünen** — nobody has cashed it:
   ring** and grows gardens, not fields.
 
 Freight is the *optimization*, not the prerequisite:
-[freight-slate](./slates/builds/freight-slate.md) earns its place when
+[freight-slate](./slates/trades/freight-slate.md) earns its place when
 volume exceeds a backpack — a cart carries more than a person, and
 **vehicles are durative**, so time is the cost. The further from market,
 the more of a crop's value is eaten by haulage — so land use sorts by
@@ -528,7 +528,7 @@ tariff**.
 
 > **⭐⭐ And the three BUSINESSES teach three different monopoly SHAPES**
 > — completed in [sanitation-slate § The salvage yard as a
-> business](./slates/builds/sanitation-slate.md). The **turnpike**'s power
+> business](./slates/trades/sanitation-slate.md). The **turnpike**'s power
 > is **geographic** → **rate cap**; the **depot**'s is a **network
 > effect** → **common carrier / non-discrimination**; the
 > **salvage-and-materials** arm's is **vertical integration** (own the
@@ -667,7 +667,7 @@ it constantly.
 #### ⚠⚠ The constraint that keeps it from being griefing
 
 > **Exclusion may never touch the aether or movement.**
-> ⚠ **Reopened 2026-10-28** ([law-and-order-slate](./slates/builds/law-and-order-slate.md) § 7, the
+> ⚠ **Reopened 2026-10-28** ([law-and-order-slate](./slates/society/law-and-order-slate.md) § 7, the
 > owner): *"all forms of banishment on the table — these are dials to be tuned."* Presence
 > banishment is now a setting, bounded by the rights floor rather than forbidden here.
 
@@ -794,7 +794,7 @@ Three things at once:
 1. The legitimate storage MMO players expect — an itinerant player
    currently has **nowhere to put anything.**
 2. ⭐⭐ It answers the open **NPC-house-as-free-storage** exploit
-   ([towns-slate](./slates/builds/towns-slate.md) D22) **with a motive
+   ([towns-slate](./slates/world/towns-slate.md) D22) **with a motive
    rather than a prohibition.** The exploit exists because there is no
    legitimate alternative.
 3. ⭐⭐⭐ **A receipt is collateral.** The gray economy's credit loop

@@ -41,7 +41,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/eager-residency-slate.md — 239 → 233 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/eager-residency-slate.md — 239 → 233 · Status PARTIAL → PARTIAL
 
 The stamp was honest. The mechanism it names is in the tree: `pinsResidency`
 (`lib/persistence/Persistable.ts`, `KeptAnimal.ts`), the roll
@@ -77,7 +77,7 @@ pointer back here. Two cuts.
 
 ### Uncertain — kept
 - `## 3.` → *"the recency read has one consumer (`ResidencyLogic`)"* and `## 9.` W1 → *"`lastSeen` on the account (layer 1)"* — a recency stamp already exists: `Avatar.lastSeen` (`platform/agent/Avatar.ts:287`, persistent, `markSeen` on both the deliberate-leave and the linkdead path at `:1403`), read by character select (`Login.ts:456`). `ResidencyLogic` does **not** read it. So W1's first bullet is half-shipped in a different place (the Avatar, not "the account"), and the ceiling-of-one census would start from today's one consumer (the roster), not from `ResidencyLogic`. Mechanism unbuilt; premise stale
-- *Sits on* → `[property-slate](../tails/property-slate.md)` — **broken link**: the file is `docs/slates/builds/property-slate.md` (the README's folder is derived from size, so slates move). Not rewritten (cuts only); the sweep or the cluster pass fixes the path
+- *Sits on* → `[property-slate](../tails/property-slate.md)` — **broken link**: the file is `docs/slates/society/property-slate.md` (the README's folder is derived from size, so slates move). Not rewritten (cuts only); the sweep or the cluster pass fixes the path
 - Overlaps for the cluster pass: the compute allowance / heartbeat count ↔ `builds/property-slate.md` (Layer A/B); the mirror line ↔ `mirror-slate.md` (this batch); the commons deficit-mint ↔ `banking.md` `reserve mint`; *disenfranchisement by inactivity* ↔ `measurement.md` Tier C
 
 ### Handoff
@@ -90,7 +90,7 @@ pointer back here. Two cuts.
 
 ---
 
-## docs/slates/builds/client-audio-slate.md — 233 → 238 · Status UNBUILT → UNBUILT
+## docs/slates/client/client-audio-slate.md — 233 → 238 · Status UNBUILT → UNBUILT
 
 Nothing exists. `audio` / `jukebox` / `spotify` / `ambient` hit nothing in
 `packages/client/src` (`*.ts`, `*.tsx`), `packages/server/src`,
@@ -125,7 +125,7 @@ One cut (the second status block). The file grew by five lines because
 
 ---
 
-## docs/slates/builds/odometer-slate.md — 230 → 219 · Status UNBUILT → UNBUILT
+## docs/slates/platform/odometer-slate.md — 230 → 219 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. No counter store, projection, milestone or title
 vocabulary under `packages/server/src`, `packages/content`,
@@ -246,7 +246,7 @@ handoff asks for the six to be added to value-object-statics-slate's
 
 ---
 
-## docs/slates/builds/deduction-slate.md — 216 → 224 · Status UNBUILT → UNBUILT
+## docs/slates/world/deduction-slate.md — 216 → 224 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. None of the eight verbs exist as views
 (`packages/content/*/content/*/cmd/*/{casebook,board,theory,reconstruct,present,link,post}.yaml`
@@ -291,7 +291,7 @@ grew by eight lines because `Left` grew.
 
 ---
 
-## docs/slates/builds/mirror-slate.md — 214 → 200 · Status UNBUILT → UNBUILT
+## docs/slates/platform/mirror-slate.md — 214 → 200 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped, and further out than anything else: no inbound
 assertion, sensor-feed or parity seam anywhere under `packages/server/src`
@@ -301,7 +301,7 @@ fields of its own — `furnishing.md:450` (`postedAs`). Its *See also*
 targets resolve (`property-slate.md`, `stewardship-slate.md` are in
 `builds/`). **The stale claim is the "Unwritten siblings" section**: it
 says four designs *have no file in the corpus*; three now do —
-`docs/slates/builds/instrumentation-slate.md`, `enforcement-slate.md`,
+`docs/slates/engine/instrumentation-slate.md`, `enforcement-slate.md`,
 `bathroom-slate.md` (each stamped UNBUILT). Only the practicum thesis is
 still memory-only (cited in `company-and-capital.md:446,517`,
 `compact-political-science.md:146`; no slate). Two cuts.
@@ -336,7 +336,7 @@ still memory-only (cited in `company-and-capital.md:446,517`,
 
 ---
 
-## docs/slates/builds/record-integrity-slate.md — 213 → 218 · Status UNBUILT → UNBUILT
+## docs/slates/platform/record-integrity-slate.md — 213 → 218 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped, and the stamp's premise re-verified: no `prevHash`,
 `hash` chain, Merkle checkpoint or randomness beacon under
@@ -374,7 +374,7 @@ file grew by five lines because the status line grew.
 
 ---
 
-## docs/slates/builds/agency-slate.md — 206 → 215 · Status UNBUILT → UNBUILT
+## docs/slates/engine/agency-slate.md — 206 → 215 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. `ExecutionContextApi.getActingAuthor`
 (`api/execution-context.ts:500-525`) still resolves **one** principal from

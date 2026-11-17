@@ -1,6 +1,6 @@
 # Ledger — batch `mixins`
 
-Slate: `docs/slates/tails/mixin-slate.md`
+Slate: `docs/slates/engine/mixin-slate.md`
 
 Prior insertion already on this branch (not mine — the property/parcel
 slate's Handoff item, already landed): `mixins.md § Before proposing a
@@ -13,7 +13,7 @@ is already documented there; everything else graduates to OTHER
 subsystem docs, which are outside my insert list, so those go to
 Handoff below, never written to a doc.
 
-## docs/slates/tails/mixin-slate.md — 472 → 272 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/mixin-slate.md — 472 → 272 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 

@@ -17,7 +17,7 @@ Four kinds of doc artifact, each with a distinct lifetime.
 
 | Artifact | Location | Lifetime | Purpose |
 |---|---|---|---|
-| **Slate** | `docs/slates/<topic>-slate.md` | Long — survives many builds; retired only when fully absorbed | Product-backlog design surface; exploratory but well-developed |
+| **Slate** | `docs/slates/<kind>/<topic>-slate.md` | Long — survives many builds; retired only when fully absorbed | Product-backlog design surface; exploratory but well-developed |
 | **Requirements** | `docs/requirements/<feature>-requirements.md` | One build cycle; retired at sweep | **Product** scope for one build: what a person can now do, and why |
 | **Plan** | `docs/plans/<feature>-plan.md` | One build cycle; retired at sweep unless deferred waves are preserved | **Engineering** spec a fresh build agent can execute: grounding, host placement, waves, wiring |
 | **Subsystem** | `docs/subsystems/<name>.md` | Permanent | Live reference for how the subsystem works once built |
@@ -243,7 +243,7 @@ may block a merge.**
 → The mechanics (the `.soak.` convention, `pnpm wire:soak`, the refusal,
 `result.json`, `tools/soak`, the staging tools):
 [testing.md § The soak lane](./testing.md). The finding and the root
-fixes still to build: [soak-lane-slate](./slates/tails/soak-lane-slate.md).
+fixes still to build: [soak-lane-slate](./slates/tech-debt/soak-lane-slate.md).
 
 #### ⭐⭐ The exit criterion: drive it before the MERGE
 

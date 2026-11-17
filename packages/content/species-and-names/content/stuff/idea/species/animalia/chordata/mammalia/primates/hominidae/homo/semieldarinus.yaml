@@ -1,7 +1,7 @@
 # Homo semieldarinus — fantasy half-elf. Same biped anatomy as sapiens;
 # split the difference between human and elf — a mild low-light edge and
 # a stretched (but mortal) lifespan, at home in neither world fully.
-# Playable. See docs/slates/builds/species-expansion-slate.md.
+# Playable. See docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/semieldarinus.png

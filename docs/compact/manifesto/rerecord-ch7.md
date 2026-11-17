@@ -356,7 +356,7 @@ Beat 7's "it just makes it safe to."
   weld. It doesn't *reboot* daily operation, but it's genuinely meaningful — you're
   choosing the durable constitution. The founder isn't
   forced to install anything (top-down, locked in, is a legitimate constitution too).
-  Sources: `../slates/builds/amendment-library-slate.md`; draft-constitution Art IX–XI
+  Sources: `../slates/society/amendment-library-slate.md`; draft-constitution Art IX–XI
   (ratification / entrenchment / amendment tiers). Operator *pay* is the **Beat-6 income
   coda's** job — don't re-add here. (Nuance held back: the entrenchment vote is one-member-one-vote —
   the one place chamber-weight doesn't dominate — but not an operational change, so it
@@ -381,7 +381,7 @@ Beat 7's "it just makes it safe to."
   juries / "a chosen judge is a captured judge," push it up to Ch 5 — keep Ch 7 a
   callback.
 - **Branch-control mechanics (Beat 5) are canonical — safe to assert.** Confirmed
-  against `../slates/builds/cooperative-slate.md` (§§ *How the judiciary is staffed*,
+  against `../slates/society/cooperative-slate.md` (§§ *How the judiciary is staffed*,
   *Trials — async-first, sync-optional*, *How the prime minister is chosen*) and
   `../governance/draft-constitution.md` Art VI + the `judiciary.*` parameter schedule.
   **Executive** = parliamentary: the legislature elects the PM, so 2-of-3 chamber

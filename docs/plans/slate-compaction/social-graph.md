@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch `social-graph`
 
-Slates: `docs/slates/tails/social-graph-slate.md`,
-`docs/slates/tails/connection-origin-slate.md`.
+Slates: `docs/slates/engine/social-graph-slate.md`,
+`docs/slates/platform/connection-origin-slate.md`.
 Doc I may insert into: `docs/subsystems/social-graph.md` only.
 
 ## Findings (pre-pass)
@@ -52,7 +52,7 @@ Doc I may insert into: `docs/subsystems/social-graph.md` only.
 - `persistence.md` has zero mentions of contacts/notify — the "buckets
   at scale" flagged-for-follow-on note is likewise still open. Kept.
 
-## docs/slates/tails/social-graph-slate.md — 496 → 121  · Status PARTIAL → PARTIAL
+## docs/slates/engine/social-graph-slate.md — 496 → 121  · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second narrative status block (old "Status: Wave 3 SHIPPED…", 20 lines) — history superseded by the canonical block; one status block per pilot calibration.
@@ -97,7 +97,7 @@ Doc I may insert into: `docs/subsystems/social-graph.md` only.
 - Left: "the message-restyle live wiring (needs a sync contacts fast-path) · Wave 4 recognition-state coupling — consent friending and recognition-gated bucketing" → "message-restyle live wiring · recognition-gated bucketing (deferred to the recognition-family build) · account-level bucket federation across characters · comms trust-tiered message policy (foes drop / friends bypass filters — comms-slate territory, untouched) · bucket-scale persistence follow-on · bucket-membership-change events"
 - Size: a wave → a tail (what remains is several small, scattered items riding other builds, not a cohesive wave)
 
-## docs/slates/tails/connection-origin-slate.md — 211 → 168  · Status PARTIAL → PARTIAL
+## docs/slates/platform/connection-origin-slate.md — 211 → 168  · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second narrative status block ("Status: scoped, buildable, small.", 9 lines) — history, one status block per pilot calibration.

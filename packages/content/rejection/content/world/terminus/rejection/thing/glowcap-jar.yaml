@@ -14,7 +14,7 @@
 # it: a jar of glowcap is a permanent light, and saying otherwise was a
 # claim about a system nobody had written. The biological consumable is a
 # fungiculture build, not a line of prose — see
-# `docs/slates/builds/authored-vs-procedural-slate.md`.
+# `docs/slates/world/authored-vs-procedural-slate.md`.
 class: /platform/thing/equipment/PortableLight
 data:
   shortDescription: stoppered jar of glowcap

@@ -1,7 +1,7 @@
 # Slate-compaction ledger — batch `smallholding`
 
-Slates: `docs/slates/builds/zoning-slate.md`,
-`docs/slates/tails/development-slate.md`. Insert-only target:
+Slates: `docs/slates/society/zoning-slate.md`,
+`docs/slates/society/development-slate.md`. Insert-only target:
 `docs/subsystems/smallholding.md`.
 
 ## Findings (pre-pass)
@@ -72,12 +72,12 @@ Slates: `docs/slates/builds/zoning-slate.md`,
 
 ---
 
-## docs/slates/builds/zoning-slate.md — 495 → 394 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/zoning-slate.md — 495 → 394 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED / SUPERSEDED)
 - `⚠ stewardship-slate.md lives on another branch` callout (7 lines) —
   SUPERSEDED: that branch is now on master
-  (`docs/slates/builds/stewardship-slate.md` exists, PARTIAL); the closed
+  (`docs/slates/society/stewardship-slate.md` exists, PARTIAL); the closed
   six it flagged ships in `packages/server/src/mud/lib/parcel/LandUse.ts`
   and is documented at `smallholding.md § Land use — the closed six`.
 - `## Acreage — and the dependency two live sessions share` (27 lines) —
@@ -151,7 +151,7 @@ needed inserting.
 
 ---
 
-## docs/slates/tails/development-slate.md — 282 → 229 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/development-slate.md — 282 → 229 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Second `> **Status: design captured 2026-08-01, not built.**` blockquote

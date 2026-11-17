@@ -17,7 +17,7 @@ animal), [ranching.md](./ranching.md) (the record-not-object precedent:
 *a herd MOVES; a stand does not* — and fish move), [spoilage.md](./spoilage.md)
 (a landed fish dies, turns, and carries what the water carried),
 [retail.md](./retail.md) (the stall is consignment, no new verb). The
-design: `docs/slates/tails/fishing-slate.md` (§ 12 is the home tank).
+design: `docs/slates/trades/fishing-slate.md` (§ 12 is the home tank).
 
 ---
 
@@ -338,7 +338,7 @@ INERT behind every scope seed — a bare word resolved by pool order
 ([mortality.md](./mortality.md)); wire test characters were minted naked
 ([testing.md](../testing.md)). **Recorded, not fixed here:** every unfed
 Cast in the world starves at room temperature — the thermal dials
-([thermal-slate](../slates/tails/thermal-slate.md)); a keyed pet inside a
+([thermal-slate](../slates/engine/thermal-slate.md)); a keyed pet inside a
 moved vessel restores loose, and a dropped chattel restores to inventory
 ([pets.md](./pets.md), Risk 7 — so *the carp is in its bowl after a
 restart* is the one acceptance line not met).

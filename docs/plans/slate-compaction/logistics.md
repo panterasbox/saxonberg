@@ -48,7 +48,7 @@ Four things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/freight-slate.md — 1104 → 892 · Status PARTIAL → PARTIAL
+## docs/slates/trades/freight-slate.md — 1104 → 892 · Status PARTIAL → PARTIAL
 
 The substrate half of this slate shipped in the logistics build and is
 documented; the *politics* half (barricade, tollgate, turnpike trust,
@@ -132,7 +132,7 @@ each lands in.
 
 ---
 
-## docs/slates/builds/logistics-slate.md — 1057 → 772 · Status PARTIAL → PARTIAL
+## docs/slates/trades/logistics-slate.md — 1057 → 772 · Status PARTIAL → PARTIAL
 
 The parent slate. Parts 0, 2, 4 and the inventory describe the build
 that shipped (retired `logistics-plan.md`: W0–W9 every wave `✅`; the

@@ -58,7 +58,7 @@ population.
 
 The organizing device, taken from Murch's claim that a film is made
 three times — written, shot, edited — and written up in full in
-[quest-modeling-slate § Framing](../slates/builds/quest-modeling-slate.md):
+[quest-modeling-slate § Framing](../slates/world/quest-modeling-slate.md):
 
 | | Murch | ours | what gets cast |
 |---|---|---|---|
@@ -73,7 +73,7 @@ the wrong pass** — first pass 3 (who holds the seat), then pass 1
 
 ## What the design answers
 
-At **pass 2**, the [quest slate](../slates/builds/quest-modeling-slate.md)
+At **pass 2**, the [quest slate](../slates/world/quest-modeling-slate.md)
 has real machinery, and more of it than he has:
 
 | | his version | ours |

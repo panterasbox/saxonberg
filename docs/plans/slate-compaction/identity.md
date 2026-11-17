@@ -32,7 +32,7 @@ Two facts that framed every call:
 
 ---
 
-## docs/slates/builds/cast-archetype-slate.md — 925 → 825 · Status PARTIAL → PARTIAL
+## docs/slates/world/cast-archetype-slate.md — 925 → 825 · Status PARTIAL → PARTIAL
 
 Most of the body is the unbuilt archetype-row design the `Left` names, and
 it stays verbatim. The cuts are the shipped identity half (which this slate
@@ -90,7 +90,7 @@ defects that shipped as gates, and stale censuses.
 
 ---
 
-## docs/slates/tails/dossier-slate.md — 843 → 148 · Status PARTIAL → PARTIAL
+## docs/slates/world/dossier-slate.md — 843 → 148 · Status PARTIAL → PARTIAL
 
 The slate's own status block said it: *"everything above [Q2–Q5] is the
 design conversation as it happened; where it disagrees with identity.md,
@@ -149,7 +149,7 @@ four open questions plus the spine and one vocabulary note.
 
 ---
 
-## docs/slates/builds/antecedents-slate.md — 538 → 480 · Status PARTIAL → PARTIAL
+## docs/slates/engine/antecedents-slate.md — 538 → 480 · Status PARTIAL → PARTIAL
 
 Largely UNBUILT, as the assignment said: no `background:` in content, no
 effort→prior function on `Competence`, no cohort/`knows:` authoring in

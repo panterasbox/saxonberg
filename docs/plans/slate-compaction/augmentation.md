@@ -14,7 +14,7 @@ AetherImplant}.ts`, `lib/message/Aether.ts`, `lib/magic/Caster.ts`,
 overlap found (see Handoff note on `comms.md`, and the negative finding
 on `combat-hooks.md` / instrumentation below).
 
-## docs/slates/tails/augmentation-slate.md — 322 → 164 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/augmentation-slate.md — 322 → 164 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Second status block ("Wave 1 shipped 2026-06...") and the

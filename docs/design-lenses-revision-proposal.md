@@ -555,7 +555,7 @@ a **declared purpose**, and our localities mostly do not declare one.
 place that declared nothing it contradicts nothing.* Which is what
 **zoning** actually is — purpose declaration for a place — and it turns
 *does this belong here* from a taste argument into a question with an
-answer. See [zoning-slate](./slates/builds/zoning-slate.md).
+answer. See [zoning-slate](./slates/society/zoning-slate.md).
 
 **(b) Is an expressive surface *enterable*?** Lens 2 asks whether
 something is expressive, never whether a person can start using it.

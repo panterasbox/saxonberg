@@ -3,7 +3,7 @@
 The weekly livestream: **Bobalu Smallberries**, founder of **Pantera's Box**, home of
 **Saxonberg**. Three distinct layers: the person and the show · the org · the project.
 Saturdays, 10 a.m. (tentative), about two hours, on Twitch and YouTube
-([broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md) for the tooling).
+([broadcast-ready-slate](../slates/platform/broadcast-ready-slate.md) for the tooling).
 
 Weekly rundowns live beside this file as `YYYY-MM-DD.md`.
 
@@ -56,9 +56,9 @@ totally okay with it."*
 | 0:45 | **Break** | standby or b-roll | not clipped |
 | 0:50 | **Live Design** | improv's *"can I get a suggestion"*: a prompt from chat, Reddit or the backlog, which the owner designs live, the agent's session and the whiteboard on screen as tools | long clip |
 | 1:10 | **Under the Hood** | one architecture idea, code on screen | developer clip |
-| 1:22 | **The Rotating Slot** | In the News ([media-responses.md](../media-responses.md)) · Court Day ([moderation § 14a](../slates/builds/moderation-slate.md), once a realm runs) · Playtest | varies |
+| 1:22 | **The Rotating Slot** | In the News ([media-responses.md](../media-responses.md)) · Court Day ([moderation § 14a](../slates/society/moderation-slate.md), once a realm runs) · Playtest | varies |
 | 1:30 | **Mailbag** | questions from chat, Reddit, Discord | grab bag |
-| 1:40 | **Close** | callbacks to the cold open, next week's tease, the offering's status when one is open ([giving-slate § Offerings](../slates/builds/giving-slate.md)) | not clipped |
+| 1:40 | **Close** | callbacks to the cold open, next week's tease, the offering's status when one is open ([giving-slate § Offerings](../slates/society/giving-slate.md)) | not clipped |
 
 **The rules:**
 

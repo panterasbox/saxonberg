@@ -37,7 +37,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/warranty-slate.md — 202 → 194 · Status UNBUILT → UNBUILT
+## docs/slates/society/warranty-slate.md — 202 → 194 · Status UNBUILT → UNBUILT
 
 Entirely unbuilt, exactly as stamped. `CLAUSE_SHAPES` is still
 `["achieve", "maintain"]` (`packages/server/src/mud/lib/employment/Clause.ts:22`)
@@ -78,7 +78,7 @@ shipped (`ranching.md § The herdbook`), renown / chain-of-title /
 
 ---
 
-## docs/slates/tails/reference-lifetime-slate.md — 199 → 59 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/reference-lifetime-slate.md — 199 → 59 · Status PARTIAL → PARTIAL
 
 The design shipped, and so did its "follow-on". `static fieldMeta` with
 `ref: 'identity' | 'instance'` + `lifetime: 'weak' | 'symmetric' | 'owned'`
@@ -194,7 +194,7 @@ declared nowhere** — `Employed.institution` declares it
 
 ---
 
-## docs/slates/builds/enforcement-slate.md — 198 → 204 · Status UNBUILT → UNBUILT
+## docs/slates/society/enforcement-slate.md — 198 → 204 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. `enforcementMode` / `barricade` / `border notice` /
 `testimon` / `perjur` hit nothing under `packages/server/src/mud` or
@@ -241,7 +241,7 @@ grew. One status block only.
 
 ---
 
-## docs/slates/builds/branch-policy-slate.md — 192 → 195 · Status UNBUILT → UNBUILT
+## docs/slates/platform/branch-policy-slate.md — 192 → 195 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. `DOCUMENT_KINDS`
 (`packages/server/src/mud/lib/document/DocumentKinds.ts:49-157`) carries
@@ -284,7 +284,7 @@ status block only; the file grew by three lines because `Left` grew.
 
 ---
 
-## docs/slates/tails/connection-quality-slate.md — 178 → 165 · Status UNBUILT → UNBUILT
+## docs/slates/platform/connection-quality-slate.md — 178 → 165 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped, and its Part 0 is shipped-and-documented. The probe:
 `packages/server/src/backend/inbound/ping.ts` (the reply now carries
@@ -332,7 +332,7 @@ cuts.
 
 ---
 
-## docs/slates/builds/wizard-axis-cleanup-slate.md — 176 → 183 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/wizard-axis-cleanup-slate.md — 176 → 183 · Status UNBUILT → UNBUILT
 
 Unbuilt, and no requirements doc was ever produced from it
 (`docs/requirements/` holds `demo-content` · `economic-bootstrap` ·
@@ -392,7 +392,7 @@ leak went.
 
 ---
 
-## docs/slates/builds/altar-slate.md — 175 → 181 · Status UNBUILT → UNBUILT
+## docs/slates/society/altar-slate.md — 175 → 181 · Status UNBUILT → UNBUILT
 
 Unbuilt, as stamped. `altar` / `sacrific` / `consecrat` / `desecrat`
 under `packages/server/src/mud` + `packages/content` hit five files, all

@@ -1,7 +1,7 @@
 # Draft Constitution of the Compact
 
 > **Status: DRAFT — not ratified.** A formal consolidation of the design in
-> [cooperative-slate.md](../../slates/builds/cooperative-slate.md) into normative articles. The
+> [cooperative-slate.md](../../slates/society/cooperative-slate.md) into normative articles. The
 > slate carries the *rationale*; this document carries the *provisions*. Five
 > genuinely-undecided points are marked **[OPEN]** with a recommended
 > resolution; everything else reflects the settled design. Ratification and
@@ -57,7 +57,7 @@
 > process when it onboards or grows into a republic. The kernel is common to
 > all; the library is how communities differ *without each reinventing due
 > process.* The catalog and its design live in
-> [amendment-library-slate.md](../../slates/builds/amendment-library-slate.md).
+> [amendment-library-slate.md](../../slates/society/amendment-library-slate.md).
 
 ## Preamble
 
@@ -189,7 +189,7 @@ unamendable except by founding anew (Article X §4).
    thresholds below) are organic law (§7), and the precise reconciliation of a
    capped, regenerating reservoir with continuous allocation **remains to be
    specified**; the engineered design is in
-   [cooperative-slate.md](../../slates/builds/cooperative-slate.md) §§ *Influence* and *The
+   [cooperative-slate.md](../../slates/society/cooperative-slate.md) §§ *Influence* and *The
    legislature*.
 3. **Bills are global and concurrent.** There is one central floor of bills;
    every bill is deliberated globally and weighed by all houses at once, with
@@ -272,7 +272,7 @@ unamendable except by founding anew (Article X §4).
    > §6 binds rules that protect **a claim the platform makes**, and reads
    > as a ceiling rather than a floor for rules that protect **a norm the
    > polity holds** — where the enforcement *mode* is itself the
-   > legislature's choice ([enforcement-slate](../../slates/builds/enforcement-slate.md)).
+   > legislature's choice ([enforcement-slate](../../slates/society/enforcement-slate.md)).
 8. The executive shall **provide and maintain a structured deliberation
    surface** for bills before the legislature — one whose organization is the
    argument's own structure, not a ranking of persons or contributions by user
@@ -342,7 +342,7 @@ unamendable except by founding anew (Article X §4).
 > harm); a lasting deprivation is a **sentence** and needs a case under this article, and a hold
 > past the line lapses unless its case is heard. At founding the case is heard on the operator's
 > weekly stream, publicly, with the audience as an advisory jury: this article at a pool of one,
-> operator-overridable. See [moderation-slate § 14a](../../slates/builds/moderation-slate.md).
+> operator-overridable. See [moderation-slate § 14a](../../slates/society/moderation-slate.md).
 
 ## Article VII — The Record & Its Integrity
 

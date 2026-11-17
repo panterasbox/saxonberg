@@ -65,7 +65,7 @@ const CoinBase = StackableMixin(Good);
  * apples in the world, which is both wrong and enormously disruptive. The
  * generalization — a *value-bearing* marker that a scrip token or a bearer
  * credential could also carry — is the money-integrity slate's own cycle
- * (docs/slates/builds/money-integrity-slate.md § open question 2). Until
+ * (docs/slates/tech-debt/money-integrity-slate.md § open question 2). Until
  * then, `Coin` is the value-bearing stack, and scrip will be a `Coin` with a
  * different currency, so it inherits this gate for free.
  */
@@ -81,7 +81,7 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
   // clone into a fortune. That is a CONTENT-authoring surface, not a code
   // one: `class` is a wizard-gated field, and
   // "can a template mint coins" is enumerated in
-  // docs/slates/builds/money-integrity-slate.md § the audit surface
+  // docs/slates/tech-debt/money-integrity-slate.md § the audit surface
   // (clone-a-coin, content packs, the CMS coin row) as that cycle's work.
   // Two arms: the applier's code provenance and its template lineage.
   // ⚠⚠ The template arm used to be the GLOB `/platform/idea/persistence/

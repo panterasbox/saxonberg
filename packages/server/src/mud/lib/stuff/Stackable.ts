@@ -6,7 +6,7 @@
  * contract surface (`drop 5 coins`, "30 coins are here"), while
  * storing only one row. Operational reference:
  * `docs/subsystems/stacks.md`. The bulk-form extension story lives in
- * `docs/slates/tails/bulkable-slate.md`.
+ * `docs/slates/engine/bulkable-slate.md`.
  *
  * Three guarantees:
  *

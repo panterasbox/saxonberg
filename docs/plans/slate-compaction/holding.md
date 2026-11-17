@@ -53,7 +53,7 @@ Batch-wide findings a reviewer should know first:
 
 ---
 
-## docs/slates/tails/dorm-warren-slate.md — 312 → 247 · Status PARTIAL → PARTIAL
+## docs/slates/world/dorm-warren-slate.md — 312 → 247 · Status PARTIAL → PARTIAL
 
 The dorm shipped (residences build) but the slate's *faculty* — a
 mixin-field editor filtered by tier, a cross-mixin field-bundle theme, a
@@ -116,7 +116,7 @@ anywhere in `packages/`.
 
 ---
 
-## docs/slates/tails/tenancy-design-pack.md — 302 → 285 · Status PARTIAL → PARTIAL
+## docs/slates/society/tenancy-design-pack.md — 302 → 285 · Status PARTIAL → PARTIAL
 
 Nearly all UNBUILT: no room-condition events (`grep -rl "tidiness\|debris"`
 over `src/mud` + pack `src/` finds no producer), no condition snapshot on
@@ -159,7 +159,7 @@ reference incentive (batch finding 2) and the structure/contents split.
 
 ---
 
-## docs/slates/tails/residence-ladder-design-pack.md — 367 → 329 · Status PARTIAL → PARTIAL
+## docs/slates/society/residence-ladder-design-pack.md — 367 → 329 · Status PARTIAL → PARTIAL
 
 The GATE shipped; the CONDITION the pack designed did not. Shipped
 condition is `shellCondition` + `shellStamp` on the programme instance,
@@ -217,7 +217,7 @@ Discipline row (`platform/idea/Discipline/agriculture.yaml` only mentions
 
 ---
 
-## docs/slates/builds/stewardship-slate.md — 482 → 401 · Status PARTIAL → PARTIAL
+## docs/slates/society/stewardship-slate.md — 482 → 401 · Status PARTIAL → PARTIAL
 
 The **land-use enabler** and the **ladder** shipped out of this slate;
 the **allowance cascade**, the **zoning authority**, **premises** and
@@ -286,7 +286,7 @@ only (rungs 4–5's *zoning available* / *stewardship band* gates absent).
 
 ---
 
-## docs/slates/builds/eternal-university-slate.md — 602 → 510 · Status PARTIAL → PARTIAL
+## docs/slates/world/eternal-university-slate.md — 602 → 510 · Status PARTIAL → PARTIAL
 
 Mostly UNBUILT campus content, as briefed. The `eternal-university` pack
 holds Duncan Hall (`steps · lobby · corridor · dormroom · cistern` rows,

@@ -4,7 +4,7 @@
  * stamp.
  *
  * The **first concrete brick of the provenance substrate** (see
- * docs/slates/builds/provenance-slate.md). Its immediate consumer is the
+ * docs/slates/platform/provenance-slate.md). Its immediate consumer is the
  * producer influence stock: `resolveCredit` asks `authorOf(zonePath)` to
  * route attributed-engagement credit. Authorship as a ledger (not a
  * `createdByPlayerId` field) is deliberate — a mutable field is not an

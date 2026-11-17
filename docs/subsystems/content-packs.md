@@ -362,7 +362,7 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 > has any claim on it.
 >
 > ⚠ **Two consequences the boundary needs and does not yet have** —
-> → [pack-boundary-slate](../slates/tails/pack-boundary-slate.md):
+> → [pack-boundary-slate](../slates/platform/pack-boundary-slate.md):
 > **(a)** a pack must not ship a row naming a **realm-local identity**
 > (it would point at an avatar the receiving database does not have —
 > broken by construction, so a lint rather than a policy, and the same
@@ -662,7 +662,7 @@ construction. Two mechanisms close that, decided 2026-09-14:
   duplicate `_mixinName` anywhere, and **a real collision is the recorded
   trigger to reopen path-addressed mixins**, declined today only because
   a TypeScript type predicate cannot be path-addressed. See
-  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
+  `docs/slates/platform/content-packs-slate.md` § RESOLVED.
 
 ### ⭐⭐ How a kernel VERB reaches pack behaviour — the declared shape
 
@@ -1438,7 +1438,7 @@ values: editing gin's density breaks nothing (it re-hydrates); renaming
 
 ## Deferred
 
-The slate (`docs/slates/builds/content-packs-slate.md`) holds the full
+The slate (`docs/slates/platform/content-packs-slate.md`) holds the full
 design surface and remaining build waves: **wave 5** — homing the rest
 of `world-seed` (eternal as the capability exemplar with `DormThemes` /
 `Footlocker` / `Gus`, terminus, moor, practicum, substation, common)
@@ -1617,7 +1617,7 @@ kind).
 
 `design/pack-installer` (2026-08-25) — the **pack-installer substrate**
 (waves 0+1 of the content-pack program — slate addenda A10/A17/A24/A25
-in `docs/slates/builds/content-packs-slate.md`; the requirements and
+in `docs/slates/platform/content-packs-slate.md`; the requirements and
 plan retired at the sweep): the
 `domain` → `content` rename; the
 `pack_installs` record with body-beside-hash baselines; the three-way

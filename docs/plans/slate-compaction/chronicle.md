@@ -1,9 +1,9 @@
 # Slate-compaction ledger — batch: chronicle
 
 Insert-doc (may write): `docs/subsystems/chronicle.md`
-Slate: `docs/slates/tails/deed-tags-slate.md`
+Slate: `docs/slates/society/deed-tags-slate.md`
 
-## `docs/slates/tails/deed-tags-slate.md` — 191 → 185 lines · Status UNBUILT → UNBUILT
+## `docs/slates/society/deed-tags-slate.md` — 191 → 185 lines · Status UNBUILT → UNBUILT
 
 Verified against code, not against the slate's own claims. Findings:
 

@@ -1,7 +1,7 @@
 # Slate-compaction ledger — batch `press`
 
-Agent scope: `docs/slates/builds/press-slate.md`,
-`docs/slates/builds/gazette-slate.md`. Insertable doc:
+Agent scope: `docs/slates/society/press-slate.md`,
+`docs/slates/society/gazette-slate.md`. Insertable doc:
 `docs/subsystems/press.md` only. Graduations belonging elsewhere go to
 Handoff, never written into another doc.
 
@@ -50,7 +50,7 @@ Verified against code, not against the slates' own markers:
 
 ---
 
-## docs/slates/builds/press-slate.md — 510 → 457 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/press-slate.md — 510 → 457 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## ⭐ A newspaper is an ORGANIZATION that trades and publishes` (41
@@ -150,7 +150,7 @@ Verified against code, not against the slates' own markers:
 
 ---
 
-## docs/slates/builds/gazette-slate.md — 225 → 174 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/gazette-slate.md — 225 → 174 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## ⚠ The launch problem, stated precisely` + `## ⭐⭐⭐ The seams are

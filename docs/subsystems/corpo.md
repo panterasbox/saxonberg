@@ -11,8 +11,8 @@ beyond it.
 This is the **near-term** half of the corpos slate. The player-facing
 faction gameplay — the multipolar approval vector, competition, sponsorship —
 is deferred (see [Deferred](#deferred)). Seeded by
-[corpos-slate.md](../slates/builds/corpos-slate.md); first consumer is
-[daves-bar-slate.md](../slates/builds/daves-bar-slate.md).
+[corpos-slate.md](../slates/society/corpos-slate.md); first consumer is
+[daves-bar-slate.md](../slates/world/daves-bar-slate.md).
 
 The recipe mirrors the advancement **Catalog**
 ([advancement.md](./advancement.md)): a singleton catalogue over pure-data
@@ -279,9 +279,9 @@ it is authored, so the branch's tellers stay the branch's.
 
 ## Cross-references
 
-- [corpos-slate.md](../slates/builds/corpos-slate.md) — the model + the
+- [corpos-slate.md](../slates/society/corpos-slate.md) — the model + the
   authored roster (canonical home)
-- [daves-bar-slate.md](../slates/builds/daves-bar-slate.md) — the first
+- [daves-bar-slate.md](../slates/world/daves-bar-slate.md) — the first
   consumer (back-bar booze attribution)
 - [advancement.md](./advancement.md) — the Catalog recipe this mirrors
   (`DisciplineCatalogue` over pure-data leaf `Idea`s)

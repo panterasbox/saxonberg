@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch: message-rendering
 
-Agent scope: `docs/slates/tails/message-rendering-slate.md`,
-`docs/slates/tails/author-typography-slate.md`. Insert-only target:
+Agent scope: `docs/slates/client/message-rendering-slate.md`,
+`docs/slates/client/author-typography-slate.md`. Insert-only target:
 `docs/subsystems/message-rendering.md`.
 
 ## Findings (apply to both slates)
@@ -60,7 +60,7 @@ Agent scope: `docs/slates/tails/message-rendering-slate.md`,
 
 ---
 
-## docs/slates/tails/author-typography-slate.md — 125 → 126 lines · Status PARTIAL → PARTIAL
+## docs/slates/client/author-typography-slate.md — 125 → 126 lines · Status PARTIAL → PARTIAL
 
 Verified against the code: no display-token vocabulary, no token→face
 map, no authoring attribute, and none of the six starter-palette faces
@@ -102,7 +102,7 @@ graduate.
 
 ---
 
-## docs/slates/tails/message-rendering-slate.md — 429 → 169 lines · Status PARTIAL → PARTIAL
+## docs/slates/client/message-rendering-slate.md — 429 → 169 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Two duplicate/narrative status blocks (old lines 3–43, the "Wave 1

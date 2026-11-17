@@ -13,9 +13,9 @@ it dies. Nothing is harvested for money and nothing is farmed — the plant
 exists to prove the growth model and the object shape the rest of the family
 inherits.
 
-Seeded by [farming-slate § Houseplants](../slates/builds/farming-slate.md)
+Seeded by [farming-slate § Houseplants](../slates/trades/farming-slate.md)
 and governed by [ranching-slate § The five shared
-conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
+conventions](../slates/trades/ranching-slate.md); phase 1 of nine in
 [living-world-roadmap.md](../living-world-roadmap.md).
 
 ---
@@ -727,7 +727,7 @@ band is read by instruments, not by the plant.
   ships and accrues evidence (below), but nothing reads its band yet.
 - **No bond, no attention need, no regard.** A plant cannot hold an opinion
   of you — the family's stated asymmetry, and
-  [pets](../slates/builds/pets-slate.md)' whole divergence.
+  [pets](../slates/engine/pets-slate.md)' whole divergence.
 - **No automation ladder.** No hired hand, no self-watering pot. Needs the
   employment engine and a production brain (phase 8).
   ⚠ *Status 2026-09-19:* both prerequisites now exist — the employment
@@ -737,7 +737,7 @@ band is read by instruments, not by the plant.
   hearts-delight farmer runs `introduces`/`idles`) and nothing lets a
   player hire a hand for *their* ground. The ladder is unwired, not
   unbuilt; the design is [farming-slate § Maintenance & the automation
-  ladder](../slates/builds/farming-slate.md).
+  ladder](../slates/trades/farming-slate.md).
 
 ---
 
@@ -749,8 +749,8 @@ band is read by instruments, not by the plant.
 [retail.md](./retail.md) · [time.md](./time.md) ·
 [quantities.md](./quantities.md) ·
 [command-spec.md](./command-spec.md) ·
-[farming-slate](../slates/builds/farming-slate.md) ·
-[ranching-slate](../slates/builds/ranching-slate.md) ·
+[farming-slate](../slates/trades/farming-slate.md) ·
+[ranching-slate](../slates/trades/ranching-slate.md) ·
 [living-world-roadmap](../living-world-roadmap.md)
 
 ## ⭐ The soil half left (farmstead W1)

@@ -982,7 +982,7 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * reach", "do you own it" do not — those are the state and relation
  * axes, they change between one moment and the next, and they stay in
  * validators and controllers where they can. See
- * `docs/slates/builds/affordance-suggestion-slate.md` § 3.
+ * `docs/slates/client/affordance-suggestion-slate.md` § 3.
  *
  * ⚠⚠ **This map is PARTIAL, and that is the hole `lint:arg-kinds`
  * closes.** Most of the 200-odd mixins will never be named by a

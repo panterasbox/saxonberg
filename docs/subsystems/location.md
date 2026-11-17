@@ -386,8 +386,8 @@ rack (retail.md) rides `FixtureMixin` `seatIn` into the Warren host, so it
 stands on the lounge side of the doorway: you check your steel in the
 combat-free room before you go next door.
 
-Promoted from `docs/slates/builds/multilocation-slate.md` +
-`docs/slates/builds/lounge-slate.md` via
+Promoted from `docs/slates/engine/multilocation-slate.md` +
+`docs/slates/world/lounge-slate.md` via
 `docs/requirements/multilocation-lounge-requirements.md` and
 `docs/plans/multilocation-lounge-plan.md`.
 

@@ -102,7 +102,7 @@ the docs are right.
 
 > ✅ **`mode: 'overlay'` REFUSES, at both ends** (fixed 2026-09-30,
 > ahead of the build that will implement it —
-> [avatar-family-slate](../slates/builds/avatar-family-slate.md) § Sequencing 1).
+> [avatar-family-slate](../slates/engine/avatar-family-slate.md) § Sequencing 1).
 > `SchemaDoc.#parseSandbox` rejects a schema doc that selects it, so the
 > failure lands on the author at `gen:schema` / `lint:schema` time; and
 > all three `PersistenceManager` write paths — `dispatchSave`,

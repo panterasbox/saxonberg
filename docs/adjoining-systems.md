@@ -27,7 +27,7 @@ See also:
   its forward-looking content (trap / pathfinder / detection
   consumers, run-as-mode, etc.) folded into the subsystem doc's
   Future work section.
-- [docs/slates/tails/mixin-slate.md](./slates/tails/mixin-slate.md) — broader mixin slate;
+- [docs/slates/engine/mixin-slate.md](./slates/engine/mixin-slate.md) — broader mixin slate;
   some entries here are deferred from there.
 
 ---
@@ -37,10 +37,10 @@ See also:
 Tier 1 — highest leverage; likely to surface real holes in current
 slates:
 
-1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md))
-2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [subsystems/senses.md](./subsystems/senses.md)** (the *hearing* instance; deep acoustic spec retained in [senses-slate.md](./slates/builds/senses-slate.md); also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
-3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/tails/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
-4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/tails/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/tails/social-graph-slate.md), [identification-slate.md](./slates/builds/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/tails/comms-slate.md))
+1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/engine/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/engine/host-slot-activities-slate.md))
+2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [subsystems/senses.md](./subsystems/senses.md)** (the *hearing* instance; deep acoustic spec retained in [senses-slate.md](./slates/engine/senses-slate.md); also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
+3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/engine/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
+4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/engine/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/engine/social-graph-slate.md), [identification-slate.md](./slates/engine/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/engine/comms-slate.md))
 
 Tier 2 — extends established patterns; can land after Tier 1
 without churn:
@@ -75,9 +75,9 @@ verb. No v1 controllers register activities yet; the framework
 lands inert per current direction on game responsiveness.
 Locomotion-as-activity and host-slot activities are preserved as
 design reference in
-[docs/slates/tails/locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md)
+[docs/slates/engine/locomotion-as-activity-slate.md](./slates/engine/locomotion-as-activity-slate.md)
 and
-[docs/slates/tails/host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md)
+[docs/slates/engine/host-slot-activities-slate.md](./slates/engine/host-slot-activities-slate.md)
 for when genuinely-durative content earns the slot. Runtime
 constraints captured separately in
 [docs/runtime-model.md](./runtime-model.md).
@@ -107,7 +107,7 @@ framework's hooks.
 ## 2. Collisions, blocking, and pushing — GRADUATED
 
 **Status**: graduated to its own slate at
-[docs/slates/deferred-rpg/collision-slate.md](./slates/tails/collision-slate.md). The conversation
+[docs/slates/deferred-rpg/collision-slate.md](./slates/engine/collision-slate.md). The conversation
 also surfaced the broader spatial-fidelity philosophy, captured
 at [docs/design-philosophy.md](./design-philosophy.md): bag-of-
 stuff rooms by default, opt-in finer fidelity (regions, range
@@ -137,7 +137,7 @@ different), #6 (a hidden actor isn't a collision until detected).
 
 **Status**: graduated into the perception substrate
 ([docs/subsystems/senses.md](./subsystems/senses.md); the deep acoustic
-spec is retained in [docs/slates/tails/senses-slate.md](./slates/builds/senses-slate.md)).
+spec is retained in [docs/slates/engine/senses-slate.md](./slates/engine/senses-slate.md)).
 The conversation also
 spun out a cross-cutting [docs/subsystems/quantities.md](./subsystems/quantities.md)
 capturing the `Quantity<T>` pattern (real-units-underneath,
@@ -188,21 +188,21 @@ machinery (does this share infrastructure with #9?).
 ## 5. Recognition, disguise, and strangers — GRADUATED
 
 **Status**: graduated to its own slate at
-[docs/slates/tails/recognition-slate.md](./slates/tails/recognition-slate.md), with three
+[docs/slates/engine/recognition-slate.md](./slates/engine/recognition-slate.md), with three
 sibling slates spun out from the social-game / multi-user-scale
 discussion:
 
-- [docs/slates/tails/social-graph-slate.md](./slates/tails/social-graph-slate.md) —
+- [docs/slates/engine/social-graph-slate.md](./slates/engine/social-graph-slate.md) —
   buckets (friends/foes/custom), notification policies,
   attention-management rendering. Strangers go *more*
   ambiguous in crowded rooms so people who matter stand out.
-- [docs/slates/tails/comms-slate.md § Moderation](./slates/tails/comms-slate.md)
+- [docs/slates/engine/comms-slate.md § Moderation](./slates/engine/comms-slate.md)
   — trust-tiered moderation (folded here when communication-policy-slate
   was retired); recognition is a security primitive. Familiarity (from
   recognition + contacts) narrows a sender's reach; untrusted-zone NPCs
   are treated as strangers (zone trust via AccessApi); authority
   overrides for warnings.
-- [docs/slates/tails/identification-slate.md](./slates/builds/identification-slate.md) —
+- [docs/slates/engine/identification-slate.md](./slates/engine/identification-slate.md) —
   parallel pattern for *items*: blue potion → potion of
   healing after `read scroll of identify`. The pedagogical
   seam runs deepest here (chemistry experiments ARE
@@ -248,7 +248,7 @@ seat? The contents of an Adornment?
 **Stresses**: `look` semantics; the slot substrate (do slots
 expose their occupants to perception queries by default, or
 opt-in?); per-Adornable visibility rules; the Concealing /
-Searchable mixins from slates/tails/mixin-slate.md.
+Searchable mixins from slates/engine/mixin-slate.md.
 
 **Pulls on**: #5 (recognition), #3 (audible-but-not-visible).
 
@@ -316,7 +316,7 @@ the engagement framework. The Wave 1 substrate is shipped; content
 authors plug in by writing an activity class and registering it
 under a `type` string (see
 [docs/subsystems/activity.md](./subsystems/activity.md) and
-[docs/slates/tails/host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md)
+[docs/slates/engine/host-slot-activities-slate.md](./slates/engine/host-slot-activities-slate.md)
 for the deferred `ReadActivity` sketch as the first non-locomotion,
 non-host-slot example).
 
@@ -334,7 +334,7 @@ fire warms a room; cold seeps in through a cracked window; ice
 melts to water.
 
 **Stresses**: same physics-channel shape as #3 (Light/Sound); state
-of matter from slates/tails/mixin-slate.md (frozen / molten); Boundary
+of matter from slates/engine/mixin-slate.md (frozen / molten); Boundary
 substrate again. `Combustible` / `Lightable` / `Burning` are
 deferred mixins that depend on this.
 
@@ -350,7 +350,7 @@ observe reactions. Probably not a substrate gap so much as a
 forcing function for which mixins land first.
 
 **Stresses**: Material's `composition` (already shipped) +
-`Combinable` from slates/tails/mixin-slate.md + an `educate` event hook for
+`Combinable` from slates/engine/mixin-slate.md + an `educate` event hook for
 tracking what the student demonstrated. Worth a 10-minute
 stress-test against what we have to confirm we haven't painted
 ourselves into a corner.

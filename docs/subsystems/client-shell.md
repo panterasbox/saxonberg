@@ -6,7 +6,7 @@
 > anonymous-guest path, the portrait, and the connection-loss state
 > machine. Its server-side touchpoints (the guest principal, the portrait
 > resolver, the don't-flush seam) are noted where they cross the wire.
-> Seeded by [client-shell-slate.md](../slates/tails/client-shell-slate.md);
+> Seeded by [client-shell-slate.md](../slates/client/client-shell-slate.md);
 > built per `docs/requirements/client-shell-frame-requirements.md`.
 
 **Where client code lives.** No free-floating client modules: components

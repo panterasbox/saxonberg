@@ -41,8 +41,8 @@ pot), [location.md](./location.md) (the Warren the column is),
 [ground.md](./ground.md) (`noDefaultFloor` and the bed's floor),
 [spatial.md](./spatial.md) (the bell's containment opening),
 [exertion.md](./exertion.md) (the tread is exertion). The design:
-`docs/slates/builds/underwater-slate.md`; the river after it:
-`docs/slates/builds/river-slate.md`.
+`docs/slates/engine/underwater-slate.md`; the river after it:
+`docs/slates/world/river-slate.md`.
 
 ---
 
@@ -384,7 +384,7 @@ physiology-slate's.
   the steps and out, conscious or not. A pull that brings them up a band
   says there is more line still in the water. A person on the surface is
   held up. Carrying a person is slated
-  (`docs/slates/builds/carrying-a-person-slate.md`); the water's rescue is
+  (`docs/slates/engine/carrying-a-person-slate.md`); the water's rescue is
   the line.
 - ⭐⭐ **Air rescues a breath death.** Back in air with blood oxygen above
   the floor, a body whose dying cause is the breath's own (asphyxiation,
@@ -580,7 +580,7 @@ stocks the wand of glowlight). Breathe-water loads no gas.
   (≈ 8 real minutes on the 6 m bed); the body-recovery job; a barrel on
   the strandline; an offline body on the low strand.
 - **(f) Carrying a person** is slated
-  (`docs/slates/builds/carrying-a-person-slate.md`).
+  (`docs/slates/engine/carrying-a-person-slate.md`).
 
 - **(g) Requirements not met:** **narcosis** (a goal of the build; no row
   and no check exist); the **bends' onset** — they strike on surfacing,

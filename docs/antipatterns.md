@@ -5443,7 +5443,7 @@ gone since load-on-use round two: fabrics are documents read through
   `pnpm lint` too.
 
 Sweep tracked at
-[value-object-statics-slate.md](./slates/tails/value-object-statics-slate.md);
+[value-object-statics-slate.md](./slates/tech-debt/value-object-statics-slate.md);
 worked example in [presentation.md](./subsystems/presentation.md).
 
 ## ⛔ RETIRED 2026-10-01 — `onCreate` composed OUTSIDE a layer with its own hook
@@ -5614,7 +5614,7 @@ not part of the room's own description.
 `BulkableApi.floorPuddleSummary` is composed into the room body, so no
 browser player has ever seen a puddle. The general answer (a card that
 renders the prose it was handed) is
-[carded-prose-slate](./slates/tails/carded-prose-slate.md).
+[carded-prose-slate](./slates/client/carded-prose-slate.md).
 
 ## A dynamic detail guarded on `senseOrParent !== undefined`
 
@@ -6272,7 +6272,7 @@ floor), a cast whose failed mint was a console warning after its pool was
 already emptied, and crystals that left their liquor for no place. The
 policy is [spatial.md § Writes on a detached subject](./subsystems/spatial.md);
 the remaining guards are counted by the
-[silent-write-census slate](./slates/tails/silent-write-census-slate.md).
+[silent-write-census slate](./slates/tech-debt/silent-write-census-slate.md).
 
 ## ⭐⭐ A Stuff whose only job is to hold a record — records are DOCUMENTS
 
@@ -6350,7 +6350,7 @@ add/remove/list and nothing targeting it. It became the `berth-roll`
 document kind (MR !511): one per landing at `/platform/berths<landing
 path>`, each ship writing her own line through `DocumentApi.saveBerth`,
 the lying/gone fact read off her. The whole-repo scan this rule prompted:
-[records-as-documents slate](./slates/tails/records-as-documents-slate.md).
+[records-as-documents slate](./slates/tech-debt/records-as-documents-slate.md).
 
 ## ⛔⛔⛔ A wizard check that stands in for authority
 
@@ -6374,7 +6374,7 @@ existed for the act, and `isWizard` was the strongest thing to hand. ⭐
 (a committee, an office, a position) and gate on it. And nobody sits on
 every committee, not the founder, not the PM: a hole in a seat is a
 regulated, temporary warrant
-([executive-warrant-slate](./slates/builds/executive-warrant-slate.md)),
+([executive-warrant-slate](./slates/society/executive-warrant-slate.md)),
 never a backstop. `lint:wizard-axis` fails on a new site; see access.md
 § The two account axes.
 

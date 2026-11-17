@@ -11,7 +11,7 @@ of coffee) has no containment node and no Stuff identity at all: it is a
 the floor. Matter moves between holders through one primitive,
 `BulkableApi.transfer`; every bulk verb is a thin direction over it.
 
-Design of record: [bulkable-slate.md](../slates/tails/bulkable-slate.md) (the
+Design of record: [bulkable-slate.md](../slates/engine/bulkable-slate.md) (the
 holds-as-attribute reframe, the per-affordance model, the deferred
 tails). This doc is the operational reference for what shipped — the
 thermos slice.
@@ -308,9 +308,9 @@ matter is going.
 > below `sealed`, so **no vessel means no product** — which makes
 > containment the whole capital story of any gas trade, exactly as it was
 > historically. The first gas that is a *good* is **coal gas from the
-> retort** (→ [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)),
+> retort** (→ [destructive-distillation-slate](../slates/trades/destructive-distillation-slate.md)),
 > not drilled gas; the first gas that is a *hazard* is **firedamp** in a
-> working (→ [mining-slate](../slates/builds/mining-slate.md)). A
+> working (→ [mining-slate](../slates/trades/mining-slate.md)). A
 > **gasometer** — a `Bulkable` with `closure: sealed`, a rising bell in a
 > water seal whose height is visible across a city — is the rung's natural
 > exemplar and a non-gauge readout of a shared resource.
@@ -767,7 +767,7 @@ Each lands in a named home later; none is in this slice.
 - [mql.md](./mql.md) — `MqlMatchVia`, the `via.detailPath` precedent,
   the `:b` transform home.
 - [response-envelope.md](./response-envelope.md) — note kinds.
-- [bulkable-slate.md](../slates/tails/bulkable-slate.md) — design of record.
+- [bulkable-slate.md](../slates/engine/bulkable-slate.md) — design of record.
 
 ---
 

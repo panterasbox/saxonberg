@@ -25,8 +25,8 @@ controller-liquidity W7c), fleeing, and the party
 friend/foe seam (see [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)
 + [party.md](./party.md)); the client card and NPC-vs-NPC crews are later.
 Design surface lives in
-[combat-slate](../slates/builds/combat-slate.md) +
-[combat-experience-slate](../slates/builds/combat-experience-slate.md).
+[combat-slate](../slates/engine/combat-slate.md) +
+[combat-experience-slate](../slates/engine/combat-experience-slate.md).
 
 ## The session — a `SustainedEngagement`, the dialogue twin
 
@@ -1162,10 +1162,10 @@ Named at their sites; nothing inherited:
   [messaging](./messaging.md), [prose](./prose.md).
 - **Structural precedent:** [npc-dialogue](./npc-dialogue.md) (the
   `DialogueConversation` `SustainedEngagement` twin).
-- **Design surface:** [combat-slate](../slates/builds/combat-slate.md),
-  [combat-experience-slate](../slates/builds/combat-experience-slate.md),
-  [combat-tactics-slate](../slates/tails/combat-tactics-slate.md),
-  [party-slate](../slates/tails/party-slate.md).
+- **Design surface:** [combat-slate](../slates/engine/combat-slate.md),
+  [combat-experience-slate](../slates/engine/combat-experience-slate.md),
+  [combat-tactics-slate](../slates/engine/combat-tactics-slate.md),
+  [party-slate](../slates/engine/party-slate.md).
 
 ## History
 

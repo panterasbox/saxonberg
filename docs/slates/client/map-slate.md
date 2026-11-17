@@ -1,0 +1,1303 @@
+# Map / spatial-visualization slate (working doc)
+
+> **Status: UNBUILT — revised 2026-11-09** (the owner, after !509 shipped a
+> first navigator): the pane's job, its scope and the illustrated map are
+> settled in [§ The navigation pane, revised](#-the-navigation-pane-revised-2026-11-09-the-owner);
+> the minimap's exact design is still to be iterated. Unblocked since
+> 2026-10-05 (location-graph shipped).
+> ⭐⭐⭐ **Resolved: SVG for 2D, not canvas and not the box model** — the
+> `viewBox` is the lattice and the camera. three.js for 3D, **lazy-loaded**.
+> ⭐⭐⭐ **And it is a ZONE NAVIGATION card, not a map card** — the grid, a
+> **compass rose** (an input surface, and the refusal doctrine rendered), a
+> **named list for interzone exits** (the same widget as the departures
+> board), and a **zone honest-state panel**.
+> ⭐⭐ **And it needs an ICON SET it does not have** — the up/down corner
+> glyphs and the compass rose are the first real consumers, and the client
+> has no icon library at all (2026-10-01: two non-test files contain inline
+> SVG). See [iconography-slate](./iconography-slate.md), whose
+> direction/elevation tier exists for this card.
+> **Left:** the SVG grid + up/down corner glyphs + the pinned card · the
+> **compass rose** and its state vocabulary · the **interzone list** · the
+> **zone metadata panel** · ⭐ **the annotation surface (pins, markup,
+> notes) — which is the actual feature** · the three-tier provenance render
+> + the conflict badge · the 2D node-graph for zone level · the
+> stacked-floor isometric · the 3D mode behind `React.lazy` ·
+> `SphericalZone.canPlace` non-overlap
+> **Size:** a build — and ⭐ the annotation half is the half that matters
+
+Working slate for **the map** — how the world's spatial structure gets
+*shown*. The engine already models space honestly (a `CartesianZone` is a
+3D integer grid with real `cellSize`; rooms carry `(x,y,z)`; exits connect
+them), so visualization is **rendering existing data**, not authoring new
+art. One renderer, several modes, three consumers.
+
+The load-bearing decisions:
+
+1. **One renderer, many modes, one dataset.** Grid (Cartesian, per-floor),
+   node-graph (Spherical/semantic), 3D box-render (Cartesian), and a
+   player-centered minimap — all generated from the same coordinate data
+   (`coords` / `cellSize`, focus+radius, exits). Not separate tools; render
+   modes over one model.
+
+2. **Procedural from data, not 3D modeling.** Geometry is *generated* from
+   coordinates — a box per room at `(x,y,z) × cellSize`, openings where
+   exits connect adjacent cells. **No artist meshes, no rigging, no Blender.**
+   2D = SVG/canvas (+ a graph-layout lib); 3D = **three.js / react-three-
+   fiber** (+ `InstancedMesh` for scale). The skill is "procedural scene
+   from data," the easy end of web 3D.
+
+3. **Layered presentation for space (on-thesis).** The map is the spatial
+   analog of "instruments reveal the physics" ([design-philosophy.md](../../design-philosophy.md)
+   Principle 3): the honest spatial model made visible. A 3D flythrough is
+   *proof the coordinates are real* — which is why it carries genuine **demo
+   value** for an honest-model platform, not just polish.
+
+4. **Three consumers, one component.** The **game** (a player minimap +
+   spatial companion to the text), the **CMS zone editor** (its 2D edit
+   canvas + 3D view), and **demo/marketing** (the flythrough). Build once,
+   consume thrice.
+
+5. **2D for editing, 3D for viewing.** Precise placement/connection is a 2D
+   job (the zone editor's edit mode); 3D is for *navigating / viewing /
+   demoing* (immersive). Same data, two modes — 3D doesn't replace the 2D
+   editor. (3D *editing* is far-future, if ever.)
+
+See also:
+
+- [docs/slates/cms-slate.md](../platform/cms-slate.md) — the **zone editor** consumes
+  this as its canvas (2D edit) and view (3D); the room↔zone "two zooms on
+  one dataset" framing.
+- [docs/subsystems/spatial.md](../../subsystems/spatial.md) /
+  [zone.md](../../subsystems/zone.md) — the **coordinate data** rendered:
+  `CartesianZone` (grid, `cellSize` in meters), `SphericalZone` (focus +
+  radius, semantic exits), `coords`. (Exits are **explicit-only** as of the
+  Terminus build — the former `deriveExit` grid-derivation was removed; the map
+  reads the authored exits.) The map visualizes this; it doesn't define it.
+- [docs/standard-model.md](../../standard-model.md) /
+  [design-philosophy.md](../../design-philosophy.md) — the **honest spatial
+  model** the map renders, and **layered presentation** (prose / physics /
+  *now space*, same model, different paths).
+- [docs/slates/client-cockpit-slate.md](./client-cockpit-slate.md) — the
+  game **minimap is a cockpit panel**; the map is a component it hosts.
+- [docs/slates/senses-slate.md](../engine/senses-slate.md) /
+  [fast-travel-slate.md](../engine/fast-travel-slate.md) — **discovery / fog-of-war**
+  for the game minimap (show only what the player has perceived/discovered);
+  wayfinding.
+- [docs/slates/access-slate.md](../platform/access-slate.md) — the data arrives
+  over the CMS transport. ⚠ The *"through the draft overlay"* this line used
+  to claim is **unbuilt and deferred** (`cms.md` § Deferral boundary).
+
+---
+
+## Principle
+
+1. **One renderer, many modes, one dataset.**
+2. **Procedural from honest data** — generate geometry from coordinates; no
+   art pipeline.
+3. **Layered presentation for space** — the honest model made visible;
+   on-thesis + demo value.
+4. **Three consumers** (game / editor / demo), one component.
+5. **2D edits, 3D views** — and neither is a v1 blocker.
+
+---
+
+## The model
+
+### Modes (all from the coordinate data)
+
+- **2D grid (per-floor)** — `CartesianZone`: a graph-paper grid of
+  room-cells per z-level, exits as connectors, vertical-exit (up/down)
+  indicators, page-by-floor. The zone editor's **edit canvas** and the basis
+  of the player minimap.
+- **2D node-graph** — `SphericalZone` / semantic / cross-zone connectivity:
+  rooms as nodes, semantic exits as labeled edges, auto-laid-out
+  (dagre / elk / d3-force) or hand-positioned.
+- **3D procedural render** — `CartesianZone`: boxes at `(x,y,z) × cellSize`,
+  sized by cell, openings/corridors for exits, colored by biome/type, orbit
+  or fly camera. three.js / react-three-fiber + `InstancedMesh`. (Spherical
+  → a 3D force-graph; less architectural, optional.)
+- **2D minimap** — a player-centered slice of the grid (nearby rooms), the
+  in-game HUD companion to the prose.
+
+### Data sources, one renderer
+
+⚠⚠ **Corrected 2026-10-01 — this said TWO sources and both were wrong in
+part.** See [location-graph-slate](../engine/location-graph-slate.md).
+
+- ⛔⛔ **There is no draft overlay.** `cms.md`'s deferral boundary:
+  *"Drafts / staging / changeset overlay + atomic publish → later (depends
+  on the versioning/changeset model)."* The CMS "draft" is an editor-local
+  dirty buffer — *"a save adopts the draft as the new persisted
+  baseline"* — so a save writes through to the real template. The editor
+  adapter reads **live templates**, or waits on the changeset model.
+- ⛔⛔ **Live Stuff cannot answer a whole-world map.** Everything is
+  lazy-loaded, so runtime state is only *what players have visited and
+  what has not been reaped.* Good enough for a player-centred minimap;
+  useless for a zone view, a route, or a publish gate.
+
+**So there are three sources, and the third is the one that makes the
+whole-world modes possible:**
+
+- **Editor / authoring** — **templates**, read live (no overlay exists).
+- **Game minimap** — **live Stuff**, player-centred, discovery-filtered.
+- ⭐⭐⭐ **Everything else** — the **persisted location-graph index**: a
+  derived projection of every location and its exits, keyed on
+  `getIdentityPath()`, indexed by zone and by reverse edge, with a
+  `PlatPlan` expansion for the elastic half. This is what a zone view, a
+  route, a reachability check and the offline boundary read. See
+  [location-graph-slate](../engine/location-graph-slate.md).
+
+What the renderer draws differs by source; how it draws is one component.
+
+### Three consumers
+
+- **Game** — the player minimap (2D, player-centered, discovery-filtered) and
+  (later) a 3D spatial view of surroundings beside the text.
+- **CMS zone editor** — the 2D **edit canvas** (place/connect rooms) and the
+  3D **view** (navigate the zone as built). (Editing logic is the editor's;
+  the map is the render surface.)
+- **Demo / marketing** — the 3D **flythrough** of a campus/zone: the visible
+  proof that the spatial model is real.
+
+### What's easy vs. hard (the honest cost curve)
+
+- **2D** — easy (SVG/canvas + a graph-layout lib).
+- **3D functional** — moderate (procedural boxes from data; r3f;
+  `InstancedMesh` solves most of the scale problem).
+- **3D demo-quality** — real iteration (lighting, materials, ambient
+  occlusion; not programmer-art). This is where the demo value lives, so the
+  *pretty* pass is genuine work distinct from the *functional* one.
+- **Spherical 3D** — a force-graph, not architecture; may stay 2D-only.
+- **3D editing** — fiddly; deferred (2D edits, 3D views).
+- **Scale** — `InstancedMesh` / LOD for large zones.
+
+### Spatial validity — surfaced here, owned by the spatial model
+
+The map *surfaces* spatial invariants; it doesn't *own* them. The key one
+for Spherical zones: **rooms must not overlap.** Cartesian gets this free
+(unique integer coords can't collide); Spherical needs geometry — for every
+pair, `distance(center₁, center₂) ≥ r₁ + r₂` (focus + radius, so position
+*and* size matter).
+
+- **Owned by the spatial subsystem.** This is a **`SpatialZone`
+  placement-validity** invariant — a polymorphic `canPlace` (Cartesian: cell
+  free; Spherical: no sphere collision), enforced at the placement
+  chokepoint, the geometric sibling of Cartesian's unique-coords and the
+  cardinal-only-intra-zone exit invariant. **`SphericalZone` owes a
+  non-overlap check** (not yet built); the map *consumes* it.
+- **Two distinct checks — Spherical splits what Cartesian fuses.**
+  **Overlap** is *geometry* (volumes collide); **reachability** is the *exit
+  graph* (every room connected — semantic exits, position-independent).
+  Cartesian conflates them (contiguous coords → adjacency → reachable);
+  Spherical needs both, separately.
+- **The map surfaces both.** Live overlap-prevention on place / move /
+  resize; the publish-gate rejects an overlapping (or unreachable) set; and
+  the **3D view makes overlaps *visible*** — the render is **diagnostic**,
+  not just pretty (you see two spheres intersecting and fix it). Cost is
+  O(n) per placement (O(1) with a spatial index for huge zones).
+
+---
+
+## ⭐⭐⭐ The rendering decision — SVG for 2D, and why CSS failed
+
+**Resolved 2026-10-01.** An attempt to build this with CSS *"failed to give
+something that rendered nicely with the rules it could engineer"*, and the
+cause is structural rather than a skill gap:
+
+> ⛔ **A map is absolute positions on a lattice with arbitrary connectors.
+> The box model is for flow layout.** Doing it with `div`s means
+> absolute-positioning everything anyway — all of CSS's pain, none of a
+> vector surface's benefits.
+>
+> ⭐⭐⭐ **SVG's `viewBox` *is* a lattice coordinate system.** Declare the
+> view in **cell units**, draw at room coordinates, and the browser does
+> every pixel.
+
+```svg
+<svg viewBox="-1 -1 9 7" preserveAspectRatio="xMidYMid meet">
+  <g class="edges"><line x1="0" y1="0" x2="1" y2="0"/>…</g>
+  <g class="rooms"><rect x="-.4" y="-.4" width=".8" height=".8" rx=".12"/>…</g>
+  <g class="here"><circle r=".18"/></g>
+</svg>
+```
+
+Rooms at `0.8` with a `0.2` gutter so connectors read; `<line>` between
+cell centres; **8-way diagonals free.** Resizing the card is one attribute.
+
+### Four reasons SVG beats canvas here — and the last is near-disqualifying
+
+1. The scene is tiny: a zone view is **tens of cells**, not thousands.
+2. ⭐ **Hit testing is free** — a room is a `<rect>` with an `onClick`.
+   Canvas needs hand-rolled hit detection.
+3. ⭐ **CSS styles it**, so it plugs into the existing theme/overlay cascade
+   ([message-rendering.md](../../subsystems/message-rendering.md)).
+4. ⭐⭐⭐ **Every room is a real DOM node.** `<title>` gives a tooltip *and*
+   a screen-reader label. **Canvas is invisible to assistive tech — in a
+   text game.**
+
+### ⭐⭐⭐ And SVG is what makes *our* map possible, not just prettier
+
+Everything the location-graph slate designed — **provenance on every
+line** — is a *styling* problem, and SVG is a styling surface:
+
+| the claim | render | mechanism |
+|---|---|---|
+| recorded 40 days ago | **fades** | `opacity` bound to age |
+| recorded by **echo**, not sight | **dashed outline** | `stroke-dasharray` |
+| *"searched here, nothing found"* | a distinct glyph | `<use>` of a symbol |
+| ⭐⭐⭐ **two sources disagree** | **both, badged** | two `<rect>`s + a marker |
+| somebody else's survey | a different hue | a CSS class per source |
+
+One class and one attribute per element. In canvas it is a redraw function
+somebody maintains by hand.
+
+### Pan and zoom
+
+> **The `viewBox` is the camera.** Zoom = change `w`/`h`; pan = change
+> `minX`/`minY`. No projection matrix.
+
+⭐⭐ And **better than a camera for us because it is serializable**:
+`{minX, minY, w, h}` lives in the store, survives a reload, goes in a URL.
+A three.js camera is a position + quaternion + fov to marshal by hand.
+
+⚠ **Gotcha worth knowing before it looks like a bug:** scaling the viewBox
+scales **stroke widths**, so zooming 4× fattens every connector 4×. Fix is
+one attribute — `vector-effect="non-scaling-stroke"`.
+
+### Libraries and the bundle budget
+
+```
+2D grid        NOTHING — viewBox + rects + lines
+pan/zoom       d3-zoom  (~3KB)   wheel+pinch+drag+double-tap is where the day goes
+node-graph     dagre    (~50KB)  elkjs is better and 500KB+; not worth it under ~100 nodes
+3D             three + @react-three/fiber (+drei)   ≈ 600KB gzipped
+```
+
+⚠⚠ **three.js is larger than the entire current client** (React, zustand,
+styled-components, Monaco aside). **3D must be `React.lazy`'d behind the
+mode switch** so a 2D user never downloads it. A hard requirement, not a
+nicety.
+
+## ⭐⭐⭐ How deep the map goes — the grid bottoms out at the ROOM
+
+> ⭐ **Revised 2026-11-10:** the pane gains a **room view** — a diagram of
+> one room on the compass plane, not a floor plan. It keeps this section's
+> rule (no invented `(x,y)` inside a room) because its axes are DIRECTIONS
+> and its contents are RELATIONS. See
+> [§ The room view](#-the-room-view--a-diagram-on-the-compass-plane-lean-2026-11-10).
+
+What is "inside" a location? **Relations, not coordinates.**
+[spatial.md](../../subsystems/spatial.md) models **Placement** — `on` ·
+`in` · `from`, a row-extensible vocabulary — plus details, adornments and
+slots. **There is no `(x,y)` inside a room.**
+
+> ⛔ **So rendering a room's interior as a grid would be *inventing*
+> spatial truth** — which breaks this slate's own Principle 2 (*procedural
+> from honest data; no art pipeline*). We would be making up a floor plan.
+
+And the drill-in already exists: `card-surface.md` ships **ONE inspection
+card laid out by `StuffKind`.**
+
+> ⭐⭐⭐ **Click a room → push its inspection card.** The map is a
+> **navigator for the card surface**, not a deeper viewport.
+>
+> **The map is spatial down to the room; the card is relational below it** —
+> two representations meeting at the room boundary, each honest about what
+> it models, and both halves already built.
+
+⭐ Per the standing client rule that **clickables preview their command**, a room click should **preview the
+command** it will run (`look <room>`, or `go north` when adjacent) — so the
+map is an affordance surface over the command line rather than a parallel
+UI.
+
+## ⭐⭐⭐ Zone level — a node graph, not a grid, and misclosure lives here
+
+`CartesianZone` carries `cellSize` and a `grid` and **no origin, no offset,
+and no position relative to any other zone.** Every zone is its own frame
+from its own `(0,0,0)`, and `cellSize` varies per zone.
+
+> ⛔ **So zones cannot be placed on a lattice.** Two touching zones share a
+> **direction** on their crossing edge and nothing else — and with differing
+> `cellSize`, composed directions are steps of different lengths.
+
+So the zone view **is** the node-graph mode: `{crossesZone: true}` (the
+level-1 skeleton from
+[location-graph-slate § 3](../engine/location-graph-slate.md)) laid out by dagre,
+with crossing directions as edge labels.
+
+⭐⭐⭐ **But a global frame could be *derived* by composing cross-zone edges —
+and that is dead reckoning at the zone level.** Across independently
+authored frames, with different scales, and no survey:
+
+> **Two routes between the same pair of zones can imply contradictory
+> relative positions.** With no shared origin that is not a bug, it is
+> *guaranteed* — and resolving it is a **surveyor's** job, which is where
+> the discipline finally has something real to do.
+
+⭐⭐ **And it is a lint.** North from A to B, north from B to C, and C has a
+south exit back to A → the realm's geometry is inconsistent. Nothing checks
+that today and it is computable from the index.
+
+## ⭐⭐ The provenance UI — clean by default, provenance on demand
+
+Rooms the player knows **but has not visited** must render (bought surveys,
+told directions), or the map market has no interface. Three tiers:
+
+| | render |
+|---|---|
+| **visited by me** | solid fill |
+| ⭐ **known from a source** | **outline only, no fill** — *I know it is there; I have not been* |
+| **unknown** | absent |
+
+And then:
+
+- **hover / focus** → `<title>` plus a detail strip: *"recorded 40 days ago
+  · Faradhi · by sight · awareness 5"*
+- ⭐⭐⭐ **a provenance overlay toggle** → the whole map recolours by age or
+  by source. **Provenance is one of the overlays, not permanent clutter.**
+- ⚠ **Conflicts are always on.** A badge on the cell — because **a stale
+  claim is information and a contradiction is a hazard**, and those deserve
+  different treatment.
+
+## ⭐⭐⭐ Annotation is in scope — and it is the product
+
+Two kinds of editing, and they separate cleanly:
+
+| | |
+|---|---|
+| ⭐⭐⭐ **editing YOUR map** — pins, markup, notes | **in scope** |
+| **the map as an authoring tool** for rooms and content (the CMS zone builder) | **deferred** |
+
+> ⭐⭐⭐ **Which makes this a bigger build than "a minimap."**
+> [location-graph-slate § 17](../engine/location-graph-slate.md) concludes that a
+> map's value is its **annotations**, not its geometry — so **the client is
+> where the tradeable good actually gets made.** The renderer is
+> infrastructure; the annotation surface is the feature.
+
+## ⭐⭐⭐ It is a ZONE NAVIGATION card, not a map card
+
+The reframe that scopes the whole thing: this is **an input surface**, not a
+map viewer. Four things in one card, and only the first is the map.
+
+### 1. The grid — with up/down as a corner glyph
+
+⭐ **Decided: vertical exits are a corner glyph per cell** (`▲` / `▼` / both).
+Cheap in SVG (a `<use>` of a symbol), unambiguous, and it does not look
+provisional while the stacked-floor isometric waits for wave 3.
+
+### 2. ⭐⭐⭐ A compass rose — and it is the refusal doctrine rendered
+
+The map answers *"where am I in this zone."* **The rose answers *"what can
+I do from here"*** — a different question, and the one a text player
+currently has to re-read a paragraph or type `exits` to get.
+
+Eight cardinals plus up and down, each in a **state**, and the state
+vocabulary is the point:
+
+| state | reads |
+|---|---|
+| **available** | lit, clickable |
+| **a closed door** | lit, marked — the wire already carries `open` |
+| ⭐ **locked / blocked** | **present and refused** |
+| ⭐ **refused by covenant** | present, refused, **with the reason** |
+| ⭐ **TPA, not registered** | present, refused, *"not yet registered"* |
+| **concealed & undiscovered** | ⛔ **absent** — see below |
+
+> ⭐ **Decided: marker inline, reason on focus.** Every arm carries its
+> **state marker always**, so *refused* is never mistaken for *absent* —
+> that distinction is the whole value of the rose and it cannot be behind a
+> hover. The **sentence** (*"the gate is for the gown"* · *"nothing later
+> than medieval"* · *"not yet registered"*) arrives **on focus**, which
+> keeps ten arms readable and is reachable by keyboard rather than
+> mouse-only.
+
+> ⭐⭐⭐ **A rose that renders *locked* differently from *no exit* IS the
+> standing rule — the refusal is the progression UI.** *"If something lifts
+> it, the verb must EXIST so you can be told."* This is that rule as
+> pixels, and it is the same instinct as a ghost visibly losing verbs
+> rather than getting *"that command doesn't exist."*
+
+⭐ And per the clickables rule, each arm **previews the command it will
+run** (`go north`, `teleport <keyword>`), so the rose is an affordance over
+the command line rather than a parallel input path.
+
+### 3. ⭐⭐⭐ Interzone exits need a LIST, not a rose
+
+Because **they leave the map.** The grid cannot show where you are going —
+the destination is in another coordinate frame with no shared origin
+(see the zone-level section above). So a cardinal arm is the wrong
+affordance even when the exit *is* cardinal.
+
+> ⭐⭐⭐ **Ways out, named, with their destinations — which is the same widget
+> as the TPA departures board.** One component: *"from here you can reach…"*
+> with a fare and a timetable where the edge is a TPA route and neither
+> where it is a road. **The interzone affordance and the departures board
+> are one thing**, and `renderDepartures` already shapes it.
+
+### 4. ~~Zone metadata — the honest-state panel~~ — superseded 2026-11-09
+
+> ⛔ **Superseded** by [§ The navigation pane, revised](#-the-navigation-pane-revised-2026-11-09-the-owner):
+> the pane says where you are, never what kind of place you are in. The
+> honest-state facts below need another home (the status bar for outdoor
+> conditions; the place's own inspection card for the rest).
+
+
+What rules apply *here*:
+
+- the **locality / zone name** and the address
+- **biome, weather, light, time of day**
+- ⭐⭐⭐ **the epoch ceiling** — *what may I use here*
+- ⭐ **coverage** — surveyed / partial / unmapped
+- **who holds title** (the parcel)
+- ⚠ **published state**, for an author
+
+> ⭐⭐⭐ **This is the other half of a problem the content-declaration slate
+> left open.** It concluded that *"variable enforcement needs the terms
+> visible to players, or two adjacent localities have different rules and no
+> way to tell"* — and answered it with EotL's **sign at the gate**, which is
+> diegetic and in-fiction. **The zone card is the honest-state half**, and
+> both should exist: the plaque is how you meet the rule, the panel is how
+> you check it.
+>
+> And it is on-thesis rather than a concession — lens 62, *transparency is
+> the absence of opacity*, and `client-shell.md` already ships **the
+> honest-state primitives.**
+
+### ⭐⭐ What is already on the wire, and what is not
+
+The client **already receives** `exits: StuffExitRecord[]` —
+`{ direction, door?: { stuffId, displayName, open, primaryKeyword } }` —
+documented as *"**Obvious** exits for Exitable hosts: what `look` would
+surface."*
+
+> ⭐⭐⭐ **So the rose's geometry is free today, and it is already
+> perception-gated** — a concealed exit is not in the list, so the rose
+> inherits the x-ray guard
+> ([location-graph-slate § 8](../engine/location-graph-slate.md)) **without anyone
+> adding a check.**
+
+⚠ **What the state vocabulary needs added:** the destination (so an arm can
+be labelled), `blocked` / locked / covenant-refused as distinct from
+*absent*, and whether an exit **crosses a zone** (so it routes to the list
+rather than the rose). All of it reads off the index.
+
+## ⭐⭐⭐ The navigation pane, revised (2026-11-09, the owner)
+
+!509 shipped a first navigator in Explore's docked slot: a breadcrumb, a text
+compass, a "Leaving this area" list, outside conditions and whose ground.
+This conversation settled what the pane is for; the minimap's exact look is
+still to be iterated against real play.
+
+### What the pane is for **[DECIDED]**
+
+> *"It's to help you get around and tell you about your relative position in
+> the game. It shouldn't ever care about what specific type of place you're
+> in, or it's probably doing too much."*
+
+- ⭐⭐ **Position, not place.** The pane never does the inspection card's
+  job. Nothing on it reads a place's kind, contents or state — no "lit",
+  "open", "whose ground", no biome. Outdoor conditions (weather, time, light)
+  belong in the status bar; everything about the place itself belongs on its
+  inspection card. This supersedes § 4's honest-state panel.
+- ⭐⭐ **Scope is the current zone, at most.** The map never draws beyond the
+  zone you are in. A picture of how zones relate to one another is a
+  different thing, later, and not this pane.
+- **Responsive like everything else, optimized for Explore's docked slot.**
+- **The map is the main input.** Clicking a place on it is how you move; the
+  owner expects players to use the map rather than a compass. The compass
+  rose (§ 2) is an experiment kept only if players use it. **Interactivity
+  is not pre-designed** — see what the map ends up doing and let the rest
+  turn up.
+
+### ⭐⭐ The exit model, as the code has it **[CORRECTED 2026-11-15]**
+
+> ⚠ The earlier version of this section (*"the exit list stays — for the
+> exits that leave the zone"*) and a *leaving the zone* list built on it
+> were wrong: they assumed leaving the zone and having no direction are
+> the same thing. They are not.
+
+Verified in `Location.addExit` and `Exit.wayRecord`:
+
+- **Every exit has a direction word.**
+- **Cardinal exits** (the compass directions, up, down) may stay inside
+  the zone **or cross out of it**.
+- **Named exits** (`out`, `portal`, `office`, `unit-3`) must cross a zone
+  — **or** cross a holding frame *within one zone* (a dorm's `out`); so a
+  named exit does not always leave the zone either.
+- **Leaving the zone is a per-exit flag** — `crossesZone`, the far room's
+  zone compared with this one — independent of whether the exit is
+  cardinal or named.
+
+So the ways section follows the two real distinctions: **the rose holds
+the cardinal exits, the list holds the named exits** (by their own names),
+and **"leaves the zone" is a marker on any exit**, from the flag. On the
+map, an exit that leaves the zone has no cell to point at, so it is drawn as
+a stub off the room's edge with that marker.
+
+### Two scales, both inside the zone **[DECIDED, the rendering to iterate]**
+
+- **Cartesian zones:** one cell per room, always — nothing is larger than a
+  cell in the Cartesian system. The grid follows you, with § 1's corner
+  glyph for up and down.
+- **Spherical zones:** a different render, done as well as the data allows.
+  ⭐ **An expanse is a 2D surface**, so its map is a chart in latitude and
+  longitude ([expanse.md](../../subsystems/expanse.md)) — the one place a
+  map can be geometrically exact. A spherical zone that is not an expanse is
+  foci and radii, and is the hard case.
+
+### ⭐⭐⭐ The illustrated map — the broad picture, as an object you own **[DECIDED]**
+
+The pane is exact and zone-sized. The broad picture of a Locality — larger
+than any zone map — is a different artifact:
+
+- **An authored bitmap in any art style.** No rooms, no exits, not a graph:
+  it shows roughly where things are in the world.
+- ⭐⭐ **You must own it.** A map is a thing in the world, on paper
+  ([paper.md](../../subsystems/paper.md)) — bought, found or given; the map
+  document's channels are `walked · seen · searched · published · charted · told` (`bought` was cut; a bought map would arrive as `published` or `charted`). **The library keeps copies of
+  the maps of known territory** (what "copy" means there is the libraries
+  design's).
+- **Its picture is `Visible.illustration`** ([media.md](../../subsystems/media.md))
+  — an illustrated map is a map object whose illustration is the art.
+- **It opens on its own inspection card** — the card lays out by kind, and a
+  map is one more kind, picture first. No new slot and no new card type
+  (the exact modeling on the server decides this; the card is the lean).
+- ⭐ **This is what a breadcrumb opens.** A crumb is a Locality coarser than
+  the zone; clicking it shows that Locality's illustrated map *if you own
+  one* — the broad picture behind each crumb, so the pane never has to zoom
+  out past the zone. What a crumb does when you own no map is open (see
+  [locality-knowledge-slate](../engine/locality-knowledge-slate.md): the Locality as
+  your map document knows it).
+
+### "You are here" on an illustrated map **[OPEN — modeling to discuss]**
+
+A pin on a bitmap is only as honest as what the author told the picture.
+Three rungs, cheapest first:
+
+1. **Anchors per Locality** — the author marks a point on the art for each
+   Locality the map covers; the pin sits on the most specific anchored
+   Locality in your breadcrumb. Coarse, never wrong (*somewhere in
+   Wharfside*).
+2. **Control points onto coordinates** — three or more known places, and an
+   affine transform lays a Cartesian zone's coordinates onto the art. Works
+   only where the art is roughly to scale; lies where it is not.
+3. **Charts for expanses** — latitude and longitude make a true position.
+
+Lean (not decided): rung 1 as the rule and optional per map (art without
+anchors is just art), rung 3 for expanse charts, rung 2 when an author wants
+it. The owner: *"'you are here' would be cool but I don't know how reliable
+it is with your basic bitmap — we'd have to talk about how all that is
+actually modeled."*
+
+### ⭐⭐ The Zone tab — an inspection card for the zone **[DECIDED in shape; rows to iterate]**
+
+> The owner: *"anything we do at the zone level or greater I'd consider in
+> bounds here. This is almost like the inspection card but for zones."*
+
+The pane has a **Zone** tab beside the map: what the zone is, as your map
+knows it. It is the zone's card; the map is its picture. **Facts about one
+room stay on that room's card** — the tab is for what holds over the zone
+as a whole, or what happens to be uniform across it. Three groups in the
+first mockup:
+
+- **Shape** — the kind of space (a grid of rooms), the cell size, the
+  extent you know (*6 × 7 cells, 2 levels*), the levels by z.
+- **Your map of it** — rooms walked; rooms known but not walked; openings
+  not taken; the oldest claim you are relying on (*Delve Survey, a year
+  ago*); the ways out (*3, 1 unconfirmed*).
+- **Over the whole zone** — whatever is zone-wide by how the content falls
+  out: the sky (*none — underground*), climate, jurisdiction, and whether
+  the content is **staged or persistent** (*restaged at dawn*) — which
+  matters to navigation because it says how long your map of the contents
+  stays true.
+
+⚠ **Biome is a placeholder here.** It shows as *Climate* until the biome
+redesign decides what a biome is a claim about
+([biome-normalization-slate](../tech-debt/biome-normalization-slate.md)).
+
+### ⭐⭐ Diagonal exits **[DECIDED]**
+
+A diagonal exit is drawn **corner to corner, through the gap the four
+surrounding cells share** — distinct from an orthogonal corridor, which
+runs edge to edge. It takes the same states as any link (walked solid,
+known dashed, on your trail gold) and scales with every zoom step; the
+compass's diagonal arms light from the same data.
+
+- **Two diagonals crossing** in one gap (NE and NW between the same four
+  cells) draw as an X. Honest, but ambiguous in a dense area: **draw a
+  small break where one passes over the other**, so they read as two
+  corridors rather than a junction.
+- **An exit is between neighbors — except a track.** Inside a zone the
+  boundary build's edge rules hold every way to the adjacent cell (see
+  § What the boundary build settled), so a malformed way is never built
+  and the renderer can trust the geometry. ⚠ **Corrected 2026-11-10:** a
+  `track` deliberately spans open ground several cells apart — it is a
+  long link, drawn along its bearing, not a defect.
+
+### The first mockup's other choices **[LEAN — to iterate]**
+
+From the 2026-11-09 mockup (a design canvas, the Sunken Delve's upper
+level as the example):
+
+- **Coordinates always visible** under the place name — `x · y · z ·
+  cell size` — with **z emphasized**, because it is the one players lose.
+  A selected room shows its own coordinates.
+- **A level control** on the map (the z levels you know, yours marked);
+  choosing another level shows that floor of the map, with what you know
+  of it.
+- **Zoom in three fixed steps** — *whole zone · nearby · close* — not
+  fluid: each step changes what is drawn (labels appear at *close*,
+  glyphs drop out at *whole zone*), a semantic zoom that needs defined
+  stops. Scroll and pinch move between the steps; a *me* button recenters.
+- **The compass as a layer**, top-left on the map, on by default while it
+  is an experiment: open, door and no-way arms read differently.
+- **Layers** as toggles under the map: compass · trail · sound ·
+  freshness · boundaries.
+- **Click a room → a sub-pane** under the map with navigation facts only
+  (what you know and from whom, how to get there, *Walk there*, *Pin a
+  note*) — the drill-in the owner described: open the context, then act
+  from it.
+- **Tabs:** Map · Zone · Ways out · Notes.
+
+### ⭐⭐ The room view — a diagram on the compass plane **[LEAN, 2026-11-10]**
+
+The owner: *"we're going to want a single-room view that you can drill in
+on … not the place inspection card, which shows the author's rendering,
+the illustration and all — just a model of the room that makes use of a
+two-dimensional plane to draw on, a map already showing certain metadata
+at the place level."*
+
+- **The plane is the compass, not coordinates.** Walls are directions: a
+  north exit on the north wall, a northwest one in that corner, up and down
+  at the center.
+- ⭐ **Structure faces and landings sit on the side they face** — *the
+  north face of the Gatehouse is reachable from here*, and what can be done
+  to it from here (paint, repair, climb). The landing is derived for
+  painting today and never shown ([painting.md](../../subsystems/painting.md)).
+- **Contents as relations, never positions** — grouped by placement (*on
+  the counter · in the well · from the hook*,
+  [spatial.md](../../subsystems/spatial.md)), seats and slots as such —
+  a schematic, never a made-up spot on a floor.
+- **No illustration, no prose** — those stay on the inspection card. The
+  room view is navigation's model of a room: where its ways and faces are,
+  what it holds as relations, and the lenses drawn over it.
+- How you reach it — clicking your own cell, or a zoom step below *close* —
+  is open.
+
+### ⭐⭐⭐ Lenses — what the map can be asked **[DIRECTION, 2026-11-10]**
+
+A lens maps each cell and edge, through what you know, onto something
+drawn. The owner: *"probably the most powerful feature."*
+
+**The data, by temperature** — lenses compute on the CLIENT from personal
+models the server sends down and refreshes when it decides to:
+
+1. **What you know** — your map document's claims, notes, sources: slow,
+   cached per zone on the client, delta-synced when the server writes a
+   claim. Most lenses read only this.
+2. **What is true of the zone** — structure, ground, sky, boundaries:
+   near-static, cached per zone version.
+3. **What you sense now** — sound, smell, party, weather: live events,
+   never stored.
+
+The client side of this is its own slate:
+[client-knowledge-model-slate](./client-knowledge-model-slate.md).
+
+⛔ The evidence firewall holds: only the player's own knowledge goes down,
+never the location-graph index ([location-graph.md](../../subsystems/location-graph.md)).
+A lens that needs the index is a server query (like `route`).
+
+**The cap is the channels.** A lens draws on a channel — cell tint, cell
+border, corner glyph, edge marker, line overlay, label — and two lenses
+cannot share one, which bounds how many are on at once without a rule.
+
+**Two narrowing ideas** (not decided):
+- ⭐ **Lenses as instruments** — *competence resolves detail, never
+  access* ([instrumentation.md](../../subsystems/instrumentation.md)):
+  a canary or safety lamp brings the damp lens, assay skill the grade
+  lens, a tide table the tide lens; a pack ships a lens as it ships a
+  Reading row.
+- **A suggested lens for the situation** — in a mine, air; carrying ore,
+  where to sell it; on a contract, its destination; in the dark, light.
+
+**Freshness — how old your knowledge is** **[LEAN, 2026-11-10]**. The
+raw fact exists: every claim carries `firstSeen` / `lastSeen`. What is not
+codified is the scale, and it should not be one age threshold:
+
+- **A staged place has an exact answer** — *has it been restaged since you
+  last saw it?* If so, what you saw inside is stale. A fact, not a guess,
+  once staging records its cadence
+  ([staging-slate](../platform/staging-slate.md)).
+- **A persistent place** has only age: a few bands (*seen today · this
+  week · long ago*) on the **game clock**, never real time.
+- ⭐ **Shape and contents age differently.** Rooms and exits rarely change;
+  what is in a room changes fast. Freshness may be two readings: *is my map
+  of the shape still good* and *can I count on what I saw inside*.
+- Not the same as the location-graph rot rule (a claim older than your
+  latest look at its place reads *not seen when you last looked*) — that is
+  CONFLICT, not age.
+
+**Priority: getting around first** (the owner). The first lenses are the
+ones about moving: the frontier (openings not taken), your trail, your
+active route and its weakest assumption, ways and their refusals,
+departures and timetables (TPA, ferries, the market boat), where your
+mount or vehicle is, tide windows, step cost on the route's axes.
+
+**The candidate list** (2026-11-10, a creative pass — light on detail;
+✅ the server models it · ◐ partly, or not yet per player · ✗ not
+modeled; marked from the subsystem docs, not checked in code):
+
+- **Structures:** footprints over street cells ✅ · ⭐ the face or landing
+  you are at and what you can do to it ◐ · faces as edges on the cell they
+  are reachable from ◐ · storeys, roofs, covered vs open sky ✅ · windows
+  ◐ · façade paint and building condition ✅ · doors locked / yours / which
+  key ✅ · tapped rooms ✅ · a holding's gate ring ✅ · planned warren
+  streets not yet walked ✅ · lots for sale or rent ◐ · construction under
+  way ✗
+- **Ground:** material per cell ✅ · your parcels ✅ · marked fields ✅ ·
+  surveyed soil ◐ · slope and elevation ◐ · wetness and puddles ✅ · tree
+  stands, coppice due ✅ · stakes, shored and unshored drifts, graded
+  deposits ✅ · bore points and logs ✅ · damps ✅
+- **Water:** watercourses and flow ✅ · navigability ✅ · wells and
+  aquifers ✅ · ditch rotas and rights ✅ · contamination ✅ · fishing
+  reaches and how fished-out ✅ · tide and the bar's window ✅ · depth
+  bands ✅ · ropes you tied at drops ✅
+- **Sky:** wind ✅ · rain, storms, lightning ✅ · light per cell ✅ · sun,
+  moon and shadow ◐ · warm and cold spots ◐ · snow and ice ◐
+- **Senses:** sound at edges ✅ · smell drifting from a source ✅ ·
+  discovered hidden exits ✅ · concealment hints noticed ◐ · sight lines ✗
+- **People and creatures:** party ✅ · contacts where last seen ◐ · NPC
+  shifts and haunts as learned ◐ · who is hiring ✅ · streamers
+  broadcasting ✅ · places seen crowded ◐ · your pets ✅ · your herd ✅ ·
+  ⭐ a bee colony's forage radius over land it does not own ✅ · wildlife
+  seen ◐
+- **Economy:** shops and what they sell ✅ · prices you have seen ✗ ·
+  your consigned goods ✅ · hire counters ✅ · banks and credential points
+  ✅ · job boards and contracts ✅ · delivery destinations ✅ · ⭐ haulage
+  lanes and depots, the desire paths goods wear ✅ · power feeders, poles,
+  meters ✅ · street lamps ✅ · your casks maturing ✅ · crops growing and
+  ready ✅ · traps you set ✅ · ⭐ where your things are ✅
+- **Rules:** jurisdiction lines ✅ · epoch ceilings ◐ · parcel lines ✅ ·
+  seats and offices ✅ · places that refuse you ◐ · crime scenes and blame
+  ✅
+- **Danger and the body:** hazards found ✅ · fights under way ✅ · your
+  corpse ✅ · beyond your strength or reach now ◐ · contagion ✗
+- **Knowledge and history:** your trail ✗ · notes and pins ✗ · how and
+  when you learned each place ✅ · conflicts ✅ · published maps vs yours ✅
+  · your deeds and firsts ✅ · unclaimed firsts ◐ · wiki articles about a
+  place ✅
+- **Getting around:** TPA nodes and departures ✅ · ships at berth ✅ ·
+  ferry and market-boat timetables ✅ · where you left your mount or
+  vehicle ✅ · an active route and its weakest assumption ✅
+- **Time:** open now vs later ◐ · restaging ◐ · calendar entries tied to
+  places ✅
+- **Magic:** mana nodes and mains ✅ · suppression ✅ · scryable things ✅
+- **For authors:** draft vs published ✅ · a parcel's code maintainers ✅ ·
+  diagnostics errors ✅
+
+⭐ **What the list says:** the server already models nearly all of it;
+what is missing is the per-player layer (your trail, notes, prices seen,
+NPC hours learned). Lenses are mostly a client and sync problem plus a
+few new knowledge records. ⭐ And the landing is a pattern, not a one-off
+— structure faces, forage radii, haulage lanes, fishing reaches and
+parcel lines are geometry the simulation computes and the player never
+sees; the map is where it shows.
+
+### The minimap's look — house style **[DECIDED, 2026-11-10]**
+
+The minimap draws in the client's **house style**. Map styles as options
+(a style that ships with a bought map, say) can come later as content. ⭐ The
+**illustrated maps** usually want the parchment treatment — and keeping the
+minimap in house style is what makes the two read as different kinds of
+thing at a glance: your exact, live knowledge of the zone, versus
+somebody's drawing of the wider world.
+
+### A click on a distant room **[OPEN]**
+
+What the map's click does beyond a neighbor is open, and argued in
+[step-beat-slate](../engine/step-beat-slate.md): the scripted model (steps at
+command speed) against a sustained transit (the shipped Journey,
+[logistics.md](../../subsystems/logistics.md)); the owner's standing *no
+imposed net lag*; and the lean that movement is **mode + where** — the click
+runs your default pace toward a place. ⭐ The leverage is the client's:
+whatever the click does becomes what most players do, so it must be the
+engine's honest movement, not a client-side loop.
+
+### ⭐⭐ What the boundary build settled for the map **[SHIPPED — !559, 2026-11-10]**
+
+[boundary.md](../../subsystems/boundary.md): a way's boundary (door,
+window, curtain, gate, grating) is ONE object and each place's exit is a
+side of it. What that gives the map:
+
+- ⭐ **`WayRecord` is the edge vocabulary** (`@saxonberg/types`):
+  `{ direction, state: open | shut | locked | window, crossesZone,
+  destination?, boundary? }` — both the room card's exits and the
+  navigator's whereabouts speak it.
+  - **`crossesZone`** decides drawn-on-the-map versus listed under Ways
+    out — this slate's rule, now on the wire.
+  - **`state`** is the door vocabulary the map draws, and the refusal lens
+    reads.
+  - ⭐ **`window`** is a way you can **see through but not cross** — a new
+    kind of edge to draw, and a natural home for a sight-line lens.
+- **One object per door** — a door locked from one side reads locked from
+  both, so a refusal mark is true from either room.
+- ⭐ **The edge rules** (`Location.edgeRefusal`, every way inside a zone):
+  the far place is the **adjacent** cell that way; the way back is the
+  **opposite** direction; the way's **opening** fits the face. A bad way
+  installs unbuilt with a diagnostic; `lint:locations` checks the rows. The
+  renderer trusts the geometry.
+- ⚠⚠ **Tracks — the long walk over open ground**
+  (`/platform/idea/exits/track`, `Exit.spansOpenGround()`). In sparse
+  country (Rejection's outlying claims, Hearts Delight's lanes, Waponi's
+  volcano) rooms stand **several cells apart on purpose, and coords are
+  metres**. A track's far place lies on its bearing (within 22.5°), it may
+  climb, no room stands on the line between, and nothing hangs in it. So:
+  - the map draws **a long link across empty ground** along its bearing;
+  - zones are not all one room per tight cell — **sparse zones are
+    metric**, which the zoom steps and layout must handle (a fit-to-extent
+    *whole zone* step matters more there);
+  - for the [step beat](../engine/step-beat-slate.md) a track's length is real
+    distance, so its beat derives honestly.
+- **The opening belongs to the way** (`Exit.getOpening()`): an archway has
+  a size, so *can I carry this through here* is a question about the way —
+  a possible lens, and haulage's.
+
+### ⭐ Two trees, two places in the pane **[DECIDED — the owner, 2026-11-14]**
+
+The **Locality** tree and the **Zone** tree overlap but are different
+things, and the pane keeps each one's information together:
+
+- **The breadcrumb is the Locality tree** — *Saxonberg › Wharfside* — at
+  the top, where you are in the world. Every crumb carries a tooltip: you
+  almost always stand on a leaf, so the crumbs are how you learn about the
+  places above you without inspecting them by hand.
+- **The Zone block sits directly above the map** — the map *is* the zone:
+  the zone's label, then `x: · y: · z:`, then the extent and levels you
+  know. The coordinates leave the header; they describe your position in a
+  Zone, not in the Locality tree.
+- The owner floated showing the zone you are in **as a breadcrumb of its
+  own** — undecided. A zone has no player-facing name (zones are
+  mechanism); its path is a spoiler
+  ([spoiler-slate § Paths are a spoiler](../platform/spoiler-slate.md)), so
+  by default it shows a derived label.
+
+Data sourcing for every part of the pane, and the server changes it
+needs: [navigation-server-slate](../engine/navigation-server-slate.md).
+
+### ⭐⭐ The Locality section and the Zone section — their contents **[DECIDED in shape, 2026-11-14]**
+
+From the code survey of both trees. Sources: **A** on the client today ·
+**B** a cheap server read · **C** needs modeling or content
+([navigation-server-slate](../engine/navigation-server-slate.md)).
+
+**The Locality section** — *where am I in the world, and what governs it.*
+The crumb line is each Locality's name, outermost first (A). Each crumb's
+tooltip: name and address (A); its government — name, description, the
+chain above it (B; every government has a description, no Locality does);
+the seats and who holds them (B); **resident or visitor** (B, derived from
+your domicile); **your standing here** (B; renown is partitioned by
+Locality); weather now and a **true forecast** (B — weather is
+deterministic); whether the weather is pinned, leaning or procedural (B, a
+spoiler candidate); street lighting tonight (B, four Localities); the river
+it drains to (B raw, C readable); a TPA destination or not (B); your map of
+it (B). Not available: description, kind, population, emblem (C — no
+fields), who owns ground here (C — parcels key by path; only the current
+room's owner is cheap). ⭐ **Aboard a ship, the ship is the last crumb**
+(S10).
+
+**The Zone section** — *how is this space laid out, and where am I in it.*
+What it holds follows the zone's kind:
+
+| kind | the Zone block | the map |
+|---|---|---|
+| Cartesian (103 rows) | `x: y: z:`, cell size, sky or roof, extent and levels you know | the minimap |
+| a frame inside one (a house, dorm, ship) | the building or ship, the floor | the minimap on that frame |
+| **aboard a ship** | **two positions**: you on her decks, and her in the world — the reckoning at sea, made fast in port, the reach on a river (S10) | the deck frame |
+| Spherical (the Hush) | the place's radius and character | placeholder: *no map for this kind of space yet* |
+| Expanse (the Greywater) | the reckoning only at the helm (`course`); else what you can see | placeholder |
+| moving zones (river, sea patches) | the last place passed, how far, the water's character | placeholder |
+| the underwater column | the band (lit · dark · bed) | the column as a strip |
+
+Zone-wide, in the zone line's tooltip (B): the epoch covenant, anti-magic
+suppression, the climate site (latitude, polar night), the horizon (what is
+in view — not what is nearby). ⚠ **`z` is position, not height**;
+elevation is a setting fact, shown apart (S13). The zone's name is a
+derived label; its path is a spoiler.
+
+### The card's sizes, the leaf once, and the one-hop lookahead **[DECIDED — the owner, 2026-11-14]**
+
+- **Three sizes, like any card.** *Small* — other modes, staying aware of
+  your surroundings: the place, the crumbs on one line, the ways from here,
+  little or no map. *Docked* — Explore, everything designed so far.
+  *Large* — complex navigation with **full-size maps**: the Expanse's chart
+  and course plotting (an Expanse wants a chart, never a minimap), and any
+  zone too big to read small.
+- **The Place appears once.** Both breadcrumbs stop one short of the leaf;
+  the room's name sits small at the top (*you are here*), and a **Place
+  section** — larger, detailed — sits below the Zone block. Its content is
+  the next design topic.
+- **Browsing your map records is another card** — the **atlas**
+  ([atlas-slate](./atlas-slate.md)). The nav card is *where you are and
+  where you can go*; it keeps only light record-keeping: **one hop of
+  lookahead** — hover a way out of the zone (or a crumb) and the tooltip
+  shows a small thumbnail of that zone *as you know it*, with *open in the
+  atlas* — and the active route. A short *recent* list waits for the trail
+  record; pinned destinations wait for notes and pins.
+
+### ⭐⭐ The whole card — widest to narrowest **[DECIDED — the owner, 2026-11-14]**
+
+The card zooms in as it goes down, every section seen through *navigating
+the game's content as you explore*:
+
+1. **You are here** — the room's name, small.
+2. **In the world** — the Locality crumbs.
+3. **The zone** — its crumbs, `x: y: z:`, who keeps it, the rules in
+   force, the map.
+4. **The horizon** — what you can see beyond this room: landmarks first,
+   each with its compass point and range, on land and at sea alike — one
+   computation on one geographic frame ([geography-slate](../world/geography-slate.md));
+   on the map, bearing ticks at the edge. Summary: *Horizon · the
+   lighthouse 2 km NE · the Corrigan 3 nm E · 2 sails*. A sighting's
+   tooltip: what it is (name, kind, height, illustration thumbnail); its
+   bearing and range; where it stands as your map knows it; whether you
+   have been; your route to it. **Click: `look` at it** (its inspection
+   card); *route there* and, at the helm, *lay a course* are actions in the
+   tooltip (lean). Traffic at sea is a name, a bearing and a range only.
+5. **The structure** — three situations ([construction.md](../../subsystems/construction.md)):
+   **inside** — *The Counting-house · ground floor of 3 · out: south* (name
+   and description, the storey you are on and what stands on what, the way
+   to its entrance, height, landmark, its outside's condition, persistent or
+   staged); **outside, at a landing** — *Beside: the Counting-house (door
+   N) · the cottage* (per structure: which face you can reach from here, its
+   outside's condition, the way in, height); **aboard ship** — her decks as
+   storeys, the gangway, where she is made fast, whether she is leaking.
+   ⭐ *Floor N of M* comes from **storeys**, never `z`. The owner's name is
+   the structure card's; the nav card says only persistent or staged (how
+   long your map of its inside stays true). Click: `look` at it. Trade
+   verbs that bind at a landing (`paint`, `survey`) are not offered here.
+6. **Boundaries** — always open: the rose (the cardinal exits — eight
+   directions, up and down) and the list of named exits; **leaving the zone
+   is a marker on any exit**, never a section (see § The exit model). Each way's state at a
+   glance: bright (open, yours to take) · gold (a door, shut, openable) ·
+   red ✕ (locked or blocked) · an eye (a window: see through, never go
+   through) · a mode glyph (needs climbing or swimming) · **amber — there,
+   but not for you right now** (sitting, cannot swim, your load will not
+   fit) · dim (no way you know of). Amber is honest because it is about
+   *you*. A way's tooltip: the command; where it leads as your map knows
+   it; what stands in it; the opening (and *your load won't fit*); one-way,
+   muffled, *found by searching*; a track's length; what stops *you* now.
+   ⭐ **No decoration** (the owner, 2026-11-15): the named-exit list is
+   **the exits' own names** — the command
+   words (`in`, `gate`, `crack`) — nothing written over them. The
+   section's spare space is a **preview**: hover an exit (a rose arm or a
+   name) and a strip under it shows that exit and the boundary it is on —
+   where it leads as your map knows it, what stands in it and its state —
+   before you click. ⚠ **One click moves you** — the preview is shown only
+   while the pointer is over an exit and holds nothing clickable; it never
+   becomes a select-then-confirm step. Click an open way: `go`. Tooltip actions: **open** a shut door,
+   **unlock** one you hold the key to, **look through** a window — getting
+   through is navigation; anything else done to a door is its own card's.
+   ⭐⭐ **A boundary is a Thing whose behavior is its mixins** (the owner,
+   2026-11-14) — so its part of a tooltip is **assembled from what it is
+   made of**: one block per navigation-relevant mixin it composes
+   (Sealable: open or shut · Lockable: locked, the key, opens free from one
+   side, closes behind you · the Boundary base: the channels it passes and
+   its opening · Soilable: grime on the glass · fixed: never shuts). Never
+   a fixed *door / window / grating* shape: a pack's new boundary (a
+   portcullis, a ward, an airlock) shows its blocks with no client change,
+   and a facet the client cannot draw still shows as a plain fact row.
+7. **The place** — light: the room already gets its own inspection card
+   when you enter, so the nav card shows only what bears on moving through
+   it and on what your map knows of it. *Place · dark · searched, nothing
+   more · a tripwire here.* Light (dark shows fewer ways, and your map grows
+   only from what you see); open sky or roofed (is there a horizon); water —
+   depth, current; **searched or not** (the one claim where absence means
+   something); hazards you have found here; your knowledge of it — first
+   walked, last seen, sources, conflicts; staged or persistent; crowding as
+   a count. Not its description, contents, people or illustration (the
+   inspection card's), nor its position or storey (above). Click: bring its
+   inspection card forward.
+8. **You** — your person as a navigator: *You · walking · light load · lamp
+   lit*. Pace and endurance; load — what you can climb or swim with and
+   what fits through an opening ([size-and-carrying](../../subsystems/carrying.md),
+   build-1's); the light you carry; posture; a mount or vehicle. The pace
+   switch lives here.
+
+**The glance rule.** Nobody reads it top to bottom, and it need not be read
+so: the **place name, the map and the ways are always open**; every other
+section is **one summary line** that opens on click, its detail in its
+tooltip. The order is fixed (muscle memory); the player chooses which
+summaries stay open, and the card remembers.
+
+**Fill the height, in order** (the owner, 2026-11-15: *"why are we
+truncating when there's so much empty space?"*). The docked card is the
+window's height, so it **fills the space it has**: with room to spare,
+summary lines wrap, then the next sections **open by themselves** in the
+fixed order, widest first; when space runs out they fold back to one line,
+last first — and only then does text truncate, always with the full text
+in its tooltip. Sections the player has opened or closed stay as set;
+filling decides only the untouched ones. A thin place gets a short card, a
+rich place on a tall screen everything open, the same place on a laptop
+summary lines.
+
+**Absent, not empty.** A section with nothing to say does not appear — a
+bare cave has no horizon, no structure, no zone rules. The one exception is
+the map's *no map for this kind of space yet*. Thin places get a short card;
+rich places a full one; one card handles both.
+
+**In motion.** While you move through more than one room, a **movement
+block** sits under the place name: where to, the step you are on, what is
+left, the pace, what may stop it, *Stop* and *Walk instead*. It is fed by
+**whatever movement you are in**, generically — a queued walk now; a
+journey, a ferry, a voyage or freight later, all the same block with no new
+card code (the hedge against [logistics](../trades/logistics-slate.md) and
+[freight](../trades/freight-slate.md)). The ways dim while you move; a click on one
+stops the walk and steps that way.
+
+**The wire.** The card is a docked slot, so it updates implicitly: the
+server **pushes one structured navigation payload in sections**, each with
+its own version and its own triggers, and sends **only the sections that
+changed** (a step resends the ways and the place, the horizon only if the
+view changed). Your knowledge rides the replica separately. While a queue
+of steps runs, pushes coalesce to one per beat. Commands are only for what
+the card asks for on demand — the refresh, a tooltip's round trip.
+Payload sizes are estimates; the plan measures them
+([navigation-server-slate § S18](../engine/navigation-server-slate.md)).
+
+### Still open
+
+- The minimap's exact visual design — to iterate with the owner against
+  real play.
+- What the pane shows in modes other than Explore (it is optimized for the
+  docked Explore slot).
+- What a breadcrumb does when you own no map of that Locality.
+- The illustrated map's server model (a map kind, its anchors) and whether
+  the inspection card is its home.
+
+## The card integration is already decided by doctrine
+
+`card-surface.md` has four body sources, and the minimap is a **`client`**
+body: *"the body is the client's own transport (Monaco, the git panel, the
+Studio catalogue). The **server** still owns the card's existence,
+identity, lifetime and pinned-ness; only the body is the client's."*
+
+> **`map` · source `client` · `pinned: ✓` · `noProse`** — exactly like
+> `cms`.
+
+⚠ And it must be **pushed by a command** (`map`), because *the wire cannot
+name a card*: there is **one birth path**, and a missing push once went
+undetected for a whole build with five green tests over it.
+
+**Data contract** — cheaper than expected:
+
+- entering a new locality → **one read** of that locality's slice of *your*
+  map document
+- moving within it → **the move frame already says where you are.** No new
+  transport
+- your map growing → a small delta
+
+## Open questions
+
+1. ~~**Game minimap discovery model**~~ ⭐⭐⭐ **ANSWERED** — three tiers, not
+   two: **visited by me** (solid) · **known from a source** (outline only) ·
+   **unknown** (absent). Rooms you know but have not been *must* render, or
+   the map market has no interface. Provenance detail is an **overlay**;
+   conflicts are **always on**.
+2. **2D node-graph layout** — auto (force/dagre/elk) vs hand-positioned vs
+   hybrid (auto + manual nudge).
+3. **Spherical 3D** — worth a 3D force-graph, or 3D is Cartesian-only and
+   Spherical stays 2D?
+4. ~~**Data-source adapter**~~ ⭐⭐ **ANSWERED** — three sources, and the one
+   this build reads is **the player's map document** via the location-graph
+   index. One read per locality transition; position comes from the existing
+   move frame; growth is a delta. ⚠ The editor adapter stays blocked on the
+   absent draft overlay.
+5. **3D polish budget / timing** — when demo-quality matters (an investor
+   demo?) vs the functional render.
+6. ~~**Elastic graphs**~~ ⭐⭐⭐ **ANSWERED 2026-10-01** — and the lean was
+   half wrong. Warrens split in two: a **planned** warren's topology is
+   *authored and persisted* in `PlatPlan` (roads, segments, `heading`,
+   frontages, stable slot ids, and `routeOf()` already implemented), so it
+   **renders without minting a single room**. Only an **occupancy** warren
+   — the lounge's satellites, which exist because somebody is standing in
+   them — is genuinely shapeless, and there the honest render is *"a space
+   through this door, shape unknown."* See
+   [location-graph-slate § 4](../engine/location-graph-slate.md).
+7. **3D editing, ever?** — or permanently 2D-edit / 3D-view. *Lean: never.*
+8. ~~**Up/down in the 2D grid**~~ ⭐ **DECIDED** — a **corner glyph per
+   cell** (`▲`/`▼`/both). The stacked isometric still lands in wave 3 as the
+   richer view, but the glyph is the wave-1 answer and it is not
+   provisional.
+10. ~~**Does the rose show a refusal's reason inline or on hover?**~~
+   ⭐ **DECIDED — marker inline, reason on focus.** The arm carries a state
+   marker always (so *refused* is never mistaken for *absent*); the sentence
+   arrives on focus. Keeps ten arms legible and keeps the refusal
+   un-hideable.
+9. ⭐ **Does the zone-level graph expose the composition inconsistency to
+   players, or only to the lint?** A realm whose zones cannot be laid out
+   consistently is a genuine fact about the world; showing it is either
+   fascinating or alarming.
+
+---
+
+## Build order
+
+⛔ **Wave 0 — not this build.** The
+[location-graph index](../engine/location-graph-slate.md) has to exist. There is
+nothing to render until it does, and the data contract above is its API.
+
+**Wave 1 — the zone navigation card.** `viewBox` in cell units, rects +
+lines, **up/down corner glyphs**, `d3-zoom` for pan/zoom, pushed by a
+command as a `client` body. Locality-scoped. Plus the **compass rose** —
+whose geometry is free off the existing `exits` wire record — the
+**interzone list**, and the **zone metadata panel.** The three provenance
+tiers and the conflict badge land here too, because they are *render
+classes* rather than features.
+
+⭐ **The rose is worth shipping even before the index exists**, since
+`StuffExitRecord` already carries direction + door state and is already
+perception-gated. It is the one part of this card that is **not blocked on
+wave 0.**
+
+⭐⭐⭐ **Wave 2 — annotation. The feature.** Pins, markup, notes, written
+into the player's map document. This is what makes a map a tradeable good
+rather than a HUD, and everything in the market design depends on it.
+
+**Wave 3 — the zone-level node graph.** dagre over `{crossesZone: true}`,
+crossing directions as edge labels. ⭐ Plus the **stacked-floor isometric**,
+which is one transform and gets most of "see the whole z-axis" for free.
+
+**Wave 4 — 3D, behind `React.lazy`.** The unified z-axis, **spherical zones
+(the only honest way to show focus+radius)**, and the marketing flythrough.
+⭐ Utility is explicitly not the goal here; the polish pass is its own
+distinct work.
+
+**Deferred, with reasons:**
+
+- ⭐ **A browsable whole-realm map.** Shape unknown — *"I don't really know
+  how shallow or deep and how balanced that tree is going to end up
+  being."* **Designing a realm navigator now would be designing for a guess
+  about a tree nobody has grown.** It wants a full-window route rather than
+  a card, and so does 3D; both wait for content to tell us what they need.
+- **The CMS zone-building tool** (the map as a *content authoring* surface,
+  editable rather than viewable). ⚠ Also still half-blocked: there is **no
+  draft overlay** (see above).
+- **3D editing.** Permanently 2D-edit / 3D-view unless something changes.
+
+⚠ **For the plan, not this slate:** annotation transport needs an
+**optimization pass** — each pin is a document write, and a map-edit session
+must not be fifty REST calls. Batch-and-flush is the obvious shape; the
+consistency cost is a planning decision.
+
+## What this slate does NOT cover
+
+- **Zone/room *editing logic*** → [cms-slate.md](../platform/cms-slate.md). The map is
+  the render surface + canvas; the editing rules are the editor's.
+- **The spatial model itself** (coordinates, zones, explicit exits,
+  `cellSize`, and the **placement-validity invariants** — Cartesian
+  unique-coords, the owed `SphericalZone` non-overlap check) →
+  [spatial.md](../../subsystems/spatial.md) / [zone.md](../../subsystems/zone.md).
+  The map *surfaces* these; the spatial model *owns* them.
+- **The cockpit / HUD layout** → [client-cockpit-slate.md](./client-cockpit-slate.md).
+  The minimap is a panel it hosts.
+- **3D asset/model pipelines** — there are none; geometry is procedural.
+- **The discovery/exploration system** → senses/fast-travel; the minimap
+  *consumes* discovery state, doesn't define it.
+
+---
+
+## Once shaped into formal requirements
+
+This slate boils down to:
+
+- **One renderer, many modes** (2D grid / 2D node-graph / 3D box-render /
+  minimap), all **procedural from the coordinate data** — no art pipeline.
+- ⚠ **Three data-source adapters** — live templates (editor; **there is no
+  draft overlay** — see above), live-Stuff-discovery-filtered (game
+  minimap), and the **persisted location-graph index**
+  ([location-graph-slate](../engine/location-graph-slate.md)) for every whole-world
+  mode — one renderer.
+- **Three consumers** — game minimap/spatial-view, zone-editor canvas/view,
+  demo flythrough.
+- **2D edits, 3D views**; **layered presentation for space** (the honest
+  model made visible; demo value); **not a v1 blocker** (list/connectivity
+  fallback meanwhile).
+- The toolkit (SVG/canvas + graph-layout lib for 2D; three.js / r3f +
+  `InstancedMesh` for 3D) and the cost curve (2D easy → 3D functional
+  moderate → 3D demo-quality real).
+- ⭐ **Reachability becomes computable** — the check this slate owes for
+  Spherical zones is a graph question, and the location-graph index is what
+  can answer it as a lint rather than at render time.
+- **Spatial validity is surfaced, not owned**: the map prevents/flags
+  overlapping or unreachable placement (the 3D view makes overlaps visible),
+  but the invariant — Cartesian unique-coords + the **owed `SphericalZone`
+  non-overlap check** (`distance ≥ r₁+r₂`) via `SpatialZone.canPlace` — lives
+  in the spatial model. Overlap (geometry) and reachability (exit graph) are
+  distinct checks; Spherical needs both.
+- Tests: a Cartesian zone renders as a per-floor grid with exits as
+  connectors; the same zone renders in 3D as boxes at `coords × cellSize`
+  with exit openings; the game minimap shows only discovered rooms; the
+  editor canvas reflects the draft overlay; a Spherical zone renders as a 2D
+  node-graph; placing overlapping spheres is prevented/flagged.
+
+3D demo-quality polish, Spherical 3D, and 3D editing wait for their own
+waves.
+
+---
+
+## ⭐ Unblocked (2026-10-05) — the location-graph build shipped
+
+The data this renderer needs now exists, and the dependency correction
+this slate recorded turned out to be the right one: **a map is a
+document, not a view over the graph.**
+
+- `/home/<key>/map/<locality address>`, kind `map`, one document per
+  `(player, finest covering locality)`. The address keeps its slashes,
+  so a coarser read is a **prefix read with no join**.
+- A claim carries its own `channel` (`perception` · `publication` ·
+  `told` · `bought` — as of 2026-11-10 the shipped set is `walked · seen ·
+  searched · published · charted · told`; `band` is a claim KIND, water
+  between places), `firstSeen` and `lastSeen` — **not one
+  date per document**.
+- `NavigationApi.readMap(viewerKey, prefix)` is the read, and it
+  resolves under the actor's own home and nowhere else.
+
+⚠ **What is still this slate's.** `map` renders **MML to self and opens
+no card**, deliberately: the inspection card is laid out by `StuffKind`
+and a map is not a Stuff, so a `CardId` for it is a card-surface
+decision rather than a line in a perception build. The two renderings
+worth designing here are **the card** and **the picture** — and the
+second has a real question in it, because a claim graph with holes is
+not a thing a renderer can lay out without deciding what a hole looks
+like.
+
+⭐ And the rot is load-bearing for the renderer: where two claims about
+one `(place, dir)` disagree, BOTH must render with their dates, and a
+claim older than the latest look at its place must read as *not seen
+when you last looked*. A renderer that tidied either away would undo
+the knowledge model. See
+[location-graph.md](../../subsystems/location-graph.md).
+
+## Reuse ledger for the plan (navigation build, 2026-11-10)
+
+From the requirements survey ([navigation-requirements](../../requirements/navigation-requirements.md)).
+Every row is one the plan must account for — reuse it, generalize it, or
+say why it is genuinely new.
+
+| concept | what already does it | this build |
+|---|---|---|
+| your knowledge | the `map` document kind, one per player per Locality (`/home/<key>/map/<locality>`); `MapClaim` (`lib/location/MapClaim.ts`); append-only `NavigationLogic.growMap` | **reuse**; the claim **grows** zone, coordinates and level (the firewall decision) |
+| writing knowledge | `Cartographer` (`onTraversed` → `walked`, `recordSurroundings` → `seen`/`searched`, `recordTimetable` → `published`); `Charted` (`charted`/`told`) | **extend** the writers to record where the place is; a place with no handle or no Locality still writes nothing |
+| reading knowledge | `NavigationApi.readMap(viewerKey, prefix)`, the `map` verb (`MapController`) | **reuse** as the replica's source; the zone slice is a filter on the new zone field |
+| routing on your map | `NavigationApi.routeOnMap`, `RoutePlan` (legs, cost, assumptions — plain data) | **reuse**; the latest plan rides to the client for the route lens (session only) |
+| a way's state | `WayRecord` / `WayState` (`open·shut·locked·window`, `crossesZone`), `Exit.wayRecord()`, `spansOpenGround()` (boundary build) | **reuse** as the map's edge vocabulary |
+| where you are now | `Perceiver.whereabouts()`, `Whereabouts`, `refreshNavigator()` after moves | **reuse** as "you are here" and the push trigger; drop its conditions/jurisdiction rows from the pane |
+| the docked slot | the `map` CardId (`Cards.ts`, `payload/navigation`), `ModeStage` explore panel, `NavigatorBody` | **replace** `NavigatorBody`; keep the CardId and slot |
+| a client-side copy | none — `stuffRegistry` is a rendering-metadata map; the store has no selectors | **genuinely new**: the knowledge replica + zone-facts cache + session cache, selectors only ([client-knowledge-model-slate](./client-knowledge-model-slate.md)) — searched the client store, every slice, `stuffRegistry` |
+| replica transport | MQL subscriptions (per-Interactive deltas, `mql-subscription.md`); card pushes (`touchCard`) | **decide in the plan**: a subscription over your map documents, or a delta envelope; generalize, don't add a third push path without saying why |
+| zone facts | `CartesianZone.cellSize`/`getGrid`, `SpatialZone` (kind, sky, epoch ceiling), `GovernmentApi.governmentAt`, `Atmospheric` (biome) | **reuse** the reads; a zone-facts read is **new** (searched: none exists); extent and levels come from your claims, never the zone |
+| Locality facts on first visit | Locality rows (name, government, tier fields) | **extend**: a first-visit claim kind ([locality-knowledge-slate](../engine/locality-knowledge-slate.md)); Locality gaining Named/Perceptible/Visible per that slate |
+| the drawn map | none (no SVG, no map component, no graph-layout dependency) | **genuinely new** — SVG per § The rendering decision |
+| direction glyphs | `components/ui/icons/iconMap.ts` + `<Icon>` (no direction/elevation glyphs) | **extend** the one icon map with the direction tier ([iconography-slate](./iconography-slate.md)) |
+| the status bar | client-shell's status bar | **extend** with the outdoor conditions the navigator used to show |
+| caching documents server-side | `DocumentCache<T>` (documents build, !560 — ⚠ the survey reports that branch later removes it in favour of catalogues) | **check after !560 merges** |

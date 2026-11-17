@@ -23,7 +23,7 @@ the Governor of the Central Bank controls the bank's `reserve` lever.
 
 It does **not** build the democratic filling process (investiture,
 elections, no-confidence, sortition) — that is the deferred governance
-machinery. Seeded by the [cooperative slate](../slates/builds/cooperative-slate.md)
+machinery. Seeded by the [cooperative slate](../slates/society/cooperative-slate.md)
 and grounded in the [draft constitution](../compact/governance/draft-constitution.md)
 (Art. IV legislature + House names, Art. V executive / Prime Minister +
 §9 administration, Art. VIII economy-is-ordinary-law, Art. XI founding
@@ -107,7 +107,7 @@ committee** (owner, 2026-11-05: *"no one should 'sit on every committee'
 not even the founder"*; the `isCommitteeMember` backstop that read it the
 other way was deleted by the wizard-axis cleanup, D18). The regulated
 form of an executive override is the warrant
-([executive-warrant-slate](../slates/builds/executive-warrant-slate.md)) —
+([executive-warrant-slate](../slates/society/executive-warrant-slate.md)) —
 and the default holds with **no dependency on the founder having
 logged in**. The founder is marked by **external credential**, resolved
 through the `User` ↔ `GoogleProfile`/`TwitchProfile` link
