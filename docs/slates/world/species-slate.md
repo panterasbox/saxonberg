@@ -6,7 +6,9 @@
 > **Left:** every actual difference — the ectotherm · scent-based
 > recognition · cannot-metabolise-a-staple · equipment incompatibility ·
 > no speech organs (aether only) · illegible emotes · and the retrofit of
-> the seven interchangeable shipped humanoids
+> the seven interchangeable shipped humanoids · ⭐ the roster: two pools and a ratchet (§ *The
+> roster*, 2026-11-17) · the form/culture split · retiring the half species · renaming the three
+> Tolkien-derived binomials
 > **Size:** a build
 
 **Captured 2026-08-02**, as a tangent off the physiology slate's blood-type
@@ -161,6 +163,145 @@ anyone being written as unfriendly.**
 
 > **Graduated** to [race.md § Why species differ without ranking](../../subsystems/race.md#why-species-differ-without-ranking)
 > (the refusal table + *a synergy is a tendency, a class is a prerequisite*).
+
+## ⭐⭐⭐ The roster — two pools, a ratchet, and form apart from culture **[DECIDED in shape — the owner, 2026-11-17]**
+
+Talked through with the owner while crafting the first-session cast (Dave's Bar, the crossing, the
+station; [university-avenue-slate](./university-avenue-slate.md)), because naming those characters
+needed their species first.
+
+### What ships today
+
+- **Playable** (char-gen's roster, 10): human, elf, dwarf, halfling, half-orc, tiefling,
+  dragonborn, gnome, half-elf, orc. Essentially D&D's Player's Handbook list, plus orc.
+- **Persons, not playable** (6): attuned-born (`sensitivus`), troll (Katie in Duncan Hall is one),
+  ghoul, kobold, ogre, satyr. Constructs too: the tutor-bot is a person.
+- **⚠ Owned names:** three binomials are built on Tolkien's words: *eldarinus* (Eldar),
+  *khazadicus* (Khazad), *periannath* (Periannath). They are renamed. Tiefling and dragonborn are
+  fine: D&D's System Reference Document 5.1 is CC-BY 4.0 and includes both, used with attribution
+  ([bestiary-slate § 3](./bestiary-slate.md)).
+
+### The owner's direction
+
+- **Half species go.** Half-elf and half-orc are retired.
+- **⭐ Diversity is the priority; fairness is not.** *"I'm okay with some asymmetry between the
+  species. I don't really care if some are 'worse' than others. I'd question the qualifying criteria
+  there, because some species are just 'cool', and how do you measure that? Also we have a wide range
+  of trades and not all of them call for the same kind of specialization. Players may find synergies
+  that even we haven't anticipated."* ⚠ This revisits the graduated rule *"without ranking"*
+  ([race.md § Why species differ without ranking](../../subsystems/race.md#why-species-differ-without-ranking));
+  reconcile it at the build.
+- **Mass gives real advantages.** *"A certain body mass will probably give some species a real
+  advantage over others, at least for some tasks that require strength or reach."* Already the plan:
+  organism-biology derives *strength from muscle share × mass*
+  ([organism-biology-slate § 0](../engine/organism-biology-slate.md)), and size-and-carrying
+  shipped mass-scaled fists and carrying capacity. The same physics charges for it: the big eat
+  more, warm and cool slowly, hide and fit worse, gear is harder to fit, and **the TPA fare is by
+  mass** ([fast-travel-slate § Carriers, tickets and mass](../engine/fast-travel-slate.md)).
+- **The variable that matters is how often you meet your own kind**, because it flavors everything
+  species touches: name cultures, enclaves, blood types, households, recognition by scent. That
+  depends on how many peoples there are, how unevenly they are spread (a long tail, never equal
+  shares), and where they gather.
+- **Two populations, two biases, judged separately.** *"The selection bias for players vs content
+  authors crafting NPCs is totally different, and we want both to be a source of diversity even if we
+  may judge them independently."* Players pick for fantasy and bunch on favorites; in the lounge
+  (players only) the odds of meeting your kind are the players' spread, and the world reflects it.
+  Authors pick for story and place; outside the lounge the authored population sets the baseline.
+
+### ⭐ Two pools and a ratchet
+
+*"Keep the playable pool on the small side and then convert non-playable to playable as you start to
+grow the player base and can accommodate more diversity."* Each pool spans **network TV to prestige
+streaming**: *"some core D&D archetypes that are familiar to everyone and then also some more niche
+species that hopefully have committed diehard audiences that will choose them just because of the
+niche they're capturing."* NPCs draw from both pools (authors choose for theme).
+
+**⭐ The order is complexity.** *"The initial roster I would want to keep very basic and easy to
+learn. The ones we introduce later would introduce mechanics that are more complicated for more
+experienced players. This kind of meets the audience where they are."*
+
+**Playable at launch: basic bodies, one idea each**
+
+| | people | the one idea |
+|---|---|---|
+| 1 | human | the baseline |
+| 2 | elf | long-lived, keen senses |
+| 3 | dwarf | dense: strength in a small frame |
+| 4 | halfling | small |
+| 5 | gnome | small, clever (the owner's NetHack mines; a gnome-town is culture, bestiary § 14a) |
+| 6 | orc | large, strong |
+| 7 | tiefling | the infernal lineage: looks, little else |
+| 8 | troll | big: the simplest way to show mass matters (Katie) |
+
+**Promoted later, in order of what they ask of a player**
+
+1. **dragonborn:** one organ (breath is a gland, organism-biology § 12.5).
+2. **kobold** and **ogre:** the extremes of mass, tiny and huge.
+3. **lizardfolk:** the ectotherm (this slate's top candidate, and the thermal model already supports
+   it): a day governed by temperature.
+4. **catfolk:** senses (night vision, scent).
+5. **attuned-born:** the aether, once the device layer exists.
+6. **constructed people:** no metabolism, no blood (the tutor-bot's line): a different relationship
+   with food, healing and death.
+7. **centaur:** a different body plan, the module grammar's showcase: stairs, saddles and doorways
+   change.
+
+Each promotion teaches a system the player has had time to learn: mass, then an organ, then
+temperature, then the senses, then the aether, then the body itself. Folklore or generic names where
+D&D's are owned (*catfolk*, *lizardfolk*).
+
+**Left out of the core sixteen:** satyr (folklore; free for any author); ghoul (the bestiary treats
+vampires and zombies as conditions on any body, § 15, so a "ghoul people" may belong there).
+
+### The attuned-born — native speakers of the aether **[LEAN]**
+
+The story bible: ordinary mortals in whom a sensitivity surfaces, *"born touching the medium everyone
+else needs an implant to reach,"* until the University mass-produced the implant (*"the wonder
+becomes a clinic visit"*); the phone is now the default carrier and the implant elective
+([off-grid-slate](../engine/off-grid-slate.md)). The owner: *"the aether sensitive species is weird
+because it actually makes the game easier arguably … it's also something that doesn't quite have a
+real life metaphor to draw from."*
+
+- **Later, not at launch:** their difference is defined against phones, implants, coverage and
+  power, none of which is built yet.
+- **The metaphor: native speakers, against everyone else's translation device.** Fluent, no device,
+  no battery, catching nuance a device misses (Sloane "sees everything": she reads presence). **But
+  you cannot stop understanding a language you are native in**: no airplane mode, the busiest
+  crossing in the city is loud to them, and in a space an author has deliberately shut the aether
+  off, a phone loses signal while they feel the silence. The bible's allegory is the social cost: a
+  natural talent technology made ordinary (people who calculated by hand once calculators arrived;
+  traditional navigators once GPS did).
+- **Sloane stays attuned-born as an NPC at launch.** Being one of the few is part of who she is.
+
+### ⭐ Form apart from culture
+
+The owner compared the roster to Age of Wonders 4's, grown through expansions. As I recall that
+design, a people is split into a **form** (the body) and a **culture** (how its society works), and
+its expansions grew both lists. That is the model the owner set for names: *"most names come from
+cultures that identified with a specific species,"* a melting pot like Terminus has no naming culture
+of its own (as America has none: its names are origin names, sometimes Americanized), and *"I don't
+want to limit culture in the game to just culture-via-species; your culture comes from lots of places
+in real life, so should the game."*
+
+- **This roster is the form list:** bodies, mass, physiology.
+- **Cultures are a separate list:** naming, customs, how a people organizes itself. Some grew up
+  around one species, some are shared, some are regional or religious and have nothing to do with
+  species.
+- **Name banks follow culture, not form.** *"Some species want their own bank and some want to share
+  and some don't even need representation along that axis."* A dwarf raised by a Terminus family
+  draws from that family's culture; a dwarf from a mountain hold, from the hold's.
+- **Both lists ratchet**, independently: a new form or a new culture arrives when the world is ready.
+- **The peoples conversation becomes two:** which bodies (drafted here) and which cultures (not
+  started). The place-names slate waits on the second
+  ([place-names-slate](./place-names-slate.md)).
+
+### Open, from the roster
+
+1. **The cultures list:** which cultures exist, which forms they grew around, and their name banks.
+2. **The binomial renames** for elf, dwarf and halfling.
+3. **The playable seam:** what char-gen reads to know a species is playable, and how a promotion
+   happens (a row change).
+4. **Reconciling race.md's "without ranking"** with the owner's asymmetry.
 
 ## Open questions (for requirements)
 
