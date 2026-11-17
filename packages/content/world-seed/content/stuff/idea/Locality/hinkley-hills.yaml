@@ -24,7 +24,7 @@ data:
   _address: terminus/hinkley-hills
   # ⭐ Where it stands on the chart (geography D12) — 12 km from the bar
   # on 330°, up the slope above the city.
-  _position: { latDeg: 42.0935, lonDeg: -8.5427 }
+  _position: { latDeg: 42.2806, lonDeg: -8.6885 }
   _radiusM: 3000
   # ── the watershed (D21) ───────────────────────────────────────────
   # The slope above the city, on the basin's edge. It drains INTO the

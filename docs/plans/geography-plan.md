@@ -440,6 +440,34 @@ predictable):
   (> 14.6 nm), the headland must; Hinkley Hills must read a different
   compass point for the light than the Market.
 
+⚠⚠ **Re-planned at the drive (2026-11-17): this world is a third of Earth's
+radius** (`universe.yaml` `_planetRadiusM: 2124000`, sugar D12) — a degree
+is **20 nm**, not 60, and the horizon is **√⅓ ≈ 0.58** as far. The table
+below was first computed in Earth degrees, which put every town a third as
+far from the bar as intended (the drive's first run read the Terminal
+*about a mile* south of Hinkley Hills). The points are re-derived from the
+same distances and bearings in this world's degrees. On this world:
+**the Market (37 m eye, 14.1 nm reach to a 30 m light) cannot raise the
+light 18.7 nm off** — the first constraint above does not hold, and the
+drive asserts the honest answer instead; Hinkley Hills (132 m eye, 20.8 nm)
+does, the headland (102 m, 19.1 nm) does, the strand (2 m, 8.4 nm) does
+not. The gallery's height is shown against a craft (the Hesper, staged ten
+miles toward the coast: in the gallery's 12.1 nm, past the landing's 6.9),
+since nothing on the coast clears either eye; the rock's zone now
+`reach`es the Greywater (a rock at sea looks out on its sea). Waponi Woo's
+node, 240 nm south, is **30° N** here — exactly its zone's stated
+latitude (the plan's "38° N" was the Earth figure).
+
+| Locality | this world's `_position` |
+|---|---|
+| Terminus (city) | 42.0472, −8.5802 (the Terminal 42.0473, −8.5805) |
+| Wharfside | 42.0229, −8.5008 |
+| Hinkley Hills | 42.2806, −8.6885 |
+| Hollow Mere | 42.6362, −8.8712 |
+| Heart's Delight | 42.2236, −9.5949 |
+| Rejection | 42.9514, −9.5523 |
+| Waponi Woo | 30.0, −8.47 |
+
 | Locality | `_address` | from the bar | `_position` | `_radiusM` |
 |---|---|---|---|---|
 | Terminus (city tier) | `terminus/city` | 3.5 km @ 300° | 42.0157, −8.5067 | 2000 |

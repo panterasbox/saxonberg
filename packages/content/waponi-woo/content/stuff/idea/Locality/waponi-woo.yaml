@@ -14,8 +14,8 @@ data:
   name: Waponi Woo
   _address: terminus/waponi-woo
   # ⭐ Where it stands on the chart (geography D12) — the Greywater's
-  # waponi-woo node, 240 nm due south of the bar — where the sea has the island.
-  _position: { latDeg: 38.0, lonDeg: -8.47 }
+  # waponi-woo node, 240 nm due south of the bar — 12° on a world whose degree is 20 nm — where the sea has the island.
+  _position: { latDeg: 30.0, lonDeg: -8.47 }
   _radiusM: 4000
   _climateLean:
     rain: 1.6

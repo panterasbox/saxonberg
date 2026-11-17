@@ -5,10 +5,14 @@
  * from the content rows and kept, the rough direction for everyone and the
  * bearing for the instrument.
  *
- * ⭐ The expected reads come from geography-plan D12's geometry: from the
- * Market (the city's point, 37 m eye) the light on Gannet Rock is ~58°,
- * 18.7 nm — *to the north-east, some 19 miles off*; from Hinkley Hills ~73°,
- * 18.2 nm — *to the east*. The Terminal is *close by* from inside the city.
+ * ⭐ The expected reads come from geography-plan D12's geometry ON THIS
+ * WORLD — a third of Earth's radius, so a degree is 20 nm and the horizon
+ * is √⅓ as far (sugar D12). From Hinkley Hills (a 132 m eye) the light on
+ * Gannet Rock is ~73°, 18.2 nm — *to the east, some 18 miles off*. From
+ * the Market (a 37 m eye) the same light, 18.7 nm off, is UNDER the
+ * horizon — an honest small-world answer the drive asserts. The Terminal is
+ * *close by* from inside the city. The headland raises the light; the strand
+ * below it does not.
  *
  * ⚠ Departures from the plan's table, each for a reason (recorded in the
  * plan's drive record):
@@ -44,8 +48,10 @@ import {
   stageShip,
   hand,
   pinWeather,
+  unpinWeather,
 } from '../src/harness';
 import { bootOwnedWorld, WIRE_PORT } from '../src/runner/boot';
+import { afterAll } from 'vitest';
 
 declareFile({
   file: 'geography.wire.test.ts',
@@ -78,9 +84,14 @@ const MOOR = '/world/moor/stormy-heath';
 const HESPER = '/world/terminus/hesper/structure';
 const HESPER_DECK = '/world/terminus/hesper/deck';
 const BAR = '/stuff/idea/WaterExpanse/greywater/bar';
+const ROCK_NODE = '/stuff/idea/WaterExpanse/greywater/gannet-rock';
 const COMPASS = '/stuff/thing/instrument/hand-compass';
 const SEXTANT = '/stuff/thing/instrument/sextant';
 const DAY = 86_400;
+/** Where the drive reads the sky — pinned clear (one pin per covering Locality), unpinned after. */
+const PINNED = [MARKET, HINKLEY, BANK, AVENUE, LANDING];
+/** Ten miles from the rock toward the coast: in the gallery's reach (12.1 nm), past the landing's (6.9). */
+const OFF_THE_ROCK = { latDeg: 42.2905, lonDeg: -8.0943 };
 
 const handle = uniqueHandle('surveyor');
 
@@ -112,40 +123,49 @@ beforeAll(async () => {
   const sec = (await worldClockNow()) % DAY;
   const toNoon = sec <= 12 * 3600 ? 12 * 3600 - sec : DAY + 12 * 3600 - sec;
   if (toNoon > 60) await advanceWorldClock(`${Math.round(toNoon / 60)} minutes`);
-  for (const scope of [MARKET, HINKLEY, LANDING, BROW, STRAND, AVENUE, BANK, QUAY]) {
-    await pinWeather(scope, 'clear').catch(() => undefined);
-  }
+  for (const scope of PINNED) await pinWeather('clear', scope);
 }, 600_000);
+
+afterAll(async () => {
+  if (!isOwnedTestWorld()) return;
+  for (const scope of PINNED) await unpinWeather(scope).catch(() => undefined);
+});
 
 suite('geography — the drive', { timeout: 300_000 }, () => {
   let marketByDay = '';
 
-  it('1 · the Market: the Terminal close by, the light to the north-east some 19 miles off, landmarks first', async () => {
+  it('1 · the Market: the Terminal close by; the light, 18.7 nm off, under a 37 m eye\'s horizon', async () => {
     marketByDay = await horizonAt(MARKET);
     note('1', marketByDay);
     expect(marketByDay).toMatch(/clock tower[^.]*close by/i);
-    expect(marketByDay).toMatch(/light on Gannet Rock, to the north-east, some (18|19|20) miles off/i);
+    expect(marketByDay).not.toMatch(/light on Gannet Rock/i);
     // Landmarks first: the first sentence names a landmark.
-    expect(marketByDay.split('.')[0]).toMatch(/clock tower|light on Gannet Rock/i);
+    expect(marketByDay.split('.')[0]).toMatch(/clock tower/i);
   });
 
   it('2 · `analyze bearing` by eye and `measure bearing` with the compass on the light', async () => {
-    const s = await Session.open(handle, { startLocation: MARKET });
+    const s = await Session.open(handle, { startLocation: HINKLEY });
     try {
       await s.drainProse();
       const eye = plain(await s.prose('analyze bearing light'));
       note('2 eye', eye);
-      expect(eye).toMatch(/bears 0(5|6)\d° ± 10°/);
+      expect(eye).toMatch(/bears 0(6|7|8)\d° ± 10°/);
       await hand(s, COMPASS);
       const compass = plain(await s.prose('measure bearing light'));
       note('2 compass', compass);
-      expect(compass).toMatch(/bears 0(5|6)\d° ±/);
+      expect(compass).toMatch(/bears 0(6|7|8)\d° ±/);
       expect(compass).toMatch(/second bearing/i);
-      const near = plain(await s.prose('measure bearing tower'));
+    } finally {
+      s.close();
+    }
+    const m = await Session.open(handle, { startLocation: MARKET });
+    try {
+      await m.drainProse();
+      const near = plain(await m.prose('analyze bearing tower'));
       note('2 tower', near);
       expect(near).toMatch(/too near/i);
     } finally {
-      s.close();
+      m.close();
     }
   });
 
@@ -153,6 +173,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     const hills = await horizonAt(HINKLEY);
     note('3', hills);
     expect(hills).toMatch(/light on Gannet Rock, to the east, some (17|18|19) miles off/i);
+    expect(hills).toMatch(/clock tower, to the south/i);
   });
 
   it('4 · the Market\'s Terminal line carries no compass point', () => {
@@ -161,6 +182,9 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   });
 
   it('5 · Gannet Rock: the gallery raises what the landing cannot', async () => {
+    // The Hesper on the Greywater, ten miles toward the coast (staged).
+    await stageShip(HESPER, { at: { node: ROCK_NODE } });
+    await stage(HESPER, 'setExpansePosition', OFF_THE_ROCK);
     const low = await horizonAt(LANDING);
     const s = await Session.open(handle, { startLocation: LADDER_LOW });
     let high = '';
@@ -176,8 +200,8 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     note('5 landing', low);
     note('5 gallery', high);
     expect(low).not.toMatch(/light on Gannet Rock/i); // its own structure
-    expect(high).toMatch(/rubber works/i);
-    expect(low).not.toMatch(/rubber works/i);
+    expect(high).toMatch(/Hesper/i);
+    expect(low).not.toMatch(/Hesper/i);
   });
 
   it('6 · a roofed room: nothing beyond its walls', async () => {
@@ -212,7 +236,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   it('10 · D5\'s table: every recast place still sees what it saw', async () => {
     const rows: Array<[string, string, RegExp, RegExp | null]> = [
       ['University Avenue', AVENUE, /clock tower[^.]*close by/i, null],
-      ['Wharfside', BANK, /clock tower, to the (north-west|west)/i, null],
+      ['Wharfside', BANK, /clock tower, to the (north-west|west)/i, /light on Gannet Rock/i],
       ['the Harbor', QUAY, /clock tower/i, null],
       ['the Estuary', STRAND, /clock tower, to the/i, /light on Gannet Rock/i],
       ['the Headland', BROW, /light on Gannet Rock/i, null],
@@ -259,17 +283,17 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     }
   });
 
-  it.skipIf(!isOwnedTestWorld())('7 · by night: the light, and not the Terminal', async () => {
+  it.skipIf(!isOwnedTestWorld())('7 · by night at Hinkley Hills: the light, and not the Terminal', async () => {
     const sec = (await worldClockNow()) % DAY;
     const toOne = sec <= 3600 ? 3600 - sec : DAY + 3600 - sec;
     await advanceWorldClock(`${Math.round(toOne / 60)} minutes`);
-    const night = await horizonAt(MARKET);
+    const night = await horizonAt(HINKLEY);
     note('7', night);
     expect(night).toMatch(/light on Gannet Rock/i);
     expect(night).not.toMatch(/clock tower/i);
   });
 
-  it.skipIf(!isOwnedTestWorld())('14 · restart: the Market reads the same, from the rows', async () => {
+  it.skipIf(!isOwnedTestWorld())('14 · restart: Hinkley Hills reads the same, from the rows', async () => {
     const serverDir = fileURLToPath(new URL('../../server', import.meta.url));
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,
@@ -277,9 +301,9 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
       env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-    const after = await horizonAt(MARKET);
+    const after = await horizonAt(HINKLEY);
     note('14', after);
     // Night still (step 7 left the clock there): the lit light, by the rows.
-    expect(after).toMatch(/light on Gannet Rock, to the north-east, some (18|19|20) miles off/i);
+    expect(after).toMatch(/light on Gannet Rock, to the east, some (17|18|19) miles off/i);
   }, 900_000);
 });

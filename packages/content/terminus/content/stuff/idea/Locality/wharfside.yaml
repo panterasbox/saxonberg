@@ -13,7 +13,7 @@ class: /platform/idea/Locality
 data:
   name: Wharfside
   _address: terminus/city/wharfside
-  _position: { latDeg: 42.0076, lonDeg: -8.4803 }
+  _position: { latDeg: 42.0229, lonDeg: -8.5008 }
   _radiusM: 1500
   _publicLighting:
     costPerStreetNight: 0

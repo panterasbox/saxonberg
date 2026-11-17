@@ -22,4 +22,4 @@ data:
   # ⭐ Its own point on the chart (geography D12): the station stands a
   # little west of the city's, so from the Market it is *close by* and
   # from the river bank it has a direction.
-  position: { latDeg: 42.0160, lonDeg: -8.5075 }
+  position: { latDeg: 42.0473, lonDeg: -8.5805 }

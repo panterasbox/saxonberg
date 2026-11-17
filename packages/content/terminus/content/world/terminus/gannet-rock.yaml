@@ -8,3 +8,7 @@ data:
   # The rock stands in the sea, not on the city's 35 m: its light's top is
   # the 30 m the sea already sights by (geography D12).
   elevation: 0
+  # ⭐ A rock at sea looks out on its sea (geography D5): the Greywater's
+  # craft are read from the landing and from the gallery above it.
+  horizon:
+    reach: [/stuff/idea/WaterExpanse/greywater]

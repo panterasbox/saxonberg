@@ -10,7 +10,7 @@ data:
   # on 335°. ⚠ Its ZONE still states 58° S for its climate (the mere's ice is
   # tuned to a fresh world's day 0); the chart and the climate disagree
   # here until that is re-timed — geography plan, W3 note.
-  _position: { latDeg: 42.2121, lonDeg: -8.6031 }
+  _position: { latDeg: 42.6362, lonDeg: -8.8712 }
   _radiusM: 1500
   _reach: hollowmere:mere
   _catchmentKm2: 3
