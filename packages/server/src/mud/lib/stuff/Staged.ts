@@ -149,7 +149,9 @@ export function StagedMixin<
     static _mixinName: string = 'StagedMixin';
 
     static fieldMeta: FieldMeta = {
-      props: { instruction: true, authorable: true, inherit: 'by-entry' },
+      // ⭐ Over a person (the loadout classes): dressed first (`costume`),
+      // so a prop routes into a worn carrier.
+      props: { instruction: true, authorable: true, inherit: 'by-entry', appliedAfter: ['costume'] },
       cast: { instruction: true, authorable: true, inherit: 'by-entry' },
       _propsStaged: { persistent: true, runtimeState: true },
       _castStaged: { persistent: true, runtimeState: true },

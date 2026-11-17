@@ -70,6 +70,14 @@ export interface FieldMetaEntry {
    */
   instruction?: true;
   /**
+   * ⭐ **The instruction fields this one is applied AFTER** at Phase 2,
+   * when the row authors them. Phase 2 otherwise runs in the chain's
+   * field order, which no author can see. `props:` names `costume`: a
+   * person is dressed before it is handed what it carries, so a prop
+   * routes into the satchel it wears (size and carrying, finalize run 16).
+   */
+  appliedAfter?: readonly string[];
+  /**
    * Participates in stack stack identity — two stacks merge only when
    * every such field is equal. Was `static stackIdentityFields`.
    */

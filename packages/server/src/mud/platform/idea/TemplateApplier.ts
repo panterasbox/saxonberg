@@ -235,7 +235,7 @@ export default class TemplateApplier extends Idea {
       await this.dispatchPhase(
         host,
         data,
-        MixinApi.getAllInstructionFields(constructor),
+        this.instructionOrder(constructor),
         'apply',
         'instruction'
       );
@@ -361,6 +361,26 @@ export default class TemplateApplier extends Idea {
    * CLAUDE.md § Member Privacy hard constraint 2, and it fired on the
    * first run of the phase tests.
    */
+  /**
+   * The Phase-2 order: the chain's instruction fields, each moved after
+   * the fields its `appliedAfter` names (`props` after `costume` — a
+   * person dressed before it is handed what it carries).
+   */
+  private instructionOrder(constructor: new (...args: unknown[]) => Stuff): string[] {
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    const order = MixinApi.getAllInstructionFields(constructor);
+    for (const field of [...order]) {
+      const after = meta[field]?.appliedAfter ?? [];
+      const last = Math.max(-1, ...after.map((f) => order.indexOf(f)));
+      const at = order.indexOf(field);
+      if (last > at) {
+        order.splice(at, 1);
+        order.splice(last, 0, field);
+      }
+    }
+    return order;
+  }
+
   private async dispatchPhase(
     host: Stuff,
     data: Record<string, unknown>,

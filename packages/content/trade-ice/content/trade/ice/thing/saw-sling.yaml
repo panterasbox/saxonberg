@@ -1,0 +1,23 @@
+# The saw sling — a long leather sheath on a shoulder strap, the way an ice
+# cutter walks out to the pool with his saw over his shoulder and his hands
+# free for the scraper and the marker. Shaped to the ice saw (`shapedTo`):
+# it takes nothing else, and the saw is drawn from it where it hangs —
+# ready, not packed (it claims the torso, like a satchel's strap). The
+# throat grips the blade below the handle (`mouth`).
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather saw sling
+  keywords: [sling, "saw sling", sheath, leather, "leather saw sling"]
+  register: indefinite
+  longDescription: >-
+    A long, narrow sheath of oiled leather stitched over a pair of ash
+    battens, with a broad strap to go over one shoulder and a throat that
+    closes on an ice saw's blade below the handle.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 1.2
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  dimensions: { width: 0.36, depth: 0.05, height: 1.55 }
+  shape: rod
+  shapedTo: /trade/ice/thing/ice-saw
+  mouth: { width: 0.34, height: 0.04 }
