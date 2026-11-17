@@ -723,6 +723,36 @@ copies' zones, the graph's record of copies, and ships as copies.
   ships becoming copies changes nothing.
 - *Shared file:* `lib/structure/Structure.ts` — this build adds one field.
 
+**Cross-check of the three plans (2026-11-17)** — read against
+`navigation-server-plan.md` (c85617da1) and `zone-instancing-plan.md`
+(027d72388):
+
+- ⚠ **navigation-server's horizon section still lists `bearingDeg?,
+  rangeNm?`** (its § sections, *horizon*). That contradicts the agreed
+  rule (the client gets the rough direction only); their plan changes, not
+  this one.
+- **Map filing.** navigation-server files a map per **finest covering
+  Locality** (`/home/<key>/map/<locality address>`). This build's new
+  Wharfside Locality and the Mayfield Row re-address move ~25 rooms' claims
+  to new documents. No migration (dev data); but any of their wire
+  assertions on a Wharfside or Mayfield filing path changes with this
+  build — the second to merge fixes the assertion.
+- **`Locality.ts` fieldMeta.** navigation-server adds `_learnable` (and a
+  kind); this build adds `_position`, `_radiusM`. A textual merge only.
+- **zone-instancing D12 (authored ships become single copies of their
+  kind).** The Hesper, Ostrander, Kittiwake and Corrigan `structure.yaml`
+  rows change shape in their build; this build's W3 adds `showsLight` to
+  the same rows. Put it on the **ship's own row** (riding lights are hers,
+  not her kind's), and re-check after their merge that the field still
+  hydrates on a copy. Craft remain excluded from marks either way.
+- **Seznick House.** zone-instancing stamps a unit's address from the
+  lobby's base (`HoldingWarren.addressFor`); this build's Mayfield
+  re-address changes every Seznick unit's address. Their drive asserts on
+  Seznick units — the second to merge re-runs that step.
+- **`lookOutFrom`** now fires for rooms in copies (zone-instancing risk 3);
+  this build's D9 kick runs there too — a house's yard gets a skyline from
+  its Locality's point, which is intended; watch the cold-start cost.
+
 Neither build gates on the other; the second to merge rebases.
 
 ## Risks & opens
