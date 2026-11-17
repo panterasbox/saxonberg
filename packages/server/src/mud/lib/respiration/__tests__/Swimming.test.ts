@@ -19,7 +19,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Place';
-import Good from '../../../platform/thing/Good';
+import { Tool, withHands } from '../../slot/__tests__/carrying-fixture';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { SchedulerApi } from '../../../api/scheduler';
@@ -39,7 +39,8 @@ import { standShippedConditions } from '../../vitals/__tests__/conditions';
 
 class TestLocation extends Location {}
 class TestCharacter extends Character {}
-class Ingot extends Good {}
+/** An ingot a hand takes (size and carrying W8: a body holds what a hand can). */
+class Ingot extends Tool {}
 
 const TICK_MS = RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS;
 function tick(n = 1): void {
@@ -64,7 +65,8 @@ function airRoom(): TestLocation {
 }
 
 function body(): TestCharacter {
-  const c = makeStuff(() => new TestCharacter());
+  // Hands, or what it is given is set down at its feet (size and carrying W8).
+  const c = withHands(makeStuff(() => new TestCharacter()));
   c.setMass(Quantity.of(70, 'kg'));
   return c;
 }

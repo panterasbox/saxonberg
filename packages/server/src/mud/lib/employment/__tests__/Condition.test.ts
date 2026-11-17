@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Condition } from "../Condition";
 import type { ConditionData } from "../Condition";
 import { Idea } from "../../stuff/Idea";
-import { Creature } from "../../creature/Creature";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { PlacingMixin } from "../../spatial/Placing";
@@ -22,6 +21,7 @@ import { StuffApi } from "../../../api/stuff";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { Placements } from '../../spatial/Placement';
+import { Body, Tool, withHands } from "../../slot/__tests__/carrying-fixture";
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = "TestRoom";
@@ -31,6 +31,9 @@ class TestChest extends ContainerMixin(ContainableMixin(Idea)) {
 }
 class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
+}
+class TestHeldCrate extends Tool {
+  static _mixinName = "TestHeldCrate";
 }
 class TestCounter extends PlacingMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestCounter";
@@ -113,11 +116,12 @@ describe("Condition.matchesItem / holdsFor", () => {
 
   it("refuses a creature ancestor — still carried is not delivered", () => {
     const room = makeStuffAtPath(() => new TestRoom(), ROOM);
-    const courier = makeStuffAtPath(
-      () => new Creature(),
-      "/platform/agent/Avatar/courier",
+    // A body with hands (size and carrying W8: a bare Creature does not
+    // carry), and a crate a hand takes.
+    const courier = withHands(
+      makeStuffAtPath(() => new Body(), "/platform/agent/Avatar/courier"),
     );
-    const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
+    const crate = makeStuffAtPath(() => new TestHeldCrate(), CRATE);
     ContainmentApi.move(courier, room);
     ContainmentApi.move(crate, courier as never);
     // The courier stands IN the bar, crate in hand — not delivered.
