@@ -41,6 +41,7 @@ import {
 import type EventRegistry from '../platform/idea/EventRegistry';
 import type EventSubscriptions from '../platform/idea/EventSubscriptions';
 import type { SubscriptionRecord } from '../platform/idea/EventSubscriptions';
+import { FieldChangedEvent } from '../lib/events/FieldChangedEvent';
 
 /**
  * A class reference used in emit/subscribe allowlists. Entries are
@@ -455,6 +456,9 @@ export class EventApi {
    * Class-based fire — sugar over `emit(event.kind, event.payload)`.
    */
   public static fire<E extends BusEvent<unknown>>(event: E): void {
+    if (event.kind === FieldChangedEvent.KIND) {
+      ExecutionContextApi.wouldWrite(`a field change fired (${event.kind})`);
+    }
     this.emit(event.kind, event.payload);
   }
 

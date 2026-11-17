@@ -553,6 +553,44 @@ not this one.
   events.
 
 
+## ⭐⭐ The room's reading holds the world still (crowded-rooms D9)
+
+What the room reads for everyone may never change the world, or the world
+comes to depend on who looked. Four walks open
+`ExecutionContextApi.holdWorldStill(walk)` for their own synchronous duration:
+the light walk (`VisionModality.walkLight`), the sound gather
+(`SoundModality.signalAt`), the smell fold (`SmellModality.signalAt`) and
+a live card's projection (`projectStuffInto`). A deliberate act — `look`
+at a thing, `get … from` — is NOT inside a hold and may still bring what it
+reads up to date.
+
+- **Inside the hold, a reconcile-on-read getter answers as banked** (owner
+  ruling R1): `reconcileThermal`, `Bulkable`'s seeper and face-exchange
+  reconcilers, the mould's bank and the heap's percolation stand off.
+  `Thermal.getTemperature()` answers its banked curve read forward (toward
+  the ambient it last saw), so a cooling pot still smells cooler with
+  nothing stamped. There is no second "peek" getter — one mechanism.
+- **The window lives on `ExecutionContextApi`**, as a property of the
+  synchronous frame like the call stack: the write chokepoints (`StuffApi`,
+  `EventApi`) sit below every subsystem Api in the import graph — an
+  import of `api/perception` from them is a load-order cycle — and the
+  class is undecorated, so the flag `ExecutionContextApi.worldHeldStill` (a
+  static accessor) costs a hot getter no security frame (D15).
+- **The tripwire.** Every write chokepoint calls
+  `ExecutionContextApi.wouldWrite(what)`: a field fire (`fireFieldChange`,
+  `EventApi.fire` of a `FieldChangedEvent`), `StuffApi.clone` / `create` /
+  `destruct`, `ContainmentApi.move`, `PersistableApi.capture`. Outside a
+  hold it is a no-op. Inside one, a **test world throws `WalkWriteError`**
+  (naming the walk and the write; `lib/security/errors.ts`); any other
+  world warns once per walk × write, counts it (`walkWriteCount`, on
+  `/stats`) and lets the write proceed — a player's `say` is not broken by a pack's defect.
+  `createSync` is not tripped: it mints the logic singletons.
+- **The census is behavioral**: `lib/perception/__tests__/walk-purity.test.ts`
+  stages a hoop past its set, a pan below freezing, a warm good and a
+  leaching loaf, runs the three walks and asserts no fire, clone, move or
+  destruct and every stamp unchanged. A new walk-time write fails the
+  first test or wire drive that walks over it; there is no method-name lint.
+
 ## ⚠⚠ Modalities are warmed LAZILY, and the warming is a reachability link
 
 `PerceptionApi.modalityByName('vision')` reads a cache that

@@ -34,6 +34,7 @@ import type {
 import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { CelestialApi } from '../../../api/celestial';
 import { Traversal } from '../../../lib/location/Traversal';
@@ -148,7 +149,14 @@ export class VisionModality extends Modality {
 
   /** The shared body of {@link signalAt} / {@link meanSignalAt}. */
   private walkLight(loc: Stuff & Container, skyFactor: number): Light {
-    const acc = walkFluxAt(loc, 0, new Set<string>(), skyFactor);
+    // ⭐ The light walk holds the world still (crowded-rooms D9).
+    const release = ExecutionContextApi.holdWorldStill('light walk');
+    let acc: ReturnType<typeof walkFluxAt>;
+    try {
+      acc = walkFluxAt(loc, 0, new Set<string>(), skyFactor);
+    } finally {
+      release();
+    }
     if (acc.flux === 0 && acc.sources.length === 0) return Light.ZERO;
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;

@@ -266,45 +266,16 @@ incidental JSON. (The differ compares structurally, not by identity, so
 a freshly-built `Band` per read never produced a spurious delta; the
 normalization is about the contract, not about churn.)
 
-### Holder-level dependency flags
+### Holder-level dependency flags — subsumed (crowded-rooms D1)
 
-The substrate accepts two opt-in flags on `SubscribeRequest`:
-`focusDependent` and `locationDependent`. Both install an
-**extra dependency entry against the subscription holder** at
-subscribe time, in addition to the per-result-Stuff descriptor
-walk.
-
-#### Why this is needed
-
-For a query like `$focus`, the result set is whatever the focus
-fragment resolves to — NOT the `FocusedMixin` host. The natural
-descriptor walk (which iterates `collectSubscribableFields(stuff)`
-for each Stuff in the result set) would miss the focus dependency
-entirely. Same shape for `here` against the `container` field on
-`Containable`.
-
-#### `focusDependent`
-
-Installs `(FieldChangedEvent.KIND, 'field', 'focus')` against the
-holder. `FocusedMixin.setFocus` / `clearFocus` fires
-`FieldChangedEvent { field: 'focus' }`; the holder-level entry
-matches; the subscription marks dirty; re-resolve runs against
-the now-updated `$focus` fragment; the diff produces a delta.
-End-to-end without any synthetic event class. Used by the
-inspection card's `$focus` subscription.
-
-#### `locationDependent`
-
-Installs `(FieldChangedEvent.KIND, 'field', 'container')` against
-the holder. `Containable.setContainer` fires
-`FieldChangedEvent { field: 'container' }` on walk / teleport /
-board / disembark; the holder-level entry matches and the
-subscription wakes. Used by the inspection card's `here`
-breadcrumb-root subscription.
-
-Both flags are meaningless for `mql-query` one-shot reads (no
-subscription state to wake) and are not carried on the query
-shape.
+`focusDependent` and `locationDependent` are still accepted on
+`SubscribeRequest` and **do nothing**. Every query-bound subscription
+installs a dependency on its HOLDER, any field — every relative seed and
+every shell variable (`$focus`, `here`) answers from the asker — so a
+`setFocus` or a walk wakes it whether or not it asked. A subject-bound
+subscription watches the holder's and the subject's `container` (the two
+facts its perception gate re-reads). The flags stay in the wire type until
+navigation-server's `params` retires them.
 
 ### Shell-variable expansion at re-resolve time
 
@@ -640,29 +611,48 @@ multiple-field changes, marshaller boundary).
 
 ## Meta-bus dependency index + scheduler
 
-`MqlSubscriptionRegistry` maintains a 3-level Map keyed by
-`(EventClass.KIND, attribute-name, attribute-value)`:
+`MqlSubscriptionRegistry` maintains a 3-level map keyed by
+`(EventClass.KIND, attribute-name, attribute-value)`, whose leaf is each
+subscription's **field filter** (a set of field names, or `null` — any):
 
 ```
-private index: Map<string, Map<string, Map<unknown, Set<SubscriptionState>>>>
+private index: Map<string, Map<string, Map<unknown, Map<SubscriptionState, FieldFilter>>>>
 ```
 
-(It's `private`, not `#`-private: the Registry is a Stuff host whose
-instance methods dispatch through the call-security proxy, where
-`#`-private slots are unreachable.)
+(`private`, not `#`: the Registry is a Stuff host behind the proxy.)
 
-Field-event dependencies come from `descriptor.dependsOnFields` (or
-its `[descriptor.name]` default). The substrate translates each
-dep to a `('stuff.fieldChanged', 'field', <dep>)` index entry.
-Non-field dependencies (the `changes` escape hatch) install their
-own entries — most commonly `('stuff.shadowChanged', 'target',
-<stuffId>)` so a shadow attaching to the host re-projects derived
-fields without firing a synthetic field event.
+⭐⭐ **A dependency is the Stuff that was read, with the fields that were
+read** (crowded-rooms D1, 2026-11). Every field dependency is a
+`(FieldChanged, 'target', <stuffId>)` entry with a filter; `routeFire`
+finds the bucket by `payload.target` and keeps the subscriptions whose
+filter admits `payload.field`. The entries, all captured while the
+subscription resolves and projects (one synchronous unit,
+`resolveAndProject`):
+
+| source | entry |
+|---|---|
+| a Stuff projected — top-level, or nested inside a descriptor (`MqlSubscriptionApi.projectFields` reports to `collectProjections`) | that Stuff, filter = the union of its projected fields' `dependsOnFields` |
+| a Stuff the query's own resolve **touched** (`MqlContext.trackTouched` → `MqlMany.touched`: every candidate tested, its holder, every holder enumerated) | that Stuff, any field |
+| a Stuff a descriptor's own resolve read (`MqlSubscriptionApi.noteRead`, e.g. `Container.contents`' `#id:i` resolve) | that Stuff, the membership fields the descriptor names (`placement`, `container`) |
+| the holder of a query-bound subscription | any field |
+| the holder and subject of a subject-bound one | `container` |
+| each row showing `displayName` | `('__viewer-belief', 'key', '<viewerId>|<subjectId>')`, poked by `notifyBelief` |
+| `durableKey`, a descriptor's `changes` | unchanged |
+
+A container fires `contents` on ITSELF on every add and remove, so a
+newcomer wakes every subscription that enumerated the place; a thing taken
+off a desk fires `placement` on itself, which the room's `contents` resolve
+had enumerated. Placement is announced by `Containable.placementChanged` and
+`Placing.placedChanged` (the host's `placed`), at every site that stamps the
+pair. A viewer who learns who someone is (`BeliefStore.know` / `forget` /
+`forgetField`) re-projects that viewer's rows of that person and nobody
+else's. The **wake matrix** (`api/__tests__/mql-subscription.wake-matrix.
+test.ts`) pins it field by field; a field a card shows with no scripted
+mutation must be named there as a residual.
 
 One `EventApi.on(KIND, …)` listener is installed per distinct
-`(KIND, by)` pair, refcounted across subscriptions. The handler reads
-`payload[by]`, looks up the value bucket, walks every subscription in
-the set, and calls `markDirty(sub)`.
+`(KIND, by)` pair, refcounted across subscriptions; the synthetic kinds
+(`__durable-subject`, `__viewer-belief`) are poked directly.
 
 ```ts
 private dirty = new Set<SubscriptionState>();
@@ -676,33 +666,17 @@ markDirty(sub): void {
 }
 ```
 
-`dirty`, `scheduled`, `markDirty`, and `drainDirty` all live on
-`MqlSubscriptionRegistry` (`private`, per the proxy rule above).
+`setImmediate` batches: N events in one tick produce ONE re-resolve per
+affected subscription. The drain re-resolves each, diffs against
+`lastResult`, and emits one `MqlSubscriptionDeltaEnvelope` per
+subscription whose diff is non-empty.
 
-`setImmediate` batches: N events for the same target in one tick
-produce ONE re-resolve per affected subscription. The drain runs the
-dirty set in insertion order, re-resolves each query via
-`MqlApi.resolveOne` / `resolveMany`, diffs against `lastResult`, and
-emits a single `MqlSubscriptionDeltaEnvelope` per subscription whose
-diff is non-empty. Subscriptions cancelled between dirty mark and
-drain are dropped silently.
+⭐ **The dependency set is re-derived on every re-resolve**, so a
+subscription's interest follows its answer. Each re-resolve runs as its
+own guarded root under the CURRENT holder's circle scope.
 
-⭐ **The dependency set is re-derived on every re-resolve.** After the
-diff, `reresolveAndEmit` tears down the subscription's index entries
-(releasing listener refcounts) and runs `deriveAndInstallDependencies`
-against the NEW result set — so a subscription's interest follows its
-answer: a Stuff that enters the result contributes its own entries
-from the next tick, and one that leaves stops. `by: 'target'` entries
-(`ShadowChangedEvent`) are therefore a per-result reverse index keyed
-on live `stuffId`s, not a static set derived from the query text; the
-slate's "adaptive" strategy shipped as the default rather than as a
-later tier. Two properties ride on the same drain: the bus dispatches
-listeners in a microtask and the re-resolve runs after `setImmediate`,
-so it always reads post-mutation state; and each re-resolve runs as its
-own guarded root (`runRootGuarded(…, 'swallow')`) under the CURRENT
-holder's circle scope, so one bad subscription cannot escape the batch
-and a socket that follows its player into a sandbox re-resolves
-in-circle.
+⚠ **Residual, by design:** light is continuous and fires nothing, so a card
+does not wake on light alone; its next wake re-gates it.
 
 ## Diff algorithm
 
@@ -751,33 +725,14 @@ The ordering keeps the Interactive live for any final substrate-side
 envelope delivery during cancellation (silent in v1, but
 `reason: 'closed'` envelopes may ship in a later subsystem).
 
-## Conservative-coarse dispatch policy
+## ~~Conservative-coarse dispatch policy~~ — retired (crowded-rooms W2)
 
-The v1 dispatcher errs toward more re-resolves rather than missed
-updates. Specific shapes:
-
-- **Field-keyed firing is global, not per-target.** A descriptor
-  whose `dependsOnFields` includes `'name'` marks every subscription
-  on a name-dependent field, regardless of which Stuff actually
-  fired the change. The diff pass filters out fireworks that don't
-  change a subscription's actual result; the index pre-filter just
-  avoids obvious mismatches.
-- **Focus subscriptions re-resolve on any matching
-  `FieldChangedEvent`, including changes to other detail keys.**
-  `TangibleMixin.setMaterial(_, 'tail')` fires
-  `FieldChangedEvent { field: 'detailMaterials' }`, which is
-  index-matched by any focus subscription on `head.edge`'s
-  `detailMaterial` descriptor; the re-projection finds no actual
-  change in `material` and emits nothing. Adaptive per-key
-  refinement is deferred until profiling demands it.
-- **`mass` / `bulkMaterial` are independent.** Each fires its own
-  `FieldChangedEvent { field: 'mass' | 'bulkMaterial' }`; the diff
-  ensures only the actually-changed field appears in the update.
-
-These over-fire patterns are the right v1 trade. The cost is a few
-extra re-resolves on a quiet codepath; the benefit is no risk of a
-descriptor missing a notification because the index missed a
-discriminator.
+The v1 dispatcher keyed field dependencies on the field NAME, world-wide:
+one body walking anywhere fired `container` and dirtied every
+location-dependent subscription in the world, and every `placement` fire
+re-resolved every open container card. In a crowd of thirty it was most of
+the drain. Dispatch is per target now (§ Meta-bus dependency index); the
+diff still filters a wake that changed nothing.
 
 ## `displayName` routes through `Stuff.getPresentation()`
 

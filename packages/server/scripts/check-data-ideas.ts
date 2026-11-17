@@ -84,11 +84,13 @@ import {
 
 /**
  * Data-only `Idea` classes in the tree today (the census; it may only fall).
- * 2026-11-16: Condition, CredentialWalletUpdate, Discipline, LocomotionMode,
- * Corpo, Spell, Modality, SoundModality, QuantityMarshaller, BodyPlan (kernel);
- * Deposit (ground), Lane and ServiceRoute (transport). `--report` lists them.
+ * 2026-11-17: Condition, CredentialWalletUpdate, Discipline, LocomotionMode,
+ * Corpo, Spell, Modality, QuantityMarshaller, BodyPlan (kernel); Deposit
+ * (ground), Lane and ServiceRoute (transport). `--report` lists them.
+ * (SoundModality left the census in crowded-rooms W1: its gather now holds
+ * the world still, an Api call.)
  */
-export const DATA_IDEAS_CEILING = 13;
+export const DATA_IDEAS_CEILING = 12;
 
 const IDEA_ROOT = "/lib/stuff/Idea";
 const LOGIC_ROOT = "/lib/stuff/ApiLogic";

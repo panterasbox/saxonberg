@@ -1,10 +1,10 @@
 /**
- * Subscriptions flagged `focusDependent: true` install a
- * holder-level `(FieldChangedEvent.KIND, 'field', 'focus')`
- * dependency entry so the substrate marks them dirty on `setFocus`
- * / `clearFocus` — even when the natural per-result-Stuff descriptor
- * walk would not have installed a focus dep (the result set doesn't
- * include the Focused host itself).
+ * ⭐ The `focusDependent` flag is SUBSUMED (crowded-rooms D1): every
+ * query-bound subscription installs a dependency on its HOLDER, any field —
+ * every relative seed and every shell variable (`$focus`) answers from the
+ * asker — so `setFocus` / `clearFocus` wake it whether or not it asked. The
+ * flag is accepted and adds nothing; it stays in the wire type until
+ * navigation-server's `params` retires it.
  *
  * The inspection card's `$focus` subscription is the canonical
  * consumer; this file exercises the substrate behavior directly.
@@ -60,7 +60,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     MqlSubscriptionApi._clearAllForTesting();
   });
 
-  it('focusDependent: true adds an additional index entry over the baseline', async () => {
+  it('focusDependent: true adds nothing over the baseline (the holder entry subsumes it)', async () => {
     const { interactive } = await setup();
     // Baseline: subscribe without focusDependent.
     MqlSubscriptionApi.handleSubscribe({
@@ -86,9 +86,8 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     const withFocusDepCount =
       MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
 
-    // Each subscription adds (baseline/subscription) memberships;
-    // the focusDep subscription adds one more for the focus tuple.
-    expect(withFocusDepCount).toBe(2 * baselineCount + 1);
+    // The flag adds nothing: the holder entry is installed either way.
+    expect(withFocusDepCount).toBe(2 * baselineCount);
   });
 
   it('setFocus triggers re-resolve for focusDependent subscriptions', async () => {
@@ -150,21 +149,20 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     ).toBe(0);
   });
 
-  it('non-focusDependent raw subscribe does NOT install the focus tuple', async () => {
+  it('a query-bound subscription wakes on its holder’s focus without the flag', async () => {
     const { interactive, avatar } = await setup();
     MqlSubscriptionApi.handleSubscribe({
       interactive,
       subscriptionId: 's1',
       query: 'me',
-      // 'displayName' only — no Focused descriptor in the requested
-      // field set, so the natural walk shouldn't install a focus dep.
+      // 'displayName' only, no flag: the holder entry still wakes it.
       cardinality: 'one',
       fields: ['displayName'],
     });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     await MqlSubscriptionApi._drainScheduledForTesting();
-    expect(spy).not.toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
 });

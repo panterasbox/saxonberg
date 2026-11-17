@@ -148,6 +148,12 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().notifyDurableSubject(subject);
   }
 
+  /** See {@link MqlSubscriptionApi.notifyBelief}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public notifyBelief(viewerId: string, subjectId: string): void {
+    resolveRegistry().notifyBelief(viewerId, subjectId);
+  }
+
   /** See {@link MqlSubscriptionApi.cancelAllForScope}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public cancelAllForScope(scope: string): number {

@@ -52,6 +52,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { ExecutionContextApi } from '../../api/execution-context';
 import type { Difficulty } from '../advancement/ActSignature';
 import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
 import { WaterChemistry } from '../supply/WaterChemistry';
@@ -1229,7 +1230,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * answer brings the chain current.
      */
     private reconcileSeepers(): void {
-      if (this._seepersReconciling || this._peeking > 0) return;
+      if (this._seepersReconciling || this._peeking > 0 || ExecutionContextApi.worldHeldStill) return;
       const self = this as unknown as Stuff;
       this._seepersReconciling = true;
       try {
@@ -1296,7 +1297,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * a game-minute.
      */
     private reconcileFaceExchange(): void {
-      if (this._faceExchanging || this._peeking > 0) return;
+      if (this._faceExchanging || this._peeking > 0 || ExecutionContextApi.worldHeldStill) return;
       this.reconcileSeepers();
       const self = this as unknown as Stuff;
       if (!MixinApi.isFaced(self) || !this.interiorBulk) return;

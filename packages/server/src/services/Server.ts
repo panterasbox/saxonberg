@@ -35,6 +35,7 @@ import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
 import { StuffApi } from '../mud/api/stuff';
+import { ExecutionContextApi } from '../mud/api/execution-context';
 
 /**
  * Server - Main application server.
@@ -224,6 +225,9 @@ export class Server {
         registryReads: StuffApi.registryReadStats(),
         cpu: process.cpuUsage(),
         loop: Server.loopRead(loop),
+        // Writes a walk made while holding the world still (crowded-rooms
+        // D9); 0 is the only healthy reading.
+        walkWrites: ExecutionContextApi.walkWriteCount(),
       });
     });
 

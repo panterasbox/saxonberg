@@ -40,6 +40,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { ChattelOwner } from '@saxonberg/server/mud/lib/chattel/ChattelRecord';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import type { BulkAffordance, BulkPayload } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 
 /** What a boiled-dry lye leaves. */
 const BLACK_SALTS = '/trade/potash/idea/material/black-salts';
@@ -71,10 +72,21 @@ export default class IronPot extends IronPotBase {
     return litres > 0 ? this.strength() * litres : 0;
   }
 
-  /** Every read of the pot looks for the salts setting, after the plateau's. */
+  /** A bank of the pot looks for the salts setting, after the plateau's. */
   public override reconcileSetting(): void {
     super.reconcileSetting();
     this.castIfSaturated();
+  }
+
+  /**
+   * ⭐ The salts set at the POT'S OWN CHANGE (crowded-rooms D8): the boil's
+   * plateau writes the concentrated liquor here, and saturation is checked
+   * the moment it is written — never at whoever happens to read the pot
+   * (it used to be every listing of its contents).
+   */
+  public override setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void {
+    super.setBulkPayload(affordance, payload);
+    if (affordance === 'interior') this.castIfSaturated();
   }
 
   /** The liquor's dissolved solids, kg/L — the plateau's figure, else its material's own. */
@@ -119,7 +131,8 @@ export default class IronPot extends IronPotBase {
   /**
    * ⭐ The cake is whose the lye was (the communal-oven rule) — yours in
    * the ashery's pot — and nobody's when the lye was nobody's: it sets when
-   * somebody READS the pot, and that onlooker is never its owner.
+   * the boil concentrates the liquor to saturation, and whoever is standing
+   * there is never its owner.
    */
   private async setCake(alkaliKg: number, owner: ChattelOwner | null): Promise<void> {
     // The act names its material, and loads it (load-on-use D2 c) — a

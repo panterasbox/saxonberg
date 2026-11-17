@@ -58,6 +58,9 @@ import { StuffApi } from '../../api/stuff';
 import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { WorldClockApi } from '../../api/worldclock';
+import type { ClockHandle } from '../../api/worldclock';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { DiagnosticApi } from '../../api/diagnostics';
 import { AppApi } from '../../api/app';
 import { MessageApi } from '../../api/message';
 import { ConditionApi } from '../../api/condition';
@@ -190,6 +193,14 @@ export interface Mould extends Carvable, Impressible {
 
 /** Seconds per game day — the unit a drain set's `days` is authored in. */
 const SECONDS_PER_GAME_DAY = 86_400;
+/**
+ * ⭐ The longest a setting mould goes between banks (crowded-rooms D8, owner
+ * ruling 3): one game hour. It bounds the error from the set's continuous
+ * inputs — a mould drying, the cure's temperature — and makes the schedule a
+ * function of the mould's own state, never of who looked. A constant, not a
+ * dial.
+ */
+const MOULD_SET_STEP_S = 3_600;
 /** Standard gravity — a weight's load, N per kg. */
 const G = 9.81;
 
@@ -302,6 +313,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       pourSuperheatK: { persistent: true, runtimeState: true },
       blown: { persistent: true, runtimeState: true },
       setDrainedKg: { persistent: true, runtimeState: true },
+      setLoadN: { persistent: true, runtimeState: true },
+      wakeAtS: { persistent: true, runtimeState: true },
     };
 
     static __validateComposition__(ctor: AnyConstructor): void {
@@ -361,6 +374,22 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * into the vessel below, or away (sugar D16; R1-D8).
      */
     public setDrainedKg = 0;
+    /**
+     * ⭐ The load (N) the stretch since {@link setStamp} has been under
+     * (crowded-rooms D8). A bank integrates at THIS load, then stores the
+     * load as it is now — so a weight set on the follower counts from the
+     * moment it was set, whoever reads and whenever.
+     */
+    public setLoadN = 0;
+    /**
+     * ⭐ Game-seconds of the set's next wake, or `0` (crowded-rooms D8).
+     * Persisted, and re-armed by {@link setWakeAtS} — so a restart or a
+     * reload mid-set still finishes on time; a wake already past fires at
+     * once.
+     */
+    public wakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _wake: ClockHandle | null = null;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _settingGuard = false;
@@ -369,6 +398,53 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     getCastTemplate(): string {
       return this.castTemplate;
+    }
+
+    /** Set (or clear, `0`) the set's next wake, and arm it on the game clock. */
+    public setWakeAtS(value: number): void {
+      this._wake?.cancel();
+      this._wake = null;
+      this.wakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.wakeAtS === 0) return;
+      this._wake = WorldClockApi.at(
+        Quantity.of(this.wakeAtS, 's'),
+        () => this.wake(),
+        { host: this as unknown as Stuff, tag: 'mould-set' },
+      );
+    }
+
+    /**
+     * ⭐ The wake (crowded-rooms D8): bank to now and, if the set is through,
+     * finish it — the one place a set completes. A cast that cannot release
+     * (a consumed mould standing nowhere) throws `DetachedError` here,
+     * synchronously, to the clock's guarded root, before the pool is touched.
+     */
+    private wake(): void {
+      this._wake = null;
+      this.wakeAtS = 0;
+      this.reconcileSetting();
+      // The bank re-arms a set that is through for NOW; the finish below is
+      // that wake. Disarm first: a cast that cannot release (it throws) is
+      // retried at the mould's next change — being set down somewhere —
+      // never in a loop.
+      const self = this as unknown as Stuff;
+      const material = MixinApi.isBulkable(self) ? self.getBulkMaterial('interior') : null;
+      if (!this.isSetThrough(this.drainSettingOf(material))) return;
+      if (this.wakeAtS !== 0) this.setWakeAtS(0);
+      const done = this.finishSet();
+      if (done === null) return;
+      // The clock's callbacks are synchronous; what a cast does after its
+      // first await is said by the cast's own failure report.
+      void done.catch((err: unknown) => {
+        console.error(`Mould: what set in ${self.getPresentation()} could not be cast`, err);
+        void DiagnosticApi.record({
+          path: self.getTemplatePath() ?? '/platform/lib/mould',
+          severity: 'error',
+          message: `what set could not be cast: ${err instanceof Error ? err.message : String(err)}`,
+        }).catch(() => {
+          // the console line above already said it
+        });
+      });
     }
     setCastTemplate(value: string): void {
       this.castTemplate = typeof value === 'string' ? value : '';
@@ -533,7 +609,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public holdsCast(): boolean {
       const kind = this.impression?.kindPath ?? '';
-      for (const c of this.getContents()) {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return false;
+      for (const c of self.getContents()) {
         const path = (c as Stuff).getTemplatePath();
         if (path === null) continue;
         if (this.castTemplate !== '' && path === this.castTemplate) return true;
@@ -577,8 +655,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return n;
     }
 
+    /** ⭐ Pure: what the last bank left (crowded-rooms D8). */
     public setState(): 'filled' | 'setting' | 'set' | null {
-      this.reconcileSetting();
       const self = this as unknown as Stuff;
       const pooled =
         MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
@@ -591,18 +669,55 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * ⭐ The set site's reads drive the set: `look`, `get … from`, every
-     * walk over the contents. A drain or cure set is integrated here; a
-     * freeze is the thermal reconcile's, which a temperature read drives.
+     * ⭐ The mould banks at its own changes (crowded-rooms D8) — what is set
+     * on it or taken off, what it is set on, a move, something in or out —
+     * and the integration uses the load stored for the stretch, so banking
+     * after the change is exact.
      */
-    public getContents(): readonly (Stuff & Containable)[] {
+    public placedChanged(item: Stuff & Containable): void {
       this.reconcileSetting();
-      return super.getContents();
+      const sup = (Base.prototype as { placedChanged?: (i: Stuff & Containable) => void }).placedChanged;
+      if (typeof sup === 'function') sup.call(this, item);
+    }
+
+    public placementChanged(was: string, now: string): void {
+      this.reconcileSetting();
+      const sup = (Base.prototype as { placementChanged?: (w: string, n: string) => void }).placementChanged;
+      if (typeof sup === 'function') sup.call(this, was, now);
+    }
+
+    public onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+      const sup = (Base.prototype as {
+        onMoved?: (f: (Stuff & Container) | null, t: (Stuff & Container) | null) => void;
+      }).onMoved;
+      if (typeof sup === 'function') sup.call(this, from, to);
+      this.reconcileSetting();
+    }
+
+    public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+      const sup = (Base.prototype as {
+        onContainableAdded?: (t: Stuff & Containable, f?: Stuff | null) => void;
+      }).onContainableAdded;
+      if (typeof sup === 'function') sup.call(this, thing, from);
+      this.reconcileSetting();
+    }
+
+    public onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+      const sup = (Base.prototype as {
+        onContainableRemoved?: (t: Stuff & Containable, to?: Stuff | null) => void;
+      }).onContainableRemoved;
+      if (typeof sup === 'function') sup.call(this, thing, to);
+      this.reconcileSetting();
     }
 
     /**
-     * Integrate a drain or cure set to now, and let a temperature read
-     * drive the freeze.
+     * ⭐ **Bank** the set to now (crowded-rooms D8): integrate a drain or a
+     * cure from {@link setStamp} at the STORED load ({@link setLoadN}) and
+     * the rate's other inputs read now, credit the drainings, then store the
+     * load as it is now and re-arm the wake. Called only at moments that do
+     * not depend on who is reading — the mould's own changes and its own
+     * wake (and a press turned on it). It never completes a set: that is the
+     * wake's ({@link finishSet}). Inside the room's reading it stands off.
      *
      * @samples the drain and cure sets read NO temperature — they integrate
      * progress over game-time (a drain by the load on the mould, an
@@ -612,6 +727,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public reconcileSetting(): void {
       if (this._settingGuard) return;
+      if (ExecutionContextApi.worldHeldStill) return;
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
       this._settingGuard = true;
@@ -624,113 +740,189 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const material = self.getBulkMaterial('interior');
         const drain = this.drainSettingOf(material);
         const cure = this.poolSetOf(material);
-        if (!(amountL > 0) || material === null || (drain === null && cure === null)) {
+        const idle =
+          !(amountL > 0) ||
+          material === null ||
+          (drain === null && cure === null) ||
+          // ⭐ An absorbed drain (slip) sets only where something drinks it.
+          (drain !== null && drain.isAbsorbedByMould() && !this.absorbent);
+        if (idle) {
           this.setProgress = 0;
           this.setStamp = 0;
           this.setPressed = 0;
           this.setDrainedKg = 0;
-          return;
-        }
-        // ⭐ An absorbed drain (slip) sets only where something drinks it.
-        if (drain !== null && drain.isAbsorbedByMould() && !this.absorbent) {
-          this.setProgress = 0;
-          this.setStamp = 0;
+          this.setLoadN = 0;
+          if (this.wakeAtS !== 0) this.setWakeAtS(0);
           return;
         }
         const nowS = mouldNowSeconds();
         if (nowS === null) return;
         if (this.setStamp === 0) {
           this.setStamp = nowS;
+          this.setLoadN = this.loadN();
+          this.armWake(nowS, drain);
           return;
         }
         const elapsed = nowS - this.setStamp;
         this.setStamp = nowS;
-        if (!(elapsed > 0)) return;
-        // ⭐ The charge the set started from: what is in the mould plus what
-        // its drainings have already taken out of it (they leave by
-        // transfer, R1-D8, so the pool shrinks as it sets).
-        const poolKg =
-          ((amountL + this.drainedLitres(drain)) / 1000) * material.getDensity().rawValue();
-
-        if (drain === null && cure !== null) {
-          // ⭐ The cure: a chemical set, no act and no load — the material's
-          // own kinetic (review R2-D3), at the mould's temperature.
-          const k = MixinApi.isThermal(self) ? self.getTemperature().rawValue() : 293;
-          this.setProgress = cure.advance(this.setProgress, (cure.rateAt(k) * elapsed) / 3_600);
-          const rung = cure.rungIndexFor(this.setProgress);
-          if (rung < 0) return;
-          const to = cure.getLadder()[rung]!.becomes;
-          const becomes = to ? MaterialApi.materials().peek(to) ?? material : material;
-          this.assertCanRelease();
-          const payload = self.getBulkPayload('interior');
-          this.clearPool(self);
-          this.castFromSet({ material: becomes, massKg: poolKg, payload, stampMaterial: true });
-          return;
+        if (elapsed > 0 && this.setProgress < 1 - 1e-9) {
+          // ⭐ The charge the set started from: what is in the mould plus
+          // what its drainings have already taken out of it (they leave by
+          // transfer, R1-D8, so the pool shrinks as it sets).
+          const poolKg =
+            ((amountL + this.drainedLitres(drain)) / 1000) * material!.getDensity().rawValue();
+          if (drain === null && cure !== null) {
+            // ⭐ The cure: a chemical set, no act and no load — the
+            // material's own kinetic (review R2-D3), at the mould's
+            // temperature.
+            const k = MixinApi.isThermal(self) ? self.getTemperature().rawValue() : 293;
+            this.setProgress = cure.advance(this.setProgress, (cure.rateAt(k) * elapsed) / 3_600);
+          } else if (drain !== null) {
+            // ⭐ The drain set's law is the MATTER's (`DrainSetting`, B104):
+            // its rate under the load the stretch was under, the moisture a
+            // pressing leaves, what drains.
+            const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
+            const ratio = drain.loadRatio(this.setLoadN, poolKg);
+            const step = Math.min(
+              1 - this.setProgress,
+              drain.ratePerDay(ratio, wetness) * (elapsed / SECONDS_PER_GAME_DAY),
+            );
+            this.setPressed += ratio * step;
+            this.setProgress += step;
+            // ⭐ The drainings leave as the set progresses (sugar D16): what
+            // the set will have driven out, at today's press, credited a
+            // step at a time to the vessel the mould stands on.
+            const pressedSoFar = this.setProgress > 0 ? this.setPressed / this.setProgress : 0;
+            const lostAt = this.drainLoss(drain, material!, poolKg);
+            this.creditDrainings(drain, lostAt(Math.min(1, pressedSoFar)) * Math.min(1, this.setProgress));
+          }
         }
-        if (drain === null) return;
-
-        // ⭐ The drain set's law is the MATTER's (`DrainSetting`, B104): its
-        // rate under this load, the moisture a pressing leaves, what drains.
-        // The mould integrates it and catches the drainings.
-        const absorbed = drain.isAbsorbedByMould();
-        const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
-        const ratio = drain.loadRatio(this.loadN(), poolKg);
-        const step = Math.min(
-          1 - this.setProgress,
-          drain.ratePerDay(ratio, wetness) * (elapsed / SECONDS_PER_GAME_DAY),
-        );
-        this.setPressed += ratio * step;
-        this.setProgress += step;
-        const waterFraction =
-          ((MixinApi.hasEdibility(material) ? material.getNutrientAmounts()['water'] : 0) ?? 0) / 1e6 ||
-          (MixinApi.hasMixture(material)
-            ? material.getComposition().find((e) => e.materialPath.endsWith('/water'))?.fraction
-            : 0) ||
-          0;
-        const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
-        const lostAt = (pressed: number): number =>
-          drain.drainedKg(poolKg, waterFraction, pressed, this.bandsBelowFine(), overpress);
-        // ⭐ The drainings leave as the set progresses (sugar D16): what the
-        // set will have driven out, at today's press, credited a step at a
-        // time to the vessel the mould stands on.
-        if (this.setProgress < 1 - 1e-9) {
-          const pressedSoFar = this.setProgress > 0 ? this.setPressed / this.setProgress : 0;
-          this.creditDrainings(drain, lostAt(pressedSoFar) * this.setProgress);
-          return;
-        }
-
-        // ⭐ Set. The water the press drove out is gone; what is left is
-        // the cheese, at the moisture the load left it.
-        const pressed = this.setPressed; // average ratio over the set
-        const moisture = drain.moistureAt(pressed, overpress);
-        const lostKg = lostAt(pressed);
-        this.creditDrainings(drain, lostKg);
-        const massKg = poolKg - lostKg;
-        // ⭐ The water an absorbent mould drank is in its OWN wetness now —
-        // the next cast in it sets slower until it dries.
-        if (absorbed && MixinApi.isWet(self)) {
-          const cap = self.waterCapacityKg();
-          if (cap > 0) self.wet(Math.min(1 - wetness, (poolKg - massKg) / cap));
-        }
-        // The shape this mould casts it as may name what it becomes (a
-        // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
-        const becomesPath = drain.becomesFor(this.castTemplateFor(material));
-        const becomes = becomesPath
-          ? MaterialApi.materials().peek(becomesPath) ?? material
-          : material;
-        this.assertCanRelease();
-        const payload = self.getBulkPayload('interior');
-        this.clearPool(self);
-        this.castFromSet({
-          material: becomes,
-          massKg,
-          payload,
-          moisture,
-          stampMaterial: true,
-        });
+        this.setLoadN = this.loadN();
+        this.armWake(nowS, drain);
       } finally {
         this._settingGuard = false;
       }
+    }
+
+    /**
+     * Arm the next wake: when the set will be through at the current rate,
+     * but never more than {@link MOULD_SET_STEP_S} away — and now, if it is
+     * through already.
+     */
+    private armWake(nowS: number, drain: DrainSetting | null): void {
+      if (this.isSetThrough(drain)) {
+        this.setWakeAtS(nowS);
+        return;
+      }
+      let untilS = MOULD_SET_STEP_S;
+      const self0 = this as unknown as Stuff;
+      const cure = drain === null && MixinApi.isBulkable(self0)
+        ? this.poolSetOf(self0.getBulkMaterial('interior'))
+        : null;
+      if (cure !== null) {
+        // ⭐ A cure's finish, off its own kinetic at the temperature now:
+        // the least time within the step whose dose reaches a rung.
+        const k = MixinApi.isThermal(self0) ? self0.getTemperature().rawValue() : 293;
+        const through = (t: number): boolean =>
+          cure.rungIndexFor(cure.advance(this.setProgress, (cure.rateAt(k) * t) / 3_600)) >= 0;
+        if (through(untilS)) {
+          let lo = 0;
+          let hi = untilS;
+          for (let i = 0; i < 24; i++) {
+            const mid = (lo + hi) / 2;
+            if (through(mid)) hi = mid;
+            else lo = mid;
+          }
+          untilS = hi;
+        }
+      } else if (drain !== null) {
+        const self = this as unknown as Stuff;
+        const material = MixinApi.isBulkable(self) ? self.getBulkMaterial('interior') : null;
+        const amountL = MixinApi.isBulkable(self) ? self.getBulkAmount('interior').rawValue() : 0;
+        if (material !== null) {
+          const poolKg = ((amountL + this.drainedLitres(drain)) / 1000) * material.getDensity().rawValue();
+          const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
+          const perDay = drain.ratePerDay(drain.loadRatio(this.setLoadN, poolKg), wetness);
+          if (perDay > 0) {
+            untilS = Math.min(untilS, ((1 - this.setProgress) / perDay) * SECONDS_PER_GAME_DAY);
+          }
+        }
+      }
+      this.setWakeAtS(nowS + Math.max(1, Math.ceil(untilS)));
+    }
+
+    /** Is the banked set through — the drain's progress at 1, or a cure's rung reached? */
+    private isSetThrough(drain: DrainSetting | null): boolean {
+      if (drain !== null) return this.setProgress >= 1 - 1e-9;
+      const self = this as unknown as Stuff;
+      const material = MixinApi.isBulkable(self) ? self.getBulkMaterial('interior') : null;
+      const cure = this.poolSetOf(material);
+      return cure !== null && cure.rungIndexFor(this.setProgress) >= 0;
+    }
+
+    /** What a drain set will have driven out of a pool of `poolKg`, at a given pressing. */
+    private drainLoss(drain: DrainSetting, material: Material, poolKg: number): (pressed: number) => number {
+      const waterFraction =
+        ((MixinApi.hasEdibility(material) ? material.getNutrientAmounts()['water'] : 0) ?? 0) / 1e6 ||
+        (MixinApi.hasMixture(material)
+          ? material.getComposition().find((e) => e.materialPath.endsWith('/water'))?.fraction
+          : 0) ||
+        0;
+      const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
+      return (pressed: number): number =>
+        drain.drainedKg(poolKg, waterFraction, pressed, this.bandsBelowFine(), overpress);
+    }
+
+    /**
+     * ⭐ Finish a set that is through (crowded-rooms D8) — called only by the
+     * wake, after it banked. Checks {@link assertCanRelease} before the pool
+     * is touched, empties it, and returns the cast for the wake to report.
+     * `null` when the set is not through.
+     */
+    private finishSet(): Promise<unknown> | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return null;
+      const amountL = self.getBulkAmount('interior').rawValue();
+      const material = self.getBulkMaterial('interior');
+      const drain = this.drainSettingOf(material);
+      const cure = this.poolSetOf(material);
+      if (!(amountL > 0) || material === null || !this.isSetThrough(drain)) return null;
+      const poolKg =
+        ((amountL + this.drainedLitres(drain)) / 1000) * material.getDensity().rawValue();
+      if (drain === null && cure !== null) {
+        const rung = cure.rungIndexFor(this.setProgress);
+        const to = cure.getLadder()[rung]!.becomes;
+        const becomes = to ? MaterialApi.materials().peek(to) ?? material : material;
+        this.assertCanRelease();
+        const payload = self.getBulkPayload('interior');
+        this.clearPool(self);
+        return this.castInto({ material: becomes, massKg: poolKg, payload, stampMaterial: true });
+      }
+      if (drain === null) return null;
+      // ⭐ Set. The water the press drove out is gone; what is left is the
+      // cheese, at the moisture the load left it.
+      const absorbed = drain.isAbsorbedByMould();
+      const wetness = MixinApi.isWet(self) ? self.getWetness() : 0;
+      const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
+      const pressed = this.setPressed; // average ratio over the set
+      const moisture = drain.moistureAt(pressed, overpress);
+      const lostKg = this.drainLoss(drain, material, poolKg)(pressed);
+      this.creditDrainings(drain, lostKg);
+      const massKg = poolKg - lostKg;
+      // ⭐ The water an absorbent mould drank is in its OWN wetness now —
+      // the next cast in it sets slower until it dries.
+      if (absorbed && MixinApi.isWet(self)) {
+        const cap = self.waterCapacityKg();
+        if (cap > 0) self.wet(Math.min(1 - wetness, (poolKg - massKg) / cap));
+      }
+      // The shape this mould casts it as may name what it becomes (a
+      // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
+      const becomesPath = drain.becomesFor(this.castTemplateFor(material));
+      const becomes = becomesPath ? MaterialApi.materials().peek(becomesPath) ?? material : material;
+      this.assertCanRelease();
+      const payload = self.getBulkPayload('interior');
+      this.clearPool(self);
+      return this.castInto({ material: becomes, massKg, payload, moisture, stampMaterial: true });
     }
 
     /**
@@ -760,19 +952,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this.setStamp = 0;
       this.setPressed = 0;
       this.setDrainedKg = 0;
-    }
-
-    /**
-     * Cast what a set has taken from the pool. ⚠ A set runs inside a READ
-     * (the reconcile), so nothing waits on the cast: a failure is caught and
-     * said here rather than left an unhandled rejection
-     * (silent-write-census slate: async completions). The callers check
-     * {@link assertCanRelease} before they empty the pool.
-     */
-    private castFromSet(pool: SetPool): void {
-      void this.castInto(pool).catch((err: unknown) => {
-        console.error('Mould: what set could not be cast', err);
-      });
+      this.setLoadN = 0;
+      if (this.wakeAtS !== 0) this.setWakeAtS(0);
     }
 
     public receivedPour(pour: ReceivedPour): void {
@@ -785,7 +966,11 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.setStamp === 0 &&
         (this.drainSettingOf(pour.material) !== null || this.poolSetOf(pour.material) !== null)
       ) {
-        this.setStamp = mouldNowSeconds() ?? 0;
+        const nowS = mouldNowSeconds() ?? 0;
+        this.setStamp = nowS;
+        // ⭐ …under the load on it now, and with its wake armed (D8).
+        this.setLoadN = this.loadN();
+        if (nowS > 0) this.armWake(nowS, this.drainSettingOf(pour.material));
       }
       // ⭐ An absorbent mould DRINKS plain water (a sand flask watered, a
       // dry plaster mould): it goes into the mould's own wetness, and a

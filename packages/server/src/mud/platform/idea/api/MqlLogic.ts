@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
+import { trackTouched } from '../../../api/mql/scope-walk';
 import { scoreTier } from '../../../api/mql/scope-walk';
 import { PerceptionApi } from '../../../api/perception';
 
@@ -145,7 +146,8 @@ export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveMany}. */
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
-    const { matches, quantity, scan, isSet, ordinal } = steadyResolve(query, ctx);
+    const tracked = ctx.trackTouched === true ? trackTouched(() => steadyResolve(query, ctx)) : null;
+    const { matches, quantity, scan, isSet, ordinal } = tracked?.value ?? steadyResolve(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
@@ -156,6 +158,7 @@ export class MqlLogic extends ApiLogic {
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
     if (ordinal !== undefined) out.ordinal = ordinal;
+    if (tracked !== null) out.touched = tracked.touched;
     return out;
   }
 

@@ -36,6 +36,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Interactive from '../platform/idea/Interactive';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MixinApi } from './mixin';
@@ -46,6 +48,7 @@ import {
 } from '../lib/events/FieldChangedEvent';
 import { MqlSubscriptionLogic } from '../platform/idea/api/MqlSubscriptionLogic';
 import { fileURLToPath } from 'url';
+import { ExecutionContextApi } from './execution-context';
 
 // DI seam: re-exported so `MqlSubscriptionRegistry` registers its class
 // through this facade rather than importing the logic singleton directly
@@ -295,6 +298,7 @@ export class MqlSubscriptionApi {
       return oldValue;
     }
     const stuffId = (target as { stuffId: string }).stuffId;
+    ExecutionContextApi.wouldWrite(`${field} fired on ${stuffId}`);
     const payload: FieldChangedPayload = {
       target: stuffId,
       field,
@@ -317,6 +321,10 @@ export class MqlSubscriptionApi {
     fieldNames: FieldSet,
     viewer: Stuff & Sensor,
   ): Record<string, unknown> {
+    // A live subscription's projection is collecting what it projects
+    // (crowded-rooms D1): a nested row is a dependency like a top-level one.
+    const sink = MqlSubscriptionApi.#projectionSink;
+    if (sink !== null) sink(stuff, fieldNames);
     const descriptors = collectSubscribableFields(stuff);
     const out: Record<string, unknown> = { stuffId: stuff.stuffId };
     for (const name of fieldNames) {
@@ -403,6 +411,77 @@ export class MqlSubscriptionApi {
    */
   public static notifyDurableSubject(subject: string): void {
     logic().notifyDurableSubject(subject);
+  }
+
+  /**
+   * ⭐ A viewer's belief about a subject changed (crowded-rooms D2) — they
+   * learned who someone is, their regard moved, a disguise was seen through.
+   * Re-projects that viewer's rows of that subject and nobody else's: the
+   * `notifyDurableSubject` shape with a second key kind. Called by the
+   * `BeliefStore` mutators.
+   */
+  public static notifyBelief(viewerId: string, subjectId: string): void {
+    logic().notifyBelief(viewerId, subjectId);
+  }
+
+  /** The live projection's collector — see {@link collectProjections}. */
+  static #projectionSink: ((stuff: Stuff, fields: FieldSet | null, read?: true) => void) | null = null;
+
+  /**
+   * True while a live subscription's projection is collecting
+   * ({@link collectProjections}) — a descriptor that resolves MQL asks it
+   * to track what it read only then. An accessor: unwrapped, free.
+   */
+  static get collecting(): boolean {
+    return MqlSubscriptionApi.#projectionSink !== null;
+  }
+
+  /**
+   * A descriptor's own resolve READ these (its `touched`): each is a
+   * dependency of the subscription projecting it, on `fields` — a
+   * descriptor that enumerates a holder's children names the fields that
+   * decide MEMBERSHIP (a cup taken off a desk onto the floor is new to the
+   * room's loose contents, and the room's resolve had enumerated it); what
+   * a child SHOWS is its own projected row's. Omitted `fields` = any.
+   * A no-op outside {@link collectProjections} (crowded-rooms D1).
+   *
+   * @internal the descriptors' — it does anything only inside
+   * {@link collectProjections}, whose own frame is the caller a descriptor's
+   * plain `read` runs under; gated to that frame (or the registry), never
+   * eval.
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static noteRead(stuffs: readonly Stuff[], fields?: FieldSet): void {
+    const sink = MqlSubscriptionApi.#projectionSink;
+    if (sink === null) return;
+    for (const s of stuffs) sink(s, fields ?? null, true);
+  }
+
+  /**
+   * Run a live subscription's projection, telling `onProject` every Stuff
+   * {@link projectFields} projects inside it and with what fields — a
+   * descriptor's nested row is a dependency like a top-level one
+   * (crowded-rooms D1). Synchronous; nests.
+   *
+   * @internal the registry's
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'))
+  public static collectProjections<T>(
+    run: () => T,
+    onProject: (stuff: Stuff, fields: FieldSet | null, read?: true) => void,
+  ): T {
+    const prev = MqlSubscriptionApi.#projectionSink;
+    MqlSubscriptionApi.#projectionSink = onProject;
+    try {
+      return run();
+    } finally {
+      MqlSubscriptionApi.#projectionSink = prev;
+    }
   }
 }
 

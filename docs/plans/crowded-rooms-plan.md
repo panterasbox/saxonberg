@@ -246,14 +246,14 @@ collection, verb or view key. Everything added:
 | N4 | `Placing.placedChanged(item)` and `Containable.placementChanged(was, now)` — the two bodies `ContainmentLogic` inlines five times, moved onto the mixins that own the fields; `placedChanged` also fires `placed` on the host | same row as N1 | not hooks: each has a real kernel body (the fire, and the Thermal restamp). `MouldMixin` extends both |
 | N5 | `MqlSubscriptionApi.notifyBelief(viewerId, subjectId)` and the synthetic index kind behind it | same row as N1 | the `notifyDurableSubject` shape, one more key. Searched `lib/belief`: no event exists, and a broadcast would wake every viewer |
 | N6 | `MouldMixin.setDueAtS` (persisted, re-armed by its setter) and `setLoadN` (the load the current stretch has been under); the same pair of ideas on `PercolatingMixin` (`percolationDueAtS`) | *a read that writes* — **fix** | `Comminuting.pendingGrind.dueAtS` is the precedent; no new clock, `WorldClockApi.at` |
-| N7 | `PerceptionApi.holdWorldStill()` / `isWorldHeldStill()` — the room-reading window — and the tripwire at the write chokepoints | *a read that writes* — the gate that holds the fix | generalizes `Bulkable._peeking` from one object to the walk. Searched `api/perception.ts`: `holdLightSteady` memoizes light and says nothing about writes; widening it would stop a deliberate `look`'s own reconciles |
+| N7 | `PerceptionApi.holdWorldStill()` / `isWorldHeldStill()` (read as the `worldHeldStill` accessor since the checkpoint — D15, N14f) — the room-reading window — and the tripwire at the write chokepoints | *a read that writes* — the gate that holds the fix | generalizes `Bulkable._peeking` from one object to the walk. Searched `api/perception.ts`: `holdLightSteady` memoizes light and says nothing about writes; widening it would stop a deliberate `look`'s own reconciles |
 | N8 | `Thermal.peekTemperature()` and `Bulkable.peekBulk(affordance)` — the banked value, read without reconciling | same row | `peekBulk` makes `_peeking` a method; `peekTemperature` reads the `TrajectoryLog`'s forward segment. *Peek* is the tree's word (`materials().peek`) |
 | N9 | two client→server messages for a subscription the server opened: `subscription-pause` / `subscription-resume {subscriptionId}` in navigation-server's protocol (fallback names in D5) | *the client telling the server what it holds* — **reuse, sequenced** | nothing in either protocol stops and restores a server-opened subscription: the client cannot re-open a card, having no field that names one |
 | N10 | `Interactive.pauseSubscription(id)` / `resumeSubscription(id)` and the paused set on the registry that owns the id table | *a card's liveness following attention* — **generalize** | two more session verbs beside `cancelSubscription` |
 | N11 | client: one visibility observer in the card feed; `pauseSubscription` / `resumeSubscription` on `services/websocket.ts` | same row | genuinely new on the client — searched `packages/client/src` for `IntersectionObserver` (none) and `visibilitychange` (only `onAir.ts`) |
 | N12 | `/stats` gains `cpu` and a **cumulative** `loop` histogram | *the crowd drive and its record* — reuse | fields on the shipped diagnostics read |
 | N13 | wire tooling: `runCrowd(label, opts)` phases, the box-load record and quiet-box precheck, `crowd-timing.dirty.wire.test.ts`, `WIRE_CPU_PROF`, `Session.pauseSubscription`, `e2e/tests/crowded-rooms-walk.spec.ts` | *the crowd drive* — reuse; *a quiet-box run* — genuinely new as a procedure (searched `tools/` for a load gate) | the precheck is a few lines in the crowd harness |
-| N14 | whatever W4 and W5 change | *NPC background work* — **reuse** | not designed until the W0 checkpoint (D10) |
+| N14 | W4 and W5: one transient field and the bodies of five shipped members | *a read that writes* — **fix**; *NPC background work* — **reuse** | designed at the W0 checkpoint: N14a–N14g in D20, with their P1–P14 lines |
 
 **Deleted:** `MouldMixin.getContents`, `Hopper.getContents`,
 `Mould.castFromSet`'s unawaited swallow, `setState()`'s reconcile, the
@@ -513,7 +513,7 @@ runs is.
 - **The tripwire.** The write chokepoints — `fireFieldChange` and
   `EventApi.fire` of a `FieldChangedEvent`, `StuffApi.clone` / `create` /
   `destruct`, `ContainmentApi.move`, `PersistableApi.capture` — check
-  `isWorldHeldStill()`. In a test world (`SecurityApi.isTestEnvironment()`,
+  the hold (`worldHeldStill`, D15). In a test world (`SecurityApi.isTestEnvironment()`,
   which every wire world is) a write inside the window throws a typed
   `WalkWriteError` naming the walk and the write. Elsewhere it is recorded
   through `DiagnosticApi` and counted on `/stats`, and proceeds — a
@@ -606,6 +606,495 @@ the Drive record and the slate's status block.
 - Every number written into this plan, the MR or the slate comes from such
   a run with the load beside it. W0's profiles are for **shares**, not
   times, and may be taken on a busy box.
+
+### D13 — A body's size reads its banked flesh (class B1)
+
+*D13–D21 are the W0 checkpoint's decisions (D10), designed from the W0
+record by the planner on 2026-11-17; D10 step 3's unanchored review is
+folded in (the list closes D20).*
+
+**What the code does** (opened, not inferred). `Creature.getBodyDensity()`
+(`lib/creature/Creature.ts` ~l.642) calls `this.getReserve('flesh')`, and
+`MetabolicMixin.getReserve` (`lib/metabolism/Metabolic.ts` ~l.678) is the
+reconcile-on-read override. `Creature.getVolumeM3()` (~l.656) divides mass
+by that density; `Shaped.getDimensions` / `getFitBox` call it; and
+`Container.fitRefusal` (`lib/spatial/Container.ts` ~l.426–485) asks the fit
+box of the arriving item **and of every content of the destination**
+(`fillOf`, ~l.1231). So one crossing or one `move` into a place holding N
+bodies runs `reconcileMetabolism` on N + 1 bodies — the mover's and every
+bystander's — and each integration runs the thermoregulation slice and its
+insulation walk (D16).
+
+**This is a behavior defect before it is a cost.**
+`docs/subsystems/behavior.md § NPC hunger begins existing in this build`
+states the shipped rule: *"an NPC's satiation only advances when something
+reads it, the only reader is this brain's `eat` … an empty counter cannot
+starve anybody."* The size read (size and carrying, merged 2026-11-16)
+broke it: an NPC now hungers because somebody walked into its room, and a
+cast member in a busy square drains toward `STARVATION_LETHAL_SEC` while
+the same one in a quiet shop does not. That is *state depending on who
+happened to be there* — the mould's defect, on bodies.
+
+**The fix.** `getBodyDensity()` reads the stored reserve raw —
+`this.reserves['flesh']` — exactly as `Creature.withBodyComposition`
+(~l.905) already does in the same class, for the reason its comment
+gives: *"Reads the stored reserve values RAW (no reconcile): mass
+is read on hot paths … The stocks move on the metabolism clock."* No
+member is added. Today one volume is computed from a **banked** mass over
+a **reconciled** density; after this both halves read the same banked
+stock.
+
+**Why not the hold.** Opening `holdWorldStill` around the fit read was
+weighed and rejected. A `move` is itself one of D9's write chokepoints, so
+a room-reading window opened inside it names nothing true; the window's
+contract is *what the room reads for everyone*, and a tape measure under
+one body's move is not that (P14: a getter whose answer changes with the
+dynamic scope is a hidden decision, and D9 spends that budget once, on the
+four walks). And it is unnecessary: the read is **wrong to reconcile**, not
+merely expensive. Doctrine chose — D8's *reads are pure* and ruling R1,
+with lens 3a (the world cannot differ by who was there).
+
+**What keeps a body current instead** — all shipped, none added:
+
+| what brings it to now | where |
+|---|---|
+| its own changes, each of which reconciles before it applies | `ingest` (`Metabolic` ~l.1548), `exert` (the scheduler, the traverse, the exchange — exertion.md), harm (`ConditionApi.inflict`), a drink, a dose |
+| its own acts' reads | carrying (`wouldExceedCeiling` → the condition band), a brain's `urgency` that reads a reserve (`eats`, `feeds`) |
+| a deliberate read of the body | `look at`, `score`, `assess`, `analyze`, the mirror line of a deliberate `look` |
+
+**Nothing starts to depend on who looked.** The set of things that
+reconcile a body only shrinks, and what leaves it is exactly the incidental
+set (being walked past, standing where something was put down). Flesh moves
+only in `partitionFlesh`, on the metabolism clock; a body's size therefore
+reads as of its last reconcile, which is the convention its mass already
+ships with. Density has three consumers, and each now reads the banked
+stock: the fit (`getVolumeM3`, above); the doorway girth
+(`Creature.ownEnvelope` ~l.853, the clearance a crossing is asked
+against); and buoyancy (`Buoyant.displacement`,
+`lib/encumbrance/Buoyant.ts` ~l.108, through a shipped duck-typed
+`getBodyDensity?.()` this build does not widen or fix). The whole range of
+flesh, empty to full, moves density by about 7% (`F = 0.08 + 0.32 ×
+flesh/100` over 900/1100 kg/m³), so a body floats, fits and clears a door
+as its last reconcile left it — and a swimmer's own strokes are exertion,
+which reconciles.
+
+**The count** (`lib/creature/__tests__/Creature.size-read.test.ts`, imports
+`test-bootstrap`): a place holding five fed, clothed bodies **with no
+brains** (an arrival Scene's witnesses and a greeter's act read a body
+deliberately, and legitimately reconcile it); advance the
+injected clock ten game minutes; then `place.fitRefusal(x)`, a
+`ContainmentApi.move` of a crate into the place, and one body's
+`traverse` into it. **A crossing runs `reconcileMetabolism` zero times on
+the bodies standing there** — counted by a spy on the raw target where the
+proxy honors one, and in any case proved by every bystander's
+`metabolicClockStamp`, `thermalRegStamp` and `reserves` being
+field-for-field what they were (an unmoved stamp across a ten-minute
+advance is zero integrations). The mover's own stamp may move: its
+exertion is its own change. ⚠ The traverse leg **depends on D14**: the
+arrival Scene is rendered to every bystander, and until the sight gate
+stops reconciling, that render moves their stamps. The `fitRefusal` and
+`move` legs stand alone.
+
+### D14 — A sight gate reads the conditions as they stand (class B2)
+
+**What the code does.** `Actor.hasCausticAtHead()`
+(`lib/creature/Actor.ts` ~l.113) calls `this.getConditions()`, which
+reconciles (`lib/vitals/Vitals.ts` ~l.2849 → `reconcileConditions`
+~l.3122: the burden stages, `deriveCirculation`'s two vital-sign writes,
+every wound's tick and mend, `noticeGripLost`). It is asked by
+`perceivedBandModifier` and `canSeeOverride`, so by every
+`VisionModality.perceivedBand` — every `describeFor`, for the **viewer**:
+each Scene frame to each sensor, each roster row, each card row.
+
+**The fix, and why it is exact.** The gate reads `this.conditions` — the
+collection as the last reconcile left it. The question it asks is *is a
+caustic agent still on the head*, and `agentActive` changes at exactly two
+events: `CAUSTIC_BEHAVIOR.onset` (the splash) and `resolve` (the rinse) —
+`platform/idea/Condition.ts` ~l.1477–1503. `tick` only grows severity
+while it is active and `mend` returns early while it is; no passage of
+time flips it and an active caustic never heals away. So the banked answer
+**is** the reconciled answer, always — this is not *as banked, slightly
+stale*, it is the same value without the integration. No member is added;
+`Actor` is the host's own class body reading its own composed storage, the
+`withBodyComposition` shape again.
+
+⚠ **One thing did depend on that integration** — the dying clock; see
+D21, which lands in the same commit.
+
+**Why not the hold:** as D13, and more strongly — a Scene render and a
+roster row are not walks, so the window would not cover them.
+
+**The count** (`lib/creature/__tests__/Actor.sight-gate.test.ts`): thirty
+bodies in a lit place, three carrying an open wound; advance ten game
+minutes; every body `describeFor`s every other. **A `describeFor` runs
+`reconcileConditions` zero times**: every wound's `tickedAt` / `mendedAt`
+and both circulation vital signs are unchanged on viewer and target.
+And the exactness, pinned: a body splashed at the head reads two bands
+down before and after a clock advance with nothing reconciled; rinsed, it
+reads clear; in both states the gate equals what
+`getConditions().some(…)` answers.
+
+**The class, not the instance.** The same test fails on any *other*
+reconciling read under `canSeeGate` (the consciousness read, the
+concealment band). Each one it catches is sorted by one question — *can
+elapsed time alone change this answer?* If no, it reads the stored field
+(this decision). If yes, it is **not** fixed here: it is recorded in the
+W4 record with its share and goes to D15's hold where a walk reaches it,
+else to D20's seam.
+
+### D15 — Inside the room's reading a body stands still too
+
+D9's census (`walk-purity`) stages a mould, a heap, a pan, a lamp and a
+provision — and **no body**. A card's projection of a person still reaches
+body reconcilers through `longDescription`'s augmenters (the mirror's body
+line reads reserves) and `worn`; a body reconcile writes reserves without passing any chokepoint, so the tripwire
+never fires on it. That is the requirement's *"any other case on those
+walks is fixed the same way"*, and ruling R1 already says what a card shows
+(*its last reconcile*).
+
+- `walk-purity.test.ts` gains a fed, clothed NPC with an open wound, in the
+  staged place. Its snapshot is **every persistent field of the body**,
+  taken generically (the `fieldMeta` of every composed mixin, as
+  `PersistableApi.capture` enumerates them) and never a hand list — so the
+  respiration stamps, `Wet`'s wetness and stamp (`lib/weather/Wet.ts`),
+  the caster's faculty stamps (`lib/magic/Caster.ts`), hygiene and
+  soiling are in it with the reserves, the thermal stamps, the conditions
+  and the vital signs. Whatever it catches takes the same line.
+- `reconcileMetabolism`, `reconcileConditions` and
+  `reconcileThermalRegulation` take the stand-off:
+  `if (PerceptionApi.worldHeldStill) return;` — placed **after the
+  reentrancy guard and before the clock read** (the clock read is two
+  gated calls, and the first-touch stamp after it is a write). One
+  mechanism serves the four walks (N7); no peek is added beside any
+  getter.
+
+**The flag is read without a security frame** (this supersedes N7's
+`isWorldHeldStill()` for W1's stand-offs in Thermal, Bulkable, Mould and
+Percolating too). `getReserve` is the hottest getter on a body, and
+`PerceptionApi.isWorldHeldStill()` as W1 first wrote it is an Api static
+(wrapped) → `logic()` → a `@CallSecurity` method: class P, paid on every
+reserve read to learn *no*. The design, once:
+
+- The stack of open walks is `static #stillWalks: string[]` **on
+  `PerceptionApi`** — Api static `#` state is sanctioned (CLAUDE.md
+  § Member Privacy; `StuffApi.#pendingSingletons` is the precedent), and a
+  hold is a synchronous window with nothing to hot-reload.
+- It is read through a **static read-only accessor**,
+  `static get worldHeldStill(): boolean`. `SecurityApi.decorateApiClass`
+  wraps only own statics whose descriptor `value` is a function
+  (`#wrapAllStaticMethods`, `api/security.ts` ~l.693–701), so an accessor
+  is never wrapped: no frame, no policy resolution — the same ungated read
+  every `static readonly needs` already is. It exposes one boolean and
+  cannot change it.
+- `holdWorldStill(walk)` stays a gated method and pushes/pops that stack.
+  `wouldWrite(write)` returns at once when the stack is empty and
+  otherwise forwards the innermost walk to `PerceptionLogic`, which keeps
+  the throw, the diagnostic and the `/stats` count.
+- `isWorldHeldStill()` is **deleted**, not kept beside the accessor (P12).
+- No module, class or exported function is added, and nothing in `lib/`
+  gains a static.
+
+**The count** (`api/__tests__/perception.hold.test.ts`):
+`Object.getOwnPropertyDescriptor(PerceptionApi, 'worldHeldStill')` is an
+accessor with no wrapped value; ten thousand `getReserve` calls on a body
+outside a hold enter `PerceptionLogic` zero times (a spy on the logic
+singleton's raw target).
+
+This is the only place the hold is widened to bodies. It is **not** opened
+anywhere new.
+
+⚠ **Owner's eye.** The shelf's `BODY` row changes when a reconcile turns
+a band over (exertion.md § The poke). After D13–D15 the only reconciles
+are the body's own acts and deliberate reads of it, so a player who stands
+still learns their breath is back, or that they are hungry, at their next
+act — as a player alone in a quiet room does today, where nothing
+incidental reads them either. R1 accepted *as banked* for things; this
+applies it to people. W4 pins the alone case so it cannot regress (a
+winded player, alone, the clock advanced, one act: the line arrives). D20
+names the piece that would make a body tick by itself.
+
+### D16 — An integration reads what the body wears once
+
+The leaf of B1's chain is the cost of one integration, which D13 does not
+change: `integrateThermalSlice` (`lib/thermal/ThermalRegulation.ts`
+~l.378) calls `wornInsulationKelvin()` per slice, `shedAndOffset` (~l.487)
+and `bodyTau` (~l.921) call `bodyInsulation()` again, and
+`Attired.bodyInsulation` (`lib/slot/Attired.ts` ~l.945) walks every
+exterior body part × its worn stack × `Wearable.getClo`. A reconcile over
+a k-minute gap does that walk up to 3k times, and what a body wears cannot
+change inside one synchronous reconcile.
+
+**The fix.** `reconcileThermalRegulation` reads `bodyInsulation()` once,
+into a transient private field (`_reconcileClo: number | null`, set first
+inside the guarded block — before `refreshEffectiveAmbientFromEnvelope`,
+so nothing in the reconcile reads insulation ahead of it — and cleared in
+the `finally` beside
+`_thermalRegReconciling`); the three readers use it when it is set and
+call through when it is not (`shedWhileWorking` ~l.185, the fourth
+`bodyInsulation` site, runs outside a reconcile and is deliberately
+unchanged). Identical arithmetic, so no thermal test moves.
+
+**The count** (`lib/thermal/__tests__/ThermalRegulation.insulation.test.ts`):
+a reconcile across sixty slices calls `bodyInsulation` once.
+
+**Conditional** on D18's re-profile: built if `bodyInsulation` is still
+≥ 2% of the idle window after D13–D15; otherwise recorded and left.
+
+### D17 — The roster is composed in one frame, with the light held (class B3)
+
+**What the code does.** `PresenceLogic.snapshotForImpl`
+(`platform/idea/api/PresenceLogic.ts` ~l.116) loops
+`await viewer.composeRosterRow(person)` over everyone online, and
+`fanImpl` (~l.141) does the same per viewer for the arriver. Each `await`
+is its own tick, and `holdLightSteady` is a synchronous window by contract
+(`api/perception.ts` ~l.210), so every row's `describeFor` walks the light
+of a crowded place alone: sixty walks for a login into thirty.
+
+Nothing in the row is asynchronous. `ProfileLogic.composeRowImpl`
+(`ProfileLogic.ts` ~l.115) awaits nothing; `SecurityApi.projectAcross`
+returns what its callback returns.
+
+**The fix.** No new member:
+
+- `ProfileLogic.composeRow` and `NotifyPolicy.composeRosterRow`
+  (`lib/social/NotifyPolicy.ts` ~l.116, ~l.290) return `RosterRow`, not a
+  promise of one. (Rejected: a plural `composeRosterRows` beside it — a
+  second name for the same act, P12, and it would not serve the fan, whose
+  many is the viewers.)
+- `snapshotForImpl` and `fanImpl` take `PerceptionApi.holdLightSteady()`,
+  compose every row in one synchronous loop (the per-viewer `try` stays
+  around each compose), release in a `finally`, **then** send — no Scene
+  is sent inside the hold.
+- `WhoController` (~l.82): its `Promise.all` becomes a plain `map` inside
+  a light hold, as `LookController` ~l.538 does for its own listing.
+
+**The count** (`platform/idea/api/__tests__/PresenceLogic.roster.test.ts`):
+thirty avatars in two places; one snapshot walks the light **once per
+place** — the memo is keyed by the place's `stuffId`
+(`VisionModality.signalAt` ~l.84–94), confirmed in the file — (two walks, counted at `VisionModality.signalAt`'s walk), one `add` fan
+walks it once; before the change the same test counts thirty.
+
+**The frame is bounded by the row** (D7: under 1 ms held), so thirty rows
+are one unit of about 30 ms and the hundred's are about 100 ms — recorded
+with the hundred's numbers, not chunked here.
+
+### D18 — W4's ladder, its acceptance, and what is the owner's call
+
+The profile gave shares on a busy box, with overlapping stacks; nobody can
+say from it what idle costs after D13–D15. So W4 is a ladder with the
+measurement between rungs, decided here so the build does not come back:
+
+1. D13, D14, D15 (one commit). Re-profile ten idle minutes
+   (`WIRE_CPU_PROF`, shares only) and write the **W4 record** under the W0
+   record: the same class table, plus one line per unwatched act that is
+   still ≥ 2% naming the member where its self time sits.
+2. D16 if its condition holds.
+3. Every remaining **engine** class ≥ 2%, in order of share, fixed in the
+   member that owns it under D10's constraints, each with its
+   count-per-call test. Two are pre-named because the code shows them:
+   - `reconcileThermalRegulation` has no sub-step stand-off, so every
+     core-temperature read integrates a sliver; `reconcileMetabolism`
+     has had one since a profile put 28% of the server there
+     (`Metabolic.ts` ~l.762–775, *do nothing yet and do not re-stamp*).
+     The same three lines, against `REG_STEP_SEC`. It changes the
+     granularity at which a core drift becomes visible to the model's own
+     declared step, so the thermal and respiration suites are its gate.
+   `Container.fitRefusal`'s sum over a place's contents is **not**
+   pre-named. After D13 it is N size reads and zero reconciles, and the
+   obvious cut (skip the sum for a place none of whose sides close) needs
+   `bounds()` first — the exposure read the strict pass exists to avoid
+   (`Container.ts` ~l.440–444). If the re-profile shows it, it is designed
+   then, with that trade measured.
+4. Stop when a quiet-box idle step (D12) reads under **12%**.
+
+**What W4 may not do** (D10, restated because this is where it bites): no
+brain's `presenceGated`, cadence or `urgency` is edited; no beat dial
+moves; no `recurring` site gains a population test; `lint:idle-cadence`
+does not move.
+
+**The honest expectation.** Class A — the cast's authored acts, a `get`,
+a `look`, the roster tick, through real dispatch — was about **25% of the
+idle window** in the W0 record, and class P is ~60% of self time under
+all of it. Part of A is B1 underneath (a `get` is a `move`), so D13 will
+shrink it; how far is what rung 1 measures. Engine fixes alone may not
+reach 12%.
+
+**If the ladder ends above 12%,** what is left is, by construction, class
+A at content's cadence running on class P (D20). Neither is this build's to
+change. The MR then opens with the idle criterion **named as outstanding**,
+the W4 record beside it, and the owner's two levers stated: content's
+rates, or the call-security build first. The build does not trade either
+on its own.
+
+### D19 — Login into a crowd, and the restart
+
+**The crowd half** is D13 (the arrival's fit read over thirty bodies, and
+`restorePlacement`'s `move`), D14 (every `describeFor` in the arrival
+Scene and the roster) and D17, plus W3's row. After they land, re-profile
+the last five logins; any synchronous unit over 100 ms that remains is
+named in the W5 record and fixed in its owner, under the same rule as
+D18.3. The first projection of the `here` card stays one unit of N rows
+(the shipped deferred seam).
+
+**The restart half is correctness, and the code says it should already
+hold:** `retireSignedOutBody` saves **before** it destructs
+(`lib/character/Avatar.ts` ~l.1757); the record carries `place`
+(persistence.md § `PersistedRecord.place`); `restorePlacement`
+(`platform/idea/api/PersistableLogic.ts` ~l.327) materializes a lazy room
+through `StuffApi.singleton`, whose in-flight map coalesces thirty
+concurrent first resolutions onto one clone (`api/stuff.ts` ~l.211–219).
+W5 proves it rather than assuming it:
+
+- **Unit** (`platform/idea/api/__tests__/PersistableLogic.crowd-restore.test.ts`):
+  thirty avatars captured in one place and destructed, the place
+  destructed, then materialized with `Promise.all`. All thirty stand in
+  **one** live instance of that place; none is at the default start; the
+  backstop's warning was not logged.
+- **Drive step 10**: before step 9's quit each player's place is read as a
+  player reads it (the `here` card's path); after the restart the same
+  read is compared, per player.
+- **One hazard the code shows.** `restorePlacement` ends in an unguarded
+  `ContainmentApi.move` (~l.361). If the tape measure refuses a returning
+  body (a place that filled while they were away), the login fails
+  outright. The unit test stages it (a place whose sides close, filled past
+  its room). If it throws, the fix is the function's own backstop — land
+  at the default start with the worded warning it already has — never a
+  forced move and never a fit exemption for returning bodies (that would be
+  the performance cap's twin: a room that holds more people after a
+  restart than before).
+- **And the backstop has the same hazard.** Its own `move` (~l.348) runs
+  the tape measure too; if the default start refuses, the `catch` (~l.350)
+  warns and returns, the host is containerless, and `Avatar.enter` fails
+  with an error that says nothing about why. The test stages it as a third
+  case (the captured place **and** the default start both full). The rule,
+  whatever it shows: the failure is never swallowed (P3) — the login is
+  refused with the reason in words (*nowhere to stand: `<place>` and the
+  realm's start are full*), thrown from `restorePlacement`, not discovered
+  two calls later. Whether a realm's default start may ever be full is the
+  room-capacity slate's question and the owner's, not this build's.
+
+Any other way step 10 fails is a defect, fixed here in the member that
+owns it (the capture's `place`, or `Avatar.enter` step 1), and recorded.
+
+### D20 — What W4 and W5 add, and what they leave
+
+**Added substrate** — one transient field and one static accessor (which
+replaces a method). Everything else is the body of a shipped member.
+
+| # | addition | ledger row (P1) | P2 host | P3 | P4 | P5 | P6 | P7 | P8 |
+|---|---|---|---|---|---|---|---|---|---|
+| N14a | `getBodyDensity` reads `reserves['flesh']` raw (D13) | *a read that writes* — **fix**; the `withBodyComposition` precedent | `Creature`: every creature has a density; no guard | no failure path | n/a | no controller | reads a field its host already persists | n/a | no name |
+| N14b | `hasCausticAtHead` reads `this.conditions` (D14) | same row — **fix** | `Actor`, where it already sits | n/a | n/a | n/a | n/a | n/a | no name |
+| N14c | three stand-off lines; a body in `walk-purity` (D15) | same row; N7's mechanism | not a host guard: asks *is the room reading*, not *what am I* | a walk-time body write now cannot happen; the tripwire still throws on any that reach a chokepoint | n/a | n/a | n/a | n/a | no name |
+| N14d | `ThermalRegulationMixin._reconcileClo` (D16) | *NPC background work* — **reuse** (cost per beat); searched `ThermalRegulation.ts` for a per-reconcile cache: none | every thermoregulating body reads its insulation in a reconcile; a body with no clothes holds 0 | n/a | reads behind `MixinApi.isAttired`, as today | n/a | transient, never persisted; `private`, not `#` (mixin state behind the proxy) | n/a | beside `_ambientOffsetK`, `_workingOffsetK` |
+| N14e | `composeRow` / `composeRosterRow` return a value; the two presence loops and `who` hold the light (D17) | *one light walk per message* (shipped by controllers-are-io) — **reuse** of `holdLightSteady` | `NotifyPolicy`: unchanged host | the per-viewer `try` stays; a failed compose drops that viewer as today | n/a | `who`'s hold is the `LookController` precedent: a listing's frame, not a decision | n/a | n/a | names unchanged |
+| N14f | `PerceptionApi.worldHeldStill` (static accessor) over `static #stillWalks`; `isWorldHeldStill()` deleted (D15) | N7's row — the same window, read cheaply; searched `api/*.ts` for a static accessor: none, the precedent is the unwrapped data static (`needs`, `DEFAULT_SCALE`) | `PerceptionApi`, which owns the window | a write in the window still throws / is reported | n/a | n/a | process state, dies with the frame | no boot entry | an adjective for a state, beside `holdWorldStill` |
+| N14g | the dying deadline in `Vitals.nextInterestingAt`; `beginDying` calls `rescheduleNotify` (D21) | *a read that writes* — **fix**, on the shipped D19 alarm | `Vitals`; the alarm is already gated to a body with a session, so no host is re-narrowed here | the alarm's reconcile runs `expireDying` as any read does | behind the shipped `MixinApi.isHasInteractive` | n/a | the handle is transient; a restored dying body re-books at its first reconcile | n/a | no name |
+
+**P9–P14, per item.**
+
+| item | P9 | P10 | P11 | P12 | P13 | P14 |
+|---|---|---|---|---|---|---|
+| N14a | no command changes; `help` unchanged | none | `fitRefusal` asks every item the same question | no new read — the getter itself stops reconciling | density is `Creature`'s; the reserve store is `Reserved`'s, read as `withBodyComposition` reads it | **the point**: a bystander's body no longer changes because someone walked in |
+| N14b | none | none | n/a | no new read | the perception seam's implementer is `Actor`; the collection is `Vitals`' | the gate's answer is unchanged in every case (proved in D14); what stops is the invisible integration |
+| N14c | a card shows a body as last reconciled (R1) | none | every reconciler stands off alike | no peek beside a getter; W1's one mechanism | each line sits in the reconciler it stops | the window is opened by name at the four walks only |
+| N14d | none | none | n/a | not a second insulation read: the same call, made once | thermoregulation's own reconcile | cleared in `finally`; never read outside a reconcile |
+| N14e | `who` and the roster read the same | none | one compose for snapshot, fan and `who` | no plural added; the singular stops being a promise | the row is `ProfileLogic`'s, the fan `PresenceLogic`'s | rows are composed before anything is sent; nothing is sent inside a hold |
+| N14f | none | none | every stand-off reads the one flag | replaces `isWorldHeldStill()`; the method is deleted | the window is `PerceptionApi`'s | read-only; only `holdWorldStill` and its release change it |
+| N14g | a dying player dies when the window ends, as `help` for the dying arc already says | none | n/a | no second alarm: one more deadline in the shipped one | the dying record and the alarm are both `Vitals`' | **the point**: death arrives on the clock, not at the next thing rendered to the body |
+
+**Left, with destinations** (also in § Deferred seams):
+
+- **P — the call-security / proxy tax**, ~60% of self time in all three
+  windows (`findDescriptor`, the proxy `get`, policy resolution,
+  `_pushFrame`). Destination:
+  [call-security-performance-slate](../slates/tech-debt/call-security-performance-slate.md),
+  whose *Left* list already names `findDescriptor` accessor-ness caching
+  and the static-Api apply thunk; the W0 and W4 records are appended to it
+  as its second measurement at the W4 commit.
+- **A body has no clock of its own.** Every body integrates only when read,
+  and an unowned body drops any gap over four game hours
+  (`MAX_REASONABLE_GAP_SEC`; twenty real minutes at the default scale). So
+  whether a cast member hungers still depends on whether *something*
+  deliberately read it inside that window — narrower after D13–D15, not
+  gone. D8's second half (*finish on the game clock*: a body's own wake)
+  is **not** built here: it would make the whole cast metabolize
+  unwatched, which behavior.md deliberately makes unreachable, and that is
+  a change to what the world does unwatched (§ Risks, *stop and ask*).
+  Destination: [silent-write-census-slate](../slates/tech-debt/silent-write-census-slate.md),
+  as a named finding with D13's table.
+  ⚠ Two timed transitions are inside this seam and are named so nobody
+  finds them later: **bleed-out onset** (`beginDying` at the blood floor,
+  `Vitals.ts` ~l.3570) and **sustained-shock relief** (~l.3419) happen
+  only in a reconcile and have no closed-form deadline to book. Today a
+  crowd's Scenes drive them and a quiet room does not; after D14 a crowd
+  behaves as the quiet room does. The dying window, which does have a
+  deadline, is D21.
+- **A reconciling read under the sight gate that time can change** (D14's
+  second bucket), if the test finds one. Same slate.
+- **Sc — Scene render to the place** (10.7% of the crowd): every frame is
+  rendered for every sensor. D14 cuts each render's cost; the fan itself
+  is untouched. Destination: the
+  [crowded-rooms slate](../slates/tech-debt/crowded-rooms-slate.md)'s
+  status block, with its share after W4 beside the hundred's record.
+
+**Review at the checkpoint (2026-11-17)** — D10 step 3's unanchored
+review, folded in:
+
+- D13: the density consumers are named (`ownEnvelope`, `Buoyant`), not
+  "the fit alone"; the count test stages no brains and states that its
+  traverse leg depends on D14.
+- D14, D16, D17: confirmed. D16 sets the cached insulation before the
+  envelope refresh and names the fourth site it leaves; D17's per-place
+  memo key is cited and its two stub-async test files are in W5's list.
+- D15: the hold flag became an unwrapped static accessor on
+  `PerceptionApi` (N14f), for W1's stand-offs as well; the stand-off sits
+  after the reentrancy guard; `walk-purity` snapshots every persistent
+  field of the body generically.
+- D18: the `fitRefusal` rung is no longer pre-named (its cut needs the
+  exposure read); the exit states class A's ~25% and that 12% may not be
+  reachable by engine fixes.
+- D19: the backstop's own tape measure is staged; a login with nowhere to
+  stand is refused in words, never swallowed.
+- **A missed reader, now D21:** the dying clock had no wake and D14/D15
+  would have left a dying player waiting on a deliberate read.
+- Bleed-out onset, shock relief and Scene render (Sc) are named as left,
+  with destinations. W4's B-check grep and doc list are widened.
+
+### D21 — The dying window ends on the clock
+
+**What the review found.** `expireDying` runs only inside
+`reconcileConditions` (`lib/vitals/Vitals.ts` ~l.3549–3559), whose own
+comment says *"a body dies on schedule whether or not anyone is
+watching"*. It does not: today a dying player in a busy place dies at the
+next Scene rendered to them (B2 is the driver), and one alone in a quiet
+room at their next read. After D14 and D15 every dying player would wait
+on a deliberate read — and `Avatar.signOutHold` (`Avatar.ts` ~l.1733)
+holds the body in the world while `isDying()`. That is visible state
+depending on who was there, and D14 may not ship without closing it.
+
+**The fix is shipped substrate.** `Vitals` already books a one-shot at
+the body's next silent transition — `nextInterestingAt` /
+`rescheduleNotify` / `onNotifyFire` (~l.4278–4325; the alarm runs an
+ordinary reconcile), gated to a body with a session.
+
+- `nextInterestingAt` also returns each dying record's deadline,
+  `tickedAt + (windowSec − elapsed)`, by the same array-method read
+  (`lint:condition-arms` stays at its count). A deadline already past is
+  returned as *now*, so the alarm fires at once rather than being
+  filtered away.
+- `beginDying` (~l.1423) calls `rescheduleNotify()`, as `afflict` and
+  `relieve` do; so does a stay that lengthens or ends the window.
+- **NPCs are untouched** — the gate stands, and a cast member's dying
+  resolves when read, as shipped. No recurring timer, no sweep.
+- Linkdead is covered: the dying arm does not freeze on linkdead
+  (mortality.md), and a linkdead avatar still composes the session mixin.
+
+**The pin** (`lib/vitals/__tests__/Vitals.dying-clock.test.ts`): a dying
+player alone in a place; the clock advanced past the window; **nothing
+reads the body**; death has arrived and the sign-out hold has cleared.
+Its twin: a dying NPC is unchanged by the advance until it is read.
+
 
 ## ⭐⭐ Host placement
 
@@ -719,12 +1208,42 @@ the leading class is a body read that reconciles the body (B1/B2).
 **Commit:** `build(crowded-rooms W0): the instruments, the cost-class
 record, W4 and W5 designed`.
 
-### W1 — The room's reading holds the world still; the mould and the heap set by the clock
+### W1 — The room's reading holds the world still; the mould and the heap set by the clock ✅
 
-D8, D9.
+D8, D9. *Done 2026-11-17.* Build decisions (recorded in the MR too):
+
+- **The hold lives on `ExecutionContextApi`, not `PerceptionApi`** (supersedes
+  N7/N14f's placement; same names, same contract). The write chokepoints in
+  `api/stuff.ts` and `api/event.ts` sit below `api/perception` in the import
+  graph: importing it there was a load-order (TDZ) cycle that failed four
+  test files at collection. A hold is a property of the synchronous frame,
+  like the call stack; the class is undecorated, so `worldHeldStill` (a
+  static accessor) is a free read. `WalkWriteError` is in
+  `lib/security/errors.ts` (importable from there; `lib/errors.ts` is not).
+  Outside a test world a walk-time write warns once and counts on `/stats`
+  (`walkWrites`) — no `DiagnosticApi` (it sits above this module).
+- **No `peekTemperature` / `peekBulk`** (P12): inside the hold the shipped
+  getters stand off, and `Thermal.getTemperature()` answers its banked curve
+  read forward. One mechanism, no second getter.
+- **`placedChanged` / `placementChanged` chain to an inner implementation**
+  (the `onMoved` shape). The shipped dairy `Hoop` is
+  `PlacingMixin(MouldMixin(…))`: without the chain the mould's bank was
+  shadowed and a weight set on a hoop never banked.
+- **A set completes only in the wake**, which disarms itself first: a
+  one-use mould standing nowhere throws `DetachedError` to the clock's root
+  with its pool untouched and retries at its next change — never a refire
+  loop. A cure's due time is found off its own kinetic (bisection within the
+  hour step); a drain's by its rate.
+- Percolation treats a reach within 1e-9 of the bottom as through (the
+  clock fires within its epsilon).
+- Tests: the mould and heap suites move time through
+  `_advanceForTesting` (an `advanceTo` helper) so wakes fire, and stand up an
+  `EventRegistry` (a host-bound wake listens for its host's destruct).
 
 - `api/perception.ts` + `platform/idea/api/PerceptionLogic.ts`:
-  `holdWorldStill` / `isWorldHeldStill` (outside geography's ranges).
+  `holdWorldStill` / `isWorldHeldStill` (outside geography's ranges; the
+  read becomes the unwrapped `worldHeldStill` accessor — D15, applied
+  here if W1 is still open, else in W4's first commit).
   Opened in `VisionModality`'s light walk, the sound gather, the smell
   fold, and the registry's projection.
 - The tripwire at the chokepoints named in D9; `WalkWriteError`; the
@@ -765,9 +1284,37 @@ tripwire armed and throws nothing. **Commit:** `fix(perception): the
 room's reading holds the world still; a mould sets by the clock, not by
 who looked`.
 
-### W2 — Exact dispatch
+### W2 — Exact dispatch ✅
 
-D1, D2.
+D1, D2. *Done 2026-11-17; committed WITH W1 as one commit* — the two
+waves' edits interleave in `MqlSubscriptionRegistry.ts` and
+`api/mql-subscription.ts` (the projection hold and the fire tripwire are
+W1's; the collector and the dispatch W2's), so neither half compiles alone.
+Build decisions:
+
+- **`touched`** lives in `api/mql/scope-walk.ts` as a record that exists
+  only inside a tracked resolve (`trackTouched` / `noteTouched`, sealed-subdir
+  pipeline internals); `MqlLogic.resolveMany` attaches it when
+  `ctx.trackTouched`. It records each candidate, the candidate's holder, every
+  holder enumerated, and the children `:i` / `:I` return. `MqlApi` gains
+  nothing.
+- **Nested rows** report through `MqlSubscriptionApi.collectProjections`
+  (an `@internal` static the registry wraps its projection in;
+  `projectFields` reports each row). A descriptor's OWN resolve reports what
+  it read with `noteRead(stuffs, fields)`: `Container.contents` names the
+  membership fields (`placement`, `container`), which install as raw field
+  filters, not through descriptor names. Without that a cup taken off a desk
+  onto the floor never woke the room (the matrix found it).
+- **`Placing.placed` depends on `placed`** — the host's own announcement
+  (N4); it was missing and the desk's card never woke.
+- **`BeliefStore` pokes in `know` / `forget` / `forgetField`** (every
+  mutator goes through them), resolving the referent by
+  `findByIdentityPath` (a person) or `findById` (a thing) —
+  `findByTemplatePath` misses a player, whose lineage and identity differ.
+- `focusDependent` / `locationDependent` are accepted and inert; their two
+  tests now pin that the holder entry subsumes them.
+- The wake matrix found two over-wakes on the way (a child's any-field
+  read; `contents` in the membership filter) — both narrowed.
 
 - `api/mql/types.ts`, `resolver.ts`, `predicates.ts`, `scope-walk.ts`:
   `touched`, behind `MqlContext.trackTouched`.
@@ -819,21 +1366,111 @@ changed`.
 
 ### W4 — The idle world
 
-*Designed at the W0 checkpoint (D10); hypotheses I1, I3, I4 above.*
-Whatever is designed: a count-per-beat or count-per-tick test for each
-class before and after; `lint:idle-cadence` unmoved; no content row or
-dial edited; `pnpm wire crowd.dirty` still green (the greeting count is
-the shipped half of D27 and W4 is the wave that can break it);
-`behavior.md § Cost` updated with the measured cost per beat.
-**Commit(s):** `perf(behavior): <class>`.
+D13, D14, D15, D16, D18, D21. Starts after W1 (it uses the hold and
+extends `walk-purity`). Each test below is written first and red.
+
+**Commit 1 — bodies stop being reconciled by bystanders.**
+
+- `lib/creature/Creature.ts`: `getBodyDensity()` reads
+  `this.reserves['flesh']` raw; its doc says why, citing
+  `withBodyComposition` (D13).
+- `lib/creature/Actor.ts`: `hasCausticAtHead()` reads `this.conditions`;
+  its doc carries D14's exactness argument (`agentActive` moves only at
+  `onset` and `resolve`).
+- `api/perception.ts`, `platform/idea/api/PerceptionLogic.ts`: the
+  `worldHeldStill` accessor over `static #stillWalks`; `wouldWrite`'s
+  early return; `isWorldHeldStill()` deleted and W1's stand-offs in
+  `Thermal`, `Bulkable`, `Mould` and `Percolating` moved to the accessor
+  (D15). `api/__tests__/perception.hold.test.ts`.
+- `lib/metabolism/Metabolic.ts`, `lib/vitals/Vitals.ts`,
+  `lib/thermal/ThermalRegulation.ts`: the stand-off line after the
+  reentrancy guard in `reconcileMetabolism`, `reconcileConditions` and
+  `reconcileThermalRegulation` (D15).
+- `lib/vitals/Vitals.ts`: the dying deadline in `nextInterestingAt`;
+  `beginDying` re-books (D21). `Vitals.dying-clock.test.ts`.
+- Tests: `lib/creature/__tests__/Creature.size-read.test.ts` (D13's
+  count), `lib/creature/__tests__/Actor.sight-gate.test.ts` (D14's count
+  and exactness); `lib/perception/__tests__/walk-purity.test.ts` gains the
+  body (D15). One more, for D15's owner's-eye note: a winded player alone
+  in a place, the clock advanced past recovery, one act — the breath line
+  arrives (`lib/exertion/__tests__`, beside the shipped cue tests).
+- B-check: every test that drove a body by an incidental read —
+  `grep -rn "getVolumeM3()\|getDimensions()\|getFitBox()\|describeFor(" `
+  over `lib/{metabolism,vitals,thermal,exertion,creature,mortality,combat,encumbrance,respiration,electricity}/__tests__`,
+  `platform/idea/api/__tests__` (the Condition and Combat files), the
+  trade packs' tests that starve, chill or wound a body, and the wire
+  drives that wait on hunger, a bleed-out or a chill — reads the body
+  deliberately (`getReserve`, `getConditions`) or acts instead.
+- Docs: `metabolism.md` and `vitals.md` (what brings a body to now —
+  D13's table; what does not), `size.md` (a body's size reads its banked
+  flesh), `behavior.md § NPC hunger` (the structural claim holds again,
+  and what broke it), `perception.md` (the sight gate reads conditions as
+  they stand; bodies inside the window; the flag's cheap read),
+  `mortality.md` (when death arrives: a player's on the clock, a cast
+  member's when read), `underwater.md` (buoyancy reads banked flesh).
+
+**Then measure** (D18.1): ten idle minutes under `WIRE_CPU_PROF`; the
+**W4 record** appended under the W0 record.
+
+**Commit 2, if D16's condition holds** — `ThermalRegulation.ts`: the
+per-reconcile insulation; `ThermalRegulation.insulation.test.ts`;
+`thermal.md`.
+
+**Further commits** per D18.3, one per class, each with its count test and
+its row in the W4 record. `behavior.md § Cost` gets the measured cost per
+beat at the end, from the last profile.
+
+**Held throughout:** `lint:idle-cadence` unmoved; no content row, brain,
+cadence or beat dial edited; no `recurring` site touched; `pnpm wire
+crowd.dirty` green after every commit (the greeting count is the shipped
+half of D27, and the greeters' sight gate is exactly what D14 changes);
+`lint:mixin-clusters` unmoved (no mixin gains a public member).
+
+**Acceptance.** The count tests green (size read, sight gate, the hold
+flag, the dying clock); `walk-purity` green with a body in it; the thermal, vitals, metabolism, exertion, respiration,
+mortality and husbandry suites green; then D18.4 — a quiet-box idle step
+under 12%, **or** the W4 record showing every remaining class is under
+2%, class A or class P, with the idle criterion named as outstanding in
+the MR for the owner (D18). The quiet run itself is W6's; W4 ends on the
+shares.
+
+**Commits:** `fix(creature): a body's size and a sight gate read the body
+as it stands` · `perf(thermal): one insulation read per reconcile` ·
+`perf(<owner>): <class>`.
 
 ### W5 — Login into a crowd, and back after a restart
 
-*Designed at the W0 checkpoint.* The restart half is correctness first:
-thirty players who quit at the avenue block materialize there; if the
-drive shows otherwise it is a defect fixed here. Acceptance: a profile of
-one login into thirty shows no synchronous unit over 100 ms.
-**Commit:** `perf(connection): logging in to a crowd`.
+D17, D19. After W3 (the row) and W4 (D13, D14).
+
+- `platform/idea/api/ProfileLogic.ts`, `lib/social/NotifyPolicy.ts`:
+  `composeRow` / `composeRosterRow` return `RosterRow`.
+  `platform/idea/api/PresenceLogic.ts`: `snapshotForImpl` and `fanImpl`
+  compose under one light hold, then send.
+  `platform/idea/cmd/social/WhoController.ts`: a `map` under a hold.
+  `platform/idea/api/__tests__/ProfileLogic.test.ts` (~l.46) and
+  `platform/idea/cmd/social/__tests__/WhoController.test.ts` (~l.80, ~l.95)
+  stub async rows and follow the signature.
+- `platform/idea/api/__tests__/PresenceLogic.roster.test.ts` (D17's
+  count: one light walk per place per snapshot; one per fan).
+- `platform/idea/api/__tests__/PersistableLogic.crowd-restore.test.ts`
+  (D19: thirty restored concurrently into one live place; the refused
+  restore). `PersistableLogic.ts` changes **only** if that test shows the
+  unguarded `move` failing a login, and then by its own backstop.
+- **Then measure:** the last five logins of a crowd run under
+  `WIRE_CPU_PROF`; the **W5 record** under the W4 record — the login's
+  contributors after D13/D14/D17, and every synchronous unit over 100 ms
+  by name. Each is fixed in its owner (D19), with a count test.
+- Docs: `social-graph.md` (the roster is composed in one frame),
+  `connection.md` (login into a crowd; what a restart restores and the
+  backstop).
+
+**Acceptance.** The roster count green; the crowd-restore test green; a
+profile of one login into thirty shows no synchronous unit over 100 ms;
+`pnpm wire crowd.dirty` green. That thirty stand where they quit after a
+real restart, and the 2 s p95, are drive step 10's (W6).
+
+**Commit:** `perf(connection): logging in to a crowd; the roster is one
+frame`.
 
 ### W6 — The drive's harness, the docs, and a first quiet run
 
@@ -1008,6 +1645,13 @@ and at `/finalize`, and a green run stands until a source file changes.
 - **Reconcile-on-read sites the room's walks do not reach** — do any of
   them make a thing's state depend on who looked? Destination:
   `docs/slates/tech-debt/silent-write-census-slate.md`.
+- **The call-security / proxy tax** (~60% of self time, W0 record class
+  P). Destination:
+  [call-security-performance-slate](../slates/tech-debt/call-security-performance-slate.md);
+  the W0 and W4 records are appended to it at the W4 commit (D20).
+- **A body has no clock of its own**, so an unowned body's metabolism
+  still depends on being deliberately read inside four game hours (D20).
+  Destination: `docs/slates/tech-debt/silent-write-census-slate.md`.
 - **Room capacity** and **the soak lane's clock**: routed by the
   requirements.
 
@@ -1121,7 +1765,13 @@ What this says:
   (5 Hz, never disarmed), the `fire:tick` heartbeat (2.5 s). None
   shows above ~3% in the idle profile.
 
-*(the checkpoint's decisions follow as D13 onward)*
+**The checkpoint's decisions are D13–D21** (§ Plan-level decisions): D13
+B1 · D14 B2 · D15 bodies inside the window · D16 the insulation read ·
+D17 B3 · D18 W4's ladder and acceptance · D19 login and the restart · D20
+what is added, what is left (class P → the call-security performance
+slate) and the review's findings · D21 the dying window ends on the
+clock. W4 and W5 below § Waves are rewritten from them. The W4 and W5
+records are appended here as those waves measure.
 
 *(appended at build time)* — the W0 record and the checkpoint's decisions
 (D13 onward); W6's first quiet run; W7's full blocking drive with the load

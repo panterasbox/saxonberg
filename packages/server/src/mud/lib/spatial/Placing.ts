@@ -222,6 +222,15 @@ export interface Placing {
   bearingLoadN(item: Stuff & Containable): number;
 
   /**
+   * @hook ⭐ What is placed on or in this host just changed — `item` arrived
+   * or left (crowded-rooms N4). Called by `ContainmentApi.move` on the old
+   * and the new host at every site that stamps a placement pair. Announces
+   * the host's `placed`; a host whose state depends on what bears on it (a
+   * mould under a weight) extends it to bank first.
+   */
+  placedChanged(item: Stuff & Containable): void;
+
+  /**
    * ⭐ **How much of a thing placed here the air can reach**, `[0, 1]`.
    *
    * Drying is **surface-limited** — the air has to get to the water. A ham
@@ -293,7 +302,9 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
       {
         name: 'placed',
-        dependsOnFields: ['placement', 'contents'],
+        // `placed`: the host announces its own placed set changing
+        // (`placedChanged`, crowded-rooms N4) — the fire a card on it needs.
+        dependsOnFields: ['placed', 'placement', 'contents'],
         read: (stuff, viewer) => {
           const host = stuff as unknown as Stuff & Placing;
           const groups: StuffPlacedGroup[] = [];
@@ -572,6 +583,14 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public bearingLoadN(_item: Stuff & Containable): number {
       return 0;
+    }
+
+    public placedChanged(item: Stuff & Containable): void {
+      // ⭐ Chains an inner host's own (a mould composed beneath this banks
+      // its set) — the `onMoved` shape, so composition order never hides it.
+      const sup = (Base.prototype as { placedChanged?: (i: Stuff & Containable) => void }).placedChanged;
+      if (typeof sup === 'function') sup.call(this, item);
+      MqlSubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placed', '', item.stuffId);
     }
 
     canPlace(item: Stuff & Containable, name: string): VetoResult {

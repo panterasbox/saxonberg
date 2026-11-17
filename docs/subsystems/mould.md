@@ -125,6 +125,42 @@ fair.
 | **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
 
+### ⭐⭐ When a set advances — banked at its own changes, finished on its own wake (crowded-rooms D8)
+
+A set's progress is integrated only at moments that do not depend on who
+is reading: **the mould's own changes and its own wake.** Reading a mould —
+`look`, `look in`, `get … from`, a card, the room's light or smell walk —
+writes nothing (`setState()` is pure; there is no `getContents` override).
+
+- **The bank** (`reconcileSetting`) integrates from `setStamp` to now at
+  the **stored** `setLoadN` — the load the stretch has been under — then
+  stores the load as it is now and re-arms the wake. It is called by the
+  mould's own changes: a pour (`receivedPour`), something set on or taken
+  off it (`placedChanged`), being set on or off a host (`placementChanged`),
+  a move (`onMoved`), something in or out (`onContainableAdded` /
+  `onContainableRemoved`), a press turned on it (`ScrewPress.turnBy`), and
+  the wake. Because the load is stored, banking AFTER a change is exact: a
+  weight set on the follower halfway counts from that moment, whoever reads.
+- **The wake** (`wakeAtS`, persisted; `setWakeAtS` re-arms
+  `WorldClockApi.at(… , { tag: 'mould-set' })` — the `Comminuting.
+  pendingGrind` shape, so a restart re-arms and a wake already past fires at
+  once) is armed for when the set will be through at the current rate,
+  never more than **one game hour** away (`MOULD_SET_STEP_S`, owner ruling:
+  a constant, not a dial — it bounds the error from the continuous inputs,
+  a mould drying and the cure's temperature). A cure's finish is found off
+  its own kinetic.
+- **Completion happens only in the wake** (`finishSet`): it checks
+  `assertCanRelease` first, so a one-use mould standing nowhere throws
+  `DetachedError` synchronously to the clock's guarded root with the pool
+  untouched, and is retried at its next change (being set down). The cast's
+  async failure is reported (console + `DiagnosticApi`).
+- **A freezing pan** is the thermal reconcile's; the bank keeps its
+  temperature read, so a pan below its melting point freezes at a wake.
+
+Two hoops poured together, one looked at every game minute and one never,
+hold identical state and cast in the same minute (`Mould.test.ts` §
+*a set finishes on the clock*).
+
 ### The drain set
 
 Progress runs at `(1 + min(1, ratio)) / days` per game day, where `ratio =
@@ -370,8 +406,11 @@ lets its drainings run away.
 
 `PercolatingMixin` (`lib/material/Percolating.ts`) composes on a porous
 SOLID. `receivePercolant(litres)` puts liquid on it. The **reach**
-(`0..1`) advances on read over the host's `percolationDays()` while
-liquid is working, and each advance calls the host's
+(`0..1`) advances over the host's `percolationDays()` while liquid is
+working — banked at the heap's own changes (`receivePercolant`, `onMoved`)
+and finished on a game-clock wake at its due time (`percolationWakeAtS`,
+re-armed by `setPercolationWakeAtS`; crowded-rooms D8) — and each advance
+calls the host's
 `@hook onPercolated(from, to)`. `percolatesInto()` names where what
 comes out goes: the vessel below the mould the solid sits in (a loaf in
 its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
@@ -381,7 +420,9 @@ the molasses it carries out runs into the pot. ⭐ The lye hopper's ash is
 the second consumer (cordage W7): a heap overrides `percolatesInto()` to
 answer the hopper it lies IN, gives up its alkali by reach, and is spent
 ash at the bottom. A vessel's seeper reconcile brings any percolating thing
-in it current, so reading the hopper (or the pot under a loaf) is enough.
+in it current when that vessel is deliberately read; a heap comes through
+at its due time on its own wake, read or not (the hopper's `getContents`
+override that reconciled its heaps on every read was retired).
 
 ## Deferred
 
@@ -408,9 +449,9 @@ The set path follows *refuse, skip or throw*
 - A **cast row that will not mint**, or is not a tangible, visible thing,
   throws a `TypeError`; so does a `breaksTo` row that cannot be left. (A
   failed mint was a console warning, and what set was lost.)
-- A set runs inside a READ, so nothing waits on its cast; the reconcile
-  and the thermal freeze catch and log the failure instead of leaving an
-  unhandled rejection. The deeper fix (an async completion with a root)
-  is in the silent-write-census slate.
+- A drain or cure set completes on its WAKE (crowded-rooms D8), never
+  inside a read; the release check throws to the clock's root before the
+  pool is touched, and the cast's async failure is reported. The thermal
+  freeze still completes inside its reconcile and logs a failed cast.
 - `pressRelease` makes the cast before it spends the charge.
 
