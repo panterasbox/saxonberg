@@ -67,6 +67,7 @@ import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
 import type { FieldMeta } from '../mixin';
 import type { MirrorAxis } from './PlatPlan';
+import type { CopyRoom } from './PlaceNode';
 
 type MemberStuff = Stuff & Container;
 
@@ -457,6 +458,48 @@ export abstract class FloorplanWarren extends FloorplanBase {
         },
       );
     }
+  }
+
+  /**
+   * ⭐ This copy's rooms as the location graph records them
+   * (zone-instancing D7): each live room's handle, row, cell and address,
+   * and its ways read through THIS copy — a way inside the plan leads to
+   * the sibling room's handle, a way out stays as authored, every
+   * direction and cell reflected by the mirror. The warren hands these
+   * over so the index never re-reads a row and forgets the mirror.
+   */
+  public copyRooms(): CopyRoom[] {
+    const plan = this._plan;
+    if (plan === null) return [];
+    const handleOf = new Map<string, string>();
+    for (const spec of plan.rooms) {
+      // The keyed room's handle, `<row>#<key>` — built from the key this
+      // warren stood it up under, so a room that keeps no record (a porch,
+      // a farm yard) is named exactly as a furnished one is.
+      const key = this.roomKeyOf(spec.leaf);
+      if (key !== null && this.roomForKey(key) !== null) handleOf.set(spec.row, `${spec.row}#${key}`);
+    }
+    const out: CopyRoom[] = [];
+    for (const spec of plan.rooms) {
+      const identity = handleOf.get(spec.row);
+      if (identity === undefined) continue;
+      const exits: Record<string, Record<string, unknown>> = {};
+      for (const [authored, way] of Object.entries(spec.exits)) {
+        const inside =
+          way.destination === plan.extent || way.destination.startsWith(`${plan.extent}/`);
+        const destination = inside ? handleOf.get(way.destination) : way.destination;
+        if (destination === undefined) continue;
+        exits[mirrored(authored, this.mirrorAxis)] = { ...way, destination };
+      }
+      out.push({
+        identity,
+        template: spec.row,
+        coords: spec.coords === null ? null : mirroredCell(spec.coords, this.mirrorAxis),
+        address: this.addressFor(spec) ?? '',
+        exits,
+      });
+    }
+    return out;
   }
 
   /** The live room for a leaf, or null. */

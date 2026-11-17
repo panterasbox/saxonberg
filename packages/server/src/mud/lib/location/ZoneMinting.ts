@@ -39,6 +39,9 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import { Template } from '../stuff/Template';
+import { NavigationApi } from '../../api/navigation';
+import { DiagnosticApi } from '../../api/diagnostics';
+import type { CopyRoom } from './PlaceNode';
 
 /** The class every copied zone row's class is (or extends). */
 const MINTED_ZONE_CLASS = '/platform/idea/location/MintedZone';
@@ -62,6 +65,10 @@ export interface ZoneMinting {
   sleepCopyZone(zone: MintedZone): void;
   /** Throw unless every room stands in `zone` — a room stamped elsewhere missed its copy. */
   checkCopyRooms(zone: MintedZone, rooms: readonly Stuff[]): void;
+  /** Record the standing copy's rooms in the index (a no-op when `joins` is `frame`). */
+  recordCopy(zone: MintedZone, rooms: readonly CopyRoom[]): Promise<void>;
+  /** The copy is gone for good: sleep it and retire it from the index. */
+  destroyCopy(zoneRow: string, key: string): Promise<void>;
 }
 
 /** What the capability composes over: a warren, which tears its rooms down. */
@@ -243,6 +250,35 @@ export function ZoneMintingMixin<TBase extends MixinConstructor<WarrenHost>>(Bas
           );
         }
       }
+    }
+
+    public async recordCopy(zone: MintedZone, rooms: readonly CopyRoom[]): Promise<void> {
+      // A frame copy (a patch on moving water) is never recorded: the map
+      // records the water it moves on, never the patch (D7, D13).
+      if (this.joins === 'frame') return;
+      const identity = zone.getIdentityPath();
+      if (identity === null) return;
+      try {
+        await NavigationApi.recordCopy(identity, rooms);
+      } catch (err) {
+        // The index is derived bookkeeping: a failed write never fails the
+        // wake. It is recorded where an author looks, and the next wake
+        // writes it again.
+        void DiagnosticApi.record({
+          path: this.minterPath(),
+          severity: 'warning',
+          message: `copy '${identity}' could not be recorded in the location graph (${String(err)})`,
+          channel: 'location-graph',
+        });
+      }
+    }
+
+    public async destroyCopy(zoneRow: string, key: string): Promise<void> {
+      const identity = this.copyIdentity(zoneRow, key);
+      const held = this._copyZones.get(identity);
+      if (held !== undefined) this.sleepCopyZone(held);
+      if (this.joins === 'frame') return;
+      await NavigationApi.retireCopy(identity);
     }
 
     /** The copies sleep with their rooms: rooms first (the base), then each zone. */

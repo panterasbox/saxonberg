@@ -882,6 +882,21 @@ Decision: D7.
   them; `revert` removes them; `rebuild()` leaves them; a `frame` copy
   writes none; `pointingAt(<lane>)` names the copy's entrance.
 - Commit: `feat(zone-instancing): A3 — the location graph records copies`.
+- ✅ **Done.** Notes for review:
+  - `CopyRoom` (the warren's hand-over, D7) lives beside `PlaceNode`;
+    `FloorplanWarren.copyRooms()` builds it — each room's handle is
+    `<row>#<key>` from the key the warren stood it up under, so a room
+    that keeps no record (a porch, a farm yard) is named like a furnished
+    one (`getDurableHandle()` answers null for those).
+  - `removeRow` (a CMS save of a plan row) keeps copy nodes too, not only
+    the rebuild sweep.
+  - **Pre-existing bug fixed:** `LocationGraphRegistry.projectRow` called
+    the GATED `removeRow` on itself, which its own gate refused — so
+    re-projecting any row that is not a place had always thrown, and
+    `DomainHook` only logged it. Split as `removeRowImpl`, the
+    `rebuildImpl` precedent.
+  - `recordCopy` failures are written to `DiagnosticApi` (channel
+    `location-graph`), never thrown into the wake.
 
 #### A4 — The declaration lint
 

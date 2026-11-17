@@ -11,7 +11,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
-import type { PlaceNode } from '../../../lib/location/PlaceNode';
+import type { CopyRoom, PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
 import { DocumentApi } from '../../../api/document';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -363,6 +363,18 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public attachStructure(extent: string, structure: Structure): void {
     registry()?.attachStructure(extent, structure);
+  }
+
+  /** See {@link NavigationApi.recordCopy}. */
+  @CallSecurity(NavigationApiCallers)
+  public async recordCopy(zone: string, rooms: readonly CopyRoom[]): Promise<number> {
+    return (await registry()?.recordCopy(zone, rooms)) ?? 0;
+  }
+
+  /** See {@link NavigationApi.retireCopy}. */
+  @CallSecurity(NavigationApiCallers)
+  public async retireCopy(zone: string): Promise<number> {
+    return (await registry()?.retireCopy(zone)) ?? 0;
   }
 
   /** See {@link NavigationApi.detachStructure}. */

@@ -196,7 +196,10 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
     const key = this.holdingKey();
     const zone = plan !== null && key !== null ? await this.wakeCopyZone(plan.extent, key) : null;
     await super.wake();
-    if (zone !== null) this.checkCopyRooms(zone, this.getMembers() as unknown as Stuff[]);
+    if (zone !== null) {
+      this.checkCopyRooms(zone, this.getMembers() as unknown as Stuff[]);
+      await this.recordCopy(zone, this.copyRooms());
+    }
     await this.hangKeyedDoors();
     await this.wakeHouses();
   }
@@ -379,7 +382,11 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
         if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
       }
     }
+    const plan = await this.loadPlan();
     await super.revert();
+    // ⭐ The lease is over: the copy is gone for good, its nodes with it
+    // (zone-instancing D7). A sleep keeps them; only this retires them.
+    if (extent && plan !== null) await this.destroyCopy(plan.extent, extent);
   }
 
   /** The record key a building persists under: the main one the holding's own extent. */

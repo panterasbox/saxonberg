@@ -409,3 +409,78 @@ describe('the reads, through the Api', () => {
     void (reg as unknown as Stuff);
   });
 });
+
+describe('⭐ a standing COPY is recorded as itself (zone-instancing D7)', () => {
+  const COPY = '/test/graph/lots/lot-7';
+  const rooms = [
+    {
+      identity: `${KIND}#${COPY}/a`,
+      template: KIND,
+      coords: [0, 0, 0] as [number, number, number],
+      address: 'test/lot-7/a',
+      exits: { north: { destination: `${KIND}#${COPY}/b` }, south: { destination: HALL } },
+    },
+    {
+      identity: `${KIND}#${COPY}/b`,
+      template: KIND,
+      coords: [0, 1, 0] as [number, number, number],
+      address: 'test/lot-7/b',
+      exits: { south: { destination: `${KIND}#${COPY}/a` } },
+    },
+  ];
+  const copyNodes = () => nodeRows().filter((n) => n.origin === 'copy');
+
+  it('one node per room, under the copy’s zone, its ways as the copy has them', async () => {
+    await standRegistry();
+    expect(await NavigationApi.recordCopy(COPY, rooms)).toBe(2);
+    const a = copyNodes().find((n) => n.identity === `${KIND}#${COPY}/a`)!;
+    expect(a.zone).toBe(COPY);
+    expect(a.template).toBe(KIND);
+    expect(a.coords).toEqual([0, 0, 0]);
+    expect((a.edges as Array<{ to: string }>).map((e) => e.to).sort()).toEqual(
+      [`${KIND}#${COPY}/b`, HALL].sort(),
+    );
+    // The way out leaves the copy's zone; the way to a sibling does not.
+    expect(a.crossesZone).toBe(true);
+    expect(copyNodes().find((n) => n.identity === `${KIND}#${COPY}/b`)!.crossesZone).toBe(false);
+    // Who points at the hall: the copy's entrance.
+    expect((await NavigationApi.pointingAt(HALL)).map((n) => n.identity)).toContain(`${KIND}#${COPY}/a`);
+  });
+
+  it('⭐⭐ a rebuild keeps them, and re-projecting the plan row keeps them', async () => {
+    await standRegistry();
+    await NavigationApi.recordCopy(COPY, rooms);
+    await NavigationApi.rebuildGraph();
+    expect(copyNodes()).toHaveLength(2);
+    await NavigationApi.projectRow(KIND);
+    expect(copyNodes()).toHaveLength(2);
+  });
+
+  it('a second wake upserts — no doubled nodes — and drops a room the copy no longer has', async () => {
+    await standRegistry();
+    await NavigationApi.recordCopy(COPY, rooms);
+    await NavigationApi.recordCopy(COPY, rooms);
+    expect(copyNodes()).toHaveLength(2);
+    await NavigationApi.recordCopy(COPY, [rooms[0]!]);
+    expect(copyNodes().map((n) => n.identity)).toEqual([`${KIND}#${COPY}/a`]);
+  });
+
+  it('retireCopy removes them, and only them', async () => {
+    await standRegistry();
+    const authored = nodeRows().filter((n) => n.origin !== 'copy').length;
+    await NavigationApi.recordCopy(COPY, rooms);
+    expect(await NavigationApi.retireCopy(COPY)).toBe(2);
+    expect(copyNodes()).toHaveLength(0);
+    expect(nodeRows()).toHaveLength(authored);
+  });
+
+  it('the invariants judge authored content only', async () => {
+    await standRegistry();
+    const before = (await NavigationApi.checkGraph()).length;
+    // A copy room whose way leads nowhere the graph knows: no finding.
+    await NavigationApi.recordCopy(COPY, [
+      { ...rooms[0]!, exits: { east: { destination: '/nowhere/at/all' } } },
+    ]);
+    expect((await NavigationApi.checkGraph()).length).toBe(before);
+  });
+});

@@ -27,6 +27,7 @@ import PersistentLocation from '@saxonberg/server/mud/platform/location/Persiste
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
+import LocationGraphRegistry from '@saxonberg/server/mud/platform/idea/LocationGraphRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -944,5 +945,55 @@ describe('a holding is a copy — a zone of its own (zone-instancing A1)', () =>
     const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
     await PersistableApi.restoreOrSeed(holding, '/world/elsewhere/lot-9');
     await expect(holding.wake()).rejects.toThrow(/no parcel covers it/);
+  });
+
+  describe('the location graph records the copy (zone-instancing A3)', () => {
+    const copyNodes = () => col('location_graph').filter((n) => n.origin === 'copy');
+    const standGraph = () =>
+      makeStuffAtPath(() => new LocationGraphRegistry(), '/platform/idea/LocationGraphRegistry');
+
+    it('⭐ a wake records one node per room under the copy’s zone; a sleep keeps them', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const w = await institution();
+      await w.admit(LOT1);
+      const nodes = copyNodes();
+      expect(nodes.map((n) => n.identity).sort()).toEqual(
+        [`${ROOM_A}#${LOT1}/hall`, `${ROOM_B}#${LOT1}/bedroom`, `${ROOM_C}#${LOT1}/porch`, `${ROOM_D}#${LOT1}/shed`].sort(),
+      );
+      expect(nodes.every((n) => n.zone === LOT1)).toBe(true);
+      const hall = nodes.find((n) => n.template === ROOM_A)!;
+      expect((hall.edges as Array<{ dir: string; to: string }>).find((e) => e.dir === 'north')!.to).toBe(
+        `${ROOM_B}#${LOT1}/bedroom`,
+      );
+      // Asleep: the copy is still on the map.
+      await (w as unknown as { reconcile(): Promise<void> }).reconcile();
+      expect(copyNodes()).toHaveLength(4);
+    });
+
+    it('a mirrored copy is recorded mirrored', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      holding.setMirrorAxis('east-west');
+      await PersistableApi.restoreOrSeed(holding, LOT1);
+      await holding.wake();
+      const porch = copyNodes().find((n) => n.template === ROOM_C)!;
+      expect(porch.coords).toEqual([-1, 0, 0]);
+      expect((porch.edges as Array<{ dir: string }>).map((e) => e.dir).sort()).toEqual(['east', 'north']);
+    });
+
+    it('⭐ the end of the lease retires them', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const w = await institution();
+      await w.admit(LOT1);
+      const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+      await holding.revert();
+      expect(copyNodes()).toHaveLength(0);
+    });
   });
 });

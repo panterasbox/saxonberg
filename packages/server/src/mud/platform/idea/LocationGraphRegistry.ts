@@ -41,7 +41,7 @@ import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
 import { PlatPlan } from '../../lib/location/PlatPlan';
 import { CirculationWarren } from '../../lib/location/CirculationWarren';
 import Place from '../../lib/stuff/Place';
-import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
+import { type CopyRoom, PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
 import type { AttachmentKind } from '../../api/navigation';
 import {
   GraphInvariants,
@@ -200,7 +200,7 @@ export default class LocationGraphRegistry extends Idea {
     this.attachmentsDirty = true;
     const row = await Template.findByPath(path);
     if (!row) {
-      await this.removeRow(path);
+      await this.removeRowImpl(path);
       return;
     }
     const kind = await this.kindOf(row.class);
@@ -209,16 +209,71 @@ export default class LocationGraphRegistry extends Idea {
     } else if (kind === 'warren') {
       await this.writePlanNodes(row, this.generation);
     } else {
-      await this.removeRow(path);
+      await this.removeRowImpl(path);
     }
   }
 
   /** Drop every node this row produced. */
   @CallSecurity(NavigationLogicOnly)
   public async removeRow(path: string): Promise<void> {
+    return this.removeRowImpl(path);
+  }
+
+  /**
+   * {@link removeRow}, UNGATED and private — `projectRow`'s self-call went
+   * through the gate as a call from the registry and was denied (the
+   * `rebuildImpl` split, for the same reason). Found by zone-instancing
+   * A3: re-projecting a row that is not a place had always thrown, and
+   * `DomainHook` recorded it as a warning.
+   */
+  private async removeRowImpl(path: string): Promise<void> {
     this.attachmentsDirty = true;
     const existing = await PlaceNode.find<PlaceNode>({ template: path });
-    for (const row of existing) await row.delete();
+    // A copy's nodes are not this row's: they leave with their copy.
+    for (const row of existing) if (row.origin !== 'copy') await row.delete();
+  }
+
+  /**
+   * ⭐ Record a standing COPY's rooms (zone-instancing D7): one node per
+   * room, upserted on its handle, its zone the copy's identity. Nodes this
+   * copy recorded before and no longer has are dropped. Called by the
+   * minting warren at every wake; a copy that sleeps keeps its nodes.
+   */
+  @CallSecurity(NavigationLogicOnly)
+  public async recordCopy(zone: string, rooms: readonly CopyRoom[]): Promise<number> {
+    const keep = new Set(rooms.map((r) => r.identity));
+    for (const stale of await PlaceNode.find<PlaceNode>({ zone })) {
+      if (stale.origin === 'copy' && !keep.has(stale.identity)) await stale.delete();
+    }
+    for (const room of rooms) {
+      const node = (await this.findNode(room.identity)) ?? new PlaceNode();
+      node.identity = room.identity;
+      node.template = room.template;
+      node.origin = 'copy';
+      node.zone = zone;
+      node.address = room.address;
+      node.coords = room.coords;
+      node.edges = await this.edgesOf({ exits: room.exits });
+      node.published = this.publishedAt(zone);
+      node.travel = null;
+      // A way out of a copy is a way out of its zone: every edge that does
+      // not lead to a sibling room of this copy crosses.
+      node.crossesZone = node.edges.some((e) => {
+        const to = e.to ?? e.toPath;
+        return typeof to === 'string' && !keep.has(to);
+      });
+      node.generation = this.generation;
+      await node.save();
+    }
+    return rooms.length;
+  }
+
+  /** The copy is gone for good: drop every node it recorded. */
+  @CallSecurity(NavigationLogicOnly)
+  public async retireCopy(zone: string): Promise<number> {
+    const nodes = (await PlaceNode.find<PlaceNode>({ zone })).filter((n) => n.origin === 'copy');
+    for (const n of nodes) await n.delete();
+    return nodes.length;
   }
 
   /** Re-read `published` for every node under `extent`. */
@@ -577,7 +632,9 @@ export default class LocationGraphRegistry extends Idea {
   @CallSecurity(NavigationLogicOnly)
   public async checkGraph(scope?: string): Promise<GraphFinding[]> {
     await this.ensureWarm();
-    const all = await this.allNodes();
+    // ⭐ The invariants judge AUTHORED content; a copy's soundness is its
+    // plan's, checked from the rows by `lint:locations` (D7).
+    const all = (await this.allNodes()).filter((n) => n.origin !== 'copy');
     const nodes: GraphNode[] = all.map((n) => n.toGraphNode());
     this.markEntrances(nodes);
     return new GraphInvariants(nodes).findings(scope);
@@ -683,8 +740,10 @@ export default class LocationGraphRegistry extends Idea {
 
   /** Drop every node NOT stamped with `generation` — the rebuild sweep. */
   private async sweepStaleGenerations(generation: number): Promise<number> {
+    // ⭐ A copy's node is not derivable from the rows, so no rebuild can
+    // sweep it: it leaves only by `retireCopy` (zone-instancing D7).
     const stale = (await this.allNodes()).filter(
-      (n) => n.generation !== generation,
+      (n) => n.origin !== 'copy' && n.generation !== generation,
     );
     for (const row of stale) await row.delete();
     return stale.length;

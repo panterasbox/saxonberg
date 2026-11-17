@@ -22,9 +22,13 @@
  * whose effective class composes `SingletonMixin`, plus every
  * circulation node a warren's `PlatPlan` declares. Every other location
  * row describes a KIND of place, minted many times through a warren or
- * a programme, and is deliberately absent: the elastic half of the
- * world is perceived live and never stored. A holding's interior is
- * somebody's house behind a gate, and the gate is all the graph knows.
+ * a programme, and is absent AS A ROW. ⭐ Each standing COPY of a plan —
+ * a house, a dorm unit, a ship's decks — is recorded as itself instead
+ * (`origin: 'copy'`, zone-instancing D7): one node per room, keyed on the
+ * room's durable handle, written by its warren at wake and retired when
+ * the copy is destroyed. Those are the one part of this collection the
+ * rows cannot rebuild; a dropped collection gets each back at its copy's
+ * next wake.
  *
  * A RECORD, like `ParcelRecord` — a `Document`, not a `Stuff`. Nothing
  * composes it and nothing clones it; `lint:instanceable`'s invariants
@@ -84,6 +88,26 @@ export interface StoredEdge extends GraphEdge {
    * projecting one flag.
    */
   conditional?: boolean;
+}
+
+/**
+ * ⭐ One room of a standing COPY, as its warren hands it to the index
+ * (zone-instancing D7) — already read through the copy: its ways leading
+ * inside the plan rewritten to the sibling room's handle, every direction
+ * and the cell reflected by the copy's mirror. The registry projects it
+ * through the same edge reader as a row, so there is one projection.
+ */
+export interface CopyRoom {
+  /** The room's durable handle (`<row>#<key>`) — the node's identity. */
+  identity: string;
+  /** The plan row it was cloned from. */
+  template: string;
+  /** Its cell on the copy's grid (mirrored), or null. */
+  coords: [number, number, number] | null;
+  /** The address the warren stamped on it, or `''`. */
+  address: string;
+  /** Its ways, as authored specs with this copy's destinations. */
+  exits: Record<string, Record<string, unknown>>;
 }
 
 export class PlaceNode extends Document {
@@ -149,8 +173,14 @@ export class PlaceNode extends Document {
    */
   published: boolean = true;
 
-  /** `template` (a content row) or `plan` (a warren's circulation node). */
-  origin: 'template' | 'plan' = 'template';
+  /**
+   * `template` (a content row), `plan` (a warren's circulation node), or
+   * `copy` (a room of a standing COPY of a plan — a house, a dorm unit, a
+   * ship's deck; zone-instancing D7). ⚠ A copy node is the one origin the
+   * rows cannot rebuild: it is written when the copy wakes, survives a
+   * rebuild's sweep, and leaves only when the copy is destroyed.
+   */
+  origin: 'template' | 'plan' | 'copy' = 'template';
 
   /**
    * What a travel network advertises here, when a stop sits on this
