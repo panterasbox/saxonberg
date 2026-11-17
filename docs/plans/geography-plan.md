@@ -620,6 +620,22 @@ invalidation. *Acceptance:* `skylineNow` answers from rows alone with
 `StuffApi.findByTemplatePath(structure) === undefined`. *Commit:*
 `feat(geography): the location graph keeps what stands tall, and a skyline per vantage`.
 
+✅ **W2 done.** As planned (`deriveMarks` at the end of `deriveAttachments`,
+`markLive`/`unmarkLive` in attach/detach, a fenced private section), plus:
+- `NavigationApi.markPointNow(path)` — a structure row's OWN point (authored
+  or its sea node) for every structure, tall or not; `Structure.chartPoint()`
+  reads it (S8's hook from W1, now live).
+- `skylineNow(vantage, {own, keepAs, nearM})`: `nearM` lists a mark inside
+  the viewer's Locality radius whatever the curvature (*close by* must not
+  depend on height). A dirty read kicks the re-derive and answers unkept.
+- ⚠ **Pre-existing defect fixed:** `projectRow` self-called the gated
+  `removeRow` through the proxy, so every save of a non-place row (a
+  building, a business) threw `SecurityError` into `DomainHook`'s
+  diagnostic. Split into a private `removeRowImpl`.
+- `Vantage` added to `lint:object-verbs`' value-type list (beside `Light`).
+- The landmark-has-a-point check in `lint:location-graph` moves to **W3**:
+  it is red until the Terminal has a point.
+
 **W3 — The content stage.** D12, D6 (rows), Q1, Q2 (craft rows), Q5 (Mayfield Row's address).
 `packages/content/platform/content/platform/idea/Locality/terminus-city.yaml`;
 `packages/content/world-seed/content/stuff/idea/Locality/{hinkley-hills,hearts-delight,rejection}.yaml`;

@@ -97,6 +97,7 @@ import { Paint } from '../material/Paint';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { MaterialApi } from '../../api/material';
+import { NavigationApi } from '../../api/navigation';
 
 /**
  * ⭐ A structure's outside, as facts (paint D13) — what `analyze condition`
@@ -222,7 +223,8 @@ export default class Structure extends DetailedMixin(
    *   craft is asked for its fix instead (`Positioned`), never this.
    */
   public chartPoint(): GeoPosition | null {
-    return null;
+    const self = this.getTemplatePath();
+    return self ? NavigationApi.markPointNow(self) : null;
   }
 
   /** Does it show a light by night? */

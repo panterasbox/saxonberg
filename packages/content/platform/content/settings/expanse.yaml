@@ -36,3 +36,15 @@ settings:
   # minutes, and says only what came into or went out of view.
   - key: perception.watchGameMinutes
     value: "5"
+  # ⭐ The skyline (geography D1/D2): a structure is worth seeing from afar
+  # when it is a landmark or stands at least this many meters tall.
+  - key: perception.skyline.minHeightM
+    value: "12"
+  # How many structures beyond the landmarks a skyline names — the most
+  # prominent first (how tall each stands in the eye).
+  - key: perception.skyline.size
+    value: "7"
+  # At or below this sky factor it is night for the skyline: only a
+  # structure that shows a light is seen (geography D6).
+  - key: perception.skyline.darkSkyFactor
+    value: "0"
