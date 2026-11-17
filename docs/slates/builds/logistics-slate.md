@@ -792,3 +792,107 @@ on, a scale, and `coldStorage` with no default.
   `driver:1` is an adornment slot, the barge has none, the wagon no slots), and
   `journey` is what moves a vehicle. Step 21 of that build's drive dropped the
   claim on 2026-11-07.
+
+## ⭐⭐⭐ Cargo through terminals — goods between places the TPA alone connects **[LEAN; owner direction 2026-11-16]**
+
+Talked through with the owner from Dave's Bar, which is fed over the TPA because the lounge is off
+the map. *"Logistics has two problems to solve: moving things between connected places not by
+teleport; then, for two disconnected places, you must teleport, so how does that happen in those
+cases? And what stops the second case from absorbing the first one?"*
+
+**Why the shipped rule does not answer it.** The TPA moves people and what they can carry, with
+encumbrance as the only limit, per trip ([logistics.md](../../subsystems/logistics.md)). A ride's
+price scales with mass and height climbed, not distance, so a level hop costs almost nothing and
+a downhill one nothing at all. Repeated trips therefore move a wagonload between any two terminals
+for close to free: **the second case absorbs the first wherever two places both have a terminal.**
+
+**Terminals (the owner's word; never "gateways") are authored, judicious and few.** One graph, one
+namespace. The permanent ones today:
+
+1. **the Terminus arrival terminal**, at the TPA Terminal in the city: passengers;
+2. **the lounge terminal**: the lounge's only terminal, passengers and cargo;
+3. ⭐ **a cargo terminal on the Terminus wharf** (new), where ground freight already ends: the quay
+   depot and warehouse stand there, where the river lane and the wheeled road meet. The owner:
+   *"if you can get your gin to the harborside TPA location in Terminus then you can get it to the
+   Lounge."*
+
+Everything else (Hinkley Hills, newbie-wilds, Terminus departure terminals A–C) is placeholder.
+
+**The rules:**
+- **What fits on your person rides everywhere**, through any terminal.
+- **What doesn't goes through a cargo terminal.** That is what a cargo terminal *is*: the place a
+  person may teleport with a load bigger than they can carry. A teleport cuts a hitched cart loose
+  everywhere else; **at a cargo terminal the cart rides with you**, so the far end is an ordinary
+  wheel-it-in delivery.
+- **⭐ Cargo always travels with a person.** Unaccompanied freight held for collection works for
+  the well connected and leaves a lone player's crate unattended; the owner: *"if they don't travel
+  together you're introducing risk that scales for people with poor connections."* One trip, one
+  person responsible end to end. A courier is a job a player can be hired for.
+- **The fare scales with the load**, for teleporters too (the owner: *"I'm fine with scaling
+  freight costs even for teleporters"*). That also closes the many-trips leak.
+- **Each terminal declares what it carries** (passengers, cargo, both), on the one graph. The
+  sparse cargo network is the few terminals that accept cargo. That is not a second graph, and it
+  does not restate the terminal graph (the deleted `tpa` lane's lesson).
+- **What stops absorption is shape, not price:** cargo crosses only between cargo terminals, which
+  are few and sit where ground freight already concentrates, so everything else still moves over
+  ground.
+
+**⭐ The light on a terminal's name says what kind it is (DECIDED — the owner, 2026-11-16).** Today
+the name's color carries two axes at once: direction (blue arrival, red departure, purple both)
+and status (amber, grey) ([fasttravel.md](../../subsystems/fasttravel.md)). Adding cargo would make
+three. So:
+
+| the light | means |
+|---|---|
+| **unlit** (the name in plain text) | no power: out of service, or *dry* (below the arming floor). The owner: *"out of service should just be the light is off, it doesn't need a color."* |
+| **blue** | passenger |
+| **red** | freight |
+| **purple** | both (red and blue light make purple, the shipped palette's own mixing rule) |
+
+- **Direction moves into words.** Terminus already names its rooms the arrival gate and the
+  departure gates, and almost every terminal is both ways anyway.
+- **Amber moves to the departure board.** It never described the terminal: it means *the
+  terminal's own charge is short for the selected ride* (it still runs a ride you power, and a
+  cheaper ride unfunded; *"`overdrawn` is a relationship, not a property"*). The board already shows
+  per-route fares and how your ride's mana will be paid, so the route line says it: *"this route:
+  bring your own mana."*
+- The lounge terminal, the one that matters most, stays purple.
+- `look` still spells everything out in words, so nothing depends on color alone.
+
+**Unit loads, up to the container.** The owner: *"it needs to scale up to at least airplane sizes
+if not cargo ships … the shipping container … that also rides on trucks too."* Containerization's
+insight was one standard unit every mode handles without unloading (Intermodal container,
+Q187956; Unit load, Q625277). So a cargo terminal moves **unit loads**, a family of standard units
+each mode carries as it can:
+
+| unit | rough size | who moves it |
+|---|---|---|
+| crate, barrel | tens of kg | your back, a handcart |
+| pallet (Q505996) | about 1,000 kg | a wagon, a cart with a jack |
+| container | tens of tonnes | rail, barge, a lorry |
+
+- A container cannot roll two exits to a bar: it is unloaded at a dock first and broken down into
+  crates (stripping, break-bulk).
+- The anachronism guard holds: *every anachronism must be economically motivated*. Containers
+  where volume justifies them; for Dave's rail, crates and pallets.
+
+**Goods faucets yes, money faucets no; exports are the courier trade.** An import is a goods
+faucet whose goods meet player demand before they become money
+([bar-audition § 19](./bar-audition-slate.md)). Three shapes of export were weighed against the
+owner's tests (keep mistakes local; player-to-player; not gameable):
+1. ⛔ **An export desk that pays money:** the vendor-trash faucet that inflates every MMO.
+2. ⛔ **A gateway barter, goods for goods:** conserves money but links disconnected economies, so
+   one broken faucet floods the others; also an automated market.
+3. ⭐ **Players are the export market.** Value per kilogram decides what travels: light, valuable
+   goods cross in a satchel, bulk pays the cargo terminal. The price gap between places is the
+   merchant's wage.
+
+**Open:**
+- Where at the lounge cargo lands, if the lounge's passenger terminal moves between rooms to
+  balance load ([lounge-slate § The moving terminal](./lounge-slate.md)): perhaps a cellar cargo
+  terminal, so freight stays out of the arrival logic.
+- Who runs the cargo terminal and sets its fare (the TPA Authority, a corpo, the polity). Fare and
+  placement are levers, so they are governance.
+- Whether the lounge's exits admit wheels from its terminal to the bar (a content check).
+- Whether the industrial floors keep their works boards.
+
