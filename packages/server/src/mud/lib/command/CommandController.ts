@@ -435,7 +435,10 @@ export abstract class CommandController<
    */
   protected reachableMarks(giver: Stuff): Stuff[] {
     const out: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) out.push(...giver.getContents());
+    // ⭐ What the giver carries WHERE IT SITS (D-W10-1; W9: a pocket's thing
+    // is its coat's contents, a bag's the bag's) — held, worn, in an open
+    // pocket or satchel on them; never behind a shut lid or packed.
+    out.push(...PerceptionApi.reachableAmong(giver, PerceptionApi.reach(giver, { pools: ['inventory'] }).map((r) => r.stuff)));
     if (MixinApi.isContainable(giver)) {
       const env = giver.getContainer();
       if (env && MixinApi.isContainer(env)) {

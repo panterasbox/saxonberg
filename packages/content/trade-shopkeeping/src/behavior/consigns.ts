@@ -221,7 +221,8 @@ export const brain = class {
     // inventory that grows without bound makes each consign slower than
     // the last. A profile of the running server put 54% of the process
     // in `ShelfConsignController → activeHouse → activeCredential`.
-    const before = new Set(hand.getContents().map((c) => c.stuffId));
+    // Everything carried (W9: a take may be pocketed, not held).
+    const before = new Set(hand.getCarriedContents().map((c) => c.stuffId));
     for (const good of goods) {
       const kw = keywordOf(good);
       if (!kw) continue;

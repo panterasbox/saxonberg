@@ -204,16 +204,9 @@ export const brain = class {
     }
 
     // ── the back half: the consigns tail, verbatim guards ──
-    // What the hand carries: its contents, and what is in the pockets of
-    // what it wears — a pocketed take is the garment's contents (W9).
-    const onHand: Stuff[] = [];
-    for (const c of hand.getContents() as Stuff[]) {
-      onHand.push(c);
-      if (!MixinApi.isContainer(c) || c.isAgent()) continue;
-      for (const p of c.getContents() as Stuff[]) {
-        if (MixinApi.isContainable(p) && p.getPlacement()?.host.stuffId === c.stuffId) onHand.push(p);
-      }
-    }
+    // What the hand carries: the whole carried tree — a pocketed take is
+    // the garment's contents, a bagged one the bag's (W9).
+    const onHand = hand.getCarriedContents() as Stuff[];
     const carried = onHand.filter(
       (c) =>
         MixinApi.isChattel(c) &&

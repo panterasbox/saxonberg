@@ -152,7 +152,8 @@ function bricksNeeded(furnace: Stuff): number {
 /** Firebricks in hand, counting a stack by its quantity. */
 function firebrickHeld(keeper: Keeper): number {
   let n = 0;
-  for (const g of keeper.getContents() as Stuff[]) {
+  // Everything carried (W9: a pocketed brick is its coat's contents).
+  for (const g of keeper.getCarriedContents() as Stuff[]) {
     if (!MixinApi.isPerceptible(g) || !g.getKeywords().includes(FIREBRICK)) continue;
     n += MixinApi.isStackable(g) ? g.getQuantity() : 1;
   }
