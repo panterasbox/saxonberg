@@ -14,7 +14,8 @@
  * `crowd.soak.wire.test.ts`. No `eval`, no wizard: thirty ordinary players.
  */
 
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { Worker } from 'worker_threads';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { Session, uniqueHandle, SERVER_URL } from './session';
@@ -26,6 +27,12 @@ const WALK_IN = 'go southwest';
 
 /** The number D27 fixes: the crowd that pegged the core. */
 export const CROWD_SIZE = Number(process.env.WIRE_CROWD_SIZE ?? 30);
+const CROWD_SIZE_DEFAULT = CROWD_SIZE;
+
+/** What `runCrowd` may be told (crowded-rooms D11): the crowd's size. */
+export interface CrowdOptions {
+  size?: number;
+}
 
 /** p50/p95/max of a set of round trips, in milliseconds. */
 export interface Timing {
@@ -41,10 +48,27 @@ export interface LoopRead {
   max: number;
   over100: number;
   over500: number;
+  /**
+   * The server's OWN loop-delay histogram across the phase (`/stats.loop`,
+   * read at both ends and subtracted) — diagnosis beside the `/healthz` gate,
+   * never the argument for a pass (crowded-rooms D12). Null on a server that
+   * does not report it.
+   */
+  server: { count: number; over100: number; maxMs: number; p99Ms: number } | null;
+  /** The server process's CPU across the phase, in cores (user + system). */
+  serverCores: number | null;
+}
+
+/** The box's load around a run: nothing timed is honest without it. */
+export interface BoxLoad {
+  loadStart: number[];
+  loadEnd: number[];
+  cores: number;
 }
 
 export interface CrowdRecord {
   size: number;
+  box: BoxLoad;
   /** One login, socket to first room, with the crowd standing so far. */
   logins: Timing;
   /** speaker → the most times ONE arriver heard that speaker greet them. */
@@ -67,6 +91,11 @@ export interface CrowdRecord {
   /** One witness's frames per second while the room stood idle. */
   idleLinesPerMinute: number;
   loop: LoopRead;
+  /**
+   * The server's uptime (seconds) at each phase boundary — the key a CPU
+   * profile is sliced by (crowded-rooms W0).
+   */
+  marks: Record<string, number | null>;
   /** What the server remembers of bodies after the crowd signed out. */
   statsObjectsBefore: number | null;
   statsObjectsAfter: number | null;
@@ -85,28 +114,98 @@ function timing(values: number[]): Timing {
   };
 }
 
-/** Sample `/healthz` every 500 ms until stopped: the owner's own measure. */
-function sampleLoop(): () => Promise<LoopRead> {
+interface ServerStats {
+  cpu?: { user: number; system: number };
+  loop?: { count: number; over100: number; maxMs: number; p99Ms: number };
+  uptime?: number;
+  objects?: number;
+}
+
+async function serverStats(): Promise<ServerStats | null> {
+  const res = await fetch(`${SERVER_URL()}/stats`).catch(() => null);
+  if (!res?.ok) return null;
+  return ((await res.json().catch(() => null)) as ServerStats | null) ?? null;
+}
+
+/** `/proc/loadavg`'s three figures; empty off Linux. */
+export function boxLoad(): number[] {
+  try {
+    return readFileSync('/proc/loadavg', 'utf8').split(' ').slice(0, 3).map(Number);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The worker's body: fetch `/healthz` every 500 ms and post each round trip.
+ * ⭐ It runs on its OWN thread (crowded-rooms D12) — the vitest main thread
+ * also holds thirty sockets, and a sampler that shares their loop measures
+ * the harness as much as the server.
+ */
+const SAMPLER = `
+const { parentPort, workerData } = require('worker_threads');
+let running = true;
+parentPort.on('message', (m) => { if (m === 'stop') running = false; });
+(async () => {
+  while (running) {
+    const start = performance.now();
+    await fetch(workerData.url + '/healthz').catch(() => undefined);
+    const took = performance.now() - start;
+    parentPort.postMessage(took);
+    await new Promise((r) => setTimeout(r, Math.max(0, 500 - took)));
+  }
+  parentPort.postMessage('done');
+})();
+`;
+
+/**
+ * Sample `/healthz` every 500 ms until stopped — the owner's own measure —
+ * from a worker thread, and read the server's own loop histogram and CPU at
+ * both ends.
+ */
+export function sampleLoop(): () => Promise<LoopRead> {
   const taken: number[] = [];
-  let running = true;
-  const loop = (async () => {
-    while (running) {
-      const start = performance.now();
-      await fetch(`${SERVER_URL()}/healthz`).catch(() => undefined);
-      const took = performance.now() - start;
-      taken.push(took);
-      await new Promise((r) => setTimeout(r, Math.max(0, 500 - took)));
-    }
-  })();
+  const startStats = serverStats();
+  const startWall = performance.now();
+  const worker = new Worker(SAMPLER, { eval: true, workerData: { url: SERVER_URL() } });
+  let finished: () => void = () => undefined;
+  const done = new Promise<void>((r) => (finished = r));
+  worker.on('message', (m: number | string) => {
+    if (m === 'done') finished();
+    else if (typeof m === 'number') taken.push(m);
+  });
+  worker.on('error', () => finished());
+  worker.on('exit', () => finished());
+  let read: LoopRead | null = null;
   return async () => {
-    running = false;
-    await loop;
-    return {
+    if (read) return read;
+    worker.postMessage('stop');
+    await Promise.race([done, new Promise((r) => setTimeout(r, 5_000))]);
+    await worker.terminate();
+    const [a, b] = [await startStats, await serverStats()];
+    const wallS = (performance.now() - startWall) / 1000;
+    let server: LoopRead['server'] = null;
+    if (a?.loop && b?.loop) {
+      server = {
+        count: b.loop.count - a.loop.count,
+        over100: Math.max(0, b.loop.over100 - a.loop.over100),
+        maxMs: b.loop.maxMs,
+        p99Ms: b.loop.p99Ms,
+      };
+    }
+    const serverCores =
+      a?.cpu && b?.cpu && wallS > 0
+        ? Math.round(((b.cpu.user + b.cpu.system - a.cpu.user - a.cpu.system) / 1e6 / wallS) * 1000) / 1000
+        : null;
+    read = {
       samples: taken.length,
       max: Math.round(Math.max(0, ...taken)),
       over100: taken.filter((t) => t > 100).length,
       over500: taken.filter((t) => t > 500).length,
+      server,
+      serverCores,
     };
+    return read;
   };
 }
 
@@ -137,21 +236,31 @@ function speakersTo(text: string, whom: string): string[] {
  * Stage the crowd, take every measure, and sign everybody out. Prints the
  * record and leaves a copy at `.wire/crowd-<label>.json`.
  */
-export async function runCrowd(label: string): Promise<CrowdRecord> {
+export async function runCrowd(label: string, opts: CrowdOptions = {}): Promise<CrowdRecord> {
+  const CROWD_SIZE = opts.size ?? CROWD_SIZE_DEFAULT;
+  const loadStart = boxLoad();
   const statsObjectsBefore = await objectCount();
+  const marks: Record<string, number | null> = {};
+  const mark = async (name: string): Promise<void> => {
+    marks[name] = (await serverStats())?.uptime ?? null;
+  };
+  await mark('loginsStart');
   const crowd: Session[] = [];
   const logins: number[] = [];
   for (let i = 0; i < CROWD_SIZE; i++) {
+    if (i === CROWD_SIZE - 5) await mark('lastFiveLoginsStart');
     const start = performance.now();
     crowd.push(await Session.open(uniqueHandle(`crowd${i}`), { startLocation: STAGING }));
     logins.push(performance.now() - start);
   }
+  await mark('loginsEnd');
   const first = crowd[0]!;
   const stop = sampleLoop();
   try {
     // ── arrivals, one at a time. A walk's envelope is the arrival. ──
     const walks: number[] = [];
     for (const s of crowd) walks.push(await timed(s, WALK_IN));
+    await mark('walksEnd');
     // The greeting is a beat; let the last of them land.
     const heardByEach = await Promise.all(
       crowd.map((s) => s.listen(8_000, { sinceDrain: true })),
@@ -176,6 +285,7 @@ export async function runCrowd(label: string): Promise<CrowdRecord> {
     const greetingsInQuiet = speakersTo(quiet, '').length;
     const idleLinesPerMinute = quiet.split('\n').filter(Boolean).length * 2;
 
+    await mark('quietEnd');
     // ── one person types in a crowd. ──
     const one: number[] = [];
     for (let i = 0; i < 20; i++) one.push(await timed(first, `say hello number ${i}`));
@@ -201,8 +311,10 @@ export async function runCrowd(label: string): Promise<CrowdRecord> {
       burstHeardMs = performance.now() - start;
     }
 
+    await mark('speechEnd');
     const record: CrowdRecord = {
       size: CROWD_SIZE,
+      box: { loadStart, loadEnd: [], cores: 0 },
       logins: timing(logins),
       greetedOwnMax,
       greetingsToArrivers,
@@ -215,12 +327,14 @@ export async function runCrowd(label: string): Promise<CrowdRecord> {
       burstHeardMs: Math.round(burstHeardMs),
       idleLinesPerMinute,
       loop: await stop(),
+      marks,
       statsObjectsBefore,
       statsObjectsAfter: null,
     };
     for (const s of crowd) s.close();
     await new Promise((r) => setTimeout(r, 3_000));
     record.statsObjectsAfter = await objectCount();
+    record.box = { loadStart, loadEnd: boxLoad(), cores: (await import('os')).cpus().length };
     report(label, record);
     return record;
   } finally {

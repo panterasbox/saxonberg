@@ -688,9 +688,12 @@ Each wave ends at one commit, passes `pnpm test:near`, every touched
 pack's own vitest and `lint:family`, and is landable alone. ⛔ `pnpm test`
 is not run in any wave.
 
-### W0 — Measure, then re-plan W4 and W5 in place
+### W0 — Measure, then re-plan W4 and W5 in place ✅ (record in § Drive record)
 
-No behavior change.
+No behavior change. *Done 2026-11-17.* `--cpu-prof` is refused in
+`NODE_OPTIONS` on Node 22, so `WIRE_CPU_PROF` rides `tsx`'s command line
+(`serverArgs()` in `boot.ts`). The record overturned the idle hypotheses:
+the leading class is a body read that reconciles the body (B1/B2).
 
 - `services/Server.ts`: `/stats` gains `cpu` and the cumulative `loop`
   (N12).
@@ -1043,6 +1046,82 @@ and at `/finalize`, and a green run stands until a source file changes.
     § Attach or own, § Test the WAKE.
 
 ## Drive record
+
+### W0 record (2026-11-17) — shares, not times
+
+One profiled world (`WIRE_CPU_PROF`, build-1, port 2014), sliced by the
+server's own uptime (`CrowdRecord.marks`). ⚠ **Busy box** (siblings' worlds
+and suites; 1-minute load 3.6 → 15.5 across the idle window, ~11 in the
+crowd), so every time below is an upper bound and only the **shares** are
+evidence (D12).
+
+| window | wall | server CPU | `/stats.loop` over 100 ms | profile busy |
+|---|---|---|---|---|
+| idle, nobody logged in (uptime 171–771 s) | 600 s | **0.81 core** | 353 (max 7.6 s) | 63.8% of a core |
+| crowd of 30 (logins → speech, 830–1204 s) | 374 s | 1.26 cores (walk/speech phase) | 27 in-phase (max 10 s) | 99.2% |
+| the last five logins (990–1018 s) | 28 s | — | — | 89.5% |
+
+Crowd record (busy box): login p50 4.9 s / p95 14.9 s; arrival walk p95
+10.0 s; `say` alone p50 517 ms / p95 2.7 s; in turn p95 656 ms; all at once
+p95 5.0 s; greetings 1 per greeter per arriver, 0 in quiet (D27 holds).
+
+**Cost classes, by inclusive share** (proxy/security frames filtered; shares
+overlap, since one stack can sit under several):
+
+| class | idle | crowd | login | where |
+|---|---|---|---|---|
+| **B1 a body's size read reconciles the body** — `crossExit` / `move` → `Container.fitRefusal` → `Shaped.getDimensions` → `Creature.getVolumeM3` → `getBodyDensity` → `Metabolic.getReserve` → `reconcileMetabolism` → `thermalMultiplier` → `ThermalRegulation.reconcileThermalRegulation` → `Attired.bodyInsulation` → `Wearable.getClo` | ~22% | ~24% | ~21% | `lib/creature/Creature.ts`, `lib/metabolism/Metabolic.ts` |
+| **B2 a sight gate reconciles the viewer** — `describeFor` → `canSeeGate` → `VisionModality.perceivedBand` → `Actor.perceivedBandModifier` → `hasCausticAtHead` → `Vitals.getConditions` → `reconcileConditions` (→ thermoregulation, `noticeGripLost`) | ~10% | ~20% | (in `describeFor` 44%) | `lib/creature/Actor.ts`, `lib/vitals/Vitals.ts` |
+| **B3 an unheld light walk per described row** — `ProfileLogic.composeRow` (the roster) → `describeFor` → `walkLight` | — | — | **25% / 27%** | `lib/social/NotifyPolicy.ts`, `ProfileLogic.ts` |
+| **S subscription re-resolve** (W2/W3's) | — | 13.8% | — | `MqlSubscriptionRegistry.reresolveAndEmit` |
+| **M the mould's read-driven set** (W1's) | 2.9% | — | — | `Mould.getContents` |
+| **Sc Scene render** to the place | — | 10.7% | — | `Scene.#dispatch` |
+| **A NPC acts** — `GetController` 12.8%, `LookController.lookAtLocation` 4.6%, `EmploymentLogic` roster tick 2.7%, `_deliberate` 2.5% | ~25% | ~12% | — | the brains' `act`s, through real dispatch |
+| **P the call-security / proxy tax** — `findDescriptor`, proxy `get`, policy resolution, `_pushFrame` | **~60% of SELF time** in every window | | | `api/proxy.ts`, `api/security.ts` |
+
+What this says:
+
+1. **The hypotheses were the wrong shape.** I1 (`urgency()`) is 2.5%; I3
+   (unwatched Scenes) and I4 (recurring ticks) are small. The dominant
+   class is **the read that writes, on BODIES**: B1 and B2 are the same
+   defect as the mould's — a read (a size, a sight gate) that integrates a
+   body's metabolism and thermoregulation to now. They run under every
+   move, every crossing and every `describeFor`, for players and NPCs alike,
+   so they dominate idle (NPCs on errands), crowd and login together.
+2. **Subscriptions are 14% of a crowd**, not the whole of it. W2/W3 stand.
+3. **The proxy tax is the floor under everything**: the same work costs
+   several times its own body in `findDescriptor` / policy resolution. It
+   is not this build's to fix (a security-layer build) and is recorded as
+   a deferred seam with these numbers.
+
+**The static censuses** (2026-11-17, read-only):
+
+- **Fire sites × descriptors.** 29 fire sites, all kernel; 23 descriptor
+  tables, none in packs. Fields nothing fires: `borneBurden`,
+  `carryCapacity`, `loadRatio`, `exits`, `bodyState`, `brand`/`corpo`, every
+  Party field but `name`. `BeliefStore` fires nothing from any mutator
+  (`know` ~l.568, `forget` ~l.679, `forgetField` ~l.686, `loadBelief`
+  ~l.712, `clearBeliefs` ~l.716, `evictAndFlushBeliefs` ~l.737,
+  `learnIdentityOf` ~l.761, `adjustRegard` ~l.823, `setRegard` ~l.863,
+  `clearRegard` ~l.876). Descriptors reading other Stuff unprojected:
+  `displayName` (belief, light, mask, carry tier), `longDescription` (the
+  augmenters), `borneBurden`/`loadRatio` (every carried item), `exits`.
+  Light is never a dependency.
+- **Unwatched brains.** 43 declare `presenceGated = false`; ~20 have a
+  heavy `urgency()` (room-content walks; registry lookups or awaits in
+  restocks, eats, relines, stocks, consigns); ~20 return a constant
+  `wanted`, so their `act` runs every 120 s beat (hauls queries Mongo per
+  board; maintains walks all holdings; reads-air sends a Scene each beat).
+- **Standing ticks.** 18 `ScheduleApi.recurring` + ~11 game-clock
+  `every`/`cron`. Iterate-everything with no population early-out:
+  `ResidencyLogic` eviction sweep (60 s, every object), `Producer` /
+  `Consumer` / `Renown` recomputes (60 s, a full-collection `find({})`
+  each), `WatchWarden` (30 s), `AttendantLogic` (15 s), the hourly
+  `EmploymentLogic` and `ResidencyLogic` game-clock ticks, `ReactionRegistry`
+  (5 Hz, never disarmed), the `fire:tick` heartbeat (2.5 s). None
+  shows above ~3% in the idle profile.
+
+*(the checkpoint's decisions follow as D13 onward)*
 
 *(appended at build time)* — the W0 record and the checkpoint's decisions
 (D13 onward); W6's first quiet run; W7's full blocking drive with the load
