@@ -909,6 +909,14 @@ Decision: D10.
 - Acceptance: `lint:locations` green; removing `mintedBy` from one zone row,
   or `coords` from one plan row, fails it.
 - Commit: `feat(zone-instancing): A4 — lint:locations checks what content says about copies`.
+- ✅ **Done.** `copyDeclarations` (rules 1–4) and `unplottedPlanRows`
+  (the census, ceiling 3 = the smack's deck, cabin, hold) in
+  `check-location-classes.ts`. The two vocabularies are read off
+  `ZoneMinting.ts`'s source, not copied. Rows under a `MintedZone` leave
+  the plot rule's rosters (the Hinkley garden and the farmstead's tracts
+  and yard came off `WARREN_PLACED`). Proven on real content: deleting
+  `mintedBy` from `hinkley-hills/house.yaml` and `coords` from its hall
+  each fail the gate.
 
 **Checkpoint A** — write
 `packages/wire/tests/zone-instancing.dirty.wire.test.ts` with steps 1–6 and

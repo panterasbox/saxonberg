@@ -16,6 +16,8 @@ import { describe, it, expect } from 'vitest';
 import {
   classify,
   classifyMinted,
+  copyDeclarations,
+  unplottedPlanRows,
   orphanedZones,
   sameZoneNamedExits,
   unplottedLocations,
@@ -373,3 +375,82 @@ describe('check-location-classes.wayEdges — every way inside a zone is true to
   });
 });
 
+
+
+describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => {
+  const MZ = '/platform/idea/location/MintedZone';
+  const HW = '/system/residence/idea/HoldingWarren';
+  const ROOM = '/platform/location/PersistentLocation';
+  const zone = (mintedBy?: string): Row => ({
+    file: 'p/content/test/t/house.yaml',
+    cls: MZ,
+    coords: false,
+    exits: [],
+    fields: mintedBy ? { mintedBy } : {},
+  });
+  const prog = (fields: Record<string, string>): Row => ({
+    file: 'p/content/test/t/idea/prog.yaml',
+    cls: HW,
+    coords: false,
+    exits: [],
+    fields,
+  });
+  const room = (coords: boolean): Row => ({
+    file: 'p/content/test/t/house/hall.yaml',
+    cls: ROOM,
+    coords,
+    exits: [],
+    ...(coords ? { xyz: [0, 0, 0] as [number, number, number] } : {}),
+  });
+  const ok = { zoneNaming: 'key', joins: 'parcel', extent: '/test/t/house' };
+
+  it('a declared copy passes', () => {
+    expect(copyDeclarations([zone('/test/t/idea/prog'), prog(ok), room(true)])).toEqual([]);
+  });
+
+  it('1: a copied zone with no mintedBy, or naming a warren that mints nothing', () => {
+    expect(copyDeclarations([zone(), prog(ok), room(true)]).join('\n')).toMatch(/mintedBy/);
+    expect(
+      copyDeclarations([
+        zone('/test/t/other'),
+        { file: 'p/content/test/t/other.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
+        room(true),
+      ]).join('\n'),
+    ).toMatch(/mints no zones/);
+  });
+
+  it('2: a minting warren with a word outside the vocabulary', () => {
+    const f = copyDeclarations([zone('/test/t/idea/prog'), prog({ ...ok, zoneNaming: 'serial' }), room(true)]);
+    expect(f.join('\n')).toMatch(/zoneNaming 'serial'/);
+    const g = copyDeclarations([zone('/test/t/idea/prog'), prog({ ...ok, joins: '' }), room(true)]);
+    expect(g.join('\n')).toMatch(/joins ''/);
+  });
+
+  it('2: a minting warren no zone row names', () => {
+    expect(copyDeclarations([prog({ zoneNaming: 'key', joins: 'parcel' })]).join('\n')).toMatch(/no zone row names it/);
+  });
+
+  it('3: a plan whose extent is not a copied zone', () => {
+    const plain: Row = { ...zone(), cls: '/platform/idea/location/CartesianZone' };
+    expect(copyDeclarations([plain, prog(ok), room(true)]).join('\n')).toMatch(/not a copied zone/);
+  });
+
+  it('4: a room of a copied plan with no cell', () => {
+    expect(copyDeclarations([zone('/test/t/idea/prog'), prog(ok), room(false)]).join('\n')).toMatch(
+      /authors its cell/,
+    );
+  });
+
+  it('the census counts rostered plan rows with no cell', () => {
+    const smack = 'terminus/content/stuff/location/ship/smack/deck.yaml';
+    const kind: Row = {
+      file: 'terminus/content/stuff/idea/Ship/smack.yaml',
+      cls: '/platform/idea/Ship',
+      coords: false,
+      exits: [],
+      fields: { warren: '/stuff/idea/ShipWarren/smack', extent: '/stuff/location/ship/smack' },
+    };
+    expect(unplottedPlanRows([kind, { file: smack, cls: ROOM, coords: false, exits: [] }])).toEqual([smack]);
+    expect(unplottedPlanRows([kind, { file: smack, cls: ROOM, coords: true, exits: [] }])).toEqual([]);
+  });
+});
