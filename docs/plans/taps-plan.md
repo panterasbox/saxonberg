@@ -1435,7 +1435,7 @@ because W6 is rows over W5's classes and neither suite separates.
   window kinds, the act protocol, the per-tap states, the relief, the
   clock seam, the second-instance test) — the CLAUDE.md map line is left
   to the sweep (index-file rule).
-- `docs/slates/builds/climate-slate.md` (new, conflict-free): the 276 K
+- `docs/slates/engine/climate-slate.md` (new, conflict-free): the 276 K
   floor, the two rows that set a temperature, which dials move with a
   real winter (thermal, spoilage, freshness, soil moisture, the metabolic
   defaults), maple's freeze–thaw row as the first consumer.
@@ -1995,7 +1995,7 @@ row, `InstructController` + tests, the `keeps` brain + tests,
 `standing?: boolean` field on `CommandView` / `CommandDefinition` /
 `command.schema.json`** — which is what the user first noticed.
 
-**New:** `docs/slates/builds/standing-instructions-slate.md`, which
+**New:** `docs/slates/engine/standing-instructions-slate.md`, which
 asks the questions in the order they should have been asked: *may
 players automate labour at all* first, the seven lenses second, and ⭐
 *is automation even the right relief* — because the requirements named

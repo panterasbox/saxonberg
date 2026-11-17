@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch `renown`
 
-Slates: `docs/slates/builds/reputation-slate.md`,
-`docs/slates/builds/standing-mint-slate.md`.
+Slates: `docs/slates/society/reputation-slate.md`,
+`docs/slates/society/standing-mint-slate.md`.
 Insert-only target: `docs/subsystems/renown.md`. Anything belonging
 elsewhere (influence.md, participation.md, chronicle.md, belief.md,
 polity-decision-register.md, wiki.md, …) is a Handoff line, never an
@@ -49,7 +49,7 @@ edit to that doc.
   consumes it yet, but that gap is tracked in influence.md/
   participation.md's own Deferred lists, not here).
 
-## docs/slates/builds/reputation-slate.md — 364 → 343 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/reputation-slate.md — 364 → 343 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Second (narrative) status block (9 lines) — one-status-block rule; the
@@ -124,7 +124,7 @@ edit to that doc.
 - Size: a build → a build (unchanged — the remaining body is still
   build-sized: disguise-piercing, susceptibility, the revised feed)
 
-## docs/slates/builds/standing-mint-slate.md — 293 → 235 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/standing-mint-slate.md — 293 → 235 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED — decided-and-recorded, not code)
 - `## Part 2 — The scalar is produced by the DECISION, not the ledger`
@@ -159,7 +159,7 @@ edit to that doc.
   the two "opening arguments" that
   `polity-decision-register.md`'s Tier 3 bullet "What conduct confers
   standing, and at what weight — the mint" explicitly says are "handed
-  over intact in slates/builds/standing-mint-slate.md"** — the register
+  over intact in slates/society/standing-mint-slate.md"** — the register
   treats this slate as their canonical carrier, not a draft superseded
   by it. Kept in full for that reason.
 - Part 10's "**Defers**" and "**Never ours**" paragraphs, and

@@ -130,7 +130,7 @@ documented instance:
 
 That is Alexander's **inner contradiction**, introduced by the substrate
 into content that had no say. And it is the aesthetic case for the
-[base-class narrowing](../slates/builds/base-class-narrowing-slate.md)
+[base-class narrowing](../slates/tech-debt/base-class-narrowing-slate.md)
 work: `Concealable` on `Thing`, `Branded` on `Creature` — a wide class
 does not merely carry unused members, **it makes a claim about every
 thing an author builds with it.**

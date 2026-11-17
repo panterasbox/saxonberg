@@ -2,8 +2,8 @@
 
 Assigned slates:
 
-- `docs/slates/tails/affordance-verb-slate.md`
-- `docs/slates/tails/async-commands-slate.md`
+- `docs/slates/engine/affordance-verb-slate.md`
+- `docs/slates/engine/async-commands-slate.md`
 
 Doc-insert allowlist: `docs/subsystems/command-routing.md`,
 `docs/subsystems/spatial.md`. Anything belonging in another doc goes to
@@ -17,7 +17,7 @@ below, not re-derived.)
 
 ---
 
-## docs/slates/tails/affordance-verb-slate.md — 312 → 192 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/affordance-verb-slate.md — 312 → 192 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Verbs put / give + Surfaced — SHIPPED` (11 lines) — code:
@@ -103,7 +103,7 @@ nothing left to hand off)
 
 ---
 
-## docs/slates/tails/async-commands-slate.md — 283 → 83 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/async-commands-slate.md — 283 → 83 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Principle` (9 lines) — restates the shipped feature's motivation;

@@ -625,7 +625,7 @@ of presence, pure Mitra) versus *another's* taken (person-as-thing, pure Moloch)
 This is the "no-Jesus" answer at its root: a martyr is redeemed not by a dying
 *god* but by giving *himself* — a *human* self-gift, the highest presence.
 (Mechanics — the altar object, the kills-as-sacrifice rite, the patron/alignment
-taxonomy — live in `docs/slates/builds/altar-slate.md`.)
+taxonomy — live in `docs/slates/society/altar-slate.md`.)
 
 ## History — the five ages
 
@@ -1740,7 +1740,7 @@ mixed-species community of the deep — no "mining race"); their town-below wors
 **Goibniu**, patron of honest work, and holds a wary stance toward the coming
 Charter (recognition, or absorption?); its oldest, dearest quarter is a gnome
 diaspora neighborhood, **Gnometown**. *(Design detail:
-`docs/slates/builds/mining-slate.md`.)*
+`docs/slates/trades/mining-slate.md`.)*
 
 **The redemptive inversion — administered by office.** The Grounded Age answers
 with the founding's core move: the two powers the houses held by blood —

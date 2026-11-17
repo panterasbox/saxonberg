@@ -7,10 +7,10 @@ tokens; Spectral, Public Sans, Newsreader, Plex Mono; 3px radius).
 
 **Read the slates first. They are the decisions; these frames illustrate them.**
 
-- [client-surface-slate.md](../../slates/builds/client-surface-slate.md) —
+- [client-surface-slate.md](../../slates/client/client-surface-slate.md) —
   layout, width classes, the feed and the workspace, lifecycle, terminals
   as cards, the inspection card, the phone, and the bugs to file.
-- [illustration-slate.md](../../slates/builds/illustration-slate.md) —
+- [illustration-slate.md](../../slates/platform/illustration-slate.md) —
   images: one per row, declared shape, authored state only, the style
   guide still open.
 

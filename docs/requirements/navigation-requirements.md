@@ -20,9 +20,9 @@ breadcrumb read from the live world, a text compass, a list of ways out —
 and nothing on the client knows anything about a place you are not standing
 in. This build gives the client a **copy of your own knowledge**, kept
 current by the server, and draws the pane from it. Seeding slates:
-[map-slate](../slates/builds/map-slate.md) (§ The navigation pane, revised,
-and everything after it), [client-knowledge-model-slate](../slates/builds/client-knowledge-model-slate.md),
-[locality-knowledge-slate](../slates/builds/locality-knowledge-slate.md).
+[map-slate](../slates/client/map-slate.md) (§ The navigation pane, revised,
+and everything after it), [client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md),
+[locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md).
 The design canvas the owner iterated on (private): the pane, its looks, a
 behavior board, the **stacked** pane this doc follows, and the tooltips.
 
@@ -77,7 +77,7 @@ stacked pane — the ways from here, the selected place, the zone line; a
 breadcrumb from your own map, with a first visit writing the Locality into
 it; four lenses; a tooltip on every mark; and the direction glyphs the
 client does not have. The reuse ledger for the
-plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.md).
+plan is in [map-slate § Reuse ledger for the plan](../slates/client/map-slate.md).
 
 ## Goals
 
@@ -117,13 +117,13 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
 ## Non-goals
 
 - **Walking to a distant room, the step beat, pace-dependent noticing** →
-  [step-beat-slate](../slates/builds/step-beat-slate.md), the movement build
+  [step-beat-slate](../slates/engine/step-beat-slate.md), the movement build
   after controller-liquidity. Here a distant click shows the route only.
 - **New knowledge records** — your trail, notes and pins, prices seen, NPC
   hours learned, freshness bands — → the *your map grows* build
-  ([map-slate § Lenses](../slates/builds/map-slate.md)).
+  ([map-slate § Lenses](../slates/client/map-slate.md)).
 - **Staged versus persistent on the Zone card**, and freshness as
-  *restaged since you saw it* → [staging-slate](../slates/builds/staging-slate.md).
+  *restaged since you saw it* → [staging-slate](../slates/platform/staging-slate.md).
 - **Illustrated maps** (owned paper maps, *you are here*) → map-slate § The
   illustrated map; its own build.
 - **The room view** → map-slate § The room view; later.
@@ -133,11 +133,11 @@ plan is in [map-slate § Reuse ledger for the plan](../slates/builds/map-slate.m
   map for this kind of space yet* and the Ways-out list.
 - **The pane in modes other than Explore** → a later card-surface pass;
   untouched here (but its width is shared, below).
-- **The tooltip system itself** → [tooltip-slate](../slates/builds/tooltip-slate.md),
+- **The tooltip system itself** → [tooltip-slate](../slates/client/tooltip-slate.md),
   its own build, **before** this one; this build only supplies the map's
   tooltip content.
 - **A view of zones joined together** → map-slate § Zone level.
-- **Browsing your map records without moving** → [atlas-slate](../slates/builds/atlas-slate.md),
+- **Browsing your map records without moving** → [atlas-slate](../slates/client/atlas-slate.md),
   its own card; here only a one-hop lookahead (a way out's tooltip shows
   that zone as you know it, with *open in the atlas*).
 - **The card's small and large sizes** (the large one with full-size maps
@@ -236,13 +236,13 @@ in the zone.
 ### The whole card, and how it is fed **[DECIDED — the owner]**
 Widest to narrowest: you are here · in the world · the zone and its map ·
 the horizon · the structure · the ways · the place · you
-([map-slate § The whole card](../slates/builds/map-slate.md)). The place
+([map-slate § The whole card](../slates/client/map-slate.md)). The place
 name, the map and the ways are always open; every other section is one
 summary line, opened on click, its detail in its tooltip. A section with
 nothing to say is absent. While you move through more than one room, a
 movement block shows the movement — fed generically by whatever movement
 you are in. The server pushes the card's content in sections and sends only
-what changed ([navigation-server-slate § S18](../slates/builds/navigation-server-slate.md)).
+what changed ([navigation-server-slate § S18](../slates/engine/navigation-server-slate.md)).
 ⚠ This build ships the horizon, structure and you sections as far as their
 server items (S16, S17) land in the first pass; the movement block lands
 with the movement build.
@@ -260,7 +260,7 @@ Coordinates read `x: 2  y: 3  z: 0`, z stressed.
 
 ### Tooltips on the map **[DECIDED]**
 Every room, way, level, lens mark and control carries a tooltip in the
-app-wide model ([tooltip-slate](../slates/builds/tooltip-slate.md)): what
+app-wide model ([tooltip-slate](../slates/client/tooltip-slate.md)): what
 it is, everything you know of it with source and date, how to get there,
 and what a click would do — terms opening nested tooltips. Composed from
 your own knowledge, so they are instant and honest. No separate legend.
@@ -290,7 +290,7 @@ kind. A crumb opens the Locality as you know it.
 The Locality section's crumb tooltips and the Zone block, by zone kind —
 Cartesian, a frame inside one, aboard a ship, Spherical, an Expanse, moving
 water, the underwater column — are set in
-[map-slate § The Locality section and the Zone section](../slates/builds/map-slate.md).
+[map-slate § The Locality section and the Zone section](../slates/client/map-slate.md).
 Highlights a player sees: a crumb says who governs the place and who holds
 its seats, whether you live here, your standing here, the weather and a
 true forecast, and the lights tonight; the Zone block says how the space is
@@ -319,7 +319,7 @@ your setting — biome, place — shown apart from it.
 Anything that names an object's row — a template or identity path — is a
 spoiler on the appetite axis: hidden by default, shown by one deliberate
 click (*"What is this, really?"*) or by raising your appetite, never
-prevented ([spoiler-slate § Paths are a spoiler](../slates/tails/spoiler-slate.md)).
+prevented ([spoiler-slate § Paths are a spoiler](../slates/platform/spoiler-slate.md)).
 The zone shows a derived label by default; its path is that kind of
 spoiler.
 
@@ -327,7 +327,7 @@ spoiler.
 Every field on the pane and its tooltips is sourced from what the client
 already holds, the copy of your map this build adds, or a cached round
 trip — and what the server does not yet have is listed, item by item, in
-[navigation-server-slate](../slates/builds/navigation-server-slate.md)
+[navigation-server-slate](../slates/engine/navigation-server-slate.md)
 (S1–S9), each marked first pass or follow-up. A field the server cannot
 supply yet is absent, never guessed.
 
@@ -342,7 +342,7 @@ performance call.
 The owner reviews this build mostly by seeing it, so the decisions that are
 expensive to reverse are named here, biggest first.
 
-1. **The client knowledge model** ([client-knowledge-model-slate](../slates/builds/client-knowledge-model-slate.md))
+1. **The client knowledge model** ([client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md))
    — the revived *shadow model*. This build makes the client hold a copy of
    your knowledge, kept current by the server, read only through derived
    views. ⭐ **It is the largest commitment here and outlives the map:**
@@ -504,15 +504,15 @@ None — nothing here depends on game time.
 
 ## Cross-references
 
-- [map-slate](../slates/builds/map-slate.md) ·
-  [client-knowledge-model-slate](../slates/builds/client-knowledge-model-slate.md) ·
-  [locality-knowledge-slate](../slates/builds/locality-knowledge-slate.md) ·
-  [step-beat-slate](../slates/builds/step-beat-slate.md) ·
-  [iconography-slate](../slates/builds/iconography-slate.md) ·
-  [card-sizes-slate](../slates/builds/card-sizes-slate.md) ·
-  [tooltip-slate](../slates/builds/tooltip-slate.md) ·
-  [navigation-server-slate](../slates/builds/navigation-server-slate.md) ·
-  [spoiler-slate](../slates/tails/spoiler-slate.md)
+- [map-slate](../slates/client/map-slate.md) ·
+  [client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md) ·
+  [locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md) ·
+  [step-beat-slate](../slates/engine/step-beat-slate.md) ·
+  [iconography-slate](../slates/client/iconography-slate.md) ·
+  [card-sizes-slate](../slates/client/card-sizes-slate.md) ·
+  [tooltip-slate](../slates/client/tooltip-slate.md) ·
+  [navigation-server-slate](../slates/engine/navigation-server-slate.md) ·
+  [spoiler-slate](../slates/platform/spoiler-slate.md)
 - [location-graph.md](../subsystems/location-graph.md) ·
   [boundary.md](../subsystems/boundary.md) ·
   [card-surface.md](../subsystems/card-surface.md) ·

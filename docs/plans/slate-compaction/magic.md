@@ -59,7 +59,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/capability-magic-slate.md — 846 → 470 · Status PARTIAL → PARTIAL
+## docs/slates/engine/capability-magic-slate.md — 846 → 470 · Status PARTIAL → PARTIAL
 
 Part IV shipped end to end and is the best-documented subsystem in the
 tree (`magic.md` 396 lines + `arcane-science.md` 1886 + `magic-items.md`

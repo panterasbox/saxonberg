@@ -41,7 +41,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/quest-modeling-slate.md — 466 → 455 · Status UNBUILT → UNBUILT
+## docs/slates/world/quest-modeling-slate.md — 466 → 455 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `Quest` / `Beat` / `Genre` / `MediatedScene` class
 anywhere under `packages/server/src/mud` or `packages/content/*/src`;
@@ -83,7 +83,7 @@ flag in the tree (onboarding's *instance #1* is itself still in
 
 ---
 
-## docs/slates/builds/sanitation-slate.md — 459 → 454 · Status UNBUILT → PARTIAL
+## docs/slates/trades/sanitation-slate.md — 459 → 454 · Status UNBUILT → PARTIAL
 
 No `impound`, `pawn`, `scaveng*`, `abandon*`-as-a-rule anywhere in
 `packages/server/src/mud` or `packages/content/*/src` (the `abandon` hits
@@ -146,7 +146,7 @@ salvage`. Three cuts.
 
 ---
 
-## docs/slates/tails/naming-slate.md — 452 → 431 · Status UNBUILT → UNBUILT
+## docs/slates/engine/naming-slate.md — 452 → 431 · Status UNBUILT → UNBUILT
 
 A tail of the shipped presentation build, checked closely: **nothing the
 slate designed has shipped.** No `rename` verb (`find packages/content
@@ -224,7 +224,7 @@ registrar` are still the stems (`hearthworks/.../agent/cook.yaml:13`,
 
 ---
 
-## docs/slates/builds/resilience-slate.md — 427 → 401 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/resilience-slate.md — 427 → 401 · Status UNBUILT → UNBUILT
 
 A file-cited inventory from 2026-08-30, re-checked line by line. **No
 control has been wired since.** `ScriptLogic.ts:560` is still
@@ -273,7 +273,7 @@ roster. Three cuts.
 
 ---
 
-## docs/slates/builds/llm-content-slate.md — 390 → 385 · Status UNBUILT → UNBUILT
+## docs/slates/platform/llm-content-slate.md — 390 → 385 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `anthropic` / `@anthropic-ai` / `openai` dependency in
 `packages/server/package.json`; no `Director`, `llm-brain`, `salience`
@@ -312,7 +312,7 @@ context axes' subsystems, `twitch_profiles` / `kick_profiles`. One cut.
 
 ---
 
-## docs/slates/builds/pharma-slate.md — 354 → 353 · Status UNBUILT → UNBUILT
+## docs/slates/trades/pharma-slate.md — 354 → 353 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `neutralizedBy` on `Material` (`Material.ts` has
 `corrosiveTo` at l.619 and `toxicity: ToxinTag[]` at l.589, nothing
@@ -354,7 +354,7 @@ is accurate: the tag mechanism ships (`Material.toxicity`,
 
 ---
 
-## docs/slates/builds/executive-slate.md — 348 → 348 · Status PARTIAL → PARTIAL
+## docs/slates/society/executive-slate.md — 348 → 348 · Status PARTIAL → PARTIAL
 
 Written 2026-09-18 and still exactly true. `ls packages/server/src/schema/
 | grep _events` returns the ten ledgers the slate lists and no
@@ -382,7 +382,7 @@ applied-by line all ship as the status line says. One status block (the
 
 ---
 
-## docs/slates/builds/faith-slate.md — 344 → 338 · Status UNBUILT → UNBUILT
+## docs/slates/society/faith-slate.md — 344 → 338 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `Tradition` class or row anywhere under
 `packages/server/src/mud` or `packages/content`; exactly four

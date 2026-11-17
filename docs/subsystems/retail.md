@@ -650,7 +650,7 @@ shelf is bare, so an empty store is an empty counter).
 ⚠ **Many sellers, one counter** is held by the market, not a cap: the bid
 falls with the house's days of supply, and its store and its money run
 out. Exclusivity of a harvest (who may cut a pond) is a use of the reach
-→ [navigable-water-slate](../slates/builds/navigable-water-slate.md) § Ice
+→ [navigable-water-slate](../slates/world/navigable-water-slate.md) § Ice
 harvest as a use of the reach.
 
 ## Deferred

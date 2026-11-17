@@ -7,7 +7,7 @@ the chart the sea already uses; the three horizon functions collapse into one
 rule; what is far and fixed is worked out from a sparse record and kept, what
 is far and moves is read at the act; the authored `horizon` lists become
 block / reach overrides. Seeded by
-[geography-slate](../slates/builds/geography-slate.md) — its reuse ledger is
+[geography-slate](../slates/world/geography-slate.md) — its reuse ledger is
 accounted for row by row in § New substrate.
 
 ⚠ **Three places where grounding contradicts the requirements' premises** are
@@ -126,7 +126,7 @@ All paths under `packages/server/src/mud/` unless they start `packages/` or
   Landmarks: the Terminal (25 m), the light on Gannet Rock (30 m, no point —
   *where its rock is*: the Greywater's `gannet-rock` node), the peak of
   Waponi Woo (1100 m, a bare `Structure`, a stopgap per
-  `docs/slates/builds/mountain-slate.md`). Others ≥ 12 m: Seznick House 13,
+  `docs/slates/world/mountain-slate.md`). Others ≥ 12 m: Seznick House 13,
   the rubber works 12. There is **no tower-top or gallery room** anywhere
   (Gannet Rock is one `landing` room).
 
@@ -891,7 +891,7 @@ Neither build gates on the other; the second to merge rebases.
 
 Read first, in this order:
 
-1. `docs/requirements/geography-requirements.md`, `docs/slates/builds/geography-slate.md`
+1. `docs/requirements/geography-requirements.md`, `docs/slates/world/geography-slate.md`
 2. `packages/server/src/mud/platform/idea/api/PerceptionLogic.ts` l.494–520, l.1517–1700
 3. `packages/server/src/mud/lib/expanse/Expanse.ts` l.640–870; `GeoPosition.ts`
 4. `packages/server/src/mud/platform/idea/LocationGraphRegistry.ts` l.95–235, l.355–560

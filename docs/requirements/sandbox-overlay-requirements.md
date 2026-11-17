@@ -37,7 +37,7 @@ that need nothing harder onto it, puts the player's own body snapshot
 behind the same structural guard that one hand-written boolean holds
 today — and makes the refusals that *remain* honest.
 
-Seeded by [avatar-family-slate](../slates/builds/avatar-family-slate.md)
+Seeded by [avatar-family-slate](../slates/engine/avatar-family-slate.md)
 § Sequencing 2–4. ⭐ Step 1 (making the declared-but-unbuilt
 `mode: 'overlay'` refuse instead of falling through to a real write)
 shipped separately as MR !308 and is not in scope here.
@@ -116,7 +116,7 @@ of the read-through mode the mutable registries will need.
   § Surface decisions. `parcels`, `chattel`, `groups`, `office_holders`
   stay refused until it lands.
 - **Retiring `shouldPersist()` for a per-mixin capture allowlist** →
-  [avatar-family-slate](../slates/builds/avatar-family-slate.md)
+  [avatar-family-slate](../slates/engine/avatar-family-slate.md)
   § Sequencing 5. ⚠ And it is a bigger claim than the slate states: the
   boolean does **three** unrelated jobs — the wire/shade guard, the
   **guest** gate (`!this.isGuest`), and the **revert** flag
@@ -126,19 +126,19 @@ of the read-through mode the mutable registries will need.
 - **The phase axis, the death spec, and the class layering** (Sequencing
   6–9) → the same slate; a second requirements doc.
 - **Changing what a `holder_snapshots` record CONTAINS** →
-  [estate-nesting-slate](../slates/builds/estate-nesting-slate.md), which
+  [estate-nesting-slate](../slates/engine/estate-nesting-slate.md), which
   is an unbuilt build about exactly that (reference vs copy vs capped
   copy). ⭐ This build changes **where a record lands, never its shape**;
   that is the non-interference boundary, stated so the two migrations do
   not collide.
 - **Letting a `PersistenceContributor` name its own source** →
-  [hydration-framework-slate](../slates/tails/hydration-framework-slate.md),
+  [hydration-framework-slate](../slates/tech-debt/hydration-framework-slate.md),
   which owns that knob on the same dispatch point.
 - **The in-circle death arc** (minting a real body from inside a circle)
-  → [mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md). This
+  → [mortal-vessel-slate](../slates/engine/mortal-vessel-slate.md). This
   build unblocks it; it does not design it.
 - **Unifying with the CMS draft/changeset overlay** →
-  [cms-slate](../slates/builds/cms-slate.md). *"The author works against
+  [cms-slate](../slates/platform/cms-slate.md). *"The author works against
   live ∪ their changeset"* is the same read-through shape over templates.
   ⭐ Deliberately left un-unified until `through` exists in one place; a
   shared mechanism decided before either is built would be guesswork.
@@ -354,7 +354,7 @@ than a mode:
 - **`producer_events`** — *may a rehearsal earn credit?* is an economy
   question, not a sandbox one, and it is the same question as *can a coin
   minted in a circle walk out* →
-  [money-integrity-slate](../slates/builds/money-integrity-slate.md) § D.
+  [money-integrity-slate](../slates/tech-debt/money-integrity-slate.md) § D.
   ⚠ It also fails **silently** today (the engagement tap swallows to the
   server console), which D6 fixes regardless of the disposition.
 
@@ -486,18 +486,18 @@ the world never saw any of it). Ada starts in a bedroom with a wardrobe.
 
 ## Cross-references
 
-- [avatar-family-slate](../slates/builds/avatar-family-slate.md) — the
+- [avatar-family-slate](../slates/engine/avatar-family-slate.md) — the
   seeding slate; this doc is its Sequencing 2–4.
 - [sandbox.md](../subsystems/sandbox.md) — the policy table, the
   crossing, the Layer-4 boundary.
 - [persistence.md](../subsystems/persistence.md) — the spine and
   `holder_snapshots`.
 - [measurement.md](../measurement.md) — A2, A5, A14.
-- [sandbox-slate](../slates/tails/sandbox-slate.md) — D9.
-- [estate-nesting-slate](../slates/builds/estate-nesting-slate.md),
-  [hydration-framework-slate](../slates/tails/hydration-framework-slate.md)
+- [sandbox-slate](../slates/platform/sandbox-slate.md) — D9.
+- [estate-nesting-slate](../slates/engine/estate-nesting-slate.md),
+  [hydration-framework-slate](../slates/tech-debt/hydration-framework-slate.md)
   — the two sequencing hazards, bounded in § Non-goals.
-- [money-integrity-slate](../slates/builds/money-integrity-slate.md) —
+- [money-integrity-slate](../slates/tech-debt/money-integrity-slate.md) —
   D8's destination, and the in-memory overlay precedent.
-- [cms-slate](../slates/builds/cms-slate.md) — the draft/changeset
+- [cms-slate](../slates/platform/cms-slate.md) — the draft/changeset
   overlay, the same read-through shape over a different substrate.

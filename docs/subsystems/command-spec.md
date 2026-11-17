@@ -1080,7 +1080,7 @@ furnace) — declares `["here", "peers", "person"]` (with `$focus` first
 when it drills), so `cut ice` standing over a block cuts the block
 underfoot while a smaller one is carried. The audit of every
 `reachable` arg, with its verdict, is
-[controllers-are-io-slate.md § Scope-order audit (W2)](../slates/builds/controllers-are-io-slate.md).
+[controllers-are-io-slate.md § Scope-order audit (W2)](../slates/tech-debt/controllers-are-io-slate.md).
 
 When `scope:` is omitted, the dispatcher defaults to `['$focus']` —
 the drill chain IS the scope. The resolver's empty-scope fallback to
@@ -1457,7 +1457,7 @@ spec-load. Use it for a single-host verb with no protocol to name (`wind`,
 `adjust`, `blow`). ⛔ Never on a tool verb's target: the strainer affords
 `strain`, and you strain the drink. A refusal reads *You can't wind the rock.*
 The verb-by-verb record:
-[controllers-are-io-slate.md](../slates/builds/controllers-are-io-slate.md).
+[controllers-are-io-slate.md](../slates/tech-debt/controllers-are-io-slate.md).
 
 ##### `requires: any` — declared, not omitted
 

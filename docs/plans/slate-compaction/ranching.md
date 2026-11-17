@@ -62,7 +62,7 @@ Four findings a reviewer should know first:
 
 ---
 
-## docs/slates/builds/ranching-slate.md — 946 → 672 · Status PARTIAL → PARTIAL
+## docs/slates/trades/ranching-slate.md — 946 → 672 · Status PARTIAL → PARTIAL
 
 The slate is the animal half of the living-world family; the farmstead
 build took the keeping (record · boundary acts · handling · taps · carcass
@@ -146,7 +146,7 @@ heading survives with a note); the status block grew by 12.
   > with a constant. So in play the sward is drawn down by `mow` alone,
   > `cycleGrazedNitrogen` never runs, and *fertility follows the mouths* is
   > true of the code and not yet of the game. The grazer is
-  > [ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+  > [ranching-slate](../slates/trades/ranching-slate.md)'s first `Left` item.
 
 - → `soil.md § Winter (D10–D12)`, l.378 — a clause, not a paragraph: *"A grazed paddock in January still goes down, which is why the feed budget exists"* presumes a feed budget; there is none (no intake path). Suggest appending *— once anything eats* or a pointer to the same slate item
 - → `pets.md` — nothing to insert; noting only that `pets.md` l.63 cites *`WorkingAnimal`+`Handled`* as the idiom and the class now composes over `KeptAnimal` (its own l.23 says so) — consistent, no action

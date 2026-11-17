@@ -278,7 +278,7 @@ appeared."** Schell's gardener has to *recognize* emergence, which means
 watching people play, and we have no instrument for it. ⭐ **Fourth ask
 for the agent-swarm pattern** — [#27](./27-time.md) asked for it on
 activity length, `31`'s ratio audit needs it, and the
-[live-drive slate](../slates/builds/live-drive-slate.md)'s *"the agent is
+[live-drive slate](../slates/tech-debt/live-drive-slate.md)'s *"the agent is
 a participant, not a feed"* is the closest thing we have, aimed at
 defect-finding rather than at emergence-spotting.
 
@@ -304,7 +304,7 @@ always deferrable and a product is not. *(Flagged as a reframe; the
 sequencing call is not this entry's.)*
 
 ⚠ **Dominant strategy is the balance half and it has an owner** —
-[balance-slate](../slates/builds/balance-slate.md) — but tip 2 makes it
+[balance-slate](../slates/society/balance-slate.md) — but tip 2 makes it
 worse in a specific way: **a verb that acts on more objects has more
 chances to have one dominant target.** The more emergence the substrate
 affords, the more surface for a single best answer to hide in.

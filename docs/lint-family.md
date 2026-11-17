@@ -263,7 +263,7 @@ at **339, three below where the build found it.**
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
-  [value-object-statics-slate](./slates/tails/value-object-statics-slate.md).
+  [value-object-statics-slate](./slates/tech-debt/value-object-statics-slate.md).
 
   ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
   documented failure class** (*a ratchet with a hole in it*; *gates ship
@@ -549,7 +549,7 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
   be path-addressed (156 irreducible `isX` narrowings), with the revisit
   condition recorded as *"two packs collide on a `_mixinName`"*. The day
   this gate fails for real, the flat namespace has actually broken. See
-  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
+  `docs/slates/platform/content-packs-slate.md` § RESOLVED.
 - **`lint:field-meta`** — field metadata is ONE field-keyed static: no
   legacy `persistentFields` / `fieldMarshallers` / `instructionFields` /
   `stackIdentityFields` returning, every entry well-formed. Registration
@@ -575,7 +575,7 @@ authored by three rows, and was read by nothing… This is the arm that
 fills it."* Somebody found a declared-and-unread field and **added an
 arm** — and `signature`, `resolution` and `contagion` are three more such
 fields, which the
-[consequence build](./slates/tails/consequence-slate.md) is about to
+[consequence build](./slates/engine/consequence-slate.md) is about to
 wire. So the gate ships in that build's **W0**, before any of it.
 
 The rule it enforces: a condition's **progression law** (decay · logistic

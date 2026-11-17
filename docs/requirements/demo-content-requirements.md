@@ -2,7 +2,7 @@
 
 The content-authoring tract of the education video effort: the small,
 permanent world beats the five videos film against. Seeded by
-[demo-slate.md](../slates/builds/demo-slate.md) (items 2–5, 7), with
+[demo-slate.md](../slates/platform/demo-slate.md) (items 2–5, 7), with
 the video briefs' pre-script gap audit and the ceremony doctrine in
 [lens-deck-salvage.md](../lens-deck-salvage.md). Everything here is
 world-content that earns its place independent of the videos — the
@@ -13,9 +13,9 @@ fixture of the world, not a film set.
 
 - **The campus opens on its authored road network.** The v1
   stitch of the Eternal University campus per
-  [eternal-university-drafts § the campus](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads)
+  [eternal-university-drafts § the campus](../slates/world/eternal-university-drafts-slate.md#11-districts-and-roads)
   and the city plan
-  ([eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)): the
+  ([eternal-university-drafts § Terminus](../slates/world/eternal-university-drafts-slate.md#2-terminus-the-city)): the
   Quad as the Heart-geometry compass junction, Eternal Way as the
   south→north spine gate-to-gate, Silver Street east toward the
   Mere, Limbo Lane west to the Residential Quarter — wiring the
@@ -89,11 +89,11 @@ fixture of the world, not a film set.
   verification and theme work tracked with the video briefs, not content.
 - **Video scripts** — downstream of this build.
 - **The acquisition build** — the session's captured rulings
-  ([slates/builds/acquisition-slate.md](../slates/builds/acquisition-slate.md):
+  ([slates/society/acquisition-slate.md](../slates/society/acquisition-slate.md):
   the loadout change, journey v2, Limen, forums venue) are their
   own builds; only the dorm-key digitization (unit 13) rides
-  here. Likewise the [power-utility](../slates/builds/power-utility-slate.md)
-  and [distance-perception](../slates/tails/distance-perception-slate.md)
+  here. Likewise the [power-utility](../slates/trades/power-utility-slate.md)
+  and [distance-perception](../slates/engine/distance-perception-slate.md)
   captures — recorded, not built.
 - **Ferrow Delving content** of any kind (the bundle stays in its
   depth-first design pass).
@@ -136,9 +136,9 @@ An earlier draft invented a gatehouse→courtyard campus from
 scratch; it was thrown out when set against the already-authored
 campus design (the road network, districts, and EC-derived road
 prose in
-[campus-map.md](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads), the
+[campus-map.md](../slates/world/eternal-university-drafts-slate.md#11-districts-and-roads), the
 v1 roster in the eternal-university slate, and the city plan in
-[terminus-city.md](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)). The settled
+[terminus-city.md](../slates/world/eternal-university-drafts-slate.md#2-terminus-the-city)). The settled
 geometry lives in content-spec unit 1. Two notes of record:
 
 - **The Quad takes the Heart's geometry deliberately.** The campus
@@ -243,7 +243,7 @@ first-wage beat at Dave's Bar · **13** key-handover audit ·
 ### Unit 1 — campus geometry & the gates ✓
 
 **Perimeter (from the city plan,
-[terminus-city.md](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)):** the campus
+[terminus-city.md](../slates/world/eternal-university-drafts-slate.md#2-terminus-the-city)):** the campus
 sits at the city's north head, on the ruins, embedded in the
 city — the civic wedge at its south, the **Marrow** river down
 its west flank, the **Mere** down its east, meeting at the
@@ -263,7 +263,7 @@ is **retired**; `campus-gate-door.yaml` survives as the main
 gate's door, unlocked.
 
 **The network (from
-[campus-map.md](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads), EC
+[campus-map.md](../slates/world/eternal-university-drafts-slate.md#11-districts-and-roads), EC
 names kept):** hub-and-spoke with the **Quad as the Heart** — the
 central compass junction, the deliberate homage to EC's Heart
 ("roads from each point on the compass lead off"; the monument →
@@ -622,7 +622,7 @@ fixture like all shipped electrical content. The plate carries a
 and it names no supply institution: whether power is a
 governance service, a corpo concession, or a cooperative is
 city-design canon, captured in
-[slates/builds/power-utility-slate.md](../slates/builds/power-utility-slate.md)
+[slates/trades/power-utility-slate.md](../slates/trades/power-utility-slate.md)
 (the supply-reference middle tier, outage work orders, billing,
 labor), decided there, not by signage.
 
@@ -843,7 +843,7 @@ changed); cheap fixes landed; expensive findings surfaced, never
 silently absorbed.
 
 **Scope growth (2026-07-28, from the acquisition session — see
-[slates/builds/acquisition-slate.md](../slates/builds/acquisition-slate.md)):**
+[slates/society/acquisition-slate.md](../slates/society/acquisition-slate.md)):**
 the dorm key **digitizes now**. Check 3 becomes a migration, not
 a verification: the key becomes a `dorm-key` credential record
 Katie registers at the handover ("the door knows you now" —
@@ -1096,7 +1096,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
   weather-dependent looks, time-dependent state), which rots
   silently. The crossing's clock tower remains the sanctioned
   bespoke live-read. The real abstraction is captured in
-  [slates/tails/distance-perception-slate.md](../slates/tails/distance-perception-slate.md);
+  [slates/engine/distance-perception-slate.md](../slates/engine/distance-perception-slate.md);
   this build does not attempt it.
 - **Beat idempotence is a hard requirement**: "first wage" and
   "conferral ceremony held" must survive restarts/re-login without
@@ -1154,23 +1154,23 @@ withdrawal, memorial automation, and expulsion are all deferred.
 
 ## Cross-references
 
-- Seeding slate: [slates/builds/demo-slate.md](../slates/builds/demo-slate.md)
+- Seeding slate: [slates/platform/demo-slate.md](../slates/platform/demo-slate.md)
 - Slates captured DURING this requirements cycle (design recorded,
   not built here):
-  [acquisition](../slates/builds/acquisition-slate.md),
-  [power-utility](../slates/builds/power-utility-slate.md),
-  [distance-perception](../slates/tails/distance-perception-slate.md)
+  [acquisition](../slates/society/acquisition-slate.md),
+  [power-utility](../slates/trades/power-utility-slate.md),
+  [distance-perception](../slates/engine/distance-perception-slate.md)
 - Campus design:
-  [eternal-university-drafts § the campus](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads)
+  [eternal-university-drafts § the campus](../slates/world/eternal-university-drafts-slate.md#11-districts-and-roads)
   (roads, districts, floor model),
-  [slates/builds/eternal-university-slate.md](../slates/builds/eternal-university-slate.md)
+  [slates/world/eternal-university-slate.md](../slates/world/eternal-university-slate.md)
   (v1 roster, un-genred doctrine, services pattern),
-  [eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city) (the
+  [eternal-university-drafts § Terminus](../slates/world/eternal-university-drafts-slate.md#2-terminus-the-city) (the
   city plan: campus at the north head, the rivers), `~/play/eotl/mudlib/zone/null/eternal/`
   (the EC source — road prose origins, the Heart)
-- Wishbook loops: [the wishbook](../slates/tails/staging-leftovers-slate.md#4-the-wishbook)
+- Wishbook loops: [the wishbook](../slates/platform/staging-leftovers-slate.md#4-the-wishbook)
 - Ceremony doctrine: [lens-deck-salvage.md](../lens-deck-salvage.md)
-- Campus plan: [the grand tour](../slates/tails/staging-leftovers-slate.md#5-the-grand-tour-launch-content-bundles)
+- Campus plan: [the grand tour](../slates/platform/staging-leftovers-slate.md#5-the-grand-tour-launch-content-bundles)
 - Subsystem docs: [advancement](../subsystems/advancement.md)
   (conferrals), [employment](../subsystems/employment.md) (wages),
   [residence](../subsystems/residence.md) (Katie / the key),

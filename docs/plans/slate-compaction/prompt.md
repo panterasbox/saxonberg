@@ -30,7 +30,7 @@ replaced the MQL-subscription-based base prompt).
 
 ---
 
-## docs/slates/tails/prompt-stack-slate.md — 775 → 150 · Status PARTIAL → PARTIAL
+## docs/slates/engine/prompt-stack-slate.md — 775 → 150 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Principle` (17 lines) — the "stack, not a single slot" doctrine;

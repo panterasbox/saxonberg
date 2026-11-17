@@ -272,7 +272,7 @@ own slate at 14.
 
 Built as the nutrition-and-fitness build (2026-09-18/19, `design/
 nutrition-fitness`, MR !269, `f4a7528d3..HEAD`) from
-`docs/slates/tails/nutrition-and-fitness-slate.md` (the plan and
+`docs/slates/engine/nutrition-and-fitness-slate.md` (the plan and
 requirements retired at the sweep; the slate's *tail* section carries
 what the plan's deferred seams named). Review added the soft-limit
 clamp (work never collapses a body) and the feedback surfaces (the

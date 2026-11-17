@@ -66,7 +66,7 @@ Batch-wide findings a reviewer should know first:
 
 ---
 
-## docs/slates/builds/magic-items-slate.md — 788 → 469 · Status PARTIAL → PARTIAL
+## docs/slates/engine/magic-items-slate.md — 788 → 469 · Status PARTIAL → PARTIAL
 
 The slate is the 2026-07 NetHack walk plus the 2026-08-02 charge pass; the
 substrate it designed shipped on 2026-08-05 and is in `magic-items.md`

@@ -35,7 +35,7 @@
  *    about tapping trees. It also contradicts the absent-body doctrine
  *    (*automate only the autonomic, never the strategic*). The design
  *    question goes to
- *    `docs/slates/builds/standing-instructions-slate.md`; the drive
+ *    `docs/slates/engine/standing-instructions-slate.md`; the drive
  *    asserts the verb is ABSENT.
  *  - **Checkpoint 16's second half.** The requirements asked whether
  *    *leaving some in her* starts her off; W1 found that mechanism
@@ -763,7 +763,7 @@ suite('⭐⭐ 15, 20–22. a verb is known where something AFFORDS it', () => {
     //     autonomic, and W4 gave the body an actual NPC brain.
     //
     // ⚠ So **acceptance criterion 7 is UNMET** and recorded as unmet —
-    // see docs/slates/builds/standing-instructions-slate.md. Milk's
+    // see docs/slates/engine/standing-instructions-slate.md. Milk's
     // attendance cost is therefore still unrelieved, which is the
     // honest state of the design and not a defect of this build.
     const out = await say(k, 'instruct');

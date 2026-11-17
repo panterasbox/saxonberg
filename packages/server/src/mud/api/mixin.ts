@@ -557,7 +557,7 @@ export class MixinApi {
    * declaration it cannot read, which is what stops the reader
    * undercounting in silence. The day it fires on a real collision is
    * the day path-addressed mixins stop being over-engineering
-   * (`docs/slates/builds/content-packs-slate.md` § RESOLVED).
+   * (`docs/slates/platform/content-packs-slate.md` § RESOLVED).
    */
   static #declaredMixins = new Map<
     string,

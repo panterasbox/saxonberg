@@ -5,7 +5,7 @@ Branch `design/slate-compaction`. Procedure:
 
 ---
 
-## docs/slates/tails/scripting-slate.md — 416 → 309 · Status PARTIAL → PARTIAL
+## docs/slates/engine/scripting-slate.md — 416 → 309 · Status PARTIAL → PARTIAL
 
 Code-verified before any cut: `PersistentHydrator`-unrelated — this is
 the v1 scripting engine. Confirmed shipped: `lib/script/ast.ts`,

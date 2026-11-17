@@ -73,7 +73,7 @@
  * `lint:object-verbs` from 338 to 0). A static's home is its subsystem
  * **Api** (construction, guards, lookups) or an
  * `platform/idea/api/<X>Logic.ts` **logic singleton** (domain logic) —
- * see `docs/slates/builds/value-object-statics-slate.md`.
+ * see `docs/slates/tech-debt/value-object-statics-slate.md`.
  *
  * ## ⚠ What counts, stated exactly
  *

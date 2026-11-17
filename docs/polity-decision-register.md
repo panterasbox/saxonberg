@@ -49,7 +49,7 @@ cannot themselves be deliberated — there is no polity yet to do the
 deliberating. Someone must set the bootstrap defaults so a prototype can
 exist at all. The founder is that someone, transiently (see the
 cooperative slate's "founder's transient control" and amendment-by-equals,
-[cooperative-slate.md](./slates/builds/cooperative-slate.md)).
+[cooperative-slate.md](./slates/society/cooperative-slate.md)).
 
 The resolution this project adopts:
 
@@ -71,9 +71,9 @@ from the founder.
 
 ### Relationship to the other docs
 
-- [cooperative-slate.md](./slates/builds/cooperative-slate.md) — the
+- [cooperative-slate.md](./slates/society/cooperative-slate.md) — the
   governance **north star**; the source of the Permanent spine below.
-- [reputation-slate.md](./slates/builds/reputation-slate.md) +
+- [reputation-slate.md](./slates/society/reputation-slate.md) +
   [renown.md](./subsystems/renown.md) — the **substrate** that measures
   the "quality" half of consumer influence.
 - **This register** — the **classified decisions** taken to ship a
@@ -125,12 +125,12 @@ argued. Changing any of these is changing *what we are building*.
 
 The kernel cluster that makes "authority over a subdivision" mean
 something. Source: cooperative-slate.md § *Institutions are private
-actors* + § *How territory is held*; [economy-slate](./slates/builds/economy-slate.md)
-§ *The two scarcities*; [advancement-slate](./slates/builds/advancement-slate.md).
+actors* + § *How territory is held*; [economy-slate](./slates/society/economy-slate.md)
+§ *The two scarcities*; [advancement-slate](./slates/society/advancement-slate.md).
 The split principle: **the kernel is the procedural floor that makes
 authority real and capture hard; every substantive who-gets-what choice
 is a module** (see the tenure / compute / federalism module in the
-[amendment library](./slates/builds/amendment-library-slate.md)).
+[amendment library](./slates/society/amendment-library-slate.md)).
 
 - **Compute is the only real scarcity, and the firewall covers it.**
   Content is non-rival (freely copyable; never enclosed past the
@@ -387,7 +387,7 @@ marked as such so an empty seam is never mistaken for a settled answer.
   affect every other element of play (the vote, the market, the labour
   supply, who is heard). Deliberately **not** ours to decide. Both opening
   arguments are handed over intact in
-  [slates/builds/standing-mint-slate.md](./slates/builds/standing-mint-slate.md)
+  [slates/society/standing-mint-slate.md](./slates/society/standing-mint-slate.md)
   — the mechanical case (Goodhart, crowding-out, off-measurement collapse,
   measurement validity) and the political case (whose work counts; the
   bartender who wants bartending weighted higher is doing what a polity is

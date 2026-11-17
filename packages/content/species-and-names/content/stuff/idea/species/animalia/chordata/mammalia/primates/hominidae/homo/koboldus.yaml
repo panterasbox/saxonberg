@@ -1,7 +1,7 @@
 # Homo koboldus — fantasy kobold. Same biped anatomy as sapiens, small and
 # scaled; a draconic-kin warren-dweller, nocturnal and sharp-eyed in the
 # dark, runs a touch cool. NPC-first. See
-# docs/slates/builds/species-expansion-slate.md.
+# docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/koboldus.png

@@ -1,0 +1,2433 @@
+# Navigable water — bodies of water as content
+
+> **Status: PARTLY BUILT — the frame, the estuary and the first sea
+> shipped in the maritime build (MR !358, 2026-10).** See
+> [expanse.md](../../subsystems/expanse.md): the `Expanse` frame (the
+> `LocationZoneMixin` split), nodes as `place | passage` and `linear |
+> areal` on a SPHERICAL graph relative to the expanse with the chart in
+> lat/lon, bands as cost and character, the voyage held by the craft,
+> the horizon as co-presence, seeded traffic, the `Structure` / `Ship`
+> split, the four fixes, the chart and the pilot's claims, the water tier
+> (`WaterExpanse`, derived sea state, the column at depth zero); and
+> ⭐ the coast — a place beside water is a `Shore`, a small water you are
+> in is a `Pool`, and the first water anybody can stand in is the
+> estuary pool.
+> **Left:** ⭐⭐⭐ **a reach's own character** (gradient, bed, obstruction —
+> the Deliverance gap) · craft occupying a river passage (the Kestrel is
+> still not sailable) · the two-tier ocean/venue title and the holder's
+> duty (§ 5) · the berth, stations and davits (§ 7a) · launching a boat
+> from a shore (§ 5a) · what a towed boat means and combat at sea (§ 7c)
+> · a pilotage trade (§ 3b) · and §§ 7b–7h, whaling — plus the three
+> open questions salvaged at the end of this slate.
+> ⭐⭐⭐ **Added 2026-10-09, the whaling session:** § **3b navigation**
+> (set a course, not choose a destination; reckoned vs true position;
+> disconnection is never topological; the chart is the per-player map and
+> **can be wrong**) · § **3's vantage + landmark** (land does *not*
+> participate in the horizon; the clock tower, the headland and the
+> seamark are one object with two range rules) · § **5c the trades
+> examined** · § **7a the vessel decision** (a boat is a **Thing**, a ship
+> is a **`Structure`** whose position is a variable — which **justifies**
+> [structures-slate](../engine/structures-slate.md)) · and §§ **7b–7h: the whole
+> of whaling**, parked complete.
+> ⚠ **Whaling now sequences behind
+> [assembly-slate](../trades/assembly-slate.md)** — not blocked, but shipping it
+> first means shipping its best failure mode as a stub (§ 7).
+> ⭐⭐ **Added 2026-10-09:** the **coast** closes the model — a beach is a
+> land `Location` holding a `Shore` that **cites** a water node, so
+> nothing is ever *in* the water's zone (§ 5a) · the ownership model
+> **corrected** — the frame-holder holds the water and **no land**;
+> adjacent, not nested (§ 5) · *"a place that can be underwater"* was
+> **never a gap** — [underwater-slate](../engine/underwater-slate.md) already
+> derives the medium from `level − elevation` (§ 4) · and the **trade
+> audit** across all 27 shipped trades, with the unbuilt-trade list kept
+> (§ 5b).
+> **Size:** a build, and probably two — the **estuary** is reachable on
+> its own and the **areal** half is most of the cost.
+
+> ⚠ **Superseded for rivers, 2026-10-18.** The river half of this slate —
+> linear passages, the Deliverance gap, river pilotage, craft occupying a
+> river passage — was redesigned with the founder in
+> [river-slate](./river-slate.md) (the river as a line, the `RiverWarren`,
+> ships positioned in the river's frame, one Ship and one set of Helm
+> verbs). The *"a place that can be underwater"* answer in § 4 is now
+> [underwater-slate](../engine/underwater-slate.md) § 2 (water as a state; `Pool`
+> retires). The sea half stands.
+
+> ⚠ **§ 7a (vessels) superseded where they differ, 2026-10-19** — by
+> [ships-and-harbors-slate](../trades/ships-and-harbors-slate.md): boats in water
+> rooms only, ships alone in the field; *a ship is always alongside a room*
+> with exits wired on arrival; the berth housed on the quay; ship kinds as
+> floorplans instanced by key; the berth was argued on *"a ship's interior is
+> minted per ship"*, which did not hold.
+
+*Opened 2026-10-08, out of "we definitely need one or more seas." The
+conversation started at whaling and never got there, deliberately: ⭐ the
+goal is that **every body of water gives the player a consistent,
+immersive experience and gives creators a rich surface for bespoke
+content of their own design.** Whaling and the other maritime industries
+come after that is settled.*
+
+---
+
+## 0. ⚠⚠ Where it stands today
+
+`watershed.md` is excellent hydrology and law and offers an author
+**nothing to stand in.**
+
+| ships | missing |
+|---|---|
+| `Watercourse` — topology authored, direction derived | **anywhere to be** on, in or under water |
+| flow, snowpack, **navigability derived** | a **water biome** (surface / submerged) |
+| rights: prior appropriation recorded, riparian derived | craft |
+| contamination as a concentration | a reach's own **character** |
+| `SphericalZone` / `SphericalLocation` — ⭐ *"no implicit adjacency"* | position within a passage |
+| `fishing.md`'s derived fishery + the **`Shore`** read | — |
+
+⭐ And the doc names its own missing consumer:
+
+> **Navigability is derived, never authored.** Flow *and* channel width…
+> *"**When the boat wave lands** it reads a river that already knows where
+> it is navigable and knows that changes with the season."*
+
+Two dials shipped (`water.navigable.minFlowM3S`,
+`water.navigable.minWidthM`). **Not an inert reference — a planned seam
+awaiting this build.**
+
+⚠ The biome vocabulary is `indoor` · `outdoor{baseline, meadow,
+woodland}` · `underground{upper-workings}` · `universe`. **No water.**
+
+---
+
+## 1. ⭐⭐⭐ The one model: every node is a PLACE or a PASSAGE
+
+This slate first contained **two** models that contradicted each other —
+an *Expanse* in which open water is never a place, and a widened
+*Watercourse* in which open water becomes a place wherever an author
+wants one. ⚠ Each failed exactly where the other worked: the first cannot
+make *Deliverance*, the second cannot make an ocean without a thousand
+rooms.
+
+**They are one model approached from two ends.** The reconciliation:
+
+| | what it is | you are |
+|---|---|---|
+| **place** | a `Location` — details, props, cast, exits, a biome | **in it** |
+| **passage** | cited, not inhabited; position within it is real, no room | **aboard something crossing it** |
+
+⭐⭐ Both sit on **one graph with one node identity** —
+`kestrel:gorge-mouth`, `atlantic:georges-bank`. The only difference is a
+single authored fact: **is there a room here?**
+
+⭐ And it is not a new rule. It is `Watercourse`'s own rule — *"a reach
+becomes a real object only where content puts a **structure** on it"* —
+with **"structure" widened to "anything an author wants to put there"**;
+and it is simultaneously the Expanse's rule, *venues are Locations and
+open water is cited*.
+
+### ⭐⭐⭐ And a passage is LINEAR or AREAL
+
+That is what "adjacency" was tracking the whole time:
+
+- **linear** — one dimension. Position is **a fraction along it**. **Two
+  neighbours.** A river stretch, a canal, a strait.
+- **areal** — two dimensions. Position is **a coordinate**. **No
+  neighbours.** The open sea, the middle of Superior.
+
+⭐⭐ **So the horizon, co-presence and traffic only exist on AREAL
+passages.** Rivers and canals need none of that machinery — they get
+traversal duration and nothing else. **The expensive half of this design
+is confined to the one case that needs it.**
+
+### Three authored facts per node
+
+**place or passage · if a passage, linear or areal · then ordinary
+content.**
+
+⭐⭐ **Which dissolves the empty-rooms objection that opened the
+conversation:** you pay for a room exactly where you want a scene. A
+thousand rooms of empty Atlantic is a choice nobody has to make; **five
+rooms of gorge is a choice somebody wants to make.**
+
+| content | nodes |
+|---|---|
+| the open Atlantic | one **areal passage** |
+| Superior | mostly areal passages, with **places** at the ports, the shoals, a wreck |
+| ⭐ a bay with whales | a **place** on the ocean graph — swimmable, *and* the migration comes from the passage next door |
+| *Deliverance* | a chain of **places**, each a gorge reach, authored because the content deserves it |
+| a river crossing nobody cares about | a **linear passage** |
+| the millrace | a **structure** on a reach — neither |
+
+### ⚠ The size scale is extent, never water-type
+
+A pond you can see across is a **place**. **Superior is a passage 350
+miles wide** with lanes, wrecks and storms that sink freighters. *"Lake"
+is not a category.* The test is only ever: **can you see across it.**
+
+---
+
+## 2. The `Expanse` — and ⛔ it must not be called Ocean
+
+An areal passage's frame. Strip the water out and the model is: a large
+extent with no implicit adjacency · fields varying across it · sparse
+venues that are genuinely places · real positions without neighbours ·
+traversal as a durative act by a vehicle · co-presence by radius · and
+**the resource in the extent rather than at the venues.**
+
+⭐⭐⭐ **That is not an ocean.** It is **an extent you cross rather than a
+place you are**, and the instances are **sea · desert · ice · space** —
+and `universe` is already a shipped biome, so a craft crossing a void to
+sparse stations is this model exactly.
+
+⭐ So `name-the-substrate-not-one-consumer` binds: **name it `Expanse`
+now**, implement it for water, let the desert be the second consumer and
+ice or space promote it. **The rename is the expensive part.**
+
+### ⭐⭐ The `LocationZoneMixin` decomposition
+
+`SpatialZone` *"carries the location-aware surface (`addLocation`,
+`getLocations`, `removeLocation`, `contains`, `canDestruct`). Stamps
+`Stuff.zone`."* ⚠ **The Location narrowing is one consumer's constraint
+on a coordinate frame** — and `mixin-on-the-wrong-host`'s tell is exactly
+*guards that re-narrow the host set.*
+
+| | |
+|---|---|
+| **`SpatialZone`** | the frame + a registry of **positioned Stuff**, stamping `Stuff.zone`. Keeps `stocks`/`favours`/`blessingOdds` — ⭐ already justified as *"only a region in space can stock goods"*, which is **where an expanse's resource field belongs** |
+| **`LocationZoneMixin`** | the room-specific surface and invariants — the cardinal-only-intra-zone exit rule, the Location narrowing |
+| **`CartesianZone`** | composes both, unchanged |
+| **`Expanse`** | the frame **without** the Location mixin |
+
+⚠ **Not `Container`. Not `Location`. Not `Adornable`.** A "list of
+contents" is wanted for *finding who is nearby*, which is **an index, not
+a containment** — and `zone.md` already draws that line (*"coordination
+keys on Warren identity, never on zone"*). Six shipped precedents:
+`GridCatalogue`, `ParcelRegistry`, `OfficeRegistry`, `ReadingCatalogue`,
+`MaterialCatalogue`, `ChannelCatalogue`.
+
+### ⛔ Two things ruled out in drafting
+
+- ⛔ **Restamping a craft's `Zone` as it moves.** Zones are the template
+  tree; the stamp is **provenance**, not whereabouts. Shoehorning a
+  definitional structure into a positional one.
+- ⛔ **The ocean as a `Container`.** `Watercourse` settled it first and
+  better: *"a mill **beside** the river is not **in** it."* **Water is
+  cited, not inhabited.**
+
+---
+
+## 3. Co-presence on an areal passage is the HORIZON
+
+On land a traverse is instantaneous, so *"on an exit"* is never a state
+anyone occupies and co-presence is an exact graph fact. ⭐ On an areal
+passage you spend nearly all your time mid-edge, so the question becomes
+**what makes two craft mutually present.**
+
+⭐⭐⭐ **The horizon.** `1.17 × √(height in feet)` nautical miles — about
+**12 nm from a masthead a hundred feet up, 2 from a dory.** Unlike a room
+it is **different for every observer**.
+
+> ### ⚠⚠ CORRECTED 2026-10-09 — three quantities, and the asymmetry is a JOB
+>
+> This paragraph conflated three independent things, and the formula is
+> the single-observer form.
+>
+> | | what it is | depends on | where it binds |
+> |---|---|---|---|
+> | **the geometric horizon** | how far until the **surface curves away** | **only eye height** | ⭐ the open sea |
+> | **atmospheric visibility** | how far you see **through the air** | fog, rain, haze, dark, turbidity | fog, night, underwater |
+> | **obstruction** | what is **in the way** | terrain, trees, buildings | ⚠ **land, nearly always** |
+>
+> ⭐⭐⭐ **So the horizon is not the visibility field — it is a geometric
+> CAP on it**, and a sighting range is
+> **`min(curvature, atmosphere, obstruction)`.** We have the first two.
+> **We have nothing for the third.**
+>
+> ⭐⭐ **And the pair form is a SUM**, because a tall object shows over the
+> bulge:
+>
+> ```
+> 1.17 × (√h_observer + √h_target)   nautical miles, h in feet
+> ```
+>
+> Two mastheads at 100 ft see each other at **23 nm**, not 12.
+>
+> ⛔⛔ **Which means the range between a pair is SYMMETRIC, so *"a ship can
+> see you before you see it"* is NOT a fact about geometry.** The honest
+> version is better: **a ship with a man aloft sees you before your ship,
+> with nobody up the mast, sees it.**
+>
+> ⭐⭐⭐ **The asymmetry is a STAFFING decision, not physics** — which
+> makes the lookout more load-bearing, not less: the information advantage
+> is earned by somebody climbing, and a ship that posts no watch is blind
+> in a way it chose to be.
+>
+> **What we model it on:** eye height, already derivable —
+> `watershed.md`'s *"a place's height is `zone elevation + z ×
+> cellSize`"* ashore, and **the ship's masthead** at sea, where zone
+> elevation is zero.
+>
+> **And what it gates is narrow:** ⭐ **mutual presence on an areal
+> passage** — § 3's broad-phase question. ⚠ It does **not** gate
+> perception generally; a room's contents are perceived by room
+> membership, exactly as today. **Nothing about `look` changes anywhere
+> in the realm.**
+
+⭐⭐ **And it produces content rather than needing it.** The masthead
+watch is a job whose whole function is extending the radius; the crow's
+nest is an **instrument**, and `instrumentation.md`'s rule applies
+unchanged — *competence resolves detail and never access.* A good lookout
+does not see further; he knows what he is looking at sooner.
+
+### ⭐⭐⭐ Land does NOT participate — and the authored hook is a VANTAGE
+
+Designed 2026-10-09, from *"is this something any SkyExposed location
+participates in?"*
+
+⛔ **Geometrically yes; practically almost never — and we must not pretend
+otherwise.** On land the binding term is **obstruction**, and we have no
+line-of-sight model and no terrain heightfield. **Modelling curvature
+while ignoring obstruction produces a lie:** you would see a town twelve
+miles off *through a mountain.* Confidently wrong nearly everywhere it
+fired is worse than absent.
+
+> ⭐⭐⭐ **So the horizon is a property of being on an UNOBSTRUCTED
+> SURFACE, and the sea is the only place that is true by default.** Which
+> is why it is an *ocean* mechanic and not a perception one — the sea is
+> the one surface with nothing on it.
+
+⛔⛔ **And the standing refusal: we do not model line of sight between
+arbitrary Locations. Ever.** The moment we do, every author owes a terrain
+model and every `look` becomes a graph walk nobody budgeted.
+
+⭐⭐ **Land participates by authored VANTAGE.** A room-fixed feature on a
+Location that **cites what it overlooks** — the `Shore` pattern. The
+**headland** cites the bay's water and participates in its sightings; an
+ordinary hilltop cites nothing and sees nothing special; ⛔ **and no
+author ever has to think about curvature on land.**
+
+⭐ **The payoff: a vantage is a content object** — built, owned,
+garrisoned, inherited, denied. A lighthouse. A signal station. The
+headland the rival company already has a man on. Far better than a derived
+property of every outdoor room, and free for the 99% of content that does
+not care.
+
+**Author expectations, stated:**
+
+| | what you author |
+|---|---|
+| **at sea** | ⭐ **nothing** — you author the **ship** (its masthead height) and the **field**; the range derives. A better lookout is **a taller mast or a crow's nest**, i.e. an *instrument*: `instrumentation.md`'s rule unchanged — the instrument raises the **ceiling**, competence resolves the **detail** |
+| **on land** | ⭐ **nothing by default.** A Location shows its contents and exits, as today. Want a view? Author a **vantage** and say what it overlooks — **you are making a content claim, not invoking geometry** |
+
+### ⭐⭐⭐ And the LANDMARK is the same mechanism, which unifies three problems
+
+The owner's standing complaint: *"the clock tower of the TPA only exists
+in prose which can be seen from outside the structure on University
+Avenue — that's the extent of the clock tower's visibility."*
+
+⭐⭐ **A landmark is the inverse of a vantage** — *this can be seen from
+far* rather than *from here you can see far* — and
+[structures-slate](../engine/structures-slate.md) **already lists it as a
+candidate**: *"a building as a unit of description, read from outside,
+**without authoring that sentence on every street room that can see
+it.**"*
+
+**Split two ways:**
+
+- ⭐ **What it IS** — *a tall stone tower with a clock, visible for
+  miles* — belongs to the **`Structure`**, authored **once**, as its
+  outside description.
+- ⭐ **Who can see it** — **declared**, because the structures slate is
+  right that geometry cannot infer it. And the cheap bulk declaration is a
+  **zone field**: `visibleLandmarks` on the district's zone, inherited
+  through the ordinary ancestor walk, with a cellar or an interior
+  overriding to none. **Visibility of a landmark is regional, not
+  per-room**, which is how the fact actually works.
+
+⭐⭐⭐ **And it unifies three things that looked unrelated:**
+
+| | the referent | the range rule |
+|---|---|---|
+| **the clock tower** from University Avenue | a Structure's outside description | ⭐ **authored** — a zone field, because ashore **obstruction dominates** |
+| **the headland** over the bay | the same, from a vantage in another zone | **authored** — the exceptional, room-level case of the same field |
+| **the landmark fix** (§ 3b's free fix, never specified until now) | a **seamark** — a lighthouse, a steeple, a headland | ⭐⭐ **computed** — `1.17 × (√h_mark + √h_eye)`, because at sea **curvature dominates** |
+
+> ⭐⭐⭐ **One object, two range rules — authored ashore, computed at sea —
+> and the split is honest, because the binding term genuinely differs.**
+
+⭐ Which is also why **a lighthouse's height is on every chart**: it is
+the only number deciding how far out you can take a fix from it. And it
+makes a lighthouse **a navigational asset somebody built.**
+
+**Three consequences:**
+
+- ⭐⭐ **The room-contribution hook now has THREE real consumers** — the
+  `Shore` (which `fishing.md` flags as a defect: *"a prop contributes
+  nothing to its room's prose"*), the Deliverance reach (§ 4), and the
+  landmark. ⭐ Three *existing* ones, so a genuine promotion — and EotL's
+  football room already does it (`WeatherObject->query("weather_msg")`
+  interpolated into a long desc), which proves it is cheap.
+- ⭐⭐⭐ **The clock tower TELLS TIME**, which makes a town clock the
+  **fourth** instance of *civic infrastructure redistributes a private
+  capability* (→ [design-lenses.md](../../design-lenses.md) § 7): the
+  warming house takes **heat**, the public gauge **knowledge**, the
+  washhouse **access**, **the tower TIME.** Nobody needs to own a watch.
+- ⭐ Which answers [climate-slate](../engine/climate-slate.md)'s polar finding —
+  *under polar night you must own a clock* — **unless the town built one.**
+
+### ⭐⭐ The graph becomes the broad-phase filter
+
+Craft are not uniformly distributed — they are on lanes, in harbors, on
+grounds — so you only ever compare craft **on the same passage or at the
+same place.** ⭐ **The node graph stops being the geography and becomes
+the index**: on land the graph *is* the geography, on an areal passage the
+graph is how we know who might see you.
+
+### ⚠⚠ CORRECTED 2026-10-08 — the horizon is ONE CHANNEL, not the rule
+
+The submarine stress test (§ 3c) found this section's one real defect, and
+it is cheap now and expensive later.
+
+**A submerged boat has no horizon at all.** At periscope depth it has
+about **two nautical miles**, and only if somebody is looking. But it
+**hears** vastly further than it sees.
+
+⭐⭐⭐ So `1.17·√h` was never *the* co-presence rule — **it is one
+channel's rule in a per-channel model.** Visual takes the horizon
+formula; **acoustic takes a different and much larger radius**; and the
+asymmetry stops being *"a ship can see you before you see it"* and
+becomes the sharper thing: **you can hear someone who cannot see you,
+and that is the whole tactical situation.**
+
+⭐⭐ **And the substrate already ships** — `senses.md`'s `SenseChannel`
+vocabulary and `Modality` singletons, `perception.md`'s viewer-aware
+queries and Audible push, `messaging.md`'s capability split. This is
+**applying the shipped sense model to the expanse rather than inventing a
+second radius for it**, so it is a narrowing of scope, not a widening.
+
+⚠ Read the next heading as **one perception model, N channels** — which
+protects the not-sortable property *better*, because every channel is
+then the same machinery for players and for seeded traffic alike.
+
+### ⭐⭐⭐ One sighting channel, two sources of sail
+
+⚠ **If a player's craft and an NPC trader arrive by different mechanisms,
+players will learn to sort them — and the moment they can, the water is
+divided into "real" and "content."** That is the deepest form of the
+immersion lens: the fiction betraying itself not by being wrong but by
+being **sortable**.
+
+⭐⭐ And the NPC traffic is what makes player traffic *plausible*. If the
+only thing you ever meet is another player, meeting one is a coincidence;
+if the water has shipping, meeting one is **just traffic** — which also
+means **you do not need many players afloat if the water has craft in
+it.**
+
+### ⭐⭐⭐ Traffic is a SEEDED field, not a die roll
+
+A sighting is a fact about the **environment**, so it is legal
+provenance under [uncertainty.md](../../uncertainty.md) — but **seeded,
+not drawn**, exactly as `weather.md` is *"the stateless procedural weather
+field."* A lane at this hour on this day carries these craft,
+deterministically.
+
+Which buys three things a roll cannot: ⭐ **two players an hour apart see
+the same trader** (the water is consistent between witnesses) · **a
+pilot's knowledge becomes real** (you can learn the traffic) · and **it
+cannot be farmed by re-entering.**
+
+⭐ And the clustering needs no knob: **traffic is a field value and lanes
+are where the field is high.** *"You might see people out there"* is a
+readable property of where you chose to sail.
+
+### ⭐⭐⭐ And the economics fall out with no dial
+
+The lane has traffic, so it has **help** — and it is where the
+privateers are, and because everyone sails it, **it is hunted out.** The
+empty water has the stock and nobody within twelve miles.
+
+**Remoteness is simultaneously the reason the resource is there and the
+reason you die.** Lens 1 producing a risk/reward curve out of two true
+facts, with nobody authoring a tension.
+
+---
+
+## 3b. ⭐⭐⭐ Navigation — what a traverse IS on an areal passage
+
+Designed 2026-10-08. ⭐ **The question that unlocks it:** on a *place* you
+are in a room, cardinal exits work, `go north` goes north, and there is
+no navigation. On a **linear** passage there are exactly **two
+neighbours**, so you cannot get lost in a canal either. Navigation exists
+in precisely one place — and it exists there because **an areal passage
+has no neighbours at all.**
+
+⭐⭐⭐ **There is no exit to take.** So movement on an expanse cannot be
+*choose a destination*; it must be **set a course** — a heading and a
+rate, for a duration. **You choose a vector and the world computes where
+you end up.**
+
+### ⭐⭐⭐ Two positions, and that is the whole mechanic
+
+The world holds your **true** position. You hold your **reckoned** one —
+your own estimate, accumulated from heading × speed × elapsed. They
+diverge because of things you cannot directly measure: the **current** (a
+field value on the expanse), **leeway** (wind pushing you sideways — wind
+already ships as a weather-deviated field), compass error, and the log's
+imprecision.
+
+⭐⭐ **The error is EPISTEMIC, not resolutional**, which is why this is
+legal. `uncertainty.md` bans rolling to decide what the world *is*, and
+**nothing rolls here**: the world knows exactly where you are, *you* do
+not, and your error is accumulated ignorance of **seeded** fields. The
+ban is not a constraint being worked around — it is what makes the
+mechanic honest.
+
+### The decision matrix
+
+Dead reckoning is free and its error grows **monotonically**. A **fix**
+collapses it, and the four sources cost genuinely different things.
+
+| fix | cost | available when |
+|---|---|---|
+| **a landmark** | free | something identifiable is inside your horizon |
+| **soundings** (the lead line) | **way** — you must slow or heave to | ⭐ always, *including fog and dark*, which is when you need it |
+| **a celestial sight** | a moment, an instrument | ⚠ **clear sky only** — so **weather gates your ability to know where you are**, and `fog` is already a weather type |
+| **a pilot** | money | where he lives |
+
+⭐ Soundings being the all-weather fix is what makes them the
+**professional** instrument — and depth-plus-bottom-character is a field
+the fishery already wants.
+
+⭐⭐ **The epoch ladder is historically exact and nearly free.** Latitude
+is easy — the noon sun's altitude, and `solarAltitudeDeg` **ships**.
+Longitude needs an accurate clock. So epoch one is **latitude sailing**:
+run north or south to your destination's parallel, then run down it —
+slower, safer, and the reason historical tracks look absurd on a chart.
+Epoch two is the chronometer, which plugs into the Timekeeping seam and
+into [climate-slate](../engine/climate-slate.md)'s polar finding that **you must
+own a clock**.
+
+### The failure modes, graded
+
+⭐⭐⭐ The governing principle: **being lost is a condition you work out
+of, not a punishment.**
+
+- **Doubt.** You have run your distance and the land is not there. Not a
+  failure state — a **prompt**, whose recovery is a set of actions: heave
+  to, sound, wait for a sight, stand off till dawn. **Most of the
+  gameplay lives here.**
+- **Landfall in the wrong place.** You arrive, just not where you meant.
+  Recoverable, and it *generates* content.
+- **Overrunning.** Past your destination into empty water — which § 3
+  already says is where remoteness kills you.
+- ⭐⭐ **Grounding**, and **the model already expresses it with no new
+  mechanism**: § 1 lists *"Superior: mostly areal passages, with
+  **places** at the ports, the **shoals**, a wreck."* A shoal is a place
+  on the graph, so **running aground is arriving at a place you did not
+  choose.**
+
+**Can you get lost? Yes — and the honest answer is that you are ALWAYS
+slightly lost, and competence is how slightly.** Which is
+`instrumentation.md`'s rule unchanged (competence resolves detail, never
+access). ⭐⭐ But the expert's real advantage is not a better position —
+it is **knowing how wrong he might be**: a confidence interval rather
+than a point, which is that doc's **seeded bracket** doing exactly what
+it was built for. **The skill is calibration, not accuracy**, and
+calibration is the better thing to teach.
+
+### ⭐⭐⭐ Disconnection on an expanse is never topological
+
+On an areal passage **reachability is not a graph property** — position
+is a coordinate, so you can sail anywhere you can survive sailing to.
+Therefore disconnection is **epistemic, logistical, or seasonal**:
+
+- **epistemic** — it is on no chart; you do not know it exists
+- **logistical** — you cannot survive the crossing (provisions, water,
+  `vitamin-c`)
+- **seasonal** — the ice closed it, or the pass did
+
+⭐⭐ Which is what makes **discovery** possible: an island that exists in
+the coordinate field and on nobody's chart. And
+`location-graph.md`'s **per-player map document already does this** —
+channels `walked` · `seen` · `searched` · `published`, with the rule that
+**claims append and nothing is corrected.** A chart **is** a per-player
+map; an uncharted island is one no channel holds.
+
+⭐⭐⭐ **And that append-only rule has a consequence nobody drew out: a
+chart can be WRONG, and stay wrong.** A chart you bought with an error
+on it, where the error belongs to a **previous surveyor** — authored,
+attributable, and not the dice's. ⛔ The evidence firewall (*the index
+must never reach a client*) is what makes a chart an **object** rather
+than a UI element — which is also what makes it sellable, forgeable and
+worth stealing.
+
+### ⭐⭐ So pilotage is TWO TRADES sharing a word
+
+| | you always know | you do not know | failure |
+|---|---|---|---|
+| **the bar / river pilot** — *linear* | where you are | where the water is deep **this month** | you ground |
+| **the deep-sea navigator** — *areal* | the water is deep | where you are | you ground |
+
+The same catastrophe from opposite ignorances. The river pilot's product
+is **derived navigability** — a channel that moves with the freshet and
+that nobody wrote down; the navigator's is **calibration**. One is local
+and unteachable; the other is mathematics and an instrument.
+
+⭐ **They also sit on opposite sides of the epoch**: the navigator is
+replaced by better clocks, and **the river pilot never is** — the channel
+keeps moving.
+
+⭐ **The durative shape**: a passage is an engaged act with interrupts at
+roughly **a watch — twenty real minutes** on § 6's clock, each one a
+decision point where a sighting, the weather, or a chance to sound
+arrives.
+
+### ⚠⚠ The risk, named
+
+**If pilotage becomes a dexterity-and-attention minigame we have built a
+worse Sea of Thieves in text.** We cannot compete on steering and a watch
+is twenty real minutes. ⭐⭐⭐ **The submarine-sim conclusion is the
+design: the PLOT is the interface.** Not a wheel, not a heading dial — a
+running record (reckoned position, last fix, time since, the growing
+bracket) that the player reads and acts on, where the decision is **when
+to spend time on certainty.** Text-native, watch-shaped, and it makes
+expertise an interval rather than a reflex.
+
+### Prior art — by what is transferable
+
+⚠ Our slates cite doctrine heavily and never cite prior art, so every one
+of these arguments gets re-derived from scratch next time.
+
+| source | the transferable mechanism |
+|---|---|
+| ⭐⭐⭐ **Silent Hunter / UBOAT / Cold Waters** | the closest match anywhere: an **estimate maintained on a plotting table** is the shipped, commercial form of reckoned-vs-true — and **the plot is the interface** |
+| ⭐⭐⭐ **Elite / Elite Dangerous** | our `Expanse` already built: **fuel/jump range as the boundary** (logistical disconnection) · a **deterministic procedural galaxy so everyone sees the same star** (seeded-not-drawn, at scale) · ⭐ **exploration sells DATA** (the chart and the record as a player economy) |
+| ⭐⭐ **Sunless Sea** | crossing to sparse ports where **supplies are the clock**, and the honest treatment of **what darkness does to a crossing** |
+| ⭐⭐ **Outer Wilds** | the proof that **knowledge alone can be the whole progression** in a deterministic world |
+| ⭐⭐ **Tunic** | the **fallible manual as the progression object** — the best argument that an unreliable document beats a reliable one |
+| **Kerbal Space Program** | real physics *is* the game; the loop is **predicted vs actual** |
+| ⛔ **Patrician / Port Royale / Anno** | **the anti-pattern**: sea travel as *a route line and a timer*. If the traverse has no decisions in it, we have built Port Royale |
+| ⚠ **Sea of Thieves** | proves **navigating by looking is pleasurable** — but it is 1:1 continuous, so its uncertainty lives in the player's head and it **cannot** tell us how to do this over an abstraction |
+
+**Literature** — ⭐⭐⭐ **Twain, *Life on the Mississippi*** is not an
+analogy: he held the licence, and the book contains the moving channel,
+the unteachable knowledge in both directions and by night, the **Pilots'
+Benevolent Association** (an actual licensing monopoly — the lens-7
+structure, attested), and ⭐ **the obsolescence**, written by a man who
+watched his own trade become worthless. **If we build river pilotage,
+that book is the brief.** · **Conrad, *Heart of Darkness*** — a master
+mariner on watching for snags and guessing at a channel. ·
+**O'Brian / *Master and Commander*** — the watch, the masthead, the log
+line, soundings as a running report. · **Sobel, *Longitude*** — the
+epoch ladder as history. · **Melville**, two chapters not the book:
+⭐ **"The Chart"** (Ahab reasoning about migration from accumulated
+logbooks — *the station's record, in 1851*) and **"The Quadrant"** (he
+smashes the instrument that tells him where he is).
+
+---
+
+## 3c. ⭐⭐ The submarine — the stress test, and what it proved
+
+Run 2026-10-08 to test whether this session's model holds under a third
+dimension. **It holds in three places and broke in one** (§ 3's horizon,
+corrected above), which is the whole value of having run it.
+
+**What holds:**
+
+- ✅ **A sub is aboard-something-crossing.** A vessel is a room that
+  moves, so you are *in the sub* and the sub is *on* the passage.
+  § 1 untouched, and *"water is cited, not inhabited"* survives.
+- ✅ ⭐⭐ **Depth is not a graph problem.** `underwater-slate` already
+  decided that **medium is derived from `level − elevation`**, so depth is
+  a property of where you are **in the medium**, orthogonal to position
+  **on** the expanse. No third graph dimension, no neighbours, nothing
+  re-modelled. ⭐ And the consequence is right: **the sub and the ship
+  above it are at the same node.** They are in the same place and cannot
+  find each other.
+- ✅ **Crush depth is already derivable** — `response = f(mechanism,
+  material, construction)` plus the shipped elevation→pressure
+  derivation. And the underwater slate's *"ascent is never gated on
+  skill, only on breath and ballast"* **is** the submarine's mechanic: a
+  sub is a ballast machine, so this is that model at vessel scale.
+
+**What it adds to § 3b:**
+
+⭐⭐⭐ **Submerged, you have NO fixes** — no landmark, no sight. Dead
+reckoning and the depth under your keel. Historically exact (boats
+surfaced at night *to get a star fix*). **So you must surface to know
+where you are, and knowing where you are is how you get found.** The
+cleanest risk/reward in the navigation design, and not one part of it was
+invented.
+
+**Three couplings:**
+
+1. ⭐⭐⭐ **The pump is the gate for the whole diving ladder** —
+   breath-hold → diving bell → hard-hat suit **with a pump and a hose**
+   → submarine. `watershed.md` says the pump **is the turbine read
+   backwards** (one equation, two efficiency dials), so it unlocks mine
+   dewatering, the quarry pit **and** surface-supplied diving. ⚠ **Third
+   appearance in one session, three consumers, nearly free.**
+2. **Bulk's inert `sealed` rung gets its consumer** — a sub is a room
+   with a finite atmosphere, and respiration ships asphyxiation and the
+   crisis drain. **Air becomes the clock.**
+3. **Diving is how you reach a wreck**, which gates salvage (§ 5c); and
+   pearl/sponge diving was already *"the column's first real consumer."*
+
+⭐ **The honest scoping: diving is the trade and the submarine is its
+last rung**, industrial-epoch and far off. Build the breath-hold end.
+Designing for the top rung cost nothing and is what caught the channel
+defect. · Prior art: **Verne** (and *20,000 Leagues* visits Atlantis,
+which `underwater-slate` already put in bounds) · ***Das Boot*** for
+atmosphere-as-clock and depth under pressure.
+
+---
+
+## 4. ⭐⭐⭐ Expressiveness — the lens-2 audit, and the Deliverance gap
+
+⚠ Lens 2 is **not** *how cheaply can you make a standard one.* It is
+**how much can you customise your individual instance through content and
+code — where can you take it.** Audited that way:
+
+> **The hydrology and the law are richly variable. The *experience* is
+> nearly constant.**
+
+**Variable today:** the node set · elevations at control points · the
+basin · branches · structures on reaches · contamination level and kind ·
+rights and quotas · storage and control · and anything a `Location`
+*beside* the water does.
+
+⚠⚠ **Not variable: whether you can be in it, on it, or under it.**
+
+### ⭐⭐⭐ And the premise that justified that is false for water
+
+> *"A reach is not an object… **the unbuilt lots are prose, not nine empty
+> rooms.**"*
+
+Hinkley's unbuilt lots are prose **because nobody will ever stand in
+them.** ⭐⭐ **Somebody will absolutely stand in a river.** The decision
+was correct in a build about rights, flow and conduits; **its scope was
+never re-examined for a build where people get wet.**
+
+### The test cases
+
+| | makeable today | what it needs |
+|---|---|---|
+| **Bridge on the River Kwai** | ⭐⭐ mostly — a bridge **is** `boundary.md`'s two-anchor cross-room abstraction, the same object as `Window` and `Door` | ⚠ the climax: men **in the river** at the piers |
+| **Anaconda** | ⛔ | reaches as places · a boat you can be in · something in the water that reaches into it |
+| **Lake Placid** | ⛔ | a surface to be on, a bottom, something crossing between |
+| **Friday the 13th** | ⭐ the camp is land | ⚠ the canoe, the drowning, the hand out of the water |
+
+⭐⭐⭐ **The common missing piece is one thing, not four: water as a place
+you can occupy, surface and beneath.**
+
+### ⚠⚠ CORRECTED 2026-10-09 — most of this is already decided
+
+[underwater-slate.md](../engine/underwater-slate.md) (designed 2026-09-18,
+**DECIDED** on five of seven sections) already holds it, and in a better
+general form than the drafts above:
+
+> **Every water node cites its reach, and the reach's level is the
+> surface.** Medium is **derived** from `level − elevation`, not
+> authored: *a shallow node goes dry on the ebb, a shore node goes under
+> on the flood, and nobody re-authors anything.*
+
+⭐⭐⭐ **So *"a place that can be underwater"* was never a gap** — it is
+one comparison, and it unifies **the reef · the wreck · the drowned
+village · the flooded workings · the tide pool · the flood.** The drowned
+village needs nothing but a reservoir whose level rose, and
+`StorageNode`'s level is *"the build's ONE piece of state."*
+
+Also already decided there: **implicit up** unless a node declares
+`ceiling: true`, with a gate proving a ceiling reaches air · **`depth` on
+the node and `up`/`down` derived** (*"never an arrow"* — the watershed's
+move) · light, temperature and pressure **derived from depth and the
+reach's clarity**, *"never a per-room `ambientIntensity`"* · buoyancy as
+a **read** · and ⭐⭐ **"ascent is never gated on skill — only on breath
+and ballast."** Plus *"Atlantis is in bounds"*, and ⚠ the ground-build
+retrofit that **a band is not standable, its bed is** (`noDefaultFloor`).
+
+⭐ So of the four films, the missing piece is **already designed** and the
+remaining cost is the build, not the thinking.
+
+### ⭐⭐⭐ The Deliverance gap — a reach has no character
+
+Still inexpressible after all of the above:
+
+- a river that flows **uphill or in a circle** — ⭐ correctly forbidden
+- a **tidal bore or reversing flow** — ⚠ a genuine loss (the Severn, the
+  Amazon's pororoca)
+- **local relief** between control points — ⭐ fixable by authoring more
+  control points
+- ⭐⭐⭐ **a cataract.** Navigability is **flow × width**, so a steep
+  rocky reach is navigable *by the formula.* **Rapids are about gradient
+  and rock, and gradient is interpolated away between control points.**
+
+⚠⚠ **So *Deliverance* is unmakeable, and it is *the* river film.** Fast,
+shallow, full of stone, in a gorge, with no way back up — every one of
+those facts is either derived to something else or smoothed out.
+
+⭐ **This is the deepest item in the slate**, because *"a reach has a
+character of its own"* — gradient, bed, width, obstruction — is a claim
+about **what water is** rather than about how water is organised, and it
+changes what is authored on every node in both halves.
+
+#### ⭐⭐⭐ And the underwater slate states it sharply, by contrast
+
+Look at what the **column** has that a **reach** does not:
+
+> *depth ÷ ascent rate = the breath you need; the water's cold is the
+> second clock (`conductivityOf(water)` is ~25× air). **The deep is
+> legitimately deadly, as the mine's bottom is.***
+
+⭐⭐⭐ **The vertical axis priced its passage. The horizontal one never
+did.** Breath, cold, ballast and a derivable survivable path going
+*down*; **flow × width and a boolean** going *along*.
+
+**That is the gap in its real form** — not *a reach has no character*,
+but **one axis got a cost model and the other got a predicate** — and the
+underwater slate is the proof it is buildable, because it did the harder
+of the two. ⭐ The likely shape is `exertion.md`: `exert({durationS,
+powerW})`, the five slow stocks, *reach as a body read*, and **every
+limit soft.** A reach that declares what it costs to pass, derived from
+**gradient and obstruction**, so a surveyor could have warned them.
+
+### ⭐⭐ Constant versus variable, stated properly
+
+**Constant, rightly:** direction · flow · navigability's arithmetic ·
+contamination as a concentration · the rights doctrines. **The physics and
+the law.**
+
+**Variable, necessarily:** which nodes are places · what those places are
+like · what is in them · what is built on them · what lives there · what
+it is like at night. **The content.**
+
+⭐⭐⭐ **The engine keeps the hydrology; the author gets the scene.** Which
+is [content-craft § 8c](../../content-craft.md) working: an *Anaconda*
+built on this engine has a river that genuinely flows downhill and
+genuinely drops in August, and the expedition's trouble is real rather
+than scripted.
+
+---
+
+## 5. Ownership — the frame-holder holds the water, and nothing else
+
+**An independent concern holds each water body** — one committee per
+ocean/expanse, managing the frame. ⭐ The shape has a long history: **the
+frame-holder owns the *way*, and somebody else owns the *destinations***
+(a port authority, a turnpike company).
+
+### ⚠⚠ CORRECTED 2026-10-09 — they are ADJACENT, not nested
+
+A draft of this section put ports *under* the ocean's template path —
+`/world/<realm>/<ocean>/<port>/` — with `parcel.md`'s longest-prefix
+resolution settling the two tiers. **That is wrong, and `wharfside`
+proves it.**
+
+Terminus's waterfront is at **`/world/terminus/wharfside/`** — a district
+of the *city*. It cannot simultaneously sit under an ocean's path,
+because **a template path is singular and a town cannot be inside an
+ocean.**
+
+⭐⭐⭐ **So the frame-holder holds the water and NOTHING ELSE. Every place
+is on somebody's land.** There is no nesting to resolve — the water and
+the shore are **adjacent**, joined by a citation (§ 5a) rather than by
+containment.
+
+⭐ Which is more honest anyway: **a port authority does not own the
+town.** It owns the channel, the moorings and the pilotage; the quay
+belongs to whoever's land it is on.
+
+⭐⭐ And it *sharpens* the design rather than weakening it. A
+water-holder's only assets are **passage** and **stock**, so its only
+revenue instruments are **a toll** and **a licence** — which is exactly
+why § 5's fishery case and the canal's chokepoint case came out as the
+only two shapes available. **It has no berths to let, because it has no
+land.**
+
+⭐⭐⭐ **And the subdivision answer gets sharper too: a hostile water
+committee cannot stop you building a port. It can only stop you leaving
+it.** You may build the whole harbor and then find the charter will not
+license your transit — a far more specific and more interesting power
+than a landlord's veto.
+
+### ⭐⭐⭐ The conflict of interest is smaller than it looks
+
+The frame-holder may also own standard content inside. The serious
+version of that conflict would be **holding the resource field** — siting
+the stock next to your own station. ⭐⭐⭐ **It does not exist**, because
+`fishing.md`'s fishery is *"a **DERIVED** record on a reach — capacity =
+Liebig habitat fit × abundance × length, **only `drawn` is state**."*
+
+⭐ The holder *can* author the water's physics — temperature, depth,
+current — but those are **physical, cascading and `measure`-able**, so
+favouring your own ground means making the water genuinely different
+there where anyone can check. **Gaming it is possible and legible**,
+which is the right place for it to land. *Derive, don't track* defused
+this on its way past.
+
+| what remains | how serious |
+|---|---|
+| the **self-levy** — they set the duty and pay it | ⭐ ordinary; disclosure is the usual answer |
+| **siting** — their station took the best spot first | ⭐ first-mover advantage, which is how every port was sited |
+| ⭐⭐⭐ **subdivision** — who gets a parcel in this water at all | **the real power**, and a landlord's |
+
+### ⭐⭐ Subdivision is the committee's, and the charter decides — ✅ ANSWERED 2026-10-09
+
+A draft of this section asked whether `subdivide` requires the parent
+holder's consent, and framed it as *steward versus monopolist*. ⚠ **That
+dichotomy is wrong, because it assumed the answer was a platform rule.**
+
+⭐⭐⭐ **Subdivision is managed by the committee, and it sets whatever
+rules it wants about consent within its charter.** So there is no engine
+answer and no default to argue about — a water body's committee may be a
+gatekeeper or a rubber stamp, and **which one it is, is content.**
+
+⭐ Two consequences worth keeping:
+
+- **The charter is the instrument**, so the rule is *legible*: anybody can
+  read what this ocean's committee will and will not grant, and a
+  committee that changes it has changed a published document.
+- ⭐⭐ And it folds the lens-7 question below into the same place: *may
+  water be held by somebody who works it* is **the charter's question
+  too.** The criterion is the charter, the appeal is whatever the charter
+  provides (and the courts behind it — `courts-slate`'s *a clerk, not a
+  judge*), and the entrenchment is **Tier C**: the polity decides what a
+  charter may contain, not what any one committee puts in its own.
+
+### ⭐⭐⭐ The holder's compensation, and why it fixes the incentive
+
+**Standing for holding it, and zorkmids if they choose to impose a tax or
+duty.**
+
+⭐ Which inverts the perverse incentive rather than patching it: **it is
+not a subsidy for abundance, it is a tax on extraction, and a tax on
+extraction only pays while extraction continues.** A holder who levies on
+the catch has a direct interest in **there being a catch next year.**
+Ostrom rather than Hardin — *the tragedy is of **unowned** commons; a
+taxed commons has a landlord with skin in the game.*
+
+⭐⭐ And the two-economy firewall holds exactly: a **worldcrafting** cost
+(capacity) compensated in the **worldcrafting** currency (standing); a
+**fiction** instrument (the duty) levied on **fiction** activity and paid
+in **fiction** money. **Two parallel compensations, neither converting.**
+
+⚠ The failure it permits is the good kind — **extract rent and let the
+ground go** — and the check is that **the revenue dies with the stock.**
+Self-punishing on a delay, which is a *story* rather than a rule.
+
+⚑ **The lens-7 question that remains: can the water be held by somebody
+who works it?** A whaling outfit that acquires title to its own ground
+pays the stock's capacity, levies a duty on itself (a wash) and then sets
+the season and the licence for every competitor. **Regulatory capture
+arriving as a lawful land acquisition, with no rule broken.**
+
+⭐ Per the subsection above, **the criterion lives in the charter** — so
+the open part is narrower than it looks: not *what is the rule*, but
+**whether the polity constrains what a charter may say about it** (a
+conflict rule, a disclosure rule, or nothing). ⭐⭐ My lean is **nothing,
+with the holding and the duty public**, because a conflict rule is a
+prohibition the Compact would enforce from outside the fiction, and *the
+polity dealing with it* is what this whole structure exists to make
+possible.
+
+---
+
+## 5a. ⭐⭐⭐ The coast is the `Shore`, and it closes the model
+
+> ⭐ **The vehicle moved; the ruling stands** (maritime revision 3,
+> 2026-10-11). *Cited, never contained, never containing* is unchanged —
+> but the citation is now on the PLACE (a `/platform/location/Shore` or
+> `Quay`, `waters: { <feature>: <reach> }`), not on a `Shore` object in
+> it; the room's own feature is what you look at, fish and draw from.
+> The prop defect below closes because the read is the water's own look,
+> by the place's name for it — never appended to the room's prose. See
+> [shore-as-place-slate](../tech-debt/shore-as-place-slate.md) and
+> [fishing.md](../../subsystems/fishing.md) § the shore.
+
+The seam between this model and the land model — and **it already
+ships.**
+
+> **`/system/water/thing/Shore`** — a **room-fixed feature**
+> (`fixedInPlace`) **citing a `reachRef`**, the water pack's, by the
+> `/system/` test: *a riverbank is there whether or not anyone fishes.*
+
+⭐⭐⭐ **So a beach is neither a node on the expanse nor a node on the
+land graph: it is a LAND `Location` holding a `Shore` feature that CITES
+a water node.** Water is cited, never contained and never containing —
+the same relation a room already has to `_biomePath` and `_address`.
+
+| the coast must | and it does, because |
+|---|---|
+| be reachable on foot | it is an ordinary land `Location` |
+| have its own content | it is an ordinary land `Location` |
+| let you act on water without being in it | ⭐ **that is what a `Shore` is** |
+| be sited and titled by whoever owns the ground | it is on the land graph, held by the town |
+| be where a craft makes landfall | ⭐⭐ **an exit** — `location.md` permits non-cardinal labels *"when the destination's templatePath resolves to a different zone"*, and a beach and an ocean are different zones, so `ashore` / `aboard` are already legal |
+
+⭐⭐ **Two rows already ship** — the wharfside `river-edge` citing
+`kestrel:confluence`, and the moor's `heath-mere` citing `holloway:head`.
+**Terminus's waterfront is already citing a reach.**
+
+⭐ And there is a three-rung fallback: a verb takes a Shore as a declared
+argument (`default: "reachable:[class.Shore]"`) and **falls back to the
+Locality's reach when none is bound** — *"how Heart's Delight's millsite
+fishes the Delight's flats with no row and no code."*
+
+### ⭐⭐ Three faces on one citation
+
+- **`Shore`** — *act on* water you are not in (fish, haul, sound, draw)
+- **a dive entrance** — *enter* water you are not in (⭐ the mine's adit,
+  one element over: you descend where somebody knows there is something)
+- **a mooring or launch** — *put a craft on* water
+
+All three are room-fixed features citing a reach, and ⭐ a craft with
+interior geography has rooms, so a **boat's rail is a `Shore`** and a
+**boat dive** is the same feature aboard.
+
+⭐ **An island** is then a land `Location` with a `Shore` and **no land
+exit.** Same object, nothing new. Likewise a fishing village, a saltern,
+a dyehouse, a whaling station.
+
+### ⚠⚠ One defect, at the busiest seam in the system
+
+From the same section of [fishing.md](../../subsystems/fishing.md):
+
+> *"The room's own `look` does not carry the read — **a prop contributes
+> nothing to its room's prose** (only the floor puddle has a kernel
+> hook). A room-level contribution hook is a finding for the sweep."*
+
+⭐⭐⭐ **So a beach does not mention the sea** unless the author writes it
+twice — once in the room's `longDescription` and again on the Shore — and
+the two then drift. ⚠ That is the *two copies of one sentence* failure at
+the single most-visited join in the whole design, and **every coastal
+room in the realm will hit it.** Worth promoting out of the sweep.
+
+## 5b. ⭐⭐⭐ The trades — what water touches, and what it unlocks
+
+Audited against all 27 shipped trades, 2026-10-09. ⭐ **Water touches far
+more than fishing**, and the useful grouping is *how* it touches.
+
+### Water as POWER
+
+**Milling** is already **fully water-powered and shipped** —
+`ρ·g·Δh·Q·η`, the weir, the race, an overshot wheel, *"in August it turns
+slower."* ⭐ Nobody calls it a water trade and it is the deepest one we
+have.
+
+**Smelting · smithing · fuel** — ⭐⭐ water-powered bellows and trip
+hammers are why every ironworks sat on a stream. A finery forge is a
+waterwheel with a hammer on it.
+
+### ⭐⭐⭐ Water as an ENTITLEMENT — and the rights system has no consumer
+
+**Farming · ranching · milling** do not consume water, they consume **a
+right to water** — and `watershed.md` ships the `water-right` document
+kind, allocation, quotas, prior appropriation recorded, riparian derived,
+and *"the parcel's reach citation."*
+
+⚠⚠ **And the millsite has a weir across the whole river and no water
+right.** Its own prose says *"it passes everything it takes — nothing is
+diverted away, nothing is lost downstream."* ⭐⭐⭐ **That is a claim
+about a diversion right, written as reassurance, with no record behind
+it** — the oldest water dispute there is, in our best room, undocumented.
+
+### ⭐⭐⭐ Water as an INGREDIENT whose chemistry is already readable
+
+**Brewing · distilling · malting** — and the `Shore` read already reports
+**soft / hard** as a physical fact about the water.
+
+⭐⭐⭐ **Terroir-by-water is already readable and nothing consumes it.**
+Burton's gypsum made pale ale, Dublin's hard water made stout, Pilsen's
+soft water made lager — **three beer styles that exist because of three
+rivers**, and we ship the read and the trades and no connection between
+them.
+
+### ⭐⭐⭐ Water as a medium you FOUL — the biggest unwired collision
+
+**Dyeing · tanning · textiles.** All three ship. All three are sited on
+water in life for the same reason. And `watershed.md` ships
+**contamination as a concentration by kind**, so *a dry month is a dirty
+month.*
+
+⭐ `textiles.md` already knows the politics and has nowhere to put it:
+
+> *"**Retting ponds stank badly enough to be banned upstream of
+> towns.**"*
+
+⚠⚠ **An authored prohibition with no river to prohibit it on** — plus
+`MaturingMixin` already running *"the retting pit's clock"* and
+`rotted-flax` as the over-ret, the trade's one visible failure, all
+waiting on still water.
+
+⭐⭐ **Tanning is the worse one and the better story**: lime pits, dung,
+urine, bark liquor, downstream of everything and outside the walls. **A
+LULU with a contamination output on a river** — `settlement-model`'s LULU
+taxonomy meeting `watershed.md`'s contamination at a trade that already
+ships.
+
+⭐⭐⭐ **And the lake's accumulation property makes siting derivable: the
+river carries your filth away and the lake keeps it.** The same tannery
+is viable on one and ruinous on the other, and nobody authors a rule —
+[content-craft § 8c](../../content-craft.md), located rather than
+invented.
+
+### ⭐⭐⭐ Water as TRANSPORT — and forestry's hardest problem is a water problem
+
+**Haulage** — water freight was 10–20× cheaper than land, which is the
+whole Erie finding.
+
+⭐⭐⭐ But the sharp one is **forestry's bole**: *"the first Thing whose
+product exceeds a body,"* tonnes, dropped on the floor and cross-cut in
+place **because you cannot lift it.**
+
+**Water is how a pre-industrial economy moved what exceeded a body.** Log
+driving. ⭐⭐ The bole's entire design constraint is *answered* by a
+river, which is why every sawmill in history was on one. **A bole you
+cannot lift, you can float.**
+
+### Water as a HAZARD — and three documents defer one pump
+
+**Mining · quarrying.** Quarry-hill's water table at −12 is the explicit
+scope boundary (*"a pit that fills, and a pump"*), `mining-slate` defers
+*"everything below the water table — shaft, hoist, pump,"* and § 0 above
+defers flooded workings. ⚠ **Three slates, one pump, nobody's.**
+
+### Water as the RESOURCE
+
+**Fishing** (ships) and **whaling** (§ 7).
+
+### ⭐ Genuinely untouched
+
+apiculture · baking · cooking · hearth-cooking · chandlery (candles, two
+fats — *not* ship chandlery) · medicine · shopkeeping · winemaking ·
+hospitality · bottling (wants water as an ingredient, not as a place).
+
+### ⭐⭐ The three collisions to wire first
+
+1. ⭐⭐⭐ **tanning + dyeing + retting → contamination.** Three trades
+   ship, the mechanism ships, the prohibition is already written in a
+   doc, and the lake/river distinction makes siting a real decision.
+2. ⭐⭐⭐ **the bole → log driving.** It *resolves* a shipped design
+   constraint rather than adding one.
+3. ⭐⭐ **the millsite's weir → a water right.** One row, and it turns a
+   sentence of reassurance into a record somebody can dispute.
+
+### ⚑ Trades not built or discussed — the list, kept
+
+⭐ The governing observation: **every settlement of a certain size sits on
+water**, so this list is long and most of it is cheap.
+
+**Movement and passage** — pilotage · ferrying · lightering · bridge and
+ford tolls · watermen and wherries · ⭐ towpath haulage (the Erie's mules)
+· dredging.
+
+**Taking from the water** — ⭐⭐ **the ice trades** (§ below / own
+drill-down) · salt by evaporation (⭐ `trade-quarrying` already ships a
+**salt pan** and a **brine hearth**) · reed and withy cutting · eel and
+oyster culture · wildfowling · pearl and sponge diving (the column's
+first real consumer) · wrecking and salvage.
+
+**Using the water** — ⭐ laundry (⭐⭐ `textiles.md` already floats *"a
+laundry vocation — water is a precondition, not a consumable"*) · bathing
+and spas · ⭐ **tourism and watersports** · milling (ships) · fulling ·
+ropewalks and sailmaking · boatbuilding.
+
+**Changing the water** — drowned-land reclamation and drainage ·
+embanking · irrigation works · ⭐ the pump (above, and overdue).
+
+⚠ **Not a build list.** Recorded so it is not lost, and because several
+are a row or two on machinery that already ships.
+
+## 5c. ⭐⭐ The trades examined — drill-down on § 5b's kept list
+
+Worked 2026-10-08, from the ⛑ list above. ⚠ **Not a build order** — the
+six with real content in them, plus the cuts.
+
+### ⭐⭐⭐ Submersion — moved to [underwater-slate](../engine/underwater-slate.md) § 8
+
+⛔ **And it is not a trade.** Drafted here as a third RGO family beside
+ice and whaling; that was wrong. **Submersion is an ACCESS MODE** — a tax
+every underwater trade pays (gathering, mining, salvage, construction,
+cable-laying) — and belongs on `rgo-unification-slate`'s **axis 2**, not
+in the family roster. See § 8 there for the medium affordance table, the
+edges (tidepools, the trench, under ice), drowning, and the poison-pill
+audit of this slate's own DECIDED items.
+
+### ⭐⭐⭐ Pilotage — see § 3b
+
+The richest entry, and it got its own section because it answers *what a
+traverse is*. Two trades sharing a word; the gate is knowledge that
+**spoils**; the register's criterion 2 is satisfied by something unusual —
+⭐ **the pilot and the laundress are both paid for an absence** (a
+grounding that did not happen, a garment that was not ruined).
+
+### ⚠ The oyster bed — DEMOTED 2026-10-08, and the finding survives
+
+> ⛔ **Cut as a trade.** User: *"I don't have a lot of opinion on
+> oystering, to me it's fancy fishing."* **Correct** — the act is *take a
+> thing from the water*, the fishery is already derived on a reach, and
+> cultivation would be husbandry's reconcile-on-read pointed at water. It
+> was a shipped mechanism in a costume.
+>
+> ⭐ **The contamination finding below does NOT need the trade** — it
+> works on any shellfish the shipped fishery already produces, so it
+> stays here as a note on the contamination collision. And the
+> *reservoir* half moved to
+> [underwater-slate](../engine/underwater-slate.md) § 8b, where it belongs: the
+> bed is **ground with a cover**, not a fishery.
+
+#### The finding, kept
+
+Oysters are **filter feeders**: they clean the water, and in cleaning it
+they **concentrate** what is in it. `spoilage.md`'s doctrine is that
+**spoilage is a clock and contamination is an EVENT** — event-seeded, own
+kill curve, spore floor, and **no sense that reports it**.
+
+⭐⭐⭐ So: a bed downstream of a tannery. **The water runs clear. The
+oyster looks, smells and tastes like an oyster. It kills you.** That is
+`ContaminableMixin`'s silent second population with the most honest
+vector it will ever have, and the lesson is real — **shellfish are an
+integrating instrument for water quality, and the integration is
+invisible.**
+
+Then the politics writes itself and nobody invented it: whose tannery,
+whose bed, how far is far enough, and **the harm is undetectable at the
+moment of sale.** ⭐ Plus § 5b's lake-versus-river rule — *the river
+carries your filth away and the lake keeps it* — so the same bed below
+the same tannery is fine on one and lethal on the other.
+
+⭐⭐ **And it is the first FARMED water resource**: an RGO whose recharge
+you control. With ice (recharge 1.0, no conservation question) and
+whaling (no recharge), **the trade programme gets its full control set —
+three RGOs, three recharge regimes.**
+
+### ⛔ The drainage board — CUT 2026-10-08
+
+> ⛔ User: *"I don't really care about polders. Land is cheap in this
+> game unless the content author needs it to be expensive — this seems
+> like just a tool to do that."*
+>
+> ⭐⭐⭐ **And that is a sharper test than "is it interesting": the
+> polder's entire value depends on land being EXPENSIVE, which is an
+> authoring choice rather than a platform fact.** A mechanism whose
+> premise is a content decision can never justify platform work — it can
+> only ride an author who already wanted scarce land. **Recorded as a
+> reusable refusal.**
+>
+> ⚠ One piece survives as a *pattern*, not a build: the dike is the third
+> member of **exact cost against catastrophic, delayed, unmeasurable
+> loss**, beside the fuel ration and the station's record
+> ([climate-slate](../engine/climate-slate.md) § *What it is FOR*).
+
+#### The argument, kept for the pattern only
+
+⭐⭐ **A polder is land that exists because a collective keeps a dike up,
+and if the maintenance lapses the land ceases to exist.** There is no
+other object like that in the design.
+
+Which is why the Dutch water boards are the **oldest continuously
+functioning democratic institutions in Europe** — they predate the states
+around them, because the dike did not care who was king. A **government
+whose entire charter is maintenance**, with taxing power, over land it
+manufactured, where the franchise belongs to the people whose fields
+drown. `civics.md` is seats-as-positions with Locality-declared
+jurisdiction; ⭐ **this is a jurisdiction defined by who gets wet.**
+
+⭐⭐⭐ **And it completes a family: EXACT COST against CATASTROPHIC,
+DELAYED, UNMEASURABLE loss** — the fuel ration, the station's record, and
+the dike. In all three the ledger says stop paying and **the ledger is
+wrong.** (See [climate-slate](../engine/climate-slate.md) § *What it is FOR*.)
+
+⭐ Prior art: ***Jean de Florette* / *Manon des Sources*** — not laundry
+and not dikes, but **water rights as the entire plot**: a blocked spring,
+a ruined farm, two generations. The dramatic register for the August
+crisis.
+
+### ⭐⭐ Wrecking and salvage — where the law is the content
+
+The richest lens-4 object on the list, because **the law is genuinely
+unsettled and always has been**: who owns a wreck, what a rescuer may
+claim, whether a cargo saved is a cargo bought, whether the owner's
+absence is consent.
+
+⭐⭐ And the dark version is historically real: **a town whose economy is
+wrecks.** Not pirates — ordinary people for whom a bad night is a good
+year, who are not *causing* wrecks and are also not praying very hard
+against them. A community you can write with complete sympathy and no
+villain, which is `content-craft.md` § 8c exactly. The hard edge — **the
+false light**, luring a ship onto rocks — is the one unambiguous crime,
+and is better for being the single line nobody admits is near.
+
+Mechanically close to free: the salvage doctrine, chattel chain-of-title
+and the accountability ledger all ship. **What it needs is a CLAIM and
+somebody to hear it.** ⭐ And a wreck is a **place that appears without
+an author and disappears on a tide** — gated by the diving ladder
+(§ 3c).
+
+### ⭐⭐ Salt — ice's twin, and the climate work created the pair
+
+`trade-quarrying` **already ships a salt pan and a brine hearth.** Solar
+evaporation needs sun and dryness; ice needs cold. **Same mechanism,
+opposite climate, counter-sited.**
+
+⭐⭐⭐ And the climate pass gave it teeth: `stallBelowK: 273` means the
+cold half of the realm **cannot preserve by drying**, so it preserves by
+**freezing** — while the warm half **salts**. **Two preservation
+technologies split by latitude, with a trade route between them**, each
+unable to do the other's job. The north buys salt it cannot make for the
+fish it catches; the south buys ice it cannot make for the summer it has.
+⭐ **Neither trade was designed to need the other and both now do** — the
+best argument yet that the climate unification pays for itself.
+
+### ⭐⭐ The ferryman and the bridge — and this is now a PATTERN
+
+The crossing survives; the ferryman is finished, with no warning except
+watching the piers go in. ⭐ And the ice road replaces him for five
+months **free**, so his year already has a hole in it before the bridge
+arrives.
+
+⭐⭐⭐ **The reason to record it is that it is the third instance in two
+sessions:**
+
+| capability | survives as | the economy that dies |
+|---|---|---|
+| keeping things cold | `ClimateControl` | the ice trade |
+| lighting a room | kerosene — *already in whale oil's own `keywords:`* | whaling |
+| crossing a river | the bridge | ferrying |
+
+⭐⭐⭐ **Three is a pattern, and it belongs to lens 5 rather than to any
+slate** — promoted to
+[design-lenses.md](../../design-lenses.md). The lens as written asks *does
+the new object answer the same commands*, which the platform passes
+trivially and **a person fails completely.** The content is always on the
+person.
+
+### ⭐⭐ Irrigation — what the WATER side owes it
+
+Worked 2026-10-09. ⚠ **Most of irrigation is farming's**
+([farming-slate](../trades/farming-slate.md) § *Irrigation, and the one commons
+inside private farming*) and the delivery half already ships. Recorded
+here only for the three things the water model owes it — and the epoch
+ladder, which went to
+[rgo-unification-slate](../tech-debt/rgo-unification-slate.md) because **groundwater
+is a different RGO class from surface water** and that is a roster fact.
+
+**What already exists**, and it is more than expected: the `Conduit`
+ladder (**haul · gravity · pumped**, where *"which one you have is the
+sign of `headM`, and nobody declares it"*); both redistribution axes —
+`passFraction` in **time** (*"hold the freshet in May, let it down in
+August"*) and `divertsTo` in **space**, with *"a canal is a watercourse
+with a control at its head"*; and the institution already named:
+*"where the users collectively own the works that is an **irrigation
+district**. None is a different object."*
+
+#### 1. ⚠ The bed↔conduit join does not exist
+
+Rain already waters a bed — *"a bed multiplies the millimetres by its
+land area to get litres of soil moisture; a reach multiplies the same
+millimetres by its catchment area to get cubic metres of river. One walk,
+two scales."* **Irrigation is that same number arriving by pipe instead
+of by sky**, and nothing wires a `Conduit`'s delivery into a bed's
+moisture. Soil's input becomes `rain + delivered`. No new mechanism —
+the join, which is farming's to build and water's to expose.
+
+#### 2. ⭐⭐⭐ Return flow — the real gap, and the best content in it
+
+The `draws` ledger subtracts a withdrawal **in full** (*"a draw at or
+upstream of the reach being read is subtracted; one below it is not"*).
+But irrigation does not consume what it diverts: crops transpire part,
+and the rest percolates back below. **A draw needs a consumptive
+fraction**, with the remainder returning at a downstream reach — one
+field, and the ledger already has the topology to put it back.
+
+Then the consequence, which is why it is worth building:
+
+> ⭐⭐⭐ **If the upstream user LINES HIS DITCH to stop it leaking, the
+> downstream user is INJURED** — because the leakage was his supply.
+> **Efficiency upstream is an injury downstream.**
+
+Real doctrine (the *no-injury* rule is why conservation improvements get
+scrutinised in western US water law), completely counterintuitive, and a
+perfect lens-4 object: **the engine computes both sides exactly,
+*"improve your efficiency"* turns out not to be obviously good, and
+nobody is wrong.** Same shape as climate-slate's mild-winter catastrophe
+— a sensible, sympathetic act with a victim nobody looked for.
+
+⭐ It also sharpens the August crisis: a senior downstream right may have
+been living on junior upstream waste for twenty years with nobody aware.
+
+#### 3. ⭐⭐ Irrigation is what puts FARMING into the water fight
+
+Why it belongs to the water design at all:
+
+> **A rain-fed farm suffers weather. An irrigated farm suffers law.**
+
+Irrigation converts a passive farmer into a **rights holder** — a
+priority date, a headgate, an assessment, and a ditch rider who can walk
+up and close it. Without it a drought is something you endure; with it, a
+drought is somebody **curtailing you, by name, in person.** That is § 5c's
+whole August-crisis content arriving at the farm, and irrigation is the
+only thing that delivers it there.
+
+⭐ Two smaller couplings: irrigation is **`passFraction`'s customer**
+(crops want water in July, the river delivers in May — the timing
+mismatch *is* why storage exists), and it is **the pump's fourth
+consumer** (mine · quarry · diver · field).
+
+#### ⭐ And it passes the test the polder failed
+
+Worth recording because it shows that cut had teeth. The polder died
+because **its premise — expensive land — is an authoring choice.** The
+irrigation district's premise is **water scarcity, which is DERIVED**:
+the late-summer low falls out of the snowpack walk whether anyone
+authored it or not. ⭐⭐ Same institutional shape, opposite verdict — and
+**irrigation is the mechanism that makes land expensive derivably**,
+which is also lens 6's answer (it produces nothing; its product is **land
+value**).
+
+#### The lens pass, briefly
+
+- **1 Pedagogy** — `soil-science` + `agriculture` ship. Four derivables:
+  ⭐⭐ **return flow** · **rights are timing and priority, not volume** ·
+  ⭐ **gravity means geography decides** (read the elevation before you
+  buy the land) · **salinization** as a decades-long cost.
+- **2 Expression** — ordinary: a `Conduit` with an intake and a delivery,
+  no code. ⭐ Bespoke: a **qanat is an underground conduit**, i.e. *a mine
+  that carries water* — the mining warren and the conduit meeting, a
+  genuinely strange object neither system anticipated. Named-work test:
+  **Nile flood-recession farming passes today**, because the freshet is
+  computable and the act is *planting*.
+- **3a Immersion** — ⭐ **a ditch is visible infrastructure.** It crosses
+  roads, it has bridges, it is running or dry — and **whether it runs
+  tells you the season and the politics from the roadside.** A dry ditch
+  in July is a story read without talking to anybody. The headgate is a
+  physical object and it can have a lock on it.
+- **3b Participation** — ⭐⭐⭐ **the polity can choose ROTATION instead
+  of PRIORITY.** Prior appropriation says the senior takes all; a district
+  can run **the turn**, everybody a short slot in order. Both work, the
+  allocation layer supports both, and **they produce different
+  societies** — a property regime versus a sharing regime. The lens's
+  actual test, for free.
+- **4 Values** — efficiency-as-injury · rotation-versus-priority (the
+  seniors fight it, because **a priority date is an asset**) · and
+  ⭐ **salinization is intergenerational**: farm well for thirty years and
+  hand on ruined ground, where the engine measures the yield now and the
+  salt later and **nobody alive is punished.**
+- **6 Economy** — above. ⭐⭐ Who pays: **the assessment, by ACREAGE
+  rather than by use** — how ditch companies actually worked, and itself a
+  values choice: *you pay your share whether you take it or not.*
+- **7 Governance** — the headgate, the rider, the assessment, the turn.
+  Criterion: a curtailment order by priority date; appeal: the district.
+  ⭐⭐ **Entrenchment: whether a district may switch from priority to
+  rotation is a tier-C question whose losers' asset is a DATE**, which is a
+  better tier-C exhibit than most.
+- **Schell** — ⭐⭐ [`27-time`](../../lenses/27-time.md): irrigation is a
+  **seasonal commitment with no undo** (you choose what to plant in April
+  on a forecast and cannot revise in July), a long-lag irreversible
+  decision that entry notes we are short of. ⭐
+  [`7-endogenous-value`](../../lenses/7-endogenous-value.md): **a priority
+  date is pure endogenous value** — worthless outside the game, enormous
+  inside it, and **created by law rather than by labour.**
+  [`33-rules`](../../lenses/33-rules.md): a district writing and amending
+  its own rotation is the house-rule-to-written arrow at farm scale.
+
+### The rest, briefly
+
+- **Dredging** — the ditch rider's sibling: a maintenance trade nobody
+  funds, failing gradually and then suddenly, coupled to siltation behind
+  the mill's weir and to derived navigability. ⭐ Its live question is
+  **where the spoil goes**, which is a LULU.
+- ⭐⭐ **The pump** — three slates defer it; `watershed.md` already says
+  water and power meet at **one equation read in two directions**. ⚠
+  **The third instance of the ice slate's standing check** (*when a
+  bidirectional mechanism ships, one direction gets its driver and the
+  other waits for a consumer*) — turbine shipped, pump did not. **Now
+  three consumers deep (mine, quarry, diver) and the cheapest unblock on
+  the board.**
+- ⭐⭐ **Laundry** — own slate: [laundry-slate](../trades/laundry-slate.md).
+- ⭐⭐ **Tourism and sport — own slate:**
+  [tourism-and-sport-slate](./tourism-and-sport-slate.md). Worked
+  2026-10-09: **catering is a choice of whose taste you serve** (range ×
+  whose taste, where *visitors* is one option among several) · the district
+  needs a **taste** · ⭐⭐⭐ **tourism is content discovery wearing a
+  diegetic costume**, and ⛔ must never become a recommendation algorithm ·
+  the **tourist trap as a collapse of feedback** · and the two EotL
+  precedents read closely (football's **venue and cast**, skiing's
+  **diagnosed failure**) →
+  [eotl-craft.md](../../eotl-craft.md) § *Two sports areas read closely.*
+- ⛔ **Boatbuilding / ropewalks / sailmaking — SKIPPED 2026-10-09.** Raised
+  as possibly *upstream of whaling* (you cannot whale without ships). User:
+  *"I think we can skip boatbuilding. We'll do cargo before we have an auto
+  industry probably — I don't think they're blocking design."* ⭐ **The
+  vehicle/capital-goods tier is a later concern and does not gate the
+  trades that use its output**, so whaling may assume hulls exist. (Kept
+  for whenever it lands: a ropewalk is a quarter-mile shed — **a building
+  shaped like its product.**)
+- **Reed and withy cutting** — basket and thatch feedstock, a genuine
+  coppice-shaped RGO on wet ground, cheap. · **Wildfowling** — fishing's
+  mechanism over a different animal. · **Pearl and sponge diving** —
+  belongs with underwater and the diving ladder, not here.
+
+### ⛔ Cut
+
+- **Lightering** — a sub-step of haulage **with no decision in it**, and
+  `vocations.md`'s chain-walk rule says a link with no decision produces
+  **procedure, not emergence.**
+- **Bathing and spas** — folds into tourism.
+- **Watermen and wherries** — ferrying at smaller scale; does not earn a
+  second entry.
+- **Embanking** — collapses into the drainage board, where the interesting
+  part was.
+
+---
+
+## 6. The 12× clock decides the content scale
+
+| game | real |
+|---|---|
+| a 4-hour **watch** | **20 min** |
+| a 12 nm sighting at 4 kn — 3 h to contact | ⭐⭐⭐ **15 min** |
+| ⭐ a **tow home** at 2 kn over 12 nm | **30 min** |
+| **rendering**, 2–3 days continuous | **5 h** |
+| a 2-week passage | ~28 h |
+| ⛔ a three-year deep-sea voyage | **91 days** |
+
+⭐⭐⭐ **The sighting fuse lands at fifteen real minutes** — long enough
+that closing, running, hailing or hiding is a real decision, short enough
+to stay at the keyboard. **A watch is twenty real minutes.** And ⭐ **the
+return is longer than the outbound because you succeeded** — out fast in
+an empty boat, home slow behind a carcass.
+
+⚠ The three-year voyage is unplayable. ⭐ But not by compressing the
+fiction (`uncertainty.md`'s abstraction law forbids it): **a voyage was
+three years because the ship sailed to the far side of a planet, and we
+have a realm with a few basins.** The *content* was always days long.
+
+---
+
+## 7. ⭐⭐⭐ Whaling — the design, parked whole
+
+> ⚠⚠ **SEQUENCING 2026-10-09 — whaling now sits behind
+> [assembly-slate](../trades/assembly-slate.md).** Not *blocked*: casks exist as
+> rows, so whaling could ship on spawned casks exactly as the Oil Works
+> ships on spawned `lamp-oil`. ⚠ **But that reproduces the defect whaling
+> was chosen to fix**, and whaling's best economic material depends on the
+> cask being a MADE thing — the **full ship** as a progress bar (the casks
+> are in the holds, so the Structure's membership *is* the progress bar),
+> the **leaky cask**, and the cooper's **delayed attributable failure**
+> (oil lost for three years, blame assigned at settlement).
+> ⭐ The order is **assembly (cask as exemplar) → coopering → whaling.**
+> ⭐ Boatbuilding stays skipped, so **hulls may be assumed.**
+
+⚠⚠ **This was *"whaling, in brief — its own slate comes later"* until
+2026-10-09.** It is no longer brief: §§ 7b–7h carry the whole design,
+worked in one session, and **the bullets below are the original parked
+findings kept verbatim** because several of them are still the sharpest
+statement of their point.
+
+⭐ **It stays HERE rather than becoming `whaling-slate.md` for one
+reason:** every load-bearing piece of it — the Expanse, the horizon, the
+reckoned position, the vantage, the `Shore`, the vessel decision, the
+clock — is a section of *this* document, and a separate file would be
+mostly cross-references. ⚠ Split it when it gains requirements, not
+before.
+
+- ⭐⭐⭐ **The demand already ships and is fed by nothing.**
+  `trade-fuel`'s **lamp-oil** (43 MJ/kg, casks, bought by public-works,
+  burned by `FuelStore`) has **no recipe** — the Oil Works *"makes lamp
+  oil (spawned floor stock)"*. ⚠ And its keywords are
+  `[lamp-oil, oil, lamp, **kerosene**, paraffin]`: **the shipped
+  illuminant is named for the thing that destroyed whaling.** That makes
+  the kerosene transition the best epoch arc available —
+  **the capability survives and the economy does not.**
+- ⭐⭐ **The first RGO whose reservoir nobody owns.** Every other sits on
+  held ground; `apiculture.md` was *"the first whose reservoir is somebody
+  **else's** land."* **The water is nobody's**, which is why § 5 matters.
+- ⭐⭐ **The first RGO whose credit is a share.** Nobody owns a whale — a
+  boat crew takes it, a company renders it, the *voyage* owns the
+  commodity. And the **lay** must be a **contract, not a job**, because
+  `employment.md`'s hiring vocabulary is closed (`{gigs, discipline,
+  band}`) — ⭐ which is historically exact: whalemen signed **shipping
+  articles.**
+- ⭐⭐ **The act is a pipeline with no partial credit** — sight → chase →
+  fasten → kill → tow → cut in → try out. Every shipped RGO is one verb.
+  ⚠ A sperm whale that sinks is a total loss *after* the chase.
+- ⭐⭐⭐ **The harpoon is a tether, not a weapon.** You *fasten* to the
+  animal and it tows you. `ranged.md` assumes the projectile's job ends on
+  arrival.
+- ⭐ **Remoteness costs grade.** `spoilage.md` runs during the tow, so the
+  further out you went the worse the oil — a *second* honest cost of going
+  where the stock is.
+- ⭐ **The minimum viable water is a bay**, not an ocean — Basque shore
+  whaling was a headland lookout, a beach launch and try-works on the
+  sand. ⭐⭐ Which makes the open-water fishery **whaling's second epoch**,
+  reached because the bay is hunted out: **the first ground is the one you
+  can see from the cliff.**
+- Products: **oil** (demand exists) · **spermaceti** (the finest candle
+  wax and a cold-stable precision lubricant — ⭐ the unit of luminous
+  intensity was defined as one spermaceti candle) · **baleen** (the 19th
+  century's plastic; a `textiles.md` consumer) · **ambergris** (⚠ needs
+  perfume, which does not exist).
+- ⚠ **Lens 4 wants the moral question decided out loud**, early, rather
+  than settled by drift in a content pass. ✅ **Decided 2026-10-09:** the
+  ugly case is **targeting a calf because the mother will not leave** —
+  real, appalling and effective. **Permit it, cost nothing mechanically,
+  and let the CAST notice.** That is `measurement.md`'s three layers (*the
+  engine measures the oil, the crew valuates the act*), carried by
+  `renown`/`regard`/`trait`. ⛔ **No morality meter** — a shipmate who
+  will not pull an oar for you again, and a boatheader who says something
+  once and never mentions it.
+
+---
+
+## 7a. ⭐⭐⭐ Vessels — a boat is a THING, a ship is a STRUCTURE
+
+Decided 2026-10-09, because the boat wave had no vessel decision and
+§ 5b's *"when the boat wave lands"* assumed one existed.
+⚠⚠ **Rewritten the same day**: two earlier drafts of this section are
+recorded as refusals below, because both invented an object where a field
+would do.
+
+⚠⚠ **What the corpus said, and why neither statement was a decision.**
+`standard-model.md` has *"a ship is a `Vessel` that is `Exitable`"* — a
+**pedagogical example sentence** illustrating composition, beside the
+torch, written long before any vessel design. And `logistics-slate` **D5**
+has *"a vehicle is a `Mobile ExitableVessel` — a room that moves"*,
+written for **D4's list: back / cart / wagon / barge.** ⛔ Neither is a
+ship ruling, and generalising D5 past its evidence produced the first
+wrong draft.
+
+### Why a ship cannot be one vessel-interior
+
+Four things a ship needs **per space**, and all four live on `Location`:
+
+| | and one vessel-interior cannot have | why |
+|---|---|---|
+| `Atmospheric` | a **hot galley and a cold hold** | `ExitableVessel` carries ONE authored `interiorVolume` |
+| `AmbientLit` | **below decks dark, the deck lit by sky** | per-space light is `Location`'s |
+| `SkyExposed` | the **deck weathered, the hold not** | the whole weather fold is gated on this |
+| `Addressable` | **"cabin 14"** | a Thing's interior has no address |
+
+Plus furnishing, `residence.md` (a cabin you *live in* needs a room) and
+parcel title. ⭐ **An ocean liner is a building that moves.**
+
+⚠ And the top-level invariant was never at risk: `Location` composes
+**`ContainerMixin` and NOT `ContainableMixin`** — *it holds and is not
+held*, enforced by composition.
+
+### ⭐⭐⭐ THE DECISION
+
+> **A boat is a THING. A ship is a STRUCTURE whose position is a
+> variable.**
+
+| | **a boat** | **a ship** |
+|---|---|---|
+| what it is | **a thing you get into** | **a place you go aboard** |
+| spaces | one | many |
+| model | `Mobile ExitableVessel` + `Chamber` stations | a **`Structure`** → [structures-slate](../engine/structures-slate.md) |
+| the preposition | ⭐⭐⭐ you are **in** it | ⭐⭐⭐ you are **aboard** it |
+| nesting | a `Good` — **a ship carries five on davits** | not something you put anywhere |
+| upkeep | **repair**, like gear (`Durable`) | **maintain**, like a building |
+| ownership | `Chattel` — it really can be carried off | ⭐ a **registry and a chain of title**, the parcel's shape |
+
+⭐⭐⭐ **The whole difference between a building and a ship is ONE FIELD:
+the Structure's position changes.** And § 7a's first draft split that onto
+a separate "hull" Thing for no reason — see the refusal below.
+
+> ⚠ **Reversed in the maritime build's review (2026-10-13).** One field
+> was not the whole difference: everything that follows from the
+> building MOVING (the voyage, the engagement, persistence, deck and
+> masthead heights, the house that mans her) landed on every Structure,
+> and the code told a ship from a building by guards. `Ship extends
+> Structure` now carries it; a building is a plain `Structure`, and a
+> light on a rock is where its rock's node is. The hull-as-Thing refusal
+> below still stands.
+
+⭐⭐ **And the legibility is free, because English already draws the
+line:** *in the boat* versus *aboard the ship.* Nobody has to be taught
+it, and every message in the game reinforces it. Two more markers need no
+explaining either: **one hangs off the other**, and you *repair* gear
+while you *maintain* a building. ⭐ The edge case resolves too — a
+narrowboat has a cabin and a deck, so **two spaces, a small Structure, and
+you go *aboard***, which is what people actually say.
+
+#### ⛔⛔ REFUSED — "the hull", a Thing beside the Structure
+
+The second draft gave a ship **a hull (a Thing) plus a warren
+(Locations) bound by a citation.** The owner killed it:
+
+> *"The only part I'm not sure about is why we need Structure AND hull… I
+> don't know what the hull is actually there to experience given its
+> 'thingness'. I guess get wet?"*
+
+**Every property I had put on it dies on audit:**
+
+| claimed for the hull | where it actually belongs |
+|---|---|
+| **its position** | ⭐⭐⭐ the **Structure** — by the slate's own justification test (below) |
+| **mass / draught** | **derived** from Structure membership — size plus what is in the holds |
+| **hull material / crush depth** | `response = f(mechanism, material, **construction**)`, and the envelope build put **construction on the ROOM** — so a hull's resistance is the deck's and the hold's, per space |
+| **the outside description a lookout sights** | ⚠ **backwards** — the structures slate already gives a Structure *"a unit of description, read from outside"*. **The Structure is what you sight.** |
+| **chattel identity** | ⚠ **wrong** — `architecture.md`: `Chattel`+`Concealable` are `Good`'s because *"those are what it means to be carried off"*, and **a ship cannot be.** |
+| **can be sunk** | a state, plus a depth on that position |
+| **maintenance** | the Structure's, explicitly |
+| ⭐ **"get wet"** | the owner's joke is the real test and it fails — a hull is permanently immersed, so wetness is meaningless on it |
+
+⛔ Barnacles, sheathing, a name on the bow and damage below the waterline
+are all **conditions of the structure**, which is a maintenance number a
+Structure already owns.
+
+⭐⭐⭐ **And the clincher is the structures slate's own test** — *"a
+structure is justified when something must be true of a SET of rooms that
+no room can decide alone."* **Where the ship is** is exactly that: a fact
+about every one of its rooms, decided by none of them. **So the position
+belongs to the Structure by the test**, and a Parcel's extent and a
+Locality's coverage are the precedent for a coordinator holding spatial
+data. The only new thing is that it **changes.**
+
+⭐⭐ **Draught falls out derived, which is the same test a third time**:
+it gates shallow water, it is `f(size, load)`, and the cargo lives in the
+**holds** — so the load is **a sum over membership.** ⭐ Which also means a
+ship rides higher as it empties, and a whaler coming home full draws more
+water than one going out. True, and free.
+
+⚠⚠ **And the pattern worth recording, because it was the third instance
+in two days:** *the strip* (a new spatial primitive for a position that
+was already orderable), *the hull/warren citation* (which was **Structure
+membership, written down in advance**), and *the hull itself* (which was a
+position field). Same root every time — **adding an object instead of
+adding a field.** The cheap check: **before naming a new object, ask which
+existing one would hold this as data.**
+
+### ⭐⭐ Inside a boat: stations, and ⛔ NOT a new spatial primitive
+
+A boat is one vessel, one air, one space — and `spatial.md`'s Placing
+refusal #2 already points at the answer: *"A Placing host must NOT compose
+`ExitableMixin`… put a `Fitting` or a **`Chamber`** in its contents
+instead (that is how a boot works)."*
+
+⭐ **So a boat's subdivisions are `Chamber`s as STATIONS** — and
+`Chamber` is **designed** in
+[fridge-design-pack](../trades/fridge-design-pack.md) and deferred by the owner,
+not missing: `AtmosphericMixin(PlacingMixin(DetailedMixin(Thing)))`,
+`placements = ['in']`, `fixedInPlace`, `occupants() → getPlaced('in')`,
+needing the `Atmospheric` widening plus one `occupants()` seam.
+
+⭐⭐ **A station is a role with a position** — the bow is not a place, it
+is a job. And **the station does not gate the verb; the station is where
+the GEAR is.** You cannot throw the harpoon from the stern because you are
+not holding it; it is in the bow. Ordinary reach and containment, **no new
+affordance gating.**
+
+#### ⛔⛔ REJECTED — "the strip", an intra-space linear-position primitive
+
+A draft of this section proposed promoting § 1's **linear passage** to an
+intra-space primitive (position as a fraction along, two neighbours),
+claiming a ladder, a corridor, a mine drift, a boat and a river as
+consumers. **The owner refused it and was right.** Recorded because the
+reasoning is reusable:
+
+> *"A waterway and a ladder and a boat aren't anything alike except that
+> you're saying they're all 1-dimensional lines… **that's like making a
+> triangle for the first time and saying you've unlocked the pyramids. No,
+> you just made triangles.**"*
+
+⚠⚠ **Three of the five consumers were fake**: a **ladder** is an exit
+with a mode (`Climbable` ships) · a **corridor** is rooms, or one room · a
+**mine drift** is a `MineWarren`. They are *geometrically* linear and have
+**no need for intra-space position.** And the two real cases want different
+things from it: **the river's fraction gives arrival time and the next
+node; the boat's station gives REACH.**
+
+⛔ **And the doctrine it broke is written down.** CLAUDE.md promotes
+substrate when *"a third pack **wanting** a mixin"* appears — ***"not
+count them up later"*** — and **the third consumer was invented.** The
+fridge pack names the same failure in its own deferral: *"a class with no
+composer plus a kernel widening with no reader is the
+feel/taste-shipped-without-running failure."*
+
+⭐⭐ **And the ordering turned out to be decoration.** In a 28-foot boat,
+do you need to know you passed the thwarts? Only if something happens
+there, and nothing does. **What is load-bearing is that a station is a
+position with gear in it and changing station costs something** — which is
+not a line. § 1's linear passage keeps its job because it already had
+one.
+
+**So the whole intra-boat design is two widenings to a shipped spec** —
+agents placeable in a `Chamber`, and a host-declared cost on
+re-placement — plus one genuinely new mechanism, which is **not spatial**:
+[cooperative-effort-slate](../engine/cooperative-effort-slate.md).
+
+### ⭐⭐⭐ The berth — and two shipped invariants force it
+
+The way aboard must **not** be an exit, and two unrelated rules say so.
+
+⚠⚠ **1. The minted-zone check refuses it.** `zone.md`: a
+`Location` accepts **cardinal exits unconditionally** and
+**semantic-label exits only when the destination resolves to a different
+zone** — and *"the check is **eager and path-based**… It must be an
+**AUTHORED template row**. The walk reads template ancestry in Mongo, so a
+zone **minted at runtime** [fails]."* **A ship's interior is minted per
+ship**, so a semantic exit from the quay into ship #7's warren is
+**refused by a shipped check, with an error naming the parent's zone.**
+
+⚠⚠ **2. The map's append-only rule refuses it.**
+`location-graph.md`'s per-player map has *claims append and nothing is
+corrected* — so a berth edge recorded today **outlives the ship.** You
+board the *Hesper* once and your map claims forever that there is a way
+aboard from berth four, after she sailed, sank or was broken up.
+⭐⭐⭐ **A ship cannot be an edge on a durable map, because the map
+would be wrong tomorrow.**
+
+⭐ **So: the berth is a room-fixed feature on the quay citing whatever
+ship is moored there** — the `Shore` pattern, and you `board <ship>`
+rather than `go` anywhere. Empty, it describes itself as empty and affords
+nothing; occupied, it affords boarding, resolving to the Structure's
+deck room.
+
+⭐⭐ **And the berth is strictly better than a dynamic edge, because a
+berth can be owned, rented, assigned, refused and fought over.** Harbor
+dues. A harbormaster who allocates them. A berth held for thirty years.
+None of that exists if the way aboard is a conditional exit. ⭐ And the
+berth **cites the ship** — which is the mill-and-the-river shape again: the
+berth is a feature of the quay, and what it points at is somewhere else.
+
+✅ **Which also means the interior is ordinary cartesian content**, with
+**unconditional cardinal exits** (fore/aft/up/down/port/starboard) and no
+zone check at all. The grid rule *prefers* this; only the boarding edge
+was ever the problem.
+
+#### ⭐⭐⭐ Living aboard: the berth is the ADDRESS, the ship is the home
+
+A liveaboard is **a residence with a position**, which looks like it
+breaks `address.md`'s longest-prefix walk — and the real-world answer is
+the design:
+
+> **Your post goes to the berth, not to the boat.** You rent an address
+> at the quay and moor your home to it, which is precisely how a marina
+> works.
+
+Three things fall out:
+
+- ⭐ **The berth and the home are separable assets**, and in a crowded
+  harbor the **berth is the scarcer one** — a rent story with no new
+  mechanism.
+- ⭐⭐ **The cruising liveaboard has NO ADDRESS** — no mail, no delivery,
+  and ⚠ possibly **no residency**, which is `civics.md`'s derive-on-read
+  residency meeting a person who is genuinely nowhere. A real legal tangle
+  for boat-dwellers in life, and **lens 7 should decide it rather than let
+  it fall out.**
+- ⭐ **The houseboat that never moves** is the limit case: a Structure
+  whose position has not changed in forty years — a building that is legally a
+  boat, which people do specifically for what it exempts them from.
+
+### ⭐⭐ And the client finding: THREE spatial registers, one rendered
+
+The owner's worry was that this stretches the design. It does not — it
+reveals that **we have three spatial models and have only ever rendered
+one.**
+
+| register | a position is | wants to look like | content |
+|---|---|---|---|
+| **the grid** | a room with cardinal exits | **a map** | everything shipped |
+| **the field** | a **coordinate with no neighbours** | **a bearing and a distance**, plus the reckoned-position plot (§ 3b) | the `Expanse` |
+| **stations** | **which `Chamber` you are in** | ⛔ **not an exit list** | a boat, a coach, a cockpit |
+
+⚠ **The presentational mistake to avoid: rendering four stations as four
+exits**, which makes one space feel like four rooms when the whole point
+is that everybody can see everybody.
+
+⭐⭐ And whaling is the first content that uses all three in one session —
+you **walk the ship** (grid), **cross the Expanse** (field), and **pursue
+in the boat** (stations). It is the integration test for the client as
+well as the engine, which is § 7's argument arriving from a second
+direction.
+
+---
+
+## 7b. ⭐⭐ The whale — two representations, and the species is the content
+
+Worked 2026-10-09. ⚠ The biggest unexamined gap: **what a whale IS.**
+And the answer is `forestry.md`'s pattern (*the four representations of a
+tree*) with two rungs:
+
+| representation | what it is | what it is for |
+|---|---|---|
+| **the population** | a **field** on the Expanse — seeded, not drawn; capacity, `drawn`, recharge ≈ 0 | **the ground**, and where **depletion** lives |
+| **the individual** | an **Agent** — a Creature with a BodyPlan, a mass, a temperament | **the chase**, and where the **drama** lives |
+| **the carcass** | `mortality.md`'s corpse, on the **Thing** branch | the tow and the cutting-in |
+
+⭐⭐⭐ **The minting moment is the SIGHTING.** The field says *there are
+whales here*; the lookout's sighting **mints one**, with species, size and
+temperament **seeded by position and time** — so two players an hour apart
+see the same animal, it cannot be farmed by re-entering, and a ground can
+be **learned.** § 3's traffic rule applied verbatim.
+
+> ⭐ **The field is where the conservation question lives; the individual
+> is where the fun lives.** Taking one decrements `drawn`, and nothing else
+> connects them.
+
+✅ **And the anatomy needs nothing new.** `butchery.md`: *"**A share,
+because ONE plan serves every size of animal**"* — a whale is a BodyPlan
+with shares and a very large mass, exactly as an ox is.
+
+### ⭐⭐⭐ Species is the content, because the differences are MECHANICAL
+
+| | the difference that matters |
+|---|---|
+| **sperm** | ⭐⭐ **the only one that fights back** — teeth, and it will stave a boat. Historically *why* sperm whaling was the prestige fishery |
+| **right** | ⭐⭐⭐ **floats when dead** — literally the *"right"* whale to kill. **Sperm whales SINK.** |
+| **bowhead** | the longest baleen — the product mix shifts toward the plastic-substitute |
+| **blue** | ⭐ **too fast to catch** until steam and the explosive harpoon |
+
+> ⭐⭐⭐ **So the species decides whether death is a loss risk**, which
+> turns § 7's *"no partial credit"* from a punishment into a **choice**:
+> the right whale is safe and worth less; the sperm whale is dangerous,
+> sinks, and carries the spermaceti.
+
+⭐ And it makes the epoch ladder a **species** ladder — you hunt what you
+can catch *and keep* — which is a tech tree nobody authors.
+
+---
+
+## 7c. ⭐⭐⭐ The player experience — a CHAIN of engagements, and a TETHER graph
+
+⚠ Asked directly: *what is whaling's equivalent of combat's running loop,
+its primitive unit, its state machine, its positional graph?*
+
+**Combat is ONE session, one tempo, many exchanges, and you can
+disengage.** Whaling is **many engagements, each a different tempo,
+chained — with ONE-WAY DOORS.** Once fastened you are *attached*, and the
+only exit is **cutting**, which costs everything invested. ⭐ **Combat's
+drama is inside the loop; whaling's is at the doors.**
+
+| phase | the primitive | tempo | what the feed says |
+|---|---|---|---|
+| **the watch** | a **sweep** | ⭐ 20 real min | nothing · nothing · **"there she blows"** |
+| **the chase** | a **stroke** (pooled effort) | seconds | closing distance, her heading |
+| **the fasten** | **one throw** | a moment | fast / missed / drawn |
+| **the sleighride** | ⭐⭐ **a surge** — line paid or held | seconds | **the rope**: length out, rate, smoking |
+| **the kill** | a **thrust** | seconds | the spout, the flurry |
+| **the tow** | a **stroke**, long | 30 real min | sharks, the carcass's state |
+| **cutting in** | a **cut** | hours | the blanket piece coming off |
+| **trying out** | ⭐ **a cask** | 5 real h | the pot, the fire, the casks filling |
+
+⭐⭐⭐ **The unit changes but the SHAPE repeats: every phase is "a thing
+you repeat while one quantity moves toward a threshold."** Strokes until
+the distance closes, surges until she tires, cuts until the carcass is
+reduced, **casks until the hold is full.** So whaling's *attack* is
+**the DRAW**, and `activity.md`'s engagement framework is the machinery.
+
+### ⭐⭐⭐ Where combat's edges are INTENTIONS, whaling's are ROPES
+
+```
+ship ─── boat ─── line ─── whale
+```
+
+- ⭐⭐ **a second boat can bend on** — passing its line across so **two
+  become one chain** (§ 7f)
+- **the line can part** — the chain breaks, mid-ocean
+- **the boat can be stove** — a node is destroyed and its men are **in the
+  water, attached to nothing**
+- the carcass stage keeps the shape, with **sharks attached to the
+  carcass**
+
+> ⭐⭐⭐ **Whaling's whole tension is that you are connected to something
+> you do not control** — and **cutting is an EDGE DELETION**: visible,
+> immediate, total, and it never fails.
+
+### ⭐⭐ The hooks are fewer than combat's, and the feel is different
+
+Combat needs `@hook` surfaces because its variation is **technique**
+(gambits, playstyles). Whaling's variation is **what you are attached
+to** — so ⭐ **the species' response is a BRAIN, in a pack**
+(`behavior.md`'s `src/behavior/`), the gear is **rows**, and the ground is
+**the field's parameters.** **Whaling is mostly content, not mostly
+engine.**
+
+| | combat | whaling |
+|---|---|---|
+| the feed is | **exchanges** | ⭐ **readings** — the line, the distance, the spout |
+| you are | **contesting** an opponent | ⭐ **attached** to something indifferent |
+| the other party | wants to **beat** you | ⭐⭐ wants to **leave**; killing you is incidental |
+| failure is | you are hurt | ⭐⭐ **you are in the water** |
+
+> ⭐⭐⭐ **The whale is not your enemy. It is your LOAD.** Which is why
+> whaling must never be built as a boss fight: the tension is **leverage
+> and commitment**, not threat and counter.
+
+### ⭐⭐⭐ The sleighride — you never see the whale, you read the ROPE
+
+The decisions after the fasten are all about the line: **snub or let
+run** (friction tires her, and too much parts the line or pulls the bow
+under) · **haul or pay out** · ⭐ **wet the line**, because friction sets
+it smoking — a constant small chore that is *also the tell* · and
+**hold or cut.**
+
+> ⭐⭐⭐ **One dial with two failure directions: she sets the load,
+> friction is what kills her, and too much friction kills you.** The line
+> is a material under tension with a thermal byproduct — `materials-response`
+> unchanged.
+
+⭐⭐ **So the live surface is a ROPE GAUGE, not a health bar**: length
+out, rate, whether it is smoking — and her state is **inferred** (running,
+sounding, tiring). ⭐ The same epistemic shape as the navigator's plot and
+the laundress's stain, banded by `instrumentation.md`: a novice sees *the
+line is running fast*; an expert reads the rate, infers the depth, and
+knows she is about to turn.
+
+⭐⭐ **And the client answer falls out: *lower the boats* IS the mode
+switch**, diegetically. The ship's navigation is a **plot** (a persistent
+record you read); the boat's chase is **live** — the combat surface,
+entered by a physical act. § 7a's three spatial registers, one per phase.
+
+⚠ Every failure is physical: the line **parts** · the line **runs out** ·
+you **snub too hard** and she swamps · a **bight** takes a man over the
+side · and ⭐⭐ **she sounds and comes up under you — a stove boat**, which
+destroys your vehicle and leaves you in the water miles from the ship,
+routing straight into the man-overboard machinery
+([underwater-slate](../engine/underwater-slate.md) § 8).
+
+---
+
+## 7d. ⭐⭐ The crew — one player CAN whale, and the reason is good
+
+Six men: a **boatheader** (steers), a **harpooneer** (throws), and four
+who pull. ⭐⭐⭐ **Four of six are pure effort** — and
+[cooperative-effort-slate](../engine/cooperative-effort-slate.md)'s pooled draw
+works identically whether the exerter is a player or an NPC.
+
+> **Two players and four hired hands is a complete boat. One player and
+> five NPCs is a WORSE boat, not an impossible one.**
+
+⭐⭐ **And the penalty must be legible or it feels arbitrary: NPCs do what
+they are told and nothing else.** They will not wet a smoking line unless
+ordered; they will not cut without an order. **So a hireling boat means
+you issue every order yourself** — a real cognitive load under a live
+clock. ⛔ **No hidden competence modifier.**
+
+⭐⭐⭐ **And the lay gives it teeth: hired hands take a lay too.** Filling
+your boat with NPCs **costs you shares**, so a player crewmate who is good
+is *worth* a bigger lay than a hireling — **the labour market prices
+competence in shares against a known alternative.** The cleanest answer to
+*why bring other players*: not a gate, a preference you can compute.
+
+---
+
+## 7e. ⭐⭐ The bay — and the scoping result is dramatic
+
+Basque shore whaling: a **headland lookout** (⭐ and § 3's **vantage** is
+the mechanism — the sighting happens from land), a **beach launch**, and
+**try-works on the sand.**
+
+> ⭐⭐⭐ **So the first whaling build needs NO SHIP, NO NAVIGATION and NO
+> EXPANSE.** No hull, no berth, no reckoned position, no chart, no § 3b,
+> no § 7a. **Two entire design layers drop out of the critical path.**
+
+And it solves the cold start three ways: ⭐ **the lookout can be an NPC**
+(a hired watchman is a wage and a seat, not a second player) · the crew is
+**two to six** · and **a session is a session** — spot, pull, fasten,
+kill, tow, render, sell.
+
+⭐⭐⭐ **And the bay teaches DEPLETION before the ocean teaches SCALE.**
+A bay holds few whales; you hunt it out in a season or two — **and then
+you can see there is nothing left from the same cliff you used to spot
+them from.** The lesson at the smallest possible scale, early, free,
+delivered by a view you already have.
+
+⭐ The trigger outward is not a shop upgrade: **the whales are over the
+horizon now** — which is when the ship, the chart and the Expanse become
+**wanted** rather than prerequisite. ⭐ And **the next bay is somebody
+else's**, so the second rung is also the first *political* one.
+
+---
+
+## 7f. ⭐⭐ The lay, the boat, and the complement — three mechanisms
+
+### ⭐⭐⭐ The lay is a temporary business with a liquidation date
+
+Nobody is paid wages: everyone takes a **fraction** (the captain ~1/8, a
+green hand ~1/200) of a total nobody knows yet, less **deductions** for
+the outfit and the slop chest — so ⚠ **you can come home owing money.**
+
+⚠ **`contract.md`'s escrow does not fit**, because a lay is a claim on
+proceeds that **do not exist at signing.** ⭐⭐⭐ **The resolution: the
+VOYAGE is a `Business` that owns the commodity, the lays are SHARES in it,
+and the settlement is its LIQUIDATION** — historically exact (a voyage
+*was* a joint venture) and it rides `employment.md` + `banking.md`, with
+the one new thing being **a business with a scheduled end.**
+
+⭐⭐ **The social game happens at the DOCK**, because your lay is
+negotiated against information you do not have: a green hand takes worse
+terms, a proven harpooneer commands better, and ⭐ **the ship has a
+reputation** — a lucky ship gets better crew at worse lays, which is
+`renown` doing plain economic work. ⭐⭐⭐ **And the settlement is a
+scene**: the oil sold, the accounts read out, the deductions named one by
+one. **And some people owe money.**
+
+⭐⭐ **Lens 4, with no villain:** the owners' share is taken first and is
+the largest, and they took no physical risk — which is **capitalization,
+not wickedness**, somebody paid for the ship. But a crew that comes home
+in debt from a voyage where the owners profited is **a real grievance with
+a computable cause**, and the polity may act on it or decline to.
+
+⭐ **And the voyage's end condition is a CAPACITY, not a timer**: *a full
+ship* means **the casks are full** — and the casks are in the holds, which
+are **member rooms**, so ⭐⭐⭐ **the Structure's membership IS the
+progress bar** (§ 7a). The most motivating objective available, because
+you can walk down and look at it.
+
+### ⭐⭐⭐ A lost boat — and the ARTICLES decide how boldly the ship hunts
+
+The ship owns the boats, and voyage expenses come off the gross before the
+lays — so **a stove boat reduces everybody's share.**
+
+⭐⭐⭐ **Which is a textbook agency problem with no villain**: the
+boatheader decides whether to hold the line and the cost lands on thirty
+lays, so **his exposure is a fraction of the consequence he causes** —
+offset, imperfectly, by holding the largest single share and a
+reputation.
+
+⭐⭐ **And the crew can do the arithmetic.** A boat is worth *N*; the
+whale was worth *M*. Everyone aboard can compute whether cutting was
+right, so **second-guessing is accounting rather than resentment** — a
+far stronger pressure than any reputation number.
+
+> ⭐⭐⭐ **But the real finding: the deduction is a CLAUSE, not a rule.**
+> Historically it varied by the articles, and `contract.md` is clauses
+> over verifiable conditions.
+
+| the articles say | the consequence |
+|---|---|
+| **the owners eat gear losses** | ⭐ the crew hunts **BOLDLY** — and the ship attracts them at a **worse lay**, because the terms are generous |
+| **gear losses are deducted** | ⭐ the crew hunts **CAUTIOUSLY**, cutting early to save the boat — and the ship must pay a **better lay** |
+
+> ⭐⭐⭐ **So the articles' deduction terms decide how aggressively the
+> ship hunts, and nobody has to author bravery.** An owner who wants bold
+> crews pays for them by absorbing losses.
+
+⭐ And the harsh clause has a second-order cost its author will not see
+coming: **a cautious crew protects the boat at the owner's expense**,
+because the whale was worth more than the boat. *The prudent clause loses
+money.*
+
+⚠ And the grim edge: a man killed, his lay to his estate **minus his
+slop-chest debts** — which frequently exceeded it, **so a family receives
+a bill.** `credit.md`'s estate (dormant · escheated · reclaimed) with its
+worst possible consumer.
+
+### ⭐⭐ The five-boat complement — the most mechanical of the three
+
+> ⭐⭐⭐ **The complement is the ship's capacity for SIMULTANEOUS and
+> COOPERATIVE engagements** — how many independent chains the tether graph
+> can hold, and how many can combine.
+
+- **parallelism** — lower several boats on a pod, **the crew splits**, and
+  co-presence fragments into separate engagements on separate whales
+- ⭐⭐⭐ **combination** — *a second boat bends on*, passing its line
+  across so **two become one chain.** **The complement is what makes the
+  tether graph multi-party at all.**
+- **redundancy** — a ship down to its last boat is in a different state
+
+⭐⭐⭐ **And it trades directly against everybody's share.** Five boats
+need thirty men, and **thirty men take thirty lays**: *a bigger crew
+catches more and each man gets less.* **So the optimal complement is a
+computable argument the whole ship has an opinion about, settled at the
+dock, by the lay** — balance with no dial anywhere.
+
+⭐⭐ **And a boat is repairable, not replaceable.** You cannot build a
+whaleboat at sea; the carpenter **mends** a stove boat and cannot make
+one. ⭐ Which is [assembly-slate](../trades/assembly-slate.md)'s
+**repair-beats-rebuild** arriving in the fiction, and it explains why the
+complement exceeds the crews: **you carry five for three crews because you
+cannot make a sixth.**
+
+⭐ Mechanically the **davits are a SLOT** — `Slotted` with capacity — so
+the complement is `SlotSpec` capacity authored on the hull row, and **a
+bigger ship carries more boats, derived.** No new mechanism.
+
+---
+
+## 7g. ⭐⭐ The products chain, the shipboard crafts, and ambergris
+
+```
+whale (Agent) → killed → carcass (Thing branch)
+ └─ cut in (butchery, shipside or on the beach)
+    ├─ blubber → minced → TRIED OUT (fire + fractionation)
+    │    ├─ oil → casked  ──────────────▶ lamp-oil's missing recipe ✅
+    │    └─ cracklings ──▶ ⭐ FUEL for the try-works itself
+    ├─ the head case (sperm only) → bailed → SPERMACETI
+    ├─ baleen → cut, split ──▶ textiles / manufacturing
+    ├─ teeth, bone ──▶ SCRIMSHAW (player-made, provenance)
+    ├─ ambergris ──▶ a pure luxury EXPORT (below)
+    └─ meat ──▶ ⚠ discarded, UNLESS you have ice
+```
+
+⭐⭐⭐ **The try-works is a furnace on a wooden deck, at sea** — boiling
+oil over an open fire on a ship of wood and rope and tar, hundreds of
+miles from help. **The most extreme fire risk in the game, and the work
+requires it.** `fire.md`'s Hearthworks on a vessel; historically bricked
+with a water pan underneath, **so the mitigation is authored content
+too.** ⭐⭐ And **the fuel is the whale** — you burn the fried-out scraps
+to render the rest.
+
+⭐ **Grade is set by three independent things** — the species, the
+freshness (spoilage ran during the tow) and the cooking (too hot
+scorches) — composed by `crafting.md`'s weakest-link grade. And the
+spermaceti/body-oil split is `fractionation.md`'s *"the cut as the
+skill."*
+
+⭐⭐ **The CASK matters, which turns up a vocation nobody listed.** Oil is
+sold by the barrel, a cask is a `Vessel`, and **a leaky cask loses oil all
+the way home** — so the **cooper** was one of the most important men
+aboard. ⭐⭐⭐ And he is the general case: **a ship needs one craftsman
+per material** — a **cooper** for wood, a **blacksmith** for the irons, a
+**sailmaker** for canvas, a **carpenter** for the hull. Four shipboard
+crafts, **all of which already exist as land trades**, and all of which
+are hand-tool rung, which is *why* they can go to sea
+([assembly-slate](../trades/assembly-slate.md) § 8).
+
+### ⭐⭐⭐ Ambergris — the realm's hard currency with the outside
+
+A pathological concretion from a sperm whale's gut, found **as often on
+beaches as in whales**, worth more than gold by weight, and used as a
+perfume **fixative** — which does not exist here.
+
+⭐⭐⭐ **And it improves with age and exposure.** Fresh ambergris smells
+appalling; years of seawater and sun make it valuable. So **it is a
+maturing asset you must not use**, and the decision is *sell it fresh for
+little, or cure it for years for a lot* — the ice house's and the cask's
+shape. (Curing in the open is the crofting/sponge path, not a vessel's
+clock.)
+
+⚠⚠ **But "who buys it" is a CONSERVATION problem, not a flavour one.** A
+buyer who pays coin for a good nobody consumes is **a money faucet**,
+which `banking.md`'s chokepoint forbids. So:
+
+> ⭐⭐⭐ **The factor pays in IMPORTS.** He takes your ambergris and gives
+> you things the realm cannot make — historically exact (the whaling ports
+> traded oil and ambergris for manufactures, tea, silk), and it makes
+> ambergris **the realm's hard currency with elsewhere** rather than a
+> lottery ticket.
+
+⭐ Which also resolves the variable-ratio worry: **finding it is luck;
+converting it is negotiation.** ⭐⭐ **And the factor is the only person
+who can tell you what it is worth**, because nobody local can use it — an
+information asymmetry **with a face**, which is a lens-7 question (who
+judges, on what criterion, with what appeal) and makes *getting a second
+buyer into the port* a civic ambition with a computable payoff.
+
+### ⭐⭐ The ice coupling — and it runs the opposite way from the first guess
+
+The meat was discarded because it could not be kept. **With ice, a NEAR
+whale yields oil AND meat; a FAR whale still yields oil only**, because
+ice melts.
+
+> ⭐⭐⭐ **So ice does not extend the fishery — it CONCENTRATES it.** The
+> marginal value of a nearby whale rises, so you hunt close harder, **the
+> near grounds empty faster, and the frontier opens slower.**
+
+A technology that makes you richer by staying home and empties your own
+bay quicker — landing exactly where § 7e's bay already teaches depletion,
+**from the same cliff.** ⚠ So the two last RGOs **push against each
+other**, which is a better relationship than the complement first
+claimed.
+
+---
+
+## 7h. ⭐⭐⭐ The ending — and `destructive-distillation-slate` is what kills whaling
+
+⭐⭐⭐ **Whaling's killer is already slated, already unblocked, and
+nobody had connected it.** That slate's title is ***"the half the collier
+throws away"***, and its status is *"the **cheapest door into the
+industrial epoch**… **blocked on NOTHING** up to and including coal
+gas."*
+
+> **Whaling's killer is a byproduct somebody is currently throwing up a
+> chimney.** Historically exact — *kerosene* was coined for **coal-oil**,
+> which preceded petroleum by a decade. No well required, and
+> `fractionation.md` ships the mechanism with coal tar as a new feedstock.
+
+⭐⭐ **And one retort attacks whale oil's market from two directions**,
+which that slate names half of:
+
+| the retort's product | replaces | whose market |
+|---|---|---|
+| ⭐ **town gas** | piped, fixed, civic | `energy.md`'s **lamp-oil street lighting** — the producer, the `FuelStore`, **the civic bill** |
+| ⭐⭐ **coal-oil** (the tar cut) | portable, bought by the can | **the household lamp** |
+
+⭐ Gas lighting is infrastructure and coal-oil is a commodity you carry
+home, **so the civic half dies FIRST** — a town can sign a contract.
+
+⭐⭐⭐ **And the same slate kills BALEEN in Stage B**: *"the first plastic
+(a thermoset from coal-tar phenol)"* — and **baleen is the 19th century's
+plastic.** So **one build dismantles two of whaling's three products, in
+two stages, years apart**, and spermaceti outlives both because a
+precision lubricant has no substitute until synthetics.
+
+> ⭐⭐⭐ **Whaling does not end. It is dismantled product by product, each
+> with its own killer arriving at its own time** — which makes the ending
+> **a sequence of decisions**: refit for baleen only? sell the ships while
+> they are worth something? go further for sperm?
+
+⭐⭐ **And the note to end on: the last profitable whaling was for the
+LUXURY products.** Oil was the mass market; baleen was corsets and
+spermaceti was precision machinery. **The trade ends serving the rich.**
+
+### ⭐⭐ Who builds the refinery — and it should be a player
+
+Then **one player's innovation legitimately destroys another player's
+industry with no PvP system anywhere near it** — lens 3b's test answered
+by **the economy** rather than the polity.
+
+⚠ **And it survives the griefing check** for a specific reason: **it is
+not targeted and it is not an attack — it is just cheaper oil.** ⭐ And the
+signal arrives **years** before the collapse: the price moves, orders
+slow, and the first retort is a visible public building. **A whaling
+company that pays attention has time to diversify; the ones that die did
+not look** — the same reasoning as the depletion arc, and fair by it.
+
+### ⭐⭐ And the logbook is what PROVES the depletion
+
+The grounds empty and the signal is that **voyages get longer** — but what
+proves it?
+
+> **The logbooks.** And a logbook is the same kind of object as
+> [climate-slate](../engine/climate-slate.md)'s polar station record: **a long
+> series whose value is entirely in its length**, which nobody can buy and
+> can only keep.
+
+⭐ So the person who reads thirty voyages' logs is **the first who can
+prove the whales are going** — a vocation, with the same
+capital-made-of-continuity property and the same lens-4 problem (the cost
+of keeping the series is exact; its value is uncomputable). ⭐⭐ And it is
+historically exact: **the Maury whale charts were compiled from whaling
+logbooks, and they are how we know.**
+
+⚠ **And the honest position on depletion: LET IT HAPPEN.** Nobody in
+history saved the whales — kerosene did, by accident. § 5's
+standing-plus-levy means a polity **could** create a conservation
+interest, and **the lesson is far stronger if they are the ones who did
+not.**
+
+---
+
+## 8. Lens pass
+
+1. **Pedagogy** ⭐⭐⭐ — almost everything derivable: the horizon is
+   `1.17√h`, the fishery is Liebig, direction is elevation, navigability
+   is flow × width. ⭐ And `Watercourse` sets the bar: **an uphill reach is
+   *unrepresentable*** — not validated, **inexpressible**.
+2. **Creative expression** ⭐ — the point of § 4, and currently the
+   **weakest** lens here. ⭐⭐ The class/rows split is the strongest half
+   (*"a row under `/system/water` would be titled to the water group, and
+   world-seed could not touch the river it authored"*).
+3a. **Immersion** ⭐⭐⭐ — **one sighting channel**, or the water becomes
+   sortable. Plus *"the map is the argument"* and contamination as a
+   concentration so *a dry month is a dirty month.*
+3b. **Participation** ⭐⭐⭐ — ⭐ *"navigation is a claimant who is not a
+   farmer"*: **navigation is already a water right**, so the polity can
+   fight about the water. And the holder can close a ground, set a season,
+   license, or refuse to.
+4. **Values** ⭐⭐⭐ — **whether to regulate** is the purest lens-4
+   question in the project: *the model will tell you the stock is falling
+   and will never tell you to stop.* Also: who may hold water they work ·
+   the duty · whether salvage overrides title.
+5. **Continuity** ⭐⭐ — *"a sewer is the same object reversed"*, and ⭐
+   **excludability is why this is a business and a river is a law** — the
+   epoch axis stated as a property.
+6. **Economy** ⭐⭐ — flow is a **takeable volume**; the millsite already
+   consumes `ρ·g·Δh·Q·η`; and § 7's demand-first finding.
+7. **Governance** ⭐⭐⭐ — a Locality declares its water; `water-right` as
+   a document kind; allocation; quotas; and § 5's subdivision question.
+
+---
+
+## 9. Open questions
+
+1. ⚑⚑ **A price on horizontal passage** (§ 4) — gradient, bed, width,
+   obstruction. **The deepest item.** ⭐ Restated 2026-10-09 by contrast
+   with [underwater-slate](../engine/underwater-slate.md): **the vertical axis
+   priced its passage (breath, cold, ballast) and the horizontal one got
+   flow × width and a boolean.** One axis has a cost model and the other
+   has a predicate — and the column is the proof it is buildable.
+1a. ⚑ **A room-level contribution hook** (§ 5a) — so a `Shore` can speak
+   in its room's prose. ⚠ Currently **a waterfront does not mention
+   water** unless it is written twice. Already a sweep finding in
+   `fishing.md`; worth promoting, because every coastal room hits it.
+1b. ⚑ **The place↔bulk line.** Nothing says where water stops being a
+   place and starts being a container's contents — a puddle, a bath, a
+   trough, a cistern, a pond, a tarn, a lake. ⭐ The likely test is the
+   same one as everywhere else (*can you be in it*), ⚠ but a bath breaks
+   it cleanly, so it needs the real answer.
+2. ✅ **Subdivision — ANSWERED (§ 5).** The committee manages it and its
+   **charter** sets the consent rules. No engine answer, no default; a
+   water body's committee may be a gatekeeper or a rubber stamp, and
+   **which it is, is content.**
+3. ⚑ **Can water be held by somebody who works it?** (§ 5) — lens 7. ⭐
+   Narrowed by #2: the criterion is the charter, so the open part is only
+   **whether the polity constrains what a charter may say.**
+4. ⚑ **Reversing flow** — tidal bores are a real expressive loss and may
+   be worth a term rather than a refusal.
+5. ⚑ **Where position-in-a-passage lives.** A fraction for linear, a
+   coordinate for areal — but on what, and read by whom.
+6. ⚑ **The tide.** ⭐ An estuary is a `Watercourse` whose navigability has
+   a tidal term, and `CelestialApi` already derives the periodicity — so
+   it needs **less** than an ocean. ⭐⭐ And *a tide is a deadline that is
+   not yours*, which makes it the best possible onramp: it teaches time
+   pressure, pilotage and consequence in one room. ⚠ Terminus already has
+   an `estuary` district and a `wharfside`.
+7. ⚑ **Lens 4's moral question on whaling**, decided rather than drifted.
+
+---
+
+**See also:** [underwater-slate](../engine/underwater-slate.md) (⭐ the column,
+the medium derived from `level − elevation`, and the ascent Journey —
+**DECIDED**, and it priced the vertical passage this slate still owes the
+horizontal one) · [watershed.md](../../subsystems/watershed.md) (what ships) ·
+[zone.md](../../subsystems/zone.md) (the decomposition § 2 asks for) ·
+[fishing.md](../../subsystems/fishing.md) (the derived fishery and the
+`Shore`) · [land-compute-and-license](../platform/land-compute-and-license.md) (who
+is charged for a craft that crosses boundaries) ·
+[content-craft § 8c](../../content-craft.md) (locating conflict rather than
+inventing it) · [rejection-slate](./rejection-slate.md) (the other RGO
+whose reservoir is a commons problem).
+
+---
+
+## ⬅ Salvaged from the maritime requirements (2026-10, at its sweep)
+
+Three questions the maritime build left open, kept here rather than in a
+retired requirements doc:
+
+1. ⚑ **The logbook.** § 7h: *"the logbook is what proves the depletion."*
+   A durable record rather than verb surface, and `chronicle` is
+   append-only and already exists — but it is the one piece of the
+   voyage's UX with no home yet.
+2. ⚑ **The place↔bulk line.** The maritime build drew two edges of it: a
+   named water a place is BESIDE is cited and drawn from, never held (a
+   `Shore`), and a small water you are IN is the place itself (a
+   `Pool`). The rest stays open — where water stops being a place and
+   starts being a container's contents: a puddle, a bath, a trough, a
+   cistern, a pond. ⚠ The *"can you be in it"* test **breaks cleanly on
+   a bath.** A spring on somebody's land (*Jean de Florette*) lands here.
+3. ⚑ **Reversing flow / the tidal bore** (§ 4's loss). In neither the
+   maritime nor the climate build's collision table.
+
+## Ice harvest as a use of the reach (storage-and-ice review, 2026-10-18)
+
+The ice trade's pond is a **commons** today: anyone on the ice may scrape,
+mark and cut, and a block is its cutter's (or the house's, for a hand on
+shift). The reviewer asked whether a company should be able to own its
+harvest. The answer belongs HERE, not in the ice trade: a harvest right is
+a **use of the reach**, like the fishery's quota (fishing § the covenant)
+and a mill's weir — *a volume per window plus a priority date*, filed
+(prior appropriation) or derived from the banks (riparian), under the
+shipped `Rights` substrate (watershed.md § Rights). The sheet would then
+ask the right whether this cutter may cut, and refuse in the right's
+words. Until the covenant, the pond limits itself: a field cut out leaves
+nowhere to stand, and the house's falling bid caps the rest — the wood's
+rule.
+
+- **A frozen lake crossed by compass** (from storage-and-ice, MR !378) —
+  a sheet wide enough to lose the shore on, crossed by bearing in snow or
+  fog; this slate's navigation over the expanse's chart (expanse.md).

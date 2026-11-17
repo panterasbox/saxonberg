@@ -200,7 +200,7 @@ ordinary row*, from two exemplars that were objects a player can hold
 deliberately, because the honest fix is either an abstract-row concept
 or a narrower base class to hang it on, and that is decided across the
 whole tree by
-[base-class-narrowing-slate](../slates/builds/base-class-narrowing-slate.md),
+[base-class-narrowing-slate](../slates/tech-debt/base-class-narrowing-slate.md),
 not pre-decided by one cohort.
 
 ### The chain fails loudly

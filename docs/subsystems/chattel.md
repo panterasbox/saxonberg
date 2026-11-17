@@ -139,7 +139,7 @@ live owner's estate, all in one call so nothing drifts):
 ## ⭐ What identity means for a vessel — the row is provenance, the instance is the thing
 
 ⚠ **Added 2026-08-29** (the aluminium-can review; slate
-`slates/builds/aluminium-can-slate.md`). A question worth settling
+`slates/trades/aluminium-can-slate.md`). A question worth settling
 before the returns/deposit work: *drink the cola — what are you left
 with, and is it the same object?*
 

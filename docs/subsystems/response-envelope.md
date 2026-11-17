@@ -703,7 +703,7 @@ before sending, or to hand the in-flight context to the replacement.
 - [activity.md](./activity.md) — `Engagement` framework; the
   producer behind `activity-update` envelopes and the
   `AbortReasonRegistry` augmentations
-- `docs/slates/tails/mql-subscription-slate.md` — the live-state
+- `docs/slates/engine/mql-subscription-slate.md` — the live-state
   substrate (formerly designed as state-sync); will share the
   `Interactive.nextFrameId` counter for its own ordering primitive
 

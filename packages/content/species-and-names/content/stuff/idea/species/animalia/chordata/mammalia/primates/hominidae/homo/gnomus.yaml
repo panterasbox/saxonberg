@@ -1,7 +1,7 @@
 # Homo gnomus — fantasy gnome. Same biped anatomy as sapiens, small and
 # wiry; a subterranean tinker-folk (the NetHack Mines) with keen low-light
 # eyes and a long, inquisitive life. Playable. See
-# docs/slates/builds/species-expansion-slate.md.
+# docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/gnomus.png

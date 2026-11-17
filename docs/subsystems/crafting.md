@@ -409,7 +409,7 @@ properties emerge from components) is a genuinely different model,
 still deferred — not faked.
 
 > ⭐⭐⭐ **The deferral acquired a DRIVER 2026-10-09 —
-> [assembly-slate](../slates/tails/assembly-slate.md).** The one-line
+> [assembly-slate](../slates/trades/assembly-slate.md).** The one-line
 > definition above is kept verbatim there; what the slate adds is the
 > **epoch argument**: a factory is an assembly of assemblies, so
 > **you cannot build a factory until you can build a thing from parts**,
@@ -1308,7 +1308,7 @@ behind the player's back, and the runner is the shell's ungated `do`.
 first.** A recipe whose only maker is a gated one-shot (the loaves, which
 only `bake` makes) can never be learned; the census of those, and of the
 recipes no verb reaches at all, is
-[script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
+[script-runner-decouple-findings-slate](../slates/tech-debt/script-runner-decouple-findings-slate.md).
 
 ### ⭐ Mixology is a real seat question now
 
@@ -1801,9 +1801,9 @@ pieces that attach at the same place and should land together:
   temperature: there is no `boil` verb, a wet recipe is
   `requiresHeatK` + `medium: water`, and `purifiedByBoiling` fires in the
   thermal phase engine once contents are held at the boil).
-- **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
-  `docs/slates/builds/daves-bar-slate.md`; parent
-  `docs/slates/builds/economy-slate.md`.
+- **Seeding slates:** `docs/slates/trades/crafting-slate.md`,
+  `docs/slates/world/daves-bar-slate.md`; parent
+  `docs/slates/society/economy-slate.md`.
 - **Future builds grafting on:** corpos(marks) extends `CraftedMixin`;
   deconstruction reverses craft-resolve; the recipe-learning loop builds
   on the script-shaped verbs; npc-behavior wraps the serve-on-order

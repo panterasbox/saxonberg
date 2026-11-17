@@ -64,7 +64,7 @@ themselves). That is correct behaviour, and it is the gazette slate's own
 
 ### 3. A release lives in the document tree, not a system collection
 
-The sort rule ([legal-code-slate](../slates/builds/legal-code-slate.md)):
+The sort rule ([legal-code-slate](../slates/society/legal-code-slate.md)):
 *collections cut across jurisdictions and are queried by system; the tree
 is place / owner / division of labor — **would you query it across all
 jurisdictions?*** Releases fail that cleanly. **You read a publisher's
@@ -395,7 +395,7 @@ failure the rule exists to prevent.
 
 The newsroom roster belongs to a **different organization that does not
 exist yet** — the vocation in
-[press-slate](../slates/builds/press-slate.md), the one that makes
+[press-slate](../slates/society/press-slate.md), the one that makes
 transparency actual rather than declared. Its shape when it lands:
 
 ```
@@ -427,7 +427,7 @@ publishes without being a news outlet at all.
   a provenance row keyed on the document path.)
 - **Not MQL-queryable** — a platform feed, not in-world Stuff.
 - **No subscription, push, byline, credibility track record or paywall** —
-  that is the press build ([press-slate](../slates/builds/press-slate.md)).
+  that is the press build ([press-slate](../slates/society/press-slate.md)).
 - **No permalinks, `og:` tags, RSS or email**, and no panterasbox.com
   consumer — the surface is the start screen.
 

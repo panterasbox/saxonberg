@@ -26,7 +26,7 @@
 - `unlinked-7` · `builds/altar-slate.md` · `## Sentient sacrifice — the forbidden` — **STAYS**; the altar and its rite are unbuilt (no `altar`/`sacrific`/`consecrat` class, verb or row — five incidental prose hits only), so the constraint it carries (*never a player affordance*) is the case the build inherits. Noted: the theology is already in `story-bible.md § Sacrifice — blood, presence, and the Feed` in fuller form and the slate says so; the bible is lore, not one of the doctrine-pass homes, so nothing is cut — the coordinator may reduce it to a pointer.
 - `unlinked-7` · `builds/altar-slate.md` · `## The Ordinance mirror — the Feed as the anti-altar` — **STAYS**; same unbuilt mechanism; the bible carries the Feed-as-inverted-sacrifice but not this formulation (*the altar is the consent the Ordinance deletes* — grep: absent from `story-bible.md`), so it is not even a duplicate.
 - `unlinked-7` · `builds/altar-slate.md` · `## Sacrifice — the mechanic` → *recognition, never reward* — **STAYS**; the load-bearing guardrail on an unbuilt rite, already in `Left` with the fork it governs.
-- `unlinked-7` · `builds/alignment-religion-slate.md` · `## Alignment` (the DRG paragraph) — **STAYS (moved to `docs/slates/builds/alignment-slate.md § Absorbed from alignment-religion-slate — Alignment (the DRG lesson)` by the cluster pass, `cluster-alignment.md`)**; the file is retired and the section lives in a slate outside this assignment; touched nothing. (The cluster ledger already flags the closing *PvE-narrative* claim as contradicted by shipped consented PvP.)
+- `unlinked-7` · `builds/alignment-religion-slate.md` · `## Alignment` (the DRG paragraph) — **STAYS (moved to `docs/slates/society/alignment-slate.md § Absorbed from alignment-religion-slate — Alignment (the DRG lesson)` by the cluster pass, `cluster-alignment.md`)**; the file is retired and the section lives in a slate outside this assignment; touched nothing. (The cluster ledger already flags the closing *PvE-narrative* claim as contradicted by shipped consented PvP.)
 
 ### address
 
@@ -82,7 +82,7 @@ cuts the slate section to a one-line pointer (the compaction rule — text
 leaves the slate only after it is in the doc).
 ### → `docs/measurement.md` § Tier A — row A15 *The evidence firewall*: add as a short paragraph directly under the Tier A table (or as the A15 row's own footnote), headed `#### Absorbed from enforcement-slate — The evidence firewall (why A15)`
 
-Source: `docs/slates/builds/enforcement-slate.md § The evidence firewall`, the opening paragraph's two sentences and the *Concealment stays load-bearing* paragraph (lines 77–79, 88–91). The bullet list between them (witnesses · instruments · confession) is unbuilt design and stays in the slate.
+Source: `docs/slates/society/enforcement-slate.md § The evidence firewall`, the opening paragraph's two sentences and the *Concealment stays load-bearing* paragraph (lines 77–79, 88–91). The bullet list between them (witnesses · instruments · confession) is unbuilt design and stays in the slate.
 
 **The kernel's omniscience serves exactly two masters — the
 record's integrity, and meta-moderation. Diegetic law enforcement
@@ -95,7 +95,7 @@ game in it.
 
 ### → `docs/measurement.md` § Part 1 — The three layers: new subsection `### Absorbed from enforcement-slate — The two layers, intrinsic vs. social` (suggested: after the three-layer table and its blockquote, before the *⚠ An earlier draft* paragraph — or at the end of Part 1)
 
-Source: `docs/slates/builds/enforcement-slate.md § The two layers — intrinsic vs. social`, the opening paragraph + table (lines 160–171) and the rule paragraph (lines 179–186). The middle paragraph (*a lie moves your `honesty` axis the moment you tell it*) is the unbuilt write in the slate's `Left` and stays there. ⚠ Verbatim by the MOVE rule; the coordinator may drop the *(User, 2026-07-31: …)* attribution parenthetical on apply — the doc rule is no conversation.
+Source: `docs/slates/society/enforcement-slate.md § The two layers — intrinsic vs. social`, the opening paragraph + table (lines 160–171) and the rule paragraph (lines 179–186). The middle paragraph (*a lie moves your `honesty` axis the moment you tell it*) is the unbuilt write in the slate's `Left` and stays there. ⚠ Verbatim by the MOVE rule; the coordinator may drop the *(User, 2026-07-31: …)* attribution parenthetical on apply — the doc rule is no conversation.
 
 **(User, 2026-07-31: "traits are intrinsic — they represent who you
 are when no one else is around, so those interactions can be
@@ -122,7 +122,7 @@ is inadmissible. Which is exactly how character works in life.
 
 ### → `docs/settlement-model.md` — new section `## Absorbed from towns-slate — The frame: every town is two halves` (suggested: after § 3 Specialization, before § 4 Zoning)
 
-Source: `docs/slates/builds/towns-slate.md § ⭐ The frame: every town is two halves` (lines 80–107).
+Source: `docs/slates/world/towns-slate.md § ⭐ The frame: every town is two halves` (lines 80–107).
 
 > **The functional half is why the town exists. The support half is what
 > the work does to the people who do it.**
@@ -151,7 +151,7 @@ per-town slices that ship independently.
 
 ### → `docs/settlement-model.md` § 8 Connective tissue — new subsection `### Absorbed from towns-slate — Terminus is the clearing house` (suggested: right after the *Information is a complete graph* blockquote and its paragraph, before `### ⭐⭐ The cadences are the character`)
 
-Source: `docs/slates/builds/towns-slate.md § ⭐⭐ The realm geometry — Terminus is the clearing house` (lines 109–146; the `### The second geometry` subsection that follows is the slate's own and is not part of this move).
+Source: `docs/slates/world/towns-slate.md § ⭐⭐ The realm geometry — Terminus is the clearing house` (lines 109–146; the `### The second geometry` subsection that follows is the slate's own and is not part of this move).
 
 The relation that was missing from every prior locality doc:
 
@@ -192,7 +192,7 @@ ends up governing anyway without ever passing a law.
 
 ### → `docs/settlement-model.md` § 8 Connective tissue — new subsection `### Absorbed from towns-slate — the realm layout is already von Thünen` (suggested: directly after the clearing-house insert above)
 
-Source: `docs/slates/builds/towns-slate.md § The connective tissue — goods and services in and out`, the lead sentence and the three bullets only (lines 585–595); the closing *Freight shipped →* pointer stays in the slate.
+Source: `docs/slates/world/towns-slate.md § The connective tissue — goods and services in and out`, the lead sentence and the three bullets only (lines 585–595); the closing *Freight shipped →* pointer stays in the slate.
 
 This is not a separate feature. It is what makes the three towns
 *necessary* rather than arbitrary, and the realm layout is **already von
@@ -208,7 +208,7 @@ Thünen** — nobody has cashed it:
 
 ### → `docs/settlement-model.md` § 8 Connective tissue — new subsection `### Absorbed from delivery-slate — The unifying concept: natural monopoly` (suggested: after the von Thünen insert; alternative home the coordinator may prefer: `docs/compact-political-science.md`)
 
-Source: `docs/slates/builds/delivery-slate.md § Distribution › #### ⭐⭐ The unifying concept: natural monopoly` (lines 324–350; the trailing *⚠ Boundary* paragraph is the slate's own and stays).
+Source: `docs/slates/trades/delivery-slate.md § Distribution › #### ⭐⭐ The unifying concept: natural monopoly` (lines 324–350; the trailing *⚠ Boundary* paragraph is the slate's own and stays).
 
 The **turnpike trust and the utility are the same business** — high
 fixed cost, low marginal cost, one network serving everyone more

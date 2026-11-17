@@ -194,7 +194,7 @@ drops, and renders the panel rows (`packages/rodney/README.md`,
   and pop-out, Rodney on the real feed. `StreamState` retired.
   saxonberg `build/rodney`, MR !556 (`origin/master...build/rodney`);
   pblive `!1` and pblive-streamdeck `!1` in their own repos. What is
-  left lives on [broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md).
+  left lives on [broadcast-ready-slate](../slates/platform/broadcast-ready-slate.md).
   Drive record: the wire drive `packages/wire/tests/broadcast-ready.dirty.wire.test.ts`
   14/14 on a standing world, the browser walk `e2e/tests/broadcast-ready-walk.spec.ts`
   2/2. The drive found two defects — the agenda split on `;` (the shell's

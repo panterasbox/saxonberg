@@ -44,7 +44,7 @@ Three batch-wide findings before the per-slate detail:
 
 ---
 
-## docs/slates/builds/towns-slate.md — 1181 → 1141 · Status PARTIAL → PARTIAL
+## docs/slates/world/towns-slate.md — 1181 → 1141 · Status PARTIAL → PARTIAL
 
 Almost entirely UNBUILT per-town design (the three acts, the Death Man,
 Halloran, the support halves) — the pass's value here is the honest
@@ -121,7 +121,7 @@ declare no `_address` (the `eternal-campus` Locality now exists at
 
 ---
 
-## docs/slates/builds/delivery-slate.md — 614 → 538 · Status PARTIAL → PARTIAL
+## docs/slates/trades/delivery-slate.md — 614 → 538 · Status PARTIAL → PARTIAL
 
 The addressing foundation is the only unit that shipped **as designed**;
 the rest is either unbuilt or shipped in a shape the slate did not draw.

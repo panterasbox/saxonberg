@@ -624,7 +624,7 @@ payload now; no call site was edited.
 ⚠ `Mml.actor`'s docstring used to claim *"server-side disambiguation
 walks bodies for these tokens to pick the minimal-distinguishing form
 per recipient."* **It does not and never did** — the
-[naming slate](../slates/tails/naming-slate.md) owns it, as unbuilt.
+[naming slate](../slates/engine/naming-slate.md) owns it, as unbuilt.
 
 > ⚠ **Any list of "what is here" must use `Mml.actor`.** Room contents
 > include people. `look` splits organisms out to the occupant formatter

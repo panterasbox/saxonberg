@@ -436,7 +436,7 @@ was terraced either.
 > Rough ground was to be forageable, with the forage declining as you
 > cleared it — *the neolithic transition as a cashflow decision*. It was
 > a late requirements addendum that borrowed its design wholesale from
-> [discovery-slate](../slates/builds/discovery-slate.md), and what
+> [discovery-slate](../slates/engine/discovery-slate.md), and what
 > shipped was one verb reachable **only on ground you had already
 > plotted**, drawing on a table no row authored, yielding one item
 > nothing consumed. The decision it was supposed to dramatise — gather or

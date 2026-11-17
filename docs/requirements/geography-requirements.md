@@ -19,7 +19,7 @@ handled distance did it: **what is far and does not move is worked out
 ahead of time, at the grain of a place, from a sparse set of landmarks;
 what is far and moves is found only by an act** — never a per-room sight
 computation.
-Seeded by [geography-slate](../slates/builds/geography-slate.md); runs in
+Seeded by [geography-slate](../slates/world/geography-slate.md); runs in
 parallel with the [navigation-server](./navigation-server-requirements.md)
 and [zone-instancing](./zone-instancing-requirements.md) builds (the latter's
 requirements are in flight on `reqs/zone-instancing`).
@@ -70,7 +70,7 @@ things without loading them; and the authored lists recast as overrides.
 The rough direction, the Discipline, the compass and the sight rule ship
 already; `measure bearing` and `measure latitude` ship **afloat only** —
 taking them ashore is part of this build (corrected 2026-11-17). The reuse ledger is in the slate
-([geography-slate § Reuse ledger for the plan](../slates/builds/geography-slate.md)).
+([geography-slate § Reuse ledger for the plan](../slates/world/geography-slate.md)).
 
 ## Goals
 
@@ -102,7 +102,7 @@ taking them ashore is part of this build (corrected 2026-11-17). The reuse ledge
 ## Non-goals
 
 - **Moving things on land** seen from afar (a caravan on the road,
-  smoke from a fire) → [geography-slate § Open](../slates/builds/geography-slate.md);
+  smoke from a fire) → [geography-slate § Open](../slates/world/geography-slate.md);
   they would join through the same act-only rule as sails.
 - **Moving elevation off the zone** → nowhere, deliberately (the owner,
   2026-11-16): elevation stays a ground fact on the zone; this build only
@@ -114,7 +114,7 @@ taking them ashore is part of this build (corrected 2026-11-17). The reuse ledge
   radius) → geography-slate, when a need appears.
 - **Placing zones** → nowhere: zones stay unplaced; your map's geometry
   still lives in zones.
-- **The atlas** and its land-and-sea chart → [atlas-slate](../slates/builds/atlas-slate.md),
+- **The atlas** and its land-and-sea chart → [atlas-slate](../slates/client/atlas-slate.md),
   a later client build.
 - **Longitude by clock** → the latitude reading's own note (another build).
 - **Points for the test-fixture worlds** → nowhere: they keep today's
@@ -318,11 +318,11 @@ None: nothing in this build moves on a span of the clock.
 
 ## Cross-references
 
-- [geography-slate](../slates/builds/geography-slate.md) (seeding; the
+- [geography-slate](../slates/world/geography-slate.md) (seeding; the
   reuse ledger)
 - [navigation-server-requirements](./navigation-server-requirements.md) ·
   [zone-instancing-requirements](./zone-instancing-requirements.md) ·
-  [map-slate](../slates/builds/map-slate.md)
+  [map-slate](../slates/client/map-slate.md)
 - [expanse.md](../subsystems/expanse.md) · [river.md](../subsystems/river.md) ·
   [perceiver.md](../subsystems/perceiver.md) ·
   [instrumentation.md](../subsystems/instrumentation.md) ·

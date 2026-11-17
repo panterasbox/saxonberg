@@ -113,7 +113,7 @@ religion. Leave 3 empty and you get the lie above.
 ## ⭐⭐ Silence on worth is not silence on quantity — and abstention is not available
 
 ⚠ **Added 2026-08-29** (`design/libations`; the argument is recorded in
-full in [slates/builds/standing-mint-slate.md](./slates/builds/standing-mint-slate.md),
+full in [slates/society/standing-mint-slate.md](./slates/society/standing-mint-slate.md),
 the decision in [polity-decision-register.md](./polity-decision-register.md)
 D9). Layer 1 being *silent on worth* has been read as *"the engine must
 emit nothing aggregable."* That reading is wrong, and it fails on this
@@ -222,11 +222,11 @@ works if the engine stays out of the valuation:
 Two acts a society needs; opposite correct policies. A player who passes
 a deposit on cans, then tries the same trick on blood and watches
 donation **fall**, has learned something most adults never learn — and
-no essay delivers it. See [blood-slate.md](./slates/tails/blood-slate.md).
+no essay delivers it. See [blood-slate.md](./slates/engine/blood-slate.md).
 
 ⚠ **This entire lesson is impossible if the engine credits both with
 standing.** That is the concrete reason the mint question
-([standing-mint-slate.md](./slates/builds/standing-mint-slate.md)) is not
+([standing-mint-slate.md](./slates/society/standing-mint-slate.md)) is not
 ours.
 
 ## The same structure, three times
@@ -283,7 +283,7 @@ the engine emits; a life can only be gamified along axes the engine
 counts. **The vocabulary underneath everyone's declared standard is
 authored.**
 
-This is [balance-slate](./slates/builds/balance-slate.md)'s point in a
+This is [balance-slate](./slates/society/balance-slate.md)'s point in a
 different suit — *every global ledger is a currency, and the denominator
 is where the design is.*
 
@@ -302,7 +302,7 @@ way the law is, not settled in a wizard's YAML file. *(Open — see
 # Part 4 — ⭐⭐ Nobody starts neutral
 
 The second correction, and it comes from
-[lineage-slate](./slates/builds/lineage-slate.md).
+[lineage-slate](./slates/society/lineage-slate.md).
 
 "You set your own incentives" implies a blank slate. There isn't one, and
 pretending otherwise is both false and a worse story. You are the child
@@ -322,14 +322,14 @@ So the honest form of the whole pitch:
 That answers the paternalism objection *better* than neutrality does,
 because it does not claim a neutrality nobody has. The platform hands
 you an inherited position, an honest mirror, and a costly exit. It is
-also [lineage-slate](./slates/builds/lineage-slate.md)'s own line: *you
+also [lineage-slate](./slates/society/lineage-slate.md)'s own line: *you
 arrive with a past you did not choose and a future you do.*
 
 ---
 
 # Part 5 — The mirror has arithmetic
 
-[trait-slate](./slates/tails/trait-slate.md) supplies the mechanism, and
+[trait-slate](./slates/engine/trait-slate.md) supplies the mechanism, and
 it generalizes past personality to any declared standard:
 
 ```
@@ -465,7 +465,7 @@ Which yields a design rule sharper than any column budget:
 > ⚠ **A field that teaches a lie is worse than no field.** It spends the
 > player's one attentive moment mis-teaching them.
 
-The worked case, from the [lineage](./slates/builds/lineage-slate.md)
+The worked case, from the [lineage](./slates/society/lineage-slate.md)
 gallery. A household's faith is shown as **name plus obligation** —
 because a vocabulary is taught in pairs, and because the gloss is where
 the system's nature is either taught or betrayed:
@@ -553,7 +553,7 @@ found the two being conflated wherever the enforcement mandate is cited:
 | axis | asks | values |
 |---|---|---|
 | **amendment** — this Part | who may **change** the rule | Tier **A** · **B** · **C** |
-| **enforcement** | who **executes** it | **wall · camera · witness · norm** ([enforcement-slate](./slates/builds/enforcement-slate.md)) |
+| **enforcement** | who **executes** it | **wall · camera · witness · norm** ([enforcement-slate](./slates/society/enforcement-slate.md)) |
 
 They are orthogonal, and the common, correct case is a **Tier C** rule
 enforced by **wall**: the polity sets a rate, the engine collects it.
@@ -599,7 +599,7 @@ process for changing them.
 | A12 | **Evidence is idempotent and deduplicated.** Seeded claims apply once; replay no-ops | `TraitApi.seedClaims`, `recordOnce`, transcript dedup |
 | A13 | **Transformation never creates matter.** Σ output ≤ input; short debits throw | [crafting.md](./subsystems/crafting.md) — *"lossless would break conservation"* |
 | A14 | **The sandbox boundary is symmetric.** Nothing crosses into or out of a circle | the Layer-4 boundary; `pnpm lint:boundary` |
-| A15 | ⚠ **The evidence firewall.** Kernel omniscience never becomes diegetic evidence | [enforcement-slate](./slates/builds/enforcement-slate.md) — *judgment call, see the audit* |
+| A15 | ⚠ **The evidence firewall.** Kernel omniscience never becomes diegetic evidence | [enforcement-slate](./slates/society/enforcement-slate.md) — *judgment call, see the audit* |
 | A16 | ⭐ **Every reconcile-on-read consumer tolerates a backward clock** — re-stamp, integrate nothing | convention only; see *the clock finding* below. **Game time is NOT monotonic**, and this row is what makes that survivable |
 
 ⭐ Note what these have in common: **each is the reason some claim the
@@ -635,7 +635,7 @@ content-write*) was in the wrong tier. Violating it voids **every** other
 invariant — an author who can execute code can forge any record — so the
 *invariant* is A9. What stays in Tier B is only the **policy** half: who
 holds the wizard bit, and the fiduciary duty they owe
-([wizard-duty-slate](./slates/builds/wizard-duty-slate.md)).
+([wizard-duty-slate](./slates/society/wizard-duty-slate.md)).
 
 **Considered and not admitted:**
 
@@ -735,7 +735,7 @@ The honest limit, from the same lens's *residue*:
 
 One human may hold many characters. Nothing in this tier prevents it, so
 every per-character measurement is Sybil-exposed — which is
-[the influence work](./slates/builds/reputation-slate.md)'s known open
+[the influence work](./slates/society/reputation-slate.md)'s known open
 flank, not a gap this document can close. Related: **external-credential
 trust is imported, not derived** — a federated antecedent is only as good
 as its issuer, and Tier A ends at the boundary.
@@ -745,7 +745,7 @@ as its issuer, and Tier A ends at the boundary.
 Not the polity's to change, and not integrity either. These are choices
 about what kind of thing this is. **The check on them is the AGPL-3 right
 to fork** — which is the founder's only constraint, stated as such in
-[wizard-duty-slate](./slates/builds/wizard-duty-slate.md).
+[wizard-duty-slate](./slates/society/wizard-duty-slate.md).
 
 | # | Commitment | Source |
 |---|---|---|
@@ -754,7 +754,7 @@ to fork** — which is the founder's only constraint, stated as such in
 | B3 | **Any measurement the platform makes of you is one you can read** | Part 2 |
 | B4 | **A declared standard is never a gauge** — the write is visible, the position is not. ⚠ **Scoped 2026-09-29**; performance is readable under B3 | Part 6.3–6.4 |
 | B5 | **No variable-ratio reinforcement.** No loot boxes, gacha, pity timers | [uncertainty.md](./uncertainty.md) |
-| B6 | **The wizard roster stays small, and its holders owe a fiduciary duty** — the *policy* half of code-trust. ⚠ The *invariant* half is **A9**, not this | [wizard-duty-slate](./slates/builds/wizard-duty-slate.md) |
+| B6 | **The wizard roster stays small, and its holders owe a fiduciary duty** — the *policy* half of code-trust. ⚠ The *invariant* half is **A9**, not this | [wizard-duty-slate](./slates/society/wizard-duty-slate.md) |
 | B7 | **AGPL-3, and the right to run your own** | the licence |
 | B8 | ⭐⭐ **The engine reads measurements, never valuations** — and runs no leaderboard of its own | Part 1 |
 
@@ -792,7 +792,7 @@ enforced by code*). Each row is a **wall in the substrate**: a committee cannot 
 strands, because the declaration cannot express it. The Compact court keeps the judgment cases — such
 as whether an indefinite presence banishment from a crossroads, passage intact, is still too much.
 
-The design and its build: [guarantees-of-play-slate](./slates/builds/guarantees-of-play-slate.md).
+The design and its build: [guarantees-of-play-slate](./slates/society/guarantees-of-play-slate.md).
 
 ### ⭐⭐ The platform records; it rarely forbids
 
@@ -811,7 +811,7 @@ you is that it *counts*, and its discipline is that the counting is open.
 ## Tier C — Policy · amendable by **the polity**, through the Compact
 
 The genuinely political layer — the
-[amendment-library](./slates/builds/amendment-library-slate.md)'s legos.
+[amendment-library](./slates/society/amendment-library-slate.md)'s legos.
 Everything here is *meant* to change, and a build that hardcodes one of
 these has made a political decision by accident.
 
@@ -837,7 +837,7 @@ Finance's `treasury set`, the capital controls through the Governor's
   distinctions freely, nobody may remove or redefine one, and a demand
   for a new distinction becomes a public recorded work item. The
   official-statistics model. See
-  [deed-tags-slate](./slates/tails/deed-tags-slate.md).
+  [deed-tags-slate](./slates/society/deed-tags-slate.md).
 
 ## What is **not** layer 3
 
@@ -848,7 +848,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
 | your patron, aspiration, goals | declared — that is layer 2 by definition |
 | a congregation's or guild's standard | mutual opt-in with cheap exit (Part 8) |
 | a content pack's contents | a pack is a unit of review; installable and removable |
-| trade / faith lean weights | generation bias, explicitly **never a rule** ([trade-roster](./slates/tails/trade-roster-slate.md)) |
+| trade / faith lean weights | generation bias, explicitly **never a rule** ([trade-roster](./slates/trades/trade-roster-slate.md)) |
 | NPC opinion of you | derived from your acts, not imposed on them |
 | competence gates on verbs | earned, and the evidence is inspectable |
 
@@ -860,10 +860,10 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
   edge. This document governs what the platform may *do* with a
   measurement; it says nothing about what it may *collect*, what a sensor
   seam may attest, or what the model is allowed to remember.
-  [mirror-slate](./slates/builds/mirror-slate.md) and
-  [instrumentation-slate](./slates/tails/instrumentation-slate.md) hold
+  [mirror-slate](./slates/platform/mirror-slate.md) and
+  [instrumentation-slate](./slates/engine/instrumentation-slate.md) hold
   that thread; it deserves its own peer doc. ⭐ **Begun 2026-10-20 as the
-  [privacy slate](./slates/builds/privacy-slate.md)** (plane 1: the privacy
+  [privacy slate](./slates/platform/privacy-slate.md)** (plane 1: the privacy
   surface, spoiler privilege earned by publication, the trail).
 - **Consent mechanics** as implemented — this states the requirement
   (opt-in, cheap exit), not the machinery.
@@ -886,7 +886,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
    recommended lint, not a design question. ~~Tier C's last row.~~
    **Resolved 2026-08-12** — the vocabulary is descriptive, so it stays
    layer 1; the polity gets a **petition, not an override**
-   ([deed-tags-slate](./slates/tails/deed-tags-slate.md)). ⚠ That
+   ([deed-tags-slate](./slates/society/deed-tags-slate.md)). ⚠ That
    resolution **corrects Part 3**, which filed the vocabulary as
    value-laden-therefore-governable. The sharper form: each tag is
    descriptive, while the *set of distinctions it can draw* is political.

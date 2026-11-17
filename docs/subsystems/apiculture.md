@@ -220,7 +220,7 @@ no crafting meaning). The two rows also have identical slots, so a single
 verb that resolved by input could not tell them apart. Extraction needs
 its own act on the comb (a `press`/`spin` at the extractor); until then
 honey ends at the comb. Recorded in
-[script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
+[script-runner-decouple-findings-slate](../slates/tech-debt/script-runner-decouple-findings-slate.md).
 ⚠ The slot's `category` is a Material **tag**, so both name `honey` (what
 the comb is made of) and `kind: item` vs `kind: bulk` is what keeps a jar
 of honey out of a comb slot.

@@ -23,7 +23,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/tails/hand-slot-slate.md — 340 → 343 · Status UNBUILT → UNBUILT
+## docs/slates/engine/hand-slot-slate.md — 340 → 343 · Status UNBUILT → UNBUILT
 
 The v1 shape is exactly as the slate describes it. The biped plan
 (`packages/content/species-and-names/content/stuff/idea/species/BodyPlan/biped.yaml`)
@@ -84,7 +84,7 @@ dependents.
 
 ---
 
-## docs/slates/builds/wizard-duty-slate.md — 331 → 335 · Status UNBUILT → UNBUILT
+## docs/slates/society/wizard-duty-slate.md — 331 → 335 · Status UNBUILT → UNBUILT
 
 Nothing of the duty has been built. No `su` view under any pack's `cmd/`;
 no `break-glass` / `breakGlass` string anywhere under
@@ -153,7 +153,7 @@ lines: the status line carries the re-counted census and `Left` grew.
 
 ---
 
-## docs/slates/builds/authoring-intelligence-slate.md — 321 → 314 · Status UNBUILT → PARTIAL
+## docs/slates/platform/authoring-intelligence-slate.md — 321 → 314 · Status UNBUILT → PARTIAL
 
 The delivery half is unbuilt: no `monaco-languageclient` /
 `vscode-languageserver` / `yaml-language-server` in any `package.json`; no
@@ -212,7 +212,7 @@ but runs no semantic model. Two cuts.
 
 ---
 
-## docs/slates/builds/room-condition-design-pack.md — 321 → 314 · Status UNBUILT → UNBUILT
+## docs/slates/engine/room-condition-design-pack.md — 321 → 314 · Status UNBUILT → UNBUILT
 
 The decomposition is unbuilt. `Soilable` / `SoilableMixin` / `debris` hit
 nothing under `packages/server/src/mud` or `packages/content/*/src` outside
@@ -246,7 +246,7 @@ link went with the cut status block).
 - none
 
 ### Superseded — cut
-- the second status block *"Status: design, planner-ready, captured 2026-08-06. Not requirements… Same per-object format as the fridge and spoilage packs"* (10–16, 7 + blank) — history; the format pointer to `fridge-design-pack.md` is lost with it (the file exists at `docs/slates/builds/fridge-design-pack.md`; the See-also line does not carry it — recorded here so the cluster pass can restore it if the format cross-reference matters)
+- the second status block *"Status: design, planner-ready, captured 2026-08-06. Not requirements… Same per-object format as the fridge and spoilage packs"* (10–16, 7 + blank) — history; the format pointer to `fridge-design-pack.md` is lost with it (the file exists at `docs/slates/trades/fridge-design-pack.md`; the See-also line does not carry it — recorded here so the cluster pass can restore it if the format cross-reference matters)
 
 ### Kept (UNBUILT)
 - the status block (re-stamped) · *See also* (every link resolves; the spoilage link retargeted)
@@ -279,7 +279,7 @@ link went with the cut status block).
 
 ---
 
-## docs/slates/builds/land-use-covenant-slate.md — 318 → 327 · Status UNBUILT → PARTIAL
+## docs/slates/society/land-use-covenant-slate.md — 318 → 327 · Status UNBUILT → PARTIAL
 
 Merged to master 2026-09-18 (`design/land-use-covenant`), so nearly
 nothing has had time to ship — and the one thing that has is the *cheap
@@ -340,7 +340,7 @@ line names the shipped substrate and `Left` grew.
 
 ---
 
-## docs/slates/builds/saxonberg-city-slate.md — 311 → 324 · Status UNBUILT → UNBUILT
+## docs/slates/world/saxonberg-city-slate.md — 311 → 324 · Status UNBUILT → UNBUILT
 
 Entirely unbuilt, and honestly stamped. No pack carries a City of
 Saxonberg: the `/world` roots under `packages/content/*/content/world/`
@@ -383,7 +383,7 @@ to thirteen because the body carried seven unrepresented deliverables.
 - `## What Saxonberg is` → *the allowance is an honestly-labeled out-of-fiction meter… it never wears a diegetic costume* — the metaresource guardrail, already the memory's (*compute is a metaresource*) and the stewardship slate's
 
 ### Uncertain — kept
-- the framing paragraph (14–16) + Q4 (297–300) — *"that slate currently lives on the `docs/husbandry-conventions` branch"*: it lives at `docs/slates/builds/stewardship-slate.md` on master, `PARTIAL`. The *branch* half of the dependency is resolved; the *mechanism* half is not — land use shipped, the cascade / second grant did not (`stewardship-slate.md` Left). Q4's second arm (*this build carries the two decided mechanisms with it*) is therefore still live for the cascade. Not rewritten
+- the framing paragraph (14–16) + Q4 (297–300) — *"that slate currently lives on the `docs/husbandry-conventions` branch"*: it lives at `docs/slates/society/stewardship-slate.md` on master, `PARTIAL`. The *branch* half of the dependency is resolved; the *mechanism* half is not — land use shipped, the cascade / second grant did not (`stewardship-slate.md` Left). Q4's second arm (*this build carries the two decided mechanisms with it*) is therefore still live for the cascade. Not rewritten
 - Q2 *[RESOLVED by the map]* (290–292) — resolved by the slate's own launch map, not by code or a doc; kept as spine
 - `## The short-term build` item 5 — *"the shipped committee concept (access.md § the committee…)"*: accurate (`access.md:594-605`); *"seats as employment positions"*: `civics.md` says seats-as-positions — accurate; the *interim `core` committee* is the founder-default pattern `governance.md` describes for offices, applied to a title — no shipped precedent for a committee marked *interim*
 - `## The short-term build` item 3 — office-keyed tenure: `residence.md`'s `(scope, key)` multi-instance persistence and `holding.md`'s tenure terms are the substrate; neither has a key that is an office. The slate calls it *the one genuinely novel mechanic*, correctly
@@ -399,7 +399,7 @@ to thirteen because the body carried seven unrepresented deliverables.
 
 ---
 
-## docs/slates/builds/grid-slate.md — 307 → 306 · Status UNBUILT → PARTIAL
+## docs/slates/trades/grid-slate.md — 307 → 306 · Status UNBUILT → PARTIAL
 
 The network is unbuilt: `ParcelRecord` (`parcel.md:36-49`,
 `lib/parcel/ParcelRecord.ts:132-139`) carries `extent · zonePath · owner ·
@@ -463,7 +463,7 @@ locality's* (`banking.md:74`). Four cuts.
 
 ---
 
-## docs/slates/builds/intervention-slate.md — 286 → 289 · Status UNBUILT → UNBUILT
+## docs/slates/engine/intervention-slate.md — 286 → 289 · Status UNBUILT → UNBUILT
 
 Nine days old and honest about its substrate. Every row of its *What
 already exists* table re-verified: `CombatGraph.ts` (`ThreatEdge.terms`,

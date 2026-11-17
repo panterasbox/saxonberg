@@ -202,7 +202,7 @@ that `appointingAuthority` overrides when both are present.
 
 ### ⭐ The owners authority — a cap table (harbors review 1, 2026-11-02, MR !511, `362ec52aa`)
 
-The first slice of the [institutions slate](../slates/builds/institutions-slate.md)'s
+The first slice of the [institutions slate](../slates/society/institutions-slate.md)'s
 primitive. `lib/employment/CapTable.ts` (`CapTableMixin`, `Mixins.CapTable`,
 `MixinApi.isCapTable`) is **a table of owners and their units**: authored
 `capTable: {units, transfer, rows: [{holder: {kind, path, name?}, units}]}`
@@ -518,7 +518,7 @@ and be credited with `cooking`.
 `CraftingLogic.resolveMaker` breaks ties on the lowest identity path,
 which is predictable rather than right — two cooks in one kitchen wants a
 queue. That is arbitration and belongs to the crew substrate
-([call-slate](../slates/builds/call-slate.md)).
+([call-slate](../slates/society/call-slate.md)).
 
 ### ⭐ A fulfilling hand MENDS (repair, 2026-10-17)
 
@@ -602,7 +602,7 @@ is open at all. ⚠ It rides its **own uncarded scene**, not the room body —
 a body handed to `CardApi.open` is suppressed from the transcript in
 favour of a card that never renders it, which made the sign invisible in a
 browser until the live drive found it. See
-[carded-prose-slate](../slates/tails/carded-prose-slate.md).
+[carded-prose-slate](../slates/client/carded-prose-slate.md).
 
 ## `job apply` and `clock` — the player moves first
 

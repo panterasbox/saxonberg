@@ -1,7 +1,7 @@
 # The wizardry rubric — what the craft measures, and how
 
 > **Status: the Discipline's scored syllabus.** Written 2026-10-04,
-> because [wizardry-slate](./slates/builds/wizardry-slate.md) § 10.1 said
+> because [wizardry-slate](./slates/society/wizardry-slate.md) § 10.1 said
 > to write it first: *"it costs nothing, it is dispositive, and everything
 > else is downstream."* ⭐⭐⭐ **It is dispositive in both directions — if
 > a band cannot be defended from this document, the Discipline is not
@@ -79,7 +79,7 @@ decomposes into `prose-craft` + `siting` + `provisioning` +
 `characterization`, each recorded as its own Transcript row sharing a
 timestamp. The seven leaves are therefore **not** the seven kinds of
 content from
-[wizardry-curriculum-slate](./slates/builds/wizardry-curriculum-slate.md)
+[wizardry-curriculum-slate](./slates/society/wizardry-curriculum-slate.md)
 § 2 — the kinds are what you are making, the leaves are what it exercises,
 and the signature is the mapping between them.
 
@@ -179,7 +179,7 @@ rather than being padded with proxies.
 
 ### ⛔⛔ What outcome may never read — and the answer to the two-judges problem
 
-[wizardry-slate](./slates/builds/wizardry-slate.md) § 10.2 asked how the
+[wizardry-slate](./slates/society/wizardry-slate.md) § 10.2 asked how the
 band and standing avoid collapsing into one number with two names. The
 answer is a clean population split, and it is forced rather than chosen:
 
@@ -343,9 +343,9 @@ which is the only grain at which the unevenness finding is actionable.**
   ⭐⭐⭐ the criteria and the failure modes, measured over 45,380 files.
 - [design-lenses.md](./design-lenses.md) — the crit's material, and § 7's
   reason it is not a sub-check.
-- [slates/builds/wizardry-slate.md](./slates/builds/wizardry-slate.md) —
+- [slates/society/wizardry-slate.md](./slates/society/wizardry-slate.md) —
   the Discipline. This closes its § 10.1 and § 10.2.
-- [slates/builds/wizardry-curriculum-slate.md](./slates/builds/wizardry-curriculum-slate.md)
+- [slates/society/wizardry-curriculum-slate.md](./slates/society/wizardry-curriculum-slate.md)
   — the teaching. § 2 here is its progress instrument.
-- [slates/builds/object-taxonomy-slate.md](./slates/tails/object-taxonomy-slate.md)
+- [slates/tech-debt/object-taxonomy-slate.md](./slates/tech-debt/object-taxonomy-slate.md)
   — `composition` and `taxonomy`'s instruments.

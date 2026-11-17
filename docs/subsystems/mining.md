@@ -100,7 +100,7 @@ a player or dangle an exit, and air simply re-derives around the hole
 
 ## The geology field
 
-Three layers ([field-substrate-slate](../slates/tails/field-substrate-slate.md)):
+Three layers ([field-substrate-slate](../slates/engine/field-substrate-slate.md)):
 
 - **the model** — `Deposit`, a pure-data `Idea` in **`/system/ground`**
   (⭐ moved out of `trade-mining` by the ground build, 2026-09-23 — the
@@ -568,7 +568,7 @@ than mushrooms: the Ferrow zone's `stocks:` table distributes three fauna
 procedurally, while the glowcap is a hand-placed fixture with no table
 entry at all, and **nothing says how those two layers relate when an
 author bypasses the procedural one on purpose.** See
-[authored-vs-procedural-slate](../slates/builds/authored-vs-procedural-slate.md).
+[authored-vs-procedural-slate](../slates/world/authored-vs-procedural-slate.md).
 
 ### The kernel footprint, in full
 
@@ -692,10 +692,10 @@ not written.
 
 ## Cross-references
 
-[field-substrate](../slates/tails/field-substrate-slate.md) ·
-[mining](../slates/builds/mining-slate.md) ·
-[metal-chain](../slates/builds/metal-chain-slate.md) ·
-[rejection](../slates/builds/rejection-slate.md) ·
+[field-substrate](../slates/engine/field-substrate-slate.md) ·
+[mining](../slates/trades/mining-slate.md) ·
+[metal-chain](../slates/trades/metal-chain-slate.md) ·
+[rejection](../slates/world/rejection-slate.md) ·
 [persistence](./persistence.md) · [parcel](./parcel.md) ·
 [chattel](./chattel.md) · [crafting](./crafting.md) · [fire](./fire.md) ·
 [holding](./holding.md) · [residence](./residence.md) ·

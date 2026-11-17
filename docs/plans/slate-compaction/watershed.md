@@ -27,7 +27,7 @@ of location — no indoor/outdoor special case was ever needed).
 
 ---
 
-## `docs/slates/tails/water-design-pack.md` — 347 → 59 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/water-design-pack.md` — 347 → 59 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Older narrative status block (lines 10–26, the "⭐⭐ SHIPPED 2026-09-02"
@@ -143,7 +143,7 @@ of location — no indoor/outdoor special case was ever needed).
 
 ---
 
-## `docs/slates/builds/supply-design-pack.md` — 324 → 86 lines · Status PARTIAL → PARTIAL
+## `docs/slates/trades/supply-design-pack.md` — 324 → 86 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Older narrative status block (lines 11–28, the "design,

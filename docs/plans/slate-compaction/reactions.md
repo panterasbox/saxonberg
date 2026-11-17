@@ -11,7 +11,7 @@ One slate. Branch `design/slate-compaction`. Procedure:
 `packages/client/src/components/ReactionBar.tsx`,
 `packages/client/src/store/{index,reactionActions}.ts`.
 
-## docs/slates/tails/reactions-slate.md — 327 → 117 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/reactions-slate.md — 327 → 117 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Second (narrative) status block, lines 11–24, plus its "_Original

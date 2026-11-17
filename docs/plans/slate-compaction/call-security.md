@@ -6,7 +6,7 @@ Branch `design/slate-compaction`. Procedure:
 
 ---
 
-## docs/slates/tails/call-security-performance-slate.md — 387 → 160 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/call-security-performance-slate.md — 387 → 160 · Status PARTIAL → PARTIAL
 
 This slate is the journal of a completed performance investigation.
 Code-verified before any cut: `lib/security/execution-context.ts` has
@@ -68,7 +68,7 @@ full).
   journal, ~60 lines) is a **libations-build** bug log that landed in
   this call-security slate because both came out of the same live-drive
   session (2026-08-31). None of it is call-security subject matter, and
-  `docs/slates/tails/libations-slate.md` exists as a plausible real
+  `docs/slates/trades/libations-slate.md` exists as a plausible real
   home. It doesn't cleanly classify as SHIPPED·DOCUMENTED (there's no
   subsystem-doc "decision" here, just a fixed-bugs journal) or as
   clearly cuttable (the three "Still open" items may still be live
@@ -124,7 +124,7 @@ full).
   single paragraph — and is recorded verbatim above for whoever next
   touches persistence.md's install/hook section.
 - Recommend, for a later pass: move `## 8. The overnight drive` from
-  this slate onto `docs/slates/tails/libations-slate.md`, where its
+  this slate onto `docs/slates/trades/libations-slate.md`, where its
   subject matter actually lives. Not done here — out of this batch's
   write list and not clearly low-risk to relocate without reading that
   slate's own current state.

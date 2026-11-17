@@ -20,8 +20,8 @@ founder-default holders) ·
 [subsystems/influence.md](./subsystems/influence.md) (the three-stock
 contract) · [positioning.md](./positioning.md) (the outward claim this
 doc backs) ·
-[slates/builds/standing-mint-slate.md](./slates/builds/standing-mint-slate.md)
-· [slates/builds/balance-slate.md](./slates/builds/balance-slate.md).
+[slates/society/standing-mint-slate.md](./slates/society/standing-mint-slate.md)
+· [slates/society/balance-slate.md](./slates/society/balance-slate.md).
 
 ---
 

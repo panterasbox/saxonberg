@@ -244,7 +244,7 @@ burn it*); between the floor and
 `CLEAN_CLEAVE` (0.8) it yields fewer billets from the same length. The
 grain form the billet carries is the input to the carpentry chain's
 weakest-link stock form — see [assembly.md](./assembly.md) and
-`docs/slates/builds/carpentry-slate.md`.
+`docs/slates/trades/carpentry-slate.md`.
 
 ### ⭐⭐ Bark — the fourth yield, and it is PER-SPECIES (2026-10-05)
 
@@ -489,7 +489,7 @@ when they write a farm where the wood used to be, not a verb.
   different liquor (`salt-pan` is a `Vat` row, `brine-hearth` an `Oven`
   row), which makes sugaring the **fifth** claimant on the wood contest
   and the only one that burns wood from the stand it taps. →
-  [tapping-slate](../slates/tails/tapping-slate.md).
+  [tapping-slate](../slates/trades/tapping-slate.md).
 - **The Cover seam** — `SwardMixin` + `StandMixin` → a kernel
   `lib/husbandry/Cover` on the third instance (an orchard, a hedgerow, a
   reed bed); the stand's moisture factor integrated stepwise lands there.
