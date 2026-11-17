@@ -690,9 +690,11 @@ Section contents (words wherever the game has words):
   weather?, season?, daylight?, water?, staged, crowd, lowCeiling,
   elevationM?, searched, found }` — `elevationM` is the **total**: the
   zone's elevation plus the room's height within it (z × cell size; owner,
-  2026-11-17). Read it through the geography build's height accessor when
-  it has merged; until then `ZoneApi.elevationFor` (zone only) and let
-  geography's reversal correct it.
+  2026-11-17). Read it as geography's `Place.heightAboveSeaM()` once
+  geography merges; until then the zone's elevation alone
+  (`ZoneApi.elevationFor`, which stays the GROUND's elevation — wells, taps
+  and the stairwell test are about the ground, and geography does not
+  change it).
 - **you** — `{ pace, posture, hands: { slot, holds? }[], freeHands, load,
   bars: string[], light?, mount?, led?: string[], cart? }`.
 
@@ -1209,8 +1211,14 @@ No step needs a state nothing can stage.
   coordinates).
 - **geography (build-3):** owns `PerceptionLogic`'s horizon computation
   and the `HorizonSighting`/`HorizonView` block; this build only
-  serializes it (never `bearingDeg`), and owns height's reversal
-  (elevation = zone + z × cell size).
+  serializes it (never `bearingDeg`). Height: geography adds
+  `Place.heightAboveSeaM()` = zone elevation + z × cell size;
+  `ZoneApi.elevationFor` stays the ground's (geography Q7 asks the owner
+  whether pressure or magic's Δh should read the total). Geography also adds
+  a Wharfside Locality and moves Mayfield Row under the city
+  (`terminus/mayfield-row` → `terminus/city/mayfield-row`): maps are filed
+  per finest Locality, so ~25 rooms' claims file under different documents —
+  whichever merges second fixes any wire assertion on those paths.
 
 
 ⚠ **Zone instancing (build-4, `docs/plans/zone-instancing-plan.md` on

@@ -61,8 +61,8 @@ ship. Seeding slate:
   ground*.
 - **`locate`** — an omniscient *where is anything*, on every player.
 - **Discovery** of hidden things is already recorded per player.
-  Elevation today is the zone's alone — `z` is ignored (a test holds it);
-  the owner's rule (2026-11-17) reverses that, in the geography build.
+  Elevation today is the ground's — the zone's alone; a room's total
+  height (zone plus z) is a new read from the geography build.
 - **Spoilers** — the wiki's reveal model (capability deletes, appetite
   keeps and tags).
 - **Size and carrying** (build-1; it merges before this build starts, so it
@@ -205,8 +205,8 @@ landmarks first. Bearing and range ashore wait on the geography build.
 height — you need the zone to tell you that."* A room's height is its
 zone's elevation plus its height within the zone (z × cell size). The
 place section sends that total; `z` also travels as grid position. The
-shipped elevation read ignores z — reversing it is the geography build's
-(it owns height).
+ground's elevation stays what it is (wells and taps read the ground); the
+room's total is a new read the geography build adds.
 
 ### A copy is recorded as itself **[DECIDED]**
 A claim for a room in a copy names the copy, with the copy's own
