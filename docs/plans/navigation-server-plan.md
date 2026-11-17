@@ -6,9 +6,17 @@ map, kept as a copy on the client) and *what you perceive from here, now*
 (seven sections) — and `locate` is retired. Executes
 [navigation-server-requirements](../requirements/navigation-server-requirements.md)
 (AGREED 2026-11-16). **Kind:** feature. **Lead end:** kernel-led; the
-**first consumer is the wire drive** (the pane ships later). No client code
-changes; the text navigator (`NavigatorBody.tsx`) keeps reading today's
-`Whereabouts` card payload unchanged.
+**first consumer of the new data is the wire drive** (the pane ships
+later).
+
+⭐ **Revised after owner review (2026-11-17).** The transport is no longer
+a new envelope beside the old ones: it is **one subscription protocol for
+every state push** (D1). MQL and forum subscriptions migrate onto it and
+their envelope types are deleted; your map and where-you-are are two new
+sources on it; the navigator card's payload push retires and the text
+navigator reads the where-you-are subscription. ⚠ So this build **does
+touch client code** — the client's subscription plumbing and the
+navigator's data source — kept minimal and behavior-preserving.
 
 Paths below are relative to `packages/server/src/mud/` unless they start
 with `packages/` or `docs/`.
@@ -107,21 +115,68 @@ Verified at `b0ff414c3` (size-and-carrying merged) by opening the files.
   destination, boundary), `where.conditions`, `where.jurisdiction`. Nothing
   else on the client reads navigation data.
 
-### Wire paths that exist
+### Wire paths that exist — state and events
 
-| path | what it carries | why it does not carry this build |
-|---|---|---|
-| card wire (`card-opened`/`card-touched`, `CardRegistry`) | a card's body | a card is born only of a command and has a lifetime; `self` was kept off it for the same reason (`card-surface.md § self is NOT a card`) |
-| MQL subscriptions (`MqlSubscriptionRegistry`) | Stuff field records; `read` is **sync** | a map is Documents; the ways verdict is async; `Change.fields` is typed to Stuff records |
-| forum subscriptions | Documents, own result/delta trio | the precedent that non-Stuff live data takes its own typed envelope |
-| `client-state-update` (`ClientState.pushClientStateUpdate`) | `{key, value}`, whole-value replace, no `frameId`, pure-push projections (`social.rules`, `stream.state`) | no deltas, untyped, seven envelopes per move with no way to say they are one beat |
-| `Sensor.onEnvelope(template)` / `Interactive.sendEnvelope(template)` | any typed envelope to every session of a body / to one session | ⭐ the seam every registry above already sends through |
+Every server→client message, classified by the owner's rule (*one protocol
+for state; events stay events*):
 
-`BroadcastFeed` (`backend/BroadcastFeed.ts`) forwards an allowlist only; a
-new envelope type does not reach a stream overlay.
+| message | what it is | class | this build |
+|---|---|---|---|
+| `mql-subscribe` / `-unsubscribe` → `mql-subscription-result` / `-delta` / `-error` | a standing query's records (`MqlSubscriptionRegistry`) | **state** | migrates (D1) |
+| `forum-subscribe` / `-unsubscribe` → `forum-subscription-result` / `-delta` / `-error` | a board's entries (`ForumSubscriptionRegistry`) — the same shape, copied | **state** | migrates (D1) |
+| `card-touched` with `payload: {kind:'navigation'}` | where you are, pushed by `refreshNavigator` | **state** wearing an event | retires (D1) |
+| `client-state-update` + `connection-established.clientState` | a keyed settings store: a snapshot and whole-value replaces by key | **state** | **migrated** in W1 (owner, 2026-11-17: one mechanism for everything) |
+| `client-state-write` | the client asking to change a key | a **request** | stays |
+| `mql-query` → `mql-query-result` / `-error` | a one-shot read | request / response | stays |
+| `dispatch-response`, `prompt`, `activity-update`, `reaction-delta`, `affordance-result` | something happened | **event** | stay |
+| `card-opened` / `-touched` / `-arranged` / `-closed` / `-pinned` | the card lifecycle | **event** | stay |
 
-The client ignores an unknown envelope type (`packages/client/src/services/websocket.ts`
-— falls to the catch-all), so a new type is inert until the pane reads it.
+⭐ **Why events stay events.** A subscription keeps a copy current: it has a
+snapshot, and a reconnect is repaired by asking for the snapshot again. An
+event has no copy to keep — a dispatch outcome, a prompt, an engagement's
+progress, a reaction tally flush and a card being born or closed are each
+said once, to whoever is there. Re-sending them on reconnect would repeat
+history, not repair state. (The card SET is server state on the
+`CardRegistry` and is rebuilt by the arrangement, never replayed —
+`card-surface.md § Reconnect behavior`.)
+
+What the two shipped subscription paths are, verified:
+
+- **Emit sites are few.** `MqlSubscriptionRegistry.ts:429` (result), `:957`
+  (delta), `:1078` (error); `ForumSubscriptionRegistry.ts:184`, `:544`,
+  `:565`. Each registry keeps its own per-`Interactive` id table and its own
+  `cancelAllForInteractive` (`Interactive.ts:489`, `:510`).
+- **Inbound:** `backend/inbound/mql.ts` (`handleMqlSubscribe`,
+  `handleMqlUnsubscribe`, `handleMqlQuery`),
+  `backend/inbound/forumSubscription.ts`, registered in
+  `backend/inbound/index.ts:56-60`.
+- ⭐ **A live card holds an MQL subscription the SERVER opens.**
+  `CardRegistry.ts:1237` calls `MqlSubscriptionApi.handleSubscribe({…,
+  silent: true})`: the first answer rides `card-opened.result`, the
+  `instanceId` **is** the subscription id, and later changes ride
+  `mql-subscription-delta`. The client's `useCardFeed.ts:214` listens for
+  that delta type.
+- The one subscription the client opens for itself is `chrome: 'self'`
+  (`MqlSubscribeMessage`, `packages/types/src/index.ts:1192`); the message
+  has no field that names a card, by design.
+- **Client:** `packages/client/src/services/websocket.ts` sends
+  `mql-subscribe` (`:799`, `:830`), `mql-unsubscribe` (`:847`),
+  `forum-subscribe` (`:809`, `:888`), `forum-unsubscribe` (`:900`), replays
+  them on reconnect, and routes `mql-subscription-result` / `-delta`
+  (`:1170`, `:1176`); listeners in `components/frame/Shelf.tsx:549`,
+  `components/cards/useCardFeed.ts:214`, `store/forumActions.ts:55-64`.
+- **Harness:** `packages/wire/src/harness/session.ts:590`, `:952`
+  (`Session.subscribe`), `packages/wire/tests/world-scan.dirty.wire.test.ts:116,151`.
+- `Sensor.onEnvelope(template)` sends to every session of a body;
+  `Interactive.sendEnvelope(template)` to one.
+- `BroadcastFeed` (`backend/BroadcastFeed.ts`) forwards an allowlist only.
+- ⚠ `backend/inbound/README.md` advises against folding ops into one
+  envelope and against a generic key-routed **write** channel. The owner's
+  decision supersedes the first for subscriptions (the README is amended in
+  W1); the second stands — the protocol is read-only.
+
+The `map` card is `source: { kind: 'payload', producer: 'navigation' }` in
+`lib/connection/Cards.ts:436`.
 
 ### The dispatch beat
 
@@ -171,7 +226,7 @@ Controllers return `void`; outcomes ride notes
   do anyway).
 - ⚠ Unverified by running: `ride <dir>` appears to fail the `exitMode` gate
   before reaching the conveyance step (`Exit.allowsMode('ride')` is false
-  for a null-medium mode, `Exit.ts:1185`). W3 checks it first.
+  for a null-medium mode, `Exit.ts:1185`). W4 checks it first.
 
 ### Boundaries
 
@@ -290,7 +345,7 @@ helper: `size-and-carrying.dirty.wire.test.ts:249` and
 `packages/wire/src/runner/boot.ts` (`bootOwnedWorld`, `stopOwnedWorld`).
 `harbors.dirty.wire.test.ts:129` records *"a second login replaces the
 first"* for the harness, while `connection.md § Multiplexing` describes
-two live sessions of one body — W1 settles which is true.
+two live sessions of one body — W2 settles which is true.
 
 ### Drive content, as it stands
 
@@ -304,77 +359,157 @@ two live sessions of one body — W1 settles which is true.
 | 9 | two Hinkley lots, bought as `tracts.dirty.wire.test.ts:285` does | present |
 | 10–11 | the Hesper at `estuary/estuary-mouth`; `estuary/headland/brow`; the light on Gannet Rock | present |
 | 13 | a canoe at Rejection's put-in; ⚠ **there is no `drift` verb** — the current carries a launched boat's patch | `launch`, then wait on the patch |
-| 14 | ⚠ **the Delve authors no dark room and no low room** | W4 verifies whether an unlit Delve room at night already reads pitch dark; the low room is the steading's cottage / charcoal pit; a row is authored only if neither reads so |
+| 14 | ⚠ **the Delve authors no dark room and no low room** | W5 verifies whether an unlit Delve room at night already reads pitch dark; the low room is the steading's cottage / charcoal pit; a row is authored only if neither reads so |
 
 ## ⭐⭐ New substrate
 
-No new mixin, Api, logic singleton, class, registry, document kind,
-collection or verb. What is added, each against the slate's ledger:
+No new collection, document kind or verb. One new Api, one new mixin and
+two new classes — all four are the subscription protocol, which **replaces
+two copies of itself** (ten wire types deleted, five added).
 
 | # | addition | ledger row | why |
 |---|---|---|---|
-| N1 | one wire envelope, `navigation-update` | *the push* · *live results* — **genuinely new** | searched: the card wire, MQL and forum subscriptions, `client-state-update` (table in Grounding). None carries a per-body, card-independent, delta-capable, async-computed payload. It rides the shipped `onEnvelope` seam (D1). |
-| N2 | `aspect?: 'way'` on `SubscribableFieldDescriptor`, and descriptors on `Sealable`, `Lockable`, `Door`, `Boundary`, `Window` | *boundary projection* (none existed) → **generalizes** *live results* | the shipped per-mixin projection, tagged; a pack's boundary mixin declares its own, no hook (D9) |
-| N3 | fields on `MapClaim` (`at`, `state`, `via`, `government`, `localityKind`) and the claim kind `locality` | *a claim* — extend, no new writer | D2–D4 |
-| N4 | `Place.mapSubject()`, overridden by `MovingPlaceMixin` | *a claim* · *copy identity* | the place says what a claim about it names and where it is; two implementers (D2) |
-| N5 | `Warren.frameIdentityOf(member)`, implemented by `FloorplanWarren` | *copy identity* | the public face of `zoneFromFor`; same shape as `mintedKeyOf`; retires with `laysOutOwnFrame` at zone instancing (D2) |
-| N6 | `Perceiver.navigation(names)` | *the push* (`whereabouts`) — generalize | the one composer; `whereabouts()` becomes a projection of it (D7) |
-| N7 | `SaxonbergClient.refreshNavigation(names?)`, `pushMapChanges(…)`, `sendNavigationSnapshot(interactive)` + runtime state | *the push* (`refreshNavigator`) — generalize | D1, D7 |
-| N8 | `Exit.wayFor(viewer)`, `Exit.wayChanged()`, the `probe` option on `Exit.canTraverse` / `LocomotionApi.canTraverseExit`, `works` on `TraversalGuard` | *a way* — extend | D8 |
-| N9 | `Locality.getKind()` (derived), `Locality._learnable` (authored) | *Locality chain* | D3 |
-| N10 | `SpatialZone.frameFacts()` | *zone facts* — read only, made a method | three implementers (D7) |
-| N11 | `Voyaging.lies()` | *ship position* — moved off `LocateController` | D10 |
-| N12 | `Note` kind `route-plan` | *route* | D5 |
-| N13 | wire types `TaggedPath`, `NavSections`, `WireClaim`, `WireRoutePlan`, `WayFacts` | *spoilers* — reuse the level vocabulary | D6 |
-| N14 | `NavClient` in the wire harness; `restartWorld()` lifted into it | — test tooling | D12 |
+| N1 | the subscription protocol on the wire: `subscribe`, `unsubscribe`, `subscription-result`, `subscription-delta`, `subscription-error` | *the push* · *live results* — **generalize both** | the MQL and forum trios are one shape copied twice; a third copy for the map was the first draft's mistake. The ten old types are deleted (D1). |
+| N2 | `SubscriptionApi` (`api/subscription.ts`) over `SubscriptionRegistry` (`platform/idea/`) | *live results* — **genuinely new as a class, extracted from two** | holds what both registries each hold: the per-session id table, `rev`, the three emits, disconnect cleanup. Searched: `MqlSubscriptionRegistry`, `ForumSubscriptionRegistry`, `CardRegistry`, `ReactionRegistry` — no shared base exists. |
+| N3 | `SubscriptionSourceMixin` (`lib/subscription/SubscriptionSource.ts`) | *live results* — genuinely new | the provider protocol on the model side; four implementers on day one (D1) |
+| N4 | `MapCopySource`, `WhereaboutsSource` (`platform/idea/`) + their rows | *the push* — generalize `refreshNavigator` | the two new sources; each holds what it last sent |
+| N5 | `aspect?: 'way'` on `SubscribableFieldDescriptor`, and descriptors on `Sealable`, `Lockable`, `Door`, `Boundary`, `Window` | *boundary projection* (none existed) → **generalizes** *live results* | the shipped per-mixin projection, tagged; a pack's boundary mixin declares its own, no hook (D9) |
+| N6 | fields on `MapClaim` (`at`, `state`, `via`, `government`, `localityKind`) and the claim kind `locality` | *a claim* — extend, no new writer | D2–D4 |
+| N7 | `Place.mapSubject()`, overridden by `MovingPlaceMixin` | *a claim* · *copy identity* | the place says what a claim about it names and where it is; two implementers (D2) |
+| N8 | `Warren.frameIdentityOf(member)`, implemented by `FloorplanWarren` | *copy identity* | the public face of `zoneFromFor`; same shape as `mintedKeyOf`; retires with `laysOutOwnFrame` at zone instancing (D2) |
+| N9 | `Perceiver.navigation(names)`, `Perceiver.learnReckoning(craft)` | *the push* (`whereabouts`) — generalize | the one composer of the sections; `whereabouts()` retires with its card payload (D1, D7). The reckoning is a third `learn*` beside the two shipped (D2). |
+| N10 | `SaxonbergClient.refreshNavigation(names?)`, `mapChanged(changes)` — **no state** | *the push* (`refreshNavigator`, which is deleted) | the body's own verbs that poke its sources (D7) |
+| N11 | `Exit.wayFor(viewer)`, `Exit.wayChanged()`, the `probe` option on `Exit.canTraverse` / `LocomotionApi.canTraverseExit` / `beforeTraverse`, and `works` · `flee` · `unseen` on `TraversalGuard` | *a way* — extend | D8 |
+| N12 | `Locality.getKind()` (derived), `Locality._learnable` (authored) | *Locality chain* | D3 |
+| N13 | `SpatialZone.frameFacts()` | *zone facts* — read only, made a method | three implementers (D7) |
+| N14 | `Voyaging.lies()` | *ship position* — moved off `LocateController` | D10 |
+| N15 | `Note` kind `route-plan` | *route* | D5 |
+| N16 | wire types `TaggedPath`, `NavSections`, `WireClaim`, `WireRoutePlan`, `SubscriptionChange` | *spoilers* — reuse the level vocabulary | D6 |
+| N17 | `NavClient` in the wire harness; `restartWorld()` lifted into it; `Session.subscribe(source, params)` | — test tooling | D12 |
+
+**Deleted:** `MqlSubscribeMessage`, `MqlUnsubscribeMessage`,
+`MqlSubscriptionResultEnvelope`, `MqlSubscriptionDeltaEnvelope`,
+`MqlSubscriptionErrorEnvelope`, the five `Forum*` twins, `CardPayload`'s
+`navigation` arm, `Whereabouts` as a wire type,
+`SaxonbergClient.refreshNavigator`, `Perceiver.whereabouts`,
+`LocateController`.
 
 ## Plan-level decisions
 
-### D1 — Transport: one envelope on the `onEnvelope` seam
+### D1 — Transport: one subscription protocol for every state push
 
-**Question.** How the copy and the sections reach the client, regardless of
-the `map` card.
+**Question.** How the copy and the sections reach the client regardless of
+the `map` card — and, from the owner's review, why a new push mechanism
+should sit beside the old ones at all.
 
-**Choice.** One server→client envelope type:
+**Choice.** It does not. One protocol; sources behind it.
 
 ```ts
-interface NavigationUpdateEnvelope {
-  type: 'navigation-update';
-  frameId: number;
-  /** Per body, +1 per envelope, in memory. A snapshot states it afresh. */
-  rev: number;
-  /** A snapshot: replace every section and drop the whole copy. */
-  full?: true;
-  /** Only the sections that changed (all seven on `full`). */
-  sections?: Partial<NavSections>;
-  /** Claims upserted by key, per Locality document. */
-  map?: { locality: string; claims: WireClaim[] }[];
-  /** On `full`: how many further envelopes complete the copy. */
-  mapParts?: number;
+// client → server
+{ type: 'subscribe';   subscriptionId: string; source: string; params?: unknown }
+{ type: 'unsubscribe'; subscriptionId: string }
+// server → client
+{ type: 'subscription-result'; frameId; subscriptionId; rev: number; snapshot: unknown }
+{ type: 'subscription-delta';  frameId; subscriptionId; rev: number; changes: SubscriptionChange[] }
+{ type: 'subscription-error';  frameId; subscriptionId; reason: string; detail?: string }
+
+interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key: string; fields?: unknown }
+```
+
+`snapshot` and `fields` are typed per source in `packages/types` (a
+`SubscriptionSources` map from source to `{ params, snapshot, fields }`),
+so the client and the harness narrow on the source they asked for.
+
+**`rev`.** Per subscription, stamped by the registry: the result states it,
+each delta is `rev + 1`. A WebSocket neither drops nor reorders inside a
+connection and the registry never drops, so a break in `rev` is a defect to
+report, not a repair path. Repair is always the same act: subscribe again,
+get a snapshot. That covers a gap, a reconnect and a restart (a restart is
+a reconnect), and a second session is simply its own subscriptions.
+
+**The provider contract** — `SubscriptionSourceMixin`, composed by a
+singleton `Idea`:
+
+```ts
+interface SubscriptionSource {
+  /** Answer the snapshot, or refuse in a word. May be async. */
+  openSubscription(sub: Subscription, params: unknown): Promise<unknown | SubscriptionRefusal>;
+  /** The subscriber is gone. */
+  closeSubscription(sub: Subscription): void;
+  /** Somebody says this holder's feed may have changed (the body's own poke). */
+  pokeSubscriptions(holder: Stuff, hint: unknown): void;
 }
 ```
 
-- **Deltas.** A claim is one record per growth key, so a delta is a list of
-  whole claims upserted by key — the forum delta's `replace`, with no
-  remove (nothing is ever removed from a map).
-- **Snapshot.** At `Avatar.enter(interactive)`, to **that session only**
-  (`interactive.sendEnvelope`): one `full` envelope with all sections and
-  `mapParts: N`, then N ordinary envelopes, one map document each. The
-  snapshot is chunked by document with no second protocol.
-- **Gap, reconnect, restart.** A WebSocket does not drop or reorder within
-  a connection, and the pusher never drops — so the only gap is a
-  disconnect, and every new session gets a snapshot. `rev` makes
-  contiguity **assertable** (the drive asserts it; a break is a defect to
-  report, not a repair path). `rev` is runtime state: a restart is a
-  reconnect is a snapshot.
-- **Second session.** Deltas go through `onEnvelope` (every session of the
-  body); a new session's snapshot states the body's current `rev`.
-- **Why not the card wire:** needs an open card; the requirement is that
-  it flows without one. **Why not MQL:** Documents and an async verdict.
-  **Why not `client-state-update`:** whole-value replace (a Locality
-  document re-sent per move), no `frameId`, and seven untyped pushes per
-  move that cannot say they are one beat.
-- The `map` card keeps working: the same flush fills it (D7).
+A `Subscription` is the registry's handle: `id`, `interactive`,
+`holder()`, `push(changes)` (stamps `rev`, sends the delta), `fail(reason)`
+(sends the error and closes), and a `state` slot the source owns. The
+source never builds an envelope and never keeps an id table.
+
+**Where providers live, and how one is found.** A source is named on the
+wire by **its template path**, and the registry loads it on use
+(`StuffApi.singleton`) — there is no list of sources, in the kernel or
+anywhere, for a pack to edit. Before loading, the registry reads the row's
+class and refuses (`reason: 'source'`) unless it composes
+`SubscriptionSourceMixin`, so a client cannot make the server stand up an
+arbitrary singleton. A pack's source is a class under its own root and a
+row; nothing in the kernel changes.
+
+| source (path) | class | params | snapshot | change key |
+|---|---|---|---|---|
+| `/platform/idea/MqlSubscriptionRegistry` | shipped; composes the mixin | today's `MqlSubscribeMessage` fields (`query`, `cardinality`, `fields`, `detailKey`, the two dependency flags, `chrome`) | the records | the record's key, as today |
+| `/platform/idea/ForumSubscriptionRegistry` | shipped; composes the mixin | `{ scope }` | `{ scope, records }` | the entry's key, as today |
+| `/platform/idea/MapCopySource` | new | `{ locality?: string }` — a prefix; absent = the whole map | `{ documents: { locality, claims: WireClaim[] }[] }` | `` `${locality}|${claimKey}` ``, always `replace` |
+| `/platform/idea/WhereaboutsSource` | new | none | `{ sections: NavSections }` | the section's name, always `replace` |
+
+The two shipped registries keep their class names and paths (a rename is
+its own sweep); only their wire half moves.
+
+**Migration, with no compatibility layer.**
+
+- Server: the three emits in each registry become `sub.push` / the
+  returned snapshot / `sub.fail`; their per-session tables and
+  `cancelAllForInteractive` halves go to `SubscriptionRegistry`
+  (`Interactive.ts:489,510` become one call). Dependency indexing, the
+  dirty-set scheduler, diffing and forum projection are untouched.
+- Inbound: one `backend/inbound/subscription.ts` (`subscribe`,
+  `unsubscribe`); `forumSubscription.ts` and the two subscribe handlers in
+  `mql.ts` are deleted; `mql-query` stays where it is.
+- ⭐ **Live cards.** `CardRegistry` keeps opening its subscription on the
+  server — now `SubscriptionApi.open(interactive, instanceId, source,
+  params, { silent: true })`: the snapshot rides `card-opened.result` as it
+  does today (it is `rev` 0), and changes ride `subscription-delta` under
+  the `instanceId`. The protocol still gives the client no field that names
+  a card: `params` for the MQL source is the old message's body, unchanged.
+- Client: `websocket.ts` sends and replays `subscribe` and routes the three
+  server types by `subscriptionId` to whoever opened it; `Shelf.tsx`,
+  `useCardFeed.ts` and `forumActions.ts` change the type they listen for
+  and read `snapshot` where they read `result` / `records`. No component
+  renders differently.
+- The ten old types are deleted from `packages/types`; a stale client
+  fails to compile rather than half-working.
+
+**The two new sources, and the navigator.**
+
+- The client subscribes to both **at session start** (the same place it
+  opens `chrome: 'self'`) and replays them on reconnect. That is the whole
+  of *flows without a card*.
+- `refreshNavigator`, its four call sites, the `navigation` arm of
+  `CardPayload` and `Perceiver.whereabouts()` are deleted. The `map` card
+  becomes a card with no payload whose body (`NavigatorBody.tsx`) reads the
+  where-you-are sections from the store. ⭐ To keep the client change
+  minimal, one selector builds today's `Whereabouts` shape from the
+  sections and `NavigatorBody`'s rendering is untouched; the type moves to
+  the client.
+- The map copy is held in a store slice and rendered by nothing until the
+  pane ships.
+- Nobody else's map can be asked for: `MapCopySource` reads
+  `sub.holder()`'s own map key and takes no owner parameter.
+
+**Why not keep the first draft's single `navigation-update` envelope:** it
+was a third copy of result-and-delta. **Why not `client-state-update`:**
+whole-value replace by key, no deltas, no `rev`; it is itself state that
+belongs on this protocol later.
 
 ### D2 — Where a claim's position comes from
 
@@ -403,10 +538,26 @@ written at perception time and never afterwards.
   extent, through `HoldingWarren`. This is the path zone instancing mints.
 - **Moving water.** `MovingPlaceMixin` overrides `mapSubject()`:
   `place = framePath()` (the river's or the sea's row), `at.zone` the same,
-  and on a line `at.line = { course, km }` rounded to 0.1 km. On the chart
-  no position is recorded — a passenger does not know the reckoning
-  (requirements § Aboard a ship). One claim per river per Locality
-  document, bumped as you drift; never the patch.
+  and on a line `at.line = { course, km }` rounded to 0.1 km. One claim per
+  river per Locality document, bumped as you drift; never the patch.
+- **At sea** (the owner, 2026-11-17). The sea is one claim: `place` the
+  expanse's row, filed where a chart of that sea files (the rule in
+  `Charted.ts`'s `localityOf`, lifted to a method on `Expanse` so both
+  writers share it).
+  - **A passenger's** claim records the sea alone — `at.zone`, no
+    position. Written by the cartographer when it records a place aboard a
+    craft on a chart, or a sea patch.
+  - **Whoever takes the reckoning** writes it: `at.geo = { latDeg, lonDeg }`,
+    `at.reckoned: true`, `at.errorNm` (`craft.reckoningUncertaintyNm()`) and
+    the stated bracket in the reader's words. Taking the reckoning is the
+    bare `course` at the helm by somebody who may steer her (D10):
+    `CourseReadoutController` calls `reader.learnReckoning(craft)` — a third
+    `learn*` on `Perceiver` beside `learnSurroundings` and `learnTimetable`
+    — which hands the cartographer the reckoning. `reckoned` is in the
+    growth key, so the helm's claim sits beside the passenger's, and it is
+    never the true position.
+  - ⚠ One reckoned claim per sea: the first reckoning's position, bumped
+    after. A track of reckonings is the *your map grows* build's trail.
 - **Charted and told.** `Charted.writeClaimsFor` sets `at.zone` to the
   chart's `of` (the water it is a chart of) and keeps `where` as stated.
   ⛔ It never reads the live node — that would be the index correcting a
@@ -484,30 +635,35 @@ Each section value carries `v` (per section, +1 when it is sent).
 
 - **One composer.** `Perceiver.navigation(names)` returns the named
   sections; each read in its own try, a failed read leaving its field
-  absent (the `whereabouts` rule). `whereabouts()` is rewritten as a
-  projection of `navigation(['localities','building','ways','place'])` plus
-  conditions, so the card and the sections cannot disagree and
-  `Whereabouts` keeps its exact shape.
-- **One flush per beat.** `refreshNavigation(names?)` adds to a dirty set
-  and arms one `ScheduleApi.schedule(0, …)`; the flush computes the dirty
-  sections, compares each with the last one sent (canonical JSON), sends
-  one envelope with only those that differ, and fills the `map` card when
-  one is open. A recompute in flight absorbs later marks into the next
-  flush.
+  absent. It replaces `whereabouts()`, which is deleted with the card
+  payload (D1); the weather, season and daylight it carried move into the
+  place section, and the cell into the place section's `at`.
+- **One flush per beat, in the source.** The body says
+  `refreshNavigation(names?)` (a method on `SaxonbergClient` that pokes
+  `WhereaboutsSource`). The source adds to a dirty set per holder and arms
+  one `ScheduleApi.schedule(0, …)`; the flush computes the dirty sections
+  **once per holder**, compares each with what each of that holder's
+  subscriptions was last sent (canonical JSON, kept in `sub.state`), and
+  pushes one delta per subscription holding only the sections that differ.
+  A recompute in flight absorbs later marks into the next flush. A holder
+  with no subscription costs nothing.
 
 | trigger | site | sections marked |
 |---|---|---|
 | arrival (walk, teleport, forced) | `Mobile.ts:580`, `:1232` | all seven |
-| session enter | `Avatar.enter` | snapshot |
+| a subscription opens | `WhereaboutsSource.openSubscription` | the snapshot |
 | your own command completed | `emitDispatchResponse` | `you`, `ways`, `place` |
 | a way you can see changed state | `Exit.wayChanged()` (D8) | `ways` |
 | the place you are in moved | `MovingPlaceMixin.onFrameMoved`; `Voyage.beat` | `localities`, `zone`, `place` |
 
-- ⛔ **`horizon` is marked only by arrival and enter.**
+- ⛔ **`horizon` is marked only by arrival and by a snapshot.**
 - ⚠ Crowding and light are read on your beats, not when somebody else
   walks in — the room card is the live view of the room. See Risks.
-- **Measure before fixing.** W1 sends the sections as today's reads give
-  them and records sizes here; W4 fixes the shapes; step 16 records the
+- ⚠ The navigator now refreshes on every trigger, not only on a move — so
+  the text navigator's ways update when a door you can see opens. A
+  behavior change, and a wanted one; in Risks.
+- **Measure before fixing.** W2 sends the sections as today's reads give
+  them and records sizes here; W5 fixes the shapes; step 16 records the
   final numbers.
 
 Section contents (words wherever the game has words):
@@ -523,9 +679,12 @@ Section contents (words wherever the game has words):
   landmark, titleSold }`; `entrance` is `{ here: true }` or, when your map
   holds it, its name and the first direction of `routeOnMap` to it.
   Outside: `{ landed: { name, landmark }[] }`.
-- **ways** — `Exit.wayFor(viewer)[]` (D8, D9).
-- **place** — `{ stuffId, name, light, dark, openSky, water?, staged,
-  crowd, lowCeiling, elevationM?, searched, found }`.
+- **ways** — `Exit.wayFor(viewer)[]` (D8, D9): the `WayRecord` fields the
+  navigator reads today, plus `oneWay`, `muffled`, `needs`, `lengthM?`,
+  `opening?`, `facts`, and `take`.
+- **place** — `{ stuffId, name, at?: { x, y, z }, light, dark, openSky,
+  weather?, season?, daylight?, water?, staged, crowd, lowCeiling,
+  elevationM?, searched, found }`.
 - **you** — `{ pace, posture, hands: { slot, holds? }[], freeHands, load,
   bars: string[], light?, mount?, led?: string[], cart? }`.
 
@@ -539,8 +698,7 @@ Section contents (words wherever the game has words):
   `farSideEnablement` use `peekDestination()` only; `BerthExit` asks
   `ship()` without standing her up; `SeaPatchExit` / `ReachExit` stop after
   their warren's `refusalFor`. A way that cannot be settled without
-  materializing answers `{ ok: true, unsettled: true }` and the section
-  sends **no verdict** for it. Derived-cache refreshes and loads stay (they
+  materializing answers `{ ok: true, unseen: true }` (below). Derived-cache refreshes and loads stay (they
   are the reads `go` does).
 - **The led animal joins the cascade.** The check at `Mobile.ts:1049-1060`
   moves into `LocomotionLogic.canTraverseExit` (after the exit's own gate),
@@ -553,11 +711,29 @@ Section contents (words wherever the game has words):
   command?: string; remove?: { stuffId, name }; dismount?: true;
   freeHands?: number }`, filled where the words are made (`clearanceWords`,
   `handsGate`).
-- **Place vetoes** (`canExit` / `canEnter`) are asked when the far side is
-  standing; otherwise skipped.
-- **Not asked:** `beforeTraverse` (a fight's disengage mutates). Stated in
-  Risks.
-- **Cost.** Sync gates plus one clearance measure per way; W3 measures the
+- **The verdict has three honest forms** (the owner, 2026-11-17), so it
+  never says a bare *yes* it cannot keep:
+
+  ```ts
+  take:
+    | { ok: true; flee?: true; unseen?: true }
+    | { ok: false; gate: string; reason: string; works?: Works }
+  ```
+
+  - **`flee`** — leaving is fleeing. `beforeTraverse(exit, { probe: true })`
+    is asked: `Combatant` answers `{ ok: true, flee: true }` without
+    disengaging (the real call still disengages and may draw a parting
+    shot); `Beast`'s floor check is already a pure read and answers as it
+    does for `go`. Every way out of a fight says *you would be fleeing*.
+  - **`unseen`** — *as far as you know*. The far side is not standing, so
+    what only it can say was not asked: its `canEnter` veto, a berth's
+    sleeping ship, a patch not yet minted. Loading it to ask would break
+    load on use and wake the world on every push. The way says yes, as far
+    as you know.
+  - A plain `{ ok: true }` therefore means every gate `go` runs was run.
+- **Place vetoes** (`canExit` / `canEnter`) are asked whenever the far side
+  is standing.
+- **Cost.** Sync gates plus one clearance measure per way; W4 measures the
   ways section on the steading yard (six ways) and records it. Budget: 5 ms
   median per recompute.
 
@@ -596,11 +772,13 @@ source place. Called by `Boundary` for both sides when its state changes
   `framePos()`.
 - ⚠ *The reach* is worded as the river's name and the km above the mouth;
   the kernel `LineFrame` has no reach name (Risks).
-- Jurisdiction is `GovernmentApi.subjectTo(place)` in the section **and**
-  in `whereabouts()` (`jurisdiction` = the first name, so the card reads as
-  before ashore and correctly aboard).
+- Jurisdiction is `GovernmentApi.subjectTo(place)`: fixed in
+  `whereabouts()` in W0, and carried as the whole chain in the localities
+  section; the client's `Whereabouts` selector takes its first name, so
+  the card reads as before ashore and correctly aboard.
 - `CourseReadoutController` asks `craft.mayBeSteeredBy(giver)` before the
-  reckoning; otherwise it refuses with the steer's sentence.
+  reckoning; otherwise it refuses with the steer's sentence. A reckoning
+  given is a reckoning learned (D2).
 
 ### D11 — `locate` retired
 
@@ -611,21 +789,27 @@ Grounding. `MovingPlace.alongsideCraft()` stays (the patch's own read).
 
 ### D12 — The wire harness
 
-`NavClient` (`packages/wire/src/harness/nav.ts`), one per `Session`, fed
-every `navigation-update` **before** the per-command capture is cleared: it
-holds the sections, the copy keyed by claim key, the last `rev`, and an
-uncapped log. It offers `section(name)`, `claims(filter)`, `sentSince(mark)`
-(which sections a step sent), `bytesSince(mark)`, `assertContiguous()`, and
-`assertAllPathsTagged()` (a recursive scan: no bare string matching a
-namespace root outside a `TaggedPath`). `restartWorld()` is lifted from the
-two tests that carry it into `packages/wire/src/harness/world.ts`.
+`Session.subscribe(source, params)` replaces the MQL-only one (its callers
+pass the MQL source). `NavClient` (`packages/wire/src/harness/nav.ts`), one
+per `Session`, subscribes to the two new sources at open exactly as the
+client does, and is fed their results and deltas **before** the per-command
+capture is cleared: it holds the sections, the copy keyed by change key,
+the last `rev` of each, and an uncapped log. It offers `section(name)`,
+`claims(filter)`, `sentSince(mark)` (which sections a step sent),
+`bytesSince(mark)`, `assertContiguous()`, and `assertAllPathsTagged()` (a
+recursive scan: no bare string matching a namespace root outside a
+`TaggedPath`). `restartWorld()` is lifted from the two tests that carry it
+into `packages/wire/src/harness/world.ts`.
 
 ## ⭐⭐ Host placement
 
 | addition | host | what it claims about the host's other composers |
 |---|---|---|
-| nav push state (`rev`, last-sent sections, dirty set) | `SaxonbergClientMixin` — runtime fields, not persistent | every composer is a body with sessions (the Avatar family); all of them mean it. It already owns `refreshNavigator`. |
-| `navigation(names)` | `PerceiverMixin` | every perceiver can answer *what do I perceive here*; an NPC is never asked. No state. ⚠ If `lint:mixin-clusters` splits it, the composer moves beside `SaxonbergClient` rather than the ceiling rising. |
+| the per-session subscription table, `rev` | `SubscriptionRegistry` (singleton `Idea`, runtime fields, `private` not `#`) | one host. State survives an HMR of the Api, as `MqlSubscriptionRegistry`'s does. |
+| the provider protocol | `SubscriptionSourceMixin` on four singletons | every composer is a source and means all three methods. `pokeSubscriptions` is a no-op only where a source wakes itself (MQL's event index, the forum's ledger) — two of four; they say so in one line each. |
+| what was last sent; the dirty set | `WhereaboutsSource` / `MapCopySource` (in `sub.state` and a runtime `Map` declared non-persistent in `fieldMeta`) | each source is its own host. |
+| `refreshNavigation`, `mapChanged` — no fields | `SaxonbergClientMixin` | every composer is a body with sessions. A body nobody subscribed for pokes into nothing. |
+| `navigation(names)`, `learnReckoning(craft)` | `PerceiverMixin` | every perceiver can answer *what do I perceive here*; an NPC is never asked. No state. ⚠ If `lint:mixin-clusters` splits it, the composer moves beside `SaxonbergClient` rather than the ceiling rising. |
 | `mapSubject()` | `Place` | every place but the void has a position; a place with no handle answers `null`, as it writes no claim today. `MovingPlaceMixin` overrides — every moving place means it. |
 | `frameIdentityOf(member)` | `Warren` (default `null`) | ⚠ answers non-null only on `FloorplanWarren` copies. The same profile as `mintedKeyOf` and `laysOutOwnFrame`, which it sits beside and retires with. No guard re-narrows: it is gated on `laysOutOwnFrame()`, the warren's own answer. |
 | `at`, `state`, `via`, `government`, `localityKind` | `MapClaim` (a document's data) | optional; absent where the writer does not know. |
@@ -644,16 +828,22 @@ Checked at plan time against `CLAUDE.md` and the tree.
   14 needs one (then `props:`, a `Location`).
 - **Namespace** — all kernel; nothing new under a pack root. The water
   pack gains one `super.onFrameMoved` call and its two exits honor `probe`.
+- **Client** — no new component; `websocket.ts`, three listeners, one
+  store slice and one selector.
 - **Module scope** — no module-scope statements; the flush is armed through
   `ScheduleApi`.
 - **Import boundary** — `Perceiver` keeps its lazy Api imports; the map
   path still never imports the graph (`lint:graph-walks`).
-- **Module categories** — no new category, no free helper. `NavClient` is
-  harness code outside `src/mud`.
+- **Module categories** — no new category, no free helper. `SubscriptionApi`
+  is an Api (ends `SecurityApi.decorateApiClass`), its state a singleton
+  `Idea` gated `FromModule('/api/subscription#SubscriptionApi')`, the mixin
+  in `lib/subscription/` with a `Mixins.SubscriptionSource` constant, the
+  two sources flat in `platform/idea/` with rows in the platform pack.
+  `NavClient` is harness code outside `src/mud`.
 - **Verbs on objects** — every new read is a method on its subject; no new
   Api static takes a world object first (`lint:object-verbs`).
 - **P3 refuse/skip/throw** — a section read that fails leaves the field
-  absent and warns once per kind; an unsettled way sends no verdict; a
+  absent and warns once per kind; a way whose far side cannot be asked says `unseen`; a
   claim with no subject is skipped; `recordTimetable`'s silent `catch`
   gains the warning `recordPerceived` has.
 - **P4 no duck typing** — every narrowing is `MixinApi.isX`; the water
@@ -664,10 +854,12 @@ Checked at plan time against `CLAUDE.md` and the tree.
 - **P6 persistence** — nothing new persists except claim fields in the
   existing map documents and `Locality._learnable` (authored). Push state
   is runtime. No migration: dev worlds are dropped.
-- **P7 load on use** — no boot entry; the snapshot reads the map by path
-  prefix at enter; a Locality is reached through the coverage chain.
-- **P8 names** — `navigation-update`, `mapSubject`, `frameIdentityOf`,
-  `wayFor`, `lies`; no class added.
+- **P7 load on use** — no boot entry and no source list: a source is
+  loaded by the `subscribe` that names it; the snapshot reads the map by
+  path prefix; a Locality is reached through the coverage chain.
+- **P8 names** — `subscribe`, `subscription-result`; `SubscriptionSource`
+  for the protocol; `MapCopySource`, `WhereaboutsSource` for what they are
+  the source of; `mapSubject`, `frameIdentityOf`, `wayFor`, `lies`.
 - **P9 predictable from the def** — no command gains hidden behavior.
   `course`'s help gains *"at her helm, by her master"*; `route`'s def is
   unchanged (a note is not an act).
@@ -675,8 +867,14 @@ Checked at plan time against `CLAUDE.md` and the tree.
   vocabulary (three constants), not rows; nothing new is an `Idea`.
 - **P11 no caller branches on the destination** — `mapSubject()` is the
   place's own answer; the cartographer calls one method.
-- **P12 no synonym** — `refreshNavigator` stays the card fill and is called
-  by the one flush; `wayFor` contains `wayRecord`, it does not rename it.
+- **P12 no synonym** — the old envelope types are deleted, not aliased;
+  `refreshNavigator` is deleted, not kept beside `refreshNavigation`;
+  `wayFor` contains `wayRecord`, it does not rename it.
+- **P1 for the protocol** — a mixin with four implementers and an Api
+  holding one concept that two registries each held a copy of. A provider
+  with one method would be a method in the wrong place; this one is the
+  open / close / poke every source needs.
+- **P2 for the protocol** — in Host placement.
 - **P13 the mixin's sentence** — in Host placement.
 - **P14 nothing moves or decides invisibly** — the probe materializes
   nothing; the flush sends only what differs.
@@ -688,12 +886,13 @@ particular `lint:graph-walks`, `lint:object-verbs`, `lint:lib-statics`,
 `lint:controller-rows`, `lint:contribution-keys`, `lint:self-contributions`,
 `lint:perceived-surfaces`, `lint:field-meta`, `lint:imports`,
 `lint:module-scope`, `lint:test-bootstrap`, `lint:drive-scripts`,
-`lint:thin-forwarder`. No ceiling rises without a caller audit.
+`lint:thin-forwarder`, `lint:mixin-names`, `lint:mixin-files`,
+`lint:instanceable`, `lint:data-ideas`, `lint:pm`. No ceiling rises without a caller audit.
 
 ## Waves
 
-Each wave ends at one commit, passes `pnpm test:near` and `lint:family`,
-and is landable alone.
+Each wave ends at one commit, passes `pnpm test:near`, the touched
+packages' own suites and `lint:family`, and is landable alone.
 
 ### W0 — `locate` retired; the jurisdiction aboard
 
@@ -703,8 +902,9 @@ D10 (jurisdiction, `course`), D11.
   `Perceiver.ts:354` contribution.
 - `Voyaging.lies()` + `Ship` override, with the wording
   `LocateController.whereSheLies` had.
-- `Perceiver.whereabouts()`: `GovernmentApi.subjectTo(place)`;
-  `place.structure()` in place of `structureAtNow(templatePath)`.
+- `Perceiver.whereabouts()` (alive until W2):
+  `GovernmentApi.subjectTo(place)`; `place.structure()` in place of
+  `structureAtNow(templatePath)`.
 - `CourseReadoutController`: the `mayBeSteeredBy` gate.
 - Tests and docs per Grounding.
 
@@ -713,55 +913,120 @@ the Hesper's helm gives the reckoning to her master and refuses a
 passenger; with the `map` card open aboard, the card's jurisdiction is the
 port. **Commit:** `feat(navigation): retire locate; the jurisdiction aboard is government's`.
 
-### W1 — The envelope, the copy and the harness
+### W1 — One subscription protocol; MQL and forums move onto it
 
-D1, D6, D12; sections as today's reads.
+D1 (the protocol and the migration only — **no new source yet**).
 
-- `packages/types/src/index.ts`: `NavigationUpdateEnvelope`, `TaggedPath`,
-  `WireClaim`, `NavSections` (first shapes), added to the envelope union.
-- `SaxonbergClient`: `refreshNavigation`, the flush, `pushMapChanges`,
-  `sendNavigationSnapshot`; `Mobile`'s two call sites and `Avatar.enter`.
-- `NavigationLogic.growMap` returns the changed claims; `recordPlace`
-  finds the live body by `viewerKey` and calls `pushMapChanges`.
+- `packages/types`: the five protocol types, `SubscriptionChange`,
+  `SubscriptionSources` with the MQL and forum entries; delete the ten old
+  types.
+- `api/subscription.ts`, `platform/idea/SubscriptionRegistry.ts` (+ row),
+  `lib/subscription/SubscriptionSource.ts`, `Mixins.SubscriptionSource`,
+  `MixinApi.isSubscriptionSource`.
+- `MqlSubscriptionRegistry` and `ForumSubscriptionRegistry` compose the
+  mixin; their emits, id tables and disconnect halves move as D1 says.
+  `MqlSubscriptionApi.handleSubscribe` / `handleUnsubscribe` and the forum
+  twins lose their wire-facing halves; `handleQuery` is untouched.
+- `CardRegistry.ts:1237` opens through `SubscriptionApi.open(…, { silent:
+  true })`.
+- `backend/inbound/subscription.ts`; delete `forumSubscription.ts` and the
+  two handlers in `mql.ts`; `index.ts`; amend `inbound/README.md`.
+- Client: `services/websocket.ts`, `components/frame/Shelf.tsx`,
+  `components/cards/useCardFeed.ts`, `store/forumActions.ts` and their
+  tests.
+- Harness: `Session.subscribe(source, params)`; `world-scan` test's two
+  type assertions.
+- ⭐ **Every other state push moves too** (owner, 2026-11-17: *"one
+  mechanism that works for everything"*): `client-state-update` (with
+  `connection-established.clientState` as its snapshot) becomes a
+  `ClientState` source, `client-state-write` staying the request; the
+  press ticker's `releaseWindow` + `publication.press` becomes a source.
+  Classify anything else that turns up the same way; events stay events.
+  Land these as a second commit inside W1 after MQL and forums are green.
+- `packages/rodney`: verified 2026-11-17 — its `src/` speaks none of the old
+  types; only `PLAN.md` names them (update the prose).
+
+**Acceptance — nothing changed.** Green, with assertions changed only
+where they name an envelope type or the `result`/`records` field: the
+`api/__tests__/mql-subscription.*.test.ts` and `card-*.test.ts` families,
+`Application.mql-subscribe.test.ts`, `ForumSubscriptionRegistry.test.ts`,
+`inbound/__tests__/forumSubscription.test.ts`,
+`lib/sandbox/__tests__/escape/subscriptions.escape.test.ts`; the client
+suite (`pnpm -C packages/client test`); the wire tests `world-scan`,
+`client-surface`, `boundary`, and the forum wire test; `e2e` `shelf`,
+`inspect`, `panes`, `cockpit`. New unit tests: `rev` contiguity; a source
+path whose class does not compose the mixin is refused **without being
+loaded**; disconnect closes every subscription of every source. Grep
+proves no `mql-subscri` / `forum-subscri` / `client-state-update` string is
+left in `src`; the client's settings render first as before (the first-
+render ordering the old snapshot gave).
+**Commit:** `refactor(subscription): one protocol for state pushes; MQL and forums move onto it`.
+
+### W2 — Your map and where-you-are, as sources
+
+D1 (the new sources, the navigator), D6, D7 (first shapes), D12.
+
+- `platform/idea/MapCopySource.ts`, `WhereaboutsSource.ts` + rows;
+  `SubscriptionSources` entries; `TaggedPath`, `WireClaim`, `NavSections`.
 - `Perceiver.navigation` with `localities`, `building` (name), `ways`
-  (`wayRecord`), `place` (name) — `whereabouts()` projected from it.
+  (`wayRecord` + destination), `place` (name, cell, conditions) — every
+  field the navigator reads today.
+- `SaxonbergClient.refreshNavigation`, `mapChanged`; delete
+  `refreshNavigator` and its call sites (`Mobile.ts:580,1232`,
+  `ClientLayoutRecallController.ts:60`, `CockpitModeController.ts:127`,
+  `openArrangement`); delete `Perceiver.whereabouts`, the `navigation` arm
+  of `CardPayload`, and make the `map` card payload-free in `Cards.ts`.
+- `NavigationLogic.growMap` returns the changed claims; `recordPlace` finds
+  the live body by `viewerKey` and calls `mapChanged`.
+- Client: subscribe to both at session start; a nav store slice; the
+  `Whereabouts` selector; `NavigatorBody.tsx` reads the selector.
 - Harness: `NavClient`, `restartWorld()`.
 - Settle multi-session: one test opens two sessions of one character.
 
 **Acceptance.** `packages/wire/tests/navigation-server.dirty.wire.test.ts`
 steps 2, 3 (without positions), 17, 18, 19 and the gap case (a session
-dropped while a second moves, then reopened, equals the second); the
-`map` card unchanged (`client-surface` and `boundary` wire tests green).
-**Record the measured sizes in this plan.** **Commit:** `feat(navigation): the copy of your map and the sections reach the client`.
+dropped while a second moves, then reopened, equals the second). The text
+navigator shows what it showed: `e2e/tests/navigation-server-walk.spec.ts`
+(open `map`, walk, board the Hesper) and the `client-surface` and
+`boundary` wire tests' card assertions, rewritten to read the
+subscription. **Record the measured sizes in this plan** — a snapshot of
+sections, a typical move, a map snapshot — and re-check them against the
+MQL shelf subscription's for scale. **Commit:** `feat(navigation): your map and where you are, as subscriptions; the navigator reads one`.
 
-### W2 — What a claim knows
+### W3 — What a claim knows
 
 D2, D3, D4.
 
 - `MapClaim` fields; `Place.mapSubject`; `Warren.frameIdentityOf` +
   `FloorplanWarren`; `MovingPlaceMixin` override.
 - `Cartographer`: positions, edge `state`, the walked place claim, the
-  Locality claim; `Charted`: `at.zone`, `via`; `PublishedStop.at`.
-- `growMap`: `state` and `via` in the key; the `at` fill rule.
+  Locality claim, the sea claim; `Perceiver.learnReckoning` and its call
+  in `CourseReadoutController`; `Expanse` gains the chart's filing rule;
+  `Charted`: `at.zone`, `via`; `PublishedStop.at`.
+- `growMap`: `state`, `via` and `reckoned` in the key; the `at` fill rule.
 - `observePlace`: nothing written in the dark.
 - `Locality.getKind`, `_learnable`.
 - `MapController` renders unchanged — verify `map` and `route` say what
   they said (their tests, plus one that reads a map with the new fields).
 
-**Acceptance.** Steps 2–5, 7a, 8, 9; unit tests for `growMap`
-(state appends, `at` fills, never rewrites), `frameIdentityOf` (holding,
-ship of a kind, mine → `null`), `mapSubject` (plain keyed room, persistable
-room, patch). **Commit:** `feat(navigation): a claim records where the place is, and what you saw`.
+**Acceptance.** Steps 2–5, 7a, 8, 9; at sea, the master's `course` writes a
+claim with `reckoned`, a position and an error, and a passenger's copy
+holds the sea with no position (asserted in step 10). Unit tests for
+`growMap` (state appends, `at` fills, never rewrites), `frameIdentityOf`
+(holding, ship of a kind, mine → `null`), `mapSubject` (plain keyed room,
+persistable room, patch). **Commit:** `feat(navigation): a claim records where the place is, and what you saw`.
 
-### W3 — The ways
+### W4 — The ways
 
 D8, D9.
 
 - First: run `ride north` on a mounted body; fix the `exitMode` gate if it
   refuses (a defect in the shipped cascade, recorded as such).
 - `probe` through `LocomotionLogic.canTraverseExit`, `Exit.canTraverse`,
-  `floodedFor`, `farSideEnablement`, `BerthExit`, `SeaPatchExit`,
-  `ReachExit`; every other override accepts and forwards the option.
+  `floodedFor`, `farSideEnablement`, `beforeTraverse` (`Combatant`,
+  `Beast`), `BerthExit`, `SeaPatchExit`, `ReachExit`; every other override
+  accepts and forwards the option.
+- `flee` and `unseen` on the guard and the way record.
 - The led-animal gate into the cascade; `Carrying.ledAnimals()`.
 - Wording into the gates; `TraversalGuard.works`.
 - `aspect: 'way'` and the descriptors; `Exit.wayFor`, `Exit.wayChanged`
@@ -769,12 +1034,14 @@ D8, D9.
 
 **Acceptance.** Steps 6 (at the pump-house door) and 6a; a unit test per
 override that a probe leaves residency unchanged (no ship stood up, no
-patch minted, no house provisioned); a test that for every refusing gate
-the probe's `reason` equals `traverse`'s; a test boundary with its own
+patch minted, no house provisioned) and leaves a fight engaged; a test
+that for every refusing gate the probe's `reason` equals `traverse`'s; a
+way out of a fight carries `flee`; a way to an unloaded place carries
+`unseen` and loses it once the place stands; a test boundary with its own
 mixin and descriptor appears in `facts`. **Record the ways cost.**
 **Commit:** `feat(navigation): the ways say whether you can take them, in the words trying gives`.
 
-### W4 — The other sections and their triggers
+### W5 — The other sections and their triggers
 
 D7, D10.
 
@@ -791,21 +1058,23 @@ D7, D10.
 
 **Acceptance.** Steps 10–16. **Commit:** `feat(navigation): the zone, your Localities, the horizon, the building, the place and you`.
 
-### W5 — The route as data
+### W6 — The route as data
 
 D5. `RouteController` note; refusal reason.
 
 **Acceptance.** Step 7; a unit test that the note's legs equal the prose's.
 **Commit:** `feat(navigation): a route plan travels as data`.
 
-### W6 — The drive, the walk-through, the docs
+### W7 — The drive, the walk-through, the docs
 
 - The whole blocking drive in one file, each checkpoint made to fail once
   (B2).
-- Subsystem docs drafted for the sweep: `location-graph.md` (claims, the
-  copy), `card-surface.md` (the envelope beside the card), `boundary.md`
-  (way facts, probe), `perceiver.md`, `ship.md`, `civics.md`,
-  `locomotion.md`.
+- Subsystem docs drafted for the sweep: a new `subscription.md` (the
+  protocol and the provider contract); `mql-subscription.md` and
+  `forums.md` (their wire half moved); `card-surface.md` (live cards on
+  the protocol; the navigator); `client-shell.md`; `location-graph.md`
+  (claims, the copy); `boundary.md` (way facts, probe); `perceiver.md`,
+  `ship.md`, `civics.md`, `locomotion.md`.
 - `pnpm test` once; the MR.
 
 **Commit:** `test(navigation): the blocking drive`.
@@ -814,52 +1083,82 @@ D5. `RouteController` note; refusal reason.
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| the copy | none (a push) | `SaxonbergClient` on the body | map documents | read by path prefix at enter | — |
-| deltas | whatever perceives | `Cartographer` on the body | `recordPlace` | the live body by identity path; **no body resident → no push, the next snapshot carries it** | — |
-| sections | none | `Perceiver` + `SaxonbergClient` | the reads in Grounding | each read loads what it follows | — |
+| a subscription | none (`subscribe` on the wire) | any session | the source's own | ⭐ the source is loaded by the `subscribe` that names its path; its class is checked **before** it is loaded | `source` must be a row whose class composes `SubscriptionSourceMixin`; `params` validated by the source |
+| a live card | the card's command | `opens_card:` (unchanged) | the MQL source | `SubscriptionApi.open` from `CardRegistry` | — |
+| the copy | none | a body with a map key (`Cartographer`) | map documents | read by path prefix at open | `locality` is a prefix of the holder's own map only |
+| copy deltas | whatever perceives | `Cartographer` | `recordPlace` → `mapChanged` | the live body by identity path; **no body resident or no subscription → nothing sent, the next snapshot carries it** | — |
+| the sections | none | `Perceiver` on the holder | the reads in Grounding | each read loads what it follows | — |
 | way facts | none | the boundary's own mixins | descriptors with `aspect: 'way'` | the boundary is already in hand on the exit | — |
 | the verdict | none | `Mobile` (a body that can move) | the cascade | modes load on use | — |
 | route data | `route` | unchanged | the note | unchanged | unchanged |
 | Locality claim | none | `Cartographer` | `Locality` via the coverage chain | `AddressApi.resolveFor` readies the index | — |
-| `course` gate | `course` | the helm (unchanged) | `mayBeSteeredBy` | — | the readout has no arg |
+| the reckoned claim | `course` (bare) | the helm (unchanged) | `craft.reckonedNow()` | — | `mayBeSteeredBy` |
 
-⚠ Silent-failure points to test: a body composing `SaxonbergClient` but
-not `Cartographer` (a guest — sections flow, the copy is empty, said by
-`mapParts: 0`); a `viewerKey` whose body is asleep; a boundary mixin with
-no descriptor (no facts, state still on the way).
+⚠ Silent-failure points to test: a source row that exists with a class
+that does not compose the mixin (an error, never a load); a subscriber
+whose holder does not compose `Perceiver` or `Cartographer` (a guest — the
+sections flow, the copy's snapshot is empty and says so); a `viewerKey`
+whose body is asleep; a boundary mixin with no descriptor (no facts, the
+state still on the way); a client that never subscribes (nothing is
+computed for it).
 
 ## Acceptance-criteria coverage
 
 | criterion | waves |
 |---|---|
-| the client holds its own map, current after a move, a gap, a reconnect, a restart, a second session | W1, W6 |
-| every place says where it is; copies are separate | W2 |
-| a first visit to a Locality with name, government, kind | W2 |
-| a door reads as last seen | W2 |
-| a route as data agreeing with the prose | W5 |
-| sections; a move sends only what changed | W1, W4 |
-| every way says whether and what would work, word for word | W3 |
-| every claim says how you know it | W1 (channel, `toldBy`), W2 (`via`) |
-| the ship is the last Locality; jurisdiction matches `government` | W0, W4 |
-| the horizon on arrival, never standing still | W4 |
-| no path untagged; nothing the player does not know | W1, W6 |
+| the client holds its own map, current after a move, a gap, a reconnect, a restart, a second session | W1 (the protocol), W2, W7 |
+| every place says where it is; copies are separate | W3 |
+| a first visit to a Locality with name, government, kind | W3 |
+| a door reads as last seen | W3 |
+| a route as data agreeing with the prose | W6 |
+| sections; a move sends only what changed | W2, W5 |
+| every way says whether and what would work, word for word | W4 — ⭐ see below |
+| every claim says how you know it | W2 (channel, `toldBy`), W3 (`via`, `reckoned`) |
+| the ship is the last Locality; jurisdiction matches `government` | W0, W5 |
+| the horizon arrives on arrival and never while standing still | W5 |
+| no path untagged; nothing the player does not know | W2, W7 |
 | `locate` gone; the reckoning is `course`'s at the helm | W0 |
+
+⭐ **How *the ways cannot disagree with trying* holds, honestly.** The
+requirement's decision is that *can you take it* is the check moving runs,
+asked without moving. Three statements, each tested in W4:
+
+1. **A refusal is the refusal.** Every gate `go` runs before it moves is
+   run by the probe through the same function, and the reason is the same
+   string.
+2. **A plain yes is kept.** `{ ok: true }` with no marker is sent only when
+   every gate was asked — including the far place's veto, because it was
+   standing.
+3. **A yes that depends on something says what.** `flee` — you may go, and
+   going is fleeing the fight, with what that costs. `unseen` — nothing
+   you can perceive refuses you; the far side has not been asked.
+
+So the way never says something trying contradicts: it says *no* in
+trying's words, *yes*, or *yes, as far as you know*. Drive steps 6 and 6a
+assert (1) and (2); W4's unit tests assert (3).
 
 Nothing is unmapped.
 
 ## Test & gate strategy
 
 - **Unit** (`__tests__/` beside the source, importing `test-bootstrap`):
-  `growMap`; `mapSubject`; `frameIdentityOf`; the probe's purity per
-  override; reason equality probe vs `traverse`; the section differ (only
-  changed sections sent, `v` and `rev` monotonic); `Locality.getKind`;
+  the registry (`rev`, refusal without load, disconnect); `growMap`;
+  `mapSubject`; `frameIdentityOf`; the probe's purity per override; reason
+  equality probe vs `traverse`; `flee` / `unseen`; the section differ
+  (only changed sections pushed, per subscription); `Locality.getKind`;
   `Voyaging.lies`; the tagging projection.
+- **Migration proof (W1):** the existing MQL, card and forum suites and
+  the client suite, changed only where they name a type or a field.
 - **Only the drive proves:** what arrives on a real socket, across a
   restart and a second session; the firewall across the whole run.
-- **Full suite** at code-complete and at `/finalize` only.
-- **Browser walk (B3):** nothing new renders; the walk is the existing
-  navigator — open the `map` card, walk, board the Hesper — to prove the
-  text navigator is unbroken (`e2e/tests/navigation-server-walk.spec.ts`).
+- **Full suite** at code-complete and at `/finalize` only. ⚠ W1 is large
+  and structural and is still gated by `test:near`, the server, client and
+  wire packages' own suites and the lints — not by a full run.
+- **Browser walk (B3):** `e2e/tests/navigation-server-walk.spec.ts` — the
+  shelf's figures tick, a live room card updates, a forum board updates,
+  and the navigator follows a walk, a door opening and boarding the
+  Hesper. This build changes what the client is fed, so the walk is not
+  optional.
 
 **The blocking drive** — `packages/wire/tests/navigation-server.dirty.wire.test.ts`.
 No soak drive.
@@ -877,14 +1176,14 @@ No soak drive.
 | 7a the two charts | instant | `startLocation` the Hesper's hold |
 | 8 a new Locality | instant | `startLocation` the shoulder |
 | 9 two holdings | instant | `funded()` and `title buy` twice, as `tracts.dirty.wire.test.ts` |
-| 10 board; put to sea | instant | `stageShip` for the sea leg |
+| 10 board; put to sea | instant | `stageShip` for the sea leg; the master's bare `course`, a passenger beside |
 | 11 the headland; nothing pushed | instant | `stageShip` moves the Hesper out of sight while the watcher stands |
 | 12 inside and outside a building | instant | Duncan Hall |
 | 13 the Kestrel | **short** | launch a canoe at the put-in and wait for the patch to cross a Locality line; `advanceWorldClock` if the reach is long |
 | 14 light, dark, hidden, low | instant | `testharness clock` to night; a hidden second character |
 | 15 the you section | instant | `hand` a pole; the mule; `clone /system/transport/agent/draft-horse --here` |
 | 16 sizes | instant | `bytesSince` |
-| 17 restart | short | `restartWorld()` |
+| 17 restart | short | `restartWorld()`, then subscribe again |
 | 18 a second session | instant | — |
 | 19 the firewall | instant | `NavClient`'s whole log against the set of places the character walked, saw, searched, read or was told |
 
@@ -892,42 +1191,63 @@ No step needs a state nothing can stage.
 
 ## Risks & opens
 
-1. ⚠ **The lounge has no door** (step 6) and **the Delve has no dark or
-   low room** (step 14). The plan drives step 6 at the pump-house door and
-   step 14 at the steading and an unlit Delve room at night. If the owner
-   wants them where the script says, that is content this build was told
-   it does not need.
-2. ⚠ **`settlement`, not `city`** for a depth-2 Locality (D3). Grain;
-   one constant to change.
-3. ⚠ **At sea a claim records the sea and no position** (D2). The
-   agreement said *the position on it*; a passenger's position at sea is
-   the reckoning, which the requirements keep at the helm. On a river the
-   km is recorded.
-4. ⚠ **"The reach" is the river's name and km** (D10). A named reach needs
-   a `LineFrame` read the water pack alone would implement.
-5. ⚠ **Crowding and light are as of your last beat** (D7), not live.
-6. ⚠ **The probe does not ask `beforeTraverse`**, and asks a place's veto
-   only when the far side stands. Trying can therefore refuse where the
-   way said yes, in a fight or at an unloaded veto. Every gate of the way
-   and of the body agrees.
-7. **Snapshot size** for a large map is unmeasured until W1. If one
-   Locality document exceeds 256 KB on the wire, stop and bring the number
-   — per-document chunking is already there; per-claim paging would be new.
-8. **Two live sessions of one character** may not be supported by the
-   harness or the server (`harbors` note). W1 settles it; if a second
-   login replaces the first, step 18 becomes *a second login receives the
-   same copy* and the owner is told.
-9. **Moving the led-animal gate** reorders it ahead of `beforeTraverse` and
-   destination resolution. The size-and-carrying drive (step 18) is the
-   regression check.
-10. **`recordPlace` rewrites the whole document** per look (shipped). The
-    Locality claim adds one write per Locality **entry**, not per look.
-11. **`ride <dir>`** may be broken today (Grounding). Step 15's mounted
-    case depends on it.
+⚠ **Zone instancing (build-4, `docs/plans/zone-instancing-plan.md` on
+`reqs/zone-instancing`, D5/D12/D15)** changes two kinds of room path: a dorm
+room gains a leaf (`<unit extent>/room`; the zone key stays the extent),
+and the authored ships' decks (Hesper, Ostrander, Kittiwake, Corrigan)
+become warren copies at `<her zone row>/<serial>/<leaf>`. Holdings and the
+smack are byte-identical. Whichever build merges second updates the
+drive's paths; no players, so no migration.
 
-Stop and ask rather than guess: any need for a second envelope type; any
-gate ceiling that would have to rise; any section read that can only be
-had from the location graph.
+
+1. ⚠ **W1 rewires every live surface on the client** — the shelf, live
+   cards, forums. It is behavior-preserving by construction (the registries'
+   indexing, scheduling and diffing are untouched), and its acceptance is
+   the existing suites; but it is the wave most able to break something the
+   navigation drive never visits. The browser walk covers it.
+2. ⚠ **A source is named by a template path on the wire.** Engine paths,
+   known to the client as constants. If the owner would rather a short
+   word, the rule would be a path convention (`<root>/idea/subscription/<word>`)
+   and the two shipped registries would move — a rename sweep, not done
+   here.
+3. ⚠ **W1's blast radius grows** with `client-state-update` (~20 push
+   sites, the settings' first render) and the press ticker. Second commit
+   inside W1, after MQL and forums are green, so a failure is isolated.
+4. ⚠ **The text navigator now refreshes on a door change and after each of
+   your own commands**, not only on a move. Wanted, but new.
+5. ⚠ **The lounge has no door** (step 6) and **the Delve has no dark or
+   low room** (step 14). Driven at the pump-house door, and at the steading
+   and an unlit Delve room at night (accepted 2026-11-17).
+6. **`settlement`** for a depth-2 Locality (accepted). Grain; one constant.
+7. ⚠ **"The reach" is the river's name and km** (D10). A named reach needs
+   a `LineFrame` read the water pack alone would implement.
+8. ⚠ **Crowding and light are as of your last beat** (D7), not live.
+9. ⚠ **One reckoned claim per sea** (D2) — the first reckoning's position.
+10. **`unseen` will be common.** Residency evicts the cold tail, so the far
+    side of many ways is not standing. If the drive shows most ways marked,
+    bring the count — the marker is honest, but a pane full of *as far as
+    you know* is a product question.
+11. **Snapshot size** for a large map is unmeasured until W2. The
+    `locality` prefix param lets a client ask per Locality; if one document
+    exceeds 256 KB on the wire, stop and bring the number.
+12. **Two live sessions of one character** may not be supported
+    (`harbors` note). W2 settles it; if a second login replaces the first,
+    step 18 becomes *a second login receives the same copy* and the owner
+    is told.
+13. **Moving the led-animal gate** reorders it ahead of `beforeTraverse` and
+    destination resolution. The size-and-carrying drive (step 18) is the
+    regression check.
+14. **`recordPlace` rewrites the whole document** per look (shipped). The
+    Locality claim adds one write per Locality **entry**, not per look.
+15. **`ride <dir>`** may be broken today (Grounding). Step 15's mounted
+    case depends on it.
+16. **Reading a row's class before loading it** (D1's guard) needs a
+    template read that does not instantiate. If none exists, stop and ask —
+    the fallback is a path convention (risk 2), not loading first.
+
+Stop and ask rather than guess: any state push that cannot be a source;
+any gate ceiling that would have to rise; any section read that can only
+be had from the location graph.
 
 ## Deferred seams
 
@@ -939,45 +1259,53 @@ had from the location graph.
 - **One horizon computation (S20)** — the horizon section's producer is
   `horizonFor`; the geography build changes that function only →
   geography-slate.
-- **Movement in progress (S19)** — an eighth section on the same envelope
-  → step-beat-slate.
+- **Movement in progress (S19)** — an eighth section of the same source →
+  step-beat-slate.
 - **The builder lens on the map** → map-slate.
-- **A client that declines the copy** (a phone, an overlay) — a session
-  capability read at `sendNavigationSnapshot` → client-knowledge-model-slate.
 - **The room card's `exits` refreshing on a door** — `wayChanged()` is the
   seam → boundary-slate.
-- **A named reach on `LineFrame`** → navigation-server-slate.
+- **A named reach on `LineFrame`**; **a trail of reckonings** →
+  navigation-server-slate, the *your map grows* build.
+- **Renaming the two shipped registries to sources** → a naming sweep.
 
 ## Critical files
 
 Read first, in this order:
 
 1. `docs/requirements/navigation-server-requirements.md`
-2. `lib/location/MapClaim.ts`, `lib/location/Cartographer.ts`,
+2. `api/mql-subscription.ts`, `platform/idea/MqlSubscriptionRegistry.ts`
+   (the three emits, the id table, `cancelAllForInteractive`),
+   `platform/idea/ForumSubscriptionRegistry.ts`,
+   `platform/idea/CardRegistry.ts:1225-1250` (the silent open),
+   `backend/inbound/index.ts`, `mql.ts`, `forumSubscription.ts`,
+   `platform/idea/Interactive.ts:480-550`
+3. `packages/types/src/index.ts` (the MQL and forum messages and
+   envelopes, `CardPayload`, `Whereabouts`, `WayRecord`, `Note`)
+4. `packages/client/src/services/websocket.ts`,
+   `components/frame/Shelf.tsx`, `components/cards/useCardFeed.ts`,
+   `store/forumActions.ts`, `components/cards/NavigatorBody.tsx`
+5. `lib/location/MapClaim.ts`, `lib/location/Cartographer.ts`,
    `platform/idea/api/NavigationLogic.ts` (`recordPlace`, `growMap`)
-3. `lib/description/Perceiver.ts` (`whereabouts`, `learnSurroundings`)
-4. `lib/connection/SaxonbergClient.ts` (`refreshNavigator`),
-   `lib/message/Sensor.ts` (`onEnvelope`), `lib/character/Avatar.ts`
-   (`enter`)
-5. `lib/boundary/Exit.ts` (`wayRecord`, `canTraverse`, `clearanceRefusal`,
+6. `lib/description/Perceiver.ts` (`whereabouts`, `learnSurroundings`),
+   `lib/connection/SaxonbergClient.ts` (`refreshNavigator`),
+   `lib/connection/Cards.ts` (the `map` card)
+7. `lib/boundary/Exit.ts` (`wayRecord`, `canTraverse`, `clearanceRefusal`,
    `clearanceWords`), `platform/idea/api/LocomotionLogic.ts`
-   (`canTraverseExit`), `lib/spatial/Mobile.ts` (`traverse`, `crossExit`)
-6. `lib/location/FloorplanWarren.ts`, `lib/location/Warren.ts`,
+   (`canTraverseExit`), `lib/spatial/Mobile.ts` (`traverse`, `crossExit`),
+   `lib/combat/Combatant.ts` (`beforeTraverse`)
+8. `lib/location/FloorplanWarren.ts`, `lib/location/Warren.ts`,
    `platform/idea/ShipWarren.ts`, `lib/location/MovingPlace.ts`,
-   `lib/expanse/Positioned.ts`
-7. `api/mql-subscription.ts` (`SubscribableFieldDescriptor`,
-   `projectFields`), `lib/boundary/Boundary.ts`, `lib/boundary/Lockable.ts`,
+   `lib/expanse/Positioned.ts`, `lib/expanse/Charted.ts`
+9. `lib/boundary/Boundary.ts`, `lib/boundary/Lockable.ts`,
    `lib/spatial/Sealable.ts`, `platform/thing/Door.ts`
-8. `platform/idea/api/GovernmentLogic.ts`, `platform/idea/Locality.ts`,
-   `platform/idea/cmd/perception/LocateController.ts`,
-   `platform/idea/cmd/movement/CourseReadoutController.ts`
-9. `packages/types/src/index.ts` (`Whereabouts`, `WayRecord`, the envelope
-   union, `Note`)
-10. `packages/wire/src/harness/session.ts`, `world.ts`;
+10. `platform/idea/api/GovernmentLogic.ts`, `platform/idea/Locality.ts`,
+    `platform/idea/cmd/perception/LocateController.ts`,
+    `platform/idea/cmd/movement/CourseReadoutController.ts`
+11. `packages/wire/src/harness/session.ts`, `world.ts`;
     `packages/wire/tests/size-and-carrying.dirty.wire.test.ts`,
     `boundary.dirty.wire.test.ts`, `tracts.dirty.wire.test.ts`
-11. `packages/client/src/components/cards/NavigatorBody.tsx` (what must not
-    break)
+12. `docs/subsystems/mql-subscription.md`, `card-surface.md`
+    (§ One birth path, § Reconnect behavior), `forums.md`
 
 ## Drive record
 
