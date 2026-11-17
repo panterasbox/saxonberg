@@ -58,7 +58,10 @@ function stepOutward(
 async function liveCopyAt(path: string): Promise<Zone | null> {
   const bucket = StuffApi.findByIdentityPath<Stuff>(path);
   if (bucket.length === 0) return null;
-  const { default: MintedZone } = await import('../location/MintedZone');
+  // Through the class loader (the module instance every row's class comes from).
+  const MintedZone = (await StuffApi.loadClassByPath(
+    '/platform/idea/location/MintedZone',
+  )) as typeof import('../location/MintedZone').default;
   for (const s of bucket) {
     if (s instanceof MintedZone && !s.isDestroyed() && s.isCopy()) return s;
   }

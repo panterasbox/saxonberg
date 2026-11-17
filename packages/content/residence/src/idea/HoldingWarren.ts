@@ -49,6 +49,7 @@
  */
 
 import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
 import {
   Floorplan,
   type FloorplanRoom,
@@ -82,7 +83,7 @@ export const UPKEEP_TERMS = [
 const KEYED_DOOR_WAY = '/system/residence/idea/exits/keyed-door';
 const KEYED_DOOR_ROW = '/system/residence/thing/boundaries/keyed-door';
 
-export default class HoldingWarren extends FloorplanWarren {
+export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
     addressBase: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
@@ -188,7 +189,17 @@ export default class HoldingWarren extends FloorplanWarren {
    */
   public override async wake(): Promise<void> {
     await this.refreshKeyway();
+    // ⭐ The copy is a zone of its own (zone-instancing D3): stood up
+    // BEFORE its rooms, which the resolver stamps into it by their keys,
+    // and checked after — a room stamped elsewhere missed its copy.
+    const plan = await this.loadPlan();
+    const key = this.holdingKey();
+    const zone =
+      plan !== null && key !== null && this.getZoneNaming() !== ''
+        ? await this.wakeCopyZone(plan.extent, key)
+        : null;
     await super.wake();
+    if (zone !== null) this.checkCopyRooms(zone, this.getMembers() as unknown as Stuff[]);
     await this.hangKeyedDoors();
     await this.wakeHouses();
   }

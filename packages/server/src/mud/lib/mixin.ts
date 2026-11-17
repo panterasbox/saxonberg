@@ -580,6 +580,8 @@ export const Mixins = {
   NotifyPolicy: 'NotifyPolicyMixin',
   SubjectSubscriber: 'SubjectSubscriberMixin',
   WarrenMember: 'WarrenMemberMixin',
+  // A warren that makes copies of a zone (zone-instancing D3).
+  ZoneMinting: 'ZoneMintingMixin',
   Lounge: 'LoungeMixin',
   // The off-shift parking room a venue's cast is relocated to.
   Offstage: 'OffstageMixin',

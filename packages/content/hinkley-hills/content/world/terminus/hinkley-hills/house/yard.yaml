@@ -1,34 +1,31 @@
-# The yard behind the house on lot-1 — the KEYED entry room of every
-# Hinkley holding (residences D16/D17): cloned per lot by the lot's
-# HoldingWarren and keyed `(this row, <lotExtent>/yard)`, so title and
-# durable state share one identity and `templatePath` always resolves to
-# THIS row. It lives under the `lots` zone: a clone's zone resolves
-# from the ROW's ancestry, and the yard is reached by the lane's
-# non-cardinal `lot-N` gate — admissible only across the zone boundary.
+# The yard behind the house — the KEYED entry room of every Hinkley
+# holding (residences D16/D17): cloned per lot by the lot's HoldingWarren
+# and keyed `(this row, <lotExtent>/yard)`, so title and durable state
+# share one identity and `templatePath` always resolves to THIS row.
 #
-# THE HOUSE IS REAL NOW (the residences build): behind the kitchen door
-# in the north wall is the hall, keyed to the buyer's lock — the
-# programme's floorplan (`house-programme.yaml`) wires it. The garden
-# bed below stays build-3's (cultivation).
+# ⭐ Each lot's house is a zone of its own (zone-instancing): the yard is
+# stamped into its lot's copy of the `house` zone and takes this row's
+# cell (the origin) on that copy's grid. The lane's `lot-N` gate leads in
+# from the `lots` zone — a way between two zones, so it may be named.
+#
+# Through the north door is the hall, keyed to the buyer's lock. The
+# garden bed below stays build-3's (cultivation).
 #
 # `props:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
-# `/lib/location/PersistentLocation`, and NOT a Location — the
-# minted-identity decision forces this and it took a live drive to see.
-# A lot's room is cloned per lot at its own identity path, so it cannot
-# be a member of the district's shared grid: N lots would sit on ONE
-# coordinate, and `Location.addExit` (rightly) refuses a
-# non-cardinal `lot-1` exit between two rooms in the same zone. A yard is
-# reached through a gate, not by a grid step.
 #
-# PersistentLocation is the furnishing build's venue-generic persistable
-# room and has everything this needs: it IS a persistence host (this
-# room's contents are the owner's), it composes Populates, and it is not
+# `/platform/location/PersistentLocation`: a persistence host (this room's
+# contents are the owner's) that composes Populates and is not
 # singleton-shaped. It authors no `air` reserve, which is exactly what
 # "outdoors" means to FireLogic.
 class: /platform/location/PersistentLocation
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   shortDescription: yard behind the house
   keywords: [yard, behind, house]
   register: definite

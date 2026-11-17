@@ -15,9 +15,9 @@
  * layers of Structure rows where only one describes something real).
  * Per-room facts are the room's own fields (a compartment's `floorM`, a
  * tract's `share`); the ground the buildings cover is the owner's
- * `footprintM2`. ⚠ A plan's rows author no `coords:` — a row's cell
- * registers on its zone's grid, and every copy stands in one zone; a
- * copy's layout is read from its ways (`FloorplanWarren.layOut`).
+ * `footprintM2`. ⭐ A plan's rows author their `coords:` — every copy is a
+ * zone of its own (zone-instancing D9), so each copy's rooms take their
+ * cells on its own grid, reflected when the copy is mirrored.
  *
  * This class READS the rows — it never stands the plan up. A copy is
  * minted from the rows, and the plan's rooms are served to nobody: the
@@ -57,6 +57,12 @@ export interface FloorplanRoom {
   entry: boolean;
   /** The row's authored exits, by direction. */
   exits: Record<string, ExitInstruction>;
+  /**
+   * ⭐ The room's cell on its COPY's grid, as its row authors it
+   * (`coords:`) — `null` when it authors none. Every copy is a zone of its
+   * own (zone-instancing D9), so one row's cell is claimed once per copy.
+   */
+  coords: [number, number, number] | null;
 }
 
 /** One building of a plan, as its row says. */
@@ -154,6 +160,7 @@ export class Floorplan {
         leaf,
         entry: t.path === entrance,
         exits: exitsOf(d.exits),
+        coords: coordsOf(d.coords),
       };
     });
     const footprint = Number(data.footprintM2);
@@ -217,6 +224,14 @@ export class Floorplan {
     }
     return out;
   }
+}
+
+/** A row's authored `coords: { x, y, z }`, or `null` for none. */
+function coordsOf(raw: unknown): [number, number, number] | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { x, y, z } = raw as { x?: unknown; y?: unknown; z?: unknown };
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') return null;
+  return [x, y, z];
 }
 
 /** A row's `exits:` map, entries with a destination only. */

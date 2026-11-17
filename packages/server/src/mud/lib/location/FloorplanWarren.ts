@@ -274,6 +274,9 @@ export abstract class FloorplanWarren extends FloorplanBase {
   public layOut(): void {
     const plan = this._plan;
     if (plan === null || plan.rooms.length === 0) return;
+    // Transitional (zone-instancing D9, until frames retire): a plan whose
+    // rooms author their cells was laid out by its rows at the clone.
+    if (plan.rooms.every((r) => r.coords !== null)) return;
     const leafOf = (r: FloorplanRoom): string => r.leaf ?? '';
     const byRow = new Map(plan.rooms.map((r) => [r.row, leafOf(r)] as const));
     const edges: Array<{ from: string; to: string; dir: string }> = [];
@@ -333,6 +336,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
     const room = await this.mintKeyed(spec.row, key, {
       zoneFrom: this.zoneFromFor(spec, key),
       withholdExits: Object.keys(spec.exits).length > 0,
+      ...(spec.coords !== null ? { coords: mirroredCell(spec.coords, this.mirrorAxis) } : {}),
     });
     // The room's address — before the room finishes itself, which may
     // read it (a tract seeds its ground from its locality).
@@ -359,12 +363,20 @@ export abstract class FloorplanWarren extends FloorplanBase {
     opts: {
       zoneFrom?: string;
       withholdExits?: boolean;
+      /** The room's cell on its copy's grid (its row's, reflected by the copy's mirror). */
+      coords?: readonly [number, number, number];
       beforeRestore?: (room: MemberStuff) => void;
     } = {},
   ): Promise<MemberStuff> {
+    const overlay: Record<string, unknown> = {
+      ...(opts.withholdExits ? { exits: {} } : {}),
+      ...(opts.coords !== undefined
+        ? { coords: { x: opts.coords[0], y: opts.coords[1], z: opts.coords[2] } }
+        : {}),
+    };
     const room = await StuffApi.clone<MemberStuff>(row, undefined, {
       ...(opts.zoneFrom !== undefined ? { zoneFrom: opts.zoneFrom } : {}),
-      ...(opts.withholdExits ? { dataOverlay: { exits: {} } } : {}),
+      ...(Object.keys(overlay).length > 0 ? { dataOverlay: overlay } : {}),
     });
     this.addMember(room);
     opts.beforeRestore?.(room);
@@ -589,6 +601,17 @@ const MIRRORS: Readonly<Record<MirrorAxis, Readonly<Record<string, string>>>> = 
     northwest: 'southwest', southwest: 'northwest',
   },
 };
+
+/** A cell reflected across `axis` (D9): east-west negates x, north-south negates y. */
+function mirroredCell(
+  cell: readonly [number, number, number],
+  axis: '' | MirrorAxis,
+): [number, number, number] {
+  const [x, y, z] = cell;
+  if (axis === 'east-west') return [x === 0 ? 0 : -x, y, z];
+  if (axis === 'north-south') return [x, y === 0 ? 0 : -y, z];
+  return [x, y, z];
+}
 
 /** `direction` reflected across `axis`; `up`, `down` and the axis itself stay. */
 function mirrored(direction: string, axis: '' | MirrorAxis): string {

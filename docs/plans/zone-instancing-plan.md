@@ -764,6 +764,8 @@ changes).
 - Acceptance: the suite near the zone code is green; no content row
   changed.
 - Commit: `feat(zone-instancing): A0 — a zone row can be minted as copies`.
+- ✅ **Done (71f232009).** As planned. `liveCopyAt` in `ZoneLogic` is a
+  module-private function (the `stepOutward` precedent), not a method.
 
 #### A1 — The capability, and Hinkley Hills
 
@@ -792,6 +794,29 @@ Decisions: D1, D3, D5 (naming), D9.
 - Acceptance: on a running world, two sold Hinkley lots are two zones; the
   drive's steps 1–5 can be walked by hand.
 - Commit: `feat(zone-instancing): A1 — a holding's copy is its own zone (Hinkley)`.
+- ✅ **Done.** Notes for review:
+  - **`MintedZone` is resolved through `StuffApi.loadClassByPath`**, both in
+    the mint and in the resolver, never by a static import: a pack reaches
+    the kernel through its package specifier, and that is a different
+    module instance from the one the class loader serves, so `instanceof`
+    failed in the residence pack's suite.
+  - **The mixin's base is typed `Stuff & { teardown() }`**, not `Warren`
+    (TypeScript lost the base members over the abstract `Warren`). It
+    sleeps its copies in `teardown()`, which `FloorplanWarren.onDestruct`
+    and the institution's sleep both reach, after the rooms are down.
+  - **`checkCopyRooms(zone, rooms)` joined the mixin** (not in D3's list):
+    the typed throw D3 asks for after the wake, written once for holdings
+    and ships.
+  - **Decided: `PersistableApi.standUpKeyed` asks the CLASS whether a room
+    stands up alone, before cloning** (it used to clone a shell, ask it,
+    and destruct it). That shell, cloned from a plan row outside its copy,
+    now lands on the zone row, which refuses rooms (D4). Every
+    `standsUpAlone` is a constant of its class.
+  - **Transitional until A2:** `HoldingWarren.wake` stands a copy zone only
+    when its programme authors `zoneNaming`. The other three programmes
+    are declared in A2, which removes the condition.
+  - A copy's rooms are now sized by the PLAN's zone cell (6 m for the
+    house), not the lots' zone; the B54 test is rewritten to say so.
 
 #### A2 — The other holdings
 
