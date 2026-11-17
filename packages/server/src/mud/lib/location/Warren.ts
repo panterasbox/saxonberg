@@ -118,18 +118,6 @@ export abstract class Warren extends Idea {
    * Returns true when `m` is a member of this Warren after the call.
    */
   /**
-   * ⭐ Does this warren lay its members out in its OWN coordinate frame?
-   * A holding does — its rooms sit where its floorplan puts them, beside
-   * each other, not on the street's grid (a lot's rooms would land on the
-   * next lot's). Every other warren places members on its zone's grid.
-   * A door between two frames may be named (`out`, `unit-3`), as a door
-   * between two zones may.
-   */
-  public laysOutOwnFrame(): boolean {
-    return false;
-  }
-
-  /**
    * ⭐ The structure `member` is part of, when this warren knows it —
    * `null` defers to the location graph. Two warrens answer: a ship's
    * rooms are her warren's members, and a keyed room of a ship KIND has no

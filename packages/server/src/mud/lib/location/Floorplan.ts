@@ -58,10 +58,11 @@ export interface FloorplanRoom {
   exits: Record<string, ExitInstruction>;
   /**
    * ⭐ The room's cell on its COPY's grid, as its row authors it
-   * (`coords:`) — `null` when it authors none. Every copy is a zone of its
-   * own (zone-instancing D9), so one row's cell is claimed once per copy.
+   * (`coords:` — required: `load` refuses a room with none). Every copy is
+   * a zone of its own (zone-instancing D9), so one row's cell is claimed
+   * once per copy.
    */
-  coords: [number, number, number] | null;
+  coords: [number, number, number];
 }
 
 /** One building of a plan, as its row says. */
@@ -146,6 +147,16 @@ export class Floorplan {
       }
     }
     const leaves = new Set<string>();
+    // ⭐ Every plan room authors its cell (zone-instancing D9): each copy is
+    // a zone of its own, and a room with no cell would join no grid.
+    const cellOf = (path: string): [number, number, number] => {
+      const raw = (places.find((p) => p.path === path)?.data as Record<string, unknown> | undefined)?.coords;
+      const cell = coordsOf(raw);
+      if (cell === null) {
+        throw new Error(`Floorplan '${this.path}': '${path}' authors no cell on its copy's grid (coords:)`);
+      }
+      return cell;
+    };
     const rooms = places.map((t): FloorplanRoom => {
       const d = (t.data ?? {}) as Record<string, unknown>;
       // ⭐ Every room has a leaf, a one-room plan's too (zone-instancing D5):
@@ -158,7 +169,7 @@ export class Floorplan {
         leaf,
         entry: t.path === entrance,
         exits: exitsOf(d.exits),
-        coords: coordsOf(d.coords),
+        coords: cellOf(t.path),
       };
     });
     const footprint = Number(data.footprintM2);

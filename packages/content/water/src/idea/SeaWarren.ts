@@ -76,10 +76,6 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
 
   /* ───────────────────────── Warren policy ───────────────────────── */
 
-  public override laysOutOwnFrame(): boolean {
-    return true;
-  }
-
   protected occupantsOf(m: MemberStuff): (Stuff & Container)[] {
     return m.getContents().filter((c) => MixinApi.isTangible(c)) as unknown as (Stuff & Container)[];
   }

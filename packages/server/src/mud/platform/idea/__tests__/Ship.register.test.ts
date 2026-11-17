@@ -126,12 +126,12 @@ function installStore(): void {
   // serial (zone-instancing D11).
   add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
   add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
-  add(DECK, '/platform/location/Compartment', {
+  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 },
     floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
     props: [{ template: STAFF, as: 'flagstaff' }, { template: FLAG, on: 'flagstaff' }],
   });
-  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], brand: 'flag-test-city' });
   add(COMPANY, '/platform/idea/PersistentBusiness', {

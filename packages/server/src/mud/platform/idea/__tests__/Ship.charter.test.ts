@@ -289,7 +289,10 @@ describe('⭐ the charter ends as she berths at a kept quay, its days billed (P2
 
   it('a charterer aboard hears the charter end once — in her arrival — and one ashore is told on their own', async () => {
     const me = person('/test/charterer');
-    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([me] as never);
+    // Only the charterer's own path: her berth way looks HER up by handle.
+    const realFind = StuffApi.findByIdentityPath.bind(StuffApi);
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockImplementation(((p: string) =>
+      p === '/test/charterer' ? [me] : realFind(p)) as never);
     vi.spyOn(MixinApi, 'isSensor').mockImplementation(((x: unknown) => x === me) as never);
     expect(await ship.charterTo(me, 2, DESK)).toBeNull();
     bollardOn(quay);

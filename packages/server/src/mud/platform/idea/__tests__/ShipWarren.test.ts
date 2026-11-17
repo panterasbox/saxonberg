@@ -117,7 +117,7 @@ function installStore(): void {
   // serial (zone-instancing D11).
   add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
   add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
-  add(DECK, '/platform/location/Compartment', {
+  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 },
     floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
     props: [GEAR, TENDER],
@@ -127,7 +127,7 @@ function installStore(): void {
   // A piece of her gear that holds gear of its own (a dinghy and its oars).
   add(TENDER, '/platform/thing/Icebox', { shortDescription: 'a tender', props: [OAR] });
   add(OAR, '/platform/thing/Thing', { shortDescription: 'an oar' });
-  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
@@ -143,12 +143,12 @@ function installStore(): void {
     serial: 'hesper',
   });
   add('/test/hesper', '/platform/idea/location/MintedZone', { name: 'the Hesper', cellSize: 4, mintedBy: AUTHORED_SHIP_WARREN });
-  add(A_DECK, '/platform/location/Compartment', {
+  add(A_DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 },
     shortDescription: "Hesper's deck",
     exits: { down: { destination: A_HOLD }, west: { destination: A_SALOON } },
   });
-  add(A_HOLD, '/platform/location/Hold', { shortDescription: "Hesper's hold", exits: { up: { destination: A_DECK } } });
-  add(A_SALOON, '/platform/location/Compartment', {
+  add(A_HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: "Hesper's hold", exits: { up: { destination: A_DECK } } });
+  add(A_SALOON, '/platform/location/Compartment', { coords: { x: -1, y: 0, z: 0 },
     shortDescription: "Hesper's saloon",
     exits: { east: { destination: A_DECK } },
   });

@@ -158,11 +158,6 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
 
   /* ───────────────────────── Warren policy ───────────────────────── */
 
-  /** ⭐ A moving place lays out its own frame: its ways are never a grid's. */
-  public override laysOutOwnFrame(): boolean {
-    return true;
-  }
-
   /**
    * ⭐ Anything tangible keeps a river place (D6): a canoe, a body, a
    * dropped sword — not only somebody connected. A patch holding only a

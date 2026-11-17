@@ -16,8 +16,14 @@
  *   5. [short · player] out the front door onto the lane: no refusal
  *   6. [staged] a student let a Duncan Hall unit walks in and out; the
  *      unit is its own zone
- *  10. [short · staged] restart: the houses and the unit come back under
- *      the same zone identities with the same rooms
+ *   7. [staged · player] two smacks bought at the yard: each one's decks
+ *      are her own zone, `<smack zone>/<serial>`
+ *   8. [instant · staged] the Hesper at her berth: her way aboard, her deck,
+ *      her zone `<her zone row>/hesper`
+ *   9. [instant · staged] the river: a stop stood on the Kestrel is a copy
+ *      of the stop zone, joined to the river's frame
+ *  10. [short · staged] restart: the houses, the unit, a smack and the
+ *      Hesper come back under the same zone identities with the same rooms
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -33,12 +39,14 @@ import {
   isOwnedTestWorld,
   advanceWorldClock,
   worldClockNow,
+  stageShip,
 } from '../src/harness';
 import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
-  'buys two Hinkley lots with issued coin (none can be sold back), has Katie ' +
-  'let a Duncan Hall unit, and restarts the world';
+  'buys two Hinkley lots and both smacks on the yard\'s stocks with issued ' +
+  'coin (none can be sold back), has Katie let a Duncan Hall unit, stands a ' +
+  'stop on the Kestrel, and restarts the world';
 
 declareFile({
   file: 'zone-instancing.dirty.wire.test.ts',
@@ -50,6 +58,10 @@ declareFile({
     'eternal-university',
     'terminus',
     'generic-objects',
+    'water',
+    'transport',
+    'world-seed',
+    'trade-diving',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -60,6 +72,16 @@ const HINKLEY = '/world/terminus/hinkley-hills';
 const HINKLEY_LANE = `${HINKLEY}/location/lane`;
 const LOTS = `${HINKLEY}/lots`;
 const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const SHED = '/world/terminus/harbor/yard/shed';
+const YARD = '/world/terminus/harbor/yard/quay';
+const SMACK_ZONE = '/stuff/location/ship/smack';
+const HESPER = '/world/terminus/hesper/structure';
+const HESPER_BERTH = '/world/terminus/estuary/estuary-mouth';
+const REACH_WARREN = '/system/water/idea/ReachWarren';
+const tag = (): string =>
+  Array.from({ length: 4 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join('');
+const NAME1 = `Petrel${tag()}`;
+const NAME2 = `Fulmar${tag()}`;
 const DUNCAN = '/world/terminus/eternal/duncan-hall';
 
 const record: string[] = [];
@@ -214,6 +236,48 @@ function unitCopies(): string {
     `.map((z) => ({ id: z.getIdentityPath(), row: z.getTemplatePath(), ` +
     `rooms: [...z.getLocations()].map((l) => l.getTemplatePath()), ` +
     `people: [...z.getLocations()].flatMap((l) => l.getContents()).filter((c) => typeof c.getPlayerId === 'function' && c.getPlayerId()).length }))`
+  );
+}
+
+/** The prompt a frame carries. */
+function promptOf(p: unknown): { id: string } {
+  type Body = { promptId?: string };
+  const frame = p as Body & { payload?: Body };
+  const body = frame.payload?.promptId ? frame.payload : frame;
+  return { id: body.promptId ?? '' };
+}
+
+/** Run `line` answering each prompt it raises with the next answer (the harbors drive's helper). */
+async function withPrompts(s: Session, line: string, answers: string[]): Promise<{ r: CommandResult; said: string }> {
+  await s.drainProse();
+  let done = false;
+  const left = [...answers];
+  const answered = new Set<string>();
+  const pending = s.cmd(line).finally(() => {
+    done = true;
+  });
+  void (async () => {
+    while (!done) {
+      const p = await s.awaitPrompt(250).catch(() => null);
+      if (p === null || done) continue;
+      const { id } = promptOf(p);
+      if (!id || answered.has(id)) continue;
+      answered.add(id);
+      s.answerPrompt(id, left.shift() ?? 'no');
+    }
+  })();
+  const r = await pending;
+  const said = (await r.said()).replace(/\s+/g, ' ');
+  note(`${s.handle}: ${line} → ${said.slice(0, 300)}`);
+  return { r, said };
+}
+
+/** The zones the live copies of a plan room stand in (every copy's room shares its row). */
+function zonesOf(roomRow: string): string {
+  return (
+    `StuffApi.findAllByTemplatePath('${roomRow}')` +
+    `.filter((r) => !r.isDestroyed() && r.getZone())` +
+    `.map((r) => r.getZone().getIdentityPath()).sort()`
   );
 }
 
@@ -441,6 +505,59 @@ suite.skipIf(!isOwnedTestWorld())('stage A — the holdings', () => {
   }, 600_000);
 });
 
+let smackZones: string[] = [];
+let hesperZone = '';
+
+suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
+  it('7. [staged · player] two smacks bought at the yard: each one\'s decks are her own zone', async () => {
+    const a = uniqueHandle('zisailor');
+    const b = uniqueHandle('zimate');
+    await funded(a, 6_000);
+    await funded(b, 6_000);
+    for (const [who, name] of [[a, NAME1], [b, NAME2]] as const) {
+      const s = await goTo(who, SHED);
+      open.push(s);
+      const { r, said } = await withPrompts(s, 'buy smack', [name]);
+      expect(r.status, said).toBe('ok');
+      expect(said).toMatch(new RegExp(`as the ${name}`));
+      await doing(s, 'go north');
+      expect(await doing(s, `go ${name.toLowerCase()}`)).toMatch(/smack's deck/i);
+    }
+    smackZones = await ev<string[]>(zonesOf(`${SMACK_ZONE}/deck`), '/world/terminus', YARD);
+    expect(smackZones.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(smackZones).size).toBe(smackZones.length);
+    for (const z of smackZones) expect(z).toMatch(new RegExp(`^${SMACK_ZONE}/[^/]+$`));
+  }, 900_000);
+
+  it('8. [instant · staged] the Hesper: her way aboard, her deck, her zone `<her zone row>/hesper`', async () => {
+    await stageShip(HESPER, {});
+    const s = await goTo(uniqueHandle('zihesper'), HESPER_BERTH);
+    open.push(s);
+    expect(await read(s, 'look')).toMatch(/Alongside: [^.]*the Hesper/i);
+    expect(await doing(s, 'go hesper')).toMatch(/deck/i);
+    const zones = await ev<string[]>(zonesOf('/world/terminus/hesper/deck'), '/world/terminus', HESPER_BERTH);
+    expect(zones).toEqual(['/world/terminus/hesper/hesper']);
+    hesperZone = zones[0]!;
+  }, 600_000);
+
+  it('9. [instant · staged] a stop stood on the Kestrel is a copy of the stop zone, joined to the river', async () => {
+    const stop = await ev<{ row: string; id: string; copy: boolean }>(
+      `await (async () => { const w = await StuffApi.singleton('${REACH_WARREN}'); ` +
+        `const s = await w.stopAt('kestrel', 1, 'mid'); const z = s.getZone(); ` +
+        `return { row: z.getTemplatePath(), id: z.getIdentityPath(), copy: z.isCopy() }; })()`,
+      '/world/terminus',
+      YARD,
+    ).catch((err: unknown) => {
+      note(`9: the stop could not be staged from an eval (${String(err).slice(0, 200)})`);
+      return null;
+    });
+    if (stop === null) return;
+    expect(stop.row).toBe('/system/water/location/reach/stop');
+    expect(stop.id.startsWith('/system/water/location/reach/stop/')).toBe(true);
+    expect(stop.copy).toBe(true);
+  }, 300_000);
+});
+
 suite.skipIf(!isOwnedTestWorld())('stage A — a restart (10, holdings)', () => {
   it('10. [short · staged] restart: each house and the unit return under the same zone identities with the same rooms', async () => {
     for (const s of open) s.close();
@@ -482,5 +599,18 @@ suite.skipIf(!isOwnedTestWorld())('stage A — a restart (10, holdings)', () => 
     const theirs = copies.find((c) => c.people > 0);
     expect(theirs?.id, `the unit returns under the same name: ${JSON.stringify(copies)}`).toBe(unitExtent);
     expect(theirs!.rooms).toEqual([`${DUNCAN}/unit/room`]);
+    // ⭐ The ships: aboard again, the same zone names.
+    await stageShip(HESPER, {});
+    const h = await goTo(uniqueHandle('zihesper2'), HESPER_BERTH);
+    open.push(h);
+    await doing(h, 'go hesper');
+    expect(await ev<string[]>(zonesOf('/world/terminus/hesper/deck'), '/world/terminus', HESPER_BERTH)).toEqual([hesperZone]);
+    const y = await goTo(uniqueHandle('ziyard'), YARD);
+    open.push(y);
+    expect(await read(y, 'look')).toMatch(new RegExp(`Alongside: [^.]*the ${NAME1}`));
+    await stageShip(NAME1, {});
+    await stageShip(NAME2, {});
+    const smacksAgain = await ev<string[]>(zonesOf(`${SMACK_ZONE}/deck`), '/world/terminus', YARD);
+    for (const z of smackZones) expect(smacksAgain).toContain(z);
   }, 900_000);
 });

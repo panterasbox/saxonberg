@@ -30,6 +30,7 @@ import { ZoneApi } from '../../api/zone';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 import type CartesianZone from '../../platform/idea/location/CartesianZone';
+import type { SpatialZone } from '../zone/SpatialZone';
 import type Exit from '../boundary/Exit';
 import type { Boundary } from '../boundary/Boundary';
 import type { Container } from '../spatial/Container';
@@ -122,13 +123,18 @@ export default class Location extends LocationBase {
       // or runtime-only test object). Permissive — allow.
       return super.addExit(exit);
     }
-    // ⭐ A holding lays its rooms out in its OWN frame (a dorm room, a
-    // house's hall), so a door between a holding's room and the corridor
-    // or street outside it crosses frames even when both resolve to one
-    // zone — the dorm's `unit-3` and `out`.
-    if (this.crossesHoldingFrame(exit)) return super.addExit(exit);
-    const sourceZone = await ZoneApi.resolveZoneForPath(sourcePath);
-    const destZone = await ZoneApi.resolveZoneForPath(destPath);
+    // ⭐ The zones that STAND (zone-instancing D6): each copy of a plan is
+    // a zone of its own, so a dorm room's `out` and the corridor's `unit-3`
+    // join two zones. A side not standing yet is resolved from its path —
+    // and every plan lies under a zone row of its own, so a way into a
+    // sleeping copy is still a way between zones.
+    const sourceZone =
+      ((this as unknown as Stuff).getZone() as SpatialZone | null) ??
+      (await ZoneApi.resolveZoneForPath(sourcePath));
+    const far = exit.peekDestination();
+    const destZone =
+      (far !== null ? (far.getZone() as SpatialZone | null) : null) ??
+      (await ZoneApi.resolveZoneForPath(destPath));
     if (sourceZone && destZone && sourceZone === destZone) {
       throw new Error(
         `Location.addExit: non-cardinal direction '${direction}' ` +
@@ -279,7 +285,7 @@ export default class Location extends LocationBase {
    * cells on (it may climb: the ground is not flat), no room stands
    * between, and nothing can hang in it — a boundary needs a shared face.
    *
-   * Across zones (or between a holding's own frame and another) a way is a
+   * Across zones (each copy of a plan is a zone of its own) a way is a
    * THRESHOLD: the grids share no face and nothing is checked. Only places
    * that stand plotted are judged; a room not yet loaded is not seen
    * between, which `lint:locations` checks from the rows. Returns the
@@ -292,7 +298,6 @@ export default class Location extends LocationBase {
     const zone = this.getZone();
     const far = exit.peekDestination();
     if (zone === null || far === null || far.getZone() !== zone) return null;
-    if (this.holdingFrameOf(here) !== this.holdingFrameOf(far)) return null;
     const a = this.getCoords();
     const b = far instanceof Location ? far.getCoords() : null;
     if (a === null || b === null) return null;
@@ -371,29 +376,6 @@ export default class Location extends LocationBase {
     return diff <= Math.PI / 8 + 1e-9
       ? null
       : `the far place lies ${Math.round((got * 180) / Math.PI)}° from east, not ${direction} — a track's direction is its bearing`;
-  }
-
-  /**
-   * Does this exit cross between a holding's own frame and another? A
-   * place belongs to a holding's frame when it is a member of a warren
-   * that {@link Warren.laysOutOwnFrame lays out its own}; two places in
-   * different such frames (or one in a frame and one outside) are on
-   * different grids, whatever zone their rows resolve to.
-   */
-  private crossesHoldingFrame(exit: Exit): boolean {
-    let dest: Stuff | null = null;
-    try {
-      dest = exit.getDestination();
-    } catch {
-      return false;
-    }
-    return this.holdingFrameOf(this as unknown as Stuff) !== this.holdingFrameOf(dest);
-  }
-
-  private holdingFrameOf(place: Stuff): Stuff | null {
-    if (!MixinApi.isWarrenMember(place)) return null;
-    const warren = place.getWarren();
-    return warren && warren.laysOutOwnFrame() ? warren : null;
   }
 
   /**

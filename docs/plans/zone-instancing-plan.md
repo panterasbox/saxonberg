@@ -1083,6 +1083,27 @@ Decisions: D6, D14.
   (lot gate, dorm `out`, `ashore`) is admitted with the far side standing
   and with it asleep.
 - Commit: `refactor(zone-instancing): B4 — frames retire`.
+- ✅ **Done.** Deleted: `Warren.laysOutOwnFrame` and its four overrides
+  (FloorplanWarren, MineWarren, ReachWarren, SeaWarren),
+  `Location.crossesHoldingFrame`/`holdingFrameOf` and both call sites,
+  `FloorplanWarren.layOut` and its call, the two test assertions, the
+  frame language in six comments. `Floorplan.load` throws on a plan room
+  with no cell (`FloorplanRoom.coords` is no longer optional).
+  `Location.addExit` (D6) compares the zones that STAND, falling back to
+  the path resolver for a side not standing. Notes:
+  - ⭐ **Decided: `installExit` takes a fourth parameter, `judgeAs`** — the
+    authored way a warren's way is a copy of. The edge rules lived only on
+    the applied-from-spec path (`applyExits` → `_refuseIfUntrue`), and a
+    copy's inside ways are installed with a live destination, so without
+    this they were never judged. `FloorplanWarren.wireWays` passes the plan
+    row's spec. Tests (HoldingWarren): a named way inside a copy is refused;
+    a misplaced cell is installed unbuilt; a named way out is admitted with
+    the far side standing or not.
+  - D6's `peekDestination()` read surfaced an over-broad mock in
+    `Ship.charter.test` (`findByIdentityPath` answering the charterer for
+    every path) — narrowed. `Ship.flooding.test` cloned the deck ROW as
+    "ashore" (now refused, D4) — a plain `Locale` instead. Ship and
+    floorplan fixtures author cells.
 
 #### B5 — Code-complete
 
