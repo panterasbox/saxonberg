@@ -138,8 +138,8 @@ a tall structure gains a point; nothing else.
   sea it sends bearing and range. ⚠ Under this build's rule what reaches
   the client is the **rough direction** you could read (the compass point
   and the rough distance), never the true bearing; `measure bearing` is how you
-  get more. That is a change to what the navigation-server build sends at
-  sea; agree it with that build before either plan is written.
+  get more. That changes what the navigation-server build sends at sea —
+  **agreed 2026-11-16** and recorded in its requirements.
 - **The Harbor, Wharfside, the Estuary, the headland, University Avenue,
   the bathhouse.** Their authored lists name zones today; each becomes
   an override or is dropped because the rule now gives the same answer.
