@@ -1840,6 +1840,35 @@ slate) and the review's findings · D21 the dying window ends on the
 clock. W4 and W5 below § Waves are rewritten from them. The W4 and W5
 records are appended here as those waves measure.
 
+### The first quiet-box run (2026-11-17, all waves landed)
+
+`WIRE_QUIET=1 WIRE_BOOT=1 pnpm wire crowd-timing` under the suite lock,
+siblings asked to hold (all four agreed), fresh database. The precheck
+passed: 1-minute load 0.93 at start. (A first attempt never ran a step: a
+cold boot on a reset database overran the 420 s budget; re-run with
+`WIRE_BOOT_TIMEOUT=900000`.)
+
+| step | result | gate |
+|---|---|---|
+| 1 idle, nobody logged in | **0.170 cores** over ten minutes (foreign 0.24) | < 0.15 — ✗ by 0.02 |
+| 2–9 thirty, the cards, the mould | stopped at step 6: no `mql-subscription-delta` for the watcher's `here` card within 2 s of an arrival (nothing captured at all) — under investigation | — |
+| 10 restart | not meaningful (step 6 threw before the places were recorded) | — |
+| 11 one hundred (reported) | logins p50 2.1 s / p95 3.8 s; `say` alone p50 189 / p95 260 ms; all at once p95 15 s; `/healthz` 142 of 356 samples over 100 ms (max 8.7 s); server 0.92 cores; load 0.93 → 1.38; foreign 0.21 | — |
+
+Idle against W0's 0.81 (busy box): the empty world is ~4.8× cheaper.
+
+**Step 6, isolated afterwards** (a kept world, two sessions, nobody else
+in the square): the watcher's `here` card DID receive its delta for the
+arrival. So the wake is right and the miss is **latency at thirty**: one
+arrival dirties all thirty-one room cards, each recomputes the room's own
+row (its stale `contents` re-runs the membership resolve and the
+perception filter over ~31 occupants, plus `longDescription`'s augmenters;
+the child rows are memo hits), and the time-sliced drain (20 ms slices,
+resting 2× what it ran) delivers the last card past 2 s. Not yet measured
+by a profile; this is the reading of the code and the probe. The levers
+are named for review (§ Risks: the first projection is one unit of N
+rows; D7's row target was met for child rows, not for a place's own row).
+
 *(appended at build time)* — the W0 record and the checkpoint's decisions
 (D13 onward); W6's first quiet run; W7's full blocking drive with the load
 beside every number; the one-hundred record; what each found. The soak
