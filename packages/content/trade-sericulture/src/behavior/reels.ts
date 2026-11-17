@@ -58,7 +58,8 @@ const DEFAULT_COUNT = 8;
 
 function held(hand: Hand, path: string): number {
   let n = 0;
-  for (const s of hand.getContents() as Stuff[]) {
+  // Everything carried (W9: a pocketed skein is its coat's contents).
+  for (const s of hand.getCarriedContents() as Stuff[]) {
     if (s.getTemplatePath() !== path) continue;
     n += MixinApi.isStackable(s) ? s.getQuantity() : 1;
   }

@@ -430,8 +430,7 @@ describe('feed <bed>', () => {
     const sack = makeSack(20);
     ContainmentApi.move(sack, giver);
     const plant = makePlant();
-    ContainmentApi.move(plant, bed);
-    bed.occupy(plant, PLANT_SLOT);
+    bed.seatInSlot(plant, PLANT_SLOT);
 
     const ctrl = makeStuff(() => new FeedController());
     await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));

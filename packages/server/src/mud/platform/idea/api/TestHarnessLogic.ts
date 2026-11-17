@@ -18,6 +18,12 @@ import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { GovernmentApi } from '../../../api/government';
+import { PlayerApi } from '../../../api/player';
+import { Quantity } from '../../../lib/quantity';
+import { PersistedRecord } from '../../../lib/persistence/PersistedRecord';
+import type { ContentEntry, MixinSlice } from '../../../lib/persistence/PersistenceSlice';
+import Condition from '../Condition';
+import Species from '../species/Species';
 import ShipRegister from '../ShipRegister';
 import Ship from '../Ship';
 import ExpanseNode from '../ExpanseNode';
@@ -130,6 +136,32 @@ export interface ShipStageReport {
   readonly at: FramePos | null;
 }
 
+/** What `testharness gravity-set` did (size and carrying drive 19). */
+export interface GravityReport {
+  /** The place, by template path. */
+  readonly place: string;
+  /** Its own override now, m/s² — null when it inherits. */
+  readonly own: number | null;
+  /** What it reads now (the override, else the resolved chain). */
+  readonly now: number;
+}
+
+/** What `testharness afflict` did (size and carrying drive 15). */
+export interface AfflictReport {
+  readonly character: string;
+  readonly condition: string;
+  /** How the body reads after it: conscious, unconscious or dead. */
+  readonly consciousness: string;
+}
+
+/** What `testharness species` did (size and carrying drive 7). */
+export interface SpeciesReport {
+  readonly character: string;
+  readonly species: string;
+  /** The body's mass after the change, kg. */
+  readonly massKg: number;
+}
+
 /**
  * @internal — the logic singleton behind `TestHarnessApi`. Registers at
  * `/platform/idea/api/test-harness`; methods admit only the
@@ -229,6 +261,108 @@ export class TestHarnessLogic extends ApiLogic {
   @CallSecurity(TestHarnessApiCallers)
   public async unpinWeather(scope: string): Promise<WeatherPinReport> {
     return this.setPin(scope, null);
+  }
+
+  /** See {@link TestHarnessApi.setGravity}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async setGravity(scope: string, ms2: number | null): Promise<GravityReport> {
+    if (ms2 !== null && !(Number.isFinite(ms2) && ms2 >= 0)) {
+      throw new Error(`testharness gravity-set: a value in m/s² (0 or more), or \`clear\` (got ${ms2})`);
+    }
+    const place = await StuffApi.singleton<Stuff>(scope).catch(() => null);
+    if (place === null || place.isDestroyed()) throw new Error(`testharness gravity-set: nothing loads at '${scope}'`);
+    if (!MixinApi.isAtmospheric(place)) throw new Error(`testharness gravity-set: '${scope}' has no gravity of its own`);
+    // The place's own authored override — what a row's `gravity:` sets —
+    // so what it presses and what it weighs follow at once (D5, D6).
+    place.setGravity(ms2 === null ? null : Quantity.of(ms2, 'm/s²'));
+    return {
+      place: place.getTemplatePath() ?? scope,
+      own: ms2,
+      now: place.gravityNow().rawValue(),
+    };
+  }
+
+  /**
+   * See {@link TestHarnessApi.afflict}. A condition with a toxin behind it
+   * (anaesthesia) is DOSED — its stage is a live read of the burden, so an
+   * affliction record alone would be read back to nothing — to its top
+   * band; any other is afflicted at `stage`. The body is then read once, so
+   * whatever going under does (its hands let go, D13) happens now.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async afflict(handle: string, conditionPath: string, stage = 1): Promise<AfflictReport> {
+    // The stage is the logic's to judge, not the verb's (lint:controller-decisions).
+    if (!(Number.isFinite(stage) && stage > 0)) throw new Error(`testharness afflict: a stage is a number above 0 (got ${stage})`);
+    const body = this.residentCharacter(handle, 'afflict');
+    const row = await StuffApi.singleton<Stuff>(conditionPath).catch(() => null);
+    if (!(row instanceof Condition)) throw new Error(`testharness afflict: '${conditionPath}' is not a condition`);
+    if (!MixinApi.isVitals(body)) throw new Error(`testharness afflict: '${handle}' has no vitals`);
+    const toxin = row.getToxinBehavior();
+    if (toxin !== null && MixinApi.isMetabolic(body)) {
+      // Bring the body current FIRST, or the dose is cleared at once by the
+      // reconcile of every minute since its last read (the drive's first
+      // staging read back `conscious`).
+      body.getConsciousness();
+      // Past the top band, and enough over it to hold for a game hour at
+      // the row's clearance — long enough to be searched.
+      const top = Math.max(0, ...toxin.bands.map((b) => b.threshold));
+      body.introduceToxin(toxin.toxinType, top * 1.5 + toxin.clearanceRate * 60);
+      if (!body.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === conditionPath)) {
+        body.afflict({ kind: 'affliction', templatePath: conditionPath, stage, elapsed: 0 });
+      }
+    } else {
+      body.afflict({ kind: 'affliction', templatePath: conditionPath, stage, elapsed: 0 });
+    }
+    return {
+      character: handle,
+      condition: conditionPath,
+      consciousness: body.getConsciousness(),
+    };
+  }
+
+  /**
+   * See {@link TestHarnessApi.setSpecies}: a staged body of another kind —
+   * the species set and the mass re-seeded from it (the frame the species
+   * gives; `Creature.getMass` seeds a zero mass on its next read).
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
+    const body = this.residentCharacter(handle, 'species');
+    const species = await StuffApi.singleton<Stuff>(speciesPath).catch(() => null);
+    if (!(species instanceof Species)) throw new Error(`testharness species: '${speciesPath}' is not a species`);
+    if (!MixinApi.isOrganism(body) || !MixinApi.isTangible(body)) {
+      throw new Error(`testharness species: '${handle}' is not a body`);
+    }
+    body.setSpecies(species);
+    body.setMass(Quantity.of(0, 'kg'));
+    return {
+      character: handle,
+      species: speciesPath,
+      massKg: body.getMass().rawValue(),
+    };
+  }
+
+  /**
+   * See {@link TestHarnessApi.removeThing}: a thing taken out of the world
+   * by id wherever it is — a wizard reaching into a character's shut pack
+   * (size and carrying drive, step 14). The thing is destructed.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async removeThing(stuffId: string): Promise<{ removed: string }> {
+    const id = stuffId.replace(/^#/, '');
+    const thing = StuffApi.findById(id);
+    if (!thing || thing.isDestroyed()) throw new Error(`testharness remove: nothing has the id '${id}'`);
+    if (thing.isAgent()) throw new Error('testharness remove: a body is not a thing to remove');
+    const name = thing.getPresentation();
+    await StuffApi.destruct(thing);
+    return { removed: name };
+  }
+
+  /** A resident character by name — what the staging verbs act on. */
+  private residentCharacter(handle: string, verb: string): Stuff {
+    const avatar = PlayerApi.findAvatarByName(handle);
+    if (!avatar) throw new Error(`testharness ${verb}: no resident character named '${handle}'`);
+    return avatar as unknown as Stuff;
   }
 
   /** See {@link TestHarnessApi.stage}. */

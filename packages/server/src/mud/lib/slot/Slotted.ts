@@ -148,6 +148,25 @@ export interface Slotted {
    * containment is where the part physically is. The host must be a Container.
    */
   seatInSlot(item: Stuff & Containable & Slottable, slot: string): void;
+  /**
+   * ⭐ **The explicit "occupy these slots" act** (size and carrying W8;
+   * finalize R4): seat `item` across `slots` at once (a two-handed grip, a
+   * garment's whole claim, a mule's pack saddle). It MOVES then OCCUPIES —
+   * `ContainmentApi.move(item, this)` first (contents are where the thing
+   * physically is), then every slot, all or none (`occupyAll`). A thing that
+   * already occupies slots on this host comes out of them first (a held
+   * coat put on, a sword moved to the hand it is wielded in). A claim that
+   * will not seat leaves nothing behind: the old slots are taken again, the
+   * thing goes back where it came from, and the claim's error is thrown.
+   * Unlike `move(item, body)`, which the body ROUTES, this names the slots.
+   */
+  seatInSlots(item: Stuff & Containable & Slottable, slots: readonly string[]): void;
+  /**
+   * Is `item` being seated on this host right now (between its arrival in
+   * the contents and its slot claim)? A body's arrival rule reads it: a
+   * thing on its way into a slot is not loose. Runtime only.
+   */
+  isSeating(item: Stuff): boolean;
   /** Why `candidate` may not occupy `slot`, in the host's words, or `null`. */
   canOccupyReason(candidate: Stuff & Slottable, slot: string): string | null;
 
@@ -364,18 +383,85 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public openSlotFor(item: Stuff, word?: string): string | null {
       const host = this as unknown as Stuff & Slotted;
-      if (MixinApi.isVitals(host) || !MixinApi.isSlottable(item)) return null;
-      if (!new PlacementOffers(host).admitsSlot(word)) return null;
+      // ⭐ A body that can dress itself is not `put` into (that is `wear`);
+      // one that cannot — a mule, a hog: no hands — takes its tack by `put`
+      // (size and carrying D-W10-8).
+      const dressesItself = MixinApi.isVitals(host) && (!MixinApi.isAttired(host) || host.handSlots().length > 0);
+      if (dressesItself || !MixinApi.isSlottable(item)) return null;
+      // Tack goes ON a beast (`put saddle on mule`); any other slot host
+      // takes the word its interior takes.
+      const beast = MixinApi.isVitals(host);
+      if (beast ? word !== undefined && word !== 'on' : !new PlacementOffers(host).admitsSlot(word)) return null;
+      // ⭐ A posture-bearing slot (a bench's seat, the handcart's `bed`) is
+      // where a BODY sits or lies — the posture verbs fill it, never `put`.
+      // Since a hand holds any good (size and carrying W7-f) every good is
+      // slottable, so a ration put in the handcart took its bed (the drive,
+      // step 18). Only a body that takes postures is offered one here.
+      const postured = MixinApi.isPosed(item);
       for (const name of this.getSlotNames()) {
         if (this.isSlotFull(name)) continue;
+        if (!postured && (this.getSlotSpec(name)?.postures?.length ?? 0) > 0) continue;
         if (this.canOccupy(item, name)) return name;
       }
       return null;
     }
 
     public seatInSlot(item: Stuff & Containable & Slottable, slot: string): void {
-      ContainmentApi.move(item, this as unknown as Stuff & Container);
-      this.occupy(item, slot);
+      this.seatInSlots(item, [slot]);
+    }
+
+    /**
+     * The things being seated right now (size and carrying W8) — marked for
+     * the move's duration so a body's arrival rule (`Creature.arrivalFor`)
+     * sees a thing on its way into a slot, not a loose one. A rack's mark
+     * is read by nobody. Runtime only.
+     */
+    private _seating = new Set<string>();
+
+    public seatInSlots(item: Stuff & Containable & Slottable, slots: readonly string[]): void {
+      // ⭐ Contents first, then the slots: the move lands it in the
+      // contents a moment before the claim, under the mark.
+      const id = item.stuffId;
+      const had = this._seating.has(id);
+      const self = this as unknown as Stuff & Container;
+      const from = item.getContainer();
+      // Out of any slot it holds on this host first (finalize R6): the slots
+      // it moves to are named, and its old ones are taken again on a refusal.
+      const prior = [...this.getAllOccupants()].filter(([, occ]) => occ.has(item)).map(([slot]) => slot);
+      for (const slot of prior) this.vacate(slot, item);
+      this._seating.add(id);
+      try {
+        ContainmentApi.move(item, self);
+        try {
+          if (slots.length === 1) this.occupy(item, slots[0]!);
+          else this.occupyAll(item, slots);
+        } catch (err) {
+          for (const slot of prior) this.occupy(item, slot, { restoring: true });
+          // A claim that will not seat leaves nothing loose behind: back
+          // where it came from (a fresh thing, nowhere), then the throw.
+          if (from !== self && item.getContainer() === self && !item.isDestroyed()) {
+            try {
+              ContainmentApi.move(item, from);
+            } catch (back) {
+              // ⚠ Not swallowed (finalize A6, P3): the claim failed AND the
+              // put-back failed, so the thing is loose on this body. Both are
+              // said, the claim's error first (it is the cause).
+              throw new Error(
+                `seatInSlots: ${item.stuffId} would not seat (${err instanceof Error ? err.message : String(err)}), ` +
+                  `and would not go back where it came from (${back instanceof Error ? back.message : String(back)})`,
+                { cause: err },
+              );
+            }
+          }
+          throw err;
+        }
+      } finally {
+        if (!had) this._seating.delete(id);
+      }
+    }
+
+    public isSeating(item: Stuff): boolean {
+      return this._seating.has(item.stuffId);
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
@@ -422,6 +508,12 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     private fitsSlotSpec(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
       if (!spec) return false;
+      // ⭐ A carrier's hand closes on any slottable thing (size and carrying
+      // W7): its `accepts` and the thing's claim say where `wield`/`wear`
+      // put it, not what a hand may hold — the grip decides
+      // (`Carrying.handsFor`).
+      const host = this as unknown as Stuff;
+      if (MixinApi.isAttired(host) && host.handSlots().includes(slot)) return true;
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

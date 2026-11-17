@@ -72,7 +72,7 @@ import { MUD, packSources, packSrcFiles } from "./pack-roots";
 // 82 → 81 by the documents path-identity build: three catalogues with an
 // onCreate warm left (operations, placements), SoilableMixin gained one
 // (the kernel dirt vocabulary, D7 mechanism 4).
-export const ON_CREATE_CEILING = 71; // load-on-use W10 (review): −7 — no host readies its Api's dictionaries any more (Vitals, Contaminable, Maturing, Ripening, Fractionating, Finishing, Soilable); the boot stands every Api's needs. // load-on-use round two: −2 net (five catalogue warms and Fabric left). // documents W4: the topic catalogue left (its warm is the pipeline's now).
+export const ON_CREATE_CEILING = 71; // size and carrying W8: back to 71 — `Creature.onCreate` (`ensureSpecies`, +1 at the load-on-use merge) RETIRED into the applier's constituent wait. The audit's cause, confirmed: `StuffApi.ensureConstituent` returned without awaiting a row load already in flight, so a cast mule minted while another body's load of its species was pending stood unplanned; it now awaits an in-flight load whenever the holder is a clone (never a row loading — the deadlock case). Was 71; load-on-use W10 (review): −7 — no host readies its Api's dictionaries any more (Vitals, Contaminable, Maturing, Ripening, Fractionating, Finishing, Soilable); the boot stands every Api's needs. // load-on-use round two: −2 net (five catalogue warms and Fabric left). // documents W4: the topic catalogue left (its warm is the pipeline's now).
 
 /**
  * ⭐⭐ **The loading ceiling** — the subset of those bodies that look like

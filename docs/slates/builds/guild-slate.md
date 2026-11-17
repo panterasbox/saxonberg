@@ -17,6 +17,10 @@
 > the no-custom-code acceptance test · guild governance riding the
 > shipped Office substrate · the noun/verb amendment (verbs → ⭐ **five verb
 > GUILDS**, 2026-11-07, overturning "University faculties")
+> ⭐ **2026-11-16, designed from Dave's Bar** (§ *The Bartenders' Guild*, at the end): NPC
+> membership without weight, masters-vs-workers as charter content, the living mark against the
+> permanent degree, the guild keeping the canon, and **authors' conflict of interest**: a lever
+> is governance, never worldcrafting.
 > **Size:** a build
 
 > This slate is the institution-level guild design. It **supersedes and
@@ -78,6 +82,9 @@ Two corollaries:
   gates *learning*. Anything is trainable guildless; the guild gates
   recognition, acceleration, and the interior. The self-taught prodigy
   exists; she just can't walk into the archive or sign with the mark.
+- ⚠ *(2026-11-16, the owner: the mint-time rule is about **when a charter goes live**, never a
+  reason to leave a guild out of the design. A design session designs all of it and names what is
+  missing.)*
 - **The mint-time rule**: *don't charter a guild until the world already
   pays for its vocation.* The biggest real inequality between guilds is
   demand-side — a guild over a rich economic loop vs. one over a system
@@ -625,7 +632,7 @@ law**; harm to *people* is **meta-state** (moderation) — the membrane.
 | **The Free Company** | private, plural, examined | contract arms + the fighting school (melee, blades, command; sparring floor under consented terms); *lightning/destroy* | tuition; culls (a landholder pays for wolf control); wilds escort; **marshal's writs** |
 | **The Ironwrights** *(rename open — region is broader than iron)* | private, examined; corpo wings natural | **making across materials** — forge / loom / kiln wings; construction forms, repair; *fire/create* | the **wear economy** (`DurableMixin` condition → repair demand on every used good); arms, tools, clothing (`clo`/warmth is real physics); metal **imported until the Delve opens** — its own story |
 | **The Grange** | private, electoral, broad | cultivation, soil, husbandry + breeding (herd wing lags the ranching stub), genetics | **metabolism is the paymaster** — everyone eats; per-capita demand never zero; supply to Victuallers + the store; the Reserve's welfare **floor-buy** (polity paper) |
-| **The Victuallers** | private, open-door | cooking, **brewing/distilling** (fermentation crafts land here, not the Grange), mixology, hospitality | the deepest *shipped* loop (bar wages/tips live); metabolism again; Dave's Bar = a chapter |
+| **The Victuallers** | private, open-door | cooking, **brewing/distilling** (fermentation crafts land here, not the Grange), mixology, hospitality | the deepest *shipped* loop (bar wages/tips live); metabolism again; Dave's Bar = a chapter. ⚠ *2026-11-16 lean: split into trade guilds (a **Bartenders' Guild** beside brewers, distillers, cooks), the Victuallers kept at most as their federation — § The Bartenders' Guild* |
 | **The College of Physic** | private, examined, service | medicine, anatomy, toxicology, triage; *body/perceive* | combat + hazards generate injury natively; treatment fees, retainers (Company, mines), polity public-health paper. **2026-07-31: the vertical is designed → [health-vertical-slate](./health-vertical-slate.md)** — it staffs the public-health office and its paper stream is the outbreak work |
 | **The Wardens** | private, plural, field | survival, tracking, awareness/stealth, hazard-craft, weather-reading, taming; *beast/plant/sense* | hazard **abatement for landholders** (parcel owners pay to clear traps/beasts); the **pet supply chain** (taming feeds the shops — pets W1); guiding/rescue off the TPA grid |
 | **The Landwrights** | private charter **holding public contracts** | survey, valuation, conveyancing/title-law, development, tenancy-stewardship; *earth/perceive* | the polity **assessment contract** (DAU-independent); see the deep-dive |
@@ -789,6 +796,12 @@ carry it. The pooling functions arrive with the population, and until
 then they are correctly *absent* rather than embarrassingly thin.
 
 ## ⭐⭐⭐ What players-only buys — and it is bigger than skipping the brains
+
+> ⚠ **Amended 2026-11-16 (the owner).** NPCs **are** guild members, staff and officers' hands:
+> *"what about someone who works at the guild hall, are they just some rando?"* What survives
+> from this section is narrower and stronger: **NPCs never vote, never pay dues, and never do
+> anything that turns content into a guild-grinding machine.** Judgment stays with people; see
+> § *The Bartenders' Guild*.
 
 **You do not have to mechanize judgment.**
 
@@ -1246,3 +1259,235 @@ changes. **The map room is a chart its readers keep feeding.**
 
   The lean: **the supply chain as the primary order**, **precedence and
   federation left to each polity**. To decide when the slate fills out.
+
+## ⭐⭐⭐ Designed 2026-11-16 — the Bartenders' Guild, from Dave's Bar
+
+Talked through with the owner while designing the bar's trust ladder
+([bar-audition-slate § 14](./bar-audition-slate.md)) and the university's credential
+([classroom-and-credential-slate](./classroom-and-credential-slate.md)). The owner: *"I actually
+wanna use this conversation to drive some of the decisions behind guilds … let's just focus on the
+bartending guild. First of all, is that even the right framing?"*
+
+### Framing — a Bartenders' Guild that keeps the canon **[LEAN — lens 1 chose it]**
+
+- **Real history keeps food and drink trades apart.** London's livery companies (Livery company,
+  Q1139056) chartered the Vintners (Q8037091), Brewers (Q8037005), Distillers (Q8037022), Innholders
+  (Q8037052) and Cooks (Q8037018) as separate companies.
+- **Modern bartenders organize as bartenders.** The International Bartenders Association
+  (Q1430305, founded 1951) represents bartenders, and **it keeps the official cocktail list** the
+  bar's recipes anchor to. So a real bartenders' association already **keeps the canon**. Ours
+  does too: the bartender's guide behind Dave's bar is the guild's book
+  ([bar-audition § 7](./bar-audition-slate.md)). Who decides what a Negroni *is* is an
+  institution, and that is a true thing to teach.
+- **The Victuallers** become at most a **federation** of the food and drink guilds, the way the IBA
+  federates national associations. That fits § *two charters by default* and the supply-chain
+  organizing principle's *transform* tier.
+
+### NPCs in a guild — identity and service, never weight **[DECIDED — the owner]**
+
+*"NPCs don't vote, pay dues, or do anything that would turn content into guild grinding
+machines."* And on strikes: *"NPCs can go on strike if there's appetite for that kind of content."*
+
+| role | what it is | substrate | at the bar |
+|---|---|---|---|
+| **member** | sworn, a rank, wears the mark | the roll (unbuilt) | Mara as a master; Remy and Sloane as journeymen |
+| **officer** | runs the guild: warden, clerk, examiner | the **Office substrate** ([governance.md](../../subsystems/governance.md)) | players hold the seats that decide |
+| **employee** | works at the hall, paid by the guild | **employment**, with the guild as the business | the **steward** at the hall desk (keeps the roll, takes dues, **verifies a mark** when an employer asks, as the registrar verifies a degree); the board clerk; the archivist who keeps the canon book |
+
+- **No vote, no dues, no lever.** An authored roll of NPC masters can never outvote players, and
+  NPC wages never flow into a guild purse.
+- **NPCs keep identity and service:** they wear the mark, staff the hall, keep the canon, and
+  recognize fellow members (the slate's *two members who've never met owe each other something*,
+  plausibly riding the regard baseline). ⚠ **Unbuilt:** no NPC brain consults guild membership
+  today. Without that, NPC members are scenery wearing a badge.
+- **Strikes are content.** An authored strike is fine as a story. A strike only *bites* through
+  players, and a strike whose terms move money is a lever (§ *Authors' conflict of interest*).
+- ⚠ **Open (for the owner): can an NPC confer rank?** An NPC examiner applying authored criteria
+  to real evidence (drinks at a grade, judged against the canon) is not grindable, because the
+  estimator discounts easy checks. But conferring standing sits close to the line. The
+  alternative is that an NPC *administers* the exam and a player master signs the rank.
+
+### Masters and workers — governance policy manifest as content **[DECIDED — the owner]**
+
+*"There's room for both to exist, and this is actually governance policy manifest as content. Any
+individual guild balances representation and the needs of the masters vs workers, and some guilds
+can be either in balance or very out of balance, either represented as authored content or the
+internal politics of the guild itself."*
+
+- **Real history:** medieval craft guilds were largely associations of **master-proprietors**
+  (the masters owned the shops) controlling entry to the trade; journeymen's brotherhoods
+  (Wandering journeyman, Q1895245) and later unions were the labor side. Economic historians still
+  argue whether guilds served members (rent-seeking cartels) or the public (quality, training).
+  Occupational licensing today is the same argument.
+- **The balance is charter content:** who may vote, who may hold office, how ranks weigh. An
+  authored imbalance is a **written rule**, never an NPC voting bloc, so a players' workers'
+  faction can campaign to amend it. Internal politics is real from day one.
+- **Dave** is a proprietor. Whether he belongs depends on the guild's charter: a masters' guild
+  seats him, a workers' guild bargains with him.
+
+### The mark against the degree
+
+- **The university's credential is a permanent fact about the past:** completed the course, on
+  this date ([classroom-and-credential § 4](./classroom-and-credential-slate.md)).
+- **The guild's mark is a living, peer-maintained standing that can be revoked:** membership lapses
+  on a breached oath, and the steward verifies it against the roll, live.
+- The university attests that you **learned**; the guild attests that practitioners **still vouch
+  for you**. An employer reading either learns something different. In assessment-slate terms the
+  university is the *institution* issuer and the guild the *standards body*, which can sit the
+  practical at its hall.
+
+### Two axes: the house ladder and guild rank
+
+- **The house ladder** is one employer's trust in you: Dave's barback, bartender, cover, keeper.
+- **Guild rank** is the trade's portable, peer-held standing.
+- They can disagree: a guild master who never got Dave's keys, a barback holding rank earned at
+  another bar. That disagreement is content.
+- **What only the guild provides:**
+  - portable recognition (it means something at a bar that has never seen you pour);
+  - a clearinghouse for work outside a house (private events as gigs on its board, vouched and
+    arbitrated for a cut);
+  - norms among workers (who writes the tip-out rule: the house, the guild, or a negotiation);
+  - mysteries kept in knowledge (the canon's house specs).
+
+### What is missing to get there
+
+| piece | state |
+|---|---|
+| guild as an organization with a purse, staff and positions | ✅ business/organization + employment + banking |
+| officers | ✅ the Office substrate |
+| the roll and ranks | unbuilt (the `guild:` group provider) |
+| NPC membership, with no vote, dues or lever | unbuilt |
+| NPCs acting on membership (recognition, deference, an authored strike) | unbuilt; no brain reads guild state |
+| the mark: a living, revocable credential verified against the roll | unbuilt (a credential kind whose validity is read live) |
+| the hall: a guild-titled parcel with steward, board and archive | parcels ✅; the hall is content |
+| the board with claim gates | contracts ✅; claim gates unbuilt |
+| the canon book, consulted while building | paper ✅; recipes-slate O3 unbuilt |
+| calls (your kind summoned) | unbuilt; for bartenders perhaps events, or a bar fight (the bar-fight build exists) |
+| exams and rank conferral | the assessment slate's examiner model, unbuilt |
+| a founding purse | undecided (like the university's endowment) |
+
+### Lens pass — the guild design
+
+1. **Pedagogy:** members exercise the bartending subtree; officers exercise the Office machinery
+   the Compact runs on. A masters-to-workers spectrum lets players *live* the guild economics
+   argument. ⚠ Restriction must be able to bite for that lesson to be derivable: Dave's open
+   barback door and the NPC staff floor cap a cartel, so the cartel lesson lives where a polity's
+   licensure law (tier C) makes a mark required. Lens 1 chose the Bartenders' Guild and the
+   canon-keeping.
+2. **Expression:** the charter is content (representation, ranks, dues, oath, canon, calls,
+   secret or published canon). NPC members let an author ship a *living* guild. Lens 2 chose NPC
+   membership. Constant: the mark verified live against the roll. Variable: the charter.
+3. **3a Immersion:** NPC members must act like members, or they are scenery (unbuilt). **3b
+   Participation:** factions taking over a masters' guild, players displacing NPC-held seats,
+   breakaway guilds, licensure law. A strike bites only through players.
+4. **Values:** join or not; which guild; secret or published canon; vouch; expel; where a guild
+   sits between masters and workers, which is lens 4 manifest as content. Standing is conferred
+   by peers; **no public guild score**.
+5. **Continuity:** guilds outlive their trades. Many London livery companies survive as social
+   and charitable bodies long after their crafts stopped mattering commercially, so the obsolete
+   half is held by the institution itself.
+6. **Economy:** produces trust, standards, matched labor and arbitration; consumes dues, the hall,
+   the steward's wage and examiners' time; paid by player dues, the board's cut and corpo-endowed
+   wings. ⚠ It needs a founding purse, or an authored guild starts out dying.
+7. **Governance:**
+
+   | decision | criterion | appeal | tier |
+   |---|---|---|---|
+   | admission | the charter's (band, sponsor, exam) | another guild; the guildless route | the guild's |
+   | rank exam | examined by a master | another examiner, a retake | the guild's |
+   | mark revoked | oath breach, derivable from the accountability ledger | ⚠ unnamed: an internal hearing or the courts | the guild's, with recovery required |
+   | representation | the charter's balance | internal politics, amendment, a breakaway guild | the guild's |
+   | licensure (a mark required to work) | polity law | the polity | C |
+
+   **Invariant, tested and holding:** the **engine** never makes a guild the only path; a
+   **polity** may, by licensure.
+
+## ⭐⭐⭐ Authors' conflict of interest — a lever is governance, never worldcrafting **[DECIDED principle — the owner; codification LEAN]**
+
+*"What I don't want is people authoring content just to juice up their favorite guild. Players
+doing this in their ordinary consumption of content is fine, but content authors doing this to put
+their thumb on the scales economically is not really what labor is supposed to be doing. … If
+things need some kind of economic rebalancing, that market-external imposition should be done as
+governance, not just by worldcrafting."*
+
+Reaches well past guilds; recorded here because guilds raised it.
+
+**Why:** worldcrafting is a **market-external imposition**. An author decides what NPCs demand,
+what things cost on NPC businesses, what work pays and how big a faucet is, and the market treats
+all of it as given. A player buying a round at a guildmate's bar is participating in the market.
+An author writing an NPC who drinks forty negronis a night at their guild's bar is legislating
+without a vote. With a stake in who benefits, it is self-dealing. In measurement.md's terms (*the
+engine measures · the subject values · the polity imposes*), tilting the economy is imposing, and
+imposing is the polity's.
+
+### The test
+
+> **Expression** changes what the world is *like*. **A lever** changes *who gets paid, how much,
+> or who holds power.* A lever is fine when its author has no stake in who it benefits; when they
+> do, it goes through governance.
+
+- ⭐ **A value set by a participant inside the market is not a lever (lens 2 refined this).** A
+  player who owns a bar and sets its menu competes, and patrons can walk. A lever is a value
+  **written into the world** that the market must take as given: NPC demand, a faucet's size, an
+  authored wage floor or price on an NPC business, a standing grant, an institution's charter
+  weights. Dave's prices are a lever because no participant sets them; content does.
+- **Expression is free and costs nothing.** Most changes touch no levers and meet no friction.
+- **An authored strike** is expression; if its terms move money, that outcome is a lever.
+
+### Codification, on machinery that mostly exists
+
+1. **The engine measures.** Who authored every row is already recorded (provenance's authoring
+   ledger). Missing: the author's **stakes at the time** (memberships, offices, businesses owned),
+   and a **census of lever fields**, using the lint family's census-then-ratchet pattern.
+   ⭐ **The census starts at the conservation chokepoint: every faucet is a lever by
+   construction** (lens 6). An authored NPC that buys drinks is a money faucet, which is monetary
+   policy by worldcrafting. Then rates (wages, prices on NPC businesses), standing grants and
+   charter weights. Lens 1 chose a **field census** over outcome detection, so an author knows
+   **before writing** whether a change is a lever; flows are measured afterward as a check.
+2. **It is shown.** Content merges through GitLab review. A merge that changes a lever, by an
+   author with a stake in its beneficiary, is flagged in the MR. **The transparency floor:
+   invariant.** Nothing is forbidden at this layer.
+3. **The polity imposes.** A conflicted lever change needs approval from someone **without a
+   stake** (the cooperative slate's (identity, matter) recusal; the draft constitution's
+   *recusal-gated*), or it goes through governance as a visible, amendable instrument: a subsidy,
+   bounty or appropriation (the cooperative slate's reserve toolkit). **The recusal policy: tier
+   C.** The expression/lever principle itself: grain.
+
+### It binds the founder first
+
+The owner authored Dave's wage rate and the bar's prices. Today those are Tier B levers, honestly
+bound by code, publication and exit (Art. XI). By this rule, once a polity exists, **those levers
+move to governance**. ⭐ **The lever census is the 1.0 handover inventory** (lens 5): the concrete
+list of knobs that pass from the founder to the polity.
+
+### Lens pass — the conflict-of-interest rule
+
+1. **Pedagogy:** conflict of interest, self-dealing, recusal, regulatory capture, and **incidence**
+   (who actually benefits: an authored NPC thirst at one bar is a subsidy to whoever works there,
+   derivable from supply and demand). Lens 1 chose the field census.
+2. **Expression:** in-market acts are not levers; expression stays free. Lens 2 drew that line.
+3. **3a Immersion:** interventions become visible institutions in the fiction (a bounty, a city
+   contract) instead of an unexplained thirst. **3b Participation:** the polity gains a real power.
+   ⚠ **Majorities can self-deal:** the conflict moves to where it is visible and contestable; it
+   does not vanish. (Identity, matter) recusal has to reach voters as well as authors.
+4. **Values:** whether an intervention is justified, and what counts as a stake. ⛔ **No conflict
+   score on a person:** a flag on a change, never a running number.
+5. **Continuity:** levers exist in every epoch (the lamp-oil street lighting's civic bill is one).
+   The census doubles as the 1.0 handover inventory.
+6. **Economy:** every faucet is a lever. It consumes reviewers' time, so the common case must cost
+   nothing; reviewing could earn labor standing. It makes hidden costs explicit: a subsidy is paid
+   from a visible treasury, and an authored thirst was paid from nowhere anyone could see.
+7. **Governance:** the flag judges an author. Criterion: a written definition of *stake* plus the
+   census (⚠ an unwritten definition would be this lens's failure case). Appeal: a non-conflicted
+   approver, or governance. Tier C for the recusal policy. A false positive costs a flag, not a
+   ban.
+
+### Open
+
+1. **The lever census** — which fields, and the edge cases (is an NPC's *taste* for negronis a
+   lever, if it generates demand?).
+2. **What a stake is** — membership only, or also offices, businesses owned, places worked.
+3. **Who approves a conflicted change before a polity exists** — today the founder (Art. XI).
+4. **Majority self-dealing** — recusal for voters.
+5. **NPC examiners conferring rank** (§ *NPCs in a guild*).
+6. **The mark's revocation appeal**, and **a guild's founding purse**.

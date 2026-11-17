@@ -15,11 +15,12 @@ import { ContainmentApi } from "../../api/containment";
 import { BiomeApi } from "../../api/biome";
 import { Idea } from "../../lib/stuff/Idea";
 import { ContainerMixin } from "../../lib/spatial/Container";
-import { ContainableMixin } from "../../lib/spatial/Containable";
 import { PersistableApi } from "../../api/persistable";
+import { Tool, withHands } from "../../lib/slot/__tests__/carrying-fixture";
 
 class Room extends ContainerMixin(Idea) {}
-class Goods extends ContainableMixin(Idea) {}
+/** A thing a hand takes — what a body carries (size and carrying W8). */
+class Goods extends Tool {}
 class OfferedGoods extends Goods {
   static commandContributions = { peers: ["platform/cmd/perception/look.yaml"] };
 }
@@ -170,7 +171,9 @@ describe("signing out", () => {
 
   it("⭐ what it carried does not land on the floor (the record holds it)", async () => {
     vi.spyOn(PersistableApi, "capture").mockResolvedValue(undefined as never);
-    const a = body("so-goods");
+    // A body that carries holds what arrives (size and carrying W8); with
+    // no hands it would set the thing down at its feet, on that floor.
+    const a = withHands(body("so-goods"));
     const room = makeStuff(() => new Room());
     ContainmentApi.move(a as never, room as never);
     const good = makeStuff(() => new Goods());
@@ -185,7 +188,7 @@ describe("signing out", () => {
     const room = makeStuff(() => new Room());
     const witness = body("so-witness");
     ContainmentApi.move(witness as never, room as never);
-    const a = body("so-carrier");
+    const a = withHands(body("so-carrier"));
     const good = makeStuff(() => new OfferedGoods());
     ContainmentApi.move(good as never, a as never);
     ContainmentApi.move(a as never, room as never);

@@ -36,6 +36,10 @@ help: |
   how it was joined, and on who is taking it apart.
 
   A label is not fitted — it is pasted: `paste label on jar with paste`.
+
+  Used where it sits — in hand, in an open holder on you, or within
+  reach; a shut holder says `open` it first, a pack on your back says
+  take it off.
 examples:
   - cmd: fit haft to pick
     note: Replace one part and keep the rest
@@ -77,3 +81,5 @@ args:
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

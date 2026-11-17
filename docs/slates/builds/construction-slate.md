@@ -140,6 +140,13 @@ the completed product"*, the site can be good content of its own:
 - **The erection bill** (from the paint build, 2026-11): a `Structure` IS
   made of materials — a bill to erect and later to maintain (the owner) —
   but no bill is authored or consumed yet; `maintain` takes only a kit.
+- **Clearance as a building code** (size-and-carrying finalize, 2026-11-16; salvaged from size-slate § 7.4 /
+  § 7.7). Ways now have a clearance and a turn, and a body an envelope by
+  stature, so **a built environment can exclude bodies** — a door too
+  narrow for a wheelchair, a city built for humans that shuts out ogres.
+  A polity deciding *whom its buildings admit* is a code with a criterion
+  and an appeal (lens 7): minimum clearances by building use, inspected at
+  the element. The size substrate reads the numbers; who sets them is here.
 ## 5. ⭐⭐ The owner's constraint, and the first worked element (2026-11-02)
 
 From the water-supply planning: *"we need a real construction design that

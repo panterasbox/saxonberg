@@ -11,6 +11,24 @@ help: |
 
   Name several things at once to grab them in one go. You can't get
   what you're already carrying.
+
+  What arrives on you without your naming a place goes where your
+  body puts it: a free hand first (your pockets first if you set
+  `carry.order` to `pockets-first` — `settings describe carry.order`),
+  else a pocket or a hook on your belt it fits, else a bag you wear or
+  carry; if nothing takes it you are told what your hands hold and what
+  to `drop` or `put` away, and nothing moves.
+
+  `get` carries: it never picks a thing up only to set it down again —
+  nothing takes it, nothing moves, wherever it lay. `get X from
+  <something on you>` — your belt, a pocket, the pouch on your belt —
+  takes it in a free hand; with both hands full you are told what you
+  hold and what to `drop` or put away. A shut pouch or a buttoned pocket
+  is shut: `open` it first.
+
+  The room is searched first, then what is on you (`scope: [peers,
+  reachable]`). In a fight, getting a thing out costs a beat by where it
+  is (`help fight switch`).
 examples:
   - cmd: get coin
     note: Pick up a thing here, or reach into an open container for it
@@ -24,11 +42,15 @@ args:
   - name: targets
     type: objects
     required: true
-    scope: "peers"
+    # ⭐ The room first, then what is on you (size and carrying W7-d): `get
+    # lantern` picks up the one on the floor, and `get lantern from belt`
+    # finds the one hanging from your belt — the source keeps only what it
+    # holds. What you already hold in a hand is never picked up again (the
+    # controller); what is on you comes to hand.
+    scope: ["peers", "reachable"]
     requires: [VisibleMixin, ContainableMixin]
     validators:
-      - /lib/command/validators/mustBeInLocation
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
   # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
   # open container standing here, so the targets bind without it; naming
   # the holder narrows them to what is IN it or ON it (`get block from
@@ -40,7 +62,11 @@ args:
     required: false
     # Greedy: `get loaf from the sugar cone` is several words.
     prepositions: [from, off]
-    scope: "peers"
+    # ⭐ Your own belt, pocket or pack first (size and carrying D17, W7-d:
+    # `get holster from belt` takes it in hand) — on `peers`, `get lantern
+    # from belt` searched a belt pouch lying on the floor (the drive). Held
+    # to what you can reach, not merely to the room.
+    scope: "reachable"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]
     validators:
-      - /lib/command/validators/mustBeInLocation
+      - /lib/command/validators/canReach

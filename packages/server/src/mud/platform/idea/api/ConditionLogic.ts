@@ -1118,6 +1118,7 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 
   const stuff = body as unknown as Stuff;
   if (landing && MixinApi.isContainable(stuff) && MixinApi.isContainer(landing)) {
+    // A body arriving is an agent — every container admits it (a rider into a mount too).
     ContainmentApi.move(stuff, landing);
   }
 

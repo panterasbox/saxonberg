@@ -7,6 +7,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
+import { CarryingMixin } from '@saxonberg/server/mud/lib/slot/Carrying';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PrescribeController from '../idea/cmd/medical/PrescribeController';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
@@ -27,7 +29,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Prescription } from '@saxonberg/server/mud/lib/vitals/Prescription';
 import PrescriptionThing from '@saxonberg/server/mud/platform/thing/Prescription';
 
-class Doc extends AdvancementMixin(Creature) {
+class Doc extends AdvancementMixin(CarryingMixin(Creature)) {
   static override _mixinName: string = 'Doc';
   public band: CompetenceBandName = 'competent';
   public override async competenceBandFor(): Promise<CompetenceBandName> {
@@ -91,7 +93,7 @@ afterEach(() => {
 
 describe('prescribe', () => {
   function scene(): { doc: Doc; patient: Creature } {
-    const doc = makeStuff(() => new Doc());
+    const doc = withHands(makeStuff(() => new Doc()));
     stampTemplatePathForTest(doc, '/platform/agent/Avatar/rx-doc');
     const patient = makeStuff(() => new Creature());
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/rx-pt');

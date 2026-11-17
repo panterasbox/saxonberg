@@ -61,6 +61,7 @@
  *   wield <wieldable>          precise: this goes IN HAND
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -116,7 +117,11 @@ type SkipReason =
    * player needs to know the difference between *"you have no tail"* and
    * *"your hand is broken"*.
    */
-  | 'cannot-grip';
+  | 'cannot-grip'
+  /** ⭐ It takes both hands and one holds something (size and carrying D10/D16). */
+  | 'hands'
+  /** Past what this body can lift at all (D10). */
+  | 'heavy';
 
 const SKIP_PHRASE: Record<SkipReason, string> = {
   worn: 'you already have it on',
@@ -126,6 +131,8 @@ const SKIP_PHRASE: Record<SkipReason, string> = {
   'no-slots': "doesn't fit your body",
   busy: 'your hands are full',
   'cannot-grip': 'your body cannot work it',
+  hands: 'it takes both hands',
+  heavy: 'more than you can lift',
 };
 
 /**
@@ -198,7 +205,10 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
      * both and says neither.
      */
     const held = EquipControllerBase.claimAs(one, mode) === 'wield';
-    await this.engage(one, context, giver, () => {
+    // ⭐ In a fight, taking a thing up is a guarded beat by where it is
+    // (D-W10-5); `wear`'s dressing step is unchanged.
+    const seconds = held && MixinApi.isCombatant(giver) ? giver.handActSeconds(one) : 0;
+    await this.guarded(giver, seconds, () => this.engage(one, context, giver, () => {
       EquipControllerBase.put(one, giver, mode);
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -213,7 +223,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
             : Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(one)}.`,
         )
         .send();
-    });
+    }));
   }
 
   /**
@@ -248,7 +258,8 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     giver: Stuff,
   ): boolean {
     if (EquipControllerBase.claimAs(item, mode) !== 'wield') return false;
-    if (!MixinApi.isHauling(giver) || !giver.isHitched()) return false;
+    if (!EquipControllerBase.handsOnCart(item, giver)) return false;
+    if (!MixinApi.isHauling(giver)) return false;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
@@ -284,7 +295,12 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     const remaining = pool.filter(
       (c) =>
         this.equippable(c) &&
-        !(MixinApi.isSlottable(c) && c.getOccupiedHost()?.stuffId === giver.stuffId),
+        !(
+          MixinApi.isSlottable(c) &&
+          c.getOccupiedHost()?.stuffId === giver.stuffId &&
+          // A thing merely HELD is still to put on (the flip, W7).
+          !(MixinApi.isCarrying(giver) && giver.tierOf(c) === 'hand')
+        ),
     );
     if (remaining.length === 0) {
       MessageApi.scene(giver)
@@ -314,7 +330,12 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
      * itself reads, and `wouldLayerViolate` stays as the per-item gate
      * for what the sort cannot know (what is ALREADY on).
      */
+    // ⭐ And what goes on before what is taken up (size and carrying
+    // D10/D16): a weapon is gripped once the gloves are on and the hands
+    // are free, so a two-hander is claimed last.
     remaining.sort((a, b) => layerDepthOf(a) - layerDepthOf(b));
+    const taken = remaining.filter((x) => EquipControllerBase.claimAs(x, 'either') === 'wield');
+    remaining.splice(0, remaining.length, ...remaining.filter((x) => !taken.includes(x)), ...taken);
     EquipControllerBase.dressNext(remaining, [], [], context, giver);
     return Promise.resolve();
   }
@@ -347,8 +368,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
         const item = remaining[i]!;
         const hauling =
           EquipControllerBase.claimAs(item, 'either') === 'wield' &&
-          MixinApi.isHauling(giver) &&
-          giver.isHitched();
+          EquipControllerBase.handsOnCart(item, giver);
         const skip = hauling ? 'busy' : EquipControllerBase.canEquip(item, giver, 'either');
         if (skip === null) {
           next = item;
@@ -488,8 +508,15 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     if (as === null) return 'no-slots';
     const plan = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!plan) return 'no-slots';
-    const slots = EquipControllerBase.slotsFor(item, plan, as);
+    const slots = EquipControllerBase.slotsFor(item, plan, as, giver);
     if (slots.length === 0) return 'no-slots';
+    if (as === 'wield' && MixinApi.isCarrying(giver)) {
+      // ⭐ Two hands by weight or length: the other hand must be free too,
+      // and what holds it is named (a shield, a lantern) — the body's call.
+      const no = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, as));
+      if (!no.ok && no.reason === 'too-heavy') return 'heavy';
+      if (!no.ok && no.reason === 'hands-needed') return 'hands';
+    }
     // ⚠ The impossible fit is a HARD refusal, independent of the ladder:
     // a coat cut for a halfling fails on a NUMBER, so a heavy human and
     // a light dragonborn shade into each other correctly.
@@ -534,11 +561,32 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     item: Stuff,
     plan: string,
     as: 'wear' | 'wield',
+    holder?: Stuff,
   ): readonly string[] {
     if (as === 'wear') {
       return MixinApi.isWearable(item) ? item.getSlotClaim(plan) : [];
     }
-    return MixinApi.isWieldable(item) ? item.getSlotClaim(plan) : [];
+    const claim = MixinApi.isWieldable(item) ? item.getSlotClaim(plan) : [];
+    // ⭐ With a holder, a load that takes two hands in ITS grip (size and
+    // carrying D10 — heavy or long against this body) claims a second
+    // hand beside the authored one: the ogre's greatsword is one hand,
+    // the gnome's longsword two.
+    const planned = holder !== undefined && MixinApi.isCarrying(holder) ? holder.wieldPlanFor(item, claim) : null;
+    return planned !== null && planned.ok ? planned.slots : claim;
+  }
+
+  /**
+   * ⭐ Would taking `item` up need hands a cart's handles hold (size and
+   * carrying D18)? Keyed on the giver being THE HAULER — a rider whose
+   * horse hauls keeps their hands — and on the hands the cart takes
+   * (`Carrying.freeHands` already subtracts them).
+   */
+  private static handsOnCart(item: Stuff, giver: Stuff): boolean {
+    if (!MixinApi.isHauling(giver) || !giver.isHitched()) return false;
+    if (!MixinApi.isCarrying(giver)) return true;
+    const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
+    const planned = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, 'wield'));
+    return !planned.ok && planned.reason === 'hands-on-cart';
   }
 
   /**
@@ -555,8 +603,15 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
   private static put(item: Stuff, giver: Stuff & Slotted & Attired, mode: EquipMode): void {
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
     const as = EquipControllerBase.claimAs(item, mode);
-    const slots = as === null ? [] : EquipControllerBase.slotsFor(item, plan, as);
-    giver.occupyAll(item as Parameters<typeof giver.occupyAll>[0], [...slots]);
+    const slots = as === null ? [] : EquipControllerBase.slotsFor(item, plan, as, giver);
+    // ⭐ Out of the hand it was held in, then on (size and carrying W7): a
+    // held coat is put on, a held sword moved to the hand it is wielded in.
+    // One call (finalize R6, P11): the body's explicit "occupy these slots"
+    // act moves it onto the body and out of any slot it held there first.
+    if (!MixinApi.isContainable(item) || !MixinApi.isSlottable(item)) {
+      throw new Error(`EquipControllerBase.put: ${item.stuffId} cannot be seated (equippable said it could)`);
+    }
+    giver.seatInSlots(item, [...slots]);
   }
 
   /**
@@ -586,14 +641,37 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
       const as = EquipControllerBase.claimAs(item, mode);
       const slots = as === null ? [] : EquipControllerBase.slotsFor(item, plan, as);
       const full = slots.find((sl) => giver.isSlotFull(sl)) ?? 'slot';
+      // ⭐ A full HAND names what holds it (size and carrying D16): a
+      // shield beside a two-hander is refused naming the two-hander.
+      const holding = giver.handSlots().includes(full) ? [...giver.getOccupants(full)][0] ?? null : null;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`Your ${full} is occupied.`)
+        .toSelf(
+          holding !== null
+            ? Mml.compose`Your hand is full — you're holding ${Mml.thing(holding)}.`
+            : Mml.compose`Your ${full} is occupied.`,
+        )
         .send();
       context.note({
         kind: 'slot-occupied',
         host: MessageApi.refOf(giver),
         slot: full,
+      });
+      return;
+    }
+    if ((reason === 'hands' || reason === 'heavy') && MixinApi.isCarrying(giver)) {
+      // ⭐ The body's own refusal, worded — never one made up to be worded.
+      const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
+      const as = EquipControllerBase.claimAs(item, mode) ?? 'wield';
+      const planned = giver.wieldPlanFor(item, EquipControllerBase.slotsFor(item, plan, as));
+      const words = planned.ok
+        ? (reason === 'heavy' ? "That's more than you can lift." : 'That takes both hands.')
+        : this.carryRefusalWords(giver, planned);
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(words)).send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: reason === 'heavy' ? 'too-heavy' : 'hands-needed',
+        detail: item.getPresentation(),
       });
       return;
     }
@@ -712,7 +790,7 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
   ): Promise<readonly Stuff[] | null> {
     if (!MixinApi.isContainer(giver)) return [];
     const source = model.from?.stuff ?? null;
-    if (source === null) return giver.getContents() as Stuff[];
+    if (source === null) return PerceptionApi.perceived(giver, giver.getContents());
     if (!MixinApi.isContainer(source)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -735,20 +813,24 @@ export abstract class EquipControllerBase extends CommandController<EquipModel> 
     // A piece blocked only by ORDER (the layer under it, a slot a lower
     // layer frees) still comes out, because the ladder dresses it next.
     const mode = this.mode();
-    const wanted = (source.getContents() as Stuff[]).filter((c) => {
+    const wanted = PerceptionApi.perceived(giver, source.getContents()).filter((c) => {
       if (!this.equippable(c)) return false;
       if (model.target?.stuff && c !== model.target.stuff) return false;
       const skip = EquipControllerBase.canEquip(c, giver, mode);
       return skip === null || (!model.target?.stuff && (skip === 'layer' || skip === 'slot-full'));
     });
     for (const item of wanted) {
-      if (MixinApi.isContainable(item)) {
-        ContainmentApi.move(
-          item as Stuff & Containable,
-          giver as unknown as Stuff & Container,
-        );
-      }
+      if (!MixinApi.isContainable(item)) continue;
+      // ⭐ Handed out of the wardrobe (the flip, W7): what can go on now
+      // goes straight on by its claim; the rest comes to you — `move`
+      // routes it (a hand, a pocket, a bag, else set down at your feet,
+      // said so — owner, 2026-11-15).
+      const now = EquipControllerBase.canEquip(item, giver, mode) === null;
+      const plan = SpeciesApi.tryGetBodyPlanPath(giver);
+      const claim = now && plan !== null && MixinApi.isWearable(item) ? [...item.getSlotClaim(plan)] : [];
+      if (claim.length > 0 && MixinApi.isSlottable(item)) giver.seatInSlots(item, claim);
+      else ContainmentApi.move(item as Stuff & Containable, giver);
     }
-    return giver.getContents() as Stuff[];
+    return PerceptionApi.perceived(giver, giver.getContents());
   }
 }

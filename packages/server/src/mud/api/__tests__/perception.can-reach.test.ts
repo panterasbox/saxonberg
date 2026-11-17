@@ -67,13 +67,18 @@ class Chest extends SealableMixin(
 
 /**
  * ⭐ A placement host with a lid — the shape a compartment will be.
- * A thing placed under an ENCLOSING member here has `container = the
- * room` and is right there in the contents list, and is still inside
- * something shut.
+ * A thing placed under an ENCLOSING member here is the host's contents
+ * (an enclosing relation is containment — size and carrying W9), and is
+ * inside something shut.
  */
 class Compartment extends PlacingMixin(
-  SealableMixin(ContainableMixin(DetailedMixin(Good))),
-) {}
+  ContainerMixin(SealableMixin(ContainableMixin(DetailedMixin(Good)))),
+) {
+  /** ⭐ Its inside IS its `in` region — the thing there is its contents (W9). */
+  override hasInterior(): boolean {
+    return false;
+  }
+}
 
 /** A plain shelf: a placement host with no lid at all. */
 class Shelf extends PlacingMixin(ContainableMixin(DetailedMixin(Good))) {}
@@ -261,8 +266,8 @@ describe('PerceptionApi.canReach', () => {
       ContainmentApi.move(steak, here as unknown as never);
       ContainmentApi.move(steak, box, Placements.IN);
 
-      // Open: right there, and reachable.
-      expect(steak.getContainer()).toBe(here as unknown as never);
+      // Open: in the box (its contents — W9), and reachable.
+      expect(steak.getContainer()).toBe(box);
       expect(PerceptionApi.canReach(s(actor), s(steak))).toBe(true);
 
       box.setOpen(false);

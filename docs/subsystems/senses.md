@@ -337,7 +337,7 @@ sense.
 ├── search.      ← search/match results
 │   ├── find      FindController
 │   └── locate    LocateController
-└── inventory    Get/Drop/InventoryController
+└── inventory    Get/Drop/Put/…Controller (the list is `query --ledger`)
 ```
 
 Each sub-family has its own axis:

@@ -190,6 +190,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **revenue inspector** | **GAP** | office | the treasury (blocked with the fiscal cycle) |
 | **collector** | **GAP** | a court order | creditors |
 | **teller** | **GAP** | employment (attendant shape) | the bank |
+| **removal man** | **GAP** (size-and-carrying finalize, 2026-11-16; from size-slate § 7.6) | knowing how a load goes through a way — the turn of a stair, the piano on its end, the doorframe off its hinges; the size substrate (a way's clearance and turn, a thing's box) makes it real | the household moving |
 
 ### Services
 

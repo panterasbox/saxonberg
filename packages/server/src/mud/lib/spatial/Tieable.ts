@@ -50,7 +50,11 @@ export type TieReason =
   | 'end-out'
   | 'not-tied-on'
   | 'cannot'
-  | 'busy';
+  | 'busy'
+  /** ⭐ An animal wears nothing to tie a lead to (size and carrying D18). */
+  | 'no-halter'
+  /** No free hand for the lead's end (D18). */
+  | 'hands-full';
 
 /**
  * ⭐ A refused tie: the reason and the facts its words need — no sentence

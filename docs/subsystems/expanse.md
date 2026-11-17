@@ -541,7 +541,7 @@ instead of a 9.81 literal.
   horizon`, `watch horizon` + the hired lookout's brain, `measure
   bearing`, the derived crossing delta, and fog as a weather lean.
 - **Maritime revisions 2′ and 3 (2026-10-11/12).** `look` takes one
-  thing and `query` (then aliased `scan`, since deleted; `inventory --ledger`'s rendering)
+  thing and `query` (then aliased `scan`, since deleted; its `--ledger` rendering — which, since size-and-carrying W10h, is also what `i`/`inventory` run)
   lists a set (`810387483`); the shore as a place and drawing water
   (`a0d5e65cb`…`e9a83bdb4`) — see [location.md](./location.md) and
   [fishing.md](./fishing.md).

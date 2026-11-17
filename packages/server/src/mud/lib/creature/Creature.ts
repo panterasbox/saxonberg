@@ -46,6 +46,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { OlfactoryMixin } from '../perception/Olfactory';
 import { PalateMixin } from '../metabolism/Palate';
 import { ContainableMixin } from '../spatial/Containable';
+import { ShapedMixin } from '../spatial/Shaped';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
@@ -67,6 +68,15 @@ import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
+import { Postures } from '../slot/Postured';
+import type { ActRefusal } from '../craft/ActPlan';
+import { Dimensions, SIZE_DEFAULTS } from '../spatial/Dimensions';
+import type { Arrival } from '../spatial/Container';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
+import type { Containable } from '../spatial/Containable';
+import type { BoundaryOpening } from '../boundary/Conduit';
+import { BODY_PROFILE_HEIGHT, type BodyProfile } from '../../platform/idea/LocomotionMode';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
@@ -158,6 +168,9 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
   BuoyantMixin(
   LoadBearingMixin(
     ContainerMixin(
+    // ⭐ Size beside containment (size and carrying W10g): a body has a
+    // size because it is fitted through ways and onto mounts.
+    ShapedMixin(
     ContainableMixin(
       DisguisableMixin(
         // ⭐⭐ **Perceptible, beside Visible, because every BODY is
@@ -206,6 +219,11 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
                         // always Slottable via Avatar's composition", which
                         // was never true. Found by driving the world.
                         SlottableMixin(
+                        // ⭐ The CAPABILITY to carry (hands, pockets,
+                        // readying) composes only on the classes that
+                        // carry — `Carrying`, size and carrying W8. The
+                        // RULE that nothing sits loose is every body's:
+                        // `arrivalFor` below.
                         // ⭐ The only composer of Attired: a body is the
                         // only thing that wears anything. See Attired.ts.
                         AttiredMixin(
@@ -230,7 +248,7 @@ const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
         )
         )
       )
-    )
+    ))
   )
   ))
   )
@@ -261,6 +279,12 @@ export type BodyConditionBand = (typeof BODY_CONDITION_BANDS)[number];
  * reviewer's test: *can a reader who does not know the number tell this
  * band from the one on either side of it?*
  */
+/** A rider sits this share of its stature above its mount's back (D19). */
+const SEATED_SHARE = 0.6;
+
+/** Why a body cannot take a posture where it is (size and carrying D21). */
+export type PoseRefusal = ActRefusal<'ceiling-too-low', { ceilingM: number; statureM: number }>;
+
 const BODY_CONDITION_PHRASE: Readonly<Record<BodyConditionBand, string>> = {
   emaciated: 'wasted — every rib and the points of the hips standing out, and the coat gone staring',
   thin: 'thin; you can count the ribs at a glance and the backbone is a ridge',
@@ -622,6 +646,226 @@ export class Creature extends CreatureBase {
       : 0.55;
     const fat = 0.08 + 0.32 * fraction;
     return Quantity.of(1 / (fat / 900 + (1 - fat) / 1100), 'kg/m³');
+  }
+
+  /**
+   * ⭐ A body's room is its mass over its own density (size and carrying
+   * D2) — fat floats and takes more room for its weight. Never its
+   * material's: flesh is not what a body is made of, it is what it is.
+   */
+  public override getVolumeM3(): number | null {
+    const kg = this.getMass().rawValue();
+    const rho = this.getBodyDensity().rawValue();
+    return kg > 0 && rho > 0 ? kg / rho : null;
+  }
+
+  /**
+   * The body's height standing, m — the species' stature (own, else its
+   * plan's); `null` for a body with none to read. Overrides `Posed`'s hook:
+   * the ceiling `stand` is asked against.
+   */
+  public override getStature(): number | null {
+    const stature = this.getSpecies()?.getStature() ?? 0;
+    return stature > 0 ? stature : null;
+  }
+
+  /**
+   * ⭐ May this body take `posture` where it is? (size and carrying D21)
+   * `stand` is refused `ceiling-too-low` under a ceiling lower than its
+   * stature; open sky has no ceiling, so never there. Asks, never changes
+   * the posture. On the body, not on `Posed`: posture-as-held and
+   * posture-as-allowed-here are two ideas (`lint:mixin-clusters`).
+   */
+  public poseRefusal(posture: string): PoseRefusal | null {
+    if (posture !== Postures.Stand) return null;
+    const statureM = this.getStature();
+    if (statureM === null) return null;
+    const room = this.getContainer();
+    if (room === null || !MixinApi.isAtmospheric(room)) return null;
+    const ceilingM = room.getCeilingHeight()?.rawValue() ?? null;
+    if (ceilingM === null || ceilingM + 1e-9 >= statureM) return null;
+    return { ok: false, reason: 'ceiling-too-low', facts: { ceilingM, statureM } };
+  }
+
+  /**
+   * ⭐⭐ **Nothing sits loose on a body** (size and carrying D11; W8 — every
+   * body's rule, and it fails closed). A thing arrives in a body's contents
+   * only as something the body holds, wears or has placed on a worn host:
+   *
+   * - `how.placed` — it arrives with a placement pair on a host here (a key
+   *   into a coat's pocket, a pouch hung from the belt, a coat's pocketed
+   *   things following the coat, D33);
+   * - it is an agent (a rider, a passenger);
+   * - it is being seated (`Slotted.seatInSlots` marks it: a hand, a garment
+   *   put on, a halter on a hog);
+   * - or the body is admitting it ({@link admitWhile}): the restore
+   *   replaying what it carried, a carrier's merge into a held stack.
+   *
+   * Anything else is refused `nowhere-to-carry`: a body with no capability
+   * to carry (a fish, a wolf, a hog) has no honest place for a loose thing,
+   * and `ContainmentApi.move` throws rather than lie. A carrier overrides
+   * this (`Carrying.arrivalFor`) to place the arrival, asking `super` first
+   * so the admissions are one list. **No plan escape**: a body whose
+   * species row has not loaded is not let off.
+   *
+   * @hook
+   */
+  public override arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
+    if (how?.placed === true || item.isAgent() || this.isSeating(item) || this.isAdmitting(item)) {
+      return { kind: 'contents' };
+    }
+    return {
+      kind: 'refuse',
+      refusal: { ok: false, reason: 'nowhere-to-carry', facts: { item, held: [], tried: [] } },
+    };
+  }
+
+  /** The things this body is admitting right now — see {@link admitWhile}. Runtime only. */
+  private _admitting = new Set<string>();
+
+  /**
+   * Run `fn` with `item` admitted onto this body (D11) — the body's own
+   * acts and the restore, which replays a record of what the body already
+   * carried (`PersistableLogic.restoreItem`). Gated.
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.SelfOnly,
+      SecurityPolicies.FromModule('/platform/idea/api/PersistableLogic#PersistableLogic'),
+    ),
+  )
+  public admitWhile<T>(item: Stuff, fn: () => T): T {
+    const id = item.stuffId;
+    const had = this._admitting.has(id);
+    this._admitting.add(id);
+    try {
+      return fn();
+    } finally {
+      if (!had) this._admitting.delete(id);
+    }
+  }
+
+  /** Is `item` being admitted onto this body right now? Read by {@link arrivalFor}. */
+  public isAdmitting(item: Stuff): boolean {
+    return this._admitting.has(item.stuffId);
+  }
+
+  /**
+   * A restored body stands its species row up (size and carrying drive,
+   * step 21: after a restart nothing has loaded it). A restore puts back
+   * exactly what was captured — held, worn, pocketed, hung — so a thing
+   * found LOOSE on a restored body is a broken record, never a migration
+   * to perform (owner, finalize: no migrations; the pre-flip placement is
+   * cut). It is said loudly to the author (an `error` diagnostic) and left
+   * exactly where the record put it; nothing guesses a place for it.
+   */
+  public async onRestored(): Promise<void> {
+    await this.ensureSpecies();
+    const loose = this.getContents().filter(
+      (c) => !c.isAgent() && c.getPlacement() === null && !this.isSlotOccupant(c),
+    );
+    if (loose.length === 0) return;
+    const { DiagnosticApi } = await import('../../api/diagnostics');
+    await DiagnosticApi.record({
+      path: this.getTemplatePath() ?? this.stuffId,
+      severity: 'error',
+      message:
+        `restored with ${loose.length} loose thing(s) (` +
+        loose.map((c) => c.getTemplatePath() ?? c.stuffId).join(', ') +
+        ') — a captured body holds, wears, pockets or hangs everything on it; ' +
+        'this record is broken (nothing places a loose thing on a restore).',
+      channel: 'location-graph',
+    });
+  }
+
+  /** Does `thing` occupy one of this body's slots? */
+  private isSlotOccupant(thing: Stuff): boolean {
+    for (const occ of this.getAllOccupants().values()) {
+      for (const o of occ) if (o.stuffId === thing.stuffId) return true;
+    }
+    return false;
+  }
+
+  /**
+   * ⭐ **The body's envelope** (size and carrying D19) — the gap it needs
+   * to pass, `{ width, height }` m, moving with `profile`:
+   *
+   * - height = stature × `BODY_PROFILE_HEIGHT[profile]` (upright 1.0,
+   *   crouched 0.6, prone and horizontal 0.4);
+   * - width = girth = `2·√(mass / (π · stature · density))`, a cylinder of
+   *   the body's own density;
+   * - what it wears on its back or torso (a pack — `Attired.wornBulk`) rides
+   *   on top when it goes low (prone, horizontal), and trails behind it
+   *   upright, where a way's face does not see it;
+   * - mounted, the pair: the mount's height plus the rider's seated share
+   *   (`stature × 0.6`), as wide as the wider of them.
+   *
+   * With no gravity — or through a way UP or DOWN (`lengthwise`), where the
+   * body's length runs along the way — it fits by its narrowest way round.
+   * What the hands hold is NOT here: each held thing is measured on its own
+   * (`Exit.clearanceRefusal`). `bare` leaves the worn bulk out (would it
+   * pass without the pack?). `null` when the body has no size to read.
+   */
+  public envelope(
+    profile: BodyProfile,
+    opts: { lengthwise?: boolean; bare?: boolean } = {},
+  ): BoundaryOpening | null {
+    const pair = this.mountedPair();
+    if (pair !== null) {
+      const mount = pair.mount.ownEnvelope('upright', { lengthwise: opts.lengthwise === true });
+      const rider = pair.rider.ownEnvelope('upright', opts);
+      const riderStature = pair.rider.getStature();
+      if (mount === null || rider === null || riderStature === null) return null;
+      return {
+        width: Math.max(mount.width, rider.width),
+        height: mount.height + riderStature * SEATED_SHARE,
+      };
+    }
+    return this.ownEnvelope(profile, opts);
+  }
+
+  /**
+   * The mount and its rider when this body is either (the rider in a
+   * mount's slot); `null` on foot.
+   */
+  public mountedPair(): { mount: Creature; rider: Creature } | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isMountable(self)) {
+      const rider = self.getMountOccupant();
+      return rider instanceof Creature ? { mount: this, rider } : null;
+    }
+    if (MixinApi.isSlottable(self)) {
+      const host = self.getOccupiedHost();
+      if (host instanceof Creature && MixinApi.isMountable(host) && host.getMountOccupant() === self) {
+        return { mount: host, rider: this };
+      }
+    }
+    return null;
+  }
+
+  /** This body's own envelope — on foot, no mount. */
+  private ownEnvelope(
+    profile: BodyProfile,
+    opts: { lengthwise?: boolean; bare?: boolean },
+  ): BoundaryOpening | null {
+    const stature = this.getStature();
+    const mass = this.getMass().rawValue();
+    const rho = this.getBodyDensity().rawValue();
+    if (stature === null || !(mass > 0) || !(rho > 0)) return null;
+    const girth = 2 * Math.sqrt(mass / (Math.PI * stature * rho));
+    const bulk = opts.bare === true ? null : this.wornBulk();
+    const pack = bulk?.depthM ?? 0;
+    const wide = girth + (bulk?.sideM ?? 0);
+    const place = this.getEnclosingPlace();
+    const g = place !== null && MixinApi.isAtmospheric(place)
+      ? place.gravityNow().rawValue()
+      : SIZE_DEFAULTS.STANDARD_GRAVITY;
+    if (opts.lengthwise === true || !(g > 0)) {
+      return new Dimensions(wide, girth + pack, stature).crossSection();
+    }
+    const height = stature * BODY_PROFILE_HEIGHT[profile];
+    const low = profile === 'prone' || profile === 'horizontal';
+    return { width: wide, height: low ? height + pack : height };
   }
 
   /**

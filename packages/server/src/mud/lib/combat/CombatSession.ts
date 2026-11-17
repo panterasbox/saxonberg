@@ -35,6 +35,8 @@ import { SchedulerApi } from "../../api/scheduler";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import { SecurityApi } from "../../api/security";
 import { CombatApi } from "../../api/combat";
+import { MessageApi } from "../../api/message";
+import { Mml } from "../../api/mml";
 import type { AbortReason } from "@saxonberg/types";
 import { CombatGraph } from "./CombatGraph";
 import type { CombatTerms } from "./CombatTerms";
@@ -254,6 +256,8 @@ export class CombatSession {
    */
   removeParticipant(combatant: Stuff): void {
     const hold = this.holds.get(combatant);
+    const leaving = this.states.get(combatant);
+    if (leaving) this.settleHandAct(leaving);
     this.states.delete(combatant);
     this.holds.delete(combatant);
     this.graph.removeNode(combatant);
@@ -402,6 +406,33 @@ export class CombatSession {
       SchedulerApi.cancel(hold, "combat-resolved");
     }
     this.holds.clear();
+    for (const state of this.states.values()) this.settleHandAct(state);
+  }
+
+  /**
+   * ⭐ A hand act still on its beat when its body leaves the fight (size and
+   * carrying D-W10-5; D-W10-13 — the beat is combat's, never a lag): the
+   * beat runs on THIS session, so when the fight ends or the body leaves it,
+   * nothing would ever land it — `get pistol from pack` then `fight yield`
+   * left the pistol in the pack, and an `open` whose fight ended left the
+   * pocket buttoned, in silence (finalize drive run 15, steps 6 and 14b).
+   * Outside a fight a hand act is instant, so it LANDS now — unless the
+   * body went down, which never finishes it, and is told so (P3). A grip
+   * swap (`fight switch`) is a fight's own act and is not landed here.
+   */
+  private settleHandAct(state: CombatantState): void {
+    const land = state.weaponSwitch?.getLanding();
+    if (land === undefined) return;
+    state.weaponSwitch = null;
+    if (state.down) {
+      MessageApi.scene(state.combatant)
+        .topic("act.deed")
+        .toSelf(Mml.compose`Your hand falls away before it finishes.`)
+        .send();
+      land(true);
+      return;
+    }
+    land();
   }
 }
 

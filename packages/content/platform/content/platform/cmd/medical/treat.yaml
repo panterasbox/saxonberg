@@ -15,7 +15,9 @@ help: |
 
   Say `treat <someone> --with <thing>` to choose; with nothing named, the
   first thing to hand that could treat anything is used, and failing that
-  your hands. A bandage on a burn is refused, and told why — that is how
+  your hands. To hand means where it sits — held, or in an open pouch or
+  pocket on you; a bandage behind a shut flap is not, and you are told to
+  open it (`open pouch`). A bandage on a burn is refused, and told why — that is how
   you learn what a burn wants.
 
   ⭐⭐ **`treat <someone> --for <something>` is the medic's real act.**

@@ -110,6 +110,12 @@ function findPostureBearingSlot(
 }
 
 export interface Posed {
+  /**
+   * @hook The body's height standing, m; `null` when it has none to read
+   * (then no ceiling is ever too low, and water is as deep as the place
+   * says). `Creature` answers its species'.
+   */
+  getStature(): number | null;
   getPosture(): string;
   setPosture(value: string): void;
   /** Template path of the host whose posture slot this body occupies, or ''. */
@@ -216,6 +222,12 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getPosture(): string {
       return this.posture;
     }
+
+    /** @hook No stature by default; a body answers its own. */
+    public getStature(): number | null {
+      return null;
+    }
+
 
     public setPosture(value: string): void {
       this.posture = value;

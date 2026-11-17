@@ -58,6 +58,8 @@ export default class MeasureController extends CommandController<ReadCommandMode
       );
       return;
     }
-    await reading.runMeasure(context, model.subject, model.tool?.stuff ?? []);
+    // ⭐ Used where it sits (D-W10-7): the binder narrows a defaulted pool to what is to hand.
+    const tools = model.tool?.stuff ?? [];
+    await reading.runMeasure(context, model.subject, tools);
   }
 }

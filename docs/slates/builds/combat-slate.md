@@ -458,6 +458,15 @@ the running game:
 
 ## Open questions
 
+0. **Does skill shorten the draw?** (from the size-and-carrying build, owner review
+   2026-11-11; reworded at its finalize, 2026-11-16) In a fight every hand act is the
+   switch's guarded beat, and readying prices the **draw half only** — what comes out of
+   its holder (a shaped holster or scabbard fast, an open pocket slower; a buttoned pocket
+   is refused while shut, and `open` is its own beat). Nothing is put away for you, so
+   there is no away half to price. Practice should show in the draw, and a trained draw is
+   real, but no quick-draw competence exists and the shipped switch is ungraded by skill.
+   The attach point is a factor on the draw seconds (`switchSecondsFor` in `CombatLogic`,
+   over `combat.draw.seconds` / `combat.reach.seconds`).
 1. **The competence→exchange-rate curve** — *the* load-bearing tuning
    knob is still unresolved. The de-risking tool (the **combat gym**)
    shipped and is documented (combat.md § The experience pass), but the
@@ -471,6 +480,11 @@ the running game:
 3. **How the terms handshake renders** — the client surface for propose /
    counter / accept / yield / parley. Unbuilt (folds into the client
    `CombatCard` gap above).
+4. **Reach by stature and weapon length** (size-and-carrying finalize, 2026-11-16;
+   salvaged from size-slate § 6.4). Bodies now have a stature and weapons a length
+   (`Shaped.getDimensions`), so how far a body reaches — stature plus what it holds — is
+   derivable: the top shelf, a pike against a sword, an ogre's arm. The fight's bands
+   (ranged.md's `close·reach·near·far`) do not yet read it.
 
 **Resolved, cut with pointer:** tick tempo (shipped as a tunable
 `combat.tickSeconds`, no further open design) · transient-state storage

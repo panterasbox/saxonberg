@@ -14,7 +14,7 @@ data:
   longDescription: |
     The road gives out entirely here and the wood closes over it — pines gone black-green in the shadow, needles deep and silent underfoot, the light coming down in coins. This is the quiet the crossroads warned about: not peace, but the held quiet of a place with something in it that has already noticed you.
 
-    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it. North, worked stone shows through the needles — a doorway, and a stair going down into the hill.
+    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it. North, worked stone shows through the needles — a doorway, and a stair going down into the hill. Northwest, a path runs off through the pines toward the tumbled walls of an old steading.
   coords:
     x: 0
     y: 1
@@ -48,6 +48,12 @@ data:
     # the whole seed tree down with it.)
     northeast:
       destination: /world/newbie-wilds/crossroads/longmeadow
+    # Northwest to the old steading — the size-and-carrying drive's ground
+    # (low door, crawlway, ladder, turning stair, narrow gate, pond). Its
+    # own sub-zone, so this is a threshold; the partner is the yard's
+    # `southeast`.
+    northwest:
+      destination: /world/newbie-wilds/steading/yard
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   props:

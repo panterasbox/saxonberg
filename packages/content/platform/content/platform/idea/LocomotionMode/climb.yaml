@@ -15,3 +15,6 @@ data:
   conveyanceMixin: null
   enablementMixin: ClimbableMixin
   medium: vertical
+  # ⭐ A ladder wants both hands (size and carrying D20): the mode gate
+  # refuses `hands-needed`, naming what you hold.
+  hands: 2

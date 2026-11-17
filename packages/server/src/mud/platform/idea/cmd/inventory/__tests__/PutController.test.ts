@@ -92,9 +92,13 @@ class TestSealedChest extends SealableMixin(
  * anything ships composing it.
  */
 class TestCompartment extends PlacingMixin(
-  SealableMixin(ContainableMixin(NamedMixin(Idea))),
+  ContainerMixin(SealableMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
   static _mixinName = 'TestCompartment';
+  /** ⭐ What is in its region is its contents (W9); its inside IS that region. */
+  override hasInterior(): boolean {
+    return false;
+  }
 }
 
 class TestDeskWithDrawer extends PlacingMixin(

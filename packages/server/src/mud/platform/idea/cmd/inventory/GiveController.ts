@@ -73,6 +73,17 @@ export default class GiveController extends CommandController<GiveModel> {
       );
     }
 
+    // ⭐ A HANDED thing is taken (owner, 2026-11-15): a body that carries
+    // takes anything — onto them, into a bag they carry, or, with nowhere
+    // for it, down at their feet with the routing's line (honest; nothing
+    // lost). A body that does not carry (a fish) takes nothing handed to
+    // it: the recipient's own answer, read dry by `move`'s own read BEFORE
+    // anything leaves the giver's hand, so a refused give keeps the thing
+    // exactly where it was.
+    if (ContainmentApi.arrivalRefusal(item as Stuff & Containable, recipient as Stuff & Container) !== null) {
+      this.keptWords(giver, recipient, item, context);
+      return;
+    }
     // **Leaving your inventory means leaving your body first** — the
     // same release gate `remove`/`unwield`/`drop` run. Without it this
     // verb both bypasses a curse and leaves a phantom slot occupant
@@ -97,11 +108,8 @@ export default class GiveController extends CommandController<GiveModel> {
       }
     }
 
-    ContainmentApi.move(
-      item as Stuff & Containable,
-      recipient as Stuff & Container,
-    );
-
+    // Told before it moves: a recipient with nowhere to carry it sets it
+    // down, and that line follows the give.
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You give ${Mml.thing(item)} to ${Mml.actor(recipient)}.`)
@@ -115,5 +123,15 @@ export default class GiveController extends CommandController<GiveModel> {
       .topic('sense.survey')
       .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
+    ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
+  }
+
+  /** The recipient does not carry, and the giver keeps it. */
+  private keptWords(giver: Stuff, recipient: Stuff, item: Stuff, context: CommandContext): void {
+    MessageApi.scene(giver)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`${Mml.actor(recipient)} has nowhere to take ${Mml.thing(item)}. You keep it.`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'recipient-cannot-carry', detail: item.getPresentation() });
   }
 }

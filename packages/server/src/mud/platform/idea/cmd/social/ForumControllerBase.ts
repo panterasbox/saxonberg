@@ -12,6 +12,7 @@
  * the dispatch-response envelope.
  */
 
+import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -55,10 +56,13 @@ export abstract class ForumControllerBase extends CommandController<ForumModel> 
     const source = context.commandSource;
     if (source && MixinApi.isForums(source)) return false;
     const forums =
-      MqlApi.resolveMany('person', {
-        commandGiver: context.commandGiver,
-        scope: 'person',
-      }).stuff.find((s): s is Stuff & Forums => MixinApi.isForums(s)) ?? null;
+      PerceptionApi.perceived(
+        context.commandGiver,
+        MqlApi.resolveMany('person', {
+          commandGiver: context.commandGiver,
+          scope: 'person',
+        }).stuff,
+      ).find((s): s is Stuff & Forums => MixinApi.isForums(s)) ?? null;
     if (forums) return false;
     MessageApi.scene(context.commandGiver)
       .topic('shell.result')

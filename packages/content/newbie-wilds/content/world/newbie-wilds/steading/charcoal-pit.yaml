@@ -1,0 +1,21 @@
+# The charcoal pit — reached from the cottage by the crawlway through its
+# fallen back wall (size and carrying W6, drive 9). A sunken earth floor
+# where the steading burned its charcoal, open to the sky.
+class: /platform/location/Locale
+data:
+  shortDescription: old charcoal pit
+  keywords: [pit, charcoal, hollow]
+  register: indefinite
+  _address: last-counted-mile/steading-pit
+  coords: { x: 2, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A round hollow walled with turf, its floor black with a hundred old burns. Whoever ran the steading made charcoal here, and the ground has not forgotten it — it still smells of smoke after rain.
+
+    The only way out is back the way you came: west, on hands and knees, through the low gap under the cottage's fallen wall.
+  exits:
+    west:
+      destination: /world/newbie-wilds/steading/cottage
+      kind: /stuff/idea/exits/crawlway

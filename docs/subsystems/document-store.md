@@ -45,6 +45,7 @@ concepts have no value class):
 | `help-concept` | `concepts` | none — `HelpCatalogue` reads the kind | `help <word>`; `seeAlso:` paths | the leaf |
 | `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
 | `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
+| `shape` | `shapes` | `lib/spatial/Shape.ts` | a thing's `shape:` — a bare word is `/platform/shapes/<word>`, a path any pack's ([size.md](./size.md)); ⚠ not the potter's `form` | — |
 | `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
 | `cleanser` | `cleansers` | `lib/cleanliness/Cleanser.ts` | a material's `cleanser:` path ([cleanliness.md](./cleanliness.md)) | — |
 | `fabric` | `fabrics` | `FabricSpec` in `lib/material/Construction.ts` | a garment's `constructionForm:` path (kernel forms stay words — [textiles.md](./textiles.md)) | — |
@@ -146,7 +147,8 @@ they carry mutable state, documents just hold a buncha metadata"*):
    institutions and referents, so Discipline, Spell, Corpo/Brand and
    Government stay Ideas (loaded on reach) while DirtKind, PumpMechanism,
    Joint, Form, Operation, HelpConcept, CombatFormation, Placement, Topic
-   and Aroma are documents.
+   and Aroma are documents — and, since size and carrying W10j, the size
+   `Shape` (the `Form` Idea that build first shipped).
 
 A document may still carry **pure computation over its own data** — a value
 class in `lib/` (`Aroma`, `Joint`) holds `rateAt(tempK)` as happily as a

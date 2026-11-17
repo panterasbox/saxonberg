@@ -100,6 +100,8 @@ export default class SphericalLocation extends SphericalLocationBase {
   public override getCeilingHeight(): Quantity<'m'> | null {
     const r = this.getRadius();
     if (r === null || r === undefined || r === 0) return null;
+    // ⭐ No ceiling under the sky (size and carrying D7).
+    if (this.exposure().top === 'open') return null;
     return Quantity.of((2 * r) / Math.sqrt(3), 'm');
   }
 

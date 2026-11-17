@@ -28,12 +28,11 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import { Mixins } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
 import type { Container } from '../spatial/Container';
-import type { Slotted, SlotSpec } from '../slot/Slotted';
+import type { Slotted } from '../slot/Slotted';
 import type { Tangible } from '../material/Tangible';
 import type { Reserved } from '../reserve/Reserved';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
@@ -42,6 +41,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { NEUTRAL_DENSITY_KG_M3 } from './Buoyant';
+import { SIZE_DEFAULTS } from '../spatial/Dimensions';
 
 /** Numeric AppSetting read with a seeded-literal fallback. */
 function readDial(key: string, fallback: number): number {
@@ -73,11 +73,11 @@ export const LOAD_BEARING_DEFAULTS = {
    */
   HEAVY_LOAD_THRESHOLD: 1.0,
   /**
-   * Surcharge applied to held items and to loose general-contents carry
-   * (a hand-held or unstowed load couples worse than a worn one). Also
-   * the value the derived placement coupling returns for a held slot.
+   * Surcharge applied to what the HANDS hold (a hand-held load couples
+   * worse than a worn or pocketed one; size and carrying D12). Renamed from
+   * the loose-carry surcharge at the flip (W7): nothing is carried loose.
    */
-  LOOSE_CARRY_SURCHARGE: 1.25,
+  HELD_SURCHARGE: 1.25,
   /**
    * Extra placement coupling per unit of a worn garment's `tightness`.
    * Clothes cut for a smaller body bind, and binding is a real load;
@@ -112,10 +112,24 @@ export const LOAD_BEARING_DEFAULTS = {
   } satisfies Record<ConditionBand, number>,
   /** Recursion guard for the burden walk (matches locomotion/conveyance). */
   MAX_DEPTH: 16,
+  /** Awkwardness per stature-length a held load runs past the holder's height (D12). */
+  AWKWARD_LENGTH: 0.5,
+  /** Awkwardness per body-volume of bulk a held load has (D12). */
+  AWKWARD_BULK: 1.0,
+  /** A held load longer than this share of stature will not be run with (D35). */
+  RUN_AWKWARD: 1.0,
+  /** A held load more awkward than this factor will not be run with (D35). */
+  RUN_AWKWARD_FACTOR: 1.5,
 } as const;
 
 /** The public surface added by LoadBearingMixin. */
 export interface LoadBearing {
+  /**
+   * ⭐ D12's awkwardness of holding `item` (size and carrying W8 — the
+   * gauge's multiplier, so the gauge's): 1 for a compact load, more for one
+   * long against this body's stature or bulky against its volume.
+   */
+  awkwardnessOf(item: Stuff): number;
   /** Total weighted weight this body bears (carried + worn + held). */
   /**
    * ⭐ With `waterDensityKgM3`, the burden IN THE WATER (underwater
@@ -131,23 +145,20 @@ export interface LoadBearing {
   /** Burden / capacity (dimensionless; `0` capacity → `0`/`Infinity`). */
   /** Burden over capacity; in the water when `waterDensityKgM3` is given. */
   getLoadRatio(waterDensityKgM3?: number): number;
+  /**
+   * ⭐ How the load sits on this body, in words — never a number (size and
+   * carrying D28's burden line): `null` when it carries next to nothing.
+   */
+  burdenWords(): string | null;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
-}
-
-/**
- * Placement coupling for a top-level attachment, derived from the slot's
- * existing `accepts` — held (`WieldableMixin`) couples at the surcharge,
- * worn (`WearableMixin` / anything else) at the `1.0` floor. No field on
- * `SlotSpec`: the universal slot record stays a pure structural mechanism,
- * and v1 has no per-slot coupling overrides. A `null` spec (unknown slot)
- * falls back to the worn floor.
- */
-function placementCouplingFor(spec: SlotSpec | null): number {
-  if (spec && spec.accepts === Mixins.Wieldable) {
-    return LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE;
-  }
-  return 1.0;
+  /**
+   * ⭐ The MASS a hand must control to hold `item` — the thing and
+   * everything in it (a Vessel's transmission still applies), with **no
+   * gravity in it** (size and carrying D10-d). Weight is the burden line's;
+   * the grip judges inertia, so a full pack takes both hands at zero g.
+   */
+  ladenMassOf(item: Stuff): Quantity<'kg'>;
 }
 
 /**
@@ -262,48 +273,65 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    public awkwardnessOf(item: Stuff): number {
+      const self = this as unknown as Stuff;
+      const stature = MixinApi.isPosed(self) ? self.getStature() : null;
+      if (!MixinApi.isShaped(item) || !MixinApi.isShaped(self)) return 1;
+      const longest = item.getDimensions()?.longest() ?? 0;
+      const vol = item.getVolumeM3() ?? 0;
+      const body = self.getVolumeM3() ?? 0;
+      const length = stature !== null && stature > 0 ? Math.max(0, longest / stature - 1) : 0;
+      const bulk = body > 0 ? vol / body : 0;
+      return 1 + LOAD_BEARING_DEFAULTS.AWKWARD_LENGTH * length + LOAD_BEARING_DEFAULTS.AWKWARD_BULK * bulk;
+    }
+
     public getBorneBurden(waterDensityKgM3?: number): Quantity<'kg'> {
       this.requireBearerSurface();
       const bearer = this as unknown as Stuff & Container & Slotted;
       const visited = new Set<string>();
       let total = 0;
+      const self0 = this as unknown as Stuff;
+      const hands = new Set(MixinApi.isAttired(self0) ? self0.handSlots() : []);
 
-      // a) General contents — carried loose, paying the held surcharge
-      // (v1 has no hand-slot-claiming on `get`; loose contents couple
-      // like a held item — see docs/subsystems/encumbrance.md).
-      for (const item of bearer.getContents()) {
-        total += walk(
-          item,
-          1.0,
-          LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
-          0,
-          visited,
-          waterDensityKgM3,
-        );
-      }
-
-      // b) Slot occupants — worn / wielded; placement from the slot kind.
+      // a) Slot occupants FIRST — worn / held; placement from the slot
+      // kind. ⭐ Slots before the loose pass (size and carrying W4): an
+      // occupant is in the contents too, and the loose pass used to reach
+      // it first and charge a worn coat the held surcharge.
       //
       // ⭐ A TIGHT garment costs more than its mass. Clothes cut for a
       // smaller body bind, and binding is a real load on a body that
       // has to move in them — so `tightness` (the fit reading's signed
       // half) adds a surcharge on top of the placement coupling. A
       // garment cut for you, or cut generous, adds nothing.
+      //
+      // ⭐ A HELD load is also as awkward as its shape (D12): long against
+      // the holder's stature, bulky against the body's volume.
       const tightSurcharge = readDial(
         AppSettingKeys.textilesFitTightnessBurden,
         LOAD_BEARING_DEFAULTS.TIGHT_FIT_SURCHARGE,
       );
-      const self0 = this as unknown as Stuff;
       for (const [slotName, occupants] of bearer.getAllOccupants()) {
-        const placement = placementCouplingFor(bearer.getSlotSpec(slotName));
+        // ⭐ Held = a HAND slot (D12, the flip): worn and slotted things
+        // bear at the floor; what the hands hold at the held surcharge.
+        const placement = hands.has(slotName) ? LOAD_BEARING_DEFAULTS.HELD_SURCHARGE : 1.0;
         for (const occ of occupants) {
           const asStuff = occ as unknown as Stuff;
+          if (visited.has(asStuff.stuffId)) continue;
           let coupling = placement;
           if (MixinApi.isWearable(asStuff)) {
             coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
           }
+          if (hands.has(slotName)) coupling *= this.awkwardnessOf(asStuff);
           total += walk(asStuff, 1.0, coupling, 0, visited, waterDensityKgM3);
         }
+      }
+
+      // b) Everything else on the body is PLACED on a worn host (D12, the
+      // flip): a key in a pocket, a pouch hung from the belt — each at the
+      // worn floor, 1.0, counted once (the visited set). The loose-carry
+      // pass retired with the flip: nothing sits loose on a body.
+      for (const item of bearer.getContents()) {
+        total += walk(item, 1.0, 1.0, 0, visited, waterDensityKgM3);
       }
 
       // c) Hitched cart — the draft load of whatever this bearer hauls.
@@ -316,7 +344,19 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         total += self.getHaulDraft().rawValue();
       }
 
-      return Quantity.of(Math.max(0, total), 'kg');
+      // ⭐ Weight is mass × the place's gravity (size and carrying W4): the
+      // burden is in Earth-kilograms of effort, so a pack weighs nothing at
+      // zero g and 38 % of itself on Mars — and keeps its mass, its size
+      // and the hands it takes.
+      return Quantity.of(Math.max(0, total) * this.gravityShare(), 'kg');
+    }
+
+    /** The place's gravity over standard (1 when it is unknown). */
+    private gravityShare(): number {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self) ? self.getEnclosingPlace() : null;
+      if (place === null || !MixinApi.isAtmospheric(place)) return 1;
+      return place.gravityNow().rawValue() / SIZE_DEFAULTS.STANDARD_GRAVITY;
     }
 
     public getCarryCapacity(): Quantity<'kg'> {
@@ -346,6 +386,17 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
     }
 
+    public burdenWords(): string | null {
+      const ratio = this.getLoadRatio();
+      if (!Number.isFinite(ratio)) return 'You are carrying more than you can bear.';
+      if (ratio < 0.05) return null;
+      if (ratio < LOAD_BEARING_DEFAULTS.LIGHT_LOAD_FLOOR) return 'Your load is light.';
+      if (ratio < 0.75) return 'You are carrying a fair load.';
+      if (ratio <= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) return 'You are well laden.';
+      if (ratio <= LOAD_BEARING_DEFAULTS.OVERLOAD_FACTOR) return 'You are heavily burdened.';
+      return 'You are carrying more than you can bear.';
+    }
+
     public getLoadRatio(waterDensityKgM3?: number): number {
       const capacity = this.getCarryCapacity().rawValue();
       const burden = this.getBorneBurden(waterDensityKgM3).rawValue();
@@ -355,18 +406,22 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public wouldExceedCeiling(candidate: Stuff): boolean {
       // Prospective burden = current borne + the candidate's full subtree
-      // as it would attach (loose carry → the held surcharge). A bag of
+      // as it would attach (into a hand → the held surcharge, the worst case). A bag of
       // holding lifted whole is correctly attenuated by walking it.
       const prospective =
         this.getBorneBurden().rawValue() +
         walk(
           candidate,
           1.0,
-          LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
+          LOAD_BEARING_DEFAULTS.HELD_SURCHARGE,
           0,
           new Set<string>(),
-        );
+        ) * this.gravityShare();
       return prospective > this.getStrainCeiling().rawValue();
+    }
+
+    public ladenMassOf(item: Stuff): Quantity<'kg'> {
+      return Quantity.of(Math.max(0, walk(item, 1.0, 1.0, 0, new Set<string>())), 'kg');
     }
 
   };

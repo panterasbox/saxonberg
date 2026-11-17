@@ -40,6 +40,8 @@ export default class AnalyzeController extends CommandController<ReadCommandMode
       );
       return;
     }
-    await reading.runAnalyze(context, model.subject, model.tool?.stuff ?? []);
+    // ⭐ Used where it sits (D-W10-7): the binder narrows a defaulted pool to what is to hand.
+    const tools = model.tool?.stuff ?? [];
+    await reading.runAnalyze(context, model.subject, tools);
   }
 }

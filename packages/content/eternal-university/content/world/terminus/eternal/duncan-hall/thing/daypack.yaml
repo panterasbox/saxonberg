@@ -1,0 +1,30 @@
+# The Eternal U daypack — what Katie hands a newcomer at intake (size and
+# carrying D29). Free, and SMALL on purpose: a day's books and a lunch, not
+# an expedition. The frame pack is still the leatherworker's sale.
+#
+# A `Pack` on the back, so what is in it is *packed* — take it off to get at
+# it — and its straps take what hangs from them (`from`), so a water bottle
+# clipped to a strap is ready while the inside is packed (D15/D27).
+#
+# ⚠ The university's mark is in the PROSE, not a brand: `Pack` does not
+# compose `BrandedMixin`, and the university has no Corpo/Brand row. A
+# branded pack is a composition (and a brand row) for a later build.
+#
+# The authored box (W2's finding): a pack with no box widens nobody's
+# envelope, so a daypack must say how big it is for a crawlway to see it.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: Eternal U daypack
+  keywords: [daypack, backpack, pack, eternal, canvas]
+  register: indefinite
+  longDescription: >
+    A small canvas daypack with ETERNAL UNIVERSITY stitched across the flap
+    in plain capitals and a pair of webbing straps down the front to clip
+    things to. It holds a day's books and a lunch,
+    and not much more.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [back]
+  placements: [/platform/placements/from]
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 0.6
+  dimensions: { width: 0.3, depth: 0.15, height: 0.42 }

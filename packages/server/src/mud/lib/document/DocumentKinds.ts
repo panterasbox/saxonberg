@@ -224,6 +224,14 @@ export const DOCUMENT_KINDS = {
     onVanish: 'delete',
   },
   /**
+   * A **shape** — a shape a thing can have (`rod`, `sheet`, `block`,
+   * `round`, `flexible`): its aspect and whether it is rigid
+   * (`lib/spatial/Shape.ts`). A thing names its shape by its `shape:` field
+   * — a bare word is the platform's, a path any pack's. ⚠ Not the
+   * potter's `form` (the words an instrument makes), which owns `forms/`.
+   */
+  shape: { kind: 'shape', catalogue: '/platform/idea/ShapeCatalogue', contentDir: 'shapes', ext: 'yaml', onVanish: 'delete' },
+  /**
    * A **topic** — one key of the message vocabulary (`combat.hit`): its
    * label, description and the six attention facets (`platform/idea/TopicCatalogue.ts`).
    * Named by code; its dotted key is its path's leaf. Roots are closed —

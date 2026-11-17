@@ -40,14 +40,15 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi, OMNI_SCOPE } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { Shapes } from './Shape';
 import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
+import { PerceptionApi } from '../../api/perception';
 import {
   CommandApi,
   type CommandContributions,
-  type ReachDepth,
 } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -57,6 +58,94 @@ import {
   REF_FIELDS,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
+import type { FieldMeta } from '../mixin';
+import type { ActRefusal } from '../craft/ActPlan';
+import type { Placing } from './Placing';
+import type { BoundaryOpening } from '../boundary/Conduit';
+import type { ClosureLevel } from '../bulk/Bulkable';
+import { Dimensions, SIZE_DEFAULTS, type ClosedSides } from './Dimensions';
+import { BiomeApi } from '../../api/biome';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+
+/**
+ * ⭐ What a container is, to a tape measure (size and carrying D4): the box
+ * inside it, which of its sides it closes, and the way in.
+ */
+export interface ContainerBounds {
+  /** The room inside. */
+  interior: Dimensions;
+  /** The sides it closes — open sides bound nothing (a broom stands in a bucket). */
+  closed: ClosedSides;
+  /** The way in, or `null` when entry is not through a mouth (a place: through a way). */
+  mouth: BoundaryOpening | null;
+}
+
+/**
+ * Why a thing will not go in — the tape measure's three answers, and a
+ * shaped container's own (`not-shaped-for`: a holster takes a pistol, never
+ * a cup — size and carrying D27). `dims` is `null` only for the shape
+ * refusal, which asks no tape measure.
+ */
+export type FitRefusal = ActRefusal<
+  'too-big-for-mouth' | 'too-big-inside' | 'no-room' | 'not-shaped-for',
+  { container: Stuff; item: Stuff; dims: Dimensions | null }
+>;
+
+/**
+ * ⭐⭐ Why a thing would not arrive in a container (size and carrying W8) —
+ * the `reason` + `facts` a refused `ContainmentApi.move` throws with
+ * (`ContainmentError.refusal()`). The tape measure's own refusals; a
+ * container that says what it is FOR (`refused-by-container`, its veto's
+ * reason); and a body's — a carrier that has no honest place for it
+ * (`nowhere-to-carry`, naming what the hands hold and what was tried), a
+ * load past what it can lift, a hurt hand, a cart's handles. A body that
+ * does not carry answers `nowhere-to-carry` with nothing held or tried.
+ */
+export type ArrivalRefusal =
+  | FitRefusal
+  | ActRefusal<'refused-by-container', { said: string }>
+  | ActRefusal<
+      'nowhere-to-carry',
+      {
+        item: Stuff;
+        held: Stuff[];
+        tried: Stuff[];
+        /** A held thing that WOULD go away, and where — the next command's facts. */
+        away?: { held: Stuff; host: Stuff; region?: string } | null;
+        /** `item` takes both hands while one is still free (a pole beside a lantern). */
+        needsBoth?: boolean;
+      }
+    >
+  | ActRefusal<'too-heavy'>
+  | ActRefusal<'cannot-grip', { why: string }>
+  | ActRefusal<'hands-on-cart', { cart: Stuff }>;
+
+/**
+ * ⭐⭐ Where inside a container an arrival goes (size and carrying W8) — the
+ * destination's answer, which `ContainmentApi.move` performs. Every kind is
+ * IN the destination (owner, 2026-11-13: `move` is exact — it never goes on
+ * into something else):
+ *
+ * - `contents` — into this container's contents (every ordinary container);
+ * - `seat` — into these slots of this body (a hand; a mule's tack);
+ * - `pair` — placed on a host this body wears (the belt's `from`), or in a
+ *   named region of the destination itself (a coat's pocket — W9: the key
+ *   is the coat's contents, its pair names the pocket);
+ * - `refuse` — nowhere honest: `move` throws a `ContainmentError` naming why.
+ *
+ * A worn satchel is not the body: finding a bag, or the floor, is a
+ * carrier's routing (`Carrying.routeArrival`, which `move` calls).
+ */
+export type Arrival =
+  | { kind: 'contents' }
+  | { kind: 'seat'; slots: string[] }
+  | { kind: 'pair'; host: Stuff & Placing; region: string }
+  | { kind: 'refuse'; refusal: ArrivalRefusal };
+
+/** The region reasons a pocket's own fit (`Placing.canPlace`) gives that are the tape measure's. */
+const TAPE_REASONS = new Set(['too-big-for-mouth', 'too-big-inside', 'no-room', 'not-shaped-for']);
+
 
 /**
  * Public shape provided by ContainerMixin.
@@ -87,24 +176,34 @@ export interface Container {
   getDeepContents(): (Stuff & Containable)[];
 
   /**
-   * ⭐⭐ **What a hand could take from in here, at a rung** — the one
-   * per-container walk of reach (controller-liquidity D4/D5) — the step
-   * under `PerceptionApi.reach`, the one list MQL's pools and
-   * `PerceptionApi.canReach` / `reachableAmong` all read (W20), so what you
-   * can name at a rung is what you can touch.
+   * ⭐ **Everything a person carries, as one list** — my contents and
+   * theirs, all the way down, breadth-first (the top level first, so a
+   * stable tie-break reads nearest-first), **never into another body** (a
+   * mouse in a pocket is carried; what the mouse ate is not), and only what
+   * the current sandbox circle may read (omni sees all). The person's half
+   * of reach (`PerceptionLogic.reachOf`) and `inventory --flat` read it.
    *
-   *   - `top` — my own contents.
-   *   - `open` (the default) — and inside every OPEN vessel among them
-   *     (`MixinApi.isOpenContainer`): on a body, all the way down through
-   *     open vessels (the apple in the open bag in your pack); anywhere
-   *     else, one level (the crate's limes, not a box inside the crate).
-   *   - `deep` — everything, shut or not, never into another body.
+   * Unlike {@link getDeepContents} (depth-first, into everything) this is
+   * the CARRIED tree: the containment walk lives on the container, so no
+   * caller grows its own frontier (`lint:graph-walks` — a containment
+   * walk beside a room's exits read as a graph walk; size-and-carrying W7).
+   */
+  getCarriedContents(): (Stuff & Containable)[];
+
+  /**
+   * ⭐⭐ **What a hand could take from in here, reaching in from OUTSIDE**
+   * — my own contents and one level into every OPEN thing among them
+   * (`MixinApi.isOpenContainer`: the crate's limes, not a box inside the
+   * crate; never into a body). The step under `PerceptionApi.reach` for a
+   * place, the vessel you sit in and a named holder, and MQL's mid-chain
+   * read of somebody else (`bob:inventory`). One rule (size-and-carrying
+   * D17): the rungs are gone, and a carrier's OWN tree is
+   * `PerceptionApi.reach`'s, nearest first.
    *
    * A thing placed under an ENCLOSING member of a shut host (the steak in
-   * a shut cold compartment) is behind that lid at `top`/`open`.
-   * Breadth-first: what is at hand comes before what is in a bag.
+   * a shut cold compartment) is behind that lid. Breadth-first.
    */
-  getReachableContents(rung?: ReachDepth): Stuff[];
+  getReachableContents(): Stuff[];
 
   /**
    * ⭐ A **presentation** read — the model read is `getContents()`, and
@@ -123,8 +222,91 @@ export interface Container {
    */
   getLooseContents(items?: readonly Stuff[]): Stuff[];
 
-  /** Optional pre-add veto. Return `{ ok: false, reason }` to block. */
-  canAddContainable?(thing: Stuff & Containable): VetoResult;
+  /**
+   * Pre-add veto. Return `{ ok: false, reason }` to block. ⭐ The default
+   * asks {@link fitRefusal} (size and carrying D4) — a container that says
+   * what it is FOR overrides it and owns the whole answer.
+   */
+  canAddContainable?(thing: Stuff & Containable, how?: { placed?: boolean; region?: string }): VetoResult;
+
+  /**
+   * ⭐ Does this container have an unnamed inside — region zero (size and
+   * carrying W9, D-W9-3)? ⭐⭐ **Derived** (D-W10-14, owner final A): a
+   * container is ONE interior or a set of named chambers, never both — so
+   * `true` iff it offers no enclosing region (every chest, bucket, cart,
+   * pack and place that names none), `false` once its row names a chamber
+   * (a fridge with a freezer, a pack with a side pocket — whose main is
+   * then a chamber too, if the author wants one). A `Garment` says `false`
+   * outright (cloth has no inside of its own, even with no pockets). Region zero of a thing with no inside has
+   * no room ({@link fitRefusal}), is never offered (`PlacementOffers`), and
+   * an arrival with no word goes to the first enclosing region that takes
+   * it ({@link arrivalFor}).
+   */
+  hasInterior(): boolean;
+
+  /**
+   * ⭐⭐ Where `item` arrives in this container (size and carrying W8) — the
+   * destination decides, and `ContainmentApi.move` performs it. The default
+   * is `contents`; a body answers by its own rule (`Creature`: nothing
+   * loose; `Carrying`: a hand, a pocket, a hook, or `refuse` when its
+   * routing would take it past the body — a bag, the floor). The tape
+   * measure ({@link canAddContainable}) still runs on whatever container
+   * the thing finally enters. `how.placed`: it arrives with a placement
+   * pair on a host here.
+   * ⭐ A container with no interior ({@link hasInterior} — a coat) answers
+   * its first enclosing region that takes the thing (`pair` on itself), or
+   * `refuse` with that region's reason (size and carrying W9, D-W9-4).
+   *
+   * @hook Override to place an arrival; call `super` for the admissions.
+   */
+  arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival;
+
+  // ── size (size and carrying D4–D5, D22) ──
+
+  /** The authored way in (a sheath, a bottle's neck), else `null` — derived by {@link bounds}. */
+  getMouth(): BoundaryOpening | null;
+  /** Author the way in (`{width, height}` m); `null` derives it. Throws on a non-positive side. */
+  setMouth(value: BoundaryOpening | null): void;
+  /**
+   * ⭐ What this container is shaped to (D27) — a mixin name
+   * (`WieldableMixin`) or a template path (`/trade/smithing/thing/pistol`,
+   * which admits that row and every row under it) — or `null`, unshaped. A
+   * quiver, a holster, a knife block, a cup rack: it admits only that, and a
+   * thing drawn out of it is drawn fast.
+   */
+  getShapedTo(): string | null;
+  /** Author the shape (`null` = unshaped). */
+  setShapedTo(value: string | null): void;
+  /** Is this container shaped for `item`? An unshaped one is shaped for everything. */
+  isShapedFor(item: Stuff): boolean;
+  /**
+   * ⭐ The box inside, the sides closed, the way in — or `null` when this
+   * container's room is unknown (a hollow thing with no authored size: its
+   * mass measures its walls, never its room) or it is a body (a body
+   * carries; it is sized by its envelope). Unknown bounds ask nothing.
+   */
+  bounds(): ContainerBounds | null;
+  /**
+   * ⭐ Would `item` go in? The two tape-measure checks — through the mouth
+   * by its cross-section, and, turned some way, along every side this
+   * closes — and the capacity (what is already in, filled by box, packed
+   * cloth, a stack's count). `null` = it goes (or nothing is known).
+   */
+  fitRefusal(item: Stuff): FitRefusal | null;
+  /**
+   * ⭐ How tight it closes against the wet (D22): a bulk vessel's authored
+   * `closure`; any other — shut and of a material that takes no water →
+   * `liquidTight`, else `open`.
+   */
+  closureLevel(): ClosureLevel;
+  /**
+   * ⭐ Pressed in, or it leaves (D5): what is not held drifts out of an open
+   * side when nothing presses it in — a floater up out of a submerged open
+   * bucket, anything not behind a closed side at zero gravity, a cup off a
+   * table (a fastened member — `from` — holds). With `only`, that thing
+   * alone. Returns what left.
+   */
+  reconcilePressing(only?: Stuff): Stuff[];
   /** Optional pre-remove veto. */
   canRemoveContainable?(thing: Stuff & Containable): VetoResult;
   /** Fired after the Containable has been added; `from` is where it was. */
@@ -161,6 +343,363 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return new PlacementOffers(this as unknown as Stuff).choose(word);
     }
 
+    static fieldMeta: FieldMeta = {
+      // ⭐ The way in, authored only where it is the point (a sheath, a
+      // holster, a bottle's neck); unset derives (D4).
+      mouth: { persistent: true, authorable: true },
+      // ⭐ The one kind of thing it admits (D27) — a holster, a quiver.
+      shapedTo: { persistent: true, authorable: true },
+    };
+
+    private _mouth: BoundaryOpening | null = null;
+
+    /** See {@link Container.getShapedTo}. Public so the applier can reflect into it. */
+    public shapedTo: string | null = null;
+
+    public getShapedTo(): string | null {
+      return typeof this.shapedTo === 'string' && this.shapedTo !== '' ? this.shapedTo : null;
+    }
+
+    public setShapedTo(value: string | null): void {
+      if (value !== null && value !== undefined && (typeof value !== 'string' || value.trim() === '')) {
+        throw new TypeError(`Container.shapedTo must be a mixin name or a template path; got ${JSON.stringify(value)}.`);
+      }
+      this.shapedTo = value ?? null;
+    }
+
+    public isShapedFor(item: Stuff): boolean {
+      const shape = this.getShapedTo();
+      if (shape === null) return true;
+      if (shape.startsWith('/')) {
+        const path = item.getTemplatePath() ?? '';
+        return path === shape || path.startsWith(`${shape}/`);
+      }
+      return MixinApi.hasMixin(item, shape);
+    }
+
+    protected get mouth(): BoundaryOpening | null {
+      return this._mouth ? { ...this._mouth } : null;
+    }
+    protected set mouth(value: BoundaryOpening | null) {
+      this.setMouth(value);
+    }
+
+    public getMouth(): BoundaryOpening | null {
+      return this._mouth ? { ...this._mouth } : null;
+    }
+
+    public setMouth(value: BoundaryOpening | null): void {
+      if (value === null || value === undefined) {
+        this._mouth = null;
+        return;
+      }
+      if (
+        !(typeof value.width === 'number' && value.width > 0) ||
+        !(typeof value.height === 'number' && value.height > 0)
+      ) {
+        throw new TypeError(
+          `Container.mouth must be { width, height } in metres, both positive; got ${JSON.stringify(value)}.`,
+        );
+      }
+      this._mouth = { width: value.width, height: value.height };
+    }
+
+    /** See {@link Container.bounds}. */
+    public bounds(): ContainerBounds | null {
+      const self = this as unknown as Stuff & Container;
+      if (self.isAgent()) return null;
+      // The room first: most containers have no known room, and their
+      // sides are then never asked (a place's sides cost an exposure read).
+      const interior = interiorOf(self);
+      if (interior === null) return null;
+      const closed = closedSidesOf(self);
+      if (closed === null) return null;
+      let mouth: BoundaryOpening | null = this.getMouth();
+      if (mouth === null && !self.isPlace()) {
+        // The open (or lidded) face: the top. A bag opens as wide as it is.
+        mouth = { width: interior.width, height: interior.depth };
+      }
+      return { interior, closed, mouth };
+    }
+
+    /** See {@link Container.fitRefusal}. */
+    public fitRefusal(item: Stuff): FitRefusal | null {
+      const self = this as unknown as Stuff & Container;
+      // A destroyed piece (merged into a stack on arrival) has no size to fit.
+      if (item.stuffId === self.stuffId || self.isAgent() || item.isDestroyed()) return null;
+      // ⭐ A shaped container admits its one kind, whatever its size (D27).
+      if (!this.isShapedFor(item)) {
+        return { ok: false, reason: 'not-shaped-for', facts: { container: self as Stuff, item, dims: null } };
+      }
+      // ⭐ Region zero of a thing with no inside has no room (W9, D-W9-3):
+      // a coat's insides are its pockets, never the cloth.
+      if (!this.hasInterior()) {
+        return { ok: false, reason: 'no-room', facts: { container: self as Stuff, item, dims: null } };
+      }
+      const box = (MixinApi.isShaped(item) ? item.getFitBox() : null);
+      if (box === null) return null;
+      const interior = interiorOf(self);
+      if (interior === null) return null;
+      // ⭐ Every side closed is the strictest case — an open side only ever
+      // lets more in. A thing that fits a closed box fits whatever this is,
+      // and the sides (a place's cost an exposure read) are never asked.
+      const strict: ContainerBounds = {
+        interior,
+        closed: { width: true, depth: true, height: true },
+        mouth: self.isPlace() ? null : (this.getMouth() ?? { width: interior.width, height: interior.depth }),
+      };
+      if (this.fitsWithinBounds(item, box, strict)) return null;
+      const b = this.bounds();
+      if (b === null) return null;
+      const facts = { container: self as Stuff, item, dims: box };
+      if (b.mouth !== null && !box.fitsThrough(b.mouth)) {
+        return { ok: false, reason: 'too-big-for-mouth', facts };
+      }
+      if (box.orientationWithin(b.interior, b.closed) === null) {
+        return { ok: false, reason: 'too-big-inside', facts };
+      }
+      // Capacity: only a container that closes some side holds a volume —
+      // a field takes a whale skeleton however much is lying there.
+      if (b.closed.width || b.closed.depth || b.closed.height) {
+        let used = 0;
+        for (const c of this.getContents()) {
+          if (c.stuffId === item.stuffId) continue;
+          used += fillOf(c, b);
+        }
+        if (used + fillOf(item, b) > b.interior.boxVolume() * (1 + 1e-9)) {
+          return { ok: false, reason: 'no-room', facts };
+        }
+      }
+      return null;
+    }
+
+    /** Would `item` (fitted by `box`) go into `b`? The cheap pass of {@link fitRefusal}. */
+    private fitsWithinBounds(item: Stuff, box: Dimensions, b: ContainerBounds): boolean {
+      if (b.mouth !== null && !box.fitsThrough(b.mouth)) return false;
+      if (box.orientationWithin(b.interior, b.closed) === null) return false;
+      let used = 0;
+      for (const c of this.getContents()) {
+        if (c.stuffId !== item.stuffId) used += fillOf(c, b);
+      }
+      return used + fillOf(item, b) <= b.interior.boxVolume() * (1 + 1e-9);
+    }
+
+    /** The default veto: the tape measure. See {@link Container.canAddContainable}. */
+    public canAddContainable(thing: Stuff & Containable, how?: { placed?: boolean; region?: string }): VetoResult {
+      // ⭐ A thing going into a NAMED region was measured by the region
+      // (`Placing.canPlace` — its mouth and its room); the container's own
+      // interior is not asked (a map that fits a pack's side pocket is not
+      // refused by the main compartment's fullness — W9, D-W9-5).
+      if (how?.region !== undefined) return { ok: true };
+      // A thing set on a sibling host inside a container with no inside of
+      // its own (a pin on a tray in a coat's pocket) is where its host is:
+      // the region measured the host.
+      if (how?.placed === true && !this.hasInterior()) return { ok: true };
+      const refusal = this.fitRefusal(thing);
+      return refusal === null ? { ok: true } : { ok: false, reason: refusal.reason };
+    }
+
+    /**
+     * See {@link Container.arrivalFor}. The default: into the contents.
+     *
+     * @hook
+     */
+    public arrivalFor(item: Stuff & Containable, how?: { placed?: boolean }): Arrival {
+      if (how?.placed === true || this.hasInterior()) return { kind: 'contents' };
+      // ⭐ No inside of its own (W9, D-W9-4): the destination decides the
+      // region — among chambers that are ALIKE (two side pockets), the first
+      // that takes the thing. ⭐⭐ Chambers that DIFFER are never chosen
+      // between (finalize R3, P14 — "fridge then freezer" is an invented
+      // main chamber): with no region word it refuses, naming them, and
+      // `move` throws that worded `ContainmentError`. The caller names one.
+      const self = this as unknown as Stuff & Container;
+      let reason: string | null = null;
+      let shut: string | null = null;
+      if (MixinApi.isPlacing(self)) {
+        const chambers = self.getPlacements().filter((n) => self.placementOf(n).getEncloses());
+        if (!self.alikeChambers(chambers)) {
+          const said =
+            `${self.presentationPhrase().definite()} has ${chambers.map((n) => `"${n}"`).join(', ')}, ` +
+            'which differ — say which';
+          return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said } } };
+        }
+        for (const name of chambers) {
+          const veto = self.canPlace(item, name);
+          if (veto.ok) return { kind: 'pair', host: self, region: name };
+          if (veto.reason === 'shut') shut ??= name;
+          else reason = veto.reason ?? null;
+        }
+      }
+      // ⭐ Only a SHUT chamber would have taken it: say which, and the next
+      // command (D-W10-12 — never an implicit open).
+      if (reason === null && shut !== null) {
+        const said = `The ${shut} of ${self.presentationPhrase().bare()} is shut — \`open "${shut}"\` first.`;
+        return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said } } };
+      }
+      if (reason !== null && !TAPE_REASONS.has(reason)) {
+        return { kind: 'refuse', refusal: { ok: false, reason: 'refused-by-container', facts: { said: reason } } };
+      }
+      return {
+        kind: 'refuse',
+        refusal: {
+          ok: false,
+          reason: (reason ?? 'no-room') as FitRefusal['reason'],
+          facts: { container: self as Stuff, item, dims: null },
+        },
+      };
+    }
+
+    /** See {@link Container.hasInterior}. Derived: an unnamed inside iff no chamber is named. */
+    public hasInterior(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPlacing(self)) return true;
+      // `peek`, never `need`: a member not yet resident cannot be a chamber
+      // (an enclosing member is checked when the row's placements load).
+      return self.getPlacements().every((n) => {
+        const member = self.getPlacementEntry(n)?.member ?? n;
+        return ContainmentApi.placements().peek(member)?.getEncloses() !== true;
+      });
+    }
+
+    /** See {@link Container.closureLevel}. */
+    public closureLevel(): ClosureLevel {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isBulkable(self)) return self.getClosure();
+      if (MixinApi.isSealable(self) && !self.isOpen()) {
+        const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
+        const takesWater =
+          mat !== null && MixinApi.hasPorosity(mat)
+            ? mat.getWaterAbsorptionCapacity().rawValue()
+            : 0;
+        return takesWater > 0 ? 'open' : 'liquidTight';
+      }
+      return 'open';
+    }
+
+    /** See {@link Container.reconcilePressing}. */
+    public reconcilePressing(only?: Stuff): Stuff[] {
+      const self = this as unknown as Stuff & Container;
+      if (self.isDestroyed()) return [];
+      // ⭐ A body carries; what it holds is not pressed in by sides. What is
+      // in a POCKET is the pocket's garment's contents (W9, D-W9-10), pressed
+      // there by the region's own sides.
+      const agent = self.isAgent();
+      const closed = agent ? { width: false, depth: false, height: false } : closedSidesOf(self);
+      if (closed === null) return [];
+      const place: Stuff | null = self.isPlace()
+        ? self
+        : MixinApi.isContainable(self)
+          ? self.getEnclosingPlace()
+          : null;
+      const g =
+        place !== null && MixinApi.isAtmospheric(place)
+          ? place.gravityNow().rawValue()
+          : SIZE_DEFAULTS.STANDARD_GRAVITY;
+      // ⚠ The CONTAINER's medium, never the item's: a cork floats in a
+      // bucket's own water and stays in the bucket; it leaves only when the
+      // bucket itself is under.
+      let mediumRho: number | null = null;
+      const floats = (c: Stuff): boolean => {
+        if (!MixinApi.isTangible(c)) return false;
+        const rho = c.getMaterial()?.getDensity().rawValue() ?? 0;
+        if (!(rho > 0)) return false;
+        if (mediumRho === null) {
+          const medium = BiomeApi.mediumFor(self);
+          // ⚠ No fallback (finalize A6, P3): an immersing medium whose
+          // density the table does not know is code asked the impossible —
+          // `densityOf` throws naming the tag, rather than water being
+          // assumed for it.
+          mediumRho = medium.immersed ? BiomeApi.densityOf(medium.tag).rawValue() : 0;
+        }
+        return rho < mediumRho;
+      };
+      const occupants = new Set<string>();
+      if (MixinApi.isSlotted(self)) {
+        for (const [, occ] of self.getAllOccupants()) {
+          for (const o of occ) occupants.add((o as unknown as Stuff).stuffId);
+        }
+      }
+      // Out of a region of this container, a thing leaves into the
+      // container's own surroundings — past a body, into the air of the
+      // place (out of your pocket, never into your hand).
+      const surroundings = (): Stuff | null => {
+        const outer = MixinApi.isContainable(self) ? self.getContainer() : null;
+        if (outer !== null && outer.isAgent() && MixinApi.isContainable(self)) return self.getEnclosingPlace();
+        return outer;
+      };
+      const left: Stuff[] = [];
+      const candidates = only !== undefined ? [only] : this.getContents();
+      for (const c of candidates) {
+        if (!MixinApi.isContainable(c) || c.getContainer() !== self) continue;
+        if (c.isAgent() || occupants.has(c.stuffId) || c.isFixedInPlace()) continue;
+        const placed = c.getPlacement();
+        const inRegion = placed !== null && placed.host.stuffId === self.stuffId;
+        let sides: ClosedSides;
+        if (placed !== null) {
+          const member = placed.host.placementOf(placed.name);
+          // A hung thing is fastened — clipped or tied — and stays put.
+          if (member.getFastens()) continue;
+          if (inRegion) {
+            // ⭐ A region of this container: a bottom and walls always, a top
+            // iff it is a closure shut now (a buttoned breast pocket keeps the
+            // cork; an open side pocket — or the breast pocket unbuttoned —
+            // lets it float away).
+            const shut = !placed.host.isRegionOpen(placed.name);
+            sides = { width: true, depth: true, height: shut };
+          } else if (agent) {
+            // On a body, a thing on a worn host's sibling pair is held there.
+            continue;
+          } else {
+            sides = { width: false, depth: false, height: false };
+          }
+        } else {
+          // Loose in a place, there is nowhere further to go — and nothing
+          // sits loose on a body (its arrival rule; a body presses only what
+          // is in a pocket, D26).
+          if (self.isPlace() || agent) continue;
+          sides = closed;
+        }
+        let leaves: boolean;
+        let how: 'up' | 'drifts';
+        if (g > 0) {
+          // Down is held by a bottom, always; up only by a closed top.
+          if (!floats(c)) continue;
+          leaves = !sides.height;
+          how = 'up';
+        } else {
+          leaves = !(sides.width && sides.depth && sides.height);
+          how = 'drifts';
+        }
+        if (!leaves) continue;
+        // Out of a region: into this container's surroundings. Off a sibling
+        // host: into this container. Loose: into the place around it.
+        const dest: Stuff | null = inRegion ? surroundings() : placed !== null ? self : place;
+        if (dest === null || !MixinApi.isContainer(dest)) continue;
+        if (placed === null && dest.stuffId === self.stuffId) continue;
+        // ⭐ The world may say no (finalize A6, P3): where it would go will
+        // not take it (full, too small, chambers that differ) — asked dry
+        // first, so it stays put (a skip). The move itself is unguarded: a
+        // throw past the dry read is a bug, and it surfaces.
+        if (ContainmentApi.arrivalRefusal(c, dest) !== null) continue;
+        ContainmentApi.move(c, dest);
+        left.push(c);
+        const from: Stuff = placed !== null ? (placed.host as unknown as Stuff) : self;
+        try {
+          MessageApi.scene(c)
+            .topic('sense.surroundings')
+            .toPeers(
+              how === 'up'
+                ? Mml.compose`${Mml.thing(c)} bobs up and away from ${Mml.thing(from)}.`
+                : Mml.compose`${Mml.thing(c)} drifts away from ${Mml.thing(from)}.`,
+            )
+            .send();
+        } catch {
+          /* no one to tell (a unit world) */
+        }
+      }
+      return left;
+    }
+
     /**
      * Residency veto: a non-empty container stays resident — its cold
      * contents cull individually first, then the emptied container culls
@@ -193,7 +732,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * A nested **host** (composes `Persistable`) is emitted as a `{ ref }`
      * (it persists itself); anything else nests its composed `state`,
      * recursing through `ctx.captureItem`. A placed item records the
-     * index of the `Placing` sibling it sits on and the member's name.
+     * index of the `Placing` sibling it sits on and the member's name — or,
+     * in a named region of this container itself (a pocket), the region's
+     * name alone (W9).
      *
      * Restore of the container slice is centralized in `PersistableLogic`
      * (it cross-references the Slotted slice by index), so there is no
@@ -243,10 +784,19 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const entries: ContentEntry[] = contents.map((item) => {
         const placement: ContentPlacement = {};
         const placed = item.getPlacement();
-        if (placed) {
+        if (placed && placed.host.stuffId === container.stuffId) {
+          // ⭐ A region of THIS container (a coat's `left pocket` — W9,
+          // D-W9-7): the region's name and no host field — the slice it
+          // rides is the host's own.
+          placement.placement = placed.name;
+        } else if (placed) {
           const idx = ctx.indexOf(placed.host);
           if (idx >= 0) {
             placement.hostIndex = idx;
+            placement.placement = placed.name;
+          } else if (MixinApi.isChattel(placed.host) && placed.host.isOwnerPersisted()) {
+            // ⭐ An owned host persists in its owner's estate, not here (W7).
+            placement.hostChattelId = placed.host.getChattelId();
             placement.placement = placed.name;
           }
         }
@@ -359,7 +909,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        'platform/cmd/inventory/inventory.yaml',
         'platform/cmd/inventory/get.yaml',
         'platform/cmd/inventory/drop.yaml',
         'platform/cmd/inventory/put.yaml',
@@ -408,15 +957,18 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           // use, plus `:carried`: `contents` and `worn` are a PARTITION of
           // one set (wearing something never takes it out of the wearer's
           // contents), so a shirt renders in one projection, not both.
-          // `:i` is what the viewer may see inside (a stranger's pockets
-          // and a shut chest are not), `:visible` the honest fog — a
-          // concealed-undiscovered child never enters the projection.
-          const visible = MqlApi.resolveMany(
-            `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
-            // The card's viewer is a character (a CommandGiver); the static
-            // type at this seam is only `Stuff & Sensor`.
-            { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
-          ).stuff;
+          // MQL names the same children for everyone (D23); the card shows
+          // what THIS viewer perceives — a stranger's pockets, a shut chest
+          // and a concealed-undiscovered child never enter the projection.
+          const visible = PerceptionApi.perceived(
+            viewer,
+            MqlApi.resolveMany(
+              `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
+              // The card's viewer is a character (a CommandGiver); the static
+              // type at this seam is only `Stuff & Sensor`.
+              { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
+            ).stuff,
+          );
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.
@@ -533,12 +1085,28 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return out;
     }
 
-    /** See the interface docstring (controller-liquidity D5). */
-    getReachableContents(rung: ReachDepth = 'open'): Stuff[] {
+    /** See the interface docstring (size-and-carrying W7). */
+    getCarriedContents(): (Stuff & Containable)[] {
+      const ctxScope = ExecutionContextApi.getCircleScope();
+      const inScope = (c: Stuff): boolean => ctxScope === OMNI_SCOPE || c.getCircleScope() === ctxScope;
+      const out: (Stuff & Containable)[] = [];
+      const holders: (Stuff & Container)[] = [this as unknown as Stuff & Container];
+      // `out` grows behind `holders`; containment is acyclic (`setContainer`
+      // refuses an ancestor), so the walk ends with the tree.
+      for (let i = 0; i < holders.length; i++) {
+        for (const item of holders[i]!.getContents()) {
+          if (!inScope(item)) continue;
+          out.push(item);
+          if (MixinApi.isContainer(item) && !item.isAgent()) holders.push(item);
+        }
+      }
+      return out;
+    }
+
+    /** See the interface docstring (size-and-carrying D17). */
+    getReachableContents(): Stuff[] {
       const self = this as unknown as Stuff & Container;
       const out: Stuff[] = [];
-      // A body's open vessels are all to hand; a room's, one level.
-      const openLevels = self.isAgent() ? 32 : 1;
       // ⚠ Sandbox hygiene, before anything is asked of an item: a walk in a
       // circle never reads a field object (or one of another circle) — the
       // proxy denies any method on it, the lid read included (the
@@ -553,24 +1121,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         return MixinApi.isSealable(scope) && !scope.isOpen();
       };
-      // Breadth-first: everything at one depth before anything deeper,
-      // so a name that answers at hand and in a bag binds the one at hand.
-      let frontier: (Stuff & Container)[] = [self];
-      for (let level = 0; frontier.length > 0 && level <= 32; level++) {
-        const next: (Stuff & Container)[] = [];
-        for (const holder of frontier) {
-          for (const item of holder.getContents()) {
-            if (!inScope(item)) continue;
-            if (rung !== 'deep' && behindLid(item)) continue;
-            out.push(item);
-            if (rung === 'deep') {
-              if (MixinApi.isContainer(item) && !item.isAgent()) next.push(item);
-            } else if (rung === 'open' && level < openLevels) {
-              if (MixinApi.isOpenContainer(item)) next.push(item);
-            }
-          }
+      const open: (Stuff & Container)[] = [];
+      for (const item of self.getContents()) {
+        if (!inScope(item) || behindLid(item)) continue;
+        out.push(item);
+        if (MixinApi.isOpenContainer(item)) open.push(item);
+      }
+      for (const holder of open) {
+        for (const item of holder.getContents()) {
+          if (!inScope(item) || behindLid(item)) continue;
+          out.push(item);
         }
-        frontier = next;
       }
       return out;
     }
@@ -580,6 +1141,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const snapshot: readonly Stuff[] =
         items ?? (this as unknown as Stuff & Container).getContents();
       const ids = new Set(snapshot.map((i) => i.stuffId));
+      const selfId = (this as unknown as Stuff).stuffId;
       return snapshot.filter((item) => {
         // ⭐ A crop standing over an area is part of the GROUND, not loose
         // contents (field population D17): the field's own description
@@ -589,6 +1151,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         const placement = MixinApi.isContainable(item)
           ? item.getPlacement()
           : null;
+        // ⭐ In a region of this container (a coat's key, W9): listed under
+        // its region, never as loose.
+        if (placement && (placement.host as Stuff).stuffId === selfId) return false;
         return !(
           placement && ids.has((placement.host as Stuff).stuffId)
         );
@@ -596,4 +1161,76 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
   }
   return ContainerMixin;
+}
+
+/**
+ * The sides a container closes (D4), or `null` for a body. A place: its
+ * walls unless it has none or stands open-fronted, its top unless open to
+ * the sky. A thing: its sides and bottom always, its top when it is shut.
+ */
+function closedSidesOf(c: Stuff & Container): ClosedSides | null {
+  if (c.isAgent()) return null;
+  if (c.isPlace()) {
+    if (!MixinApi.isAtmospheric(c)) return null;
+    const e = c.exposure();
+    const walled = !e.wallsNone;
+    return {
+      // An open-fronted barn spills along its depth; three open sides,
+      // both ways.
+      width: walled && e.openSides < 3,
+      depth: walled && e.openSides < 1,
+      height: e.top !== 'open',
+    };
+  }
+  const shut = MixinApi.isSealable(c) && !c.isOpen();
+  return { width: true, depth: true, height: shut };
+}
+
+/**
+ * The room inside (D4), or `null` when it is not known. A place: its cube.
+ * A vessel: its `interiorCapacity`, in its own proportions (a flexible one
+ * filled is a block). A thing with an authored box: that box less its
+ * walls. Anything else — a hollow thing whose only size is its mass — has
+ * no known room, and nothing asks it to fit.
+ */
+function interiorOf(c: Stuff & Container): Dimensions | null {
+  if (c.isPlace()) {
+    // Places stay cubes; an open top is an open SIDE (`closedSidesOf`), so
+    // the height is the cell's whether or not a ceiling closes it.
+    const ext = c.getLinearExtent();
+    if (ext === null || !(ext > 0)) return null;
+    return new Dimensions(ext, ext, ext);
+  }
+  if (!MixinApi.isShaped(c)) return null;
+  if (MixinApi.isBulkable(c)) {
+    const litres = c.getInteriorCapacity()?.rawValue() ?? 0;
+    if (litres > 0) {
+      // The shape a container's interior takes when its own gives (a sack,
+      // filled, is a block).
+      const own = c.getShape();
+      const shape = own.isRigid() ? own : ContainmentApi.shapes().need(Shapes.BLOCK);
+      return shape.dimensionsFor(litres / 1000);
+    }
+  }
+  if (c.hasAuthoredSize()) {
+    const d = c.getDimensions();
+    if (d === null) return null;
+    const f = SIZE_DEFAULTS.INTERIOR_FRACTION;
+    return new Dimensions(d.width * f, d.depth * f, d.height * f);
+  }
+  return null;
+}
+
+
+/**
+ * The room a content takes inside these bounds (D4): a rigid thing its box
+ * as it best stands, clipped where it stands out of an open side; a
+ * flexible one its packed volume; a stack its count (its volume already
+ * is). Unknown size takes no room.
+ */
+function fillOf(item: Stuff, b: ContainerBounds): number {
+  const box = (MixinApi.isShaped(item) ? item.getFitBox() : null);
+  if (box === null) return 0;
+  const stands = box.orientationWithin(b.interior, b.closed) ?? box;
+  return stands.clippedTo(b.interior);
 }

@@ -1,0 +1,18 @@
+# A comms headset (size and carrying D34) — the aether implant WORN, not
+# implanted: the same augment (it confers `AetherMixin`), seated in the
+# head slot instead of the cranial bay, so a guest or a species that
+# refuses an implant sends a thought with no phone in hand. Its class is
+# the implant made Wearable (`/generic-objects/thing/Headset`).
+class: /generic-objects/thing/Headset
+data:
+  shortDescription: comms headset
+  keywords: [headset, comms, earpiece, aether, "comms headset"]
+  register: indefinite
+  longDescription: >
+    A brass band that sits over the crown, with a padded cup at one ear
+    and a short silvered stalk curving toward the mouth. It hums faintly
+    when it is on a head.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [head]
+  _materialPath: /stuff/idea/material/alloy/brass
+  mass: 0.15

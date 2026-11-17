@@ -39,13 +39,15 @@ args:
   #
   # ⭐ And the pail is DECLARED with a default rather than hunted for
   # (`lint:controller-resolution`): bare, the binder hands over the first thing
-  # in your hands that holds liquid; a churn named by name is honoured.
+  # you carry, to hand where it sits, that holds liquid; a churn named by name
+  # is honoured.
   - name: vessel
     type: object
     required: false
     prepositions: [into, in]
-    default: "me:i:[mixin.BulkableMixin]"
+    default: "person:[mixin.BulkableMixin]"
     scope: ["inventory", "reachable"]
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
+      - /lib/command/validators/canReach

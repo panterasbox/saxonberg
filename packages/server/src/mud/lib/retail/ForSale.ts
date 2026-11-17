@@ -47,7 +47,11 @@ export interface SaleRequest {
 /** How a sale ended: what the buyer and the room are told, or the refusal. */
 export type SaleOutcome =
   | { ok: true; self: Mml; peers: Mml }
-  | { ok: false; line: Mml; note: Note };
+  | {
+      ok: false;
+      line: Mml;
+      note: Note;
+    };
 
 export interface ForSale {
   /** ⭐ Does this offer what `word` names — even if none is left to sell today? */

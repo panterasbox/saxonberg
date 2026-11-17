@@ -33,6 +33,11 @@ help: |
   Nothing here is ever gated on how good you are — where a reading
   is out of reach, it is a ROUTE you are missing, and the refusal
   names it.
+
+  ⭐ A tool is used where it sits — in your hand, on your belt, in an
+  open pocket or pouch you wear, or within reach on the bench — and it
+  stays there. A shut pouch is shut: `open` it first. Packed on your
+  back it is refused: take the pack off first.
 examples:
   - cmd: analyze light
     note: What the light here is good for
@@ -69,3 +74,5 @@ args:
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

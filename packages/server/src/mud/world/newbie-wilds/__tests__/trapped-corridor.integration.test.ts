@@ -138,6 +138,16 @@ function trapsStore(): Doc[] {
     ),
     // The generic trap objects, cloned into the corridors via `props`.
     ...loadSeedDir(join(SEEDS, 'stuff', 'thing', 'traps'), '/stuff/thing/traps'),
+    // The lip post's material. Staging a prop asks whether it FITS its
+    // enclosed place (size and carrying D7), which reads the post's volume
+    // off its oak's density — so the material it cites is a row the store
+    // must answer. A stub with the density, not the commons row: the real
+    // one cites aromas, ash and units this harness never stands up.
+    {
+      path: '/stuff/idea/material/wood/oak',
+      class: '/platform/idea/material/Wood',
+      data: { name: 'oak', keywords: ['oak'], density: 750 },
+    },
     // The treeline the vestibule's back-out exit cascades — stubbed as a bare
     // void (the real treeline, with its wolf, is never stood up by a test).
     {

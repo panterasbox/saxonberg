@@ -173,6 +173,14 @@ data:
     - /world/lounge/thing/bar-counter
     # Propped behind the bar — on the back-bar, not loose in the room.
     - { template: /world/lounge/thing/bar-menu, on: /trade/hospitality/thing/back-bar }
+    # ⭐ THREE MUGS on the back-bar (size and carrying D29): the first thing
+    # a new player picks up. `get mug` goes to a hand, a second thing to the
+    # other, and a mug will not go in a trouser pocket — so the first wall
+    # is met after the player has watched hands and pockets work. Named
+    # (`as:`), not repeated, for `lint:census` clause (e).
+    - { template: /trade/hospitality/thing/mug, as: mug-1, on: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/mug, as: mug-2, on: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/mug, as: mug-3, on: /trade/hospitality/thing/back-bar }
   cast:
     - /world/lounge/agent/mara
     - /world/lounge/agent/remy

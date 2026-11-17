@@ -81,19 +81,18 @@ describe('CommandApi.preloadAll', () => {
     expect(result.loaded).toBeGreaterThan(0);
 
     // get.yaml's `targets` arg should now have resolved validators.
-    // ⭐ THREE, from two sources: the slot's `requires:` declaration is
-    // synthesized into a validator and PREPENDED, then its two authored
-    // `validators:` entries follow. A count that only matched the
-    // authored list would pass while the declaration did nothing.
+    // ⭐ TWO, from two sources: the slot's `requires:` declaration is
+    // synthesized into a validator and PREPENDED, then its authored
+    // `validators:` entry follows (`canReach` — `mustBeInLocation` left
+    // when `get` learned to take a thing off your own belt, size and
+    // carrying W7-d). A count that only matched the authored list would
+    // pass while the declaration did nothing.
     const get = CommandApi.getCommand('platform/cmd/inventory/get.yaml');
     const arg = get?.args[0];
     expect(arg?.requires).toEqual(['VisibleMixin', 'ContainableMixin']);
-    expect(arg?.validators).toEqual([
-      '/lib/command/validators/mustBeInLocation',
-      '/lib/command/validators/mustNotBeShutAway',
-    ]);
+    expect(arg?.validators).toEqual(['/lib/command/validators/canReach']);
     expect(arg?._resolvedValidators).toBeDefined();
-    expect(arg?._resolvedValidators?.length).toBe(3);
+    expect(arg?._resolvedValidators?.length).toBe(2);
     expect(typeof arg?._resolvedValidators?.[0]).toBe('function');
   });
 });
@@ -186,5 +185,24 @@ describe('subcommand-level validators', () => {
         new Map([[gate as never, false]]),
       ),
     ).toEqual({ ok: true });
+  });
+});
+
+describe('readies: is retired (size and carrying D-W10-1)', () => {
+  it('a view still carrying `readies:` is refused by the schema', () => {
+    expect(() =>
+      CommandDefinition.fromYaml(
+        `
+verbs: [test]
+controller: TestController
+description: ok
+args:
+  - name: tool
+    type: objects
+    readies: true
+`,
+        '<test>',
+      ),
+    ).toThrow(/args\/0 must NOT have additional properties/);
   });
 });

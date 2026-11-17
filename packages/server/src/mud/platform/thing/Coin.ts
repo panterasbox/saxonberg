@@ -147,6 +147,15 @@ export default class Coin extends CoinBase {
   }
 
   /**
+   * ⭐ A coin pile's mass is already the whole pile's ({@link getMass}), so
+   * its room is its matter — not a stack's count × one unit (size and
+   * carrying D2).
+   */
+  public override getVolumeM3(): number | null {
+    return this.getMatterVolumeM3();
+  }
+
+  /**
    * The **stack's** total mass: the per-coin mass — derived from
    * `(currency, denomination)` ({@link Currency.perCoinMass},
    * currency-intrinsic like face value, NOT a worth on the good) — scaled

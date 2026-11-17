@@ -36,6 +36,15 @@ export class WeaponSwitch {
     beats: number,
     /** Whether this is a fast sidearm draw (flavor / narration only). */
     private readonly fast = false,
+    /**
+     * ⭐ What lands when the beat completes, when it is not a grip swap
+     * (size and carrying D-W10-5): a hand act in a fight — `put`, `get`,
+     * `wield`, `unwield`, `remove`, `open`/`close` — is this guarded beat,
+     * and its act runs at the beat's end. Absent: the swap to `target`.
+     * Called with `abandoned` when the act never finishes (its body went
+     * down as the fight ended): it runs nothing and lets go of what it held.
+     */
+    private readonly land?: (abandoned?: boolean) => void,
   ) {
     this.remaining = Math.max(1, Math.round(beats));
   }
@@ -58,6 +67,11 @@ export class WeaponSwitch {
   /** The weapon to wield on completion (or null = bare-handed). */
   getTarget(): Stuff | null {
     return this.target;
+  }
+
+  /** The hand act that lands at completion, if this beat is one (else the swap). */
+  getLanding(): ((abandoned?: boolean) => void) | undefined {
+    return this.land;
   }
 
   /** Whether this is a fast sidearm draw. */

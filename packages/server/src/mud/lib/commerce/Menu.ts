@@ -21,6 +21,8 @@ import Good from '../stuff/Good';
 import { PricedOfferMixin, type Offering, type OrderAnswer, type OrderDone, type OrderRefusal, type OrderRequest } from './PricedOffer';
 import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { EmploymentApi } from '../../api/employment';
 import { MixinApi } from '../../api/mixin';
 import type { Attendant } from '../attendant/Attendant';
@@ -163,6 +165,8 @@ export default class CommerceMenu extends CommerceMenuBase {
         }
         const drink = outcome.output;
         if (MixinApi.isContainable(drink) && MixinApi.isContainer(by)) {
+          // Made for you (D-W7a; W8): `move` routes it — to hand, a pocket,
+          // a bag, else set down in front of you, and you are told.
           ContainmentApi.move(drink, by);
         }
         // The drink purchase: if the menu prices this recipe, the venue takes

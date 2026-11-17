@@ -73,3 +73,46 @@ describe('MQL system mode (null giver)', () => {
     expect(resolve('it', systemCtx())).toEqual([]);
   });
 });
+
+/**
+ * ⭐⭐ **MQL is universal** (size-and-carrying D23, 2026-11-11): for every
+ * viewer-free seed, every transform and every class filter, a player giver
+ * gets EXACTLY the list system mode gets. The engine holds no perception
+ * rule of its own; a surface that binds or shows the result applies
+ * `PerceptionApi.perceived`. (Predicates are giver-anchored words and throw
+ * under a null giver — `mql.universal.test.ts` pins them equal across
+ * players instead.)
+ */
+describe('a player giver resolves exactly what system mode does (D23)', () => {
+  it('every viewer-free seed, every transform, every class filter', () => {
+    const w = makeWorld();
+    const player: MqlContext = { commandGiver: w.giver, scope: '' };
+    const system: MqlContext = { commandGiver: null, scope: '' };
+    const g = `#${w.giver.stuffId}`;
+    const loc = `#${w.location.stuffId}`;
+    const rose = `#${w.rose.stuffId}`;
+    const queries = [
+      g, loc, rose,
+      `${g}:i`, `${g}:I`, `${loc}:i`, `${loc}:I`,
+      `${rose}:e`, `${rose}:E`, `#${w.apple.stuffId}:e`,
+      `${loc}:i:[class.TestThing]`, `${loc}:I:[mixin.ContainableMixin]`,
+      `${loc}:i:[1]`, `${loc}:i:[-1]`, `${loc}:i:[1..2]`,
+      `${loc}:i:flower`, `${loc}:i:'rose'`,
+      'online',
+    ];
+    for (const q of queries) {
+      const a = MqlApi.resolveMany(q, player).stuff.map((s) => s.stuffId);
+      const b = MqlApi.resolveMany(q, system).stuff.map((s) => s.stuffId);
+      expect({ q, ids: a }).toEqual({ q, ids: b });
+    }
+  });
+
+  it('a head ordinal rides the result for both, never applied to it', () => {
+    const w = makeWorld();
+    const loc = `#${w.location.stuffId}`;
+    const player = MqlApi.resolveMany(`${loc}:i:flower`, { commandGiver: w.giver, scope: '' });
+    const second = MqlApi.resolveMany('second flower', { commandGiver: w.giver, scope: 'peers' });
+    expect(second.ordinal).toBe(2);
+    expect(second.stuff.map((s) => s.stuffId).sort()).toEqual(player.stuff.map((s) => s.stuffId).sort());
+  });
+});

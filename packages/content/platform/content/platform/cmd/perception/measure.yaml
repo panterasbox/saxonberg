@@ -38,6 +38,11 @@ help: |
   decides how NARROW the answer is. An instrument raises the
   ceiling of what your practice can realize, and a fine instrument
   in an untrained hand still reads coarsely.
+
+  ⭐ A tool is used where it sits — in your hand, on your belt, in an
+  open pocket or pouch you wear, or within reach on the bench — and it
+  stays there. A shut pouch is shut: `open` it first. Packed on your
+  back it is refused: take the pack off first.
 examples:
   - cmd: measure light
     note: Read the light where you stand
@@ -90,3 +95,5 @@ args:
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

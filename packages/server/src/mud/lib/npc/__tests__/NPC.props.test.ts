@@ -28,6 +28,9 @@ import { StagedMixin } from '../../stuff/Staged';
 import { Template } from '../../stuff/Template';
 import ThingClass from '../../../platform/thing/Thing';
 import type { Stuff } from '../../stuff/Stuff';
+import { withHands, tool, Tool } from '../../slot/__tests__/carrying-fixture';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
+import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 const SAW = '/stuff/thing/saw';
 const PERSON = '/stuff/agent/somebody';
@@ -53,13 +56,17 @@ describe('NPC props — a person born holding things', () => {
   });
 
   it('places each prop INTO the person, once', async () => {
-    const n = person();
+    // ⚠ A person is staged with what it CARRIES (size and carrying W8): a
+    // body with no plan has no hand to put the saw in, and the applier
+    // says so and places nothing — so this person has hands.
+    const n = withHands(person());
     vi.spyOn(Template, 'findByPath').mockResolvedValue({ path: SAW, class: '/platform/thing/Thing' } as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(ThingClass as never);
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new ThingClass())) as never);
+    // …and the saw is a tool a hand can hold.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => tool('saw', 1)) as never);
     await n.applyProps([SAW]);
     await n.applyProps([SAW]);
-    const held = n.getContents().filter((c: Stuff) => c instanceof ThingClass);
+    const held = n.getContents().filter((c: Stuff) => c instanceof Tool);
     expect(held).toHaveLength(1);
   });
 
@@ -68,6 +75,21 @@ describe('NPC props — a person born holding things', () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue({ path: PERSON, class: '/platform/agent/Cast' } as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(NPC as never);
     await expect(n.applyProps([PERSON])).rejects.toThrow(/that is cast, not props/);
+  });
+
+  it('⭐ is DRESSED before it is handed its props — on a person and on a loadout class (finalize, run 16)', async () => {
+    // Phase 2 ran in the chain's field order (`props` before `costume`),
+    // so a prop meant for a worn satchel found no satchel and was refused
+    // `nowhere-to-carry` (the Wharfside tinker, the Hollow Mere cutter).
+    const applier = makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
+    for (const Cls of [NPC, StagedMixin(NPC)]) {
+      const n = makeStuff(() => new Cls()) as NPC;
+      const calls: string[] = [];
+      vi.spyOn(n, 'applyCostume').mockImplementation(async () => void calls.push('costume'));
+      vi.spyOn(n, 'applyProps').mockImplementation(async () => void calls.push('props'));
+      await applier.apply(n, { props: [SAW], costume: ['/stuff/thing/satchel'] }, { mode: 'go-live' });
+      expect(calls).toEqual(['costume', 'props']);
+    }
   });
 
   it('a loadout class over NPC keeps both halves, one props field', () => {

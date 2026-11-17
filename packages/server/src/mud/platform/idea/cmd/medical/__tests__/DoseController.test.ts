@@ -28,6 +28,14 @@ import Condition from '../../../Condition';
 import Prescription from '../../../../thing/Prescription';
 import { stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { makeBody } from '../../../../../lib/slot/__tests__/carrying-fixture';
+
+/**
+ * A body that carries (hands on a plan). ⚠ Since size and carrying W8 a
+ * bare `Creature` takes nothing into itself — `move` refuses a body with no
+ * hands and nothing worn — so the vial and the slip need a carrier.
+ */
+const carrier = (): Creature => makeBody().me as unknown as Creature;
 
 let note: ReturnType<typeof vi.fn>;
 
@@ -92,7 +100,7 @@ function firstOf(m: MqlManyResult): MqlOneResult {
 /** A poisoned body in a room, carrying a vial. */
 function poisoned(venom = 4): { me: Creature; v: Receptacle } {
   const room = makeStuff(() => new Place());
-  const me = makeStuff(() => new Creature());
+  const me = carrier();
   ContainmentApi.move(me, room);
   const v = vial();
   ContainmentApi.move(v, me);
@@ -147,7 +155,7 @@ describe('DoseController', () => {
 
   it('⚠ refuses a vial with less than a dose left', async () => {
     const room = makeStuff(() => new Place());
-    const me = makeStuff(() => new Creature());
+    const me = carrier();
     ContainmentApi.move(me, room);
     const empty = vial(0.02); // non-empty, but under the 0.05 L dose
     ContainmentApi.move(empty, me);
@@ -164,7 +172,7 @@ describe('DoseController', () => {
 
   it('⚠ refuses when no remedy is to hand', async () => {
     const room = makeStuff(() => new Place());
-    const me = makeStuff(() => new Creature());
+    const me = carrier();
     ContainmentApi.move(me, room);
     me.introduceToxin('venom', 4);
     await makeStuff(() => new DoseController()).execute(
@@ -219,7 +227,7 @@ describe('DoseController — the active branch', () => {
   it('administers a folk (non-controlled) active with no gate', async () => {
     seedCondition('analgesia', false);
     const room = makeStuff(() => new Place());
-    const me = makeStuff(() => new Creature());
+    const me = carrier();
     ContainmentApi.move(me, room);
     ContainmentApi.move(
       activeVial('/stuff/idea/material/_test/willow-tea', 'analgesia', 2),
@@ -235,7 +243,7 @@ describe('DoseController — the active branch', () => {
   it('refuses a controlled active with no licence and no slip', async () => {
     seedCondition('anaesthesia', true);
     const room = makeStuff(() => new Place());
-    const me = makeStuff(() => new Creature());
+    const me = carrier();
     ContainmentApi.move(me, room);
     ContainmentApi.move(
       activeVial('/stuff/idea/material/_test/grey-draught', 'anaesthesia', 4),
@@ -254,8 +262,8 @@ describe('DoseController — the active branch', () => {
   it('a matching prescription authorizes it and a dose is spent', async () => {
     seedCondition('anaesthesia', true);
     const room = makeStuff(() => new Place());
-    const nurse = makeStuff(() => new Creature());
-    const patient = makeStuff(() => new Creature());
+    const nurse = carrier();
+    const patient = carrier();
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/rx-patient');
     ContainmentApi.move(nurse, room);
     ContainmentApi.move(patient, room);
@@ -288,8 +296,8 @@ describe('DoseController — the active branch', () => {
   it('a prescription for a DIFFERENT patient is refused, naming why', async () => {
     seedCondition('anaesthesia', true);
     const room = makeStuff(() => new Place());
-    const nurse = makeStuff(() => new Creature());
-    const patient = makeStuff(() => new Creature());
+    const nurse = carrier();
+    const patient = carrier();
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/rx-patient-2');
     ContainmentApi.move(nurse, room);
     ContainmentApi.move(patient, room);

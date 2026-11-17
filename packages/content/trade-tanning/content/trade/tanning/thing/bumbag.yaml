@@ -1,0 +1,16 @@
+# A bumbag (size and carrying D27) — a pouch on its own strap round the
+# waist: it claims the waist itself rather than hanging from a belt, so a
+# body can wear one without a belt at all.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather bumbag
+  keywords: [bumbag, pouch, "waist pouch", leather, "leather bumbag"]
+  register: indefinite
+  longDescription: >
+    A curved leather pouch on a strap that buckles round the waist, the
+    flap held down by a brass stud.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.25
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [waist]
+  dimensions: { width: 0.25, depth: 0.08, height: 0.13 }

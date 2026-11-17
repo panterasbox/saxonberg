@@ -50,6 +50,7 @@ import { StuffApi } from '../../../api/stuff';
 // through the face to run under `decoyNameFor`.
 import { MagicApi } from '../../../api/magic';
 import { MixinApi } from '../../../api/mixin';
+import { PerceptionApi } from '../../../api/perception';
 import { MqlApi } from '../../../api/mql';
 import { Mixins } from '../../../lib/mixin';
 import { ConditionApi } from '../../../api/condition';
@@ -1173,7 +1174,8 @@ async function executeEffect(
 function resolveScope(actor: Stuff, scope: string): Stuff[] {
   switch (scope) {
     case 'inventory':
-      return MixinApi.isContainer(actor) ? [...actor.getContents()] : [];
+      // ⭐ Everything carried (W9: a pocket's thing is its coat's contents).
+      return MixinApi.isContainer(actor) ? [...actor.getCarriedContents()] : [];
     case 'here': {
       const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
       return room && MixinApi.isContainer(room) ? [...room.getContents()] : [];
@@ -2369,7 +2371,8 @@ function bestConduitFor(
   actor: Stuff,
 ): (Stuff & { getCouplingEfficiency(): number }) | null {
   const candidates: Stuff[] = [];
-  if (MixinApi.isContainer(actor)) candidates.push(...actor.getContents());
+  // ⭐ Carried where it sits (D-W10-1) — a coupling in an open pouch is to hand.
+  candidates.push(...PerceptionApi.reachableAmong(actor, PerceptionApi.reach(actor, { pools: ['inventory'] }).map((r) => r.stuff)));
   if (MixinApi.isContainable(actor)) {
     const env = actor.getContainer();
     if (env && MixinApi.isContainer(env)) candidates.push(...env.getContents());

@@ -602,3 +602,9 @@ and windlass. Rock: the seam, the carve-face, ore.
    cheaper and spookier.
 7. **Whether the full life cycle runs here** or whelps and firedrakes are a
    later escalation the town only dreads at first.
+8. **The fuel-yard gasometer fits only while the yard is open-sky** (size-and-carrying finalize, 2026-11-16).
+   Containers bound only the sides they close, and a place is a container
+   on the same rule: the 20 m³ gasometer spills over the yard's open top.
+   Roof the yard (an `enclosure:`/`roof:` on the place) and the install
+   refuses the prop with a diagnostic. A venue call: keep the yard open,
+   or give the gasometer a place of its own.

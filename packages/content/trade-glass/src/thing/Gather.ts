@@ -256,7 +256,9 @@ export default class Gather extends GatherBase implements Formable {
         craftedAt: WorldClockApi.getNow().rawValue(),
       });
     }
-    if (where && MixinApi.isContainable(product)) ContainmentApi.move(product as Stuff & Containable, where);
+    if (where && MixinApi.isContainable(product)) {
+      ContainmentApi.move(product as Stuff & Containable, where);
+    }
     try {
       const moil = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, { madeFrom: self });
       if (MixinApi.isTangible(moil)) {
@@ -267,7 +269,9 @@ export default class Gather extends GatherBase implements Formable {
       (moil as unknown as Labelled).setShortDescription("scrap of cullet");
       (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
       if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setMakeup(alloying);
-      if (where && MixinApi.isContainable(moil)) ContainmentApi.move(moil as Stuff & Containable, where);
+      if (where && MixinApi.isContainable(moil)) {
+        ContainmentApi.move(moil as Stuff & Containable, where);
+      }
     } catch {
       /* missing cullet row: the moil is simply lost */
     }

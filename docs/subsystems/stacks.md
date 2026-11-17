@@ -505,6 +505,13 @@ Trade-offs and deferred work documented for future maintainers:
   don't have an ordinal intuition for "the 5th coin in a pile";
   `5 coins` / `coin:{5}` are the supported shapes for "five units
   from the pile." Documented in [mql-grammar.md](../mql-grammar.md).
+- **`getMass()` — one unit or the pile?** (size-and-carrying finalize,
+  2026-11-16.) The convention is inconsistent across `Stackable` hosts:
+  some answer one unit's mass, some the whole pile's. Size reads each host
+  as it is (a stack's volume is its count × its unit) and the burden walk
+  does the same, but nothing states which `getMass()` means. Decide the
+  convention (and rename the other read, e.g. `getUnitMass()`), then sweep
+  the hosts.
 
 ## Future extensions
 

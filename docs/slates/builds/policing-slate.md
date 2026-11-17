@@ -415,6 +415,13 @@ undramatic. Here it would be an office with a name and a record.
   taking coin is texture; a pickpocket taking a masterwork blade
   teaches people to carry nothing. NPC petty crime targets the
   fungible, never the precious.
+- **The hand into a pack someone WEARS is this slate's** (size and
+  carrying W10, D-W10-16, 2026-11-14): reach never goes into another body
+  (D17), so another person's hand into the pack you have on — the
+  pickpocket's act — is refused by the engine today and is designed here,
+  beside the frisk. A pack SET DOWN is a room thing and anyone may look in
+  an open one and take from it; that is theft on the ledger already (custody
+  derives in `move`) and needs nothing new.
 - **The meta guardrail stands**: in-fiction crime is in-fiction;
   harassment is an account matter, always
   ([prison-slate](./prison-slate.md)).

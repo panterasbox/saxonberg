@@ -457,3 +457,8 @@ realistic (beetles are about 400,000 species), but two moves take most of the cr
 5. **The roster and the first fantasy creatures** — which ship first, and where.
 6. **The sentience rename** — and where the welfare property is read.
 7. **The shared folklore pack** — whether one ships, and its base creatures.
+8. **The interior place inside a creature** (size-and-carrying finalize, 2026-11-16; salvaged from size-slate § 8
+   Q5). A swallowing creature: a body carries and does not contain (nothing loose on a
+   body), so a swallowed thing needs an interior PLACE the creature hosts, not its
+   contents — the shape a vehicle's cabin already has. Waits on the first creature
+   that swallows.

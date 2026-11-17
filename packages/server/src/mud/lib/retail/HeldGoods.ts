@@ -211,6 +211,7 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
       // lost ticket never traps the good (it's flavor, not the key).
       const ticket = await StuffApi.clone<ClaimTicket>("/platform/thing/Ticket");
       ticket.setClaim(self.getTemplatePath() ?? "", this.countHeld(consignorKey));
+      // The good is already in custody: to you, else set down where you stand.
       ContainmentApi.move(ticket, by);
       return { ok: true, facts: { holding, ticket } };
     }

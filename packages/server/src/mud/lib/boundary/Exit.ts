@@ -52,6 +52,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Boundary } from './Boundary';
 import type { BoundaryOpening } from './Conduit';
+import type { ActRefusal } from '../craft/ActPlan';
 import type { WayRecord, WayState } from '@saxonberg/types';
 import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
@@ -63,6 +64,8 @@ import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ParcelApi } from '../../api/parcel';
 import { NavigationApi } from '../../api/navigation';
+import { Creature } from '../creature/Creature';
+import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -84,6 +87,15 @@ export type TraversalGate =
   | 'terrain'
   | 'breakaway'
   /**
+   * ⭐ What is coming through does not fit the way (size and carrying D21):
+   * the body at its mode, a held thing, the turn, a cart.
+   */
+  | 'clearance'
+  /** ⭐ The mode wants more free hands than the body has (a ladder, D20). */
+  | 'handsNeeded'
+  /** ⭐ A held load too long or awkward to run with (size and carrying D35). */
+  | 'awkwardLoad'
+  /**
    * ⭐ The far side is **not published** — a readiness wall, not a
    * locked door. Draft content that has never been live, or live
    * content taken offline; either way the parcel says it is not open.
@@ -102,6 +114,26 @@ export type TraversalGate =
    * `reason` is the prose.
    */
   | 'veto';
+
+/**
+ * ⭐ Why a way will not take what is coming through it (size and carrying
+ * D21), and what would: `lower` — a mode the body's plan has that fits;
+ * `pack` — the worn container that makes it too deep; `dismount` — the
+ * mounted pair will not go; `thing` — the held thing or cart that will not.
+ */
+export type ClearanceRefusal = ActRefusal<
+  'too-big-for-way' | 'held-too-big' | 'wont-turn' | 'cart-too-big',
+  {
+    mover: Stuff;
+    gap: BoundaryOpening | null;
+    turn: number | null;
+    thing?: Stuff;
+    lengthM?: number;
+    lower?: string;
+    pack?: Stuff;
+    dismount?: boolean;
+  }
+>;
 
 /**
  * Result of `Exit.canTraverse()`.
@@ -187,6 +219,8 @@ export interface ExitOptions {
   wheelPassable?: boolean;
   /** Per-site size of the gap this way passes through (see {@link Exit.getOpening}). */
   opening?: BoundaryOpening | null;
+  /** Per-site longest rigid length that swings round this way's bend (see {@link Exit.getTurn}). */
+  turn?: number | null;
   /**
    * ⭐⭐ Is this the KIND of way that closes? See
    * {@link Exit.isConditional}.
@@ -230,6 +264,29 @@ const ByPartyRoom = SecurityPolicies.FromMixin(Mixins.Exitable, {
 });
 
 /** The self-powered way across each medium, for a refusal that names it. */
+/**
+ * The ground modes an empty `media` list admits: the three paces and the
+ * two ways a body gets low (size and carrying D20).
+ */
+const GROUND_FAMILY: readonly string[] = ['walk', 'sneak', 'run', 'stoop', 'crawl'];
+
+/**
+ * Does `opening` pass a body whose envelope is `env`? Its sides as they
+ * stand — a standing body does not turn on its side — unless it goes
+ * through lengthwise, when either way round will do.
+ */
+function opens(env: BoundaryOpening, opening: BoundaryOpening, lengthwise = false): boolean {
+  const e = 1e-9;
+  if (env.width <= opening.width + e && env.height <= opening.height + e) return true;
+  return lengthwise && env.width <= opening.height + e && env.height <= opening.width + e;
+}
+
+/** A way up or down, passed lengthwise. */
+function isVertical(direction: string): boolean {
+  const d = NavigationApi.normalizeDirection(direction);
+  return d === 'up' || d === 'down';
+}
+
 const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
   ground: 'walk',
   vertical: 'climb',
@@ -275,6 +332,9 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     media: { persistent: true },
     wheelPassable: { persistent: true },
     opening: { persistent: true, authorable: true },
+    // ⭐ Size and carrying D8: the longest rigid thing that swings round
+    // this way's bend (a turning stair); unset = no bend.
+    turn: { persistent: true, authorable: true },
     spansGround: { persistent: true, authorable: true },
     _conditional: { persistent: true },
     _edgeMinutes: { persistent: true },
@@ -769,6 +829,264 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   }
 
   /**
+   * ⭐ **The longest rigid length that can swing round this way's bend**, m
+   * (size and carrying D8) — the sofa in the stairwell, the one thing a
+   * cube cannot say about a narrow stair. From the kind row (`stair`: 2.2)
+   * or per site; `null` = the way runs straight and length never matters.
+   */
+  protected _turn: number | null = null;
+
+  public getTurn(): number | null {
+    return this._turn;
+  }
+  public setTurn(value: number | null): void {
+    if (value === null || value === undefined) {
+      this._turn = null;
+      return;
+    }
+    if (!(typeof value === 'number' && Number.isFinite(value) && value > 0)) {
+      throw new TypeError(`Exit.turn must be a positive number of metres; got ${JSON.stringify(value)}.`);
+    }
+    this._turn = value;
+  }
+
+  /**
+   * ⭐ **The way's tightest gap** (size and carrying D8): elementwise the
+   * least of the face it passes through (its source's cell), its own
+   * opening, and the boundary hung in it (a door's own size). `null` when
+   * nothing bounds it — a track over open ground with no opening given.
+   */
+  public clearance(): BoundaryOpening | null {
+    const gaps: BoundaryOpening[] = [];
+    if (!this._spansGround) {
+      const src: Stuff | undefined = this.source;
+      const face = src != null && src.isPlace() ? src.getLinearExtent() : null;
+      if (face !== null && face > 0) gaps.push({ width: face, height: face });
+    }
+    const own = this.getOpening();
+    if (own !== null) gaps.push(own);
+    const hung = this.getBoundary();
+    if (hung !== null) {
+      const b = hung.getOpening();
+      if (b !== null) gaps.push(b);
+    }
+    if (gaps.length === 0) return null;
+    return {
+      width: Math.min(...gaps.map((g) => g.width)),
+      height: Math.min(...gaps.map((g) => g.height)),
+    };
+  }
+
+  /**
+   * ⭐ **Would `mover` pass this way, moving as `mode` moves?** (size and
+   * carrying D8/D21). `null` = it passes (or its size is unknown).
+   *
+   * - A **body** passes by its envelope at the mode's profile
+   *   (`Creature.envelope`) against the {@link clearance}: a way up or down
+   *   is passed lengthwise, by the body's girth. Mounted, the pair is
+   *   measured, and a pair that will not go says *dismount*. A rider being
+   *   carried by its mount is not asked again — the mount was.
+   * - What its **hands** hold is measured on its own (a crawler pushes it
+   *   ahead): its cross-section against the clearance, and — rigid — its
+   *   longest side against the {@link getTurn}.
+   * - A **hitched cart** by its own box's cross-section.
+   * - Anything else by its own fit box, as W1 measured it.
+   *
+   * The refusal names what would work: a lower mode the body's plan has
+   * (`lower`), or the worn container that makes it too deep (`pack`) — or,
+   * failing both, nothing. It never changes posture.
+   */
+  public async clearanceRefusal(mover: Stuff, mode?: string): Promise<ClearanceRefusal | null> {
+    const gap = this.clearance();
+    const turn = this.getTurn();
+    if (gap === null && turn === null) return null;
+    const base = { mover, gap, turn };
+    const lengthwise = isVertical(this.direction);
+
+    if (mover instanceof Creature) {
+      const pair = mover.mountedPair();
+      if (pair !== null && pair.rider === mover) return null;
+      const current = mode != null ? LocomotionApi.modeOf(mode) : null;
+      const profile = current?.getBodyProfile() ?? 'upright';
+      const env = mover.envelope(profile, { lengthwise });
+      if (gap !== null && env !== null && !opens(env, gap, lengthwise)) {
+        if (pair !== null) return { ok: false, reason: 'too-big-for-way', facts: { ...base, dismount: true } };
+        return { ok: false, reason: 'too-big-for-way', facts: { ...base, ...(await this.whatWouldPass(mover, current, lengthwise, gap)) } };
+      }
+      // ⭐ What it wears goes through after it, by its OWN cross-section
+      // (D10-d): weightless or lengthwise a body may pass a way its pack
+      // trails behind it in, but a pack bigger than the gap never fits,
+      // however it is carried.
+      if (gap !== null && pair === null) {
+        const bulk = mover.wornBulk();
+        for (const worn of [...bulk.things, ...bulk.hung]) {
+          if (!MixinApi.isShaped(worn)) continue;
+          const box = worn.hasAuthoredSize() ? worn.getDimensions() : worn.getFitBox();
+          if (box !== null && !box.fitsThrough(gap)) {
+            return { ok: false, reason: 'too-big-for-way', facts: { ...base, pack: worn } };
+          }
+        }
+      }
+      const bodies: Creature[] = pair !== null ? [pair.mount, pair.rider] : [mover];
+      for (const body of bodies) {
+        if (!MixinApi.isCarrying(body)) continue;
+        for (const held of body.heldThings()) {
+          const thing = this.thingRefusal(held, gap, turn);
+          if (thing !== null) return { ok: false, reason: thing.reason, facts: { ...base, ...thing.facts } };
+        }
+      }
+    } else if (MixinApi.isShaped(mover)) {
+      const own = this.thingRefusal(mover, gap, turn);
+      if (own !== null) {
+        return { ok: false, reason: own.reason === 'held-too-big' ? 'too-big-for-way' : own.reason, facts: { ...base, ...own.facts } };
+      }
+    }
+
+    if (MixinApi.isHauling(mover) && mover.isHitched()) {
+      const cart = mover.getHauledCart() as Stuff | null;
+      if (cart !== null && MixinApi.isShaped(cart)) {
+        // ⭐ A cart goes through on its wheels: UPRIGHT and end-on — its
+        // width across the gap, its height under the lintel, never turned
+        // on its side the way a crate is fitted (the drive, step 18: a
+        // 0.9 m handcart "fitted" the 0.8 m paddock gate on its side).
+        const d = cart.getDimensions() ?? cart.getFitBox();
+        if (gap !== null && d !== null && (d.width > gap.width + 1e-9 || d.height > gap.height + 1e-9)) {
+          return { ok: false, reason: 'cart-too-big', facts: { ...base, thing: cart } };
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * A thing measured on its own against this way: its cross-section
+   * against the gap, and — rigid — its longest side against the turn.
+   */
+  private thingRefusal(
+    thing: Stuff,
+    gap: BoundaryOpening | null,
+    turn: number | null,
+  ): { reason: 'held-too-big' | 'wont-turn'; facts: { thing: Stuff; lengthM?: number } } | null {
+    if (!MixinApi.isShaped(thing)) return null;
+    const box = thing.getFitBox();
+    if (box === null) return null;
+    if (gap !== null && !box.fitsThrough(gap)) return { reason: 'held-too-big', facts: { thing } };
+    const rigid = thing.getShape().isRigid();
+    if (turn !== null && rigid && box.longest() > turn + 1e-9) {
+      return { reason: 'wont-turn', facts: { thing, lengthM: box.longest() } };
+    }
+    return null;
+  }
+
+  /**
+   * What would get this body through when its mode will not: the first mode
+   * its plan has, lower than `current`, admitted here, that fits
+   * (`lower`); else the worn container whose bulk is the trouble, and the
+   * mode that would fit without it (`pack`, `lower` when not `current`).
+   */
+  private async whatWouldPass(
+    body: Creature,
+    current: LocomotionMode | null,
+    lengthwise: boolean,
+    gap: BoundaryOpening,
+  ): Promise<{ lower?: string; pack?: Stuff }> {
+    const height = current?.getProfileHeight() ?? 1;
+    const plan = body.getSpecies()?.getBodyPlan() ?? null;
+    for (const name of plan?.getLocomotionModes() ?? []) {
+      try {
+        await LocomotionApi.loadMode(name);
+      } catch (err) {
+        // ⚠ A plan naming a mode with no row is never a candidate — and is
+        // an authored reference that points nowhere, said to the author
+        // (finalize A6, P3: a skip with a diagnostic, never a silent one).
+        const { DiagnosticApi } = await import('../../api/diagnostics');
+        await DiagnosticApi.record({
+          path: plan?.getTemplatePath() ?? body.getTemplatePath() ?? body.stuffId,
+          severity: 'error',
+          message: `locomotion mode '${name}' would not load — ${err instanceof Error ? err.message : String(err)}`,
+        });
+      }
+    }
+    const lower = LocomotionApi.eligibleModes(body)
+      .filter((m) => m.getProfileHeight() < height - 1e-9 && !m.getPassthrough() && this.allowsMode(m.getName()))
+      .sort((a, b) => b.getProfileHeight() - a.getProfileHeight() || b.getSpeed() - a.getSpeed());
+    const fits = (m: LocomotionMode | null, bare: boolean): boolean => {
+      const env = body.envelope(m?.getBodyProfile() ?? 'upright', { lengthwise, bare });
+      return env !== null && opens(env, gap, lengthwise);
+    };
+    const full = lower.find((m) => fits(m, false));
+    if (full !== undefined) return { lower: full.getName() };
+    const bulk = body.wornBulk();
+    const worn = [...bulk.things, ...bulk.hung];
+    if (worn.length === 0) return {};
+    const pack = worn[0]!;
+    if (fits(current, true)) return { pack };
+    const bare = lower.find((m) => fits(m, true));
+    return bare !== undefined ? { pack, lower: bare.getName() } : {};
+  }
+
+  /**
+   * The words for a way that will not take what is coming through it —
+   * to the mover (`second`), or about it to somebody leading it (`third`:
+   * *its canvas panniers won't go through*).
+   */
+  private clearanceWords(refusal: ClearanceRefusal, person: 'second' | 'third' = 'second'): string {
+    const { facts } = refusal;
+    const way = this.direction;
+    const name = (t: Stuff): string => t.presentationPhrase().definite();
+    const keyword = (t: Stuff): string =>
+      (MixinApi.isPerceptible(t) ? t.getPrimaryKeyword() : undefined) ?? t.presentationPhrase().bare();
+    switch (refusal.reason) {
+      case 'too-big-for-way': {
+        if (person === 'third') {
+          const mover = facts.mover;
+          if (facts.dismount === true) return `${GrammarApi.cap(GrammarApi.pronoun(mover))} won't fit through there with a rider.`;
+          if (facts.pack !== undefined && mover instanceof Creature) {
+            const bulk = mover.wornBulk();
+            const same = [...bulk.things, ...bulk.hung].filter(
+              (t) => t.presentationPhrase().bare() === facts.pack!.presentationPhrase().bare(),
+            );
+            const bare = facts.pack.presentationPhrase().bare();
+            const what = same.length > 1 ? GrammarApi.pluralize(facts.pack, bare) : bare;
+            const it = same.length > 1 ? 'them' : 'it';
+            return `${GrammarApi.possessive(mover)} ${what} won't go through — take ${it} off first.`;
+          }
+          return `${GrammarApi.cap(GrammarApi.pronoun(mover))} won't fit through there.`;
+        }
+        if (facts.dismount === true) return `You won't fit through there mounted; you'd have to dismount.`;
+        if (facts.mover instanceof Creature) {
+          if (facts.pack !== undefined) {
+            const own = `your ${facts.pack.presentationPhrase().bare()}`;
+            // A hung thing comes off its host; a worn one is removed.
+            const pair = MixinApi.isContainable(facts.pack) ? facts.pack.getPlacement() : null;
+            const off = pair !== null
+              ? `get ${keyword(facts.pack)} from ${keyword(pair.host)}`
+              : `remove ${keyword(facts.pack)}`;
+            const then = facts.lower !== undefined ? `, then \`${facts.lower} ${way}\`` : '';
+            const how = facts.lower !== undefined ? `You'd have to ${facts.lower}, and ${own}` : GrammarApi.cap(own);
+            return `${how} won't go through — \`${off}\`${then}.`;
+          }
+          if (facts.lower !== undefined) return `You'd have to ${facts.lower} — \`${facts.lower} ${way}\`.`;
+          return `You won't fit through there.`;
+        }
+        return `${GrammarApi.cap(name(facts.mover))} won't fit through there.`;
+      }
+      case 'held-too-big':
+        return `${GrammarApi.cap(name(facts.thing!))} won't go through — it's too big for the way.`;
+      case 'wont-turn': {
+        const len = facts.lengthM !== undefined ? ` — ${Math.round(facts.lengthM * 10) / 10} m of it` : '';
+        return `${GrammarApi.cap(name(facts.thing ?? facts.mover))} is too long to get round the turn${len}.`;
+      }
+      case 'cart-too-big':
+        return `${GrammarApi.cap(name(facts.thing!))} won't fit through there.`;
+      default: {
+        const unworded: never = refusal.reason;
+        throw new Error(`Exit.clearanceWords: no words for ${String(unworded)}`);
+      }
+    }
+  }
+
+  /**
    * ⭐ **A way across open ground** — a track, a road (the `track` kind). An
    * ordinary way joins two ADJACENT cells of its zone through their shared
    * face; a track runs on along its direction over cells nobody has
@@ -871,7 +1189,9 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     // (climb / swim / fly) and wheeled conveyance still require an explicit
     // `media` declaration, so this stays backcompat-safe for old content.
     if (this.media.length === 0) {
-      return modeName === 'walk' || modeName === 'sneak' || modeName === 'run';
+      // ⭐ …and anywhere you can walk you can stoop or crawl (size and
+      // carrying D20): how a body passes an opening is a ground mode too.
+      return GROUND_FAMILY.includes(modeName);
     }
     const mode = LocomotionApi.modeOf(modeName);
     if (!mode) return false;
@@ -1063,6 +1383,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       this._wheelPassable = opts.wheelPassable;
     }
     if (opts.opening !== undefined) this.setOpening(opts.opening);
+    if (opts.turn !== undefined) this.setTurn(opts.turn);
     if (opts.edgeMinutes !== undefined) {
       this.setEdgeMinutes(opts.edgeMinutes);
     }
@@ -1376,6 +1697,23 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: ways.length > 0
           ? `You can't ${mode} that way — you'll have to ${ways.join(' or ')}.`
           : `You can't ${mode} that way.`,
+      };
+    }
+    // ⭐ The way's size against what comes through it (size and carrying
+    // D21): after the media, before the haulage. Words what would work.
+    const tight = await this.clearanceRefusal(mover, mode);
+    if (tight !== null) {
+      return {
+        ok: false,
+        gate: 'clearance',
+        ...(mode != null ? { mode } : {}),
+        reason: this.clearanceWords(tight),
+        context: {
+          refusal: tight.reason,
+          // The same refusal told ABOUT the mover — a leader hears it (D18).
+          about: this.clearanceWords(tight, 'third'),
+          ...(tight.facts.lower !== undefined ? { lower: tight.facts.lower } : {}),
+        },
       };
     }
     return { ok: true };

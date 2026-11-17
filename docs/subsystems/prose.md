@@ -27,7 +27,7 @@ to splice in, `Mml` provides the markup wrappers.
 | Players might want to override the verbiage | The output is dev-owned and structural |
 | Authors / scripts override per-room or per-object | The block has multi-line layout |
 | Prose has multiple audience variants (self / target / witness) | Inline tagged-template prose is fine |
-| Stable one-liner with interpolation slots | E.g. `LookController`, `InventoryController` |
+| Stable one-liner with interpolation slots | E.g. `LookController`, `QueryController` |
 
 ## Mml-aware output
 

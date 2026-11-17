@@ -1,0 +1,19 @@
+# The lookout ladder — nailed up the yard's post to the platform (size and
+# carrying drive, step 10). ⭐ The way up is CLIMBED (`media: [vertical]`,
+# the ladder kind), and a way is climbable only where a Climbable stands in
+# the room (the enablement walk reads the room's contents — the Rejection
+# winze's pattern). The steading shipped the way with no ladder in either
+# room, so `go up` said "you'll have to climb" and `climb` was no verb at
+# all: the lookout could not be reached. One stands at each end.
+class: /platform/thing/Ladder
+data:
+  shortDescription: lookout ladder
+  keywords: [ladder, rungs, "lookout ladder"]
+  register: definite
+  longDescription: >-
+    A ladder of split poles and pegged rungs nailed up the post to the
+    lookout platform. The rungs are worn pale in the middle, and it takes
+    both hands to go up it.
+  mass: 25
+  axes: [up, down]
+  difficulty: null

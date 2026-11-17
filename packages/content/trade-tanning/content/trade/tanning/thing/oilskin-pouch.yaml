@@ -1,0 +1,15 @@
+# An oilskin pouch (size and carrying D22) — linseed-oiled cloth that
+# takes no water: SHUT, it keeps a letter dry through a swim (a shut
+# holder whose material takes no water is liquid-tight); open, it does
+# not. It hangs from a belt.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: oilskin pouch
+  keywords: [pouch, oilskin, "oilskin pouch"]
+  register: indefinite
+  longDescription: >
+    A flat pouch of stiff, yellowed oilskin with a long fold-over flap and
+    a toggle, faintly sharp with the smell of linseed.
+  _materialPath: /stuff/idea/material/textile/oilskin
+  mass: 0.12
+  dimensions: { width: 0.18, depth: 0.04, height: 0.25 }

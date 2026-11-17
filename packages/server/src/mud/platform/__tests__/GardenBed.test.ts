@@ -192,8 +192,7 @@ function forceStage(plant: Plant, stage: string): void {
 
 /** Seat a plant the way the verbs do: contents AND slot. */
 function seat(plant: Plant, ground: GardenBed | PlantPot): void {
-  ContainmentApi.move(plant, ground);
-  ground.occupy(plant, PLANT_SLOT);
+  ground.seatInSlot(plant, PLANT_SLOT);
 }
 
 describe('a bed is a pot with a bigger N', () => {

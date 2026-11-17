@@ -197,18 +197,63 @@ async function look(s: Session, what = 'here'): Promise<string> {
   return plain(await r.said()).replace(/\s+/g, ' ').toLowerCase();
 }
 
-/** What the session is carrying, as one lowercase line. */
+/**
+ * What the session is carrying, as one lowercase line. ⚠ `me:I`, not
+ * `me:i` (size and carrying W9): a thing in a pocket is its COAT's
+ * contents and a thing in a bag the bag's, so a buy that lands in a pocket
+ * or a satchel is carried without being a top-level content of the body.
+ */
 async function carried(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] });
+  const rows = await s.query('me:I', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ')
     .toLowerCase();
 }
 
-/** How many things the session is carrying — the state read for a buy. */
+/**
+ * How many things the session is carrying — the state read for a buy.
+ * `me:I`, for the reason {@link carried} gives: a bought thing goes to a
+ * free hand, else a pocket or a bag it fits (the carry routing, W8/W9).
+ */
 async function held(s: Session): Promise<number> {
-  return (await s.query('me:i', { fields: ['displayName'] })).length;
+  return (await s.query('me:I', { fields: ['displayName'] })).length;
+}
+
+/** What stands loose in the room, as one lowercase line. */
+async function standing(s: Session): Promise<string> {
+  const rows = await s.query('here:i', { fields: ['displayName'] });
+  return rows
+    .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+    .join(' | ')
+    .toLowerCase();
+}
+
+/**
+ * ⭐ A buy's honest outcome under the carry routing (size and carrying
+ * W8/W9): the good comes to a free hand, else a pocket or a bag it fits —
+ * one more thing carried — or, with the hands full and nowhere it fits, it
+ * is SET DOWN where you stand and you are told so. The session's hands are
+ * full from step 4 (the light and the watch), so a bigger good lands at
+ * its feet; both outcomes are asserted, never assumed.
+ */
+async function expectBought(
+  s: Session,
+  r: CommandResult,
+  before: number,
+  thing: RegExp,
+  label: string,
+): Promise<void> {
+  const said = plain(await r.said()).replace(/\s+/g, ' ');
+  const down = /hands are full — you set (.+?) down/i.exec(said);
+  if (down) {
+    expect(down[1], `${label}: the set-down line names it`).toMatch(thing);
+    expect(await held(s), `${label}: nothing more carried`).toBe(before);
+    expect(await standing(s), `${label}: it stands at your feet`).toMatch(thing);
+    return;
+  }
+  expect(await held(s), label).toBe(before + 1);
+  expect(await carried(s), label).toMatch(thing);
 }
 
 /** The room's template path — the state read for a move. */
@@ -547,10 +592,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     const before = await held(baker);
     const bought = await act(baker, 'buy "dog loaf"');
     expectOk(bought);
-    expect(await held(baker), 'a dog loaf, bought by its own name').toBe(
-      before + 1,
-    );
-    expect(await carried(baker)).toMatch(/loaf|bread/i);
+    await expectBought(baker, bought, before, /loaf|bread/i, 'a dog loaf, bought by its own name');
   }, 300_000);
 
   it('⭐⭐ 10. `buy "dog loaf"` — the quoted form, which greedy nearly broke', async () => {
@@ -569,9 +611,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     const before = await held(baker);
     const bought = await act(baker, 'buy "dog loaf"');
     expectOk(bought);
-    expect(await held(baker), 'the quoted form buys the same loaf').toBe(
-      before + 1,
-    );
+    await expectBought(baker, bought, before, /loaf|bread/i, 'the quoted form buys the same loaf');
   }, 300_000);
 
   it('⭐ 11. `buy orange seed` — the promise the counter`s own prose made', async () => {
@@ -582,7 +622,7 @@ suite('9–14. a good`s name is a PHRASE', () => {
     const before = await held(k);
     const bought = await act(k, 'buy "orange seed"');
     expectOk(bought);
-    expect(await held(k), 'the packet is in hand').toBe(before + 1);
+    await expectBought(k, bought, before, /seed|packet/i, 'the packet is bought');
   }, 300_000);
 
   it('⭐ 12. `bake` finds the oven without being named — and takes a phrase', async () => {
@@ -692,8 +732,9 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     expectOk(await act(k, `goto ${STORE}`));
     await k.drainProse();
     const before = await held(k);
-    expectOk(await act(k, 'buy hopper'));
-    expect(await held(k), 'the hopper is in hand').toBe(before + 1);
+    const hopper = await act(k, 'buy hopper');
+    expectOk(hopper);
+    await expectBought(k, hopper, before, /hopper/i, 'the hopper is bought');
     expectOk(await act(k, 'buy rations'));
 
     // ⚠⚠ **`offer`, not `feed`** — and the drive's third run is how that
@@ -718,9 +759,13 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // ⭐ And the hopper the sweep stocked holds food, which is the whole
     // of what `Feeder.offerings()` reads. `serinus/canaria` is
     // `feedingStyle: [hopper]` and the realm had no hopper at all.
-    expectOk(await act(k, 'drop hopper'));
-    const inHand = await carried(k);
-    expect(inHand, 'the rations are in hand to start with').toMatch(/ration/i);
+    // On the floor to be filled: set down already when the hands were full.
+    if (/hopper/i.test(await carried(k))) expectOk(await act(k, 'drop hopper'));
+    expect(await standing(k), 'the hopper stands here').toMatch(/hopper/i);
+    expect(
+      `${await carried(k)} | ${await standing(k)}`,
+      'the rations are here to start with — carried, or set down',
+    ).toMatch(/ration/i);
     const filled = await act(k, 'put rations in hopper');
     expect(refusedFor(filled)).not.toBe('unknown-verb');
     if (refusedFor(filled) === null) {
@@ -731,17 +776,19 @@ suite('15–22. rows that shipped and nobody could meet', () => {
       // cascade of *no dispatch-response*, which is the SECOND time this
       // file learned it. ⭐ The state change is the honest read anyway:
       // the food left the hand, so it is in the vessel.
+      const inHopper = await k.query('here:i:hopper:i', { fields: ['displayName'] });
       expect(
-        await carried(k),
+        JSON.stringify(inHopper),
         'the rations went into the hopper',
-      ).not.toMatch(/ration/i);
+      ).toMatch(/ration/i);
     }
   }, 300_000);
 
   it('⭐ 17. a household vat you can buy — dyeing without a dyehouse', async () => {
     const before = await held(k);
-    expectOk(await act(k, 'buy "household vat"'));
-    expect(await held(k), 'the vat is in hand').toBe(before + 1);
+    const vat = await act(k, 'buy "household vat"');
+    expectOk(vat);
+    await expectBought(k, vat, before, /dyeing pot|vat/i, 'the vat is bought');
     // ⚠ It PRINTS as "dyeing pot" — the row's `shortDescription` — while
     // `household vat` is what its path and half the trade's prose call
     // it, and both are keywords since the sweep. ⭐ That gap is the whole
@@ -749,14 +796,13 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // DESCRIPTION, and nothing made them agree. 71 stocked goods print a
     // phrase they do not answer to; this is one of the two this build
     // fixed, because it put the line on the shelf itself.
-    expect(await carried(k)).toMatch(/dyeing pot|vat/i);
   }, 300_000);
 
   it('⭐ 18. a drop spindle you can buy — spinning without a mill', async () => {
     const before = await held(k);
-    expectOk(await act(k, 'buy "drop spindle"'));
-    expect(await held(k), 'the spindle is in hand').toBe(before + 1);
-    expect(await carried(k)).toMatch(/spindle/i);
+    const spindle = await act(k, 'buy "drop spindle"');
+    expectOk(spindle);
+    await expectBought(k, spindle, before, /spindle/i, 'the spindle is bought');
   }, 300_000);
 
   it('⭐⭐⭐ 19. a hen exists, and butchering one gives POULTRY cuts', async () => {
@@ -832,8 +878,14 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     const bought = await act(k, 'buy jar of honey');
     expect(refusedFor(bought)).not.toBe('unknown-verb');
     if (refusedFor(bought) === null) {
-      // ⚠ `me:i:jar` — scoped, for the reason step 4 gives at length.
-      expect(await look(k, 'me:i:jar'), 'the jar is not empty').toMatch(
+      // ⚠ Scoped, for the reason step 4 gives at length — and by `honey`,
+      // not `me:i:jar`: the glowcap jar is in a hand, and the honey went
+      // where the carry routing put it (W8/W9: a pocket, a bag, or your
+      // feet), where `me:i` does not reach. `me:i:jar` bound the glowcap
+      // (finalize, run 15) — the test's scope, not a binding regression.
+      // Carried, or set down at your feet when the hands were full.
+      const where = /honey/i.test(await carried(k)) ? 'me:I:honey' : 'here:i:honey';
+      expect(await look(k, where), 'the jar is not empty').toMatch(
         /honey|cloudy|full/i,
       );
     }

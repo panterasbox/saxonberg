@@ -1,0 +1,23 @@
+# The hayloft — up the barn's turning stair (size and carrying W6, drive
+# 11). Open to the sky where the roof has gone.
+class: /platform/location/Locale
+data:
+  shortDescription: hayloft
+  keywords: [hayloft, loft]
+  register: definite
+  _address: last-counted-mile/steading-loft
+  coords: { x: 0, y: -1, z: 1 }
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Stone walls still standing; the roof is gone, so the sky looks in
+  # (construction.md: the place says what it is made of).
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: none
+  longDescription: |
+    A floor of wide boards under rafters with the sky between them. Some of the boards are sound and some are not, and the old hay has gone grey and flat.
+
+    The stair goes down the back wall, turning on its landing, to the barn floor.
+  exits:
+    down:
+      destination: /world/newbie-wilds/steading/barn
+      kind: /stuff/idea/exits/stair
+      turn: 1.6

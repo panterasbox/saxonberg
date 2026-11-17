@@ -50,7 +50,7 @@ class TestHost extends HostBase {
 
 class SelfBucketShadow extends Shadow {
   static commandContributions = {
-    self: ['platform/cmd/inventory/inventory.yaml'],
+    self: ['platform/cmd/perception/query.yaml'],
   };
   @Shadowing
   zap(): string {
@@ -89,7 +89,7 @@ describe('Shadow ↔ recency stack integration', () => {
     const top = stackOf(host)[stackOf(host).length - 1]!;
     expect(top.bucket).toBe('self');
     expect(top.source).toBe(shadow as unknown as Stuff);
-    expect(top.commands.map((c) => c.getPrimaryVerb())).toContain('inventory');
+    expect(top.commands.map((c) => c.getPrimaryVerb())).toContain('query');
   });
 
   it('detach pops the shadow contributions from the host', () => {

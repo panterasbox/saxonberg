@@ -164,7 +164,7 @@ everything else — it does not open the graph.
 
 - **Lift needs airspeed** — gliders ride thermals; planes add power (the machines slate's
   movers). Lilienthal in the 1890s; the Wrights in 1903.
-- ⭐ **The landing field** — open sky and a long clear run: the [size slate](./size-slate.md)'s
+- ⭐ **The landing field** — open sky and a long clear run: the [size slate](../../subsystems/size.md)'s
   clearance laid flat; a plane lands only where an author built one.
 
 ### Magical flight

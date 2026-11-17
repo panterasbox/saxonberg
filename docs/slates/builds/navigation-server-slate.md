@@ -228,3 +228,34 @@ the collision to the broader place today — the build checks both.
 - **Glossary terms** — the help REST API already serves topics (class C);
   no server change.
 - **Trail, notes, prices seen, NPC hours** — the *your map grows* build.
+
+## Reuse ledger for the plan
+
+From the requirements survey (2026-11-16, verified against `cc6f8dc60`).
+Every row is one the plan must account for: reuse, generalize, or say why not.
+
+| concept | what already does it | this build |
+|---|---|---|
+| a claim | `MapClaim` (`lib/location/MapClaim.ts`); writers `Cartographer.recordPerceived` / `recordTimetable` / `recordTraversal`, `Charted.ts` | extend — add zone, coords, level; no new writer |
+| the push | `SaxonbergClient.refreshNavigator` → `touchCard(…, {kind:'navigation', where})`, only while the `map` card is open; card-surface's card-touched wire | reuse the card wire before any third path; the copy's transport is the open question |
+| live results | MQL subscriptions (per-Stuff field descriptors) | consider for the copy's deltas; say why not if unused |
+| zone facts | the zone class is the kind; `CartesianZone.getCellSize`; `SpatialZone.getExtentM` (⛔ never sent) | read only |
+| Locality chain | `AddressApi.coverageChainOf` (Whereabouts, `Perceiver.ts:252`); `_governmentKey` | add government + kind (kind derives from the address tier — no field) |
+| route | `RoutePlan` (`lib/location/RoutePlan.ts`), `RouteController` prints MML | send the same plan as data |
+| a way | `Exit.wayRecord()`; flags `oneWay`/`muffled`/`media`/…; `canTraverse` → `TraversalGuard` (overrides: KeptDoor, AshoreExit, BerthExit, SandboxCrossingExit) | extend; ⚠ verify every override is side-effect free before using it as a dry run |
+| boundary projection | none — lock/door mixins have no subscribable fields | new, by composition |
+| horizon | `PerceptionApi.horizonFor` → `HorizonView`; `HorizonWatch` (never pushes) | send on arrival only |
+| structure | `Structure` getters (`getStoreys`, `storeyOf`, `getEntrance`, `isLandmark`, `getHeightM`, `isTitleSold`, `landingsNow`); `Place.landedStructuresNow()` | read only |
+| jurisdiction aboard | `GovernmentLogic.subjectTo` (ship chain first); Whereabouts uses `governmentAt(address)` | switch Whereabouts to the verb's read |
+| ship position | `LocateController` `whereSheLies` (alongside / under way), the reckoning; `MovingZone.getAddress()` follows the reach | move into the section; the river reach is new |
+| copy identity | `Warren.mintedKeyOf` (FloorplanWarren: holdings, ships, mines); `ReachWarren` already mints a zone per member; DormWarren keys by parcel extent | one identity for every copy kind — ⭐ the **`FloorplanWarren.zoneFromFor(spec, key)` path** (the holding's key; a ship's `<kind row folder>/<serial>`, `ShipWarren.ts:281`), which zone instancing (build-4) mints as the zone's identity, so claims need no migration; a reach/sea patch room keys on the **river/sea position**, never the patch; dorms and Seznick House's let units take the same route (`DormWarren.standUpHolding` clones a `HoldingWarren` programme keyed on the unit's parcel extent, so `zoneFromFor`'s default is the extent) — record the extent; build-4 re-keys the one-room case's room, not the zone |
+| discovery | belief DISCOVERY realm (`hasDiscovered`) | read only |
+| the you section | `movement.defaultMode`, `Posed.getPosture`, `Mountable`, `LoadBearing` (`borneBurden`, `loadRatio`; size-and-carrying adds `burdenWords`, the clearance/hands-needed gates) | read only; reconcile with build-1 |
+| spoilers | wiki `SpoilerLevels` (`lib/wiki/render.ts`), `FieldMetaEntry.spoiler` | reuse; place paths among the levels |
+| elevation | `ZoneApi.elevationFor` (zone chain only — z already excluded) | read only |
+
+**Slate corrections found by the survey:** S13's formula is a stale comment
+(`SpatialZone.ts:330`), not the code; S0's `locate me` users are maritime,
+river-e soak and `Ship.aboard.test.ts`, not pets, and eight docs name it;
+S10's `locate` had no river case; S14's board label comes from the
+Locality's name (`FastTravel.getDestinationLabel`), not a name lookup.

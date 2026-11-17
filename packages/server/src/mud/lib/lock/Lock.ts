@@ -232,5 +232,9 @@ async function mintPhysical(
   // ⭐ The physical key is the durable form: the move titles it to the
   // holder and records its place (custody is derived in
   // `ContainmentApi.move`), or it vanishes at the next restart.
-  ContainmentApi.move(key as unknown as Stuff & Containable, holder as Stuff & Container);
+  // To the holder, else set down where they stand (minted after the
+  // write — never refused, never lost; size and carrying W8).
+  const minted = key as unknown as Stuff & Containable;
+  const to = holder as Stuff & Container;
+  ContainmentApi.move(minted, to);
 }

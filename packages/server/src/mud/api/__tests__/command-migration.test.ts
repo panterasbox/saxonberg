@@ -83,7 +83,7 @@ describe('Command-YAML migration parity', () => {
       'inventory/get',
       'movement/go',
       'system/help',
-      'inventory/inventory',
+      'perception/query',
       'perception/look',
       'boundary/open',
       'system/ping',

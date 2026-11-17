@@ -50,8 +50,9 @@ args:
     scope: ["inventory"]
     requires: any
   # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
-  # for the thing you can fish with; `me:i` is in hand, as a rod must be.
-  # With more than one rod in hand the default PROMPTS: say `using cane`.
+  # for the thing you can fish with; `person` is what you carry, used
+  # where it sits (`canReach` narrows the default). With more than one rod
+  # to hand the default PROMPTS: say `using cane`.
   # ⭐ `requires: any` — a fish spear is a weapon, not a tool, and
   # `using spear` must bind it; the controller narrows by shape (a `Rod`
   # casts, a `TakesFish` strikes).
@@ -59,9 +60,11 @@ args:
     type: object
     required: false
     prepositions: [using]
-    default: "me:i:[capability.angling]"
+    default: "person:[capability.angling]"
     scope: ["inventory"]
     requires: any
+    validators:
+      - /lib/command/validators/canReach
   # ⭐ WHICH WATER — the place you stand in, when it is beside a named
   # water (maritime revision 3: `fish` its one water, `fish kestrel` names
   # it, the place refuses in words otherwise); or none: then the

@@ -11,26 +11,24 @@
  *   - { key: loft, template: /trade/carpentry/thing/drying-loft }
  * ```
  *
- * Each chamber is its own Stuff (a `Chamber` — `Atmospheric` + `Placing
- * [in]`), with its own air: what is put `in` it reads the chamber's
- * temperature and humidity, not the room's. The host keeps them by key
+ * Each chamber is its own Stuff (a `Chamber` — `Atmospheric` +
+ * `Container`), with its own air: what is put `in` it is its contents and
+ * reads the chamber's temperature and humidity, not the room's (size and
+ * carrying W9 — an enclosing relation is containment). The host keeps them by key
  * and they die with it.
  *
  * ⭐ **The reconciliation this mixin records** (assembly plan D15). Two
  * design docs agreed a chamber is its own Stuff and disagreed on how a
  * thing sits in one. The fridge-design-pack's answer — **placement** —
- * won, so a chamber's occupants are placed `in` it (`put board in loft`)
- * and nothing about scope-walk or `canReach` changes. The
+ * won at D15; ⚠ W9 (owner, 2026-11-13) reversed it: a board `put … in
+ * loft` is the loft's contents, one level into an open container from the
+ * room (the reach the room already has). The
  * chambered-vessels slate's contribution survives as THIS host half: the
  * declaration, the mint, and the destruct cascade.
  *
  * ⭐ **Where a chamber stands: in the host's own container**, beside it —
- * NOT in the host's contents. A chamber offers a placement, and a
- * placement host must live in an environment for `getPlaced()` to walk
- * (Placing's first composition refusal); standing in the room beside its
- * host, the loft's boards keep `container = the room`, are in room scope,
- * and are reached in one step, which is the whole reason D15 chose
- * placement. It is also the fridge doc's boat clause: *"the Chambers are
+ * NOT in the host's contents: standing in the room beside its host, the
+ * loft and its boards are in room scope and reached from the room. It is also the fridge doc's boat clause: *"the Chambers are
  * in the vessel's contents, not placements on the vessel itself"* — a
  * boat's container for its stations is its own interior, and a sawmill's
  * is the yard. Where the host moves, its chambers move with it
@@ -137,11 +135,11 @@ export function ChamberedMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (this.getChamber(key) !== null) continue;
 
         const chamber = await StuffApi.clone<Stuff>(template);
-        if (!MixinApi.isContainable(chamber) || !MixinApi.isPlacing(chamber)) {
+        if (!MixinApi.isContainable(chamber) || !MixinApi.isContainer(chamber)) {
           StuffApi.destruct(chamber);
           throw new Error(
             `ChamberedMixin.applyChambers: '${template}' is not a ` +
-              `chamber — a chamber must be a Containable Placing host ` +
+              `chamber — a chamber must be a Containable Container ` +
               `(a \`Chamber\` row) so things can be put in it.`,
           );
         }

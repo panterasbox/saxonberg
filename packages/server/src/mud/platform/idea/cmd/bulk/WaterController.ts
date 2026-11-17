@@ -116,8 +116,9 @@ export default class WaterController extends CommandController<WaterModel> {
 
   /**
    * The vessels to water from, as the binder bound them. `water.yaml`
-   * declares `source` with a `me:i` default, so bare `water` arrives with
-   * every carried thing; the ground picks the first with water in it. ⭐ A
+   * declares `source` with a `person:[…]` default (narrowed by `canReach`),
+   * so bare `water` arrives with every carried thing to hand where it sits;
+   * the ground picks the first with water in it. ⭐ A
    * hose coupled to a tap stands for the tap (settled, so its water is
    * current); an uncoupled one stands for nothing.
    */

@@ -54,7 +54,7 @@ class HookableBox extends ContainableMixin(ContainerMixin(Idea)) {
   public addVeto: VetoResult | null = null;
   public removeVeto: VetoResult | null = null;
 
-  canAddContainable?(_item: Stuff & Containable): VetoResult {
+  override canAddContainable(_item: Stuff & Containable): VetoResult {
     return this.addVeto ?? { ok: true };
   }
   canRemoveContainable?(_item: Stuff & Containable): VetoResult {
