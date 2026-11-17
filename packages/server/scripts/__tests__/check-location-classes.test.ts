@@ -426,8 +426,10 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
     expect(g.join('\n')).toMatch(/joins ''/);
   });
 
-  it('2: a minting warren no zone row names', () => {
-    expect(copyDeclarations([prog({ zoneNaming: 'key', joins: 'parcel' })]).join('\n')).toMatch(/no zone row names it/);
+  it('2: a minting warren with a plan that no zone row names', () => {
+    expect(copyDeclarations([prog(ok)]).join('\n')).toMatch(/no zone row names it/);
+    // With no plan yet (nothing names it as its warren), nothing is owed.
+    expect(copyDeclarations([prog({ zoneNaming: 'key', joins: 'parcel' })])).toEqual([]);
   });
 
   it('3: a plan whose extent is not a copied zone', () => {
@@ -442,15 +444,17 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
   });
 
   it('the census counts rostered plan rows with no cell', () => {
-    const smack = 'terminus/content/stuff/location/ship/smack/deck.yaml';
+    // A rostered row (FURNISHED) that lies under a plan's extent and authors
+    // no cell is counted; give it a cell and it is not.
+    const room = A_FURNISHED;
     const kind: Row = {
-      file: 'terminus/content/stuff/idea/Ship/smack.yaml',
+      file: 'p/content/test/kind.yaml',
       cls: '/platform/idea/Ship',
       coords: false,
       exits: [],
-      fields: { warren: '/stuff/idea/ShipWarren/smack', extent: '/stuff/location/ship/smack' },
+      fields: { warren: '/test/warren', extent: '/stuff/location/room' },
     };
-    expect(unplottedPlanRows([kind, { file: smack, cls: ROOM, coords: false, exits: [] }])).toEqual([smack]);
-    expect(unplottedPlanRows([kind, { file: smack, cls: ROOM, coords: true, exits: [] }])).toEqual([]);
+    expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: false, exits: [] }])).toEqual([room]);
+    expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: true, exits: [] }])).toEqual([]);
   });
 });

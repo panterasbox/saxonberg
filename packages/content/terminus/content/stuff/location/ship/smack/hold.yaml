@@ -5,6 +5,11 @@
 # she sleeps is stowed down here.
 class: /platform/location/Hold
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 1
+    z: -1
   shortDescription: fish hold
   keywords: [hold, fish hold, below]
   register: definite

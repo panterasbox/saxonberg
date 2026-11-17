@@ -940,6 +940,24 @@ Decision: D11.
 - Lower the plan-row census ceiling to zero.
 - Drive step 7 added and run.
 - Commit: `feat(zone-instancing): B1 — each smack's decks are her own zone`.
+- ✅ **Done.** Notes for review:
+  - **Kernel fix in `StuffApi.clone`:** a COPY of a spatial zone resolves
+    its own zone stamp from its ROW (as the row's own instance does —
+    "a zone is not inside itself"), not from its identity. Minting a smack's
+    copy at `<kind zone>/<serial>` found the row as the identity's nearest
+    zone and cloned it from inside its own clone (the cycle guard threw).
+    The water mints never hit it only because their row instance always
+    stood first.
+  - `ShipWarren.zoneFromFor` = `${copyIdentity(<kind zone>, serial)}/${leaf}`
+    — byte-identical to the old `<row folder>/<serial>/<leaf>` for the
+    smack.
+  - **Lint rule 2 narrowed:** a minting warren must be named by a zone row
+    once it HAS a plan (its own `extent`, or a row whose `warren:` names
+    it). The authored-ship warren row is declared now (`under-row`,
+    `berth`) and named by a zone row in B3.
+  - The census ceiling is 0; the smack's rows left `WARREN_PLACED`.
+  - Five ship suites' fixtures now install the kind zone as a
+    `MintedZone` and declare their warren rows.
 
 #### B2 — Moving water
 

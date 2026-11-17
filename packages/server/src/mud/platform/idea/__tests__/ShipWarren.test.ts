@@ -99,7 +99,7 @@ function installStore(): void {
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
-  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
+  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
   // A ship kind (her plan on her row) and its rooms (the rooms stand in the rows' zone).
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
@@ -110,8 +110,10 @@ function installStore(): void {
   });
   // ⭐ Her kind's PLAN is her kind row's own `extent` + `entrance` (harbors
   // review, 2026-11-03 — no blueprint row); her warren row names nothing.
-  add(WARREN, '/platform/idea/ShipWarren', {});
-  add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
+  // Each smack is a copy of her kind's zone, named under its row by her
+  // serial (zone-instancing D11).
+  add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
+  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
   add(DECK, '/platform/location/Compartment', {
     floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
@@ -579,4 +581,37 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(ship.isDestroyed()).toBe(false);
     expect(deck.isDestroyed()).toBe(false);
   });
+
+  describe('each ship of a kind is a zone of her own (zone-instancing B1)', () => {
+    it('⭐ two smacks are two copies of the kind’s zone, each named by her serial', async () => {
+      const a = await mint('za');
+      const b = await mint('zb');
+      const deckA = await deckOf(a);
+      const deckB = await deckOf(b);
+      const zoneA = deckA.getZone()!;
+      const zoneB = deckB.getZone()!;
+      expect(zoneA).not.toBe(zoneB);
+      expect(zoneA.getTemplatePath()).toBe(ROOMS);
+      expect(zoneA.getIdentityPath()).toBe(`${ROOMS}/za`);
+      expect(zoneB.getIdentityPath()).toBe(`${ROOMS}/zb`);
+      // Her own settings come from her kind's row: its cell.
+      expect((zoneA as unknown as { getCellSize(): number }).getCellSize()).toBe(3);
+      // Every room of hers stands in her copy.
+      const hold = (deckA as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff;
+      expect(hold.getZone()).toBe(zoneA);
+    });
+
+    it('she sleeps and wakes under the same zone identity', async () => {
+      const ship = await mint('zs');
+      const deck = await deckOf(ship);
+      const zone = deck.getZone()!;
+      await ship.sleep();
+      expect(zone.isDestroyed()).toBe(true);
+      const back = await ExpanseApi.standUpCraft(`${KIND}/zs`);
+      const deck2 = await deckOf(back as unknown as Ship);
+      expect(deck2.getZone()).not.toBe(zone);
+      expect(deck2.getZone()!.getIdentityPath()).toBe(`${ROOMS}/zs`);
+    });
+  });
 });
+

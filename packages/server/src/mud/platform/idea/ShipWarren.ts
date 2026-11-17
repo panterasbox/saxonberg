@@ -44,6 +44,7 @@
  */
 
 import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
+import { ZoneMintingMixin } from '../../lib/location/ZoneMinting';
 import { Floorplan } from '../../lib/location/Floorplan';
 import type { FloorplanRoom } from '../../lib/location/Floorplan';
 import { ContainmentApi } from '../../api/containment';
@@ -61,7 +62,7 @@ type MemberStuff = Stuff & Container;
 /** The row an authored ship's warren is cloned from (no plan: it adopts). */
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
-export default class ShipWarren extends FloorplanWarren {
+export default class ShipWarren extends ZoneMintingMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
     shortOf: { persistent: true },
   };
@@ -126,7 +127,17 @@ export default class ShipWarren extends FloorplanWarren {
    * resident rooms are adopted.
    */
   public override async wake(): Promise<void> {
+    // ⭐ A ship of a kind is a copy: her zone — a copy of her kind's zone
+    // row named by her serial — stands BEFORE her rooms, which the resolver
+    // stamps into it, and is checked after (zone-instancing D11).
+    const plan = await this.loadPlan();
+    const key = this.warrenKey();
+    const zone = plan !== null && key !== null ? await this.wakeCopyZone(plan.extent, key) : null;
     await super.wake();
+    if (zone !== null) {
+      this.checkCopyRooms(zone, this.liveRooms());
+      await this.recordCopy(zone, this.copyRooms());
+    }
     if (this.ship()?.isOfKind() !== true) await this.adoptResident();
     else this.fitOut(this.shortOf);
   }
@@ -277,10 +288,23 @@ export default class ShipWarren extends FloorplanWarren {
     for (const m of this.getMembers()) this.removeMember(m);
   }
 
-  /** ⭐ A ship's serial names no place: her rooms stand in their own row's zone (the kind's). */
-  protected override zoneFromFor(spec: FloorplanRoom, key: string): string {
-    const folder = spec.row.replace(/\/[^/]+$/, '');
-    return `${folder}/${key}`;
+  /**
+   * ⭐ A ship's serial names no place: her rooms stand in HER copy of her
+   * kind's zone, `<kind zone>/<serial>` (zone-instancing D5, D11) — named
+   * by the one rule the capability owns.
+   */
+  protected override zoneFromFor(spec: FloorplanRoom, _key: string): string {
+    const plan = this.planExtent();
+    const serial = this.warrenKey();
+    if (plan === null || serial === null) return _key;
+    return `${this.copyIdentity(plan, serial)}/${spec.leaf}`;
+  }
+
+  /** Her plan's extent — her kind's zone row — or null with no plan. */
+  private planExtent(): string | null {
+    const of = this.planOf();
+    const extent = of?.data.extent;
+    return typeof extent === 'string' && extent !== '' ? extent.replace(/\/+$/, '') : null;
   }
 
   /**

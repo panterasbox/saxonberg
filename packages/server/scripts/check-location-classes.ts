@@ -480,12 +480,9 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * `ColumnWarren` clones one per band under a deep water and stamps it a
  * cell below its surface, so a band row is a KIND of depth, never a
  * place an author positions. *
- * ⭐ A ship KIND's rooms: her `ShipWarren` mints one of each
- * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
- * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
- * every smack's deck row, never a place an author positions. Only the hold
- * keeps a record (`Hold`, review 2 — persistence is the exception); the
- * deck and cabin are plain `Compartment`s, from their rows each wake.
+ * (A plan's rooms — a house's, a smack's — are no longer here: every copy
+ * is a zone of its own, so they author their cells and `copyDeclarations`
+ * rule 4 judges them; zone-instancing.)
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",
@@ -498,9 +495,6 @@ export const WARREN_PLACED = [
   "water/content/system/water/location/band/lit.yaml",
   "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
   "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
-  "terminus/content/stuff/location/ship/smack/deck.yaml",
-  "terminus/content/stuff/location/ship/smack/cabin.yaml",
-  "terminus/content/stuff/location/ship/smack/hold.yaml",
 ];
 
 /**
@@ -594,7 +588,8 @@ function copiedRowFiles(rows: readonly Row[]): Set<string> {
  * 1. a zone row whose class is a `MintedZone` authors `mintedBy`, naming a
  *    row whose class composes `ZoneMintingMixin`;
  * 2. a warren row whose class composes it authors `zoneNaming` and `joins`
- *    from the closed vocabularies, and some zone row names it;
+ *    from the closed vocabularies, and once it has a plan (its own
+ *    `extent`, or a row whose `warren:` names it) some zone row names it;
  * 3. a plan owner — such a warren row with an `extent`, or a row whose
  *    `warren:` names one — has an `extent` that is a `MintedZone` row
  *    copied by that warren;
@@ -639,7 +634,12 @@ export function copyDeclarations(rows: readonly Row[]): string[] {
     if (!joins.includes(f.joins ?? "")) {
       out.push(`${w.file}: joins '${f.joins ?? ""}' is not one of ${joins.join(", ")}`);
     }
-    if (!namedBy.has(path)) out.push(`${w.file}: mints zones and no zone row names it (mintedBy)`);
+    // A warren with a plan — its own `extent`, or a row whose `warren:`
+    // names it — copies a zone, and that zone row says so.
+    const hasPlan = Boolean(f.extent) || rows.some((r) => r.fields?.warren === path && r.fields?.extent);
+    if (hasPlan && !namedBy.has(path)) {
+      out.push(`${w.file}: copies a plan and no zone row names it (mintedBy)`);
+    }
     if (f.extent) planExtentFinding(w.file, path, f.extent, byPath, out);
   }
   // 3. (a plan on a row that names its warren — a ship kind)
@@ -682,7 +682,7 @@ function planExtentFinding(
  * roster under a plan's extent that author no cell. Gated at its ceiling;
  * it reaches zero when the last plan (the smack's, B1) is declared.
  */
-export const PLAN_ROWS_UNPLOTTED_CEILING = 3;
+export const PLAN_ROWS_UNPLOTTED_CEILING = 0;
 
 export function unplottedPlanRows(rows: readonly Row[]): string[] {
   const extents = new Set<string>();

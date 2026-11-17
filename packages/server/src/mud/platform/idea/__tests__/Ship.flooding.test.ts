@@ -90,7 +90,7 @@ function installStore(): void {
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
-  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
+  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
     extent: ROOMS,
@@ -100,8 +100,10 @@ function installStore(): void {
   });
   // ⭐ Her kind's PLAN is her kind row's own `extent` + `entrance` (harbors
   // review, 2026-11-03 — no blueprint row); her warren row names nothing.
-  add(WARREN, '/platform/idea/ShipWarren', {});
-  add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
+  // Each smack is a copy of her kind's zone, named under its row by her
+  // serial (zone-instancing D11).
+  add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
+  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
   add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(WELL, '/platform/thing/BilgeWell', { shortDescription: 'bilge well' });

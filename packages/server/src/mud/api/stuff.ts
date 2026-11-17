@@ -650,7 +650,17 @@ export class StuffApi {
     //    Lazy-loaded to break the StuffApi ↔ ZoneApi cycle (ZoneApi
     //    statically imports StuffApi for singleton + class-loading).
     const { ZoneApi } = await import('./zone');
-    const zone = await ZoneApi.resolveZoneForPath(opts?.zoneFrom ?? identityPath);
+    // ⭐ A COPY of a spatial zone (minted under its row by a warren —
+    // zone-instancing D2) is not inside itself either: it resolves from its
+    // row, as the row's own instance does. Resolving from the copy's
+    // identity found the row as its nearest zone and cloned it from inside
+    // its own clone.
+    const zoneBase =
+      opts?.zoneFrom ??
+      (identityPath !== templatePath && (await ZoneApi.isSpatialZoneClass(template.class))
+        ? templatePath
+        : identityPath);
+    const zone = await ZoneApi.resolveZoneForPath(zoneBase);
 
     // 6. Resolve the applier — iff there is anything to apply.
     //    ⭐ The row no longer names one. `hydratorClass` retired
