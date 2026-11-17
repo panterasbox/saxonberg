@@ -357,6 +357,13 @@ export type DiagnoseOutcome = Diagnosis | RepairFailure;
 export type RepairDeclineReason =
   | 'no-maker'
   | 'missing-tool'
+  /**
+   * ⭐ The tool is CARRIED but not to hand where it sits (size and
+   * carrying D-W10-1): in a shut holder, or packed in something on the
+   * back. `detail` is `shut:<keyword>[:<region>]` or `packed:<keyword>`,
+   * so the line names the next command (`open satchel`).
+   */
+  | 'tool-out-of-reach'
   | 'insufficient-heat'
   | 'insufficient-input'
   /**

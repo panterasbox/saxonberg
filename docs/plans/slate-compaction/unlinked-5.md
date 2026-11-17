@@ -29,7 +29,7 @@ sections below are the evidence):
 
 ---
 
-## docs/slates/builds/flowers-slate.md — 283 → 283 · Status UNBUILT → UNBUILT
+## docs/slates/trades/flowers-slate.md — 283 → 283 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. `florist` / `floriograph` / `bouquet` / `tulip` / `wreath`
 / `garland` hit nothing under `packages/server/src`, `packages/content`,
@@ -125,7 +125,7 @@ cuts; the status block was re-read against the body and stands.
 
 ---
 
-## docs/slates/tails/patina-design-pack.md — 283 → 283 · Status UNBUILT → UNBUILT
+## docs/slates/engine/patina-design-pack.md — 283 → 283 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. `Seasoned` / `Patina` / `takesPatina` / `WornIn` hit
 nothing under `packages/server/src/mud` or `packages/content/*/src`
@@ -197,7 +197,7 @@ patina field. Every linked slate exists. Zero cuts.
 
 ---
 
-## docs/slates/builds/end-of-life-slate.md — 276 → 265 · Status UNBUILT → UNBUILT
+## docs/slates/society/end-of-life-slate.md — 276 → 265 · Status UNBUILT → UNBUILT
 
 The three stages are unbuilt: no `monument` / `funeral` / `attendance` /
 `remains` / `potter` class or verb anywhere under
@@ -328,7 +328,7 @@ touch it and are flagged.
 
 ---
 
-## docs/slates/builds/call-security-pass-slate.md — 259 → 231 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/call-security-pass-slate.md — 259 → 231 · Status UNBUILT → UNBUILT
 
 The pass is unbuilt: no `@Audited`, no `audit_events` (nothing under
 `packages/server/src/schema/`), no `SelfSubject` in
@@ -460,7 +460,7 @@ cut + a `Left` re-stamp.
 
 ---
 
-## docs/slates/builds/map-slate.md — 259 → 259 · Status UNBUILT → UNBUILT
+## docs/slates/client/map-slate.md — 259 → 259 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `minimap` / `three.js` / `react-three` /
 `InstancedMesh` / `dagre` / `elk` / `d3-force` anywhere in
@@ -532,7 +532,7 @@ exists. Zero cuts.
 
 ---
 
-## docs/slates/tails/incapacity-slate.md — 246 → 246 · Status UNBUILT → UNBUILT
+## docs/slates/society/incapacity-slate.md — 246 → 246 · Status UNBUILT → UNBUILT
 
 Unbuilt: no `impound` / `receiver` / `receivership` / `docket` anywhere
 under `packages/server/src/mud` (the word hits are catalogue prose); no
@@ -655,7 +655,7 @@ requirements doc — see Uncertain. One cut + a `Left` re-stamp.
 
 ---
 
-## docs/slates/builds/hunting-slate.md — 240 → 240 · Status UNBUILT → UNBUILT
+## docs/slates/trades/hunting-slate.md — 240 → 240 · Status UNBUILT → UNBUILT
 
 Wholly unbuilt. No `hunt` / `track` / `poach` / `close season` / `ferae`
 / wild-population class or verb under `packages/server/src/mud`,
@@ -757,7 +757,7 @@ fishing slate was not touched.**
 
 ---
 
-## docs/slates/tails/explicit-targeting-slate.md — 240 → 113 · Status BUILT → PARTIAL
+## docs/slates/tech-debt/explicit-targeting-slate.md — 240 → 113 · Status BUILT → PARTIAL
 
 The one BUILT slate in the batch. Verified against `d0613c014`
 (*build(targeting): onFiltered — the KIND axis of ambiguity becomes

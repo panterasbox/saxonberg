@@ -24,6 +24,8 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { handsSpecies, wornGarment } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
+import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 import { seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as stocks } from '../stocks';
@@ -151,14 +153,16 @@ async function dispatch(text: string): Promise<void> {
     if (!shelf || !item) return;
     const price = shelf.priceFor(item.getTemplatePath() ?? '') ?? 0;
     if (balance < price) return; // a refused buy leaves the good where it is
+    // As `buy` does (owner, 2026-11-15): paid, then handed — `move` routes it.
     balance -= price;
     ContainmentApi.move(item as never, keeper as never);
     return;
   }
   if (verb === 'put') {
-    // `put <kw> in <counterKw>`
+    // `put <kw> in <counterKw>` — what she carries, her pocket's included
+    // (a pocketed crate is the apron's contents: size and carrying W9).
     const item = keeper
-      .getContents()
+      .getCarriedContents()
       .find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
     const target = room
       .getContents()
@@ -226,6 +230,14 @@ beforeEach(async () => {
   business(SUPPLIER, [SUPPLIER_COUNTER]);
 
   keeper = makeStuff(() => new Extra());
+  // Two hands and a deep apron pocket (size and carrying W8: a beat's
+  // crates need somewhere to go between the supplier and the counter, and
+  // what is pocketed is still hers to shelve).
+  const { species, plan } = handsSpecies();
+  keeper.setSpecies(species);
+  await wornGarment(keeper as never, plan, 'apron', 'torso', [
+    { member: Placements.IN, name: 'pocket', mouth: { width: 1, height: 1 }, volumeM3: 2 },
+  ]);
   ContainmentApi.move(keeper as never, shop as never);
   vi.spyOn(keeper, 'forceCommand').mockImplementation(dispatch as never);
   // ⭐ `go <dir>` — her own act — takes the room's REAL exit that way.

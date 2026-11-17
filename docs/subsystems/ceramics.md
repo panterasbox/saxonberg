@@ -442,7 +442,7 @@ repair W7's `maintain` lands there are brick walls to weather, and a wall's
 rate will read off its brick's own porosity (a soft place brick drinks rain
 and spalls; a sound one does not — [faces.md § Holding water](./faces.md)).
 Mortar, repointing and the bricklayer are W7's
-([brickmaking-slate](../slates/tails/brickmaking-slate.md) § 7).
+([brickmaking-slate](../slates/trades/brickmaking-slate.md) § 7).
 
 ## Settings (`settings/ceramics.yaml`)
 
@@ -496,7 +496,7 @@ retires, and these are the attach points it recorded.
 | seam | destination |
 |---|---|
 | casks, pitch-lined amphorae, tin-lined copper onto faces | `maturation.md` § a recorded target (W7's sweep writes the note; no migration) |
-| coats on building faces, the painted image, binders | [paint-slate](../slates/tails/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
+| coats on building faces, the painted image, binders | [paint-slate](../slates/trades/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
 | wet clothes and sweat reading `evaporativeDepressionK` | `exertion.md` / `textiles.md` deferred lists |
 | frost tilth, frost damage to brick (the count's next readers) | repair W7, `soil.md` |
 | lime mortar by cure, repointing, the spall, `maintain` | repair W7 |
@@ -513,8 +513,8 @@ retires, and these are the attach points it recorded.
 | `interchangeable` as an authored joint flag | assembly tail (the derived skip ships here) |
 | a pit you climb into (the bell mould as a place) | moulding-slate (if the owner wants it) |
 | a working that FLOODS when it reaches the water table (the valley pit standing as a pond is authored, not dynamic) | mining-slate (*a pit that fills, and a pump*) |
-| the clamp's over-burnt CLINKER grade as the paving brick (Dutch *klinkers*) — roads-slate § 4's surface table has no brick today | [roads-slate](../slates/builds/roads-slate.md) (the coordinator edits the slate) |
-| drain tiles under a McAdam road (the brickfield's tile mould, laid for drainage) | [roads-slate](../slates/builds/roads-slate.md) |
+| the clamp's over-burnt CLINKER grade as the paving brick (Dutch *klinkers*) — roads-slate § 4's surface table has no brick today | [roads-slate](../slates/world/roads-slate.md) (the coordinator edits the slate) |
+| drain tiles under a McAdam road (the brickfield's tile mould, laid for drainage) | [roads-slate](../slates/world/roads-slate.md) |
 | `hammer` promoted behind a protocol | command-taxonomy-slate |
 | the oven's own warm-up (thermal mass on the furnace) | `fire.md` deferred (unchanged) |
 
@@ -532,7 +532,7 @@ From the review's combining re-plan (R1):
 
 ⭐ **Judged legitimately different — do not re-litigate** (the review's
 overlap survey, R2; the overlaps it did NOT judge different are
-[matter-model-overlaps-slate](../slates/builds/matter-model-overlaps-slate.md)):
+[matter-model-overlaps-slate](../slates/tech-debt/matter-model-overlaps-slate.md)):
 Thermal shock vs materials-response heat (wounds through coverings vs flaws
 in an object); furnace lining wear (already `Assembled.wearLine`); relines
 vs residence maintains (only the walking code shared — D8); the screw

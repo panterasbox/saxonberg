@@ -317,7 +317,9 @@ export default class Plant extends PlantBase {
     if (at.ok !== true) return at;
     const { stand, part, ground } = at;
     const piece = await stand.takeSpecimen(stand.specimenVariation());
-    if (MixinApi.isContainable(piece) && MixinApi.isContainer(actor)) ContainmentApi.move(piece, actor);
+    if (MixinApi.isContainable(piece) && MixinApi.isContainer(actor)) {
+      ContainmentApi.move(piece, actor);
+    }
     return { ok: true, facts: { piece, from: "stem", at: ground, part } };
   }
 

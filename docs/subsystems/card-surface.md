@@ -830,7 +830,7 @@ from the requirements' decision 10.** That decision keyed it on the
 topic `shell.result`, on the premise that *every structured command
 result already carries it*. The per-card prose audit falsifies the
 premise: `look`'s two cards ride **`sense.survey`**, which twelve other
-verbs share (`get`, `drop`, `inventory`, `wear`, …). A topic key would
+verbs share (`get`, `drop`, `query`, `wear`, …). A topic key would
 either miss `look` entirely or silence all twelve. The marker is exact
 by construction — the producer that opens the card is the producer that
 stamps the frame.
@@ -1150,7 +1150,7 @@ Internal properties are not perceivable just because they exist.
 
 This is the inspection-card reconciliation principle (see the
 inspection-card slate's *Reconciliation note* and the
-[message-rendering-slate](../slates/tails/message-rendering-slate.md)):
+[message-rendering-slate](../slates/client/message-rendering-slate.md)):
 every fact has a *revelation condition* — which modality /
 instrument / skill reveals it, at what fidelity. The viewer
 perceives only the facts whose condition they satisfy. The card's
@@ -1485,7 +1485,7 @@ divs. Three rules govern it:
 1. **Reusable primitives, not bespoke JSX.** Future cockpit
    widgets (inventory, self-state strip, group windows) compose
    from the same surface — and so does the layout-MML library
-   the [message-rendering-slate](../slates/tails/message-rendering-slate.md)
+   the [message-rendering-slate](../slates/client/message-rendering-slate.md)
    schedules for its Wave 2. When that lands, its `<table>` /
    `<list>` / `<field>` tags map onto these same React
    components, so the subscription-driven rendering path and the
@@ -1528,8 +1528,8 @@ button. The same attribute drives **two** layers from one source:
 - **Styling** — a future theme stylesheet selects on
   `[data-stuff-id]` against the viewer's social-graph bucket
   (friend / foe / self) to colour the name. The
-  [social-graph slate](../slates/tails/social-graph-slate.md) +
-  [message-rendering slate](../slates/tails/message-rendering-slate.md)
+  [social-graph slate](../slates/engine/social-graph-slate.md) +
+  [message-rendering slate](../slates/client/message-rendering-slate.md)
   describe the bucket model. The attribute is emitted today;
   bucket selectors land when that subsystem does, without any
   card changes.

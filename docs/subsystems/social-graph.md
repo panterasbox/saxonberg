@@ -23,7 +23,7 @@ structural sibling of `_contacts`. The player surface is one dedicated
 verb, `notify`, plus a thin client settings card over it.
 
 Seeded by
-[social-graph-slate.md](../slates/tails/social-graph-slate.md);
+[social-graph-slate.md](../slates/engine/social-graph-slate.md);
 builds on [contacts.md](./contacts.md),
 [grouping.md](./grouping.md) (the `GroupApi`/`GroupRef` policy subject),
 [belief.md](./belief.md) (`describeFor` / `salientFeatures`),
@@ -422,7 +422,7 @@ front over `notify`**:
 
 Arrivals (`loggedIn` / `reconnected`) gain a "from `<country>`" tail when
 the connecting player's country resolves. The capture is a v1 slice of
-the [connection-origin slate](../slates/tails/connection-origin-slate.md):
+the [connection-origin slate](../slates/platform/connection-origin-slate.md):
 
 - **Capture** at the WS handshake (`WebSocketService.handleUpgrade`):
   the client IP (first hop of `X-Forwarded-For`, else
@@ -533,7 +533,7 @@ owners and three privacy semantics — which is why there is no one fat
   presence frames render through + the command-bar preview
   contract; [card-surface.md](./card-surface.md) — the drill-in
   roster; [prompt.md](./prompt.md) — `mqlMany` verb-time disambiguation.
-- [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the
+- [social-graph-slate.md](../slates/engine/social-graph-slate.md) — the
   seeding slate (Wave 3 shipped here).
 
 ## History

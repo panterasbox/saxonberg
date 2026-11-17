@@ -437,7 +437,7 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   is shavings (a dowel weighed 6 kg before). Afforded by `Blank` and
   `Board`. ⚠ No knife offers `cutting` (the knives are Weapons), so the
   by-hand root starts at the billhook — the scarcest instrument in the
-  column. See [carpentry-slate](../slates/builds/carpentry-slate.md).
+  column. See [carpentry-slate](../slates/trades/carpentry-slate.md).
 
 ## The grain — stock forms, seasoning, the weakest link
 
@@ -552,14 +552,16 @@ are untouched.
 
 ## The compartment — `Chamber` and the drying loft
 
-`platform/thing/Chamber.ts` = `AtmosphericMixin(PlacingMixin(Thing))`: a
-space inside a thing with its own air. ⭐ **Occupancy by PLACEMENT, not
-containment** (D15, reconciling the fridge-design-pack with the
-chambered-vessels slate): `put board in loft` places it `in` the chamber,
-its container stays the room, `getEnclosingScope()` answers the chamber,
-and every *what air reaches me* read (thermal ambient, the seasoning
-clock, the biome walk) starts there. No change to scope-walk or
-`canReach`. The one override is `occupants()` → `getPlaced('in')`.
+`platform/thing/Chamber.ts` = `AtmosphericMixin(ContainerMixin(Thing))`:
+a space inside a thing with its own air. ⭐⭐ **Occupancy by CONTAINMENT**
+(size and carrying W9, owner 2026-11-13 — *an enclosing relation is
+containment*; D15's occupancy-by-placement is reversed): `put board in
+loft` makes it the loft's contents (region zero; `move(board, loft,
+Placements.IN)` is region zero's own word), `getEnclosingScope()` answers
+the chamber, and every *what air reaches me* read (thermal ambient, the
+seasoning clock — `Moisture` exposes a compartment with its own air at 1 —
+the biome walk) starts there. `Atmospheric.occupants()` is its contents;
+no override. The room reaches one level into the open loft.
 
 `lib/spatial/Chambered.ts` (`ChamberedMixin`) is the host half: a row
 declares `chambers: [{key, template}]`, an INSTRUCTION field applied at
@@ -668,11 +670,11 @@ mended at its joint, and every bill-less mould reads *It is one piece*.
   Vats (the oil casks, the water-butt), the threaded fastener, the
   remaining makerless assemblies, humidity in seasoning, the sawmill's
   water right, a compartment's admission cost and a person in one →
-  [assembly-slate](../slates/tails/assembly-slate.md).
+  [assembly-slate](../slates/trades/assembly-slate.md).
 - Carving as an engaged act with exertion, `carve`'s can-make
   gate, competence in sawing, the lathe, a store that sells an edge, and
   the clasp knife that *"whittles a peg"* and cannot →
-  [carpentry-slate](../slates/builds/carpentry-slate.md).
+  [carpentry-slate](../slates/trades/carpentry-slate.md).
 - Two power takes on one reach double-count (the sawmill and the grist
   mill read the same flow) — a coarseness of the water seam.
 

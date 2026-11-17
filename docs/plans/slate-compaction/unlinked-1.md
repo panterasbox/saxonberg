@@ -25,7 +25,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/lineage-slate.md — 1708 → 1684 · Status UNBUILT → PARTIAL
+## docs/slates/society/lineage-slate.md — 1708 → 1684 · Status UNBUILT → PARTIAL
 
 Lineage is unbuilt: `EnrollController.FIELDS` still holds exactly
 `species · sex · name · pronouns · aspiration`
@@ -99,7 +99,7 @@ Three cuts.
 
 ---
 
-## docs/slates/builds/insurance-slate.md — 1234 → 1241 · Status UNBUILT → UNBUILT
+## docs/slates/society/insurance-slate.md — 1234 → 1241 · Status UNBUILT → UNBUILT
 
 Two design conversations in one file (insurance; banking-as-vocation +
 ratings + accountant + notary + innkeeper + vet + ostler + almanac). All
@@ -154,7 +154,7 @@ seven lines because `Left` grew.
 
 ---
 
-## docs/slates/builds/value-object-statics-slate.md — 1053 → 229 · Status PARTIAL (stale) → PARTIAL
+## docs/slates/tech-debt/value-object-statics-slate.md — 1053 → 229 · Status PARTIAL (stale) → PARTIAL
 
 A refactor slate that had become the build journal of `build/lib-statics`,
 merged 2026-09-14 (`c8c4d5056`; sweep `708d805f4`; gates `5e97cb147`).
@@ -296,7 +296,7 @@ method (`:145`), `lint:binder-models` (`package.json:69`,
 
 ---
 
-## docs/slates/builds/discovery-slate.md — 852 → 779 · Status UNBUILT → PARTIAL
+## docs/slates/engine/discovery-slate.md — 852 → 779 · Status UNBUILT → PARTIAL
 
 Two halves. **Foraging is unbuilt**: no `forage.yaml` / `gather.yaml`
 under any pack's `cmd/`, no patch class, nothing at `forage` in
@@ -360,7 +360,7 @@ remoteness, the almanac or a tail knob exists.
 
 ---
 
-## docs/slates/builds/mind-slate.md — 824 → 831 · Status UNBUILT → UNBUILT
+## docs/slates/engine/mind-slate.md — 824 → 831 · Status UNBUILT → UNBUILT
 
 Kept whole per the batch brief (the founder is the accuracy authority on
 its subject). Verified nothing shipped: no `equanimity` under
@@ -399,7 +399,7 @@ grew.
 
 ---
 
-## docs/slates/tails/tradition-slate.md — 724 → 731 · Status UNBUILT → UNBUILT
+## docs/slates/society/tradition-slate.md — 724 → 731 · Status UNBUILT → UNBUILT
 
 Nothing shipped and nothing to cut. No `class Tradition` / `class Law` /
 `TraditionCatalogue` anywhere under `packages/server/src/mud` or
@@ -441,7 +441,7 @@ lines because `Left` grew.
 
 ---
 
-## docs/slates/builds/campus-grounds-slate.md — 720 → 731 · Status UNBUILT → PARTIAL
+## docs/slates/world/campus-grounds-slate.md — 720 → 731 · Status UNBUILT → PARTIAL
 
 The `eternal-university` pack's whole content is Duncan Hall (residence),
 the **campus farm** (yard · byre · midden · trough · hay barn · herdbook ·

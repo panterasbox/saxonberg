@@ -10,6 +10,8 @@
  */
 
 import '../../../../test-bootstrap';
+import { withHands } from '../../slot/__tests__/carrying-fixture';
+import { CarryingMixin } from '../../slot/Carrying';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DonationBankMixin } from '../DonationBank';
 import Tariff from '../../../platform/thing/Tariff';
@@ -32,6 +34,9 @@ import type { BloodUnit } from '../../vitals/Blood';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Containable } from '../../spatial/Containable';
 import type { Container } from '../../spatial/Container';
+
+/** A body that carries (size and carrying W8: the capability is the carrier classes'). */
+class CarrierBody extends CarryingMixin(Creature) {}
 
 class TestWindow extends DonationBankMixin(Tariff) {
   static override _mixinName = 'TestWindow';
@@ -140,7 +145,7 @@ describe('DonationBankMixin — taking and receiving', () => {
     const w = window(vault);
     ContainmentApi.move(bag('O'), vault);
     ContainmentApi.move(bag('O'), vault);
-    const recipient = makeStuff(() => new Creature());
+    const recipient = withHands(makeStuff(() => new CarrierBody()));
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip');
     const moved = await withRootContext(w as unknown as Stuff, 'issue', () =>
       w.takeUnit('O', recipient as unknown as Stuff, null),
@@ -157,7 +162,7 @@ describe('DonationBankMixin — taking and receiving', () => {
     const vault = chest();
     const w = window(vault);
     ContainmentApi.move(bag('O'), vault);
-    const recipient = makeStuff(() => new Creature());
+    const recipient = makeStuff(() => new CarrierBody());
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip2');
     const unit = await withRootContext(w as unknown as Stuff, 'issue', () =>
       w.takeCompatibleUnitFor(recipient as unknown as Stuff, null),
@@ -172,7 +177,7 @@ describe('DonationBankMixin — taking and receiving', () => {
     const vault = chest();
     const w = window(vault);
     ContainmentApi.move(bag('O'), vault);
-    const recipient = makeStuff(() => new Creature()); // bare body: type O
+    const recipient = makeStuff(() => new CarrierBody()); // bare body: type O
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip3');
     const out = await withRootContext(w as unknown as Stuff, 'issue', () =>
       w.transfuseInto(recipient as unknown as Stuff, null),
@@ -186,7 +191,7 @@ describe('DonationBankMixin — taking and receiving', () => {
   it('hasCompatibleUnitFor reads a match without taking it', () => {
     const vault = chest();
     const w = window(vault);
-    const recipient = makeStuff(() => new Creature()); // bare body: type O
+    const recipient = makeStuff(() => new CarrierBody()); // bare body: type O
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip5');
     expect(w.hasCompatibleUnitFor(recipient as unknown as Stuff)).toBe(false);
     ContainmentApi.move(bag('O'), vault);
@@ -198,7 +203,7 @@ describe('DonationBankMixin — taking and receiving', () => {
   it('transfuseInto returns null when nothing on the shelf matches', async () => {
     const vault = chest();
     const w = window(vault); // empty vault
-    const recipient = makeStuff(() => new Creature());
+    const recipient = makeStuff(() => new CarrierBody());
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip4');
     const out = await withRootContext(w as unknown as Stuff, 'issue', () =>
       w.transfuseInto(recipient as unknown as Stuff, null),

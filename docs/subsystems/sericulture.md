@@ -3,7 +3,7 @@
 > **Pack:** `trade-sericulture` at `/trade/sericulture` · **Discipline:**
 > `sericulture` · **Verbs:** `unwind` (and the platform's `put`, `get`,
 > `harvest`, `spin`, `weave`, `heat`) · **Design:**
-> [silk-slate.md](../slates/tails/silk-slate.md)
+> [silk-slate.md](../slates/trades/silk-slate.md)
 
 A tray of silkworms eats cut mulberry leaf for about a month, ages by the
 warmth of the room it stands in, moults four times, wanders, and spins.

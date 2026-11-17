@@ -174,7 +174,8 @@ describe('the verb shape — `equip` dresses, `outfit` keeps the saved sets', ()
       ['wear', ['wear'], 'WearableMixin'],
       ['wield', ['wield'], 'WieldableMixin'],
       ['remove', ['remove'], 'WearableMixin'],
-      ['unwield', ['unwield'], 'WieldableMixin'],
+      // ⭐ `unwield` puts up ANYTHING in a hand (a mug as much as a sword) — what a hand holds is a Slottable (size and carrying finalize drive).
+      ['unwield', ['unwield'], 'SlottableMixin'],
     ];
     for (const [name, verbs, requires] of narrow) {
       const doc = view(name);

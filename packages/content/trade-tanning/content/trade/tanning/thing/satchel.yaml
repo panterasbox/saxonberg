@@ -1,0 +1,18 @@
+# A satchel (size and carrying D27/D29) — a flapped leather bag on a
+# shoulder strap, worn at the side (it claims the torso, so what is in it
+# is READY, not packed). The teacher's starting bag. Its strap takes a
+# thing clipped `from` it.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather satchel
+  keywords: [satchel, bag, leather, "shoulder bag", "leather satchel"]
+  register: indefinite
+  longDescription: >
+    A flat leather bag with a deep flap and a brass catch, on a strap long
+    enough to wear across the body.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.8
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.35, depth: 0.1, height: 0.28 }

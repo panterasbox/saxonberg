@@ -304,7 +304,7 @@ cosmetic.
 `chattel` row, and `ResidencyWarden` stands every pinned good up once at
 boot; the owner's login is the other ask. Pinning, not swap — no room asks
 for what stands in it. Who may honour a pin is
-[eager-residency-slate](../slates/builds/eager-residency-slate.md).
+[eager-residency-slate](../slates/tech-debt/eager-residency-slate.md).
 
 `[mine]` (MQL) is the explicit stamp, or title over an extent — never
 author, never group — and ⭐ it says **what** is yours, never **where**.

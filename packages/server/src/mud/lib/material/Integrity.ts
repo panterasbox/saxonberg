@@ -100,6 +100,11 @@ export interface ImpactOutcome {
   flawed: boolean;
   /** What it broke into (sherds, a cullet lump), when it broke. */
   pieces: Stuff | null;
+  /**
+   * ⭐ It did not fall: the place pulls nothing (size and carrying drive,
+   * step 19 — a mug let go in a zero-g room "hit the floor hard").
+   */
+  floats?: boolean;
 }
 
 /**
@@ -347,7 +352,9 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           const where = MixinApi.isContainable(self) ? self.getContainer() : null;
           if (residue !== '' && where !== null) {
             const lump = await StuffApi.clone<Stuff>(residue, undefined, { madeFrom: [self] });
-            if (MixinApi.isContainable(lump)) ContainmentApi.move(lump, where);
+            if (MixinApi.isContainable(lump)) {
+              ContainmentApi.move(lump, where);
+            }
           }
           StuffApi.destruct(self);
         })();
@@ -515,7 +522,11 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const floor = (MixinApi.isAdornable(place) ? place.getFloor() : null) as Stuff | null;
       const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
       const heightM = integrityDial(AppSettingKeys.impactDropHeightM, 1);
-      return this.sufferImpact({ energyJ: kg * 9.81 * heightM, surface, cause: 'drop' });
+      // ⭐ The place's own pull, never Earth's (size and carrying D6): a
+      // drop in a room with no gravity does not fall at all.
+      const g = MixinApi.isAtmospheric(place) ? place.gravityNow().rawValue() : 9.81;
+      if (!(g > 0)) return { broke: false, flawed: false, pieces: null, floats: true };
+      return this.sufferImpact({ energyJ: kg * g * heightM, surface, cause: 'drop' });
     }
 
     public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
@@ -547,7 +558,9 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           pieces.setMaterial(mat);
           pieces.setMass((this as unknown as Tangible).getMass());
         }
-        if (MixinApi.isContainable(pieces)) ContainmentApi.move(pieces, where);
+        if (MixinApi.isContainable(pieces)) {
+          ContainmentApi.move(pieces, where);
+        }
       }
       await StuffApi.destruct(self);
       return { broke: true, flawed: false, pieces };

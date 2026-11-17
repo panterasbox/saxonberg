@@ -57,7 +57,7 @@ written quests**, one of them unbuilt.
 Schell calls this the **braver** way and names its cost exactly:
 **risky if you are on a schedule.** It is the same fact
 [#2](./2-essential-experience.md) states as *an engine on a bench*, and
-it is the same fact the [quest slate](../slates/builds/quest-modeling-slate.md)
+it is the same fact the [quest slate](../slates/world/quest-modeling-slate.md)
 states as *kernel first, off ≥2 real instances.* Three docs, one
 observation, and this is the one that says it is a **strategy** rather
 than an accident.

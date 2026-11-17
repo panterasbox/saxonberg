@@ -65,12 +65,12 @@ export default class WaterSurface extends FloorBase {
   }
 
   public override canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
-    if (slot === GROUND_SLOT && !this.bears(this.supportLoadKgOf(candidate))) return false;
+    if (slot === GROUND_SLOT && !this.bearsBody(candidate)) return false;
     return super.canOccupy(candidate, slot);
   }
 
   public override canOccupyReason(candidate: Stuff & Slottable, slot: string): string | null {
-    if (slot === GROUND_SLOT && !this.bears(this.supportLoadKgOf(candidate))) {
+    if (slot === GROUND_SLOT && !this.bearsBody(candidate)) {
       return this.notBearingWords();
     }
     return super.canOccupyReason(candidate, slot);
@@ -143,7 +143,7 @@ export default class WaterSurface extends FloorBase {
     const self = this as unknown as Stuff;
     if (!MixinApi.isSlotted(self)) return;
     for (const occ of [...self.getOccupants(GROUND_SLOT)]) {
-      if (!this.bears(this.supportLoadKgOf(occ))) this.giveWay(occ);
+      if (!this.bearsBody(occ)) this.giveWay(occ);
     }
   }
 
@@ -174,6 +174,21 @@ export default class WaterSurface extends FloorBase {
   private waterPlace(): (Stuff & WaterPlace) | null {
     const room = (this as unknown as { getAdornedTo?(): Stuff | null }).getAdornedTo?.() ?? null;
     return room !== null && MixinApi.isWaterPlace(room) ? room : null;
+  }
+
+  /**
+   * ⭐ Does this floor bear `body` standing? Ice, or water shallow enough
+   * for THIS body to wade (size and carrying D22: by its stature — a gnome
+   * swims where a human stands).
+   */
+  private bearsBody(body: Stuff): boolean {
+    if (this.isFrozenWater()) return true;
+    const water = this.waterPlace();
+    const stature = MixinApi.isPosed(body) ? body.getStature() : null;
+    // A body with no stature to read stands where the place says one does.
+    if (water === null || stature === null) return this.bears(this.supportLoadKgOf(body));
+    const state = water.stateFor(body);
+    return state === 'dry' || state === 'wading';
   }
 
   /** The water here is shallow enough to stand in now (or gone). */

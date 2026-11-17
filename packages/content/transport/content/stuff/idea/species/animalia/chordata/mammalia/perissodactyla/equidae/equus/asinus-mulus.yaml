@@ -1,0 +1,31 @@
+# The mule (size and carrying D27/W6) — a horse mare's foal by a donkey:
+# the pack animal. It carries only in what it WEARS (a pack saddle, two
+# panniers), bears what its own body bears (the burden model, never an
+# authored load), and is LED on a rope tied to its halter.
+class: /platform/idea/species/Species
+data:
+  smells: [{ aroma: /base-library/aromas/animal/horse, strength: 12 }]
+  binomial: Equus asinus mulus
+  commonNames: ["mule", "pack mule"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Its height (size and carrying W6): fifteen hands at the withers. A
+  # laden mule is measured at every way; it cannot stoop or crawl.
+  stature: 1.5
+  adultMass: 400
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 300, survivableMax: 316 }
+    heartRate: { baseline: 40, survivableMin: 18, survivableMax: 120 }
+    respiratoryRate: { baseline: 14, survivableMin: 6, survivableMax: 60 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 65, survivableMax: 180 }
+    bloodPressureDiastolic: { baseline: 75, survivableMin: 40, survivableMax: 120 }
+    spo2: { baseline: 97, survivableMin: 50, survivableMax: 100 }
+    bloodVolume: { baseline: 26, survivableMin: 16, survivableMax: 26 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 35
+  circadianBand: diurnal
+  diet: herbivore

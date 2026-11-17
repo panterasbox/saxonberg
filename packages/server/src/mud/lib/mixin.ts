@@ -70,6 +70,14 @@ export interface FieldMetaEntry {
    */
   instruction?: true;
   /**
+   * ⭐ **The instruction fields this one is applied AFTER** at Phase 2,
+   * when the row authors them. Phase 2 otherwise runs in the chain's
+   * field order, which no author can see. `props:` names `costume`: a
+   * person is dressed before it is handed what it carries, so a prop
+   * routes into the satchel it wears (size and carrying, finalize run 16).
+   */
+  appliedAfter?: readonly string[];
+  /**
    * Participates in stack stack identity — two stacks merge only when
    * every such field is equal. Was `static stackIdentityFields`.
    */
@@ -299,6 +307,8 @@ export const Mixins = {
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
+  /** ⭐ Has a size — form, box, bulk, fit; beside Containable (size and carrying W10g). */
+  Shaped: 'ShapedMixin',
   Placing: 'PlacingMixin',
   /** ⭐ Declares and mints its own compartments (assembly D15). */
   Chambered: 'ChamberedMixin',
@@ -490,6 +500,9 @@ export const Mixins = {
   // missing from it cannot be named by a `requires:` however real it is.
   BodyPlanSlots: 'BodyPlanSlotsMixin',
   Attired: 'AttiredMixin',
+  // ⭐ The receiving act (size-and-carrying D11): the one way a thing comes
+  // onto a body. `Creature` composes it, between Attired and LoadBearing.
+  Carrying: 'CarryingMixin',
   Hygiene: 'HygieneMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
@@ -967,7 +980,7 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * reach", "do you own it" do not — those are the state and relation
  * axes, they change between one moment and the next, and they stay in
  * validators and controllers where they can. See
- * `docs/slates/builds/affordance-suggestion-slate.md` § 3.
+ * `docs/slates/client/affordance-suggestion-slate.md` § 3.
  *
  * ⚠⚠ **This map is PARTIAL, and that is the hole `lint:arg-kinds`
  * closes.** Most of the 200-odd mixins will never be named by a
@@ -1013,6 +1026,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Containment & placement.
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
+  ShapedMixin: "{} has no size to measure",
   PlacingMixin: "{} isn't something you can put things on or in",
   ChamberedMixin: '{} has no compartments',
   CoolboxMixin: "{} isn't a cold box",

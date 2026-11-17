@@ -2,8 +2,8 @@
  * LocomotionMode — singleton Idea describing one mode of locomotion.
  *
  * One canonical instance per templatePath at `/platform/idea/LocomotionMode/<name>`.
- * v1 ships nine modes: walk, climb, swim, fly, ride, drive, wheeled,
- * sailed, aerial.
+ * Shipped modes: walk, sneak, run, stoop, crawl, climb, swim, fly, ride,
+ * drive, wheeled, sailed, aerial.
  *
  * Mode references on actors / exits / drivables are STRINGS (the
  * templatePath); resolution via `LocomotionApi.modeOf(path)` returns
@@ -54,6 +54,22 @@ export type BodyProfile =
   | 'upright'
   | 'horizontal'
   | 'varied';
+
+/**
+ * ⭐ How tall a body stands in each profile, as a share of its stature
+ * (size and carrying D19) — what `Creature.envelope` reads. `prone` is
+ * hands and knees (a 1.75 m body crawls at 0.7 m, under the 0.8 m
+ * crawlway), and a swimmer (`horizontal`) is a crawler's height, so an
+ * underwater squeeze measures like a crawlway. `varied` (a climb, whose
+ * body follows the face) is read as upright.
+ */
+export const BODY_PROFILE_HEIGHT: Readonly<Record<BodyProfile, number>> = {
+  upright: 1.0,
+  crouched: 0.6,
+  prone: 0.4,
+  horizontal: 0.4,
+  varied: 1.0,
+};
 
 export type GroundContact = 'none' | 'partial' | 'full';
 
@@ -172,6 +188,13 @@ export class LocomotionMode extends SingletonMixin(Idea) {
   protected medium: string | null = null;
 
   /**
+   * ⭐ How many free hands the mode takes (size and carrying D20): a climb
+   * takes both, a swim is a kick and takes none. Default `0`. The mode gate
+   * refuses `hands-needed`, naming what you hold, when you have fewer free.
+   */
+  protected hands: number = 0;
+
+  /**
    * ⚠ **Deliberately untagged.** `speed`, `noiseLevel` and
    * `costMultiplier` are numbers, and the sweep that collapsed
    * `Material`'s and `Biome`'s stopped here on purpose.
@@ -198,6 +221,7 @@ export class LocomotionMode extends SingletonMixin(Idea) {
     conveyanceMixin: { persistent: true },
     enablementMixin: { persistent: true },
     medium: { persistent: true },
+    hands: { persistent: true },
   };
 
   public getName(): string {
@@ -306,6 +330,23 @@ export class LocomotionMode extends SingletonMixin(Idea) {
   }
   public setEnablementMixin(value: string | null): void {
     this.enablementMixin = value;
+  }
+
+  public getHands(): number {
+    return this.hands;
+  }
+  public setHands(value: number): void {
+    if (!Number.isInteger(value) || value < 0) {
+      throw new RangeError(
+        `LocomotionMode.setHands: must be a whole number of hands, 0 or more; got ${value}`,
+      );
+    }
+    this.hands = value;
+  }
+
+  /** How tall a body stands moving this way, as a share of its stature. */
+  public getProfileHeight(): number {
+    return BODY_PROFILE_HEIGHT[this.bodyProfile];
   }
 
   public getMedium(): string | null {

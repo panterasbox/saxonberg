@@ -1,0 +1,19 @@
+# A riding saddle (size and carrying D27) — tack worn on a quadruped's
+# back: saddlebags hang `from` it (the belt's rule, its own length).
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: leather saddle
+  keywords: [saddle, leather, tack, "leather saddle"]
+  register: indefinite
+  longDescription: >
+    A riding saddle of oiled leather on a wooden tree, with a high cantle,
+    iron stirrups on leathers and brass dees for whatever is to hang from
+    it.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 9
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/quadruped": ["back:1"]
+  placements: [/platform/placements/from]
+  dimensions: { width: 0.6, depth: 0.45, height: 0.3 }
+  constructionForm: hide
+  gradeBand: fair

@@ -79,7 +79,7 @@ dictate, never a goal.
 ⭐⭐ **And the thing that application could not do is teach.** You can
 teach function. Function is finite: the mixins, the fields, the verbs,
 the lints — that is a curriculum, and
-[wizardry-curriculum-slate](./slates/builds/wizardry-curriculum-slate.md)
+[wizardry-curriculum-slate](./slates/society/wizardry-curriculum-slate.md)
 is it. **Values cannot be taught, only revealed and compared.** Which
 means a document about them cannot be a list of rules, because the list
 would be a list of *conclusions* with the reasoning cut off, and the
@@ -811,7 +811,7 @@ judgments; ten rules give you an optimisation problem.
 
 ### ⭐ The corollary — a wrong name is content; ignorance is only absence
 
-[rejection-slate](./slates/builds/rejection-slate.md) has the best
+[rejection-slate](./slates/world/rejection-slate.md) has the best
 instance: the town calls a life stage *whelps* because it believes they
 are juveniles, and they are not. **A folk taxonomy corrected by
 observation.**
@@ -1076,7 +1076,7 @@ level of beats.
 ### What locating looks like, worked
 
 Three found in a single reading of one room (the millsite —
-[towns-slate](./slates/builds/towns-slate.md) § Heart's Delight):
+[towns-slate](./slates/world/towns-slate.md) § Heart's Delight):
 
 - ⭐⭐⭐ **A quern costs you time; a mill costs you a tenth — and the
   answer flips with how much grain you have.** Nobody authors a position
@@ -1165,7 +1165,7 @@ commentary is later about.
 ## 9a. ⭐⭐⭐ The counter is the description
 
 Added 2026-10-09, from the tourism pass
-([tourism-and-sport-slate](./slates/tails/tourism-and-sport-slate.md)
+([tourism-and-sport-slate](./slates/world/tourism-and-sport-slate.md)
 § 2). A cheap authoring tool that § 9's cultural-content rule implies and
 nobody had stated.
 
@@ -1325,7 +1325,7 @@ there.**
 **See also:** [eotl-craft.md](./eotl-craft.md) (the ancestor's
 techniques and failure modes) · [eotl-census.md](./eotl-census.md) (the
 counts) · [wizardry-rubric.md](./wizardry-rubric.md) (what we measure) ·
-[wizardry-curriculum-slate](./slates/builds/wizardry-curriculum-slate.md)
+[wizardry-curriculum-slate](./slates/society/wizardry-curriculum-slate.md)
 (the function half, which *is* teachable) ·
 [design-lenses.md](./design-lenses.md) (the seven, none of which care
 about buffs) · [measurement.md](./measurement.md) (why a reviewer

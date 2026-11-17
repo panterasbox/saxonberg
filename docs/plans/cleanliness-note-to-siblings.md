@@ -181,7 +181,7 @@ build's review-log entry kept, `pnpm install` for the lock,
 
 ## ⚠ 2026-10-18 — the place taxonomy rename lands in cleanliness's MR
 
-Decided in review (`docs/slates/builds/place-taxonomy-slate.md`): the root
+Decided in review (`docs/slates/tech-debt/place-taxonomy-slate.md`): the root
 `Location` → `Place`; one particular place is a **Locale**, one of many a
 **Location**, either `Persistent…`. Concretely:
 (all done in !380, by name; the `/platform/location/` path segment is

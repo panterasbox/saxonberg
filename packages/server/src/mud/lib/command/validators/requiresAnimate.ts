@@ -9,7 +9,7 @@
  *
  * Tagged on self-action verbs whose semantics genuinely require the
  * actor to be doing something — `say`, `tell`, `go`, `get`, `drop`,
- * `open`, `close`, `inventory`. Untagged on passive/meta verbs:
+ * `open`, `close`, `query`. Untagged on passive/meta verbs:
  * `look`, `help`, `ping`, `alias`, `var`, `settings`, `player`,
  * `focus`. (See the verb tagging audit in the implementation plan.)
  */

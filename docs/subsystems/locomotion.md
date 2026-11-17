@@ -27,6 +27,8 @@ nine v1 modes live at `/platform/idea/LocomotionMode/<name>`.
 | walk | ground | — | — | `['walk']` |
 | sneak | ground | — | — | `['walk']` |
 | run | ground | — | — | `['walk']` |
+| stoop | ground | — | — | `['stoop']` (crouched — under a low lintel) |
+| crawl | ground | — | — | `['crawl']` (prone — a crawlway) |
 | climb | vertical | — | `ClimbableMixin` | `['climb']` |
 | swim | water | — | `SwimmableMixin` | `['swim']` |
 | fly | air | — | `FlyableMixin` | `['fly']` |
@@ -193,7 +195,7 @@ fall a rope causes — see [cordage.md](cordage.md).
 
 ## Mode-gate cascade
 
-`canTraverseExit` runs five gates in order; first failure surfaces:
+`canTraverseExit` runs six gates in order (the over-your-head water read sits between the exit and enablement); first failure surfaces:
 
 1. **body-plan** — `BodyPlan.locomotionModes` must include at least
    one of the mode's `requiresBodyPlanMode`. A body with no anatomy to
@@ -203,20 +205,46 @@ fall a rope causes — see [cordage.md](cordage.md).
    `locomotionModes` — rejected here.
 2. **posture** — actor's `Posed.getPosture()` must be in the mode's
    `requiresPosture`. Empty set means no posture gate.
-3. **exit.canTraverse** — checks `blocked`, `door`, and `media` (mode
-   medium must match the exit's medium list, or empty media → walk-
-   only legacy default).
-4. **enablement** — for non-passthrough modes with an `enablementMixin`,
+3. **hands** — a mode with `hands > 0` (climb: 2) refuses
+   `handsNeeded` (`hands-needed` on the wire) when `Carrying.freeHands()`
+   is short, naming what the hands hold (size and carrying D20).
+3a. **awkward load** — `run` only (`LocomotionLogic.awkwardGate`, gate
+   `awkwardLoad`): a held thing longer than the runner's stature ×
+   `RUN_AWKWARD`, or more awkward than `RUN_AWKWARD_FACTOR`
+   (`LoadBearing.awkwardnessOf`), refuses *"You can't run with the pole —
+   it's too awkward to carry at a run. Walk it."* Sneak and walk are not
+   gated (size and carrying D35).
+4. **exit.canTraverse** — checks `blocked`, `door`, `media` (mode
+   medium must match the exit's medium list, or empty media → the
+   ground family walk/sneak/run/stoop/crawl), then the **clearance**
+   (`Exit.clearanceRefusal`, size and carrying D21): the body's envelope
+   at the mode's profile against the way's tightest gap (a way up or
+   down lengthwise, by girth), each held thing's cross-section and — rigid
+   — its length against the way's `turn`, a mounted pair, a hitched
+   cart. The refusal names what would work: a lower mode the body's plan
+   has (*"You'd have to stoop — `stoop north`."*), the worn container
+   that makes the body too deep (*"Your canvas backpack won't go through
+   — `remove backpack`."*), *dismount*.
+5. **enablement** — for non-passthrough modes with an `enablementMixin`,
    walk the actor's scope for a host that composes that mixin AND
    accepts the direction AND can be engaged (capability ≥ difficulty).
    For passthrough modes, walk slot occupancy for a host composing
    the mode's `conveyanceMixin`.
-5. **haulage** — a hitched cart must be able to follow: the cart's
+6. **haulage** — a hitched cart must be able to follow: the cart's
    passage mode must be admitted by the exit's `media` and the exit
    wheel-passable (`terrain`), and the draft within the hauler's strain
    ceiling (`breakaway`). For a ridden move the HOST hauls, and since the
    host now runs its own crossing this gate reads the horse, not the
    rider.
+
+⭐ **Driving takes hands** (size and carrying D18): after enablement, a
+`Drivable` host's `driveRefusal(actor)` refuses `handsNeeded` when the
+driver's free hands are fewer than `getDriveHands()` (a hauled host's
+`handedness`, else the authorable `driveHands`, default 2 — reins).
+**Leading** is the crossing's too: `Mobile.crossExit` takes a led animal
+(a held line end whose far end is on a handless or haltered body in the
+same place) after the leader, pre-checking the animal's own
+`canTraverse` — see [carrying.md](./carrying.md).
 
 Each rejection carries `gate` / `mode` / optional `context` so
 controllers can render verb-templated prose without re-parsing
@@ -235,7 +263,7 @@ refactored `go`. It does two things:
    dispatch context.
 
 The note's `gate` vocabulary is the closed union
-`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door' | 'terrain' | 'breakaway' | 'veto' | 'encumbrance' | 'locked' | 'unbuilt' | 'unpublished'`.
+`'exit-mode' | 'posture' | 'body-plan' | 'enablement' | 'capability' | 'no-conveyance' | 'blocked' | 'door' | 'terrain' | 'breakaway' | 'veto' | 'encumbrance' | 'locked' | 'unbuilt' | 'unpublished' | 'clearance' | 'hands-needed'`.
 ⚠ The last four were guards with no word of their own that fell to the
 mapper's `exit-mode` default (storage-and-ice, 2026-10-17): a laden
 swimmer refused *"You're carrying too much to swim."* read for three
@@ -405,6 +433,23 @@ read this to ask "what does this mover sound / look / feel like right
 now?" — a rider on a galloping horse reads the horse's wheeled-style
 emission, not the rider's own walk.
 
+⭐ **Loose gear is noise** (size and carrying D36): when
+`Carrying.gearNoise()` is 1 — a held thing, or one hung from a worn host,
+is rigid and rings (a sword on a belt, a lantern in hand, a key ring) —
+`emissionAt` lifts the mode's `noiseLevel` one band (`quiet → normal`,
+`normal → loud`), which is what `sneak`'s detection edge and stealth's
+`modeAttention` read. A thing in a pocket or a shut pouch is silent.
+
+⭐ **`stoop` and `crawl`** (size and carrying D20) are ground modes with
+thin controllers (`StoopController`/`CrawlController` over
+`LocomotionControllerBase`) and views in `cmd/movement/`, conferred by
+`MobileMixin.self` beside walk/sneak/run. `stoop` (speed 0.8, `crouched`,
+normal noise, cost 1.1) is lower than a walk and **not** quieter; `crawl`
+(0.3, `prone`, quiet, 1.5). A mode's `hands` field (default 0; climb 2)
+is what gate 3 reads. The plan lists who can: a biped both, a `canid`
+dog only `crawl`, a horse neither. The profile heights and the
+clearance gate are [size.md](./size.md)'s.
+
 ## Authoring locomotion content
 
 Adding a new mode (e.g., `slither`):
@@ -462,7 +507,7 @@ content slate that pulls on it.
   derived from mode + per-exit override (today the substrate
   carries `speed` and `defaultDurationMs` is the natural ETA
   source — see
-  [locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md)
+  [locomotion-as-activity-slate.md](../slates/engine/locomotion-as-activity-slate.md)
   for the time-based duration model). Mode transitions in a
   multi-segment path are zero-distance "transition edges." The
   pathfinder is its own slate when route-planning content earns
@@ -486,7 +531,7 @@ content slate that pulls on it.
   separate modes (each one is one new template, no framework
   churn).
 - **`Crawlable` mixin + `crawl` mode.** Paired with
-  [locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md);
+  [locomotion-as-activity-slate.md](../slates/engine/locomotion-as-activity-slate.md);
   crawl was deferred alongside sneak when locomotion stayed
   synchronous. Size constraints (a fat character may not fit
   through a vent) live on the `Crawlable` host.
@@ -544,3 +589,13 @@ In moving water the direction words are the river's — `swim upstream`,
 taken (`ReachExit`). Finding your feet in the shallows drops a water mode for
 walk (`WaterSurface.occupy`), so the way out is waded. See
 [river.md](./river.md).
+
+## History — size and carrying (2026-11-12)
+
+`39d4ba23e..50f562ed4`. `stoop` and `crawl` joined the ground family; a
+mode gained `hands` (the hands gate); `run` gained the awkward-load gate;
+the exit gate grew the clearance read (envelope, held things, `turn`, the
+mounted pair, a hitched cart) with refusals that name what would work;
+driving reads the controls' hands; `crossExit` leads a haltered animal;
+rigid ringing gear lifts the emission one band. See [size.md](./size.md)
+and [carrying.md](./carrying.md).

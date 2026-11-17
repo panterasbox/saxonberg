@@ -263,7 +263,7 @@ at **339, three below where the build found it.**
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
-  [value-object-statics-slate](./slates/tails/value-object-statics-slate.md).
+  [value-object-statics-slate](./slates/tech-debt/value-object-statics-slate.md).
 
   ⚠⚠ **The framework allowlist had drifted, and that is this gate's own
   documented failure class** (*a ratchet with a hole in it*; *gates ship
@@ -347,7 +347,7 @@ are its view-side twins (moved out of `check-verb-collisions`).
 | `lint:contribution-keys` | every string key in a class's `static commandContributions` (a same-file `const` list, bare or spread, is read where it is declared) names a view under some pack's `content/` — `commandViews()`; a list held in an imported const is counted as unreadable | added at `/finalize` (2026-11-07): **0** of 645 keys over 364 views (the audit had deleted the retired `scrub.yaml` keys) | — | **0** |
 | `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 | **483**; undefined **0** (W14) |
 | `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 | **138** (W14) |
-| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **633**; durations **38** (W14) |
+| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds (not an emptiness test — `xs.length > 0`; size-and-carrying W7), UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **633**; durations **38** (W14); **508** (size-and-carrying W7 — the emptiness-test rule fix, −106) |
 | `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 | **63** (W14) |
 | `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 | hunts **1**; self **80** (W14) |
 | `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 | **41** (W14; a stated +1 at W7c for `CombatantMixin`) |
@@ -549,7 +549,7 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
   be path-addressed (156 irreducible `isX` narrowings), with the revisit
   condition recorded as *"two packs collide on a `_mixinName`"*. The day
   this gate fails for real, the flat namespace has actually broken. See
-  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
+  `docs/slates/platform/content-packs-slate.md` § RESOLVED.
 - **`lint:field-meta`** — field metadata is ONE field-keyed static: no
   legacy `persistentFields` / `fieldMarshallers` / `instructionFields` /
   `stackIdentityFields` returning, every entry well-formed. Registration
@@ -575,7 +575,7 @@ authored by three rows, and was read by nothing… This is the arm that
 fills it."* Somebody found a declared-and-unread field and **added an
 arm** — and `signature`, `resolution` and `contagion` are three more such
 fields, which the
-[consequence build](./slates/tails/consequence-slate.md) is about to
+[consequence build](./slates/engine/consequence-slate.md) is about to
 wire. So the gate ships in that build's **W0**, before any of it.
 
 The rule it enforces: a condition's **progression law** (decay · logistic
@@ -1396,6 +1396,100 @@ helper (`PartyControllerBase`, `DriftController`), or held under a
 non-person name (`referent`, `tplPath`). Those are D11's confirmed list and
 W3 switches them by hand; `MineWarren` taking a `ParcelOwner` puts the
 mining pair where `lint:person-keys` sees them.
+
+### The size-and-carrying censuses (2026-11-11 → 2026-11-12)
+
+Opened at W0 of size and carrying, both **syntax-only** (a type-checked
+`ts.Program` over the kernel and every pack costs ~95 s, so each
+classifier is a heuristic checked against a hand-kept truth), both driven
+to **0** by the build and held there. See [carrying.md](./subsystems/carrying.md).
+
+| gate | what it counts | W0 ceiling | at merge |
+|---|---|---|---|
+| ~~`lint:body-moves`~~ — **retired W8, 2026-11-12: `move` is the receiving act** | was every `ContainmentApi.move(item, dest)` whose destination may be a body, kept so each could be ported to `Carrying.receive`. With `move` honest — a body places what arrives (`Container.arrivalFor`) or `move` throws naming why — there is nothing to port and nothing a gate could count; the script and its roster are deleted | **101** (made 38 · handed 20 · granted 16 · inherit 27) | **0** at W5; **retired** at W8 |
+| `lint:perceived-surfaces` (`scripts/check-perceived-surfaces.ts`) | a *unit* (a named function/method, or a subscribable field's `read(stuff, viewer)`) with a **source** (`MqlApi.resolveOne/Many` not in system mode, `.getContents(` / `.getDeepContents(` / `.getAllOccupants(` / `.wornStack(` / `.getPlaced(`) and a **sink** (`promptMqlObject/Many`, `MessageApi.scene(`/`.toSelf(`, `CardApi.open(`, `onEnvelope(`, `projectStuffInto(`; in the binder and the script interpreter a `return` in a unit whose source is MQL; any subscribable `read`) and no `perceived(`/`perceives(` call in the unit (or one hop into a same-module function that makes one). Roots: every controller module, `lib/command/**`, `CommandLogic`, `lib/script/**`, `CardRegistry`, `MqlSubscriptionRegistry`, every subscribable `read` | **32** | **0** at W3, by fixing every surface plus two rule corrections, no allowlist |
+
+⭐ **What they protect.** `lint:perceived-surfaces` is the other half of
+*MQL names, acts observe*: MQL resolves the same things for every viewer,
+so every place a list reaches a person must ask `PerceptionApi.perceived` —
+a surface that forgets is a leak of a covered pocket, a concealed trap or a
+stranger's inner pocket.
+
+⭐ **Why `lint:body-moves` retired rather than ratcheted** (W8, owner
+review): a census is the right tool while there is something to port TO.
+It counted the moves onto a body so each could be ported to
+`Carrying.receive` — a synonym for `move`. The owner struck the synonym
+(*"every time you invent a synonym for `move()` you're making it harder for
+everyone else in the game"*): a body is a destination that places what
+arrives, and a body with no honest place makes `move` throw. A direct
+`move` onto a body is now the way on, so the census had nothing left to
+count — the run-time throw (named, with what the hands hold and what was
+tried) is the backstop it used to be the blind spot of.
+
+### `lint:carry-moves` — `move` is the only call onto a body (2026-11-15)
+
+`scripts/check-carry-moves.ts`, ceilings **0 / 0** (size and carrying
+W10i). The owner retired `Carrying.directMove` — the one way around a
+carrier's routing — and with it the shape every handed site had grown:
+`isCarrying(x) ? x.directMove(item) : ContainmentApi.move(item, x)`, a
+second movement rule chosen by what the destination is. The gate counts
+(1) any `directMove` identifier and (2) an `if`, ternary, `&&` or `||`
+whose condition asks `isCarrying(X)` and whose arm moves onto that same
+`X` (`ContainmentApi.move|forceMove(…, X)`). A question is not counted —
+`isCarrying(x) ? x.wouldSetDown(item) : null`, `if (!isCarrying(a))
+return …` — nor a carrier-only branch that moves somewhere else. Its first
+run found one site the sweep had missed (`returnBorrowed` re-asking a
+body it had already found by `isCarrying`). See
+[carrying.md](./subsystems/carrying.md).
+
+### `lint:data-ideas` — metadata is a Document, not an Idea (2026-11-16)
+
+`scripts/check-data-ideas.ts`, ceiling **13** (size and carrying W10k).
+It mechanizes [review-questions.md](./review-questions.md) **P10**: the
+size and carrying build shipped `Form` as a `SingletonMixin(Idea)` with
+five rows, right after the documents build had converted that pattern
+away (document-store.md § *Idea or document*), and it cost a
+`lint:boundary-roles` rise and a load-on-use workaround before W10j
+retired it. The gate counts every class on an `idea/` branch (the kernel's
+`platform/idea/**` and `world/**/idea/**`, every pack's `src/**/idea/**`)
+that reaches `lib/stuff/Idea` and is **data-only**: neither its own body
+nor any class or mixin factory it composes on the way to `Idea` has a
+lifecycle hook (`on*`/`can*`/`pre*`/`post*`/`around*`, a static block), an
+`async` method or `await`, a value reference to an `*Api` or `*Logic`, or a
+timer. Fields, `fieldMeta`, accessors, `get*`/`set*` methods and pure
+computation over the class's own fields are data — a document's value class
+holds those just as well. Out by construction: controllers (`cmd/`),
+logic singletons (`api/`, `*Logic`, anything reaching `ApiLogic`) and the
+catalogues and registries that serve documents.
+
+⚠ Syntax only, so the test's third limb (*could it be a link in a query
+chain?*) is invisible to it, and a direct call on another Stuff reads as
+computation. That makes it a **census of candidates**, not a verdict:
+Discipline, Spell and Corpo stay Ideas by limb 3 (document-store.md) and are
+counted anyway. `--report` names all thirteen; each is a candidate for a
+document conversion to be argued by the test, and each conversion lowers
+the ceiling. A new data-only Idea class fails — it is a document kind, or
+it has the behavior that makes it an Idea. The fixture test plants the
+retired `Form` and sees it counted.
+
+### `lint:view-keys` — the command def predicts everything (2026-11-16)
+
+`scripts/check-view-keys.ts`, ceiling **59 keys, pinned by name** (size
+and carrying W10k). It mechanizes review-questions.md **P9**: the
+`readies:` view field made the dispatcher put away what you held and draw
+a tool before the controller ran — nothing in the def or `help` said so,
+and it was retired. `command.schema.json` is `additionalProperties: false`
+at every surface, so its key list IS everything a def can say. The gate
+reads the `properties` of the four surfaces — the view (17), a
+subcommand (7), an arg (`$defs/positional`, 18) and an option
+(`$defs/option`, which `payload:` shares, 17) — against
+`PINNED_VIEW_KEYS`, each key with one line on what it does to the command.
+A key the pin does not name **fails** until it is added with its line in a
+reviewed change (ask P9 first: a convenience is the player's — an option,
+an arg type, a verb, an alias — never a dispatcher flag). A key the schema
+dropped **passes** with a note to drop it from the pin. ⭐ The ratchet is by
+name, not by count: a count would let one key be swapped for another
+unseen.
 
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 

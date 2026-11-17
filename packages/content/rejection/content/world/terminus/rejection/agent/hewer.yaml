@@ -34,9 +34,13 @@ data:
     Wiry, grey with rock dust to the eyebrows, working a face with the
     unhurried economy of somebody who intends to still be doing it at the
     end of the shift. He nods and goes back to it.
+  # ⚠ No timber set on his body (size and carrying, finalize): a 40 kg set
+  # is not carried about by a man who is also holding a pick and a lamp —
+  # it is stacked at the face (the drift's `props:`). `shore` binds a set
+  # he CARRIES, so with none on him it declines and the beat moves on, as a
+  # person's would.
   props:
     - /trade/mining/thing/pick
-    - /trade/mining/thing/timber-set
     - /world/terminus/rejection/thing/glowcap-jar
   behaviors:
     - brain: /trade/mining/behavior/delves

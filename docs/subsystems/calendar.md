@@ -4,7 +4,7 @@ A played person's **personal calendar** — dated reminders they keep and
 read on demand, on the aether implant. Seeded thin by the
 clinical-medicine build as the honest home for *"come back in two weeks"*
 (a clinician's PROGNOSIS, communicated — not something a wound reveals);
-the full design lives in `docs/slates/builds/personal-calendar-slate.md`.
+the full design lives in `docs/slates/engine/personal-calendar-slate.md`.
 
 ⚠ **Distinct from the world calendar** (`lib/time/DefaultCalendar`), which
 is the shared game date. This is your own diary.
@@ -64,4 +64,4 @@ changes.
 
 Shipped by the clinical-medicine build (W4). See
 `docs/plans/clinical-medicine-plan.md` D12 and
-`docs/slates/builds/personal-calendar-slate.md`.
+`docs/slates/engine/personal-calendar-slate.md`.

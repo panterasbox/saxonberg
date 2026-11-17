@@ -198,7 +198,7 @@ rough** — which prices *where* you disconnected rather than forbidding it.
 ⭐ The far-past guard survives and becomes honest: a month away is a month
 **asleep**. ⚠ *"Never tax absence"* is retired as a doctrine in favour of
 *absence has a diegetic mechanism with a price*. See
-[absent-body-slate](../slates/tails/absent-body-slate.md) § *the DIRECTION*.
+[absent-body-slate](../slates/engine/absent-body-slate.md) § *the DIRECTION*.
 **Until that builds, the shipped behaviour is as follows.**
 
 - **Linkdead** — when the host `isHasInteractive` and `isLinkdead()`, the
@@ -559,7 +559,7 @@ nowhere. `exposures` and `aversions` are on the spine for an Avatar and die at r
 NPC, which has no spine. `heritage()` is the seam for parents, who do not exist yet.
 
 ⚠ **Liking stops at a read.** `eat` says how it went down and feeds you either way. Nothing
-imposes on it until the mind build ([mind-slate](../slates/builds/mind-slate.md)).
+imposes on it until the mind build ([mind-slate](../slates/engine/mind-slate.md)).
 
 
 ## Lead arrives (paint build, 2026-10-31)

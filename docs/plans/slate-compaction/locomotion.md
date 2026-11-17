@@ -57,7 +57,7 @@ proves stale, NOT edited (the batch rule is INSERT-only):
 
 ---
 
-## docs/slates/tails/collision-slate.md — 526 → 533 · Status PARTIAL → PARTIAL
+## docs/slates/engine/collision-slate.md — 526 → 533 · Status PARTIAL → PARTIAL
 
 Grew by seven lines: two small cuts, and a `Left` that the body forced
 wider. Grep: `Exit.blocked` is a real persistent boolean
@@ -126,7 +126,7 @@ never vetoes a traverse — `patrols`, `wanders`, `wary`, and no blocker).
 
 ---
 
-## docs/slates/tails/locomotion-as-activity-slate.md — 470 → 402 · Status PARTIAL → PARTIAL
+## docs/slates/engine/locomotion-as-activity-slate.md — 470 → 402 · Status PARTIAL → PARTIAL
 
 The core design — `TraverseActivity`, `beginFor`, `traverseSync`, the
 `engagedMode` migration, the three retirements, the controller refactor,

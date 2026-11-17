@@ -11,5 +11,11 @@
 # `on`'s own key: a primary always wins its word.
 prepositions: [from, on]
 encloses: false
+# ⭐ Size and carrying D4–D5: a host's `from` member is bounded by its
+# LENGTH (each hung thing takes its hanging width) and by the mass its
+# material bears — a belt, a rail, a strap, a key ring. And a hung thing is
+# clipped or tied: it stays put under water and at zero gravity.
+hangs: true
+fastens: true
 prose: "{{ actor }} hang{{ s }} {{ item }} from {{ host }}."
 heading: Hanging from it

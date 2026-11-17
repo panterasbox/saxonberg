@@ -320,7 +320,7 @@ And two seams in `ThermalMixin`, both on the **body being held**:
 
 | | function | question | reader |
 |---|---|---|---|
-| **holder** | `ambientScopeOf` | the immediate enclosing placement host, else the container — **one step** | `enclosingCoolbox`, because what you are IN outranks the room and an icebox two hops away is not holding you |
+| **holder** | `ambientScopeOf` | the immediate enclosing placement host, else the container — **one step** (a pocketed key's host and container are both its coat since size and carrying W9, so the step is the same) | `enclosingCoolbox`, because what you are IN outranks the room and an icebox two hops away is not holding you |
 | **air** | `airScopeOf` | the nearest scope outward that is `Atmospheric` — a **walk**, under the same depth cap the biome chain uses | both ambient paths, pull (`refreshAmbientFromEnvelope`) and push (`restamp`) |
 
 They were the same call until the base-class narrowing build. Before it a
@@ -544,7 +544,7 @@ logs there are. This is the shipped instance of a general pattern
 (microclimates as *occupiable* features, not *located* ones); a generic
 "any hot `Thermal` object radiates to nearby bodies" read (a hot rock,
 not just an authored fixture) remains open — see
-[thermal-slate](../slates/tails/thermal-slate.md).
+[thermal-slate](../slates/engine/thermal-slate.md).
 
 ## ⭐⭐ The internal heat load — heat that is not the weather's
 

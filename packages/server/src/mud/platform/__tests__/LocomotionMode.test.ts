@@ -33,8 +33,9 @@ describe('LocomotionMode', () => {
     // static. `getAllPersistentFields` aggregates the whole chain.
     // ⭐ It used to answer `savedProps` / `savedPropMarshallers` too,
     // from `PropertiedMixin`; that mixin came off in the narrowing, so
-    // the aggregate is now exactly the class's own twelve — which is
+    // the aggregate is now exactly the class's own thirteen — which is
     // the cleanest possible statement of what a reference singleton is.
+    // `hands` (size and carrying D20) is the free hands a mode takes.
     const OWN = [
       'name',
       'speed',
@@ -48,6 +49,7 @@ describe('LocomotionMode', () => {
       'conveyanceMixin',
       'enablementMixin',
       'medium',
+      'hands',
     ];
 
     it('declares exactly the expected fields (class shape)', () => {
@@ -60,7 +62,7 @@ describe('LocomotionMode', () => {
     it('the composed list is own-first, then inherited — the key order the applier relies on', () => {
       // `TemplateApplier` Phase 1 applies fields in this order, and
       // `getAllFieldMeta` collects keys concrete-class-first. That the
-      // class's own twelve lead, in declared order, is the guarantee.
+      // class's own thirteen lead, in declared order, is the guarantee.
       expect(MixinApi.getAllPersistentFields(LocomotionMode)).toEqual(OWN);
     });
 
@@ -78,6 +80,7 @@ describe('LocomotionMode', () => {
       expect(mode.getConveyanceMixin()).toBe(null);
       expect(mode.getEnablementMixin()).toBe(null);
       expect(mode.getMedium()).toBe(null);
+      expect(mode.getHands()).toBe(0);
     });
 
     it('round-trips walk-shaped property values', () => {

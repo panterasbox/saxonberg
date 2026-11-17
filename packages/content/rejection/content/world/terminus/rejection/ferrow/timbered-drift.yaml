@@ -23,7 +23,10 @@ data:
       destination: /world/terminus/rejection/ferrow/winze-head
   props:
     - /world/terminus/rejection/thing/glowcap-fixture
-    - /trade/mining/thing/timber-set
+    # The sets of new timber stacked along the wall — the hewer's among
+    # them (size and carrying, finalize: a 40 kg set is not carried on a
+    # body that holds a pick and a lamp).
+    - { template: /trade/mining/thing/timber-set, count: 2 }
     # ⭐⭐⭐ **The safety lamp, at the lamp station.** The drift is the last
     # room before the deep headings, which is exactly where a lamp house
     # belongs — historically you drew your lamp on the way in and gave it

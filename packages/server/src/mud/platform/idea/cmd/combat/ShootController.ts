@@ -36,6 +36,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { BiomeApi } from '../../../../api/biome';
 import { MixinApi } from '../../../../api/mixin';
+import { PerceptionApi } from '../../../../api/perception';
 import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { ContainmentApi } from '../../../../api/containment';
@@ -229,7 +230,9 @@ export default class ShootController extends CommandController<ShootModel> {
   /** A stack of the launcher's ammunition, somewhere on the shooter. */
   private findAmmo(giver: Stuff, templatePath: string): Stuff | null {
     if (!templatePath || !MixinApi.isContainer(giver)) return null;
-    for (const item of giver.getContents()) {
+    // ⭐ Where it sits (D-W10-1): arrows in the quiver on your belt are the
+    // QUIVER's contents (W9), and to hand; a shut pouch or a pack is not.
+    for (const item of PerceptionApi.reachableAmong(giver, PerceptionApi.reach(giver, { pools: ['inventory'] }).map((r) => r.stuff))) {
       const stuff = item as unknown as Stuff;
       if (stuff.getTemplatePath() === templatePath) return stuff;
     }

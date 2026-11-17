@@ -25,7 +25,7 @@ persisted state (the row is the thing), while a `Stuff` is a live
 world entity *hydrated from* a Document (data in, entity out) — a Stuff
 is never itself a row. (This supersedes the former `Persistable extends
 Idea` design, where every persisted record was a full Stuff; see the
-[persistence-architecture slate](../slates/builds/persistence-architecture-slate.md)
+[persistence-architecture slate](../slates/tech-debt/persistence-architecture-slate.md)
 for the rationale. The deferred tail — un-Stuffing marshallers/hooks —
 is *not* part of that change; they remain Idea-rooted Stuff for HMR.)
 
@@ -621,7 +621,7 @@ final state written captures it explicitly before `StuffApi.destruct`.
 
 > ⭐⭐⭐ **The three tiers, and what *"transient space"* means**
 > (recorded 2026-10-09 →
-> [assembly-slate § 11](../slates/tails/assembly-slate.md)). `scope` being
+> [assembly-slate § 11](../slates/trades/assembly-slate.md)). `scope` being
 > a **singleton** `templatePath` is why `captureHostOf` captures **the
 > nearest persistable ancestor** rather than the thing: five hundred casks
 > sharing one row were never going to have records here.
@@ -691,7 +691,13 @@ shapes:
   `{ ref, key?, placement }` — not absorbed, because it persists itself
   (see *Keyed nested hosts* below). Surface-resting items record the index
   of the `Placing` sibling they are placed on, plus the member's name
-  (`ContentPlacement`). Three occupants are **skipped**
+  (`ContentPlacement`). ⭐ A thing in a named region of the container
+  ITSELF (a coat's pocketed key — size and carrying W9) records the
+  region's name with no host field (`{ placement: 'left pocket' }`), and
+  `restoreItem` moves it straight into that region; a stale record (the
+  row lost the pocket) is logged and the host's arrival decides. An owned
+  key in a pocket rides its owner's estate, `placedOn` naming the coat
+  (by index, or chattel id when the coat is owned too). Three occupants are **skipped**
   (one filter, one ordering shared with the Slotted slice): a live avatar
   (`HasInteractive` — persists itself), a player-stamped good
   (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a

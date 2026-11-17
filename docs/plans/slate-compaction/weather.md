@@ -1,6 +1,6 @@
 # Slate-compaction ledger — weather
 
-Batch key: **weather**. Slate: `docs/slates/tails/weather-slate.md`.
+Batch key: **weather**. Slate: `docs/slates/engine/weather-slate.md`.
 Writable subsystem doc: `docs/subsystems/weather.md` only. Any
 graduation belonging elsewhere (biome.md, watershed.md, thermal.md,
 soil.md, time.md, electricity.md, magic.md) is recorded in *Handoff*
@@ -59,7 +59,7 @@ below, never written into that doc.
   unauthored), which the doc doesn't need to state since it's a content
   gap, not a code gap.
 
-## `docs/slates/tails/weather-slate.md` — 502 → 189 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/weather-slate.md` — 502 → 189 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Two historical status blocks ("Header corrected 2026-07-31", "Status:

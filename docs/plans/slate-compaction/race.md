@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch `race`
 
-Slates: `docs/slates/tails/species-expansion-slate.md`,
-`docs/slates/builds/species-slate.md`. Write-list: `docs/subsystems/race.md`
+Slates: `docs/slates/world/species-expansion-slate.md`,
+`docs/slates/world/species-slate.md`. Write-list: `docs/subsystems/race.md`
 only.
 
 Prior batches already graduated into `race.md` (checked before starting,
@@ -13,7 +13,7 @@ touched here except by reference.
 
 ---
 
-## `docs/slates/tails/species-expansion-slate.md`  — 297 → 258 lines · Status PARTIAL → PARTIAL
+## `docs/slates/world/species-expansion-slate.md`  — 297 → 258 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - The `> First pass BUILT (2026-06-29…)` paragraph (26–37, 12 lines) —
@@ -104,7 +104,7 @@ touched here except by reference.
 
 ---
 
-## `docs/slates/builds/species-slate.md`  — 260 → 245 lines · Status PARTIAL → PARTIAL
+## `docs/slates/world/species-slate.md`  — 260 → 245 lines · Status PARTIAL → PARTIAL
 
 Verified against code (not the slate's own claims) via a full sweep for
 each candidate difference: scent-based recognition/disguise-defeat

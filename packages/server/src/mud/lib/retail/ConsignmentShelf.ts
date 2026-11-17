@@ -41,7 +41,7 @@ import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
 
 /** Why `consignBy` refused — each a gate of the shelf's, in order. */
 export type ConsignRefusal =
-  | ActRefusal<"unsplittable" | "not-owner" | "no-account" | "turned">
+  | ActRefusal<"worn" | "unsplittable" | "not-owner" | "no-account" | "turned">
   | ActRefusal<"over-cap", { cap: number }>;
 
 /** What `consignBy` did: the lot listed, what stayed in hand, the basis. */
@@ -232,6 +232,11 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       item: Stuff & Containable,
       askMinor: number,
     ): Promise<ConsignAnswer> {
+      // ⭐ What you WEAR does not go up: you hand the shop a good you carry
+      // (a hand, a pocket, a belt, a bag) — the shirt on your back you take
+      // off first. Since the flip `inventory` is everything on you, and a
+      // consignor's whole outfit was one `shelf consign` from the counter.
+      if (MixinApi.isAttired(actor) && actor.wears(item)) return { ok: false, reason: "worn" };
       // ⭐ A stack goes up ONE UNIT at a time (a stack cannot bear title, a
       // lot of one can) — the split comes LAST, after every gate.
       const stack = MixinApi.isStackable(item) ? item : null;
@@ -329,6 +334,11 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       // seed row and its house operates the minted counter, not the seed.
       const venuePath = (this as unknown as Stuff).getIdentityPath();
       let paid: { tail: string; receipt: SettlementReceipt } | null;
+      // ⭐ The money, then the good (owner, 2026-11-15): a sale that does not
+      // settle moves nothing; a settled one is handed over — `move` routes
+      // it onto the buyer, or sets it down at their feet with the line.
+      // The ask is read while the good is still on the shelf (a terms price
+      // reads the stock on hand).
       const termsAsk = listing.basis === "terms" ? this.termsAskFor(item, listing) : null;
       if (termsAsk !== null) {
         // ⭐ Rung 0 — supplier terms (economic bootstrap D11): the buyer pays
@@ -367,9 +377,11 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       if (MixinApi.isChattel(item)) {
         await item.transferChattel(buyer); // stamp → buyer (or their house)
       }
-      this.handOver(item, giver); // custody → buyer
       if (MixinApi.isChattel(item)) this.removeListing(item.getChattelId());
-      return this.bought(giver, item, paid.tail, buyer);
+      // Named before the move: a piece that meets its like merges into it.
+      const named = item.getPresentation();
+      this.handOver(item, giver);
+      return this.bought(giver, item, paid.tail, buyer, named);
     }
 
     /**
@@ -415,11 +427,14 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       }
     }
 
-    /** Custody → the buyer: into their hands. */
+    /**
+     * Hand a sold good over (owner, 2026-11-15): `move` routes it onto the
+     * buyer — a hand, a pocket, a bag — or, with nowhere for it, sets it
+     * down at their feet with the routing's line. Honest; nothing lost. A
+     * buyer that holds nothing (no body) leaves it where it is, theirs.
+     */
     protected handOver(item: Stuff & Containable, giver: Stuff): void {
-      if (MixinApi.isContainer(giver)) {
-        ContainmentApi.move(item, giver); // narrowed to Stuff & Container
-      }
+      if (MixinApi.isContainer(giver)) ContainmentApi.move(item, giver);
     }
 
     /** What the buyer and the room are told of a sale. */

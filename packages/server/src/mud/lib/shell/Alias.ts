@@ -197,7 +197,7 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
   if (MixinApi.isCommandGiver(host as Stuff)) {
     for (const { command } of (host as Stuff & CommandGiver).getAffordances()) {
       const verb = command.getPrimaryVerb();
-      for (const { name, description } of command.defaultAliases) {
+      for (const { name, description, body } of command.defaultAliases) {
         const prev = seen.get(name);
         if (prev === verb) continue;
         if (prev) {
@@ -207,7 +207,9 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
           );
         }
         seen.set(name, verb);
-        const entry: DefaultAliasEntry = { name, body: verb, view: verb };
+        // ⭐ A view may state the whole line (`i` → `query --ledger me:i`);
+        // absent, the body is the verb.
+        const entry: DefaultAliasEntry = { name, body: body ?? verb, view: verb };
         if (description !== undefined) entry.description = description;
         out.push(entry);
       }

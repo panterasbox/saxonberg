@@ -6,7 +6,7 @@
  * location teal, agent blue, thing brass, idea violet — `tokens.kind`,
  * so every theme carries them. The ICONS come from the one icon map
  * (`ui/icons`, keys `kind.<branch>`) — Lucide placeholders until the four
- * branch marks are drawn (`docs/slates/builds/iconography-slate.md`).
+ * branch marks are drawn (`docs/slates/client/iconography-slate.md`).
  */
 
 import React from "react";

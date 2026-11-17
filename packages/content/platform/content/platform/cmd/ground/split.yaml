@@ -41,6 +41,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i:[mixin.ToolMixin]"
+    default: "person:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

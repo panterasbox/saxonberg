@@ -1,7 +1,7 @@
 # Slate-compaction pass — physiology, SECOND pass (the MR !269 delta)
 
 Batch key `physiology-2`. One slate:
-`docs/slates/builds/physiology-slate.md` (1,966 lines at start).
+`docs/slates/engine/physiology-slate.md` (1,966 lines at start).
 Procedure: `.claude/skills/compact-slate/SKILL.md`. Write list:
 `vitals.md` · `harm.md`.
 
@@ -172,7 +172,7 @@ with the canonical status block above it as the accurate read.
 
 ---
 
-## `docs/slates/builds/physiology-slate.md` — 1,966 → 1,971 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/physiology-slate.md` — 1,966 → 1,971 lines · Status PARTIAL → PARTIAL
 
 ⚠ **The file grew by 5 lines and that is the honest outcome.** The merge
 made exactly one section stale; 21 lines of content left, 26 lines of

@@ -46,7 +46,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/world-scan-perf-slate.md — 741 → 222 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/world-scan-perf-slate.md — 741 → 222 · Status PARTIAL → PARTIAL
 
 Everything except D5 shipped in MR !252 and is documented across
 `mql.md` / `antipatterns.md` / `lint-family.md` / `call-security.md` /
@@ -115,7 +115,7 @@ navigable; every stub names the doc section.
 
 ---
 
-## docs/slates/tails/scope-modality-slate.md — 196 → 176 · Status PARTIAL → PARTIAL
+## docs/slates/engine/scope-modality-slate.md — 196 → 176 · Status PARTIAL → PARTIAL
 
 Almost entirely UNBUILT. Grep: no `modality` key in any view under
 `packages/content/*/content/*/cmd/**`; the `requires{Hearing,Touch,Taste,

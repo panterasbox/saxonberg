@@ -10,7 +10,7 @@
  * row per authoring act, nothing ever overwritten, and `authorOf(path)`
  * **derives** the answer (v1 = the earliest row's author = the original
  * author). This is the first concrete brick of the provenance substrate
- * (see docs/slates/builds/provenance-slate.md); the contributor-set / team
+ * (see docs/slates/platform/provenance-slate.md); the contributor-set / team
  * split is the deferred enrichment behind the same derivation seam.
  *
  * `author` is the authenticated author's durable `templatePath` — but it is

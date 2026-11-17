@@ -218,6 +218,34 @@ describe("chattel possession core", () => {
     expect(events[1]?.to).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
   });
 
+  /**
+   * ⭐ The size-and-carrying drive (run 12, step 21's second restart): the
+   * steading mule's restore re-minted its tack INTO it, and "the hands it
+   * lands in" titled the saddle to the mule as a player. A beast keeps no
+   * estate, so its own capture skipped the good as somebody else's, and
+   * nobody's record carried it — the second restart lost the tack. A fresh
+   * good is titled to the body it lands in only when that body keeps an
+   * estate (a person whose own record carries their goods).
+   */
+  it("⭐ a fresh good landing on an agent with no estate stays untitled; on an estate holder it is theirs", async () => {
+    const settle = async (): Promise<void> => {
+      for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 0));
+    };
+    const beast = makeStuffAtPath(() => new Vault(), "/test/agent/mule");
+    vi.spyOn(beast, "isAgent").mockReturnValue(true);
+    const saddle = makeTorch();
+    ContainmentApi.move(saddle as unknown as Stuff & Containable, beast as unknown as Stuff & Container);
+    await settle();
+    expect(saddle.getChattelId(), "the mule is titled nothing").toBe("");
+
+    const person = makeStuffAtPath(() => new EstateHolder(), "/platform/agent/Avatar/carol");
+    vi.spyOn(person, "isAgent").mockReturnValue(true);
+    const cup = makeTorch();
+    ContainmentApi.move(cup as unknown as Stuff & Containable, person as unknown as Stuff & Container);
+    await settle();
+    expect(await cup.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/carol" });
+  });
+
   it("ownership is unchanged by a container move (custody ≠ ownership)", async () => {
     const torch = makeTorch();
     const alice = makeOwner("alice");

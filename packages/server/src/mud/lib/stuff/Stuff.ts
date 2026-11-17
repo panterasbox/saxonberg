@@ -52,6 +52,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
+import type Place from './Place';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -1335,9 +1336,12 @@ export abstract class Stuff {
   /**
    * Am I a place? — true on the `Location` branch and nowhere else.
    *
+   * A type predicate (finalize A8): a caller that asked reads `Place`'s
+   * surface without a cast.
+   *
    * @hook Overridden once, by `Location`. Nothing else should.
    */
-  public isPlace(): boolean {
+  public isPlace(): this is Place {
     return false;
   }
 

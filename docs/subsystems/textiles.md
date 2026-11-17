@@ -75,7 +75,10 @@ the model does not believe. See
 ## The object
 
 `platform/thing/equipment/Garment` =
-`Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Good))))))`.
+`Placing(Container(Tearable(Labelled(Soilable(Wearable(Slottable(Assembled(Crafted(Durable(Constructed(Dyed(Good))))))))))))`
+— ⭐ a `Container` with no inside of its own (`hasInterior() === false`):
+its insides are the pockets its row names, and what is in a pocket is the
+garment's contents (size and carrying W9; see [carrying.md](./carrying.md)).
 
 | composed | buys |
 |---|---|
@@ -458,7 +461,7 @@ is just a worse card.
   cellulose fibre … no new lesson"*, which was wrong for silk: silk is a
   **protein** fibre (it takes alum directly, as `trade-dyeing` already
   reads) and the richest lesson in the vertical. Silk →
-  [silk-slate](../slates/tails/silk-slate.md); cotton is its own slate,
+  [silk-slate](../slates/trades/silk-slate.md); cotton is its own slate,
   later.
 - **Synthetics, mills, mass production** — trades ship medieval and
   advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`

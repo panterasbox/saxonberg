@@ -183,6 +183,15 @@ export interface Tangible {
    * impression it was cut to.
    */
   leaveImpression(nowS: number): ImpressionData | null;
+
+  /**
+   * The volume of the MATTER itself — mass over the bulk material's
+   * density: a hollow thing's walls, never its room. `null` with no mass
+   * or no material. The water a thing pushes aside reads this, and a
+   * thing's size (`Shaped.getVolumeM3`, size and carrying D2) starts
+   * from it.
+   */
+  getMatterVolumeM3(): number | null;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -327,6 +336,16 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * marshaller.
      */
     public _detailMaterialPaths: Record<string, string> = {};
+
+    public getMatterVolumeM3(): number | null {
+      // Read through `getMass`, so a host whose mass derives (a rope, a coin
+      // stack, a body) answers for itself.
+      const kg = this.getMass().rawValue();
+      if (!(kg > 0)) return null;
+      const rho = this.getMaterial()?.getDensity().rawValue() ?? 0;
+      if (!(rho > 0)) return null;
+      return kg / rho;
+    }
 
     /**
      * ⭐ **Is this made of something anything would eat?**

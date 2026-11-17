@@ -12,18 +12,18 @@ link.
 
 | file | lines | headings |
 |---|---|---|
-| `docs/slates/tails/senses-slate.md` | 766 | 35 |
-| `docs/slates/tails/distance-perception-slate.md` | 96 | 3 |
-| `docs/slates/tails/scope-modality-slate.md` | 176 | 9 |
-| `docs/slates/tails/language-slate.md` | 464 | 32 |
-| `docs/slates/tails/spoiler-slate.md` | 221 | 12 |
+| `docs/slates/engine/senses-slate.md` | 766 | 35 |
+| `docs/slates/engine/distance-perception-slate.md` | 96 | 3 |
+| `docs/slates/engine/scope-modality-slate.md` | 176 | 9 |
+| `docs/slates/engine/language-slate.md` | 464 | 32 |
+| `docs/slates/platform/spoiler-slate.md` | 221 | 12 |
 
 Shipped references consulted: `docs/subsystems/senses.md` (§ Single-sense
 verbs — *`--peek` not yet supported*; § What's NOT in this build — the
 Wave-2+ deferred list), `perception.md`, `perceiver.md`, `concealment.md`,
 `ranged.md` (§ Cross-room fire — *sight may cross a vista; combat may not*),
 `comms.md` § Deferred (*Language gating … routes to the language slate*),
-`wiki.md`; `docs/slates/builds/legibility-slate.md` (grepped for peek /
+`wiki.md`; `docs/slates/tech-debt/legibility-slate.md` (grepped for peek /
 vista / danger / transparent / container / modality — none of this
 cluster's open items are in it beyond the `sense`→`look` cut the senses
 slate already records); `docs/plans/slate-compaction/cluster-chat.md`
@@ -69,7 +69,7 @@ item still has its body section) · Size: a build (unchanged).
 
 ---
 
-## `docs/slates/tails/distance-perception-slate.md` — 96 → 96 · UNBUILT → UNBUILT (unchanged)
+## `docs/slates/engine/distance-perception-slate.md` — 96 → 96 · UNBUILT → UNBUILT (unchanged)
 
 Verdict: **KEPT whole.** Nothing in it is duplicated in the canonical.
 The canonical's only touch-point is the `--peek` mention (now
@@ -100,7 +100,7 @@ reach or danger-sense design.
 
 ---
 
-## `docs/slates/tails/scope-modality-slate.md` — 176 → 176 · PARTIAL → PARTIAL (unchanged)
+## `docs/slates/engine/scope-modality-slate.md` — 176 → 176 · PARTIAL → PARTIAL (unchanged)
 
 Verdict: **KEPT whole; untouched.** Not a duplicate of anything in the
 canonical — it is an MQL / command-routing design (a verb's target
@@ -129,7 +129,7 @@ matches its body.
 
 ---
 
-## `docs/slates/tails/language-slate.md` — 464 → 464 · PARTIAL → PARTIAL (unchanged)
+## `docs/slates/engine/language-slate.md` — 464 → 464 · PARTIAL → PARTIAL (unchanged)
 
 Verdict: **KEPT whole; untouched.** Language is its own subject. The one
 genuinely shared open item — *the verbal channel's language gate* — was
@@ -161,7 +161,7 @@ only).
 
 ---
 
-## `docs/slates/tails/spoiler-slate.md` — 221 → 221 · PARTIAL → PARTIAL (unchanged)
+## `docs/slates/platform/spoiler-slate.md` — 221 → 221 · PARTIAL → PARTIAL (unchanged)
 
 Verdict: **KEPT whole; untouched.** Its own subject (secret tags,
 reveal conditions, server-side fact-gating, the choice-guard outside the

@@ -317,7 +317,7 @@ tanning leg, so the drive had never reached this far in a working state.
 ⭐⭐ **And the two drive files collide in one world.** Both draft from the
 same persisted flock into the same yard, and the wire suite boots one
 world for every file. Recorded with its three fixes in
-[butchery-slate](../slates/tails/butchery-slate.md); it cannot be patched
+[butchery-slate](../slates/trades/butchery-slate.md); it cannot be patched
 probe by probe, because with two ewes in the yard every noun the files
 share is ambiguous.
 

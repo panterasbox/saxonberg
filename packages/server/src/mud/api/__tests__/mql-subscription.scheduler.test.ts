@@ -57,7 +57,7 @@ describe('MqlSubscriptionApi — dirty scheduler', () => {
       fields: 'ref',
     });
 
-    const spy = vi.spyOn(MqlApi, 'resolveOne');
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
     // Fire three name-change events for this target in the same tick.
     const avatar = holder as unknown as { setName: (s: string) => void };
     avatar.setName('Bob');

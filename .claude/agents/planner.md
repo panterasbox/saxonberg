@@ -46,6 +46,15 @@ Concretely, four things nobody else in the loop owns:
    review they cost a rewrite. The slate's **reuse ledger** is the input
    to P1: every new mixin, Api, class, hook, registry and document kind
    cites its row, or says *genuinely new* and what was searched.
+   ⛔ **P9–P14 are checked per item, not per plan.** For EVERY entry
+   on the new-substrate list (class, mixin, Api static, view or schema
+   field, name, document kind), write one line answering P9 (predictable
+   from the def and help), P10 (metadata is a Document), P11 (no caller
+   branching on the destination), P12 (no synonym for an existing call),
+   P13 (on the mixin whose header sentence it fits) and P14 (nothing moves,
+   retargets or decides invisibly). An item that fails one does not go in
+   the plan. Size and carrying shipped six such items in one review,
+   2026-11-16; each broke a ruling the owner had already made.
 
 ## ⭐⭐ Host placement — the rework class
 

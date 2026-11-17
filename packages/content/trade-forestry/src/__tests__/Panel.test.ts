@@ -185,8 +185,7 @@ function seatSix(panel: Panel): Plant[] {
   const stools: Plant[] = [];
   for (let i = 0; i < 6; i += 1) {
     const s = makeStuffAtPath(newStool, STOOL_PATH);
-    ContainmentApi.move(s, panel);
-    panel.occupy(s, PLANT_SLOT);
+    panel.seatInSlot(s, PLANT_SLOT);
     stools.push(s);
   }
   return stools;
@@ -333,8 +332,7 @@ describe('Panel — the planting deed', () => {
   it('⭐ a standard arriving in a Wood’s panel: the ROOM records the planting, the planter’s chronicle takes one deed keyed on the tree', () => {
     const { wood, panel } = woodWithPanel();
     const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
-    ContainmentApi.move(tree, panel);
-    panel.occupy(tree, PLANT_SLOT);
+    panel.seatInSlot(tree, PLANT_SLOT);
 
     const plantings = wood.getPlantings();
     expect(plantings).toHaveLength(1);
@@ -355,8 +353,7 @@ describe('Panel — the planting deed', () => {
   it('a RE-SEAT inside somebody’s frame does not plant it twice (idempotent on the key)', () => {
     const { wood, panel } = woodWithPanel();
     const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
-    ContainmentApi.move(tree, panel);
-    panel.occupy(tree, PLANT_SLOT);
+    panel.seatInSlot(tree, PLANT_SLOT);
     panel.vacate(PLANT_SLOT, tree);
     panel.occupy(tree, PLANT_SLOT);
     expect(wood.getPlantings()).toHaveLength(1);
@@ -365,8 +362,7 @@ describe('Panel — the planting deed', () => {
   it('a stool arriving records nothing', () => {
     const { wood, panel } = woodWithPanel();
     const stool = makeStuffAtPath(() => newStandard({ stool: true }), STOOL_PATH);
-    ContainmentApi.move(stool, panel);
-    panel.occupy(stool, PLANT_SLOT);
+    panel.seatInSlot(stool, PLANT_SLOT);
     expect(wood.getPlantings()).toHaveLength(0);
     expect(deeds).toHaveLength(0);
   });
@@ -375,8 +371,7 @@ describe('Panel — the planting deed', () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
     const { wood, panel } = woodWithPanel();
     const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
-    ContainmentApi.move(tree, panel);
-    panel.occupy(tree, PLANT_SLOT);
+    panel.seatInSlot(tree, PLANT_SLOT);
     expect(wood.getPlantings()).toHaveLength(0);
     expect(deeds).toHaveLength(0);
   });
@@ -386,8 +381,7 @@ describe('Panel — the planting deed', () => {
     const panel = makeStuffAtPath(newPanel, PANEL_PATH);
     ContainmentApi.move(panel, yard as never);
     const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
-    ContainmentApi.move(tree, panel);
-    panel.occupy(tree, PLANT_SLOT);
+    panel.seatInSlot(tree, PLANT_SLOT);
     expect(deeds).toHaveLength(1);
     expect(String(deeds[0]!.fields.vars && (deeds[0]!.fields.vars as { where: string }).where)).toMatch(/panel/);
   });

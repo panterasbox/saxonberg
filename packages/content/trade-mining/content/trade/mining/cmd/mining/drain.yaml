@@ -41,5 +41,7 @@ args:
     type: object
     required: false
     scope: ["reachable"]
-    default: "me:i:[mixin.BulkableMixin]"
+    default: "person:[mixin.BulkableMixin]"
     requires: [BulkableMixin]
+    validators:
+      - /lib/command/validators/canReach

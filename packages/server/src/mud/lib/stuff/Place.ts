@@ -229,7 +229,7 @@ export default class Place extends PlaceBase {
     // An exit whose far side is whatever lies alongside answers for itself —
     // never by its authored berth.
     if (alongside !== undefined) return alongside;
-    if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
+    if (far !== null && far.isPlace()) return far.structureNow();
     // ⚠ A way to a KEYED room not standing (a column's water band, a ship
     // of a kind's deck) names no structure by its path — a keyed room's
     // structure is its warren's, and only the room can say which (harbors
@@ -285,7 +285,7 @@ export default class Place extends PlaceBase {
    * Yes. See {@link Stuff.isAgent} for why the four branch predicates
    * are methods on `Stuff` rather than `instanceof` checks.
    */
-  public override isPlace(): boolean {
+  public override isPlace(): this is Place {
     return true;
   }
 

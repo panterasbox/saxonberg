@@ -45,7 +45,7 @@ with quoted globs after zsh ate the first pass):
 
 ---
 
-## docs/slates/builds/npc-behavior-slate.md — 688 → 439 · Status PARTIAL → PARTIAL
+## docs/slates/engine/npc-behavior-slate.md — 688 → 439 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block *"model set — declarative behavior over path-resolved brains"* (18–25, 8) — history; the canonical block stays
@@ -93,7 +93,7 @@ with quoted globs after zsh ate the first pass):
 
 ---
 
-## docs/slates/builds/narration-slate.md — 498 → 496 · Status PARTIAL → PARTIAL
+## docs/slates/engine/narration-slate.md — 498 → 496 · Status PARTIAL → PARTIAL
 
 Nothing in this slate has shipped: the finding it opens with was re-verified
 (zero authored `dispositionValence`, zero production writers, `traits`/`score`
@@ -126,7 +126,7 @@ UNBUILT design or a recorded rejection.
 
 ---
 
-## docs/slates/tails/npc-dialogue-slate.md — 372 → 239 · Status PARTIAL → PARTIAL
+## docs/slates/engine/npc-dialogue-slate.md — 372 → 239 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block *"Wave 1 shipped (2026-06)"* (14–25, 12) — history; the canonical block carries the same pointer
@@ -164,7 +164,7 @@ UNBUILT design or a recorded rejection.
 
 ---
 
-## docs/slates/builds/alignment-slate.md — 351 → 343 · Status UNBUILT → UNBUILT
+## docs/slates/society/alignment-slate.md — 351 → 343 · Status UNBUILT → UNBUILT
 
 The model is unbuilt end to end (no `DevotionMixin`, no `Faction`, no
 alignment derivation; `chronicle.md:330` still lists it as deferred). Cuts
@@ -196,7 +196,7 @@ are the second status block and one deferred item that shipped.
 
 ---
 
-## docs/slates/tails/trait-slate.md — 346 → 341 · Status PARTIAL → PARTIAL
+## docs/slates/engine/trait-slate.md — 346 → 341 · Status PARTIAL → PARTIAL
 
 Nothing this slate proposes has shipped: no `equilibrium`/`expressed` in
 `lib/trait/`, no narrator, no valence-scale vocabulary, no disposition field
@@ -229,7 +229,7 @@ documents the unresisted reversal).
 
 ---
 
-## docs/slates/builds/psychology-slate.md — 290 → 290 · Status PARTIAL → PARTIAL
+## docs/slates/society/psychology-slate.md — 290 → 290 · Status PARTIAL → PARTIAL
 
 ⚠ Per the batch brief this slate is kept whole: nothing in it has shipped
 (no disclosure grant, no practitioner file, no psychology Discipline; the

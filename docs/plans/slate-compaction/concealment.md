@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch `concealment`
 
-Agent scope: `docs/slates/tails/search-slate.md`,
-`docs/slates/tails/concealment-detection-slate.md`. Insert-only into
+Agent scope: `docs/slates/engine/search-slate.md`,
+`docs/slates/engine/concealment-detection-slate.md`. Insert-only into
 `docs/subsystems/concealment.md` and `docs/subsystems/stealth.md`.
 Everything else is cut-only per the `compact-slate` skill.
 
@@ -41,7 +41,7 @@ Everything else is cut-only per the `compact-slate` skill.
 
 ---
 
-## docs/slates/tails/search-slate.md — 286 → 233 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/search-slate.md — 286 → 233 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## ⭐ What already ships — audited 2026-09-02` (54 lines) — code:
@@ -74,7 +74,7 @@ Everything else is cut-only per the `compact-slate` skill.
 
 ---
 
-## docs/slates/tails/concealment-detection-slate.md — 236 → 168 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/concealment-detection-slate.md — 236 → 168 lines · Status PARTIAL → PARTIAL
 
 ### Cut (duplicate status block — history, not the canonical claim)
 - The second `> **Status: MOSTLY SHIPPED (MR!142 + MR!145).**` narrative

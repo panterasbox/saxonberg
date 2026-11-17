@@ -101,7 +101,7 @@ follow-on builds:
 > ⭐⭐ **Decomposed 2026-11 (the material decomposition build).** A material has exactly the
 > properties it has. The base class carries only what every material has; everything else is a
 > **capability** a **kind** composes. History and the census: § History below;
-> [material-decomposition-slate](../slates/builds/material-decomposition-slate.md) §§ 7¾–7⅞.
+> [material-decomposition-slate](../slates/tech-debt/material-decomposition-slate.md) §§ 7¾–7⅞.
 
 `Material` (`lib/material/Material.ts`) is a singleton-by-templatePath `Idea` holding only what
 EVERY material has: `name`, `appearance`, `tags`, `density` (`kg/m³`), `thermalConductivity`
@@ -1040,7 +1040,7 @@ subsequent dispatches reuse the cached clones. See
 
 v1 tags `requiresAnimate` on self-action verbs:
 
-- `say`, `dm`, `go`, `get`, `drop`, `open`, `close`, `inventory`
+- `say`, `dm`, `go`, `get`, `drop`, `open`, `close`, `query`
 
 It does **not** tag passive/meta verbs:
 
@@ -1144,7 +1144,7 @@ than a loin in a fight. See [butchery.md](./butchery.md).
   `edibility` flag (composing `Edibility` is the fact), the platform `Material` twin and the four
   combination classes, and fixed the defects the census found (lye and saltpeter "edible", two
   `iron`s, metals holding water, `chemistry:` never applied). MR !555; the census and the tree's
-  first draft are [material-decomposition-slate](../slates/builds/material-decomposition-slate.md)
+  first draft are [material-decomposition-slate](../slates/tech-debt/material-decomposition-slate.md)
   §§ 7¾–7⅞, and where the build departed from that draft is below.
 
 ### The decisions the build made (!555)

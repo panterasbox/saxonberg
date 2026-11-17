@@ -1,10 +1,14 @@
 // CombatLogic — the hot-reloadable logic singleton behind CombatApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import type { Carrying, ReadyRefusal } from '../../../lib/slot/Carrying';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { HandActDestination } from "../../../lib/combat/Combatant";
 import { Creature } from "../../../lib/creature/Creature";
 import type { Engaged } from "../../../lib/activity/Engaged";
 import { MixinApi } from "../../../api/mixin";
@@ -445,11 +449,23 @@ export class CombatLogic extends ApiLogic {
     actor: Stuff,
     target: Stuff,
   ): { ok: boolean; reason?: string } {
-    return beginSwitchImpl(actor, target, false);
+    return beginSwitchImpl(actor, target);
+  }
+
+  /** See {@link Combatant.beginHandAct} (size and carrying D-W10-5). */
+  @CallSecurity(CombatantCallers)
+  public beginHandAct(actor: Stuff, seconds: number, land: (abandoned?: boolean) => void): { ok: boolean; reason?: string } {
+    return beginGuardedAct(actor, seconds, land);
+  }
+
+  /** See {@link Combatant.handActSeconds} (size and carrying D-W10-5). */
+  @CallSecurity(CombatantCallers)
+  public handActSeconds(actor: Stuff, item: Stuff, to?: HandActDestination): number {
+    return handActSecondsFor(actor, item, to);
   }
 
   @CallSecurity(CombatantCallers)
-  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
+  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {
     return drawSidearmImpl(actor);
   }
 
@@ -4221,36 +4237,27 @@ function isWeaponItem(occ: Stuff): boolean {
   );
 }
 
-/** The grip slot a weapon claims on the actor's body plan (its first hand). */
-function gripSlotFor(actor: Stuff, target: Stuff): string | null {
-  if (!MixinApi.isWieldable(target)) return null;
-  const planPath = SpeciesApi.tryGetBodyPlanPath(actor);
-  if (!planPath) return null;
-  return target.getSlotClaim(planPath)[0] ?? null;
-}
-
 /**
- * Perform the actual grip swap at switch completion: clear the target's
- * current grip, pull it out of whatever slot it sits in (a sidearm sheath),
- * and occupy it in the grip. Defensive — a swap that can't complete (target
- * gone, no grip) just leaves the combatant as they were.
+ * Land a switch: the body brings the target to hand its own way
+ * (`Carrying.bringToHand` — a free hand, out of its holder; a body whose
+ * plan names no hands grips it in the slot the weapon claims). One call
+ * (finalize A2, P11): only a carrier begins a switch (`ready`, `fight
+ * draw`), so a non-carrier never reaches here with one.
  */
 function performSwap(actor: Stuff, target: Stuff | null): void {
-  if (!MixinApi.isSlotted(actor) || !target) return;
-  const grip = gripSlotFor(actor, target);
-  if (!grip) return;
-  for (const occ of [...actor.getOccupants(grip)]) {
-    if (MixinApi.isSlottable(occ)) actor.vacate(grip, occ);
+  if (!target) return;
+  if (!MixinApi.isCarrying(actor)) {
+    throw new Error(`CombatLogic.performSwap: ${actor.stuffId} cannot carry, and only a carrier begins a switch`);
   }
-  for (const [slot, occs] of actor.getAllOccupants()) {
-    if (MixinApi.isSlottable(target) && occs.has(target)) {
-      actor.vacate(slot, target);
-    }
-  }
-  try {
-    if (MixinApi.isSlottable(target)) actor.occupy(target, grip);
-  } catch {
-    /* a swap that violates slot rules just no-ops; the state is consistent */
+  const out = actor.bringToHand(target);
+  // ⭐ The switch lands — combat's own beat to narrate (size and carrying
+  // W8: the body reports facts; the readying's sentence is a verb's).
+  if (out.ok && out.moved && MixinApi.isSensor(actor)) {
+    MessageApi.scene(actor)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You have ${Mml.thing(target)} in hand.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} has ${Mml.thing(target)} in hand.`)
+      .send();
   }
 }
 
@@ -4280,6 +4287,14 @@ function reDeriveTempo(state: CombatantState): void {
 function completeSwitch(state: CombatantState): void {
   const sw = state.weaponSwitch;
   if (!sw) return;
+  const land = sw.getLanding();
+  // ⭐ A hand act's beat lands its act (D-W10-5); a switch swaps the grip.
+  if (land !== undefined) {
+    state.weaponSwitch = null;
+    land();
+    reDeriveTempo(state);
+    return;
+  }
   performSwap(state.combatant, sw.getTarget());
   state.flags.remove("disarmed");
   state.weaponSwitch = null;
@@ -4338,6 +4353,17 @@ function findBackupWeapon(actor: Stuff): Stuff | null {
       if (isWeaponItem(occ)) return occ as Stuff;
     }
   }
+  // ⭐ After the flip nothing is loose on a body (size and carrying D11):
+  // a sidearm is in a sheath or scabbard hung from the belt, ready to hand.
+  // `fight draw` with a sword in its scabbard answered "no sidearm" (the
+  // drive, step 7). Any weapon READY on the carrier — not packed, not the
+  // one in hand — is the backup.
+  if (MixinApi.isCarrying(actor) && MixinApi.isContainer(actor)) {
+    for (const item of actor.getCarriedContents()) {
+      if ((item as Stuff) === wielded || !isWeaponItem(item)) continue;
+      if (actor.tierOf(item as Stuff) === 'ready') return item as Stuff;
+    }
+  }
   if (MixinApi.isContainer(actor)) {
     for (const item of actor.getContents()) {
       if ((item as Stuff) !== wielded && isWeaponItem(item)) return item as Stuff;
@@ -4349,7 +4375,28 @@ function findBackupWeapon(actor: Stuff): Stuff | null {
 function beginSwitchImpl(
   actor: Stuff,
   target: Stuff,
-  fast: boolean,
+): { ok: boolean; reason?: string } {
+  // ⭐ A carrier's switch is priced by its holders (size and carrying D16;
+  // W8 — combat prices its own switch); a body with no hands pays the
+  // shipped switch dial.
+  const seconds = MixinApi.isCarrying(actor) && actor.handSlots().length > 0
+    ? switchSecondsFor(actor, target)
+    : dial(AppSettingKeys.combatSwitchSeconds, 6);
+  return beginGuardedAct(actor, seconds, undefined, target);
+}
+
+/**
+ * ⭐ The guarded beat (size and carrying D-W10-5) — `beginSwitchImpl`'s body:
+ * guard down, no instrument, for `seconds`; at the end `land` runs (a hand
+ * act), else the grip swaps to `target`. One beat at a time
+ * (`already-switching`).
+ */
+function beginGuardedAct(
+  actor: Stuff,
+  seconds: number,
+  land?: (abandoned?: boolean) => void,
+  target: Stuff | null = null,
+  fast = false,
 ): { ok: boolean; reason?: string } {
   const session = sessionForImpl(actor);
   const state = session?.getState(actor);
@@ -4358,17 +4405,82 @@ function beginSwitchImpl(
   if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
     return { ok: false, reason: "already-switching" };
   }
-  const seconds = fast
-    ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
-    : dial(AppSettingKeys.combatSwitchSeconds, 6);
-  state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast);
+  state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast, land);
   return { ok: true };
 }
 
-function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
+/**
+ * ⭐ The seconds a hand act costs in a fight, by holder (size and carrying
+ * D-W10-5; the `combat.*` dials): `to` undefined — `item` coming to hand
+ * (out of where it sits; off the floor a reach); a holder — `item` going in
+ * (out of where it is unless already in hand, + into: a shaped holder the
+ * draw, anything else a reach); `'unfasten'` — opening or shutting a holder
+ * or chamber; `'take-off'` — a worn pack off (the switch dial). `drop` is
+ * never asked: it is free.
+ */
+function handActSecondsFor(actor: Stuff, item: Stuff, to?: HandActDestination): number {
+  const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
+  const reach = dial(AppSettingKeys.combatReachSeconds, 3);
+  if (to === 'unfasten') return dial(AppSettingKeys.combatUnfastenSeconds, 3);
+  if (to === 'take-off') return dial(AppSettingKeys.combatSwitchSeconds, 6);
+  const held = MixinApi.isCarrying(actor) && actor.tierOf(item) === 'hand';
+  const out = held ? 0 : outOf(actor, item, { draw, reach });
+  if (to === undefined) return out;
+  const into = MixinApi.isContainer(to) && !to.isAgent() && to.getShapedTo() !== null ? draw : reach;
+  return out + into;
+}
+
+/**
+ * ⭐ The game-seconds a carrier's switch to `item` costs (size and carrying
+ * D16; D-W10-3): `item` coming out of where it is (a clip, a sheath slot or
+ * a shaped holder is the draw; a pocket or a pouch a reach). Nothing is put
+ * away for you — a hand in the way is a refusal before any switch, never a
+ * price — and a shut holder is refused (`open` is its own beat, D-W10-12).
+ * The dials are `combat.*`.
+ */
+function switchSecondsFor(actor: Stuff & Carrying, item: Stuff): number {
+  const draw = dial(AppSettingKeys.combatDrawSeconds, 1.5);
+  const reach = dial(AppSettingKeys.combatReachSeconds, 3);
+  if (actor.tierOf(item) === 'hand') return 0;
+  return outOf(actor, item, { draw, reach });
+}
+
+/** One half of a switch: `item` coming out of where it sits on `actor`, in seconds. */
+function outOf(actor: Stuff, item: Stuff, d: { draw: number; reach: number }): number {
+  const placed = MixinApi.isContainable(item) ? item.getPlacement() : null;
+  if (placed !== null && placed.host.stuffId !== actor.stuffId) {
+    // A clip, a hook: the draw. A pocket: a reach. (A shut one is refused
+    // before any beat — opening it is its own, D-W10-12.)
+    if (!MixinApi.isPlacing(placed.host)) return d.draw;
+    if (!placed.host.placementOf(placed.name).getEncloses()) return d.draw;
+    return d.reach;
+  }
+  const at = MixinApi.isContainable(item) ? item.getContainer() : null;
+  if (at === null || at.stuffId === actor.stuffId) {
+    // On the body: a sheath slot is a shaped holder; loose is a reach.
+    if (MixinApi.isAttired(actor) && actor.wears(item)) return d.draw;
+    return d.reach;
+  }
+  // ⭐ A container shaped to the thing (a holster, a scabbard) is the draw (D27).
+  if (MixinApi.isContainer(at) && at.getShapedTo() !== null) return d.draw;
+  return d.reach;
+}
+
+function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string; refusal?: ReadyRefusal } {
   const backup = findBackupWeapon(actor);
   if (!backup) return { ok: false, reason: "no-sidearm" };
-  return beginSwitchImpl(actor, backup, true);
+  // ⭐ `fight draw` is a readying (size and carrying D16): the holder
+  // prices it — a sheath is the draw dial; a hand in the way is refused.
+  // One call (finalize A2): the body's own `ready`, which falls back to the
+  // switch for a body whose plan names no hands. A body that cannot carry
+  // carries no sidearm.
+  if (!MixinApi.isCarrying(actor)) return { ok: false, reason: "no-sidearm" };
+  if (!sessionForImpl(actor)) return { ok: false, reason: "not-in-combat" };
+  const refused = actor.ready(backup);
+  // ⭐ The carrier's refusal travels with the answer, as facts (size and
+  // carrying drive, step 7: a full hand read "You've no sidearm to
+  // draw"); `fight draw` words it.
+  return refused === null || refused.ok ? { ok: true } : { ok: false, reason: refused.reason, refusal: refused };
 }
 
 /* ───────────────────────── small reads ───────────────────────── */

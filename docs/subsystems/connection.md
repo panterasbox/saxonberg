@@ -1162,7 +1162,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   [streaming.md](./streaming.md). Still deferred: account merge,
   provider-side token revocation, name-refraction, YouTube as a
   linkable/login provider. Seeding slate:
-  [auth-providers-slate.md](../slates/tails/auth-providers-slate.md).
+  [auth-providers-slate.md](../slates/platform/auth-providers-slate.md).
 
 - **Disconnect teardown moved onto `Interactive` (forums build,
   2026-06).** The per-Interactive substrate teardown (cancel MQL + forum

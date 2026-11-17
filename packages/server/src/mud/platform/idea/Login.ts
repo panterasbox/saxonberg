@@ -35,7 +35,6 @@ import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
-import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
 import { Template } from "../../lib/stuff/Template";
@@ -327,7 +326,7 @@ export default class Login extends LoginBase {
       // deliberately left alone: this is the login path, and its purpose
       // (avoiding a throwaway template row) is real. It is the first
       // entry the census ceiling is allowed to fall by —
-      // docs/slates/builds/instance-addressing-slate.md owns the fix.
+      // docs/slates/tech-debt/instance-addressing-slate.md owns the fix.
       { dataOverlay: data, asIdentityPath: path },
     );
 
@@ -340,23 +339,9 @@ export default class Login extends LoginBase {
       }
     }
 
-    // Dress in the aspiration's themed outfit (tolerant of content gaps).
-    if (aspiration && species) {
-      const bodyPlanPath = species.getBodyPlanPath();
-      for (const garmentPath of aspiration.outfit) {
-        try {
-          const garment = await StuffApi.clone(garmentPath);
-          if (!MixinApi.isContainable(garment)) continue;
-          ContainmentApi.move(garment, avatar);
-          if (bodyPlanPath && MixinApi.isWearable(garment)) {
-            const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) avatar.occupyAll(garment, slots);
-          }
-        } catch {
-          /* skip this garment */
-        }
-      }
-    }
+    // Dress in the aspiration's themed outfit — the body's own recipe
+    // (`Character.wearGarments`), tolerant of content gaps.
+    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
 
     return avatar;
   }

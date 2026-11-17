@@ -1,7 +1,7 @@
 # The sandbox overlay — implementation plan
 
 Executes [sandbox-overlay-requirements.md](../requirements/sandbox-overlay-requirements.md)
-(seeded by [avatar-family-slate](../slates/builds/avatar-family-slate.md)
+(seeded by [avatar-family-slate](../slates/engine/avatar-family-slate.md)
 § Sequencing 2–4). **Kind:** feature. **Lead end:** kernel — the consumer
 is the circle every player already has and the shipped verbs that throw
 inside it. The build gives the policy table a fifth disposition,
@@ -402,7 +402,7 @@ of the real row and is untouched.
 indexes a missing field as `null`, so the old guarantee holds among
 field rows and a scoped row is distinct. `scope` is **not** renamed —
 that is a data-shape change and belongs to
-[estate-nesting-slate](../slates/builds/estate-nesting-slate.md); the
+[estate-nesting-slate](../slates/engine/estate-nesting-slate.md); the
 schema doc's `purpose` and the index `why` carry the disambiguating
 sentence instead. ⚠ Boot creates indexes and does not prune a unique
 index it no longer declares (Grounding § ensureTextIndex): an existing

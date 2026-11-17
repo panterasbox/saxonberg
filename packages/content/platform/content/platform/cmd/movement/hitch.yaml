@@ -15,6 +15,9 @@ help: |
   Once hitched, the cart follows you through exits — but wheels can't
   climb, swim, fly, or take stairs, and an over-loaded cart won't budge.
   Use `unhitch` to let go.
+
+  Your hands are on the cart while it is hitched — nothing else goes in
+  them (`unhitch` first).
 examples:
   - cmd: hitch cart
     note: Pull a cart yourself (hands occupied)

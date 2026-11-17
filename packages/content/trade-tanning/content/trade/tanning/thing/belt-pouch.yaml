@@ -1,0 +1,15 @@
+# A belt pouch (size and carrying D27) — a small flapped leather pouch.
+# It claims no body slot: it HANGS — `put pouch on belt` clips it to a
+# belt, a strap or a saddle (the `from` placement), taking its own width
+# of the host's length, and what hangs from a worn host is ready.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: leather belt pouch
+  keywords: [pouch, "belt pouch", leather, "leather belt pouch"]
+  register: indefinite
+  longDescription: >
+    A small pouch of stiff leather with a flap that tucks under a strap,
+    and a loop on the back for a belt.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 0.15
+  dimensions: { width: 0.15, depth: 0.06, height: 0.12 }

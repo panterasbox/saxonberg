@@ -193,6 +193,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   operation: (d, p) => void ConditionApi.operations().parse(d, p),
   formation: (d, p) => void PartyApi.formations().parse(d, p),
   placement: (d, p) => void ContainmentApi.placements().parse(d, p),
+  shape: (d, p) => void ContainmentApi.shapes().parse(d, p),
   topic: (d) => {
     if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');
   },

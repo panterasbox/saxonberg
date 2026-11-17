@@ -17,7 +17,7 @@ Batch-wide findings before the per-slate detail:
   packages/content` → **0** files; no `smell:`/`touch:`/`hearing:`/`taste:`
   detail slot anywhere under `packages/content/*/content`. Every section
   of the slate that describes the `sense` verb is therefore SUPERSEDED by
-  `docs/slates/builds/legibility-slate.md § Part D` (cut `sense`; arrival
+  `docs/slates/tech-debt/legibility-slate.md § Part D` (cut `sense`; arrival
   fires `look`; untagged prose becomes vision-channel prose), not cut as
   shipped-and-working.
 - **The ESP "universal organ" half did not ship.** No BodyPlan row
@@ -58,7 +58,7 @@ Batch-wide findings before the per-slate detail:
 
 ---
 
-## docs/slates/tails/senses-slate.md — 998 → 766 · Status PARTIAL → PARTIAL
+## docs/slates/engine/senses-slate.md — 998 → 766 · Status PARTIAL → PARTIAL
 
 Wave 1 shipped in a **different shape** almost everywhere the slate named
 a mechanism: `PerceptionChannel` became `Modality` singletons with
@@ -109,7 +109,7 @@ so) — dropped from `Left`.
 ### Superseded — cut
 - `## The three physics families` body (165–176, 12) — by the code: `ModalityFamily = 'field' | 'contact' | 'network'` is a data field (`Modality.ts:43,98`), ESP rows carry `family: field` (`idea/modalities/{verbal,emotive}-esp.yaml`), `network` reserved → senses.md § `Modality` singletons + `PerceptionApi`, § Hybrid ESP framing. Heading + note left
 - `## ESP — a channel family` → paragraph 1 *"a third physics family … network"* (223–228, 6) — same evidence → senses.md § Hybrid ESP framing. Note left
-- `## The gestalt verb — perceive everything in one action` → intro + *Auto-fires on room entry* + *An explicit verb re-triggers it (lean `sense`)* (380–391, 12) — shipped 2026-06 (`SenseController.ts`, `sense.yaml`, `Mobile.autoSenseOnArrival` → `forceCommand('sense')`; senses.md § Gestalt verb, § Auto-on-entry) and **being cut** by `docs/slates/builds/legibility-slate.md § Part D` (arrival fires `look`; `look` already renders every channel because `LookController.ts:215,386` pass no filter and `Visible.ts:413` defaults to the full sensorium). Heading + a 6-line note left; the three unbuilt output bullets stay under the kept lead line *"The output — sight-led prose…"*
+- `## The gestalt verb — perceive everything in one action` → intro + *Auto-fires on room entry* + *An explicit verb re-triggers it (lean `sense`)* (380–391, 12) — shipped 2026-06 (`SenseController.ts`, `sense.yaml`, `Mobile.autoSenseOnArrival` → `forceCommand('sense')`; senses.md § Gestalt verb, § Auto-on-entry) and **being cut** by `docs/slates/tech-debt/legibility-slate.md § Part D` (arrival fires `look`; `look` already renders every channel because `LookController.ts:215,386` pass no filter and `Visible.ts:413` defaults to the full sensorium). Heading + a 6-line note left; the three unbuilt output bullets stay under the kept lead line *"The output — sight-led prose…"*
 - `### Augmenter behavior under the gestalt` → paragraph 1 *"wraps a keyword … for any sense the viewer has at least one entry for … won't be wrapped for a viewer without touch"* (532–536, 5) — by the code: `Detailed.ts:813-838` `wrapDetailKeywords` wraps every canonical key, sensorium-blind (the strip pass has already removed unperceivable regions). Note left; paragraph 2 (click = `look <kw>`; the v2 sense-aware click) KEPT as mixed
 - `## Worked scenarios` → *Taste-test: "off, faintly bitter" → a poison/spoilage cue* (558–559, 2) — by spoilage.md § What a player sees (the freshness band rides `look`/`smell`; `taste` gets the palate line) and its opening doctrine (*contamination: "no sense reports it at all"*). Pointer bullet left
 - `## Open questions` → Q4 *Gestalt verb name* (618–620, 3) — resolved `sense`, then overtaken by legibility Part D. One line left

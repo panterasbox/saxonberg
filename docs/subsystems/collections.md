@@ -202,7 +202,7 @@ mixin or the API. The split is:
 | Layer | Word | Why |
 |---|---|---|
 | Model / API method / internal field / MQL token | `contents` | Universal, matches the relationship, type-agnostic |
-| Player command verb (the action of displaying self-contents) | `inventory` (default alias `i`) | MUD-canonical for the *self-look-at-what-I-carry* action |
+| Player command (the action of displaying self-contents) | `i` / `inventory` — default aliases for `query --ledger me:i` (size-and-carrying W10h: there is no inventory verb) | MUD-canonical words for the *self-look-at-what-I-carry* action, kept as the shortcut |
 | Narration / prose | per genre | "There is a sword here." / "Bob is here." / "The ship carries 3 passengers." Per-template, not unified |
 
 So:
@@ -211,8 +211,8 @@ So:
 - `Container.getContents()` (API)
 - `me:contents` / `here:contents` (MQL canonical token, when the
   contents-token is added)
-- `inventory` command (player verb) — reads `avatar.getContents()`
-  under the hood
+- `i` / `inventory` (aliases for `query --ledger me:i`) — MQL's `me:i`
+  is `avatar.getContents()`
 - `sense.survey` topic (player-action topic) — keeps
   the player vocabulary at the messaging layer where players see it
 

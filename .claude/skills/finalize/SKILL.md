@@ -20,8 +20,8 @@ ready for the user to merge.
   build — the requirements doc carries the **drive script**, the plan
   carries the **drive record** (under `docs/requirements/`,
   `docs/plans/`, and
-  `docs/slates/{builds,tails,deferred-rpg}/` — see
-  `docs/slates/README.md` for which folder a slate lives in).
+  `docs/slates/<kind>/` — see `docs/slates/README.md` for the
+  folders).
 
 ## What to do
 
@@ -213,7 +213,7 @@ For each subsystem the build touched:
   openly (the anti-wiki rule: knowing never substitutes for doing); put
   discovery content behind spoiler levels; **transclude live values,
   never restate a number**; cross-link `help` rather than duplicate it.
-  See `docs/slates/builds/wiki-content-slate.md`.
+  See `docs/slates/platform/wiki-content-slate.md`.
 
 Then walk the meta-docs:
 
@@ -255,11 +255,11 @@ Per `docs/workflow.md`:
 
 Surface the retirement decisions to the user before deleting.
 
-When a slate retires, is added, or graduates from a `tails/`
-near-absorbed candidate to fully-retired, update the index at
-`docs/slates/README.md` so its build groupings stay accurate. A slate
-that moves from new-substrate to shipped-with-a-tail moves from
-`builds/` to `tails/` (and its row in the index moves with it).
+When a slate retires, is added, or its status block changes, run
+`./tools/slate-index` — it regenerates `docs/slates/README.md` and every
+folder's README from the slates' own status blocks. The folder is the
+KIND of work and does not change when the status or size does; a new
+slate goes in the folder whose README sentence describes it.
 
 ### 5. Validation
 

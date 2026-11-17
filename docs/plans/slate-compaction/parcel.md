@@ -28,7 +28,7 @@ Two batch-wide findings before the per-slate detail:
 
 ---
 
-## docs/slates/builds/balance-slate.md — 1607 → 1590 · Status PARTIAL → PARTIAL
+## docs/slates/society/balance-slate.md — 1607 → 1590 · Status PARTIAL → PARTIAL
 
 Almost entirely UNBUILT design doctrine (the enumeration, the `bound`
 instrument, the docket sweep, the denominators, the ops seat, the standing
@@ -75,7 +75,7 @@ is plain AGPL-3. Cuts are three.
 
 ---
 
-## docs/slates/builds/property-slate.md — 1075 → 643 · Status PARTIAL → PARTIAL
+## docs/slates/society/property-slate.md — 1075 → 643 · Status PARTIAL → PARTIAL
 
 The 2026-07-02 addendum (§A–§K) is the design that became property 0a/0b,
 the sandbox door, residences and holding; nearly all of it is shipped and
@@ -158,7 +158,7 @@ leg"*), and the release gate for unreleased power.
 
 ---
 
-## docs/slates/tails/access-slate.md — 410 → 329 · Status PARTIAL → PARTIAL
+## docs/slates/platform/access-slate.md — 410 → 329 · Status PARTIAL → PARTIAL
 
 `can()` shipped as **title dispatch**, not as a capability-source engine
 (`access.md § The two account axes`: *"never a tier"*; `§ Subject = current
@@ -209,7 +209,7 @@ call sites, none an audit stream).
 
 ---
 
-## docs/slates/tails/scoped-authoring-slate.md — 345 → 337 · Status PARTIAL → PARTIAL
+## docs/slates/platform/scoped-authoring-slate.md — 345 → 337 · Status PARTIAL → PARTIAL
 
 The 2026-08-08 AUDIT block at the top already classified the slate
 correctly and is kept as its spine. Verified: no `describe.yaml` anywhere
@@ -248,7 +248,7 @@ under `packages/content/**/cmd/`; `make.yaml` exists
 
 ---
 
-## docs/slates/builds/land-compute-and-license.md — 254 → 244 · Status PARTIAL → PARTIAL
+## docs/slates/platform/land-compute-and-license.md — 254 → 244 · Status PARTIAL → PARTIAL
 
 Constitutional/design doctrine — the title/entitlement split, the
 compute floor, subsidiarity, the license regime, the necessity-kernel
@@ -288,7 +288,7 @@ bullets only.
 
 ---
 
-## docs/slates/builds/wizard-bar-slate.md — 238 → 233 · Status UNBUILT → UNBUILT
+## docs/slates/society/wizard-bar-slate.md — 238 → 233 · Status UNBUILT → UNBUILT
 
 Entirely unbuilt. Grep under `packages/server/src/mud` for safe-harbor /
 disbar / break-glass / roster: nothing. `WizardController` (`wizard

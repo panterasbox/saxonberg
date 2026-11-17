@@ -54,7 +54,9 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
     };
 
     let plan: ShapePlan | ShapeRefusal | null = null;
-    for (const tool of model.instrument?.stuff ?? []) {
+    // ⭐ Used where it sits (D-W10-7): the binder narrows a defaulted pool to what is to hand.
+    const tools = model.instrument?.stuff ?? [];
+    for (const tool of tools) {
       if (tool === material || !MixinApi.isForming(tool)) continue;
       plan = await tool.shapePlanFor(req);
       if (plan !== null) break;

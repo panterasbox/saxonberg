@@ -440,7 +440,7 @@ special case at the draft.
 **What is NOT built, and belongs to the breeding follow-on:** gestation
 (the wait between *served* and *calved*), birth, and heredity of any
 kind. The design for all three is in
-[ranching-slate § Breeding](../slates/builds/ranching-slate.md) — the
+[ranching-slate § Breeding](../slates/trades/ranching-slate.md) — the
 short version being that the animal breeder's equation is
 `R = h²·S / L`, and it is the **generation interval `L`** that makes
 animal breeding a different lesson from farming's.
@@ -512,7 +512,7 @@ does, so the sheepdog was butcherable.
 |---|---|---|
 | **livestock** | what it yields or becomes | the **taps**, and the carcass |
 | **working animal** | what it does | its **skill** |
-| **pet** | itself | the **bond** ([pets-slate](../slates/builds/pets-slate.md)) |
+| **pet** | itself | the **bond** ([pets-slate](../slates/engine/pets-slate.md)) |
 
 ⚠⚠ **They overlap, which is why this is not a taxonomy.** The ox is
 livestock *and* a working animal — it plows all its life and is beef at

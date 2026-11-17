@@ -5,7 +5,7 @@ weather field that makes biome's static atmospheric *state* vary over
 time, coherently, per locality. Weather is to biome what metabolism /
 thermal are to vitals — biome is the state, weather is the thin driver
 that deviates its reads
-([weather-slate](../slates/tails/weather-slate.md)).
+([weather-slate](../slates/engine/weather-slate.md)).
 
 **Wave 2** (storms-and-wetness) adds the *coexistence resolve* (authored
 pins + climate lean folded onto the procgen field, in precedence), a
@@ -775,7 +775,7 @@ Locality: whoever pins, unpins.
   runtime weather-pin seam for drives shipped — § The test pin, below.)
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
-  ([capability-magic](../slates/builds/capability-magic-slate.md)).
+  ([capability-magic](../slates/engine/capability-magic-slate.md)).
 - **a weather-pin write Api** — `storm` has a Discipline leaf but no v1
   spell; nothing lets a caster (or a scripted effect) write a
   `WeatherPin` at cast-time (`Locality.setWeatherPin` /
@@ -801,7 +801,7 @@ Locality: whoever pins, unpins.
 
 ## Cross-references
 
-- [weather-slate](../slates/tails/weather-slate.md) — the seeding slate;
+- [weather-slate](../slates/engine/weather-slate.md) — the seeding slate;
   this build is its Wave 1. Its open questions (the grammar, scalar wind,
   additive-deviation coupling, the Locality tier) are resolved here for
   Wave 1.

@@ -257,8 +257,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
       t.setNutrientDraw(10);
       return t;
     }, '/trade/farming/thing/plant/_farms-tree');
-    ContainmentApi.move(tree as never, bed as never);
-    bed.occupy(tree, PLANT_SLOT);
+    bed.seatInSlot(tree, PLANT_SLOT);
     (tree as unknown as { growthStage: string }).growthStage = 'mature';
     (tree as unknown as { _flowering: boolean })._flowering = true;
     (tree as unknown as { _seedSet: boolean })._seedSet = true;
@@ -336,7 +335,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           await asPrincipal(who, () =>
             makeStuff(() => new WaterController()).execute(
               // ⚠ `source` is BOUND BY THE VIEW (`water.yaml`, defaulting
-              // through `me:i:[mixin.BulkableMixin]`) — the same standing
+              // through `person:[mixin.BulkableMixin or class.WaterHose]`) — the same standing
               // warning `consign`'s shelf carries below.
               {
                 target: { stuff: target, raw: rest.join(' ') },

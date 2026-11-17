@@ -337,7 +337,7 @@ declaration proved exactly as forgettable as a list — there are five
 omitting `shear`.
 
 The design question lives at
-`docs/slates/builds/standing-instructions-slate.md`.
+`docs/slates/engine/standing-instructions-slate.md`.
 
 
 ---

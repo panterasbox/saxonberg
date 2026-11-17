@@ -37,6 +37,5 @@ args:
     required: true
     scope: "inventory"
     requires: AdornmentMixin
-    depth: top
     validators:
       - /lib/command/validators/mustBeInInventory

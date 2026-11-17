@@ -23,7 +23,7 @@ Batch-wide findings, up front:
 
 ---
 
-## docs/slates/builds/guild-slate.md — 698 → 702 · Status UNBUILT → UNBUILT
+## docs/slates/society/guild-slate.md — 698 → 702 · Status UNBUILT → UNBUILT
 
 Entirely UNBUILT, verified: no `Guild` class or Idea anywhere under
 `packages/server/src/mud` or `packages/content/*/src`; `guild:` appears
@@ -73,7 +73,7 @@ group-titled parcels per `parcel.md`).
 
 ---
 
-## docs/slates/builds/api-normalization-slate.md — 612 → 613 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/api-normalization-slate.md — 612 → 613 · Status UNBUILT → UNBUILT
 
 A refactor slate; the brief asked that its census numbers be verified
 where stated. Verified at HEAD (2026-09-19): `ls packages/server/src/mud/api/*.ts`
@@ -133,7 +133,7 @@ docs/architecture.md` → nothing).
 
 ---
 
-## docs/slates/builds/amendment-library-slate.md — 561 → 566 · Status UNBUILT → UNBUILT
+## docs/slates/society/amendment-library-slate.md — 561 → 566 · Status UNBUILT → UNBUILT
 
 Constitutional doctrine per the brief: kept, labelled. Verified UNBUILT:
 `docs/compact/governance/draft-constitution.md` exists (a document, no runtime);
@@ -181,7 +181,7 @@ legal-code · freight · delivery · zoning · insurance).
 
 ---
 
-## docs/slates/builds/institutions-slate.md — 552 → 560 · Status UNBUILT → UNBUILT
+## docs/slates/society/institutions-slate.md — 552 → 560 · Status UNBUILT → UNBUILT
 
 Written 2026-09-18; the brief expected nothing to cut. Confirmed. Verified
 UNBUILT: no cap table / shares / shareholder anywhere under
@@ -228,7 +228,7 @@ block only.
 
 ---
 
-## docs/slates/builds/blood-slate.md — 551 → 553 · Status UNBUILT → UNBUILT
+## docs/slates/engine/blood-slate.md — 551 → 553 · Status UNBUILT → UNBUILT
 
 Verified UNBUILT: `grep -i 'bloodType\|genotype\|transfus\|donat'` under
 `packages/server/src/mud` hits only the *comments* in
@@ -293,7 +293,7 @@ against code AND doc:
 
 ---
 
-## docs/slates/builds/legibility-slate.md — 550 → 552 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/legibility-slate.md — 550 → 552 · Status UNBUILT → UNBUILT
 
 Written 2026-09-16/18; the brief expected nothing to cut. Confirmed.
 Verified UNBUILT against HEAD: no `extends:` key on any row under
@@ -338,7 +338,7 @@ not change. One status block after the cut below.
 
 ---
 
-## docs/slates/tails/language-slate.md — 540 → 464 · Status PARTIAL → PARTIAL
+## docs/slates/engine/language-slate.md — 540 → 464 · Status PARTIAL → PARTIAL
 
 The batch's one slate with real shipped-in-a-different-shape sections.
 Verified: the written half is `lib/description/Marked.ts` (`MarkedMixin`
@@ -396,7 +396,7 @@ and the study-com cx doc resolve.
 
 ---
 
-## docs/slates/builds/instrumentation-slate.md — 478 → 495 · Status UNBUILT → UNBUILT
+## docs/slates/engine/instrumentation-slate.md — 478 → 495 · Status UNBUILT → UNBUILT
 
 The brief flagged the shipped-instruments register as likely drifted. It
 has, but only in its COUNTS; the design is wholly UNBUILT. Verified:

@@ -23,6 +23,10 @@ help: |
   real: dose response is continuous, so half a graded draught is
   half the effect, and a threshold draught does nothing at all
   below its minimum.
+
+  Used where it sits — in hand, in an open holder on you, or within
+  reach; a shut holder says `open` it first, a pack on your back says
+  take it off.
 options:
   amount:
     type: string
@@ -45,7 +49,7 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
-      - /lib/command/validators/mustNotBeShutAway
+      - /lib/command/validators/canReach
 examples:
   - cmd: drink the flask
     note: Finish it

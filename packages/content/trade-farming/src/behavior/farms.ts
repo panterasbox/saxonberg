@@ -204,7 +204,10 @@ export const brain = class {
     }
 
     // ── the back half: the consigns tail, verbatim guards ──
-    const carried = (hand.getContents() as Stuff[]).filter(
+    // What the hand carries: the whole carried tree — a pocketed take is
+    // the garment's contents, a bagged one the bag's (W9).
+    const onHand = hand.getCarriedContents() as Stuff[];
+    const carried = onHand.filter(
       (c) =>
         MixinApi.isChattel(c) &&
         MixinApi.isPerceptible(c) &&

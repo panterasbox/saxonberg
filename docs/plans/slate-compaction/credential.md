@@ -1,6 +1,6 @@
 # Slate compaction ledger — batch: credential
 
-Slates: `docs/slates/builds/acquisition-slate.md`,
+Slates: `docs/slates/society/acquisition-slate.md`,
 `docs/slates/tails/credential-wallet-slate.md`.
 Insert-doc: `docs/subsystems/credential.md`.
 
@@ -99,7 +99,7 @@ for the sweep; `registrar.md` is staging content, outside my assignment
   `CredentialApi` question is resolved-as-retired)
 - Size: a tail → (absorbed)
 
-## `docs/slates/builds/acquisition-slate.md` — 169 → 181  · Status PARTIAL → PARTIAL
+## `docs/slates/society/acquisition-slate.md` — 169 → 181  · Status PARTIAL → PARTIAL
 
 One status block (no duplicate found). Grew rather than shrank: two
 rulings turned out to be SUPERSEDED-by-shipped-code in ways worth

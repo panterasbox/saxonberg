@@ -65,7 +65,7 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
   resolves to any live Stuff (`StuffApi.findAllByTemplatePath`). ⚠ Under
   load-on-use that includes a person who is merely NOT LOADED (offline, an
   unvisited zone), so a recall forgets them — slated
-  ([belief-recall-forgets-the-absent-slate](../slates/tails/belief-recall-forgets-the-absent-slate.md)).
+  ([belief-recall-forgets-the-absent-slate](../slates/tech-debt/belief-recall-forgets-the-absent-slate.md)).
   `knownNameOf(identityPath)` reads the recognition name without collecting
   (B106 — a maker's mark is known while the maker is away).
 - `_beliefs` is **not** a persistent field of the host — records are their
@@ -203,7 +203,7 @@ sighting). All triggers funnel through it.
 
 ## Viewer-relative targeting — the name-leak gate (`api/mql/scope-walk.ts`)
 
-Keyword resolution shares the naming step's source. `pushDirect` builds
+Keyword resolution shares the naming step's source. `candidateFor` builds
 each candidate's `name` from `stuff.describeFor(viewer)` and
 its `keywords` from `stuff.perceivedKeywordsFor(viewer)`
 (tokens of the *perceived* name — `knownAs` if recognized, salient

@@ -46,7 +46,7 @@ Four things a reviewer should know first:
    section are KEPT and listed under Uncertain, not cut.
 
 ---
-## docs/slates/tails/emotes-slate.md — 1177 → 741 · Status PARTIAL → PARTIAL
+## docs/slates/engine/emotes-slate.md — 1177 → 741 · Status PARTIAL → PARTIAL
 
 The trunk (Layers 0/1) shipped in 2026-06 and `emotes.md` carries it in
 detail; reactions (Layer 4) shipped as its own build (`reactions.md`).

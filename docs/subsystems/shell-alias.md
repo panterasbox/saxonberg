@@ -40,12 +40,22 @@ Defaults come from two sources, and neither is a central registry:
   tier reads the views the giver can reach (`getAffordances()`) lazily at
   lookup, so an alias reaches a player only while the verb does. A pack
   ships views and nothing else a player's shell composes, so the view is
-  the only place a pack's alias can live. Minted: `l` → `look`, `i` →
-  `inventory`, `h` and `?` → `help`, `'` → `say`. The criterion: a one- or
-  two-character MUD-standard shortcut for a verb typed many times a
-  session, and nothing else — a synonym is deleted, the verb is the word
-  `help` teaches. `lint:one-word` (c) refuses a name declared twice or
-  equal to a verb or builtin, statically, because reach is dynamic.
+  the only place a pack's alias can live. Minted: `l` → `look`, `h` and
+  `?` → `help`, `'` → `say`. The criterion: a one- or two-character
+  MUD-standard shortcut for a verb typed many times a session, and nothing
+  else — a synonym is deleted, the verb is the word `help` teaches.
+  `lint:one-word` (c) refuses a name declared twice or equal to a verb or
+  builtin, statically, because reach is dynamic.
+  ⭐ **An entry may state the whole line** — `body: query --ledger me:i`
+  (size-and-carrying W10h). Absent, the body is the verb. The line must
+  begin with the view's own verb (`lint:one-word` (c) again), so it still
+  reaches a player only while that verb does; `help query` and `alias
+  list` print it. Minted: `i` and `inventory` → `query --ledger me:i`
+  (the owner's ruling: there is no inventory verb — listing a set and
+  choosing its display is `query`). ⚠ The player's words are appended
+  (the csh rule below), so `i --weight` works and `i crate` does not:
+  there is no *`$1`, else `me`* form, and `$1` counts flags, so a holder is
+  written out — `query --ledger crate:i`, or `look in crate`.
 - **a mixin layer** — `static defaultAliases`, exactly mirroring how
   `static settings`, `static syntheticVars` and `static
   commandContributions` work, picked up by prototype-chain inspection.

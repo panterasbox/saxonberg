@@ -1,0 +1,14 @@
+# A pannier (size and carrying D27) — a big flapped bag that hangs `from`
+# a pack saddle, one each side of a pack animal. A laden animal is as
+# wide as its panniers: a narrow gate refuses them, in words.
+class: /platform/thing/equipment/Pack
+data:
+  shortDescription: canvas pannier
+  keywords: [pannier, bag, canvas, "canvas pannier"]
+  register: indefinite
+  longDescription: >
+    A deep, square bag of tarred canvas on a frame of ash slats, with a
+    flap that laces down and two loops to hang it from a pack saddle.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 3
+  dimensions: { width: 0.5, depth: 0.3, height: 0.45 }

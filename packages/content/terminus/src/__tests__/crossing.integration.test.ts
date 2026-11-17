@@ -296,7 +296,7 @@ describe("University Avenue crossing standup (real seeds)", () => {
 
     const g = gus as unknown as {
       getOccupants(slot: string): ReadonlySet<Stuff>;
-      getContents(): ReadonlyArray<Stuff>;
+      getCarriedContents(): ReadonlyArray<Stuff>;
     };
     const wornOn = (slot: string): string[] =>
       [...g.getOccupants(slot)].map((s) => s.getTemplatePath() ?? "");
@@ -306,8 +306,9 @@ describe("University Avenue crossing standup (real seeds)", () => {
     // Wielded: the STOP paddle in the right hand.
     expect(wornOn("hand:right")).toContain(PADDLE);
     // Carried in inventory: the drifting watch, the crossing-log, the thermos
-    // he never opens.
-    const carried = g.getContents().map((s) => s.getTemplatePath() ?? "");
+    // he never opens — a pocketed one in his vest's pocket, which is the
+    // vest's contents (size and carrying W9).
+    const carried = g.getCarriedContents().map((s) => s.getTemplatePath() ?? "");
     for (const p of [WATCH, LOG, THERMOS]) {
       expect(carried, `expected Gus to carry ${p}`).toContain(p);
     }

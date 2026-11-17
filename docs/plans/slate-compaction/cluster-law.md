@@ -1,10 +1,10 @@
 # Law — cluster-merge ledger
 
-Cluster: **law**. Files: `docs/slates/builds/legal-code-slate.md` (1627
-lines) · `docs/slates/builds/policing-slate.md` (755) ·
-`docs/slates/builds/enforcement-slate.md` (204) ·
-`docs/slates/builds/prison-slate.md` (161) ·
-`docs/slates/builds/intervention-slate.md` (289). Procedure:
+Cluster: **law**. Files: `docs/slates/society/legal-code-slate.md` (1627
+lines) · `docs/slates/society/policing-slate.md` (755) ·
+`docs/slates/society/enforcement-slate.md` (204) ·
+`docs/slates/society/prison-slate.md` (161) ·
+`docs/slates/engine/intervention-slate.md` (289). Procedure:
 `.claude/skills/compact-slate/SKILL.md` § *The cluster-merge pass*.
 Prior compaction passes (done, not repeated): `civics.md` (legal-code),
 `accountability.md` (policing), `unlinked-7.md` (enforcement),
@@ -58,7 +58,7 @@ mode's physical form; the takings path), `cooperative-slate`
 
 ---
 
-## docs/slates/builds/enforcement-slate.md — secondary (204 → 205)
+## docs/slates/society/enforcement-slate.md — secondary (204 → 205)
 
 ### Conservation table
 
@@ -77,7 +77,7 @@ this slate's own subject). Status block unchanged — `Left` still
 matches the body (the compaction pass re-stamped it on 2026-09-19 and
 nothing here moved).
 
-## docs/slates/builds/prison-slate.md — secondary (161 → 167)
+## docs/slates/society/prison-slate.md — secondary (161 → 167)
 
 ### Conservation table
 
@@ -94,7 +94,7 @@ nothing here moved).
 Nothing lost: every heading is KEPT. Not retired. Status block
 unchanged (nothing moved; the 2026-09-19 compaction re-stamp stands).
 
-## docs/slates/builds/intervention-slate.md — secondary (289 → 291)
+## docs/slates/engine/intervention-slate.md — secondary (289 → 291)
 
 A combat slate, placed in this cluster for its one law-facing seam (the
 law after the fact) and the constable/bouncer standing question. It
@@ -120,7 +120,7 @@ duplicates nothing in the other four.
 Nothing lost: every heading is KEPT. Not retired. Status block
 unchanged.
 
-## docs/slates/builds/policing-slate.md — secondary (755 → 759)
+## docs/slates/society/policing-slate.md — secondary (755 → 759)
 
 The institution; the cluster's second-largest design. Its compaction
 ledger (`accountability.md`) already established that it cites but
@@ -168,7 +168,7 @@ tiers. Confirmed on a whole read.
 Nothing lost: every heading is KEPT. Not retired. Status block
 unchanged (the 2026-09-19 re-stamp stands; nothing moved).
 
-## docs/slates/builds/legal-code-slate.md — canonical (1627 → 1627, untouched)
+## docs/slates/society/legal-code-slate.md — canonical (1627 → 1627, untouched)
 
 Nothing was moved in, so no `## Absorbed from …` section exists and no
 re-stamp is due. Tabled at the `##` level as the assignment allows, so

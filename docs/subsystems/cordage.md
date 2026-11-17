@@ -82,7 +82,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
   outside face (`Faced.coolCoats`: pitch sets as it cools below 320 K).
 - **No buy-back** (yet): a house bids per row, so a coil cut into five
   would sell as five coils; the ropewalk buys no rope until retail builds
-  per-instance worth ([retail slate](../slates/builds/retail-slate.md)).
+  per-instance worth ([retail slate](../slates/trades/retail-slate.md)).
 
 ## The rope at a drop
 

@@ -28,6 +28,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
+import { PerceptionApi } from '../../../api/perception';
 
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
@@ -36,7 +37,7 @@ const validator: FieldValidator = (value, field, context) => {
 
   const giver = context.commandGiver;
   if (!MixinApi.isContainer(giver)) return `you have no hands for that`;
-  const held = new Set(giver.getContents().map((s) => s.stuffId));
+  const held = new Set(PerceptionApi.perceived(giver, giver.getContents()).map((s) => s.stuffId));
 
   for (const stuff of stuffs) {
     if (held.has((stuff as Stuff).stuffId)) continue;

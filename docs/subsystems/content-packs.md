@@ -225,7 +225,7 @@ which a path-prefix notion of ownership could not:
 | every `content/**/*.yaml` **outside the kind dirs below** | **domain** (the template kind) | reconciled into the `content` collection (stamped). Wave 3 widened the walk from the two enumerated roots (`obj/`, `domain/`) to *everything that is not another kind's directory*: a pack ships a row at the path its file mirrors, wherever in the tree that path lives — `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` → `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE rows; the wiki *pages* beside them are `.md`, a different extension, read by the wiki kind). The non-template dirs are **enumerated by kind** (`nonTemplateDirs()`: `settings`, `subjects`, `descriptor-banks`, `quantity`, and every yaml `DOCUMENT_KINDS` `contentDir`), never guessed. `cmd/` is skipped at **any** depth — a command view has no `class:` and is the command-view document kind |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/descriptor-banks/<key>.yaml` | **descriptor-banks** | reconciled into `descriptor_banks` (stamped), keyed on the basename = the item class; the appearance caches drop on change |
-| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `aromas/**/*.yaml`, the metadata families (`dirt/`, `pump-mechanisms/`, `joints/`, `forms/`, `operations/`, `concepts/`, `formations/`, `placements/`, `topics/`, and since load-on-use round two `cleansers/`, `fabrics/`, `maturation-profiles/`, `fraction-schedules/`, `dyestuffs/` — each file IS the data, no `class:`/`data:` wrapper; [document-store.md](./document-store.md)), `archetypes/*.yaml` (the venue archetype — libations D11: `{ label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; the row's `keys` card is derived on the way in (`StoredDocument.cardOf`); ⭐ no kind carries a second name — an emote's verb, a recipe's or archetype's word, a blueprint's id is the path's LEAF, and the files carry no key line; per-kind read validation (what the retired seeders validated) |
+| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `aromas/**/*.yaml`, the metadata families (`dirt/`, `pump-mechanisms/`, `joints/`, `forms/`, `operations/`, `concepts/`, `formations/`, `placements/`, `shapes/`, `topics/`, and since load-on-use round two `cleansers/`, `fabrics/`, `maturation-profiles/`, `fraction-schedules/`, `dyestuffs/` — each file IS the data, no `class:`/`data:` wrapper; [document-store.md](./document-store.md)), `archetypes/*.yaml` (the venue archetype — libations D11: `{ label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `PersistentLocation` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; the row's `keys` card is derived on the way in (`StoredDocument.cardOf`); ⭐ no kind carries a second name — an emote's verb, a recipe's or archetype's word, a blueprint's id is the path's LEAF, and the files carry no key line; per-kind read validation (what the retired seeders validated) |
 | `content/settings/<section>.yaml` | **settings** | merged into the `app_settings` singleton (**merge-missing**, below) |
 | `content/subjects/<name>.yaml` | **subject** | `forum_subjects` + its channel/board surfaces (**archive-never-reap**, below) |
 | `content/wiki/<ns>/<slug>.md` | **wiki** | submitted through `WikiRegistry` AS the pack (**CAS**, below) — never rows |
@@ -362,7 +362,7 @@ code trust** (`DocumentLogic`); a cosmetic edit goes live through
 > has any claim on it.
 >
 > ⚠ **Two consequences the boundary needs and does not yet have** —
-> → [pack-boundary-slate](../slates/tails/pack-boundary-slate.md):
+> → [pack-boundary-slate](../slates/platform/pack-boundary-slate.md):
 > **(a)** a pack must not ship a row naming a **realm-local identity**
 > (it would point at an avatar the receiving database does not have —
 > broken by construction, so a lint rather than a policy, and the same
@@ -662,7 +662,7 @@ construction. Two mechanisms close that, decided 2026-09-14:
   duplicate `_mixinName` anywhere, and **a real collision is the recorded
   trigger to reopen path-addressed mixins**, declined today only because
   a TypeScript type predicate cannot be path-addressed. See
-  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
+  `docs/slates/platform/content-packs-slate.md` § RESOLVED.
 
 ### ⭐⭐ How a kernel VERB reaches pack behaviour — the declared shape
 
@@ -1438,7 +1438,7 @@ values: editing gin's density breaks nothing (it re-hydrates); renaming
 
 ## Deferred
 
-The slate (`docs/slates/builds/content-packs-slate.md`) holds the full
+The slate (`docs/slates/platform/content-packs-slate.md`) holds the full
 design surface and remaining build waves: **wave 5** — homing the rest
 of `world-seed` (eternal as the capability exemplar with `DormThemes` /
 `Footlocker` / `Gus`, terminus, moor, practicum, substation, common)
@@ -1617,7 +1617,7 @@ kind).
 
 `design/pack-installer` (2026-08-25) — the **pack-installer substrate**
 (waves 0+1 of the content-pack program — slate addenda A10/A17/A24/A25
-in `docs/slates/builds/content-packs-slate.md`; the requirements and
+in `docs/slates/platform/content-packs-slate.md`; the requirements and
 plan retired at the sweep): the
 `domain` → `content` rename; the
 `pack_installs` record with body-beside-hash baselines; the three-way

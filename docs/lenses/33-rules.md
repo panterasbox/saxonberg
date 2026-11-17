@@ -111,7 +111,7 @@ so:
 | axis | asks | values |
 |---|---|---|
 | **amendment** | who may change this rule | Tier **A** (nobody) · **B** (whoever ships the code, checked by the AGPL fork right) · **C** (the polity) |
-| **enforcement** | who executes it | **wall · camera · witness · norm** ([enforcement-slate](../slates/builds/enforcement-slate.md)) |
+| **enforcement** | who executes it | **wall · camera · witness · norm** ([enforcement-slate](../slates/society/enforcement-slate.md)) |
 
 They are orthogonal. A **Tier C** rule can be perfectly **wall**-enforced
 — the polity sets a rate and the engine collects it — and that combination
@@ -287,17 +287,17 @@ lens, not only in us, and it yields a test:
 > with a stern tone.
 
 We are better placed here than the docs make obvious. The
-[courts slate](../slates/builds/courts-slate.md) holds a remedy menu over
-a **conserved remedy**; [prison-slate](../slates/builds/prison-slate.md)
+[courts slate](../slates/society/courts-slate.md) holds a remedy menu over
+a **conserved remedy**; [prison-slate](../slates/society/prison-slate.md)
 holds confinement, the three enforcement tiers, and the guardrail that
 **real-conduct offences never get a diegetic costume**;
-[enforcement-slate](../slates/builds/enforcement-slate.md) holds the mode
+[enforcement-slate](../slates/society/enforcement-slate.md) holds the mode
 vocabulary; `accountability.md` holds the ledger all of it rides. What is
 missing is not the machinery. It is **the ceiling**:
 
 > ⭐⭐ **A punishment ceiling is Tier A or it is nothing.** If the polity
 > can raise its own maximum penalty, there is no maximum. The
-> [amendment-library slate](../slates/builds/amendment-library-slate.md)
+> [amendment-library slate](../slates/society/amendment-library-slate.md)
 > already carries the ceiling as its question 8 — perma-death, total
 > forfeiture, indefinite confinement — so the home exists; **what is
 > missing is the tier**, and putting it anywhere but A makes it
@@ -397,7 +397,7 @@ many stars it carries.
    frontier and a principled stop**, not a static partition — see
    [#25](./25-judgment.md), which states the partition reading.
 3. ⭐⭐ **Tier the punishment ceiling.** Answer
-   [amendment-library](../slates/builds/amendment-library-slate.md) Q8
+   [amendment-library](../slates/society/amendment-library-slate.md) Q8
    with a tier before answering it with a number.
 4. ⭐⭐ **Apply the advisory test to our own doctrine.** For each starred
    rule in the docs: what is the damage, and who collects it? Census

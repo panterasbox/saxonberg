@@ -63,7 +63,7 @@ automated.**
 undecidable; `measurement.md` separates measurement from valuation; the
 constitution separates rule from standard. *Mechanically applicable* and
 *decidable* are the same predicate, and the
-[legal-code slate](../slates/builds/legal-code-slate.md) names the
+[legal-code slate](../slates/society/legal-code-slate.md) names the
 jurisprudence it lands in — **rules versus standards**, where a clause
 is self-executing and rigid and prose needs a judge. When three
 different arguments reach one boundary, the boundary is probably real.

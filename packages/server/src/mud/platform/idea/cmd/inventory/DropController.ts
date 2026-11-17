@@ -245,8 +245,17 @@ export default class DropController extends CommandController<DropModel> {
   protected static async landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
     if (item.isDestroyed() || !MixinApi.isIntegrity(item)) return;
     const out = await item.fallOnto(room);
-    if (out === null || (!out.broke && !out.flawed)) return;
-    if (by.isDestroyed()) return;
+    if (out === null || by.isDestroyed()) return;
+    if (out.floats === true) {
+      // Nothing pulls it down: it hangs where it was let go.
+      MessageApi.scene(by)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`It floats where you let it go.`)
+        .toPeers(Mml.compose`${Mml.thing(item)} hangs in the air where it was let go.`)
+        .send();
+      return;
+    }
+    if (!out.broke && !out.flawed) return;
     MessageApi.scene(by)
       .topic('sense.survey')
       .toSelf(

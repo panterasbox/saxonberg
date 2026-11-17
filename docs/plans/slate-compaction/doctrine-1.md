@@ -15,13 +15,13 @@
 
 ## Rows
 
-### unlinked-1 · `docs/slates/builds/lineage-slate.md`
+### unlinked-1 · `docs/slates/society/lineage-slate.md`
 
 - unlinked-1 · lineage-slate · `## ⭐⭐ The story char-gen tells: your majority day` — **STAYS**; every mechanism the fiction explains (parent gallery, antecedents budget, household-seeded traits, family capital, blood type, priced reroll) is unbuilt — `char-gen.md` still says lineage does not exist, and no doc carries a char-gen fiction to hang it on.
 - unlinked-1 · lineage-slate · `## ⭐ The four kinds of value` — **STAYS**; the *endowed* kind it argues for has no instance in code (blood type is `blood-slate`, unbuilt; nothing stamps a genotype), and the three shipped kinds are already A3 in `measurement.md` — the section's whole content is the gap.
 - unlinked-1 · lineage-slate · `#### ⭐⭐⭐ Where the game states its opinion on nature vs nurture` — **STAYS**; the position is only *observable* through adoption + the raising household (the section's own point), and no lineage record exists; the shipped half (traits/competence derive-on-read, species confers capability) is documented as mechanism in `trait.md` / `advancement.md` / `race.md`. No doc mentions nature/nurture — when lineage ships this is the `race.md § Why` paragraph, verbatim.
 
-### unlinked-1 · `docs/slates/builds/insurance-slate.md` (1241 → 1186)
+### unlinked-1 · `docs/slates/society/insurance-slate.md` (1241 → 1186)
 
 - unlinked-1 · insurance-slate · `## ⭐⭐⭐⭐⭐ The rule the whole register has been circling` — **DUPLICATE → `vocations.md § Working notes`** (*the information-asymmetry family is FIVE markets deep* + the MENU/VOCATION rule + *the gate is an epistemic advantage*); the table, rule and general-test paragraphs cut (18 lines) with a pointer; the *unsecured credit is where REPUTATION BECOMES MONEY* paragraph is credit design vocations.md lacks and stays.
 - unlinked-1 · insurance-slate · `### ⭐⭐⭐⭐⭐ Which is the general anti-corruption mechanism in this economy` — **STAYS**; its three instances are all unbuilt (tamper-evidence → `record-integrity-slate`; the actuarials; ratings), and no top-level doc owns the record-as-deterrent topic (`measurement.md` counts, `compact-political-science.md` only says the archive *is* tamper-evident) — nothing to home it under.
@@ -32,14 +32,14 @@
 - unlinked-1 · insurance-slate · `### ⭐⭐⭐ And therefore: insurance is a GAUGE, not a lever` — **STAYS**; argues for insurance premiums as the readout of hazard rates — no insurer, policy or premium exists in code (`grep -ri premium packages/server/src packages/content` finds nothing).
 - (note bullet: *the coordinator can cut the five that vocations.md already carries*) — done above; each cut leaves a one-line pointer at the heading.
 
-### unlinked-1 · `docs/slates/builds/value-object-statics-slate.md` (162 lines — already re-cut by the lib-statics sweep)
+### unlinked-1 · `docs/slates/tech-debt/value-object-statics-slate.md` (162 lines — already re-cut by the lib-statics sweep)
 
 - unlinked-1 · value-object-statics-slate · `# ⭐⭐⭐ The disposition ladder` intro + `## The ladder, first match wins` — **DUPLICATE → `antipatterns.md § A public static on a lib value class › The ladder, first match wins`** (the table, *statics are INHERITED*, rung 0 + the reflective set); graduated by the lib-statics sweep (`5e97cb147`) before this pass — the slate already holds the one-line pointer, nothing to change.
 - unlinked-1 · value-object-statics-slate · `## What the ladder actually yielded` (*"Only tests call it" is not "internal"* · *an unused factory is not an unwanted one*) — **DUPLICATE → `antipatterns.md` same section** (`:4978`, `:4986`); already cut from the slate by the sweep.
 - unlinked-1 · value-object-statics-slate · `# Rung 4` intro + `## The three irreducible shapes` + `## And a fourth: a record class's finders belong to the record class` — **DUPLICATE → `antipatterns.md § The three irreducible shapes` / `§ And a fourth`** (`:5003`, `:5011`); already cut by the sweep.
 - (note bullet: *recommended home antipatterns.md, replacing "See the slate for the ladder"*) — done by the sweep; `antipatterns.md` no longer says *see the slate*.
 
-### unlinked-1 · `docs/slates/builds/discovery-slate.md` (779 lines, unchanged — no insertable doc; graduations ride the Handoff)
+### unlinked-1 · `docs/slates/engine/discovery-slate.md` (779 lines, unchanged — no insertable doc; graduations ride the Handoff)
 
 - unlinked-1 · discovery-slate · `## ⭐⭐⭐⭐ The function IS the design` — **GRADUATED → handoff (`magic-items.md`, new `## Why items exist — access, not loot` after the intro)**; the three item classes, the charge economy and the distribution channels shipped (`magic-items.md § The three item classes` / `§ Distribution`, `lib/residency/SpawnTable.ts`), and the doc opens with *what* the build makes first-class and *stored labour*, never *why* items exist in a game where competence is hours (the access thesis). Faithful compaction in the Handoff (user quote dropped); ⚠ the slate section stays until the coordinator inserts it, then cut with a pointer.
 - unlinked-1 · discovery-slate · `## Variance as an equity mechanism` — **GRADUATED → handoff (`magic-items.md`, same new section)**; argues for the random draw + unidentifiability that shipped (`SpawnTable.draw`, `§ Identification`); the *upsets* argument and the wealth-gate guard (found must stay meaningful beside bought) are stated nowhere. Folded into the same Handoff insert; slate section stays until inserted.
@@ -47,7 +47,7 @@
 - unlinked-1 · discovery-slate · `### ⭐⭐⭐⭐ Which dissolves the continuity worry properly` — **STAYS**; the legibility it argues for (*locks, far out, certain nights, match the country*) is three-quarters unbuilt — no remoteness/traffic term, no lunar inflow (`CelestialApi` ships the moon, nothing reads it for stock), no concealment on placement; only material affinity shipped. `design-philosophy.md` is the fidelity axis only, so no MOVE target.
 - unlinked-1 · discovery-slate · `#### ⭐⭐⭐ Which refines the continuity answer — in a good direction` — **STAYS**; the pair it teaches (affinity has a cause, celestial timing does not) needs the unbuilt celestial term; `uncertainty.md § Part 3` already owns the celestial half (*ecology, not astrology*) as doctrine, so when the inflow ships the *one has a cause, one does not* line is a one-paragraph MOVE there.
 
-### unlinked-1 · `docs/slates/builds/mind-slate.md` (831 lines, unchanged)
+### unlinked-1 · `docs/slates/engine/mind-slate.md` (831 lines, unchanged)
 
 - unlinked-1 · mind-slate · `## The hard rule` (*honest or not at all*) — **STAYS**; the accuracy bar for a subsystem with no code — `traits-stress` is still the inert `g(composure) ≡ 1` seam (`lib/combat/Sharpness.ts`, `combat.md:199`), no equanimity Reserve, no condition; it travels with the requirements.
 - unlinked-1 · mind-slate · `## ⚠ What to refuse` — **STAYS**; thirteen refusals over unbuilt mechanisms (no status readout, condition, dial or emote-evidence read exists to refuse anything on); the requirements doc's guardrail list.
@@ -55,23 +55,23 @@
 - unlinked-1 · mind-slate · `### ⭐⭐⭐⭐⭐ So: BUILD THE DIALS, NOT THE DIAGNOSIS` — **STAYS**; the four dials are unbuilt; `design-philosophy.md` is the fidelity axis only and `measurement.md` already carries the neighbouring *no gauge on a declared standard* — this is the case for a thing that does not exist.
 - unlinked-1 · mind-slate · `### ⭐⭐ The general line this revealed` (*shape over time → condition; configuration → dial*) — **STAYS**; a classification rule for conditions and dials, neither of which exists in code.
 
-### unlinked-1 · `docs/slates/tails/tradition-slate.md` (731 → 698)
+### unlinked-1 · `docs/slates/society/tradition-slate.md` (731 → 698)
 
 - unlinked-1 · tradition-slate · `## The split: Law vs Tenet` — **DUPLICATE → `uncertainty.md § Law vs Tenet`** (the table verbatim, the god-of-the-gaps line, the Compact-course parallel, *a framework is tenets + an attention order over the shared `Law` catalog*); body cut (25 lines), pointer left carrying the one detail the doc lacks (the owner row: `Law` is inquiry's, the Tenet this slate's).
 - unlinked-1 · tradition-slate · `### ⭐⭐⭐⭐ And this is why there is no truth table to datamine` — **DUPLICATE → `uncertainty.md § The superstition ladder`** (*nothing in the data marks them; the evaluator is the only oracle, so there is no truth table to datamine*); the blockquote + the `isNull`/`attends` paragraph cut (10 lines), the AGPL caveat paragraph (not in the doc) stays beside the pointer.
 - unlinked-1 · tradition-slate · `# ⚠⚠ Failure analysis — where this does not reach` (1–3) — **STAYS**; a record of why an unbuilt design was renamed and religion demoted to one consumer — no `Tradition` / `Law` class exists (`grep -rl 'class Tradition' packages/` empty); `uncertainty.md § No spokesperson` owns the rule it cites, not the post-mortem, and the congregation/founding/apostasy substrate it hands off is nobody's yet.
 
-### unlinked-1 · `docs/slates/builds/campus-grounds-slate.md` (770 lines, unchanged)
+### unlinked-1 · `docs/slates/world/campus-grounds-slate.md` (770 lines, unchanged)
 
 - unlinked-1 · campus-grounds-slate · `### ⭐⭐⭐ The ecosystem: the University monopolizes TRAINING, not MEASUREMENT` — **STAYS**; argues for enrollment-gated labs + the independent assayer path — no lab, enrollment gate or Chancellor seat exists (`eternal-university` content is `duncan-hall` · `campus-farm` · `campus-field`).
 - unlinked-1 · campus-grounds-slate · `## Part 2 — ⭐ The university owns them, and that is a content decision` — **STAYS**; the placement decision it argues (labs as pack content, not trade archetypes) is for unbuilt rooms; its one general clause — *code is shared, CONTENT IS COPIED* — is already doctrine at `mining.md:449`, so nothing to home beyond that.
 - unlinked-1 · campus-grounds-slate · `### ⭐ The finding: every trade shipped production, none shipped consumption` — **STAYS**; a gap finding that argues for the eatery (no dining / eatery / refectory row anywhere under `packages/content`); the trade rows it audits are shipped but the finding's content is the missing room. If the coordinator wants the method result recorded, `vocations.md § Four gap-finding methods` is the home — not done here (a top-level doc, and the item is still open).
 
-### git-workflow · `docs/slates/builds/provenance-slate.md` (290 lines, unchanged)
+### git-workflow · `docs/slates/platform/provenance-slate.md` (290 lines, unchanged)
 
 - git-workflow · provenance-slate · `## The principles` · Principle 1 (*Provenance is one first-class substrate, not a side-effect*) — **STAYS**; what it argues for is the UNIFICATION of four facets, and that is the unbuilt part — authorship shipped as its own ledger (`provenance.md`), history as the source-only VCS (`git-workflow.md`), ownership as parcel title stopping at land (`parcel.md`), lineage (the dependency DAG, Layer C) and the path-ownership resolver (Layer A) not at all; `provenance.md` already frames the ledger as *the first concrete brick of the provenance substrate* and defers the rest to the slate, which is the honest state. No insert into `provenance.md` / `git-workflow.md` needed.
 
-### topics · `docs/slates/tails/console-filtering-slate.md` (395 → 385)
+### topics · `docs/slates/client/console-filtering-slate.md` (395 → 385)
 
 - topics · console-filtering-slate · `## Principle` (*the server prints everything; the client decides what to show*) — **GRADUATED → `topics.md § Why the filter lives on the client`** (new section, 20 lines, before *The tree carries subject matter*); the mechanism shipped — facets on every `TopicDescriptor` (`topics.md § The six facets`), cockpit tabs as named predicates over the unfiltered buffer (`client-shell.md § One strip…`), and `MessageLogic.predicateMatches` only ROUTES with a catch-all rule, never drops — but no doc stated the principle those facts obey; body cut from the slate (13 lines), pointer left. (`## Non-goals` was listed by the ledger as *doctrine/scope guardrails* under Kept, not as a Doctrine entry — untouched.)
 

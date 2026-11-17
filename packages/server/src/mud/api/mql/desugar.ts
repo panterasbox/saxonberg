@@ -5,9 +5,13 @@
  * Three transformations:
  *
  *   1. Article stripping: leading `the` / `a` / `an` are dropped.
- *   2. Ordinal prefix: a leading ordinal marker rewrites the rest as
- *      a chain index — `second rose` → `rose:[2]`, `2nd rose` →
- *      `rose:[2]`, `last rose` → `rose:[-1]`.
+ *   2. Ordinal prefix: a leading ordinal marker is lifted off the query
+ *      onto the side-channel `ordinal` — `second rose` → `{ rewritten:
+ *      'rose', ordinal: 2 }`, `last rose` → `ordinal: -1`. ⭐ It is NOT
+ *      rewritten to a chain index any more (size-and-carrying D23): the
+ *      resolver names the same list for everyone, and the SURFACE picks
+ *      the nth after `PerceptionApi.perceived`, so `2nd knife` never
+ *      counts a knife you do not perceive.
  *   3. Quantity prefix: a leading positive integer or the literal
  *      `all` followed by at least one keyword token rides on the
  *      side-channel `quantityHint` — `5 coins` → `{ rewritten: 'coins',
@@ -60,6 +64,8 @@ import type { MqlQuantityHint } from './types';
 export interface DesugarResult {
   rewritten: string;
   quantityHint?: MqlQuantityHint;
+  /** The head ordinal (1-based; negative counts from the end). */
+  ordinal?: number;
   error?: string;
 }
 
@@ -234,7 +240,7 @@ export function desugar(input: string): DesugarResult {
   }
 
   const tail = tokens.slice(i + 1).join(' ');
-  const out: DesugarResult = { rewritten: `${tail}:[${ordinalValue}]` };
+  const out: DesugarResult = { rewritten: tail, ordinal: ordinalValue };
   if (quantityHint) out.quantityHint = quantityHint;
   return out;
 }

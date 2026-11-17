@@ -7,7 +7,7 @@ change, the furnace family, an inert heat-as-crafting-control seam). Built for
 its own sake — the electricity → mundane-`conduct` precedent — and the exact
 channel the magic **Fire school** will later actuate (inject heat → the same
 physics). Design surface in the
-[fire-combustion-slate.md](../slates/builds/fire-combustion-slate.md); the 11
+[fire-combustion-slate.md](../slates/engine/fire-combustion-slate.md); the 11
 surface decisions (D1–D11) the build's retired requirements settled are now
 captured below.
 
@@ -543,7 +543,7 @@ fuel in reach — nine rooms did not, and were given some. ⭐ The same
 question for a **carried** fire is the one that got missed: a bee smoker
 has a 1 kg bed, and nothing under a kilo in the realm was fuel until the
 sweep added a roll of sacking. Offered to
-[metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns
+[metal-chain-slate](../slates/trades/metal-chain-slate.md), which owns
 the fuel chain, as a **stocking** question rather than a mechanism one.
 
 ## ⭐ Linings — a chamber furnace's part that wears (ceramics D19, W5)

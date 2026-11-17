@@ -21,6 +21,7 @@ import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
+import { SpeciesApi } from '../../../../../api/species';
 import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
 import { Template } from '../../../../../lib/stuff/Template';
@@ -53,7 +54,7 @@ describe('EmbodyController.commit', () => {
       seedChronicleClaims: ReturnType<typeof vi.fn>;
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
-    occupyAll: ReturnType<typeof vi.fn>;
+    wearGarments: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -132,9 +133,14 @@ describe('EmbodyController.commit', () => {
       seedChronicleClaims: vi.fn().mockResolvedValue(undefined),
       recordDeed: vi.fn().mockResolvedValue(undefined),
       recordChronicleOnce: vi.fn().mockResolvedValue(undefined),
-      // The dressing loop claims slots ON the avatar since the OO sweep.
-      occupyAll: vi.fn(),
+      // The body dresses itself by its own recipe (`Character.wearGarments`,
+      // size and carrying finalize A9); the stand-in clones each garment so
+      // the dressing is observable.
+      wearGarments: vi.fn(async (paths: readonly string[]) => {
+        for (const p of paths) await StuffApi.clone(p);
+      }),
     };
+    vi.spyOn(SpeciesApi, 'tryGetBodyPlanPath').mockReturnValue(BIPED);
     dressed = [];
     const garment = makeStuff(() => new TestGarment());
     garment.setSlotClaim(BIPED, ['torso']);
@@ -224,9 +230,9 @@ describe('EmbodyController.commit', () => {
   it('clones the avatar, sets sex, dresses, hands off, and destructs Login', async () => {
     await confirm();
     expect(avatar.setSex).toHaveBeenCalledWith('female');
-    // Healer outfit garments cloned + worn (tolerant loop).
+    // Healer outfit garments put on by the body's own recipe.
+    expect(avatar.wearGarments).toHaveBeenCalledTimes(1);
     expect(dressed.length).toBeGreaterThan(0);
-    expect(avatar.occupyAll).toHaveBeenCalled();
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledWith(login);

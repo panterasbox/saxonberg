@@ -40,6 +40,13 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Size and carrying W10 (2026-11-14).**
+ *   - `PlacingMixin.shutRegions` — level 0: which buttoned chambers are
+ *     shut now, per instance; `look coat` says *(shut)* to anyone looking.
+ *   - W10j: `Form.aspect` · `Form.name` · `Form.rigid` LEAVE the surface —
+ *     the `Form` Idea retired and a shape is a `shape` document now, which
+ *     no panel enumerates. A removal, so no spoiler question to answer.
+ *
  * **Client surface (2026-10-31).**
  *   - ⚠ `Corpse.ofIdentityPath` — **`spoiler: 2`**. Whose body it is: the
  *     fact a corpse now tells only to whoever knew the dead (#105). A panel
@@ -490,7 +497,10 @@ function blankComments(src: string): string {
  */
 function harvestFieldLevels(): Record<string, string> {
   const levels: Record<string, string> = {};
-  const CLASS_RE = /(?:class|const)\s+(\w+)/g;
+  // A `class` anywhere (a mixin factory's class is indented), a `const`
+  // only at the top level — a method's local (`const atWaist = …` above a
+  // fieldMeta) is not an owner.
+  const CLASS_RE = /\bclass\s+(\w+)|^(?:export\s+)?const\s+(\w+)/gm;
   const META_RE = /static\s+fieldMeta\s*:?[^=]*=\s*\{/g;
 
   for (const file of sourceFiles(MUD_ROOT)) {
@@ -503,7 +513,7 @@ function harvestFieldLevels(): Record<string, string> {
       CLASS_RE.lastIndex = 0;
       let owner = '(anonymous)';
       let c: RegExpExecArray | null;
-      while ((c = CLASS_RE.exec(before)) !== null) owner = c[1]!;
+      while ((c = CLASS_RE.exec(before)) !== null) owner = (c[1] ?? c[2])!;
 
       const body = braceBody(src, m.index + m[0].length - 1);
       for (const [field, level] of entriesOf(body)) {

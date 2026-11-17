@@ -348,6 +348,31 @@ export class VisionModality extends Modality {
       // Which of their things are in view at all is
       // `PerceptionApi.visibleContentsOf`'s rule, not this one.
       env = env.getContainer() ?? env;
+    } else if (!(env instanceof Place) && MixinApi.isContainable(env)) {
+      // ⭐ …and what is IN something another body wears or carries — a
+      // letter in a coat's inner pocket (size and carrying W9: a chamber's
+      // contents are the garment's) — is seen in the light that body stands
+      // in. The light inside a coat is no light at all, so the letter a
+      // search had FOUND read *"You see something"* (finalize drive, step
+      // 15). Whether it is in view at all is rule 2's, not this gate's.
+      const bearer = env.getContainer();
+      if (bearer !== null && bearer.isAgent() && MixinApi.isSlotted(bearer) && MixinApi.isContainable(bearer)) {
+        env = bearer.getContainer() ?? env;
+      }
+    }
+    // ⭐ A body is never the light a thing is seen by. The open-container
+    // step above climbs ONE level, and from an open bag or a coat with an
+    // open pocket that level is the person carrying it — whose inside is
+    // dark — so a letter a search had found in a coat read "You see
+    // something" (finalize drive run 15, step 15). What a body bears reads
+    // the light that body stands in, whoever's body it is.
+    if (
+      !(env instanceof Place) &&
+      (env as Stuff).isAgent() &&
+      MixinApi.isSlotted(env as Stuff) &&
+      MixinApi.isContainable(env)
+    ) {
+      env = env.getContainer() ?? env;
     }
     const band = this.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];

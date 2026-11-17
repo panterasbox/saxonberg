@@ -337,7 +337,7 @@ sense.
 ├── search.      ← search/match results
 │   ├── find      FindController
 │   └── locate    LocateController
-└── inventory    Get/Drop/InventoryController
+└── inventory    Get/Drop/Put/…Controller (the list is `query --ledger`)
 ```
 
 Each sub-family has its own axis:
@@ -859,7 +859,7 @@ only `__tests__/test-helpers.ts` remains under `lib/perception/modalities/`.
 
 ## Cross-references
 
-- [docs/slates/tails/senses-slate.md](../slates/builds/senses-slate.md) — the
+- [docs/slates/engine/senses-slate.md](../slates/engine/senses-slate.md) — the
   seeding slate. Names the wider design space; this build's surface
   is the cross-wave slice.
 - [docs/subsystems/light.md](./light.md) — the vision substrate,

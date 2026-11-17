@@ -10,12 +10,18 @@ data:
   register: proper
   longDescription: |
     A wiry man in oiled boots with an ice saw over his shoulder, who has been through the ice once and talks about it more than once.
+  # ⭐ The saw goes over his shoulder in its sling (size and carrying,
+  # finalize): two hands hold the scraper and the marker, and a body places
+  # what it carries — a saw nearly as tall as he is has nowhere else to go.
+  costume:
+    - /trade/ice/thing/saw-sling
   archetype: labourer
   competence:
     - { discipline: ice-harvesting, asserting: competent }
   # His own kit, born in his hands (an NPC's `props:` — the storage-and-ice
   # sweep): the brain forces `scrape` / `groove` / `cut`, and those verbs bind
-  # a tool the cutter HOLDS. The shore's kit is the company's for anyone.
+  # a tool in reach — in hand, or in an open holder on him (the saw in its
+  # sling). The shore's kit is the company's for anyone.
   props:
     - /trade/ice/thing/scraper
     - /trade/ice/thing/hand-marker

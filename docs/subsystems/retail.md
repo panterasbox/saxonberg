@@ -249,6 +249,12 @@ is the seller's and is returned before any money moves**; the controller
 holds no branch per seller and narrows by nothing but the mixin.
 `purchaserOf(buyer, receipt)` (the wallet's business, else the buyer) is
 the one shared rule. `ask` is the buyer's prompt, `null` for a script.
+⭐ A settled sale is then **handed over** with plain
+`ContainmentApi.move(good, buyer)` — the money first, the good after
+(owner, 2026-11-15): a buyer with nowhere to carry it has it set down at
+their feet with the routing's line. The size-and-carrying build's
+goods-first refusal (*"the loaf stays on the shelf until you have a free
+hand"*) is retired with `directMove` ([carrying.md](./carrying.md)).
 
 ⭐ It was extracted from what the counter already answered
 (`counterFor`/`resolveBuy`/`bringUpFor`/`carriesLine`/`priceFor` — the
@@ -644,7 +650,7 @@ shelf is bare, so an empty store is an empty counter).
 ⚠ **Many sellers, one counter** is held by the market, not a cap: the bid
 falls with the house's days of supply, and its store and its money run
 out. Exclusivity of a harvest (who may cut a pond) is a use of the reach
-→ [navigable-water-slate](../slates/builds/navigable-water-slate.md) § Ice
+→ [navigable-water-slate](../slates/world/navigable-water-slate.md) § Ice
 harvest as a use of the reach.
 
 ## Deferred

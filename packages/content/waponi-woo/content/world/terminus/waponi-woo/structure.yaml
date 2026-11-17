@@ -2,7 +2,7 @@
 #
 # ⚠ STOPGAP: a mountain is not a building. It is a `Structure` only
 # because that is the one type the sea can sight; the mountain slate
-# (`docs/slates/builds/mountain-slate.md` § 1) splits the horizon feature
+# (`docs/slates/world/mountain-slate.md` § 1) splits the horizon feature
 # out of `Structure` and moves this onto rising ground.
 #
 # ⭐ The island's landmark, on the light-on-Gannet-Rock pattern: a FIXED

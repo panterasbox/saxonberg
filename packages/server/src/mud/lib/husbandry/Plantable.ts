@@ -26,7 +26,7 @@
  * refusals are the ground's (`plantPlanFor`, `sowPlanFor`): a seed naming a missing plant is
  * misconfigured content, not a different kind of thing, and a menu must
  * not freeze that distinction into a greyed-out row. See
- * `docs/slates/builds/affordance-suggestion-slate.md` § 3 on the
+ * `docs/slates/client/affordance-suggestion-slate.md` § 3 on the
  * kind / relation / state axes.
  */
 

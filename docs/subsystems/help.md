@@ -8,7 +8,7 @@ explicit spoiler gate**. A specific product thesis rides it: the API
 browse is the **player → contributor on-ramp** — the surface through
 which a player learns the mixin/type model that powers the world.
 
-Seeded by [docs/slates/builds/help-slate.md](../slates/builds/help-slate.md)
+Seeded by [docs/slates/platform/help-slate.md](../slates/platform/help-slate.md)
 (Wave 1). Replaces the prior `HelpController` + the unconsumed TypeDoc
 `author-surface.json` scaffold.
 

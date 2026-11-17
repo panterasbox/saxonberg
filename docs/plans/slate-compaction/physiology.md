@@ -1,6 +1,6 @@
 # Slate-compaction pass — physiology ledger
 
-Batch key `physiology`. One slate: `docs/slates/builds/physiology-slate.md`
+Batch key `physiology`. One slate: `docs/slates/engine/physiology-slate.md`
 (2,201 lines at start). Branch `design/slate-compaction`. Procedure:
 `.claude/skills/compact-slate/SKILL.md`. Write list: `vitals.md` · `harm.md`.
 Verified against `packages/server/src/mud/**` and `packages/content/**` on
@@ -79,7 +79,7 @@ re-verified, not re-typed on faith.
 
 ---
 
-## `docs/slates/builds/physiology-slate.md` — 2,201 → 1,935 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/physiology-slate.md` — 2,201 → 1,935 lines · Status PARTIAL → PARTIAL
 
 Worked bottom-up in one pass given the size of the verification (not
 literally bottom-up in file order, but section-by-section against code);

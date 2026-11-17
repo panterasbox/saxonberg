@@ -107,11 +107,31 @@ export default class TreatController extends EngagedActController<TreatModel> {
         return 'There is nothing to dress — the wound is inside.';
       case 'wrong-treatment':
         return TreatController.mismatchLine(r.facts.by ?? '', r.facts.wanted ?? null);
+      case 'remedy-out-of-reach':
+        return TreatController.awayLine(r.facts.away);
       default: {
         const unworded: never = r.reason;
         throw new Error(`TreatController: no words for '${String(unworded)}'`);
       }
     }
+  }
+
+  /**
+   * ⭐ The remedy is on you, put away (size and carrying, finalize run 16) —
+   * the next command, as `canReach` words it: *Your medic's pouch is shut —
+   * `open pouch` first.*
+   */
+  private static awayLine(why: TreatmentRefusal['facts']['away']): string {
+    if (!why) return 'What it wants is put away where you cannot reach it.';
+    const by = why.facts.by;
+    const bare = by.presentationPhrase().bare().replace(/^(a|an|the) /i, '');
+    const kw = (MixinApi.isPerceptible(by) ? by.getPrimaryKeyword() : undefined) ?? bare;
+    const word = kw.includes(' ') ? `"${kw}"` : kw;
+    if (why.reason === 'packed') return `Your ${bare} is on your back — take it off first (\`remove ${word}\`).`;
+    const region = (why.facts as { region?: string }).region;
+    const pos = bare.endsWith('s') ? "'" : "'s";
+    if (region !== undefined) return `Your ${bare}${pos} ${region} is shut — \`open "${region}"\` first.`;
+    return `Your ${bare} is shut — \`open ${word}\` first.`;
   }
 
   /** Prose for a treatment that does nothing for what is wrong. */

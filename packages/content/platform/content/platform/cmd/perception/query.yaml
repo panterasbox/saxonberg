@@ -1,7 +1,18 @@
 verbs: [query]
 category: perception
+# ⭐ There is no inventory verb (size-and-carrying W10h, owner ruling
+# 2026-11-15): listing a set and choosing how to show it is `query`.
+# `i` and `inventory` are default player aliases that run the whole line —
+# `alias list` shows it, `alias unset i` removes it.
+defaultAliases:
+  - name: i
+    body: query --ledger me:i
+    description: "What you carry, by how near it is to your hand"
+  - name: inventory
+    body: query --ledger me:i
+    description: "What you carry, by how near it is to your hand"
 controller: /platform/idea/cmd/perception/QueryController
-description: "List whatever a query names — the horizon, the people here, all the brass"
+description: "List whatever a query names — what you carry, the horizon, the people here, all the brass"
 help: |
   `look` tells you what ONE thing is like. `query` lists a SET: whatever
   the query names, each thing as it stands to you.
@@ -13,13 +24,36 @@ help: |
     query bob:i        what Bob wears and holds (never his pockets)
     query me:i         everything you have
 
-  `query horizon`, `query peers` read the world the same way. `inventory`
-  is the same list of what something holds,
-  grouped as a ledger: worn, held, carried.
+  Options change how the list is SHOWN, never what is in it:
 
-  Options change how the list is SHOWN, never what is in it — narrowing
-  is the query's own: `brass:{2}`, `all coins`, `me:i:[keyword.knife]`.
+    --ledger   grouped under whoever holds it. Yourself by how near each
+               thing is to your hand: IN HAND; READY (your pockets, what
+               hangs from your belt and the room left along it, the
+               satchel at your side and what is in each); WORN; and
+               PACKED away on your back (each pack as how many things and
+               how heavy). Then how heavy your load is, in words. Another
+               person or a container: worn, held, carried.
+    --weight   the weight and bulk of each thing
+    --flat     one list, not grouped
+
+  `i` and `inventory` are your aliases for `query --ledger me:i` — type
+  `alias list` to see them, `i --weight` or `i --flat` to add an option.
+
+  Narrowing is the query's own, never an option: `me:i:held` (in your
+  hands), `me:i:worn`, `me:i:carried` (in hand or hung from you),
+  `me:I` (everything, the packs opened), `rucksack:i` (one pack),
+  `brass:{2}`, `all coins`, `me:i:[keyword.knife]`. A person shows only
+  what you can see of them; a shut container is shut — `open` it first.
+  `look in <thing>` is the ledger of one container.
 examples:
+  - cmd: i
+    note: What you carry — in hand, ready, worn, packed — and your load
+  - cmd: query --ledger me:I
+    note: The same, with the packs on your back opened
+  - cmd: query --ledger me:i:worn
+    note: Only what you wear
+  - cmd: i --weight
+    note: The weight and bulk of each thing
   - cmd: query horizon
     note: What is in view beyond your room
   - cmd: query all brass
@@ -40,4 +74,10 @@ args:
 options:
   ledger:
     type: boolean
-    description: "Group the list under its holder: worn, held, carried"
+    description: "Group the list under its holder — yourself by tier: in hand, ready, worn, packed"
+  weight:
+    type: boolean
+    description: "The weight and bulk of each thing"
+  flat:
+    type: boolean
+    description: "One list, not grouped"

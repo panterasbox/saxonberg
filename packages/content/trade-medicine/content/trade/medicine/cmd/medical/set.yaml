@@ -24,11 +24,15 @@ args:
     scope: "reachable"
     requires: VitalsMixin
   # ⭐ The instrument, declared not hunted — `[capability.splint]` is the
-  # thing that can do this job (the Whetstone rule); `me:i` = in hand.
+  # thing that can do this job (the Whetstone rule); `person` = what you
+  # carry, used where it sits (an open medic's pouch is to hand; a shut one
+  # is refused naming `open pouch` — `canReach` narrows the default).
   - name: splint
     type: object
     required: false
     prepositions: [with, using]
-    default: "me:i:[capability.splint]"
+    default: "person:[capability.splint]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach

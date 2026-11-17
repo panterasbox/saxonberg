@@ -29,6 +29,8 @@ data:
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
   hardness: 600
   toughness: 200
+  # Size and carrying D4: what a strap, a belt or a rail of it bears hung from.
+  tensileStrengthMPa: 400
   tags: ["alloy", "metal", "ferrous", "forgeable", "magnetic"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.998 }

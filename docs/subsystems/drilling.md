@@ -362,7 +362,7 @@ see. ⛔ **The third — pouring it into a river — is NOT built.** Nothing
 shipped turns a poured liquid into a discharge, and building that half is
 cross-cutting water substrate a trade build may not solve. The whole
 withdrawn shape is on
-[water-design-pack](../slates/builds/../tails/water-design-pack.md).
+[water-design-pack](../slates/engine/water-design-pack.md).
 
 ## An oven on a pipe
 
@@ -411,7 +411,7 @@ reading"* only partly true.
 ⚠ Untuned on purpose: which number is wrong is a **balance** question
 against a running game. The drive asserts the mechanism and no rate.
 Full write-up and the other deferrals:
-[drilling-slate](../slates/tails/drilling-slate.md) § Tail.
+[drilling-slate](../slates/trades/drilling-slate.md) § Tail.
 
 ## ⛔ And nothing CAPS a well
 

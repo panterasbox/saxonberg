@@ -4,12 +4,12 @@ Branch `design/slate-cluster-merge`. Procedure:
 `.claude/skills/compact-slate/SKILL.md` § The cluster-merge pass. Files in
 scope (line counts at the start of this pass):
 
-- `docs/slates/builds/eternal-university-slate.md` (510)
-- `docs/slates/builds/campus-grounds-slate.md` (731)
-- `docs/slates/builds/demo-slate.md` (94)
-- `docs/slates/builds/onboarding-slate.md` (400)
-- `docs/slates/builds/acquisition-slate.md` (181)
-- `docs/slates/builds/eternal-university-narrative-slate.md` (1055)
+- `docs/slates/world/eternal-university-slate.md` (510)
+- `docs/slates/world/campus-grounds-slate.md` (731)
+- `docs/slates/platform/demo-slate.md` (94)
+- `docs/slates/client/onboarding-slate.md` (400)
+- `docs/slates/society/acquisition-slate.md` (181)
+- `docs/slates/world/eternal-university-narrative-slate.md` (1055)
 
 Prior ledgers consulted: `char-gen.md` (onboarding's compaction — the
 journey + curriculum table already cut as SUPERSEDED, the Limen-vs-need-fired

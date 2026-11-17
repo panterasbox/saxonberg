@@ -15,7 +15,7 @@ help: |
   the thing: you are buying a depreciating asset that consumes.
 
   Any beast big enough to pull, standing in the field with you while you
-  have a plough in your hands, is in the traces. A hen is not.
+  have a plough to hand, is in the traces. A hen is not.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -29,14 +29,16 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    # ⚠ `me:i` — IN HAND first, as the controller walked before the default
-    # was declared. ⭐ Then a plough standing in the field (cover build): a
+    # ⚠ `person` first — what you CARRY, used where it sits (held, worn,
+    # or in an open pouch on you; `canReach` narrows the default). ⭐ Then a plough standing in the field (cover build): a
     # plough is a beam and a share heavier than a body carries, and it is
     # left at the headland of the field it works — it is the one tool that
     # is used where it lies.
-    default: "me:i:[capability.ploughing],reachable:[capability.ploughing]"
+    default: "person:[capability.ploughing],reachable:[capability.ploughing]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    validators:
+      - /lib/command/validators/canReach
   - name: detail
     type: string
     required: false

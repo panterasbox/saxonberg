@@ -1,9 +1,9 @@
 # Slate-compaction ledger — batch: display
 
 Insert-doc (may write): `docs/subsystems/display.md`
-Slate: `docs/slates/tails/display-manifestation-slate.md`
+Slate: `docs/slates/client/display-manifestation-slate.md`
 
-## `docs/slates/tails/display-manifestation-slate.md` — 183 → 84 lines · Status PARTIAL → PARTIAL
+## `docs/slates/client/display-manifestation-slate.md` — 183 → 84 lines · Status PARTIAL → PARTIAL
 
 Verified against code and against `docs/subsystems/display.md` (which is
 already extremely thorough — it appears to have absorbed most of this

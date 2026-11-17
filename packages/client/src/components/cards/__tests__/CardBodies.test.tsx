@@ -594,8 +594,8 @@ describe("the prompt card's body", () => {
  * which sections are offered at all, not cosmetics:
  *
  *  - a **place** has ways out and things in it, and no mass;
- *  - an **agent** is a who, not a container to enumerate — listing a
- *    person's contents in a look card would be reading their pockets;
+ *  - an **agent** shows what the wire sends of what it carries — the
+ *    server sends only what the viewer perceives (size-and-carrying D23);
  *  - a **thing** is the kind whose material and weight earn a line;
  *  - an **idea** is not perceived in the usual way at all.
  */
@@ -638,16 +638,18 @@ describe("the four inspection bodies", () => {
     expect(text).toMatch(/a thing inside/);
   });
 
-  it("⚠ an AGENT lists no contents — those are their pockets", () => {
+  it("⭐ an AGENT lists the contents the wire sends — the server already filtered them by perception (D23)", () => {
+    // ⚠ Meaning changed at size-and-carrying W3: the client used to hide
+    // a person's contents wholesale ("those are their pockets"). The
+    // server now sends only what the viewer perceives, so the card shows
+    // what arrives.
     const text = body("agent");
-    expect(text).not.toMatch(/a thing inside/);
+    expect(text).toMatch(/a thing inside/);
     expect(text).not.toMatch(/north/);
   });
 
   it("⭐ an AGENT DOES list what they are wearing — worn is public", () => {
-    // The hole the worn projection fills: contents is suppressed for a
-    // person because it is their pockets, which left the card unable to
-    // show the most public fact about them.
+    // The most public fact about a person: what they have on.
     const text = body("agent");
     expect(text).toMatch(/Worn/);
     expect(text).toMatch(/a plain shirt/);

@@ -356,7 +356,7 @@ to give is now `lint:mixin-names`' job: it refuses a duplicate
 resolve. **Two packs colliding on a name is the recorded trigger to
 reopen path-addressed mixins** — declined today because a TypeScript
 type predicate cannot be path-addressed
-(`docs/slates/builds/content-packs-slate.md` § RESOLVED).
+(`docs/slates/platform/content-packs-slate.md` § RESOLVED).
 
 ### 3. Public-shape interface, same name, colocated
 
@@ -874,7 +874,7 @@ class either doesn't persist it or supplies a custom Hydrator subclass.
 
 ```typescript
 static commandProvider = {
-  self: ['inventory.yaml', 'get.yaml', 'drop.yaml'],
+  self: ['get.yaml', 'drop.yaml', 'put.yaml'],
   environment: [],
   inventory: [],
   peers: [],
