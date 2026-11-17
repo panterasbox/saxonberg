@@ -208,7 +208,9 @@ test.describe('size and carrying, in a browser', () => {
         return links[links.length - 1]?.getAttribute('data-stuff-id') ?? '';
       });
       expect(id, "the bearer's id on their own link").not.toBe('');
-      const seen = await sayAwaiting(v, `i #${id}`, /linen coat|arming sword|don't see/i);
+      // ⚠ `i` is a default alias for `query --ledger me:i` (W10h) and takes
+      // no target: what `i <someone>` was is the ledger of THEIR things.
+      const seen = await sayAwaiting(v, `query --ledger #${id}:i`, /linen coat|arming sword|don't see/i);
       expect(seen).not.toMatch(NOT_UNDERSTOOD);
       expect(seen, 'what they hold').toMatch(/arming sword/i);
       expect(seen, 'their outer layer').toMatch(/linen coat/i);
