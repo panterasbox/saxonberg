@@ -471,7 +471,7 @@ export abstract class CommandController<
   }
 
   /** Guarded landings still to come on combat's beat — each keeps this clone alive past dispatch. */
-  private landingsPending = 0;
+  private landingsPending = new Set<object>();
   /** The dispatcher is done with this clone; the last landing releases it. */
   private released = false;
 
@@ -483,12 +483,12 @@ export abstract class CommandController<
    */
   public releaseAfterDispatch(): void {
     this.released = true;
-    if (this.landingsPending === 0 && !this.isDestroyed()) StuffApi.destruct(this as unknown as Stuff);
+    if (this.landingsPending.size === 0 && !this.isDestroyed()) StuffApi.destruct(this as unknown as Stuff);
   }
 
   /** One landing done (run or abandoned): the last one after release lets the clone go. */
-  private landed(): void {
-    this.landingsPending = Math.max(0, this.landingsPending - 1);
+  private landed(landing: object): void {
+    this.landingsPending.delete(landing);
     if (this.released) this.releaseAfterDispatch();
   }
 
@@ -518,7 +518,8 @@ export abstract class CommandController<
     // keeps the clone alive; `releaseAfterDispatch` lets it go once it lands
     // (or is abandoned — a body that went down never finishes it).
     const path = giver.getTemplatePath() ?? giver.stuffId;
-    this.landingsPending++;
+    const landing = {};
+    this.landingsPending.add(landing);
     const begun = giver.beginHandAct(seconds, (abandoned?: boolean) => {
       void Promise.resolve()
         .then(() => (abandoned === true ? undefined : act()))
@@ -531,9 +532,9 @@ export abstract class CommandController<
             stack: err instanceof Error ? (err.stack ?? null) : null,
           });
         })
-        .finally(() => this.landed());
+        .finally(() => this.landed(landing));
     });
-    if (!begun.ok) this.landingsPending--;
+    if (!begun.ok) this.landingsPending.delete(landing);
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(
