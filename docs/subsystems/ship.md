@@ -447,16 +447,17 @@ under-water rooms a dry way admits a water mode (`Exit.floodedFor`), so a
 diver `swim down`s her companionway. No chart knows where she lies until
 somebody charts her (Deferred).
 
-## Aboard: `route`, `locate`, `look`
+## Aboard: `route`, where she lies, `look`
 
 - **`route`** aboard any ship plans from where she **lies**. Moored, the
   plan starts at her landing with `ashore from <her>` as its first leg.
   Not made fast, it is refused naming `course` (*under way*). A ship's
   rooms are never an origin; the map cannot claim a way that left with
   her.
-- **`locate`**: at sea, the reckoning; otherwise *"aboard the Petrel,
-  made fast alongside the yard quay."* or *"aboard the Petrel, under
-  way."*
+- **Where she lies** (`Voyaging.lies()`; `locate` retired by the
+  navigation-server build): made fast at a landing, on a river's line, or
+  at sea — the where-you-are subscription's outer crumb. The reckoning is
+  `course` at her helm, for whoever may steer her.
 - `Compartment.isSeenAcrossExit()` (her deck while afloat) and
   `BerthExit.peekDestination()` (asks her, `watchRoomNow`) feed MQL's
   steps between places; `look` does not swap targets (the one resolution
@@ -550,7 +551,7 @@ file's header.
   controllers `cmd/work/CharterController`, `cmd/retail/RentController`,
   `cmd/device/BailController`, `cmd/civics/TitleTransferController` (the shares
   form), `cmd/system/TestHarnessShipController` (`ship`), the `course`/`anchor`
-  helm gate, `cmd/perception/LocateController`.
+  helm gate (the readout too).
 - Transport pack: `src/thing/{HullBook,Boat}.ts`; tests `HullBook.test`,
   `Boat.float.test`, `Boat.leak.test`.
 - Water pack: `src/lib/WreckSite.ts`, `src/location/{SeaStop,ReachStop}.ts`.

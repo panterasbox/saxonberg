@@ -1326,6 +1326,16 @@ export interface Whereabouts {
 }
 
 /**
+ * ⭐ Where the craft you are aboard lies (navigation-server D10) — made
+ * fast at a landing, on a river's line, or at sea. Names, never paths:
+ * the landing and the river are what a body aboard can see.
+ */
+export type Lie =
+  | { at: 'berth'; ship: string; landing?: string }
+  | { at: 'river'; ship?: string; river: string; km: number }
+  | { at: 'sea'; ship?: string };
+
+/**
  * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
  * nothing stands in it, or what does is open; `shut`; `locked`; `window` —
  * it shows the far side and passes no body.

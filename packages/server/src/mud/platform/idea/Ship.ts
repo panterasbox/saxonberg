@@ -45,6 +45,7 @@ import type { FieldMeta } from '../../lib/mixin';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Lie } from '@saxonberg/types';
 import type { HullNow } from '../../lib/expanse/Voyaging';
 import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
@@ -1636,6 +1637,16 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   /** ⭐ The landing she is made fast at — what her deck's `ashore` leads to first. */
   public getBerth(): string | null {
     return this.moored ? this.berth : null;
+  }
+
+  /** ⭐ Made fast at a landing, its name; else where her frame has her (navigation-server D10). */
+  public override async lies(): Promise<Lie> {
+    const berth = this.getBerth();
+    if (berth === null) return super.lies();
+    const landing = StuffApi.findByIdentityPath<Stuff>(berth).find((s) => !s.isDestroyed()) ?? null;
+    return landing !== null
+      ? { at: 'berth', ship: this.getName(), landing: landing.getPresentation() }
+      : { at: 'berth', ship: this.getName() };
   }
 
   public override isMoored(): boolean {

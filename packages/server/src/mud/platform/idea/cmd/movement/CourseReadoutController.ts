@@ -17,6 +17,9 @@ export default class CourseReadoutController extends CourseControllerBase {
     const giver = context.commandGiver;
     const craft = await this.craftOf(giver);
     if (craft === null) return this.smallBoat(context, '');
+    // ⭐ The reckoning is the helm's reading (navigation-server D10): a
+    // passenger standing at her wheel is told what the steer tells them.
+    if (!this.mayHelm(context, craft, giver)) return;
     if (craft.getLine() !== null) return this.onRiver(context, craft);
     const frame = await craft.liveFrame();
     const expanse = frame instanceof Expanse ? frame : null;

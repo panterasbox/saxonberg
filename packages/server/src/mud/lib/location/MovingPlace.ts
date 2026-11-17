@@ -49,7 +49,7 @@ export interface MovingPlace extends Moving {
   onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void>;
   getDrift(): Drift | null;
   setDrift(drift: Drift | null): void;
-  /** The craft lying alongside this place, stopped — what `locate` names a place at sea by. */
+  /** The craft lying alongside this place, stopped — what a place at sea is named by. */
   alongsideCraft(): Stuff | null;
 }
 

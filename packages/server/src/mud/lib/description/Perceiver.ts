@@ -1,6 +1,5 @@
 /**
- * PerceiverMixin — owns the verbs of perception (`look`, `scry`,
- * `locate`).
+ * PerceiverMixin — owns the verbs of perception (`look`, `scry`).
  *
  * Sister of `Sensor` and `Visible`. The split is by responsibility:
  *
@@ -34,6 +33,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Whereabouts, WhereaboutsExit } from '@saxonberg/types';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
+import type Place from '../stuff/Place';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
@@ -221,13 +221,12 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       const viewer = this as unknown as Stuff;
       // Lazily: these reads pull in address, weather, celestial and civics
       // substrate a foundational mixin must not load at module scope.
-      const [{ AddressApi }, { WeatherApi }, { CelestialApi }, { GovernmentApi }, { NavigationApi }] =
+      const [{ AddressApi }, { WeatherApi }, { CelestialApi }, { GovernmentApi }] =
         await Promise.all([
           import('../../api/address'),
           import('../../api/weather'),
           import('../../api/celestial'),
           import('../../api/government'),
-          import('../../api/navigation'),
         ]);
       if (!MixinApi.isContainable(viewer)) return null;
       const place = viewer.getContainer();
@@ -256,7 +255,11 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
             .reverse()
         : [];
 
-      const structure = await attempt(() => NavigationApi.structureAtNow(place.getTemplatePath() ?? ''));
+      // ⭐ The place is asked (navigation-server W0): a keyed room's
+      // structure is its warren's, never its row's.
+      const structure = place.isPlace()
+        ? await attempt(() => (place as unknown as Place).structure())
+        : undefined;
       // Lazily: a static import of Location from a logic singleton runs the
       // mixin chain before it is ready (the SandboxLogic precedent).
       const { default: Location } = await import('../location/Location');
@@ -291,8 +294,10 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await attempt(() => WeatherApi.sampleFor(place))
         : undefined;
       const day = await attempt(() => CelestialApi.isDayAt(place));
-      const government = address
-        ? await attempt(() => GovernmentApi.governmentAt(address))
+      // ⭐ Whose ground this is, by the one question `government` asks
+      // (navigation-server S11): aboard a ship her port, then her flag.
+      const government = MixinApi.isContainer(place)
+        ? (await attempt(() => GovernmentApi.subjectTo(place)))?.[0]
         : undefined;
 
       return {
@@ -351,7 +356,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/stream/watch-stream.yaml',
         'platform/cmd/stream/watch-on.yaml',
         'platform/cmd/perception/scry.yaml',
-        'platform/cmd/perception/locate.yaml',
         'platform/cmd/shell/find.yaml',
         'platform/cmd/perception/smell.yaml',
         'platform/cmd/perception/listen.yaml',
@@ -371,7 +375,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Composition constraint: `Perceiver` requires `Sensor` to be
      * present on the same host. The perception verbs (`look` /
-     * `scry` / `locate`) render scenes to the perceiver's own
+     * `scry`) render scenes to the perceiver's own
      * channel via `handleMessage`, which lives on `Sensor`. The
      * public-shape interface declares `Perceiver extends Sensor`
      * so the type narrowing in `MixinApi.isPerceiver` exposes the

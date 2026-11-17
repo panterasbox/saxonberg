@@ -179,16 +179,6 @@ export default class CourseController extends CourseControllerBase {
   }
 
   /**
-   * ⭐ Only her master takes the helm: her charterer, or
-   * whoever holds her company's `master` seat. `true` when `giver` may.
-   */
-  private mayHelm(context: CommandContext, craft: Craft, giver: Stuff): boolean {
-    if (craft.mayBeSteeredBy(giver)) return true;
-    this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
-    return false;
-  }
-
-  /**
    * ⭐ In alongside the landing of the node she lies at: the keeper's
    * criteria first, then her lines go ashore.
    */

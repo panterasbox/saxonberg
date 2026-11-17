@@ -215,7 +215,7 @@ The substrate is in place. Major shipped surfaces:
   `destruct`/`eval`/`goto` — `teleport` moved to `MobileMixin` in the
   TPA reform: it is a movement verb, not an authorial one),
   `PerceiverMixin` (`look` /
-  `scry` / `locate`), prose / liquid templating.
+  `scry`), prose / liquid templating.
 - **Communications** — `Sensor` / `Vocal` / `Mobile` mixins;
   `say` / `dm` controllers; messaging subsystem (MML, scene
   composer, movement-message settings); `MudlogApi`.

@@ -9,7 +9,7 @@
  *     user-facing action, the channel is the sense vocabulary.
  *   - `sceneTopic` — the dotted topic the Scene fires on
  *     (`'sense.survey'`, etc.). Mirrors the existing
- *     `sense.survey` topic for `look` / `scry` / `locate`.
+ *     `sense.survey` topic for `look` / `scry`.
  *
  * Routes through three branches dispatched on the bound `target`:
  *
@@ -66,7 +66,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
 
   /**
    * Dotted topic the Scene fires on. Mirrors the existing
-   * `sense.survey` topic used by `look` / `scry` / `locate`.
+   * `sense.survey` topic used by `look` / `scry`.
    */
   protected abstract readonly sceneTopic: string;
 

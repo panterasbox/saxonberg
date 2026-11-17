@@ -295,9 +295,10 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
     expectNote(go, 'engagement-started');
   });
 
-  it('5 · `locate me` mid-crossing gives the reckoning, labelled as one', async () => {
-    const said = squash(await me.prose('locate me'));
-    expect(said).toMatch(/at sea, by reckoning/);
+  it('5 · `course` at her helm mid-crossing gives the reckoning, labelled as one', async () => {
+    // `locate` retired (navigation-server W0): the reckoning is the helm's.
+    const said = squash(await me.prose('course'));
+    expect(said).toMatch(/position, by reckoning/);
   });
 
   it('the bar is crossed and she comes up to the roads', async () => {
@@ -596,7 +597,8 @@ suite('12 · 15 · anchored at sea; the boat', () => {
     expectOk(await me.cmd('go dinghy'));
     const r = await me.cmd('launch');
     expectOk(r);
-    expect(squash(await me.prose('locate me'))).toMatch(/at sea, by reckoning/);
+    // `locate` retired (navigation-server W0): where the boat lies rides the
+    // where-you-are subscription (navigation-server drive), not a verb.
     expectOk(await me.cmd('recover'));
     // ⚠ `go out`: a bare `out` answered unknown-verb here (recorded).
     expectOk(await me.cmd('go out'));

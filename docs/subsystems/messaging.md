@@ -161,7 +161,6 @@ world.                          # in-fiction
     look
     inventory
     scry
-    locate
   narration.
     movement                    # walking-style depart/arrive
     teleport                    # sudden, magical in/out

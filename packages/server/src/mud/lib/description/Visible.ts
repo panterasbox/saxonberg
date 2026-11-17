@@ -41,7 +41,7 @@ import { SENSE_CHANNELS } from './Perceiver';
  *
  * Visible is pure **target shape** — it owns the description state
  * (`shortDescription` / `longDescription`) and contributes no
- * verbs. The verbs of perception (`look` / `scry` / `locate`) live
+ * verbs. The verbs of perception (`look` / `scry`) live
  * on `PerceiverMixin`'s `self` bucket; perceivers issue them, and
  * scope resolution at execution time picks any reachable Visible
  * as a target.

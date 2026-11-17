@@ -1268,7 +1268,7 @@ template path in parens — `brass thermometer (/platform/thing/Thermometer)`.
 Non-admins see display name only.
 
 **Discovery.** Contributed to `PerceiverMixin.commandContributions.self`
-alongside `look`, `scry`, `locate` — `find` is the
+alongside `look`, `scry` — `find` is the
 enumeration counterpart to `focus`, both surfaced on the
 perceiver's verb set.
 

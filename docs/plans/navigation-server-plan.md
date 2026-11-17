@@ -904,7 +904,15 @@ particular `lint:graph-walks`, `lint:object-verbs`, `lint:lib-statics`,
 Each wave ends at one commit, passes `pnpm test:near`, the touched
 packages' own suites and `lint:family`, and is landable alone.
 
-### W0 — `locate` retired; the jurisdiction aboard
+### W0 — `locate` retired; the jurisdiction aboard ✅
+
+> **Done.** `lies()` on `VoyagingMixin` (river + sea) with `Ship` adding the
+> berth; the `Lie` type lives in `packages/types` (the localities section's
+> `outer` will carry it). The helm gate moved to `CourseControllerBase` and
+> the readout uses it for sea AND river (a small boat answers anyone). The
+> two wire `locate me` reads in a dinghy were dropped, not rewritten — a
+> body in a boat beside her has no helm; where it lies is the subscription's
+> to say (W5). `lint:controller-decisions` re-pinned 508→506.
 
 D10 (jurisdiction, `course`), D11.
 

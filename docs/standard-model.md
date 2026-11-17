@@ -260,8 +260,7 @@ factory in the folder shown.
 - **`Visible`** — short and long descriptions for display.
 - **`Perceptible`** — MQL keywords/aliases so a thing is findable
   (`get rose`).
-- **`Perceiver`** — the actor's perception verbs (look, scry,
-  locate); requires `Sensor`.
+- **`Perceiver`** — the actor's perception verbs (look, scry); requires `Sensor`.
 - **`Detailed`** — nested sub-features of a thing (a desk's drawer,
   a wall's carving).
 

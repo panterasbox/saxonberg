@@ -14,7 +14,7 @@
  * or refused in words when she has gone.
  *
  * Its position is on the chart (it is `Positioned`), so the weather, the
- * sea's lean and `locate` read it like a craft.
+ * sea's lean read it like a craft.
  */
 
 import Location from '@saxonberg/server/mud/platform/location/Location';
@@ -58,7 +58,7 @@ export default class SeaPatch extends SeaPatchBase {
 
   /**
    * ⭐ The ship this water lies beside (D30): the craft whose reckoning a
-   * swimmer or a boat here reads (`locate`). The first whose deck a way
+   * swimmer or a boat here reads. The first whose deck a way
    * from here still reaches.
    */
   public override alongsideCraft(): Stuff | null {
