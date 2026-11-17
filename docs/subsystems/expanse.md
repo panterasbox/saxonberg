@@ -220,12 +220,16 @@ reader). The sea loads what is attached to it:
 - **its landmarks** — a BUILDING standing at one of its nodes (the node's
   landing is in the building's extent): the light on Gannet Rock. ⭐ It has
   no position of its own; it is where its rock's node is, so the
-  position is authored once. In view from a craft's eye, never a sail,
-  and the thing a bearing fixes by.
+  position is authored once. ⭐ Since the geography build the sea does not
+  LIST it: the location graph reads the node's `focus` through the sea's
+  `origin` off the rows (`NavigationApi.markPointNow`) and the light is on
+  the one skyline every vantage reads — a deck's included.
 
 A sighting candidate (`Sighted`) carries its position and target height
-from the expanse — a ship's own fix, a landmark's node — and
-`Expanse.sightables()` is the synchronous list the horizon reads.
+from the expanse — a ship's own fix — and `Expanse.sightables()` is the
+synchronous list of the sea's CRAFT the horizon reads (what moves, read at
+the act). The sight math is `Vantage` (`lib/perception/Vantage.ts`), shared
+with the land.
 
 ## Sight and traffic
 
@@ -407,33 +411,35 @@ emitters that announce themselves (a bell, a gun, a signal).
 
 - **What is in view** is `PerceptionApi.horizonFor(viewer)`, and it is
   ⭐⭐ **SYNCHRONOUS** — it is the MQL `horizon` seed's pool and the
-  resolver cannot wait, so every MQL caller gets the truth with one call.
-  It reads only warm state, and ⭐⭐ **only through the scope that owns
-  each answer — never a registry-wide read** (maritime review,
-  2026-10-13): *which craft am I aboard* is the room's own zone's
-  `structureOf`; *what can I see at sea* is that craft's expanse's
-  (`sightables()`); *what stands in a named zone* is that zone's
-  `getStructures()`. ⭐ **What a place can see loads with the place**
-  (`LocationZone.lookOutFrom`, 2026-10-14): when a zone gets its first
-  room, the zones and seas its `horizon` names are stood up, and with
-  them the structures they name — so a scan reads them resident without
-  anything at boot. It cannot cascade: a zone stood up only because
-  somebody can SEE it has no room, so it never looks out itself. Also read: the resident zones' fields
-  (`Zone.peekField`, the sync sibling of `lookupField`), the compiled sea,
-  and the cached sky (`WeatherApi.peekSkyType`). A sky nobody has read yet
-  counts as clear once and starts its read; a sea nobody has compiled
-  shows a height ashore nothing once and starts compiling. Afloat: the
-  craft and landmarks on her sea from the viewer's own eye (`Ship.sightHeightFor` — the lookout seat is the
-  masthead), nothing below decks. Ashore: the nearest `horizon`
-  declaration (a room's, then the zone walk) names ZONES; a Structure in
-  one is in view from a sky-exposed room when `(heightM + |Δelevation|) ×
-  perception.horizonRatio ≥` the distance the zones' spans imply
-  (`CartesianZone.getExtentM`). A zone naming an EXPANSE is read like a
-  deck: from the nearest landing (`Expanse.peekShorePositionFor`) at the
-  zone's elevation, through the one sync sighting core
-  (`Expanse.sightingsAmong`, which `contactsFrom` also uses over the sea's
-  own registry) — the headland raises the light, the strand below it does
-  not.
+  resolver cannot wait. ⭐⭐ **One rule for land, river and sea** (the
+  geography build, 2026-11-17): where the viewer stands on the chart
+  (`Place.chartPoint` — a craft's fix, a building's own point, else the
+  nearest positioned Locality over its address) and how high the eye is
+  (`Place.heightAboveSeaM` + a standing eye; a deck's `sightHeightFor`)
+  decide it.
+  - **What stands still** is the location graph's kept skyline
+    (`NavigationApi.skylineNow`): every structure worth seeing — a landmark,
+    or one `perception.skyline.minHeightM` tall — read off the content ROWS
+    (nothing is loaded to decide what is seen), cut to a handful
+    (`perception.skyline.size`), landmarks first, then by angular height;
+    kept per point owner × eye height and dropped when a structure is built,
+    pulled down or moved. Filtered at the read by the weather
+    (`WeatherApi.peekSkyType`), the night (only what `showsLight`) and the
+    place's `block`. Inside the viewer's own Locality radius a thing is
+    `closeBy` — no direction is invented.
+  - **What moves** is read at the act: the craft of the sea the viewer is
+    on, or the sea their place's `horizon.reach` names (the estuary, the
+    harbor, the headland reach the Greywater); an unlit craft is not seen
+    by night (`Positioned.isLitByNight`); a river's craft by name only.
+  - **What a place can see loads with the place**: `Place.standUpHorizon`
+    stands up the handful on its kept skyline and what it reaches — kicked
+    by `LocationZone.lookOutFrom` when the room loads, awaited by the
+    arrival `look`. Nothing at boot; it cannot cascade (a structure `Idea`,
+    never its rooms).
+  - ⛔ The client is sent the ROUGH direction (`PerceptionApi.glance` — a
+    compass point and rough miles) or *close by*, never the true bearing;
+    `measure bearing` narrows it by competence, afloat or ashore.
+  - A place with no chart point (a test world) sees only what a frame names.
 - **A Structure is Visible** (+ Detailed + Perceptible — `Species`'s and
   `Material`'s precedent): described once, the ordinary way; its inside is
   its member rooms. `landmark: true` FEATURES it in the summary; a room's

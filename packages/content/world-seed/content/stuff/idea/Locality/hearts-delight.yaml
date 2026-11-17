@@ -38,6 +38,10 @@ class: /platform/idea/Locality
 data:
   name: Heart's Delight
   _address: terminus/hearts-delight
+  # ⭐ Where it stands on the chart (geography D12) — 32 km from the bar
+  # on 285°, up the valley.
+  _position: { latDeg: 42.2236, lonDeg: -9.5949 }
+  _radiusM: 4000
   _reach: delight:flats
   # The worked ground the valley itself sheds: orchards on the flats,
   # thin arable on the bench, and the yards between them.

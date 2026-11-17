@@ -1459,7 +1459,8 @@ export interface HorizonSection {
     stuffId: string;
     name: string;
     landmark: boolean;
-    glance?: { point: string; closeBy?: boolean; roughMiles?: number };
+    /** The rough direction and miles `query horizon` gives — or *close by* (no point). */
+    glance?: { point?: string; closeBy?: boolean; roughMiles?: number };
   }[];
   traffic: number;
 }

@@ -199,6 +199,7 @@ const NON_SUBJECT_TYPES = new Set<string>([
   "CelestialProfile",
   "WeatherType",
   "Light",
+  "Vantage", // an eye on the chart (geography) — a value, like Light
   "CommandDefinition",
   "Script",
   "CombatSession", // a lib value class, not Stuff — session lifecycle is mandate (b)

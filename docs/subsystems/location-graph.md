@@ -527,10 +527,25 @@ computed where it is already scanned.
 - **The read** is `NavigationApi.attachedTo(path, kind?)` — a map lookup
   over the path and each of its ancestors (so a room inside a ship's
   extent finds the ship). `attachedWithin(extent, kind?)` answers *what
-  is attached at or under* an extent (a horizon's towers).
-  `attachedNow` / `attachedWithinNow` are the synchronous forms — the
+  is attached at or under* an extent.
+  `attachedNow` is the synchronous form — the
   last derivation, `[]` before the first — for the readers that cannot
-  await (`Expanse.craft()`, the horizon).
+  await (`Expanse.craft()`).
+- ⭐⭐ **What stands tall where — the marks and the kept skylines** (the
+  geography build). The same pass records a MARK for every structure row
+  worth seeing from afar (a landmark, or `perception.skyline.minHeightM`
+  tall; never a craft or a ship kind): its point (its `position`, else the
+  sea node whose landing is in its extent, else where its Locality is,
+  found at read), its top above the sea (height + the nearest declared
+  `elevation`), the landmark flag, `showsLight`, its address. A minted
+  structure (`attachStructure`) is marked by instance. `skylineNow(vantage,
+  {own, keepAs, nearM})` is arithmetic over the marks (`Vantage`), kept
+  under `keepAs` and dropped whenever the marks change (a re-derivation, an
+  attach or a detach); `skylineReady()` is the await; `markPointNow(path)` a
+  structure row's own point. In memory only — never persisted. The
+  horizon reads it (expanse.md § Perception at range). `lint:location-graph`
+  refuses a landmark with no point and a `horizon.reach` that names neither
+  a sea nor a structure.
 - **`NavigationApi.structureAt(path)`** stands up each attached structure
   and returns the innermost; `structureAtNow` reads the live ones. ⚠ It
   takes a row or an identity path and **throws** on a keyed handle

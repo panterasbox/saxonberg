@@ -85,6 +85,7 @@ import type { FieldMeta } from '../mixin';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { StoreySpec } from '../spatial/Enclosed';
+import type { GeoPosition } from '../expanse/GeoPosition';
 import type { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -96,6 +97,7 @@ import { Paint } from '../material/Paint';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { MaterialApi } from '../../api/material';
+import { NavigationApi } from '../../api/navigation';
 
 /**
  * ⭐ A structure's outside, as facts (paint D13) — what `analyze condition`
@@ -134,6 +136,7 @@ export default class Structure extends DetailedMixin(
     landmark: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     storeys: { persistent: true, authorable: true },
+    showsLight: { persistent: true, authorable: true },
   };
 
   /** Template-path prefix: every Location row under it is a member. */
@@ -146,6 +149,13 @@ export default class Structure extends DetailedMixin(
   protected heightM = 0;
   /** Which of its places stand on which — relations only. */
   protected storeys: StoreySpec[] = [];
+  /**
+   * ⭐ Shows a light by night (geography D6) — a lighthouse's lamp, a
+   * ship's riding lights. Read off the row by the skyline and by the sea's
+   * sight: when the sky is dark, only a structure that shows a light is
+   * seen. Authored, for now; deriving it from a real lamp is the slate's.
+   */
+  protected showsLight = false;
 
   public getExtent(): string { return this.extent; }
   public setExtent(value: string): void { this.extent = (value ?? '').replace(/\/+$/, ''); }
@@ -201,6 +211,25 @@ export default class Structure extends DetailedMixin(
     }
   }
   public setLandmark(value: boolean): void { this.landmark = value === true; }
+
+  /**
+   * ⭐ Where this structure stands on the chart, when it stands anywhere of
+   * its own (geography D4) — the point a room inside it looks out from.
+   * Default: the sea node its landing is (a light on a rock stands where
+   * the sea has its rock), read from the location graph's record without
+   * loading anything; `null` = *where my Locality is*.
+   *
+   * @hook A {@link Building} answers its authored `position` first. A
+   *   craft is asked for its fix instead (`Positioned`), never this.
+   */
+  public chartPoint(): GeoPosition | null {
+    const self = this.getTemplatePath();
+    return self ? NavigationApi.markPointNow(self) : null;
+  }
+
+  /** Does it show a light by night? */
+  public getShowsLight(): boolean { return this.showsLight; }
+  public setShowsLight(value: boolean): void { this.showsLight = value === true; }
 
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }

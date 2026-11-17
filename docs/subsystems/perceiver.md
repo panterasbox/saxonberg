@@ -83,7 +83,8 @@ is refused, pointed at `query`. **`query <set>`**
 (`QueryController`) lists any set the query language can name — `query
 horizon`, `query peers`, `query all brass`, `query bob:i` — the list is the
 content: no header, featured things first, each entry saying how it
-stands to you (a horizon thing's compass point and range). Options change
+stands to you (a horizon thing's rough direction — a compass point and
+rough miles — or *close by* in your own place; never a true bearing). Options change
 only the rendering (`--ledger`, `--weight`, `--flat`); narrowing is the
 query's. ⭐ There is no `inventory` verb (size-and-carrying W10h): `i` and
 `inventory` are default aliases for `query --ledger me:i`, and `query

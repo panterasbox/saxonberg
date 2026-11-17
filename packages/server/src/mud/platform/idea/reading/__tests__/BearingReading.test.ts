@@ -1,6 +1,5 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Expanse } from '../../../../lib/expanse/Expanse';
 import BearingReading from '../BearingReading';
 import { ExpanseApi } from '../../../../api/expanse';
 import { MessageApi } from '../../../../api/message';
@@ -9,26 +8,26 @@ import { StuffApi } from '../../../../api/stuff';
 import { CommandApi } from '../../../../api/command';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
-import type { Contact } from '../../../../lib/expanse/Expanse';
+import { PerceptionApi, type HorizonSighting } from '../../../../api/perception';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /**
- * `measure bearing` (maritime R8): the true bearing of a thing in sight,
- * bracketed by band; a bearing on a FIXED thing mends the reckoning to
- * within range × tan(bracket), a bearing on a sail mends nothing, and a
- * thing out of sight cannot be taken.
+ * `measure bearing` (maritime R8; geography D11): the true bearing of a
+ * thing on the ONE horizon, bracketed by band; afloat, a bearing on a FIXED
+ * thing mends the reckoning to within range × tan(bracket), a bearing on a
+ * sail mends nothing; ashore a bearing is a line you stand on; a thing out
+ * of sight cannot be taken, and a thing close by is too near.
  */
 let told: string[];
-let contacts: Contact[];
+let things: HorizonSighting[];
+let afloat: boolean;
 const takeFix = vi.fn();
-const light = { stuffId: 'light', getPresentation: () => 'the light' } as unknown as Stuff;
+const light = { stuffId: 'light', getPresentation: () => 'the light on Gannet Rock' } as unknown as Stuff;
 const brig = { stuffId: 'brig', getPresentation: () => 'the brig' } as unknown as Stuff;
 const craft = {
   getExpansePosition: () => new GeoPosition(42, -8),
   takeFix,
-  // The sea's chart, by prototype: the reading narrows the craft's frame to it.
-  liveFrame: async () => Object.assign(Object.create(Expanse.prototype), { contactsFrom: async () => contacts }),
 } as unknown as Stuff;
 const sailor = { getTemplatePath: () => '/test/sailor', getIdentityPath: () => '/test/sailor', getDurableHandle: () => null, getRootContainer: () => null, isPlace: () => false } as unknown as Stuff;
 
@@ -50,12 +49,14 @@ beforeEach(() => {
   StuffApi.clearAll();
   told = [];
   takeFix.mockReset();
-  contacts = [
-    { craft: light as never, name: 'the light on Gannet Rock', bearingDeg: 47.4, rangeNm: 8, channel: 'visual', fixed: true },
-    { craft: brig as never, name: 'the brig', bearingDeg: 200, rangeNm: 3, channel: 'visual', fixed: false },
+  afloat = true;
+  things = [
+    { stuff: light, bearingDeg: 47.4, rangeNm: 8, fixed: true },
+    { stuff: brig, bearingDeg: 200, rangeNm: 3, fixed: false },
   ];
+  vi.spyOn(PerceptionApi, 'horizonFor').mockImplementation(() => ({ things, traffic: [], atSea: afloat }));
   reading = makeStuffAtPath(() => new BearingReading(), '/test/reading/bearing');
-  vi.spyOn(ExpanseApi, 'craftAt').mockResolvedValue(craft as never);
+  vi.spyOn(ExpanseApi, 'craftAt').mockImplementation(async () => (afloat ? craft : null) as never);
   vi.spyOn(MixinApi, 'isVoyaging').mockImplementation(((x: unknown) => x === craft) as never);
   vi.spyOn(MixinApi, 'isContainable').mockReturnValue(false);
   vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(false);
@@ -96,9 +97,23 @@ describe('BearingReading', () => {
   });
 
   it('⛔ a thing out of sight cannot be taken', async () => {
-    contacts = [];
+    things = [];
     await measure(light, 'expert');
     expect(takeFix).not.toHaveBeenCalled();
-    expect(told[0]).toMatch(/You cannot see the light from here/);
+    expect(told[0]).toMatch(/You cannot see the light on Gannet Rock from here/);
+  });
+
+  it('⭐ ashore a bearing on a mark is a line you stand on — nothing to mend', async () => {
+    afloat = false;
+    await measure(light, 'competent');
+    expect(takeFix).not.toHaveBeenCalled();
+    expect(told[0]).toMatch(/bears 047° ± 2°.*a second bearing/);
+  });
+
+  it('⛔ a tower close by is too near to take a bearing across', async () => {
+    afloat = false;
+    things = [{ stuff: light, bearingDeg: null, rangeNm: null, closeBy: true, fixed: true }];
+    await measure(light, 'expert');
+    expect(told[0]).toMatch(/too near to take a bearing/);
   });
 });

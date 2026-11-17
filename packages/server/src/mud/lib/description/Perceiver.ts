@@ -360,6 +360,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       const { default: Structure } = await import('../structure/Structure');
       const things = view.things.map((t) => {
         const landmark = t.stuff instanceof Structure ? t.stuff.isLandmark() : false;
+        // ⭐ What `query horizon` says (geography): close by, or the compass
+        // point and rough miles — never the bearing in degrees.
         const point = t.bearingDeg !== null && t.rangeNm !== null
           ? PerceptionApi.glance(t.bearingDeg, t.rangeNm).split(',')[0]!.trim()
           : null;
@@ -367,14 +369,16 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
           stuffId: t.stuff.stuffId,
           name: t.stuff.getPresentation(),
           landmark,
-          ...(point !== null && t.rangeNm !== null
-            ? {
-                glance: {
-                  point,
-                  ...(t.rangeNm < 1 ? { closeBy: true } : { roughMiles: Math.round(t.rangeNm) }),
-                },
-              }
-            : {}),
+          ...(t.closeBy
+            ? { glance: { closeBy: true } }
+            : point !== null && t.rangeNm !== null
+              ? {
+                  glance: {
+                    point,
+                    ...(t.rangeNm < 1 ? { closeBy: true } : { roughMiles: Math.round(t.rangeNm) }),
+                  },
+                }
+              : {}),
         };
       });
       things.sort((a, b) => Number(b.landmark) - Number(a.landmark));
@@ -495,10 +499,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? await WeatherApi.sampleFor(place).catch(() => undefined)
         : undefined;
       const day = await Promise.resolve(CelestialApi.isDayAt(place)).catch(() => undefined);
-      const [{ PerceptionApi }, { ZoneApi }] = await Promise.all([
-        import('../../api/perception'),
-        import('../../api/zone'),
-      ]);
+      const { PerceptionApi } = await import('../../api/perception');
       const viewer = this as unknown as Stuff;
       // ⭐ The band `look` renders by, read without looking — nothing learned.
       const light = PerceptionApi.lightBandFor(viewer, place);
@@ -510,11 +511,10 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         : 0;
       // ⭐ The total height above the sea (owner, 2026-11-17): the zone's
       // elevation plus the room's height within it — z cells of the cell size.
-      const ground = await ZoneApi.elevationFor(place).catch(() => null);
-      const zone = place.getZone();
-      const { default: CartesianZone } = await import('../../platform/idea/location/CartesianZone');
-      const cell = zone instanceof CartesianZone ? zone.getCellSize() : null;
-      const elevationM = ground !== null ? ground + (at && cell !== null ? at.z * cell : 0) : null;
+      // ⭐ The total height above the sea (owner, 2026-11-17): geography's
+      // `Place.heightAboveSeaM()` — the zone's elevation plus the room's
+      // height within it. `ZoneApi.elevationFor` stays the GROUND's.
+      const elevationM = place.isPlace() ? (place as unknown as Place).heightAboveSeaM() : null;
       const ceiling = place instanceof Location ? place.getCeilingHeight() : null;
       const stature = MixinApi.isPosed(viewer) ? viewer.getStature() : null;
       return {

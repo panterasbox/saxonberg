@@ -20,6 +20,7 @@
 import { Zone } from './Zone';
 import { EPOCHS, type Epoch } from '../craft/Epoch';
 import type { FieldMeta } from '../mixin';
+import { HorizonOverride, type HorizonOverrideRecord } from '../perception/HorizonOverride';
 import {
   DEFAULT_CLIMATE_SITE,
   type ClimateSite,
@@ -267,27 +268,22 @@ export abstract class SpatialZone extends Zone {
   }
 
   /**
-   * ⭐ **The ZONES scanned from here** — `look horizon`'s authority
-   * (maritime R3): template paths of zones whose Structures may be in
-   * view, or `null` to walk on up the tree.
-   *
-   * Zones, because a zone is an authorial partition — whoever owns it owns
-   * everything in it — so naming one says *what over there may be seen*
-   * without naming every tower in it. One declaration on the avenue covers
-   * every room in it; a nested zone or a room narrows it; an authored `[]`
-   * is an answer — *nothing from in here* — and stops the walk.
-   *
-   * ⭐ WHETHER a structure in a named zone is in view is derived, never
-   * authored: the viewer's room must be open to the sky, and its height
-   * must clear the distance the zones' size in metres implies
-   * (`PerceptionApi.horizonFor`). At sea nothing is named at all — the
-   * range is computed from two heights (`Expanse.contactsFrom`).
+   * ⭐ **An author's word on the horizon from here** (geography D5) — what
+   * may not be seen (`block`) and what is seen whatever the rule says
+   * (`reach`: a sea to look out on, a structure to name). The rule itself
+   * — a skyline by curvature from where a place stands on the chart, the
+   * craft of the frame you are on — needs no declaration; this only
+   * narrows it or adds to it. The nearest declaration wins: a room's own,
+   * then this zone walk. See {@link HorizonOverride}.
    */
-  protected horizon: string[] | null = null;
+  protected horizon: HorizonOverrideRecord | null = null;
 
-  public getHorizon(): string[] | null { return this.horizon; }
-  public setHorizon(value: string[] | null): void {
-    this.horizon = Array.isArray(value) ? value.map((p) => String(p)) : null;
+  public getHorizon(): HorizonOverride | null {
+    return this.horizon === null ? null : new HorizonOverride(this.horizon);
+  }
+  /** Throws on the retired list form and on an unknown key. */
+  public setHorizon(value: HorizonOverrideRecord | null): void {
+    this.horizon = value === null || value === undefined ? null : new HorizonOverride(value).toJSON();
   }
 
   /**
@@ -447,8 +443,13 @@ export abstract class SpatialZone extends Zone {
    * not declare. The one place the levers are folded into a
    * `ClimateSite`; `ZoneApi.climateSiteFor` asks the zone a thing stands
    * in, and a conduit asks the zone it serves.
+   *
+   * `fallbackLatitudeDeg` is where the place stands on the chart
+   * (geography D7): a zone chain that states no latitude takes the
+   * Locality's point's before the realm default. A zone that states one
+   * keeps it.
    */
-  public async climateSite(): Promise<ClimateSite> {
+  public async climateSite(fallbackLatitudeDeg?: number | null): Promise<ClimateSite> {
     const [lat, elev, cont, off] = await Promise.all([
       this.lookupField<number>('latitude'),
       this.lookupField<number>('elevation'),
@@ -456,7 +457,7 @@ export abstract class SpatialZone extends Zone {
       this.lookupField<number>('climateOffsetK'),
     ]);
     return {
-      latitudeDeg: lat ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
+      latitudeDeg: lat ?? fallbackLatitudeDeg ?? DEFAULT_CLIMATE_SITE.latitudeDeg,
       elevationM: elev ?? DEFAULT_CLIMATE_SITE.elevationM,
       continentality: cont ?? DEFAULT_CLIMATE_SITE.continentality,
       offsetK: off ?? DEFAULT_CLIMATE_SITE.offsetK,

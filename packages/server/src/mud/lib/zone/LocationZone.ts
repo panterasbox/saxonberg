@@ -47,8 +47,6 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
      */
     protected locations: Set<Place> = new Set();
 
-    /** Horizon targets already stood up from here (runtime only). */
-    private sightedTargets: Set<string> | null = null;
 
     public getLocations(): ReadonlySet<Place> { return this.locations; }
 
@@ -93,39 +91,19 @@ export function LocationZoneMixin<TBase extends MixinConstructor<SpatialZone>>(
 
     /**
      * ⭐ **What can be seen from a room loads with the room** (maritime
-     * review, 2026-10-14), as its props do: the zones and seas its
-     * `horizon` names are stood up — and with them the structures attached
-     * within them — when the first room looking out at them is. Nothing is
-     * loaded at boot and nothing is searched for.
+     * review, 2026-10-14; geography D9): the handful on its kept skyline
+     * and what its horizon `reach`es are stood up when the room is
+     * (`Place.standUpHorizon`) — a structure `Idea`, never its rooms, so
+     * it cannot cascade. Nothing is loaded at boot and nothing is searched.
      *
-     * ⚠ It cannot cascade: a zone stood up only because somebody can SEE
-     * it has no room in it, so it never looks out itself. Kicked, not
-     * awaited — `addLocation` is a registration, and a horizon read made
-     * the instant a room appears sees whatever has stood up by then.
+     * ⚠ Kicked, not awaited — `addLocation` is a registration, and a ship
+     * standing up reaches back for her sea (the `standUpAttached` deadlock).
+     * The arrival `look` awaits the same stand-up, so it reads complete.
      */
     private lookOutFrom(location: Place): void {
-      // A zone's towers are the structures attached within it.
-      const standStructuresWithin = (zonePath: string): void => {
-        void import('../../api/navigation')
-          .then(({ NavigationApi }) => NavigationApi.attachedWithin(zonePath, 'structure'))
-          .then((paths) => {
-            for (const p of paths) void StuffApi.singleton<Stuff>(p).catch(() => null);
-          })
-          .catch(() => undefined);
-      };
-      const own = location.getHorizon();
-      const named = own ?? (this as unknown as SpatialZone).peekField<string[]>('horizon');
-      if (!Array.isArray(named)) return;
-      this.sightedTargets ??= new Set();
-      for (const target of named) {
-        if (this.sightedTargets.has(target)) continue;
-        this.sightedTargets.add(target);
-        standStructuresWithin(target);
-        void StuffApi.singleton<Stuff>(target).catch((err) => {
-          this.sightedTargets?.delete(target);
-          console.warn(`LocationZone: horizon target '${target}' did not stand up:`, err);
-        });
-      }
+      void location.standUpHorizon().catch((err) =>
+        console.warn(`LocationZone: the horizon from '${location.getTemplatePath()}' did not stand up:`, err),
+      );
     }
 
     /** Remove a location from this zone. Clears the back-reference. */

@@ -4,7 +4,9 @@
 
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Structure from '../../../lib/structure/Structure';
-import type { AttachmentKind } from '../../../api/navigation';
+import type { AttachmentKind, SkylineEntry, SkylineQuery } from '../../../api/navigation';
+import type { GeoPosition } from '../../../lib/expanse/GeoPosition';
+import type { Vantage } from '../../../lib/perception/Vantage';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -374,10 +376,23 @@ export class NavigationLogic extends ApiLogic {
     registry()?.detachStructure(extent, structure);
   }
 
-  /** See {@link NavigationApi.attachedWithinNow}. */
+  /** See {@link NavigationApi.skylineNow}. */
   @CallSecurity(NavigationApiCallers)
-  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return registry()?.attachedWithinNow(extent, kind) ?? [];
+  public skylineNow(vantage: Vantage, query: SkylineQuery): SkylineEntry[] {
+    return registry()?.skylineNow(vantage, query) ?? [];
+  }
+
+  /** See {@link NavigationApi.skylineReady}. */
+  @CallSecurity(NavigationApiCallers)
+  public async skylineReady(): Promise<void> {
+    await registry()?.skylineReady();
+  }
+
+  /** See {@link NavigationApi.markPointNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public markPointNow(structurePath: string): GeoPosition | null {
+    refuseHandle(structurePath);
+    return registry()?.markPointNow(structurePath) ?? null;
   }
 
   /** See {@link NavigationApi.attachedNow}. */

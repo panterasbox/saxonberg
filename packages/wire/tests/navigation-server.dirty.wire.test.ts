@@ -53,6 +53,7 @@ const YARD = '/world/newbie-wilds/steading/yard';
 const BANK = '/world/terminus/wharfside/bank';
 const DECK = '/world/terminus/hesper/deck';
 const SQUARE = '/world/terminus/market/square';
+const BROW = '/world/terminus/estuary/headland/brow';
 const CHANDLERY_FLOOR = '/world/terminus/wharfside/chandlery/location/floor';
 
 const record: string[] = [];
@@ -239,6 +240,21 @@ suite('navigation-server — the blocking drive', () => {
     record.push(`15: you ${JSON.stringify(you)}`);
     expect(you?.pace).toBe('walk');
     expect(you?.posture).toBeTruthy();
+  }, 120_000);
+
+  it('15g · (geography\'s step 15) the horizon section says what `query horizon` says, and no frame carries a bearing in degrees', async () => {
+    const { s, nav } = await session(uniqueHandle('nav-brow'), BROW);
+    await beat();
+    const horizon = nav.section('horizon');
+    const said = plain(await s.prose('query horizon'));
+    record.push(`15g: horizon ${JSON.stringify(horizon?.things.slice(0, 4))} · query horizon: ${said.slice(0, 200)}`);
+    expect((horizon?.things.length ?? 0) > 0).toBe(true);
+    for (const t of horizon!.things) {
+      if (t.glance?.closeBy) expect(said).toMatch(/close by/i);
+      else if (t.glance?.point) expect(said).toContain(t.glance.point);
+    }
+    // ⛔ Precision is `measure bearing`'s skill: no envelope carries one.
+    for (const e of nav.log) expect(JSON.stringify(e.frame)).not.toContain('bearingDeg');
   }, 120_000);
 
   it('16 · a move sends only the sections that changed; sizes recorded', async () => {

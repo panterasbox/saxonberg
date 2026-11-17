@@ -21,6 +21,7 @@ data:
   name: The Headland
   cellSize: 20.0
   elevation: 100
+  # The sea's craft from the brow (geography D5); the tower and the light
+  # are on the skyline by the rule — a hundred meters up raises the light.
   horizon:
-    - /stuff/idea/WaterExpanse/greywater
-    - /world/terminus/terminal
+    reach: [/stuff/idea/WaterExpanse/greywater]
