@@ -162,11 +162,6 @@ export interface TraversalGuard {
    */
   host?: Stuff & Enablement;
   /**
-   * ⭐ On an ok guard asked as a probe (navigation-server D8): leaving is
-   * FLEEING a fight — you may go, and going is fleeing, with what that costs.
-   */
-  flee?: true;
-  /**
    * ⭐ On an ok guard asked as a probe: *as far as you know* — the far side
    * is not standing, so what only it can say was not asked.
    */
@@ -495,8 +490,9 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * and its boundary's facts by composition (`aspect: 'way'`), and `take`
    * — the very cascade `go` runs, asked as a probe, so it never disagrees
    * with trying. Three honest forms: *no* in trying's words (and what
-   * would work), *yes*, or *yes, as far as you know* (`unseen`) — and
-   * `flee` when leaving is fleeing a fight. Nothing is materialized.
+   * would work), *yes*, or *yes, as far as you know* (`unseen`). Only what
+   * differs from way to way is here; what is true of you whichever way you
+   * leave (a fight) is the `you` section's. Nothing is materialized.
    */
   public async wayFor(viewer: Stuff & Containable): Promise<NavWay> {
     const record = this.wayRecord();
@@ -531,13 +527,13 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         ...(guard.works ? { works: guard.works } : {}),
       };
     }
-    let flee = guard.flee === true;
+    // ⭐ A fight you cannot break away from refuses every way, in the words
+    // trying gives (`disengage` reads the same). That you are fighting at
+    // all — and what leaving costs — is a fact about YOU, shown once in the
+    // `you` section, never copied onto each way (review, 2026-11-17).
     if (MixinApi.isCombatant(viewer)) {
-      const before = viewer.beforeTraverse(this, { probe: true });
-      if (!before.ok) {
-        return { ok: false, gate: before.gate ?? 'veto', reason: before.reason ?? "You can't break away!" };
-      }
-      if (before.flee) flee = true;
+      const breakaway = viewer.leavingTheFight()?.breakaway ?? null;
+      if (breakaway !== null) return { ok: false, gate: 'breakaway', reason: breakaway };
     }
     // ⭐ The place veto `go` asks (water's: you cannot walk out of a pool you
     // are swimming in) is asked here too, through its own predicate. When
@@ -549,7 +545,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       const out = src.canExit(viewer, this);
       if (!out.ok) return { ok: false, gate: 'veto', reason: out.reason ?? "You can't leave." };
     }
-    return { ok: true, ...(flee ? { flee: true as const } : {}), ...(unseen ? { unseen: true as const } : {}) };
+    return { ok: true, ...(unseen ? { unseen: true as const } : {}) };
   }
 
   /**

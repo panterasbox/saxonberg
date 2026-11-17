@@ -4,8 +4,9 @@
  * - a refusal is THE refusal — `wayFor`'s reason is the sentence `go`
  *   prints, through the same cascade, asked as a probe;
  * - a plain yes is kept; a yes that depends on something says what —
- *   `unseen` (the far side is not standing), `flee` (leaving is fleeing);
- * - a probe moves nothing, and a fight is not left;
+ *   `unseen` (the far side is not standing);
+ * - a fight is a fact about YOU, never copied onto a way — only a fight you
+ *   cannot break away from refuses (every way, in trying's words);
  * - a boundary's facts appear by composition (`aspect: 'way'`).
  */
 
@@ -24,12 +25,9 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { NamedMixin } from '../../description/Named';
 import { MobileMixin } from '../../spatial/Mobile';
 import { Idea } from '../../stuff/Idea';
-import { CombatantMixin } from '../../combat/Combatant';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff, seedKernelContentStore } from '../../security/__tests__/test-setup';
 import { buildMode } from '../../locomotion/__tests__/test-helpers';
-
-class Fighter extends CombatantMixin(Idea) {}
 
 class Walker extends CommandGiverMixin(NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))))) {}
 
@@ -93,23 +91,19 @@ describe('Exit.wayFor — the verdict is the check moving runs', () => {
     expect(resolve).not.toHaveBeenCalled();
   });
 
-  it('⭐ flee: a way out of a fight says so — the verdict carries the fighter\'s own answer', async () => {
-    const said = vi.fn(() => ({ ok: true, flee: true as const }));
+  it('⭐ a fight is NOT a fact about the way: a fight you can leave gives a plain yes', async () => {
     vi.spyOn(MixinApi, 'isCombatant').mockReturnValue(true);
-    (walker as unknown as { beforeTraverse: typeof said }).beforeTraverse = said;
+    (walker as unknown as { leavingTheFight: () => unknown }).leavingTheFight = () => ({ foes: 1, breakaway: null });
     const way = await north.wayFor(walker);
-    expect(way.take).toEqual({ ok: true, flee: true });
-    expect(said).toHaveBeenCalledWith(north, { probe: true });
+    expect(way.take).toEqual({ ok: true });
   });
 
-  it('⭐ a fighter asked as a probe says it would flee, and does NOT disengage', () => {
-    const fighter = makeStuff(() => new Fighter());
-    vi.spyOn(fighter, 'moraleBand').mockReturnValue('resolute');
-    const disengage = vi.spyOn(fighter, 'disengage');
-    expect(fighter.beforeTraverse(north, { probe: true })).toEqual({ ok: true, flee: true });
-    expect(disengage).not.toHaveBeenCalled();
-    vi.spyOn(fighter, 'moraleBand').mockReturnValue(null);
-    expect(fighter.beforeTraverse(north, { probe: true })).toEqual({ ok: true });
+  it('⭐ a fight you cannot break away from refuses every way, in the words trying gives', async () => {
+    const words = "You're too hard-pressed to break away!";
+    vi.spyOn(MixinApi, 'isCombatant').mockReturnValue(true);
+    (walker as unknown as { leavingTheFight: () => unknown }).leavingTheFight = () => ({ foes: 3, breakaway: words });
+    const way = await north.wayFor(walker);
+    expect(way.take).toEqual({ ok: false, gate: 'breakaway', reason: words });
   });
 
   it('a state change tells whoever stands at the way', async () => {

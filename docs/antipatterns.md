@@ -6636,3 +6636,57 @@ each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
 <rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
 facts and a reason; the controller words them. `lint:multi-act` counts what
 is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).
+
+## A fact about one thing, stamped onto everything it touches
+
+A value belongs on the host it **varies with**. Put it on a host it does
+not vary with, and it is copied onto every instance of that host —
+identical on all of them — while the thing it is really about holds
+nothing.
+
+**The test: hold everything else fixed and vary the host.** If the value
+never changes, it is not the host's. Find what DOES change it; that is its
+home.
+
+The navigation-server build shipped one and the owner caught it in review.
+Each way's verdict carried `flee: true` — *"leaving by this way is fleeing
+a fight."* But a fight is a fact about the VIEWER: if you are fighting,
+every way out of the room said `flee`, and if you are not, none did. The
+marker never varied by way. *"Why is this a property of the exit? I just
+don't understand what state is being modelled here."*
+
+### BAD (a viewer fact copied onto every way)
+
+```ts
+// on each way's verdict
+take: { ok: true, flee: true }   // the same on every exit of the room
+```
+
+### GOOD (the fact on its own host, said once)
+
+```ts
+// on the body — the `you` section
+you.fighting = { foes: 2, breakaway: null };   // Combatant.leavingTheFight()
+```
+
+### ⭐ A computed verdict may repeat a truth; it may not BE the fact
+
+A way's verdict is a relation, computed now — *what would happen if you
+tried this way*. When something about you makes EVERY way refuse (a fight
+you cannot break away from, a posture you cannot walk from, a load too
+heavy to carry), each verdict honestly says so, in the words trying gives:
+trying any way does fail. What must not happen is the CAUSE living only
+there. It lives once on its own host — `you.fighting.breakaway`,
+`you.posture`, `you.bars` (`LocomotionApi.bodyRefusals`) — and the
+verdicts are computed from the same read, so they can never disagree.
+
+The distinction to hold: a marker on an *ok* answer (`flee`) carries a
+fact; a refusal on a *no* answer reports a consequence.
+
+### Its relatives
+
+- [review-questions P2](./review-questions.md) — an honest default that
+  answers "no" on most hosts (every pool answering *no current*). The same
+  root: a field on a host most of whose members do not mean it.
+- [Object identity where you mean person identity](#object-identity-where-you-mean-person-identity)
+  — keying on the body's row when the fact is the person's.

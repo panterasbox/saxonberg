@@ -389,7 +389,15 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     private async youSection(): Promise<YouSection> {
       const { LocomotionApi } = await import('../../api/locomotion');
       const me = this as unknown as Stuff;
-      const out: YouSection = { v: 0, pace: LocomotionApi.defaultModeFor(me) };
+      const pace = LocomotionApi.defaultModeFor(me);
+      const out: YouSection = { v: 0, pace };
+      // ⭐ What your body refuses whichever way you go — once, here, never
+      // copied onto each way as a marker (navigation-server review).
+      const mode = await LocomotionApi.loadMode(pace).catch(() => null);
+      if (mode !== null) {
+        const bars = LocomotionApi.bodyRefusals(me, mode);
+        if (bars.length > 0) out.bars = bars;
+      }
       if (MixinApi.isPosed(me)) out.posture = me.getPosture();
       if (MixinApi.isCarrying(me)) {
         const held = me.heldThings();
@@ -420,6 +428,11 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isHauling(me)) {
         const cart = me.getHauledCart();
         if (cart) out.cart = cart.getPresentation();
+      }
+      // ⭐ A fight is a fact about you, the same whichever way you leave.
+      if (MixinApi.isCombatant(me)) {
+        const fighting = me.leavingTheFight();
+        if (fighting !== null) out.fighting = fighting;
       }
       return out;
     }

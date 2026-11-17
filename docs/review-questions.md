@@ -83,6 +83,14 @@ build kept widening a general base"*), paint (the outside on every
 `Tangible`; `dip` afforded on every good), scan-sweep (`SiteMixin` on every
 location).
 
+⭐ **And its mirror: a value IDENTICAL on every host.** Hold everything
+else fixed and vary the host — if the value never changes, it is a fact
+about something else, copied onto each one. *Evidence:* navigation-server
+(`flee` on every way's verdict — a fight is the viewer's, not the way's;
+*"why is this a property of the exit?"*). See
+[antipatterns.md § A fact about one thing, stamped onto everything it
+touches](./antipatterns.md).
+
 ### P3. Refuse, skip or throw — never silent
 For every path that can fail: the world says no → a refusal; a read finds
 nothing → a skip; code asked the impossible → a typed throw, checked first.

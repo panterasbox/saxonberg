@@ -202,6 +202,17 @@ export class LocomotionApi {
    *   3. exit-allowed-modes (`Exit.canTraverse`)
    *   4. enablement (per-mode, field-driven via `getEnablementMixin`)
    */
+  /**
+   * ⭐ What your body refuses whichever way you go, in the gates' own words
+   * (navigation-server review): your body plan, your posture, your hands,
+   * an awkward load, too much to carry. Facts about YOU — shown once in the
+   * `you` section (`bars`); every way's verdict repeats them because trying
+   * any way says them.
+   */
+  public static bodyRefusals(actor: Stuff, mode: LocomotionMode): string[] {
+    return logic().bodyRefusals(actor, mode);
+  }
+
   public static async canTraverseExit(
     actor: Stuff & Containable,
     exit: Exit,

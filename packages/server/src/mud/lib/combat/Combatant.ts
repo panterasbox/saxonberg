@@ -29,7 +29,7 @@ import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
 import type Exit from "../boundary/Exit";
-import type { TraversalGuard, TraverseOptions } from "../boundary/Exit";
+import type { TraversalGuard } from "../boundary/Exit";
 import type { Channel } from "../material/Channel";
 import type { CombatHookContext } from "./CombatHookContext";
 import { CHANNELS } from "../material/Channel";
@@ -98,11 +98,8 @@ export type DefendOutcome =
 export type HandActDestination = Stuff | 'unfasten' | 'take-off';
 
 export interface Combatant {
-  /**
-   * `Mobile.traverse`'s mover witness: walking out of a fight is fleeing it.
-   * Asked as a probe (navigation-server D8) it says so and does nothing.
-   */
-  beforeTraverse(via: Exit, opts?: TraverseOptions): TraversalGuard;
+  /** `Mobile.traverse`'s mover witness: walking out of a fight is fleeing it. */
+  beforeTraverse(via: Exit): TraversalGuard;
   /**
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
    * delivery profile, one injury through `inflict`). A thing has mass and it
@@ -196,6 +193,12 @@ export interface Combatant {
   getStandingStopCondition(): string;
   /** This fighter's live morale band, or null out of combat. */
   moraleBand(): MoraleBand | null;
+  /**
+   * ⭐ What leaving the fight would cost — how many foes take a parting
+   * shot, and the refusal when you cannot break away; `null` out of combat.
+   * A fact about YOU, the same whichever way you leave by.
+   */
+  leavingTheFight(): { foes: number; breakaway: string | null } | null;
   /**
    * The live combat-state line as `viewer` reads it, or null out of
    * combat: poise through the fog of the VIEWER's sharpness — a
@@ -565,6 +568,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return combatLogic().moraleBand(this as unknown as Stuff);
     }
 
+    /** See {@link Combatant.leavingTheFight}. */
+    public leavingTheFight(): { foes: number; breakaway: string | null } | null {
+      return combatLogic().leavingTheFight(this as unknown as Stuff);
+    }
+
     public combatStateLineFor(viewer: Stuff): string | null {
       return combatLogic().combatStateLineFor(this as unknown as Stuff, viewer);
     }
@@ -617,17 +625,14 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * pin that holds you refuses the crossing. A no-op when not
      * fighting. Chains any inner `beforeTraverse` first.
      */
-    public beforeTraverse(via: Exit, opts?: TraverseOptions): TraversalGuard {
+    public beforeTraverse(via: Exit): TraversalGuard {
       const inner = (Base.prototype as {
-        beforeTraverse?: (v: Exit, o?: TraverseOptions) => TraversalGuard;
+        beforeTraverse?: (v: Exit) => TraversalGuard;
       }).beforeTraverse;
       if (typeof inner === "function") {
-        const said = inner.call(this, via, opts);
+        const said = inner.call(this, via);
         if (!said.ok) return said;
       }
-      // ⭐ Asked as a probe (navigation-server D8): you may go, and going is
-      // fleeing — said, never done; the real crossing disengages.
-      if (opts?.probe) return this.moraleBand() !== null ? { ok: true, flee: true } : { ok: true };
       const broke = this.disengage();
       return broke.ok
         ? { ok: true }

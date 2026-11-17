@@ -1491,11 +1491,12 @@ export interface WayWorks {
 /**
  * ⭐ Can you take it now — the check `go` runs, asked without moving
  * (navigation-server D8). Three honest forms: *no*, in trying's words;
- * *yes*; *yes, as far as you know* (`unseen`) — or *yes, and it is
- * fleeing* (`flee`).
+ * *yes*; *yes, as far as you know* (`unseen`). Only what differs from way
+ * to way: a fact about you whichever way you leave (a fight) is
+ * `YouSection.fighting`.
  */
 export type WayTake =
-  | { ok: true; flee?: true; unseen?: true }
+  | { ok: true; unseen?: true }
   | { ok: false; gate: string; reason: string; works?: WayWorks };
 
 /** One way out, as the ways section carries it. */
@@ -1551,6 +1552,12 @@ export interface YouSection {
   mount?: string;
   led?: string[];
   cart?: string;
+  /**
+   * ⭐ You are in a fight: leaving by ANY way is fleeing it — `foes` take a
+   * parting shot each, and `breakaway` is the refusal when there are too
+   * many to break away from (every way then refuses in those words).
+   */
+  fighting?: { foes: number; breakaway: string | null };
 }
 
 /**

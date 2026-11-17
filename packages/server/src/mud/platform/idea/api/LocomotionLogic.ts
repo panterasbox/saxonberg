@@ -240,6 +240,29 @@ export class LocomotionLogic extends ApiLogic {
     return own !== null ? { ...guard, reason: own } : guard;
   }
 
+  /** See {@link LocomotionApi.bodyRefusals}. */
+  @CallSecurity(LocomotionApiCallers)
+  public bodyRefusals(actor: Stuff, mode: LocomotionMode): string[] {
+    const refusals: TraversalGuard[] = [];
+    if (!this.bodyPlanAllows(actor, mode)) {
+      refusals.push({ ok: false, gate: 'bodyPlan', reason: `Your body can't ${mode.getName()}.` });
+    }
+    if (!this.postureAllows(actor, mode)) {
+      refusals.push({ ok: false, gate: 'posture', reason: `You can't ${mode.getName()} from this posture.` });
+    }
+    for (const g of [this.handsGate(actor, mode), this.awkwardGate(actor, mode)]) {
+      if (g !== null) refusals.push(g);
+    }
+    // On land the load refuses every way; in water only the way up (that one
+    // is the way's, and stays on its verdict).
+    if (mode.getMedium() !== 'water' && MixinApi.isLoadBearing(actor)
+      && actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
+      refusals.push({ ok: false, gate: 'encumbrance', reason: `You're carrying too much to ${mode.getName()}.` });
+    }
+    // The same words `canTraverseExit` gives: the mode's own, else the gate's.
+    return refusals.map((g) => mode.refusalFor(g.gate ?? '', '') ?? g.reason ?? '').filter((r) => r.length > 0);
+  }
+
   /** The gates `go` runs, in order — see {@link canTraverseExit}. */
   private async cascade(
     actor: Stuff & Containable,

@@ -1203,6 +1203,22 @@ D5. `RouteController` note; refusal reason.
 **Acceptance.** Step 7; a unit test that the note's legs equal the prose's.
 **Commit:** `feat(navigation): a route plan travels as data`.
 
+### ⭐ Review round 1 (owner, 2026-11-17) — `flee` was a fact about the viewer
+
+> *"Why is this a property of the exit? I just don't understand what state
+> is being modelled here."* `flee` sat on every way's verdict, identical on
+> all of them — a fight is the VIEWER's. Reshaped: `flee` is gone from
+> `TraversalGuard`, `WayTake` and `Combatant.beforeTraverse` (no probe
+> branch; `Beast`'s too); `Combatant.leavingTheFight()` — `{ foes,
+> breakaway }`, one read `disengage` acts on — feeds `you.fighting`, and a
+> fight you cannot break away from refuses every way in those words. The
+> same audit found the body-level gates' CAUSE belongs on `you` too:
+> `LocomotionApi.bodyRefusals` now fills `you.bars` (closing the W5 gap).
+> The audit found no other value placed on a host it does not vary with.
+> Documented: antipatterns.md § *A fact about one thing, stamped onto
+> everything it touches*, and review-questions P2's mirror. ⚠ This
+> supersedes D8's `flee` bullets below.
+
 ### W7 — The drive, the walk-through, the docs
 
 - The whole blocking drive in one file, each checkpoint made to fail once
