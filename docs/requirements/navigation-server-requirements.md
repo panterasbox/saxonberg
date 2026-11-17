@@ -196,8 +196,11 @@ Pedagogy decides it: the lookout is a skill, and a pane that pushed every
 change would be a free radar.
 
 ### Today's horizon, as data **[DECIDED]**
-At sea, each sighting with its bearing and range; ashore, each by name,
-landmarks first. Bearing and range ashore wait on the geography build.
+At sea, each sighting with its **rough direction** (the compass point and
+the rough distance `query horizon` gives, never the true bearing — the
+owner, 2026-11-16, with the geography build: precision is what you can
+read, and `measure bearing` is how you get more); ashore, each by name,
+landmarks first. The rough direction ashore waits on the geography build.
 
 ### Elevation is a setting, z a position **[DECIDED — the owner]**
 Already true in the world (the slate was wrong). Elevation travels in the

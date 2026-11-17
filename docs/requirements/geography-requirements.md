@@ -1,5 +1,7 @@
 # Geography — requirements
 
+**Status:** agreed 2026-11-16 (the owner).
+
 **Kind:** feature
 **Leads from:** kernel, with a content stage. The first consumers are
 Terminus's own places and landmarks (the Market, the Harbor, the Estuary
