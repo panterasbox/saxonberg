@@ -58,6 +58,7 @@ import { AppApi } from '../../api/app';
 import Band from '../../platform/idea/Band';
 import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
+import { Vantage } from '../perception/Vantage';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
 import type Structure from '../structure/Structure';
@@ -144,9 +145,6 @@ function fnvUnit(input: string): number {
   }
   return (h >>> 0) / 0x100000000;
 }
-
-/** Feet in a metre — the horizon formula is stated in feet. */
-const FT_PER_M = 3.28084;
 
 export abstract class Expanse extends SingletonMixin(SpatialZone) implements Frame {
   static fieldMeta: FieldMeta = {
@@ -714,11 +712,9 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
    * low hull.
    */
   public sightRangeNm(observerHeightM: number, targetHeightM: number): number {
-    const a = Math.sqrt(Math.max(0, observerHeightM) * FT_PER_M);
-    const b = Math.sqrt(Math.max(0, targetHeightM) * FT_PER_M);
-    // ⭐ (sugar D12) The horizon is closer on a smaller world: the range
-    // scales with √(R / R_earth) — 0.675 of Earth's on a third-size planet.
-    return 1.17 * Math.sqrt(BiomeApi.planetRadiusM() / 6_371_000) * (a + b);
+    // ⭐ The sight core is shared with the land (geography D3): a Vantage.
+    // Where the eye stands does not change its reach, so any point serves.
+    return new Vantage(this.getOrigin() ?? new GeoPosition(0, 0), observerHeightM).reachNm(targetHeightM);
   }
 
   /**
@@ -790,21 +786,22 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     exclude: Stuff | null = null,
   ): Contact[] {
     const signalNm = numSetting('expanse.signalRangeNm', 12);
+    const vantage = new Vantage(here, eye);
     const rangeFor = (targetM: number): number =>
-      channel === 'signal' ? signalNm : this.sightRangeNm(eye, targetM) * seeing;
+      channel === 'signal' ? signalNm : vantage.reachNm(targetM) * seeing;
 
     const out: Contact[] = [];
     const seen = new Set<string>();
     for (const { craft: c, at, heightM, fixed } of candidates) {
       if (c.stuffId === exclude?.stuffId || seen.has(c.stuffId) || c.isDestroyed()) continue;
-      const d = here.distanceNm(at);
-      if (d > rangeFor(heightM)) continue;
+      const line = vantage.lineTo(at, heightM);
+      if (line.rangeNm > rangeFor(heightM)) continue;
       seen.add(c.stuffId);
       out.push({
         craft: c,
         name: MixinApi.isNamed(c) ? c.getName() : 'a sail',
-        bearingDeg: here.bearingTo(at),
-        rangeNm: Math.round(d * 10) / 10,
+        bearingDeg: line.bearingDeg,
+        rangeNm: Math.round(line.rangeNm * 10) / 10,
         channel,
         fixed,
       });
