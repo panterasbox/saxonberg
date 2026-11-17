@@ -34,6 +34,7 @@
 
 import { Expanse } from '../../../../lib/expanse/Expanse';
 import { CommandController } from '../../../../lib/command/CommandController';
+import type { TaggedPath, WireRoutePlan } from '@saxonberg/types';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -418,6 +419,39 @@ export default class RouteController extends CommandController<RouteModel> {
 
     void here;
     this.say(context, lines.join('\n'));
+    // ⭐ The same plans as data (navigation-server D5).
+    context.note({
+      kind: 'route-plan',
+      to: target.name,
+      plans: outcome.plans.map((p) => RouteController.wirePlan(p, known, ashoreFrom)),
+    });
+  }
+
+  /**
+   * ⭐ A plan as the client holds it: its legs, cost and assumptions — the
+   * assumptions in the very words the prose uses — every place a tagged
+   * path, and the least certain leg the plan names.
+   */
+  private static wirePlan(plan: RoutePlan, known: readonly Known[], ashoreFrom: string | null): WireRoutePlan {
+    const tag = (path: string): TaggedPath => ({ path, spoiler: 1 });
+    return {
+      ...(ashoreFrom !== null ? { ashoreFrom } : {}),
+      nodes: plan.nodes.map((n) => ({ place: tag(n), name: RouteController.nameOf(n, known) })),
+      legs: plan.legs.map((l) => ({
+        from: tag(l.from),
+        to: tag(l.to),
+        dir: l.dir,
+        minutes: l.minutes,
+        conditional: l.conditional,
+      })),
+      cost: { ...plan.cost },
+      assumptions: plan.assumptions.map((a) => ({
+        kind: a.kind,
+        leg: a.leg,
+        text: RouteController.assumptionProse(a, known),
+      })),
+      leastCertain: plan.leastCertain,
+    };
   }
 
   private async renderPair(
@@ -482,6 +516,7 @@ export default class RouteController extends CommandController<RouteModel> {
       `${from.name} to ${to.name}: ` +
         `${RouteController.costLine(plan, profile)}`,
     );
+    context.note({ kind: 'route-plan', to: to.name, plans: [RouteController.wirePlan(plan, known, null)] });
   }
 
   /**

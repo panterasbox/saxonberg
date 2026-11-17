@@ -647,6 +647,30 @@ export interface MqlErrorNote {
  * `indexed: false` means the whole registry was walked because the shape
  * answered to no index — the number that grows with the realm.
  */
+/**
+ * ⭐ A route plan as DATA (navigation-server D5) — beside `route`'s prose,
+ * saying the same: every leg, the cost on each axis, the assumptions, and
+ * which leg is least certain. A note because the plan is the command's
+ * outcome, and notes are how outcomes travel. Paths tagged (D6).
+ */
+export interface RoutePlanNote {
+  kind: 'route-plan';
+  /** The destination as you know it. */
+  to: string;
+  plans: WireRoutePlan[];
+}
+
+export interface WireRoutePlan {
+  /** Aboard: the first leg is off her, onto where she lies. */
+  ashoreFrom?: string;
+  nodes: { place: TaggedPath; name: string }[];
+  legs: { from: TaggedPath; to: TaggedPath; dir: string; minutes: number | null; conditional: boolean }[];
+  cost: { minutes: number; legs: number; conditional: number; unmeasured: number };
+  assumptions: { kind: 'conditional' | 'stale' | 'unmeasured' | 'disputed'; leg: number; text: string }[];
+  /** The least certain leg's index, or -1 when every leg is sure. */
+  leastCertain: number;
+}
+
 export interface RegistryScanNote {
   kind: 'registry-scan';
   /** The command field whose query this was. */
@@ -916,6 +940,7 @@ export interface WikiEditConflictNote {
 }
 
 export type Note =
+  | RoutePlanNote
   | WikiEditConflictNote
   | QuantityClampedNote
   | QuantityClampedRejectedNote

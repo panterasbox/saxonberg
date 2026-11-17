@@ -709,6 +709,7 @@ export class NavigationLogic extends ApiLogic {
             legs: [],
             cost: { minutes: 0, legs: 0, conditional: 0, unmeasured: 0 },
             assumptions: [],
+            leastCertain: -1,
           },
         ],
       };
@@ -951,7 +952,13 @@ export class NavigationLogic extends ApiLogic {
       });
     }
 
-    return { source, profile, nodes, legs, cost, assumptions };
+    // ⭐ The least certain step (navigation-server D5): a way that closes,
+    // then one disputed, then a stale one, then one unmeasured.
+    const rank = { conditional: 0, disputed: 1, stale: 2, unmeasured: 3 } as const;
+    const worst = assumptions
+      .filter((a) => a.leg >= 0)
+      .sort((a, b) => rank[a.kind] - rank[b.kind])[0];
+    return { source, profile, nodes, legs, cost, assumptions, leastCertain: worst ? worst.leg : -1 };
   }
 
   /* ── a player's map ──────────────────────────────────────────────────

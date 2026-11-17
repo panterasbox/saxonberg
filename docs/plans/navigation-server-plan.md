@@ -1190,7 +1190,13 @@ D7, D10.
 
 **Acceptance.** Steps 10–16. **Commit:** `feat(navigation): the zone, your Localities, the horizon, the building, the place and you`.
 
-### W6 — The route as data
+### W6 — The route as data ✅
+
+> **Done.** `route` notes `route-plan` (`RoutePlanNote`, `WireRoutePlan`) on
+> both render paths, the assumptions in the prose's own words. The least
+> certain leg is the PLAN's (`RoutePlan.leastCertain`, set where plans are
+> made in `NavigationLogic`) — a controller deciding it rose
+> `lint:controller-decisions`. Refusals already noted their reason.
 
 D5. `RouteController` note; refusal reason.
 

@@ -125,7 +125,7 @@ function giverAt(handle: string): { giver: Stuff; location: Stuff } {
 async function run(
   args: { destination?: string; by?: string },
   handle = SQUARE,
-): Promise<{ reason: string | null; text: string }> {
+): Promise<{ reason: string | null; text: string; notes: unknown[] }> {
   const { giver, location } = giverAt(handle);
   const context = CommandApi.createCommandContext({
     commandGiver: giver,
@@ -158,7 +158,7 @@ async function run(
   await controller.execute(args as never, context as never);
   const rejected = seen.find((n) => n.reason !== undefined);
   const words = rejected?.reason === 'needs-input' ? [...said, rejected.detail ?? ''] : said;
-  return { reason: rejected?.reason ?? null, text: words.join('\n') };
+  return { reason: rejected?.reason ?? null, text: words.join('\n'), notes: seen };
 }
 
 beforeEach(() => {
@@ -353,6 +353,17 @@ describe('assumptions — what believing the plan requires', () => {
     ]);
     const out = await run({ destination: 'the far bank' });
     expect(out.text).toMatch(/not always passable/);
+    // ⭐ The same plan as data (navigation-server D5): the leg, the
+    // assumption in the prose's own words, and the least certain step.
+    const note = out.notes.find((n) => (n as { kind?: string }).kind === 'route-plan') as {
+      to: string;
+      plans: { legs: { dir: string; from: { path: string; spoiler: number } }[]; assumptions: { text: string }[]; leastCertain: number }[];
+    };
+    expect(note.to).toBe('the far bank');
+    expect(note.plans[0]!.legs.map((l) => l.dir)).toEqual(['north']);
+    expect(note.plans[0]!.legs[0]!.from).toEqual({ path: SQUARE, spoiler: 1 });
+    expect(note.plans[0]!.leastCertain).toBe(0);
+    for (const a of note.plans[0]!.assumptions) expect(out.text).toContain(a.text);
     expectNoPaths(out.text);
   });
 
