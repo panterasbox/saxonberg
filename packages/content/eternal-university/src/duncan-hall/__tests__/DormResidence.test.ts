@@ -610,6 +610,26 @@ describe('corridor reap — top-down contiguity', () => {
     expect(w.corridorForUnit(k3)).not.toBeNull();
     expect(room3.isDestroyed()).toBe(false);
   });
+
+  it('⭐ never reaps a corridor out from under somebody standing in it', async () => {
+    // Found by the zone-instancing drive: a student stepped out of their
+    // unit, the unit slept, and the corridor they stood in was reaped —
+    // evacuating them to the void.
+    const k1 = seedUnit(1, 1);
+    await bootRegistries();
+    const w = await warren();
+    await w.refreshProvisioned();
+    const room = await w.admit(k1);
+    const occ = makeStuffAtPath(() => new Occupant(), '/obj/occ-out');
+    ContainmentApi.move(occ, room);
+    const corridor = w.corridorForUnit(k1)!;
+    expect(corridor).not.toBeNull();
+    ContainmentApi.move(occ, corridor as unknown as Stuff & Container);
+    await (w as unknown as { reconcile(): Promise<void> }).reconcile();
+    expect(room.isDestroyed()).toBe(true); // the unit sleeps…
+    expect((corridor as unknown as Stuff).isDestroyed()).toBe(false); // …the corridor stays
+    expect(occ.getContainer()).toBe(corridor);
+  });
 });
 
 /** Helper: the current parcel row for an extent, or null. */

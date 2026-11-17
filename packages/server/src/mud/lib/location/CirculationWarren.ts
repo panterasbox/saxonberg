@@ -595,8 +595,9 @@ export abstract class CirculationWarren extends Warren {
    * then reap; re-`admit` re-materializes), then circulation reaps
    * **outside-in** — a node reaps only when it holds no live holding
    * AND no live node sits beyond it on any route, keeping the graph
-   * contiguous back to the authored entrance. Authored nodes are never
-   * reaped (they are content, not clones).
+   * contiguous back to the authored entrance — and never while somebody
+   * stands in it. Authored nodes are never reaped (they are content, not
+   * clones).
    */
   protected async reconcile(): Promise<void> {
     // 1. Holding dormancy — an empty holding captures + reaps.
@@ -627,6 +628,11 @@ export abstract class CirculationWarren extends Warren {
         continue;
       }
       if (plan.isAuthored(nodeId)) continue; // content is never reaped
+      // ⭐ Never out from under somebody: a node anyone stands in stays
+      // (found by the zone-instancing drive — a student stepping out of
+      // their dorm unit put it to sleep, and the corridor they stood in was
+      // reaped, evacuating them to the void).
+      if (this.occupantsOf(room).length > 0) continue;
       const holdingHere = this.hasLiveHoldingOnNode(nodeId, plan);
       const nodeBeyond = liveNodes().some(
         ([other]) =>
