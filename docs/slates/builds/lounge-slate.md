@@ -2189,3 +2189,25 @@ anywhere, ever.**
 ⭐ **Do not gold-plate it: shared means SAME CHANNEL, not SAME FRAME.**
 Every client loads the same stream; the "together" is **social knowledge,
 not frame sync.** No sync layer.
+
+## ⭐⭐ The moving terminal — arrival as load balancing **[OPEN; owner direction 2026-11-16]**
+
+The owner, while working out how cargo reaches Dave's Bar: *"Like the load balancing part of the
+lounge, I think we may want the TPA to actually do some of that too, in addition to entering the
+game from character selection. … The better design is to move the TPA terminal around between
+lounge rooms on a schedule or whatever. This way it's very legible to the people in the room: this
+is where incoming teleporters will arrive, and it's the same place until it needs to move again."*
+
+- **The room is the information.** Arrivals land where the terminal stands, it says so, and it
+  stays until it moves, the way an airport gate change works. That replaces routing that nobody
+  can see.
+- **How often it moves** depends on real traffic; too fast and it stops being legible.
+- **Cargo must not feed the balancer.** Freight arriving through the passenger terminal would count
+  as traffic. A **cellar cargo terminal** (the lounge's freight dock, off the guest floor) would
+  keep freight out of the arrival logic. It is a second lounge terminal, justified by function, not
+  by saving a walk. Undecided, with the rest of the lounge design.
+- **The terminal stays in the lounge, never the bar.** The owner: the lounge is the headliner and
+  *"a protective shell from the rest of the game"*; the bar is *"what it is — a bar,"* there to show
+  off the systems the lounge doesn't.
+- See [logistics-slate § Cargo through terminals](./logistics-slate.md).
+

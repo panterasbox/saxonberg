@@ -205,7 +205,7 @@ Names stay clear of the bar's NPCs (Augie, Dave, Mara, Remy, Sloane).
 |---|---|---|
 | **Wren Halloway** | the newcomer — a **lineage**, a fresh Wren every week or two, each retired after her first week (the first hour happens once per character) | does the first hour lead someone to the backstop without being told? |
 | **Odile Fenn** | the regular — never works, never leaves; water, pizza, conversation; the heaviest chat user | is the floor survivable, and thin? Hungry = defect; content = balance finding |
-| **Abel Crane** | the audition — wants Dave to hire him, by performing | can Dave's criteria be discovered and met? |
+| **Abel Crane** | the working route — clocks on as a barback and climbs the ladder ([bar-audition § 14](./bar-audition-slate.md)) | can a newcomer earn trust by working, and is the climb legible? |
 | **Iris Kemble** | the exam — same goal, by the university and a bartending/mixology exam | is the exam path real, and how does it compare to Abel's? Abel vs. Iris is the cleanest balance read of performance against assessment we will ever get |
 | **Ezra Vale** | the organizer — works shifts, earns standing, organizes the staff, runs for something from the barstool (pubs are where politics has always happened) | does labor turn into a voice? The live case of what marked standing does at a tally (§ 5b) |
 
