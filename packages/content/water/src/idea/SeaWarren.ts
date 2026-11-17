@@ -29,6 +29,8 @@ import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -64,7 +66,7 @@ const NM_M = 1852;
 /** A ship as the sea's warren asks of her: a structure that voyages. */
 type ShipShape = Structure & Voyaging & Positioned;
 
-export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren)) {
+export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(RoomWarren))) {
   /** The patches standing now. Runtime: a sea patch is never persisted. */
   private _patches = new Set<SeaPatch>();
   private _serial = 0;
@@ -257,9 +259,9 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
     const zoneId = `${STOP_ZONE}/${key.replace(/[^A-Za-z0-9.@-]+/g, '-')}`;
     const z = stop.getZone();
     if (z === null || (z.getIdentityPath() ?? z.getTemplatePath()) !== zoneId) {
-      // identity-keyed-by: lookup — the stop's getZone() resolves to this
-      // instance; nothing persists under it (a zone is minted with its stop).
-      const zone = await StuffApi.clone<SeaZone>(STOP_ZONE, undefined, { asIdentityPath: zoneId });
+      // A copy of the stop kind's zone, named under its row (zone-instancing
+      // D13): nothing persists under it — a zone is minted with its stop.
+      const zone = (await this.wakeCopyZone(STOP_ZONE, zoneId.slice(STOP_ZONE.length + 1))) as unknown as SeaZone;
       zone.adopt(stop as never);
     }
   }
@@ -271,9 +273,9 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
     patch.setExpansePosition(pos);
     this.addMember(patch as unknown as MemberStuff);
     this._serial += 1;
-    // identity-keyed-by: lookup — the patch's getZone() resolves to this
-    // instance; nothing persists under it (a zone is minted with its patch).
-    const zone = await StuffApi.clone<SeaZone>(PATCH_ZONE, undefined, { asIdentityPath: `${PATCH_ZONE}/${this._serial}` });
+    // A copy of the patch kind's zone, named under its row by the serial
+    // (zone-instancing D13): nothing persists under it.
+    const zone = (await this.wakeCopyZone(PATCH_ZONE, String(this._serial))) as unknown as SeaZone;
     zone.adopt(patch as never);
     const sea = ship.getExpanse() ? await StuffApi.singleton<WaterExpanse>(ship.getExpanse()!).catch(() => null) : null;
     const depth = sea ? await sea.depthAt(pos).catch(() => 20) : 20;
@@ -302,15 +304,14 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
   private reap(m: MemberStuff): void {
     if (m.isDestroyed()) return;
     for (const r of this._patches) if ((r as unknown) === (m as unknown)) this._patches.delete(r);
-    const zone = m.getZone() as unknown as (Stuff & { removeLocation(p: unknown): boolean }) | null;
+    const zone = m.getZone() as unknown as Stuff | null;
     this.removeMember(m);
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
+    const moving = zone !== null && MixinApi.isMovingZone(zone) ? (zone as unknown as MintedZone) : null;
+    if (moving !== null) moving.removeLocation(m as unknown as Place);
     StuffApi.destruct(m as unknown as Stuff);
-    // ⭐ The zone goes with its place (D38): minted with it, reaped with it —
-    // not left for eviction (the drive's world ran out of memory).
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff) && !(zone as unknown as Stuff).isDestroyed()) {
-      StuffApi.destruct(zone as unknown as Stuff);
-    }
+    // ⭐ The zone goes with its place (D38), put to sleep by the warren that
+    // minted it — not left for eviction (the drive's world ran out of memory).
+    if (moving !== null) this.sleepCopyZone(moving);
   }
 
   /* ───────────────────────── reads ───────────────────────── */

@@ -10,3 +10,5 @@ data:
   # ⭐ The room IS the water within hail (the zone answers its patch's
   # hail range); this is the fallback when no patch is asking.
   cellSize: 100
+  # Copied by its warren, one copy per place, never kept (zone-instancing D13).
+  mintedBy: /system/water/idea/ReachWarren

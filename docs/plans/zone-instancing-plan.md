@@ -971,6 +971,20 @@ Decision: D13.
   to `location_graph`.
 - Drive step 9 added and run.
 - Commit: `feat(zone-instancing): B2 — reach and sea patches are short-lived copies`.
+- ✅ **Done.** `ReachZone`/`SeaZone` are `MovingZoneMixin(MintedZone)`; the
+  three hand-written mints (`ReachWarren.giveZone`, `SeaWarren.adoptStop`,
+  `mintPatch`) call `wakeCopyZone(<kind row>, <key under it>)` and both
+  `reap`s call `sleepCopyZone` (the structural `removeLocation` casts are
+  gone). The five zone rows author `mintedBy`; the two warren rows
+  `under-row` / `frame`. Identities are unchanged. The `SeaWarren` and
+  `SeaStop` unit tests run with no rows, so they stub the warren's
+  `wakeCopyZone` (as they already stubbed `clone`). New
+  `water/src/__tests__/ZoneCopies.test.ts`: a patch zone is a declared
+  copy, sleeping it leaves none, a frame copy is never recorded, an
+  undeclared row is refused.
+- Decided: drive steps 7–9 and the ships half of 10 are written and run
+  ONCE at B5 (code-complete), not per wave — a fresh-world run costs
+  15+ minutes on this machine (load ~13 on 8 cores).
 
 #### B3 — Authored ships
 

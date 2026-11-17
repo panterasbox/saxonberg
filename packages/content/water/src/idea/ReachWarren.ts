@@ -41,6 +41,8 @@ import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { Drift } from '@saxonberg/server/mud/lib/location/Drift';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -119,7 +121,7 @@ interface StopRecord {
   side: RiverSide | 'mid';
 }
 
-export default class ReachWarren extends LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren))) {
+export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren)))) {
   /** Where the singleton lives. */
   static readonly PATH = '/system/water/idea/ReachWarren';
 
@@ -576,9 +578,10 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
     const current = place.getZone() as unknown as Stuff | null;
     if (current !== null && current.getIdentityPath() === identity) return;
     const kind = identity.startsWith(STOP_ZONE) ? STOP_ZONE : identity.startsWith(BANK_ZONE) ? BANK_ZONE : PATCH_ZONE;
-    // identity-keyed-by: lookup — the place's getZone() resolves to this
-    // instance; nothing persists under it (a zone is minted again with its place).
-    const zone = await StuffApi.clone<ReachZone>(kind, undefined, { asIdentityPath: identity });
+    // ⭐ A copy of its kind's zone, named under the row by the place's key
+    // and joined to a frame (zone-instancing D13): the warren's one checked
+    // mint. Nothing persists under it — a zone is minted again with its place.
+    const zone = (await this.wakeCopyZone(kind, identity.slice(kind.length + 1))) as unknown as ReachZone;
     zone.adopt(place as never);
   }
 
@@ -1382,23 +1385,17 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
   /** Remove a member and its zone with it (D38). */
   private reap(m: MemberStuff): void {
     if (m.isDestroyed()) return;
-    const zone = m.getZone() as unknown as (Stuff & { removeLocation(p: unknown): boolean }) | null;
+    const zone = m.getZone() as unknown as Stuff | null;
     this.removeMember(m);
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
+    const moving = zone !== null && MixinApi.isMovingZone(zone) ? (zone as unknown as MintedZone) : null;
+    if (moving !== null) moving.removeLocation(m as unknown as Place);
     StuffApi.destruct(m as unknown as Stuff);
-    // ⭐ The zone goes with its place (D38): minted with it, reaped with it —
-    // not left for eviction (the drive's world ran out of memory).
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff) && !(zone as unknown as Stuff).isDestroyed()) {
-      StuffApi.destruct(zone as unknown as Stuff);
-    }
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) {
-      try {
-        StuffApi.destruct(zone as unknown as Stuff);
-      } catch {
-        /* it goes when nothing holds it */
-      }
-    }
+    // ⭐ The zone goes with its place (D38): minted with it, put to sleep
+    // with it by the warren that minted it — not left for eviction (the
+    // drive's world ran out of memory).
+    if (moving !== null) this.sleepCopyZone(moving);
   }
+
 
   private forgetStop(stop: ReachStop): void {
     const key = stop.getPersistenceKey();

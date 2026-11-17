@@ -10,11 +10,11 @@
  * them.
  */
 
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
 import { MovingZoneMixin } from '@saxonberg/server/mud/lib/zone/MovingZone';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
-export default class ReachZone extends MovingZoneMixin(CartesianZone) {
+export default class ReachZone extends MovingZoneMixin(MintedZone) {
   /**
    * ⭐ The room IS the water within hail: the cell is the place's hail
    * range, so the ranged band ladder and the light read the right size.

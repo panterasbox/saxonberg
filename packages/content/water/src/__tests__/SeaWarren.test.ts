@@ -72,10 +72,21 @@ const deck = (name: string) =>
     structure: async () => ships[name] ?? null,
   }) as unknown as Stuff;
 
+/**
+ * A sea warren whose zone mint is stubbed: these tests are about the water
+ * and its ways, and run with no rows (the mint's own checks are
+ * `ZoneMinting`'s tests; zone-instancing D13).
+ */
+function seaWarren(): SeaWarren {
+  const w = makeStuff(() => new SeaWarren());
+  vi.spyOn(w, 'wakeCopyZone').mockResolvedValue({ adopt: () => undefined } as never);
+  return w;
+}
+
 describe('SeaWarren (river D30)', () => {
   it('⭐ a boat goes into the water beside a ship that has stopped — on the chart where she lies', async () => {
     ships.hesper = ship('hesper', new GeoPosition(42, -8.47));
-    const w = makeStuff(() => new SeaWarren());
+    const w = seaWarren();
     const room = (await w.launchPlaceFor(deck('hesper'))) as unknown as SeaPatch;
     expect(room).toBeInstanceOf(SeaPatch);
     expect(room.getExpanse()).toBe(SEA);
@@ -86,14 +97,14 @@ describe('SeaWarren (river D30)', () => {
 
   it('⭐ under way she is alongside nothing', async () => {
     ships.hesper = ship('hesper', new GeoPosition(42, -8.47), true);
-    const w = makeStuff(() => new SeaWarren());
+    const w = seaWarren();
     expect(await w.launchPlaceFor(deck('hesper'))).toBeNull();
   });
 
   it('⭐⭐ two ships stopped within hail share one room, with a way up onto each', async () => {
     ships.hesper = ship('hesper', new GeoPosition(42, -8.47));
     ships.kittiwake = ship('kittiwake', new GeoPosition(42.0001, -8.4701));
-    const w = makeStuff(() => new SeaWarren());
+    const w = seaWarren();
     const a = await w.launchPlaceFor(deck('hesper'));
     const b = await w.launchPlaceFor(deck('kittiwake'));
     expect(b).toBe(a);
@@ -104,7 +115,7 @@ describe('SeaWarren (river D30)', () => {
   it('ships a mile apart have water of their own', async () => {
     ships.hesper = ship('hesper', new GeoPosition(42, -8.47));
     ships.gannet = ship('gannet', new GeoPosition(42.02, -8.47));
-    const w = makeStuff(() => new SeaWarren());
+    const w = seaWarren();
     expect(await w.launchPlaceFor(deck('gannet'))).not.toBe(await w.launchPlaceFor(deck('hesper')));
   });
 });
