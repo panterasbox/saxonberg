@@ -316,9 +316,8 @@ total height — you need the zone for that"*) is one named accessor,
 once this build merges. ⚠ `ZoneApi.elevationFor` is **not** changed here:
 it stays the GROUND's elevation, its five readers (`MagicLogic` Δh,
 `BiomeLogic` pressure, `WaterFixture`, `WaterStore`, `Well`) and the
-*stairwell is not a waterfall* test untouched — whether any of them should
-read the total instead is a per-reader physics question for the owner
-(Risks), not a side effect of the horizon.
+*stairwell is not a waterfall* test untouched — two of them switch to the total (D13);
+the water readers stay on the ground.
 
 Eye altitude = `heightAboveSeaM()` `+ SHORE_EYE_M`; at sea it stays
 `craft.sightHeightFor(viewer)`. `heightAboveGroundM()` is `0` on `Place`
@@ -371,6 +370,20 @@ test** (the owner, Q2): an unlit ship is not seen by night — a sea-wide
 change, decided. The seeded passing traffic is unchanged. The lighthouse
 row gains `showsLight: true`; the Terminal does not; the Hesper, the
 Corrigan and the ferries do (riding lights), the small boats do not.
+
+**D13 — Pressure and magic read the total height** (the owner, Q7).
+`BiomeLogic.pressureFromElevation(scope, …)` and `MagicLogic`'s Δh
+(`fromScene`/`toScene`) read `Place.heightAboveSeaM()` when the scope is a
+`Place` (the branch predicate, no value import if it closes a cycle), else
+`ZoneApi.elevationFor` as today. `Well`, `WaterStore` and `WaterFixture`
+stay on `elevationFor` — the ground and its water. `elevationFor` itself is
+unchanged, and so is the *stairwell is not a waterfall* test (it asserts
+`elevationFor`). ⚠ The `elevation === 0` short-circuit in
+`pressureFromElevation` now tests the total: a third-floor room at a
+sea-level zone derives a (slightly) lower pressure, which is the point —
+`measure altitude` on a tower top reads the tower. New tests: two rooms in
+one zone at different `z` get different pressures and the same
+`elevationFor`; magic's Δh climbs a stair.
 
 **D7 — Latitude.** `ZoneLogic.climateSiteFor` — the one resolver — resolves
 the zone chain's `latitude` as today; when the chain declares none it asks
@@ -558,13 +571,15 @@ scale, bearing and range against `GeoPosition`). `lib/expanse/Expanse.ts`:
 *Acceptance:* every existing `lib/expanse/__tests__` and horizon test green,
 unchanged. *Commit:* `refactor(expanse): the sight core is a Vantage`.
 
-**W1 — Points and the room's position.** D4, D7; S1, S2, S3, S7, S8.
+**W1 — Points and the room's position.** D4, D7, D13; S1, S2, S3, S7, S8.
 `platform/idea/Locality.ts`, `lib/structure/Building.ts`,
 `lib/structure/Structure.ts` (`showsLight`), `api/address.ts` +
 `platform/idea/api/AddressLogic.ts` (`positionedLocalityOf`),
 `lib/stuff/Place.ts` + `lib/location/Location.ts`,
 `platform/idea/api/ZoneLogic.ts` + `lib/zone/SpatialZone.ts`
-(`climateSite(fallbackLatitudeDeg?)`). Tests: setters refuse bad values;
+(`climateSite(fallbackLatitudeDeg?)`), and D13's two readers
+(`platform/idea/api/BiomeLogic.ts`, `platform/idea/api/MagicLogic.ts`).
+Tests: setters refuse bad values;
 the chain walk; `chartPoint`'s four cases; latitude — zone states one →
 kept, none → the Locality's, neither → 42. *Acceptance:* no row authors a
 point yet, so nothing observable changes. *Commit:*
@@ -803,11 +818,9 @@ Neither build gates on the other; the second to merge rebases.
   no skyline, reported by the census in the drive record.
 - **Q6 — Kept per point owner and eye altitude**, as D2 says.
 
-- **Q7 — Should any `elevationFor` reader use the total height?** Open,
-  for the owner. Pressure (`BiomeLogic`) and magic's Δh are physically
-  total-height questions; a tap's or a well's are about the ground and its
-  water. Build default: none switch; `heightAboveSeaM()` exists for the
-  ones the owner names.
+- **Q7 — Which `elevationFor` readers use the total height → pressure and
+  magic** (the owner, 2026-11-17, relayed by the navigation-server
+  session: *"yes, use the total for pressure and magic"*). D13.
 
 **Engineering risks**
 
