@@ -30,6 +30,7 @@
 > - tips to the drink's maker, and the jar split (§ 15)
 > - where demand comes from (§ 16)
 > - the rail's supply: the well as import, the call shelf by placement, no works board (§ 19)
+> - ⭐ the patron's side: the bar from the stool (§ 20)
 >
 > **Size:** a build, once its upstream slates have landed. Most of the work is theirs.
 
@@ -505,6 +506,107 @@ producer, so the curation criterion must be named (lens 7).
     margin, or the keeper's to set.
 14. **The house's starting float**, so it can pay before revenue arrives.
 15. **Can a courier sell the house a bottle unsolicited**, or only by placement?
+
+## 20. ⭐⭐⭐ The patron's side — the bar from the stool **[LEAN; the owner's own experience, 2026-11-16]**
+
+The owner: *"I was a barfly for 20 years at a neighborhood bar. Most of the customers were multiple
+night per week regulars like myself … I have very specific parts of the experience that I want to
+capture."* Everything in §§ 14–19 was designed from the staff and supply side; this is the stool.
+
+### What ships (verified)
+
+- `menu` lists the bar's cocktails with prices. `order negroni` gets whoever is tending to make it
+  and hand it over.
+- ⭐ **`order martini with bombay`** steers the pour to a brand: the call drink is half-built.
+  corpo.md already says *"Volk is the well rail."*
+- `taste` reads the five tastes, the smell, the components you pick out, **"the making of it reads
+  <grade>"**, time in the wood, and **whether you like it**, *"which is yours and not the food's."*
+  So a patron can taste craft, and per-patron preference already exists.
+- Regard works in every direction, player and NPC alike, so a player bartender can hold regard
+  toward a patron. ⚠ Nothing writes regard when you tip.
+
+### The language of the bar
+
+- **There is no menu. You call your drink**, and the bartender knows it or doesn't. The refusal
+  already ships: *"Nobody here knows how to make that. Mara could."* A menu, where there is one, is a
+  small board of **house specials** being promoted. The bar's own description already has it: *"a
+  chalkboard menu has been wiped and rewritten so many times it's gone soft and grey."* ⚠
+  Dependency: today `order` is "off the menu" and prices live on the menu, so the price list moves
+  behind the bar, known to staff and not posted.
+- **The usual is something the bartender remembers about you**, in the same per-person memory
+  that holds recognition and regard. A named staff member keeps it; a role does not. The arc:
+
+  | who you are | what happens |
+  |---|---|
+  | a stranger | *"What are you having?"* |
+  | first drink of the night | *"The usual?"* |
+  | after that | it just comes |
+
+- **⭐ The empty glass at the edge is the order.** The owner: *"If I'm ready for another drink, I
+  put my empty glass on the edge of the bar where the tips go. If I'm not ready, I keep the empty to
+  myself. If I want something different from my usual then I would probably ask for that
+  explicitly."* It is a gesture: **putting your glass in a particular spot**, which the bartender
+  reads. Placement on a surface already exists and its vocabulary is row-extensible, so "the edge
+  of the bar" is a new spot, not new machinery. The edge is where every exchange happens: glasses,
+  cash and tips. The player's act stays explicit; nothing happens behind their back.
+- **Cash on the bar.** *"Some money on the bar for the bartender to draw from was part of an
+  unspoken routine between me and my regular bartender. If I need to top off I'd notice or they'd
+  let me know."* Coin is physical: money put on the counter at your seat, from which the bartender
+  draws each round and the tip. It stays yours while it sits there, so palming it is theft,
+  recorded. A first-timer pays each round until there is a routine.
+- **Sitting at the bar is a different place.** The wordless loop (noticed, poured, drawn from your
+  cash) works **on a stool, across from the bartender**; at a table you walk up, as in a
+  neighborhood bar with no table service. ⭐ Anyone watching a drink made is written known-of, so
+  sitting at the bar watching your bartender work is how a barfly comes to know every drink they've
+  seen poured.
+
+### The people
+
+- **No regular bartender: friends with all of them.** *"I'm friends with all of them because I'm in
+  on all their shifts at different times. But I do have favorites or potential crushes."* Each
+  bartender's regard is separate already. With one on shift, **who is working tonight** matters more
+  than routing.
+- **Each shift has its own sound.** *"A lot of time when no one else is putting on music, they're the
+  ones putting on music. So their shift gets a certain sound or rhythm."* A bartender's taste in
+  music is part of who they are (the jukebox, unbuilt: lounge slate); a player bartender picks
+  their own.
+- **Off-shift staff take a table, not a stool,** unless they are working at something that wants a
+  surface; then sitting at the bar is a chance to get to know them. The bar's row already has the
+  instinct: *"one at the end of the rail sits empty on purpose, kept for whichever of the staff is
+  off-shift."* The stools are the players'.
+- **⛔ No NPCs in the lounge** (the owner), pets to be decided. Dave's staff are the one exception,
+  which is also why freight lands at Dave's back door.
+
+### The room's rhythm, and the principle under it
+
+- **Traffic shapes the night:** busy or slow, day drinkers or the evening crowd, weekday or weekend.
+  The staff roster already varies by day and hour; the crowd is the players.
+- **The underbelly.** The owner's own bar was two bars merged, a pool bar and a darts bar, so the
+  room stayed divided, with league nights for each and a tension *"you'd only pick up on if you were
+  there a lot on multiple different kinds of shifts."* Dave's Bar's own history is the photo wall's;
+  what the underbelly becomes is for players and the content to grow.
+- ⭐⭐ **Depth scales with time spent.** *"The bar has a lot of depth and a lot of story to tell, but
+  how much of it you get really scales with how much time you spend there. Some people live at the
+  bar and some might never even step foot in the place."* Nothing is locked behind a quest: you find
+  it by **being there across many kinds of nights**. Things only happen on their night; a bartender
+  tells you more as they come to like you. Someone who lives there knows it; someone who never goes
+  in loses nothing they needed. Odile (live-instance-testing § 5c) is the agent who tests it.
+
+### Where demand comes from, from the stool
+
+Social (buying for others, being served by a favorite, tipping), preference (a patron's own
+liking), the showcase (calling a friend's spirit), and later intoxication. None needs a patron to
+be thirsty.
+
+### Open, from the stool
+
+16. **How call options are shown:** the back bar and asking, as in a real bar.
+17. **How a call is priced:** derived from the bottle's cost plus a margin.
+18. **Buying someone a drink:** `order <drink> for <person>`; today it is `order` then `give`.
+19. **The regulars and the alcoholism.** The body already models alcohol, and tolerance is a real
+    slow stock. How close to the real thing the experience goes (tolerance built over years, a
+    bartender who knows each regular's limit, the cost of it) is the owner's call.
+20. **A tab** — a small line of credit, on the credit ladder's terms.
 
 ## Cross-references
 

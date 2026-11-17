@@ -2211,3 +2211,83 @@ is where incoming teleporters will arrive, and it's the same place until it need
   off the systems the lounge doesn't.
 - See [logistics-slate § Cargo through terminals](./logistics-slate.md).
 
+## ⭐⭐⭐ The machine — web games in the lounge, published like a content pack **[LEAN; owner direction 2026-11-16]**
+
+The owner: *"I actually want to explore the idea of gameplay in the lounge, different rooms offering
+different games, and not just games, exhibitions too … so the warren generates a room with a pool
+table, and that pool table is a real mini game that can be played in browser between people in the
+room."* And: *"I don't want to be a web game platform necessarily, we're a text game platform and we
+should stay that."*
+
+**Builds on § Parlor games** (the table, not the game; a board is a shared object in a room; games
+with money at the bar; the card is a command composer). The new thing is the **embedded web game**,
+which a server-side rules module cannot express (real-time pool, physics).
+
+**The test is the table, not multiplayer or realtime:** does being in this room with these people
+make it better? Turn-based is fine; a single-player game can be an **exhibition** a crowd watches,
+as the TV is. What fails is a game that seals two people off from the room.
+
+**The object is the machine.** Real history: the **Megatouch** countertop touchscreens (Merit
+Entertainment) in US bars; Photo Hunt (Q7187676) was the famous one. The Megatouch name now sits
+with AMI Entertainment Network (Q60749173), **which also sells jukeboxes**: the jukebox and the
+game machine were one category, a bar-amusement machine fed by a vendor's catalog. So:
+
+- **a cabinet in a room** the warren can generate: visible, joinable and watchable by anyone
+  present;
+- **it hosts a catalog** (a game is something the machine plays, not something built into a room);
+- **it narrates** for the room;
+- **it keeps its own high-score board**, with initials. The owner: *"everyone loves
+  leaderboards."* A board per machine is table-scale and allowed; a lounge-wide ranking of
+  *people* is room-scale and stays out;
+- **the jukebox is the same machine with a music catalog.**
+
+**Published like a content pack (the owner).** *"I'd want this to be something you install into the
+game like a content pack … we have some spec people conform to to publish their content into the
+game. This just needs to be like a web game that runs in the client somewhere."* A pack can already
+ship server code in `src/`; a web game is **a pack that ships client code**, so install, versions,
+maintainers, provenance and GitLab review come with it. The machine is a content row naming the
+games it carries.
+
+**The spec a game conforms to:**
+1. **A manifest:** name, version, seats (min/max), realtime or turn-based, what it narrates, what
+   its board measures, how its scores are made honest.
+2. **Sandboxed:** its own origin, a sandboxed frame, no access to the client's session or storage,
+   no network but ours. Third-party JavaScript in players' browsers is where the care goes.
+3. **The host gives:** who is in the room, who is seated, a **per-game pseudonymous id** per player
+   (never the account), and a message relay over our socket, so a multiplayer game needs no server
+   of its own.
+4. **⭐ The game gives:** **narration for the room** (required, rate-limited: *"Sloane sinks the
+   eight, Mara's up next"*), and outcomes for the board. The owner, on whether a game must
+   narrate: **yes.** It is the price of admission on a text platform.
+5. **Zorkmids only, never real money** (the owner: *"there's no real money, this all runs on
+   zorkmids like anything else; if we have to monetize we do that through the Compact"*). Free in
+   the lounge; at the bar a machine may be **coin-op**, a few zorkmids a play to the house, which
+   is a demand source at Dave's that feeds the revenue paying player bartenders.
+
+**Honest scores.** A board means something only if its scores are true, and the old machines were
+trustworthy because the machine was the authority. A manifest declares one of three:
+- **server rules:** the game's logic ships as server code in the pack, and the browser only draws
+  (honest; trusted code, so the heaviest review);
+- **replayed:** for deterministic games the relay replays the moves it carried and confirms the
+  result;
+- **self-reported:** the board is marked as such.
+
+Only the first two get a machine's real board.
+
+**Partner first, platform open.** The owner prefers *"an existing catalog of games that make sense
+for the venue and can explain themselves narratively"* over becoming a web-game company, *"or maybe
+if I build a compelling enough web game platform people will come build the actual games for it, so
+I just become the storefront, except it's the lounge, not Steam."* Either way the contract is the
+same; the difference is who fills the catalog. A partner needs a hook exposing game state that can
+be narrated, which rules out most catalogs as they stand.
+
+**A venue chooses what it carries,** within the operator's floor: realms govern their own culture,
+and the host has a floor of its own.
+
+**It belongs to the lounge, not the realm.** The lounge is the operator's brand, a layer around the
+realms, so the machine is a platform experiment Saxonberg does not need to know about. Bar games
+with skill and money in them (darts) stay at Dave's, in the game proper.
+
+**Open:** which partner catalogs can narrate; the coin-op price at the bar; how a machine's board
+handles the reset of a nightly world until the world persists.
+
