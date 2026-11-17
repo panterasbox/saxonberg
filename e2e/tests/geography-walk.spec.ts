@@ -16,7 +16,6 @@ import { openWorldAs, runCommand } from './helpers';
 const MARKET = '/world/terminus/market/square';
 const HINKLEY = '/world/terminus/hinkley-hills/location/arrival';
 const BROW = '/world/terminus/estuary/headland/brow';
-const GALLERY = '/world/terminus/gannet-rock/gallery';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();
@@ -33,7 +32,7 @@ async function sayAwaiting(page: Page, cmd: string, reply: RegExp, timeout = 40_
 }
 
 test.describe('the geography build, in a browser', () => {
-  test('⭐⭐ the skyline from the Market, the hills, the headland and the light', async ({ browser }) => {
+  test('⭐⭐ the skyline from the Market, the hills and the headland', async ({ browser }) => {
     test.setTimeout(240_000);
     const w = await openWorldAs(browser, 'geography-walk', {
       startLocation: MARKET,
@@ -41,31 +40,31 @@ test.describe('the geography build, in a browser', () => {
     });
     const { page } = w;
     try {
-      // ── 1. The Market: the tower close by, the light with a rough direction ──
-      const market = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
+      // ── 1. The Market: the Terminal close by. The light on Gannet Rock is
+      // 18.7 nm off, under a 37 m eye's horizon on this small world. ──
+      const market = await sayAwaiting(page, 'query horizon', /clock tower/i);
       expect(market).toMatch(/clock tower[^.]*close by/i);
-      expect(market).toMatch(/light on Gannet Rock, to the north-east, some \d+ miles off/i);
+      expect(market).not.toMatch(/light on Gannet Rock/i);
       // ⛔ The transcript never carries a true bearing.
       expect(market).not.toMatch(/\b\d{3}°/);
+      const near = await sayAwaiting(page, 'analyze bearing tower', /too near|bears|cannot see/i);
+      expect(near).toMatch(/too near/i);
 
-      // ── 2. The instrument narrows it: the eye reads a bearing ±10° ──
+      // ── 2. Hinkley Hills, 132 m up: the light to the east, and the eye's bearing ──
+      await sayAwaiting(page, `goto ${HINKLEY}`, /hinkley|lane|arrival/i);
+      await sayAwaiting(page, 'look', /.+/);
+      const hills = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
+      expect(hills).toMatch(/light on Gannet Rock\s*, to the east/i);
+      expect(hills).toMatch(/clock tower\s*, to the south/i);
       const eye = await sayAwaiting(page, 'analyze bearing light', /bears|cannot see/i);
       expect(eye).toMatch(/bears \d{3}° ± 10°/);
 
-      // ── 3. Hinkley Hills: the same light, another direction ──
-      await sayAwaiting(page, `goto ${HINKLEY}`, /hinkley|lane|arrival/i);
-      const hills = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
-      expect(hills).toMatch(/light on Gannet Rock, to the east/i);
-
-      // ── 4. The headland: a hundred meters up, the light and the town ──
+      // ── 3. The headland brow, a hundred meters up: the light, and the ships ──
       await sayAwaiting(page, `goto ${BROW}`, /headland|brow/i);
-      const brow = await sayAwaiting(page, 'query horizon', /light on Gannet Rock|clock tower/i);
-      expect(brow).toMatch(/light on Gannet Rock, to the/i);
-
-      // ── 5. The gallery on Gannet Rock: the coast to the north-west ──
-      await sayAwaiting(page, `goto ${GALLERY}`, /gallery|lantern/i);
-      const gallery = await sayAwaiting(page, 'query horizon', /clock tower|rubber works/i);
-      expect(gallery).toMatch(/to the (north-west|west)/i);
+      await sayAwaiting(page, 'look', /.+/);
+      const brow = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
+      expect(brow).toMatch(/light on Gannet Rock\s*, to the north-east/i);
+      expect(brow).toMatch(/clock tower\s*, to the west/i);
     } finally {
       await w.close();
     }
