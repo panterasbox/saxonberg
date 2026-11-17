@@ -44,10 +44,12 @@ function resetClient(): void {
   const c = websocketClient as unknown as {
     ws: MockWebSocket | null;
     subscriptions: Map<string, unknown>;
+    navIds: unknown;
     reconnectAttempts: number;
   };
   c.ws = null;
   c.subscriptions = new Map();
+  c.navIds = null;
   c.reconnectAttempts = 0;
 }
 
@@ -106,6 +108,80 @@ describe("the session subscriptions (client state, the press ticker)", () => {
       changes: [{ op: "remove", key: "r1" }],
     });
     expect(useStore.getState().feed["r1"]).toBeUndefined();
+  });
+});
+
+describe("your map and where you are (navigation-server)", () => {
+  beforeEach(() => {
+    resetClient();
+    useStore.setState({ navSections: {}, mapCopy: {} });
+  });
+
+  function established(): void {
+    (
+      websocketClient as unknown as { handleConnectionEstablished: (p: unknown) => void }
+    ).handleConnectionEstablished({
+      socketId: "s",
+      sessionId: "sess",
+      userId: "u",
+      interactiveStuffId: "i",
+      player: { _id: "p", name: "Player", pronouns: "they" },
+    });
+  }
+
+  function idFor(mock: MockWebSocket, source: string): string {
+    const sent = mock.sent.find(
+      (m) =>
+        (m as { type?: string }).type === "subscribe" &&
+        (m as { payload: { source: string } }).payload.source === source,
+    ) as { payload: { subscriptionId: string } } | undefined;
+    expect(sent, `no subscribe to ${source}`).toBeDefined();
+    return sent!.payload.subscriptionId;
+  }
+
+  it("opens both at session start, with no card, and lands their snapshots and changes", () => {
+    const mock = attachMockWs();
+    established();
+    const where = idFor(mock, SUBSCRIPTION_SOURCES.whereabouts);
+    const map = idFor(mock, SUBSCRIPTION_SOURCES.mapCopy);
+    deliver({
+      type: "subscription-result",
+      frameId: 1,
+      subscriptionId: where,
+      rev: 0,
+      snapshot: { sections: { place: { v: 1, stuffId: "r1", name: "the vestibule" } } },
+    });
+    deliver({
+      type: "subscription-delta",
+      frameId: 2,
+      subscriptionId: where,
+      rev: 1,
+      changes: [{ op: "replace", key: "place", fields: { v: 2, stuffId: "r2", name: "a corridor" } }],
+    });
+    expect(useStore.getState().navSections.place?.name).toBe("a corridor");
+    const claim = { key: "k", kind: "place", place: { path: "/p", spoiler: 1 }, channel: "walked", firstSeen: 1, lastSeen: 1 };
+    deliver({
+      type: "subscription-result",
+      frameId: 3,
+      subscriptionId: map,
+      rev: 0,
+      snapshot: { documents: [{ locality: "newbie-wilds", claims: [claim] }] },
+    });
+    expect(Object.keys(useStore.getState().mapCopy)).toEqual(["newbie-wilds|k"]);
+    // ⭐ Neither feeds the MQL stuff registry.
+    expect(useStore.getState().stuffRegistry.size).toBe(0);
+  });
+
+  it("a reconnect re-subscribes each afresh (unsubscribe, then subscribe)", () => {
+    const mock = attachMockWs();
+    established();
+    const where = idFor(mock, SUBSCRIPTION_SOURCES.whereabouts);
+    mock.sent = [];
+    established();
+    const types = mock.sent
+      .filter((m) => (m as { payload?: { subscriptionId?: string } }).payload?.subscriptionId === where)
+      .map((m) => (m as { type: string }).type);
+    expect(types).toEqual(["unsubscribe", "subscribe"]);
   });
 });
 
@@ -448,7 +524,9 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "subscribe"
+      (m) =>
+        (m as { type?: string }).type === "subscribe" &&
+        (m as { payload?: { source?: string } }).payload?.source === SUBSCRIPTION_SOURCES.mql
     );
     expect(subscribes).toHaveLength(1);
     expect(subscribes[0]).toMatchObject({
@@ -486,7 +564,9 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "subscribe"
+      (m) =>
+        (m as { type?: string }).type === "subscribe" &&
+        (m as { payload?: { source?: string } }).payload?.source === SUBSCRIPTION_SOURCES.mql
     );
     expect(subscribes).toHaveLength(2);
     const ids = subscribes.map(
@@ -528,7 +608,9 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "subscribe"
+      (m) =>
+        (m as { type?: string }).type === "subscribe" &&
+        (m as { payload?: { source?: string } }).payload?.source === SUBSCRIPTION_SOURCES.mql
     );
     expect(subscribes).toHaveLength(0);
   });

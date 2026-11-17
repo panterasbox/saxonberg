@@ -17,7 +17,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { Whereabouts, WhereaboutsExit } from "@saxonberg/types";
+import type { Whereabouts, WhereaboutsExit } from "../../store/navSlice";
 import { tokens } from "../ui";
 
 interface NavigatorBodyProps {

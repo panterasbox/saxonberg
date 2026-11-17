@@ -546,9 +546,24 @@ export class Session {
   }
 
   /** Route one socket message into the channel that is waiting for it. */
+  /**
+   * ⭐ Every frame this session receives, raw, BEFORE any per-command
+   * capture is cleared — the seam a standing observer (`NavClient`) is fed
+   * through. Returns the unregister.
+   */
+  observe(fn: (frame: Record<string, unknown>, bytes: number) => void): () => void {
+    this.observers.add(fn);
+    return () => this.observers.delete(fn);
+  }
+  private readonly observers = new Set<(frame: Record<string, unknown>, bytes: number) => void>();
+
   private receive(raw: string): void {
     this.lastFrameAt = Date.now();
     for (const frame of splitFrames(raw)) {
+      if (this.observers.size > 0) {
+        const bytes = Buffer.byteLength(JSON.stringify(frame));
+        for (const fn of this.observers) fn(frame as Record<string, unknown>, bytes);
+      }
       const type = typeof frame.type === 'string' ? frame.type : null;
       if (type === 'dispatch-response') {
         // ⚠ A FORCED command's envelope is not the answer to anything

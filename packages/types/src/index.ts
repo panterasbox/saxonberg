@@ -1293,47 +1293,7 @@ export type CardPayload =
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
   | { kind: 'survey'; survey: SurveyFrame }
-  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
-  | { kind: 'navigation'; where: Whereabouts };
-
-/**
- * ⭐ Where you are, at zone level — the navigator card's body (the map
- * slate's zone navigation card, wave-1 stub). Navigation, not inspection:
- * nothing here describes what the room LOOKS like.
- *
- * Every field is what the server could honestly read; absent means it
- * could not, and the card says so rather than inventing a value.
- */
-export interface Whereabouts {
-  /** The room you stand in. */
-  place: { stuffId: string; name: string };
-  /** The Structure the room is part of (a building), innermost. */
-  structure?: { name: string };
-  /** The covering Localities, OUTERMOST first (Terminus › the City › …). */
-  localities: { name: string; address: string }[];
-  /** Your cell in the zone's grid, when the place has coordinates. */
-  coords?: { x: number; y: number; z: number };
-  /** The ways out you can perceive (concealed exits are absent). */
-  exits: WhereaboutsExit[];
-  /** What spans places: the sky over the locality. */
-  conditions: {
-    weather?: string;
-    season?: string;
-    daylight?: 'day' | 'night';
-  };
-  /** The innermost government whose ground this is; null = none claims it. */
-  jurisdiction: string | null;
-}
-
-/**
- * ⭐ Where the craft you are aboard lies (navigation-server D10) — made
- * fast at a landing, on a river's line, or at sea. Names, never paths:
- * the landing and the river are what a body aboard can see.
- */
-export type Lie =
-  | { at: 'berth'; ship: string; landing?: string }
-  | { at: 'river'; ship?: string; river: string; km: number }
-  | { at: 'sea'; ship?: string };
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
 
 /**
  * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
@@ -1360,8 +1320,244 @@ export interface WayRecord {
   boundary?: { stuffId: string; name: string; primaryKeyword?: string };
 }
 
-/** A whereabouts exit — a {@link WayRecord}. */
-export type WhereaboutsExit = WayRecord;
+// ============================================================================
+// ⭐⭐ Navigation as data (navigation-server) — your map and where you are
+// ============================================================================
+
+/**
+ * ⭐ A path on the wire, among the spoiler levels (navigation-server D6):
+ * level 1, the lowest non-open one — appetite, one click, never a
+ * capability. Every identity or template path the navigation sources send
+ * is one of these; a Locality ADDRESS is not a path and travels bare.
+ */
+export interface TaggedPath {
+  path: string;
+  spoiler: 1;
+}
+
+/** What kind of Locality, by address depth: 1 realm, 2 settlement, 3+ district. */
+export const LOCALITY_KINDS = ['realm', 'settlement', 'district'] as const;
+export type LocalityKind = (typeof LOCALITY_KINDS)[number];
+
+/** Where a claim's place is, written when it was perceived. */
+export interface WirePosition {
+  zone?: TaggedPath;
+  x?: number;
+  y?: number;
+  z?: number;
+  level?: number;
+  /** On a river's line: which course, and how far above the mouth. */
+  line?: { course: TaggedPath; km: number };
+  /** At sea, by somebody's reckoning (never the true position). */
+  geo?: { latDeg: number; lonDeg: number };
+  reckoned?: true;
+  errorNm?: number;
+  bracket?: string;
+}
+
+/**
+ * One claim of your map, as the client holds it — the stored claim with
+ * every path tagged. `key` is the claim's identity within its Locality
+ * document (a change replaces it by that key).
+ */
+export interface WireClaim {
+  key: string;
+  kind: 'place' | 'edge' | 'band' | 'locality';
+  place: TaggedPath | string;
+  label?: TaggedPath;
+  name?: string;
+  keywords?: string[];
+  group?: string;
+  dir?: string;
+  to?: TaggedPath | null;
+  toLabel?: TaggedPath | null;
+  channel: 'walked' | 'seen' | 'searched' | 'published' | 'charted' | 'told';
+  conditional?: boolean;
+  where?: string;
+  toldBy?: TaggedPath;
+  via?: TaggedPath;
+  viaName?: string;
+  at?: WirePosition;
+  state?: WayState;
+  government?: { key: string; name: string };
+  localityKind?: LocalityKind;
+  firstSeen: number;
+  lastSeen: number;
+}
+
+/** Your map: every Locality document you hold a claim in. */
+export interface MapCopySnapshot {
+  documents: { locality: string; claims: WireClaim[] }[];
+}
+
+/**
+ * ⭐ Where the craft you are aboard lies (navigation-server D10) — made
+ * fast at a landing, on a river's line, or at sea. Names, never paths:
+ * the landing and the river are what a body aboard can see.
+ */
+export type Lie =
+  | { at: 'berth'; ship: string; landing?: string }
+  | { at: 'river'; ship?: string; river: string; km: number }
+  | { at: 'sea'; ship?: string };
+
+/** The zone you stand in, as a frame — never its extent or levels. */
+export interface ZoneSection {
+  v: number;
+  id?: TaggedPath;
+  kind?: 'grid' | 'sphere' | 'chart' | 'water';
+  cellSizeM?: number;
+  label?: string;
+}
+
+/** Your Localities, outermost first, and whose ground this is. */
+export interface LocalitiesSection {
+  v: number;
+  chain: {
+    name: string;
+    address: string;
+    kind?: LocalityKind;
+    government?: { key: string; name: string };
+  }[];
+  /** The last crumb aboard: the ship. */
+  ship?: { name: string };
+  /** Where she (or the moving place) lies. */
+  outer?: Lie;
+  /** Innermost first — what `government` answers here. */
+  jurisdiction: { key: string; name: string }[];
+}
+
+/** What stands on the horizon, landmarks first — rough direction, never degrees. */
+export interface HorizonSection {
+  v: number;
+  atSea: boolean;
+  things: {
+    stuffId: string;
+    name: string;
+    landmark: boolean;
+    glance?: { point: string; closeBy?: boolean; roughMiles?: number };
+  }[];
+  traffic: number;
+}
+
+/** The building you are in (or, outside, the ones standing here). */
+export interface BuildingSection {
+  v: number;
+  name?: string;
+  storey?: number;
+  storeys?: number;
+  /** `{ here: true }`, or the entrance's name and the first way toward it on your map. */
+  entrance?: { here: true } | { name: string; dir?: string };
+  heightM?: number;
+  landmark?: boolean;
+  titleSold?: boolean;
+  /** Outside: the buildings standing here. */
+  landed?: { name: string; landmark: boolean }[];
+}
+
+/** What would let you through a way you cannot take as you stand. */
+export interface WayWorks {
+  mode?: string;
+  command?: string;
+  remove?: { stuffId: string; name: string };
+  dismount?: true;
+  freeHands?: number;
+}
+
+/**
+ * ⭐ Can you take it now — the check `go` runs, asked without moving
+ * (navigation-server D8). Three honest forms: *no*, in trying's words;
+ * *yes*; *yes, as far as you know* (`unseen`) — or *yes, and it is
+ * fleeing* (`flee`).
+ */
+export type WayTake =
+  | { ok: true; flee?: true; unseen?: true }
+  | { ok: false; gate: string; reason: string; works?: WayWorks };
+
+/** One way out, as the ways section carries it. */
+export interface NavWay extends WayRecord {
+  oneWay?: boolean;
+  muffled?: boolean;
+  needs?: string;
+  lengthM?: number;
+  opening?: string;
+  /** The way's and its boundary's projected facts (`aspect: 'way'`). */
+  facts?: Record<string, string | number | boolean>;
+  take?: WayTake;
+}
+
+export interface WaysSection {
+  v: number;
+  ways: NavWay[];
+}
+
+/** The place you stand in. */
+export interface PlaceSection {
+  v: number;
+  stuffId: string;
+  name: string;
+  at?: { x: number; y: number; z: number };
+  light?: string;
+  dark?: boolean;
+  openSky?: boolean;
+  weather?: string;
+  season?: string;
+  daylight?: 'day' | 'night';
+  water?: string;
+  staged?: boolean;
+  crowd?: number;
+  lowCeiling?: boolean;
+  /** The total height above the sea: the zone's elevation plus the room's within it. */
+  elevationM?: number;
+  searched?: boolean;
+  found?: number;
+}
+
+/** You, as moving needs you. */
+export interface YouSection {
+  v: number;
+  pace?: string;
+  posture?: string;
+  hands?: { slot: string; holds?: string }[];
+  freeHands?: number;
+  load?: string;
+  /** What your load bars, in the gates' own words. */
+  bars?: string[];
+  light?: string;
+  mount?: string;
+  led?: string[];
+  cart?: string;
+}
+
+/**
+ * ⭐ What you perceive from here, now — seven sections. The where-you-are
+ * source's snapshot; a change replaces ONE section by its name. A read
+ * that failed leaves its section absent.
+ */
+export interface NavSections {
+  zone?: ZoneSection;
+  localities?: LocalitiesSection;
+  horizon?: HorizonSection;
+  building?: BuildingSection | null;
+  ways?: WaysSection;
+  place?: PlaceSection;
+  you?: YouSection;
+}
+
+export type NavSectionName = keyof NavSections;
+export const NAV_SECTION_NAMES: readonly NavSectionName[] = [
+  'zone',
+  'localities',
+  'horizon',
+  'building',
+  'ways',
+  'place',
+  'you',
+];
+
+export interface WhereaboutsSnapshot {
+  sections: NavSections;
+}
+
 
 /**
  * ⭐ What a terminal card shows (client-surface D6): a view by name (the
@@ -2332,6 +2528,10 @@ export const SUBSCRIPTION_SOURCES = {
   clientState: '/platform/idea/ClientStateSource',
   /** The press ticker's live window — a change per release. */
   pressFeed: '/platform/idea/PressFeedSource',
+  /** ⭐ Your map, as a copy the client holds — a change per claim. */
+  mapCopy: '/platform/idea/MapCopySource',
+  /** ⭐ What you perceive from here, now — a change per section. */
+  whereabouts: '/platform/idea/WhereaboutsSource',
 } as const;
 
 /**
@@ -2431,6 +2631,18 @@ export interface SubscriptionSources {
     params: undefined;
     snapshot: ReleaseRow[];
     fields: ReleaseRow;
+  };
+  /** Change key: `<locality>|<claim key>`, always `replace`. */
+  '/platform/idea/MapCopySource': {
+    params: { locality?: string } | undefined;
+    snapshot: MapCopySnapshot;
+    fields: { locality: string; claim: WireClaim };
+  };
+  /** Change key: the section's name, always `replace`. */
+  '/platform/idea/WhereaboutsSource': {
+    params: undefined;
+    snapshot: WhereaboutsSnapshot;
+    fields: NavSections[NavSectionName];
   };
 }
 

@@ -1019,7 +1019,31 @@ left in `src`; the client's settings render first as before (the first-
 render ordering the old snapshot gave).
 **Commit:** `refactor(subscription): one protocol for state pushes; MQL and forums move onto it`.
 
-### W2 — Your map and where-you-are, as sources
+### W2 — Your map and where-you-are, as sources ✅
+
+> **Done.** Decisions the build made:
+> - **A map write pokes by OWNER KEY, not by body** (`poke(mapCopy, null,
+>   {ownerKey, locality, claims})` from `recordPlace`): a shade files under
+>   the person it is worn by, and no body lookup is needed. So there is no
+>   `SaxonbergClient.mapChanged`; `refreshNavigation(names?)` is the body's
+>   only new verb (N10 shrinks to one method).
+> - **The wire projection stays inside `NavigationLogic`** (`wireClaim`,
+>   private; the poke carries projected claims; `NavigationApi.readMapCopy`
+>   reads the snapshot): `lint:object-verbs` counts `MapClaim` as a world
+>   object, so no Api static takes one.
+> - `MapClaim` gained its W3 fields (`at`, `state`, `via`, `viaName`,
+>   `government`, `localityKind`, kind `locality`) as TYPES now; W3 writes
+>   them. `route` skips `locality` claims.
+> - The `map` card is `source: { kind: 'client' }`; the client renders it
+>   from the store (`NavigatorCardBody` → `whereaboutsOf(sections)`), and
+>   `Whereabouts` moved to `client/src/store/navSlice.ts`.
+> - The client replays EVERY subscription as unsubscribe-then-subscribe on
+>   each connection-established (a welcome re-sent on the same socket after
+>   the sandbox crossing would otherwise be refused as a duplicate).
+> - The section differ stores the unstamped JSON; `v` is per section per
+>   subscription, 1 on the snapshot.
+> - ⚠ The drive steps, the multi-session question and the size record are
+>   run at W7 against one standing world (one boot, not one per wave).
 
 D1 (the new sources, the navigator), D6, D7 (first shapes), D12.
 

@@ -51,6 +51,7 @@ export type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
+import { createNavSlice, type NavSlice } from "./navSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -323,6 +324,7 @@ interface StoreState
   extends CmsSlice,
     StudioSlice,
     CardFeedSlice,
+    NavSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -1128,6 +1130,10 @@ export const useStore = create<StoreState>((set, get) => ({
     set as Parameters<typeof createCardFeedSlice>[0],
     get as Parameters<typeof createCardFeedSlice>[1],
   ),
+
+  // ⭐ Your map and where you are — the two navigation subscriptions.
+  // Only touches `navSections` / `mapCopy`.
+  ...createNavSlice(set as Parameters<typeof createNavSlice>[0]),
 
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the

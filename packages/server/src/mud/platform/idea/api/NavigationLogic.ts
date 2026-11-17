@@ -14,6 +14,9 @@ import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
 import { DocumentApi } from '../../../api/document';
+import { SubscriptionApi } from '../../../api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import type { MapCopySnapshot, TaggedPath, WireClaim } from '@saxonberg/types';
 import { WorldClockApi } from '../../../api/worldclock';
 import type {
   MapClaim,
@@ -485,8 +488,9 @@ export class NavigationLogic extends ApiLogic {
     const claims: ClaimLike[] = [];
     for (const map of maps) {
       for (const claim of map.claims) {
-        // A band is water, not a way: it never enters a route plan.
-        if (claim.kind === 'band') continue;
+        // A band is water, not a way, and a Locality is a region, not a
+        // place: neither enters a route plan.
+        if (claim.kind === 'band' || claim.kind === 'locality') continue;
         claims.push({
           kind: claim.kind,
           place: claim.place,
@@ -979,8 +983,79 @@ export class NavigationLogic extends ApiLogic {
     if (!grown) return; // nothing new and nothing to bump
     await DocumentApi.saveMap(viewerKey, locality, {
       locality,
-      claims: grown,
+      claims: grown.claims,
     } as unknown as Record<string, unknown>);
+    // ⭐ The copy follows the map (navigation-server D1): every session
+    // holding a copy of THIS owner's map is sent the claims that changed.
+    // By owner key, not by body — a shade files under the person it is
+    // worn by, and nobody resident or subscribed costs nothing.
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mapCopy, null, {
+      ownerKey: viewerKey,
+      locality,
+      claims: grown.changed.map((c) => NavigationLogic.wireClaim(c)),
+    });
+  }
+
+  /** See {@link NavigationApi.readMapCopy}. */
+  @CallSecurity(NavigationApiCallers)
+  public async readMapCopy(viewerKey: string, localityPrefix: string): Promise<MapCopySnapshot> {
+    const docs = await this.readMap(viewerKey, localityPrefix);
+    return {
+      documents: docs.map((d) => ({
+        locality: d.locality,
+        claims: d.claims.map((c) => NavigationLogic.wireClaim(c)),
+      })),
+    };
+  }
+
+  /**
+   * A claim as the client holds it: its key, and every path tagged
+   * (navigation-server D6). A Locality claim's `place` is an address.
+   */
+  private static wireClaim(claim: MapClaim): WireClaim {
+    const tag = (path: string): TaggedPath => ({ path, spoiler: 1 });
+    const c = claim;
+    const at = c.at;
+    return {
+      key: NavigationLogic.keyOf(claim),
+      kind: claim.kind,
+      // ⭐ A Locality claim's `place` is an ADDRESS, not a path.
+      place: claim.kind === 'locality' ? claim.place : tag(claim.place),
+      ...(claim.label ? { label: tag(claim.label) } : {}),
+      ...(claim.name !== undefined ? { name: claim.name } : {}),
+      ...(claim.keywords ? { keywords: claim.keywords } : {}),
+      ...(claim.group !== undefined ? { group: claim.group } : {}),
+      ...(claim.dir !== undefined ? { dir: claim.dir } : {}),
+      ...(claim.to !== undefined ? { to: claim.to === null ? null : tag(claim.to) } : {}),
+      ...(claim.toLabel !== undefined ? { toLabel: claim.toLabel === null ? null : tag(claim.toLabel) } : {}),
+      channel: claim.channel,
+      ...(claim.conditional !== undefined ? { conditional: claim.conditional } : {}),
+      ...(claim.where !== undefined ? { where: claim.where } : {}),
+      ...(claim.toldBy ? { toldBy: tag(claim.toldBy) } : {}),
+      ...(c.via ? { via: tag(c.via) } : {}),
+      ...(c.viaName !== undefined ? { viaName: c.viaName } : {}),
+      ...(at
+        ? {
+            at: {
+              ...(at.zone ? { zone: tag(at.zone) } : {}),
+              ...(at.x !== undefined ? { x: at.x } : {}),
+              ...(at.y !== undefined ? { y: at.y } : {}),
+              ...(at.z !== undefined ? { z: at.z } : {}),
+              ...(at.level !== undefined ? { level: at.level } : {}),
+              ...(at.line ? { line: { course: tag(at.line.course), km: at.line.km } } : {}),
+              ...(at.geo ? { geo: at.geo } : {}),
+              ...(at.reckoned ? { reckoned: true as const } : {}),
+              ...(at.errorNm !== undefined ? { errorNm: at.errorNm } : {}),
+              ...(at.bracket !== undefined ? { bracket: at.bracket } : {}),
+            },
+          }
+        : {}),
+      ...(c.state !== undefined ? { state: c.state } : {}),
+      ...(c.government ? { government: c.government } : {}),
+      ...(c.localityKind ? { localityKind: c.localityKind } : {}),
+      firstSeen: claim.firstSeen,
+      lastSeen: claim.lastSeen,
+    };
   }
 
   /** See {@link NavigationApi.readMap}. */
@@ -1050,7 +1125,7 @@ export class NavigationLogic extends ApiLogic {
   private static growMap(
     existing: MapClaim[],
     incoming: readonly MapClaim[],
-  ): MapClaim[] | null {
+  ): { claims: MapClaim[]; changed: MapClaim[] } | null {
     // ⭐⭐ The far side is keyed by `toLabel` and NOT by `to`.
     //
     // `toLabel` is the destination's template path: always present,
@@ -1083,8 +1158,7 @@ export class NavigationLogic extends ApiLogic {
     // band in two places are two claims (a wrong chart APPENDS beside a
     // right one, it never overwrites it), and two pilots telling the same
     // thing are two sources.
-    const keyOf = (c: MapClaim): string =>
-      [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel, c.where ?? '', c.toldBy ?? ''].join('|');
+    const keyOf = NavigationLogic.keyOf;
     // The LATEST claim per key — a later differing observation appends,
     // so a key can hold several and only the newest is bumpable.
     const latest = new Map<string, MapClaim>();
@@ -1093,21 +1167,32 @@ export class NavigationLogic extends ApiLogic {
       const held = latest.get(key);
       if (!held || claim.lastSeen >= held.lastSeen) latest.set(key, claim);
     }
-    let changed = false;
+    // ⭐ What changed is returned too — the copy a client holds is sent
+    // exactly these (navigation-server D1).
+    const changed = new Set<MapClaim>();
     const out = [...existing];
     for (const claim of incoming) {
       const held = latest.get(keyOf(claim));
       if (held) {
         if (claim.lastSeen > held.lastSeen) {
           held.lastSeen = claim.lastSeen;
-          changed = true;
+          changed.add(held);
         }
         continue;
       }
-      out.push({ ...claim });
-      latest.set(keyOf(claim), claim);
-      changed = true;
+      const added = { ...claim };
+      out.push(added);
+      latest.set(keyOf(claim), added);
+      changed.add(added);
     }
-    return changed ? out : null;
+    return changed.size > 0 ? { claims: out, changed: [...changed] } : null;
+  }
+
+  /**
+   * A claim's identity within its Locality document — the growth key
+   * (see {@link growMap}); the copy a client holds replaces by it.
+   */
+  private static keyOf(c: MapClaim): string {
+    return [c.kind, c.place, c.dir ?? '', c.toLabel ?? '', c.channel, c.where ?? '', c.toldBy ?? ''].join('|');
   }
 }

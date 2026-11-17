@@ -27,7 +27,9 @@
  */
 
 import type {
+  MapCopySnapshot,
   ReleaseRow,
+  WhereaboutsSnapshot,
   CharGenRosterPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -755,10 +757,30 @@ class WebSocketClient {
     // Re-issue every live subscription on every connection-established
     // event. The server's subscription table is per session; subscribing
     // again is what makes each source re-ship its snapshot on the new
-    // connection.
+    // connection. ⭐ Unsubscribe first: a welcome re-sent on the SAME
+    // socket (the sandbox crossing moves it to another body) would
+    // otherwise be refused as a duplicate and keep answering for the body
+    // it left. Repair is always a fresh snapshot.
+    this.openNavigation();
     for (const [subscriptionId, sub] of this.subscriptions) {
+      this.send({ type: "unsubscribe", payload: { type: "unsubscribe", subscriptionId } });
       this.sendSubscribe(subscriptionId, sub);
     }
+  }
+
+  /**
+   * ⭐ Your map and where you are — the two subscriptions every played
+   * session holds (navigation-server D1), opened once and replayed with
+   * the rest. Flows without a card: the navigator reads the store.
+   */
+  private navIds: { whereabouts: string; mapCopy: string } | null = null;
+  private openNavigation(): void {
+    if (this.navIds) return;
+    const whereabouts = makeSubscriptionId();
+    const mapCopy = makeSubscriptionId();
+    this.subscriptions.set(whereabouts, { source: SUBSCRIPTION_SOURCES.whereabouts, params: undefined });
+    this.subscriptions.set(mapCopy, { source: SUBSCRIPTION_SOURCES.mapCopy, params: undefined });
+    this.navIds = { whereabouts, mapCopy };
   }
 
   private sendSubscribe(subscriptionId: string, sub: SubscriptionEntry): void {
@@ -1111,15 +1133,34 @@ class WebSocketClient {
    * build has been bitten by that exact shape.
    */
   /**
-   * ⭐ Your client state and the press ticker are subscriptions the SERVER
-   * opens at session entry (navigation-server D1): their snapshots rode
-   * `connection-established` (`clientState`, `releaseWindow`), and their
-   * changes ride `subscription-delta` under the session ids.
+   * ⭐ The session's own subscriptions (navigation-server D1). Your client
+   * state and the press ticker the SERVER opens at session entry: their
+   * snapshots rode `connection-established` (`clientState`,
+   * `releaseWindow`), and their changes ride `subscription-delta` under
+   * the session ids. Your map and where you are this client opens itself
+   * ({@link openNavigation}).
    */
   private applySessionSubscriptions(envelope: Envelope): void {
+    const store = useStore.getState();
+    if (envelope.type === "subscription-result" && this.navIds) {
+      const env = envelope as SubscriptionResultEnvelope;
+      if (env.subscriptionId === this.navIds.whereabouts) {
+        store.applyNavSnapshot((env.snapshot as WhereaboutsSnapshot).sections);
+      } else if (env.subscriptionId === this.navIds.mapCopy) {
+        store.applyMapSnapshot(env.snapshot as MapCopySnapshot);
+      }
+      return;
+    }
     if (envelope.type !== "subscription-delta") return;
     const env = envelope as SubscriptionDeltaEnvelope;
-    const store = useStore.getState();
+    if (this.navIds && env.subscriptionId === this.navIds.whereabouts) {
+      store.applyNavChanges(env.changes);
+      return;
+    }
+    if (this.navIds && env.subscriptionId === this.navIds.mapCopy) {
+      store.applyMapChanges(env.changes);
+      return;
+    }
     if (env.subscriptionId === SESSION_SUBSCRIPTIONS.clientState) {
       for (const change of env.changes) {
         store.setLocalClientState(change.key, change.fields);
@@ -1136,6 +1177,9 @@ class WebSocketClient {
 
   private isMqlFeed(subscriptionId: string): boolean {
     if (subscriptionId.startsWith("session:")) return false;
+    if (this.navIds && (subscriptionId === this.navIds.whereabouts || subscriptionId === this.navIds.mapCopy)) {
+      return false;
+    }
     const source = this.sourceOf(subscriptionId);
     return source === null || source === SUBSCRIPTION_SOURCES.mql;
   }

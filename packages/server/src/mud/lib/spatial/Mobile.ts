@@ -577,7 +577,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       }
       if (MixinApi.isSaxonbergClient(self)) {
         self.refreshDisplays();
-        self.refreshNavigator();
+        self.refreshNavigation();
       }
     }
 
@@ -1229,7 +1229,7 @@ async function crossExit(
   const self: Stuff = mover;
   if (MixinApi.isSaxonbergClient(self)) {
     self.refreshDisplays();
-    self.refreshNavigator();
+    self.refreshNavigation();
   }
   return { ok: true };
 }
