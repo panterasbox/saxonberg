@@ -101,7 +101,7 @@ changed.
 ⚠⚠ **And A3 is implicated, not incidental.** *Derive, don't track* is the
 right architecture and a **hostile feedback model**: a consequence that
 materialises when somebody looks has no instant to be announced at. The
-[reconcile-chains slate](../slates/builds/reconcile-chains-slate.md) is
+[reconcile-chains slate](../slates/tech-debt/reconcile-chains-slate.md) is
 about derive-on-read being *wrong about time*; this is derive-on-read
 being **silent about change**, and they are the same property viewed from
 two sides.

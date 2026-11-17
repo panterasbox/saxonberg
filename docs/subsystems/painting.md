@@ -210,7 +210,7 @@ A swept flue gives lampblack where the realm names it
   replaced by this build's `Faced` + `Durable` model, where `maintain` with
   a kit restores the fabric with no materials and no band. The layered
   fabric, the materials-in-hand mend and the par-sheet keeper remain
-  [repair-slate](../slates/tails/repair-slate.md)'s; masonry and
+  [repair-slate](../slates/trades/repair-slate.md)'s; masonry and
   brickmaking route lime mortar, repointing and the spall to it.
 
 ## History

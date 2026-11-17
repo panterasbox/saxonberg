@@ -45,7 +45,7 @@ replay it enables in [scripting.md](./scripting.md).
 
 Two more consumers occupy the `attention`/`voice` slots specifically —
 the exact slots the still-unbuilt host-slot-activities wave
-([docs/slates/tails/host-slot-activities-slate.md](../slates/tails/host-slot-activities-slate.md))
+([docs/slates/engine/host-slot-activities-slate.md](../slates/engine/host-slot-activities-slate.md))
 would also need: [attendant](./attendant.md)'s `AttendanceEngagement` is
 a `SustainedEngagement` that IS the lease on a service point's
 `attention` slot (one customer held at a time falls out of the slot,
@@ -445,7 +445,7 @@ objects." `cancel reading` matches engagements with `type ===
 'reading'`. The activity-type-to-verb mapping is the activity
 author's concern (a future `TraverseActivity` would self-register
 under `'walk'`, `'climb'`, etc. — see
-[docs/slates/tails/locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md)
+[docs/slates/engine/locomotion-as-activity-slate.md](../slates/engine/locomotion-as-activity-slate.md)
 for the deferred design).
 
 `cancel` itself is instant — no slots, runs synchronously, always
@@ -697,7 +697,7 @@ Forward-looking work — preserved as design reference in two
 sibling slates:
 
 - **Locomotion as activity** — see
-  [docs/slates/tails/locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md).
+  [docs/slates/engine/locomotion-as-activity-slate.md](../slates/engine/locomotion-as-activity-slate.md).
   `TraverseActivity` for walk / climb / swim / fly / ride /
   sneak / crawl. Adds the `traverseSync` sibling to
   `Mobile.traverse`, a cached-destination getter on `Exit`, and
@@ -712,7 +712,7 @@ sibling slates:
   responsiveness — walking stays synchronous until durative
   content earns the slot.
 - **Host-slot + non-locomotion activities** — see
-  [docs/slates/tails/host-slot-activities-slate.md](../slates/tails/host-slot-activities-slate.md).
+  [docs/slates/engine/host-slot-activities-slate.md](../slates/engine/host-slot-activities-slate.md).
   `MountActivity`, `DismountActivity`, `SitActivity`,
   `LieActivity`, `DriveActivity`, `ReadActivity`. Adds the
   `Slotted/Slottable` pending-claim extension (`claimPending` /
@@ -761,9 +761,9 @@ between `435238f` and `d7319d0`. The build plan
 (`docs/plans/activity-plan.md`) was kept in the tree at sweep time
 as deferred-wave reference, then later extracted: Waves 2 and 3
 became
-[docs/slates/tails/locomotion-as-activity-slate.md](../slates/tails/locomotion-as-activity-slate.md)
+[docs/slates/engine/locomotion-as-activity-slate.md](../slates/engine/locomotion-as-activity-slate.md)
 and
-[docs/slates/tails/host-slot-activities-slate.md](../slates/tails/host-slot-activities-slate.md)
+[docs/slates/engine/host-slot-activities-slate.md](../slates/engine/host-slot-activities-slate.md)
 — the proper artifact for open-ended design space — and the plan
 was deleted. Git history preserves the original slate at
 `docs/slates/activity-slate.md` and the original plan at

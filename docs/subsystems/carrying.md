@@ -218,7 +218,7 @@ this ruling: **homes** (a thing remembering where on you it lives), the
 `readies:` arg field (the dispatcher bringing an instrument to hand), and
 every implicit *put the held thing away to free a hand*. The player's
 one-line conveniences are their own aliases and `def`s — see the
-[scripting-hand-economy slate](../slates/builds/scripting-hand-economy-slate.md).
+[scripting-hand-economy slate](../slates/engine/scripting-hand-economy-slate.md).
 
 ### The tiers are hand · ready · packed — closed is a STATE, never a tier
 
@@ -524,11 +524,11 @@ yet) is not judged by weight. The combat seconds are app settings
 - **The roof rack** (an outside surface on an `Exitable` host).
 - **A hand into a pack someone WEARS** — the pickpocket's act — is
   refused today (reach never goes into another body, D17); it is designed
-  in [policing-slate § Rails](../slates/builds/policing-slate.md).
+  in [policing-slate § Rails](../slates/society/policing-slate.md).
 - **The scripting conveniences** the engine no longer performs (try-else,
   waiting on a beat, a fits predicate, aliases with arguments and a
   `$1`-else-default form) →
-  [scripting-hand-economy-slate](../slates/builds/scripting-hand-economy-slate.md).
+  [scripting-hand-economy-slate](../slates/engine/scripting-hand-economy-slate.md).
 
 ## History
 

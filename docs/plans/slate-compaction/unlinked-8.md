@@ -46,7 +46,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/attestation-slate.md — 170 → 175 · Status UNBUILT → UNBUILT
+## docs/slates/platform/attestation-slate.md — 170 → 175 · Status UNBUILT → UNBUILT
 
 Nothing shipped. `attestation` / `attest` under `packages/server/src/mud`,
 `packages/content/*/src`, `packages/server/src/schema` and
@@ -85,7 +85,7 @@ by five lines because the status block grew.
 
 ---
 
-## docs/slates/tails/lifecycle-signals-slate.md — 170 → 153 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/lifecycle-signals-slate.md — 170 → 153 · Status UNBUILT → UNBUILT
 
 The finding still holds exactly: `AppBootstrap.shutdown()`
 (`packages/server/src/backend/AppBootstrap.ts:286-327`) names
@@ -123,7 +123,7 @@ distinction). One cut.
 
 ---
 
-## docs/slates/builds/implements-slate.md — 167 → 149 · Status UNBUILT → UNBUILT
+## docs/slates/engine/implements-slate.md — 167 → 149 · Status UNBUILT → UNBUILT
 
 Unbuilt. No implement / lens / `FocusMixin` / `getPatternIntegrity`
 anywhere under `packages/server/src/mud` or `packages/content/*/src`
@@ -171,7 +171,7 @@ membership gate) now have a shipped precedent. Two cuts.
 
 ---
 
-## docs/slates/builds/hydration-framework-slate.md — 164 → 171 · Status UNBUILT → UNBUILT
+## docs/slates/tech-debt/hydration-framework-slate.md — 164 → 171 · Status UNBUILT → UNBUILT
 
 Nothing shipped and nothing to cut. `PersistentHydrator`
 (`platform/idea/persistence/PersistentHydrator.ts`) is still the only
@@ -214,7 +214,7 @@ seven lines because the status block grew.
 
 ---
 
-## docs/slates/builds/authored-vs-procedural-slate.md — 161 → 170 · Status UNBUILT → UNBUILT
+## docs/slates/world/authored-vs-procedural-slate.md — 161 → 170 · Status UNBUILT → UNBUILT
 
 The forcing case is exactly as written: `ferrow.yaml:41-44` still declares
 `cricket: 40 · delve-rat: 12 · pale-grazer: 3` under a 14-line comment
@@ -266,7 +266,7 @@ status block grew.
 
 ---
 
-## docs/slates/tails/script-interaction-slate.md — 161 → 158 · Status UNBUILT → UNBUILT
+## docs/slates/engine/script-interaction-slate.md — 161 → 158 · Status UNBUILT → UNBUILT
 
 The finding holds: `CommandGiver._dispatchBound` (`lib/command/CommandGiver.ts:1273`)
 still builds its `CommandContext` through `CommandApi.createCommandContext`
@@ -305,7 +305,7 @@ One cut.
 
 ---
 
-## docs/slates/builds/rendering-slate.md — 160 → 159 · Status UNBUILT → UNBUILT
+## docs/slates/trades/rendering-slate.md — 160 → 159 · Status UNBUILT → UNBUILT
 
 (The TRADE — knacker · tanner · chandler — not screen rendering.) No
 rendering / tanning / chandling pack exists (`ls packages/content`); no
@@ -359,7 +359,7 @@ status block grew by ten.
 
 ---
 
-## docs/slates/builds/prison-slate.md — 151 → 161 · Status UNBUILT → UNBUILT
+## docs/slates/society/prison-slate.md — 151 → 161 · Status UNBUILT → UNBUILT
 
 Nothing shipped and nothing to cut. `prison` / `gaol` / `jail` /
 `PrisonMixin` / `inmate` / `confine` hit nothing under

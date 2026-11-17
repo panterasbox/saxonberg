@@ -8,7 +8,7 @@ nothing further needed here.
 
 ---
 
-## docs/slates/builds/persistence-architecture-slate.md — 449 → 165 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/persistence-architecture-slate.md — 449 → 165 · Status PARTIAL → PARTIAL
 
 Code-verified before any cut: `User extends Document`
 (`lib/identity/User.ts:22`), `GoogleProfile extends Document`

@@ -1,7 +1,7 @@
 # Homo satyrus — fantasy satyr. Same biped anatomy as sapiens, goat-legged
 # in flavor; the pastoral hedonist and reveler (Dave's-bar texture),
 # long-lived and warm-natured. NPC-first. See
-# docs/slates/builds/species-expansion-slate.md.
+# docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/satyrus.png

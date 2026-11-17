@@ -1,7 +1,7 @@
 # Homo orcus — fantasy orc (the full orc, beside the half-orc semiorcus).
 # Same biped anatomy as sapiens, built broad and powerful; a keen nose and
 # low-light eyes, short and intense of life. Playable. See
-# docs/slates/builds/species-expansion-slate.md.
+# docs/slates/world/species-expansion-slate.md.
 class: /platform/idea/species/Species
 data:
   illustration: species/orcus.png

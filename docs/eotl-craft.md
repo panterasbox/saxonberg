@@ -6,7 +6,7 @@
 > Gnomelands, newbieland, and ⚠ **Minetown** — the owner's own
 > unpublished *Tremors* homage, which is self-evidence rather than
 > ancestor-evidence and is the seed of
-> [rejection-slate](./slates/builds/rejection-slate.md). ⚠ Part 4 also carries a finding that reframes the census: **detail
+> [rejection-slate](./slates/world/rejection-slate.md). ⚠ Part 4 also carries a finding that reframes the census: **detail
 > density is a revisit, not a draft.**
 >
 > Roughly twenty areas across fifteen cabals, chosen by the owner's
@@ -1377,7 +1377,7 @@ it a *claim by the resort*, like a chart or a guidebook.
    free.
 
 ⭐ Carried into
-[tourism-and-sport-slate](./slates/tails/tourism-and-sport-slate.md),
+[tourism-and-sport-slate](./slates/world/tourism-and-sport-slate.md),
 which also records the mistake this section is the cure for: asked about
 football-as-content and skiing-as-content, the first answer was **a theory
 of what sport is** — the third column answering a second-column question.

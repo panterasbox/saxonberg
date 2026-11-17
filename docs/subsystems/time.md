@@ -136,7 +136,7 @@ Everything that needs game-time goes through `getNow()`.
 
 > ⭐ **2026-10-29 — Coordinated Metaversal Time (the owner):** this clock is the one arrow across
 > every place, circle and realm; a locality's clock is derived from it through a registry, never
-> independent → [stage-and-simulation-slate](../slates/builds/stage-and-simulation-slate.md) § 1.
+> independent → [stage-and-simulation-slate](../slates/world/stage-and-simulation-slate.md) § 1.
 
 Game time advances **only while the server is up**. It pauses at
 shutdown and resumes from the persisted `elapsedGameTime` on the next
@@ -175,7 +175,7 @@ in v1 until an admin verb lands).
 
 ### Why 12× — and what it costs to change
 
-> ⭐ **2026-10-29 → [pace-slate](../slates/builds/pace-slate.md)** — the pace ruling (encounter ·
+> ⭐ **2026-10-29 → [pace-slate](../slates/engine/pace-slate.md)** — the pace ruling (encounter ·
 > session · absence · calendar) under which the scale changes the calendar alone; players see one
 > sentence: *the world turns twelve times faster than you do.*
 

@@ -1,6 +1,6 @@
 # Slate-compaction ledger — batch key: materials-response
 
-## docs/slates/tails/materials-response-slate.md — 524 → 212 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/materials-response-slate.md — 524 → 212 lines · Status PARTIAL → PARTIAL
 
 Verified against code: `packages/server/src/mud/lib/material/{Channel,Construction,Constructed,Durable}.ts`,
 `packages/server/src/mud/lib/combat/WeaponProfile.ts`, `platform/idea/api/{MaterialLogic,CraftingLogic}.ts`,

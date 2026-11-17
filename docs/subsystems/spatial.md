@@ -293,7 +293,7 @@ did both (a pot standing nowhere broke into nothing; a sherds row that
 could not be minted was swallowed and the pot destroyed anyway); it now
 checks and throws (B97). **Left:** a census of the silent null-guards in
 front of writes across the tree, ratcheted and burned down —
-[silent-write-census-slate.md](../slates/tails/silent-write-census-slate.md).
+[silent-write-census-slate.md](../slates/tech-debt/silent-write-census-slate.md).
 
 ### Where a thing is — runtime state, never authored
 
@@ -854,7 +854,7 @@ guard below ([perception.md § The room listing](./perception.md)).
 hands in a snapshot that already dropped a host while keeping its
 contents — damage control for a lossy perception filter, not a
 containment rule. →
-[mql-predicate-parity](../slates/tails/mql-predicate-parity-slate.md).
+[mql-predicate-parity](../slates/tech-debt/mql-predicate-parity-slate.md).
 
 ### The drill-in
 
@@ -1399,7 +1399,7 @@ of the `in` member — was deferred by the project owner rather than
 built. Its full specification, including the `AtmosphericMixin`
 widening it needs (the mixin's base constraint is `Stuff & Container`
 and a compartment is not a Container), was graduated into
-[fridge-design-pack](../slates/builds/fridge-design-pack.md) at this
+[fridge-design-pack](../slates/trades/fridge-design-pack.md) at this
 build's sweep — written against the shipped tree and executable cold.
 
 ## ⭐ What a word means on a host (controllers-are-io D11)

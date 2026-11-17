@@ -9,7 +9,7 @@
 > ⛔ **Internal analysis only.** Nothing here may appear in player-facing copy, on
 > stream, or in any offering's wording. Publicly the units are *capital standing*: a
 > stake, never a share, a valuation, an investment, a return or a dividend
-> ([giving-slate](./slates/builds/giving-slate.md) § Before the first entry). Not legal
+> ([giving-slate](./slates/society/giving-slate.md) § Before the first entry). Not legal
 > or financial advice.
 
 ## The question
@@ -30,7 +30,7 @@ Kept privately, as if the units were shares.
 
 | holder | units | how |
 |---|---|---|
-| patrons | Σ (recurring rate × months) + Σ pool shares | the offerings ([giving-slate § Offerings](./slates/builds/giving-slate.md)) |
+| patrons | Σ (recurring rate × months) + Σ pool shares | the offerings ([giving-slate § Offerings](./slates/society/giving-slate.md)) |
 | the founder | patrons' units + 1 | the charter's matched-plus-one, until 1.0 |
 | **total** | ≈ 2 × patrons' units | |
 
@@ -62,7 +62,7 @@ platform's current terms at build time).
 | Kick subs | varies | ~95% | the owner's preferred channel to grow |
 | Patreon | varies | ~85–90% | out-of-world perks only |
 | Stream ads | per impression | platform-set | small at low viewership |
-| Sponsorship and brand placement | per deal | 100% | [sponsorship-slate](./slates/builds/sponsorship-slate.md); all real money to the Compact budget (§ 11.4) |
+| Sponsorship and brand placement | per deal | 100% | [sponsorship-slate](./slates/platform/sponsorship-slate.md); all real money to the Compact budget (§ 11.4) |
 | Blanket license (federation) | per member server | — | later; also an expense when paid out to rights holders |
 | Hosting | per realm | — | if offered |
 | Steam (desktop build) | per copy or cover fee | ~70% | later |
@@ -108,7 +108,7 @@ number above with a measurement.**
 |---|---|---|
 | **Securities** | wording or terms imply a profit expectation; the units become a security | the wording rules, the operating agreement, a lawyer's read before round 1 |
 | **Platform terms** | Twitch, YouTube or Kick objects to standing offered for subs or bits | ⚠ read each platform's current rules on sub perks and incentives before round 1 |
-| **Copyright** | a takedown notice on something in the demo realm | comply first; the takedown desk ([sponsorship-slate § 9](./slates/builds/sponsorship-slate.md)) |
+| **Copyright** | a takedown notice on something in the demo realm | comply first; the takedown desk ([sponsorship-slate § 9](./slates/platform/sponsorship-slate.md)) |
 | **Sweepstakes** | a brand promotion is an illegal lottery | no purchase necessary; registration where required |
 | **Key person** | the founder is the stream, the maker and the majority | matched-plus-one ends at 1.0 by design; the labor house dilutes as makers join |
 | **Concentration** | one platform or one sponsor is most of revenue | the multi-platform giving design; many small sponsors over one big one |

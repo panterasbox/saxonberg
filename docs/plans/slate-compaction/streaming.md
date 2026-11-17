@@ -55,7 +55,7 @@ Findings that hold across all three slates:
 
 ---
 
-## docs/slates/tails/dgg-relay-slate.md — 257 → 246 lines · Status UNBUILT → UNBUILT
+## docs/slates/platform/dgg-relay-slate.md — 257 → 246 lines · Status UNBUILT → UNBUILT
 
 No dgg transport exists in the tree (verified above). Per the
 assignment this slate stays mostly verbatim — the only cut is the one
@@ -103,7 +103,7 @@ substrate with no dgg-specific design content.
 
 ---
 
-## docs/slates/tails/youtube-relay-slate.md — 226 → 171 · Status PARTIAL → PARTIAL
+## docs/slates/platform/youtube-relay-slate.md — 226 → 171 · Status PARTIAL → PARTIAL
 
 Second status block kept (2026-07-02 narrative) — it already correctly
 flags both "locked decisions" in `## Thesis` as superseded and names the
@@ -195,7 +195,7 @@ per-player OAuth `GoogleProfile` doesn't have)
 
 ---
 
-## docs/slates/tails/kick-relay-slate.md — 196 → 135 · Status PARTIAL → PARTIAL
+## docs/slates/platform/kick-relay-slate.md — 196 → 135 · Status PARTIAL → PARTIAL
 
 The second status block ("Everything below landed as designed") was the
 strongest signal in this batch — it directly predicted that the entire

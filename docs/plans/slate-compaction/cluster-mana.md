@@ -6,9 +6,9 @@ scope:
 
 - `docs/slates/builds/mana-economy-slate.md` (401 lines, post-2026-09-19
   per-file compaction — see `docs/plans/slate-compaction/fasttravel.md`)
-- `docs/slates/builds/mana-economy-design-pack.md` (728 lines, same
+- `docs/slates/engine/mana-economy-design-pack.md` (728 lines, same
   compaction pass)
-- `docs/slates/tails/fast-travel-slate.md` (159 lines, same compaction pass)
+- `docs/slates/engine/fast-travel-slate.md` (159 lines, same compaction pass)
 
 ## Canonical
 
@@ -78,7 +78,7 @@ retired in full; its `Left` is folded into the canonical's `Left`.
 
 ### Re-point
 
-- `docs/slates/builds/grid-slate.md` — its *Related* line named
+- `docs/slates/trades/grid-slate.md` — its *Related* line named
   `mana-economy-slate` ("sources, nodes, capacitors"); re-pointed to
   `mana-economy-design-pack.md` with a note that the slate retired into it.
 - No other live doc links to `mana-economy-slate.md`

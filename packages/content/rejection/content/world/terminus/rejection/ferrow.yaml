@@ -31,7 +31,7 @@
 # ⭐ The table is kept rather than deleted because it is the honest
 # statement of what lives here, and it is one census key away from being
 # true. What it is NOT is a claim that the ecology is alive — see
-# [authored-vs-procedural-slate](../../../../../../docs/slates/builds/authored-vs-procedural-slate.md),
+# [authored-vs-procedural-slate](../../../../../../docs/slates/world/authored-vs-procedural-slate.md),
 # which this and the glowcap together forced.
 class: /platform/idea/location/CartesianZone
 data:

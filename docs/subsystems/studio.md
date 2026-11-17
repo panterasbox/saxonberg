@@ -6,8 +6,8 @@ Studio *understands the content model* — it reads a backing class's
 **effective mixin set** and renders a schema-driven form of exactly the
 authorable fields, browses/names a catalogue of composition **blueprints**,
 and scaffolds new backing classes. It is the first build of
-[cms-slate.md](../slates/builds/cms-slate.md) § *Composition & the blueprint
-catalog* + [authoring-intelligence-slate.md](../slates/builds/authoring-intelligence-slate.md)'s
+[cms-slate.md](../slates/platform/cms-slate.md) § *Composition & the blueprint
+catalog* + [authoring-intelligence-slate.md](../slates/platform/authoring-intelligence-slate.md)'s
 two catalogs (mixin particles + named blueprints).
 
 The governing property: **the form is a projection over the same
@@ -338,10 +338,10 @@ warns a non-wizard before a commit the server will decline.
   authored; v1 leans on the TS-compile/reload gate as the backstop.
 - **Per-type content editors** (the bespoke room editor + its custom
   widgets) and the **zone editor / map canvas** →
-  [map-slate.md](../slates/builds/map-slate.md) + cms-slate Wave 3. This
+  [map-slate.md](../slates/client/map-slate.md) + cms-slate Wave 3. This
   build ships the *generic* composer + the reusable reference-picker only.
 - **Engine-typed IntelliSense / LSP / host isolation** →
-  [authoring-intelligence-slate.md](../slates/builds/authoring-intelligence-slate.md).
+  [authoring-intelligence-slate.md](../slates/platform/authoring-intelligence-slate.md).
 
 ## See also
 

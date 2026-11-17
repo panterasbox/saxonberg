@@ -11,7 +11,7 @@
  * That stopped being true on 2026-09-14, when `requires:` was federated
  * so a capability pack can name its own mixin
  * (`MixinApi.registerComposedMixins`, and
- * `docs/slates/builds/content-packs-slate.md` § RESOLVED). Two packs may
+ * `docs/slates/platform/content-packs-slate.md` § RESOLVED). Two packs may
  * now declare `_mixinName = 'DeskMixin'` with no common author to notice.
  * The second one silently takes the first's refusal phrase, and a
  * `requires:` in either pack matches BOTH packs' objects — a wrong menu

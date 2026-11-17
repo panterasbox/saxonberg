@@ -201,7 +201,7 @@ this.imprintSignature(...)` — a self-call from the host's own frame, which
 `BLOOD_GIFT_SIGNATURE` (generosity always, compassion when the lot was
 short). So a donor's `traits`/`score` now print a generosity band derived
 from deeds, not an empty ledger. The intended writer remains **authored
-moments**, not reactive inference ([narration-slate](../slates/builds/narration-slate.md));
+moments**, not reactive inference ([narration-slate](../slates/engine/narration-slate.md));
 full-surface valence authoring (beyond the gift) is still the deferred
 work above.
 
@@ -232,7 +232,7 @@ read a ledger missing the row it was just told about.
 Trait position is **not** a subscribable standing figure, and that is a
 design constraint rather than an oversight — see
 [mql-subscription.md](./mql-subscription.md) and
-`docs/slates/builds/psychology-slate.md`. The vocation rests on
+`docs/slates/society/psychology-slate.md`. The vocation rests on
 **self-other asymmetry**: you cannot read yourself, another person can,
 which is *why the profession exists*.
 

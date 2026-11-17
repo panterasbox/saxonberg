@@ -112,7 +112,7 @@ needs **its own affordance layer**, and porting that is real work."*
 
 ## ⭐⭐⭐ And it is the product argument for a refactor already proposed
 
-[avatar-family-slate](../slates/builds/avatar-family-slate.md) argues for
+[avatar-family-slate](../slates/engine/avatar-family-slate.md) argues for
 splitting `HasInteractiveMixin` into the connection set plus a
 `SaxonbergClient` mixin, on two grounds: that the mixin is three concerns,
 and that it would make `positioning.md`'s claim true in code rather than
@@ -169,7 +169,7 @@ wearing the same constitution. **Worth knowing before anybody ports it.**
    primality is decorational* is the sentence, and it is more durable than
    the reasons currently given.
 2. ⭐⭐ **Record the `SaxonbergClient` split's product rationale** in the
-   [avatar-family slate](../slates/builds/avatar-family-slate.md) — it is
+   [avatar-family slate](../slates/engine/avatar-family-slate.md) — it is
    the precondition for a primal client, which is a stronger reason than
    the two already there.
 3. ⭐⭐ **Name clickables-preview-their-command as the primal on-ramp.**

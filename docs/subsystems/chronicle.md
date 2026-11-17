@@ -321,7 +321,7 @@ The proposed answer is an **unrealized person record** — a path-addressed
 `Document` carrying identity without embodiment, so a chronicle entry, a
 contract and a wiki article can all reference the same person whether or
 not anyone simulates her. See
-[lineage-slate](../slates/builds/lineage-slate.md) § *The parents are
+[lineage-slate](../slates/society/lineage-slate.md) § *The parents are
 unrealized*, which needs the same primitive for a different reason.
 
 ## Deferred consumers

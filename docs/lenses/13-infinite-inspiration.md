@@ -356,7 +356,7 @@ the entry this one most wants next to it.
    Treating them as one is the specific failure mode an educational game
    is most exposed to, and it currently has no name in our docs.
 2. ⭐⭐⭐ **Add *what is this from?* to the declaration form**
-   ([content-declaration-slate](../slates/builds/content-declaration-slate.md)).
+   ([content-declaration-slate](../slates/platform/content-declaration-slate.md)).
    Not mechanical provenance — **the inspiration.** The ancestor's best
    authors volunteered it unprompted (*watch Clash of the Titans*), and it
    is the one field that makes *"this is a checklist of what other areas

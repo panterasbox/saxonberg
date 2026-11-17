@@ -2,7 +2,7 @@
 
 You are building a farm. We just spent a design session on **how land
 relates to what is grown on it**, and it lands directly on you. Full write-up:
-`docs/slates/builds/development-slate.md`. This is the short version.
+`docs/slates/society/development-slate.md`. This is the short version.
 
 ---
 

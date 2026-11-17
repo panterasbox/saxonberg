@@ -17,9 +17,9 @@ Compost ships as a material whose keywords are *muck* and *manure*, and a
 verb ships to spread it. The return leg of the nitrogen ledger is
 currently **a sentence in a comment**.
 
-Seeded by [ranching-slate](../slates/builds/ranching-slate.md) (the
+Seeded by [ranching-slate](../slates/trades/ranching-slate.md) (the
 conserved loop; D68's muck slot) and
-[stewardship-slate](../slates/builds/stewardship-slate.md) (land you are
+[stewardship-slate](../slates/society/stewardship-slate.md) (land you are
 answerable for).
 
 ---
@@ -74,7 +74,7 @@ and both apply.
   models sewage as a contaminant; who produces it is a heavier design
   question than this build should reach for.
 - **Disease from foul housing** → the [disease
-  slate](../slates/builds/disease-slate.md), which owns *good husbandry is
+  slate](../slates/engine/disease-slate.md), which owns *good husbandry is
   immunity* and is where dirty bedding earns consequences.
 - **Smell as a modelled sense channel** → the senses tail. A midden can be
   described as reeking without the engine having an opinion.
@@ -305,9 +305,9 @@ Observable from outside the code, by a person playing.
 
 ## Cross-references
 
-- **Seeding slates:** [ranching-slate](../slates/builds/ranching-slate.md)
+- **Seeding slates:** [ranching-slate](../slates/trades/ranching-slate.md)
   (the conserved loop; D68's muck slot) ·
-  [stewardship-slate](../slates/builds/stewardship-slate.md)
+  [stewardship-slate](../slates/society/stewardship-slate.md)
 - **Subsystems:** [ranching](../subsystems/ranching.md) (the byre, the
   taps this deliberately is not one of) ·
   [soil](../subsystems/soil.md) (the four reserves and the ledger) ·
@@ -320,6 +320,6 @@ Observable from outside the code, by a person playing.
   [respiration](../subsystems/respiration.md) + [hazard](../subsystems/hazard.md)
   (the pit, which must not change)
 - **Adjacent, deliberately not consumed:**
-  [disease-slate](../slates/builds/disease-slate.md) (foul housing earns
+  [disease-slate](../slates/engine/disease-slate.md) (foul housing earns
   its consequences there) · [pets.md](../subsystems/pets.md)
   (which named this gap and handed it here)

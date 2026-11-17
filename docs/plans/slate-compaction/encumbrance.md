@@ -1,6 +1,6 @@
 # Ledger: encumbrance batch
 
-Slate: `docs/slates/tails/encumbrance-slate.md`
+Slate: `docs/slates/engine/encumbrance-slate.md`
 Doc I may insert into: `docs/subsystems/encumbrance.md` (only)
 Handoff targets found (not touched): conveyance.md, logistics.md, forestry.md
 
@@ -49,7 +49,7 @@ Handoff targets found (not touched): conveyance.md, logistics.md, forestry.md
 
 ---
 
-## `docs/slates/tails/encumbrance-slate.md` — 463 → 158 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/encumbrance-slate.md` — 463 → 158 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Principle` (27 lines) — code: `LoadBearing.ts` (derived-on-read gauge); doc: `encumbrance.md` intro + § The gauge.

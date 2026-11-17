@@ -1,6 +1,6 @@
 # Metabolism — compaction ledger
 
-Batch key: **metabolism**. Slate: `docs/slates/tails/metabolism-slate.md`.
+Batch key: **metabolism**. Slate: `docs/slates/engine/metabolism-slate.md`.
 Subsystem doc I may insert into: `docs/subsystems/metabolism.md` only.
 Anything belonging elsewhere goes to Handoff, never written there.
 
@@ -54,7 +54,7 @@ Grepped for: `scurvy`, `nutrientAmounts`, `hangover`, `USDA`, `restQuality`
    no bulk-source/communal eating** anywhere in code — all remain
    UNBUILT as the slate claims.
 
-## `docs/slates/tails/metabolism-slate.md` — 649 → 358 lines · Status PARTIAL → PARTIAL
+## `docs/slates/engine/metabolism-slate.md` — 649 → 358 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Duplicate narrative status block (`> **Status (2026-06):**...`, 16 lines) — code: (n/a, historical prose); doc: canonical status block kept per "one status block" rule.

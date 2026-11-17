@@ -268,7 +268,7 @@ the connected set ∪ every avatar row inside the short clock, one query.
 before it consults the snapshot.
 
 > ⭐⭐ **That gate is the one real work item if NPC households ever want
-> this machine** (→ [household-lifecycle-slate](../slates/builds/household-lifecycle-slate.md)).
+> this machine** (→ [household-lifecycle-slate](../slates/world/household-lifecycle-slate.md)).
 > The design there is that **absence and death are one lifecycle with
 > different terminal events** — an unfunded retired NPC walks the same
 > active → dormant → escheated path, with three divergences: death

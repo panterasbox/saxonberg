@@ -72,7 +72,7 @@ from them into a subsystem doc goes to Handoff naming that doc.
 - entries with nothing to home: 2 (`hand-slot-slate`, `locomotion-as-activity-slate` — ledgers list none)
 
 Files touched by this agent: `docs/plans/slate-compaction/doctrine-3.md`
-(new) · `docs/slates/tails/collision-slate.md` (−7/+3). No subsystem doc
+(new) · `docs/slates/engine/collision-slate.md` (−7/+3). No subsystem doc
 was inserted into: the one graduation and both moves are Handoff items,
 and the only DUPLICATE with text still in a slate was a cut.
 
@@ -86,7 +86,7 @@ cut from its slate yet; cut after the insert lands (diff it).
 Insert as a short `#### Why the catalogs may be loose` subsection at the
 end of § The blueprint catalogue (or directly under the `blueprints`
 cache note at l.20 — either reads). Source:
-`docs/slates/builds/authoring-intelligence-slate.md § The two-level
+`docs/slates/platform/authoring-intelligence-slate.md § The two-level
 composition vocabulary`, the paragraph beginning *"The catalog family is
 open-ended"*. ⚠ One link inside it points at
 `../builds/npc-behavior-slate.md`; in the doc it should point at
@@ -119,7 +119,7 @@ loose*.
 
 Recorded as STAYS above; quoted here only so the coordinator can home
 the governance-wide negative rule now if preferred. Source:
-`docs/slates/builds/saxonberg-city-slate.md § The short-term build`,
+`docs/slates/world/saxonberg-city-slate.md § The short-term build`,
 item 4, the paragraph beginning *"The venue doctrine"*. If applied, a
 `## Why nothing requires presence` section; the slate paragraph then
 becomes a pointer (the seven venues themselves stay — unbuilt).
@@ -147,7 +147,7 @@ becomes a pointer (the seven venues themselves stay — unbuilt).
 
 Insert after the rung-4 paragraph (*"Rung 4 is never purchasable…"*), as
 `### Absorbed from supply-chain-slate — the stepping stone: spot market →
-contracts → the firm`. Source: `docs/slates/tails/supply-chain-slate.md
+contracts → the firm`. Source: `docs/slates/trades/supply-chain-slate.md
 § Part 4`, the table + the two paragraphs that follow it (NOT the
 *Verified 2026-09-20* paragraph, which is the slate's own status note
 and stays there). ⚠ The `contract.md` link is written slate-relative
@@ -191,10 +191,10 @@ the realm layout is already von Thünen`). Apply ONE absorbed block; this
 slate's paragraph adds one clause the towns triple lacks — *freight is
 the optimization, not the prerequisite; the supply chain is what makes
 von Thünen happen* — and can ride under that heading as a closing
-paragraph. Source: `docs/slates/tails/supply-chain-slate.md § Freight is
+paragraph. Source: `docs/slates/trades/supply-chain-slate.md § Freight is
 the OPTIMIZATION, not the prerequisite`, verbatim (the `freight-slate`
 link is slate-relative; from `settlement-model.md` it is
-`./slates/builds/freight-slate.md`):
+`./slates/trades/freight-slate.md`):
 
 > [freight-slate](../builds/freight-slate.md) earns its place when volume exceeds a
 > backpack: a cart carries more than a person, and **vehicles are durative**,

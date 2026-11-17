@@ -80,7 +80,7 @@ could sit down on the sky; a mid-column water band **sits below datum**, so
 it would floor open water when only the **bed** has ground under it. Neither
 exists in the game yet — the declaration and its test ship so the builder
 who arrives finds the seam. See
-[underwater-slate](../slates/builds/underwater-slate.md): *a band is not
+[underwater-slate](../slates/engine/underwater-slate.md): *a band is not
 standable; its bed is.*
 
 ⚠ `onGrade`'s sky-exposure limb is only as live as the biome roster —
@@ -295,7 +295,7 @@ protocol, never shapes.
   extraction slate retired absorbed, 2026-09-24).
 - **Coverings** — a rug, mud over paving; a layer *above* the floor,
   and the reason rugs and carpets are excluded from the census →
-  [field-substrate-slate](../slates/tails/field-substrate-slate.md).
+  [field-substrate-slate](../slates/engine/field-substrate-slate.md).
 - **Consequences of the read** — traction, footstep sound, fire across
   boards, a body landing on flagstone rather than mire
   ([materials-response.md](./materials-response.md) — a floor is exactly a

@@ -7,7 +7,7 @@ and a save that validates server-side, persists to the right backend, and
 makes the change live without a restart.
 
 This is the **first build** of the CMS / authoring tools
-([cms-slate.md](../slates/builds/cms-slate.md), Wave 1) — the "start with
+([cms-slate.md](../slates/platform/cms-slate.md), Wave 1) — the "start with
 the code editor" front half, built against the backend that already exists
 (`SourceTreeApi`, `TemplateApi`, `HotReloadApi`, `AccessApi`). It is
 for **authors**: what each act may touch is decided per path by title,
@@ -253,14 +253,14 @@ What this build does **not** do, and where it lands:
 
 - **Lease-scoped trees, group-managed content, op-log
   (`domain_history`) template versioning** → the access slate
-  ([access-slate.md](../slates/tails/access-slate.md)). Since then the
+  ([access-slate.md](../slates/platform/access-slate.md)). Since then the
   per-path parcel-title gate + the pruned listing shipped (*§ Gating*) and
   the holodeck shipped as the sandbox door (*§ "Test in holodeck"*,
   [sandbox.md](./sandbox.md)); the CMS still writes HEAD directly — **no
   history**. The eventual group-managed exemplar is the lounge / EU.
 - **Engine-typed IntelliSense, the LSP, the VS Code extension** → the
   authoring-intelligence slate
-  ([authoring-intelligence-slate.md](../slates/builds/authoring-intelligence-slate.md)).
+  ([authoring-intelligence-slate.md](../slates/platform/authoring-intelligence-slate.md)).
   Monaco ships with stock language support only.
 - **Content editors** (schema-driven room/zone forms) → Wave 3 of the slate.
   The *generic* schema-driven form, the widget registry and the

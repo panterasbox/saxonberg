@@ -250,7 +250,7 @@ back beside its surface, which the cleanliness drive's restart step found.
 |---|---|
 | `inventory` | cloned into the owner's own container — a **keyed** entry is stood up from its own record and put back in hand (it restored as a blank clone from `state: {}` before the pets build) |
 | `storage` | **nothing at all** — the good is live in the registry and the record, with no presence in the world |
-| a room identity, carried as state (a chair) | deferred to that room's materialize (mounted goods re-attach as fixtures); ⚠ a room that does not persist itself never materializes a record, so a chair left on a public lane is not put back — [eager-residency-slate § 7](../slates/builds/eager-residency-slate.md) |
+| a room identity, carried as state (a chair) | deferred to that room's materialize (mounted goods re-attach as fixtures); ⚠ a room that does not persist itself never materializes a record, so a chair left on a public lane is not put back — [eager-residency-slate § 7](../slates/tech-debt/eager-residency-slate.md) |
 | a room identity, **keyed** (a named animal) | stood up by the owner's login through `RestoreContext.standUpKeyed`, resolving first; its own record restores its placement; usually already standing (the pin roll) |
 
 Storage is what makes "move house" work: it is the *absence* of a
@@ -337,7 +337,7 @@ exactly as it did before the fields existed.
 > one formula serves both — correct today, and ambiguous to read.
 >
 > Both are addressed by
-> [development-slate](../slates/tails/development-slate.md), which makes
+> [development-slate](../slates/society/development-slate.md), which makes
 > efficiency a **measured** ratio (lettable cells ÷ built cells) rather than
 > a deduction, and splits ground conservation from floor conservation. It
 > also corrects a third thing: `subdivide`'s ceiling currently makes **every**

@@ -1,6 +1,6 @@
 # Slate compaction ledger — batch: char-gen
 
-Agent scope: `docs/slates/builds/onboarding-slate.md`. Insertable
+Agent scope: `docs/slates/client/onboarding-slate.md`. Insertable
 subsystem doc: `docs/subsystems/char-gen.md` only. All other
 graduations go to Handoff, never written by this agent.
 
@@ -37,7 +37,7 @@ Verified against code, not the slate's own ✅ markers:
   "curriculum + location mapping" sections describe a route that never
   got built in the shape they describe, and — separately — a **later,
   more authoritative design replaced them**:
-  `docs/slates/builds/acquisition-slate.md` carries a section literally
+  `docs/slates/society/acquisition-slate.md` carries a section literally
   titled *"The first-login journey v2 (supersedes the onboarding
   slate's route)"*, and `docs/requirements/demo-content-requirements.md`
   (dated after this slate, all 15 non-held units marked ✓ at
@@ -68,7 +68,7 @@ Verified against code, not the slate's own ✅ markers:
   Note**, signed at Katie's desk — noted for the record; the onboarding
   slate itself makes no stipend claim to correct.
 
-## `docs/slates/builds/onboarding-slate.md` — 452 → 400 lines · Status PARTIAL → PARTIAL
+## `docs/slates/client/onboarding-slate.md` — 452 → 400 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `### The lounge` (7 lines) — code: `packages/server/src/mud/world/lounge/**`,

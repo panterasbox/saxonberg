@@ -33,7 +33,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/tails/wiki-slate.md — 465 → 260 · Status PARTIAL → PARTIAL
+## docs/slates/platform/wiki-slate.md — 465 → 260 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second + third status blockquotes *"⭐ SHIPPED 2026-08-04"* / *"Status: shape proposed"* (10–32, 23) — history; the canonical block kept and re-stamped
@@ -91,7 +91,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/notification-slate.md — 262 → 265 · Status UNBUILT → UNBUILT
+## docs/slates/client/notification-slate.md — 262 → 265 · Status UNBUILT → UNBUILT
 
 Entirely UNBUILT, and the grep confirms the status block's own claim: no
 `notification*`/`subscription*`/`watch*`/`inbox*` schema file under
@@ -125,7 +125,7 @@ the slate's only framing paragraph and describes a state that still holds
 
 ---
 
-## docs/slates/tails/spoiler-slate.md — 226 → 230 · Status PARTIAL → PARTIAL
+## docs/slates/platform/spoiler-slate.md — 226 → 230 · Status PARTIAL → PARTIAL
 
 This slate is about the **percept side** — secrets on world facts, gated
 in the Scene / inspection-card / `look` / `analyze` projection by

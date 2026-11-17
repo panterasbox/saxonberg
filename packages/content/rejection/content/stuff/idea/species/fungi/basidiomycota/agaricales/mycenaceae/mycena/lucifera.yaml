@@ -21,7 +21,7 @@
 # luxHappyAt)` returns 1 unconditionally when both bounds are 0 — so
 # *"thrives in total darkness"* is authorable with no kernel change, and
 # a mine becomes a farm with inverted conditions rather than a special
-# case. See `docs/slates/builds/authored-vs-procedural-slate.md`.
+# case. See `docs/slates/world/authored-vs-procedural-slate.md`.
 #
 # Foxfire is real: several *Mycena* species genuinely glow, continuously
 # and coldly, from luciferin oxidation. The invention is the brightness,

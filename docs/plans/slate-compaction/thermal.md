@@ -28,7 +28,7 @@ unbuilt.
 
 ---
 
-## docs/slates/tails/thermal-slate.md — 717 → 265 · Status PARTIAL → PARTIAL
+## docs/slates/engine/thermal-slate.md — 717 → 265 · Status PARTIAL → PARTIAL
 
 ### Graduated (SHIPPED · UNDOCUMENTED) — then cut
 - `### No sub-room geometry → microclimates are occupied, not located` —

@@ -250,7 +250,7 @@ hygienic one.
   read, following the authored reference.
 - **Rot away** (B47) — rotten food left loose in a room three game days is
   gone, as crumbs on the floor; a midden takes rotten food as refuse.
-  Where waste goes, and how: [waste-slate](../slates/builds/waste-slate.md).
+  Where waste goes, and how: [waste-slate](../slates/trades/waste-slate.md).
 - **Pests** — derived, never a field: debris over
   `cleanliness.pests.debrisAt` and open food in the room. The floor says
   *something has been at the crumbs*; loose food spoils faster by
@@ -269,7 +269,7 @@ hygienic one.
   `fire.ash.heapKg`, and any fire's grate is raked — not only a flued one.
   The hopper derives lye strength from the heaps, leaves spent ash, and the
   soap kettle slakes lime for a caustic lye: [potash.md](potash.md). Big ash
-  (a burn's ground) is [potash-slate](../slates/tails/potash-slate.md).
+  (a burn's ground) is [potash-slate](../slates/trades/potash-slate.md).
 - **The window** — grime is a factor inside `Window.transmissivity()`
   (a filthy pane passes 40 %). ⭐ A sky-lit room's named opening may be a
   one-sided pane IN the room (`/stuff/thing/fixture/window`): the vision
@@ -350,13 +350,13 @@ own on its `Tariff` (`houseVessel`, `houseWaterHardness`, `houseCleansers`,
 `quoteLaundry`, `payCover`). Only what NO one object owns is an Api static:
 `CraftingApi.wash({items, spec})` — several things in one water, beside `repair` (the upkeep twin: dirt where repair is wear); no Api of its own.
 No `lib/` statics, no module functions for an act's internals. The
-tree-wide rule is [controllers-are-io-slate](../slates/builds/controllers-are-io-slate.md).
+tree-wide rule is [controllers-are-io-slate](../slates/tech-debt/controllers-are-io-slate.md).
 
 ## Open — the deferred seams (graduated from the plan at the sweep)
 
 Each names where it goes; a slate that does not exist yet is the line that opens it.
 
-- **The Washer at the Ford and the dying index** → `docs/slates/tails/washer-at-the-ford-slate.md`
+- **The Washer at the Ford and the dying index** → `docs/slates/world/washer-at-the-ford-slate.md`
   (cut by the user, 2026-10-17; the slate exists). The attach point
   is the dialogue-effect registry (`BankCounter.onCreate`'s shape) and a
   maintained index at `beginDying`/`stabilize`/`expireDying`.
@@ -388,7 +388,7 @@ Each names where it goes; a slate that does not exist yet is the line that opens
   not a value) → `retail`/`contract` slates (an `appraise` reading).
 - **Silk** → shipped as `trade-sericulture` ([sericulture.md](sericulture.md),
   MR !395); the laundress's ruin case still uses wool — the silk drive line
-  and a silk garment row are [silk-slate](../slates/tails/silk-slate.md)'s.
+  and a silk garment row are [silk-slate](../slates/trades/silk-slate.md)'s.
   **Cotton** → `textiles` content. The laundress's ruin case uses wool.
 - **Seznick's and the dorm's windows as objects** → content, one row
   each over `Window`, when those homes want the drive's light step.

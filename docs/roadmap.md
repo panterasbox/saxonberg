@@ -46,8 +46,8 @@ that shapes every slate.
 > on one valley find each other out with no ledger telling them. See
 > [apiculture.md](./subsystems/apiculture.md).
 > ⚠ Still cut and recorded rather than half-shipped: **foraging**;
-> breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
-> [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
+> breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/world/towns-slate.md) D27 +
+> [venue-and-supply-slate](./slates/trades/venue-and-supply-slate.md) V11.
 > ⭐⭐ **DRILLING shipped 2026-10-09** (MR !353) — the RGO family's
 > **seeded**-field member, and the one whose instrument deliberately
 > cannot answer the question that matters: a trap's STRUCTURE reads with
@@ -72,7 +72,7 @@ that shapes every slate.
 > promotion, and the residency pin (what loads a pet) — see
 > [pets.md](./subsystems/pets.md). Its tail (the off-screen digest, home
 > range, pet combat, breeding) stays in the pets slate; the load half of
-> residency's *policy* is [eager-residency-slate](./slates/builds/eager-residency-slate.md).
+> residency's *policy* is [eager-residency-slate](./slates/tech-debt/eager-residency-slate.md).
 > ⭐⭐ **FORESTRY shipped 2026-09-18** (MR !262) — the family's first
 > wood: a `Wood` location that IS ground with a `StandMixin` cover (the
 > field's shape, on the singleton cell), `fell` and the bole (a trunk
@@ -83,7 +83,7 @@ that shapes every slate.
 > [forestry.md](./subsystems/forestry.md). ⚠ An authored wood is always
 > a wood: no runtime land-use conversion, nothing simulates a tree. Its
 > tail (`analyze wood`, partial yield, the Cover seam, the tree axes)
-> stays in [forestry-slate](./slates/tails/forestry-slate.md); sawing
+> stays in [forestry-slate](./slates/trades/forestry-slate.md); sawing
 > and carpentry are their own trades.
 
 ---
@@ -102,7 +102,7 @@ new words, `spud` and `paste`); permissions moved onto the methods that
 write; reach is one walk (`PerceptionApi.reach`); `survey` retired into
 `analyze rooms` and `measure paint`. What it left: the loose ends of size →
 [size-slate](./subsystems/size.md), list grammar →
-[mql-lists-slate](./slates/builds/mql-lists-slate.md).
+[mql-lists-slate](./slates/engine/mql-lists-slate.md).
 
 ## ⭐ Shipped: controllers are input and output (2026-11)
 
@@ -116,8 +116,8 @@ noun (`house appoint`, `job apply`, `shelf consign`, `title transfer`); every
 view has a `category:` and `help` lists by it; `do` runs a script (`make` is
 gone); the acts' rules moved onto their objects and the words stayed on the
 controller; signed-out bodies are destructed (linkdead stay). What it left:
-crowd timing → [crowded-rooms-slate](./slates/builds/crowded-rooms-slate.md),
-the radial → [affordance-verb-slate](./slates/tails/affordance-verb-slate.md).
+crowd timing → [crowded-rooms-slate](./slates/tech-debt/crowded-rooms-slate.md),
+the radial → [affordance-verb-slate](./slates/engine/affordance-verb-slate.md).
 
 ## ⭐ Shipped: the envelope (2026-09-24)
 
@@ -154,7 +154,7 @@ depleting store, a civic bill) and the electric grid (a feeder network, a
 parcel meter, `analyze grid`'s derived epoch), both epochs at once. See
 [energy.md](./subsystems/energy.md); the remaining tiers (interior
 circuits, metered billing, gas) stay in
-[power-utility-slate](./slates/builds/power-utility-slate.md).
+[power-utility-slate](./slates/trades/power-utility-slate.md).
 
 ⭐ **And three things the review and the sweep changed, each worth its
 line:** what a place is bounded by is an **`enclosure:`** (a fence is not
@@ -304,11 +304,11 @@ remains in the near-term Track A queue:
    [cockpit.md](./subsystems/cockpit.md)). What remains:
    the education content surface (video + transcript), the study /
    classroom / tutor modes, and theming polish. Per
-   [client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md);
+   [client-cockpit-slate.md](./slates/client/client-cockpit-slate.md);
    decomposes into per-track requirements docs at build time.
 2. **Scoped-authoring GUI** (the room editor) — blocked on
    access landing in Track B; will pair with the new-player flow.
-   ([scoped-authoring-slate.md](./slates/tails/scoped-authoring-slate.md))
+   ([scoped-authoring-slate.md](./slates/platform/scoped-authoring-slate.md))
 
 > **Retired from Track A** (so future passes don't re-suggest):
 >
@@ -324,7 +324,7 @@ remains in the near-term Track A queue:
 >   mql-many) directly — no separate `PromptArea` component. Slot
 >   picker, draft state per slot, chip affordances, X-cancel, mode
 >   sigils + tints, echo-snapshot pairing all land there.
->   ([prompt-stack-slate.md](./slates/tails/prompt-stack-slate.md) stays
+>   ([prompt-stack-slate.md](./slates/engine/prompt-stack-slate.md) stays
 >   open for Tier 2/3 kinds and future-wave server polish.)
 > - **Vitals tandem slice.** The original "HP/MV widget over
 >   `me.vitals`" framing reflected the scalar-HP shape Vitals had
@@ -361,22 +361,22 @@ remains in the near-term Track A queue:
 >   ([calendar.md](./subsystems/calendar.md)). The **blood-BANK economy**
 >   — the civic donated-blood window, the gift credit, NPC restock, and the
 >   `transfusion` service — SHIPPED in the **blood-economy build**
->   (2026-10-05, MR !333; → [blood-slate](./slates/tails/blood-slate.md)
+>   (2026-10-05, MR !333; → [blood-slate](./slates/engine/blood-slate.md)
 >   for the deferred tail). Still deferred: the
 >   *general* / instrument-mediated assess + measure-on-patient, the
 >   diagnostic **labs** vertical (→
->   [sampling-and-labs-slate](./slates/builds/sampling-and-labs-slate.md)),
+>   [sampling-and-labs-slate](./slates/trades/sampling-and-labs-slate.md)),
 >   the preindustrial
 >   **ice trade** (cold storage's powered rung SHIPPED 2026-10-01, MR !320
 >   — a powered blood fridge now keeps units cold, the freezer makes ice,
 >   and a cooler carries it; only the harvest/ice-house trade is left →
->   [cold-chain-slate](./slates/builds/cold-chain-slate.md)), and the full
+>   [cold-chain-slate](./slates/trades/cold-chain-slate.md)), and the full
 >   surgery build (→
->   [surgery-specialty-slate](./slates/builds/surgery-specialty-slate.md)).
+>   [surgery-specialty-slate](./slates/trades/surgery-specialty-slate.md)).
 >   The *general* death-transition driver SHIPPED 2026-08-01 — every driver
 >   now routes through one `ConditionApi.die`
 >   ([mortality.md](./subsystems/mortality.md)).
->   ([vitals-slate.md](./slates/tails/vitals-slate.md))
+>   ([vitals-slate.md](./slates/engine/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane
 >   shipped. The pane's `here` + `contents` payload already
@@ -389,7 +389,7 @@ remains in the near-term Track A queue:
 >   console-foundations merge (gutter stripe + filter drawer +
 >   mute-count badges + topics + tabbed terminal +
 >   `ClientStateMixin` substrate).
->   ([console-filtering-slate.md](./slates/tails/console-filtering-slate.md))
+>   ([console-filtering-slate.md](./slates/client/console-filtering-slate.md))
 
 ### Track B — Server substrate, near-term
 
@@ -418,7 +418,7 @@ Ordered by leverage + dependency:
    deny-wins composition, audit sink wiring (call-security
    Pillar 5), tier vocabulary, class-allowlist for content
    writes.
-   ([access-slate.md](./slates/tails/access-slate.md))
+   ([access-slate.md](./slates/platform/access-slate.md))
 2. **Senses** — the unified `Modality` substrate (sound = the
    hearing channel); high content leverage, `analyze`/`measure`
    are text verbs. **Wave 1 shipped** (2026-06): authoring surface
@@ -436,7 +436,7 @@ Ordered by leverage + dependency:
    (echolocation), full ESP local-field walk, per-species
    hearing / tactile / gustatory profiles, RT60 / reverberation,
    stealth as sensorium-relative perception.
-   ([senses-slate.md](slates/builds/senses-slate.md))
+   ([senses-slate.md](slates/engine/senses-slate.md))
 3. **Social cluster (server halves)** — **shipped (2026-06)**:
    `SoulMixin` emotes with `EmoteGrammar` slot binder + ~35-emote
    starter roster + `:` / `;` prefix dispatch; comms acoustic
@@ -460,16 +460,16 @@ Ordered by leverage + dependency:
    broadcast permission gate (waits on access slate); rate
    limiting; vitals-aware acoustic dB; recognition-family
    buildup over the contacts substrate.
-   ([emotes](slates/builds/emotes-slate.md) /
-   [comms](./slates/tails/comms-slate.md) /
-   [chat](./slates/tails/chat-slate.md) /
-   [social-graph](./slates/tails/social-graph-slate.md))
+   ([emotes](slates/engine/emotes-slate.md) /
+   [comms](./slates/engine/comms-slate.md) /
+   [chat](./slates/engine/chat-slate.md) /
+   [social-graph](./slates/engine/social-graph-slate.md))
 4. **Collision** — *decomposed; not a standalone near-term pick
    (resolved 2026-06-10).* The slate bundled three different-priority
    concerns that disperse rather than ship as a unit:
    - **Intentional blocking** (the gate guard) is **behavior**, not a
      mixin — it lands as a **`guards` brain** under
-     [npc-behavior](./slates/builds/npc-behavior-slate.md), riding a small
+     [npc-behavior](./slates/engine/npc-behavior-slate.md), riding a small
      block-substrate seam in the locomotion cascade (the
      already-present-but-hollow `'blocked'` gate in
      `LocomotionControllerBase.composeRejection`). The slate's
@@ -484,7 +484,7 @@ Ordered by leverage + dependency:
      day specific content asks.
    So don't re-surface collision as "what's next": its live half is a
    brain owned by npc-behavior; the rest waits on content.
-   ([collision-slate.md](./slates/tails/collision-slate.md))
+   ([collision-slate.md](./slates/engine/collision-slate.md))
 5. **Recognition family** — recognition (full) + identification
    (substrate) + the viewer-aware naming step (the realized
    `DescribeApi v2`) **shipped 2026-06** as the belief subsystem; see
@@ -514,9 +514,9 @@ Ordered by leverage + dependency:
    a pack ships, with real Material chemistry on the `chemistry` channel
    — plus partial-ID + misidentification, and the **aether
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
-   ([reputation](./slates/builds/reputation-slate.md) /
-   [social-graph](./slates/tails/social-graph-slate.md) /
-   [identification](./slates/builds/identification-slate.md))
+   ([reputation](./slates/society/reputation-slate.md) /
+   [social-graph](./slates/engine/social-graph-slate.md) /
+   [identification](./slates/engine/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
    [augmentation.md](./subsystems/augmentation.md)); the
@@ -531,8 +531,8 @@ Ordered by leverage + dependency:
    responder + `talk to` + auto-introduce; see
    [npc-dialogue.md](./subsystems/npc-dialogue.md)); the scripted
    `intent-dialogue` / LLM front-end is the tail.
-   ([augmentation](./slates/tails/augmentation-slate.md) /
-   [npc-dialogue](./slates/tails/npc-dialogue-slate.md))
+   ([augmentation](./slates/engine/augmentation-slate.md) /
+   [npc-dialogue](./slates/engine/npc-dialogue-slate.md))
 
 The **new-player flow** straddles both tracks: char-gen engine +
 fast-travel terminals are Track B (server-first) — the **char-gen
@@ -579,25 +579,25 @@ What a per-slate row has no place to say: how slates group, and what
 nobody owns.
 
 - **The comms / social / expression cluster** —
-  [senses](./slates/builds/senses-slate.md),
-  [emotes](./slates/builds/emotes-slate.md),
-  [comms](./slates/tails/comms-slate.md),
-  [chat](./slates/tails/chat-slate.md),
-  [reactions](./slates/tails/reactions-slate.md),
-  [npc-dialogue](./slates/tails/npc-dialogue-slate.md),
-  [access](./slates/tails/access-slate.md) and
-  [spoiler](./slates/tails/spoiler-slate.md) were designed as one
+  [senses](./slates/engine/senses-slate.md),
+  [emotes](./slates/engine/emotes-slate.md),
+  [comms](./slates/engine/comms-slate.md),
+  [chat](./slates/engine/chat-slate.md),
+  [reactions](./slates/engine/reactions-slate.md),
+  [npc-dialogue](./slates/engine/npc-dialogue-slate.md),
+  [access](./slates/platform/access-slate.md) and
+  [spoiler](./slates/platform/spoiler-slate.md) were designed as one
   connected pass; they build in waves, not in one cycle.
 - **The connected new-player flow** —
   [char-gen](./subsystems/char-gen.md) → lounge →
-  [fast-travel](./slates/tails/fast-travel-slate.md) →
-  [onboarding](./slates/builds/onboarding-slate.md) → dorm +
-  [authoring](./slates/tails/scoped-authoring-slate.md), each
+  [fast-travel](./slates/engine/fast-travel-slate.md) →
+  [onboarding](./slates/client/onboarding-slate.md) → dorm +
+  [authoring](./slates/platform/scoped-authoring-slate.md), each
   thin-engine / content-heavy.
 - **Assessment integrity** — server-side grading + don't-publish-
   answers + assessment design; owned by the future education-vertical
   /assessment system, *not* the
-  [spoiler slate](./slates/tails/spoiler-slate.md) (which is
+  [spoiler slate](./slates/platform/spoiler-slate.md) (which is
   best-effort experience-spoiler gating only).
 - [docs/adjoining-systems.md](./adjoining-systems.md) —
   catalog of unexplored subsystems (Tier 1 graduated; Tier
@@ -670,7 +670,7 @@ opportunistically.
   the slate imagined. ⚠ What the slate still owns:
   **minimal-distinguishing rendering** (*Mitch* until there are two,
   then *Mitch H.*), which a docstring claimed for years and which has
-  never existed → [naming-slate.md](./slates/tails/naming-slate.md).
+  never existed → [naming-slate.md](./slates/engine/naming-slate.md).
 
 ---
 
@@ -739,7 +739,7 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
 **Tier 2** — extends established patterns:
 
 - #4 Scent and persistent traces — **smell is now a channel in
-  [senses-slate](slates/builds/senses-slate.md)** (the `PerceptionChannel`
+  [senses-slate](slates/engine/senses-slate.md)** (the `PerceptionChannel`
   substrate); the remaining work is the *persistent-trace* half (trails
   that linger), which needs activity emission hooks (deferred in
   activity-slate) and pulls on #9.
@@ -763,7 +763,7 @@ From [docs/adjoining-systems.md](./adjoining-systems.md). Tier
   soot. Temporal traces; pulls on #4.
 - #11 Heat as physics channel — the **`PerceptionChannel`
   generalization is now realized in
-  [senses-slate](slates/builds/senses-slate.md)** (thermoreception is a
+  [senses-slate](slates/engine/senses-slate.md)** (thermoreception is a
   channel); remaining work is heat's *physics* (propagation / sources /
   Quantity in Kelvin), parallel to light and sound, plugging into the
   established channel shape.
@@ -812,7 +812,7 @@ landing first.
   Wave 5 (homing the rest of `world-seed` and deleting it) remains.
   Left: wave 5 (see
   [content-packs.md](./subsystems/content-packs.md) /
-  [content-packs-slate.md](./slates/builds/content-packs-slate.md));
+  [content-packs-slate.md](./slates/platform/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*
 - **Persistence framework upgrade** — fine-grained per-record
   access patterns. Recognition + identification + social-graph
@@ -847,7 +847,7 @@ landing first.
 ## Client UX
 
 Canonical client design surface is the cockpit slate:
-[docs/slates/tails/client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md).
+[docs/slates/client/client-cockpit-slate.md](./slates/client/client-cockpit-slate.md).
 It covers the v1 cockpit (layout, click model, modes, panel
 inventory, MML semantic tags, MQL-subscription consumption,
 content surface, prompt line, envelope rendering, character
@@ -877,8 +877,8 @@ slate flags them as separate projects):
   bridge across the wizard-lockdown code boundary (see
   [studio.md](./subsystems/studio.md)); it also lit the first authoring-
   intelligence catalogs (mixin particles + named blueprints). *Remaining*
-  (per [cms-slate.md](./slates/builds/cms-slate.md) +
-  [authoring-intelligence-slate.md](./slates/builds/authoring-intelligence-slate.md)):
+  (per [cms-slate.md](./slates/platform/cms-slate.md) +
+  [authoring-intelligence-slate.md](./slates/platform/authoring-intelligence-slate.md)):
   per-type / bespoke content editors + the zone/map canvas, the
   external-editor/LSP / engine-typed IntelliSense path, drafts/publish + the
   law==code forums-review gate, and versioning.

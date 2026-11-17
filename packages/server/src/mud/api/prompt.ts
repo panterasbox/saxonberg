@@ -14,7 +14,7 @@
  *
  * See:
  *   - `docs/subsystems/prompt.md`
- *   - `docs/slates/tails/prompt-stack-slate.md`
+ *   - `docs/slates/engine/prompt-stack-slate.md`
  */
 
 import type {

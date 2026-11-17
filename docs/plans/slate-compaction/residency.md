@@ -1,7 +1,7 @@
 # Slate compaction ledger — batch: residency
 
 Slates: `docs/slates/tails/residency-slate.md`,
-`docs/slates/builds/spawn-distribution-slate.md`.
+`docs/slates/engine/spawn-distribution-slate.md`.
 Insert-doc: `docs/subsystems/residency.md`.
 
 Verification method: grepped `packages/server/src/mud/**`,
@@ -83,7 +83,7 @@ still carried (see that slate's entry below).
 - Size: a tail → (absorbed; see `spawn-distribution-slate` entry below
   for the surviving `Left` on the sibling design)
 
-## `docs/slates/builds/spawn-distribution-slate.md` — 108 → 97  · Status PARTIAL → PARTIAL
+## `docs/slates/engine/spawn-distribution-slate.md` — 108 → 97  · Status PARTIAL → PARTIAL
 
 Two status blocks present (the canonical `**Left:**`/`**Size:**` block,
 plus an older "named, not designed" narrative one) — collapsed to one;

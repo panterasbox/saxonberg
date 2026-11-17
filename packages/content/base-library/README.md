@@ -16,5 +16,5 @@ Files under `content/` mirror the template-path namespace
 The pack is installed into the running game by the kernel's `PackApi`
 installer (boot-time reconcile + the `pack sync` dev verb). The pack files
 are the **source of truth**; the database is a derived install. See
-`pack.yaml` for the manifest and `docs/slates/builds/content-packs-slate.md`
+`pack.yaml` for the manifest and `docs/slates/platform/content-packs-slate.md`
 in the server repo for the design.

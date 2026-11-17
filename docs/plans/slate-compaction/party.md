@@ -12,7 +12,7 @@ combatant}.ts`, `packages/server/src/mud/platform/idea/api/__tests__/
 PartyLogic.test.ts`. Also read `docs/subsystems/{grouping,
 combat-formations,chat,advancement}.md` per the batch brief.
 
-## docs/slates/tails/party-slate.md — 294 → 232 lines · Status PARTIAL → PARTIAL
+## docs/slates/engine/party-slate.md — 294 → 232 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Second status block's first paragraph ("Status: design-phase,

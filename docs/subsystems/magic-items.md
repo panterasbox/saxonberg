@@ -218,7 +218,7 @@ cast — the wand is in the circuit and the user is not.
 > The intuition worth keeping — **mages should have gear** — is a
 > different mechanic: an item that *modifies what happens when you
 > cast*, rather than one that casts using your mana. See
-> [implements-slate.md](../slates/builds/implements-slate.md).
+> [implements-slate.md](../slates/engine/implements-slate.md).
 
 Consequences that are requirements rather than flavour:
 

@@ -478,7 +478,7 @@ argument forums (`⚖ argument forum`).
 ### Deferred (the scale problems)
 
 The v1 slice is the small-and-safe claim-tree. The *scale* work is
-deferred (see the [argument-map slate](../slates/tails/argument-map-slate.md)):
+deferred (see the [argument-map slate](../slates/society/argument-map-slate.md)):
 **claim dedup / canonicalization** (assisted curation — the make-or-break
 problem, and the DAG case), **integrity-grade map-summarization**
 (grounded, drillable), **automated convergence-detection** (+ the
@@ -868,7 +868,7 @@ imports `SubjectApi`.
   organizer](#the-argument-organizer-cycle-2) above. Its *scale* problems
   (claim dedup, summarization, convergence, version-control, the vote
   consumer, the plural-lens explorer) remain deferred — see the
-  [argument-map slate](../slates/tails/argument-map-slate.md).
+  [argument-map slate](../slates/society/argument-map-slate.md).
 - **Subscription query/pagination model.** Cycle 1 scopes a subscription
   to a single board's thread-list or a single thread's post-tree;
   deep-subtree paging is a structured query and the boundary between a
@@ -951,11 +951,11 @@ surface was the organizer value rename (no data migration — no board ever
 persisted `'structure'`); everything else is additive. Its requirements +
 plan retired at the cycle-2 sweep.
 
-The forums-slate ([forums-slate.md](../slates/tails/forums-slate.md)) is
+The forums-slate ([forums-slate.md](../slates/platform/forums-slate.md)) is
 retained for the remaining deferred design space (the ephemeral lifecycle,
 the procedure modes, the latent collection-watch abstraction); the
 argument organizer's scale tail lives in the
-[argument-map slate](../slates/tails/argument-map-slate.md).
+[argument-map slate](../slates/society/argument-map-slate.md).
 
 ### Wave 6 (client rebuild) — 2026-08-15
 

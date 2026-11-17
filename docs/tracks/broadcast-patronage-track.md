@@ -18,7 +18,7 @@ This track is organized by a *destination*: the north star below.
 
 **North star.** Go live on Twitch, broadcast the design and development
 of Saxonberg, and convert capital into *future stake* — the
-[cooperative](../slates/builds/cooperative-slate.md) thesis that the
+[cooperative](../slates/society/cooperative-slate.md) thesis that the
 people who fund the world are the people who govern it. The full polity
 is parked until there's a member body; this track stands up the **funding
 stream** and the **engagement loop** that feed it.
@@ -62,7 +62,7 @@ The track inherits a real head start:
   for in-game viewers to talk back during a broadcast *today*. See
   [comms.md](../subsystems/comms.md), [chat.md](../subsystems/chat.md).
 - **Async-forum design is settled** (not just ideated) in
-  [delivery-slate.md](../slates/builds/delivery-slate.md): forums/email
+  [delivery-slate.md](../slates/trades/delivery-slate.md): forums/email
   as facets of the one conversation primitive, reusing
   `Channel`/`GroupRef`/messaging.
 
@@ -74,7 +74,7 @@ Stops at a genuinely interactive Twitch broadcast, **before** any funding
 plumbing. Three phases.
 
 #### Phase 1 — Auth-providers keystone ✅ *shipped 2026-06* *(blocks everything)*
-- **Slate:** [auth-providers-slate.md](../slates/tails/auth-providers-slate.md)
+- **Slate:** [auth-providers-slate.md](../slates/platform/auth-providers-slate.md)
 - **Extends:** [connection.md](../subsystems/connection.md) (Google-only spine)
 - **Build (Waves 1+2):** multi-provider Passport spine (Google + Twitch
   co-equal), `TwitchProfile` Document with **encrypted** access/refresh
@@ -107,7 +107,7 @@ plumbing. Three phases.
 > persisted, five phases), with per-streamer feed and control tokens,
 > chat forwarding, the lower third and Rodney on the real feed. What is
 > left (alerts, a show chosen by command) is on
-> [broadcast-ready-slate](../slates/builds/broadcast-ready-slate.md).
+> [broadcast-ready-slate](../slates/platform/broadcast-ready-slate.md).
 
 - **Slate/doc:** [livestream.md](../subsystems/livestream.md) (the Phase-1
   "not shipped" list)
@@ -124,7 +124,7 @@ The monetization milestone. Sequenced and decided; deferred out of the
 first push by choice.
 
 #### Phase 4 — Twitch-native payment intake
-- ⚠ **Reopened 2026-10-17 → [giving-slate](../slates/builds/giving-slate.md).**
+- ⚠ **Reopened 2026-10-17 → [giving-slate](../slates/society/giving-slate.md).**
   *"The worst thing in the world is to have people that want to give you
   money and not having a channel for them to do that."* Giving moves
   forward and widens — and the platform still takes no payments: it
@@ -142,7 +142,7 @@ first push by choice.
 - **Depends on:** Phase 1 (tokens + EventSub plumbing).
 
 #### Phase 5 — Stake-ledger slice + founding-charter
-- **Slates:** [cooperative-slate.md](../slates/builds/cooperative-slate.md)
+- **Slates:** [cooperative-slate.md](../slates/society/cooperative-slate.md)
   (the "stake-ledger slice buildable now"),
   [founding-charter.md](../compact/governance/founding-charter.md)
 - **Build:** the honest counter — per Saxonberg identity, record
@@ -170,13 +170,13 @@ first push by choice.
 ### Later — the offline-continuation surface
 
 #### Phase 7 — Async forums
-- **Slate:** [delivery-slate.md](../slates/builds/delivery-slate.md)
+- **Slate:** [delivery-slate.md](../slates/trades/delivery-slate.md)
 - **Build:** persistent thread-tree board Document + async-browse views +
   `world.forum.*` Topic genres; reuses `Channel`/`GroupRef`/messaging and
   the wiki-style `FolderZone` namespace.
 - **Scope note:** this is the **social forum** (comms-owned, casual). It
   is *not* the governance **deliberation** surface — the typed claim-graph
-  [argument-map](../slates/tails/argument-map-slate.md) is a separate
+  [argument-map](../slates/society/argument-map-slate.md) is a separate
   thing, organized by argument structure rather than recency. Don't
   conflate them.
 - **Why last:** the live loop comes first (most engagement is during
@@ -190,7 +190,7 @@ first push by choice.
 - **Phase 1 includes account linking** (slate Waves 1+2), not just Twitch
   login — so a Saxonberg↔Twitch identity binding exists ahead of the
   funding push. Chat scopes remain deferred.
-- **Payment intake** ~~= **Twitch-native only**~~ → reopened 2026-10-17, see [giving-slate](../slates/builds/giving-slate.md). Was: **Twitch-native only** (EventSub subs/bits). No
+- **Payment intake** ~~= **Twitch-native only**~~ → reopened 2026-10-17, see [giving-slate](../slates/society/giving-slate.md). Was: **Twitch-native only** (EventSub subs/bits). No
   external processor for now.
 - **Track artifact** = this standalone doc (not a Build-10 entry in the
   slate index).
@@ -208,14 +208,14 @@ first push by choice.
 
 ## Cross-references
 
-- North star & funding model: [cooperative-slate.md](../slates/builds/cooperative-slate.md),
+- North star & funding model: [cooperative-slate.md](../slates/society/cooperative-slate.md),
   [founding-charter.md](../compact/governance/founding-charter.md),
   [draft-constitution.md](../compact/governance/draft-constitution.md)
 - Engagement substrate: [comms.md](../subsystems/comms.md),
   [chat.md](../subsystems/chat.md), [messaging.md](../subsystems/messaging.md),
-  [delivery-slate.md](../slates/builds/delivery-slate.md)
+  [delivery-slate.md](../slates/trades/delivery-slate.md)
 - Streaming + Twitch: [livestream.md](../subsystems/livestream.md),
-  [auth-providers-slate.md](../slates/tails/auth-providers-slate.md),
+  [auth-providers-slate.md](../slates/platform/auth-providers-slate.md),
   [twitch-relay.md](../subsystems/twitch-relay.md)
 - Process: [workflow.md](../workflow.md) — each phase becomes a normal
   slate → requirements → plan → build cycle.

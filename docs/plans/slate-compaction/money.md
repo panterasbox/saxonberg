@@ -10,7 +10,7 @@ dir `money/orig/` for diffing. Code was verified in
 `holding.md`, `governance.md`, `credential.md`, `advancement.md`,
 `materials-response.md`, and the superseding
 `docs/requirements/economic-bootstrap-requirements.md` (2026-09-18) +
-`docs/slates/builds/institutions-slate.md`.
+`docs/slates/society/institutions-slate.md`.
 
 ## Findings (coordinator decides)
 
@@ -37,7 +37,7 @@ dir `money/orig/` for diffing. Code was verified in
 
 ---
 
-## docs/slates/builds/economy-slate.md — 847 → 804 · Status PARTIAL → PARTIAL
+## docs/slates/society/economy-slate.md — 847 → 804 · Status PARTIAL → PARTIAL
 
 An umbrella slate, mostly doctrine. The shipped surface was the currency
 slice, the custodial bank, the priced offer + consignment, employment +
@@ -107,7 +107,7 @@ requirements doc's.
 
 ---
 
-## docs/slates/builds/credit-slate.md — 795 → 357 · Status PARTIAL → PARTIAL
+## docs/slates/society/credit-slate.md — 795 → 357 · Status PARTIAL → PARTIAL
 
 Superseded almost wholesale by `docs/requirements/economic-bootstrap-
 requirements.md` (2026-09-18, merged), which is itself a design doc (no
@@ -161,7 +161,7 @@ found cooperative-slate does not yet contain that material (grepped
 
 ---
 
-## docs/slates/builds/currency-slate.md — 562 → 232 · Status PARTIAL → PARTIAL
+## docs/slates/society/currency-slate.md — 562 → 232 · Status PARTIAL → PARTIAL
 
 The rare case where nearly every concrete finding actually shipped, and
 shipped in the exact shape the slate specified — code-verified line by
@@ -203,7 +203,7 @@ predicted), which is about as strong as "shipped" evidence gets.
 
 ---
 
-## docs/slates/tails/multi-currency-slate.md — 358 → 221 · Status PARTIAL → PARTIAL
+## docs/slates/society/multi-currency-slate.md — 358 → 221 · Status PARTIAL → PARTIAL
 
 This tail already knew it was mostly done — its own opening callout says
 *"HALF A IS BUILT AND MERGED… do not build from the Half-A sections
@@ -238,12 +238,12 @@ callout itself hadn't gotten around to removing.
 
 ---
 
-## docs/slates/builds/money-integrity-slate.md — 290 → 256 · Status PARTIAL → PARTIAL
+## docs/slates/tech-debt/money-integrity-slate.md — 290 → 256 · Status PARTIAL → PARTIAL
 
 The lightest cut in this batch — this slate's own status block already
 knew exactly what shipped and what didn't, and the code confirmed it
 exactly: `lib/banking/__tests__/money-integrity.test.ts`'s own header
-comment says *"See docs/slates/builds/money-integrity-slate.md for the
+comment says *"See docs/slates/tech-debt/money-integrity-slate.md for the
 full surface — most of it is a later cycle. This file covers only what
 this build claims."* The census/gates/property-test cycle (the slate's
 actual deliverable) has not happened — no `ValueBearingMixin`, no
@@ -276,7 +276,7 @@ anywhere in code.
 
 ---
 
-## docs/slates/builds/auction-slate.md — 252 → 252 · Status PARTIAL → PARTIAL (no edits)
+## docs/slates/society/auction-slate.md — 252 → 252 · Status PARTIAL → PARTIAL (no edits)
 
 `find . -iname "*auction*"` outside `docs/` returns nothing — no `auction`
 or `bid` verb, no lot/contract mapping, no `SustainedEngagement` for an

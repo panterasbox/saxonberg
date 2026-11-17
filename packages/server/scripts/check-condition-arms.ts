@@ -311,7 +311,7 @@ if (all.length > ARM_CEILING) {
       `  A new discriminated arm was added to the condition machinery.\n` +
       `  The shape a new condition kind needs is a PROGRESSION LAW plus a\n` +
       `  \`signature\` — not a new arm. See\n` +
-      `  docs/slates/builds/consequence-slate.md § Finding 0.\n\n` +
+      `  docs/slates/engine/consequence-slate.md § Finding 0.\n\n` +
       `  If an arm was genuinely unavoidable, lower it elsewhere first or\n` +
       `  raise ARM_CEILING in this file as a deliberate, reviewable diff.\n`,
   );

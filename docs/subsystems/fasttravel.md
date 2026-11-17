@@ -705,7 +705,7 @@ colocation; inventory persist-back) — see [persistence](./persistence.md).
 
 ## Seams & deferred surface
 
-Captured in `docs/slates/tails/fast-travel-slate.md`:
+Captured in `docs/slates/engine/fast-travel-slate.md`:
 
 - ~~**Living infrastructure** — the `status` seam is inert.~~ ✅ **Half
   closed.** `status` DERIVES from the gate's supply now, so a gate goes
@@ -748,7 +748,7 @@ Two things found by driving the Hinkley Hills commute route
   been*. ⭐⭐ It is also the **adoption incentive**: an entry object buys
   traffic from one room, a station buys a line in every schedule in the
   game. Design + the EotL reading:
-  [content-declaration-slate § 6.3](../slates/builds/content-declaration-slate.md).
+  [content-declaration-slate § 6.3](../slates/platform/content-declaration-slate.md).
 
 - **⚠ A stale terminal row silently deletes a route, and the refusal
   lies.** A terminal row that the pack reconcile leaves alone (a locally

@@ -97,7 +97,7 @@ the microtask + `setImmediate` ordering instead.
 
 ---
 
-## docs/slates/tails/mql-subscription-slate.md — 1837 → 1191 · Status PARTIAL → PARTIAL
+## docs/slates/engine/mql-subscription-slate.md — 1837 → 1191 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the second narrative status paragraph *"**Status.** Server substrate has shipped … This slate stays alive for the client-side half…"* (21–29, 9) — history; the canonical block is kept and re-stamped (one-status-block rule); the client half it names shipped as the card feed
@@ -205,6 +205,6 @@ the microtask + `setImmediate` ordering instead.
 - Size: a wave → a wave (many small items, none its own cycle; the shadow model is the only candidate for a build and the slate itself defers it to its own slate)
 
 ### Verification
-- `git diff --stat -- docs/slates/tails/mql-subscription-slate.md docs/subsystems/mql-subscription.md` → slate `1020 +++---` (1837 → 1191), doc `+32 −2` (two inserts, one two-row correction)
+- `git diff --stat -- docs/slates/engine/mql-subscription-slate.md docs/subsystems/mql-subscription.md` → slate `1020 +++---` (1837 → 1191), doc `+32 −2` (two inserts, one two-row correction)
 - every heading that left the slate (`### Reference record` · `### Detail record` · `### Structured / path records` · `### Subscribe lifecycle` · `### Change lifecycle` · `### Unsubscribe / disconnect` · `### The meta-bus and the dependency index` · `### The re-resolve pass (micro-batch)`) is inside a range listed above; all 55 other headings remain
 - code fences balance (9 blocks); every `Left` item has a body section; no other file touched; nothing committed

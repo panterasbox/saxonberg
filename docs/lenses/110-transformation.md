@@ -192,7 +192,7 @@ Weak comfort, and real.
 ⚠ **B2 is not a second statement of the optimism**, and reading it that
 way is a mistake worth recording. *Players are never evil* is a claim
 about **alignment** — which poles a player may occupy on one axis of the
-two-axis system ([alignment-slate](../slates/builds/alignment-slate.md):
+two-axis system ([alignment-slate](../slates/society/alignment-slate.md):
 Good─Neutral─Evil as *Mitra─Pan─Moloch*, against
 Lawful─Neutral─Chaotic). The constitutional bet is about **collective
 choice.** Different objects.

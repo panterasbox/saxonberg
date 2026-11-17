@@ -544,7 +544,7 @@ logs there are. This is the shipped instance of a general pattern
 (microclimates as *occupiable* features, not *located* ones); a generic
 "any hot `Thermal` object radiates to nearby bodies" read (a hot rock,
 not just an authored fixture) remains open — see
-[thermal-slate](../slates/tails/thermal-slate.md).
+[thermal-slate](../slates/engine/thermal-slate.md).
 
 ## ⭐⭐ The internal heat load — heat that is not the weather's
 

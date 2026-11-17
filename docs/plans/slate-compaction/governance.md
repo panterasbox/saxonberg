@@ -60,7 +60,7 @@ Five things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/cooperative-slate.md — 3060 → 2025 · Status PARTIAL → PARTIAL
+## docs/slates/society/cooperative-slate.md — 3060 → 2025 · Status PARTIAL → PARTIAL
 
 **Every one of the 113 headings survives**; cuts are of section *bodies*,
 each replaced by a one-line pointer, because outside documents cite the

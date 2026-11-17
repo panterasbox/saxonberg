@@ -16,18 +16,18 @@
 > **philosophy** survey.
 
 See also — the family this sits over:
-[stewardship-slate](./slates/builds/stewardship-slate.md) (land use, the
+[stewardship-slate](./slates/society/stewardship-slate.md) (land use, the
 residence ladder, property condition, the Stewardship Discipline) ·
-[preservation-slate](./slates/tails/preservation-slate.md) (spoilage — the
-keystone) · [disease-slate](./slates/builds/disease-slate.md) (contagion,
-hygiene) · [ranching](./slates/builds/ranching-slate.md) ·
-[pets-slate](./slates/builds/pets-slate.md) ·
-[farming-slate](./slates/builds/farming-slate.md).
+[preservation-slate](./slates/trades/preservation-slate.md) (spoilage — the
+keystone) · [disease-slate](./slates/engine/disease-slate.md) (contagion,
+hygiene) · [ranching](./slates/trades/ranching-slate.md) ·
+[pets-slate](./slates/engine/pets-slate.md) ·
+[farming-slate](./slates/trades/farming-slate.md).
 Shipped substrates:
 [husbandry](./subsystems/husbandry.md) · [smallholding](./subsystems/smallholding.md)
 · [crafting](./subsystems/crafting.md) (`Durable`/`Keen`) ·
 [vitals](./subsystems/vitals.md) (`Condition`) · [metabolism](./subsystems/metabolism.md)
-· [economy-slate § Law 2](./slates/builds/economy-slate.md).
+· [economy-slate § Law 2](./slates/society/economy-slate.md).
 Doctrine anchors: economy-slate **Law 2**, and the ratified
 **"presence is never the meter."**
 
@@ -103,7 +103,7 @@ distinction between archetypes 2 and 3:
 > dirty room is archetype-1-shaped, not archetype 2**: you cook and it greases,
 > you leave and it holds. The real classifier of absence-behavior is the
 > **driver** (a continuous process vs an act), not the domain — see
-> [room-condition-design-pack](./slates/builds/room-condition-design-pack.md).
+> [room-condition-design-pack](./slates/engine/room-condition-design-pack.md).
 
 ---
 
@@ -124,7 +124,7 @@ It is not. Ask the archetype question of a dirty room and a spoiling fish:
   track mud, you drop crumbs. That is **act-deposited**: it accrues from acts and
   **freezes in absence**, cleared by an act of care. **Archetype-1-shaped** (the
   `Durable` deposition shape) — *not* the continuous archetype-2 clock. Designed:
-  [room-condition-design-pack](./slates/builds/room-condition-design-pack.md).
+  [room-condition-design-pack](./slates/engine/room-condition-design-pack.md).
 
 > ⭐⭐⭐ **Neither is a scary new system — but they are two different clocks.**
 > Food spoilage is husbandry's **continuous** reconcile clock pointed at food
@@ -198,7 +198,7 @@ paid mitigations) are what keep it on the right side.
 **(Called 2026-08-11.)** The four resolutions above cover *decay*. They say
 nothing about **money that recurs** — the power bill, the water rate, the
 parcel tax — and a home is where those land. The
-[power-utility slate](./slates/builds/power-utility-slate.md) predates this
+[power-utility slate](./slates/trades/power-utility-slate.md) predates this
 doctrine by nine days and was never checked against it, so the call was
 outstanding.
 
@@ -222,7 +222,7 @@ for the compute substrate, and the reasoning transfers whole:
 |---|---|---|---|
 | **1** | ⭐ **Meter on USE — never on connection, never on ownership** | per-unit consumption (kWh, litres); service fees at the point of a service rendered | a fixed **standing/connection charge** (rent on owned space with the serial numbers filed off); an **ad-valorem holding tax** |
 | **2** | ⭐⭐ **Dischargeable WITHOUT attendance** | capital, a standing order, an income stream that runs while you are away | any bill whose only antidote is logging in — the inviolable floor, restated for money |
-| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/builds/credit-slate.md)'s property floor) |
+| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/society/credit-slate.md)'s property floor) |
 
 Rule 3 is the load-bearing one. Law 2's real fear is **loss you can only avert
 by showing up**; if non-payment can never take the thing, a recurring bill
@@ -251,7 +251,7 @@ might otherwise have reached for.
 
 #### The structural correction this forces
 
-⚠ [residence-ladder](./slates/tails/residence-ladder-design-pack.md)'s
+⚠ [residence-ladder](./slates/society/residence-ladder-design-pack.md)'s
 `propertyCondition` read took four inputs, the fourth being *"premises
 standing — utilities paid, tax current."* **That input is removed**, and not
 only for Law-2 reasons: it is a **category error**. Condition measures the
@@ -382,7 +382,7 @@ demand it — that is a time bomb, not an economy"*):
 
 The same rule covers **labour**: an upkeep that only a hired hand can
 discharge is a time bomb until hiring a hand onto your own premises
-exists ([standing-instructions-slate](./slates/builds/standing-instructions-slate.md)
+exists ([standing-instructions-slate](./slates/engine/standing-instructions-slate.md)
 — *may a player automate labour at all?* is the open question the cleaner
 and gardener markets wait on).
 
@@ -452,9 +452,9 @@ that cannot buy the materials leaves its building to weather.
   paid mend as somebody's work, building upkeep layer by layer, the two
   opt-ins.
 - **Slated:** room-condition (`Soilable`, debris, `restQuality`) ·
-  laundry and soap ([laundry-slate](./slates/tails/laundry-slate.md),
-  [rendering-slate](./slates/tails/rendering-slate.md) § 9) · the hired
-  hand ([standing-instructions-slate](./slates/builds/standing-instructions-slate.md)).
+  laundry and soap ([laundry-slate](./slates/trades/laundry-slate.md),
+  [rendering-slate](./slates/trades/rendering-slate.md) § 9) · the hired
+  hand ([standing-instructions-slate](./slates/engine/standing-instructions-slate.md)).
 
 ---
 
@@ -499,16 +499,16 @@ measures the doing.
 | **Food spoilage / preservation** | **2** | 🔲 **designed, not built** (the *keystone* deferral) | ⚠ **principled once, convenient now** — "one deferral, eight consequences"; if stewardship is a pillar, punting this punts the pillar |
 | **Cold storage / fridge / cellar** | 2 | ◐ **authorable today** (`AtmosphericMixin` `Vessel`), inert without spoilage | fine — it waits on spoilage by necessity |
 | **Disease / contagion** | 2 | 🔲 **designed** — inherits spoilage's growth term | principled (build spoilage first) |
-| **Room condition / cleanliness / pests / tidiness** | **1** | 🔲 **designed** ([room-condition pack](./slates/builds/room-condition-design-pack.md)) | ⚠ **was mis-framed** — act-deposited (archetype-1-shaped), *not* a separate "condition model" |
-| Property condition + residence ladder | 2 | 🔲 **designed** ([residence-ladder pack](./slates/tails/residence-ladder-design-pack.md)) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
+| **Room condition / cleanliness / pests / tidiness** | **1** | 🔲 **designed** ([room-condition pack](./slates/engine/room-condition-design-pack.md)) | ⚠ **was mis-framed** — act-deposited (archetype-1-shaped), *not* a separate "condition model" |
+| Property condition + residence ladder | 2 | 🔲 **designed** ([residence-ladder pack](./slates/society/residence-ladder-design-pack.md)) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
 | Stewardship Discipline | — | 🔲 **designed**, pure data | trivially cheap; ships with the vanilla discipline pack |
 | Ranching / pets / farming | 2 | 🔲 **designed** | principled (wait on land use — now shipped — and spoilage) |
-| **The multi-occupant household** | — | 🔲 **designed** ([household pack](./slates/tails/household-design-pack.md)) | new 2026-08-11 — condition is a **commons** once a holding has two occupants |
-| **Rain → soil moisture** | **2** | ✅ **SHIPPED 2026-09-02** ([watershed.md](./subsystems/watershed.md); [water pack](./slates/tails/water-design-pack.md)) | ⭐ **drought is now possible for the first time** — `satWater` was always a limiting factor and could never bind; `CultivableMixin` integrates `WeatherApi.precipitationBetween × area` for a sky-exposed bed |
-| **The hearth (room ambient)** | **1** | 🔲 **designed** ([hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | ⭐ **unblocked**; scoped by thermal's non-goals to one room, no airflow |
+| **The multi-occupant household** | — | 🔲 **designed** ([household pack](./slates/world/household-design-pack.md)) | new 2026-08-11 — condition is a **commons** once a holding has two occupants |
+| **Rain → soil moisture** | **2** | ✅ **SHIPPED 2026-09-02** ([watershed.md](./subsystems/watershed.md); [water pack](./slates/engine/water-design-pack.md)) | ⭐ **drought is now possible for the first time** — `satWater` was always a limiting factor and could never bind; `CultivableMixin` integrates `WeatherApi.precipitationBetween × area` for a sky-exposed bed |
+| **The hearth (room ambient)** | **1** | 🔲 **designed** ([hearth & larder](./slates/world/hearth-and-larder-design-pack.md)) | ⭐ **unblocked**; scoped by thermal's non-goals to one room, no airflow |
 | **Compost** | **2** | 🔲 **designed** (same pack) | ⭐ its **consumer already ships** (`feed` + `COMPOST_TAG`); only the producer is missing |
-| ⭐ **Patina — the improving axis** | **1** | 🔲 **designed** ([patina pack](./slates/tails/patina-design-pack.md)) | ⭐⭐ **unblocked, and the only loop in the family where care makes a thing BETTER rather than merely un-worse** |
-| **Tenancy — holding what you don't own** | — | 🔲 **designed** ([tenancy pack](./slates/tails/tenancy-design-pack.md)) | closed a hole *inside* the ladder's own rented rungs; ⭐ nearly free, because room-condition's attribution constraint **is** the mechanism |
+| ⭐ **Patina — the improving axis** | **1** | 🔲 **designed** ([patina pack](./slates/engine/patina-design-pack.md)) | ⭐⭐ **unblocked, and the only loop in the family where care makes a thing BETTER rather than merely un-worse** |
+| **Tenancy — holding what you don't own** | — | 🔲 **designed** ([tenancy pack](./slates/society/tenancy-design-pack.md)) | closed a hole *inside* the ladder's own rented rungs; ⭐ nearly free, because room-condition's attribution constraint **is** the mechanism |
 
 **The verdict on the deferrals** (your instinct, confirmed): each was
 locally reasonable *at the time* — every build shipped its slice and punted
@@ -567,9 +567,9 @@ domino**, ahead of any new producer.
 >
 > | Unblocked now | Needs | Why it is free |
 > |---|---|---|
-> | ⭐ **Patina** ([pack](./slates/tails/patina-design-pack.md)) | nothing | `Durable`/`Keen`/`Graded`/glob/chattel all ship; **no new verbs** |
-> | ~~⭐ **The rain edge**~~ ([water pack](./slates/tails/water-design-pack.md)) | — | ✅ **BUILT 2026-09-02** — it was free exactly as predicted (weather + smallholding both shipped; one edge between them), and the build that took it went well past the edge → [watershed.md](./subsystems/watershed.md) |
-> | ⭐ **The hearth** ([hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | nothing | thermal's own named Wave-2 follow-on |
+> | ⭐ **Patina** ([pack](./slates/engine/patina-design-pack.md)) | nothing | `Durable`/`Keen`/`Graded`/glob/chattel all ship; **no new verbs** |
+> | ~~⭐ **The rain edge**~~ ([water pack](./slates/engine/water-design-pack.md)) | — | ✅ **BUILT 2026-09-02** — it was free exactly as predicted (weather + smallholding both shipped; one edge between them), and the build that took it went well past the edge → [watershed.md](./subsystems/watershed.md) |
+> | ⭐ **The hearth** ([hearth & larder](./slates/world/hearth-and-larder-design-pack.md)) | nothing | thermal's own named Wave-2 follow-on |
 >
 > **Patina is the one I would put first if the goal is to change how the
 > pillar feels** rather than how much of it exists — it is the only loop
@@ -587,27 +587,27 @@ domino**, ahead of any new producer.
    downstream things, and is the cheapest instance of the whole thesis.
 3. **Cold storage** — the icebox (passive, no power) then fridge/cellar;
    nearly free once spoilage exists. Wakes the icehouse-keeper vocation and
-   the agricultural year. See [fridge-design-pack](./slates/builds/fridge-design-pack.md).
+   the agricultural year. See [fridge-design-pack](./slates/trades/fridge-design-pack.md).
 3.5. ⭐ **Compost** — the loop-closer, and cheap: `feed` + `COMPOST_TAG` +
    the soil nitrogen reserve **already ship**, so only the producer is
    missing. Worth doing *with* spoilage rather than after it, because it is
    what stops spoilage reading as pure loss. See
-   [hearth & larder](./slates/tails/hearth-and-larder-design-pack.md).
+   [hearth & larder](./slates/world/hearth-and-larder-design-pack.md).
 4. **Room condition + cleanliness** — the **act-deposited** producer
    (`Soilable` + a room debris field) over rooms and bodies; aesthetic /
    `restQuality` / sanitation ships near-term, the disease/immunity half
-   follows disease. See [room-condition-design-pack](./slates/builds/room-condition-design-pack.md).
+   follows disease. See [room-condition-design-pack](./slates/engine/room-condition-design-pack.md).
 5. **Disease + hygiene** — inherits spoilage's growth term + `ContagionSpec`;
    "good husbandry is immunity" pointed at bodies, herds, crops, and (via
    room condition) homes.
 6. **Property condition + the residence ladder** — the progression spine; the
    ladder gate is *"the condition of what you hold."* Frontier rung first
    (unblocked); city rungs wait on the allowance meter + region parcels. See
-   [residence-ladder-design-pack](./slates/tails/residence-ladder-design-pack.md).
+   [residence-ladder-design-pack](./slates/society/residence-ladder-design-pack.md).
 6.5. **The multi-occupant household** — condition becomes a commons the
    moment a holding has two occupants; rides the ladder's gate and room
    condition's attribution. See
-   [household-design-pack](./slates/tails/household-design-pack.md).
+   [household-design-pack](./slates/world/household-design-pack.md).
 7. **The Stewardship Discipline + the pillar naming** — pure data + a
    product-framing pass.
 8. **Ranching / pets / farming** — ride on top, mostly designed.
@@ -624,8 +624,8 @@ five packs.)**
 
 At least four packs in this family add **fields to existing Material seeds** —
 the spoilage-rate constant ([spoilage](./subsystems/spoilage.md)),
-`takesPatina` ([patina](./slates/tails/patina-design-pack.md)), and mana
-density + conductivity ([mana economy](./slates/builds/mana-economy-design-pack.md)).
+`takesPatina` ([patina](./slates/engine/patina-design-pack.md)), and mana
+density + conductivity ([mana economy](./slates/engine/mana-economy-design-pack.md)).
 On any world that has already booted, **those edits are silent no-ops.** The
 material rows exist; the new keys never arrive.
 

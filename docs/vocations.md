@@ -44,7 +44,7 @@ stored, broken down, and sold when the price is unknown.
 | ⚠ | ⭐⭐ **NEVER INVENT A NEED TO CREATE A MARKET** | if a vocation requires a **new player obligation** in order to exist, **the demand was fabricated** — criterion 1 failing in disguise. (The **innkeeper** is the worked example: justifying an inn with a sleep *requirement* is manufactured demand; the honest justification is that **NPC schedules make the inn the place that stays open**.) |
 
 **(2) is what turns an activity into a livelihood** — and it is exactly
-the [instrumentation](./slates/tails/instrumentation-slate.md) thesis.
+the [instrumentation](./slates/engine/instrumentation-slate.md) thesis.
 **(4) is the one violated by accident.**
 
 ## ⭐⭐ Four gap-finding methods, ranked
@@ -148,7 +148,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **miner** | **shipped** ([mining](./subsystems/mining.md)) | skill + tools | the smelter, through the assay shed — ⭐ *or nobody: with an adit and no shaft, a claim-holder walks their own ore out and owes the co-op nothing* |
 | farmer | **in build** | land + skill | produce buyers |
 | rancher | **in build** | land + stock | livestock buyers |
-| fisher | **shipped** ([fishing.md](./subsystems/fishing.md); tail at [fishing](./slates/tails/fishing-slate.md)) | tackle + skill | market |
+| fisher | **shipped** ([fishing.md](./subsystems/fishing.md); tail at [fishing](./slates/trades/fishing-slate.md)) | tackle + skill | market |
 | **forester / woodcutter** | **shipped** ([forestry](./subsystems/forestry.md)) | a felling axe + common land | the collier (cordwood) and the mine (timber) — ⭐ *the stand is the PLACE: a clearing that is ground with a standing cover on it, felled to nothing and refilled only by the years and by planting; what comes down is a bole too heavy to lift, and the sawyer's seam is that trunk on the floor* |
 | **coppicer** | **shipped** ([forestry](./subsystems/forestry.md)) | a billhook + a panel | the collier — *a one-game-year rotation on a persistable panel; six smelts a panel a year, and that number is the lesson, not a dial* |
 | **prospector** | **shipped** ([mining](./subsystems/mining.md)) | **assay** (instrument + competence) | speculative — ⭐⭐ *and the survey record itself is the asset: a per-viewer DISCOVERY belief you can trade, which is why negative knowledge still sells* |
@@ -160,8 +160,8 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | crafter (many branches) | **shipped** | Discipline + tools | buyers |
 | bartender / cook | **shipped** | on-shift `fulfills` seat | the house |
 | slaughterer / butcher | **shipped** ([butchery](./subsystems/butchery.md) · `trade-ranching` kills, `trade-cooking` breaks down) | premises + skill + **the tool ladder** | trade — ⭐⭐ *the hand decides joint-vs-trim, so an unskilled butcher visibly wastes a carcass and the waste is the lesson; and ⭐ there is ONE death path, so a beast killed in a fight breaks down exactly like one you slaughtered* |
-| **victualler** (preserving) | designed ([preservation](./slates/tails/preservation-slate.md) · [hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
-| **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
+| **victualler** (preserving) | designed ([preservation](./slates/trades/preservation-slate.md) · [hearth & larder](./slates/world/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
+| **mana refiner** | designed ([mana economy](./slates/engine/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
 | **salvager** | designed | **assay** + yard | materials buyers |
 | **smelter** | **shipped** ([mining](./subsystems/mining.md)) | premises (industrial zoning) + charcoal | ingot buyers — ⭐ *buys its ore out of REVENUE, which is what removed the deferred CB-lending dependency* |
 | **miller** | **shipped** ([crafting](./subsystems/crafting.md) · `trade-milling`) | premises + a FALL of water | trade — ⭐⭐ *the capital ladder that buys back your TIME rather than a rate: a quern holds your `hands` for the whole grind and a water mill holds nothing of yours. Paid in KIND (the multure), which is how a mill pays for premises with no coin changing hands* |
@@ -172,19 +172,19 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
-| teamster / drover | designed ([freight](./slates/builds/freight-slate.md)) | driving + a rig | shippers |
-| carrier (post) | designed ([delivery](./slates/builds/delivery-slate.md)) | employment | the provider |
+| teamster / drover | designed ([freight](./slates/trades/freight-slate.md)) | driving + a rig | shippers |
+| carrier (post) | designed ([delivery](./slates/trades/delivery-slate.md)) | employment | the provider |
 | warehouseman | designed | premises + **bailee duty** | depositors |
 | **forwarder** | designed | *no premises* — pure broker | shippers |
 | shopkeeper | **shipped** | premises + stock | customers |
 | pawnbroker | designed | capital + licence | borrowers |
-| auctioneer | designed ([auction](./slates/builds/auction-slate.md)) | venue + **reputation** | commission |
+| auctioneer | designed ([auction](./slates/society/auction-slate.md)) | venue + **reputation** | commission |
 | **broker / trader** | **GAP** | information | spread |
-| **loan officer / credit assessor** | designed ([insurance § banking](./slates/builds/insurance-slate.md)) | **judgment** | the bank |
+| **loan officer / credit assessor** | designed ([insurance § banking](./slates/society/insurance-slate.md)) | **judgment** | the bank |
 | **credit surveyor** | designed | goes and looks | subscribers |
-| **rating publisher** | designed ([insurance § ratings](./slates/builds/insurance-slate.md)) | **a method + a name** | subscribers (⭐ *timeliness is the product*) |
+| **rating publisher** | designed ([insurance § ratings](./slates/society/insurance-slate.md)) | **a method + a name** | subscribers (⭐ *timeliness is the product*) |
 | **money changer** | **GAP** | **assaying coin** (clipping, debasement) | the spread |
-| **accountant** | designed ([insurance § accountant](./slates/builds/insurance-slate.md)) | **accrual judgment** | businesses (⭐ *demand comes from the banker*) |
+| **accountant** | designed ([insurance § accountant](./slates/society/insurance-slate.md)) | **accrual judgment** | businesses (⭐ *demand comes from the banker*) |
 | **auditor** | designed | independence + competence | ⚠ **must not be the same firm as the accountant** |
 | **forensic accountant** | designed | competence | ⭐ *the route to the untouchable — they got Capone on tax* |
 | **revenue inspector** | **GAP** | office | the treasury (blocked with the fiscal cycle) |
@@ -197,26 +197,26 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
 | medic | **next build** (mortality) | Discipline | patients |
-| journalist | designed ([press](./slates/builds/press-slate.md)) | credibility | readers / patrons |
+| journalist | designed ([press](./slates/society/press-slate.md)) | credibility | readers / patrons |
 | **appraiser** | **GAP** | **certified instrument** | fee per assay |
 | navigator / cartographer | designed | maps + competence | travellers |
 | guard / escort | designed | combat | caravans |
-| advocate | designed ([cooperative](./slates/builds/cooperative-slate.md)) | competence | clients / the state |
+| advocate | designed ([cooperative](./slates/society/cooperative-slate.md)) | competence | clients / the state |
 | **teacher** | **GAP — see below** | competence in the subject | students / institution |
-| **veterinarian** | **designed** ([insurance § the vet](./slates/builds/insurance-slate.md)) | Discipline + **observation without self-report** | stock owners / companions — ⭐ *the only vocation that can shut the freight network* |
+| **veterinarian** | **designed** ([insurance § the vet](./slates/society/insurance-slate.md)) | Discipline + **observation without self-report** | stock owners / companions — ⭐ *the only vocation that can shut the freight network* |
 | **meat inspector** | designed | certified competence | the locality — *condemnation is a `directive`* |
 | **farrier** | **GAP** | ⚠ **a crafting branch, not medicine** | horse owners |
-| **innkeeper** | **designed** — *condition met 2026-07-31* ([npc-behavior § schedules](./slates/builds/npc-behavior-slate.md)) | capital + reputation (**not craft**) | travellers |
-| **ostler** (master, posting stable) | **designed** ([insurance § the ostler](./slates/builds/insurance-slate.md)) | **husbandry** + fleet judgment | travellers — ⭐ *road capacity is stable capacity* |
+| **innkeeper** | **designed** — *condition met 2026-07-31* ([npc-behavior § schedules](./slates/engine/npc-behavior-slate.md)) | capital + reputation (**not craft**) | travellers |
+| **ostler** (master, posting stable) | **designed** ([insurance § the ostler](./slates/society/insurance-slate.md)) | **husbandry** + fleet judgment | travellers — ⭐ *road capacity is stable capacity* |
 | *stable-hand* | — | *wage* | ⚠ **texture, not a vocation** — the bottom rung of the ostler's ladder |
-| ~~notary~~ | ⭐ **REJECTED 2026-07-31** | — | **the substrate already attests** — the register's first honest NO ([insurance § the notary](./slates/builds/insurance-slate.md)) |
+| ~~notary~~ | ⭐ **REJECTED 2026-07-31** | — | **the substrate already attests** — the register's first honest NO ([insurance § the notary](./slates/society/insurance-slate.md)) |
 | **scrivener** | designed | **drafting judgment** | parties to an instrument — *a badly drafted clause executes exactly as written* |
-| **insurer** | **designed** ([insurance](./slates/builds/insurance-slate.md)) | capital + portfolio construction | premiums |
+| **insurer** | **designed** ([insurance](./slates/society/insurance-slate.md)) | capital + portfolio construction | premiums |
 | **tailor** | ⭐ **SHIPPED 2026-09-03** ([textiles](./subsystems/textiles.md)) | **fit precision** — how nearly `cutTo` matches a measured body | customers — ⭐ *the fitting is a scene, and a changing body is the retention loop* |
 | **barber** | **GAP** | skill | customers — ⚠ waits on lineage's appearance substrate, which is also what hair dye waits on |
 | **maltster** | ⭐⭐ **GAP — and the floor is BUILT** (2026-10-05) | **`malting`** (shipped Discipline) | distillers and brewers, per sack — ⚠ *Crowsfoot has a malting floor, a kiln, a quern and a turf stack, and the person turning the bed is the same person running the still.* The `malting` seat sits on the distillery's `hand`, which is **one NPC doing three trades**: every NPC doing two jobs is a vacancy we deleted. A second Cast here is pure content and needs no code |
 | **cooper** | ⭐⭐ **shipped** (assembly, 2026-10-15) — and the demand was REAL (2026-10-05) | **a crafting branch** (no `coopering` Discipline yet) | distillers and brewers, per cask — ⭐ *`MaturingMixin.imparts` made the cask a DECISION rather than a timer, so "which barrel" is a thing a distiller now buys. Charring and seasoning are the cooper's product, and `imparts` as a depleting reservoir (first-fill → refill) is the RGO law's shape waiting for its producer* |
-| **steward** (household / land) | **designed** ([household](./slates/tails/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
+| **steward** (household / land) | **designed** ([household](./slates/world/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
 | *houseworker / cleaner* | — | *wage* | ⚠ **texture, not a vocation** — anyone can, and the mess freezes while you are away |
 | **nanny / carer** | ⛔ **BLOCKED** | — | **no dependents exist**, deliberately — see below |
 | ~~homemaker~~ | ⭐ **REJECTED 2026-08-06** | — | **universal demand meets universal self-service** — the register's second honest NO (below) |
@@ -265,20 +265,20 @@ right per row is most of the civic design.
 | Vocation | Status | Kind | Gate | Notes |
 |---|---|---|---|---|
 | Prime Minister · Speakers · CB Governor | **shipped** | office | confidence / election | the five `OFFICE_APPARATUS` seats |
-| constable | designed ([policing](./slates/builds/policing-slate.md)) | post | training + warrant | *most police work is order and service, not crime* |
-| **detective / investigator** | designed ([deduction](./slates/builds/deduction-slate.md)) | post | competence | *"check the yard's book"* is its shipped-substrate act |
+| constable | designed ([policing](./slates/society/policing-slate.md)) | post | training + warrant | *most police work is order and service, not crime* |
+| **detective / investigator** | designed ([deduction](./slates/world/deduction-slate.md)) | post | competence | *"check the yard's book"* is its shipped-substrate act |
 | commissioner | designed | **office** | appointment | the charter → policy hook |
-| **gaoler / warden** | designed ([prison](./slates/builds/prison-slate.md)) | post | licence | the custody book |
+| **gaoler / warden** | designed ([prison](./slates/society/prison-slate.md)) | post | licence | the custody book |
 | **bailiff** | **GAP** | post | warrant | court enforcement, distinct from policing |
-| judge / juror | designed ([cooperative](./slates/builds/cooperative-slate.md)) | **duty** | sortition + tenure | ⚠ **a duty, not a vocation** |
+| judge / juror | designed ([cooperative](./slates/society/cooperative-slate.md)) | **duty** | sortition + tenure | ⚠ **a duty, not a vocation** |
 | advocate / public defender | designed | post or trade | competence | client-paid *or* treasury-paid |
 | **court clerk / registrar of the Roll** | **GAP** | post | licence | somebody maintains the Roll and the docket |
 | inspector (roads, scrap, weights) | designed | post | certified instrument | **the `directive` instrument forces this role into existence** |
 | **weighmaster** | **GAP** | post | certified instrument | named in the depot design |
 | **customs officer** | **GAP** | post | warrant | the Gate; tariffs; ⭐ **and the vocation of the concealment substrate — the one who finds what is hidden** |
-| **firefighter** | **designed 2026-07-31** | post (+ volunteer, + bucket brigade) | training | [fire § The fire service](./slates/builds/fire-combustion-slate.md) — *fires matter because they SPREAD*; prevention is the gameplay; **a burning street is district-scoped content anyone can join** |
+| **firefighter** | **designed 2026-07-31** | post (+ volunteer, + bucket brigade) | training | [fire § The fire service](./slates/engine/fire-combustion-slate.md) — *fires matter because they SPREAD*; prevention is the gameplay; **a burning street is district-scoped content anyone can join** |
 | **fire investigator** | **GAP** | competence | the coroner's sibling — arson + insurance fraud |
-| **insurer / underwriter** | **designed 2026-07-31** | capital + **portfolio construction** | [insurance](./slates/builds/insurance-slate.md) — *the book is a map, concentration is the risk* |
+| **insurer / underwriter** | **designed 2026-07-31** | capital + **portfolio construction** | [insurance](./slates/society/insurance-slate.md) — *the book is a map, concentration is the risk* |
 | **adjuster** | designed | competence | claims; the fire investigator's sibling |
 | **surveyor (insurance)** | designed | certified instrument | ⭐ **the insurer is a private regulator** — prevention becomes a discount |
 | **sanitarian / public health** | **GAP** | post | competence | quarantine, contagion; the disease thread |
@@ -286,7 +286,7 @@ right per row is most of the civic design.
 | **registrar (births, deaths, names)** | **GAP** | post | licence | ⭐ the **chronicle**'s vocation |
 | **archivist / librarian** | **GAP** | post | competence | the integrity branch's human face; the Museum |
 | **assessor / tax collector** | **GAP** | post | warrant | blocked with the fiscal cycle |
-| **postmaster** | designed ([delivery](./slates/builds/delivery-slate.md)) | post | the provider | the post office you can walk into |
+| **postmaster** | designed ([delivery](./slates/trades/delivery-slate.md)) | post | the provider | the post office you can walk into |
 | **harbormaster** | **GAP** | office | appointment | the Gate's port |
 | **surveyor (Lands & Works)** | **GAP** | post | instrument | the office already exists in the Civic Quarter |
 | **relief administrator** | **GAP** | post | office | the WPA floor + match |
@@ -302,28 +302,28 @@ right per row is most of the civic design.
 | **sawyer** | **GAP** — the forestry build's named next | premises + a FALL of water (the grist mill's shape) | ⭐ boards, seasoning, the timber set's by-hand path — the bole on the wood floor is the attach point ([forestry.md § Deferred seams](./subsystems/forestry.md)) |
 | **carpenter · joiner** | **shipped** ([assembly](./subsystems/assembly.md) · `trade-carpentry`) | **`carpentry`** Discipline + tools | ⭐⭐ *a haft on a pick-head is the same assembly shape as a chair* — and since the repair build (2026-10-17) a split haft is a carpenter's mend: an expert smith with no carpentry brings a worn haft back only to serviceable |
 | ⭐ **tinker** | **shipped** (repair, 2026-10-17 — `terminus` wharfside) | a seat on a ROUND (roster slots with stations) | anyone on his road — ⭐ *the mender who comes to you*: iron well where there is a fire, wood and leather only well enough, and he says which before he takes your coin |
-| ⭐ **cobbler** | **shipped** (repair, 2026-10-17 — `terminus` mayfield-row) | **`leatherwork`** novice — a piece-rate seat a player can hold | wearers, per mend — ⭐ *the seat pays by the pair, so the wage lands the moment a mend is paid for*; making boots (the cordwainer) is [textiles-slate](./slates/builds/textiles-slate.md)'s |
+| ⭐ **cobbler** | **shipped** (repair, 2026-10-17 — `terminus` mayfield-row) | **`leatherwork`** novice — a piece-rate seat a player can hold | wearers, per mend — ⭐ *the seat pays by the pair, so the wage lands the moment a mend is paid for*; making boots (the cordwainer) is [textiles-slate](./slates/trades/textiles-slate.md)'s |
 | **stevedore / docker** | **GAP** | employment | ⭐ **Wharfside already has a dockers' hall**; the labour half of the depot |
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
 | tanner | **shipped** — see § Secondary | premises (industrial zoning) | the classic nuisance trade, and ⭐ the LULU zone is what expresses its unity with the chandler rather than a shared package |
 | **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand — *which is the FORESTER's since the forestry build; the collier is its customer* |
-| **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
+| **gunsmith · powder maker** | designed ([ranged](./slates/engine/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
 | **quarrier** | **GAP** | land + tools | mining's sibling |
-| **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/builds/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |
+| **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/society/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |
 | **herald / identifier** | **GAP** | competence | ⭐ **belief's missing vocation** — identity verification as a trade |
 | **monument mason** | **GAP** | Discipline | ⭐ the **necropolis**; the chronicle made physical |
-| ⭐⭐ **knacker · chandler** | **shipped** ([butchery](./subsystems/butchery.md) · `trade-chandlery`; the knacker is a VENUE AND A SEAT in the LULU zone, not a pack) | premises (industrial) — ⚠ **and NO Discipline**, deliberately | ⭐⭐⭐ *the only genuinely new trade the settlement pass produced, and it shipped as the carcass chain's fat leg.* One input, three outputs: carcass → suet → **tallow** → candles + (soap, deferred); → hide → **the tanner** → leather; → bone → the field. ⭐⭐ The candle is **one recipe with an empty `outputMaterial`**, so beeswax and tallow dip two different candles out of the same command — which is what retired the old beeswax-welded row squatting under the beekeeper's Discipline. ⚠ `chandlery` is **not minted as a Discipline**: dipping is trivial and what is hard is *which fat you bought*, a market judgement rather than a craft one — so a chandler is a trader who dips. Glue from bone and soap stay GAPS with destinations ([rendering-slate](./slates/tails/rendering-slate.md)) |
+| ⭐⭐ **knacker · chandler** | **shipped** ([butchery](./subsystems/butchery.md) · `trade-chandlery`; the knacker is a VENUE AND A SEAT in the LULU zone, not a pack) | premises (industrial) — ⚠ **and NO Discipline**, deliberately | ⭐⭐⭐ *the only genuinely new trade the settlement pass produced, and it shipped as the carcass chain's fat leg.* One input, three outputs: carcass → suet → **tallow** → candles + (soap, deferred); → hide → **the tanner** → leather; → bone → the field. ⭐⭐ The candle is **one recipe with an empty `outputMaterial`**, so beeswax and tallow dip two different candles out of the same command — which is what retired the old beeswax-welded row squatting under the beekeeper's Discipline. ⚠ `chandlery` is **not minted as a Discipline**: dipping is trivial and what is hard is *which fat you bought*, a market judgement rather than a craft one — so a chandler is a trader who dips. Glue from bone and soap stay GAPS with destinations ([rendering-slate](./slates/trades/rendering-slate.md)) |
 
 ### Maintain & dispose
 
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
 | roadmender | designed | on-shift capability | the turnpike trust (**wage**) |
-| linesman | designed ([power-utility](./slates/builds/power-utility-slate.md)) | competence | the utility (**wage**) |
+| linesman | designed ([power-utility](./slates/trades/power-utility-slate.md)) | competence | the utility (**wage**) |
 | **water / sewer worker** | **GAP — substrate now shipped** ([watershed.md](./subsystems/watershed.md)) | competence | the utility (**wage**) |
 | gatekeeper | designed | employment | the trust (**wage**) |
-| **scavenger** | designed ([sanitation](./slates/builds/sanitation-slate.md)) | **none — the entry-level vocation** | scrap buyers (**trade**) |
+| **scavenger** | designed ([sanitation](./slates/trades/sanitation-slate.md)) | **none — the entry-level vocation** | scrap buyers (**trade**) |
 | municipal collector | designed | licence | the locality (**treasury**) |
 
 ## ⭐⭐⭐ Teaching — the vocation is not blocked; the CONTENT is
@@ -388,7 +388,7 @@ this one sells what it knows.
 
 ## ⭐⭐⭐ The homemaker — the register's second honest NO
 
-**(2026-08-06, from the [household pack](./slates/tails/household-design-pack.md).)**
+**(2026-08-06, from the [household pack](./slates/world/household-design-pack.md).)**
 The stewardship pillar makes domestic work into real, measured play, which
 invites the obvious entry: *homemaker*. It does not survive the test, and
 watching **why** is more useful than the verdict.
@@ -477,9 +477,9 @@ deleting it; the reason is the useful part.
   public teacher waits on it.
 - ~~The largest single civic hole is the fire brigade~~ — **designed
   2026-07-31** ([fire § The fire
-  service](./slates/builds/fire-combustion-slate.md)) — which surfaced
+  service](./slates/engine/fire-combustion-slate.md)) — which surfaced
   **insurance**, now designed too
-  ([insurance-slate](./slates/builds/insurance-slate.md)).
+  ([insurance-slate](./slates/society/insurance-slate.md)).
 - ⭐⭐⭐⭐⭐ **The information-asymmetry family is now FIVE markets
   deep** — appraiser (condition) · assayer (value) · underwriter (risk)
   · banker (creditworthiness) · credit surveyor (prospects) — which

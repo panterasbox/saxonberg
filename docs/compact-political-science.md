@@ -17,7 +17,7 @@ its primary sources are on disk:
   Parameters.
 - [governance/founding-charter.md](./compact/governance/founding-charter.md) —
   the founder's self-binding commitment.
-- `slates/builds/cooperative-slate.md` — the rationale behind the
+- `slates/society/cooperative-slate.md` — the rationale behind the
   provisions.
 - `polity-decision-register.md` — the decisions and why they went the
   way they did.

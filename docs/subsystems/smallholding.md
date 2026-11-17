@@ -65,7 +65,7 @@ fix in a pack and retired into it). ⚠ **A stopgap:** it exists because
 there is no arable FIELD crop (a `Field` grows only sward), so sugar
 propped its cane loose; whether a bare `Plant` keeps `harvest` is
 foraging's question, and the
-[cover slate](../slates/builds/cover-slate.md) — the owner's immediate
+[cover slate](../slates/trades/cover-slate.md) — the owner's immediate
 follow-on — replaces the loose cane with a field crop. The panel stays for what it adds: a
 persistable cut, shared soil, a bed you can `harvest`. The
 two things the panel used to expose are settled by the forestry build:
@@ -240,7 +240,7 @@ The draw is the missing leg of a wider doctrine, not a bespoke rule: land
 prices *production*, compute (residency/liveness) prices *presence*, and
 the two conserved scarcities are never collapsed — they couple only at
 the parcel. See
-[property-slate](../slates/builds/property-slate.md).
+[property-slate](../slates/society/property-slate.md).
 
 ### The gate applies to GROUND, not to furniture
 
@@ -726,7 +726,7 @@ ground is **not plantable** until it has been cleared.
 yet. `plant` requires a `CultivableMixin` target and a `Field`
 composes none, so a cleared field grows sward (hay, grazing) and arable
 crops still grow in beds and pots. The arable field crop is the
-[farming slate](../slates/builds/farming-slate.md)'s open item (verified
+[farming slate](../slates/trades/farming-slate.md)'s open item (verified
 2026-09).
 
 See [soil.md](./soil.md) for the field, the ledger, ground character and

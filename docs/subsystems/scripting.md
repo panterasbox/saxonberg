@@ -247,7 +247,7 @@ drop** and resume on reconnect, cancelling at the short clock that already
 vacates seats — *a script is a tool you operate, not a deputy that replaces
 you*. The same script installed as a cast member's brain is unaffected,
 because the NPC is its own principal. See
-[agent-coordination-slate](../slates/builds/agent-coordination-slate.md)
+[agent-coordination-slate](../slates/engine/agent-coordination-slate.md)
 § *Brains and scripts*.
 
 ## The two player surfaces (P6)
@@ -323,7 +323,7 @@ did not even work: the transcript was written under the shared lineage
   something you write (a `def`, or a file in your home `scripts/`). An
   explicit *macro recorder* — record what I do, then *"save this as a
   script?"* — is the replacement, unbuilt:
-  [script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
+  [script-runner-decouple-findings-slate](../slates/tech-debt/script-runner-decouple-findings-slate.md).
 - **The runner is `do <name> [with <arg>]`**, the shell's named twin of
   `script <body>`, and it is **ungated**: a script is commands, and each
   command meets its own gates exactly as if typed.

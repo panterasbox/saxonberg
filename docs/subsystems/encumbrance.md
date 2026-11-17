@@ -145,7 +145,7 @@ encumbrance-specific**, from physical properties of the body (and, when
 an augment-capacity term lands, its augmentations), and this is
 deliberate: it reads physiology directly for one purpose and does **not**
 wait on the deferred general stat system
-([capability-magic-slate](../slates/builds/capability-magic-slate.md)).
+([capability-magic-slate](../slates/engine/capability-magic-slate.md)).
 One consequence: capacity barely moves over a character's lifespan — the
 fun has to come from the interaction library (coupling, placement,
 haulage), not from growing the number.
