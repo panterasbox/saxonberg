@@ -49,6 +49,7 @@ import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/te
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 
 type MemberStuff = Stuff & Container;
 
@@ -995,5 +996,22 @@ describe('a holding is a copy — a zone of its own (zone-instancing A1)', () =>
       await holding.revert();
       expect(copyNodes()).toHaveLength(0);
     });
+  });
+
+  it('⭐ a parked character re-enters a room whose lot lies a folder below the institution (Hinkley: `<parent>/lots/lot-N`)', async () => {
+    // Found by the zone-instancing drive: the holding was taken to be the
+    // first segment under the parent (`<parent>/lots`), so a character left
+    // in their own yard could not be re-entered. The holding is the PARCEL
+    // that covers the key.
+    seedLot();
+    await bootRegistries();
+    const w = makeStuffAtPath(() => new TestInstitution(), WARREN_PATH);
+    w.setParentExtent('/world/prog-test');
+    await w.refreshProvisioned();
+    vi.spyOn(NavigationApi, 'attachedTo').mockResolvedValue([WARREN_PATH]);
+    const room = await CirculationWarren.admitFor(`${LOT1}/bedroom`);
+    expect(room).not.toBeNull();
+    expect(room!.getTemplatePath()).toBe(ROOM_B);
+    expect(room!.getZone()?.getIdentityPath()).toBe(LOT1);
   });
 });

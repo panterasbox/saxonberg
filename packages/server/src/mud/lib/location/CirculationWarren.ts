@@ -407,8 +407,18 @@ export abstract class CirculationWarren extends Warren {
     for (const w of await CirculationWarren.institutionsCovering(key)) {
       const parent = w.getParentExtent();
       if (!parent || !key.startsWith(parent + '/')) continue;
+      // ⭐ The holding is the PARCEL that covers the key — its extent is the
+      // holding's key — never the first path segment under the parent: a
+      // Hinkley lot is `<parent>/lots/lot-N`, and the segment rule took
+      // `<parent>/lots` for the holding, so a character parked in their own
+      // yard could not be re-entered (found by the zone-instancing drive).
+      const covering = await ParcelApi.coveringParcelOf(key);
+      const parcel = covering?.getExtent() ?? null;
       const rest = key.slice(parent.length + 1);
-      const holdingKey = `${parent}/${rest.split('/')[0]!}`;
+      const holdingKey =
+        parcel !== null && parcel.startsWith(parent + '/')
+          ? parcel
+          : `${parent}/${rest.split('/')[0]!}`;
       await w.admit(holdingKey);
       const holding = w.holdingFor(holdingKey);
       if (!holding) continue;

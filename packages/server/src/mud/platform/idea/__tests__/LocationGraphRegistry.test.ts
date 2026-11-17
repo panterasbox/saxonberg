@@ -16,6 +16,7 @@ import { NavigationApi } from '../../../api/navigation';
 import { ParcelApi } from '../../../api/parcel';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import LocationGraphRegistry from '../LocationGraphRegistry';
+import type { CopyRoom } from '../../../lib/location/PlaceNode';
 import {
   makeStuffAtPath,
   seedKernelContentStore,
@@ -412,18 +413,18 @@ describe('the reads, through the Api', () => {
 
 describe('⭐ a standing COPY is recorded as itself (zone-instancing D7)', () => {
   const COPY = '/test/graph/lots/lot-7';
-  const rooms = [
+  const rooms: CopyRoom[] = [
     {
       identity: `${KIND}#${COPY}/a`,
       template: KIND,
-      coords: [0, 0, 0] as [number, number, number],
+      coords: [0, 0, 0],
       address: 'test/lot-7/a',
       exits: { north: { destination: `${KIND}#${COPY}/b` }, south: { destination: HALL } },
     },
     {
       identity: `${KIND}#${COPY}/b`,
       template: KIND,
-      coords: [0, 1, 0] as [number, number, number],
+      coords: [0, 1, 0],
       address: 'test/lot-7/b',
       exits: { south: { destination: `${KIND}#${COPY}/a` } },
     },
