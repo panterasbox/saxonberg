@@ -48,7 +48,7 @@ is to build a subject from scratch and teach it honestly.
 > forbid teleportation — while the TPA has been shipped content the
 > whole time. ⚠ **No numbers changed** (k = 1 kJ/τ), and no second
 > exemption was added. Design record:
-> [mana-economy-design-pack](./slates/builds/mana-economy-design-pack.md).
+> [mana-economy-design-pack](./slates/engine/mana-economy-design-pack.md).
 
 ---
 
@@ -275,7 +275,7 @@ The first postulate is magic's, and its discipline stands: *every time magic see
 exemption, that is a modelling error.* The aether is not magic, and it **is** a second break in
 locality — an instantaneous field. So it is written down here as what it is, **declared once and
 bounded**, rather than passed off as no exception. (Decided with the owner when other worlds made
-the question unavoidable → [worlds-slate](./slates/builds/worlds-slate.md).)
+the question unavoidable → [worlds-slate](./slates/world/worlds-slate.md).)
 
 ### The rule
 
@@ -300,7 +300,7 @@ the question unavoidable → [worlds-slate](./slates/builds/worlds-slate.md).)
 - **Information only (2) keeps the rest honest.** An aether that carried energy faster than light
   would break conservation, hand every bound on this page a back door, and collapse the cost of
   moving between worlds — the gravitational potential that makes interplanetary teleport a matter of
-  gigajoules ([worlds-slate](./slates/builds/worlds-slate.md) § 6). Nothing piped through the aether
+  gigajoules ([worlds-slate](./slates/world/worlds-slate.md) § 6). Nothing piped through the aether
   powers anything: a standing enchantment draws **mana**, which conducts by contact like charge.
 - **At once, in one frame (3) avoids the paradox.** Under relativity a faster-than-light signal can
   arrive before it was sent in some observer's frame; a **single preferred frame** removes that, and
@@ -750,7 +750,7 @@ you have to know the temperatures.
 ### Transform is not forbidden. It is unaffordable.
 
 > ⚠⚠ **Interrogated 2026-10-09** →
-> [mana-economy-design-pack](./slates/builds/mana-economy-design-pack.md)
+> [mana-economy-design-pack](./slates/engine/mana-economy-design-pack.md)
 > § Part 7. Three findings this section should be read with:
 > ⭐⭐ **the 10⁶ guards ELEMENT CHANGE only**, and almost nothing players
 > want from magic requires it (water, ice, fire, force, shaping, growing are
@@ -785,7 +785,7 @@ nucleon. That is a factor of roughly **10⁶**.
   so it is nearly impossible on the fly. The price list and the mechanism
   (one identity, a timed swap of body plan and species, capability that
   follows the organs) are the
-  [organism-biology slate](./slates/builds/organism-biology-slate.md) §§ 10–11.
+  [organism-biology slate](./slates/engine/organism-biology-slate.md) §§ 10–11.
   ⚠ There is **no permanent polymorph**: a change of species after
   character creation is an administrative procedure, not a working.
 
@@ -1279,7 +1279,7 @@ designed rather than accumulated.
 
 > **The machinery lives elsewhere.** How a paper gets published,
 > replicated, refuted, or believed is the inquiry substrate's job
-> (`slates/builds/inquiry-slate.md`) — which is explicit that it is a
+> (`slates/society/inquiry-slate.md`) — which is explicit that it is a
 > *substrate, not a content catalog.* This section is the content: the
 > actual shelf, and what each entry is for.
 

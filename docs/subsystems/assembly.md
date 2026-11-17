@@ -437,7 +437,7 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   is shavings (a dowel weighed 6 kg before). Afforded by `Blank` and
   `Board`. ⚠ No knife offers `cutting` (the knives are Weapons), so the
   by-hand root starts at the billhook — the scarcest instrument in the
-  column. See [carpentry-slate](../slates/builds/carpentry-slate.md).
+  column. See [carpentry-slate](../slates/trades/carpentry-slate.md).
 
 ## The grain — stock forms, seasoning, the weakest link
 
@@ -670,11 +670,11 @@ mended at its joint, and every bill-less mould reads *It is one piece*.
   Vats (the oil casks, the water-butt), the threaded fastener, the
   remaining makerless assemblies, humidity in seasoning, the sawmill's
   water right, a compartment's admission cost and a person in one →
-  [assembly-slate](../slates/tails/assembly-slate.md).
+  [assembly-slate](../slates/trades/assembly-slate.md).
 - Carving as an engaged act with exertion, `carve`'s can-make
   gate, competence in sawing, the lathe, a store that sells an edge, and
   the clasp knife that *"whittles a peg"* and cannot →
-  [carpentry-slate](../slates/builds/carpentry-slate.md).
+  [carpentry-slate](../slates/trades/carpentry-slate.md).
 - Two power takes on one reach double-count (the sawmill and the grist
   mill read the same flow) — a coarseness of the water seam.
 

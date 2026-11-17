@@ -254,7 +254,7 @@ for species, a `SpeciesDossier` (below).
 Char-gen is scheduled to be **replaced** by the lineage model (pick a
 household from a gallery; species and aspiration demote from *fields* to
 *filters*; a point budget appears) — see
-[lineage-slate](../slates/builds/lineage-slate.md). That work is
+[lineage-slate](../slates/society/lineage-slate.md). That work is
 **deferred behind the client rebuild**, so the question for anyone
 building char-gen now is narrow: *what makes the replacement cheap
 later?*
@@ -337,7 +337,7 @@ matters more than the field list does:
 
 | interaction | what it needs |
 |---|---|
-| **the gallery grid** | multi-column comparable rows, not `label` + `description` — the player compares households at a glance ([lineage-slate](../slates/builds/lineage-slate.md) § *It is a form, rendered two ways*) |
+| **the gallery grid** | multi-column comparable rows, not `label` + `description` — the player compares households at a glance ([lineage-slate](../slates/society/lineage-slate.md) § *It is a form, rendered two ways*) |
 | **filters / query** | re-requesting the option set (species, trade, locality, aspiration-as-query) rather than picking from a fixed one |
 | **budget allocation** | a constrained numeric allocator with a shared pool — not a pick at all |
 | **reroll** | an *action with a cost*, which has no representation today |
@@ -421,7 +421,7 @@ answers *"does this reader want to be spoiled"* — an **appetite** axis,
 resolved by a click. It does not answer *"does this character know
 this"*, which is an **epistemic** question and has no substrate.
 
-The deferred [identification-slate](../slates/builds/identification-slate.md)
+The deferred [identification-slate](../slates/engine/identification-slate.md)
 (`analyze X with Y`, real Material chemistry, partial identification,
 misidentification) is the other half — knowledge as something *earned*,
 per-viewer, rather than revealed by preference. The two can coexist, but

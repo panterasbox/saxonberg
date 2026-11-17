@@ -1101,5 +1101,5 @@ days), lying loose in a room, rots AWAY: it is destroyed, and what is left
 is crumbs on the floor (`rottenSince` is the one stamp). In a pot, a pack
 or a hand it waits. A midden takes rotten food as refuse whatever its
 material (`Midden.takeRefuse`). How waste gets to being gone is
-[waste-slate](../slates/builds/waste-slate.md).
+[waste-slate](../slates/trades/waste-slate.md).
 

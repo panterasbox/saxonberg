@@ -501,7 +501,7 @@ out — metal conducts (betrays), rubber insulates. See
   same wound and nothing here needed a projectile concept. Still
   deferred: **armor's** point→blunt conversion for stopped strikes,
   `penetration` as a profile term, and the launcher families
-  ([ranged-slate.md](../slates/builds/ranged-slate.md) W2/W3/W4).
+  ([ranged-slate.md](../slates/engine/ranged-slate.md) W2/W3/W4).
 - **The economic lifecycle** — repair (reverse-craft) and salvage/reforge
   **shipped** (see
   [crafting.md § The lifecycle: two wear axes, repair, broken, salvage](./crafting.md#the-lifecycle-two-wear-axes-repair-broken-salvage)).

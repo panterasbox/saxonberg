@@ -21,7 +21,7 @@
  *     money anchor, keep the sanctioned index — `/platform/…`, `/stuff/…`);
  *   - the houses and premises whose NPCs act while nobody is present —
  *     the unobserved economy, which this build deliberately does not
- *     touch (→ `docs/slates/builds/unobserved-economy-slate.md`).
+ *     touch (→ `docs/slates/society/unobserved-economy-slate.md`).
  *
  * Three clauses:
  *
@@ -165,7 +165,7 @@ export function check(
       `(c) ${uncited.length} content entries do not cite ` +
         `'${ECONOMY_CITATION}', ceiling ${ceilings.uncited}. A world row stays ` +
         `booted only because its NPCs act while nobody is present — say so, ` +
-        `and point at docs/slates/builds/unobserved-economy-slate.md. ` +
+        `and point at docs/slates/society/unobserved-economy-slate.md. ` +
         `Newest: ${uncited.slice(-3).map((e) => e.template).join(", ")}`,
     );
   }

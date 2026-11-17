@@ -42,7 +42,7 @@ what each organism actually does. It got **milk exactly backwards** and
 decisions, and the shape of the error is worth keeping: *five products
 that look alike in a table are not alike in a body.*
 
-Seeded by [tapping-slate](../slates/tails/tapping-slate.md), with the
+Seeded by [tapping-slate](../slates/trades/tapping-slate.md), with the
 tap audit and the unification frame agreed in conversation 2026-09-30.
 ⚠ The slate is a *tapping* slate; this is a *taps* build — the scope
 grew deliberately, because adding a fifth source to a family whose
@@ -880,19 +880,19 @@ Observable from outside the code. No criterion below names a test.
 
 ## Cross-references
 
-**Seeding slates:** [tapping-slate](../slates/tails/tapping-slate.md) ·
-[dairy-slate](../slates/builds/dairy-slate.md) (the act's other half) ·
-[rgo-unification-slate](../slates/builds/rgo-unification-slate.md) (loses
+**Seeding slates:** [tapping-slate](../slates/trades/tapping-slate.md) ·
+[dairy-slate](../slates/trades/dairy-slate.md) (the act's other half) ·
+[rgo-unification-slate](../slates/tech-debt/rgo-unification-slate.md) (loses
 the sweetener vocabulary to this build; keeps the derived-field
-interface) · [ranching-slate](../slates/builds/ranching-slate.md) ·
-[forestry-slate](../slates/tails/forestry-slate.md) ·
-[apiculture-slate](../slates/tails/apiculture-slate.md) (the exemplar).
+interface) · [ranching-slate](../slates/trades/ranching-slate.md) ·
+[forestry-slate](../slates/trades/forestry-slate.md) ·
+[apiculture-slate](../slates/trades/apiculture-slate.md) (the exemplar).
 
-**Deferred to, by name:** [rubber-slate](../slates/tails/rubber-slate.md)
-· [destructive-distillation-slate](../slates/builds/destructive-distillation-slate.md)
-· [inquiry-slate](../slates/builds/inquiry-slate.md) ·
-[farming-slate](../slates/builds/farming-slate.md) ·
-[cooking-slate](../slates/builds/cooking-slate.md) · a **new climate
+**Deferred to, by name:** [rubber-slate](../slates/trades/rubber-slate.md)
+· [destructive-distillation-slate](../slates/trades/destructive-distillation-slate.md)
+· [inquiry-slate](../slates/society/inquiry-slate.md) ·
+[farming-slate](../slates/trades/farming-slate.md) ·
+[cooking-slate](../slates/trades/cooking-slate.md) · a **new climate
 slate** this build files.
 
 **Subsystem docs:** [ranching.md](../subsystems/ranching.md) ·

@@ -17,7 +17,7 @@ edit a first-class commit.
 Seeded by the git-workflow slate + requirements + plan; the requirements
 and plan retired at merge (this doc is the live reference; see *History*).
 It is the *in-runtime VCS* brick the
-[provenance-slate](../slates/builds/provenance-slate.md) reserved.
+[provenance-slate](../slates/platform/provenance-slate.md) reserved.
 
 ## The governing constraint: the working tree **is** the live server
 
@@ -181,7 +181,7 @@ CI-rule change, `GITLAB_PUSH_TOKEN` provisioning) live in
 
 - **Content / document → git** (templates + scripts live in Mongo, not
   files) — needs a Mongo→file **export** bridge, deferred to the
-  [content-packs](../slates/builds/content-packs-slate.md) round-trip.
+  [content-packs](../slates/platform/content-packs-slate.md) round-trip.
   Source plane only.
 - **History rewrites** (`reset` / force-push) and their admin-tier gating.
 - **Finer-than-branch review** (slice / commit / author-scoped MRs) — rides

@@ -309,7 +309,7 @@ export default class LookController extends CommandController<LookModel> {
     // ⚠ The floor-puddle line above has the same problem and has since
     // the bulk build. It is NOT fixed here — the general answer is a card
     // that renders the prose it was handed, which is the card surface's
-    // question, recorded on `docs/slates/tails/carded-prose-slate.md`.
+    // question, recorded on `docs/slates/client/carded-prose-slate.md`.
     const notices = await EmploymentApi.noticesAt(location);
     // ⭐ Hold the light steady while the room is DESCRIBED (the potash
     // drive's stall, controller-liquidity /finalize): every thing listed

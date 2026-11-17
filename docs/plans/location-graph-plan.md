@@ -3,7 +3,7 @@
 Executes `location-graph-requirements.md` (⚠ **retired at the sweep**, per `workflow.md` — read it at `6a4560e5a` if the reasoning is wanted)
 (**kind: feature · leads from: kernel**; **one build in two stages**).
 **Stage A — instance addressing** (executes
-[instance-addressing-slate](../slates/tails/instance-addressing-slate.md)):
+[instance-addressing-slate](../slates/tech-debt/instance-addressing-slate.md)):
 the uniqueness invariant scans by the ROW so it covers stamped keyed
 hosts, a row can be enumerated honestly, the durable per-instance handle
 gets its sanctioned name (`<row>#<key>`) and `Exit.getDiscoveryKey()`
@@ -2390,8 +2390,8 @@ already states true.
 Read first, in this order:
 
 1. ⚠ `docs/requirements/location-graph-requirements.md` is **retired**
-   — read it at `6a4560e5a`. Live: `docs/slates/tails/instance-addressing-slate.md` ·
-   `docs/slates/tails/location-graph-slate.md` §§ 3–6, 9, 13–16
+   — read it at `6a4560e5a`. Live: `docs/slates/tech-debt/instance-addressing-slate.md` ·
+   `docs/slates/engine/location-graph-slate.md` §§ 3–6, 9, 13–16
 2. **Stage A:** `api/stuff.ts` (`#updateIndexes:230`, `#cloneInner:545–631`,
    `singleton:698`, `findByTemplatePath:1438`, `findAllByTemplatePath:1456`,
    `_reindexTemplatePath:1474`, `findByPathGlob:1497`) ·

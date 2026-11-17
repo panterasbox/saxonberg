@@ -32,7 +32,7 @@
  * their `ApiOnly` guard so the powerful public surface stays Api-tier.
  *
  * Operational reference: `docs/subsystems/stacks.md`. The bulk-form
- * extension story lives in `docs/slates/tails/bulkable-slate.md`.
+ * extension story lives in `docs/slates/engine/bulkable-slate.md`.
  */
 
 import type {

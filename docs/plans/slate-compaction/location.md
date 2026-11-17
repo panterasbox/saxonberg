@@ -11,7 +11,7 @@ slate — the lounge revisit). This batch is the first to compact
 
 ---
 
-## docs/slates/builds/multilocation-slate.md — 413 → 314 · Status PARTIAL → PARTIAL
+## docs/slates/engine/multilocation-slate.md — 413 → 314 · Status PARTIAL → PARTIAL
 
 The status block (already re-stamped by an earlier "sort the backlog"
 pass, commit `720d9db06`) was directionally right but the body still
@@ -253,7 +253,7 @@ Q6 and Q7 are still open and fold into `Left`.
 
 ### Minor fixes (code proves a slate statement false, not a design cut)
 - `See also` → the `lounge-slate.md` link's `*(forthcoming)*` annotation
-  — the slate exists now (`docs/slates/builds/lounge-slate.md`, status
+  — the slate exists now (`docs/slates/world/lounge-slate.md`, status
   PARTIAL). Corrected in place per the "statement the code proves
   false" allowance, noted here
 

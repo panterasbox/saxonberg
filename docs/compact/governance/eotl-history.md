@@ -12,9 +12,9 @@
 > invented detail. Where a lesson is drawn, it is marked as a reading.
 
 Related: [draft-constitution.md](./draft-constitution.md) (Art. V — the
-executive), the [executive slate](../../slates/builds/executive-slate.md)
+executive), the [executive slate](../../slates/society/executive-slate.md)
 (the self-minimizing executive), the [story bible](../../story-bible.md)
-§ *The Eternal City* (the myth), the [wizard-duty slate](../../slates/builds/wizard-duty-slate.md)
+§ *The Eternal City* (the myth), the [wizard-duty slate](../../slates/society/wizard-duty-slate.md)
 (duty where structure cannot constrain), [measurement.md](../../measurement.md)
 (standing is a rate; the no-gauge rules).
 
@@ -70,7 +70,7 @@ The story bible's Eternal City encodes this history nearly one to one:
 *(A reading, not the record.)*
 
 Duncan's mandate is a **self-minimizing executive** thirty years before
-the phrase — the shape the [executive slate](../../slates/builds/executive-slate.md)
+the phrase — the shape the [executive slate](../../slates/society/executive-slate.md)
 names as *law = code; the executive's prime directive is reducing its
 own authority to only what genuinely needs a human.* He kept exactly one
 human residue — emphatic enforcement of two maxims — and left everything

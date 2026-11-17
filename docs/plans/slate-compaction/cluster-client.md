@@ -1,11 +1,11 @@
 # Client — cluster-merge ledger
 
-Cluster: **client**. Files: `docs/slates/tails/client-slate.md` (208
-lines) · `docs/slates/tails/client-shell-slate.md` (490) ·
-`docs/slates/tails/client-cockpit-slate.md` (397) ·
-`docs/slates/builds/client-audio-slate.md` (238) ·
-`docs/slates/tails/connection-origin-slate.md` (170) ·
-`docs/slates/tails/connection-quality-slate.md` (165). Procedure:
+Cluster: **client**. Files: `docs/slates/client/client-slate.md` (208
+lines) · `docs/slates/client/client-shell-slate.md` (490) ·
+`docs/slates/client/client-cockpit-slate.md` (397) ·
+`docs/slates/client/client-audio-slate.md` (238) ·
+`docs/slates/platform/connection-origin-slate.md` (170) ·
+`docs/slates/platform/connection-quality-slate.md` (165). Procedure:
 `.claude/skills/compact-slate/SKILL.md` § *The cluster-merge pass*.
 Prior compaction passes (already done, not repeated here):
 `card-surface.md` (client-slate 1205 → 208 · client-cockpit-slate
@@ -68,7 +68,7 @@ nothing.
 
 ---
 
-## docs/slates/tails/client-slate.md — secondary (208 → 208 lines)
+## docs/slates/client/client-slate.md — secondary (208 → 208 lines)
 
 ### Conservation table
 
@@ -93,7 +93,7 @@ nothing.
 Nothing lost: every heading above is DUPLICATE (one clause, its detail
 MOVED), or KEPT. Not retired — the remainder is client-slate's own.
 
-### Re-stamp — docs/slates/tails/client-slate.md
+### Re-stamp — docs/slates/client/client-slate.md
 
 - **Status:** PARTIAL → PARTIAL (unchanged).
 - **Left:** *the notification tray (read `NotifyPolicy`/`NotifyRule`
@@ -109,7 +109,7 @@ MOVED), or KEPT. Not retired — the remainder is client-slate's own.
 
 ---
 
-## docs/slates/tails/client-shell-slate.md — secondary (490 → 490 lines)
+## docs/slates/client/client-shell-slate.md — secondary (490 → 490 lines)
 
 ### Conservation table
 
@@ -134,7 +134,7 @@ MOVED), or KEPT. Not retired — the remainder is client-slate's own.
 Nothing lost: one clause DUPLICATE (re-pointed in place, nothing to
 move), everything else KEPT. Not retired.
 
-### Re-stamp — docs/slates/tails/client-shell-slate.md
+### Re-stamp — docs/slates/client/client-shell-slate.md
 
 - **Status:** PARTIAL → PARTIAL (unchanged).
 - **Left:** *search as a frame primitive (Q3 …) · the public read-only
@@ -147,7 +147,7 @@ move), everything else KEPT. Not retired.
 
 ---
 
-## docs/slates/tails/client-cockpit-slate.md — canonical (397 → 412 lines)
+## docs/slates/client/client-cockpit-slate.md — canonical (397 → 412 lines)
 
 ### What it absorbed
 
@@ -162,7 +162,7 @@ move), everything else KEPT. Not retired.
 - Nothing moved for the educational mode — the canonical already carried
   the whole design; the secondary's clause was a pointer.
 
-### Re-stamp — docs/slates/tails/client-cockpit-slate.md
+### Re-stamp — docs/slates/client/client-cockpit-slate.md
 
 - **Status:** PARTIAL → PARTIAL (unchanged).
 - **Left:** two items re-worded, none added or removed (12 → 12):
@@ -187,7 +187,7 @@ reworded (cuts and moves only).
 
 ---
 
-## docs/slates/builds/client-audio-slate.md — KEPT whole (238 → 238)
+## docs/slates/client/client-audio-slate.md — KEPT whole (238 → 238)
 
 | heading | outcome |
 |---|---|
@@ -209,7 +209,7 @@ slate; thematic neighbour, nothing touched. Status block unchanged
 
 ---
 
-## docs/slates/tails/connection-origin-slate.md — KEPT whole (170 → 170)
+## docs/slates/platform/connection-origin-slate.md — KEPT whole (170 → 170)
 
 | heading | outcome |
 |---|---|
@@ -222,7 +222,7 @@ slate; thematic neighbour, nothing touched. Status block unchanged
 | `## Open questions` (Q1 open; Q2–Q6 resolved notes) | KEPT — spine. |
 | `## Build order (small, ~one cycle)` · `## What this slate does NOT cover` | KEPT — own. |
 
-## docs/slates/tails/connection-quality-slate.md — KEPT whole (165 → 165)
+## docs/slates/platform/connection-quality-slate.md — KEPT whole (165 → 165)
 
 | heading | outcome |
 |---|---|
@@ -259,7 +259,7 @@ slates by whole-document reference (`map-slate.md`, `cms-slate.md`,
 
 ## For the coordinator — cross-cluster overlaps NOT acted on (outside the six files)
 
-- **The minimap ↔ the Navigation panel.** `docs/slates/builds/map-slate.md`
+- **The minimap ↔ the Navigation panel.** `docs/slates/client/map-slate.md`
   (UNBUILT; the unlinked-5 ledger) designs a game minimap; client-cockpit-slate
   § Panel inventory → *Navigation* lists *Local sketch map* · *Compass* ·
   *Zone map* (all unbuilt) and § Non-goals says *3D rendered map — own
@@ -267,7 +267,7 @@ slates by whole-document reference (`map-slate.md`, `cms-slate.md`,
   design and the natural owner of the map rows, but it is not in this
   cluster. Left both; the map cluster (or the sweep) should absorb the
   Navigation rows into map-slate and leave a pointer here.
-- **The tray's substrate.** `docs/slates/builds/notification-slate.md`
+- **The tray's substrate.** `docs/slates/client/notification-slate.md`
   (UNBUILT · a build) owns the absent-tense notification substrate; the
   client tray/chip design now sits only in client-cockpit-slate, with a
   link across. Two different layers (server substrate vs client surface),

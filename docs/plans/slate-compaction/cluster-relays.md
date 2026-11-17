@@ -60,12 +60,12 @@ the **shipped Twitch binding/relay**, which lives in
 misattribute a Twitch citation). Re-pointed each to the doc it actually
 describes:
 
-- `docs/slates/builds/delivery-slate.md:55` and `:403` — "the binding
+- `docs/slates/trades/delivery-slate.md:55` and `:403` — "the binding
   pattern … mirrored from external reality / mirrored from Twitch" →
   `docs/subsystems/streaming.md` (the shipped general relay mechanism)
-- `docs/slates/builds/cooperative-slate.md:77` — "the Twitch binding
+- `docs/slates/society/cooperative-slate.md:77` — "the Twitch binding
   (inbound reader)" → `docs/subsystems/twitch-relay.md`
-- `docs/slates/tails/client-shell-slate.md:36` — "Twitch chat ↔ game
+- `docs/slates/client/client-shell-slate.md:36` — "Twitch chat ↔ game
   channel" → `docs/subsystems/twitch-relay.md`
 - `docs/tracks/broadcast-patronage-track.md:92` (Phase 2, Wave 1) and
   `:148` (Phase 6, Wave 2) — both shipped Twitch phases → each
@@ -75,18 +75,18 @@ describes:
 - `docs/subsystems/twitch-relay.md:144` — "the external-chat-relay slate
   holds the generalization (live-only + quota constraints)" → this
   citation **is** the moved content → re-pointed to
-  `docs/slates/tails/youtube-relay-slate.md`
+  `docs/slates/platform/youtube-relay-slate.md`
 
 Also fixed the cluster's own internal lineage lines, which named the
 now-deleted file as an ancestor:
 
-- `docs/slates/tails/youtube-relay-slate.md` — "Wave 3+ of
+- `docs/slates/platform/youtube-relay-slate.md` — "Wave 3+ of
   external-chat-relay-slate.md" → "Wave 3+ of the retired
   external-chat-relay-slate (absorbed here)"
-- `docs/slates/tails/kick-relay-slate.md` — "(and Wave N of
+- `docs/slates/platform/kick-relay-slate.md` — "(and Wave N of
   external-chat-relay-slate.md)" → "(and Wave N of the retired
   external-chat-relay-slate, absorbed into youtube-relay-slate.md)"
-- `docs/slates/tails/dgg-relay-slate.md` — "(Wave N of
+- `docs/slates/platform/dgg-relay-slate.md` — "(Wave N of
   external-chat-relay-slate.md)" → same wording
 
 **Not re-pointed** (left as-is, outside assignment): `docs/slates/README.md:265`
@@ -96,7 +96,7 @@ a file rather than link forward to live content.
 
 ---
 
-## Canonical re-stamp — docs/slates/tails/youtube-relay-slate.md
+## Canonical re-stamp — docs/slates/platform/youtube-relay-slate.md
 
 No new `Left` items — both DUPLICATE bullets were already represented
 (quota accountant / live-only binding), so nothing to absorb beyond the

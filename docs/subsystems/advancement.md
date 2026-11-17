@@ -179,7 +179,7 @@ dispositions" (the identical derive-from-a-behavior-ledger architecture
 applied to character). **Lane 3 populates and consumes only the
 `discipline` channel**; `dispositionValence` is declared-but-unpopulated,
 the seam lane 1's trait build grafts onto without reshaping the type. See
-[npc-behavior-slate](../slates/builds/npc-behavior-slate.md) § *Traits are
+[npc-behavior-slate](../slates/engine/npc-behavior-slate.md) § *Traits are
 competence for dispositions*.
 
 **Difficulty is a world-measurement, not a tag** — the route's length, the
@@ -257,7 +257,7 @@ last week clicks open — not by watching a meter.
 > (`mixology` → `flourish`), and `wind.yaml` says in a comment that a
 > conferral rule there *"would be a no-op push."* The case, the
 > replacement and the removal work are in
-> [advancement-slate](../slates/builds/advancement-slate.md) § *Verb
+> [advancement-slate](../slates/society/advancement-slate.md) § *Verb
 > conferral is retired*. ⚠ Competence itself is untouched —
 > derive-on-read, bands only, the honesty firewall intact; what is
 > retired is what a band AUTHORIZES, never what it MEASURES.
@@ -601,7 +601,7 @@ narrowed by `isAdvancing`); the NPC path credits nobody. See
 
 ## Disciplines the trade packs seeded
 
-The [trade-roster](../slates/tails/trade-roster-slate.md) gap report
+The [trade-roster](../slates/trades/trade-roster-slate.md) gap report
 named 22 Disciplines the lineage gallery would need; the trade packs have
 since seeded eight of them, each as pure data beside its own pack, and four
 landed under a different name than the roster proposed — the pack's word
@@ -636,13 +636,13 @@ ships designed-for-them, ships none.
 
 ## Cross-references
 
-- Seeding slate: [advancement-slate.md](../slates/builds/advancement-slate.md).
+- Seeding slate: [advancement-slate.md](../slates/society/advancement-slate.md).
 - Precedents: [chronicle.md](./chronicle.md) (the append-only ledger),
   [renown.md](./renown.md) (derive-don't-track; Competence diverges by not
   materializing), [augmentation.md](./augmentation.md) +
   [command-routing.md](./command-routing.md) (the conferral / affordance
   seam), [persistence.md](./persistence.md) (`PersistApi` / `lint:pm`).
-- Cross-lane: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)
+- Cross-lane: [npc-behavior-slate.md](../slates/engine/npc-behavior-slate.md)
   § *Traits are competence for dispositions* (the shared act-signature).
 
 

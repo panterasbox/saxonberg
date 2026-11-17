@@ -9,10 +9,10 @@ went.
 
 | file | lines before | role |
 |---|---|---|
-| `docs/slates/builds/instrumentation-slate.md` | 495 | **canonical** |
-| `docs/slates/builds/sampling-and-labs-slate.md` | 316 | secondary — names the canonical as *Parent* |
-| `docs/slates/builds/implements-slate.md` | 149 | assigned, **not a cluster member** (see below) |
-| `docs/slates/builds/deduction-slate.md` | 224 | assigned, **not a cluster member** (see below) |
+| `docs/slates/engine/instrumentation-slate.md` | 495 | **canonical** |
+| `docs/slates/trades/sampling-and-labs-slate.md` | 316 | secondary — names the canonical as *Parent* |
+| `docs/slates/engine/implements-slate.md` | 149 | assigned, **not a cluster member** (see below) |
+| `docs/slates/world/deduction-slate.md` | 224 | assigned, **not a cluster member** (see below) |
 
 ## Canonical: `instrumentation-slate.md` — why
 
@@ -56,7 +56,7 @@ for `strike` (l.162, trade-mining), `dip` (l.343), `texture`/`acidity`
   canonical (the coordinator's "pointers only" allowance). Nothing
   moved; every heading tabled as KEPT.
 - **deduction ↔ search-slate** (flagged by the coordinator): read
-  `docs/slates/tails/search-slate.md` whole — its subject is the viewer
+  `docs/slates/engine/search-slate.md` whole — its subject is the viewer
   half of detection (the equipment term on `effectivePerception`,
   camouflage, spawn-hidden, search posture). It has no evidence / clue
   / forensic / casebook content and deduction designs no search tool.
@@ -179,5 +179,5 @@ nothing cut, nothing moved.
    `assay` text to sampling-and-labs would be cheap; that is the mining
    cluster's call.
 3. `git diff --stat` in this worktree also shows
-   `docs/slates/tails/senses-slate.md` (+9/−3) — **not mine**; a sibling
+   `docs/slates/engine/senses-slate.md` (+9/−3) — **not mine**; a sibling
    agent's edit in the shared `master` worktree. Untouched.

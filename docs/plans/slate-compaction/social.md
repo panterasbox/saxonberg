@@ -60,7 +60,7 @@ confirmed; nothing in the inherited findings was overturned.
 
 ---
 
-## docs/slates/tails/forums-slate.md — 593 → 247 · Status PARTIAL → PARTIAL
+## docs/slates/platform/forums-slate.md — 593 → 247 · Status PARTIAL → PARTIAL
 
 The doc (`forums.md`, 974 lines) already carries every shipped decision in
 this slate, usually in more detail. Code checked: `lib/forum/{Subject,Board,
@@ -127,7 +127,7 @@ NO `world.forum` topic, NO forum notification/digest path, NO `retention`/
 
 ---
 
-## docs/slates/tails/argument-map-slate.md — 354 → 141 · Status PARTIAL → PARTIAL
+## docs/slates/society/argument-map-slate.md — 354 → 141 · Status PARTIAL → PARTIAL
 
 Nearly every shipped decision is documented in forums.md § The argument
 organizer (cycle 2), lines 356–491, which describes the claim-graph,
@@ -182,7 +182,7 @@ slate's "convergence by time-box" description (see Superseded below).
 
 ---
 
-## docs/slates/tails/recognition-slate.md — 544 → 166 · Status PARTIAL → PARTIAL
+## docs/slates/engine/recognition-slate.md — 544 → 166 · Status PARTIAL → PARTIAL
 
 belief.md (462 lines) is a near-total rewrite/graduation of this slate,
 usually with more implementation-accurate detail. Two statements in
@@ -254,7 +254,7 @@ describes).
 
 ---
 
-## docs/slates/builds/identification-slate.md — 523 → 345 · Status PARTIAL → PARTIAL
+## docs/slates/engine/identification-slate.md — 523 → 345 · Status PARTIAL → PARTIAL
 
 The substrate half shipped, largely in a **simpler, different shape**
 than this slate designed (no `identificationLevel` scalar, no

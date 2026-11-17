@@ -137,7 +137,7 @@ interesting answers, where *nothing* is not.
 
 ⭐⭐ **And the machinery already exists.** Standing instructions are a
 **brain**, and the engine already runs brains on bodies; the
-[lineage backstop](../slates/builds/lineage-slate.md) already has NPCs
+[lineage backstop](../slates/society/lineage-slate.md) already has NPCs
 holding positions a player might hold. **A netdead body running a brain
 is the same object the design already contemplates**, pointed at
 yourself.

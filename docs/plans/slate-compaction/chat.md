@@ -54,7 +54,7 @@ Three things a reviewer should know first:
    recorded so the coordinator reads the paragraph with that in mind.
 ---
 
-## docs/slates/tails/chat-slate.md — 437 → 355 · Status PARTIAL → PARTIAL
+## docs/slates/engine/chat-slate.md — 437 → 355 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second status block *"architecture set, a few forks leaned … Graduates the channels half of the comms slate"* (12–16, 5) — history; the canonical block is kept and re-stamped
@@ -114,7 +114,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/comms-slate.md — 379 → 314 · Status PARTIAL → PARTIAL
+## docs/slates/engine/comms-slate.md — 379 → 314 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - second status block *"architecture set, internals open …"* (14–19, 6) — history; the canonical block is kept and re-stamped

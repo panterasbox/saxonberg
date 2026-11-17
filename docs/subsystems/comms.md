@@ -288,7 +288,7 @@ implant transport.
 
 Wave 1 shipped the acoustic say/whisper/shout family, the `say --to`
 directed path, and the `dm` implant primitive. The
-[comms slate](../slates/tails/comms-slate.md) retains the rest of the
+[comms slate](../slates/engine/comms-slate.md) retains the rest of the
 design space. Designed but **not yet built**:
 
 - ⭐⭐⭐ **Carriers other than the implant** — the ESP channel's modality
@@ -305,7 +305,7 @@ design space. Designed but **not yet built**:
   *never cut players off from their peers* structural rather than an
   exception. What epoch may flavour is privacy, latency, length, cost
   and attribution — *strange, not silent*. Design:
-  [content-declaration-slate § 5](../slates/builds/content-declaration-slate.md).
+  [content-declaration-slate § 5](../slates/platform/content-declaration-slate.md).
 
   > ⚠⚠ **AMENDED 2026-10-09 — one clause, and the invariant is
   > untouched.** *"Never asks what you are carrying"* was written against a
@@ -328,7 +328,7 @@ design space. Designed but **not yet built**:
   > ⛔ Also note that **the AETHER itself is unregulable — it is a physical
   > background field**, and this doc's framing of it as *"implant / ESP"*
   > names one receiver of two: a carried **phone** is the other.
-  > → [content-declaration-slate § 3.8](../slates/builds/content-declaration-slate.md).
+  > → [content-declaration-slate § 3.8](../slates/platform/content-declaration-slate.md).
 
 - **Dynamic-reach shout** — shout currently stamps a flat 90 dB. The
   designed extension makes output dB scale with a **voice-projection
@@ -387,6 +387,6 @@ design space. Designed but **not yet built**:
 - [message-rendering.md](./message-rendering.md) — end-to-end render
   of the frames comms emits (server MML + client parse + theme
   cascade).
-- [comms slate](../slates/tails/comms-slate.md) — the full two-transport
+- [comms slate](../slates/engine/comms-slate.md) — the full two-transport
   design and the deferred waves this doc's **Deferred** section
   summarizes.

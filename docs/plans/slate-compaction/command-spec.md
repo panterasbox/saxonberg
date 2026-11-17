@@ -1,6 +1,6 @@
 # Slate compaction ledger — batch `command-spec`
 
-Assigned slate: `docs/slates/tails/affordance-suggestion-slate.md`
+Assigned slate: `docs/slates/client/affordance-suggestion-slate.md`
 
 Doc-insert allowlist: `docs/subsystems/command-spec.md`. Anything
 belonging in another doc goes to this file's *Handoff* section, never
@@ -11,7 +11,7 @@ No prior ledger for this batch key exists in this directory as of
 
 ---
 
-## docs/slates/tails/affordance-suggestion-slate.md — 284 → 208 lines · Status PARTIAL → PARTIAL
+## docs/slates/client/affordance-suggestion-slate.md — 284 → 208 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - Duplicate second status block (`> **Status: design surface, not a

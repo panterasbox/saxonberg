@@ -51,7 +51,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/policing-slate.md — 734 → 755 · Status PARTIAL → PARTIAL
+## docs/slates/society/policing-slate.md — 734 → 755 · Status PARTIAL → PARTIAL
 
 (The file GREW by 21 lines: the status block is the only edit, and the
 honest substrate line + the body-derived `Left` are longer than the stale
@@ -126,7 +126,7 @@ terminal · university-avenue · valley-road · wharfside).
 
 ---
 
-## docs/slates/builds/courts-slate.md — 319 → 325 · Status UNBUILT → UNBUILT
+## docs/slates/society/courts-slate.md — 319 → 325 · Status UNBUILT → UNBUILT
 
 Verified only-unbuilt, as the brief expected. Grep record: no
 `cmd/**/court*.yaml` under `packages/content`; no `docket | venire |

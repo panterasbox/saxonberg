@@ -22,7 +22,7 @@ Localities, the horizon, the building, the ways, the place, yourself).
 **Never the world as it really is** — the world's index stays on the
 server. It also retires `locate` and fixes the jurisdiction read aboard a
 ship. Seeding slate:
-[navigation-server-slate](../slates/builds/navigation-server-slate.md)
+[navigation-server-slate](../slates/engine/navigation-server-slate.md)
 (its first-pass items); the client half is
 [navigation-requirements](./navigation-requirements.md).
 
@@ -125,21 +125,21 @@ a ship as your Locality; and the retirement of `locate`.
 ## Non-goals
 
 - **The pane, the map renderer, the tooltips** → the navigation build and
-  the [tooltip-slate](../slates/builds/tooltip-slate.md).
+  the [tooltip-slate](../slates/client/tooltip-slate.md).
 - **The builder lens on the map** — your own extents drawn from the world
   rather than from your knowledge, labeled builder information →
-  [map-slate](../slates/builds/map-slate.md). Lens 2 wants it (an author
+  [map-slate](../slates/client/map-slate.md). Lens 2 wants it (an author
   should see the zone they are drawing); it is its own decision about the
   firewall, so not here. With the lens on, this build's copy is still only
   your knowledge.
 - **One horizon computation for land and sea** (S20; bearing and range
-  ashore) → [geography-slate](../slates/builds/geography-slate.md), its own
+  ashore) → [geography-slate](../slates/world/geography-slate.md), its own
   build. This build sends today's horizon as data.
 - **Movement in progress** (S19) → the movement build
-  ([step-beat-slate](../slates/builds/step-beat-slate.md)).
+  ([step-beat-slate](../slates/engine/step-beat-slate.md)).
 - **A remote way's door name and opening** (S8) → a follow-up of this
   slate.
-- **A Locality's description** (S4) → [locality-knowledge-slate](../slates/builds/locality-knowledge-slate.md);
+- **A Locality's description** (S4) → [locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md);
   23 of 24 have none to send.
 - **Renaming *Terminus City*** (S14) → the realm-naming conversation (no
   slate yet). Every name is placeholder but Terminus and Eternal
@@ -147,7 +147,7 @@ a ship as your Locality; and the retirement of `locate`.
   breaks something a player does.** The crumbs tell the realm and the city
   apart by their kind.
 - **Zone instancing** (copies as real zones; frames retired) →
-  [zone-instancing-slate](../slates/builds/zone-instancing-slate.md); this
+  [zone-instancing-slate](../slates/engine/zone-instancing-slate.md); this
   build records the copy's identity so that build needs no migration.
 - **Glossary terms, a live describe of what you look at** → help's REST
   surface and the tooltip slate.
@@ -427,7 +427,7 @@ None — nothing here waits on the clock.
 
 ## Cross-references
 
-- [navigation-server-slate](../slates/builds/navigation-server-slate.md) —
+- [navigation-server-slate](../slates/engine/navigation-server-slate.md) —
   the items (S0–S7, S9–S12, S15–S18, S21, S22 here; S8, S13, S14, S19, S20
   elsewhere)
 - [navigation-requirements](./navigation-requirements.md) — the client half
@@ -435,8 +435,8 @@ None — nothing here waits on the clock.
   firewall
 - [card-surface.md](../subsystems/card-surface.md) — today's push
 - [boundary.md](../subsystems/boundary.md) — the way record
-- [zone-instancing-slate](../slates/builds/zone-instancing-slate.md),
-  [geography-slate](../slates/builds/geography-slate.md),
-  [tooltip-slate](../slates/builds/tooltip-slate.md),
-  [spoiler-slate](../slates/tails/spoiler-slate.md)
+- [zone-instancing-slate](../slates/engine/zone-instancing-slate.md),
+  [geography-slate](../slates/world/geography-slate.md),
+  [tooltip-slate](../slates/client/tooltip-slate.md),
+  [spoiler-slate](../slates/platform/spoiler-slate.md)
 - size-and-carrying (build-1) — the load words the *you* section uses

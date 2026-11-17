@@ -62,7 +62,7 @@ done the job.
 > share and this doc already holds: **ensemble is a category of work, not a
 > lesser performer** — which is exactly *an `Extra` keeps its own identity
 > and is not anonymous.* See
-> [balance-slate](../slates/builds/balance-slate.md).
+> [balance-slate](../slates/society/balance-slate.md).
 
 
 A character is either **somebody** or **a role somebody fills**, and the

@@ -203,7 +203,7 @@ describe('⭐⭐ nobody will buy the gasoline', () => {
     // may not solve. AC 9's dump leg is unmet and the requirements say
     // so; the whole withdrawn shape is on the water design pack.
     const slate = readFileSync(
-      `${CONTENT}../../docs/slates/tails/water-design-pack.md`,
+      `${CONTENT}../../docs/slates/engine/water-design-pack.md`,
       'utf8',
     );
     expect(slate).toMatch(/a dumped liquid is not a discharge/i);

@@ -1,7 +1,7 @@
 # Press — cluster-merge ledger
 
-Cluster: **press**. Files: `docs/slates/builds/press-slate.md` (461
-lines) · `docs/slates/builds/gazette-slate.md` (174 lines). Procedure:
+Cluster: **press**. Files: `docs/slates/society/press-slate.md` (461
+lines) · `docs/slates/society/gazette-slate.md` (174 lines). Procedure:
 `.claude/skills/compact-slate/SKILL.md` § *The cluster-merge pass*.
 Prior compaction pass (already done, not repeated here):
 `docs/plans/slate-compaction/press.md`, which cut both files down from
@@ -25,7 +25,7 @@ or not.
 
 ---
 
-## docs/slates/builds/gazette-slate.md — secondary
+## docs/slates/society/gazette-slate.md — secondary
 
 ### Conservation table
 
@@ -52,7 +52,7 @@ genuine remainder of its own (locality-scoped gazettes; the Wave 2
 pointer; the RESOLVED sections the prior pass already produced), so
 rule 4's retirement does not apply.
 
-### Re-stamp — docs/slates/builds/gazette-slate.md
+### Re-stamp — docs/slates/society/gazette-slate.md
 
 - **Status:** PARTIAL → PARTIAL (unchanged — a non-empty `Left` survives).
 - **Left:** *the docket … · the events-not-significance rule … ·
@@ -81,7 +81,7 @@ whole; none target the moved/cut sections specifically. Left as-is.
 
 ---
 
-## docs/slates/builds/press-slate.md — canonical, re-stamped
+## docs/slates/society/press-slate.md — canonical, re-stamped
 
 ### What it absorbed
 
@@ -93,7 +93,7 @@ whole; none target the moved/cut sections specifically. Left as-is.
   docket-new-surface-vs-projection question, moved verbatim from
   gazette-slate's Open question 3.
 
-### Re-stamp — docs/slates/builds/press-slate.md
+### Re-stamp — docs/slates/society/press-slate.md
 
 - **Status:** PARTIAL → PARTIAL (unchanged).
 - **Left:** unchanged. The moved content elaborates on items already
@@ -106,5 +106,5 @@ whole; none target the moved/cut sections specifically. Left as-is.
 
 ## `git diff --stat` (self-check)
 
-Touched: `docs/slates/builds/press-slate.md`,
-`docs/slates/builds/gazette-slate.md`, this ledger. Nothing else.
+Touched: `docs/slates/society/press-slate.md`,
+`docs/slates/society/gazette-slate.md`, this ledger. Nothing else.

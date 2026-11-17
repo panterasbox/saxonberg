@@ -12,7 +12,7 @@
 # `PortableLight`, not a `Plant`, and the fungus-farmer that prose implied
 # does not exist. Making it real needs `LightSourceMixin(Plant)` in a
 # fungiculture trade pack, and that is a build (see
-# `docs/slates/builds/authored-vs-procedural-slate.md`). Until then the
+# `docs/slates/world/authored-vs-procedural-slate.md`). Until then the
 # honest thing is a light that works, described as a light that works.
 #
 # ⚠ It is a `PortableLight` and not a `Lamp`: `Lamp` is the street

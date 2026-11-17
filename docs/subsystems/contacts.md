@@ -299,6 +299,6 @@ gains optional fields; the existing verbs keep working; the
 - [messaging.md](./messaging.md) — audience computation in
   chat / DM; the consumer side of `GroupApi.membersOf` against a
   `contacts:` ref.
-- [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the
+- [social-graph-slate.md](../slates/engine/social-graph-slate.md) — the
   full recognition-family design (notification policy, display
   lensing, recognition state) that contacts is the first slice of.

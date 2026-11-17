@@ -920,7 +920,7 @@ async function mintCorpseFrom(
     // ⛔ UNJUSTIFIED and deliberately left alone: that build owns the
     // decision and has narrowed the mint on its side (a beast's corpse
     // no longer mints at all). See
-    // `docs/slates/builds/instance-addressing-slate.md § the third
+    // `docs/slates/tech-debt/instance-addressing-slate.md § the third
     // limb`.
     // identity-keyed-by: none — nothing durable reads it, and nothing
     // speakable names it.

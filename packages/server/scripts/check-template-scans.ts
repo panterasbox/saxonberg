@@ -21,7 +21,7 @@
  * the installer, a typed-word dictionary's own lazy warm, a water system
  * compiling its own index of its courses, a structure's own members, and
  * the residency spawn sweep the unobserved economy keeps
- * (→ `docs/slates/builds/unobserved-economy-slate.md`).
+ * (→ `docs/slates/society/unobserved-economy-slate.md`).
  *
  * A file whose count FALLS below its allowance is stale and fails too —
  * lower the entry, the ratchet only moves down.

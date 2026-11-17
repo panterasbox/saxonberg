@@ -22,7 +22,7 @@ Batch-wide findings first:
 
 ---
 
-## docs/slates/builds/bathroom-slate.md — 141 → 144 · Status UNBUILT → PARTIAL
+## docs/slates/world/bathroom-slate.md — 141 → 144 · Status UNBUILT → PARTIAL
 
 The stamp said *"no bathroom content, state or fixture exists"*; the
 residences build shipped exactly that. `packages/content/generic-objects/content/stuff/location/room/bathroom.yaml`
@@ -120,7 +120,7 @@ search — a row, not a fourth walk. `lint:lib-statics` exists
 
 ---
 
-## docs/slates/builds/presence-hollowing-slate.md — 115 → 111 · Status UNBUILT → UNBUILT
+## docs/slates/engine/presence-hollowing-slate.md — 115 → 111 · Status UNBUILT → UNBUILT
 
 Unbuilt. `hollow` in `packages/server/src/mud` hits one comment
 (`AssessController.ts:155`, a diagnosis example) and in content only place
@@ -154,7 +154,7 @@ the stamp.
 
 ---
 
-## docs/slates/tails/wire-suite-growth-slate.md — 108 → 122 · Status (none) → UNBUILT
+## docs/slates/tech-debt/wire-suite-growth-slate.md — 108 → 122 · Status (none) → UNBUILT
 
 The slate had **no status block at all**; one was added (the file grew by
 it). Every deferred seam is still deferred at today's tree, while the
@@ -201,7 +201,7 @@ No cuts.
 
 ---
 
-## docs/slates/builds/estate-nesting-slate.md — 106 → 101 · Status UNBUILT → UNBUILT
+## docs/slates/engine/estate-nesting-slate.md — 106 → 101 · Status UNBUILT → UNBUILT
 
 Still exactly the shape the slate describes. `lib/chattel/Estate.ts:185-205`
 pushes `state: ctx.captureState(live)` for every owned good whose
@@ -235,7 +235,7 @@ documented. One cut.
 
 ---
 
-## docs/slates/tails/distance-perception-slate.md — 96 → 96 · Status UNBUILT → UNBUILT
+## docs/slates/engine/distance-perception-slate.md — 96 → 96 · Status UNBUILT → UNBUILT
 
 Unbuilt, and the seeding facts still hold: `lib/perception/Modality.ts:77-90`
 (`MAX_HOPS = 2`, `EXIT_TAU = 1.0`), `platform/location/Crossing.ts:3-7`
@@ -271,7 +271,7 @@ rule is recorded at `demo-content-requirements.md:1097-1101` and
 
 ---
 
-## docs/slates/builds/demo-slate.md — 95 → 94 · Status UNBUILT → UNBUILT
+## docs/slates/platform/demo-slate.md — 95 → 94 · Status UNBUILT → UNBUILT
 
 The stamp holds. Per item of the demo cluster, checked against
 `packages/content` and the server: (1) no `lesson-completed` /

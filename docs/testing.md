@@ -55,7 +55,7 @@ the wire nor the parser.**
 may block a merge.** A span step (weeks or seasons of game time) runs in the **soak lane** after
 merge, never in review, finalize or a build's exit drive. Each requirements doc writes a blocking
 drive and a soak drive. The finding behind it, the enforcement and the lane →
-[soak-lane-slate](./slates/tails/soak-lane-slate.md).
+[soak-lane-slate](./slates/tech-debt/soak-lane-slate.md).
 
 ### The soak lane — the convention, the refusal, the result, the runner
 
@@ -1027,7 +1027,7 @@ DRESSED** (`TestHooks` puts the first aspiration's outfit on it, as
 at room temperature and starves in ~4.5 game hours, and the fishing
 drive's angler collapsed at the seventh. A drive longer than that still
 has to feed its character (`eat rations`) until the thermal dials are
-right (`docs/slates/tails/thermal-slate.md`).
+right (`docs/slates/engine/thermal-slate.md`).
 
 ⚠⚠ The spawned server must not inherit `VITEST`: `preload.js` registers
 the call-security loader only when it is unset, so a leaked env makes
@@ -1103,7 +1103,7 @@ authored charcoal rather than making its own.
 durative arc is drivable end to end. Nothing has it today, and until
 something does, *every* durative subsystem's finish is unit-tested only.
 Recorded as the ceiling, not as a plan — the group itself is tracked in
-`docs/slates/tails/wire-suite-growth-slate.md`.
+`docs/slates/tech-debt/wire-suite-growth-slate.md`.
 
 ### ⭐⭐ A clock jump is LIVED time — feed the people in it
 

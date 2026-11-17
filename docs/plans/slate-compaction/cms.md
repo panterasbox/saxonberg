@@ -43,7 +43,7 @@ carried is already stated in `cms.md`, `studio.md`, `git-workflow.md` or
 
 ---
 
-## docs/slates/builds/cms-slate.md — 688 → 465 · Status PARTIAL → PARTIAL
+## docs/slates/platform/cms-slate.md — 688 → 465 · Status PARTIAL → PARTIAL
 
 What shipped: the REST surface + attribution bridge, Monaco, the unified
 tree, save go-live (`cms.md`); the in-runtime VCS (`git-workflow.md`); the
@@ -135,7 +135,7 @@ per-type room / zone editor or map, anon read.
 
 ---
 
-## docs/slates/builds/cms-connectors-slate.md — 244 → 233 · Status PARTIAL → PARTIAL
+## docs/slates/platform/cms-connectors-slate.md — 244 → 233 · Status PARTIAL → PARTIAL
 
 Entirely UNBUILT, and its one premise is still true. Grep: no `bearer` /
 API-key / personal-token path in `packages/server/src/backend/` (the only

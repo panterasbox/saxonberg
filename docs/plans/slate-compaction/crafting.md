@@ -15,7 +15,7 @@ behavior}/`, `platform/thing/{Stock,Tariff,Dish,ServingVessel,CraftVessel}.ts`,
 
 ---
 
-## docs/slates/builds/retail-slate.md — 299 → 240 · Status PARTIAL → PARTIAL
+## docs/slates/trades/retail-slate.md — 299 → 240 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block (11–17, 7) — history (*"staged across four builds"*; S1 shipped MR !143)
@@ -47,7 +47,7 @@ behavior}/`, `platform/thing/{Stock,Tariff,Dish,ServingVessel,CraftVessel}.ts`,
 
 ---
 
-## docs/slates/builds/daves-bar-slate.md — 643 → 346 · Status PARTIAL → PARTIAL
+## docs/slates/world/daves-bar-slate.md — 643 → 346 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block (13–19, 7) — *"pre-requirements … build-phasing deferred"*; the near-term scope shipped
@@ -98,7 +98,7 @@ behavior}/`, `platform/thing/{Stock,Tariff,Dish,ServingVessel,CraftVessel}.ts`,
 
 ---
 
-## docs/slates/tails/libations-slate.md — 684 → 81 · Status PARTIAL → PARTIAL
+## docs/slates/trades/libations-slate.md — 684 → 81 · Status PARTIAL → PARTIAL
 
 Everything but Part 7's drain direction, Part 10 and one open question
 shipped in MR !206 (then fermentation MR !215 and logistics moved two
@@ -193,7 +193,7 @@ names where each decision lives.
 
 ---
 
-## docs/slates/builds/crafting-slate.md — 722 → 452 · Status PARTIAL → PARTIAL
+## docs/slates/trades/crafting-slate.md — 722 → 452 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - the stale second status block (14–23, 10) — *"the venue model is settled enough to seed a slice"*; three branches shipped
@@ -236,7 +236,7 @@ names where each decision lives.
 
 ---
 
-## docs/slates/builds/cooking-slate.md — 1672 → 1112 · Status PARTIAL → PARTIAL
+## docs/slates/trades/cooking-slate.md — 1672 → 1112 · Status PARTIAL → PARTIAL
 
 W0–W3 shipped as designed; doneness (S1 + S2 of the tending wave's seam
 bill) and the baker pack shipped since. What remains is large and mostly

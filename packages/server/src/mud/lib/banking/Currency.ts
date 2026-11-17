@@ -13,7 +13,7 @@
  * (economy-slate Law 1). A peg is an **issuer's standing offer to redeem**
  * — reserves plus a published rate honoured at its own window, breakable
  * when the reserves drain — and it belongs to that issuer's offer, not to
- * the money. See docs/slates/builds/currency-slate.md § *A peg is a
+ * the money. See docs/slates/society/currency-slate.md § *A peg is a
  * promise, not a rate*.
  *
  * **Denomination identity is `(currency, faceValue)`** — structural, not an

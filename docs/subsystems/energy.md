@@ -7,8 +7,8 @@ epochs at once, and the fiction it is about is that **the same civic service
 city**, the visible sign of a place developing being which one it is.
 
 See the seeding design in
-[grid-slate § Part 5](../slates/builds/grid-slate.md) and
-[power-utility-slate](../slates/builds/power-utility-slate.md).
+[grid-slate § Part 5](../slates/trades/grid-slate.md) and
+[power-utility-slate](../slates/trades/power-utility-slate.md).
 
 ## The two epochs
 

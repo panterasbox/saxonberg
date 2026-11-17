@@ -9,7 +9,7 @@
 > [lens-deck-salvage.md](./lens-deck-salvage.md) § 2.
 
 Top-level guidance doc for the engine's design philosophy. Sits
-alongside [roadmap.md](./roadmap.md) and [mixin-slate.md](./slates/tails/mixin-slate.md)
+alongside [roadmap.md](./roadmap.md) and [mixin-slate.md](./slates/engine/mixin-slate.md)
 as a forward-referenced principle that shapes every slate.
 
 This is **not a slate**. Nothing here is being designed; this
@@ -45,7 +45,7 @@ See also:
   framework's Wave 1 substrate is shipped at
   [subsystems/activity.md](./subsystems/activity.md); the
   physics-honest locomotion retrofit is preserved in
-  [slates/tails/locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md).
+  [slates/engine/locomotion-as-activity-slate.md](./slates/engine/locomotion-as-activity-slate.md).
 
 ---
 
@@ -279,7 +279,7 @@ The discipline is strict: an invented science must be **rigorously
 self-consistent**, and it never becomes the fudge layer — it obeys
 its own laws as unforgivingly as the real channels obey theirs.
 Designing one means genuinely designing a physics. See
-[capability-magic-slate.md](./slates/builds/capability-magic-slate.md) for
+[capability-magic-slate.md](./slates/engine/capability-magic-slate.md) for
 the worked application.
 
 ### Principle 3: Layered presentation
@@ -323,7 +323,7 @@ Verbs and instruments are the bridges:
 
 > ⭐ **2026-10-30:** the clean source is **Wikidata** (CC0, public domain), anchored per row by a
 > permanent id; Wikipedia's prose is share-alike and is never copied in →
-> [real-world-anchors-slate](./slates/builds/real-world-anchors-slate.md).
+> [real-world-anchors-slate](./slates/platform/real-world-anchors-slate.md).
 
 A consequence of Principle 2 with its own authoring payoff. Because
 the substrate models honestly, its schemas end up shaped like the
@@ -502,7 +502,7 @@ Ranged actions become a Conduit-channel question with skill-
 check resolution.
 
 > The fuller treatment now lives in
-> [combat-tactics-slate.md](./slates/tails/combat-tactics-slate.md): combat as
+> [combat-tactics-slate.md](./slates/engine/combat-tactics-slate.md): combat as
 > abstract **engaged relationships** rather than geometry, with
 > party-level tactics layered on top. This section keeps the
 > Conduit-channel mechanics that slate's Thesis 1 builds on.
@@ -593,7 +593,7 @@ philosophy's defaults:
   `BlockerBehavior` registers a block predicate against an
   exit; the locomotion validation chain runs it. No sub-room
   positioning needed.
-- **Pushing** — `Pushable` mixin (slates/tails/mixin-slate.md) on objects
+- **Pushing** — `Pushable` mixin (slates/engine/mixin-slate.md) on objects
   and unconscious actors. Conscious-actor shoving is combat-
   adjacent, deferred.
 
@@ -602,7 +602,7 @@ to go around") is **explicitly deferred**. The bag-of-stuff
 default plus block-validators handles the same content cases
 without committing to sub-room geometry.
 
-Full design in [collision-slate.md](./slates/tails/collision-slate.md).
+Full design in [collision-slate.md](./slates/engine/collision-slate.md).
 
 ---
 
@@ -611,7 +611,7 @@ Full design in [collision-slate.md](./slates/tails/collision-slate.md).
 Hiding-as-status, not hiding-as-position. A `Stealthing` actor
 emits a perception-shadow that lowers their visibility for
 others; no sub-room geometry required. Cover behind objects is
-similar — the Concealing mixin from slates/tails/mixin-slate.md.
+similar — the Concealing mixin from slates/engine/mixin-slate.md.
 
 For high-fidelity tactical content (a duel, a heist) — opt-in
 range bands or regions. The framework supports both; the
@@ -667,7 +667,7 @@ re-derive them.
   first content that demands it (an archery range, a tavern
   with named seats).
 - **Combat-tactics slate** —
-  [combat-tactics-slate.md](./slates/tails/combat-tactics-slate.md), now
+  [combat-tactics-slate.md](./slates/engine/combat-tactics-slate.md), now
   drafted. Folds ranged actions (the abstract engaged-relationship model
   + one new Conduit `physical` dimension) into the broader combat design
   rather than a standalone ranged slate.

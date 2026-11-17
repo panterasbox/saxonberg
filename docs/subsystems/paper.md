@@ -28,7 +28,7 @@ never "the text"; it is worth something only for what interface text lacks:
 Every piece below serves one of these. A design that makes paper a second
 way to be READ — competing with the platform's own publishing — is wrong
 by this test. Printing, the cost of copying such a thing, has its own
-slate ([printing-slate](../slates/builds/printing-slate.md)).
+slate ([printing-slate](../slates/trades/printing-slate.md)).
 
 ## Reading: two faces, one verb
 
@@ -46,7 +46,7 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   writes *known-of* (you know the dish exists, and can recognize it). ⚠ A
   handwritten page teaches nothing by being read, and nothing here decides
   how a recipe is held or consulted — that is the
-  [recipes slate](../slates/builds/recipes-slate.md)'s (your own recipe in
+  [recipes slate](../slates/trades/recipes-slate.md)'s (your own recipe in
   your book, consulted when you craft it).
 - **Ash.** A burnt marked thing (its material swapped to its char) reads
   *"nothing but ash"* — the ink rule's shape.
@@ -190,7 +190,7 @@ wet unless the glue resists damp (`Faced.releaseDampGlue`).
 ⚠ **Printing shipped as what paper implies, not as a designed trade**
 (the owner, 2026-11-05). Every act below is instant, which hides the
 fixed-versus-marginal curve that IS printing; the printing build replaces
-this section ([printing-slate](../slates/builds/printing-slate.md) — its
+this section ([printing-slate](../slates/trades/printing-slate.md) — its
 lens-decided forks: labor takes time, misprints stay because the document
 is never altered, images are half of printing, and a printed page should
 LOOK like one).

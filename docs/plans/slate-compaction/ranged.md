@@ -54,7 +54,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/ranged-slate.md — 1025 → 910 · Status PARTIAL → PARTIAL
+## docs/slates/engine/ranged-slate.md — 1025 → 910 · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## Foundations (already decided, already shipped)` → all four bullets (23–76, 54): relationship-not-coordinates — code: `lib/combat/CombatGraph.ts`, `RangeBand.ts`; doc: `ranged.md § Bands are relationships, not positions`. The room caps the bands + the per-zone gap + the research note — code: `Location.getLinearExtent()`, `Location` `extent` override (the slate's *"single named dependency"* shipped); doc: `ranged.md § The arena caps the ladder` (*Extent is deliberately ONE number*). Band extension + advance/withdraw as gambits — code: `fight.yaml` `advance`/`withdraw`, `resolveBandStep`; doc: `ranged.md § Opening the gap, and closing it`. Consent inherits + cross-room out of scope — code: `CombatApi.initiate` (the one handshake `throw` and `shoot` share), `MagicLogic.ts:1362` same-scene check; doc: `ranged.md § One initiation handshake`, `§ Deliberately out of scope`. Heading + one pointer paragraph left. ⚠ The band vocabulary is a **shape supersession** — the slate designed `close/short/medium/far`, the code shipped `close · reach · near · far` with `short` explicitly not a band (`ranged.md` l.46 box); the pointer says so.
@@ -124,7 +124,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/tails/combat-tactics-slate.md — 338 → 192 · Status PARTIAL → PARTIAL
+## docs/slates/engine/combat-tactics-slate.md — 338 → 192 · Status PARTIAL → PARTIAL
 
 Both theses shipped, and the second status block already said so — but
 the slate still carried the pre-build design of each as live body. Thesis

@@ -14,7 +14,7 @@ description: >-
   press and the printer idle and lets the pen work.
   ⚠ A PLACEHOLDER: what paper implies about printing, not a
   designed trade — every act is instant. The printing build replaces it
-  (docs/slates/builds/printing-slate.md).
+  (docs/slates/trades/printing-slate.md).
 requires:
   title:
     - { extent: /trade/printing, holder: { organization: /compact/trade } }

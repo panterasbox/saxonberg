@@ -32,7 +32,7 @@ Three things a reviewer should know first:
 
 ---
 
-## docs/slates/builds/textiles-slate.md — 1337 → 556 · Status PARTIAL → PARTIAL
+## docs/slates/trades/textiles-slate.md — 1337 → 556 · Status PARTIAL → PARTIAL
 
 The chain shipped (MR !236): `Garment` =
 `Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Detailed(Thing)))))))`
@@ -132,7 +132,7 @@ found: `full`, `tan`, any leatherwork pack, `livery`, a pattern artifact,
 
 ---
 
-## docs/slates/builds/cosmetics-slate.md — 316 → 270 · Status PARTIAL → PARTIAL
+## docs/slates/trades/cosmetics-slate.md — 316 → 270 · Status PARTIAL → PARTIAL
 
 The slate's load-bearing finding (*dye is a textiles input; cosmetics is
 a second customer*) is what the textiles build acted on, and it is KEPT

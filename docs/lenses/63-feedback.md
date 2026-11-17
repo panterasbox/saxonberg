@@ -117,7 +117,7 @@ Corrected 2026-09-30 after the owner pointed at the education-pitch
 papers. The principle is written, three times, and **never in
 `measurement.md`**:
 
-- [advancement-slate](../slates/builds/advancement-slate.md) names the
+- [advancement-slate](../slates/society/advancement-slate.md) names the
   psychology: *“it defuses the headline edtech risk the motivation lens
   names — **overjustification** — because the reward is **capability you
   chose to build**, not a carrot dangled for studying.”*

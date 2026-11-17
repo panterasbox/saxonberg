@@ -41,7 +41,7 @@ are the ORIGINAL file's (1072 lines).
 
 ---
 
-## docs/slates/builds/livelihood-slate.md — 1072 → (pending) · Status PARTIAL → PARTIAL
+## docs/slates/society/livelihood-slate.md — 1072 → (pending) · Status PARTIAL → PARTIAL
 
 ### Stage 1 — the tail (§9 audit · build state · open questions · the kernel list)
 
@@ -299,7 +299,7 @@ lines) unless marked original.
   edited.
 
 ### Verification
-- `git diff --stat -- docs/slates/builds/livelihood-slate.md
+- `git diff --stat -- docs/slates/society/livelihood-slate.md
   docs/plans/slate-compaction/livelihood.md` — the only two files this
   agent touched.
 - 979 → 853 lines (this stage's net cut, on top of Stage 1's 1072 →
