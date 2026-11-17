@@ -209,7 +209,7 @@ All paths under `packages/server/src/mud/` unless they start `packages/` or
 | S5 | the **marks** — a derived, in-memory record on `LocationGraphRegistry` (`{path, at, topM, heightM, landmark, showsLight, address}` per structure worth seeing) + the kept skylines memo beside it | private state on an existing registry | *which structures exist where, without loading — ⚠ the gap*: closed by extending the attachment derivation that already scans every row; **no new collection, no new scan** |
 | S6 | `NavigationApi.skylineNow(vantage, own, keepAs?)` / `NavigationApi.skylineReady()` | two statics on an existing Api | S5's read doors (the `attachedNow` / `attachedTo` pair's shape) |
 | S7 | `AddressApi.positionedLocalityOf(address)` | one sync static on an existing Api | *a Locality — extend*: the coverage chain's nearest Locality that has a point |
-| S8 | `Place.chartPoint()` and `Place.heightAboveGroundM()` | two methods on an existing class | *a room's position — structure's point, else Locality's* (slate § The model); the height is `SpatialZone`'s documented `z × cellSize` rule given its first accessor |
+| S8 | `Place.chartPoint()`, `Place.heightAboveGroundM()` and `Place.heightAboveSeaM()` | three methods on an existing class | *a room's position — structure's point, else Locality's* (slate § The model); the height is `SpatialZone`'s documented `z × cellSize` rule given its first accessor |
 | S9 | `horizon` retyped: `{block?, reach?}` on `SpatialZone` and `Place` | a field's type on its existing hosts | *the authored lists — recast as block / reach overrides* |
 | S10 | `HorizonSighting.closeBy?` and `.fixed?` | two optional members of an existing interface | *the horizon's shape — reuse; ashore fills them* |
 
@@ -308,8 +308,19 @@ the same `skylineNow` from its own position and
    frame names (a river's traffic) and nothing else. This is the
    test-fixture worlds, by construction rather than by a flag.
 
-Eye altitude = `zone elevation` (`peekField`, 0 when none) `+
-heightAboveGroundM()` `+ SHORE_EYE_M`; at sea it stays
+⭐ **A room's total height** (the owner, 2026-11-17, via the
+navigation-server build: *"z tells you elevation within a zone but not the
+total height — you need the zone for that"*) is one named accessor,
+`Place.heightAboveSeaM()` = the zone's elevation (`peekField`, 0 when none)
+`+ heightAboveGroundM()`. The navigation-server's place section reads it
+once this build merges. ⚠ `ZoneApi.elevationFor` is **not** changed here:
+it stays the GROUND's elevation, its five readers (`MagicLogic` Δh,
+`BiomeLogic` pressure, `WaterFixture`, `WaterStore`, `Well`) and the
+*stairwell is not a waterfall* test untouched — whether any of them should
+read the total instead is a per-reader physics question for the owner
+(Risks), not a side effect of the horizon.
+
+Eye altitude = `heightAboveSeaM()` `+ SHORE_EYE_M`; at sea it stays
 `craft.sightHeightFor(viewer)`. `heightAboveGroundM()` is `0` on `Place`
 and `z × zone cell size` on `Location` (`getCoords()`, l.451).
 **Close by:** when the owner is a Locality (case 3) and a mark's point lies
@@ -791,6 +802,12 @@ Neither build gates on the other; the second to merge rebases.
   valley road (`terminus/delight-valley/…`) is countryside between towns:
   no skyline, reported by the census in the drive record.
 - **Q6 — Kept per point owner and eye altitude**, as D2 says.
+
+- **Q7 — Should any `elevationFor` reader use the total height?** Open,
+  for the owner. Pressure (`BiomeLogic`) and magic's Δh are physically
+  total-height questions; a tap's or a well's are about the ground and its
+  water. Build default: none switch; `heightAboveSeaM()` exists for the
+  ones the owner names.
 
 **Engineering risks**
 
