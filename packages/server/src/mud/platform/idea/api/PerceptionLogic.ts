@@ -49,7 +49,7 @@ import type {
 import { PlayerApi } from '../../../api/player';
 import { SIZE_DEFAULTS } from '../../../lib/spatial/Dimensions';
 import type {
-  HorizonView, HorizonSighting, HorizonTraffic, Observation, VisibleContents,
+  HorizonView, Observation, VisibleContents,
 } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
 import type Place from '../../../lib/stuff/Place';
@@ -527,7 +527,9 @@ export class PerceptionLogic extends ApiLogic {
     if (place !== null && target === place) {
       // ⭐ Geography D9: the arrival `look` stands up what the horizon will
       // name, so the sync read that follows is complete.
-      if (place.isPlace()) await (place as unknown as Place).standUpHorizon().catch(() => undefined);
+      if (place.isPlace()) {
+        await place.standUpHorizon().catch((err) => console.warn('observe: the horizon did not stand up:', err));
+      }
       return observePlace(actor, place);
     }
     return observeThing(actor, target);
@@ -1565,8 +1567,7 @@ function horizonImpl(viewer: Stuff): HorizonView {
   if (room === null || !room.isPlace()) return atSea ? { ...EMPTY_HORIZON, atSea } : EMPTY_HORIZON;
   // Below decks, indoors: there is no horizon — the watch is kept where the sky is.
   if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return { things: [], traffic: [], atSea };
-  const place = room as unknown as Place;
-  const override = place.horizonOverride();
+  const override = room.horizonOverride();
   if (override?.blockAll) return { things: [], traffic: [], atSea };
 
   // ── where the eye is ──
@@ -1578,7 +1579,7 @@ function horizonImpl(viewer: Stuff): HorizonView {
     vantage = new Vantage(at, craft.sightHeightFor(viewer));
     own = craft.getTemplatePath();
   } else {
-    const v = place.horizonVantage();
+    const v = room.horizonVantage();
     if (v !== null) ({ vantage, keepAs, nearM, own } = v);
   }
   const seeing = seeingFrom(room);
@@ -1614,7 +1615,7 @@ function horizonImpl(viewer: Stuff): HorizonView {
 
   // Something it names is not standing yet: stand the place's horizon up
   // for the next read (kicked; a sync read never waits).
-  if (missing) void place.standUpHorizon().catch(() => undefined);
+  if (missing) void room.standUpHorizon().catch(() => undefined);
 
   // ── what the override reaches: a structure named whatever the rule says ──
   const seas: Expanse[] = ownSea !== null ? [ownSea] : [];
@@ -1624,9 +1625,10 @@ function horizonImpl(viewer: Stuff): HorizonView {
       if (!seas.includes(sea)) seas.push(sea);
       continue;
     }
-    const s = StuffApi.findByTemplatePath<Stuff>(target);
+    // A reach names a sea or a STRUCTURE row (`lint:location-graph`).
+    const s = StuffApi.findByTemplatePath<Stuff & Structure>(target);
     if (!s || s.isDestroyed() || seen.has(s.stuffId) || target === own) continue;
-    const structure = s as unknown as Structure;
+    const structure = s;
     if (dark && !structure.getShowsLight()) continue;
     const point = structure.chartPoint();
     const line = vantage !== null && point !== null ? vantage.lineTo(point, structure.getHeightM()) : null;

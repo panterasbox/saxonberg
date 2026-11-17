@@ -528,7 +528,7 @@ computed where it is already scanned.
   over the path and each of its ancestors (so a room inside a ship's
   extent finds the ship). `attachedWithin(extent, kind?)` answers *what
   is attached at or under* an extent.
-  `attachedNow` / `attachedWithinNow` are the synchronous forms — the
+  `attachedNow` is the synchronous form — the
   last derivation, `[]` before the first — for the readers that cannot
   await (`Expanse.craft()`).
 - ⭐⭐ **What stands tall where — the marks and the kept skylines** (the

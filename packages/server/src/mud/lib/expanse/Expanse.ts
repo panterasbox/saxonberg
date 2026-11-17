@@ -45,7 +45,6 @@
  * its own water.
  */
 
-import { BiomeApi } from '../../api/biome';
 import { NavigationApi } from '../../api/navigation';
 import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';

@@ -78,7 +78,9 @@ export default class BearingReading extends Reading {
     // ashore — standing up what the place names first (D9), so a light the
     // horizon would name is there to be taken.
     const place = this.placeOf(giver);
-    if (place !== null && place.isPlace()) await (place as unknown as Place).standUpHorizon().catch(() => undefined);
+    if (place !== null && place.isPlace()) {
+      await place.standUpHorizon().catch((err) => console.warn('measure bearing: the horizon did not stand up:', err));
+    }
     const sighting = target
       ? PerceptionApi.horizonFor(giver).things.find((t) => t.stuff.stuffId === target.stuffId) ?? null
       : null;

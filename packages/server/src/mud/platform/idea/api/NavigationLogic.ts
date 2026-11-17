@@ -392,12 +392,6 @@ export class NavigationLogic extends ApiLogic {
     return registry()?.markPointNow(structurePath) ?? null;
   }
 
-  /** See {@link NavigationApi.attachedWithinNow}. */
-  @CallSecurity(NavigationApiCallers)
-  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return registry()?.attachedWithinNow(extent, kind) ?? [];
-  }
-
   /** See {@link NavigationApi.attachedNow}. */
   @CallSecurity(NavigationApiCallers)
   public attachedNow(path: string, kind?: AttachmentKind): string[] {

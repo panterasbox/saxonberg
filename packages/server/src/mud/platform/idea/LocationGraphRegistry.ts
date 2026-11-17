@@ -347,12 +347,6 @@ export default class LocationGraphRegistry extends Idea {
     return this.withinAt(extent, kind);
   }
 
-  /** {@link attachedWithin}, synchronously — the last derivation. */
-  @CallSecurity(NavigationLogicOnly)
-  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return this.withinAt(extent, kind);
-  }
-
   private withinAt(extent: string, kind?: AttachmentKind): string[] {
     const out = new Set<string>();
     for (const [anchor, targets] of this.attachments) {

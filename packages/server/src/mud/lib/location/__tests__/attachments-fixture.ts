@@ -79,7 +79,7 @@ class FakeAttachmentRegistry extends Idea {
   public async attachedTo(path: string, kind?: AttachmentKind): Promise<string[]> {
     return this.attachedNow(path, kind);
   }
-  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
+  private within(extent: string, kind?: AttachmentKind): string[] {
     const out = new Set<string>();
     for (const [anchor, list] of Object.entries(this.table)) {
       if (anchor !== extent && !anchor.startsWith(`${extent}/`)) continue;
@@ -88,7 +88,7 @@ class FakeAttachmentRegistry extends Idea {
     return [...out];
   }
   public async attachedWithin(extent: string, kind?: AttachmentKind): Promise<string[]> {
-    return this.attachedWithinNow(extent, kind);
+    return this.within(extent, kind);
   }
 }
 

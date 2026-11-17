@@ -2,10 +2,12 @@
 
 **Status:** slated 2026-11-14, from the navigation pane's horizon section
 ([map-slate § The whole card](../client/map-slate.md)); the owner: *"this sounds
-better than what we have now."* **Requirements drafted 2026-11-16**
-([geography-requirements](../../requirements/geography-requirements.md)),
-in parallel with the navigation-server and zone-instancing builds. **Size:** a build — server-led, with
-content (anchors for the shipped Localities and landmarks). **Priority:**
+better than what we have now."* **Built 2026-11-17 (MR !594)** — one
+horizon for land, river and sea, the kept skyline, Localities on the chart
+(see [expanse.md § Perception at range](../../subsystems/expanse.md),
+[location-graph.md](../../subsystems/location-graph.md),
+[address.md](../../subsystems/address.md)). What is left is § Open. **Size:**
+a tail. **Priority:**
 with the navigation server work ([navigation-server-slate § S20](../engine/navigation-server-slate.md)).
 
 ## The problem — land has no frame; the sea does
@@ -127,6 +129,30 @@ rough direction, never the true bearing.
 2. **Outlines** for a Locality, when a need appears.
 3. **A player-built structure's landmark flag** — prominent by height
    alone today; whether an owner may also claim the flag (lens 4).
+4. **Hollow Mere's latitude (owner Q1, deferred at build).** Its zone
+   still states 58° S while its Locality stands at ~42.6° N. Taking the
+   chart's latitude moves the mere's first freeze from a fresh world's
+   day 0 to about day 203 (on day 0 it is ~44 t of winter ice), which
+   re-times three merged drives: storage-and-ice (blocking + soak),
+   controllers-are-io 17b, underwater 19. The owner's call: re-time them,
+   or keep the stated latitude.
+5. **The Market cannot raise the light on Gannet Rock** on this world (a
+   third of Earth's radius: 18.7 nm off, a 37 m eye reaches 14.1 nm). The
+   requirements expected it to. Levers, both content: a higher rock (a
+   ~70 m stack) or a different city point.
+6. **Lit, derived** — `showsLight` is authored; deriving it from a real
+   lamp (a `LightSource`, the street lighting) is the next step. Night at
+   sea for the seeded passing traffic is unchanged.
+7. **A river's line on the chart** — river craft are named without a
+   direction (Q3); a line→chart bridge would give them one.
+8. **Two harness tools owed by the drive:** staging a Discipline band (so
+   `measure bearing`'s narrowing by competence can be driven, not only
+   unit-tested) and a structured-payload channel (so `edit -c` can write
+   a tower and `rm` pull it down over the wire).
+9. **Boot cost, unmeasured.** The drive's first cold boot overran the
+   harness's 420 s while a sibling world booted on the same box; each room
+   that loads now kicks `Place.standUpHorizon`. Measure a cold boot alone
+   against master before tuning anything.
 
 ## Cross-references
 

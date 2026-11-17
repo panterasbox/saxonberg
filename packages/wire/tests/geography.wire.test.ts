@@ -5,7 +5,7 @@
  * from the content rows and kept, the rough direction for everyone and the
  * bearing for the instrument.
  *
- * ⭐ The expected reads come from geography-plan D12's geometry ON THIS
+ * ⭐ The expected reads come from the realm's chart (geography D12) ON THIS
  * WORLD — a third of Earth's radius, so a degree is 20 nm and the horizon
  * is √⅓ as far (sugar D12). From Hinkley Hills (a 132 m eye) the light on
  * Gannet Rock is ~73°, 18.2 nm — *to the east, some 18 miles off*. From
@@ -14,22 +14,23 @@
  * *close by* from inside the city. The headland raises the light; the strand
  * below it does not.
  *
- * ⚠ Departures from the plan's table, each for a reason (recorded in the
- * plan's drive record):
- *  - **2** bare-handed and with the compass both read ±10°: no harness tool
- *    stages a Navigation competence, so the narrowing is the unit suite's
- *    (`BearingReading.test.ts` — the bracket by band). The tool is owed.
+ * ⚠ Departures from the requirements' drive, each for a reason (the owed
+ * tools are in geography-slate § Open 8):
+ *  - **2** the eye reads ±10° and the compass ±5° for an untrained reader;
+ *    no harness tool stages a Navigation competence, so the narrowing BY
+ *    BAND is the unit suite's (`BearingReading.test.ts`). The tool is owed.
  *  - **11** (a tower written and pulled down by `edit -c` / `rm`) is the
  *    unit suite's (`LocationGraphRegistry.skyline.test.ts` — a row saved,
  *    re-heighted and removed changes the next read): `edit -c` takes its
  *    data as a structured payload and the harness's `cmd()` sends text only
  *    (the wizard-axis drive's same finding). The channel is owed.
  *  - **12** is at Hinkley Hills, not Hollow Mere: the mere keeps its
- *    zone's 58° S this build (Q1 deferred — see the plan).
+ *    zone's 58° S (Q1 deferred — geography-slate § Open 4).
  *
  * Clean: every act is a read, a posture or a staged override that is put
- * back; the clock jump is a night, and the restart steps run only in a
- * world this run owns.
+ * back (a weather pin is unpinned; the Hesper is left where step 9 staged
+ * her, at the bar, as the harbors drive stages her); the clock jump is a
+ * night, and the restart steps run only in a world this run owns.
  */
 
 import { describe as suite, it, expect, beforeAll } from 'vitest';

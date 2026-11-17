@@ -255,11 +255,6 @@ export class NavigationApi {
     return logic().attachedWithin(extent, kind);
   }
 
-  /** {@link attachedWithin}, synchronously — the last derivation, `[]` before the first. */
-  public static attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return logic().attachedWithinNow(extent, kind);
-  }
-
   /** {@link attachedTo}, synchronously — the last derivation, `[]` before the first. */
   public static attachedNow(path: string, kind?: AttachmentKind): string[] {
     return logic().attachedNow(path, kind);
