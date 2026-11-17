@@ -1104,6 +1104,13 @@ Decisions: D6, D14.
     every path) — narrowed. `Ship.flooding.test` cloned the deck ROW as
     "ashore" (now refused, D4) — a plain `Locale` instead. Ship and
     floorplan fixtures author cells.
+  - ⚠ **Finding (lint family, not fixed here):** `pack-roots.ts`
+    `extendsExpressions` matches `class X extends …{` inside COMMENTS —
+    `Place.ts`'s doc says *"the one class that extends this bare"*, so the
+    words after it up to the next `{` are read as base identifiers. Rewording
+    that comment silently dropped `Place`'s declared fields from 57 to 47
+    and raised `lint:instanceable`'s orphan count 31 → 76. Restored the
+    sentence; the reader should strip comments first.
 
 #### B5 — Code-complete
 

@@ -10,9 +10,8 @@
  * void** (`platform/location/Void`, the one class that extends this bare).
  * Everything else extends `Location` or `SphericalLocation`: an authored
  * row says its `coords:`; a place a warren mints takes the cell its
- * wiring says it is in (`Location.plotBesideNeighbour`); a copy of a plan
- * (a house, a ship's decks) is a zone of its own, its rooms on the cells
- * their rows author (zone-instancing).
+ * wiring says it is in (`Location.plotBesideNeighbour`); a holding lays
+ * its rooms out on the cells their rows author, a zone of its own.
  *
  * Root for spatial containers in the world.
  *
