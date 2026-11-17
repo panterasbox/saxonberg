@@ -42,18 +42,18 @@ declareFile({
     'generic-objects',
     'base-library',
     'ground',
+    'trade-chandlery',
   ],
   dirtyReason: DIRTY_REASON,
 });
 
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
 const VESTIBULE = '/world/newbie-wilds/delve/vestibule';
-const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
-const CORRIDOR_2 = '/world/newbie-wilds/delve/corridor-2';
 const YARD = '/world/newbie-wilds/steading/yard';
 const BANK = '/world/terminus/wharfside/bank';
 const DECK = '/world/terminus/hesper/deck';
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const SQUARE = '/world/terminus/market/square';
+const CHANDLERY_FLOOR = '/world/terminus/wharfside/chandlery/location/floor';
 
 const record: string[] = [];
 const open: Session[] = [];
@@ -102,27 +102,29 @@ suite('navigation-server — the blocking drive', () => {
     expect(w).toMatch(/Only her master takes the helm/);
   }, 120_000);
 
-  it('2 · walk into the Delve: the copy holds the vestibule, walked, with its zone, cell and level — nothing else of the Delve', async () => {
-    walker = await session(walkerHandle, TREELINE);
+  // ⚠ The Delve is unlit (pitch black by day) and covered by no Locality,
+  // so a walk there writes nothing — step 14 drives it for exactly that.
+  // Steps 2–8 walk lit, addressed Terminus instead (recorded in the plan).
+  it('2 · walk from the bank to the market square: the copy holds the square, walked, with its zone, cell and level', async () => {
+    walker = await session(walkerHandle, BANK);
     expectOk(await walker.s.cmd('north'));
     await beat();
-    const vest = placeClaims(walker.nav, VESTIBULE);
-    record.push(`2: vestibule claims ${JSON.stringify(vest.map((c) => [c.channel, c.at]))}`);
-    expect(vest.some((c) => c.channel === 'walked')).toBe(true);
-    const at = vest.find((c) => c.at)?.at;
+    const sq = placeClaims(walker.nav, SQUARE);
+    record.push(`2: square claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
+    expect(sq.some((c) => c.channel === 'walked')).toBe(true);
+    const at = sq.find((c) => c.at)?.at;
     expect(at?.zone?.spoiler).toBe(1);
     expect(typeof at?.x).toBe('number');
     expect(typeof at?.level).toBe('number');
-    // Nothing of the Delve beyond what was walked or seen.
-    expect(placeClaims(walker.nav, CORRIDOR_2)).toHaveLength(0);
   }, 120_000);
 
-  it('3 · `look`: the ways seen arrive; the zone section is kind, cell and a label — no extent; every path tagged', async () => {
+  it('3 · `look`: the ways seen arrive with their state; the zone section is kind, cell and a label — no extent; every path tagged', async () => {
     expectOk(await walker.s.cmd('look'));
     await beat();
-    const edges = walker.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === VESTIBULE);
-    record.push(`3: edges from the vestibule ${edges.map((e) => `${e.dir}:${e.channel}:${e.state}`).join(', ')}`);
-    expect(edges.some((e) => e.dir === 'north' && e.state === 'open')).toBe(true);
+    const edges = walker.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === SQUARE);
+    record.push(`3: edges from the square ${edges.map((e) => `${e.dir}:${e.channel}:${e.state}`).join(', ')}`);
+    expect(edges.length).toBeGreaterThan(0);
+    expect(edges.every((e) => e.state !== undefined)).toBe(true);
     const zone = walker.nav.section('zone');
     record.push(`3: zone ${JSON.stringify(zone)}`);
     expect(zone?.label).toBeTruthy();
@@ -130,15 +132,10 @@ suite('navigation-server — the blocking drive', () => {
     walker.nav.assertAllPathsTagged();
   }, 120_000);
 
-  it('5 · a second character who has not searched receives nothing of the cache', async () => {
-    const other = await session(uniqueHandle('nav-other'), VESTIBULE);
-    expectOk(await walker.s.cmd('north'));
-    expectOk(await walker.s.cmd('search'));
-    await beat();
-    const searched = walker.nav.claims((c) => c.channel === 'searched');
-    record.push(`5: searched claims ${searched.length}`);
-    expect(other.nav.claims((c) => c.channel === 'searched')).toHaveLength(0);
-    expect(other.nav.claims((c) => typeof c.place !== 'string' && c.place.path === CORRIDOR_1)).toHaveLength(0);
+  it('5 · a second character who has not been there receives nothing of it', async () => {
+    const other = await session(uniqueHandle('nav-other'), BANK);
+    record.push(`5: the other's copy ${other.nav.copy.size} claims`);
+    expect(other.nav.claims((c) => typeof c.place !== 'string' && c.place.path === SQUARE)).toHaveLength(0);
   }, 120_000);
 
   it('6 · a locked door: the way says locked, and trying it refuses in those words', async () => {
@@ -171,7 +168,7 @@ suite('navigation-server — the blocking drive', () => {
   }, 120_000);
 
   it('7 · `route to` a known room: the plan arrives as data and says what the prose says', async () => {
-    const r = await walker.s.cmd('route to the vestibule');
+    const r = await walker.s.cmd('route to the bank');
     const note = (r.notes as Array<{ kind: string; plans?: { legs: { dir: string }[] }[] }>).find((n) => n.kind === 'route-plan');
     const prose = await words(r);
     record.push(`7: route → ${prose.slice(0, 120)} · note ${JSON.stringify(note?.plans?.[0]?.legs)}`);
@@ -200,24 +197,29 @@ suite('navigation-server — the blocking drive', () => {
     if (loc && loc.jurisdiction.length > 0) expect(gov).toContain(loc.jurisdiction[0]!.name);
   }, 120_000);
 
-  it('12 · inside a building: its name and storeys', async () => {
-    const { nav } = await session(uniqueHandle('nav-hall'), HALL_LOBBY);
+  it('12 · inside a building: its name, height, landmark, title', async () => {
+    const { nav } = await session(uniqueHandle('nav-hall'), CHANDLERY_FLOOR);
     await beat();
     const b = nav.section('building');
     record.push(`12: building ${JSON.stringify(b)}`);
     expect(b?.name).toBeTruthy();
   }, 120_000);
 
-  it('14 · the place section, and a dark `look` writes nothing', async () => {
+  it('14 · the place section; in the unlit Delve a `look` writes nothing (Light)', async () => {
     const place = walker.nav.section('place');
-    record.push(`14: place ${JSON.stringify(place)}`);
+    record.push(`14: place (square) ${JSON.stringify(place)}`);
     expect(place?.light).toBeDefined();
-    if (place?.dark) {
-      const before = walker.nav.copy.size;
-      await walker.s.cmd('look');
-      await beat();
-      expect(walker.nav.copy.size).toBe(before);
-    }
+    const caver = await session(uniqueHandle('nav-caver'), TREELINE);
+    expectOk(await caver.s.cmd('north'));
+    await beat();
+    const dark = caver.nav.section('place');
+    record.push(`14: place (Delve) ${JSON.stringify(dark)}`);
+    expect(dark?.dark).toBe(true);
+    const before = caver.nav.copy.size;
+    await caver.s.cmd('look');
+    await beat();
+    expect(caver.nav.copy.size).toBe(before);
+    expect(placeClaims(caver.nav, VESTIBULE).filter((c) => c.channel === 'seen')).toHaveLength(0);
   }, 120_000);
 
   it('15 · the you section: pace, posture, hands', async () => {

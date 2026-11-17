@@ -309,3 +309,12 @@ describe('⭐ what a claim knows (navigation-server D2, D4)', () => {
     expect(typeof hint.claims[0]!.key).toBe('string');
   });
 });
+
+describe('⭐ the copy reads through the Api (the drive found the self-call)', () => {
+  it('readMapCopy answers the documents, each claim keyed and tagged', async () => {
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim()]);
+    const copy = await NavigationApi.readMapCopy(VIEWER, '');
+    expect(copy.documents).toHaveLength(1);
+    expect(copy.documents[0]!.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
+  });
+});

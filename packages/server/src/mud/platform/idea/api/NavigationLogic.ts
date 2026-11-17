@@ -1006,7 +1006,7 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.readMapCopy}. */
   @CallSecurity(NavigationApiCallers)
   public async readMapCopy(viewerKey: string, localityPrefix: string): Promise<MapCopySnapshot> {
-    const docs = await this.readMap(viewerKey, localityPrefix);
+    const docs = await NavigationLogic.readMapDocs(viewerKey, localityPrefix);
     return {
       documents: docs.map((d) => ({
         locality: d.locality,
@@ -1071,6 +1071,15 @@ export class NavigationLogic extends ApiLogic {
     viewerKey: string,
     localityPrefix: string,
   ): Promise<MapDocument[]> {
+    return NavigationLogic.readMapDocs(viewerKey, localityPrefix);
+  }
+
+  /**
+   * The map documents themselves — the one read behind `readMap` and
+   * `readMapCopy` (a gated method calling another on itself is refused by
+   * its own gate; the navigation-server drive found it).
+   */
+  private static async readMapDocs(viewerKey: string, localityPrefix: string): Promise<MapDocument[]> {
     const rows = await DocumentApi.readMaps(viewerKey, localityPrefix);
     return rows.map((r) => {
       const data = r.data as unknown as MapDocument;
