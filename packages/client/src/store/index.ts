@@ -591,7 +591,7 @@ interface StoreState
 
   /**
    * Live forum records keyed by subscriptionId — fed by
-   * `forum-subscription-result` (snapshot) + `forum-subscription-delta`
+   * the forum source's `subscription-result` (snapshot) + `subscription-delta`
    * (live changes). Mirrors the MQL feed-registry pattern but for forum
    * Documents. See `store/forumActions.ts`.
    */

@@ -16,6 +16,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../../api/forums';
+import Interactive from '../idea/Interactive';
 import ForumSubscriptionRegistry from '../idea/ForumSubscriptionRegistry';
 import SubjectCatalogue from '../idea/SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
@@ -32,13 +33,12 @@ import { EventApi } from '../../api/event';
 import { MixinApi } from '../../api/mixin';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type Interactive from '../idea/Interactive';
 import type { ForumSubjectRecord } from '@saxonberg/types';
-import { ProxyApi } from '../../api/proxy';
 import {
   SubjectSubscriberMixin,
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -66,26 +66,21 @@ function makeActor(): Stuff & SubjectSubscriber {
   return makeStuff(() => new Actor()) as unknown as Stuff & SubjectSubscriber;
 }
 
-/** A fake Interactive whose holder is a Sensor viewer (envelope-capturing). */
-function fakeInteractive(): Interactive {
-  const holder = makeStuff(() => new Actor());
-  const fake = {
-    getHolder: () => holder,
-    // The F2 instance surface: the fake forwards straight into the RAW
-    // registry (the fake carries no admissible frame; RAW_TARGET is the
-    // sanctioned white-box seam), exactly as the real Interactive
-    // method does through the gate.
-    cancelForumSubscription: (id: string) => {
-      const reg = StuffApi.findByTemplatePath<ForumSubscriptionRegistry>(
-        '/platform/idea/ForumSubscriptionRegistry',
-      )!;
-      (reg as never as Record<symbol, ForumSubscriptionRegistry>)[
-        ProxyApi.RAW_TARGET
-      ]!.handleUnsubscribe(fake as unknown as Interactive, id);
-    },
-  };
-  return fake as unknown as Interactive;
+/**
+ * A real session whose holder is a Sensor viewer, its envelopes captured
+ * (the protocol delivers per SESSION — navigation-server D1).
+ */
+function fakeInteractive(holder: Stuff = makeStuff(() => new Actor())): Interactive {
+  const session = makeStuff(
+    () => new Interactive(`sock-${++sessionCounter}`, 'sess', { _id: 'u' } as never),
+  ) as unknown as Interactive;
+  vi.spyOn(session, 'getHolder').mockReturnValue(holder as never);
+  vi.spyOn(session, 'sendEnvelope').mockImplementation((tpl: unknown) => {
+    envelopes.push(tpl as { type: string });
+  });
+  return session;
 }
+let sessionCounter = 0;
 
 /**
  * A fake Interactive whose holder exposes a contacts circle (the avatar
@@ -96,11 +91,8 @@ function interactiveWithCircle(playerIds: string[]): Interactive {
   const holder = {
     allContacts: () =>
       playerIds.map((id) => ({ kind: 'avatar', playerId: id, label: 'friends' })),
-    onEnvelope: (tpl: unknown) => {
-      envelopes.push(tpl as { type: string });
-    },
   };
-  return { getHolder: () => holder } as unknown as Interactive;
+  return fakeInteractive(holder as unknown as Stuff);
 }
 
 beforeEach(() => {
@@ -174,16 +166,14 @@ describe('ForumSubscriptionRegistry', () => {
     const thread = await creator.postThread(board, 'Best soup?', 'body');
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'b1',
-      scope: { kind: 'board', id: board._id! },
-    });
+    await interactive.subscribe('b1', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
 
-    const snapshot = envelopes.find((e) => e.type === 'forum-subscription-result');
+    const snapshot = envelopes.find((e) => e.type === 'subscription-result');
     expect(snapshot).toBeDefined();
-    const records = (snapshot as unknown as { records: Array<{ id: string; score: number }> })
-      .records;
+    const records = (snapshot as unknown as { snapshot: { records: Array<{ id: string; score: number }> } })
+      .snapshot.records;
     expect(records).toHaveLength(1);
     expect(records[0]!.id).toBe(thread._id);
     expect(records[0]!.score).toBe(1); // author auto-upvote.
@@ -194,7 +184,7 @@ describe('ForumSubscriptionRegistry', () => {
     await voter.castVote(thread, 'up');
     await flush();
 
-    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
     const changes = (delta as unknown as {
       changes: Array<{ op: string; key: string; fields?: { score: number } }>;
@@ -212,17 +202,15 @@ describe('ForumSubscriptionRegistry', () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'b1',
-      scope: { kind: 'board', id: board._id! },
-    });
+    await interactive.subscribe('b1', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
     envelopes.length = 0;
 
     const t = await creator.postThread(board, 'New', 'body');
     await flush();
 
-    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     const changes = (delta as unknown as { changes: Array<{ op: string; key: string }> }).changes;
     expect(changes.some((c) => c.op === 'add' && c.key === t._id)).toBe(true);
   });
@@ -232,17 +220,15 @@ describe('ForumSubscriptionRegistry', () => {
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
     const thread = await creator.postThread(board, 'T', 'body');
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'b1',
-      scope: { kind: 'board', id: board._id! },
-    });
-    interactive.cancelForumSubscription('b1');
+    await interactive.subscribe('b1', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
+    interactive.cancelSubscription('b1');
     envelopes.length = 0;
 
     await (makeActor()).castVote(thread, 'up');
     await flush();
-    expect(envelopes.find((e) => e.type === 'forum-subscription-delta')).toBeUndefined();
+    expect(envelopes.find((e) => e.type === 'subscription-delta')).toBeUndefined();
   });
 });
 
@@ -278,14 +264,12 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     );
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'a1',
-      scope: { kind: 'board', id: board._id! },
-    });
+    await interactive.subscribe('a1', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
 
-    const snapshot = envelopes.find((e) => e.type === 'forum-subscription-result');
-    const records = (snapshot as unknown as { records: ArgRecord[] }).records;
+    const snapshot = envelopes.find((e) => e.type === 'subscription-result');
+    const records = (snapshot as unknown as { snapshot: { records: ArgRecord[] } }).snapshot.records;
     const conRec = records.find((r) => r.id === con._id)!;
     // Argument projection: organizer stamped, reputation-blind (no score),
     // and the childless objection is flagged open.
@@ -302,7 +286,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     );
     await flush();
 
-    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     const changes = (delta as unknown as {
       changes: Array<{ op: string; key: string; fields?: ArgRecord }>;
     }).changes;
@@ -331,22 +315,18 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     const viewerA = interactiveWithCircle([claimAuthor]);
     const viewerB = interactiveWithCircle([]);
 
-    await ForumsApi.handleSubscribe({
-      interactive: viewerA,
-      subscriptionId: 'va',
-      scope: { kind: 'board', id: board._id! },
-    });
-    await ForumsApi.handleSubscribe({
-      interactive: viewerB,
-      subscriptionId: 'vb',
-      scope: { kind: 'board', id: board._id! },
-    });
+    await viewerA.subscribe('va', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
+    await viewerB.subscribe('vb', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'board', id: board._id! },
+      });
 
     const snapshots = envelopes.filter(
-      (e) => e.type === 'forum-subscription-result'
-    ) as unknown as Array<{ subscriptionId: string; records: ArgRecord[] }>;
-    const recA = snapshots.find((s) => s.subscriptionId === 'va')!.records;
-    const recB = snapshots.find((s) => s.subscriptionId === 'vb')!.records;
+      (e) => e.type === 'subscription-result'
+    ) as unknown as Array<{ subscriptionId: string; snapshot: { records: ArgRecord[] } }>;
+    const recA = snapshots.find((s) => s.subscriptionId === 'va')!.snapshot.records;
+    const recB = snapshots.find((s) => s.subscriptionId === 'vb')!.snapshot.records;
 
     const claimA = recA.find((r) => r.id === claim._id)!;
     const claimB = recB.find((r) => r.id === claim._id)!;
@@ -363,18 +343,16 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     await ForumsApi.makeForum(creator, 'Gossip', { open: true });
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      scope: { kind: 'subjects', id: '' },
-    });
+    await interactive.subscribe('s1', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'subjects', id: '' },
+      });
 
     const snapshot = envelopes.find(
-      (e) => e.type === 'forum-subscription-result',
+      (e) => e.type === 'subscription-result',
     );
     const records = (
-      snapshot as unknown as { records: ForumSubjectRecord[] }
-    ).records;
+      snapshot as unknown as { snapshot: { records: ForumSubjectRecord[] } }
+    ).snapshot.records;
     expect(records).toHaveLength(1);
     const gossip = records[0]!;
     expect(gossip.title).toBe('Gossip');
@@ -403,18 +381,16 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     await objector.attachClaim(thesis, 'objects-to', 'the six quiet days are not idle');
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's2',
-      scope: { kind: 'subjects', id: '' },
-    });
+    await interactive.subscribe('s2', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'subjects', id: '' },
+      });
 
     const snapshot = envelopes.find(
-      (e) => e.type === 'forum-subscription-result',
+      (e) => e.type === 'subscription-result',
     );
     const records = (
-      snapshot as unknown as { records: ForumSubjectRecord[] }
-    ).records;
+      snapshot as unknown as { snapshot: { records: ForumSubjectRecord[] } }
+    ).snapshot.records;
     const measure = records.find((r) => r.title === 'Measure')!;
     expect(measure.surfaces).toContain('ordered-forum');
     // An `objects-to` with nothing answering it. The badge and the rows
@@ -427,11 +403,9 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     await ForumsApi.makeForum(creator, 'Gossip', { open: true });
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's3',
-      scope: { kind: 'subjects', id: '' },
-    });
+    await interactive.subscribe('s3', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'subjects', id: '' },
+      });
     envelopes.length = 0;
 
     // A second subject appears; the rail is a whole-set watcher, so any
@@ -439,7 +413,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     await ForumsApi.makeForum(creator, 'Trade', { open: true });
     await flush();
 
-    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
     const changes = (
       delta as unknown as { changes: Array<{ op: string }> }
@@ -455,18 +429,16 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     });
 
     const interactive = fakeInteractive();
-    await ForumsApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's4',
-      scope: { kind: 'subjects', id: '' },
-    });
+    await interactive.subscribe('s4', SUBSCRIPTION_SOURCES.forum, {
+        scope: { kind: 'subjects', id: '' },
+      });
 
     const snapshot = envelopes.find(
-      (e) => e.type === 'forum-subscription-result',
+      (e) => e.type === 'subscription-result',
     );
     const titles = (
-      snapshot as unknown as { records: ForumSubjectRecord[] }
-    ).records.map((r) => r.title);
+      snapshot as unknown as { snapshot: { records: ForumSubjectRecord[] } }
+    ).snapshot.records.map((r) => r.title);
     expect(titles).toContain('Public');
     // The viewer is in no guild, so the bound subject is not theirs to see.
     expect(titles).not.toContain('Private');

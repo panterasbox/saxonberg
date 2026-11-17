@@ -27,7 +27,8 @@ import type Interactive from '../platform/idea/Interactive';
 import type CardRegistry from '../platform/idea/CardRegistry';
 import type { CardOpenOptions } from '../platform/idea/CardRegistry';
 import type { CommandContext } from './command';
-import { SecurityApi } from './security';
+import { SecurityApi, type ApiNeed } from './security';
+import { TemplatePaths } from '../lib/paths';
 import { MixinApi } from './mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { ScheduleApi, type ScheduleHandle } from './schedule';
@@ -74,6 +75,13 @@ function logic(): CardLogic {
 }
 
 export class CardApi {
+  /**
+   * ⭐ A live card's subscription is the MQL source's, opened
+   * synchronously so its first answer rides `card-opened`
+   * (navigation-server D1): the source must already stand.
+   */
+  static readonly needs: readonly ApiNeed[] = [TemplatePaths.mqlSubscriptionRegistry];
+
   private constructor() {}
 
   /**

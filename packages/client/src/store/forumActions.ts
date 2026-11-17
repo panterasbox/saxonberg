@@ -1,8 +1,8 @@
 /**
  * forumActions — the IO boundary for the forum slice, peer to
  * `reactionActions` / `consoleActions`. The store stays pure state; this
- * file wires the `forum-subscription-result` / `-delta` / `-error`
- * envelopes into store actions and offers the outbound ops.
+ * file wires the forum source's `subscription-result` / `-delta` /
+ * `-error` envelopes into store actions and offers the outbound ops.
  *
  * Writes ride the command bus as REAL command strings (the GUI builds the
  * same strings the CLI types — scriptable / aliasable / replayable). Votes
@@ -13,11 +13,14 @@
 import type {
   ForumEntryRecord,
   ForumSubjectRecord,
-  ForumSubscriptionResultEnvelope,
-  ForumSubscriptionDeltaEnvelope,
-  ForumSubscriptionErrorEnvelope,
+  ForumChange,
   ForumSubscriptionScope,
+  ForumSubscriptionSnapshot,
+  SubscriptionDeltaEnvelope,
+  SubscriptionErrorEnvelope,
+  SubscriptionResultEnvelope,
 } from "@saxonberg/types";
+import { SUBSCRIPTION_SOURCES } from "@saxonberg/types";
 import { useStore, type ForumProjectedRecord } from "./index";
 import { websocketClient } from "../services/websocket";
 
@@ -52,17 +55,26 @@ let installed = false;
 export function registerForumHandlers(): void {
   if (installed) return;
   installed = true;
-  websocketClient.onEnvelope("forum-subscription-result", (env) => {
-    const e = env as ForumSubscriptionResultEnvelope;
-    useStore.getState().applyForumResult(e.subscriptionId, e.scope, e.records);
+  // ⭐ One wire for every source (navigation-server D1): only the forum
+  // source's subscriptions are this slice's.
+  const mine = (id: string): boolean =>
+    websocketClient.sourceOf(id) === SUBSCRIPTION_SOURCES.forum;
+  websocketClient.onEnvelope("subscription-result", (env) => {
+    const e = env as SubscriptionResultEnvelope<ForumSubscriptionSnapshot>;
+    if (!mine(e.subscriptionId)) return;
+    useStore
+      .getState()
+      .applyForumResult(e.subscriptionId, e.snapshot.scope, e.snapshot.records);
   });
-  websocketClient.onEnvelope("forum-subscription-delta", (env) => {
-    const e = env as ForumSubscriptionDeltaEnvelope;
-    useStore.getState().applyForumDelta(e.subscriptionId, e.changes);
+  websocketClient.onEnvelope("subscription-delta", (env) => {
+    const e = env as SubscriptionDeltaEnvelope;
+    if (!mine(e.subscriptionId)) return;
+    useStore.getState().applyForumDelta(e.subscriptionId, e.changes as ForumChange[]);
   });
   // Errors are non-fatal for v1 — log + drop the dead subscription's cache.
-  websocketClient.onEnvelope("forum-subscription-error", (env) => {
-    const e = env as ForumSubscriptionErrorEnvelope;
+  websocketClient.onEnvelope("subscription-error", (env) => {
+    const e = env as SubscriptionErrorEnvelope;
+    if (!mine(e.subscriptionId)) return;
     console.warn(
       `forum subscription ${e.subscriptionId} error: ${e.reason}`,
       e.detail,
@@ -77,7 +89,7 @@ export function subscribeForumScope(scope: ForumSubscriptionScope): string {
 }
 
 export function unsubscribeForumScope(subscriptionId: string): void {
-  websocketClient.unsubscribeForum(subscriptionId);
+  websocketClient.unsubscribe(subscriptionId);
   useStore.getState().clearForumSubscription(subscriptionId);
 }
 

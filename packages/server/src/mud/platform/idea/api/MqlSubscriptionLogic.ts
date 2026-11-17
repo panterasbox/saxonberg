@@ -12,8 +12,6 @@ import { TemplatePaths } from '../../../lib/paths';
 import type MqlSubscriptionRegistry from '../MqlSubscriptionRegistry';
 import type {
   QueryRequest,
-  SubscribeRequest,
-  SubscriptionRecord,
 } from '../../../api/mql-subscription';
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
@@ -106,12 +104,6 @@ function resolveRegistry(): MqlSubscriptionRegistry {
 export class MqlSubscriptionLogic extends ApiLogic {
   /* ─── public surface ─── */
 
-  /** See {@link MqlSubscriptionApi.handleSubscribe}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleSubscribe(req: SubscribeRequest): SubscriptionRecord[] | null {
-    return resolveRegistry().handleSubscribe(req);
-  }
-
   /** See {@link MqlSubscriptionApi.handleQuery}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public handleQuery(
@@ -119,21 +111,6 @@ export class MqlSubscriptionLogic extends ApiLogic {
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>
   ): void {
     resolveRegistry().handleQuery(req);
-  }
-
-  /** See {@link MqlSubscriptionApi.handleUnsubscribe}. */
-  @CallSecurity(MqlSubCallers)
-  public handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string
-  ): void {
-    resolveRegistry().handleUnsubscribe(interactive, subscriptionId);
-  }
-
-  /** See {@link MqlSubscriptionApi.cancelAllForInteractive}. */
-  @CallSecurity(MqlSubCallers)
-  public cancelAllForInteractive(interactive: Interactive): void {
-    resolveRegistry().cancelAllForInteractive(interactive);
   }
 
   /** See {@link MqlSubscriptionApi.refreshForInteractive}. */
@@ -180,7 +157,9 @@ export class MqlSubscriptionLogic extends ApiLogic {
   /** See {@link MqlSubscriptionApi._clearAllForTesting}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public _clearAll(): void {
-    const reg = lookupRegistry();
-    if (reg) reg._clearAll();
+    // ⭐ Stands the registry (a suite's `StuffApi.clearAll()` has just
+    // removed it): the protocol finds a source by what stands at its
+    // path, and a suite has no row to load it from.
+    resolveRegistry()._clearAll();
   }
 }

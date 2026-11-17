@@ -1011,7 +1011,7 @@ export interface PromptEnvelope {
  * slice at the key, merged across mixins into a
  * `StuffDetailFocusRecord`. Focus mode requires `cardinality: 'one'`;
  * a `'many'` subscribe with a `detailKey` is rejected with
- * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
+ * a `subscription-error` with reason `parse`. The `fields`
  * parameter is ignored in focus mode.
  *
  * `focusDependent` / `locationDependent` install holder-level
@@ -1188,9 +1188,11 @@ export const DEFAULT_SHELF: readonly ShelfRowId[] = [
   "body",
 ];
 
-export interface MqlSubscribeMessage {
-  type: 'mql-subscribe';
-  subscriptionId: string;
+/**
+ * The MQL source's `params` on a `subscribe` ({@link SubscribeMessage}
+ * with `source: SUBSCRIPTION_SOURCES.mql`) — a standing query.
+ */
+export interface MqlSubscriptionParams {
   /**
    * ⭐⭐ **The client can no longer name a CARD at the wire level.**
    *
@@ -1700,13 +1702,8 @@ export interface CardPinnedEnvelope {
   pinned: boolean;
 }
 
-export interface MqlUnsubscribeMessage {
-  type: 'mql-unsubscribe';
-  subscriptionId: string;
-}
-
 /**
- * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
+ * One-shot MQL read. Mirrors {@link MqlSubscriptionParams} on the wire —
  * same `query` / `cardinality` / `fields` / `detailKey` fields — but
  * the substrate reuses ONLY the parse + resolve + project pipeline:
  * no registration in the per-Interactive registry, no dependency-
@@ -2087,30 +2084,11 @@ export interface StuffDetailFocusRecord {
   [key: string]: unknown;
 }
 
-export interface MqlSubscriptionResultEnvelope {
-  type: 'mql-subscription-result';
-  frameId: number;
-  subscriptionId: string;
-  /**
-   * Flat-mode subscriptions ship `StuffRefRecord | StuffDetailRecord`;
-   * focus-mode subscriptions ship `StuffDetailFocusRecord`. Same
-   * envelope shape carries both.
-   */
-  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
-}
+/** One record a live MQL subscription carries — flat or focus mode. */
+export type MqlRecord = StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord;
 
-export interface Change {
-  op: 'replace' | 'update' | 'add' | 'remove';
-  key: string;
-  fields?: Partial<StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord>;
-}
-
-export interface MqlSubscriptionDeltaEnvelope {
-  type: 'mql-subscription-delta';
-  frameId: number;
-  subscriptionId: string;
-  changes: Change[];
-}
+/** A change the MQL source pushes — the protocol's change, its fields a partial record. */
+export type Change = SubscriptionChange<Partial<MqlRecord>>;
 
 export type MqlSubscriptionErrorReason =
   | 'parse'
@@ -2118,17 +2096,9 @@ export type MqlSubscriptionErrorReason =
   | 'permission'
   | 'closed';
 
-export interface MqlSubscriptionErrorEnvelope {
-  type: 'mql-subscription-error';
-  frameId: number;
-  subscriptionId: string;
-  reason: MqlSubscriptionErrorReason;
-  detail?: string;
-}
-
 /**
  * One-shot query result. Mirrors
- * {@link MqlSubscriptionResultEnvelope} but correlates to a
+ * the MQL source's `subscription-result` but correlates to a
  * {@link MqlQueryMessage} via `queryId` instead of
  * `subscriptionId`. The wire shape of the projected records is
  * identical — flat-mode queries ship `StuffRefRecord | StuffDetailRecord`,
@@ -2322,15 +2292,9 @@ export interface ForumEntryRecord {
   inCircle?: boolean;
 }
 
-export interface ForumSubscribeMessage {
-  type: 'forum-subscribe';
-  subscriptionId: string;
+/** The forum source's `params` on a `subscribe`. */
+export interface ForumSubscriptionParams {
   scope: ForumSubscriptionScope;
-}
-
-export interface ForumUnsubscribeMessage {
-  type: 'forum-unsubscribe';
-  subscriptionId: string;
 }
 
 /**
@@ -2340,10 +2304,7 @@ export interface ForumUnsubscribeMessage {
  * its own scope — it asked for it — so a tag here would be a second copy
  * of a fact that cannot get out of step.
  */
-export interface ForumSubscriptionResultEnvelope {
-  type: 'forum-subscription-result';
-  frameId: number;
-  subscriptionId: string;
+export interface ForumSubscriptionSnapshot {
   scope: ForumSubscriptionScope;
   records: (ForumEntryRecord | ForumSubjectRecord)[];
 }
@@ -2355,21 +2316,96 @@ export interface ForumChange {
   fields?: ForumEntryRecord | ForumSubjectRecord;
 }
 
-export interface ForumSubscriptionDeltaEnvelope {
-  type: 'forum-subscription-delta';
-  frameId: number;
-  subscriptionId: string;
-  changes: ForumChange[];
-}
-
 export type ForumSubscriptionErrorReason = 'parse' | 'resolve' | 'closed';
 
-export interface ForumSubscriptionErrorEnvelope {
-  type: 'forum-subscription-error';
+// ============================================================================
+// ⭐⭐ The subscription protocol — ONE wire for every state push
+// ============================================================================
+
+/**
+ * ⭐⭐ Where each subscription source lives — its template path. A source
+ * is named on the wire by its path and loaded on use; there is no list
+ * the server keeps (navigation-server D1). These are the engine's own.
+ */
+export const SUBSCRIPTION_SOURCES = {
+  mql: '/platform/idea/MqlSubscriptionRegistry',
+  forum: '/platform/idea/ForumSubscriptionRegistry',
+} as const;
+
+/**
+ * Client → server: keep `source`'s answer for `params` current under
+ * `subscriptionId`. Answered by a {@link SubscriptionResultEnvelope}
+ * (the snapshot, `rev` 0) or a {@link SubscriptionErrorEnvelope}.
+ */
+export interface SubscribeMessage {
+  type: 'subscribe';
+  subscriptionId: string;
+  source: string;
+  params?: unknown;
+}
+
+/** Client → server: stop. */
+export interface UnsubscribeMessage {
+  type: 'unsubscribe';
+  subscriptionId: string;
+}
+
+/** One keyed change to a subscription's copy. */
+export interface SubscriptionChange<F = unknown> {
+  op: 'add' | 'replace' | 'update' | 'remove';
+  key: string;
+  fields?: F;
+}
+
+/**
+ * The snapshot. `rev` is 0; each delta after it is `rev + 1`. A break in
+ * `rev` is a defect, never a repair path: repair is always to subscribe
+ * again (a gap, a reconnect, a restart).
+ */
+export interface SubscriptionResultEnvelope<S = unknown> {
+  type: 'subscription-result';
   frameId: number;
   subscriptionId: string;
-  reason: ForumSubscriptionErrorReason;
+  rev: number;
+  snapshot: S;
+}
+
+export interface SubscriptionDeltaEnvelope<F = unknown> {
+  type: 'subscription-delta';
+  frameId: number;
+  subscriptionId: string;
+  rev: number;
+  changes: SubscriptionChange<F>[];
+}
+
+/**
+ * The subscription is refused or ended. `reason` is the source's word —
+ * `source` (no such source), `duplicate` (the id is in use), and each
+ * source's own (`parse`, `resolve`, `permission`, `closed`).
+ */
+export interface SubscriptionErrorEnvelope {
+  type: 'subscription-error';
+  frameId: number;
+  subscriptionId: string;
+  reason: string;
   detail?: string;
+}
+
+/**
+ * ⭐ Each source's shapes, by path — so the client and the harness narrow
+ * on the source they asked for.
+ */
+export interface SubscriptionSources {
+  '/platform/idea/MqlSubscriptionRegistry': {
+    params: MqlSubscriptionParams;
+    snapshot: MqlRecord[];
+    fields: Partial<MqlRecord>;
+  };
+  '/platform/idea/ForumSubscriptionRegistry': {
+    params: ForumSubscriptionParams;
+    snapshot: ForumSubscriptionSnapshot;
+    fields: ForumEntryRecord | ForumSubjectRecord;
+  };
 }
 
 // ============================================================================
@@ -2771,14 +2807,11 @@ export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
   | PromptEnvelope
-  | MqlSubscriptionResultEnvelope
-  | MqlSubscriptionDeltaEnvelope
-  | MqlSubscriptionErrorEnvelope
+  | SubscriptionResultEnvelope
+  | SubscriptionDeltaEnvelope
+  | SubscriptionErrorEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
-  | ForumSubscriptionResultEnvelope
-  | ForumSubscriptionDeltaEnvelope
-  | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | AffordanceResultEnvelope
@@ -2801,14 +2834,11 @@ export type EnvelopeTemplate =
   | Omit<DispatchResponseEnvelope, 'frameId'>
   | Omit<ActivityUpdateEnvelope, 'frameId'>
   | Omit<PromptEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<SubscriptionResultEnvelope, 'frameId'>
+  | Omit<SubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<SubscriptionErrorEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<AffordanceResultEnvelope, 'frameId'>

@@ -36,28 +36,19 @@ export type InboundHandler = (
 
 import { handlePing } from './ping';
 import { handleCommand } from './command';
-import {
-  handleMqlSubscribe,
-  handleMqlUnsubscribe,
-  handleMqlQuery,
-} from './mql';
+import { handleMqlQuery } from './mql';
+import { handleSubscribe, handleUnsubscribe } from './subscription';
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
 import { handleAffordanceResolve } from './affordance';
-import {
-  handleForumSubscribe,
-  handleForumUnsubscribe,
-} from './forumSubscription';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
   command: handleCommand,
-  'mql-subscribe': handleMqlSubscribe,
-  'mql-unsubscribe': handleMqlUnsubscribe,
+  subscribe: handleSubscribe,
+  unsubscribe: handleUnsubscribe,
   'mql-query': handleMqlQuery,
-  'forum-subscribe': handleForumSubscribe,
-  'forum-unsubscribe': handleForumUnsubscribe,
   'prompt-response': handlePromptResponse,
   'prompt-cancel': handlePromptCancel,
   'client-state-write': handleClientStateWrite,

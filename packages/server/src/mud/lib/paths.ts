@@ -53,6 +53,7 @@ export const TemplatePaths = {
   worldClockRegistry: "/platform/idea/WorldClockRegistry",
   mqlSubscriptionRegistry: "/platform/idea/MqlSubscriptionRegistry",
   forumSubscriptionRegistry: "/platform/idea/ForumSubscriptionRegistry",
+  subscriptionRegistry: "/platform/idea/SubscriptionRegistry",
   reactionRegistry: "/platform/idea/ReactionRegistry",
   /** The wiki's page/revision state + mutations (docs/subsystems/wiki.md). */
   wikiRegistry: "/platform/idea/WikiRegistry",

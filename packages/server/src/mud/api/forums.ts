@@ -63,11 +63,6 @@ export interface MakeForumOptions extends MakeSubjectOptions {
 
 /** The typed edges legal for the `'argument'` organizer (pro/con/neutral). */
 export type ArgumentRelation = 'supports' | 'objects-to' | 'responds-to';
-import ForumSubscriptionRegistry, {
-  type ForumSubscribeRequest,
-} from '../platform/idea/ForumSubscriptionRegistry';
-import { TemplatePaths } from '../lib/paths';
-import type Interactive from '../platform/idea/Interactive';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -84,23 +79,6 @@ function logic(): ForumsLogic {
         LOGIC_CLASS_FILE,
         'ForumsLogic',
       ) as typeof ForumsLogic | null) ?? ForumsLogic)(),
-  );
-}
-
-const REGISTRY_PATH = TemplatePaths.forumSubscriptionRegistry;
-const REGISTRY_CLASS_FILE = fileURLToPath(
-  new URL('../platform/idea/ForumSubscriptionRegistry', import.meta.url),
-);
-
-function subscriptions(): ForumSubscriptionRegistry {
-  return StuffApi.singletonSync(
-    REGISTRY_PATH,
-    () =>
-      new ((HotReloadApi.getCurrentExport(
-        REGISTRY_CLASS_FILE,
-        'default',
-      ) as typeof ForumSubscriptionRegistry | null) ??
-        ForumSubscriptionRegistry)(),
   );
 }
 
@@ -157,16 +135,6 @@ export class ForumsApi {
   static async displayScoreFor(entry: Entry): Promise<number | null> {
     return logic().displayScoreFor(entry);
   }
-
-  /* ─── Live subscriptions (the forum document-change observer) ───
-   * Forwards to the ForumSubscriptionRegistry singleton, mirroring
-   * MqlSubscriptionApi. Consumed by the `forum-subscribe` /
-   * `forum-unsubscribe` inbound handlers and the disconnect teardown. */
-
-  static handleSubscribe(req: ForumSubscribeRequest): Promise<void> {
-    return subscriptions().handleSubscribe(req);
-  }
-
 }
 
 SecurityApi.decorateApiClass(ForumsApi);

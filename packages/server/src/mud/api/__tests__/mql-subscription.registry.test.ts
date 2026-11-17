@@ -16,6 +16,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SubscriptionApi } from '../subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -52,48 +54,40 @@ describe('MqlSubscriptionApi — registry surface', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     avatar.setName('Alice');
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 
   it('duplicate subscriptionId is rejected with no second registration', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 
   it('handleUnsubscribe drops the subscription and silently no-ops on unknown ids', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    interactive.cancelMqlSubscription('s-nope');
+    interactive.cancelSubscription('s-nope');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    interactive.cancelMqlSubscription('s1');
+    interactive.cancelSubscription('s1');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -101,20 +95,16 @@ describe('MqlSubscriptionApi — registry surface', () => {
   it('cancelAllForInteractive removes every subscription for that interactive', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's2',
-      query: 'me',
-      cardinality: 'one',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    interactive.subscribe('s2', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
-    interactive.cancelAllMqlSubscriptions();
+    interactive.cancelAllSubscriptions();
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -122,13 +112,11 @@ describe('MqlSubscriptionApi — registry surface', () => {
   it('detailKey with cardinality: many is rejected without registering', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-bad',
-      query: 'me',
-      cardinality: 'many',
-      detailKey: 'foo',
-    });
+    interactive.subscribe('s-bad', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'many',
+    detailKey: 'foo',
+  });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 });

@@ -29,13 +29,16 @@ import type {
   StuffDetailFocusRecord,
   Change,
   MqlSubscriptionErrorReason,
-  MqlSubscriptionResultEnvelope,
-  MqlSubscriptionDeltaEnvelope,
-  MqlSubscriptionErrorEnvelope,
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
 } from '@saxonberg/types';
 import { Idea } from '../../lib/stuff/Idea';
+import {
+  SubscriptionSourceMixin,
+  type Subscription as LiveSubscription,
+  type SubscriptionRefusal,
+} from '../../lib/subscription/SubscriptionSource';
+import { SHELF_SUBSCRIPTION } from '../../lib/connection/Cards';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -74,6 +77,9 @@ import {
  * `/platform/idea/api/mql-subscription`, which actually forwards every
  * registry-backed call), and internal `this.foo()` self-calls.
  */
+/** The protocol's registry is the only caller of a source's three methods. */
+const SubscriptionSourceCallers = SecurityPolicies.FromModule('/platform/idea/SubscriptionRegistry');
+
 const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
   SecurityPolicies.FromTemplate('/platform/idea/api/mql-subscription'),
@@ -90,6 +96,8 @@ const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
 const DURABLE_SUBJECT_KIND = '__durable-subject';
 
 interface SubscriptionState {
+  /** The protocol's handle — deltas and errors go out through it. */
+  handle: LiveSubscription;
   interactive: Interactive;
   subscriptionId: string;
   query: string;
@@ -244,7 +252,7 @@ const DRAIN_SLICE_MS = 20;
 /** How long a backlogged drain rests, as a multiple of the slice it just ran. */
 const DRAIN_REST_FACTOR = 2;
 
-export default class MqlSubscriptionRegistry extends Idea {
+export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Idea) {
   /**
    * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
    *
@@ -283,91 +291,56 @@ export default class MqlSubscriptionRegistry extends Idea {
   /* ─── public surface ─── */
 
   /**
-   * Register a live subscription and return its first resolve.
+   * ⭐ The MQL source's open (navigation-server D1): register a live
+   * subscription and answer its first resolve, or refuse in a word.
    *
-   * ⭐ **The card catalogue left this method.** A subscription used to
-   * be able to name a card, and the server described it from
-   * `Cards.ts`. Cards are now their own substrate with their own birth
-   * path, so what remains here is the plain shape: a caller-supplied
-   * query, cardinality and field set.
-   *
-   * ⚠ Returns the initial records rather than only emitting them, and
-   * skips the initial envelope entirely when `silent`. A LIVE card owns
-   * its subscription handle and carries the first resolve on its own
-   * `card-opened`; emitting a second envelope for one open is how a
-   * card ends up briefly showing nothing. Returns `null` when the
-   * subscribe failed (the error envelope has already gone out).
+   * `params` is the wire's {@link MqlSubscriptionParams}; a server-side
+   * opener (a live card) adds `subjectId`. `chrome: 'self'` is the one
+   * standing query the client opens for itself — the widget shelf — and
+   * its whole shape comes from the server's own catalogue: the client
+   * cannot name a CARD, because the params have no field that would say
+   * which.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleSubscribe(req: SubscribeRequest): RecordValue[] | null {
-    const { interactive, subscriptionId } = req;
+  @CallSecurity(SubscriptionSourceCallers)
+  public override openSubscription(
+    handle: LiveSubscription,
+    raw: unknown,
+  ): RecordValue[] | SubscriptionRefusal {
+    const req = (typeof raw === 'object' && raw !== null ? raw : {}) as SubscribeRequest;
+    const interactive = handle.interactive;
+    const subscriptionId = handle.id;
+    const refuse = (reason: MqlSubscriptionErrorReason, detail: string): SubscriptionRefusal =>
+      ({ refused: true, reason, detail });
 
-    const perInteractive = this.registry.get(interactive);
-    if (perInteractive && perInteractive.has(subscriptionId)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'duplicate subscriptionId',
-      );
-      return null;
-    }
-
-    const rawQuery = req.query;
-    const rawCardinality = req.cardinality;
-    if (typeof rawQuery !== 'string') {
-      this.emitError(interactive, subscriptionId, 'parse', 'query required');
-      return null;
-    }
+    const shelf = req.chrome === 'self' ? SHELF_SUBSCRIPTION : null;
+    const rawQuery = shelf ? shelf.query : req.query;
+    const rawCardinality = shelf ? shelf.cardinality : req.cardinality;
+    if (typeof rawQuery !== 'string') return refuse('parse', 'query required');
     if (rawCardinality !== 'one' && rawCardinality !== 'many') {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'cardinality required',
-      );
-      return null;
+      return refuse('parse', 'cardinality required');
     }
     const query = rawQuery;
     const cardinality = rawCardinality;
-    const fields = resolveFieldSet(req.fields);
-    const detailKey = req.detailKey;
-    const focusDependent = req.focusDependent === true;
-    const locationDependent = req.locationDependent === true;
+    const fields = resolveFieldSet(shelf ? shelf.fields : req.fields);
+    const detailKey = shelf ? undefined : req.detailKey;
+    const focusDependent = !shelf && req.focusDependent === true;
+    const locationDependent = !shelf && req.locationDependent === true;
 
     if (detailKey !== undefined && cardinality !== 'one') {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'detailKey requires cardinality one',
-      );
-      return null;
+      return refuse('parse', 'detailKey requires cardinality one');
     }
 
     const holder = interactive.getHolder();
     if (!holder || !MixinApi.isCommandGiver(holder)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'permission',
-        'subscription holder must compose CommandGiver',
-      );
-      return null;
+      return refuse('permission', 'subscription holder must compose CommandGiver');
     }
     if (!MixinApi.isSensor(holder)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'permission',
-        'subscription holder must compose Sensor',
-      );
-      return null;
+      return refuse('permission', 'subscription holder must compose Sensor');
     }
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
-    const subjectId = req.subjectId;
+    const subjectId = shelf ? undefined : req.subjectId;
     let stuffList: Stuff[];
     try {
       stuffList = subjectId
@@ -376,13 +349,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'parse';
-      this.emitError(
-        interactive,
-        subscriptionId,
-        reason,
-        err instanceof Error ? err.message : String(err),
-      );
-      return null;
+      return refuse(reason, err instanceof Error ? err.message : String(err));
     }
 
     // ⭐ One light walk per place for the whole projection (a vision gate
@@ -400,6 +367,7 @@ export default class MqlSubscriptionRegistry extends Idea {
 
     const registrantScope = ExecutionContextApi.getCircleScope();
     const sub: SubscriptionState = {
+      handle,
       interactive,
       subscriptionId,
       query,
@@ -422,17 +390,25 @@ export default class MqlSubscriptionRegistry extends Idea {
       this.registry.set(interactive, bucket);
     }
     bucket.set(subscriptionId, sub);
+    handle.state = sub;
+    return [...lastResult.values()];
+  }
 
-    const result = [...lastResult.values()];
-    if (req.silent !== true) {
-      const template: Omit<MqlSubscriptionResultEnvelope, 'frameId'> = {
-        type: 'mql-subscription-result',
-        subscriptionId,
-        result,
-      };
-      viewer.onEnvelope(template);
-    }
-    return result;
+  /**
+   * The subscriber is gone (unsubscribe, disconnect, a failed open):
+   * its dependency index entries and listeners go with it.
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override closeSubscription(handle: LiveSubscription): void {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return;
+    this.forget(sub);
+  }
+
+  /** ⭐ The MQL source wakes itself — its event index marks what changed. */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override pokeSubscriptions(_holder: Stuff, _hint?: unknown): void {
+    // its dependency index is the poke
   }
 
   @CallSecurity(MqlSubscriptionApiCallers)
@@ -531,30 +507,6 @@ export default class MqlSubscriptionRegistry extends Idea {
     viewer.onEnvelope(template);
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string,
-  ): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    const sub = bucket.get(subscriptionId);
-    if (!sub) return;
-    this.teardownSubscription(sub);
-    bucket.delete(subscriptionId);
-    if (bucket.size === 0) this.registry.delete(interactive);
-  }
-
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public cancelAllForInteractive(interactive: Interactive): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    for (const sub of bucket.values()) {
-      this.teardownSubscription(sub);
-    }
-    this.registry.delete(interactive);
-  }
-
   /**
    * Re-resolve every subscription this Interactive holds, right now.
    *
@@ -602,6 +554,7 @@ export default class MqlSubscriptionRegistry extends Idea {
         if (sub.birthScope !== scope) continue;
         this.teardownSubscription(sub);
         bucket.delete(subscriptionId);
+        sub.handle.end();
         cancelled++;
       }
       if (bucket.size === 0) this.registry.delete(interactive);
@@ -898,9 +851,8 @@ export default class MqlSubscriptionRegistry extends Idea {
       !MixinApi.isCommandGiver(holder) ||
       !MixinApi.isSensor(holder)
     ) {
-      this.teardownSubscription(sub);
-      bucket.delete(sub.subscriptionId);
-      if (bucket.size === 0) this.registry.delete(sub.interactive);
+      this.forget(sub);
+      sub.handle.end();
       return;
     }
     const giver = holder as Stuff & CommandGiver;
@@ -914,15 +866,9 @@ export default class MqlSubscriptionRegistry extends Idea {
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
           err instanceof MqlPermissionError ? 'permission' : 'resolve';
-        this.emitError(
-          sub.interactive,
-          sub.subscriptionId,
-          reason,
-          err instanceof Error ? err.message : String(err),
-        );
-        this.teardownSubscription(sub);
-        bucket.delete(sub.subscriptionId);
-        if (bucket.size === 0) this.registry.delete(sub.interactive);
+        // The handle's fail sends the error and closes it — which comes
+        // back here as `closeSubscription` and forgets the state.
+        sub.handle.fail(reason, err instanceof Error ? err.message : String(err));
         return;
       }
 
@@ -952,13 +898,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     this.deriveAndInstallDependencies(sub, stuffList);
 
     if (changes.length === 0) return;
-
-    const template: Omit<MqlSubscriptionDeltaEnvelope, 'frameId'> = {
-      type: 'mql-subscription-delta',
-      subscriptionId: sub.subscriptionId,
-      changes,
-    };
-    viewer.onEnvelope(template);
+    sub.handle.push(changes);
   }
 
   private diff(
@@ -1067,26 +1007,13 @@ export default class MqlSubscriptionRegistry extends Idea {
     this.dirty.delete(sub);
   }
 
-  private emitError(
-    interactive: Interactive,
-    subscriptionId: string,
-    reason: MqlSubscriptionErrorReason,
-    detail?: string,
-  ): void {
-    const holder = interactive.getHolder();
-    const template: Omit<MqlSubscriptionErrorEnvelope, 'frameId'> = {
-      type: 'mql-subscription-error',
-      subscriptionId,
-      reason,
-      ...(detail !== undefined ? { detail } : {}),
-    };
-    if (holder && MixinApi.isSensor(holder)) {
-      (holder as Stuff & Sensor).onEnvelope(template);
-    } else {
-      console.warn(
-        `MqlSubscriptionApi: cannot deliver error envelope (no Sensor holder); ` +
-          `subscriptionId=${subscriptionId} reason=${reason}`,
-      );
+  /** Drop a subscription's state from this source's own index. */
+  private forget(sub: SubscriptionState): void {
+    this.teardownSubscription(sub);
+    const bucket = this.registry.get(sub.interactive);
+    if (bucket?.get(sub.subscriptionId) === sub) {
+      bucket.delete(sub.subscriptionId);
+      if (bucket.size === 0) this.registry.delete(sub.interactive);
     }
   }
 

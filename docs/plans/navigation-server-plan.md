@@ -931,7 +931,32 @@ the Hesper's helm gives the reckoning to her master and refuses a
 passenger; with the `map` card open aboard, the card's jurisdiction is the
 port. **Commit:** `feat(navigation): retire locate; the jurisdiction aboard is government's`.
 
-### W1 — One subscription protocol; MQL and forums move onto it
+### W1 — One subscription protocol; MQL and forums move onto it (first commit ✅)
+
+> **MQL + forums done.** Decisions the build made:
+> - **The session's verbs live on `Interactive`** (`subscribe`,
+>   `cancelSubscription`, `cancelAllSubscriptions`, `hasSubscription`), not on
+>   `SubscriptionApi`: `lint:object-verbs` refuses an Api static whose first
+>   parameter is a world object. `SubscriptionApi` keeps `poke` (and a test
+>   count). `SubscriptionRegistry` admits the Api and `Interactive`.
+> - **Delivery is per SESSION** (`interactive.sendEnvelope`), not
+>   `holder.onEnvelope` (every session of the body): a second session must
+>   never see another's `rev`s. Test capture moved to the session.
+> - **A source's open may be sync**: a live card opens synchronously and
+>   needs the MQL source standing, so `CardApi.needs` names it (stood at boot).
+>   A suite stands it through `MqlSubscriptionApi._clearAllForTesting()`.
+> - Each source keeps its own internal index (MQL's dependency index and
+>   `cancelAllForScope`, the forum's board/thread index); the registry's table
+>   is the protocol's, the source's is what the subscription MEANS.
+>   `sub.end()` is the source closing quietly (holder gone, a circle reaped);
+>   `sub.fail()` sends the error and closes.
+> - Error reasons: `duplicate` and `source` are the registry's; the rest
+>   (`parse`, `resolve`, `permission`, `closed`) are each source's own.
+> - Risk 16 resolved: `StuffApi.classForRef` reads a row's class (loads the
+>   module, instantiates nothing).
+> - The client keeps `subscribeMql` / `subscribeForum` as the two shipped
+>   sources' typed doors onto one `subscribe(source, params)`;
+>   `unsubscribeForum` is gone (one `unsubscribe`).
 
 D1 (the protocol and the migration only — **no new source yet**).
 

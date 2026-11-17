@@ -52,6 +52,7 @@ import type {
   ArrangementCard,
   TerminalFilter,
 } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
@@ -77,6 +78,7 @@ import {
   MqlSubscriptionApi,
   resolveFieldSet,
 } from '../../api/mql-subscription';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * Admits the Api facade, the `CardLogic` singleton — by template path
@@ -1234,18 +1236,25 @@ export default class CardRegistry extends CardRegistryBase {
      * asker on every wake, so a room card on `here` follows you out of
      * the room and silently becomes a different room's card.
      */
-    const initial = MqlSubscriptionApi.handleSubscribe({
-      interactive: state.interactive,
-      subscriptionId: state.instanceId,
-      query: def.source.query,
-      cardinality: def.source.cardinality,
-      fields: def.source.fields,
-      ...(def.source.needsSubject === true && state.subjectId
-        ? { subjectId: state.subjectId }
-        : {}),
-      silent: true,
-    });
-    if (initial === null) return false;
+    // ⭐ The card's instanceId IS the subscription id, on the one
+    // protocol (navigation-server D1): the snapshot rides `card-opened`
+    // (silent), its changes ride `subscription-delta`.
+    const opened = state.interactive.subscribe(state.instanceId,
+      SUBSCRIPTION_SOURCES.mql,
+      {
+        query: def.source.query,
+        cardinality: def.source.cardinality,
+        fields: def.source.fields,
+        ...(def.source.needsSubject === true && state.subjectId
+          ? { subjectId: state.subjectId }
+          : {}),
+      },
+      { silent: true },
+    );
+    // The MQL source stands and answers synchronously; a promise here
+    // means it did not stand, which a live card cannot wait on.
+    if (opened === null || !Array.isArray(opened)) return false;
+    const initial = opened as CardRecord[];
     state.live = true;
     delete state.takenAt;
     state.records = initial as CardRecord[];
@@ -1281,7 +1290,7 @@ export default class CardRegistry extends CardRegistryBase {
       holder.onEnvelope(template);
       return;
     }
-    state.interactive.cancelMqlSubscription(state.instanceId);
+    state.interactive.cancelSubscription(state.instanceId);
     state.live = false;
     state.takenAt = Date.now();
     if (!holder) return;
@@ -1303,7 +1312,7 @@ export default class CardRegistry extends CardRegistryBase {
    */
   private rebind(state: CardState, opts: CardOpenOptions): void {
     const holder = this.viewerOf(state.interactive);
-    if (state.live) state.interactive.cancelMqlSubscription(state.instanceId);
+    if (state.live) state.interactive.cancelSubscription(state.instanceId);
     state.live = false;
     if (opts.subjectId) state.subjectId = opts.subjectId;
     if (opts.prose && holder) state.prose = opts.prose.toString(holder);
@@ -1539,7 +1548,7 @@ export default class CardRegistry extends CardRegistryBase {
   private teardown(state: CardState): void {
     // ⚠ Only a card that holds a subscription has one to give up.
     if (!state.live) return;
-    state.interactive.cancelMqlSubscription(state.instanceId);
+    state.interactive.cancelSubscription(state.instanceId);
   }
 
   /**

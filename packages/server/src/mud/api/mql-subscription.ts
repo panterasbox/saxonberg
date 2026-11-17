@@ -31,6 +31,7 @@ import type {
   StuffDetailRecord,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
+  MqlSubscriptionParams,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -198,15 +199,13 @@ export type SubscriptionRecord =
   | (StuffDetailRecord & Record<string, unknown>)
   | (StuffDetailFocusRecord & Record<string, unknown>);
 
-export interface SubscribeRequest {
-  interactive: Interactive;
-  subscriptionId: string;
-  query?: string;
-  cardinality?: SubscriptionCardinality;
+/**
+ * ⭐ What the MQL source is opened with (navigation-server D1): the wire's
+ * {@link MqlSubscriptionParams}, plus `subjectId` — which only a
+ * server-side opener (a live card) supplies.
+ */
+export interface SubscribeRequest extends Omit<MqlSubscriptionParams, 'fields'> {
   fields?: FieldSet | FieldAlias;
-  detailKey?: string;
-  focusDependent?: boolean;
-  locationDependent?: boolean;
   /**
    * ⭐⭐ **Bind this subscription to ONE Stuff, by id, instead of a
    * query.**
@@ -230,17 +229,6 @@ export interface SubscribeRequest {
    * subscriber is told it went.
    */
   subjectId?: string;
-  /**
-   * ⭐ Register and resolve, but do NOT emit the initial result
-   * envelope — return the records to the caller instead.
-   *
-   * A LIVE card owns its subscription handle (`instanceId ===
-   * subscriptionId`) and carries the first resolve on its own
-   * `card-opened`; emitting a second envelope for one open is how a card
-   * ends up briefly showing nothing while the client reconciles two
-   * shapes for the same content.
-   */
-  silent?: true;
 }
 
 export interface QueryRequest {
@@ -340,17 +328,6 @@ export class MqlSubscriptionApi {
       out[name] = value;
     }
     return out;
-  }
-
-  /**
-   * Register a live subscription; returns its first resolve, or `null`
-   * when the subscribe failed (the error envelope has already gone
-   * out). See {@link SubscribeRequest.silent}.
-   */
-  public static handleSubscribe(
-    req: SubscribeRequest,
-  ): SubscriptionRecord[] | null {
-    return logic().handleSubscribe(req);
   }
 
   public static handleQuery(

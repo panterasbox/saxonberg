@@ -14,6 +14,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SubscriptionApi } from '../subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -47,7 +49,7 @@ async function makeAvatarInteractive(): Promise<{
  */
 function captureEnvelopes(avatar: Avatar): Array<{ type: string; [k: string]: unknown }> {
   const collected: Array<{ type: string; [k: string]: unknown }> = [];
-  vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+  vi.spyOn(Interactive.prototype, 'sendEnvelope').mockImplementation((tpl) => {
     collected.push(tpl as unknown as { type: string });
   });
   return collected;
@@ -65,24 +67,20 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    const errors = envelopes.filter((e) => e.type === 'mql-subscription-error');
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]).toMatchObject({
-      type: 'mql-subscription-error',
+      type: 'subscription-error',
       subscriptionId: 's1',
-      reason: 'parse',
+      reason: 'duplicate',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
@@ -91,14 +89,12 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-bad',
-      query: 'me',
-      cardinality: 'many',
-      detailKey: 'foo',
-    });
-    const errors = envelopes.filter((e) => e.type === 'mql-subscription-error');
+    interactive.subscribe('s-bad', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'many',
+    detailKey: 'foo',
+  });
+    const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]!.reason).toBe('parse');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
@@ -113,13 +109,11 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-world',
-      query: 'world:[mixin.NamedMixin]',
-      cardinality: 'many',
-    });
-    const errors = envelopes.filter((e) => e.type === 'mql-subscription-error');
+    interactive.subscribe('s-world', SUBSCRIPTION_SOURCES.mql, {
+    query: 'world:[mixin.NamedMixin]',
+    cardinality: 'many',
+  });
+    const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]).toMatchObject({
       subscriptionId: 's-world',
@@ -132,13 +126,11 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's2',
-      query: ':::',
-      cardinality: 'one',
-    });
-    const errors = envelopes.filter((e) => e.type === 'mql-subscription-error');
+    interactive.subscribe('s2', SUBSCRIPTION_SOURCES.mql, {
+    query: ':::',
+    cardinality: 'one',
+  });
+    const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors.length).toBeGreaterThan(0);
     expect(['parse', 'resolve']).toContain(errors[0]!.reason);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);

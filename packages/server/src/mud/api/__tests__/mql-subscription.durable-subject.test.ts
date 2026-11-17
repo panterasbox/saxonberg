@@ -32,6 +32,8 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
+import { SubscriptionApi } from '../subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const SUBJECT = '/platform/agent/Avatar/tester';
 
@@ -61,9 +63,7 @@ async function subscribedInteractive(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
   );
   interactive.transferTo(avatar);
-  MqlSubscriptionApi.handleSubscribe({
-    interactive,
-    subscriptionId: 's1',
+  interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
     query: 'me',
     cardinality: 'one',
     // The standing figures — the fields that carry a durableKey.
@@ -138,7 +138,7 @@ describe('durable-subject witness', () => {
 
   it('a torn-down subscription stops receiving pokes', async () => {
     const interactive = await subscribedInteractive(SUBJECT);
-    interactive.cancelMqlSubscription('s1');
+    interactive.cancelSubscription('s1');
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);

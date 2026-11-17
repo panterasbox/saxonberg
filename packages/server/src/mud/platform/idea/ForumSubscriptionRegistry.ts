@@ -49,19 +49,19 @@ import type {
   SubjectAudience,
   SubjectSurfaceName,
   ForumChange,
-  ForumSubscriptionResultEnvelope,
-  ForumSubscriptionDeltaEnvelope,
-  ForumSubscriptionErrorEnvelope,
   ForumSubscriptionErrorReason,
+  ForumSubscriptionParams,
+  ForumSubscriptionSnapshot,
 } from '@saxonberg/types';
+import { FORUM_SCOPE_KINDS } from '@saxonberg/types';
+import {
+  SubscriptionSourceMixin,
+  type Subscription as LiveSubscription,
+  type SubscriptionRefusal,
+} from '../../lib/subscription/SubscriptionSource';
 
-const ForumSubscriptionApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi',
-);
-/** The Interactive teardown surface (Phase F2) calls in as the instance. */
-const ForumSubscriptionCallers = SecurityPolicies.AnyOf(
-  ForumSubscriptionApiCallers,
-  SecurityPolicies.FromModule('/platform/idea/Interactive'),
-);
+/** The protocol's registry is the only caller of a source's three methods. */
+const SubscriptionSourceCallers = SecurityPolicies.FromModule('/platform/idea/SubscriptionRegistry');
 
 /**
  * What a scope projects to. Discriminated by the scope's own `kind`, not
@@ -72,20 +72,15 @@ type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 
 /** A live forum subscription's server-side state. */
 interface ForumSubState {
+  /** The protocol's handle — deltas go out through it. */
+  handle: LiveSubscription;
   interactive: Interactive;
   subscriptionId: string;
   scope: ForumSubscriptionScope;
   lastResult: Map<string, ForumProjectedRecord>;
 }
 
-/** The subscribe request the Api forwards in. */
-export interface ForumSubscribeRequest {
-  interactive: Interactive;
-  subscriptionId: string;
-  scope: ForumSubscriptionScope;
-}
-
-export default class ForumSubscriptionRegistry extends Idea {
+export default class ForumSubscriptionRegistry extends SubscriptionSourceMixin(Idea) {
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is
@@ -108,63 +103,55 @@ export default class ForumSubscriptionRegistry extends Idea {
 
   /* ─── public surface (gated) ─── */
 
-  /** See {@link ForumsApi.handleSubscribe}. */
-  @CallSecurity(ForumSubscriptionApiCallers)
-  public async handleSubscribe(req: ForumSubscribeRequest): Promise<void> {
-    const { interactive, subscriptionId, scope } = req;
-    const perInteractive = this.registry.get(interactive);
-    if (perInteractive && perInteractive.has(subscriptionId)) {
-      this.emitError(interactive, subscriptionId, 'parse', 'duplicate subscriptionId');
-      return;
-    }
+  /**
+   * ⭐ The forum source's open (navigation-server D1): `params` is
+   * `{ scope }`; answers `{ scope, records }` with the scope made
+   * canonical, or refuses in a word.
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override async openSubscription(
+    handle: LiveSubscription,
+    raw: unknown,
+  ): Promise<ForumSubscriptionSnapshot | SubscriptionRefusal> {
+    const interactive = handle.interactive;
+    const subscriptionId = handle.id;
+    const refuse = (reason: ForumSubscriptionErrorReason, detail: string): SubscriptionRefusal =>
+      ({ refused: true, reason, detail });
+    const scope = (raw as Partial<ForumSubscriptionParams> | null | undefined)?.scope;
+    /*
+     * ⚠⚠ The scope vocabulary is checked against the TYPE's own list: a
+     * second literal copy of it once dropped a new kind on the floor in
+     * silence (the rail said "no subjects you can see yet").
+     */
     const validScope =
-      scope &&
+      !!scope &&
+      typeof scope.id === 'string' &&
+      (FORUM_SCOPE_KINDS as readonly string[]).includes(scope.kind) &&
       ((scope.kind === 'index' || scope.kind === 'subjects') ||
         ((scope.kind === 'board' || scope.kind === 'thread') && !!scope.id));
-    if (!validScope) {
-      this.emitError(interactive, subscriptionId, 'parse', 'scope required');
-      return;
-    }
+    if (!validScope) return refuse('parse', 'scope required');
     const viewer = this.viewerOf(interactive);
-    if (!viewer) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'subscription holder must compose Sensor',
-      );
-      return;
-    }
+    if (!viewer) return refuse('parse', 'subscription holder must compose Sensor');
 
     // Normalize a board scope's `id`, which may be a board `_id` OR a
     // flat subject-title handle (the GUI knows handles), to the canonical
     // board `_id` so the dependency index keys match the event payloads.
     const canonical = await this.normalizeScope(scope);
-    if (!canonical) {
-      this.emitError(interactive, subscriptionId, 'resolve', 'no such board/thread');
-      return;
-    }
+    if (!canonical) return refuse('resolve', 'no such board/thread');
 
     let records: ForumProjectedRecord[] | null;
     try {
       records = await this.projectScope(canonical, viewer);
     } catch (err) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'resolve',
-        err instanceof Error ? err.message : String(err),
-      );
-      return;
+      return refuse('resolve', err instanceof Error ? err.message : String(err));
     }
-    if (records === null) {
-      this.emitError(interactive, subscriptionId, 'resolve', 'no such board/thread');
-      return;
-    }
+    if (records === null) return refuse('resolve', 'no such board/thread');
+    if (!handle.isOpen()) return refuse('closed', 'unsubscribed while opening');
 
     const lastResult = new Map<string, ForumProjectedRecord>();
     for (const r of records) lastResult.set(r.id, r);
     const state: ForumSubState = {
+      handle,
       interactive,
       subscriptionId,
       scope: canonical,
@@ -177,16 +164,24 @@ export default class ForumSubscriptionRegistry extends Idea {
       this.registry.set(interactive, bucket);
     }
     bucket.set(subscriptionId, state);
+    handle.state = state;
     this.indexAdd(state);
     this.ensureListener();
+    return { scope: canonical, records };
+  }
 
-    const template: Omit<ForumSubscriptionResultEnvelope, 'frameId'> = {
-      type: 'forum-subscription-result',
-      subscriptionId,
-      scope: canonical,
-      records,
-    };
-    viewer.onEnvelope(template);
+  /** The subscriber is gone: its index entries go with it. */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override closeSubscription(handle: LiveSubscription): void {
+    const state = handle.state as ForumSubState | undefined;
+    if (state === undefined) return;
+    this.forget(state);
+  }
+
+  /** ⭐ The forum source wakes itself — the forum event ledger marks what changed. */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override pokeSubscriptions(_holder: Stuff, _hint?: unknown): void {
+    // its event listener is the poke
   }
 
   /**
@@ -222,24 +217,13 @@ export default class ForumSubscriptionRegistry extends Idea {
     return view ? { kind: 'board', id: view.board._id! } : null;
   }
 
-  /** See {@link ForumsApi.handleUnsubscribe}. */
-  @CallSecurity(ForumSubscriptionCallers)
-  public handleUnsubscribe(interactive: Interactive, subscriptionId: string): void {
-    const bucket = this.registry.get(interactive);
-    const state = bucket?.get(subscriptionId);
-    if (!state || !bucket) return;
+  /** Drop a subscription's state from this source's own index. */
+  private forget(state: ForumSubState): void {
+    const bucket = this.registry.get(state.interactive);
+    if (bucket?.get(state.subscriptionId) !== state) return;
     this.teardown(state);
-    bucket.delete(subscriptionId);
-    if (bucket.size === 0) this.registry.delete(interactive);
-  }
-
-  /** See {@link ForumsApi.cancelAllForInteractive}. */
-  @CallSecurity(ForumSubscriptionCallers)
-  public cancelAllForInteractive(interactive: Interactive): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    for (const state of bucket.values()) this.teardown(state);
-    this.registry.delete(interactive);
+    bucket.delete(state.subscriptionId);
+    if (bucket.size === 0) this.registry.delete(state.interactive);
   }
 
   /* ─── private: projection ─── */
@@ -520,9 +504,8 @@ export default class ForumSubscriptionRegistry extends Idea {
     if (!bucket || bucket.get(state.subscriptionId) !== state) return;
     const viewer = this.viewerOf(state.interactive);
     if (!viewer) {
-      this.teardown(state);
-      bucket.delete(state.subscriptionId);
-      if (bucket.size === 0) this.registry.delete(state.interactive);
+      this.forget(state);
+      state.handle.end();
       return;
     }
 
@@ -538,36 +521,12 @@ export default class ForumSubscriptionRegistry extends Idea {
     for (const r of records) newMap.set(r.id, r);
     const changes = diffRecords(state.lastResult, newMap);
     state.lastResult = newMap;
-    if (changes.length === 0) return;
-
-    const template: Omit<ForumSubscriptionDeltaEnvelope, 'frameId'> = {
-      type: 'forum-subscription-delta',
-      subscriptionId: state.subscriptionId,
-      changes,
-    };
-    viewer.onEnvelope(template);
+    state.handle.push(changes);
   }
 
   private teardown(state: ForumSubState): void {
     this.indexRemove(state);
     this.releaseListener();
-  }
-
-  private emitError(
-    interactive: Interactive,
-    subscriptionId: string,
-    reason: ForumSubscriptionErrorReason,
-    detail?: string,
-  ): void {
-    const viewer = this.viewerOf(interactive);
-    if (!viewer) return;
-    const template: Omit<ForumSubscriptionErrorEnvelope, 'frameId'> = {
-      type: 'forum-subscription-error',
-      subscriptionId,
-      reason,
-      ...(detail ? { detail } : {}),
-    };
-    viewer.onEnvelope(template);
   }
 }
 

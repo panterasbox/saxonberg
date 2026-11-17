@@ -10,14 +10,14 @@
  *
  * Outbound messages use the simple `{ type, payload }` envelope.
  *
- * MQL subscription substrate integration:
+ ⭐ The one subscription wire (navigation-server D1):
  *
- * - `subscribeMql(spec)` opens an `mql-subscribe` with the supplied
- *   query / cardinality / fields (and optional `focusDependent` /
- *   `locationDependent` dependency flags), returns a `subscriptionId`,
- *   and re-issues the subscribe with the same spec on every
- *   `connection-established` event (reconnect-aware).
- * - Inbound `mql-subscription-result` and `mql-subscription-delta`
+ * - `subscribe(source, params)` opens a `subscribe` to a source (named
+ *   by its template path — `SUBSCRIPTION_SOURCES`), returns a
+ *   `subscriptionId`, and re-issues it on every `connection-established`
+ *   event (reconnect-aware). `subscribeMql` / `subscribeForum` are the
+ *   two shipped sources' typed doors onto it.
+ * - Inbound MQL `subscription-result` / `subscription-delta`
  *   envelopes are first walked for `StuffRefRecord`-shape records
  *   (the top-level result entries plus any nested `contents` arrays
  *   on detail records) and fed to the session-wide stuff registry
@@ -35,8 +35,9 @@ import type {
   Envelope,
   ForumSubscriptionScope,
   MessageFrame,
-  MqlSubscriptionDeltaEnvelope,
-  MqlSubscriptionResultEnvelope,
+  SubscribeMessage,
+  SubscriptionDeltaEnvelope,
+  SubscriptionResultEnvelope,
   Note,
   PromptEnvelope,
   RosterFrame,
@@ -46,7 +47,7 @@ import type {
   AffordanceResultEnvelope,
   AffordanceErrorEnvelope,
 } from "@saxonberg/types";
-import { INTENTIONAL_LEAVE_CLOSE_CODE } from "@saxonberg/types";
+import { INTENTIONAL_LEAVE_CLOSE_CODE, SUBSCRIPTION_SOURCES } from "@saxonberg/types";
 import { nanoid } from "nanoid";
 import { useStore, type PromptEntry, type StuffMetadata } from "../store/index";
 
@@ -59,10 +60,10 @@ type FrameHandler = (frame: MessageFrame) => void;
 type EnvelopeHandler = (envelope: Envelope) => void;
 
 /**
- * MQL subscription spec carried over the wire — mirrors
- * `MqlSubscribeMessage` minus `type` / `subscriptionId`. Held
- * verbatim so the client can re-issue the subscribe on reconnect
- * without the caller needing to remember the spec.
+ * MQL subscription spec — the MQL source's `params` on the one
+ * subscription wire (`MqlSubscriptionParams`). Held verbatim so the
+ * client can re-issue the subscribe on reconnect without the caller
+ * needing to remember the spec.
  */
 export interface MqlSubscribeSpec {
   /**
@@ -88,12 +89,12 @@ export interface MqlSubscribeSpec {
 }
 
 /**
- * Bookkeeping entry for a live MQL subscription. Stores the spec
- * so reconnect can re-issue the same subscribe.
+ * Bookkeeping entry for a live subscription: its source and params, so
+ * reconnect can re-issue the same subscribe.
  */
-interface MqlSubscriptionEntry {
-  subscriptionId: string;
-  spec: MqlSubscribeSpec;
+interface SubscriptionEntry {
+  source: string;
+  params: unknown;
 }
 
 /**
@@ -132,18 +133,13 @@ class WebSocketClient {
     new Map();
 
   /**
-   * Active MQL subscriptions, keyed by subscriptionId. Re-issued on
-   * every `connection-established` event so subscriptions survive
-   * reconnects without consumer involvement.
+   * ⭐ Every live subscription this client opened, whatever its source
+   * (the one subscription wire, navigation-server D1), keyed by
+   * subscriptionId. Re-issued on every `connection-established` so they
+   * survive reconnects without consumer involvement — a reconnect is
+   * repaired by asking for the snapshot again.
    */
-  private mqlSubscriptions: Map<string, MqlSubscriptionEntry> = new Map();
-
-  /**
-   * Live forum subscriptions: subscriptionId → scope. Re-issued on every
-   * `connection-established` like MQL subscriptions. Distinct map so the
-   * two substrates' bookkeeping never collide.
-   */
-  private forumSubscriptions: Map<string, ForumSubscriptionScope> = new Map();
+  private subscriptions: Map<string, SubscriptionEntry> = new Map();
 
   /**
    * The round-trip heartbeat's timer, or `null` when no socket is up.
@@ -789,63 +785,66 @@ class WebSocketClient {
     // admitting would measure a handshake, not a round trip.
     this.startHeartbeat();
 
-    // Re-issue every active MQL subscription on every
-    // connection-established event. The server re-instantiates the
-    // Interactive's subscription registry on reconnect; sending the
-    // subscribe again is what makes the substrate re-ship the initial
-    // result on the new connection.
-    for (const sub of this.mqlSubscriptions.values()) {
-      this.send({
-        type: "mql-subscribe",
-        payload: {
-          subscriptionId: sub.subscriptionId,
-          ...sub.spec,
-        },
-      });
-    }
-    // Re-issue every active forum subscription too (same reconnect story).
-    for (const [subscriptionId, scope] of this.forumSubscriptions) {
-      this.send({
-        type: "forum-subscribe",
-        payload: { subscriptionId, scope },
-      });
+    // Re-issue every live subscription on every connection-established
+    // event. The server's subscription table is per session; subscribing
+    // again is what makes each source re-ship its snapshot on the new
+    // connection.
+    for (const [subscriptionId, sub] of this.subscriptions) {
+      this.sendSubscribe(subscriptionId, sub);
     }
   }
 
+  private sendSubscribe(subscriptionId: string, sub: SubscriptionEntry): void {
+    const payload: SubscribeMessage = {
+      type: "subscribe",
+      subscriptionId,
+      source: sub.source,
+      ...(sub.params !== undefined ? { params: sub.params } : {}),
+    };
+    this.send({ type: "subscribe", payload });
+  }
+
   /**
-   * Open an `mql-subscribe` with the supplied spec. The subscription
-   * is tracked locally and re-issued on every `connection-established`
-   * event, so callers don't need to re-subscribe on reconnect.
-   *
+   * ⭐ Open a subscription to `source` (a template path —
+   * `SUBSCRIPTION_SOURCES`) with `params`. Tracked locally and re-issued
+   * on every reconnect. Its `subscription-result` / `-delta` / `-error`
+   * envelopes carry the returned id.
+   */
+  public subscribe(source: string, params?: unknown): string {
+    const subscriptionId = makeSubscriptionId();
+    const entry: SubscriptionEntry = { source, params };
+    this.subscriptions.set(subscriptionId, entry);
+    if (this.isConnected()) this.sendSubscribe(subscriptionId, entry);
+    return subscriptionId;
+  }
+
+  /** The source a live subscription this client opened is on, or `null`. */
+  public sourceOf(subscriptionId: string): string | null {
+    return this.subscriptions.get(subscriptionId)?.source ?? null;
+  }
+
+  /**
+   * The MQL source's door onto {@link subscribe} — a standing query.
    * Dependency flags (`focusDependent` / `locationDependent`) install
    * holder-level dependency entries the result-walk wouldn't naturally
    * find — opt in when the query is a holder-pointer expression like
    * `$focus` or `here`.
    */
   public subscribeMql(spec: MqlSubscribeSpec): string {
-    const subscriptionId = makeSubscriptionId();
-    this.mqlSubscriptions.set(subscriptionId, { subscriptionId, spec });
-    if (this.isConnected()) {
-      this.send({
-        type: "mql-subscribe",
-        payload: { subscriptionId, ...spec },
-      });
-    }
-    return subscriptionId;
+    return this.subscribe(SUBSCRIPTION_SOURCES.mql, spec);
   }
 
   /**
-   * Tear down a subscription opened via `subscribeMql`. Sends
-   * `mql-unsubscribe` if currently connected, and removes the local
-   * bookkeeping so the subscription is not re-issued on the next
-   * reconnect.
+   * Tear down a subscription, whatever its source. Sends `unsubscribe`
+   * if currently connected, and removes the local bookkeeping so it is
+   * not re-issued on the next reconnect.
    */
   public unsubscribe(subscriptionId: string): void {
-    const had = this.mqlSubscriptions.delete(subscriptionId);
+    const had = this.subscriptions.delete(subscriptionId);
     if (had && this.isConnected()) {
       this.send({
-        type: "mql-unsubscribe",
-        payload: { subscriptionId },
+        type: "unsubscribe",
+        payload: { type: "unsubscribe", subscriptionId },
       });
     }
   }
@@ -876,31 +875,11 @@ class WebSocketClient {
   }
 
   /**
-   * Open a `forum-subscribe` watching a board's thread-list or a
-   * thread's post-tree. Tracked locally + re-issued on reconnect, like
-   * `subscribeMql`. Returns the subscriptionId.
+   * The forum source's door onto {@link subscribe}: a board's
+   * thread-list, a thread's post-tree, the index or the subjects rail.
    */
   public subscribeForum(scope: ForumSubscriptionScope): string {
-    const subscriptionId = makeSubscriptionId();
-    this.forumSubscriptions.set(subscriptionId, scope);
-    if (this.isConnected()) {
-      this.send({
-        type: "forum-subscribe",
-        payload: { subscriptionId, scope },
-      });
-    }
-    return subscriptionId;
-  }
-
-  /** Tear down a forum subscription opened via `subscribeForum`. */
-  public unsubscribeForum(subscriptionId: string): void {
-    const had = this.forumSubscriptions.delete(subscriptionId);
-    if (had && this.isConnected()) {
-      this.send({
-        type: "forum-unsubscribe",
-        payload: { subscriptionId },
-      });
-    }
+    return this.subscribe(SUBSCRIPTION_SOURCES.forum, { scope });
   }
 
   /**
@@ -1164,21 +1143,31 @@ class WebSocketClient {
    * Two render paths, one of them holding the data — the third time this
    * build has been bitten by that exact shape.
    */
+  private isMqlFeed(subscriptionId: string): boolean {
+    const source = this.sourceOf(subscriptionId);
+    return source === null || source === SUBSCRIPTION_SOURCES.mql;
+  }
+
   private feedStuffRegistry(envelope: Envelope): void {
     const collected: StuffMetadata[] = [];
     switch (envelope.type) {
-      case "mql-subscription-result":
-        this.collectRefRecords(
-          (envelope as MqlSubscriptionResultEnvelope).result,
-          collected,
-        );
+      // ⭐ The MQL source's records — a subscription this client opened on
+      // it, or a live card's (the server opens those, so their ids are
+      // not in this client's table; every server-opened one is MQL).
+      case "subscription-result": {
+        const env = envelope as SubscriptionResultEnvelope;
+        if (!this.isMqlFeed(env.subscriptionId)) return;
+        if (Array.isArray(env.snapshot)) this.collectRefRecords(env.snapshot, collected);
         break;
-      case "mql-subscription-delta":
-        for (const change of (envelope as MqlSubscriptionDeltaEnvelope)
-          .changes) {
+      }
+      case "subscription-delta": {
+        const env = envelope as SubscriptionDeltaEnvelope;
+        if (!this.isMqlFeed(env.subscriptionId)) return;
+        for (const change of env.changes) {
           if (change.fields) this.collectRefRecords([change.fields], collected);
         }
         break;
+      }
       case "card-opened":
       case "card-touched": {
         const result = (envelope as { result?: unknown }).result;

@@ -79,6 +79,7 @@ import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
+import type { SubscriptionSource } from '../lib/subscription/SubscriptionSource';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
@@ -1422,6 +1423,10 @@ export class MixinApi {
 
   public static isScryable(obj: Stuff): obj is Stuff & Scryable {
     return this.hasMixin(obj, Mixins.Scryable);
+  }
+
+  public static isSubscriptionSource(obj: Stuff): obj is Stuff & SubscriptionSource {
+    return this.hasMixin(obj, Mixins.SubscriptionSource);
   }
 
   public static isSingleton(obj: Stuff): obj is Stuff & Singleton {

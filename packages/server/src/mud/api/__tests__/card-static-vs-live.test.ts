@@ -138,7 +138,7 @@ describe('static and live are different KINDS of answer', () => {
     ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
-    const deltas = h.ofType('mql-subscription-delta');
+    const deltas = h.ofType('subscription-delta');
     expect(deltas.some((d) => d.subscriptionId === instanceId)).toBe(true);
     void yard;
   });
@@ -174,7 +174,7 @@ describe('static and live are different KINDS of answer', () => {
     // It may WAKE (the lounge's contents changed — you left it), but it
     // must still be answering about the lounge.
     for (const d of h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .filter((x) => x.subscriptionId === instanceId)) {
       for (const c of d.changes as { op: string; key: string; fields?: Record<string, unknown> }[]) {
         const idx = records.findIndex((r) => r.stuffId === c.key);
@@ -227,7 +227,7 @@ describe('static and live are different KINDS of answer', () => {
     await MqlSubscriptionApi._drainScheduledForTesting();
 
     const delta = h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .find((d) => d.subscriptionId === instanceId)!;
     const changes = delta.changes as {
       op: string;

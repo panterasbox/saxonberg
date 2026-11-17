@@ -302,10 +302,10 @@ describe("⚠⚠ the client cannot open a card", () => {
       "card-closed",
       "card-pinned",
       "card-arranged",
-      "mql-subscription-delta",
+      "subscription-delta",
     ]);
     /*
-     * ⭐ Nothing subscribed, and nothing could: `MqlSubscribeMessage`
+     * ⭐ Nothing subscribed, and nothing could: `MqlSubscriptionParams`
      * has no field that names a card. The card feed is a pure consumer.
      */
     expect(subscribe).not.toHaveBeenCalled();

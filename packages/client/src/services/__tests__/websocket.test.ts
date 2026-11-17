@@ -1,7 +1,8 @@
+import { SUBSCRIPTION_SOURCES } from "@saxonberg/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
-  MqlSubscriptionDeltaEnvelope,
-  MqlSubscriptionResultEnvelope,
+  SubscriptionDeltaEnvelope as MqlSubscriptionDeltaEnvelope,
+  SubscriptionResultEnvelope as MqlSubscriptionResultEnvelope,
 } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../websocket";
@@ -42,11 +43,11 @@ function resetClient(): void {
   // private state.
   const c = websocketClient as unknown as {
     ws: MockWebSocket | null;
-    mqlSubscriptions: Map<string, unknown>;
+    subscriptions: Map<string, unknown>;
     reconnectAttempts: number;
   };
   c.ws = null;
-  c.mqlSubscriptions = new Map();
+  c.subscriptions = new Map();
   c.reconnectAttempts = 0;
 }
 
@@ -76,10 +77,11 @@ describe("websocket subscription consumer", () => {
   it("populates the stuff registry from a subscription result envelope", () => {
     attachMockWs();
     const env: MqlSubscriptionResultEnvelope = {
-      type: "mql-subscription-result",
+      type: "subscription-result",
       frameId: 1,
       subscriptionId: "sub-1",
-      result: [
+      rev: 0,
+      snapshot: [
         {
           stuffId: "a",
           displayName: "Alice",
@@ -100,10 +102,11 @@ describe("websocket subscription consumer", () => {
   it("walks nested `contents` arrays on detail records", () => {
     attachMockWs();
     const env: MqlSubscriptionResultEnvelope = {
-      type: "mql-subscription-result",
+      type: "subscription-result",
       frameId: 1,
       subscriptionId: "sub-1",
-      result: [
+      rev: 0,
+      snapshot: [
         {
           stuffId: "a",
           displayName: "the room",
@@ -126,9 +129,10 @@ describe("websocket subscription consumer", () => {
   it("populates the registry from subscription delta envelopes", () => {
     attachMockWs();
     const env: MqlSubscriptionDeltaEnvelope = {
-      type: "mql-subscription-delta",
+      type: "subscription-delta",
       frameId: 2,
       subscriptionId: "sub-1",
+      rev: 1,
       changes: [
         {
           op: "replace",
@@ -161,20 +165,21 @@ describe("websocket subscription consumer", () => {
       observedDisplayName = useStore.getState().stuffRegistry.get("a")
         ?.displayName;
     });
-    websocketClient.onEnvelope("mql-subscription-result", handler);
+    websocketClient.onEnvelope("subscription-result", handler);
 
     const env: MqlSubscriptionResultEnvelope = {
-      type: "mql-subscription-result",
+      type: "subscription-result",
       frameId: 1,
       subscriptionId: "sub-1",
-      result: [{ stuffId: "a", displayName: "Alice" }],
+      rev: 0,
+      snapshot: [{ stuffId: "a", displayName: "Alice" }],
     };
     deliver(env);
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(observedDisplayName).toBe("Alice");
 
-    websocketClient.offEnvelope("mql-subscription-result", handler);
+    websocketClient.offEnvelope("subscription-result", handler);
   });
 
   it("does not touch the registry on non-MQL envelopes", () => {
@@ -356,17 +361,18 @@ describe("subscribeMql", () => {
     resetClient();
   });
 
-  it("sends an mql-subscribe message with the supplied spec", () => {
+  it("sends a subscribe to the MQL source with the supplied spec", () => {
     const mock = attachMockWs();
     const id = websocketClient.subscribeMql(FOCUS_SPEC);
 
     expect(typeof id).toBe("string");
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0]).toMatchObject({
-      type: "mql-subscribe",
+      type: "subscribe",
       payload: {
         subscriptionId: id,
-        ...FOCUS_SPEC,
+        source: SUBSCRIPTION_SOURCES.mql,
+        params: FOCUS_SPEC,
       },
     });
   });
@@ -402,14 +408,15 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "mql-subscribe"
+      (m) => (m as { type?: string }).type === "subscribe"
     );
     expect(subscribes).toHaveLength(1);
     expect(subscribes[0]).toMatchObject({
-      type: "mql-subscribe",
+      type: "subscribe",
       payload: {
         subscriptionId: id,
-        ...FOCUS_SPEC,
+        source: SUBSCRIPTION_SOURCES.mql,
+        params: FOCUS_SPEC,
       },
     });
   });
@@ -439,7 +446,7 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "mql-subscribe"
+      (m) => (m as { type?: string }).type === "subscribe"
     );
     expect(subscribes).toHaveLength(2);
     const ids = subscribes.map(
@@ -450,7 +457,7 @@ describe("subscribeMql", () => {
     expect(ids).toContain(b);
   });
 
-  it("unsubscribe sends mql-unsubscribe and stops re-issuing on reconnect", () => {
+  it("unsubscribe sends unsubscribe and stops re-issuing on reconnect", () => {
     const mock = attachMockWs();
     const id = websocketClient.subscribeMql(FOCUS_SPEC);
     mock.sent = [];
@@ -458,7 +465,7 @@ describe("subscribeMql", () => {
     websocketClient.unsubscribe(id);
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0]).toMatchObject({
-      type: "mql-unsubscribe",
+      type: "unsubscribe",
       payload: { subscriptionId: id },
     });
 
@@ -481,7 +488,7 @@ describe("subscribeMql", () => {
     });
 
     const subscribes = mock.sent.filter(
-      (m) => (m as { type?: string }).type === "mql-subscribe"
+      (m) => (m as { type?: string }).type === "subscribe"
     );
     expect(subscribes).toHaveLength(0);
   });
@@ -715,7 +722,7 @@ describe("websocket social presence frames", () => {
 /**
  * ⚠⚠ **The card envelopes feed the stuff registry too.**
  *
- * This fed only from `mql-subscription-*` — right while the panes WERE
+ * This fed only from the MQL source's subscription envelopes — right while the panes WERE
  * subscriptions. The card build moved every static card's records onto
  * `card-opened` / `card-touched` and left the feeder behind, so the
  * registry starved to a single entry with null fields.

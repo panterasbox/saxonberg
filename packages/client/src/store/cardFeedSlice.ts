@@ -67,7 +67,7 @@ export interface CardState {
   /**
    * Server-minted, and the wire correlation key. For a LIVE card it is
    * also the MQL subscription id, which is what lets a live card's
-   * updates keep riding `mql-subscription-delta`.
+   * updates keep riding `subscription-delta`.
    */
   instanceId: string;
   cardId: CardId;

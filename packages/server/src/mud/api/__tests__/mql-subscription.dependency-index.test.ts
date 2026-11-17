@@ -16,6 +16,8 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
+import { SubscriptionApi } from '../subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -50,13 +52,11 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
   it('subscription on a target gains index entries proportional to its descriptors', async () => {
     const { interactive } = await setup();
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     expect(
       MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBeGreaterThan(0);
@@ -64,13 +64,11 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
 
   it('firing FieldChangedEvent for the subscribed target marks dirty (re-resolve runs)', async () => {
     const { interactive, avatar } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     EventApi.fire(
       new FieldChangedEvent({
@@ -87,13 +85,11 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
 
   it('firing FieldChangedEvent for an unrelated target does NOT mark dirty', async () => {
     const { interactive } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     // 'field: bogus' value isn't indexed; 'target: stranger-stuff-id'
     // doesn't match the subscribed avatar.

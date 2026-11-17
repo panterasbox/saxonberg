@@ -15,6 +15,8 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SubscriptionApi } from '../subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -49,13 +51,11 @@ describe('MqlSubscriptionApi — dirty scheduler', () => {
   it('multiple events in one tick coalesce to one re-resolve', async () => {
     const interactive = await setup();
     const holder = interactive.getHolder()!;
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
 
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     // Fire three name-change events for this target in the same tick.

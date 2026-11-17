@@ -19,6 +19,8 @@ import {
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
 import Avatar from '../../../../platform/agent/PrimaryAvatar';
+import { SubscriptionApi } from '../../../../api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -82,12 +84,10 @@ describe('sandbox-escape: subscriptions', () => {
 
     // Field subscription (ordinary client card).
     const field = await makeAvatarInteractive('field');
-    MqlSubscriptionApi.handleSubscribe({
-      interactive: field.interactive,
-      subscriptionId: 'field-sub',
-      query: 'me',
-      cardinality: 'one',
-    });
+    field.interactive.subscribe('field-sub', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
 
     // Circle subscription: registered from a circle-scoped context —
     // the whole holder rig is minted in-scope, the way a wire body's
@@ -97,12 +97,10 @@ describe('sandbox-escape: subscriptions', () => {
       'escape',
       async () => {
         const circle = await makeAvatarInteractive('circle');
-        MqlSubscriptionApi.handleSubscribe({
-          interactive: circle.interactive,
-          subscriptionId: 'circle-sub',
-          query: 'me',
-          cardinality: 'one',
-        });
+        circle.interactive.subscribe('circle-sub', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
       },
       'rethrow',
       { circleScope: SCOPE }
