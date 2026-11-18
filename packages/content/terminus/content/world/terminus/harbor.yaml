@@ -16,7 +16,7 @@ data:
   cellSize: 30.0
   # At sea level, like the estuary it opens off (the Kestrel's `estuary` node).
   elevation: 0
-  # The sea from the quays, and the terminal's clock tower over the roofs.
+  # The sea's craft from the quays (geography D5); the terminal's clock
+  # tower over the roofs is on the skyline by the rule.
   horizon:
-    - /world/terminus/terminal
-    - /stuff/idea/WaterExpanse/greywater
+    reach: [/stuff/idea/WaterExpanse/greywater]

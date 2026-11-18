@@ -327,9 +327,47 @@ describe('⚠ coords.z is NOT elevation — a stairwell is not a waterfall', () 
 
     expect(await ZoneApi.elevationFor(lobby)).toBe(12);
     expect(await ZoneApi.elevationFor(flat)).toBe(12);
-    // …and therefore the same barometric pressure, to the pascal.
-    expect((await BiomeApi.resolvePressureFor(flat)).rawValue()).toBe(
-      (await BiomeApi.resolvePressureFor(lobby)).rawValue(),
+  });
+
+  it('⭐ …but the AIR reads the total height: the flat is thinner air (geography D13)', async () => {
+    // The owner, 2026-11-17: "z tells you elevation within a zone but not
+    // the total height". The ground and its water stay on `elevationFor`;
+    // pressure reads the zone's ground PLUS the storey.
+    installInMemoryStore([
+      { path: '/tower', class: '/platform/idea/location/CartesianZone', data: {} },
+    ]);
+    installRootBiome();
+    const zone = await StuffApi.singleton<SpatialZone>('/tower');
+    zone.setElevation(12);
+    const cell = (zone as unknown as CartesianZone).getCellSize();
+
+    const lobby = roomIn(zone);
+    await lobby.setCoords({ x: 0, y: 0, z: 0 });
+    const flat = roomIn(zone);
+    await flat.setCoords({ x: 0, y: 0, z: 3 });
+
+    expect(flat.heightAboveGroundM()).toBe(3 * cell);
+    expect(flat.heightAboveSeaM()).toBe(12 + 3 * cell);
+    expect((await BiomeApi.resolvePressureFor(lobby)).rawValue()).toBeCloseTo(expectedPa(12), 6);
+    expect((await BiomeApi.resolvePressureFor(flat)).rawValue()).toBeCloseTo(
+      expectedPa(12 + 3 * cell),
+      6,
+    );
+  });
+
+  it('a storey at a sea-level zone still derives: the short-circuit tests the total', async () => {
+    installInMemoryStore([
+      { path: '/quay', class: '/platform/idea/location/CartesianZone', data: {} },
+    ]);
+    installRootBiome();
+    const zone = await StuffApi.singleton<SpatialZone>('/quay');
+    zone.setElevation(0);
+    const loft = roomIn(zone);
+    await loft.setCoords({ x: 0, y: 0, z: 2 });
+    const cell = (zone as unknown as CartesianZone).getCellSize();
+    expect((await BiomeApi.resolvePressureFor(loft)).rawValue()).toBeCloseTo(
+      expectedPa(2 * cell),
+      6,
     );
   });
 });

@@ -1,0 +1,21 @@
+# Wharfside — the river bank below the city, the strand and the estuary
+# headland: its own place on the chart (geography D12), 1.2 km from the bar
+# on 315°, so the bank reads the city's tower WITH a direction rather than
+# *close by*.
+#
+# ⚠ A finer Locality shadows the city for whatever the city's row carries
+# that is read off the FINEST covering locality and not walked up the
+# chain. Of the city's fields only the street lighting is (each street
+# settles with the locality that covers it), so the grid lighting is
+# copied here; the government key is walked up the chain (the city still
+# governs Wharfside), and the city pins no weather and declares no reach.
+class: /platform/idea/Locality
+data:
+  name: Wharfside
+  _address: terminus/city/wharfside
+  _position: { latDeg: 42.0229, lonDeg: -8.5008 }
+  _radiusM: 1500
+  _publicLighting:
+    costPerStreetNight: 0
+    supplier: null
+    supply: /system/energy/idea/GridCatalogue

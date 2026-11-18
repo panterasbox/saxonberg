@@ -30,6 +30,8 @@ import type { RouteOutcome } from '../lib/location/RoutePlan';
 import type { TravelProfileSpec } from '../lib/location/TravelProfile';
 import type { ReachResult } from '../platform/idea/api/NavigationLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { GeoPosition } from '../lib/expanse/GeoPosition';
+import type { Vantage } from '../lib/perception/Vantage';
 
 /** Canonical direction names (long form). */
 /**
@@ -37,6 +39,42 @@ import type { Stuff } from '../lib/stuff/Stuff';
  * see {@link NavigationApi.attachedTo}.
  */
 export type AttachmentKind = 'house' | 'structure' | 'craft' | 'institution' | 'fixture';
+
+/**
+ * ⭐ One entry of a skyline (geography D2): a structure worth seeing, where
+ * it stands, and how it lies from the vantage the skyline was computed
+ * for. Plain data read off rows — the structure is NOT loaded to decide
+ * this; presenting it is the caller's (geography D9).
+ */
+export interface SkylineEntry {
+  /** The structure's row (its template path). */
+  path: string;
+  /** A runtime structure with no row of its own (a holding's house), held by instance. */
+  live: Stuff | null;
+  at: GeoPosition;
+  /** True bearing from the vantage, degrees. */
+  bearingDeg: number;
+  /** Distance from the vantage, nautical miles (unrounded). */
+  rangeNm: number;
+  /** The furthest it could be seen from this vantage in clear air, nautical miles. */
+  clearNm: number;
+  /** Within the `nearM` the skyline was asked with — in your own place, whatever the curvature. */
+  near: boolean;
+  /** Its own height as a target, metres. */
+  heightM: number;
+  landmark: boolean;
+  showsLight: boolean;
+}
+
+/** How a skyline is asked for. */
+export interface SkylineQuery {
+  /** The structure the viewer stands in — never on its own skyline. */
+  own?: string | null;
+  /** Keep the answer under this key (point owner `|` eye metres); `null` = compute per read. */
+  keepAs?: string | null;
+  /** Metres within which a mark is listed whatever the curvature (the Locality's radius). */
+  nearM?: number;
+}
 
 export type CardinalDirection =
   | 'north'
@@ -217,11 +255,6 @@ export class NavigationApi {
     return logic().attachedWithin(extent, kind);
   }
 
-  /** {@link attachedWithin}, synchronously — the last derivation, `[]` before the first. */
-  public static attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return logic().attachedWithinNow(extent, kind);
-  }
-
   /** {@link attachedTo}, synchronously — the last derivation, `[]` before the first. */
   public static attachedNow(path: string, kind?: AttachmentKind): string[] {
     return logic().attachedNow(path, kind);
@@ -259,6 +292,34 @@ export class NavigationApi {
   /** Undo {@link attachStructure}. */
   public static detachStructure(extent: string, structure: Structure): void {
     logic().detachStructure(extent, structure);
+  }
+
+  /**
+   * ⭐ **The skyline from a vantage** (geography D1/D2): every structure
+   * worth seeing — a landmark, or one at least `perception.skyline.minHeightM`
+   * tall — that curvature lets this eye see in clear air, landmarks first
+   * then by how tall each stands in the eye (height ÷ range), the rest cut
+   * to `perception.skyline.size`. Read off the content rows; nothing is
+   * loaded. Kept under `keepAs` until a structure is built, pulled down or
+   * moved. Synchronous: the last derivation, `[]` before the first —
+   * {@link skylineReady} is the await.
+   */
+  public static skylineNow(vantage: Vantage, query: SkylineQuery = {}): SkylineEntry[] {
+    return logic().skylineNow(vantage, query);
+  }
+
+  /** Wait until the record {@link skylineNow} reads is current. */
+  public static skylineReady(): Promise<void> {
+    return logic().skylineReady();
+  }
+
+  /**
+   * A structure row's own point on the chart — its authored `position`,
+   * or the sea node its landing is — read off the rows; `null` when it
+   * stands only where its Locality is.
+   */
+  public static markPointNow(structurePath: string): GeoPosition | null {
+    return logic().markPointNow(structurePath);
   }
 
 

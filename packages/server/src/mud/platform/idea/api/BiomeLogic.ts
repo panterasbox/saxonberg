@@ -865,7 +865,12 @@ async function pressureFromElevation(
   scope: Stuff,
   seaLevel: Quantity<'Pa'>,
 ): Promise<{ value: Quantity<'Pa'>; zonePath: string | null } | null> {
-  const elevation = await ZoneApi.elevationFor(scope);
+  // ⭐ Geography D13 (the owner, Q7): the air reads a place's TOTAL height
+  // — its zone's ground plus its storey — so a tower top is thinner air
+  // than the street. The ground and its water stay on `elevationFor`.
+  const ground = await ZoneApi.elevationFor(scope);
+  const storey = scope.isPlace() ? scope.heightAboveGroundM() : 0;
+  const elevation = ground === null && storey === 0 ? null : (ground ?? 0) + storey;
   if (elevation === null || !Number.isFinite(elevation) || elevation === 0) {
     return null;
   }

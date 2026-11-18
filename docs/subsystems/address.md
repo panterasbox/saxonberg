@@ -232,7 +232,17 @@ gated `FromModule('/api/address#AddressApi')`) → `AddressRegistry`
   build's `_governmentKey` (the sparse diegetic-jurisdiction
   declaration — [civics.md](./civics.md)), which also exposed the
   registry's `coverageChainOf` as `AddressApi.coverageChainOf` (the
-  sync chain sibling of `coveringLocalityOf`).
+  sync chain sibling of `coveringLocalityOf`). And the geography build's
+  **`_position` + `_radiusM`** — where the Locality stands on the chart
+  (the sea's lat/lon) and the radius inside which it is one place (a thing
+  in it is *close by*). `AddressApi.positionedLocalityOf(address)` walks
+  the coverage chain to the nearest Locality with a point
+  (`Locality.positionedLocality()` from a Locality): where a room with no
+  point of its own stands (`Place.chartPoint`), and the latitude a zone
+  chain that states none takes for its climate (`ZoneLogic.climateSiteFor`).
+  ⚠ A finer Locality SHADOWS its parent for whatever is read off the finest
+  covering one (street lighting settles there), so a new one copies those
+  fields — the Wharfside row copies the city's grid lighting.
 
 ## Roster
 

@@ -42,7 +42,12 @@ import { PlatPlan } from '../../lib/location/PlatPlan';
 import { CirculationWarren } from '../../lib/location/CirculationWarren';
 import Place from '../../lib/stuff/Place';
 import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
-import type { AttachmentKind } from '../../api/navigation';
+import type { AttachmentKind, SkylineEntry, SkylineQuery } from '../../api/navigation';
+import { AddressApi } from '../../api/address';
+import { AppApi } from '../../api/app';
+import { GeoPosition, M_PER_NM, type FocusRecord, type GeoPositionRecord } from '../../lib/expanse/GeoPosition';
+import type { Vantage } from '../../lib/perception/Vantage';
+import type Structure from '../../lib/structure/Structure';
 import {
   GraphInvariants,
   type GraphFinding,
@@ -55,6 +60,22 @@ import type { EvictionContext, Stuff } from '../../lib/stuff/Stuff';
 const NavigationLogicOnly = SecurityPolicies.FromTemplate(
   '/platform/idea/api/navigation',
 );
+
+/** A structure worth seeing from afar, as plain data off its row (geography D1). */
+interface SkylineMark {
+  path: string;
+  /** A runtime structure, held by instance; `null` for a row. */
+  live: Stuff | null;
+  /** Its own point, or `null` — where its Locality is, found at read. */
+  at: GeoPosition | null;
+  heightM: number;
+  /** Its top above the sea: height + the ground's elevation. */
+  topM: number;
+  landmark: boolean;
+  showsLight: boolean;
+  /** The address it stands at (for a mark with no point of its own). */
+  address: string | null;
+}
 
 /** A class-identity verdict, cached per boot — the walk is not cheap. */
 type ClassKind = 'place' | 'kind' | 'warren' | 'other';
@@ -200,7 +221,7 @@ export default class LocationGraphRegistry extends Idea {
     this.attachmentsDirty = true;
     const row = await Template.findByPath(path);
     if (!row) {
-      await this.removeRow(path);
+      await this.removeRowImpl(path);
       return;
     }
     const kind = await this.kindOf(row.class);
@@ -209,13 +230,21 @@ export default class LocationGraphRegistry extends Idea {
     } else if (kind === 'warren') {
       await this.writePlanNodes(row, this.generation);
     } else {
-      await this.removeRow(path);
+      // ⚠ The UNGATED impl: a self-call through the proxy arrives at the
+      // gate as the registry, not NavigationLogic, and is denied — which
+      // made every save of a row that is not a place (a building, a
+      // business) throw here (found by the geography build).
+      await this.removeRowImpl(path);
     }
   }
 
   /** Drop every node this row produced. */
   @CallSecurity(NavigationLogicOnly)
   public async removeRow(path: string): Promise<void> {
+    await this.removeRowImpl(path);
+  }
+
+  private async removeRowImpl(path: string): Promise<void> {
     this.attachmentsDirty = true;
     const existing = await PlaceNode.find<PlaceNode>({ template: path });
     for (const row of existing) await row.delete();
@@ -318,12 +347,6 @@ export default class LocationGraphRegistry extends Idea {
     return this.withinAt(extent, kind);
   }
 
-  /** {@link attachedWithin}, synchronously — the last derivation. */
-  @CallSecurity(NavigationLogicOnly)
-  public attachedWithinNow(extent: string, kind?: AttachmentKind): string[] {
-    return this.withinAt(extent, kind);
-  }
-
   private withinAt(extent: string, kind?: AttachmentKind): string[] {
     const out = new Set<string>();
     for (const [anchor, targets] of this.attachments) {
@@ -371,13 +394,17 @@ export default class LocationGraphRegistry extends Idea {
   public attachStructure(extent: string, structure: Stuff): void {
     if (extent === '') return;
     this.liveStructures.set(extent, structure);
+    this.markLive(extent, structure);
   }
 
   /** Drop the runtime structure attached at `extent`, if it is `structure`. */
   @CallSecurity(NavigationLogicOnly)
   public detachStructure(extent: string, structure: Stuff): void {
     const held = this.liveStructures.get(extent);
-    if (held !== undefined && held.stuffId === structure.stuffId) this.liveStructures.delete(extent);
+    if (held !== undefined && held.stuffId === structure.stuffId) {
+      this.liveStructures.delete(extent);
+      this.unmarkLive(extent);
+    }
   }
 
   /** The runtime structures attached at `path` or any ancestor of it. */
@@ -520,6 +547,238 @@ export default class LocationGraphRegistry extends Idea {
     }
     this.attachments = next;
     this.attachmentsDirty = false;
+    await this.deriveMarks(all, rows, plans);
+  }
+
+  /* ── geography: what stands tall where, and the kept skylines ─────────
+   *
+   * ⭐⭐ (geography D1/D2) The attachment derivation already holds every
+   * row's data and already knows which rows are structures, so it records
+   * — in the same pass, with no new scan — a MARK for each structure worth
+   * seeing from afar: plain data off the row (its point, its top above the
+   * sea, its height, the landmark flag, whether it shows a light by night,
+   * the address it stands at). Nothing is loaded to decide what is seen;
+   * a skyline is arithmetic over the marks, kept per vantage and dropped
+   * whenever the marks change. Nothing here is ever persisted.
+   *
+   * ⚠ Owned by the geography build; zone-instancing shares this file —
+   * the three calls into it are the end of `deriveAttachments` and the
+   * two lines in `attachStructure` / `detachStructure`.
+   */
+
+  /** Structure row → its mark, for those worth seeing. */
+  private marks = new Map<string, SkylineMark>();
+  /** Structure row → its own point (authored, or its sea node) — every structure, tall or not. */
+  private structurePoints = new Map<string, GeoPosition>();
+  /** Runtime structures (a holding's house), by extent. */
+  private liveMarks = new Map<string, SkylineMark>();
+  /** The last derivation's row data, for addressing a runtime structure. */
+  private rowData = new Map<string, Record<string, unknown>>();
+  /** The kept skylines, keyed by point owner `|` eye metres. */
+  private skylines = new Map<string, SkylineEntry[]>();
+  /** Bumped whenever the marks change; the kept skylines go with it. */
+  private skylineGeneration = 0;
+
+  /** See {@link NavigationApi.skylineNow}. */
+  @CallSecurity(NavigationLogicOnly)
+  public skylineNow(vantage: Vantage, query: SkylineQuery): SkylineEntry[] {
+    // A content write since the last derivation: start the next one and
+    // answer with what we have, unkept (the this-once skip).
+    const stale = this.attachmentsDirty;
+    if (stale) void this.ensureAttachments().catch(() => undefined);
+    const key = !stale && query.keepAs ? query.keepAs : null;
+    if (key !== null) {
+      const hit = this.skylines.get(key);
+      if (hit) return hit;
+    }
+    const minHeightM = LocationGraphRegistry.dial('perception.skyline.minHeightM', 12);
+    const size = LocationGraphRegistry.dial('perception.skyline.size', 7);
+    const nearM = query.nearM ?? 0;
+    const out: SkylineEntry[] = [];
+    for (const mark of [...this.marks.values(), ...this.liveMarks.values()]) {
+      if (!mark.landmark && mark.heightM < minHeightM) continue;
+      if (query.own && (mark.path === query.own || mark.live?.stuffId === query.own)) continue;
+      const at = mark.at ?? AddressApi.positionedLocalityOf(mark.address)?.getPosition() ?? null;
+      if (at === null) continue;
+      const line = vantage.lineTo(at, mark.topM);
+      const near = nearM > 0 && line.rangeNm * M_PER_NM <= nearM;
+      if (!near && line.rangeNm > line.clearNm) continue;
+      out.push({
+        path: mark.path,
+        live: mark.live,
+        at,
+        bearingDeg: line.bearingDeg,
+        rangeNm: line.rangeNm,
+        clearNm: line.clearNm,
+        near,
+        heightM: mark.heightM,
+        landmark: mark.landmark,
+        showsLight: mark.showsLight,
+      });
+    }
+    // ⭐ Prominence is derived (D8): the flag first, then how tall a thing
+    // stands in the eye; the rest are cut to a handful.
+    const tallness = (e: SkylineEntry): number => e.heightM / Math.max(e.rangeNm, 0.01);
+    out.sort((a, b) => Number(b.landmark) - Number(a.landmark) || tallness(b) - tallness(a));
+    let others = 0;
+    const kept = out.filter((e) => e.landmark || others++ < size);
+    if (key !== null) this.skylines.set(key, kept);
+    return kept;
+  }
+
+  /** See {@link NavigationApi.skylineReady}. */
+  @CallSecurity(NavigationLogicOnly)
+  public async skylineReady(): Promise<void> {
+    await this.ensureAttachments();
+  }
+
+  /** See {@link NavigationApi.markPointNow}. */
+  @CallSecurity(NavigationLogicOnly)
+  public markPointNow(structurePath: string): GeoPosition | null {
+    return this.structurePoints.get(structurePath) ?? null;
+  }
+
+  /** How many times the marks have changed — a test's observation seam. */
+  @CallSecurity(NavigationLogicOnly)
+  public getSkylineGeneration(): number {
+    return this.skylineGeneration;
+  }
+
+  private bumpSkylines(): void {
+    this.skylineGeneration++;
+    this.skylines.clear();
+  }
+
+  /**
+   * The marks, from the rows `deriveAttachments` already holds (D1). A
+   * structure's point: its authored `position`, else the chart position of
+   * the sea node whose landing lies in its extent (the node's `focus`
+   * through its expanse's `origin` — the bridge the live node uses), else
+   * none of its own (it stands where its Locality is, found at read).
+   * A craft (a row naming an expanse, a line or a berth) or a ship KIND is
+   * a moving thing — read at the act, never a mark.
+   */
+  private async deriveMarks(
+    all: Template[],
+    rows: Map<string, Record<string, unknown>>,
+    plans: Set<string>,
+  ): Promise<void> {
+    // The sea nodes that land somewhere: where each lies on the chart.
+    const landings: { destination: string; at: GeoPosition }[] = [];
+    for (const [path, data] of rows) {
+      const focus = data.focus as FocusRecord | undefined;
+      if (typeof data.destination !== 'string' || !focus || typeof focus !== 'object') continue;
+      const cut = path.lastIndexOf('/');
+      const origin = cut > 0 ? (rows.get(path.slice(0, cut))?.origin as GeoPositionRecord | undefined) : undefined;
+      if (!origin || typeof origin !== 'object') continue;
+      try {
+        landings.push({ destination: data.destination, at: new GeoPosition(origin).atFocus(focus) });
+      } catch {
+        // A malformed node is the expanse's lint, not a skyline's.
+      }
+    }
+    const marks = new Map<string, SkylineMark>();
+    const points = new Map<string, GeoPosition>();
+    for (const row of all) {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      if (typeof data.extent !== 'string' || data.extent === '' || !row.class) continue;
+      if (plans.has(row.path)) continue;
+      if (!(await this.isStructureClass(row.class))) continue;
+      const moving = typeof data.expanse === 'string' || typeof data.line === 'string' || typeof data.berth === 'string';
+      if (moving) continue;
+      const extent = data.extent.replace(/\/+$/, '');
+      let at: GeoPosition | null = null;
+      const pos = data.position as GeoPositionRecord | undefined;
+      if (pos && typeof pos === 'object') {
+        try { at = new GeoPosition(pos); } catch { at = null; }
+      }
+      if (at === null) {
+        at = landings.find((l) => l.destination === extent || l.destination.startsWith(`${extent}/`))?.at ?? null;
+      }
+      if (at !== null) points.set(row.path, at);
+      const heightM = Number(data.heightM) || 0;
+      const from = typeof data.entrance === 'string' && data.entrance !== '' ? data.entrance : extent;
+      marks.set(row.path, {
+        path: row.path,
+        live: null,
+        at,
+        heightM,
+        topM: heightM + LocationGraphRegistry.elevationOver(from, rows),
+        landmark: data.landmark === true,
+        showsLight: data.showsLight === true,
+        address: LocationGraphRegistry.addressOver(from, rows),
+      });
+    }
+    this.marks = marks;
+    this.structurePoints = points;
+    this.rowData = rows;
+    // A runtime structure's address may have moved with the rows.
+    for (const [extent, mark] of this.liveMarks) {
+      if (mark.live) this.markLive(extent, mark.live, false);
+    }
+    this.bumpSkylines();
+  }
+
+  /** A runtime structure's mark, read off the instance's own getters. */
+  private markLive(extent: string, structure: Stuff, bump = true): void {
+    const s = structure as unknown as Structure;
+    const bare = extent.replace(/#.*$/, '');
+    const heightM = s.getHeightM();
+    this.liveMarks.set(extent, {
+      path: structure.getTemplatePath() ?? extent,
+      live: structure,
+      at: s.chartPoint(),
+      heightM,
+      topM: heightM + LocationGraphRegistry.elevationOver(bare, this.rowData),
+      landmark: s.isLandmark(),
+      showsLight: s.getShowsLight(),
+      address: LocationGraphRegistry.addressOver(bare, this.rowData),
+    });
+    if (bump) this.bumpSkylines();
+  }
+
+  private unmarkLive(extent: string): void {
+    if (this.liveMarks.delete(extent)) this.bumpSkylines();
+  }
+
+  /** The nearest row at or above `path` that declares an address — a place's `_address`, a zone's `address`. */
+  private static addressOver(path: string, rows: Map<string, Record<string, unknown>>): string | null {
+    for (const data of LocationGraphRegistry.upward(path, rows)) {
+      if (typeof data._address === 'string' && data._address !== '') return data._address;
+      if (typeof data.address === 'string' && data.address !== '') return data.address;
+    }
+    return null;
+  }
+
+  /** The nearest `elevation` declared at or above `path` (a zone's), else 0. */
+  private static elevationOver(path: string, rows: Map<string, Record<string, unknown>>): number {
+    for (const data of LocationGraphRegistry.upward(path, rows)) {
+      const e = data.elevation;
+      if (typeof e === 'number' && Number.isFinite(e)) return e;
+    }
+    return 0;
+  }
+
+  /** The rows at `path` and each ancestor path, innermost first. */
+  private static *upward(path: string, rows: Map<string, Record<string, unknown>>): Generator<Record<string, unknown>> {
+    let probe = path;
+    for (let depth = 0; depth < 64 && probe.length > 0; depth++) {
+      const d = rows.get(probe);
+      if (d) yield d;
+      const cut = probe.lastIndexOf('/');
+      if (cut <= 0) return;
+      probe = probe.slice(0, cut);
+    }
+  }
+
+  /** A positive numeric dial, or the fallback. */
+  private static dial(key: string, fallback: number): number {
+    try {
+      const n = Number.parseFloat(AppApi.setting(key) ?? '');
+      return Number.isFinite(n) && n >= 0 ? n : fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   private readonly structureClasses = new Map<string, boolean>();

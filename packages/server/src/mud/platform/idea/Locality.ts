@@ -40,6 +40,7 @@ import type {
 import type { FieldMeta } from '../../lib/mixin';
 import { BankingApi } from '../../api/banking';
 import { Money } from '../../lib/banking/Money';
+import { GeoPosition, type GeoPositionRecord } from '../../lib/expanse/GeoPosition';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { GovernmentApi } from '../../api/government';
@@ -221,6 +222,22 @@ export default class Locality extends Idea {
   protected _catchmentKm2: number | null = null;
 
   /**
+   * ⭐ **Where this locality stands on the chart** (geography build), or
+   * `null` — not on this chart (the realm's root, a test world). The same
+   * latitude and longitude the sea's craft sail by, so a town and a ship
+   * can be compared by the one arithmetic. A room with no point of its own
+   * stands at its nearest positioned Locality's ({@link AddressApi.positionedLocalityOf}).
+   */
+  protected _position: GeoPositionRecord | null = null;
+
+  /**
+   * Metres across which this locality counts as ONE place — inside it a
+   * thing on the skyline is *close by* rather than given a direction.
+   * `null` with no {@link _position}; required (and positive) with one.
+   */
+  protected _radiusM: number | null = null;
+
+  /**
    * ⭐⭐ **The town's street-lighting service** — the fuel bill and who
    * supplies it — or `null` for an extent that lights nothing.
    *
@@ -263,6 +280,8 @@ export default class Locality extends Idea {
     _governmentKey: { persistent: true },
     _reach: { persistent: true, authorable: true },
     _catchmentKm2: { persistent: true, authorable: true },
+    _position: { persistent: true, authorable: true },
+    _radiusM: { persistent: true, authorable: true },
     _publicLighting: { persistent: true, authorable: true },
     _lightingNight: { persistent: true, runtimeState: true },
     _lightingLitStreets: { persistent: true, runtimeState: true },
@@ -607,6 +626,64 @@ export default class Locality extends Idea {
   public setCatchmentKm2(value: number | null): void {
     this._catchmentKm2 =
       value === null || !Number.isFinite(value) || value < 0 ? null : value;
+  }
+
+  // ---------- the chart (geography) ----------
+
+  /** Where this locality stands on the chart, or `null` (not on it). */
+  public getPosition(): GeoPosition | null {
+    return this._position === null ? null : new GeoPosition(this._position);
+  }
+
+  /**
+   * Set (or clear) the point. A non-finite latitude or longitude throws —
+   * a town that is nowhere is `null`, never `NaN`.
+   */
+  public setPosition(value: GeoPositionRecord | null): void {
+    if (value === null || value === undefined) {
+      this._position = null;
+      return;
+    }
+    if (typeof value !== 'object') {
+      throw new TypeError('Locality._position must be {latDeg, lonDeg} or null');
+    }
+    this._position = new GeoPosition(value).toJSON();
+  }
+
+  /** The applier's door for `_position:` (the field's own name). */
+  public set_position(value: GeoPositionRecord | null): void {
+    this.setPosition(value);
+  }
+
+  /**
+   * The nearest Locality at or above this one that is on the chart —
+   * itself when it has a point (`AddressApi.positionedLocalityOf` over its
+   * own address). Where a room covered by this locality stands.
+   */
+  public positionedLocality(): Locality | null {
+    return this._position !== null ? this : AddressApi.positionedLocalityOf(this._address);
+  }
+
+  /** Metres across which this locality is one place, or `null`. */
+  public getRadiusM(): number | null {
+    return this._radiusM;
+  }
+
+  /** A radius must be a positive, finite number of metres (or `null`). */
+  public setRadiusM(value: number | null): void {
+    if (value === null || value === undefined) {
+      this._radiusM = null;
+      return;
+    }
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+      throw new RangeError(`Locality._radiusM must be a positive number of metres; got ${String(value)}`);
+    }
+    this._radiusM = value;
+  }
+
+  /** The applier's door for `_radiusM:`. */
+  public set_radiusM(value: number | null): void {
+    this.setRadiusM(value);
   }
 
   // ---------- coverage-index lifecycle ----------

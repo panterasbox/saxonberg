@@ -160,7 +160,8 @@ adding.
   `fieldMeta` and no documented authoring path, so it moves to `platform/`
   when a consumer demands a concrete class, not before.
 - **Value objects** — pure data + small per-instance math (`Light`,
-  `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
+  `Quantity`, `GeoPosition`, the geography build's `Vantage` — an eye on
+  the chart — and `HorizonOverride`). Not Stuff. Lives in `lib/` because it's a domain
   primitive the Api layer consumes.
   ⭐⭐ **A parameterized ALGORITHM is one of these**, and the routing
   build added the first: `lib/location/Traversal` is a walk —

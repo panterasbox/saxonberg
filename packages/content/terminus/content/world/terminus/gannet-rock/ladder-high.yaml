@@ -1,0 +1,19 @@
+# The iron ladder up the outside of the light on Gannet Rock — one storey
+# of it (geography W3: the tower's cells meet one above the other, so the
+# lantern gallery is reached a storey at a time). Open to the sky.
+class: /platform/location/Locale
+data:
+  shortDescription: iron ladder up the light
+  keywords: [ladder, rungs, tower, iron]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    High on the iron ladder, the tower's curve under your hands and the sea all round, grey and moving. The gallery rail is just above.
+  coords:
+    x: 0
+    y: 0
+    z: 2
+  exits:
+    up:
+      destination: /world/terminus/gannet-rock/gallery
+      bidirectional: true
