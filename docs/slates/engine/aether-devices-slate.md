@@ -81,9 +81,10 @@ these other systems. That should be the other promise."*
    this goes when you power it on or reach the needle house. Stuck? Type `stuck`."* The scrambling
    instinct is caught and pointed somewhere.
 
-⚠ **The one hole in promise 2: losing your phone.** Theft can reach a social player who never left
-an ordinary place, and *"losing your phone is really bad"* (§ 5). **[OPEN]** — whether ordinary
-places protect against it, or a replacement is easy there.
+**Losing your phone** — theft can reach even a social player. **[DECIDED — the owner]**:
+*"replacement should be easy but not necessarily cheap. And … if you're a purely social player you
+probably try to stay out of areas where your device is vulnerable."* No protection; an easy
+replacement; the stake is money and caution.
 
 ## 2. ⭐⭐ Who talks at a distance: players, and only players **[DECIDED — the owner, 2026-11-18]**
 
@@ -128,12 +129,32 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **Losing your phone shrinks your reach to the room** — the owner: *"it also means you can still
   emote in the room if you lose your phone, which I do like."*
 
-## 4. What a person feels **[DECIDED]**
+## 4. ⭐⭐ What a person feels: the device decides how it manifests **[DECIDED — the owner, 2026-11-18]**
 
-The tuner tunes; it is not how you perceive. What arrives on the aether arrives extra-sensorily
-whichever tuner you carry — a phone does **not** make messages visual. A draft said it did (*the
-phone is a screen, so it has to be visual*), and that was the tension the owner raised; it dissolves
-once the phone is a tuner first and a screen second (§ 6).
+> *"Although the aether is extra-sensory, the phone itself is not. You're always experiencing a dm
+> or an emote or any of the other content of the message frame as reading it off a screen. Only the
+> implant is truly ESP. … It's all just information, but how it's manifested changes per device."*
+
+(This reverses an earlier draft of this section, which said a phone does not make messages visual.)
+
+- **The message has no sense; the recipient's device gives it one.** This passes the meme test (§ 3):
+  any emote, any message, read off a phone is *read*, felt through an implant is *known*. The rule
+  is per device, never per emote.
+- **It is the display's three-arm idea again** ([display.md](../../subsystems/display.md)): content
+  carries no manifestation of its own, and the thing that shows it decides.
+- **What arrives through the room itself** (a local emote, § 3) needs no device, and stays
+  extra-sensory.
+
+| device | manifests as | what follows |
+|---|---|---|
+| implant | extra-sensory — you *know* it | private; works blind, in the dark, in a fight |
+| phone | **sight** — a lit screen you read | someone close can read over your shoulder; a lit screen shows in the dark (a hider who reads their phone gives themselves away); unread while you cannot see |
+| needle | sight — letters turned on a dial | slow, short |
+| aether-radio | **[OPEN]** sound from a speaker? | if so, the room overhears it — and content-declaration § 5 forbids a carrier *coupling* through hearing, which is not the same as *manifesting* as sound |
+
+**[OPEN]** — does a phone read aloud to someone who cannot see (as real phones do), so it
+manifests as sound and the room can hear? Does writing on a phone need a free hand (an implant
+needs none)? What does an implant do while you sleep?
 
 ## 5. The tuners
 
