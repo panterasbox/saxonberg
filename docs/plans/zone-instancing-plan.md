@@ -1491,3 +1491,21 @@ fresh world after the harbors fixes: **9/10 green.**
   stop zone (`copy: true`). Not re-run as a whole — a dirty file will not
   run twice against a world it has consumed, and a fresh world costs
   20 minutes for a one-line change to the step's scope.
+
+### B5 — the browser walk (2026-11-17, fresh world)
+
+`e2e/tests/zone-instancing-walk.spec.ts`, against the build's own server
+(`AUTH_MODE=test`, port 2019) and a Vite client: **2/2 green.**
+
+- **A Hinkley house**: the founder opens an account, is funded, buys a
+  lot; on the lane (daylight staged — an unlit lane at night shows no
+  gates) through the gate on the side the sale names, into the yard, the
+  kitchen door opens for the buyer's key, the hall, kitchen, front room;
+  back out through the yard and the gate onto the lane — no refusal at the
+  copy's edge, nothing *"went wrong"*.
+- **The Hesper**: from the estuary mouth, `go hesper` → *the Hesper's
+  deck*, `go down` → *the hold*, `go up`, `go ashore` → the estuary mouth.
+- ⚠ **Finding, pre-existing (mirroring is on master):** a MIRRORED house
+  (a south-side lot) keeps its authored prose — the hall says *"the
+  bedroom is through the north door"* while its north is the locked door
+  to the yard and the bedroom is south. The cells mirror; the words do not.
