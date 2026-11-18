@@ -48,6 +48,8 @@ export {
   pinWeather,
   unpinWeather,
   stage,
+  failDatastore,
+  forceDocument,
   stageShip,
 } from './world';
 export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';

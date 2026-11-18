@@ -500,6 +500,24 @@ export async function stage(path: string, method: string, ...args: unknown[]): P
   return out.result ?? null;
 }
 
+/**
+ * ⭐ Stage an outage (failure-model D8): the next `calls` record reads or
+ * writes fail as a lost connection would. Only in a world this run owns.
+ */
+export async function failDatastore(calls = 1): Promise<void> {
+  const res = await postTestRoute('/auth/test-datastore-fail', { calls });
+  if (!res.ok) throw new Error(`failDatastore(${calls}) failed (${res.status}): ${await res.text()}`);
+}
+
+/**
+ * ⭐ Write a document past its validator (failure-model D6) — a bad row
+ * forced through, the staged twin a content error needs.
+ */
+export async function forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<void> {
+  const res = await postTestRoute('/auth/test-force-document', { path, kind, data });
+  if (!res.ok) throw new Error(`forceDocument('${path}') failed (${res.status}): ${await res.text()}`);
+}
+
 /* ──────────────────────── a ship ──────────────────────── */
 
 /** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
