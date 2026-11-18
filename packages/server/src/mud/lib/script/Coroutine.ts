@@ -35,7 +35,11 @@ import { SchedulerApi } from "../../api/scheduler";
 import { MixinApi } from "../../api/mixin";
 import { Quantity } from "../quantity";
 import { ScriptValues } from "./Value";
-import { ResourceLimitError } from "./Interpreter";
+import { ResourceLimitError, ScriptHalted } from "./Interpreter";
+import { Refusal } from "../errors";
+import { CommandApi } from "../../api/command";
+import type { CommandContext } from "../../api/command";
+import type { Engagement } from "../../api/scheduler";
 import type {
   Interpreter,
   Effect,
@@ -59,6 +63,9 @@ const WHEN_POLL_SECONDS = 1;
 const ENGAGED_RECHECK_SECONDS = 0.5;
 
 type CoState = "running" | "suspended" | "done" | "cancelled";
+
+/** What the pump hands the generator next: a value, or an error to throw in. */
+type Next = { thrown: false; value: Resume } | { thrown: true; error: unknown };
 
 export class Coroutine {
   private state: CoState = "running";
@@ -88,7 +95,7 @@ export class Coroutine {
 
   /** Begin pumping (fire-and-forget; the pump detaches on suspend). */
   start(): void {
-    void this.pump(undefined);
+    void this.pump({ thrown: false, value: undefined });
   }
 
   /** Resolves on the first suspend OR on completion — the detach point. */
@@ -143,21 +150,37 @@ export class Coroutine {
 
   /* ─────────────────────────── the pump ─────────────────────────── */
 
-  private async pump(resume: Resume): Promise<void> {
+  private async pump(start: Next): Promise<void> {
     if (this.state === "cancelled" || this.state === "done") return;
     this.state = "running";
+    let next: Next = start;
     for (;;) {
       let step: IteratorResult<Effect, ScriptValue>;
       try {
-        step = this.gen.next(resume);
+        // ⭐ A refused or broken line is thrown back in at its yield, so a
+        // `try` around it can handle a refusal (failure-model D5).
+        step = next.thrown ? this.gen.throw(next.error) : this.gen.next(next.value);
       } catch (error) {
         if (error instanceof ResourceLimitError) {
           this.finish({ aborted: "resource-limit", detail: error.which });
           return;
         }
-        // Unexpected interpreter error — log and settle (effects stand).
-        console.error("Coroutine: interpreter threw", error);
-        this.finish({});
+        // ⭐ The script stops at its first unhandled refusal, or at a defect.
+        if (error instanceof Refusal) {
+          this.finish({
+            aborted: "step-declined",
+            stopped: { line: error.at ?? "", refusal: error, notes: this.interp.notesOf(error) },
+          });
+          return;
+        }
+        if (error instanceof ScriptHalted) {
+          this.finish({ aborted: "step-declined", stopped: { line: error.line, refusal: null, notes: [] } });
+          return;
+        }
+        // A bug in the interpreter itself: reported (a diagnostic, and the
+        // went-wrong line to whoever ran it), never a bare log.
+        await CommandApi.reportFailure(error, null, "script");
+        this.finish({ aborted: "step-declined", stopped: { line: "", refusal: null, notes: [] } });
         return;
       }
       if (step.done) {
@@ -168,24 +191,29 @@ export class Coroutine {
 
       if (effect.kind === "dispatch") {
         const before = this.engagementIds();
-        const ctx = await this.dispatch(effect.command, effect.model, effect.prep, effect.source);
+        const ctx = await this.dispatch(effect.command, effect.model, effect.prep, effect.source, effect.line);
         if (this.isCancelled()) return;
+        const outcome = this.outcomeOf(ctx, effect.line);
+        if (outcome !== null) {
+          next = outcome;
+          continue;
+        }
         for (const note of ctx.getNotes()) this.interp.recordNote(note);
         // The await-engaged pacing rule: if the command started a timed
         // activity, suspend until it completes before the next statement.
         const engagedId = this.newEngagementId(before);
         if (engagedId !== null) {
-          this.suspendUntilEngaged(engagedId, ctx);
+          this.suspendUntilEngaged(engagedId, ctx, effect.line);
           return; // detached
         }
-        resume = ctx;
+        next = { thrown: false, value: ctx };
         continue;
       }
 
       if (effect.kind === "slice") {
         await this.reschedule();
         if (this.isCancelled()) return;
-        resume = undefined;
+        next = { thrown: false, value: undefined };
         continue;
       }
 
@@ -206,7 +234,7 @@ export class Coroutine {
           () => {
             this.pending = null;
             if (this.state === "cancelled") return;
-            void this.pump(undefined);
+            void this.pump({ thrown: false, value: undefined });
           },
         );
         return;
@@ -229,7 +257,7 @@ export class Coroutine {
             if (!ScriptValues.isTruthy(value)) return;
             this.clearPending();
             void this.runBlock(request.block).then(() => {
-              if (this.state !== "cancelled") void this.pump(undefined);
+              if (this.state !== "cancelled") void this.pump({ thrown: false, value: undefined });
             });
           },
         );
@@ -237,10 +265,45 @@ export class Coroutine {
     }
   }
 
-  /** Suspend until an engaged step completes, then resume with its ctx. */
-  private suspendUntilEngaged(engagementId: string, ctx: Resume): void {
+  /**
+   * ⭐ What a dispatched line came to, for the script (failure-model D5):
+   * `null` to go on (`ok`, `partial`); a {@link Refusal} to throw in for
+   * `declined` — the context's own when a migrated controller handed one
+   * over, else one made from its first declining note — its notes held
+   * with it; a {@link ScriptHalted} for `error` (a bug, a content error),
+   * whose notes are said as today.
+   */
+  private outcomeOf(ctx: CommandContext, line: string): Next | null {
+    const status = ctx.getStatus();
+    if (status === "declined") {
+      const own = ctx.getRefusal();
+      if (own !== null) {
+        const refusal = own.atLine(line);
+        this.interp.holdNotes(refusal, ctx.getNotes());
+        return { thrown: true, error: refusal };
+      }
+      return { thrown: true, error: this.interp.refusalFromNotes(ctx.getNotes(), line) };
+    }
+    if (status === "error") {
+      for (const note of ctx.getNotes()) this.interp.recordNote(note);
+      return { thrown: true, error: new ScriptHalted(line) };
+    }
+    return null;
+  }
+
+  /**
+   * Suspend until an engaged step ends, then resume with its ctx — or,
+   * when it was interrupted, throw `interrupted` in (its abort reason a
+   * fact, `$why.abort`); a step that threw halts the script; a refusal its
+   * completion returned is on the context and is thrown the same way.
+   * ⚠ The wake fires at the step's expected end (and re-checks), not at
+   * the interruption — a deferred seam.
+   */
+  private suspendUntilEngaged(engagementId: string, ctx: CommandContext, line: string): void {
     this.markSuspended();
     this.awaitedEngagementId = engagementId;
+    const engagement: Engagement | undefined = SchedulerApi.getEngagementById(engagementId);
+    const refusedBefore = ctx.getRefusal();
     const durationSeconds = this.engagementDurationSeconds(engagementId);
     const schedule = (seconds: number): void => {
       this.pending = WorldClockApi.after(
@@ -250,7 +313,7 @@ export class Coroutine {
           if (this.state === "cancelled") return;
           if (SchedulerApi.getEngagementById(engagementId) === undefined) {
             this.awaitedEngagementId = null;
-            void this.pump(ctx);
+            void this.pump(this.wakeOf(engagement, ctx, line, refusedBefore));
           } else {
             schedule(ENGAGED_RECHECK_SECONDS); // not done yet — re-check
           }
@@ -258,6 +321,27 @@ export class Coroutine {
       );
     };
     schedule(durationSeconds);
+  }
+
+  /** How an awaited step ended, as what the script meets next. */
+  private wakeOf(
+    engagement: Engagement | undefined,
+    ctx: CommandContext,
+    line: string,
+    refusedBefore: Refusal | null,
+  ): Next {
+    const end = engagement?.endedBy;
+    if (end === "thrown") return { thrown: true, error: new ScriptHalted(line) };
+    if (end !== undefined && end !== "completed") {
+      return { thrown: true, error: new Refusal("interrupted", { abort: end }, { at: line }) };
+    }
+    const late = ctx.getRefusal();
+    if (late !== null && late !== refusedBefore) {
+      const refusal = late.atLine(line);
+      this.interp.holdNotes(refusal, []);
+      return { thrown: true, error: refusal };
+    }
+    return { thrown: false, value: ctx };
   }
 
   /** Run a block as a tracked sub-coroutine (every/when bodies). */
@@ -324,6 +408,7 @@ export class Coroutine {
     value?: ScriptValue;
     aborted?: ScriptAbortReason;
     detail?: string;
+    stopped?: DriveResult["stopped"];
   }): void {
     if (this.settled) return;
     this.settled = true;
@@ -335,6 +420,7 @@ export class Coroutine {
       notes,
       ...(partial.aborted !== undefined ? { aborted: partial.aborted } : {}),
       ...(partial.detail !== undefined ? { detail: partial.detail } : {}),
+      ...(partial.stopped !== undefined ? { stopped: partial.stopped } : {}),
     };
     this.signalFirstYield();
     this.resolveSettled(result);

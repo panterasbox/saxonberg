@@ -35,6 +35,10 @@ export const SCRIPT_BUILTINS = [
   "wait",
   "every",
   "when",
+  // ⭐ Failure handling (failure-model D5): `try { … } on <reason> { … }`.
+  // Intrinsic because both blocks must stay unevaluated until the body
+  // refuses — which the bus cannot give a verb.
+  "try",
 ] as const;
 
 /** A builtin verb name. */

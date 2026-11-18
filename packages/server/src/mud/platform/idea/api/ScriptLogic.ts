@@ -17,11 +17,14 @@ import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { StuffApi } from "../../../api/stuff";
 import EvalScript from "../EvalScript";
 import { Interpreter } from "../../../lib/script/Interpreter";
+import { Refusal } from "../../../lib/errors";
 import type {
   ResourceLimits,
   DispatchFn,
   ScriptDef,
+  DriveResult,
 } from "../../../lib/script/Interpreter";
+import type { CommandContext } from "../../../api/command";
 import type { Coroutine } from "../../../lib/script/Coroutine";
 import type { ScriptAbortReason } from "../../../lib/script/AbortReason";
 import type { CompiledSandbox } from "../../../api/script";
@@ -221,7 +224,7 @@ function makeReschedule(): () => Promise<void> {
 
 /** The bound-tail dispatch primitive for `actor` (re-resolved each run). */
 function dispatchFor(actor: Stuff & CommandGiver): DispatchFn {
-  return (command, model, prep, source) => actor._dispatchBound(command, model, prep, source);
+  return (command, model, prep, source, line) => actor._dispatchBound(command, model, prep, source, line);
 }
 
 /** The actor's home script path: `/home/<key>/scripts/<name>`. */
@@ -276,23 +279,68 @@ async function startAndDetach(
   );
   registerCoroutine(actor, co);
 
-  void co.whenSettled().then((result) => {
-    deregisterCoroutine(actor, co);
-    if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
-      MessageApi.scene(actor as Stuff & Sensor)
-        .topic("shell.error")
-        .toSelf(
-          Mml.compose`The script stopped (${result.aborted}${
-            result.detail ? `: ${result.detail}` : ""
-          }).`,
-        )
-        .send();
-    }
-  });
-
   await co.whenFirstYield();
   const ctx = ExecutionContextApi.getCurrentCommandContext();
   for (const note of interpreter.getNotes()) ctx?.note(note);
+  // ⭐ Settled before it ever detached: the stop is reported on this
+  // command's envelope. Otherwise it is reported late, when it settles.
+  const state = co.getState();
+  if (state === "done" || state === "cancelled") {
+    const result = await co.whenSettled();
+    deregisterCoroutine(actor, co);
+    await reportStop(actor, result, ctx ?? null);
+    return;
+  }
+  void co.whenSettled().then(async (result) => {
+    deregisterCoroutine(actor, co);
+    await reportStop(actor, result, null);
+  });
+}
+
+/**
+ * ⭐⭐ **Say once where a script stopped and why** (failure-model D5).
+ *
+ *  - A refusal whose reason has a row: nothing else has spoken, so the
+ *    command notes ONE `refused` — the refusal's own code and facts, with
+ *    `at` — and the emit sweep words it through `script-stopped`. Late (the
+ *    script had detached), the same line goes to the player at once.
+ *  - A refusal with no row (an unmigrated controller, which already said
+ *    its own line), or a defect: its notes ride as before, and one bare
+ *    `script-stopped` line is added.
+ *  - Any other abort (a resource limit, a cancel): said as before.
+ */
+async function reportStop(
+  actor: Stuff & CommandGiver,
+  result: DriveResult,
+  ctx: CommandContext | null,
+): Promise<void> {
+  if (result.aborted === undefined) return;
+  const stopped = result.stopped;
+  if (stopped === undefined) {
+    if (!MixinApi.isSensor(actor)) return;
+    MessageApi.scene(actor as Stuff & Sensor)
+      .topic("shell.error")
+      .toSelf(
+        Mml.compose`The script stopped (${result.aborted}${
+          result.detail ? `: ${result.detail}` : ""
+        }).`,
+      )
+      .send();
+    return;
+  }
+  const refusal = stopped.refusal;
+  if (refusal !== null && (await CommandApi.reasons().find(refusal.reason)) !== null) {
+    if (ctx !== null) ctx.refuse(refusal);
+    else await CommandApi.reportFailure(refusal);
+    return;
+  }
+  for (const note of stopped.notes) ctx?.note(note);
+  if (!MixinApi.isSensor(actor)) return;
+  const worded = await CommandApi.wordReason("script-stopped", { line: stopped.line }).catch(() => null);
+  MessageApi.scene(actor as Stuff & Sensor)
+    .topic(worded?.topic ?? "shell.error")
+    .toSelf(worded?.line ?? Mml.compose`The script stopped at ${stopped.line}.`)
+    .send();
 }
 
 async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
@@ -361,7 +409,7 @@ function parsedToScript(parsed: ParsedCommand): Script {
   return { kind: "script", statements: [{ kind: "pipeline", commands: [command] }] };
 }
 
-/** Parse stored source text into a `Script` AST (or null on error). */
+/** Parse stored source text into a `Script` AST; a parse error throws a `parse-failed` refusal. */
 async function parseSourceToScript(
   source: string,
   actor: Stuff & CommandGiver,
@@ -375,7 +423,9 @@ async function parseSourceToScript(
   });
   if (result.script !== undefined) return result.script.ast;
   if (result.parsed !== undefined) return parsedToScript(result.parsed);
-  return null; // parse error → unresolvable
+  // ⭐ A stored script that does not parse is REFUSED with its error, never
+  // silently "not found" (failure-model D5).
+  throw new Refusal("parse-failed", { detail: result.error ?? "the script does not parse" });
 }
 
 /** The source text of the script stored at `path`, or null. */

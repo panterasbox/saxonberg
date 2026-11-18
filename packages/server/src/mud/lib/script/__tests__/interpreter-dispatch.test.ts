@@ -109,16 +109,16 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     expect(env.outcome.status).toBe("ok");
   });
 
-  it("notes an unknown verb but continues dispatching valid ones", async () => {
+  it("⭐ an unknown verb stops the script there, and the stop is said (failure-model D5)", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
     await giver.executeCommand("frobnicate; ping");
 
-    // Only the real verb reached resolve; the unknown one was noted.
+    // The script stopped at the unknown verb: `ping` never ran.
     const verbs = resolveModel.mock.calls.map(
       (c) => c[1].command.getPrimaryVerb(),
     );
-    expect(verbs).toEqual(["ping"]);
+    expect(verbs).toEqual([]);
 
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     const rejected = env.outcome.notes.filter(

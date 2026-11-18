@@ -55,6 +55,8 @@ import type { Affordance, CommandGiver } from "../command/CommandGiver";
 import type { CommandDefinition } from "../command/CommandDefinition";
 import type { Note } from "@saxonberg/types";
 import type { ScriptAbortReason } from "./AbortReason";
+import { Refusal } from "../errors";
+import { Stuff as StuffClass } from "../stuff/Stuff";
 
 /**
  * A coroutine suspension the script asks the pump to schedule onto the
@@ -78,6 +80,8 @@ export type Effect =
       prep: Record<string, string>;
       /** The `verb@source` source the line named, when it named one. */
       source?: Stuff;
+      /** The line as the script wrote it — what a stop names. */
+      line: string;
     }
   | { kind: "slice" }
   | { kind: "suspend"; request: SuspendRequest };
@@ -114,6 +118,7 @@ export type DispatchFn = (
   model: CommandModel,
   prep: Record<string, string>,
   source?: Stuff,
+  line?: string,
 ) => Promise<CommandContext>;
 
 /** Yields the event loop for one macrotask (the preemption slice). */
@@ -129,6 +134,14 @@ export interface DriveResult {
   aborted?: ScriptAbortReason;
   /** Human-facing detail for an abort / limit. */
   detail?: string;
+  /**
+   * ⭐ Where and why it stopped (failure-model D5): the line, and the
+   * refusal that stopped it — `null` for a defect (a bug, a content
+   * error), which no handler may catch. `notes` are the stopped line's own
+   * notes, held back from {@link notes} so they are said once, by the
+   * stop report.
+   */
+  stopped?: { line: string; refusal: Refusal | null; notes: Note[] };
 }
 
 /** Thrown when a lifetime ceiling is exceeded; pump → graceful abort. */
@@ -136,6 +149,18 @@ export class ResourceLimitError extends Error {
   constructor(public readonly which: "steps" | "dispatch" | "depth") {
     super(`script resource limit exceeded: ${which}`);
     this.name = "ResourceLimitError";
+  }
+}
+
+/**
+ * ⭐ A line hit a DEFECT (a bug, a content error, a step that threw): the
+ * script halts, and no `try … on` may catch it — not even `on *`. Local to
+ * the interpreter, as {@link ResourceLimitError} is.
+ */
+export class ScriptHalted extends Error {
+  constructor(public readonly line: string) {
+    super(`script halted at: ${line}`);
+    this.name = "ScriptHalted";
   }
 }
 
@@ -197,6 +222,8 @@ export class Interpreter {
   private dispatches = 0;
   private depth = 0;
   private readonly notes: Note[] = [];
+  /** The notes a refusal carries, held back until it is caught or stops the run. */
+  private readonly heldNotes = new WeakMap<Refusal, Note[]>();
 
   /**
    * @param actor   the actor this run executes as.
@@ -266,6 +293,39 @@ export class Interpreter {
     this.notes.push(note);
   }
 
+  /**
+   * Hold `notes` with `refusal` — said by the stop report if it stops the
+   * run, dropped if a handler catches it. @internal
+   */
+  holdNotes(refusal: Refusal, notes: readonly Note[]): void {
+    this.heldNotes.set(refusal, [...notes]);
+  }
+
+  /** The notes held with `refusal`. @internal */
+  notesOf(refusal: Refusal): Note[] {
+    return this.heldNotes.get(refusal) ?? [];
+  }
+
+  /**
+   * ⭐ A refusal made from a declining note, for a refusal no migrated
+   * controller handed over (failure-model D5): its `reason` (else its
+   * kind), and the detail as a fact. @internal
+   */
+  refusalFromNotes(notes: readonly Note[], line: string): Refusal {
+    const declining = notes.find((n) => n.kind !== "prompt-refresh") as
+      | { kind: string; reason?: string; detail?: unknown }
+      | undefined;
+    const reason = declining?.reason ?? declining?.kind ?? "parse-failed";
+    const detail = declining?.detail;
+    const refusal = new Refusal(
+      reason,
+      typeof detail === "string" && detail !== "" ? { detail } : {},
+      { at: line },
+    );
+    this.holdNotes(refusal, notes);
+    return refusal;
+  }
+
   /** Evaluate a `( )` island's condition source (for `when` polling). @internal */
   evalCondition(source: string, scope: Scope): ScriptValue {
     return Expression.evaluate(source, scope, this.actor);
@@ -309,9 +369,15 @@ export class Interpreter {
     if (this.defs.has(command.word)) {
       return yield* this.invokeDef(command, scope);
     }
+    const line = this.lineOf(command);
+    const mark = this.notes.length;
     const bindings = this.bindCommand(command, scope);
-    if (bindings === null) return undefined; // unknown verb / bind shape — noted
+    // ⭐ A line the binder refuses is a refusal like any other (D5): the
+    // script stops there unless a `try` handles it. Its notes go with it.
+    if (bindings === null) throw this.refusalFromNotes(this.notes.splice(mark), line);
     // ⭐ One binding, or one per source of a plural `verb@source` batch.
+    // The pump throws a refused line's Refusal (or a defect's
+    // ScriptHalted) back in at this yield.
     for (const bound of bindings) {
       if (++this.dispatches > this.limits.maxDispatch) {
         throw new ResourceLimitError("dispatch");
@@ -321,6 +387,7 @@ export class Interpreter {
         command: bound.command,
         model: bound.model,
         prep: bound.prep,
+        line,
         ...(bound.source ? { source: bound.source } : {}),
       };
     }
@@ -352,6 +419,8 @@ export class Interpreter {
         return yield* this.evalEvery(command, scope);
       case "when":
         return yield* this.evalWhen(command, scope);
+      case "try":
+        return yield* this.evalTry(command, scope);
       default:
         return undefined;
     }
@@ -540,6 +609,93 @@ export class Interpreter {
       callScope.define(param, value);
     });
     return yield* this.invokeBlock(new Block(def.body, callScope));
+  }
+
+  /**
+   * ⭐⭐ `try { … } on <reason>[, <reason>…] { … } [on … { … }]` (failure-
+   * model D5): run the body; a refusal it throws runs the FIRST clause
+   * naming its reason (`on *` names any), with `$why` bound to it, and the
+   * handler's value is the `try`'s. A refusal no clause names — or one
+   * thrown inside a handler — propagates. ⛔ A defect (`ScriptHalted`, a
+   * resource limit, a bug) is never a refusal and nothing here catches it.
+   * The parser already refused a malformed `try` and an unknown reason.
+   */
+  private *evalTry(command: Command, scope: Scope): Eval<ScriptValue> {
+    const clauses = this.tryClausesOf(command);
+    const bodyArg = command.args[0];
+    if (clauses === null || bodyArg === undefined || bodyArg.kind !== "block") {
+      throw new Refusal("parse-failed", {
+        detail: "try needs { a body } and at least one on <reason> { handler }",
+      }, { at: this.lineOf(command) });
+    }
+    try {
+      return yield* this.invokeBlock(new Block(bodyArg.body, scope));
+    } catch (err) {
+      if (!(err instanceof Refusal)) throw err;
+      const reasons = CommandApi.reasons();
+      const code = reasons.codeOf(err.reason);
+      const clause = clauses.find(
+        (c) => c.codes.includes("*") || c.codes.some((k) => reasons.codeOf(k) === code),
+      );
+      if (!clause) throw err;
+      const handlerScope = scope.child();
+      handlerScope.define("why", err);
+      return yield* this.invokeBlock(new Block(clause.body, handlerScope));
+    }
+  }
+
+  /**
+   * The `on` clauses of a `try`: the reason codes each names and its
+   * handler body, or `null` when the shape is wrong. Read off the AST, so
+   * the parser's walk and the run agree. @internal
+   */
+  tryClausesOf(command: Command): Array<{ codes: string[]; body: Script }> | null {
+    const args = command.args;
+    if (args[0]?.kind !== "block") return null;
+    const clauses: Array<{ codes: string[]; body: Script }> = [];
+    let i = 1;
+    while (i < args.length) {
+      const on = args[i];
+      if (on?.kind !== "literal" || on.value !== "on") return null;
+      i++;
+      const codes: string[] = [];
+      while (i < args.length && args[i]!.kind === "literal") {
+        for (const part of (args[i] as { value: string }).value.split(",")) {
+          if (part.trim() !== "") codes.push(part.trim());
+        }
+        i++;
+      }
+      const body = args[i];
+      if (codes.length === 0 || body?.kind !== "block") return null;
+      clauses.push({ codes, body: body.body });
+      i++;
+    }
+    return clauses.length > 0 ? clauses : null;
+  }
+
+  /**
+   * A line as the script wrote it, for a stop to name: the word and its
+   * args (`$var`, `( … )`, `{ … }` shown as written).
+   */
+  private lineOf(command: Command): string {
+    const parts = [command.word];
+    for (const arg of command.args) {
+      switch (arg.kind) {
+        case "literal":
+          parts.push(arg.value);
+          break;
+        case "var":
+          parts.push(`$${arg.name}`);
+          break;
+        case "expr":
+          parts.push(`(${arg.source})`);
+          break;
+        case "block":
+          parts.push("{ … }");
+          break;
+      }
+    }
+    return parts.join(" ");
   }
 
   /** Evaluate an arg that must be a `{block}` to its `Block` value. */
@@ -784,6 +940,12 @@ export class Interpreter {
    * the render.
    */
   private renderScalar(value: ScriptValue, label: string): string | null {
+    // ⭐ One thing renders as `#<id>`, so `unlock $why.target` binds that
+    // exact thing through the ordinary binder — its perception gate and
+    // the verb's own gates still apply (failure-model D5).
+    if (value instanceof StuffClass) return `#${value.stuffId}`;
+    // A refusal renders as its code.
+    if (value instanceof Refusal) return CommandApi.reasons().codeOf(value.reason);
     if (
       typeof value === "string" ||
       typeof value === "number" ||
@@ -797,7 +959,7 @@ export class Interpreter {
     this.note({
       kind: "command-rejected",
       reason: "bind-failed",
-      detail: `${label}: binding object / list / block values into a command argument is deferred with the piping value channel`,
+      detail: `${label}: binding a list or a block into a command argument is deferred with the piping value channel`,
     });
     return null;
   }
