@@ -52,7 +52,12 @@ test.describe('crowded rooms, in a browser', () => {
       await expect(card).toBeVisible({ timeout: 60_000 });
       const key = (await card.getAttribute('data-card-key')) ?? 'look';
       // ⭐ Who the card says is here before the arrival (its live "Here").
-      const peopleBefore = await card.getByTestId('segment-person').count();
+      // A person is a chip in the card's "Here" row (a plain chip, or a
+      // person chip when they have a status or a seat).
+      const hereRow = (c: typeof card) => c.getByTestId('segment').filter({ hasText: /^Here/ });
+      const peopleIn = async (c: typeof card): Promise<number> =>
+        hereRow(c).locator('[data-testid="segment-chip"], [data-testid="segment-person"]').count();
+      const peopleBefore = await peopleIn(card);
 
       await runCommand(page, `client-card minimize ${key}`);
       await expect.poll(() => sent.some((m) => m.startsWith('subscription-pause:')), { timeout: 10_000 }).toBe(true);
@@ -73,7 +78,7 @@ test.describe('crowded rooms, in a browser', () => {
         // frozen at the look (navigation-server review); before, this only
         // checked that SOME text changed, which anything could satisfy.
         await expect
-          .poll(async () => restored.getByTestId('segment-person').count(), { timeout: 5_000 })
+          .poll(async () => peopleIn(restored), { timeout: 5_000 })
           .toBeGreaterThan(peopleBefore);
       } finally {
         await b.close();
