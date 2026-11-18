@@ -287,6 +287,39 @@ Two passthrough escape hatches:
   `#templatePath`). Access goes through `getZone()` /
   `getTemplatePath()`, not bracket reads off the proxy.
 
+### Is it a getter? — the accessor cache
+
+Before it reads a name, the trap must know whether the name is a
+**getter** (which runs through the pipeline, gated, with `this === proxy`)
+or anything else (read live with `Reflect.get`). It answers in two steps
+(call-security-performance, 2026-11):
+
+1. **An own property, live** — `getOwnPropertyDescriptor(target, prop)`:
+   a field, a lazily assigned slot, an instance-level replacement
+   (`obj.m = vi.fn()`) or an own accessor is exact on every read.
+2. **Otherwise the prototype chain's answer, cached per prototype
+   object** (`ProxyApi.#accessorCache`, a `WeakMap<proto, Map<prop,
+   {holder, get} | null>>`). `null` means *no accessor on the chain* — a
+   method, a prototype data property, or nothing — and the value is still
+   read live, so a `vi.spyOn(X.prototype, 'm')` is seen at once. A cached
+   getter is confirmed against its holder (one descriptor read) before it
+   runs, so a getter spied, replaced or removed there is recomputed, never
+   served stale.
+
+Keyed on the prototype OBJECT, the cache is right across a hot reload by
+construction: a reload evaluates a new class object (a new key) and old
+instances keep the old prototype (the old key). There is no generation
+stamp, because nothing writes an accessor onto a prototype after its class
+is defined. ⚠ **That is the one assumption:** a name that is absent or a
+method on an existing prototype object does not later become a getter *on
+that same object*. A test that needs a class whose method is a getter
+builds a new class.
+
+It replaced a walk of the whole prototype chain on every read that was not
+an own property — 12–15% of the running world's busy time on its own (the
+2026-11-17 and 2026-11-18 profiles), because mixin-built chains are deep
+and every `this.x` inside a method body is a trap read.
+
 ### Wrapper cache
 
 The handler maintains a per-target `WeakMap<Function, Function>` so

@@ -223,12 +223,16 @@ function main(): void {
   // runs with `this === proxy`, so every `this.x` in it is a trap read),
   // and a bench of one call cannot see them. One row per kind of read the
   // trap answers differently: an own field, a method read without calling
-  // it, a prototype getter (gated), and a name nothing declares (the whole
-  // chain). Plus one decorated static Api call.
+  // it (declared on Probe, and declared at the chain's root), a prototype
+  // getter (gated), and a name nothing declares (the whole chain). Plus
+  // one decorated static Api call.
   const pr = p as unknown as Record<string, unknown>;
   const reads = bench([
     { label: "own-field read", run: () => void pr._n },
     { label: "method read", run: () => void pr.bump },
+    // `isDestroyed` is declared on Stuff, at the root of the chain: what a
+    // read of an inherited method costs, which is most of the world's reads.
+    { label: "deep method read", run: () => void pr.isDestroyed },
     { label: "getter read", run: () => void pr.tone },
     { label: "absent read", run: () => void pr.nothingDeclaresThis },
     { label: "static call", run: () => void BenchApi.ping() },

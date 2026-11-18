@@ -688,7 +688,18 @@ and a ranking that can overrule this plan's order.
 master's code and each has been seen red.
 **Commit.** `build(call-security-performance W0): instruments and the baseline`
 
-### W1 — The accessor cache (D1)
+### W1 — The accessor cache (D1) — ✅ DONE
+
+> As planned: own descriptor live, then the per-prototype cache, an accessor
+> hit confirmed on its holder. Bench (busy box, W0 vs W1 alternated twice):
+> **absent read 840→277 ns, deep method read (`isDestroyed`, declared on
+> Stuff) 840→330 ns** — the row the world is made of, added to the bench
+> in this wave because `Probe`'s own members sit one level up and the walk
+> they paid was already short (method read 173→154, getter 593→639:
+> within noise). D1's exact forms: A (own descriptor) kept; B
+> (`Object.hasOwn` first) measured no better (own field 126/138 vs
+> 143/150 ns); C (`__lookupGetter__`, no cache) is the whole-chain walk W0
+> paid by construction, not timed. `test:near` 300 files green.
 
 **Goal.** A method, prototype-getter or absent read stops walking the chain.
 
@@ -848,13 +859,13 @@ targeting by a worn feature behave as before in the wire file's step 3.
 
 ### Per-wave bench table (filled as waves land)
 
-| after | call ns | own-field read | method read | getter read | absent read | static call | depth 200 |
-|---|---|---|---|---|---|---|---|
-| W0 (master; busy box, load 5–6) | 1 053 | 118 | 149 | 513 | 701 | 137 | 932 |
-| W1 | | | | | | | |
-| W2 | | | | | | | |
-| W3 | | | | | | | |
-| W4 | | | | | | | |
+| after | call ns | own-field read | method read | deep method read | getter read | absent read | static call | depth 200 |
+|---|---|---|---|---|---|---|---|---|
+| W0 (master; busy box, load 5–6) | 1 053 | 118 | 149 | 834–849 | 513 | 701 | 137 | 932 |
+| W1 (busy box, load 9–10, two rounds) | 1 175 / 1 097 | 158 / 117 | 154 / 156 | 311 / 347 | 639 / 719 | 277 / 369 | 167 / 184 | 1 099 / 1 391 |
+| W2 | | | | | | | | |
+| W3 | | | | | | | | |
+| W4 | | | | | | | | |
 
 ---
 
