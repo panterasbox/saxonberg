@@ -443,6 +443,30 @@ the region's own deposits** where it has them, so *the distribution reads the wo
 a fabulite-rich region's ruins yield fabulite wands. It passes through the scale envelope's mint budget.
 Found and crafted are one model, filled two ways.
 
+## 7d. ⭐⭐ Precision — where ad-hoc teleporting lands **[LEAN; owner direction 2026-11-17]**
+
+From the TPA rework ([fast-travel-slate § Carriers, tickets and mass](./fast-travel-slate.md)). The
+owner: *"I don't know if I want to fuck with the reliability of the TPA network, but for more ad-hoc
+teleportation casting and the like, the idea could really earn its keep there. For the TPA the
+terminal itself is the thing doing the casting (kind of), which makes it predictable."*
+
+- **When you cast without a terminal, how precisely you can specify the place decides where you
+  land.** The anchored spell already has three anchors; they become three precisions:
+  - **a place you hold** (your own extent): sharp;
+  - **a node you registered** (you went there): good;
+  - **a place in reach** (here, peers, reachable): rough.
+- **Getting it wrong is soft:** you land near where you meant, never inside a wall. A cost and a
+  story, not a death.
+- **Skill shrinks the error and never grants access:** *competence resolves detail, never access*
+  (instrumentation.md). A better caster lands closer; nobody gets somewhere new by being good.
+- **Minor and major variants** earn their place here: a cheap, sloppy short hop, or a careful,
+  expensive one. The owner: *"There doesn't just have to be one teleport spell; we can have
+  different spells that have different cost structures or decision matrices behind them … like
+  'minor/major' variants."*
+- **Mass prices it** (the fast-travel direction): height climbed and distance are out.
+- **An aether-dead space**, authored deliberately in a bounded space, blocks teleporting in and out
+  as well as comms: a lever for a vault or a cell, always the author's explicit choice.
+
 ## 8. Open
 
 - Clusters 5–12.

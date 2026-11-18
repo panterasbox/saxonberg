@@ -932,6 +932,15 @@ specification.**
 
 ### ⭐ Control·Body and the terminal network
 
+> ⚠ **Under revision (the owner, 2026-11-17).** Pricing a teleport by height climbed is to be
+> retired: it is tiny, makes a downhill hop free, and prices the wrong thing. Distance is out too.
+> The direction is **mass**: a passenger fare covers a person and a personal allowance, freight and
+> excess are charged by weight and container class, and **precision** (where an ad-hoc cast lands)
+> belongs to casting, not the terminal network, which stays reliable. See
+> [fast-travel-slate § Carriers, tickets and mass](./slates/engine/fast-travel-slate.md) and
+> [spellbook-slate § 7d](./slates/engine/spellbook-slate.md). The text below describes the shipped
+> model until the rework lands.
+
 > ✅ **IMPLEMENTED** by the TPA reform. `MagicApi.relocationCost` is
 > `m·g·Δh` and nothing else — **distance appears nowhere in the
 > function**, so the claim below is assertable by reading the code
