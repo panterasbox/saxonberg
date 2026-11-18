@@ -239,6 +239,28 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **The implant can't be lost** — that is its whole case, and someone has to choose it (medicine
   fits it).
 
+### Decided for the first build (2026-11-18, the requirements conversation)
+
+→ [aether-devices-requirements](../../requirements/aether-devices-requirements.md).
+
+- **The battery is in the first build** (the owner). It lasts a full play session of ordinary use,
+  drains on the game clock only while your body is online, and charges with `put phone on charger`
+  wherever the premises has power — **including while you are logged out**. *"Keeping your phone
+  charged should be cheap and easy — this isn't the place in the game where we want to put up
+  barriers."*
+- **Guests keep a forced implant** — *"I'm just worried about phones leaking into the economy through
+  guests … or anything for that matter."*
+- **The shade is tuned intrinsically; a holodeck circle body gets nothing by default** — *"you
+  shouldn't be forcing any decisions on a holodeck user. What if the whole point is to test not having
+  an implant?"* The circle's owner equips it; the circle's rule that nothing made inside can leave
+  stops leaks.
+- **`help ask` waits for customer service** — *"we'll handle customer service later."*
+- **Getting an implant** waits for *"a cool process"* and the surgery slate.
+- **The starter phone is a value leak** like today's starter clothes →
+  [money-integrity-slate](../tech-debt/money-integrity-slate.md).
+- **A tuner within reach was dropped** — hand or ready tunes you; charging happens while you are
+  logged out.
+
 ## 6. Screens, and one kind of app
 
 - **The phone is also a held screen** — a `Tablet`-shaped display in your hand, so it shows your
@@ -398,4 +420,8 @@ exit you can find without help).
 | starting kit | `Avatar.installDefaultLoadout` seats the implant | seat the phone instead |
 | the room as carrier | a place is a carrier in arcane-science rule 1 | write the clause |
 | screens | `DisplayMixin`, `CommandController.resolveScreen` | the access-check, rows and one-wire-shape cleanup |
+| the battery | no electrical battery exists; `ChargedMixin` is denominated in τ (mana) | ⭐ genuinely new, or a generalized charge economy — the plan decides |
+| power on/off | `SwitchableMixin` and the `switch` verb | reuse for the phone's power state |
+| the charger | `put` with a placement; the energy pack's `GridPowered` and the premises meter | a charger row on the grid |
+| held messages | the person-targeting slate's *held until they return* | the plan decides whether it exists in code |
 | a phone's modes and sensors | `LightSource` (the flashlight), the `Reading` rows (instrumentation), the per-player map document, `ChargedMixin` (the battery) | reuse — each feature an app row over what exists |
