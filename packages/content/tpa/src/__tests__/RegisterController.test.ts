@@ -19,7 +19,7 @@ import RegisterController from "../idea/cmd/movement/RegisterController";
 import { FastTravelMixin } from "../lib/FastTravel";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
-import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
+import WalletApp from "@saxonberg/server/mud/platform/idea/WalletApp";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
 import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
@@ -81,7 +81,7 @@ function makeTraveller(): Traveller {
     a.setName("alice");
     return a;
   });
-  const wallet = makeStuff(() => new CredentialWalletUpdate());
+  const wallet = makeStuff(() => new WalletApp());
   (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   return t;
 }

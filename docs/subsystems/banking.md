@@ -258,7 +258,7 @@ The **credential** is now a `payment` **record** held in a
 [credential.md](./credential.md)): the record carries the linked-account set +
 active pointer + `spendCap` + `frozen` + `authorize`. The holder composes over
 BOTH a `PaymentCard` (`= CredentialWalletMixin(Good)`, a 1:1 bearer
-instrument you can lose) and the born-with `CredentialWalletUpdate`
+instrument you can lose) and the born-with `WalletApp`
 (`= CredentialWalletMixin(AetherHostedMixin(Idea))`, the one wallet app holding
 every credential kind — installed once by `Avatar.installDefaultLoadout`,
 body-bound). Reached via the MQL `reachable` pool filtered on
@@ -286,7 +286,7 @@ reissue).
 > (`feature/credential-wallet-build`) folded it into the shared credential
 > substrate: the behavior moved onto a `PaymentCredential` *record* held in a
 > `CredentialWalletMixin`, the implant twin became the unified
-> `CredentialWalletUpdate`, and resolution re-keyed to
+> `WalletApp`, and resolution re-keyed to
 > `MixinApi.isCredentialWallet`. The verb surface and the ledger are
 > unchanged — only where the credential's state lives. See
 > [credential.md](./credential.md).

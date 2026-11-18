@@ -106,8 +106,13 @@ export interface Chattel {
    * derives its title (see ChattelLogic's `derivedMinter`).
    */
   followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void>;
-  /** Establish ownership — mint the durable id and title it to `owner`. */
-  stampChattel(owner: Stuff): Promise<ChattelStampResult>;
+  /**
+   * Establish ownership — mint the durable id and title it to `owner`.
+   * `bound` binds the title: it can never be transferred (D10).
+   */
+  stampChattel(owner: Stuff, opts?: { bound?: boolean }): Promise<ChattelStampResult>;
+  /** Is this good's title bound — never transferable? Sync dry read. */
+  isTitleBound(): boolean;
   /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
   transferChattel(newOwner: Stuff): Promise<ChattelStampResult>;
 }
@@ -276,8 +281,15 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
      */
     @Final
     @Unshadowable
-    public stampChattel(owner: Stuff): Promise<ChattelStampResult> {
-      return chattelLogic().stamp(this as unknown as Stuff, ownerKeyOf(owner));
+    public stampChattel(
+      owner: Stuff,
+      opts: { bound?: boolean } = {},
+    ): Promise<ChattelStampResult> {
+      return chattelLogic().stamp(this as unknown as Stuff, ownerKeyOf(owner), opts);
+    }
+
+    public isTitleBound(): boolean {
+      return chattelLogic().isBound(this as unknown as Stuff);
     }
 
     /** See {@link Chattel.transferChattel} — auditable re-stamp. */

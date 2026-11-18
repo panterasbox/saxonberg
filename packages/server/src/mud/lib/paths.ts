@@ -106,15 +106,14 @@ export const TemplatePaths = {
   rootBiome: "/stuff/idea/biome/universe",
   aetherImplant: "/stuff/thing/AetherImplant",
 
-  // Hosted capability updates (aether hosting relation) — incorporeal
-  // Ideas cloned into an attunement host by the default loadout.
-  commsUpdate: "/platform/idea/CommsUpdate",
-  forumsUpdate: "/platform/idea/ForumsUpdate",
-  calendarUpdate: "/platform/idea/CalendarUpdate",
+  // Apps (aether hosting relation) — incorporeal Ideas a host installs by
+  // row path (`installApp`); the key is the last segment.
+  messagesApp: "/platform/idea/app/messages",
+  forumsApp: "/platform/idea/app/forums",
+  calendarApp: "/platform/idea/app/calendar",
   // The unified credential wallet app — one hosted holder for every
-  // credential kind (payment, travel, …), replacing the per-credential
-  // PaymentImplantUpdate + TravelCredentialUpdate twins.
-  credentialWalletUpdate: "/platform/idea/CredentialWalletUpdate",
+  // credential kind (payment, travel, …).
+  walletApp: "/platform/idea/app/wallet",
 
   // Payment card template — cloned per issue (a bearer instrument, 1:1
   // with one account); the reissue path after a report-lost freeze.

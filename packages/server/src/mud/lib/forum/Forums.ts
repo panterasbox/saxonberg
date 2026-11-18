@@ -2,7 +2,7 @@
  * ForumsMixin — the forum capability, as a hosted *update*.
  *
  * The sibling of `CommsMixin`: a capability that rides the aether implant
- * as a hosted update (`ForumsUpdate = ForumsMixin(AetherHostedMixin(Idea))`),
+ * as an app (`ForumsApp = ForumsMixin(AetherHostedMixin(Idea))`),
  * conferring the forum verb surface (read + post). Like comms, it acts on
  * behalf of its host (the operator), resolved via `getHost()` — the forum
  * update has no presence of its own.
@@ -46,7 +46,7 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
 
     /**
      * Verbs the forum capability grants. Flows into the host's recency
-     * stack via the hosted-update self-seeding
+     * stack via the hosted-app self-seeding
      * (`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`),
      * with the forum update as `commandSource`.
      */
@@ -59,7 +59,7 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
     getOperator(): (Stuff & AetherHost) | null {
       // ForumsMixin and AetherHostedMixin compose orthogonally, so the
       // `getHost` back-ref isn't on this mixin's own `this` type; it's
-      // co-composed on the update class (ForumsUpdate). The cast names
+      // co-composed on the update class (ForumsApp). The cast names
       // that pairing contract — identical to CommsMixin.tell.
       return (this as unknown as AetherHosted).getHost();
     }

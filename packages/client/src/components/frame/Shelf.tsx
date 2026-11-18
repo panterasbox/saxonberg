@@ -119,6 +119,15 @@ export interface ShelfRow {
  */
 export const SHELF_CATALOGUE: readonly ShelfRow[] = [
   {
+    id: "aether",
+    // ⚠ Not "PHONE": that word is the client's name for its mobile layout.
+    label: "AETHER",
+    desc: "whether you can reach past the room — your phone, and its charge",
+    // ⭐ Live from the aether-devices build: `aetherState` on the self
+    // card, poked when the word changes. A word, never a gauge.
+    source: "live",
+  },
+  {
     id: "play",
     label: "PLAY",
     desc: "influence · earned by living in the world",
@@ -324,6 +333,13 @@ export function figureFor(
         return { state: "empty", reason: "nothing being practised" };
       }
       return { state: "live", value: `${c.discipline} · ${c.band}` };
+    }
+    case "aether": {
+      const a = figures?.aetherState;
+      if (a === undefined) {
+        return { state: "empty", reason: "the aether has not been read yet" };
+      }
+      return { state: "live", value: a };
     }
     case "body": {
       const b = figures?.bodyState;

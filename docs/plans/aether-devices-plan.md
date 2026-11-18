@@ -836,7 +836,14 @@ Each wave ends at one commit, staged by name, pushed. Between waves:
 player's skull until W8. From W3 it is a host with Messages installed, so
 the person's comms finds its app there; before W3 nothing has changed.
 
-### W1 — The room carries emotes (D7)
+### W1 — The room carries emotes (D7) — ✅ done (93d521842)
+
+> **Build note.** Soul's two emote paths share one private sender; a target
+> counts as *in the room* when it shares the actor's container. The witness
+> test only fails honestly once the modality roster is built
+> (`buildAllModalities`) — with none standing, `filterMessage` lets an
+> unknown organ key through. `lint:mixin-clusters` fell 44 → 43 and was
+> re-pinned.
 
 - `lib/social/Soul.ts` — split the scene in `emote` and `emoteFree`; a
   private `sendPastRoom` for the remote leg. Until W4 the sender's check
@@ -848,7 +855,17 @@ the person's comms finds its app there; before W3 nothing has changed.
 - **Accepts:** AC 6, the receiver half of AC 7.
 - **Commit:** `feat(emotes): the room carries emotes — NPCs perceive them`
 
-### W2 — Hosting splits from perceiving (D2: R1, R2) — a refactor, no behavior change
+### W2 — Hosting splits from perceiving (D2: R1, R2) — a refactor, no behavior change — ✅ done (ff47a35fd)
+
+> **Build note.** The method half of D2a landed here, since every caller was
+> being touched anyway: `hostUpdate` → `hostApp`, `getHostedUpdates` →
+> `getHostedApps` and their siblings, `applyHostedUpdateDelta` →
+> `applyHostedAppDelta`. The loadout's *already hosts comms* guard was
+> deleted now rather than in W8: a restored person's `installedApps` stands
+> their apps up first, so the guard would have skipped the wallet's relink.
+> `availableApps()` answers *offered and not installed* — reading
+> `offersApps` alone split the mixin in two for `lint:mixin-clusters`.
+> build-2 was told about the two `PerceptionLogic` lines.
 
 - New `lib/augmentation/AetherHost.ts`: the host members **moved** out of
   `lib/message/Aether.ts`, plus `installedApps`, `offersApps`,
@@ -870,6 +887,17 @@ the person's comms finds its app there; before W3 nothing has changed.
 - **Commit:** `refactor(aether): hosting is its own mixin; the host owns its app list`
 
 ### W3 — Comms is the person's; Messages is an app; `apps` (D2: R3, R4; D3)
+
+> **Build note.** `App` is the root class (`AetherHostedMixin(Idea)` + `appName`);
+> `ForumsApp`, `WalletApp` and `CalendarApp` subclass it, rows under
+> `/platform/idea/app/`. ⚠ The calendar collision was resolved by renaming the
+> mixin's INTERFACE `CalendarApp` → `CalendarAppSurface` (the `ForumsMixin` /
+> `Forums` sibling convention); the class keeps the app's name. `Mixins.CalendarApp`
+> and `isCalendarApp` are unchanged. `isBornTuned()` lives on `CommsMixin` as a
+> hook (default `false`; `Avatar` answers from species, `ShadeAvatar` `true`) so
+> comms can ask it without duck typing. `apps` needed `fallthrough: true` — the
+> command schema refuses top-level args beside subcommands without it. The
+> headset row (a worn implant) gained Messages too.
 
 - `lib/comms/Comms.ts` — composed on `Avatar`; `tell` sends as `this`;
   the recipient's cohort through `isComms`; `aetherHostNow()` and a first
@@ -898,6 +926,18 @@ the person's comms finds its app there; before W3 nothing has changed.
 
 ### W4 — Held, never silent; reading needs sight (D8, D9)
 
+> **Build note.** The hold sits in `Avatar.filterMessage` (one line, asking
+> `CommsMixin.holdIfUnreachable`) rather than an override inside the mixin: the
+> mixin's base type does not declare the protected `filterMessage`, and the
+> hold must run BEFORE the sense gate drops an untuned person's frame. Decided:
+> `chat`'s management subcommands (list, join, leave, mute…) need no tuner —
+> only a post is held (`ChatPostController.heldInstead`); lens 3b, the social
+> player's promise. `requiresVerbalESP` stays on `forum` and `broadcast` and
+> now says the person's fix (`cannotSendLine`). The remote catalog emote is
+> asked in `CommandGiver`'s soul fallback (the emote has no controller);
+> `Soul.sharesPlaceWith` became public for it. The flush also runs at
+> `Avatar.enter` (one line after `markSessionStarted`).
+
 - `Comms.ts` — `heldOutbound`, `heldInbound`, the holding half of
   `sendOrHold`, `receptionRefusal`, the `filterMessage` override, the
   flush.
@@ -918,6 +958,14 @@ the person's comms finds its app there; before W3 nothing has changed.
 
 ### W5 — The phone; carried augments confer (D1, D4)
 
+> **Build note.** `Phone` is `BatteryMixin(ReservedMixin(AetherHostMixin(
+> SwitchableMixin(BrandedMixin(AugmentMixin(Good))))))` — `Good` is already
+> slottable, so a hand takes it. `Comms.aetherHostNow` reads borne augments
+> from slots AND `getCommandSources('environment')`, picking the most fixable
+> reason (`off` › `packed` › `dead` › `not-yours`) when none tunes.
+> `Avatar.getConferredMixinNames()` answers from `isBornTuned()`; the shade's
+> own method is gone.
+
 - `lib/augmentation/Augment.ts` — `conferralRefusal()`.
 - `lib/command/CommandGiver.ts` — `getCommandSources(bucket)`.
 - `api/mixin.ts` — the acquired leg reads borne augments.
@@ -936,6 +984,13 @@ the person's comms finds its app there; before W3 nothing has changed.
 
 ### W6 — Ownership is the lock (D10)
 
+> **Build note.** `bound` is a field on `ChattelRecord` and a `Set` in the
+> registry's index (rebuilt from rows at boot); `ChattelLogic.stamp` refuses a
+> re-stamp of a bound title to anyone else, `transfer` refuses outright.
+> Audited callers: `Stock.buyFrom` and `ConsignmentShelf.consignBy` refuse
+> before money or listing; `ContractLogic.repossess` skips a bound good; the
+> two trade-pack callers (ash heap, tract crop) never see a bound good.
+
 - `Chattel.ts`, `ChattelLogic.ts`, `ChattelRegistry.ts`,
   `schema/chattel.yaml` (+ `pnpm gen:schema`) — `bound`.
 - The six `transferChattel` callers audited; `Stock.buyFrom`, the consign
@@ -950,6 +1005,17 @@ the person's comms finds its app there; before W3 nothing has changed.
 - **Commit:** `feat(chattel): a title can be bound; title transfer hands on a good`
 
 ### W7 — The battery and the grid charger (D5, D6)
+
+> **Build note.** A `Wh` unit joined the catalogue (↔ `J`). The battery settles
+> inside the phone's once-a-game-second `conferralRefusal` (the drawer is the
+> bearer's id), on `setOn`, and in `onMoved` ACROSS WHERE IT WAS (`restingOn`
+> — a phone lifted off its charger keeps what it took); a move from nowhere (a
+> restore) keeps its stamp. `spendUse` is called by the person's comms on send
+> and on delivery through a battery host (`MixinApi.isBattery`). ⚠ Decided: the
+> charger row lives in the **energy** pack (`/system/energy/thing/charger`), not
+> `generic-objects` — the mechanism's pack ships its generic row and no pack
+> gains a dependency it would not otherwise need (`eternal-university` gains
+> `energy`, which its dorm prop names).
 
 - New `lib/supply/Battery.ts`; `Mixins.Battery`; the `Wh` unit if absent.
 - `Phone.ts` composes it: the `dead` rung, the settle inside its own
@@ -970,6 +1036,10 @@ the person's comms finds its app there; before W3 nothing has changed.
 
 ### W8 — The starting kit; the implant retired (D11)
 
+> **Build note.** `receiveStartingKit` moves the phone onto the body (the
+> shipped routing) and then `stow`s it — the first pocket it fits, never the
+> floor. No new placement code.
+
 - `char-gen.yaml` (`startingKit`), `EmbodyController` (one call),
   `PrimaryAvatar.receiveStartingKit`.
 - `Avatar.installDefaultLoadout` — the implant only for a guest; its doc
@@ -981,6 +1051,19 @@ the person's comms finds its app there; before W3 nothing has changed.
 - **Commit:** `feat(char-gen): a phone in your pocket; the free implant retired`
 
 ### W9 — Content (D12)
+
+> **Build note — R4 answered: NO lounge charger.** A non-persistent room's
+> destruct destroys an owned good and releases its title
+> (`ContainerMixin.cleanupOnDestruct` keeps a title only for a persistable
+> host), and a lounge copy is evicted when it empties — so a phone left on a
+> lounge charger at logout could be lost. Per R4 no lounge charger is placed and
+> `ManaCharger` is NOT built (a class with no consumer). Deferred seam: the
+> lounge charger, after owned goods survive a non-persistent room's eviction.
+> Prices: charger 4 (the torch's tier), Hollis 80 (above every carried good —
+> the musket is 70), Aevex 240. ⚠ The store already sells the comms
+> **headset** at 30 — a worn implant, battery-free, cheaper than any phone.
+> Shipped before this build (size-and-carrying D34); now it hosts Messages. A
+> finding for the owner, not changed here.
 
 - The two remaining Brand rows and phone rows.
 - `general-store/counter.yaml` — three stock lines with prices.

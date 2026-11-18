@@ -449,3 +449,34 @@ describe("chattel possession core", () => {
     expect(await fresh.chattelOwner()).toBeNull();
   });
 });
+
+describe("a bound title (aether-devices D10)", () => {
+  it("a bound title refuses transfer and re-stamp to anyone else; reads bound; survives an index rebuild", async () => {
+    const pal = makeTorch();
+    const alice = makeOwner("alice");
+    const bob = makeOwner("bob");
+
+    expect((await pal.stampChattel(alice, { bound: true })).ok).toBe(true);
+    expect(pal.isTitleBound()).toBe(true);
+
+    const moved = await pal.transferChattel(bob);
+    expect(moved).toEqual({ ok: false, reason: "bound" });
+    expect(await pal.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
+
+    expect((await pal.stampChattel(bob)).ok).toBe(false);
+    // Re-stamping to the same owner is not a move.
+    expect((await pal.stampChattel(alice)).ok).toBe(true);
+
+    // A restart rebuilds the index from the rows: still bound.
+    const reg = StuffApi.findByTemplatePath<ChattelRegistry>("/platform/idea/ChattelRegistry")!;
+    await reg.onCreate(); // the boot path: rebuild the index from the rows
+    expect(pal.isTitleBound()).toBe(true);
+  });
+
+  it("an unbound title still transfers", async () => {
+    const torch = makeTorch();
+    await torch.stampChattel(makeOwner("alice"));
+    expect(torch.isTitleBound()).toBe(false);
+    expect((await torch.transferChattel(makeOwner("bob"))).ok).toBe(true);
+  });
+});

@@ -1728,8 +1728,8 @@ export class CommandApi {
   }
 
   /**
-   * Recency-stack delta for a hosted-update host/unhost (the aether
-   * hosting relation). A hosted update contributes its
+   * Recency-stack delta for a hosted-app host/unhost (the aether
+   * hosting relation). an app contributes its
    * `self`-bucket command definitions to its host's stack with the
    * update Stuff as the recency source, so `getAffordances()` resolves
    * `commandSource` to the update (the "verb dispatch routes through
@@ -1747,7 +1747,7 @@ export class CommandApi {
   }
 
   /**
-   * Collect each hosted update's `self`-bucket command definitions for
+   * Collect each app's `self`-bucket command definitions for
    * a host, paired with the update as the affording source. Used by
    * `CommandGiverMixin`'s self-seeding (both `onCreate` and the
    * lazy `_ensureSelfEntry` safety net) so a host that gained updates

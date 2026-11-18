@@ -2,7 +2,7 @@
  * Credential — the unified credential value-object family.
  *
  * A **credential is data, not a class.** Where the engine once grew a new
- * mixin (and a new aether-hosted update + physical-card pair) for every
+ * mixin (and a new app + physical-card pair) for every
  * credential concept — `PaymentCredentialMixin`, `TravelCredentialMixin` —
  * a new credential *kind* is now a new record type held in one
  * {@link CredentialWalletMixin}. The wallet is a dumb keyed store; these

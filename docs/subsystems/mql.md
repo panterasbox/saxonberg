@@ -605,7 +605,7 @@ Built-in scopes:
 | `here` | the giver's place (its details among its keywords) + exits/doors |
 | `peers` | the place's contents and the vessel the giver sits in, minus the giver, one level into the open things there |
 | `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed) |
-| `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
+| `person` | the **on-person** pool: the giver + their own apps + installed slot occupants (+ each occupant's apps) + carried inventory (+ each carried attuned host's apps). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
 | `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff — ⚠ gated; see below |

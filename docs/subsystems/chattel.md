@@ -265,6 +265,23 @@ See `ShelfConsignController`.
   Warmed at boot via a `bootstrapManifest` entry (`onCreate` rebuilds
   the index from the collection).
 
+## A bound title (aether-devices, 2026-11)
+
+A title can be **bound**: `good.stampChattel(owner, { bound: true })`
+writes `bound: true` on the `chattel` row and the registry keeps the id in
+a bound set (rebuilt from rows at boot). A bound title **never moves**:
+`ChattelLogic.transfer` refuses it with reason `bound` — the one chokepoint
+every transfer passes — and a re-stamp to anybody else is refused the same
+way. `good.isTitleBound()` is the sync dry read. The callers that move
+money or goods before a transfer ask it first, so a refusal is never
+discovered after the money moved: `Stock.buyFrom` (the house buying),
+`ConsignmentShelf.consignBy` (`shelf consign`), and `repossess` (a bound
+good is skipped). The first bound good is the starter phone — worthless to
+anyone but its first owner ([aether-devices.md](./aether-devices.md)).
+
+`title transfer <good> to <player>` hands on an unbound good's title (not
+the good itself) with the recipient's consent; a stack carries no title.
+
 ## Storage
 
 - **`chattel`** (`ChattelRecord`, `lib/chattel/ChattelRecord.ts`) — the

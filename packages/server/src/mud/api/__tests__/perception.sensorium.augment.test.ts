@@ -107,7 +107,7 @@ describe('PerceptionApi.sensorium — augment-conferred ESP modalities', () => {
   });
 });
 
-// ─── Step 3.2: hosted-update modality grants (substrate proof) ──────
+// ─── Step 3.2: hosted-app modality grants (substrate proof) ──────
 
 import { AetherHostedMixin } from '../../lib/augmentation/AetherHosted';
 import { Idea } from '../../lib/stuff/Idea';
@@ -125,7 +125,7 @@ function GrantingMixin<TBase extends MixinConstructor>(Base: TBase) {
 class GrantingUpdate extends GrantingMixin(AetherHostedMixin(Idea)) {}
 class BareHost extends AetherHostMixin(AetherMixin(Idea)) {}
 
-describe('PerceptionApi.sensorium — hosted-update modality grants', () => {
+describe('PerceptionApi.sensorium — hosted-app modality grants', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     buildAllModalities();
@@ -134,7 +134,7 @@ describe('PerceptionApi.sensorium — hosted-update modality grants', () => {
     StuffApi.clearAll();
   });
 
-  it("unions a hosted update's _grantsModalities into the host sensorium", () => {
+  it("unions an app's _grantsModalities into the host sensorium", () => {
     const host = makeStuff(() => new BareHost());
     expect(PerceptionApi.sensorium(host).map((m) => m.getName())).not.toContain(
       'verbal-esp',

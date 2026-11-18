@@ -42,7 +42,7 @@
 
 import { TitleControllerBase, type TitleModel } from "./TitleControllerBase";
 import type { CommandContext } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
+import { MqlApi, type MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { AccessApi } from "../../../../api/access";
@@ -91,6 +91,13 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "Name the parcel to transfer (by its path).",
         "no-parcel",
       );
+    }
+    // ⭐ Not a path and not a shares phrase: a GOOD you carry (aether-
+    // devices D10 — `title transfer phone to bob`). ⚠ The string-shaped
+    // argument grows a third meaning here; a typed object argument could
+    // not share the slot with a parcel path.
+    if (!parcelPath.startsWith("/")) {
+      return this.transferGood(model, context, parcelPath);
     }
     // ⭐ `for <price>` is the sale (controller-liquidity W7c); a parcel's
     // title moves here as title only — land is sold off the plat book.
@@ -216,6 +223,71 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
    * holder (`from … for …`, the buyer acting, the holder consenting) or
    * given by one (`to …`, the receiver consenting) — on her company's table.
    */
+  /**
+   * `title transfer <good> to <player>` — hand on the title to a good you
+   * carry. Refuses a good that is not yours and a bound one (a stack is
+   * the title's own refusal, said in its words);
+   * the recipient must accept, exactly as for a parcel. The title moves;
+   * the good does not (hand it over with `give`).
+   */
+  private async transferGood(
+    model: TransferModel,
+    context: CommandContext,
+    phrase: string,
+  ): Promise<void> {
+    const giver = context.commandGiver as Stuff;
+    if (!MixinApi.isCommandGiver(giver)) return;
+    const good = MqlApi.resolveOne(phrase, { commandGiver: giver, scope: "inventory" }).stuff;
+    if (!good || !MixinApi.isChattel(good)) {
+      return this.fail(context, `You carry no '${phrase}' with a title to hand on.`, "no-good");
+    }
+    const owner = good.stampedOwner();
+    const self = giver.getIdentityPath();
+    if (!owner || owner.kind !== "player" || owner.templatePath !== self) {
+      return this.fail(context, `${good.getPresentation()} is not yours to hand on.`, "not-owner");
+    }
+    if (good.isTitleBound()) {
+      return this.fail(context, `${good.getPresentation()} is bound to you — nobody else can own it.`, "bound");
+    }
+    const receiver =
+      model.recipient && typeof model.recipient === "object"
+        ? (model.recipient as MqlOneResult).stuff ?? null
+        : null;
+    if (!receiver || !PlayerApi.isAvatarStuff(receiver)) {
+      return this.fail(context, "Hand the title to whom?", "no-receiver");
+    }
+    if (receiver === giver) return this.fail(context, "You already hold that title.", "self-transfer");
+    const interactive = MixinApi.isHasInteractive(receiver)
+      ? [...receiver.getInteractives()][0]
+      : undefined;
+    if (!interactive) {
+      return this.fail(
+        context,
+        `${receiver.getPresentation()} must be online to accept a title.`,
+        "receiver-offline",
+      );
+    }
+    const accepted = await interactive.promptConfirm(
+      `Accept the title to ${good.getPresentation()} from ${giver.getPresentation()}?`,
+      "no",
+    );
+    if (!accepted) {
+      return this.fail(
+        context,
+        `${receiver.getPresentation()} declined the title to ${good.getPresentation()}.`,
+        "declined",
+      );
+    }
+    const done = await good.transferChattel(receiver);
+    if (!done.ok) {
+      return this.fail(context, `The title would not move: ${done.reason}.`, "refused");
+    }
+    this.send(
+      context,
+      Mml.compose`\nThe title to ${good.getPresentation()} is ${receiver.getPresentation()}'s now.\n`,
+    );
+  }
+
   private async transferShares(
     model: TransferModel,
     context: CommandContext,

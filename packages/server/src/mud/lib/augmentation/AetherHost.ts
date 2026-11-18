@@ -34,7 +34,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { CommandApi } from '../../api/command';
+import { CommandApi, type CommandContributions } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { Final, Unshadowable } from '../security/decorators';
 import type { AetherHosted } from './AetherHosted';
@@ -91,7 +91,18 @@ export interface AetherHost {
   availableApps(): readonly string[];
   /** How what arrives through this host shows to its bearer. */
   getManifestsAs(): AetherManifestation;
+  /**
+   * Install the offered app whose key is `key` (`apps install <key>`).
+   * An unknown key answers with what this host offers; an app already
+   * installed answers `already`.
+   */
+  installByKey(key: string): Promise<AppInstallResult>;
 }
+
+/** What `installByKey` did. */
+export type AppInstallResult =
+  | { ok: true; app: Stuff & AetherHosted; already: boolean }
+  | { ok: false; offered: readonly string[] };
 
 /** An app's key is the last segment of its row path (`…/app/messages`). */
 function appKeyOf(path: string): string {
@@ -102,6 +113,18 @@ function appKeyOf(path: string): string {
 export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
   class AetherHostMixin extends Base implements AetherHost {
     static _mixinName = 'AetherHostMixin';
+
+    /**
+     * A device hands `apps` outward to whoever bears it (the `environment`
+     * bucket reaches the carrier at any depth). A person's own host is
+     * never in its own container chain, so `apps` never lists or removes
+     * the person's wallet, calendar or forums (aether-devices D3).
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      peers: [],
+      environment: ['platform/cmd/device/apps.yaml'],
+    };
 
     static fieldMeta: FieldMeta = {
       // An app cannot exist unhosted (see `unhostApp`, which destructs on
@@ -211,6 +234,19 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getManifestsAs(): AetherManifestation {
       return this.manifestsAs;
+    }
+
+    async installByKey(key: string): Promise<AppInstallResult> {
+      const k = key.trim().toLowerCase();
+      const installed = this.installedApps.find((p) => appKeyOf(p) === k);
+      if (installed !== undefined) {
+        return { ok: true, app: await this.installApp(installed), already: true };
+      }
+      const offered = this.offersApps.find((p) => appKeyOf(p) === k);
+      if (offered === undefined) {
+        return { ok: false, offered: this.availableApps().map(appKeyOf) };
+      }
+      return { ok: true, app: await this.installApp(offered), already: false };
     }
   }
   return AetherHostMixin;

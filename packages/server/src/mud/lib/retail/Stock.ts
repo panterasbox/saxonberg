@@ -752,6 +752,9 @@ export default class Stock extends StockBase {
       if ((owner?.kind === "player" || owner?.kind === "organization") && owner.templatePath !== who) {
         return no("not-yours", "That is not yours to sell.");
       }
+      // ⭐ A bound title never moves (aether-devices D10) — refused before
+      // the house pays, never discovered after the money moved.
+      if (item.isTitleBound()) return no("bound", "That is bound to you — no one can buy it.");
     }
     const src = this.sourceOf(line);
     const store = src.kind === "store" ? this.storeAt(src.store) : null;

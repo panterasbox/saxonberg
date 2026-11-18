@@ -6,8 +6,8 @@
  * *"come back in two weeks"*, which is a clinician's PROGNOSIS communicated
  * to you, not something a wound reveals. Composed on `Avatar` (a played
  * person keeps a calendar; an NPC does not); the aether-implant surface is
- * the `CalendarUpdate` hosted app (`CalendarAppMixin`), which reads its
- * host's entries through the hosted-update `getOperator` seam.
+ * the `CalendarApp` hosted app (`CalendarAppMixin`), which reads its
+ * host's entries through the hosted-app `getOperator` seam.
  *
  * ⚠ **`addCalendarEntry` is the author seam — `@Final @Unshadowable` and
  * UNGATED** (the `creditDeed` precedent). The writer set is every acting

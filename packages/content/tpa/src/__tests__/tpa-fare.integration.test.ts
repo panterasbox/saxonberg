@@ -21,7 +21,7 @@ import { FastTravelMixin, type FastTravel } from "../lib/FastTravel";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
-import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
+import WalletApp from "@saxonberg/server/mud/platform/idea/WalletApp";
 import BusinessEntity from "@saxonberg/server/mud/platform/idea/Business";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
@@ -134,7 +134,7 @@ function makeWalletTraveller(name: string): Traveller {
     a.setName(name);
     return a;
   });
-  const wallet = makeStuff(() => new CredentialWalletUpdate());
+  const wallet = makeStuff(() => new WalletApp());
   (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   // Identity clearance for ARRIVE (so the ride is gated on funds, not
   // registration).
@@ -200,8 +200,8 @@ async function tpaBal(): Promise<number> {
   return acct ? BankingApi.balanceOf(acct).minor : 0;
 }
 
-/** The traveller's identity wallet (the hosted CredentialWalletUpdate —
- *  a single-object read on the traveller's own hosted updates). */
+/** The traveller's identity wallet (the hosted WalletApp —
+ *  a single-object read on the traveller's own apps). */
 function walletOf(t: Stuff): CredentialWallet {
   if (!MixinApi.isAetherHost(t)) {
     throw new Error("traveller is not an aether host");

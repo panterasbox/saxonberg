@@ -120,7 +120,7 @@ model (see [augmentation.md](./augmentation.md)):
 - a carryable **`TravelCard`** `Thing` (`/system/tpa/thing/TravelCard` =
   `CredentialWalletMixin(Good)`) — a bearer **instrument**, never a
   clearance store (see **Identity-bound clearance** below);
-- the born-with **`CredentialWalletUpdate`**
+- the born-with **`WalletApp`**
   (`CredentialWalletMixin(AetherHostedMixin(Idea))`) — the one wallet app
   injected into the avatar's aether attunement by
   `Avatar.installDefaultLoadout`, holding the `travel` record alongside
@@ -697,7 +697,7 @@ collection was added (AC26). A `ManaMain` needs nothing: it refills.
 
 Credential registration is **session-durable, not cross-restart**:
 `Avatar.save()` persists only the avatar's own fields (no inventory
-persist-back; the hosted `CredentialWalletUpdate` is re-cloned each session
+persist-back; the hosted `WalletApp` is re-cloned each session
 by `installDefaultLoadout`, so the `travel` record's registered set resets
 to the born-with floor each login), so it does not survive a server restart
 yet. Cross-restart durability rides future persistence work (aug-state

@@ -4,7 +4,7 @@
  * per noun): the forums gate, the body resolver, the board view, the
  * ownership test, the outcome words.
  *
- * Afforded by the hosted `ForumsUpdate` (the born-with forum capability,
+ * Afforded by the hosted `ForumsApp` (the born-with forum capability,
  * `ForumsMixin.commandContributions`); an actor without a forum update is
  * refused ({@link ForumControllerBase.refuseUnlessForums}). `fallthrough:
  * true` — a bare `forum <board>` reads, through the verb-level

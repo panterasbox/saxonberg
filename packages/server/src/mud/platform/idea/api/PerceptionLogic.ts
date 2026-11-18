@@ -677,7 +677,7 @@ function walkAugmentedModalities(viewer: Stuff): Modality[] {
   };
   addGrants(MixinApi.getActiveMixins(viewer));
   // Hosted-update modality grants (the single generalization point —
-  // the augment-contribution walks include a host's hosted updates
+  // the augment-contribution walks include a host's apps
   // alongside its slot occupants). No update grants a modality in v1
   // (comms grants none; attunement does), so this is substrate-only —
   // it proves the symmetry without changing behavior today. `isAether`

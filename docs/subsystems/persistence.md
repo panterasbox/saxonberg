@@ -927,7 +927,7 @@ cranial implant (Container + Slotted slices), so loadout-first would
 double-occupy the slot, while the aether-hosted apps (comms / forums / the
 credential wallet) are deliberately session-scoped and *not* in the
 snapshot, so they must re-provision every login (the loadout's own
-occupancy + hosted-update guards make the re-run idempotent; ⚠ an implant
+occupancy + hosted-app guards make the re-run idempotent; ⚠ an implant
 the record left CARRIED is re-occupied, never re-cloned — that guard
 missing cloned a second implant every boot until 2026-10-18). Two restore
 subtleties the ordering implies: `materialize` preloads the organism's

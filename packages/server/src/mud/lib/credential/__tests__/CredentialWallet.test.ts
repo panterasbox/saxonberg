@@ -6,7 +6,7 @@
  *   - the `credentials` persistence accessor round-trips the held records
  *     (travel re-floors);
  *   - one scan (the MQL `reachable` pool filtered on `isCredentialWallet`)
- *     finds the holder whether it's a hosted CredentialWalletUpdate or a
+ *     finds the holder whether it's a hosted WalletApp or a
  *     carried card (the Thing/Idea symmetry the consumers share).
  */
 
@@ -25,7 +25,7 @@ import {
   CredentialWalletMixin,
   type CredentialWallet,
 } from "../CredentialWallet";
-import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
+import WalletApp from "../../../platform/idea/WalletApp";
 import PaymentCard from "../../../platform/thing/PaymentCard";
 import Good from "../../stuff/Good";
 import type { CredentialKind } from "../Credential";
@@ -120,7 +120,7 @@ describe("CredentialWalletMixin holder", () => {
 describe("either-base resolution (one scan finds the holder)", () => {
   it("resolves a hosted wallet update (no card)", () => {
     const actor = makeStuff(() => new Traveller());
-    const wallet = makeStuff(() => new CredentialWalletUpdate());
+    const wallet = makeStuff(() => new WalletApp());
     wallet.ensureCredential("travel"); // seed/clone mints this in prod
     (actor as unknown as { hostApp: (u: unknown) => void }).hostApp(
       wallet,
@@ -133,7 +133,7 @@ describe("either-base resolution (one scan finds the holder)", () => {
     for (const node of FLOOR) {
       expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
     }
-    // `register` writes to the hosted update's travel record.
+    // `register` writes to the app's travel record.
     resolved?.getCredential("travel")!.register("/world/x/node");
     expect(wallet.getCredential("travel")!.isRegistered("/world/x/node")).toBe(
       true,
@@ -155,7 +155,7 @@ describe("either-base resolution (one scan finds the holder)", () => {
   });
 
   it("narrows the holders: update is AetherHosted, cards are carryable", () => {
-    const wallet = makeStuff(() => new CredentialWalletUpdate());
+    const wallet = makeStuff(() => new WalletApp());
     const payCard = makeStuff(() => new PaymentCard());
     expect(MixinApi.isCredentialWallet(wallet)).toBe(true);
     expect(MixinApi.isAetherHosted(wallet)).toBe(true);

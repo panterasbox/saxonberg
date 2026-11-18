@@ -51,7 +51,7 @@ describe('AetherHostMixin hosting relation', () => {
     expect(u.isDestroyed()).toBe(true);
   });
 
-  it('unhostApp of a non-hosted update is a no-op', () => {
+  it('unhostApp of a non-app is a no-op', () => {
     const h = host();
     const u = makeStuff(() => new TestUpdate());
     expect(h.unhostApp(u)).toBe(false);
@@ -76,7 +76,7 @@ describe('AetherHostMixin hosting relation', () => {
     expect(h.getHostedApps()).not.toContain(u);
   });
 
-  it('destructing the host destructs its hosted updates', () => {
+  it('destructing the host destructs its apps', () => {
     const h = host();
     const u = makeStuff(() => new TestUpdate());
     h.hostApp(u);

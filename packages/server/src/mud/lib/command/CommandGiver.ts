@@ -445,6 +445,13 @@ export interface CommandGiver {
     commandText: string,
     opts?: ExecuteCommandOpts
   ): Promise<void>;
+  /**
+   * The sources whose verbs sit on this giver's recency stack in `bucket`
+   * — for `environment`, everything this body carries at any depth that
+   * affords a verb outward (kept exact on every move by the containment
+   * chokepoint). A read of the stack; the `'self'` sentinel is excluded.
+   */
+  getCommandSources(bucket: RecencyBucket): Stuff[];
   forceCommand(commandText: string, opts?: ExecuteCommandOpts): Promise<void>;
   pushCommandSource(
     source: RecencySource,
@@ -455,7 +462,7 @@ export interface CommandGiver {
   resetCommandSources(reason: 'self-moved'): void;
   /**
    * Idempotent self-entry seed. On the interface so command-routing
-   * orchestration (the hosted-update delta) can guarantee the `'self'`
+   * orchestration (the hosted-app delta) can guarantee the `'self'`
    * entry exists before layering other sources on the stack.
    * @internal
    */
@@ -535,6 +542,16 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * `@Final @Unshadowable`, not field privacy.
      */
     private _commandStack: RecencyEntry[] = [];
+
+    getCommandSources(bucket: RecencyBucket): Stuff[] {
+      const out: Stuff[] = [];
+      for (const e of this._commandStack) {
+        if (e.bucket === bucket && e.source !== 'self' && !out.includes(e.source)) {
+          out.push(e.source);
+        }
+      }
+      return out;
+    }
 
     /** Monotonic sequence allocator for stack entries. */
     private _commandSeq = 0;
@@ -674,14 +691,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         this.pushCommandSource('self', 'self', defs);
       }
       // Safety net for the no-`onCreate` construction path (test
-      // helpers, ad-hoc scripts): surface any hosted updates' verbs
+      // helpers, ad-hoc scripts): surface any apps' verbs
       // even when the host gained them outside a host/unhost delta.
       // Idempotent — `pushCommandSource` dedupes by (source, bucket).
       this._seedHostedAppSources();
     }
 
     /**
-     * Push each hosted update's `self`-bucket command contributions
+     * Push each app's `self`-bucket command contributions
      * onto this giver's recency stack, with the update Stuff as the
      * affording source (so `getAffordances()` resolves `commandSource`
      * to the update — the "verb dispatch routes through the
@@ -1270,6 +1287,29 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
                 fills: bound.fills,
               };
               if (bound.target) opts.target = bound.target;
+              // ⭐ An emote to someone elsewhere needs a tuner at both ends
+              // (aether-devices D7, D8): the sender's half is asked here,
+              // and a line that cannot go is HELD whole and re-run when it
+              // can. Within the room nothing is asked — the room carries it.
+              if (
+                bound.target &&
+                !speaker.sharesPlaceWith(bound.target) &&
+                MixinApi.isComms(speaker)
+              ) {
+                const refusal = speaker.sendOrHold(outer.commandText);
+                if (refusal) {
+                  MessageApi.scene(speaker)
+                    .topic('act.emote')
+                    .toSelf(Mml.fromMarkup(`\n${refusal.line}\n`))
+                    .send();
+                  outer.note({
+                    kind: 'controller-rejected',
+                    reason: `aether-${refusal.reason}`,
+                    detail: refusal.line,
+                  });
+                  return outer;
+                }
+              }
               speaker.emote(emote, opts);
               return outer;
             }

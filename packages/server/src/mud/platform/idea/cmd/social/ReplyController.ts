@@ -1,15 +1,16 @@
 /**
  * ReplyController — send to the cohort of the last-inbound DM.
  *
- * Pronoun verb: no first-arg target. Cohort comes from the operator's
- * hosted comms update (`Comms.getLastInboundCohort()`), reached via the
- * `commandSource` that afforded the verb or an MQL `reachable`-pool
- * fallback.
- * For a 1:1 inbound the cohort is just the original speaker; for a
- * multi-party inbound it's everyone on the conversation.
+ * Pronoun verb: no first-arg target. The cohort is the person's own
+ * (`Comms.getLastInboundCohort()` — comms lives on the person). For a 1:1
+ * inbound the cohort is just the original speaker; for a multi-party
+ * inbound it's everyone on the conversation.
  *
  * Default is reply-all. `--one` / `-o` narrows the reply to the
  * original sender (cohort[0]) and skips the rest of the cohort.
+ *
+ * Whether the message can leave now is the person's answer
+ * (`sendOrHold`, aether-devices D8); this controller renders it.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -19,11 +20,9 @@ import type {
 } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { MqlApi } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Comms } from '../../../../lib/comms/Comms';
 import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
 import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
@@ -36,9 +35,15 @@ export default class ReplyController extends CommandController<ReplyModel> {
   async execute(model: ReplyModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver as Stuff & CommandGiver &
       SubjectSubscriber;
-    const comms = this.resolveComms(context);
-    if (!comms) {
+    // ⭐ Comms is the person's (aether-devices D2); the person decides
+    // whether a message can leave now (D8). This controller renders.
+    if (!MixinApi.isComms(speaker)) {
       return this.fail(context, 'You have no way to send a thought.', 'mixin-missing');
+    }
+    const comms = speaker;
+    const refusal = comms.sendOrHold(context.commandText);
+    if (refusal) {
+      return this.fail(context, refusal.line, `aether-${refusal.reason}`);
     }
     const inbound = comms.getLastInboundCohort();
     if (!inbound || inbound.length === 0) {
@@ -65,17 +70,6 @@ export default class ReplyController extends CommandController<ReplyModel> {
 
   /** Resolve the operator's hosted comms update (commandSource, else the
    *  MQL `reachable` pool). */
-  private resolveComms(context: CommandContext): (Stuff & Comms) | null {
-    const source = context.commandSource;
-    if (source && MixinApi.isComms(source)) return source;
-    return (
-      MqlApi.resolveMany('person', {
-        commandGiver: context.commandGiver,
-        scope: 'person',
-      }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ?? null
-    );
-  }
-
   private fail(
     context: CommandContext,
     detail: string,

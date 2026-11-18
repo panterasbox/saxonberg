@@ -39,6 +39,11 @@ import { TemplatePaths } from '../../lib/paths';
 import { PlayerApi } from '../../api/player';
 import { PersistableApi } from '../../api/persistable';
 import { RecordApi } from '../../api/record';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
+import { DiagnosticApi } from '../../api/diagnostics';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 export default class PrimaryAvatar extends Avatar {
   /**
@@ -107,15 +112,11 @@ export default class PrimaryAvatar extends Avatar {
     }
 
     // Born-with loadout BEFORE the spine only on a FIRST mint. A returning
-    // avatar's snapshot carries its worn gear (incl. the cranial implant),
-    // and the spine restore below re-occupies the slots — installing the
-    // default first would collide (`Slotted.occupy: slot 'cranial' is
-    // full`) and brick every relog-after-restart. The returning path runs
-    // the loadout AFTER materialize instead (below): the cranial guard
-    // sees the restored implant and skips the hardware, while the
-    // session-scoped aether apps (comms / forums / the credential wallet)
-    // are re-provisioned onto it — they are deliberately not in the
-    // snapshot.
+    // avatar's snapshot carries its worn and carried gear (the phone in a
+    // pocket), and the spine restore below re-places it. The returning path
+    // runs the loadout AFTER materialize instead (below): the person's
+    // installed list has already stood their apps up, and `installApp` is
+    // idempotent, so nothing doubles; the wallet relinks its accounts.
     const spineKey = this.shouldPersist() ? this.getIdentityPath() : null;
     const hasSnapshot = spineKey
       ? await PersistableApi.hasRecord(spineKey, spineKey)
@@ -148,12 +149,8 @@ export default class PrimaryAvatar extends Avatar {
         // Runs BEFORE the loadout re-provision below, which reads restored
         // gear and must not race the heal.
         await this.reconcileMortalState(spineKey);
-        // Re-provision the session-scoped born-with floor on top of the
-        // restored gear. Idempotent: the restored implant keeps the
-        // cranial slot (the loadout's occupancy guard skips the
-        // hardware); only the hosted aether apps re-clone, restoring the
-        // comms / forums / credential-wallet surfaces a snapshot never
-        // carries.
+        // Re-provision the born-with floor on top of the restored gear.
+        // Idempotent (`installApp` by path); the wallet relinks.
         await this.installDefaultLoadout();
       } else {
         await PersistableApi.capture(this, spineKey);
@@ -232,4 +229,52 @@ export default class PrimaryAvatar extends Avatar {
     return !this.isGuest && super.shouldPersist();
   }
 
+  /**
+   * ⭐ The starting kit (aether-devices D11): what a NEW character is
+   * handed at embody, after they are dressed — today one bound Hollis phone,
+   * in a pocket. Each entry is cloned, titled to this person (bound when
+   * the row says so — worthless to anyone else, unsellable), put on the
+   * body by the movement primitive, and put away by `stow` (into the first
+   * pocket it fits, never the floor). A body with no pocket keeps it in
+   * hand.
+   *
+   * SKIP WITH A DIAGNOSTIC (P3), as `wearGarments` does: an entry that
+   * cannot be minted costs that entry, never the enrolment.
+   */
+  public async receiveStartingKit(kit: readonly StartingKitEntry[]): Promise<void> {
+    for (const entry of kit) {
+      let item: Stuff | null = null;
+      try {
+        item = await StuffApi.clone(entry.item);
+        if (!MixinApi.isContainable(item)) {
+          throw new TypeError(`${entry.item} is not containable, so it cannot be carried`);
+        }
+        if (MixinApi.isChattel(item)) {
+          const stamped = await item.stampChattel(this, { bound: entry.bound === true });
+          if (!stamped.ok) throw new Error(`could not title it: ${stamped.reason}`);
+        }
+        ContainmentApi.move(item, this as never);
+        if (entry.into === 'pocket' && MixinApi.isCarrying(this)) this.stow(item);
+      } catch (err) {
+        if (item) StuffApi.destruct(item);
+        void DiagnosticApi.record({
+          path: entry.item,
+          severity: 'warning',
+          message: `could not hand this to ${this.getIdentityPath()} at embody: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        }).catch(() => undefined);
+      }
+    }
+  }
+}
+
+/** One line of the starting kit (`startingKit` in `config/char-gen.yaml`). */
+export interface StartingKitEntry {
+  /** The row path cloned. */
+  item: string;
+  /** Title it bound to the new person — never transferable (D10). */
+  bound?: boolean;
+  /** Where it goes: `pocket` puts it away; absent leaves it where the body puts it. */
+  into?: 'pocket';
 }

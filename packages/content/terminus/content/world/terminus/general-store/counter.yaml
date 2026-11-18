@@ -457,6 +457,13 @@ data:
     - { itemTemplatePath: /trade/textiles/thing/tarpaulin, par: 2 }
     - { itemTemplatePath: /system/transport/thing/travois, par: 1 }
     - { itemTemplatePath: /stuff/thing/gear/headset, par: 1 }
+    # ⭐ Phones and a charger (aether-devices D12). A phone is how a person
+    # reaches past the room; losing yours is really bad, and replacing it
+    # is easy but not cheap. Hollis is the phone everybody has; Aevex the
+    # dear one.
+    - { itemTemplatePath: /stuff/thing/gear/hollis-pal, par: 3 }
+    - { itemTemplatePath: /stuff/thing/gear/aevex-meridian, par: 1 }
+    - { itemTemplatePath: /system/energy/thing/charger, par: 4 }
     - { itemTemplatePath: /stuff/thing/arms/longsword, par: 1 }
     - { itemTemplatePath: /stuff/thing/arms/greatsword, par: 1 }
     - { itemTemplatePath: /stuff/thing/arms/flintlock-pistol, par: 1 }
@@ -672,6 +679,14 @@ data:
     /trade/textiles/thing/tarpaulin: 9
     /system/transport/thing/travois: 6
     /stuff/thing/gear/headset: 30
+    # ⭐ Against the ladder (stipend 20; the musket 70, the wagon 95): the
+    # Hollis above every carried good — a week's wages, a real loss to
+    # replace — and the Aevex about three times it. The charger sits in
+    # the torch's tier: keeping a phone charged is cheap and easy, never a
+    # barrier. None is a balance claim.
+    /stuff/thing/gear/hollis-pal: 80
+    /stuff/thing/gear/aevex-meridian: 240
+    /system/energy/thing/charger: 4
     /stuff/thing/arms/longsword: 30
     /stuff/thing/arms/greatsword: 45
     /stuff/thing/arms/flintlock-pistol: 40

@@ -32,7 +32,7 @@ import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { EnvironmentMixin } from "@saxonberg/server/mud/lib/shell/Environment";
 import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
-import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
+import WalletApp from "@saxonberg/server/mud/platform/idea/WalletApp";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { MagicApi } from "@saxonberg/server/mud/api/magic";
@@ -121,7 +121,7 @@ function traveller(name: string): Traveller {
     a.setName(name);
     return a;
   });
-  const wallet = makeStuff(() => new CredentialWalletUpdate());
+  const wallet = makeStuff(() => new WalletApp());
   (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   wallet.getCredential("travel")!.register(ARRIVE);
   return t;

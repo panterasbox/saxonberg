@@ -1,32 +1,19 @@
 /**
  * DmController — direct messages, single- or multi-target.
  *
- * Delegates to `AetherMixin.tell` for both shapes — the mixin's
- * unified surface accepts either a single `Stuff` or a readonly array
- * and dispatches frames accordingly. Multi-target additionally opens
- * an ad-hoc Channel so subsequent `chat <handle> ...` posts route to
- * the same cohort.
+ * Delegates to the person's `CommsMixin.tell` for both shapes — it
+ * accepts a single `Stuff` or a readonly array and dispatches frames
+ * accordingly. Multi-target additionally opens an ad-hoc Channel so
+ * subsequent `chat <handle> ...` posts route to the same cohort.
  *
  * The handle-case (`dm <ad-hoc-handle> ...` to post to a known ad-hoc
- * channel) is NOT shipped in v1 — users post to ad-hoc channels via
- * `chat <handle> ...` (`ChatPostController` routes the bare-post path
- * through the ad-hoc registry). Documented limitation per the
- * requirements doc's acceptance criteria.
+ * channel) is NOT shipped — users post to ad-hoc channels via
+ * `chat <handle> ...`.
  *
- * Transmission routes through the hosted **comms update** (the
- * `commandSource` that afforded `dm`, or an MQL `reachable`-pool
- * fallback),
- * which sends on behalf of its operator (the speaker). Cohort state
- * (`getLastInboundCohort` / `getLastOutboundCohort`) lives on the comms
- * update and is stamped automatically by `tell` — no controller-side
- * bookkeeping needed.
- *
- * Absent-comms gate: the verb-level `requiresVerbalESP` validator is
- * the attunement early-catch (perceive the aether), but attunement
- * alone doesn't guarantee a comms update — an attuned actor whose comms
- * update was removed can perceive but not send. That gate lives HERE,
- * not in the validator (attunement = perceive; the comms update =
- * transmit).
+ * ⭐ Comms is the person's (aether-devices D2): cohort state lives on
+ * the person and is stamped by `tell`. Whether the message can leave now
+ * — a tuner borne, Messages installed on it — is the person's answer
+ * (`sendOrHold`, D8); this controller asks and renders.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -36,38 +23,13 @@ import type {
 } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import type { Comms } from '../../../../lib/comms/Comms';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { MqlApi } from '../../../../api/mql';
 import type { MqlManyResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
 import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
 import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
-/**
- * Resolve the operator's hosted comms update — preferring the
- * `commandSource` that afforded the verb (the comms update, when
- * dispatched through the recency stack), else the MQL `reachable`-pool
- * fallback. `null` when attuned but update-less.
- */
-function resolveComms(context: CommandContext): (Stuff & Comms) | null {
-  const source = context.commandSource;
-  if (source && MixinApi.isComms(source)) return source;
-  return (
-    MqlApi.resolveMany('person', {
-      commandGiver: context.commandGiver,
-      scope: 'person',
-    }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ?? null
-  );
-}
-
-/**
- * Hard cap on multi-target `dm` recipient count. Exceeding the cap
- * refuses the command with a self-frame pointing the player at chat
- * channels; groups larger than this belong on a real channel where
- * the membership / subscription / moderation surface applies.
- */
 const DM_MAX_RECIPIENTS = 10;
 
 interface DmModel extends CommandModel {
@@ -80,13 +42,24 @@ export default class DmController extends CommandController<DmModel> {
   async execute(model: DmModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver as Stuff & CommandGiver &
       SubjectSubscriber;
-    const comms = resolveComms(context);
-    if (!comms) {
+    // ⭐ Comms is the person's (aether-devices D2); the person decides
+    // whether a message can leave now (D8). This controller renders.
+    if (!MixinApi.isComms(speaker)) {
+      context.note({ kind: 'mixin-missing', mixin: 'CommsMixin' });
+      return;
+    }
+    const comms = speaker;
+    const refusal = comms.sendOrHold(context.commandText);
+    if (refusal) {
       MessageApi.scene(speaker)
         .topic('speech.comms')
-        .toSelf(Mml.compose`You have no way to send a thought.`)
+        .toSelf(Mml.fromMarkup(`\n${refusal.line}\n`))
         .send();
-      context.note({ kind: 'mixin-missing', mixin: 'CommsMixin' });
+      context.note({
+        kind: 'controller-rejected',
+        reason: `aether-${refusal.reason}`,
+        detail: refusal.line,
+      });
       return;
     }
 

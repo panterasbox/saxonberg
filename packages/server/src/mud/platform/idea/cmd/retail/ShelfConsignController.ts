@@ -119,6 +119,10 @@ export default class ShelfConsignController extends HeldGoodsControllerBase<Cons
           return this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
             kind: "controller-rejected", reason: answer.reason, detail: raw,
           });
+        case "bound":
+          return this.reject(giver, context, Mml.compose`${Mml.thing(item)} is bound to you — nobody else can own it.`, {
+            kind: "controller-rejected", reason: answer.reason, detail: raw,
+          });
         case "no-account":
           return this.reject(
             giver,

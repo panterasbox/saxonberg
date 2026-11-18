@@ -274,7 +274,7 @@ every `creditSignature`/`creditDeed` re-invokes the owner's
 the owner's `conferredVerbs` (the pure band × Catalog-conferral
 decision), resolves the yaml-paths to `CommandDefinition`s, and reconciles
 the giver's affordance stack — `popCommandSource` then a conditional
-`pushCommandSource`, mirroring the hosted-update delta. The affording
+`pushCommandSource`, mirroring the hosted-app delta. The affording
 `source` is the `DisciplineCatalogue`, so `getAffordances` attributes the
 verb to "your competence in the catalog." A read-time-dynamic
 `getAffordances` was **rejected** — it's a hot sync path and a band read

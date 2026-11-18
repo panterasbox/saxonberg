@@ -43,6 +43,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { PowerBand } from '@saxonberg/server/mud/lib/parcel/PowerBand';
 import { PoweredMixin, type Powered } from '@saxonberg/server/mud/lib/supply/Powered';
 import { Piecewise } from '@saxonberg/server/mud/lib/Trajectory';
@@ -158,6 +159,22 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
         ]);
       }
       return cat.poweredTrajectory(node, fromS, end);
+    }
+
+    /**
+     * ⭐ A composer that moves re-resolves its premises (aether-devices D6):
+     * a charger is the first one sold and carried home, and a meter cached
+     * at the shop would power it in the dorm for ever. Dropped here, read
+     * again on the next `isPowered`.
+     */
+    public onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+      const sup = (Base.prototype as {
+        onMoved?: (f: (Stuff & Container) | null, t: (Stuff & Container) | null) => void;
+      }).onMoved;
+      if (typeof sup === 'function') sup.call(this, from, to);
+      this._resolved = false;
+      this._powerBand = 'off-grid';
+      this._powerNodeRef = null;
     }
 
     public powerNodeRef(): string | null {

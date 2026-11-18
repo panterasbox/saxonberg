@@ -98,6 +98,16 @@ const GLOB_REFUSAL =
  * ever arising, and it is why this narrowing is safe rather than a
  * loophole.
  */
+/** Why a bound title will not move. */
+const BOUND_REFUSAL = "bound";
+
+/** Do two owner keys name the same principal? */
+function sameOwner(a: ChattelOwner | null, b: ChattelOwner): boolean {
+  if (a === null || a.kind !== b.kind) return false;
+  if (a.kind === "group" || b.kind === "group") return false;
+  return a.templatePath === b.templatePath;
+}
+
 function isFungibleStack(item: Stuff): boolean {
   return MixinApi.isStackable(item) && item.getQuantity() > 1;
 }
@@ -540,6 +550,7 @@ export class ChattelLogic extends ApiLogic {
   public async stamp(
     item: Stuff,
     owner: ChattelOwner,
+    opts: { bound?: boolean } = {},
   ): Promise<ChattelStampResult> {
     if (isFungibleStack(item)) return { ok: false, reason: GLOB_REFUSAL };
     if (!MixinApi.isChattel(item)) {
@@ -548,7 +559,10 @@ export class ChattelLogic extends ApiLogic {
     const reg = lookupRegistry();
     if (!reg) return { ok: false, reason: "no chattel registry" };
     const id = this.ensureId(item as Stuff & Chattel, reg);
-    await reg.stamp(id, owner);
+    if (reg.isBound(id) && !sameOwner(reg.ownerOf(id), owner)) {
+      return { ok: false, reason: BOUND_REFUSAL };
+    }
+    await reg.stamp(id, owner, opts.bound === true);
     return { ok: true, chattelId: id };
   }
 
@@ -565,6 +579,9 @@ export class ChattelLogic extends ApiLogic {
     const reg = lookupRegistry();
     if (!reg) return { ok: false, reason: "no chattel registry" };
     const id = this.ensureId(item as Stuff & Chattel, reg);
+    // ⭐ A bound title never moves (aether-devices D10) — the one
+    // chokepoint every transfer already passes.
+    if (reg.isBound(id)) return { ok: false, reason: BOUND_REFUSAL };
     await reg.transfer(id, newOwner);
     return { ok: true, chattelId: id };
   }
@@ -631,6 +648,14 @@ export class ChattelLogic extends ApiLogic {
     const id = reg.newId();
     item._setChattelId(id);
     return id;
+  }
+
+  /** See {@link Chattel.isTitleBound} — the sync dry read. */
+  @CallSecurity(ChattelCallers)
+  public isBound(item: Stuff): boolean {
+    if (!MixinApi.isChattel(item)) return false;
+    const id = item.getChattelId();
+    return id ? (lookupRegistry()?.isBound(id) ?? false) : false;
   }
 
   /** Reset the memoized registry ref (hot-reload seam). */

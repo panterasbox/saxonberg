@@ -1,0 +1,6 @@
+# Forums — the forum app, installed on the person by the default loadout.
+# Carries no persistent state (board and entry data live in their own
+# collections).
+class: /platform/idea/ForumsApp
+data:
+  appName: Forums

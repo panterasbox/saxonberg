@@ -29,6 +29,7 @@ import { PersonaMixin } from '../../../../../lib/character/Persona';
 class StubAvatar extends PersonaMixin(Idea) {
   setSex(_s: string): void {}
   async wearGarments(_paths: readonly string[]): Promise<void> {}
+  async receiveStartingKit(_kit: readonly unknown[]): Promise<void> {}
   async enter(): Promise<void> {}
   getIsGuest(): boolean {
     return false;

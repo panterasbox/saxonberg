@@ -1,0 +1,7 @@
+# Messages — the app the person's comms looks for (aether-devices D2).
+# It does nothing by itself: with it installed on the host that tunes you,
+# `dm`, `reply` and `chat` can send; without it they say to install it.
+# No brand — Messages is no corpo's; it is the open standard.
+class: /platform/idea/App
+data:
+  appName: Messages

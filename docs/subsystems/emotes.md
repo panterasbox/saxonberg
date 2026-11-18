@@ -2,10 +2,12 @@
 
 The emote subsystem turns expressive acts (`wave`, `smile`, `bow`,
 `cry`, free-form `:scratches his chin`) into the same per-audience
-`Scene` plumbing that powers `say` and `dm`, with one significant
-difference: emotes ride the ESP modality (`emotive-esp`) and an
-authored catalog of grammar templates rather than a single fixed
-prose form. The substrate ships as part of the social-cluster build
+`Scene` plumbing that powers `say` and `dm`, with an authored catalog
+of grammar templates rather than a single fixed prose form. ⭐ **The room
+carries emotes** (aether-devices D7): an emote in a place reaches every
+sensor there, NPCs included, with no modality; only an emote to someone
+ELSEWHERE rides the `emotive-esp` modality, and needs a tuner at both
+ends. The substrate ships as part of the social-cluster build
 (2026-06): a `SoulMixin` on every `Character`, an `Emote` Document
 catalog backed by MongoDB, a `SoulCatalogue` singleton holding the
 runtime verb→Emote cache, and a thin `SoulApi` facade consulted by
@@ -39,10 +41,14 @@ per-channel client toggle is Layer 2 — *What's deferred*.)
 
 Emotes are NOT speech. Speech rides `VocalMixin` (acoustic, propagates
 through the `SoundModality` walk, gated by atmospheric medium and
-hearing organs); emotes ride the **ESP carrier** stamped as
-`meta.modality = 'emotive-esp'` and gated at
-`SensorMixin.filterMessage` by whether the recipient's sensorium
-includes that modality.
+hearing organs). An emote is **two scenes** (`SoulMixin.sendEmoteScenes`):
+the **room** — self, everyone sharing the actor's place, a target standing
+there — stamped with NO modality, so every sensor receives it and an NPC's
+`emote` witness fires; and **past the room** — one `toTarget` frame to a
+target elsewhere, stamped `emotive-esp` and gated at the receiver (where a
+person HOLDS it until they can take it — [aether-devices.md](./aether-devices.md)).
+Emotes get no sense of their own: the room scene's missing modality is a
+statement about the carrier, true of every emote.
 
 Emotes are NOT state changes. An emote mutates zero world state —
 `emote()` composes and sends a Scene and does nothing else. That is the
@@ -55,11 +61,11 @@ the world, it is not an emote.
 `SoulMixin` is **composed natively** on every `Character` (Avatar +
 NPC) and is not augment-gated. The diegetic story is that *making*
 expression is innate to a sentient being; only the ESP carrier that
-conveys it remotely is augment-gated, and that gating lives on
-`AetherMixin` (which `Avatar` composes by char-gen convention; NPCs
-opt in per-class). Local emote works without any implant because
-the in-room peer audience is decided by Containable scope, not by
-ESP propagation.
+conveys it remotely is gated — a player's remote emote asks the person's
+`sendOrHold` first (the catalog-emote fallback in `CommandGiver`), and
+`Soul` sends the remote frame only from a tuned actor (an NPC never is —
+its leg is a skip). ⭐ Local emote works without any tuner: the room
+carries it.
 
 NOT for: speech (use `VocalMixin`); aether comms (use `AetherMixin`);
 the per-recipient sensorium check (the modality stamp + the shipped
@@ -237,12 +243,12 @@ to peers; a pure-Container actor (a haunted location) falls through
 to `toContents`.
 
 ```typescript
+// simplified — the real sender is SoulMixin.sendEmoteScenes (two scenes)
 emote(emote: Emote, opts?: EmoteOptions): void {
   const actor = this as unknown as Stuff;
   const bodies = this.renderEmote(emote, opts);
   const scene = MessageApi.scene(actor)
-    .topic('act.emote')
-    .modality('emotive-esp')
+    .topic('act.emote')            // the ROOM scene: no modality
     .toSelf(bodies.self)
     .payload({ verb: emote.verb, emoji: emote.emoji, tags: emote.tags });
   if (opts?.target && bodies.target) {
@@ -406,33 +412,27 @@ first scene ([topics.md](./topics.md)); the cockpit's filter
 drawer / gutter tooltip / topic-aware styling all consume the
 descriptor with no further wiring.
 
-The modality stamp `meta.modality = 'emotive-esp'` rides every
-emote frame via `.modality('emotive-esp')` on the Scene. Reception
-gating is the shipped per-frame modality system at
-`SensorMixin.filterMessage`: recipients whose
-`PerceptionApi.sensorium` doesn't include `emotive-esp` drop the
-frame, with the actor's self-frame bypassing unconditionally.
-Players receive emotes universally because the baseline
-`AetherImplant` confers
-`_grantsModalities = ['verbal-esp', 'emotive-esp']` during the
-clone cascade; non-implant NPCs miss emotes the same way they miss
-DMs. See [augmentation.md](./augmentation.md).
+The `emotive-esp` stamp rides ONLY the remote scene. Reception gating is
+the shipped per-frame modality system at `SensorMixin.filterMessage`,
+after the person's hold: a person who cannot take it now keeps it under
+*"While you were away…"*. The room scene carries no stamp, so an NPC —
+which has no aether sense and never will — perceives every emote made in
+its room (Remy's `reacts` brain fires). See
+[aether-devices.md](./aether-devices.md).
 
 ## Universal ESP target delivery
 
 A catalog emote's `stuff` slot resolves at `scope: 'online'` by
 default — the target may be in any room, on any zone, anywhere a
-spawned `Avatar` or NPC exists. When the slot binds, the Scene's
-`.toTarget(target, bodies.target)` call routes the target frame
-through `onMessage` directly to that recipient
-regardless of room boundaries. The peer audience (`.toPeers`) still
-uses Containable scope; only the targeted frame crosses rooms.
+spawned `Avatar` or NPC exists. A target in the same place is in the room
+scene; a target elsewhere gets the remote scene — a `.toTarget` frame
+through `onMessage` regardless of room boundaries, stamped
+`emotive-esp`. The peer audience (`.toPeers`) always uses Containable
+scope.
 
-This is the slate's "smile at iffy across the world just works"
-model. ESP-channel communication between two beings who share the
-comm implant doesn't need line-of-sight or room adjacency; the
-recipient's sensorium gates reception independently of where they
-happen to be standing. The same `scope: 'online'` shape powers
+This is the slate's "smile at iffy across the world" model, with a tuner
+at both ends: the sender's is asked before the emote runs (a line that
+cannot go is held whole), the receiver's at reception. The same `scope: 'online'` shape powers
 `dm`'s target resolution.
 
 ## Starter roster — the `expression` pack

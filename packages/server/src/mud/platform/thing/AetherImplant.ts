@@ -3,7 +3,7 @@
  *
  * The default cybernetic implant every un-attuned Avatar bootstrap-
  * installs. Taps the aether so the bearer becomes **attuned** — able to
- * perceive aether transmissions and to *host* capability updates (comms,
+ * perceive aether transmissions and to *host* apps (comms,
  * the travel credential), which `Avatar.installDefaultLoadout` injects.
  * Composes:
  *   - SlottableMixin → can be placed in a Slotted host's slot.
@@ -12,7 +12,7 @@
  *
  * The implant is purely the attunement conferrer now — it no longer
  * carries any credential directly (those live in the hosted
- * `CredentialWalletUpdate`).
+ * `WalletApp`).
  *
  * Hardened (per the augmentation slate's Wave 1 framing): no power
  * state, no fuel, no failure modes, no removal procedure in v1. A
@@ -29,14 +29,17 @@ import Good from '../../lib/stuff/Good';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { TangibleMixin } from '../../lib/material/Tangible';
 import { AugmentMixin } from '../../lib/augmentation/Augment';
+import { AetherHostMixin } from '../../lib/augmentation/AetherHost';
 import { TemplatePaths } from '../../lib/paths';
 
 // The baseline implant confers attunement only — credentials are no
-// longer carried here. They live in the hosted `CredentialWalletUpdate`
+// longer carried here. They live in the hosted `WalletApp`
 // that `Avatar.installDefaultLoadout` injects into the host alongside
-// the comms + forums updates. One conferrer, hosted updates carry the rest.
-const AetherImplantBase = AugmentMixin(
-  SlottableMixin(TangibleMixin(Good)),
+// the comms + forums updates. One conferrer, apps carry the rest.
+// ⭐ An aether host (aether-devices D2): the implant runs apps — Messages,
+// installed from its row — for the person it is seated in.
+const AetherImplantBase = AetherHostMixin(
+  AugmentMixin(SlottableMixin(TangibleMixin(Good))),
 );
 
 export default class AetherImplant extends AetherImplantBase {

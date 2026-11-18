@@ -516,7 +516,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
       // "— not yet registered" reflects IDENTITY clearance (the viewer's own
       // aether-hosted wallet — a single-object read on the viewer's own
-      // hosted updates), not whatever card they happen to carry.
+      // apps), not whatever card they happen to carry.
       const holder = MixinApi.isAetherHost(viewer)
         ? (viewer
             .getHostedApps()
@@ -618,7 +618,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       }
       // Clearance is read off IDENTITY, never the carried instrument: the
       // actor's own aether-hosted wallet (a single-object read on the traveller's
-      // own hosted updates). A loaded card handed to another player confers no
+      // own apps). A loaded card handed to another player confers no
       // clearance. When the actor hosts no wallet (un-attuned, card-only) the
       // clearance store is the born-with floor only.
       const identity = MixinApi.isAetherHost(traveller)

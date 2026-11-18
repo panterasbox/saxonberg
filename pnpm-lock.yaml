@@ -499,6 +499,9 @@ importers:
       '@saxonberg/content-arcana':
         specifier: workspace:*
         version: link:../arcana
+      '@saxonberg/content-energy':
+        specifier: workspace:*
+        version: link:../energy
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects

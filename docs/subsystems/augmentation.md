@@ -96,17 +96,33 @@ The active-mixin substrate query:
 active set = {
   m | hasMixin(stuff, m) AND (
     NOT m._augmentGated  OR
-    exists augment in slots with m._mixinName in augment.confers()  OR
-    m._mixinName in stuff.getSpecies().innateMixins
+    exists augment the body BEARS with m._mixinName in augment.confers()  OR
+    m._mixinName in stuff.getSpecies().innateMixins  OR
+    m._mixinName in stuff.getConferredMixinNames()
   )
 }
 ```
 
 The conferral set is the **innate⊕acquired union**: a gated mixin is
-active when composed AND (a slot augment confers it **OR** the actor's
-species confers it intrinsically — see *Species intrinsic conferral*
+active when composed AND (an augment the body bears confers it **OR** the
+actor's species confers it intrinsically — see *Species intrinsic conferral*
 below). This mirrors what the sensorium already does for bodyplan senses
 and `defaultModeFor` does for the bodyplan locomotion tier.
+
+⭐⭐ **The acquired leg reads every augment the body BEARS**
+(aether-devices D1): slot occupants (a seated implant, a phone in a hand)
+**and carried ones** (a phone in a pocket). A carried device's
+`environment` verbs reach its carrier at any depth and are kept exact on
+every move by the containment chokepoint, so the body's recency stack is
+the record of what it bears: `CommandGiver.getCommandSources('environment')`
+is an array scan, never a walk of the carried tree. ⚠ A carried augment
+with no `environment` verb is invisible to the leg; every device today is
+an aether host and affords `apps`. The **device decides** in `confers()` —
+a phone confers only in hand or ready, switched on, charged and its
+owner's — and says why not in **`conferralRefusal()`** (`not-borne`,
+`packed`, `off`, `dead`, `not-yours`; default `null`). The phone
+memoizes its answer per game second — this leg runs for every
+modality-stamped frame.
 
 **A third leg: per-HOST intrinsic conferral.** A host that answers
 `getConferredMixinNames()` names mixins it carries by its own nature —
@@ -114,11 +130,12 @@ neither by species nor by implant. `collectAugmentConferralNames`
 (`api/mixin.ts`) reads it by the same structural soft-lookup as the slot
 and species legs, no import.
 
-⭐ **Its one consumer is `ShadeAvatar`** (`platform/agent/ShadeAvatar.ts`), which is
-attuned with no implant and no slot occupancy. `Species.innateMixins`
-would be the obvious home and cannot be: it is species-level reference
-data shared by every member and never mutated at runtime, so a shade
-cannot use it without corrupting the species.
+⭐ **`Avatar.getConferredMixinNames()` answers from `isBornTuned()`** — the
+body's own word for "tuned by nature": `ShadeAvatar` answers `true` (attuned
+with no implant and no slot occupancy), a born-attuned species answers from
+its `innateMixins`. `Species.innateMixins` cannot be a shade's home: it is
+species-level reference data shared by every member and never mutated at
+runtime.
 
 ⚠ **Employment used to be a fourth contributor here and is not.** An
 on-shift `Position`'s `confers` list surfaced through
@@ -133,8 +150,10 @@ augment-toggled reality — installing or removing an augment takes
 effect on the next call (v1 is lazy / uncached; future polish caches
 on slot-occupy / release).
 
-The auto-generated `is<MixinName>` predicates (e.g. `isAether`) now
-back onto `isActive`. **Uniform calling convention across all
+⚠ Not every `is<MixinName>` predicate backs onto `isActive`: `isAether` is
+composition-only (`hasMixin`). *Tuned* is `MixinApi.isActive(x,
+'AetherMixin')` or the sensorium; *hosts software* is `isAetherHost`.
+The other auto-generated predicates back onto `isActive`. **Uniform calling convention across all
 predicates** — no branching on whether a mixin is gated; build-time-
 only checks are an edge case using the low-level
 `MixinApi.hasMixin(stuff.constructor, name)` directly.
@@ -201,10 +220,15 @@ cranial slot (plants don't get implants in v1).
 
 The Wave 1 implant template:
 
+⚠ Since aether-devices it is a **guest's** tuner only (a guest's phone
+would leak into the economy); every player carries a phone
+([aether-devices.md](./aether-devices.md)). It is an aether host and runs
+Messages from its row.
+
 ```ts
-// lib/augmentation/AetherImplant.ts
-export class AetherImplant
-  extends AugmentMixin(SlottableMixin(TangibleMixin(Good)))
+// platform/thing/AetherImplant.ts
+export default class AetherImplant
+  extends AetherHostMixin(AugmentMixin(SlottableMixin(TangibleMixin(Good))))
 {
   static readonly TEMPLATE_PATH = '/stuff/thing/AetherImplant';
 
@@ -217,7 +241,7 @@ export class AetherImplant
 Hardened per the slate: no power state, no failure modes, no fuel.
 Diegetically a small brass-and-silicon device. The implant is purely
 the **attunement conferrer** now — it no longer carries any credential
-directly (those live in the hosted `CredentialWalletUpdate`).
+directly (those live in the `WalletApp` on the person).
 
 `Avatar.installDefaultLoadout` (dispatched from `onCreate` during
 the clone cascade, once per session) keys off **whether the avatar is
@@ -257,7 +281,7 @@ framework change, only:
 `AetherMixin` is no longer a comms-carrying mixin: it is the aether
 **host**. *Attunement* is the conferred (implant) or intrinsic (species)
 capability whose payload is a host that aether `Idea`s (updates) plug
-into. Comms and the credential wallet are hosted updates; the physical
+into. Comms and the credential wallet are apps; the physical
 `TravelCard` / `PaymentCard` (and a future radio) are their corporeal twins.
 
 **The base-assignment rule: physical sensing can never ride the aether
@@ -278,18 +302,20 @@ supposed to be*; you cannot tell whether **this rock** is granite
 without an instrument. **The aether is the textbook; the instrument is
 the lab** — reference knowledge vs. measurement, and the competent
 player does both and compares. (The sensorium walk leaves
-`_grantsModalities` open on hosted updates as substrate; this rule is
+`_grantsModalities` open on apps as substrate; this rule is
 what says no *physical* modality may ever be granted that way.)
 *(Graduated from the instrumentation slate, 2026-09-21.)*
 
 ### The hosting relation (distinct from containment)
 
-- **Update side** — `AetherHostedMixin` (`lib/augmentation/AetherHosted.ts`)
+- **App side** — `AetherHostedMixin` (`lib/augmentation/AetherHosted.ts`)
   composes around an `Idea`: a `getHost()`/`setHost()` back-ref and the
-  must-be-hosted invariant. The capability mixin (`CommsMixin`,
-  `CredentialWalletMixin`) co-composes on the same update class
-  (`CommsUpdate`, `CredentialWalletUpdate`).
-- **Host side** — `AetherMixin` carries `_hostedApps` (the
+  must-be-hosted invariant. Every app is an `App` (`platform/idea/App.ts`);
+  a capability mixin (`ForumsMixin`, `CredentialWalletMixin`,
+  `CalendarAppMixin`) composes on a subclass (`ForumsApp`, `WalletApp`,
+  `CalendarApp`); Messages is the bare `App` row.
+- **Host side** — `AetherHostMixin` (`lib/augmentation/AetherHost.ts`,
+  split out of `AetherMixin` by aether-devices D2) carries `_hostedApps` (the
   source-of-truth collection) and the sealed chokepoints
   `hostApp` / `unhostApp` (`@Final @Unshadowable`).
   `hostApp` pushes + back-refs + notifies command routing;
@@ -301,9 +327,12 @@ what says no *physical* modality may ever be granted that way.)
   Api**: the relation is orchestrated by the host mixin methods plus
   the MQL `reachable` seed for lookups (a narrow `IdeaHost` mixin would
   graduate only if a *second* incorporeal-host concept appears).
-- **Lifecycle** — a hosted update is host-bound: `AetherMixin`'s
-  `cleanupOnDestruct` destroys every hosted update when the host dies
-  (Avatar logout), mirroring how the implant clone died with the avatar.
+- **Lifecycle** — an app is host-bound (`_hostedApps` is an owned
+  live-ref): the destruct cascade destroys every app when the host dies.
+- **The durable half** — `installedApps` (persistent) is the list; the
+  live set is stood up from it (`setInstalledApps`, written by the
+  template and restore phases). `installApp(path)` is the one way software
+  gets onto any host. See [aether-devices.md § Apps](./aether-devices.md).
 
 ### Reachability: the self + host-descent legs
 
@@ -315,7 +344,7 @@ inventory → location walk, preserving on-your-person-first order:
 1. **Self leg** — `predicate(actor)` (a capability composed directly on
    the actor / its species).
 2. **Descend-into-host leg** — for the actor itself and each carried /
-   slotted attuned host, also test its hosted updates (the implant-hosted
+   slotted attuned host, also test its apps (the implant-hosted
    comms / credential on self; the future carried radio's comms).
 
 One pool finds the capability whether it is a carried `Thing`, a hosted
@@ -328,16 +357,16 @@ concept and a single level; do not teach the seed another leg.
 ### The contribution walks generalize (no parallel path)
 
 The surfaces that already aggregate slotted-augment contributions extend
-to include a host's hosted updates:
+to include a host's apps:
 
 - **Command-source** — `CommandApi.collectHostedAppDefs` +
-  `applyHostedAppDelta` push each hosted update's `self`-bucket verbs
+  `applyHostedAppDelta` push each app's `self`-bucket verbs
   onto the host's recency stack with the update as `commandSource`.
   `CommandGiverMixin` seeds them in `onCreate` and the lazy
   `_ensureSelfEntry` safety net; host/unhost surfaces/retires them live
   (gain-/lose-post-spawn).
 - **Sensorium** — `walkAugmentedModalities` unions `_grantsModalities`
-  from the host's hosted updates' active mixins. Substrate-only in v1
+  from the host's apps' active mixins. Substrate-only in v1
   (no update grants a modality; attunement does).
 
 ### Species intrinsic conferral (the innate leg)
@@ -381,6 +410,8 @@ What's reserved for Wave 2+ (see slate):
   off `AetherMixin` onto a hosted `CommsUpdate`; verb dispatch routes
   through the update as `commandSource`. See *The three-base capability
   model* above. `AetherMixin` is now the host, not the carrier.
+  **Superseded (aether-devices):** comms is the PERSON's (`CommsMixin` on
+  `Avatar`), Messages the app it looks for; hosting is `AetherHostMixin`.
 
 ## Conventions
 
@@ -400,15 +431,15 @@ What's reserved for Wave 2+ (see slate):
 ```
 lib/augmentation/
 ├── Augment.ts                  AugmentMixin
-├── AetherHosted.ts             AetherHostedMixin (update side of hosting)
-├── AetherImplant.ts      Wave 1 implant template (attunement only)
-└── __tests__/Augment.test.ts, AetherHosted.test.ts
+├── AetherHost.ts               AetherHostMixin (host side: apps + the installed list)
+├── AetherHosted.ts             AetherHostedMixin (app side of hosting)
+└── __tests__/Augment.test.ts, AetherHost.test.ts, AetherHosted.test.ts
 
-lib/comms/
-├── Comms.ts                    CommsMixin (transmission, hosted update)
-└── CommsUpdate.ts              CommsMixin(AetherHostedMixin(Idea))
-
-lib/message/Aether.ts           AetherMixin = attunement + host side
+lib/comms/Comms.ts              CommsMixin — on the person (send, hold, cohorts)
+lib/message/Aether.ts           AetherMixin = attunement (perceiving only)
+platform/thing/AetherImplant.ts the guest's implant (an aether host)
+platform/thing/Phone.ts         the phone (a carried augment + host + battery)
+platform/idea/App.ts            App — every app's class (Messages is its row)
 
 lib/security/
 ├── RequiresActive.ts           Decorator + InactiveCapabilityError
@@ -433,13 +464,15 @@ lib/mixin.ts                    Mixins.Augment registry constant
 - [slot.md](./slot.md) — the unified slot universe the cranial slot
   uses; no parallel `implantSlots` field.
 - [messaging.md](./messaging.md) — gated reception via per-frame
-  `meta.modality`; transmission now rides the hosted `CommsUpdate`.
-- [comms.md](./comms.md) — comms-as-update (`CommsMixin` on
-  `CommsUpdate`), `tell` sends from `getHost()`.
+  `meta.modality`; transmission is the person's `CommsMixin`.
+- [comms.md](./comms.md) — comms on the person; `tell` sends as the
+  person; Messages is the app it looks for.
+- [aether-devices.md](./aether-devices.md) — the phone, apps and hosts,
+  the battery, held messages, the lock.
 - [fasttravel.md](./fasttravel.md) — the `travel` credential, now a record
-  in the unified `CredentialWalletUpdate` + the `TravelCard` Thing twin.
+  in the unified `WalletApp` + the `TravelCard` Thing twin.
 - [credential.md](./credential.md) — the credential-wallet substrate that
-  unified the payment + travel hosted updates into one wallet app.
+  unified the payment + travel apps into one wallet app.
 - [perception.md](./perception.md) — viewer-aware-query pattern;
   augment activations flow into the sensorium walk transparently.
 - [antipatterns.md](../antipatterns.md) — augment-modeling
@@ -465,7 +498,19 @@ rule. See the
 follow-up.
 
 The **credential-wallet build** (`feature/credential-wallet-build`) later
-collapsed the per-credential hosted updates (`PaymentImplantUpdate` +
+collapsed the per-credential apps (`PaymentImplantUpdate` +
 `TravelCredentialUpdate`) into a single born-with `CredentialWalletUpdate`
 holding credentials-as-data — the loadout now injects one credential app,
 not one per kind. See [credential.md](./credential.md).
+
+The **aether-devices build** (`build/aether-devices`, 2026-11) split the
+host out of `AetherMixin` into `AetherHostMixin` (with a persisted
+installed list and `installApp`), moved `CommsMixin` onto the person
+(`Avatar`) with Messages as the app it looks for, renamed every hosted
+update an **app** (`CommsUpdate` → the Messages row on `App`,
+`ForumsUpdate`/`CredentialWalletUpdate`/`CalendarUpdate` →
+`ForumsApp`/`WalletApp`/`CalendarApp`, rows under `/platform/idea/app/`),
+widened the acquired leg to carried augments, gave `AugmentMixin`
+`conferralRefusal()`, replaced the shade's conferral method with
+`Avatar.isBornTuned()`, and retired the free implant for everyone but
+guests. See [aether-devices.md](./aether-devices.md).

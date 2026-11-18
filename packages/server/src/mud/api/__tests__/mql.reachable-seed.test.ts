@@ -2,7 +2,7 @@
  * MQL `reachable` seed — the generalized "everything reachable from the
  * giver" pool (api/mql/scope-walk.ts `candidatesForReachable`), which
  * absorbed the old `ContainmentApi.findReachable` walk. Asserts the reach
- * legs (self + own hosted updates + slot occupants (+ their hosted) +
+ * legs (self + own apps + slot occupants (+ their hosted) +
  * carried inventory (+ carried hosts' hosted) + location) and the
  * ON-PERSON-FIRST emission order — a `.find` over a multi-match pool
  * returns the on-person match, not the floor's.
@@ -123,7 +123,7 @@ class AttunedActor extends AetherHostMixin(AetherMixin(
 )) {}
 // A carried attuned Thing (the future radio): a host you carry.
 class CarriedRadio extends AetherHostMixin(AetherMixin(ContainableMixin(Idea))) {}
-// An incorporeal hosted update.
+// An incorporeal app.
 class HostedUpdate extends AetherHostedMixin(Idea) {}
 
 describe('MQL person seed — bearer semantics (no location leg)', () => {
@@ -183,7 +183,7 @@ describe('MQL reachable seed — self + host-descent legs', () => {
     expect(findIn(reachableFrom(actor), update.stuffId)).toBe(update);
   });
 
-  it('order: a self-hosted update wins over a carried match', () => {
+  it('order: a self-app wins over a carried match', () => {
     const update = makeStuff(() => new HostedUpdate());
     actor.hostApp(update);
     const carried = makeStuff(() => new HostedUpdate());

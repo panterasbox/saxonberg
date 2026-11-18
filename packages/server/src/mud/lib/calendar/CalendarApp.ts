@@ -1,13 +1,14 @@
 /**
- * CalendarAppMixin — the personal calendar as a hosted *update* on the
- * aether implant (clinical-medicine D12).
+ * CalendarAppMixin — the personal calendar as an app on the person
+ * (clinical-medicine D12).
  *
- * The `ForumsMixin` sibling: a capability that rides the implant as a
- * hosted update (`CalendarUpdate = CalendarAppMixin(AetherHostedMixin(Idea))`),
- * cloned into the host by `Avatar.installDefaultLoadout`. It carries no
- * state of its own — the entries live on the Avatar (`CalendarMixin`); the
- * app is only the SURFACE, reached through the hosted-update self-seeding
- * that flows `commandContributions.self` onto the host's verb stack.
+ * The `ForumsMixin` sibling: a capability composed onto an app
+ * (`CalendarApp = CalendarAppMixin(App)`), installed on the person by
+ * `Avatar.installDefaultLoadout`. It carries no state of its own — the
+ * entries live on the person (`CalendarMixin`); the app is only the
+ * SURFACE, reached through the hosted-app self-seeding that flows
+ * `commandContributions.self` onto the host's verb stack. Its interface is
+ * `CalendarAppSurface` so it never shares an export name with the class.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -19,7 +20,7 @@ import type { AetherHost } from '../augmentation/AetherHost';
 import type { AetherHosted } from '../augmentation/AetherHosted';
 import type { CalendarKeeping } from './Calendar';
 
-export interface CalendarApp {
+export interface CalendarAppSurface {
   /** The host (operator) whose calendar this app surfaces, or null. */
   getOperator(): (Stuff & AetherHost) | null;
   /** The operator as a calendar keeper, or throw if inactive/unable. */
@@ -29,7 +30,7 @@ export interface CalendarApp {
 export function CalendarAppMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class CalendarAppMixin extends Base implements CalendarApp {
+  class CalendarAppMixin extends Base implements CalendarAppSurface {
     static _mixinName = 'CalendarAppMixin';
 
     static commandContributions: CommandContributions = {

@@ -65,6 +65,12 @@ export interface Soul {
   /** In-room free-form emote: render + compose Scene + send. */
   emoteFree(text: string, target?: Stuff, inReactionTo?: string): void;
   /**
+   * Is `other` standing in the same place as this actor — inside the
+   * room that carries an emote (D7)? Anyone else is reached only over the
+   * aether.
+   */
+  sharesPlaceWith(other: Stuff): boolean;
+  /**
    * Introduce yourself to everyone in range — a modality-neutral social
    * act (the shared core behind the `introduce` verb, the NPC
    * `introduces` brain, and the player auto-introduce hook). Emits the
@@ -348,8 +354,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Is `other` standing in the same place as this actor? */
-    private sharesPlaceWith(other: Stuff): boolean {
+    sharesPlaceWith(other: Stuff): boolean {
       const actor = this as unknown as Stuff;
       if (!MixinApi.isContainable(actor) || !MixinApi.isContainable(other)) {
         // A pure container (the place itself) holds its own audience.

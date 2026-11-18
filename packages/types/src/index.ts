@@ -1133,6 +1133,7 @@ export const CARD_IDS: readonly CardId[] = [
  * because this is where a future contributor would add the row.
  */
 export type ShelfRowId =
+  | "aether"
   | "play"
   | "renown"
   | "skill"
@@ -1146,6 +1147,7 @@ export type ShelfRowId =
 
 /** Every {@link ShelfRowId}, in catalogue order. */
 export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
+  "aether",
   "play",
   "renown",
   "skill",
@@ -1186,6 +1188,11 @@ export const DEFAULT_SHELF: readonly ShelfRowId[] = [
   // fitness W8): the body is the most immediate figure a person has,
   // and it is words — winded · hungry · in good flesh — never a gauge.
   "body",
+  // ⭐ Joined the default the day it started answering (aether-devices
+  // D13): whether you can reach past the room — `tuned 80%`, `packed`,
+  // `off`, `dead`, `no tuner` — is the one thing a social player needs
+  // to see without asking.
+  "aether",
 ];
 
 export interface MqlSubscribeMessage {
@@ -2074,6 +2081,13 @@ export interface SelfFigureRecord {
    * winded feels like.
    */
   bodyState?: { breath: string; hunger: string; thirst: string; build: string };
+  /**
+   * ⭐ Whether you can reach past the room, as a WORD (aether-devices
+   * D13): `tuned 80%` (a phone, its charge in tens), `tuned` (an implant,
+   * or by nature), `packed`, `off`, `dead`, `not yours`, `no Messages`,
+   * `no tuner`. Poked when the word changes.
+   */
+  aetherState?: string;
 }
 
 /**

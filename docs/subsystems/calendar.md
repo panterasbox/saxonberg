@@ -1,7 +1,7 @@
 # Personal calendar
 
 A played person's **personal calendar** — dated reminders they keep and
-read on demand, on the aether implant. Seeded thin by the
+read on demand, in the calendar app on the person. Seeded thin by the
 clinical-medicine build as the honest home for *"come back in two weeks"*
 (a clinician's PROGNOSIS, communicated — not something a wound reveals);
 the full design lives in `docs/slates/engine/personal-calendar-slate.md`.
@@ -38,10 +38,10 @@ deferred-not-skipped); correctness never depends on it.
 
 ## The surface
 
-**`CalendarUpdate`** (`platform/idea/CalendarUpdate.ts` =
-`CalendarAppMixin(AetherHostedMixin(Idea))`) is the hosted app on the
-implant, cloned in `Avatar.installDefaultLoadout` beside comms / forums /
-wallet; it reads its host's entries through the hosted-update
+**`CalendarApp`** (`platform/idea/CalendarApp.ts` =
+`CalendarAppMixin(App)`, row `/platform/idea/app/calendar`) is the app
+installed on the PERSON by `Avatar.installDefaultLoadout` beside forums and
+the wallet (`installApp`); it reads its host's entries through the hosted-app
 `getOperator` seam. Its `commandContributions.self` flows the **`calendar`**
 verb onto the host. `CalendarController` lists overdue-first, rendered
 with `DefaultCalendar.formatDate` — never a raw second count.

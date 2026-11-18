@@ -7,3 +7,8 @@ data:
   register: indefinite
   longDescription: "A small, hardened cybernetic device the size of a thumbnail — brass and silicon, sealed against the field. It hums faintly in your hand."
   targetSlot: cranial
+  # An aether host (aether-devices D2): it runs Messages for the person it
+  # is seated in. What arrives through it is KNOWN, not read — no screen.
+  installedApps: [/platform/idea/app/messages]
+  offersApps: [/platform/idea/app/messages]
+  manifestsAs: known

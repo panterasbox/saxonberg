@@ -303,7 +303,7 @@ describe('reference-lifetime pins', () => {
   });
 
   describe('W6 #7 — Aether._hostedApps is owned (cleanupOnDestruct form)', () => {
-    it('destructing the host DESTRUCTS every hosted update', () => {
+    it('destructing the host DESTRUCTS every app', () => {
       const host = makeStuff(() => new Implant());
       const update = makeStuff(() => new Update());
       host.hostApp(update);
