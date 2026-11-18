@@ -1907,6 +1907,34 @@ by a profile; this is the reading of the code and the probe. The levers
 are named for review (§ Risks: the first projection is one unit of N
 rows; D7's row target was met for child rows, not for a place's own row).
 
+### The fourth quiet-box run (2026-11-18) — every step reached
+
+Precheck passed (load 0.63 → 1.39 by the end, after the hundred; foreign
+0.17–0.20 throughout — no phase inconclusive).
+
+| step | result | gate | |
+|---|---|---|---|
+| 1 idle | 0.173 cores | < 0.20 (ruling 6) | ✓ |
+| 2 thirty log in (at the block) | p50 1.49 s / **p95 2.28 s** (max 5.1 s) | < 2 s p95 | ✗ |
+| 3 one speaks | `say` p50 60 / **p95 110 ms** | < 250 ms | ✓ |
+| 4 in turn / all at once | in turn p95 68 ms; at once p95 1.46 s | < 250 ms (in turn) | ✓ |
+| 5 no freeze | `/healthz` **19 of 207** samples over 100 ms (max 850 ms); the server's own loop: 14 over 100 ms, p99 52 ms | 0 | ✗ |
+| 6 a card you can see | **1,450 ms** | < 2 s | ✓ |
+| 7 a card you cannot see | **0** envelopes while hidden; current **53 ms** after shown | 0 / < 2 s | ✓ |
+| 8 a mould in the crowd | look at / into p95 **446 ms** (alone 196 ms) | ≤ 1.5× alone (294 ms) | ✗ |
+| logins into the full square | **p95 3.45 s** | < 2 s | ✗ |
+| 10 restart | thirty back in at p95 **1.49 s**, each standing where they quit | < 2 s, same place | ✓ |
+| 11 one hundred (reported) | logins p95 3.6 s; `say` alone p95 163 ms; all at once p95 12.2 s; 73 of 261 over 100 ms (max 8.4 s); server 0.88 cores | — | |
+
+Against W0 (busy box): `say` alone p95 2.7 s → 110 ms; in turn 656 → 68
+ms; all at once 5.0 → 1.46 s; login p95 14.9 → 2.28 s; the server's own
+stalls in the phase 27 → 14 (max 10 s → 0.9 s); idle 0.81 → 0.17. The
+misses are all one shape — **a LOGIN or an ARRIVAL into a full room**
+(login p95, logins into the square, the freeze samples cluster in the
+arrival phase, and the mould's looks ride the same frames as the
+arrivals' scenes): the first projection of a body into a crowd, the
+deferred seam (§ Deferred seams) the plan named as "the next ceiling".
+
 ### The third quiet-box run (2026-11-18, the harness fixed)
 
 Precheck passed (load 0.53). Idle **0.162** ✓. Step 6 **1,505 ms** ✓.
