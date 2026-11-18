@@ -11,7 +11,9 @@
 > standing, the remedy (§ 5) · institutions founded by statute (§ 2) · the commoner's procedure —
 > `bill` and its subcommands, the second, the bill's states and record (§ 7a) · the legislator's
 > reports — the diff, the fiscal arithmetic, affected counts, conflicts, watches, the agenda (§ 7b) ·
-> the secret-ballot list · the counsel office's LLM staff (§ 7c) · the budget committee (§ 7d)
+> the secret-ballot list · the counsel office's LLM staff (§ 7c) · the budget committee (§ 7d) · the
+> executive's codification orders and status (§ 7e) · the closed toolkit (§ 7f) · the bounty board,
+> escrow and the independent central bank (§ 7g) · the standing formula and allowances (§ 7h)
 > **Size:** a design pass, then the procedure law as received law, then the record and the merge
 > gate as a build
 
@@ -47,7 +49,10 @@ depending on what the institution's mandate is."*
   license; a records office or a tax collector has no such seat.
 - **The wizard bit is a credential, not a branch.** Wizards hold seats and answer to their
   institution's mandate like anyone else.
-- **One chief executive, the PM**, holds the veto (§ 4).
+- **One chief executive, the PM**, holds the veto (§ 4), seated by the legislature by headcount
+  (§ 7e).
+- **The executive is not only code** — it is enforcement of any kind, through a closed toolkit the
+  legislature grants, and a human part that decides (§ 7e).
 
 ## 3. ⭐⭐⭐ The legislature decides anything, anytime; reality's compliance is a separate fact **[DECIDED — the owner]**
 
@@ -80,6 +85,9 @@ on enactment, whatever it says, and is in one of these states:
   **the legislature can unseat the PM by the same 3 of 3**. The owner: *"a veto override is probably
   preferable to a no-confidence vote"* — override a specific veto first; remove the PM when the lag is
   chronic.
+- **Refined in § 7e:** the PM is seated by headcount, so the matching removal is **constructive
+  no-confidence** (a rival who wins a headcount majority replaces the PM); the 3-of-3 removal stays as
+  the legislature's brake.
 - The record shows how long each law has sat *enacted, uncodified*, so a stall is public.
 
 ## 5. ⭐⭐⭐ The court is code review **[DECIDED — the owner]**
@@ -343,6 +351,219 @@ here, but who's to say exactly?"*
   that budget bills originate in the budget committee**, as US revenue bills must originate in the
   House. Anyone may file an amendment to the budget once it is on the floor.
 
+## 7e. ⭐⭐⭐ The executive, step by step **[DECIDED in shape — the owner]**
+
+### Seating the PM — by headcount **[DECIDED — the owner]**
+
+*"The PM is seated by the leg. I'm not sure if it's 3/3 chambers or a simple majority of the entire
+body. I like the latter, for reasons that are maybe just cultural bias as an American, but the
+asymmetry with how bills are actually passed might be a problem if the two have to work together."*
+
+- ⭐ **The asymmetry is the meaning.** The three chambers count **contribution**, weighted by
+  standing; the PM is the one office counted by **persons** — one player, one vote. So **the veto is
+  the persons' check on the weighted legislature**, and the 3-of-3 override says that when every kind
+  of contribution agrees, it beats the headcount — the shape of a nationally elected US president
+  facing a Senate weighted by state. Divided government is the cost; silence enacting and an override
+  needing no new vote soften it.
+- **A headcount is what alts attack:** one account, one vote, with a standing floor — the same
+  defense as the second.
+- **Seating and removal by the same count** — **constructive no-confidence** (the German rule): a rival
+  who wins a headcount majority replaces the PM. **The 3-of-3 removal stays as the legislature's
+  brake** (§ 4). A vote that judges a person, so a secret ballot (§ 7b).
+
+### 1. Enactment lands; every clause gets an owner
+
+- ⭐ **Routing is derived from the toolkit:** a clause goes to the institution holding the tools it
+  needs — a clause needing fines goes to whoever holds the fine tool. Derivable, not decided. A bill
+  may also name an institution; an unowned clause shows on the record.
+- **Self-executing clauses take effect on enactment, or on an effective date** the bill sets — a clean
+  cutover for a fine changed mid-case or a rate mid-month. The owning institution builds nothing but
+  answers for the clause working; if it does not, that is a compliance fix (class 2).
+
+### 2. Directives become codification orders
+
+The owning institution answers each order with one of:
+
+| response | meaning | goes to |
+|---|---|---|
+| **a plan** | how it will codify it, ⭐ **its reading of the clause**, an estimate, the cost against its appropriation | the record; the legislature sees it |
+| **unfunded** | it can be done; there is no money for it | the legislature — fund it or live with the lag |
+| **infeasible here** | it contradicts kernel physics | the legislature, a petition upstream; the court may test the claim |
+
+- ⭐ **The plan is where the executive's interpretation is written down.** A prose clause must be read
+  somehow before it is built; when the code reaches the court, *did the executive read the law
+  reasonably?* has a document to answer it.
+- ⭐ **This is our own workflow.** Requirements say what the product needs, the plan what the code
+  needs: a directive *is* a requirements document handed down by the legislature, and the institution
+  writes the plan. `/requirements` and `/plan` are the executive's pipeline, run without a
+  legislature.
+
+### 3. Who does the work
+
+- **Seat-holders**, under their mandate — wizards for code, others for content and data.
+- **Or the bounty board** (below) — work posted for any wizard or worldcrafter.
+- **Accountability follows the merge, not the author.** A seat-holder signs the merge as the executive
+  act; a contractor writes code and the institution answers for it.
+
+### 4. The merge request is where the bill leaves the executive
+
+It carries its class (class 5 — the enactment is now its authority), the clauses it codifies, the plan
+and its interpretation, and the projection diff — and goes to the court.
+
+### 5. Status, visible the whole time
+
+> assigned → planned → in progress → (blocked: unfunded · infeasible · awaiting upstream) → submitted
+> → codified
+
+The legislator's *can it be done?* answered live (§ 7b), and the slow-walk made concrete — a clause
+long at *planned* is visible, and chronic lag is what no-confidence is for.
+
+### 6. What the PM does
+
+Assigns what routing cannot; **sets priorities across directives** (real discretion: which law is
+codified first); issues statements, veto threats included; vetoes; appoints seat-holders —
+**confirmation depends on the appointment** (the owner), set by each institution's founding statute.
+
+**What the executive produces:** assignment records · plans · unfunded and infeasible reports · work
+contracts · merge requests · a log entry for every act, naming the authority invoked
+([executive-slate](./executive-slate.md)'s log).
+
+## 7f. ⭐⭐⭐ The closed toolkit, and the human executive **[DECIDED — the owner]**
+
+*"This is very pointed towards code changes, but that's not the executive's only mandate. It's law
+enforcement of any kind, and not all laws can be enforced by code. That said, my recommendation for
+most legislatures is they describe a closed set of tools the executive can use that they're accountable
+to … wizards may still use the eval command for off-the-books operations, but the idea is if the
+toolkit is good enough they won't want to. Still, there's a part of the executive that's very human,
+and you need that represented in these ideas somewhere."*
+
+- **The legislature enumerates the executive's tools by law**, as typed tools: issue a fine, revoke a
+  license, bar from an extent, seize, appoint, spend an appropriation, post a contract, mint (by the
+  monetary rule), merge code (by class). **Each tool states who may use it, on whose authority, how
+  it is logged, and how it is appealed.**
+- ⭐⭐ **It mirrors the legislature's side.** The legislature writes typed clauses from slots the
+  executive built; the executive acts with typed tools the legislature granted. **Each branch's
+  vocabulary is the other's to define, and the court checks both.**
+- **A new institution is a statute naming its mandate and its tools** — the ordinary case, no code. A
+  *new tool* needs executive code (class 5).
+- ⚠ **Each tool says whether it is diegetic.** A watchman's fine or a bailiff's seizure acts inside
+  the fiction and must look like an in-world act by a person in the world; a merge or a ledger mint
+  acts outside it.
+- **Every tool that judges a person** (fine, bar, seize, revoke) carries a named criterion and an
+  appeal to the court, as part of its definition in law.
+- **Off the books.** A wizard can still `eval` — code is reality, and nothing stops it. But eval in a
+  live world, doing what a tool covers, is an act outside the law; logged, it is reviewable. ⭐ **The
+  toolkit's completeness is the measure of success**: good enough that nobody wants eval.
+- ⭐ **The human executive is discretion** — when to use a tool and on whom (prosecutorial discretion),
+  mercy, emergencies, talking to people, investigating, presence; what neither NPCs nor code can do.
+  **Discretion chooses among tools and is logged; it never invents a tool.** A human executive is
+  someone deciding, not someone with extra powers.
+
+## 7g. ⭐⭐⭐ The bounty board, the purse and the mint **[DECIDED in shape — the owner]**
+
+*"Some kind of bounty board for other wizards and worldcrafters to pick up work that the legislature is
+adding to the docket — that's interesting. It can't pay in anything but zorkmids, but that's okay,
+because in our economy everyone needs zorkmids, even the privileged. Actually the one person who
+doesn't really is the head of the executive, because they can take control of the CB anytime they like
+and mint as much money as their heart desires until they're unseated. So that's a bit of a problem if
+the executive is also paying for work to be completed."*
+
+- **The legislature holds the purse.** A bounty is appropriated in the bill and **escrowed on
+  enactment**; the executive never holds that money.
+- ⭐⭐ **Payment releases when the court accepts the work** — when the clause reaches *codified*. Every
+  bounty touches all three branches: the legislature funds it, the executive assigns and merges, the
+  court's acceptance pays. **No single branch can pay a favor.**
+- **The central bank is its own institution under a monetary rule** **[DECIDED — the owner]**, not
+  the PM's instrument. Minting is a tool, bounded by the rule and logged with its authority; a mint
+  outside the rule is a removable offense with the evidence attached — central-bank independence.
+- **The bounty board** is the directives with escrowed bounties, open to every wizard and
+  worldcrafter, paid in zorkmids.
+- **Zorkmids and standing stay separate.** The bounty is the legislature's appropriation, set by vote —
+  its purse to use as it likes. Standing is by formula (§ 7h), so capital setting bounty sizes never
+  sets anyone's labor standing, and the chambers stay apart.
+
+## 7h. ⭐⭐⭐ Standing for the Compact's work — by formula; discretion only from allowances **[DECIDED in shape — the owner]**
+
+*"Whoever fulfills these contracts should earn it — it's labor for the Compact, and if that shouldn't
+earn labor standing, what should? But how it's all awarded is the thing we have to figure out."* And:
+*"While I do think there is a place in the game for standing to be awarded on a purely discretionary
+basis, I want that sort of thing to come out of fixed allowances that are pointed at specific targets,
+not just some free-for-all. Besides that, I think most standing should attempt to be awarded by
+formula, independent of any human discretion."*
+
+⭐⭐⭐ **The principle: a formula wherever the engine can measure the outcome; an allowance where it
+cannot. Allowances are fixed, aimed at a named target, and logged — never open-ended.** The
+measurement doctrine applied to rewards. The proportion between the two falls out of how measurable
+an institution's work is: codification is nearly all formula, the street watch mostly allowance.
+
+### The formula for codification work — units the worker cannot size
+
+- **The unit is the clause, and the legislature defined it.** A contractor cannot inflate their work by
+  writing more code; nobody counts code — the projection counts clauses codified.
+- **It pays on durability**: a clause counts once codified *and* past the challenge window. Work struck
+  down earns nothing.
+- **The split is a contract term, not a judgment.** A crew declares its split when it claims (*60/40*),
+  by agreement, before the work. Consent up front, not discretion after. (The owner: share of authored
+  work *"is still kinda subjective."*)
+- ⭐ **A share of the period's labor standing, divided by formula** **[DECIDED — lens 6]** — not a
+  fixed number. Scale-invariant like the tallies, no tuning burden; many trivial clauses dilute each
+  other and mint nothing extra.
+- ⭐ **A clause's weight is its support at enactment × a waiting multiplier** **[DECIDED — lens 1]**.
+  A player can compute a bounty's standing *before* claiming it: support at enactment and waiting time
+  are both known then; measured use after codification is not, so it is out. Support at enactment is
+  the polity's own valuation, ungameable after the fact; the multiplier draws labor to neglected
+  clauses — the slow-walk solved from the labor side.
+
+> each period: your standing = the pool × Σ(your declared share × the clause's weight) ÷ Σ(all weights)
+
+- **Clawback: none, except fraud found by the court** **[DECIDED — lens 7]** (work misrepresented to
+  win a bounty). Taking standing back needs a criterion, and decay already handles stale awards.
+- **Conflicts of interest are disclosed, not forbidden** — a legislator who drafted a directive and
+  claims its bounty shows on both.
+- **Salaried seats earn the same standing** for codification work as a contractor **[LEAN]** — the same
+  labor.
+
+### Allowances — the human work
+
+- **The law creates each allowance with a size, a target and a holder** — *"the PM may award up to N
+  labor standing per period for emergency response"*; *"the Watch's captain, up to M, for street
+  patrol."*
+- **Each award is logged, names its recipient and gives its reason; an unspent allowance lapses** —
+  no stockpiling across administrations.
+- **Not receiving an award is not appealable; misusing an allowance (rewarding cronies) is
+  reviewable**, because every award carries its reason.
+
+## 7i. Lens pass on the executive
+
+1. **Pedagogy** — real doctrine on a working instance: enumerated powers, prosecutorial discretion,
+   central-bank independence, constructive no-confidence, procurement, escrow. Routing by tools is
+   derivable; a formula lets a player compute their own reward from public data — **lens 1 chose the
+   clause weight**.
+2. **Expression** — a new institution is a statute (no code); a new tool is the bespoke case through
+   class 5; the bounty board opens law-building to every wizard and worldcrafter.
+3. **3a Immersion** — ⚠ each tool must say whether it is diegetic. **3b Participation** — a coalition
+   funding bounties its members claim (disclosed); a populist PM against a weighted legislature; a PM
+   leaning on the central bank — real politics, nothing scripted.
+4. **Values** — the multiplier, the pool share and each institution's allowance have no derivable
+   answer: the law sets them, and we draft defaults *(grain)*.
+5. **Continuity** — tools in law outlive any PM; allowances lapse each period; the monetary rule binds
+   every PM.
+6. **Economy** — the docket's directives make demand for wizard labor before any bounty exists; **lens
+   6 chose the pool as a share**. ⚠ Escrow needs treasury revenue.
+7. **Governance** — every person-judging tool carries a criterion and an appeal; allowance misuse is
+   reviewable; constructive no-confidence is a secret ballot; **lens 7 chose no clawback but for
+   fraud**.
+
+| question | answer | chosen by |
+|---|---|---|
+| PM seating | headcount (one account, one vote, a standing floor); constructive no-confidence; 3-of-3 removal as the brake | the owner |
+| the central bank | an independent institution under a monetary rule | the owner |
+| clause weight | support at enactment × a waiting multiplier | lens 1 |
+| the pool | a share of the period's labor standing | lens 6 |
+| the split | declared by the crew when it claims | lenses 1, 7 |
+| clawback | none, except fraud found by the court | lens 7 |
+| tools | each says whether it is diegetic; each that judges a person has an appeal | lenses 3a, 7 |
+
 ## 8. Lens pass
 
 1. **Pedagogy** — the government is legible as a system a student can derive: three outputs, one
@@ -386,6 +607,12 @@ here, but who's to say exactly?"*
 11. **Committees gate or report** — lean report, budget origination the exception (§ 7d).
 12. **Continuous committee seats or periodic elections** (§ 7d).
 13. **The budget committee's default ratio** — capital-heavy, or a Commons-style purse (§ 7d).
+14. **Treasury revenue** — taxes, fees, fines, and whether seigniorage reaches the treasury, by rule
+    only, or the PM's mint loophole returns through the treasury (§ 7g).
+15. **Which tools are diegetic**, and how an out-of-fiction tool shows in the world (§ 7f).
+16. **The waiting multiplier's curve** — how fast a neglected clause's weight rises (§ 7h).
+17. **Open procurement** — can anyone claim a bounty, or only those an institution vets? The court
+    reviews every merge either way (§ 7g; the owner: *"more later"*).
 
 ## Cross-references
 
