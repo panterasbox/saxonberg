@@ -593,7 +593,14 @@ export class Session {
         const id =
           typeof frame.subscriptionId === 'string' ? frame.subscriptionId : '';
         const p = this.pendingSubscriptions.get(id);
-        if (!p) continue;
+        if (!p) {
+          // ⭐ Not one this session asked for: a server-opened subscription's
+          // answer — a card's RESUME snapshot (crowded-rooms D5). Kept for
+          // the assertions that read it; dropping it here hid the resume.
+          this.pushRing(this.envelopes, frame as CapturedEnvelope);
+          this.drain(this.envelopeWaiters);
+          continue;
+        }
         this.pendingSubscriptions.delete(id);
         clearTimeout(p.timer);
         p.resolve(frame as unknown as SubscribeOutcome);

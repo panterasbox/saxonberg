@@ -1907,6 +1907,29 @@ by a profile; this is the reading of the code and the probe. The levers
 are named for review (§ Risks: the first projection is one unit of N
 rows; D7's row target was met for child rows, not for a place's own row).
 
+### The second quiet-box run (2026-11-17, after W8)
+
+Precheck passed (load 0.37 at start).
+
+| step | result | gate |
+|---|---|---|
+| 1 idle | **0.160 cores** (foreign 0.17) | < 0.20 (owner ruling 6) — ✓ |
+| 6 a card you can see | **caught up in 1,118 ms** | < 2 s — ✓ (W8) |
+| 7 a card you cannot see | nothing received while paused ✓; the resume's result "not received" — **a harness defect**: the wire `Session` dropped every `mql-subscription-result` whose id it had not asked for itself, so a card's resume snapshot never reached `envelopesOf`. Fixed in `session.ts`; a probe on a kept world then saw the result arrive | — |
+| 8–10 | not reached (step 7 threw) | — |
+| 11 one hundred (reported) | logins p50 2.1 s / p95 4.2 s; `say` alone p95 **182 ms**; all at once p95 15 s; `/healthz` 104 of 302 over 100 ms (max 6.5 s); server 0.94 cores; load 0.37 → 1.15; foreign 0.19 | — |
+
+⚠ **A finding the harness fix exposed, outside this build's diff:** on a
+world RE-USED across wire runs (`WIRE_REUSE=1`, a second run), subscribing
+a fresh player's `here` card throws `Cannot read properties of undefined
+(reading 'some')` in `PerceptionLogic.onBodyOf` — `target.getContainerChain()`
+returns `undefined` for the live square the viewer stands in (not
+destroyed; the same id). The card is then not live. A fresh world (every
+timing drive) never shows it, and the error envelope was invisible to every
+drive because the harness dropped it too. Neither file is touched by this
+build. Destination: the silent-write-census slate's neighbor —
+**reported in the MR for the owner**; not fixed here.
+
 *(appended at build time)* — the W0 record and the checkpoint's decisions
 (D13 onward); W6's first quiet run; W7's full blocking drive with the load
 beside every number; the one-hundred record; what each found. The soak
