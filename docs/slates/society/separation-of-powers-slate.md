@@ -13,7 +13,9 @@
 > reports — the diff, the fiscal arithmetic, affected counts, conflicts, watches, the agenda (§ 7b) ·
 > the secret-ballot list · the counsel office's LLM staff (§ 7c) · the budget committee (§ 7d) · the
 > executive's codification orders and status (§ 7e) · the closed toolkit (§ 7f) · the bounty board,
-> escrow and the independent central bank (§ 7g) · the standing formula and allowances (§ 7h)
+> escrow and the independent central bank (§ 7g) · the standing formula and allowances (§ 7h) · the
+> court's case flow — the clerk's checks, LLM staff, sortition panels and the high court, the ruling
+> window, outcomes, opinions attached to clauses (§ 7j)
 > **Size:** a design pass, then the procedure law as received law, then the record and the merge
 > gate as a build
 
@@ -564,6 +566,148 @@ an institution's work is: codification is nearly all formula, the street watch m
 | clawback | none, except fraud found by the court | lens 7 |
 | tools | each says whether it is diegetic; each that judges a person has an appeal | lenses 3a, 7 |
 
+## 7j. ⭐⭐⭐ The court, step by step **[DECIDED in shape]**
+
+The bill arrives as the executive left it (§ 7e): a merge request carrying its class, the clauses it
+codifies, the plan and its interpretation, and the projection diff.
+
+### 1. Two ways a case starts
+
+- **Automatically, before merge** — every class 5 change opens a case by itself. Nobody has to bring
+  it.
+- **On challenge, after merge** — for classes 2–4 and emergency changes (§ 6). ⭐ **Anyone may file; a
+  challenge needs a second to reach the docket** **[DECIDED — lens 7]**, exactly like a bill (§ 7a): a
+  different player, with standing, on the record. The right to challenge stays open to all, and the
+  second keeps it from becoming harassment.
+
+### 2. The clerk — mechanical checks first
+
+Before any person reads anything, the engine checks:
+
+- every changed behavior cites a clause;
+- each typed clause's value matches what the code's `@clause` annotation carries;
+- nothing touches Tier A;
+- the claimed class matches the projection diff (§ 7).
+
+**A failure goes straight back to the executive** — no judge is needed for *you forgot to cite
+authority*. It works like CI, and the thing it checks is the law. The checks are public, so anyone
+can tell in advance whether a merge request will pass them.
+
+### 3. The court's staff — LLMs, once per case
+
+As with the legislature's counsel (§ 7c), over documents that never change: a plain-language summary of
+the diff; a comparison of the plan's reading against the prose; ⭐ **flags for scope creep** — where the
+code does more than the clause it cites. Advisory and signed, never a ruling.
+
+### 4. Judges — sortition from the credentialed **[DECIDED — lens 1]**
+
+Judges must read code against law — a university credential in law and wizardry, not the wizard bit
+(§ 5).
+
+- **A panel is drawn by lot for each case** from everyone holding the credential. Independence (no
+  appointing power to capture); *no one sits on every committee*; and ⭐ many players get the hands-on
+  experience of reading code against law — lens 1 chose it over a few appointed judges who would keep
+  that experience to themselves.
+- **Mechanical exclusions**: the code's authors and contractors, the bill's author and seconder,
+  members of the institution that wrote it, whoever claimed the bounty.
+- **The cost is consistency**, so **a standing high court** with a few seats hears appeals and sets
+  **precedent** that binds later panels — and is the court that would make the Marbury moment, claiming
+  in a ruling what its powers are (§ 5).
+- ⚠ **The small-pool problem**: early on the credentialed pool may be tiny. A widening rule — a lesser
+  credential qualifies, or the high court sits as the panel — until it grows.
+
+### 5. Proceedings — continuous and written
+
+- **The executive's plan is its brief** — the interpretation was written down at planning (§ 7e).
+- **Amicus filings are open to anyone**, credentials shown when presented, as testimony on bills.
+- ⭐ **A ruling window; a silent court approves** **[DECIDED — lens 2]**. If review could stall a merge
+  indefinitely, every builder's work would wait on the court's attention and delay would become a veto
+  — the same rule as the PM's window (§ 7a). A court that rubber-stamps by silence still faces
+  challenges after merge.
+
+### 6. Outcomes
+
+| ruling | meaning | what happens |
+|---|---|---|
+| **approved** | cited, justified, faithful | the executive merges; the clause is codified; the durability window starts |
+| **remanded** | the code exceeds its authority, or the reading is unreasonable | back to the executive with findings; it fixes and resubmits |
+| **gap found** | the law does not say enough to justify any version of this | a report to the legislature — ⭐ **the court never fills a gap itself**; that would be legislating |
+| **struck** *(after merge only)* | merged code is ultra vires | a revert, if the court holds that power (§ 5) |
+
+**No partial approvals**: code rarely separates cleanly, so a remand with findings is more honest than
+an order striking part of it.
+
+### 7. The opinion goes into the law
+
+A ruling is a document: the questions, a finding per clause, the reasoning, dissents, the precedent it
+cites. Published, and attached to the clauses it interpreted.
+
+- ⭐ **The law card shows the rulings under each clause** — real annotated codes print the court
+  decisions under each section.
+- ⭐ **Rulings attach to clauses, not code lines** **[DECIDED — lens 5]**, so they survive refactors.
+  When a clause is amended, rulings on the old version become history: still taught, no longer
+  controlling.
+- ⭐⭐ **Interpretation settles prose over time.** A ruling's reading of ambiguous prose controls until
+  the legislature amends; the legislature may then convert the settled reading into a typed clause. The
+  court and the legislature harden the law together, one case at a time.
+- **The university teaches case law** — the curriculum follows the whole record (§ 9), rulings
+  included.
+
+### 8. The loop closes
+
+Approval → the executive merges → the clause is codified → the durability window passes → **the
+escrowed bounty releases and standing is awarded** (§§ 7g–7h) → the course updates. Legislature,
+executive, court, reality, university — each step leaves a document, and no branch can skip the
+others.
+
+**The case record:** filed → clerk check (returned, or passed) → panel drawn → briefing and amicus →
+ruled (approved · remanded · gap found · struck) → appealed? → final. **Documents:** the case, the
+clerk's report, the plan as brief, amicus filings, the opinion and dissents, the order, a precedent
+index.
+
+**The court's other docket** — people appealing fines, bars and seizures (§ 7f) — runs on the same
+machinery: its own pass.
+
+### 9. Judging is labor **[DECIDED in shape — lens 6]**
+
+By § 7h's principle, judging earns labor standing **by formula**: the unit is **the case**, which the
+executive's submission defines and the judge cannot size, weighted as the codified clauses it reviewed
+are. Paid from **the court's own appropriation**, so the court never depends on the executive for
+money. The clerk is nearly free and the LLM staff run once per case; panel time is the real cost,
+bounded by the ruling window.
+
+## 7k. Lens pass on the court
+
+1. **Pedagogy** — judicial review, ultra vires, stare decisis, annotated codes and sortition on a
+   working instance; the clerk's checks derivable in advance; rulings with reasoning become curriculum;
+   **lens 1 chose sortition**.
+2. **Expression** — precedent lowers a builder's uncertainty; the clerk catches cheap mistakes before
+   a judge's time is spent; **lens 2 chose silence-approves**.
+3. **3a Immersion** — ⚠ code review is meta-governance, out of fiction; the docket for people (a
+   magistrate fining you in Terminus) is partly inside it. Same machinery, so each case states its side,
+   as each tool does (§ 7f). **3b Participation** — players as judges, amici, challengers; a court
+   claiming broad powers in its own ruling is the Marbury story, meant to be possible. ⭐ **A case to
+   anticipate:** a realm's court finds that a *platform* upgrade — our kernel code — violates realm law.
+   It cannot revert kernel code, but it can order the realm's executive not to deploy that version: a
+   legal route to forking, and a real check on us.
+4. **Values** — deference, the high court's seating, and the revert power have no derivable answer.
+5. **Continuity** — rulings attach to clauses and survive refactors; amended clauses turn their rulings
+   into taught history; precedent persists across panels and versions.
+6. **Economy** — judging earns standing by formula, per case, from the court's own appropriation;
+   demand came first (every class 5 merge needs a case).
+7. **Governance** — the criterion is the three questions, the appeal is the high court, the exclusions
+   are mechanical; **lens 7 chose open standing with a second**. ⚠ **Who judges the judges** — random
+   panels dissolve after each case; high-court seats need a removal path, probably the legislature's 3
+   of 3.
+
+| question | answer | lens |
+|---|---|---|
+| panels | sortition from the credentialed, mechanical exclusions | 1 |
+| a silent court | approves when the window closes | 2 |
+| standing to challenge | anyone files; a second from another player with standing dockets it | 7 |
+| rulings | attach to clauses, not code; an amended clause's rulings become history | 5 |
+| judging | labor standing by formula, per case, from the court's own appropriation | 6 |
+
 ## 8. Lens pass
 
 1. **Pedagogy** — the government is legible as a system a student can derive: three outputs, one
@@ -613,6 +757,10 @@ an institution's work is: codification is nearly all formula, the street watch m
 16. **The waiting multiplier's curve** — how fast a neglected clause's weight rises (§ 7h).
 17. **Open procurement** — can anyone claim a bounty, or only those an institution vets? The court
     reviews every merge either way (§ 7g; the owner: *"more later"*).
+18. **Seating the high court** — by the PM with confirmation, by the tallies, or by lot from the
+    credentialed (§ 7j).
+19. **Removing a high-court judge** — probably the legislature's 3 of 3 (§ 7k).
+20. **The small-pool rule** for the early game (§ 7j).
 
 ## Cross-references
 
