@@ -45,6 +45,9 @@ absorbed quietly; 1, 2 and 3 want a ruling before `/build`.
      (the dorm has no line, so a resident who cannot cast would have to buy
      cells — the barrier the requirements forbid).
    - Only wave **W7** changes with the answer.
+   - ✅ **RULED (the owner, 2026-11-18): the recommendation** — the dorms
+     parcel joins the grid on the University Avenue node (the mana lamp
+     stays); the lounge's charger runs on its mana line.
 2. **Nobody is billed for charging.** Metered billing does not exist
    (energy.md lists it as deferred). A charger works exactly while its
    premises' supply is live, and no money moves. *"The premises' meter
