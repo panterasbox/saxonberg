@@ -1007,13 +1007,17 @@ in the fiction*, [tech-tree-slate](./tech-tree-slate.md) § 6d).
 - **In-fiction cases are epistemic.** Admissible: witness testimony, receipts banded to what each
   witness knew, physical evidence gathered by forensics, documents. **Never the engine's ledger.** A
   perfect crime can go unpunished, and that is correct — the price of keeping investigation learnable.
-- **Out-of-fiction conduct cases may use everything.** Harassing a real person is real harm; safety beats
-  mystery, so the engine's logs are admissible. This is moderation
-  ([moderation-slate](./moderation-slate.md), [prison-slate](./prison-slate.md)).
+- ~~**Out-of-fiction conduct cases may use everything.**~~ ⛔ **Corrected 2026-11-18**
+  ([moderation-slate](./moderation-slate.md) § 23): conduct evidence is **what was delivered to
+  someone, disclosed by their report**, plus **the platform's logs of the accused's acts against the
+  platform** (cheating, exploits, botting) — never undelivered speech, never a private conversation
+  nobody reported. *Everything* would have made the conduct track a surveillance system.
 - **Every case carries the in-or-out flag, set at filing by the clerk** — neither party can launder a
   fiction grievance into the conduct track to reach the omniscient evidence; a misfiling is appealable.
 - ⭐ **Conduct cases never appear in the fiction** — a real harassment case is not dramatized in the
-  world.
+  world. ⚠ **Refined** (moderation-slate § 23): **the case** is out of fiction (heard on the stream,
+  naming the character or handle, never the person); **the remedy** may be in it (prison is a place);
+  **the record** never feeds it.
 - ⭐ **NPCs may testify, never sit on a jury** **[DECIDED — lens 3a]**. An NPC's testimony is what it
   perceived and believes — epistemic, admissible. Judging is a person's act: no NPC weight
   ([guild-slate](./guild-slate.md)).
@@ -1047,7 +1051,9 @@ The code docket's *a silent court approves* does not fit persons: nobody should 
 court's slowness, and flooding the court with appeals should not erase every penalty. **Each tool
 declares its interim rule** — a fine is **escrowed** pending appeal, neither paid nor forgiven; a bar
 **stands** (it is for safety) unless the court lifts it; a seizure stays in custody. **An unruled case
-escalates to the high court** rather than deciding itself.
+escalates to the high court** rather than deciding itself. ⚠ **Refined** (moderation-slate § 23):
+**every interim rule includes an expiry** — a hold lapses unless the case is heard (habeas corpus as a
+rule) — and **nothing an appeal cannot fully undo happens before judgment**.
 
 ### Sentences — a closed list **[DECIDED in shape]**
 
