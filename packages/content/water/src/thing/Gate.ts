@@ -20,7 +20,7 @@
  * names {@link PersistentGate}.
  */
 
-import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
+import { SealableMixin, type OpenVeto } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import { ThrottleableMixin } from '@saxonberg/server/mud/lib/spatial/Throttleable';
 import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { ShiftSchedule } from '@saxonberg/server/mud/lib/employment/ShiftSchedule';
@@ -139,9 +139,9 @@ export default class Gate extends GateBase {
    * ⭐ A padlocked gate opens only for somebody whose key fits it (D12) — the
    * key works the padlock as part of the act. Nobody else.
    */
-  public override canOpen(by: Stuff): VetoResult {
+  public override canOpen(by: Stuff): OpenVeto {
     if (this.isLocked() && !this.opensFor(by)) {
-      return { ok: false, reason: "It's padlocked shut." };
+      return { ok: false, reason: 'locked', facts: { target: this } };
     }
     return { ok: true };
   }

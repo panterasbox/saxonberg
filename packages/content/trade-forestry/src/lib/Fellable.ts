@@ -82,16 +82,21 @@ const BOLE_M3 = 0.9;
 /** Cross-cut lengths a standard's bole carries. */
 const BOLE_LENGTHS = 6;
 
-/** ⭐ Every reason a felling is refused — `FellController` words each. */
+/**
+ * ⭐ Every reason a felling is refused — each a reason row this pack ships
+ * (`content/reasons/`), named by its path (failure-model D1): the row words
+ * it, so `fell` passes the answer on and a script handles it by the same
+ * code (`try { fell oak } on /trade/forestry/reasons/wrong-tool { … }`).
+ */
 export type FellRefusal =
   /** The bound tool does not fell: a billhook takes a stool, not an oak. */
-  | ActRefusal<'wrong-tool'>
+  | ActRefusal<'/trade/forestry/reasons/wrong-tool', { tool: Stuff }>
   /** The stand does not know the word. */
-  | ActRefusal<'no-such-species', { word: string }>
+  | ActRefusal<'/trade/forestry/reasons/no-such-species', { word: string }>
   /** Nothing left standing worth the axe (of the species, when named). */
-  | ActRefusal<'stand-empty', { name: string | null }>
+  | ActRefusal<'/trade/forestry/reasons/stand-empty', { name?: string }>
   /** A planted standard too young to be a tree. */
-  | ActRefusal<'not-yet-a-tree'>;
+  | ActRefusal<'/trade/forestry/reasons/not-yet-a-tree', { tree: Stuff }>;
 
 /** The begin words' facts. */
 export interface FellBegin {
@@ -136,7 +141,7 @@ export function FellableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     /** @hook The felling plan; a host overrides. The default fells nothing. */
     public async fellPlanFor(_actor: Stuff, _axe: Stuff, _word: string): Promise<FellPlan | FellRefusal> {
-      return { ok: false, reason: 'stand-empty', facts: { name: null } };
+      return { ok: false, reason: '/trade/forestry/reasons/stand-empty', facts: {} };
     }
 
     /** Whether `axe` fells — the axe is the tree's to judge. */

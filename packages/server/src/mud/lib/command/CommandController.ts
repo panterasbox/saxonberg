@@ -22,9 +22,10 @@
  * CommandModel`) and never sees the narrower type.
  */
 
-import type {
-  CommandContext,
-  CommandModel,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
@@ -45,6 +46,7 @@ import { ManualBuildStep } from '../craft/ManualBuildStep';
 import type { ActDone, ActPlan, AnyActRefusal } from '../craft/ActPlan';
 import type { ActWords } from './EngagedActController';
 import type { PartChoices, PartRefusal } from '../husbandry/Soil';
+import { Refusal, type RefusalFacts } from '../errors';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -193,16 +195,25 @@ export abstract class CommandController<
   protected async engagePlan<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     plan: ActPlan<B, F, X>,
-    words: ActWords<B, F, X>,
+    words: Omit<ActWords<B, F, X>, 'onRefused'> & Partial<Pick<ActWords<B, F, X>, 'onRefused'>>,
   ): Promise<void> {
     const giver = context.commandGiver;
     const turnDown = (prose: Composed, reason: string, detail = reason): void => {
       MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(prose).send();
       context.note({ kind: 'controller-rejected', reason, detail });
     };
-    const say = (out: ActDone<F, X>): void => {
+    const say = async (out: ActDone<F, X>): Promise<void> => {
       if (giver.isDestroyed()) return;
       if (!out.ok) {
+        // ⭐ No words of its own: the refusal's row words it, late — the
+        // command's envelope went when the step began.
+        if (!words.onRefused) {
+          const refusal = new Refusal(out.reason, (out.facts ?? {}) as RefusalFacts);
+          // On the context too, for a script awaiting the step to meet it.
+          context.refuse(refusal);
+          await CommandApi.reportFailure(refusal);
+          return;
+        }
         MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.onRefused(out)).send();
         return;
       }
@@ -219,10 +230,11 @@ export abstract class CommandController<
       begin();
       const out = await plan.onComplete();
       if (!out.ok) {
-        turnDown(words.onRefused(out), out.reason);
+        if (words.onRefused) turnDown(words.onRefused(out), out.reason);
+        else context.refuse(out);
         return;
       }
-      say(out);
+      await say(out);
       return;
     }
     const durationS = plan.durationMs / 1000;
@@ -388,15 +400,33 @@ export abstract class CommandController<
    * version. The tree-wide migration is a census-and-ratchet job and is
    * NOT done here; this is the home it migrates to.
    */
+  protected refuse(context: CommandContext, refusal: AnyActRefusal | Refusal): void;
   protected refuse(
     context: CommandContext,
     topic: string,
     line: string,
     reason: string,
+    detail?: string,
+  ): void;
+  /**
+   * ⭐⭐ The wordless form (failure-model D11) — pass the object's answer
+   * on: `if (!answer.ok) return this.refuse(context, answer);`. The
+   * reason's row words it at emit; this controller says nothing. The worded
+   * five-argument form is the legacy one `lint:reason-rows` counts down.
+   */
+  protected refuse(
+    context: CommandContext,
+    topicOrRefusal: string | AnyActRefusal | Refusal,
+    line = '',
+    reason = '',
     detail = '',
   ): void {
+    if (typeof topicOrRefusal !== 'string') {
+      context.refuse(topicOrRefusal);
+      return;
+    }
     MessageApi.scene(context.commandGiver)
-      .topic(topic)
+      .topic(topicOrRefusal)
       .toSelf(Mml.compose`${line}`)
       .send();
     context.note({ kind: 'controller-rejected', reason, detail });

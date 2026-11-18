@@ -76,7 +76,7 @@ import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 export type LockRefusalReason = 'already-locked' | 'already-unlocked' | 'no-key';
 
 /** The answer to `lock(by)` / `unlock(by)`. */
-export type LockAnswer = ActOutcome | ActRefusal<LockRefusalReason>;
+export type LockAnswer = ActOutcome | ActRefusal<LockRefusalReason, { target: Stuff }>;
 
 /**
  * Public shape added by LockableMixin. `isLocked()` / `setLocked()` is
@@ -178,16 +178,18 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (`no-key` — asked only once the act would otherwise go through).
      */
     lock(by: Stuff): LockAnswer {
-      if (this.isLocked()) return { ok: false, reason: 'already-locked' };
-      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      const target = this as unknown as Stuff;
+      if (this.isLocked()) return { ok: false, reason: 'already-locked', facts: { target } };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };
       this.setLocked(true);
       return { ok: true, facts: undefined };
     }
 
     /** Withdraw the bolt, as `by`. The same order as {@link lock}. */
     unlock(by: Stuff): LockAnswer {
-      if (!this.isLocked()) return { ok: false, reason: 'already-unlocked' };
-      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      const target = this as unknown as Stuff;
+      if (!this.isLocked()) return { ok: false, reason: 'already-unlocked', facts: { target } };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };
       this.setLocked(false);
       return { ok: true, facts: undefined };
     }

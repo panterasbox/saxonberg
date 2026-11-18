@@ -1,0 +1,5 @@
+# A timed step was cut short — cancelled, replaced, its subject gone. The
+# abort reason is a fact a script can read: `$why.abort`.
+facts:
+  abort: text
+says: "That was interrupted ({{ abort }})."

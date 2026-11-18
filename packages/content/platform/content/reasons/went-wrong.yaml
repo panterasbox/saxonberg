@@ -1,0 +1,5 @@
+# ⚠ A defect, not a refusal: the engine failed. The player never reads the
+# exception; the developer reads it in `errors`. No script may handle it.
+says: "Something went wrong there. It has been noted for whoever looks after it."
+topic: shell.error
+catchable: false

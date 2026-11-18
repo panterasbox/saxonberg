@@ -511,6 +511,28 @@ export interface ControllerRejectedNote {
   detail?: string;
 }
 
+/** One fact a `refused` note carries: a thing by reference, several, text, a number. */
+export type RefusalFactWire = StuffRef | StuffRef[] | string | number;
+
+/**
+ * ⭐⭐ **The act was refused, for a reason a row words** (failure-model D4).
+ * `reason` is the canonical code — a bare word is the platform's
+ * (`locked`), a path any pack's (`/trade/forestry/reasons/wrong-tool`) —
+ * and `facts` are what that row's sentence words. The server words it at
+ * emit, from the row; a client reads the code and the facts.
+ *
+ * A new kind rather than fields on `controller-rejected`, whose shape is
+ * frozen (response-envelope.md § Note kind versioning): an unmigrated
+ * controller still notes that, and the two are told apart by kind.
+ */
+export interface RefusedNote {
+  kind: 'refused';
+  reason: string;
+  facts: Record<string, RefusalFactWire>;
+  /** The script line that was refused, when a script stopped here. */
+  at?: string;
+}
+
 export interface MixinMissingNote {
   kind: 'mixin-missing';
   /** e.g. 'WorkspaceMixin', 'BodyPlanMixin', 'ContainerMixin' */
@@ -926,6 +948,7 @@ export type Note =
   | CandidatesFilteredNote
   | TargetDeclinedNote
   | ControllerRejectedNote
+  | RefusedNote
   | MixinMissingNote
   | LocomotionGateFailedNote
   | PaceBrokenNote
@@ -4787,7 +4810,9 @@ export interface RuntimeDiagnostic {
    * Explicit channel override. When absent the channel derives from
    * `path`. Used by producers whose rows classify by mechanism rather
    * than by content path (e.g. the sandbox boundary's
-   * `sandbox.boundary` denial receipts).
+   * `sandbox.boundary` denial receipts). ⭐ `content-error`
+   * (failure-model D6): `path` is a content ROW that is wrong, and the
+   * row goes to whoever holds title over it, not its last author.
    */
   channel?: string;
 }

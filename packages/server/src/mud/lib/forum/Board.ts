@@ -26,26 +26,16 @@ export type BoardOrganizer = 'open' | 'ordered';
  * gate is the forum logic's, asked of the actor, so a replaced
  * controller cannot skip it.
  *
- *  - `no-subject` — the board's Subject does not resolve; fail closed.
- *  - `not-member` — the actor is not in the board's audience.
- *  - `not-author` — an edit by neither the entry's author nor the
+ *  - `board-unowned` — the board's Subject does not resolve; fail closed.
+ *  - `not-board-member` — the actor is not in the board's audience.
+ *  - `not-entry-author` — an edit by neither the entry's author nor the
  *    board's owner.
+ *
+ * ⭐ Thrown as a `Refusal` (`lib/errors.ts`, failure-model D3) with these
+ * codes, each a platform reason row. Named for the board, not `not-member`:
+ * that code is also the chat channel's, and a script's `on` would match both.
  */
-export type BoardRefusalReason = 'no-subject' | 'not-member' | 'not-author';
-
-/**
- * A board's refusal, thrown by the forum logic (whose writes throw on a
- * refusal) and carrying its machine reason so the controller words it.
- */
-export class BoardRefusal extends Error {
-  constructor(
-    public readonly reason: BoardRefusalReason,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'BoardRefusal';
-  }
-}
+export type BoardRefusalReason = 'board-unowned' | 'not-board-member' | 'not-entry-author';
 
 export default class Board extends Document {
   static collectionName = Collections.ForumBoards;

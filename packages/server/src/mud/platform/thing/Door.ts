@@ -25,6 +25,7 @@ import { LockableMixin } from '../../lib/boundary/Lockable';
 import type { FieldMeta } from '../../lib/mixin';
 import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { OpenVeto } from '../../lib/spatial/Sealable';
 import type { BoundaryChannel, BoundarySide } from '../../lib/boundary/Conduit';
 import { MixinApi } from '../../api/mixin';
 
@@ -122,8 +123,8 @@ export default class Door extends DoorBase {
    * on a locked door swung it wide and only the traverse refused — a locked
    * chest opened outright. Unlock it first; the bolt is the gate.
    */
-  public override canOpen(_by: Stuff): VetoResult {
-    if (this.isLocked()) return { ok: false, reason: "It's locked." };
+  public override canOpen(_by: Stuff): OpenVeto {
+    if (this.isLocked()) return { ok: false, reason: 'locked', facts: { target: this } };
     return { ok: true };
   }
 

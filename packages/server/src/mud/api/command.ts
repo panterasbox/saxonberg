@@ -33,6 +33,9 @@ import type { ParsedCommand } from './command-line';
 import type { Script } from '../lib/script/ast';
 import { CommandLogic } from '../platform/idea/api/CommandLogic';
 import { SecurityApi } from './security';
+import type { Refusal } from '../lib/errors';
+import type ReasonCatalogue from '../platform/idea/ReasonCatalogue';
+import type { Mml } from './mml';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -186,6 +189,17 @@ export interface CommandContext {
   /** Read accumulator state. Returned arrays are snapshot-safe. */
   getNotes(): readonly Note[];
   getStatus(): Status;
+
+  /**
+   * ⭐⭐ **This command was refused** (failure-model D11): notes `refused`
+   * with the reason's canonical code and the facts in wire form, and keeps
+   * the live refusal for a script to read. It SENDS nothing — the emit
+   * sweep words it from its row. Takes a returned refusal
+   * (`{ ok: false, reason, facts }`) or a thrown {@link Refusal} alike.
+   */
+  refuse(refusal: Refusal | { ok?: false; reason: string; facts?: unknown; at?: string }): void;
+  /** The refusal that stopped this command, or `null` when it was not refused. */
+  getRefusal(): Refusal | null;
 }
 
 /**
@@ -301,6 +315,13 @@ export interface ParseResult {
     ast: Script;
   };
   error?: string;
+  /**
+   * ⭐ The whole line, corrected — a parse refusal's fitted form (`try {
+   * … } on locked { … }` for a misspelled `on lockd`, failure-model D5).
+   * The dispatcher copies it onto the `parse-failed` note, and the shell
+   * offers it as a line to tap.
+   */
+  suggestion?: string;
 }
 
 /**
@@ -1684,6 +1705,51 @@ export class CommandApi {
     args: CreateCommandContextArgs,
   ): CommandContext {
     return logic().createCommandContext(args);
+  }
+
+  /**
+   * ⭐ The reasons — why an act can be refused (`locked`, `no-key`, any
+   * pack's `content/reasons/`), served by {@link ReasonCatalogue}. A code
+   * is its row's address: a bare word is the platform's, a path any
+   * pack's. Loaded on use, by path.
+   */
+  static reasons(): ReasonCatalogue {
+    return logic().reasons();
+  }
+
+  /**
+   * The line a reason's row says for `facts` and the topic it goes on, or
+   * `null` when no row ships the code. A misfit between the facts and the
+   * row is recorded as a diagnostic and worded with what is there.
+   */
+  static wordReason(
+    code: string,
+    facts: Readonly<Record<string, unknown>>,
+  ): Promise<{ line: Mml; topic: string } | null> {
+    return logic().wordReason(code, facts);
+  }
+
+  /**
+   * ⭐⭐ **The one routine every guarded root calls with what it caught**
+   * (failure-model D9). It classifies and delivers:
+   *
+   * | thrown | player | note | diagnostic |
+   * |---|---|---|---|
+   * | `Refusal` | its row | `refused` | none |
+   * | `Unavailable` | row `unavailable` | `refused` | recorded |
+   * | `ContentError` | row `content-error` | `controller-error` | the row's |
+   * | anything else | row `went-wrong` | `controller-error` | recorded at `where` |
+   *
+   * A player never reads an exception's own text: `controller-error`'s
+   * `detail` is the worded sentence, and the message and stack live only in
+   * the diagnostic. Never throws.
+   */
+  static reportFailure(
+    error: unknown,
+    context?: CommandContext | null,
+    where?: string | null,
+  ): Promise<void> {
+    return logic().reportFailure(error, context, where);
   }
 
   /**

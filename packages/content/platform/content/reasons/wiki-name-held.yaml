@@ -1,0 +1,6 @@
+facts:
+  name: text
+  holder: text
+  handle: text
+  how: text
+says: "'{{ name }}' is already held by '{{ holder }}' ({{ handle }}) {{ how }}."

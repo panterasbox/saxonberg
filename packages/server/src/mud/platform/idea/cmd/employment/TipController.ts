@@ -14,8 +14,8 @@
 import { PerceptionApi } from '../../../../api/perception';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import { BankingApi, Money, SettleRefused } from '../../../../api/banking';
-import type { SettleRefusalReason } from '../../../../api/banking';
+import { BankingApi, Money } from '../../../../api/banking';
+import { Refusal } from '../../../../lib/errors';
 import type { Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
 import { MessageApi } from '../../../../api/message';
@@ -84,10 +84,8 @@ export default class TipController extends CommandController<TipModel> {
         // ⭐ Short of coin — and only that — falls through to the EFT tip
         // (the auto-fallback; C46: any failure used to). Anything else the
         // settlement refused is said, by its reason, never its exception text.
-        if (!(err instanceof SettleRefused)) throw err;
-        if (err.reason !== 'insufficient-coin') {
-          return this.refuse(context, TOPIC, TipController.cashRefusal(err.reason), err.reason, model.amount);
-        }
+        if (!(err instanceof Refusal)) throw err;
+        if (err.reason !== 'insufficient-coin') return this.refuse(context, err);
       }
     }
 
@@ -161,25 +159,6 @@ export default class TipController extends CommandController<TipModel> {
         'tip-refused',
         err instanceof Error ? err.message : String(err),
       );
-    }
-  }
-
-  /** Why the jar would not take the coin, in words (every reason but short-of-coin). */
-  protected static cashRefusal(reason: SettleRefusalReason): string {
-    switch (reason) {
-      case 'insufficient-coin':
-      case 'inexact-cash':
-        return 'You have not the coin for that.';
-      case 'no-payer':
-      case 'cannot-hold-coin':
-        return 'You have nothing to hold coin in.';
-      case 'needs-payee':
-      case 'splits-exceed':
-        return 'The jar will not take it.';
-      default: {
-        const unworded: never = reason;
-        throw new Error(`TipController: no words for ${String(unworded)}`);
-      }
     }
   }
 }

@@ -76,8 +76,8 @@ const CONFIRM = { promptConfirm: async () => true };
 /** The reasons on any `controller-rejected` notes emitted. */
 function reasons(notes: readonly Note[]): string[] {
   return notes
-    .filter((n): n is Extract<Note, { kind: 'controller-rejected' }> =>
-      n.kind === 'controller-rejected',
+    .filter((n): n is Extract<Note, { kind: 'controller-rejected' | 'refused' }> =>
+      n.kind === 'controller-rejected' || n.kind === 'refused',
     )
     .map((n) => n.reason);
 }
@@ -194,8 +194,10 @@ describe('create', () => {
       page: 'oak',
       body: '',
     });
-    expect(reasons(notes)).toContain('wiki-denied');
-    expect(body).toContain('Oak');
+    // The refusal is passed on; its row words it with the holder's title.
+    expect(reasons(notes)).toContain('wiki-name-held');
+    expect(notes.find((n) => n.kind === 'refused')).toMatchObject({ facts: { holder: 'Oak' } });
+    void body;
   });
 
   it('splits comma-separated tags and related', async () => {
@@ -395,7 +397,7 @@ describe('move, delete, undelete, protect', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await run({ subcommand: 'create', page: 'oak', body: '' });
     const { notes } = await run({ subcommand: 'delete', page: 'oak' });
-    expect(reasons(notes)).toContain('wiki-denied');
+    expect(reasons(notes)).toContain('wiki-moderators-only');
   });
 
   it('protect reports the EFFECTIVE level, not what was asked for', async () => {
@@ -458,7 +460,7 @@ describe('purge', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await run({ subcommand: 'create', page: 'oak', body: '' });
     const { notes } = await run({ subcommand: 'purge', page: 'oak' }, CONFIRM);
-    expect(reasons(notes)).toContain('wiki-denied');
+    expect(reasons(notes)).toContain('wiki-moderators-only');
     expect(db.all(Collections.Wiki)).toHaveLength(1);
   });
 });

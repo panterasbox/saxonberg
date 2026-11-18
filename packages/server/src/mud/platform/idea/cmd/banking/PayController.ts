@@ -28,6 +28,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Payable, PaidBill, PayBillsRefusal } from "../../../../lib/banking/Payable";
+import { Refusal } from "../../../../lib/errors";
 
 const TOPIC = "act.deed";
 
@@ -129,6 +130,9 @@ export default class PayController extends BankingControllerBase<PayModel> {
         .toPeers(Mml.compose`${Mml.actor(giver)} pays ${Mml.actor(payee)}.`)
         .send();
     } catch (err) {
+      // ⭐ A settlement refusal is passed on — its reason row words it
+      // (failure-model D11). Anything else is the bank's legacy sentence.
+      if (err instanceof Refusal) return this.refuse(context, err);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${this.refusalWords(err)}`)
