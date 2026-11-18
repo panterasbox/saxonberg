@@ -21,6 +21,7 @@
 > shared with the epoch build's *made with* · the amendment diff (§ 6a) · the author check on a pack
 > · covenants that cite nodes · the course's remaining shape · who writes a Tier C statute's course
 > · where the platform's received law lives · the social-technology boundary · the power ratchet
+> · the physics receipt — the recorder, the banded wording, `trace last` (§ 6d)
 > **Size:** a design pass, then a kernel sweep folded into the epoch re-map build, then content —
 > the catalog and the courses — which is the real cost
 
@@ -268,7 +269,9 @@ This palette is a **new kind**, and must look different.
 - ⭐⭐⭐ **The import gate is the real guarantee: reality may not read its description.** Code on
   the simulation path may not import the metadata's reader; only the out-of-fiction set may — the
   projection, the wiki, the course and item generators, the legal record. *(invariant — worth
-  entrenching as platform law, not only a lint.)*
+  entrenching as platform law, not only a lint.)* ⚠ **Restated by § 6d:** the receipt's recorder
+  sits in the path, so the invariant is *no outcome may depend on a description*, and the gate
+  governs where descriptions may flow.
 - **Typed arguments** — `@law(Laws.NewtonCooling)`, not a string, so a typo or a renamed law fails
   to compile (the advantage over a TSDoc tag like `@hook`). Read **statically** by the compiler API
   into a **projection document** — the canonical record — and readable at runtime **only behind
@@ -340,6 +343,83 @@ property of objects, not an annotation a covenant reads.
 | census and ratchet | one per decorator, started when its first reader ships | 6 |
 | law names | ids in code; display names are realm content | 3a |
 | amendments in MRs | the projection diff detects them; the MR supplies *why* | 5 |
+
+## 6d. ⭐⭐⭐ The physics receipt — the world shows its work **[DECIDED in shape]**
+
+The owner: *"one interesting thing this does is we could actually tell a player every execution
+'hey, here's what physics actually happened this command', in a way that was coincidental with the
+university and the government."*
+
+Every act can come with a **receipt**: these laws ran, with these clause values, on these things —
+each line linked to the lesson that teaches the law and the clause that defines it. The receipt, the
+textbook and the statute book cite the same thing because they **are** the same thing.
+
+### Something has to watch — so the gate is restated
+
+An inert decorator cannot know when its method runs. **The call-security proxy already sees every
+call**, with its arguments and return; when an act is being recorded, it notes calls into `@law`
+methods and hands them to an out-of-fiction recorder. That sits in the simulation path, so § 6b's
+*"nothing on the simulation path imports the reader"* is too strict. ⭐⭐⭐ **The invariant is: no
+outcome may depend on a description.** The recorder may read annotations to *describe* a call; it
+never touches an argument, a return value or control flow, and it writes only to the player's
+buffer. A lint checks it.
+
+### ⭐⭐⭐ A full receipt leaks hidden state — so it is banded
+
+Several systems are hidden on purpose, and a raw trace would give each away: contamination no sense
+reports (*"infect fired"*), the charged-or-dry trap a drill is a bet on, concealment, seeded
+deposits, a hidden trap a search has not yet surfaced. So the receipt is **what the code did, as far
+as you could know it**:
+
+- **only quantities you could have perceived or measured** — hidden state stays hidden at every band;
+- **banded by your competence in each law** — *competence buys information*:
+  - none: *"the stew cooled"*;
+  - some: *"it cooled toward the room's temperature, faster because the pot is thin"*;
+  - full: the law with its clause values, for what you could measure.
+
+⭐ **The loop it makes: study a law and the world explains itself to you in more detail.** The course
+enriches the receipt; the receipt makes you want the course.
+
+### What else it gives
+
+- **Due process for free** — when an outcome judged you (a fine, a refusal, a wall), the receipt
+  names the clause and its tier, Tier C ordinances included.
+- **The agent playtesters** — if an agent resident cannot work the world out from receipts and
+  courses, neither can a player ([live-instance-testing-slate](../tech-debt/live-instance-testing-slate.md)).
+- **Wizards** — the unbanded receipt, in the sandbox, is a debugger.
+
+### The lens pass
+
+1. **Pedagogy** — every act becomes a worked example. ⚠ A *forecast* would do the player's job:
+   learning happens in predicting and then checking. Reading receipts is not evidence of competence
+   (else a band could be farmed by reading).
+2. **Expression** — ordinary content gets receipts for free, derived from the annotated code; a
+   pack's annotated laws appear automatically. The cost is each law's banded wording in the catalog
+   (roughly three bands × 150 laws), generated and reviewed. *(grain)*
+3. **3a Immersion** — banding by what you could perceive keeps the fiction honest; law names are the
+   realm's, so it never says *Newton*. **3b Participation** — players publish receipts (*why the cart
+   overturned*): forensics and journalism nobody scripted. ⚠ An omniscient trace would be perfect
+   forensic evidence and would end the investigation play the university's story arc is built on.
+4. **Values** — how much the world explains itself has no right answer: per viewer an appetite
+   setting, per realm the realm's call (a mystery realm may want it off). *(grain)*
+5. **Continuity** — a receipt cites the law version that ran, so an amendment shows in play; acts on
+   any rung explain themselves the same way.
+6. **Economy** — recording costs nothing when nobody records, but asking *after* the act needs it
+   recorded *when it happened*: a small buffer. The demand was there first (the rule face, the
+   agents, debugging).
+7. **Governance** — the buffer is a measurement (`@measures`), held only for you, shown only to you,
+   gone at logout; your receipts are private unless presented, like transcripts. A wizard reading a
+   live player's full trace is surveillance.
+
+| question | answer | lens |
+|---|---|---|
+| when | **after the act only, never a forecast** *(invariant)* | 1 |
+| where | **`trace last`**, as a card — `trace` already answers questions about the simulation rather than the place, and only the platform ships its subcommands; no new verb, and asking is itself an act of curiosity | 2 |
+| detail | banded by competence; only what you could perceive | 1, 3a |
+| omniscient trace | **never in the fiction**; unbanded only in the sandbox *(invariant)* | 3b, 7 |
+| storage | a per-session buffer of your last few acts, in memory, gone at logout, never persisted | 6, 7 |
+| on or off | per viewer an appetite setting (hidden by default, one click, never prevented); per realm the realm's call | 4 |
+| the gate | no outcome depends on a description; the recorder writes only to your buffer | 7 |
 
 ## 7. ⭐⭐ Covenants are statutes that cite nodes **[DECIDED in shape]**
 
@@ -465,6 +545,10 @@ content for Tier C); the university teaches — which is all it does (the standi
    inside the world.
 10. **One statute text or two** — an in-world text (this world's natural philosophy, no Earth) and a
     plain annex set against Earth's physics.
+11. **The receipt buffer's length** (§ 6d) — the last act only, or the last handful, so you can ask
+    about the act *before* the one that surprised you.
+12. **A receipt as evidence in fiction** — presented at an inquest the way a transcript is. Banding
+    keeps it honest, but it is an out-of-fiction artifact entering an in-fiction process.
 ## Cross-references
 
 - [content-declaration-slate](../platform/content-declaration-slate.md) — the prime-mover ladder,
