@@ -7,7 +7,8 @@
 > to all authored content.
 > **Left:** the declaration schema itself (the field list) · the
 > **covenant row** (per-locality restriction + its enforcement mode) ·
-> `Epoch`'s first reader · **drift measurement** as a mirror · the
+> ⭐ **the seven prime-mover bands** (§ 3.0 — `Epoch.ts` re-vocabularied, the ~20
+> stamps re-mapped, *runs on* and *made with* derived) · `Epoch`'s first reader · **drift measurement** as a mirror · the
 > aether-carrier ladder · ⭐ the **network schedule as a takeable prop**
 > (§6.3 — the one squarely buildable item here) · night as a **shift
 > change** rather than a description (§1) · the solvability check
@@ -175,6 +176,169 @@ Current state: `lib/craft/Epoch.ts` is a five-word `const` tuple
 (`prehistory · medieval · industrial · modern · future`), one field and
 one guard on `ToolMixin`, **~10 content rows that all say `medieval`, and
 no readers.** Free to change today; not in a year.
+
+### 3.0 ⭐⭐⭐ An epoch is a prime mover — seven bands **[DECIDED — the owner, 2026-11-18]**
+
+The five words (`prehistory · medieval · industrial · modern · future`) were chosen in passing and
+had no rule behind them. Worked out in the aether-devices conversation
+([aether-devices-slate](../engine/aether-devices-slate.md) § 9 — *power it down, it's a law*), from
+the owner's question: *"is what defines an epoch not materials or assembly but power consumption or
+transformation? … right now we don't really have hard rules for what makes something one epoch or
+another."* And: *"my main concern is just where the lines are and what makes for the most
+interesting content … we go right from prehistory to medieval which seems like a big jump … maybe
+it's just the names."*
+
+> ⭐⭐⭐ **An epoch is what does the work — the prime mover** (Vaclav Smil, *Energy and
+> Civilization*; Leslie White's energy law). Every line is a real physical threshold, and every name
+> says the rule.
+
+| band | what does the work | the threshold | the genre an author means | who loses their living |
+|---|---|---|---|---|
+| **Muscle** | people, and fire for heat only | — | stone age, early iron | — |
+| **Draft** | + animals: plow, cart, horse | work from a body you did not have to be | antiquity, sword and sandal | the porter, to the cart |
+| **Wheel** | + a flow turning a stationary shaft: waterwheel, windmill | work from a flow you did not eat | medieval fantasy | the hand quern — lords banned querns to force use of their mill (governance content); the pit sawyer |
+| **Engine** | + heat engines — fuel turned into motion, **cars included** | Carnot: heat into work | Victorian, steampunk, the motor age | the cottage weaver (the Luddites); the natural-ice harvester (ammonia plant ice, 1859) |
+| **Electric** | + generated power on a grid: motors, light | energy moved and delivered anywhere | Jazz Age, dieselpunk | the lamplighter; the iceman (the household refrigerator) |
+| **Signal** | + electronics: electrons doing information | the signal, not the power | modern | the switchboard operator, the town clock, everything the phone eats |
+| **Future** | + fusion, the fabricator, the automaton — anything past the top threshold with a story (§ 3.0b) | the top of the ladder | science fiction | everyone: the automaton's obsolete half is labor itself |
+
+- ⛔⛔ **Magic is not a band, and not future tech** (the owner, 2026-11-18 — *"one big correction I
+  keep having to make"*). *"Magic isn't even tech, it's a flag on any rung of the ladder. What magic
+  does is let you blend in specific capabilities from rungs higher up and portion them out in
+  specific ways in your content, and it gives you a story for doing so. Whether magic is even
+  allowed is a check like any other epoch check, but it's its own thing. Future tech is tech."* So a
+  place declares its rung **and**, separately, whether magic is allowed. A first draft of this table
+  had *Mana* as the seventh band; that was wrong. ⚠ `Epoch.ts`'s docstring and design-lenses § 5
+  said *"magic and future tech are one axis"* — corrected there, and in code at the build.
+- **The future rung is real tech, to be designed** from the known horizon and the prior art (GURPS
+  and Traveller tech levels, the Civilization / Alpha Centauri / Stellaris trees, the Kardashev
+  scale). **[OPEN]**
+- **Names revised after testing** (§ 3.0a): *Mill* → **Wheel**, *Steam* → **Engine**, *Circuit* →
+  **Signal** — the owner: *"yeah this is better."*
+- **Bare names** (the owner) — the word *is* the rule. ⭐ **No band is a culture**: a Song-dynasty
+  town and a Norman one are both *Wheel*. § 3.4's live risk (*the first author who asks for
+  `antiquity` will mean culture*) is dissolved — the antiquity band is *Draft* and promises nothing
+  about togas.
+- **Cars stay with Engine** (the owner): an engine burning fuel is a heat engine; internal combustion
+  does not get its own line.
+- ⭐ **Wheel means a flow turning a stationary shaft** — not *wind doing work*, which would put a
+  Bronze Age sail in this band 3,000 years early. The sail stays early.
+- **Why seven, by § 3.6's test** (a band earns its place when two things a covenant must separate
+  fall either side of it): every line is a genre line authors will want to declare — the hand quern
+  against the watermill; steampunk without electric light; a 1920s town with light and a radio but
+  no phones (real Amish rules draw lines like that). And the old prehistory → medieval jump splits
+  along shipped substrate on both sides: draft animals and haulage (`conveyance.md`), mills and water
+  rights (`watershed.md`).
+- **Every line obsoletes somebody** — design-lenses § 5's *who is holding the obsolete half*, one
+  arc per line.
+
+#### Two axes, both derived — never stamped by hand
+
+- **Runs on** — the latest prime mover an object consumes while operating. A chainsaw has an
+  engine: Engine. A phone runs on a charged battery and electronics: Signal.
+- **Made with** — the latest prime mover its production chain needed. A steel handsaw runs on
+  muscle; its steel needed powered bellows: Wheel.
+- An object's epoch is the later of the two. ⭐ **Powering down drops *runs on* and leaves *made
+  with*** — which is the line the aether conversation drew: a covenant on **operation** (*power it
+  down*) reads *runs on*; *"no modern tech, even unpowered"* reads *made with*, and only `witness` /
+  `norm` enforce it.
+- **Derivation:** authors say what powers a thing; a station declares its prime mover; a product
+  inherits *made with* from the station that made it, which inherits from what powers the station.
+  The hand stamps become checks against the derivation, and then go.
+- **What it already explains:** `Epoch.ts`'s own covenant example (*handsaws, not chainsaws*) is an
+  engine; `analyze grid` already derives a place's epoch from its power
+  ([energy.md](../../subsystems/energy.md)); the carrier ladder (the needle is unpowered, the radio
+  draws power, the phone is electronics); *"a bloomery and a blast furnace are not the same era"*
+  (the blast furnace needs water-powered bellows); the threaded fastener as the industrial joint
+  ([assembly-slate](../trades/assembly-slate.md) § 2 — standard threads need powered machine tools,
+  so it falls out of *made with*); and the Iron Age is *Muscle*, which is historically right.
+
+#### For the build
+
+- `lib/craft/Epoch.ts` → the seven words. ⚠ **Re-derive the ~20 stamps; never translate them** —
+  translation misfiles them: the seed drill is stamped `industrial` and is horse-drawn (Draft); the
+  iron hand press is stamped `industrial` and runs on muscle; the sawmill is stamped `medieval` and
+  is Wheel.
+- Every station row declares its prime mover — content work across every trade.
+- ⚠ **Shipped readers already exist** — `SpatialZone.admitsEpochThrough` and `Tool.admittedAt`
+  ([paper.md](../../subsystems/paper.md) § The epoch covenant); this section's older *"no readers"*
+  is stale. Paper's worked example (*a medieval covenant keeps the press idle*) dissolves under the
+  prime mover — the hand press and the pen are the same band — and needs a new example.
+- Docs still using the five old words (about 16 files) move to the seven at that build, not
+  piecemeal.
+- ⚠ **The implant's prime mover** — Future (§ 3.0b).
+
+### 3.0a What testing found — the shipped packs and EotL (2026-11-18)
+
+Three read-only passes: the land, animal and extraction packs; the making, service and transport
+packs; and the owner's old MUD, End of the Line (`~/play/eotl/mudlib`).
+
+**Held.** Both sides of the lines ship: quern against grist mill, pit saw against sawmill, travois
+against wagon, a sugar mill turned by mule, water or steam on one act, oil street lamps against the
+grid, natural against plant ice. Nothing argues for merging bands. *Engine* is empty only because
+nothing is built there yet — the unbuilt steam-engine slate's mine pump (beating the 10 m suction
+limit) is its natural first content.
+
+**Broke, and what changed:**
+
+- **The names.** *Steam* is wrong once cars are in it — both pack passes chose **Engine**
+  independently (the word is Carnot's rule). *Mill* collides with every hand-, treadle- and
+  mule-driven machine shipped as a mill (the sugar edge-runner's class is `GristMill`) → **Wheel**.
+  *Circuit* → **Signal**, the threshold's own word. Avoid *Combustion*: `energy.md` uses it for lamp
+  oil.
+- **The sail** → Wheel is a flow turning a *stationary shaft* (§ 3.0).
+- **⚠ Muscle is overloaded.** Every metal, kiln and chemistry trade lands there, because fire *for
+  heat only* moves nothing — so a covenant cannot separate bronze from iron, earthenware from
+  stoneware, a bloomery from a crucible shop. What really gates those trades is **heat**, and the
+  furnace rows already ladder it by temperature. Both passes proposed a **second derived axis —
+  process heat** (open fire · forced draft · coke and blast · electric), from the fuel and the burn
+  temperature, rather than more bands. **[OPEN — a second axis covenants can read, or description
+  only?]**
+- **Made with needs four decisions before the build:** (1) bought-in goods with no production chain
+  (the aluminium can, the house tablet, the saline bag) need a declared station or a stamp; (2)
+  fungible bulk (flour, coal) carries where it came from per item, or takes the worst case; (3) how
+  far back the chain is followed — the station, or through the fuel's own extraction; (4) a
+  *knowledge* gate (*"no modern medicine"*, synthetic dye) cannot be a prime mover — it is § 3.4's
+  culture axis.
+- **The joint is not an epoch axis** ([assembly-slate](../trades/assembly-slate.md) § 2):
+  interchangeability is a *standard*, not a power source, and glue is ancient.
+- **⚠ Magic's mana main is a free grid** — it hands over Electric's whole threshold with no
+  portioning, against [energy.md](../../subsystems/energy.md)'s generation economy. Magic borrows
+  *specific* capabilities with a cost, so the main needs a meter or a price.
+- **A fictional-biology loophole:** smithing's headlamp glows from a fungus — it counts as Muscle,
+  and gets electric-style light past a Wheel ceiling with no magic flag. **[OPEN — is a fictional
+  organism a prime mover, or does it need the flag?]**
+
+**EotL's lessons:**
+
+- **A flag nobody must honor is decoration.** EotL defined a *no technology* property and no room
+  ever set it; no-magic held only in the spells that remembered to check. **One chokepoint** works —
+  ours is the law on operation, witnessed.
+- **Its one hard era ban** (a debit card that refused fantasy zones, 1994) was dropped within six
+  years for per-shop exceptions — evidence for witnessed laws over walls.
+- **Four genre buckets were too coarse:** gnomish steam engines, M16s in castles and laser rifles all
+  sat under *fantasy*, with nothing saying what they ran on.
+- **Free global `tell` made every distance device a toy** — its phones and communicators were
+  flavor. Ours change how a message reaches you and which rung you are on.
+- **Worth borrowing:** device-bound channels as content (the Star Trek communicator channel had
+  player-elected operators); a guild whose bodies are the power source (players who charged
+  batteries); pricing a boundary rather than forbidding it (a shop charged delivery by how far apart
+  the eras were — *never forbidden, only priced*).
+
+### 3.0b The Future rung — every idea past the top threshold, with math and a story **[DECIDED in shape; mechanics OPEN]**
+
+The owner, 2026-11-18: *"maybe it's all three of em — that's the nice thing about this stuff, it
+doesn't have to be one thing, it's just a threshold, and this is the tippy toppest one, so we can
+toss anything in we want really as long as we have a story for it. The problem is a lot of our story
+is based on real physics where we try to do real math … we don't really need to solve the future, we
+just need some math that provides the sums and products … we're looking for at this level, and
+figure out a story that explains the math. That's what all these other games do really. We already
+have a bunch of good stories; what's missing is the mechanics."*
+
+So the Future rung holds **fusion, the fabricator and the automaton** to start, and anything else
+with a story. The mechanics are the open work.
+
+→ Designed in [future-tech-slate](../trades/future-tech-slate.md).
 
 ### 3.1 ⭐⭐ The covenant is the row. The vocabulary is not.
 
