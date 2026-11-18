@@ -318,3 +318,25 @@ describe('⭐ the copy reads through the Api (the drive found the self-call)', (
     expect(copy.documents[0]!.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
   });
 });
+
+describe('⭐⭐ concurrent writes to one map document lose nothing (the drive found it)', () => {
+  it('three writes at once — a look, the walked edge, the walked place — all land', async () => {
+    // A slow store: every read and save yields, so unserialized writes
+    // would read the same document and the last save would win.
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 5));
+    vi.spyOn(DocumentApi, 'readMaps').mockImplementation((async () => {
+      await tick();
+      return saved ? [{ path: `/home/mapper/map/${LOCALITY}`, data: JSON.parse(JSON.stringify(saved)) }] : [];
+    }) as never);
+    vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
+      await tick();
+      saved = data as unknown as MapDocument;
+    }) as never);
+    await Promise.all([
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'seen' })]),
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ kind: 'edge', dir: 'north', toLabel: '/test/x' })]),
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'walked' })]),
+    ]);
+    expect(saved!.claims.map((c) => `${c.kind}:${c.channel}`).sort()).toEqual(['edge:seen', 'place:seen', 'place:walked']);
+  });
+});

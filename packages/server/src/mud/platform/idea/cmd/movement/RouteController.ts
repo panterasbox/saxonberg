@@ -669,7 +669,9 @@ export default class RouteController extends CommandController<RouteModel> {
             ...(claim.group !== undefined ? { group: claim.group } : {}),
             ...(claim.keywords !== undefined ? { keywords: claim.keywords } : {}),
           });
-        } else if (claim.to) note(claim.to, { name: claim.toLabel });
+        // ⚠ `toLabel` is the far side's template PATH, never a name: an
+        // edge only says the place exists (navigation-server drive, step 7).
+        } else if (claim.to) note(claim.to, {});
         else if (claim.toLabel) note(claim.toLabel, {});
       }
     }

@@ -232,6 +232,13 @@ interface StepCarry {
  *
  * @internal
  */
+/**
+ * The write in flight per map document (`<viewer>|<locality>`), so writes to
+ * one document run one after another. Runtime only; module-level so it
+ * survives the logic singleton's HMR recreate.
+ */
+const mapWrites = new Map<string, Promise<void>>();
+
 @Unshadowable
 export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.normalizeDirection}. */
@@ -1000,6 +1007,28 @@ export class NavigationLogic extends ApiLogic {
     claims: readonly MapClaim[],
   ): Promise<void> {
     if (!viewerKey || !locality || claims.length === 0) return;
+    // ⭐⭐ ONE write at a time per map document. A walk writes three times
+    // at once — the arrival look's claims, the walked edge, the walked
+    // place — and each is read → grow → save of the WHOLE document, so the
+    // last save overwrote the others' claims: a claim pushed to the client
+    // was lost on disk (the navigation-server drive found it at a restart).
+    const key = `${viewerKey}|${locality}`;
+    const prior = mapWrites.get(key) ?? Promise.resolve();
+    const mine = prior.catch(() => undefined).then(() => this.growAndSave(viewerKey, locality, claims));
+    mapWrites.set(key, mine);
+    try {
+      await mine;
+    } finally {
+      if (mapWrites.get(key) === mine) mapWrites.delete(key);
+    }
+  }
+
+  /** One serialized read → grow → save of a map document (see {@link recordPlace}). */
+  private async growAndSave(
+    viewerKey: string,
+    locality: string,
+    claims: readonly MapClaim[],
+  ): Promise<void> {
     const existing = await this.loadMap(viewerKey, locality);
     const grown = NavigationLogic.growMap(existing, claims);
     if (!grown) return; // nothing new and nothing to bump

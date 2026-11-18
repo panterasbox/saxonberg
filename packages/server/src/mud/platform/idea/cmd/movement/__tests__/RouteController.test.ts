@@ -279,6 +279,21 @@ describe('⭐⭐ a plan, named by what the places call themselves', () => {
     await run({ destination: 'the bakery' });
     expectNoIndexRead();
   });
+
+  it('⚠⚠ an edge claim LATER in the copy never renames a place with its path (drive step 7)', async () => {
+    // An edge's `toLabel` is the far side's template path: the way back
+    // from the bakery, recorded after the square's own place claim, must
+    // not turn *the market square* into `/test/town/market/square`.
+    withMap([
+      claim({ place: SQUARE, name: 'the market square' }),
+      claim({ place: BAKERY, name: 'the bakery' }),
+      claim({ kind: 'edge', place: SQUARE, dir: 'north', to: BAKERY, toLabel: BAKERY, channel: 'walked', lastSeen: 0 }),
+      claim({ kind: 'edge', place: BAKERY, dir: 'south', to: SQUARE, toLabel: SQUARE, channel: 'walked', lastSeen: 0 }),
+    ]);
+    const out = await run({ destination: 'the bakery' });
+    expect(out.text).toMatch(/north from the market square/);
+    expectNoPaths(out.text);
+  });
 });
 
 describe('⭐⭐ the cost is quoted in the currency the traveller pays (D4a)', () => {

@@ -245,6 +245,12 @@ suite('navigation-server — the blocking drive', () => {
   it('15g · (geography\'s step 15) the horizon section says what `query horizon` says, and no frame carries a bearing in degrees', async () => {
     const { s, nav } = await session(uniqueHandle('nav-brow'), BROW);
     await beat();
+    // ⭐ The section is the horizon AS READ ON ARRIVAL (requirements: never a
+    // feed while you stand still), and fog and dusk on the brow change what
+    // shows. So compare one moment with itself: a `look` re-reads it, and
+    // `query horizon` follows at once.
+    expectOk(await s.cmd('look'));
+    await beat();
     const horizon = nav.section('horizon');
     const said = plain(await s.prose('query horizon'));
     record.push(`15g: horizon ${JSON.stringify(horizon?.things.slice(0, 4))} · query horizon: ${said.slice(0, 200)}`);
@@ -281,6 +287,10 @@ suite('navigation-server — the blocking drive', () => {
     });
     if (second === null) return;
     await beat();
+    // The second session's arrival writes reach both copies on their own beat.
+    await expect
+      .poll(() => JSON.stringify([...second.nav.copy.keys()].sort()) === JSON.stringify([...walker.nav.copy.keys()].sort()), { timeout: 15_000 })
+      .toBe(true);
     const mine = [...walker.nav.copy.keys()].sort();
     const theirs = [...second.nav.copy.keys()].sort();
     record.push(`18: copies ${mine.length} / ${theirs.length}; only mine ${JSON.stringify(mine.filter((k) => !theirs.includes(k)))}`);
