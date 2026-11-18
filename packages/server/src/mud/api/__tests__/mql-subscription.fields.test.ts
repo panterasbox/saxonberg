@@ -41,6 +41,7 @@ describe('MQL subscription — field-set aliases', () => {
       'placed',
       'placement',
       'holds',
+      'present',
     ]);
   });
 
