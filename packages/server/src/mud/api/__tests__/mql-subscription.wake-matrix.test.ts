@@ -21,6 +21,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi, REF_FIELDS, DETAIL_FIELDS } from '../mql-subscription';
+import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -295,6 +296,27 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
       expect(await rowsComputedBy(() => things[7]!.setName('renamed'))).toBe(1);
     });
 
+    it('⭐ W8 — one arrival into a room of thirty, watched by thirty room cards, resolves the room’s membership ONCE', async () => {
+      const place = await StuffApi.create(() => new Place());
+      for (let i = 0; i < 30; i++) await good(() => new Thing(), `thing${i}`, place);
+      const viewers: Interactive[] = [];
+      for (let i = 0; i < 30; i++) viewers.push((await viewerIn(place, `V${i}`, `w8-${i}`)).interactive);
+      for (const [i, interactive] of viewers.entries()) {
+        MqlSubscriptionApi.handleSubscribe({
+          interactive, subscriptionId: `room-${i}`, query: '', cardinality: 'one',
+          fields: [...DETAIL_FIELDS], subjectId: place.stuffId, silent: true,
+        });
+      }
+      await MqlSubscriptionApi._drainScheduledForTesting();
+      const projections = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+      const resolves = vi.spyOn(MqlApi, 'resolveMany');
+      await good(() => new Thing(), 'newcomer', place);
+      await expect.poll(() => projections.mock.calls.length, { timeout: 10_000, interval: 50 }).toBe(30);
+      expect(resolves.mock.calls.length, 'the membership, once for all thirty cards').toBe(1);
+      projections.mockRestore();
+      resolves.mockRestore();
+    }, 60_000);
+
     it('a row that left is dropped, and nothing else is recomputed', async () => {
       const { things } = await roomOfThirty();
       const elsewhere = await StuffApi.create(() => new Place());
@@ -342,7 +364,7 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
       const place = await StuffApi.create(() => new Place());
       const { interactive } = await viewerIn(place, 'Alice', 'pause2');
       const box = await good(() => new Box(), 'box', place);
-      const sub = { interactive, subscriptionId: 'c', query: '', cardinality: 'one' as const, fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true };
+      const sub = { interactive, subscriptionId: 'c', query: '', cardinality: 'one' as const, fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true as const };
       MqlSubscriptionApi.handleSubscribe(sub);
       interactive.pauseSubscription('c');
       expect(interactive.isSubscriptionPaused('c')).toBe(true);

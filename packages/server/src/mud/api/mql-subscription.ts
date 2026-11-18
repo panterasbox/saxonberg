@@ -114,6 +114,14 @@ export interface ProjectionCollector {
   enter(stuff: Stuff, fields: FieldSet): Record<string, unknown> | undefined;
   leave(stuff: Stuff, fields: FieldSet, record: Record<string, unknown>): void;
   read(stuffs: readonly Stuff[], fields: FieldSet | null): void;
+  /** A descriptor's perception filter, memoized per child (crowded-rooms W8). */
+  perceives(stuff: Stuff, compute: () => boolean): boolean;
+  /**
+   * A viewer-INDEPENDENT read shared across every subscription re-resolved
+   * until the next field fire anywhere (crowded-rooms W8): thirty room cards
+   * resolving one place's membership on one arrival resolve it once.
+   */
+  shared<T>(key: string, compute: () => T): T;
 }
 
 /* ─────────────────────── Field-set aliases ─────────────────────── */
@@ -482,6 +490,48 @@ export class MqlSubscriptionApi {
     const projector = MqlSubscriptionApi.#projector;
     if (projector === null) return;
     projector.read(stuffs, fields ?? null);
+  }
+
+  /**
+   * ⭐ A descriptor's perception filter over children, memoized per child
+   * inside a live subscription's projection (crowded-rooms W8): a child that
+   * has not fired keeps its last answer, so one arrival into a room of
+   * thirty asks one new question, not thirty-one. `perceives` is the
+   * caller's own gate (the viewer is the subscription's, fixed); outside a
+   * projection it is applied plainly.
+   *
+   * @internal the descriptors' — gated as {@link noteRead}
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static perceivedAmong(list: readonly Stuff[], perceives: (s: Stuff) => boolean): Stuff[] {
+    const projector = MqlSubscriptionApi.#projector;
+    if (projector === null) return list.filter(perceives);
+    return list.filter((s) => projector.perceives(s, () => perceives(s)));
+  }
+
+  /**
+   * ⭐ A viewer-independent read, shared by every live projection until the
+   * next field fire anywhere (crowded-rooms W8) — a place's membership, which
+   * all thirty room cards ask on one arrival. Outside a projection it is
+   * computed plainly. The key must name everything the read depends on that
+   * is not the world's state (its holder, its query).
+   *
+   * @internal the descriptors' — gated as {@link noteRead}
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static sharedRead<T>(key: string, compute: () => T): T {
+    const projector = MqlSubscriptionApi.#projector;
+    return projector === null ? compute() : projector.shared(key, compute);
   }
 
   /**

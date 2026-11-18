@@ -1036,3 +1036,12 @@ thirty now computes ONE child row, not thirty-one (`mql-subscription.
 wake-matrix.test.ts` § D3, proven to read 31 with the memo disabled). The
 first projection — a card opening, a login — is still one unit of N rows.
 
+⭐ **A place's own row is cheap too** (crowded-rooms W8). A
+viewer-independent read — a place's membership, which every room card on
+it asks on one arrival — is shared across every subscription re-resolved
+at the same **fire epoch** (`MqlSubscriptionApi.sharedRead`; the epoch
+bumps on every field fire, and re-resolves fire nothing), so thirty room
+cards resolve it once. A descriptor's perception filter over children is
+memoized per child beside its row (`perceivedAmong`), and a re-derive
+reconciles the index rather than tearing it down.
+

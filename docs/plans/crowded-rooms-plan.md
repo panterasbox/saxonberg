@@ -23,6 +23,15 @@ the classes, and every fix wave removes one class behind a census.
 > W0 (D10); pause/resume is the last wave, on navigation-server's D1
 > protocol with one fallback (D5).
 
+## ✅ Owner rulings after the first quiet-box run (2026-11-17)
+
+6. **Idle at 0.17 of a core is accepted** (gate 0.15; W0 0.81). D18's
+   levers (content's rates, the call-security build) are not pulled here.
+7. **Step 6: make a place's own row cheap** — one more wave (W8): the
+   room's own `contents` membership read and its perception filter, the
+   cost one arrival pays thirty-one times. Not a longer drain slice (that
+   trades against the freeze gate), not a looser bound.
+
 ## ✅ Owner rulings at plan sign-off (2026-11-17)
 
 The owner accepted every recommendation ("go with your leans on all of it"):
@@ -1596,6 +1605,35 @@ D4, D5. Starts with D5's check; primary path unless D1 is not on master.
 
 **Commit:** `feat(card-surface): a card nobody can see pauses and catches
 up when shown`.
+
+### W8 — A place's own row is cheap (owner ruling 7, after the first quiet run) ✅
+
+The quiet run's step 6 missed its 2 s: one arrival re-resolves all
+thirty-one room cards, the drain rests twice what it runs (by design), and
+each card paid for the place's OWN row. A unit bench (thirty viewers, a
+subject-bound room card each, one arrival; the setup placed before anyone
+subscribes so the profile is the arrival alone) measured **3.6 ms per
+card**, 43% of it the membership resolve `#room:i:visible:carried:[not
+mixin.AdornmentMixin] - me` — the same set for every viewer but `- me`.
+
+- **The membership is shared** (`MqlSubscriptionApi.sharedRead`, the
+  projector's `shared`): the registry keeps viewer-independent reads per
+  **fire epoch** — bumped by every field fire, so one arrival's thirty
+  re-resolves (reads; they fire nothing) share one resolve and the next
+  fire retires it. `Container.contents` resolves without `- me` and drops
+  the viewer from the shared list.
+- **Each child's perception answer is memoized** per subscription beside
+  its row (`perceivedAmong`, the projector's `perceives`), stale when the
+  child fires — light alone fires nothing, the residual the wake already
+  accepts.
+- **Dependencies are reconciled, not torn down** (D3's own design, now
+  built): a re-derive keeps the entries the new read still wants.
+
+Bench: 3.6 → **2.0 ms per card** (the rest: the newcomer's own row,
+described for each viewer; the reconcile; `longDescription`'s
+augmenters). Test: one arrival into thirty, watched by thirty room cards,
+resolves the membership ONCE (30 with the share disabled). The quiet-box
+re-run is in the Drive record.
 
 ## Reachability wiring
 

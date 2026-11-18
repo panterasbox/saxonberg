@@ -963,21 +963,37 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           // ⭐ Inside a live subscription's projection the resolve reports
           // what it read: each child it enumerated is a dependency, so a cup
           // taken off a desk wakes the room's card (crowded-rooms D1).
-          const named = MqlApi.resolveMany(
-            `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
-            // The card's viewer is a character (a CommandGiver); the static
-            // type at this seam is only `Stuff & Sensor`.
-            {
-              commandGiver: viewer as unknown as Stuff & CommandGiver,
-              scope: 'here',
-              ...(MqlSubscriptionApi.collecting ? { trackTouched: true } : {}),
-            },
-          );
+          // ⭐ Membership is the same for every viewer (`:visible` and
+          // `:carried` ask nothing of the asker); only `- me` is the
+          // viewer's. Inside a live projection it is resolved ONCE per field
+          // fire and shared by every card on this place (crowded-rooms W8).
+          const resolveMembers = (): ReturnType<typeof MqlApi.resolveMany> =>
+            MqlApi.resolveMany(
+              `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin]`,
+              // The card's viewer is a character (a CommandGiver); the static
+              // type at this seam is only `Stuff & Sensor`.
+              {
+                commandGiver: viewer as unknown as Stuff & CommandGiver,
+                scope: 'here',
+                ...(MqlSubscriptionApi.collecting ? { trackTouched: true } : {}),
+              },
+            );
+          const members = MqlSubscriptionApi.collecting
+            ? MqlSubscriptionApi.sharedRead(`contents:${host.stuffId}`, resolveMembers)
+            : resolveMembers();
+          const named = {
+            ...members,
+            stuff: members.stuff.filter((c) => c.stuffId !== viewer.stuffId),
+          };
           // Membership: whether a child is listed here at all.
           if (named.touched && MqlSubscriptionApi.collecting) {
             MqlSubscriptionApi.noteRead(named.touched, ['placement', 'container']);
           }
-          const visible = PerceptionApi.perceived(viewer, named.stuff);
+          // Inside a live projection each child's answer is memoized until it
+          // fires (crowded-rooms W8); otherwise the plain filter.
+          const visible = MqlSubscriptionApi.collecting
+            ? MqlSubscriptionApi.perceivedAmong(named.stuff, (c) => PerceptionApi.perceives(viewer, c))
+            : PerceptionApi.perceived(viewer, named.stuff);
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.

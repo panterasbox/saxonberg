@@ -119,6 +119,12 @@ interface RowMemoEntry {
 /** A subscription's row memo, and what has fired since its last pass. */
 interface RowMemo {
   rows: Map<string, RowMemoEntry>;
+  /**
+   * ⭐ The viewer's perception answer per child a descriptor filtered
+   * (crowded-rooms W8): stale when the child fires, like its row. Light
+   * alone fires nothing — the residual the wake already accepts.
+   */
+  seen?: Map<string, boolean>;
   /** Stuff ids that fired since the last pass. */
   stale: Set<string>;
   /** Something fired that no row can name (the holder, a ledger): drop it all. */
@@ -187,6 +193,16 @@ interface DependencyHandle {
   kind: string;
   by: string;
   value: unknown;
+  /** The fields that wake it (`null` any) — kept so a re-derive can reconcile. */
+  filter?: FieldFilter;
+}
+
+/** Two filters say the same thing. */
+function sameFilter(a: FieldFilter | undefined, b: FieldFilter): boolean {
+  if ((a ?? null) === null || b === null) return (a ?? null) === b;
+  if (a!.size !== b.size) return false;
+  for (const f of b) if (!a!.has(f)) return false;
+  return true;
 }
 
 function describeValue(v: unknown): string {
@@ -318,6 +334,7 @@ function resolveAndProject(
   giver: Stuff & CommandGiver,
   viewer: Stuff & Sensor,
   memo: RowMemo = { rows: new Map(), stale: new Set(), invalid: true },
+  shared: (key: string, compute: () => unknown) => unknown = (_k, compute) => compute(),
 ): {
   stuffList: Stuff[];
   rows: Map<string, RecordValue>;
@@ -344,6 +361,7 @@ function resolveAndProject(
     type Frame = { key: string; reads: Set<string>; projected: Array<[Stuff, readonly string[]]>; descriptorReads: Array<[Stuff, FieldFilter]> };
     const frames: Frame[] = [];
     const used = new Map<string, RowMemoEntry>();
+    const usedSeen = new Map<string, boolean>();
     const fresh = (m: RowMemoEntry): boolean => {
       if (memo.invalid) return false;
       for (const id of m.reads) if (memo.stale.has(id)) return false;
@@ -408,9 +426,18 @@ function resolveAndProject(
           const filter: FieldFilter = fields === null ? null : new Set(fields);
           for (const st of stuffs) noteRead(st, filter);
         },
+        shared: <T,>(key: string, compute: () => T): T => shared(key, compute) as T,
+        perceives: (stuff, compute) => {
+          const prior = memo.seen?.get(stuff.stuffId);
+          const answer =
+            prior !== undefined && !memo.invalid && !memo.stale.has(stuff.stuffId) ? prior : compute();
+          usedSeen.set(stuff.stuffId, answer);
+          return answer;
+        },
       },
     );
     memo.rows = used;
+    memo.seen = usedSeen;
     memo.stale.clear();
     memo.invalid = false;
   } finally {
@@ -466,6 +493,23 @@ export default class MqlSubscriptionRegistry extends Idea {
   > = new Map();
 
   private dirty: Set<SubscriptionState> = new Set();
+
+  /**
+   * ⭐ Bumped by every field fire (crowded-rooms W8). A shared,
+   * viewer-independent read made at one epoch is reused by every
+   * subscription re-resolved at the same epoch — the re-resolves are reads
+   * and fire nothing, so one arrival's thirty room cards share one
+   * membership resolve; the next fire retires it.
+   */
+  private fireEpoch = 0;
+  private sharedReads = new Map<string, { epoch: number; value: unknown }>();
+  private readonly sharedRead = (key: string, compute: () => unknown): unknown => {
+    const hit = this.sharedReads.get(key);
+    if (hit !== undefined && hit.epoch === this.fireEpoch) return hit.value;
+    const value = compute();
+    this.sharedReads.set(key, { epoch: this.fireEpoch, value });
+    return value;
+  };
   private scheduled = false;
 
   /* ─── public surface ─── */
@@ -567,6 +611,7 @@ export default class MqlSubscriptionRegistry extends Idea {
         giver,
         viewer,
         memo,
+        this.sharedRead,
       );
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
@@ -759,7 +804,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     const viewer = holder as Stuff & Sensor;
     let resolved: ReturnType<typeof resolveAndProject>;
     try {
-      resolved = resolveAndProject(sub, holder as Stuff & CommandGiver, viewer, sub.memo);
+      resolved = resolveAndProject(sub, holder as Stuff & CommandGiver, viewer, sub.memo, this.sharedRead);
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'resolve';
@@ -930,13 +975,29 @@ export default class MqlSubscriptionRegistry extends Idea {
     },
     viewer: Stuff,
   ): void {
+    // ⭐ Reconciled, not torn down (crowded-rooms D3): an entry the new read
+    // still wants is kept as it is; only what changed is removed or added.
+    const keyOf = (kind: string, by: string, value: unknown): string => `${kind}|${by}|${describeValue(value)}`;
+    const prev = new Map<string, DependencyHandle>();
+    for (const h of sub.dependencyHandles) prev.set(keyOf(h.kind, h.by, h.value), h);
+    const next: DependencyHandle[] = [];
     const seenTuples = new Set<string>();
     const installTuple = (kind: string, by: string, value: unknown, filter: FieldFilter = null): void => {
-      const tupleKey = `${kind}|${by}|${describeValue(value)}`;
+      const tupleKey = keyOf(kind, by, value);
       if (seenTuples.has(tupleKey)) return;
       seenTuples.add(tupleKey);
+      const had = prev.get(tupleKey);
+      if (had !== undefined) {
+        prev.delete(tupleKey);
+        if (!sameFilter(had.filter, filter)) {
+          this.indexRemove(kind, by, value, sub);
+          this.indexAdd(kind, by, value, sub, filter);
+        }
+        next.push({ kind, by, value, filter });
+        return;
+      }
       this.indexAdd(kind, by, value, sub, filter);
-      sub.dependencyHandles.push({ kind, by, value });
+      next.push({ kind, by, value, filter });
       // The synthetic kinds have no bus behind them — they are poked
       // directly (`notifyDurableSubject`, `notifyBelief`).
       if (kind !== DURABLE_SUBJECT_KIND && kind !== VIEWER_BELIEF_KIND) this.ensureListener(kind, by);
@@ -1011,6 +1072,12 @@ export default class MqlSubscriptionRegistry extends Idea {
     for (const subjectId of believed) {
       installTuple(VIEWER_BELIEF_KIND, 'key', `${viewer.stuffId}|${subjectId}`);
     }
+    // What the new read no longer wants.
+    for (const h of prev.values()) {
+      this.indexRemove(h.kind, h.by, h.value, sub);
+      this.releaseListener(h.kind, h.by);
+    }
+    sub.dependencyHandles = next;
   }
 
   private indexAdd(
@@ -1093,6 +1160,10 @@ export default class MqlSubscriptionRegistry extends Idea {
 
   private routeFire(kind: string, by: string, payload: unknown): void {
     if (payload == null || typeof payload !== 'object') return;
+    if (kind === FieldChangedEvent.KIND) {
+      this.fireEpoch += 1;
+      this.sharedReads.clear();
+    }
     const value = (payload as Record<string, unknown>)[by];
     const byMap = this.index.get(kind);
     if (!byMap) return;
@@ -1226,7 +1297,7 @@ export default class MqlSubscriptionRegistry extends Idea {
 
     let resolved: ReturnType<typeof resolveAndProject>;
     try {
-        resolved = resolveAndProject(sub, giver, viewer, sub.memo);
+        resolved = resolveAndProject(sub, giver, viewer, sub.memo, this.sharedRead);
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
           err instanceof MqlPermissionError ? 'permission' : 'resolve';
@@ -1250,13 +1321,6 @@ export default class MqlSubscriptionRegistry extends Idea {
     const changes = this.diff(sub.lastResult, newResult, sub.cardinality);
     sub.lastResult = newResult;
 
-    for (const handle of sub.dependencyHandles) {
-      this.indexRemove(handle.kind, handle.by, handle.value, sub);
-      if (handle.kind !== DURABLE_SUBJECT_KIND) {
-        this.releaseListener(handle.kind, handle.by);
-      }
-    }
-    sub.dependencyHandles = [];
     this.deriveAndInstallDependencies(sub, resolved, viewer);
 
     if (changes.length === 0) return;
