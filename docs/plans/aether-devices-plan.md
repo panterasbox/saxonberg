@@ -417,6 +417,22 @@ Then `hasApp('messages')` on that host, else `no-messages`.
 `CalendarUpdate` stay hosted on the person, as rows of their own classes,
 untouched except for how they are installed.
 
+### D2a — One word: every hosted piece of software is an *app* (the owner, 2026-11-18)
+
+**Choice.** The rename is folded in so the vocabulary is one word. `ForumsUpdate`,
+`CredentialWalletUpdate` and `CalendarUpdate` become apps: their classes
+and rows move under the `App` vocabulary and the `/platform/idea/app/`
+root (`forums`, `wallet`, `calendar` beside `messages`), and *hosted
+update* becomes *app* in code comments and docs (augmentation.md,
+comms.md, calendar.md, forums.md, credential.md). They stay hosted on the
+**person** and are not offered by `apps` (For the owner, review item 1) —
+only their names change. ⚠ **Name collision to resolve in the wave:**
+`lib/calendar/CalendarApp.ts` already exports the mixin `CalendarAppMixin`;
+the concrete class takes a name that does not shadow it (e.g. keep the
+mixin's file and call the class by its row), and `lint:mixin-names` must
+stay green. Grep `packages/` for every old class name and row path before
+the commit (B4).
+
 ### D3 — `apps`
 
 One view, `platform/cmd/device/apps.yaml`, `verbs: [apps]`, category
@@ -861,6 +877,11 @@ the person's comms finds its app there; before W3 nothing has changed.
 - `platform/idea/CommsUpdate.ts` → `platform/idea/App.ts`; the old row and
   `TemplatePaths.commsUpdate` retired; row `/platform/idea/app/messages`.
   Grep `packages/` for the old path and class (B4).
+- **D2a — the rename:** `ForumsUpdate`, `CredentialWalletUpdate`,
+  `CalendarUpdate` → apps under `/platform/idea/app/` (`forums`, `wallet`,
+  `calendar`); *update* → *app* in comments and the five docs; the
+  `CalendarAppMixin` name collision resolved; every old name grepped out of
+  `packages/`.
 - `platform/thing/AetherImplant.ts` composes `AetherHostMixin`; its row
   lists Messages in `installedApps` and `offersApps`. The loadout stops
   installing comms on a person unless `isBornTuned()` (added here, default
@@ -873,7 +894,7 @@ the person's comms finds its app there; before W3 nothing has changed.
   *install Messages*; reinstall sends; a shade sends from its own host;
   the cohorts survive the move.
 - **Accepts:** the install half of AC 9a.
-- **Commit:** `refactor(comms): one mixin on the person; Messages is an app; the apps verb`
+- **Commit:** `refactor(comms): one mixin on the person; every hosted piece is an app; the apps verb`
 
 ### W4 — Held, never silent; reading needs sight (D8, D9)
 
