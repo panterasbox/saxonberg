@@ -940,6 +940,17 @@ content and reaching for a plausible default.
 
 ## Build history
 
+- **Crowded rooms (2026-11, MR !598).** The name-keyed dispatch (a
+  `container` fire anywhere dirtied every location-dependent subscription
+  in the world) became per-target field-filtered entries installed from
+  what each resolve and projection READ (MQL `touched`, nested rows,
+  descriptors' own reads, the holder, a per-viewer belief key); the
+  `focusDependent`/`locationDependent` flags became inert. A row memo
+  re-projects only stale rows; a place's membership is shared across every
+  card per fire epoch; the index is reconciled, not rebuilt; a card the
+  client cannot see is paused. One arrival into thirty went from 31 rows
+  per card to 1, and from 3.6 ms per card to 2.0.
+
 - **Canonical-kind registry retired during MR iteration.** Wave 1
   shipped `MqlSubscriptionApi.registerKind(name, spec)` with a
   `kind?: string` overlay on `MqlSubscribeMessage` /

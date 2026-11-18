@@ -455,3 +455,13 @@ The set path follows *refuse, skip or throw*
   freeze still completes inside its reconcile and logs a failed cast.
 - `pressRelease` makes the cast before it spends the charge.
 
+## History
+
+- **2026-11 (crowded rooms, MR !598)** — a drain or cure set was integrated
+  by whoever READ the mould (`getContents` was overridden to reconcile), so
+  a mould looked at every minute set at a different moment from one left
+  alone. It now banks at its own changes at a stored load and completes
+  only on its own game-clock wake (§ When a set advances). Found on the
+  way: the shipped dairy `Hoop` (`PlacingMixin(MouldMixin(…))`) hid the
+  mould's own placement hook, so a weight set on a hoop never counted
+  until the next read; the placement hooks now chain.

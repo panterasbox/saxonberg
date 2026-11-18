@@ -9,6 +9,12 @@
  * host that says nothing offers `on`, which is what every shipped
  * surface did before the relation had a name.
  *
+ * ⚠ **Two sides, two owners.** The PAIR (`{ host, name }`) is stored on
+ * the item — `Containable.getPlacement()` / `_setPlacement()`, and its
+ * `placement` field and `placementChanged` hook are the item's. What this
+ * mixin owns is the HOST's side: the names it offers, `canPlace`, and the
+ * `placed` set (`getPlaced()`, `placedChanged`).
+ *
  * Placement is auxiliary to containment, not a replacement for it. An
  * apple on a desk has `container = the desk's container` (the room) and
  * `placement = { host: the desk, name: 'on' }`. Placing doesn't enclose

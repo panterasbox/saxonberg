@@ -148,7 +148,7 @@ clock, or a named person who starts it, is part of this build.
 
 ## Reuse ledger for the plan
 
-Written at /requirements, 2026-11-17 ([requirements](../../requirements/crowded-rooms-requirements.md)).
+Written at /requirements, 2026-11-17 (the requirements and plan retired with MR !598).
 Every row is one the plan must account for: reused, generalized, or
 *genuinely new* with what was searched.
 

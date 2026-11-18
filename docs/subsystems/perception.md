@@ -673,3 +673,9 @@ every call with `undefined`, and `look` must not die because of it.
   `Container.getCarriedContents` (breadth-first, never into another body),
   so `PerceptionLogic.reachOf` walks no frontier of its own; `held` is a
   hand slot everywhere. See [carrying.md](./carrying.md).
+
+- **2026-11 (crowded rooms, MR !598)** — the room's reading holds the
+  world still (§ above). The hold was first placed on `PerceptionApi`; it
+  moved to `ExecutionContextApi` in the same build because the write
+  chokepoints in `api/stuff` and `api/event` sit below `api/perception` in
+  the import graph (a load-order cycle).
