@@ -63,7 +63,7 @@ describe('ScriptController.execute', () => {
     );
 
     expect(run).toHaveBeenCalledTimes(1);
-    expect(run).toHaveBeenCalledWith('look; say hi');
+    expect(run).toHaveBeenCalledWith('look; say hi', expect.anything());
   });
 
   it('trims the body before running', async () => {
@@ -76,7 +76,7 @@ describe('ScriptController.execute', () => {
       ctxFor(actor)
     );
 
-    expect(run).toHaveBeenCalledWith('wait 1');
+    expect(run).toHaveBeenCalledWith('wait 1', expect.anything());
   });
 
   it('refuses an empty body — a rejection note and no run', async () => {

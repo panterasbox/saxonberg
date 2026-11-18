@@ -292,6 +292,12 @@ export class Session {
   private readonly envelopes: CapturedEnvelope[] = [];
   /** Every message frame since the last `cmd()`, with topic/meta/payload. */
   private readonly rawFrames: CapturedFrame[] = [];
+  /**
+   * `shell.diagnostic` bodies since the last `cmd()` — the command echo AND
+   * what the `errors` verb answers on. Kept apart from prose (a drive that
+   * grepped its own echo would read green), for a drive that reads `errors`.
+   */
+  private readonly diagnosticFrames: string[] = [];
   private readonly envelopeWaiters: (() => void)[] = [];
 
   /** One command in flight per session — correlation is by ORDER (D2). */
@@ -646,7 +652,10 @@ export class Session {
         this.drain(this.identityWaiters);
         continue;
       }
-      if (topic === 'shell.diagnostic') continue;
+      if (topic === 'shell.diagnostic') {
+        if (typeof frame.body === 'string') this.diagnosticFrames.push(frame.body);
+        continue;
+      }
       if (typeof frame.body === 'string') this.proseFrames.push(frame.body);
       const f = frame as { meta?: unknown; tags?: unknown };
       this.pushRing(this.rawFrames, {
@@ -716,6 +725,16 @@ export class Session {
   clearCaptures(): void {
     this.envelopes.length = 0;
     this.rawFrames.length = 0;
+    this.diagnosticFrames.length = 0;
+  }
+
+  /**
+   * The `shell.diagnostic` bodies since the last `cmd()`, as plain text —
+   * the echo included, so match on what the answer says (the `errors`
+   * verb's rows), never on what you typed.
+   */
+  diagnostics(): string {
+    return plain(this.diagnosticFrames.join('\n'));
   }
 
   private drain(waiters: (() => void)[]): void {

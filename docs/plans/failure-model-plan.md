@@ -1159,4 +1159,55 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/failure-model.dirty.wire.test.ts` — the blocking drive,
+all twelve steps `instant` or `staged`; **no soak drive**. Run on a fresh
+`saxonberg_build4` world (owned boot, port 2019), 2026-11-18. **12/12 green**
+on the final code (steps 1–7, 10, 11 in one full run; 8, 9, 12 re-run on the
+same world after the harness learned to read `errors`).
+
+What the player read, verbatim from the run:
+
+| step | line → status · words |
+|---|---|
+| 1 | `open pumphouse` → declined · *The lock holds — the pump-house door won't open.* (`refused { reason: locked, facts: { target } }`, no `controller-rejected` beside it) |
+| 2 | `do fmfetch` → declined · *The script stopped at `open pumphouse`: The lock holds — the pump-house door won't open.* (once; `go` never ran) |
+| 3 | `do fmfetch2` (inside) → ok · *You unlock something. You open the pump-house door. You leave out.* — `$why.target` bound THAT door by `#<id>` (dark inside: *something*) |
+| 4 | `do fmfetch3` (bank side) → declined · *The script stopped at `unlock $why.target`: You have no key that fits the pump-house door.* |
+| 5 | `def fmbad { … on lockd … }` → declined · *Couldn't make sense of that: there is no reason 'lockd' — did you mean 'locked'?* + the corrected line as the `suggestion` |
+| 6 | `pay fisher 100000 --cash` → declined · *You haven't the coin for 100000 zorkmids.* (a thrown `Refusal`, no exception text) |
+| 7 | `try { pay … } on * { say Short today. }` → ok · *You say, "Short today."* |
+| 10 | `fell oak with billhook` → declined · *That is a heavy billhook. It will take a stool off at the ankle, and it will not take an oak.* (`/trade/forestry/reasons/wrong-tool`); `try … on /trade/forestry/reasons/wrong-tool` → handled |
+| 11 | `try { fell oak with axe } on interrupted { say Later. }`, then `cancel manual-build-step`, clock +1 min → *You say, "Later."* |
+| 8 | forced bad recipe, `fit fm-drive-knife` → error · *Something is wrong with the fm-drive-knife recipe. Whoever keeps it has been told.* Keeper's `errors`: *[error] content-error /home/<id>/recipes/fm-drive-knife — … 'shoddy' is not a grade band*; a second wizard's `errors`: *No diagnostics match.* |
+| 9 | `try { fit fm-drive-knife } on * { say caught }` → error · the defect's sentence, then *The script stopped at `fit fm-drive-knife`.* — the handler never ran |
+| 12 | outage staged, `errors` → declined · *The records can't be reached just now — try again in a moment.*; `try { errors } on unavailable { }` → ok |
+
+**What the drive found** (each fixed and committed, then re-run):
+
+1. ⛔ **`do` and `script` reported a stop to nobody.** The command frame carries
+   the dispatcher's OUTER context; a controller holds its own claiming
+   context, so a stop noted on the ambient one rode no envelope (`do fmfetch`
+   → *ok*, silent). The script-running verbs now hand their context over
+   (`ScriptApi.invoke/run(…, context)`). Unit test added
+   (`interpreter-dispatch.test.ts`).
+2. ⛔ **A forced bad recipe silently did not exist.** `RecipeCatalogue.warm`
+   skipped a malformed row with a log line, so the content error never reached
+   a player or a keeper. A `ContentError` row is now remembered and reported
+   at warm; naming it at play throws it.
+3. **The stop line came before the defect's sentence.** The emit sweep worded
+   `refused` notes in a first pass and the dispatcher's prose in a second; it
+   is one pass in note order now, and the bare stop is a `refused`
+   (`script-stopped`) note after the line's own.
+4. Harness: `shell.diagnostic` frames were dropped wholesale (to keep the
+   echo out of prose), so no drive could read `errors`; `Session.diagnostics()`
+   reads them apart from prose.
+5. Staging, not defects: a payee must be someone in the room (the fisher);
+   a staged outage must outlast the world's own background writes; a handler
+   run during an outage must not write.
+
+**B2 (each checkpoint can fail):** steps 2, 4, 8, 9, 11 and 12 were each
+observed red against real defects or wrong staging before their fixes;
+steps 1, 3, 5, 6, 7 and 10 were not separately broken — their assertions
+read exact row sentences and note codes, which a wrong row or a legacy
+wording fails.
+

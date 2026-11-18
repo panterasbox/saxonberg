@@ -24,7 +24,7 @@ import { MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 const REPO_ROOT = join(MUD, "../../../..");
 
 /** Silent catches — measured 2026-11-18 (failure-model W4). */
-export const SILENT_CATCH_CEILING = 1017;
+export const SILENT_CATCH_CEILING = 1016; // failure-model drive: −1, RecipeCatalogue.warm reports a broken row (was 1017 at W4)
 
 /** What makes a catch block speak. */
 const SPEAKS = [

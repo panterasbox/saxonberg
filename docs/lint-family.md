@@ -1508,7 +1508,7 @@ AST) over the kernel and every pack `src/`, tests excluded.
 |---|---|---|
 | `lint:reason-rows` | ⛔ hard at 0: a literal `new Refusal('<code>'` with no row, or a literal fact its row does not declare · (i) distinct `reason: '<code>'` literals with no row · (ii) legacy wordings — `controller-rejected` literals plus worded `refuse(context, topic, line, reason)` calls | 0 · 966 · 580 |
 | `lint:content-refs` | across every pack at once: a recipe band that is not a band, an `outputMaterial` no pack ships, an `on <reason>` in a shipped `.msh` with no row | 0 |
-| `lint:silent-catch` | a `catch` whose block neither throws, reports (`reportFailure`, `DiagnosticApi.record`, `.refuse(`), answers a refusal, nor says `@quiet <why>` | 1017 |
+| `lint:silent-catch` | a `catch` whose block neither throws, reports (`reportFailure`, `DiagnosticApi.record`, `.refuse(`), answers a refusal, nor says `@quiet <why>` | 1016 |
 | `lint:floating-promises` | a `void <call>` whose promise has no rejection handler (`.catch`, a two-argument `.then`, `runRootGuarded`) | 179 |
 | `lint:act-nulls` | a `return null` from a function returning `…Refusal`/`…Plan`/`…Answer`/`…Outcome`/`…Choices` or `null`, or from a `resolve<X>` method outside `api/mql`, whose TSDoc does not say `@nothing <why>` | 172 |
 

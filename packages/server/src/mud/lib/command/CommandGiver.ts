@@ -308,32 +308,32 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  */
 async function emitDispatchResponse(ctx: CommandContext): Promise<void> {
   const giverAsStuff = ctx.commandGiver as unknown as Stuff;
-  // ⭐⭐ A `refused` note is worded HERE, from its reason's row
-  // (failure-model D4): the controller handed over the code and the facts
-  // and said nothing. A code no row ships is a defect at the refusing site:
-  // the `went-wrong` line, and a diagnostic.
+  // ⭐⭐ One pass, in note order (failure-model D4): a `refused` note — and
+  // the three rowed dispatcher rejections — is worded HERE from its reason's
+  // row (the controller handed over the code and the facts and said
+  // nothing); any other framework note by the dispatcher's own prose. Note
+  // order is the order things happened, so a defect's sentence comes before
+  // the line saying where a script stopped. Controller-side notes are
+  // skipped (controllers fire their own scenes).
   if (MixinApi.isSensor(giverAsStuff)) {
+    const sensor = giverAsStuff as Stuff & Sensor;
     for (const note of ctx.getNotes()) {
-      if (note.kind === 'refused') await sayRefusal(giverAsStuff as Stuff & Sensor, ctx, note);
-      else if (
+      if (note.kind === 'refused') {
+        await sayRefusal(sensor, ctx, note);
+        continue;
+      }
+      if (
         note.kind === 'command-rejected' &&
         ROWED_REJECTIONS.has(note.reason) &&
         // the quote hint keeps its own sentence (controller-liquidity D3)
         !(note.reason === 'bind-failed' && note.suggestion)
       ) {
-        await sayRejection(giverAsStuff as Stuff & Sensor, note);
+        await sayRejection(sensor, note);
+        continue;
       }
-    }
-  }
-  // Framework-failure prose sweep: dispatcher / validator / MQL notes
-  // get an auto-rendered `shell.error` scene so the player
-  // sees WHY without the client rendering envelopes. Controller-side
-  // notes are skipped (controllers fire their own scenes).
-  if (MixinApi.isSensor(giverAsStuff)) {
-    for (const note of ctx.getNotes()) {
       const prose = proseForFrameworkNote(note);
       if (prose === null) continue;
-      MessageApi.scene(giverAsStuff as Stuff & Sensor)
+      MessageApi.scene(sensor)
         .topic('shell.error')
         .toSelf(prose instanceof Mml ? prose : Mml.compose`${prose}`)
         .send();

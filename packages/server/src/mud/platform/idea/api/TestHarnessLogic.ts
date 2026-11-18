@@ -12,6 +12,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
 import { DocumentApi } from '../../../api/document';
+import { CraftingApi } from '../../../api/crafting';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
@@ -374,6 +375,9 @@ export class TestHarnessLogic extends ApiLogic {
     doc.data = data;
     await doc.save();
     DocumentApi.catalogueFor(kind)?.forget([path]);
+    // ⚠ Recipes are read through a warmed dictionary with no per-path
+    // forget: re-warm it, as a recipe go-live would.
+    if (kind === 'recipe') await CraftingApi.recipes().warm();
     return { path, kind };
   }
 

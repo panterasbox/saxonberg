@@ -270,6 +270,7 @@ async function startAndDetach(
   interpreter: Interpreter,
   ast: Script,
   scope: Scope,
+  context?: CommandContext,
 ): Promise<void> {
   const co = interpreter.startCoroutine(
     ast,
@@ -280,7 +281,10 @@ async function startAndDetach(
   registerCoroutine(actor, co);
 
   await co.whenFirstYield();
-  const ctx = ExecutionContextApi.getCurrentCommandContext();
+  // ⭐ The verb that started the script hands over ITS context (`do`,
+  // `script`): the frame carries the dispatcher's outer context, and a
+  // stop noted there would ride no envelope at all.
+  const ctx = context ?? ExecutionContextApi.getCurrentCommandContext();
   for (const note of interpreter.getNotes()) ctx?.note(note);
   // ⭐ Settled before it ever detached: the stop is reported on this
   // command's envelope. Otherwise it is reported late, when it settles.
@@ -334,7 +338,13 @@ async function reportStop(
     else await CommandApi.reportFailure(refusal);
     return;
   }
-  for (const note of stopped.notes) ctx?.note(note);
+  // In the frame: the stop rides AFTER the line's own notes (a defect's
+  // sentence first, then where the script stopped), worded at emit.
+  if (ctx !== null) {
+    for (const note of stopped.notes) ctx.note(note);
+    ctx.refuse({ reason: "script-stopped", facts: { line: stopped.line } });
+    return;
+  }
   if (!MixinApi.isSensor(actor)) return;
   const worded = await CommandApi.wordReason("script-stopped", { line: stopped.line }).catch(() => null);
   const topic = worded?.topic ?? "shell.error";
@@ -344,7 +354,7 @@ async function reportStop(
     .send();
 }
 
-async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
+async function runAstImpl(ast: Script, authorPath?: string, context?: CommandContext): Promise<void> {
   const actor = currentActor();
   if (actor === null) return; // no actor in context — nothing to run as
   const interpreter = new Interpreter(
@@ -352,7 +362,7 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
     resolveLimits(authorPath),
     sessionDefsFor(actor),
   );
-  await startAndDetach(actor, interpreter, ast, new Scope());
+  await startAndDetach(actor, interpreter, ast, new Scope(), context);
 }
 
 /**
@@ -362,7 +372,7 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
  * runs the body — paced by the same coroutine as any script. Returns
  * `false` when no such script is defined (the caller declines).
  */
-async function invokeImpl(name: string, args: string[]): Promise<boolean> {
+async function invokeImpl(name: string, args: string[], context?: CommandContext): Promise<boolean> {
   // The acting author (transport-agnostic), so a script loaded by path
   // (`invokeByPath`, also author-keyed) and the session-`def` it
   // registered resolve under the same actor — the same giver in a
@@ -377,7 +387,7 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   const interpreter = new Interpreter(actor, resolveLimits(), defs);
   const callScope = def.scope.child();
   def.params.forEach((param, i) => callScope.define(param, args[i]));
-  await startAndDetach(actor, interpreter, def.body, callScope);
+  await startAndDetach(actor, interpreter, def.body, callScope, context);
   return true;
 }
 
@@ -478,7 +488,7 @@ async function invokeByPathImpl(path: string): Promise<boolean> {
   return true;
 }
 
-async function runImpl(text: string): Promise<void> {
+async function runImpl(text: string, context?: CommandContext): Promise<void> {
   const actor = currentActor();
   if (actor === null) return;
   const parser = await CommandApi.resolveParser("script");
@@ -489,7 +499,7 @@ async function runImpl(text: string): Promise<void> {
     available: actor.getAvailableCommands(),
   });
   if (result.script !== undefined) {
-    await runAstImpl(result.script.ast);
+    await runAstImpl(result.script.ast, undefined, context);
     return;
   }
   if (result.error !== undefined) throw new Error(result.error);
@@ -553,8 +563,8 @@ export class ScriptLogic extends ApiLogic {
 
   /** See {@link ScriptApi.run}. */
   @CallSecurity(ScriptApiCallers)
-  public async run(text: string): Promise<void> {
-    return runImpl(text);
+  public async run(text: string, context?: CommandContext): Promise<void> {
+    return runImpl(text, context);
   }
 
   /** See {@link ScriptApi.cancelAll}. */
@@ -565,8 +575,8 @@ export class ScriptLogic extends ApiLogic {
 
   /** See {@link ScriptApi.invoke}. */
   @CallSecurity(ScriptApiCallers)
-  public async invoke(name: string, args: string[]): Promise<boolean> {
-    return invokeImpl(name, args);
+  public async invoke(name: string, args: string[], context?: CommandContext): Promise<boolean> {
+    return invokeImpl(name, args, context);
   }
 
   /** See {@link ScriptApi.saveScript}. */
