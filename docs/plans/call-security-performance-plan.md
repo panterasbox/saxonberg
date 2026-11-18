@@ -514,6 +514,48 @@ wire world scrubs `VITEST` from the server it spawns (`api/security.ts`
 **Not chosen.** Removing the passthrough: it is what keeps `vi.spyOn`
 assertions working through a proxy, and hundreds of tests rely on it.
 
+### Decisions the build made (recorded as they were made)
+
+- **D12 — The spy passthrough is gated on a test RUNNER, not a test
+  environment** (W1b; supersedes D11's `isTestEnvironment()`). The wire
+  world sets `SAXONBERG_TEST_WORLD=1`, which `isTestEnvironment()` counts,
+  so D11 as written would have left the bypass open in exactly the world
+  step 5e drives — the step could never fail. A spy exists only where a
+  test runner runs in the process, so the gate is `VITEST` or
+  `NODE_ENV=test`: `SecurityApi.isTestRunner()`, which
+  `isTestEnvironment()` now composes. Decided by the requirements (5e must
+  be observable in the wire world) over the plan's wording.
+- **D13 — The gate bench was dead on master; revived.** `test-bootstrap`
+  reaches `backend-store.ts`, which imports `vitest` at module scope, and
+  vitest throws outside its worker — so `bench-gate` died at import (since
+  the fixture landed). The preload now registers a resolve hook
+  (`bench-gate-hooks.js`) answering `vitest` with a stub whose every use
+  throws, and sets `NODE_ENV=test` (the bench stands the world the way a
+  unit test does, and `@TestOnly` seams are withheld otherwise).
+- **D14 — D10's staging, as the world actually allows it.**
+  - **No template row.** A wizard's eval may not write one (the sandbox
+    holds it inside the founder's home circle: `writeTemplate` →
+    `access-denied`, `saveTemplate` → *sandbox boundary denied
+    aroundSave()*). Probes are made from the class as installed NOW:
+    `StuffApi.loadClassByPath` + `StuffApi.create`, unplaced (a move would
+    touch the founder, outside the circle). The probe exports its class by
+    name as well as default, because the hot-reload registry is read by the
+    file's basename — with only a default export `loadClassByPath` returns
+    the first import forever.
+  - **Eval bodies** go through an AsyncFunction built from a quoted string:
+    the command line splits on `;` and a quoted `;` survives.
+  - **5a uses the probe's own `FromModule` gate, not `destroy()`.** ⚠
+    Found: an eval body runs under the `ScriptLogic` frame
+    (`/platform/idea/api/script`), which `ApiOnly` admits — so a wizard's
+    eval may call any `ApiOnly` method, `destroy()` included (the stack:
+    `EvalScript → ScriptApi.runSandboxed → ScriptLogic → <target>`). That
+    is eval's standing reach, not this build's to change; it is reported to
+    the owner (MR description) and goes to the slate at `/finalize`.
+  - **Step 7's edit is written to the file directly** (as
+    `typecheck.wire.test.ts` does): the in-game `cp -s` asks for CODE title
+    over `/platform/thing/`, which the founder does not hold. The install is
+    the in-game `reload`, the act under test.
+
 ## ⭐⭐ Host placement
 
 No field, mixin or class is added to any Stuff host.

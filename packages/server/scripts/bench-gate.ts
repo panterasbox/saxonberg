@@ -42,6 +42,11 @@ class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Good))) {
     return ++this._n;
   }
 
+  /** A prototype getter, for the read rows: the trap gates it. */
+  public get tone(): number {
+    return this._n;
+  }
+
   /**
    * Run `fn` `depth` proxied frames down. Each recursion is a real
    * dispatch, so the ExecutionContext stack is genuinely that deep —
@@ -52,6 +57,16 @@ class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Good))) {
   public descend<T>(depth: number, fn: () => T): T {
     if (depth <= 0) return fn();
     return this.descend(depth - 1, fn);
+  }
+}
+
+/**
+ * A decorated Api with one `Public` static, for the static-call row: the
+ * per-call cost of `decorateApiClass`'s wrapper (policy, caller, frame).
+ */
+class BenchApi {
+  public static ping(): number {
+    return 1;
   }
 }
 
@@ -128,6 +143,7 @@ function assertQuiet(): void {
 
 function main(): void {
   assertQuiet();
+  SecurityApi.decorateApiClass(BenchApi);
   const p = makeStuff(() => new Probe());
   const raw = ProxyApi.unwrap(p as never) as unknown as Probe;
 
@@ -201,6 +217,25 @@ function main(): void {
   console.log(`\ncall-security gate — median of ${TRIALS} x ${ITERS} calls\n`);
   for (const [k, v] of results) {
     console.log(`  ${k.padEnd(24)} ${v.toFixed(0).padStart(7)} ns/call`);
+  }
+
+  // ⭐ The reads. The world does far more reads than calls (a method body
+  // runs with `this === proxy`, so every `this.x` in it is a trap read),
+  // and a bench of one call cannot see them. One row per kind of read the
+  // trap answers differently: an own field, a method read without calling
+  // it, a prototype getter (gated), and a name nothing declares (the whole
+  // chain). Plus one decorated static Api call.
+  const pr = p as unknown as Record<string, unknown>;
+  const reads = bench([
+    { label: "own-field read", run: () => void pr._n },
+    { label: "method read", run: () => void pr.bump },
+    { label: "getter read", run: () => void pr.tone },
+    { label: "absent read", run: () => void pr.nothingDeclaresThis },
+    { label: "static call", run: () => void BenchApi.ping() },
+  ]);
+  console.log("");
+  for (const [k, v] of reads) {
+    console.log(`  ${k.padEnd(24)} ${v.toFixed(0).padStart(7)} ns`);
   }
 
   const rawNs = results.get("raw (no proxy)")!;
