@@ -32,6 +32,12 @@ the classes, and every fix wave removes one class behind a census.
    cost one arrival pays thirty-one times. Not a longer drain slice (that
    trades against the freeze gate), not a looser bound.
 
+8. **(2026-11-18) The fourth quiet run's four misses are accepted as
+   recorded misses** — login p95 2.28 s, logins into the full square 3.45 s,
+   19 freeze samples during arrivals, the mould's looks 2.3× alone — and the
+   login/arrival cost is slated as the next ceiling
+   (crowded-rooms-slate § The next ceiling). Then /finalize.
+
 ## ✅ Owner rulings at plan sign-off (2026-11-17)
 
 The owner accepted every recommendation ("go with your leans on all of it"):
