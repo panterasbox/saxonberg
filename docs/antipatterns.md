@@ -6636,3 +6636,18 @@ each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
 <rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
 facts and a reason; the controller words them. `lint:multi-act` counts what
 is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).
+
+## A read the room makes for everyone that changes the world
+
+| Don't | Do |
+|---|---|
+| A reconcile-on-read getter (`getTemperature`, a mould's `getContents`, a body's `getReserve`) that integrates state to now, reached by the light walk, the sound gather, the smell fold or a card's projection | The walk holds the world still (`ExecutionContextApi.holdWorldStill`) and the getter answers **as banked** inside it; a thing's state advances at **its own changes** and on **its own game-clock wake** (`MouldMixin.wakeAtS` is the shape) |
+| A size read or a sight gate that integrates a BODY (a crossing's fit check reconciled every bystander's metabolism) | Read the stored stock (`reserves['flesh']`, `this.conditions`) — the `withBodyComposition` precedent; a body integrates at its own acts and deliberate reads |
+
+**Why.** Whatever the room reads for everyone runs as often as people
+look, so the world comes to depend on WHO LOOKED: a mould watched every
+minute set at a different moment from one left alone, and a cast member in
+a busy square starved while one in a quiet shop did not (crowded-rooms,
+2026-11). Inside a hold every write chokepoint throws `WalkWriteError` in a
+test world, so a new walk-time write fails the first test that walks over
+it. See [perception.md § The room's reading holds the world still](./subsystems/perception.md).

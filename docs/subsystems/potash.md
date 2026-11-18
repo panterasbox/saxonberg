@@ -138,14 +138,21 @@ The chain's goods are titled by the kernel's fresh-good rule
 
 ## Limits and seams
 
-- **The boil runs on read.** The kernel plateau reconciles when someone
-  reads the pot, keeping the alkali as the water leaves; the pot reads the
-  strength the plateau wrote and casts the black salts at saturation. It
-  keeps no count of its own.
+- **The boil runs on read.** The kernel plateau reconciles when the pot's
+  temperature is read (a hearth's heat pass, a deliberate look), keeping the
+  alkali as the water leaves. ⭐ The black salts set at the plateau's own
+  write: the pot checks saturation as the concentrated liquor is written
+  (`IronPot.setBulkPayload`, crowded-rooms D8), not when somebody lists
+  what is in it. It keeps no count of its own.
   ⚠ A long unobserved stretch is ONE step of the plateau: a pot left 24 h on a
   burning hearth barely boils, while read hourly it sets in hours (the live
   walk, 2026-10-22). This belongs to silk's plateau, and the drive reads
   hourly.
+- **The heaps leach on the clock** (crowded-rooms D8): each heap's reach
+  is banked when liquor is put on it and finished on its own wake at its
+  due time, so spent ash appears when it is through whether or not anyone
+  looks into the hopper (the hopper no longer reconciles its heaps on every
+  listing of its contents).
 - **A hopper drawn early** gives water carrying the alkali the egg already
   reads (the leach re-keys the liquid to lye later). The pot counts dissolved
   solids in any liquor, so nothing is lost.

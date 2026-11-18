@@ -338,6 +338,10 @@ at 150 W × technique (untrained 3.0 … expert 0.8) × buoyancy (0.5 when
 you float; up to 4 when you are heavy) × (1 + the drowning bodies clinging
 to you). The swimming Discipline is credited per beat.
 
+⚠ A body's density (and so whether it floats) reads its **banked** flesh
+(crowded-rooms D13): a swimmer's own strokes are exertion, which
+reconciles; a body nobody touches floats as its last reconcile left it.
+
 - **Free:** floating (`lie` on the water, at least novice and not too
   heavy), holding something that floats you (net lift ≥ 30 N, scaled by
   body size — a frog floats on a small lift), being held up on a line,

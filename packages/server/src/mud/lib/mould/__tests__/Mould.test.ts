@@ -31,6 +31,8 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import EventRegistry from '../../../platform/idea/EventRegistry';
+import { EventApi } from '../../../api/event';
 import '../../../platform/idea/WorldClockRegistry';
 import { Placements } from '../../spatial/Placement';
 
@@ -69,6 +71,18 @@ const DAY = 86_400;
 let now = 1_000_000;
 const setNow = (s: number): void => {
   now = 1_000_000 + s;
+};
+/**
+ * Move the injected clock to game-second `s` THROUGH the clock, so every
+ * wake due in the stretch fires (crowded-rooms D8: a set finishes on its
+ * own wake, never on a read).
+ */
+const advanceTo = (s: number): void => {
+  const target = 1_000_000 + s;
+  const by = target - now;
+  // The clock reads the provider (`now`) as its start, so move it after.
+  WorldClockApi._advanceForTesting(by);
+  now = target;
 };
 
 const BLOCK = '/stuff/thing/_test/block';
@@ -165,7 +179,12 @@ function contentsOf(c: Stuff): Stuff[] {
 }
 
 describe('moulds — the container decides the shape', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A host-bound clock wake (the set's, D8) listens for its host's
+    // destruct, which needs the event registry.
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     setNow(0);
@@ -256,10 +275,10 @@ describe('moulds — the container decides the shape', () => {
       freshness: { load: 0.03, stamp: 0 },
     });
     expect(m.setState()).toBe('filled'); // seeds the stamp
-    setNow(0.25 * DAY);
+    advanceTo(0.25 * DAY);
     expect(m.setState()).toBe('setting');
     expect(cloned).toEqual([]);
-    setNow(0.5 * DAY + 60);
+    advanceTo(0.5 * DAY + 60);
     m.reconcileSetting();
     await settle();
     expect(cloned).toEqual([WHEEL]);
@@ -288,7 +307,7 @@ describe('moulds — the container decides the shape', () => {
     ContainmentApi.move(stone, hoop, Placements.ON);
     expect(hoop.loadN()).toBeCloseTo(4 * 9.81, 9);
     hoop.reconcileSetting(); // seed
-    setNow(0.25 * DAY + 60);
+    advanceTo(0.25 * DAY + 60);
     hoop.reconcileSetting();
     await settle();
     expect(cloned).toEqual([WHEEL]);
@@ -327,14 +346,14 @@ describe('moulds — the container decides the shape', () => {
       expect(cone.drainsInto()).toBe(pot);
 
       cone.reconcileSetting(); // stamps the start
-      setNow(2 * DAY);
+      advanceTo(2 * DAY);
       cone.reconcileSetting();
       const halfway = pot.getBulkAmount('interior').rawValue();
       expect(halfway).toBeGreaterThan(0);
       expect(pot.getBulkMaterialPath('interior')).toBe(MOLASSES);
       expect(MixinApi.isGraded(pot) ? pot.getGrade().getBand() : '').toBe('fair');
 
-      setNow(5 * DAY);
+      advanceTo(5 * DAY);
       cone.reconcileSetting();
       await settle();
       // Pool 5 kg; water 30% of it, 90% of THAT driven out = 1.35 kg.
@@ -357,7 +376,7 @@ describe('moulds — the container decides the shape', () => {
       const cone = fillVessel(mould(WHEEL), s, 5, 293);
       ContainmentApi.move(cone, room());
       for (const m of [hogshead, cone]) m.reconcileSetting();
-      setNow(5 * DAY);
+      advanceTo(5 * DAY);
       for (const m of [hogshead, cone]) m.reconcileSetting();
       await settle();
       const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Syrup }).getMaterial();
@@ -371,10 +390,128 @@ describe('moulds — the container decides the shape', () => {
       ContainmentApi.move(cone, r);
       expect(cone.drainsInto()).toBeNull();
       cone.reconcileSetting();
-      setNow(5 * DAY);
+      advanceTo(5 * DAY);
       cone.reconcileSetting();
       await settle();
       expect(contentsOf(cone)).toHaveLength(1);
+    });
+  });
+
+  /**
+   * ⭐⭐ A set finishes on the game clock, whoever looks (crowded-rooms D8).
+   * The mould banks at its own changes and completes on its own wake; a
+   * read — `look`, `look in`, every walk — writes nothing.
+   */
+  describe('⭐⭐ a set finishes on the clock, whoever looks (crowded-rooms D8)', () => {
+    const filledHoop = (r: TestRoom): TestHoop => {
+      const h = makeStuff(() => new TestHoop());
+      h.setCastTemplate(WHEEL);
+      fillVessel(h, curd(), 2, 290);
+      ContainmentApi.move(h, r); // a change: banks, seeds the stamp, arms the wake
+      return h;
+    };
+    const pooled = (h: TestHoop): boolean => h.getBulkAmount('interior').rawValue() > 0;
+
+    it('a hoop poured and left sets at its due time with nobody reading it', async () => {
+      const h = filledHoop(room());
+      expect(h.wakeAtS).toBeGreaterThan(0);
+      advanceTo(0.5 * DAY - 120);
+      expect(pooled(h), 'not through yet').toBe(true);
+      advanceTo(0.5 * DAY + 120);
+      await settle();
+      // Asserted before ANY read of the hoop: the wake cast it.
+      expect(cloned).toEqual([WHEEL]);
+      expect(pooled(h)).toBe(false);
+      expect(h.setState()).toBe('set');
+    });
+
+    it('⭐ two hoops poured together — one looked at every game minute, one never — hold the same state and cast in the same minute', () => {
+      const r = room();
+      const watched = filledHoop(r);
+      const left = filledHoop(r);
+      let castWatched = -1;
+      let castLeft = -1;
+      for (let minute = 1; minute <= 0.5 * DAY / 60 + 5; minute++) {
+        advanceTo(minute * 60);
+        // Every read a player or a walk makes of the watched one.
+        watched.setState();
+        watched.holdsCast();
+        contentsOf(watched);
+        if (castWatched < 0 && !pooled(watched)) castWatched = minute;
+        if (castLeft < 0 && !pooled(left)) castLeft = minute;
+        if (minute % 60 === 0 && pooled(left)) {
+          expect(watched.setProgress).toBe(left.setProgress);
+          expect(watched.setPressed).toBe(left.setPressed);
+          expect(watched.setDrainedKg).toBe(left.setDrainedKg);
+        }
+      }
+      expect(castLeft).toBeGreaterThan(0);
+      expect(castWatched).toBe(castLeft);
+    });
+
+    it('a weight set on the follower halfway changes the finish by the arithmetic, whether or not anyone looked', () => {
+      const r = room();
+      const h = filledHoop(r);
+      advanceTo(0.125 * DAY); // a quarter set, unloaded (2 a day)
+      const stone = makeStuff(() => new Good());
+      (stone as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(4, 'kg'));
+      ContainmentApi.move(stone, r);
+      ContainmentApi.move(stone, h, Placements.ON); // a change: banks at the OLD load, stores the new
+      expect(h.setProgress).toBeCloseTo(0.25, 6);
+      // Three quarters left at twice the rate (poolKg × loadRef): 0.1875 days.
+      advanceTo(0.3125 * DAY - 120);
+      expect(pooled(h)).toBe(true);
+      advanceTo(0.3125 * DAY + 120);
+      expect(pooled(h)).toBe(false);
+    });
+
+    it('a restart mid-set re-arms from the persisted wake and finishes on time; a wake already past fires at once', async () => {
+      const r = room();
+      const before = filledHoop(r);
+      advanceTo(0.2 * DAY);
+      // What a capture keeps and a materialize restores, through the setters.
+      const after = makeStuff(() => new TestHoop());
+      after.setCastTemplate(WHEEL);
+      fillVessel(after, curd(), 2, 290);
+      after.setProgress = before.setProgress;
+      after.setStamp = before.setStamp;
+      after.setPressed = before.setPressed;
+      after.setDrainedKg = before.setDrainedKg;
+      after.setLoadN = before.setLoadN;
+      const due = before.wakeAtS;
+      before.setWakeAtS(0); // the old process is gone
+      ContainmentApi.move(before, room());
+      before.setWakeAtS(0);
+      after.setWakeAtS(due);
+      advanceTo(0.5 * DAY + 120);
+      expect(pooled(after), 'the restored hoop set on its wake').toBe(false);
+
+      const late = makeStuff(() => new TestHoop());
+      late.setCastTemplate(WHEEL);
+      fillVessel(late, curd(), 2, 290);
+      late.setProgress = 1;
+      late.setStamp = WorldClockApi.getNow().rawValue();
+      late.setWakeAtS(WorldClockApi.getNow().rawValue() - 600); // loaded after its due time
+      ContainmentApi.move(late, r);
+      advanceTo(0.5 * DAY + 180);
+      await settle();
+      expect(pooled(late), 'a past wake fires at once').toBe(false);
+    });
+
+    it('a wake whose cast cannot release throws DetachedError to the clock, before the pool is touched', () => {
+      const errors: unknown[] = [];
+      vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+        errors.push(...args);
+      });
+      const h = makeStuff(() => new TestHoop());
+      h.setCastTemplate(WHEEL);
+      h.setReusable(false);
+      fillVessel(h, curd(), 2, 290);
+      h.reconcileSetting(); // standing nowhere: seed and arm by hand
+      advanceTo(0.5 * DAY + 120);
+      expect(pooled(h), 'the pool is untouched').toBe(true);
+      expect(cloned).toEqual([]);
+      expect(errors.some((e) => e instanceof Error && e.name === 'DetachedError')).toBe(true);
     });
   });
 });

@@ -160,10 +160,9 @@ export class ContainmentLogic extends ApiLogic {
     // into the room). The container did not change, so `moveCore` would be
     // a no-op; the placement pair is the whole of the move.
     if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
-      const was = item.getPlacement()?.name ?? '';
+      const was = item.getPlacement();
       item._setPlacement(null);
-      MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
-      if (MixinApi.isThermal(item)) void item.restamp();
+      announcePlacement(item, was, null);
       return;
     }
     moveCore(item, to as ContainerStuff | null, false);
@@ -380,17 +379,36 @@ function placeOn(
   }
   // ⭐ It arrives PLACED (D11): a body's veto admits a thing that comes
   // with its pair on a host there.
+  const was = item.getPlacement();
   moveCore(item, targetEnv as ContainerStuff, false, undefined, true);
   item._setPlacement(host, name);
-  // Rung 1: the placement member just changed — wake every card showing it.
-  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
-  // A member that encloses changes the thing's ambient scope even when the
-  // container did not change.
-  if (MixinApi.isThermal(item)) void item.restamp();
+  // Rung 1: the placement member just changed — wake every card showing it;
+  // a member that encloses changes the thing's ambient scope even when the
+  // container did not change (`placementChanged` restamps).
+  announcePlacement(item, was, item.getPlacement());
   // ⭐ Pressed in, or it leaves (D5): a thing set on a table at zero gravity
   // does not stay set. Deferred a tick — never move a thing from inside its
   // own arrival.
   pressAfterArrival(item, targetEnv as ContainerStuff);
+}
+
+/**
+ * ⭐ Every site that stamps a placement pair says so the same way
+ * (crowded-rooms N4): the thing announces its own placement, and each host
+ * whose placed set changed — the one it left and the one it is on — says
+ * that. Whatever the host is; a host that banks on a change (a mould)
+ * decides inside its own `placedChanged`.
+ */
+function announcePlacement(
+  item: ContainableStuff,
+  was: { host: Stuff & Placing; name: string } | null,
+  now: { host: Stuff & Placing; name: string } | null,
+): void {
+  item.placementChanged(was?.name ?? '', now?.name ?? '');
+  const before = was?.host ?? null;
+  const after = now?.host ?? null;
+  if (before !== null && MixinApi.isPlacing(before)) before.placedChanged(item);
+  if (after !== null && after !== before && MixinApi.isPlacing(after)) after.placedChanged(item);
 }
 
 /**
@@ -414,12 +432,11 @@ function placeIn(
     );
   }
   const from = item.getContainer();
-  const was = item.getPlacement()?.name ?? '';
+  const was = item.getPlacement();
   moveCore(item, host, false, undefined, false, key);
   item._setPlacement(host, key);
   // Rung 1: the region just changed — wake every card showing it.
-  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, key);
-  if (MixinApi.isThermal(item)) void item.restamp();
+  announcePlacement(item, was, item.getPlacement());
   // `moveCore` asked the pressing when the container changed; from one
   // region to another it did not move, so ask here.
   if (from === host) pressAfterArrival(item, host);
@@ -569,14 +586,10 @@ function moveCore(
   // keeps the move-as-container-change contract clean. `place`
   // re-stamps after this move() call, so the placed case is unaffected.
   if (from !== to && item.getPlacement() !== null && following === undefined) {
+    const was = item.getPlacement();
     item._setPlacement(null);
     // Rung 1: the placement is gone — wake the cards that showed it.
-    MqlSubscriptionApi.fireFieldChange(
-      item as unknown as Stuff,
-      'placement',
-      'on',
-      '',
-    );
+    announcePlacement(item, was, null);
   }
 
   // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything
@@ -619,9 +632,9 @@ function moveCore(
     if (f.isAgent() || to === null) {
       // A creature steps off what is carried away; a host gone from the
       // world drops what was on it where it stood.
-      const was = f.getPlacement()?.name ?? '';
+      const was = f.getPlacement();
       f._setPlacement(null);
-      MqlSubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
+      announcePlacement(f, was, null);
       continue;
     }
     moveCore(f, to, force, visited, true);

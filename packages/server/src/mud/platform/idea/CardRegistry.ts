@@ -1303,6 +1303,11 @@ export default class CardRegistry extends CardRegistryBase {
    */
   private rebind(state: CardState, opts: CardOpenOptions): void {
     const holder = this.viewerOf(state.interactive);
+    // ⭐ A rebind is a cancel-and-reopen under the same id; a card the client
+    // has paused (minimized, scrolled away) STAYS paused — the open answers
+    // its snapshot on `card-touched` below and is closed again at once
+    // (crowded-rooms D5). A card's close forgets the pause.
+    const wasPaused = state.live && state.interactive.isSubscriptionPaused(state.instanceId);
     if (state.live) state.interactive.cancelMqlSubscription(state.instanceId);
     state.live = false;
     if (opts.subjectId) state.subjectId = opts.subjectId;
@@ -1314,6 +1319,8 @@ export default class CardRegistry extends CardRegistryBase {
       // The new place cannot be subscribed (not perceived): a snapshot.
       this.resolveInto(CARDS[state.cardId], state, holder, opts);
       state.takenAt = state.lastTouchedAt;
+    } else if (wasPaused) {
+      state.interactive.pauseSubscription(state.instanceId);
     }
     if (!holder) return;
     const template: Omit<CardTouchedEnvelope, 'frameId'> = {

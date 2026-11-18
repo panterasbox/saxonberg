@@ -27,8 +27,8 @@ export {
   detailOf,
   describe,
 } from './assertions';
-export { runCrowd, CROWD_SIZE, CROWD_PLACE } from './crowd';
-export type { CrowdRecord, Timing, LoopRead } from './crowd';
+export { runCrowd, CROWD_SIZE, CROWD_PLACE, sampleLoop, boxLoad, foreignMeter, quietBoxRefusal } from './crowd';
+export type { CrowdRecord, CrowdOptions, Timing, LoopRead, BoxLoad } from './crowd';
 export { declareFile } from './registry';
 export type { FileRecord } from './registry';
 export {

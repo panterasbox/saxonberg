@@ -851,6 +851,26 @@ class WebSocketClient {
   }
 
   /**
+   * ⭐ A subscription the server opened (a live card's — its id is the
+   * card's `instanceId`) is NOT ON SCREEN (crowded-rooms D4): the server
+   * stops computing and sending it. Not re-sent on reconnect — after one,
+   * every card starts shown.
+   */
+  public pauseSubscription(subscriptionId: string): void {
+    if (!this.isConnected()) return;
+    this.send({ type: "mql-subscription-pause", payload: { subscriptionId } });
+  }
+
+  /**
+   * ⭐ It is on screen again: the server answers one fresh
+   * `mql-subscription-result` and resumes its deltas.
+   */
+  public resumeSubscription(subscriptionId: string): void {
+    if (!this.isConnected()) return;
+    this.send({ type: "mql-subscription-resume", payload: { subscriptionId } });
+  }
+
+  /**
    * ⭐ Ask what this viewer can do with `stuffId`, right now.
    *
    * The radial's cold path, and the card bodies' composition chips.

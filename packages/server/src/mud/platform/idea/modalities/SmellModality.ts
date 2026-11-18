@@ -36,6 +36,7 @@ import { CraftingApi } from '../../../api/crafting';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Percept } from '../../../lib/perception/Modality';
 import type { Bulkable, BulkPayload } from '../../../lib/bulk/Bulkable';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { MaterialApi } from '../../../api/material';
 
@@ -190,7 +191,14 @@ export class SmellModality extends Modality {
    * modality default-null contract.
    */
   public override signalAt(loc: Stuff & Container): Smell | null {
-    const result = this.walkAt(loc);
+    // ⭐ The smell fold holds the world still (crowded-rooms D9).
+    const release = ExecutionContextApi.holdWorldStill('smell fold');
+    let result: Smell;
+    try {
+      result = this.walkAt(loc);
+    } finally {
+      release();
+    }
     return result.isEmpty() ? null : result;
   }
 

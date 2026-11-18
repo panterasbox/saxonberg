@@ -593,7 +593,14 @@ export class Session {
         const id =
           typeof frame.subscriptionId === 'string' ? frame.subscriptionId : '';
         const p = this.pendingSubscriptions.get(id);
-        if (!p) continue;
+        if (!p) {
+          // ⭐ Not one this session asked for: a server-opened subscription's
+          // answer — a card's RESUME snapshot (crowded-rooms D5). Kept for
+          // the assertions that read it; dropping it here hid the resume.
+          this.pushRing(this.envelopes, frame as CapturedEnvelope);
+          this.drain(this.envelopeWaiters);
+          continue;
+        }
         this.pendingSubscriptions.delete(id);
         clearTimeout(p.timer);
         p.resolve(frame as unknown as SubscribeOutcome);
@@ -1091,6 +1098,20 @@ export class Session {
    */
   writeClientState(key: string, value: unknown): void {
     this.ws.send(JSON.stringify({ type: 'client-state-write', payload: { key, value } }));
+  }
+
+  /**
+   * ⭐ Say a card is not on screen, as the client does when it is trayed,
+   * scrolled away or behind a full card (crowded-rooms D4) — the id is the
+   * card's `instanceId`.
+   */
+  pauseSubscription(subscriptionId: string): void {
+    this.ws.send(JSON.stringify({ type: 'mql-subscription-pause', payload: { subscriptionId } }));
+  }
+
+  /** …and on screen again: the server answers one fresh `mql-subscription-result`. */
+  resumeSubscription(subscriptionId: string): void {
+    this.ws.send(JSON.stringify({ type: 'mql-subscription-resume', payload: { subscriptionId } }));
   }
 
   /** Still connected — `close()` has not been called and the socket is open. */

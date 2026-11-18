@@ -162,7 +162,10 @@ export function candidatesHeldBy(anchor: Stuff, withSelf: boolean, viewer: Stuff
       for (const occupants of anchor.getAllOccupants().values()) for (const o of occupants) push(o);
     }
   }
-  if (MixinApi.isContainer(anchor)) for (const x of anchor.getReachableContents()) push(x);
+  if (MixinApi.isContainer(anchor)) {
+    noteTouched(anchor);
+    for (const x of anchor.getReachableContents()) push(x);
+  }
   return out;
 }
 
@@ -173,6 +176,35 @@ export function candidatesHeldBy(anchor: Stuff, withSelf: boolean, viewer: Stuff
  */
 export function candidatesForFlat(items: ReadonlyArray<Stuff>, viewer: Stuff | null): ScopeCandidate[] {
   return items.map((item) => candidateFor(item, viewer));
+}
+
+/**
+ * ⭐ What a TRACKED resolve read (crowded-rooms N2): every candidate it
+ * tested, the holder each candidate stands in, and every holder whose
+ * contents it enumerated. Live only inside {@link trackTouched}; a resolve
+ * nobody asked about pays nothing. A live subscription installs a
+ * dependency on each, so it wakes when any of them fires — a newcomer
+ * arriving fires `contents` on the place it was enumerated from.
+ */
+let touchedSink: Set<Stuff> | null = null;
+
+/** Run `run` recording what it reads; the record is returned beside its value. */
+export function trackTouched<T>(run: () => T): { value: T; touched: Stuff[] } {
+  const prev = touchedSink;
+  const sink = new Set<Stuff>();
+  touchedSink = sink;
+  try {
+    const value = run();
+    return { value, touched: [...sink] };
+  } finally {
+    touchedSink = prev;
+  }
+}
+
+/** Note that a tracked resolve read `stuff` (a no-op outside one). */
+export function noteTouched(stuff: Stuff): void {
+  if (touchedSink === null) return;
+  touchedSink.add(stuff);
 }
 
 /**
@@ -196,6 +228,11 @@ export function candidatesForFlat(items: ReadonlyArray<Stuff>, viewer: Stuff | n
  * before you look at anything. `null` is system mode.
  */
 export function candidateFor(stuff: Stuff, viewer: Stuff | null): ScopeCandidate {
+  if (touchedSink !== null) {
+    touchedSink.add(stuff);
+    const holder = MixinApi.isContainable(stuff) ? stuff.getContainer() : null;
+    if (holder !== null) touchedSink.add(holder as unknown as Stuff);
+  }
   const said = (viewer ? stuff.perceivedKeywordsFor(viewer) : ownKeywords(stuff, undefined))
     .map((k) => k.toLowerCase());
   // ⭐ What answers to a word answers to its plural: `all watches`, `get all
