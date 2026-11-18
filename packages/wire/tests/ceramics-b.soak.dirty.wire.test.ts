@@ -170,8 +170,13 @@ async function examine(keyword: string): Promise<string> {
   return text;
 }
 
+/**
+ * Everything the character carries, one list. ⭐ `me:I`, never `me:i`: a
+ * body holds two things in its hands and the rest rides in pockets and bags
+ * (size and carrying, MR !576), and `me:i` sees only the direct contents.
+ */
 async function held(): Promise<string> {
-  const rows = await k.query('me:i', { fields: ['displayName'] }).catch(() => []);
+  const rows = await k.query('me:I', { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
 }
 
@@ -290,6 +295,12 @@ beforeAll(async () => {
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
   await dress(k);
   await dressFounder();
+  // ⭐ Pockets first (size and carrying, MR !576): a body has two hands, and
+  // run 2026-11-18's rations filled both — the pail at the pump was refused
+  // `nowhere-to-carry`, the miner never drank, and every rest after it left
+  // `too-tired` standing. What fits a pocket goes there; the hands stay free
+  // for the clay, the bricks, the pail and the crucible.
+  expectOk(await k.cmd('settings set carry.order pockets-first'));
   // Rations for the days the drive spans, bought as a person would.
   await goTo(STORE);
   for (let i = 0; i < 8; i++) await say('buy rations');
@@ -377,7 +388,7 @@ suite('⭐ 10 — make firebrick', () => {
     await say('douse kiln');
     await advance('12 hours');
     await say('get firebricks from kiln');
-    const fired = await examine('me:i:firebrick');
+    const fired = await examine('me:I:firebrick');
     expect(fired, 'the burnt firebricks').toMatch(/refractory|pale, gritty|fired/i);
     expect(fired).not.toMatch(/thumbprint|bone-dry/i);
   }, 7_200_000);
@@ -387,6 +398,10 @@ suite('⭐ 11 — wear a lining', () => {
   it('fired again and again, the smelting furnace reads its lining thinning and its heat dropping, and at last will not light', async () => {
     await goTo(SMELTER);
     const first = await examine('furnace');
+    // ⚠ Hands free between acts (size and carrying): the burnt firebricks
+    // are set down here, by the furnace they may yet reline — a full hand
+    // refused the crucible `nowhere-to-carry` (run 2026-11-18).
+    await say('drop firebricks');
     // A charge for the chamber — the crucible stands in it.
     await say('get crucible');
     await say('put crucible in furnace');
@@ -556,7 +571,7 @@ suite('⭐ 13 — wear a crucible', () => {
       // pour" on every melt of runs 36 and 37, while the metal froze in the
       // furnace's own crucible and later melts found no room (no wear).
       const crucibleIds = async (): Promise<string[]> =>
-        ((await k.query('me:i:crucible', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
+        ((await k.query('me:I:crucible', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
           .map((r) => r.stuffId ?? '')
           .filter((x) => x !== '');
       const heldBefore = new Set(await crucibleIds());
@@ -576,7 +591,7 @@ suite('⭐ 13 — wear a crucible', () => {
     await goTo(PROVISIONING);
     const bought = await say('buy crucible');
     expect(bought).toMatch(/you buy/i);
-    expect(await examine('me:i:crucible')).not.toMatch(/crack/i);
+    expect(await examine('me:I:crucible')).not.toMatch(/crack/i);
   }, 7_200_000);
 });
 

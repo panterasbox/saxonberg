@@ -325,8 +325,12 @@ suite('⭐⭐ 3. the still-book offers the new lines', () => {
     // fixture's noun is a content defect**, recorded for the distilling
     // trade rather than fixed here (`still` is in the shipped row's
     // keywords and something may resolve on it).
+    //
+    // ⭐ No `peat`: the fire build retired `kiln-malt-peated` on purpose
+    // (`still-book.yaml`) — the smoke comes off the fuel bed, so the
+    // peated choice lives on the firebox now, not on this board.
     const book = (await read(k, 'look book')).toLowerCase();
-    for (const word of ['steep', 'kiln', 'peat', 'mash', 'grain', 'vat']) {
+    for (const word of ['steep', 'kiln', 'mash', 'grain', 'vat']) {
       expect(book, `the book does not offer '${word}'`).toContain(word);
     }
   }, 120_000);
@@ -368,8 +372,12 @@ suite.skipIf(!isOwnedTestWorld())(
       // malt is. `not-grindable` is the controller talking about an
       // EMPTY sack and is a pass; `no-mill` would mean the quern is not
       // reachable at all, which is what this proves it is.
-      const r = await say(k, 'mill malt sack');
-      understood(r, 'mill malt sack');
+      //
+      // ⚠ Quoted: since controller-liquidity W1 an unquoted multi-word
+      // noun phrase in a one-word object slot is a bind refusal, not a
+      // guess — quoting is the player's way to say it.
+      const r = await say(k, 'mill "malt sack"');
+      understood(r, 'mill "malt sack"');
       expect(
         refusedFor(r),
         'no mill in reach — the quern is not on this floor',
@@ -394,11 +402,14 @@ suite.skipIf(!isOwnedTestWorld())(
       const note = (
         spaced.notes as Array<{ kind?: string; reason?: string }>
       ).find((n) => n.kind === 'command-rejected');
+      // ⭐ Since controller-liquidity W1 a shape error that fails every
+      // view is said as `bind-failed` (with the quote hint), not
+      // `shape-fall-through` — still a refusal, which is the point.
       expect(
         note?.reason,
         'a SPACED measure now binds — if the parser was fixed, the ' +
           'predecessor drive and this comment both want updating',
-      ).toBe('shape-fall-through');
+      ).toBe('bind-failed');
     }, 120_000);
 
     it('⭐ `smell <glass>` reaches the palate, and reads nothing of water', async () => {
@@ -459,33 +470,21 @@ suite.skipIf(!isOwnedTestWorld())(
       expect(casks.some((n) => n.includes('charred'))).toBe(true);
     }, 120_000);
 
-    it('⚠ `close cask` binds — but the TWO-WORD form does not', async () => {
-      // ⚠⚠ A narrow, real finding, recorded with its evidence rather
-      // than a cause. `close`/`open` gate their target on
-      // `requires: SealableMixin`, and a `Vat` composes it — a
-      // one-token `open cask` reaches the controller and answers
-      // `already-open`. But `close plain cask` returns
-      // `shape-fall-through`, i.e. *that is not a command*, for a phrase
-      // that `look` resolves perfectly well two checkpoints up.
-      //
-      // ⭐ So a player is not BLOCKED (the one-word form works), and the
-      // mechanism is unaffected; what is wrong is that one verb family
-      // accepts a noun phrase another rejects. Left as a finding for the
-      // command-binder rather than guessed at here — and asserted in
-      // both directions so that FIXING it fails this checkpoint and
-      // brings someone back to this comment.
+    it('⭐ `close cask` binds — and so does the TWO-WORD form', async () => {
+      // ⭐ Once a tripwire, now the fixed behavior. `close`/`open` gate
+      // their target on `requires: SealableMixin`, and a `Vat` composes
+      // it — a one-token `open cask` reaches the controller and answers
+      // `already-open`. The two-word `close "plain cask"` used to return
+      // `shape-fall-through` (*that is not a command*) for a phrase
+      // `look` resolved perfectly well: one verb family accepting a noun
+      // phrase another rejected. The binder now binds it (seen on a
+      // fresh world, 2026-11-18), so both forms are asserted to reach
+      // the controller — a regression back to the refusal fails here.
       const oneWord = await say(k, 'close cask');
       understood(oneWord, 'close cask');
 
       const twoWord = await say(k, 'close "plain cask"');
-      const note = (
-        twoWord.notes as Array<{ kind?: string; reason?: string }>
-      ).find((n) => n.kind === 'command-rejected');
-      expect(
-        note?.reason,
-        'the two-word form now binds — if the binder was fixed, this ' +
-          'checkpoint and the comment above both want updating',
-      ).toBe('shape-fall-through');
+      understood(twoWord, 'close "plain cask"');
     }, 180_000);
 
     it('`stoke` then `light still` reaches the burner', async () => {

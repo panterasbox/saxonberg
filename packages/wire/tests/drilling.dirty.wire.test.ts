@@ -99,8 +99,21 @@ declareFile({
 
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-/** Provisioning → the claims office → the hillside → salt country. */
-const TO_THE_SPRING = ['east', 'north', 'north', 'east'] as const;
+/**
+ * Provisioning → the pithead yard → the claims office → the hillside →
+ * the old workings → salt country.
+ *
+ * ⚠ The boundary build (371bea958 / 4673edec1) made the hillside's
+ * `east` the glazier's hut WINDOW, and the spring is reached through the
+ * old workings now, by the tracks — so the walk goes two more steps.
+ */
+const TO_THE_SPRING = [
+  'east',
+  'north',
+  'north',
+  'northeast',
+  'northeast',
+] as const;
 
 let k: Session;
 let handle = '';
@@ -198,10 +211,14 @@ async function read(s: Session, text: string): Promise<string> {
 async function walk(s: Session, route: readonly string[]): Promise<void> {
   for (const dir of route) {
     const moved = await say(s, dir);
+    // ⚠⚠ ANY refusal, not only `command-rejected`: when the hillside's
+    // `east` became the glazier's hut window, the window refused the
+    // crossing as a CONTROLLER rejection, the old check saw nothing, and
+    // every checkpoint after it read the wrong room.
     expect(
-      moved.notes.find((n) => n.kind === 'command-rejected'),
-      `'${dir}' is not a way out of here`,
-    ).toBeUndefined();
+      refusedFor(moved),
+      `'${dir}' is not a way out of here: ${JSON.stringify(moved.notes)}`,
+    ).toBeNull();
   }
   await s.drainProse();
 }
@@ -263,8 +280,15 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
   await new Promise((r) => setTimeout(r, 400));
 }
 
+/**
+ * Everything on the body — held, worn, AND in a pocket.
+ *
+ * ⚠ `me:I`, not `me:i`: since size and carrying (MR !576) a body has two
+ * hands and its garments' pockets, and a thing in a pocket is the
+ * garment's contents — `me:i` sees only what is directly on you.
+ */
 async function carried(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] });
+  const rows = await s.query('me:I', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -322,8 +346,12 @@ suite.skipIf(!isOwnedTestWorld())('0. the clock moves from outside', () => {
  * ⭐⭐ **The kit is minted, not bought, and that is a FINDING rather than
  * a shortcut.**
  *
- * ⚠⚠ **The Rejection provisioning till cannot take money, and this is
- * the SECOND build's drive it has blocked.** `BuyController` calls
+ * ⭐ **FIXED since (seen on a fresh world, 2026-11-18): the till now
+ * settles a sale, and the till checkpoint below asserts that.** The
+ * history is kept because it is why the kit sits on a rack.
+ *
+ * ⚠⚠ **The Rejection provisioning till could not take money, and this was
+ * the SECOND build's drive it had blocked.** `BuyController` calls
  * `EmploymentApi.settleSale`, which returns `null` for three different
  * reasons — no venue path, no business operator, or no operating account
  * — and **all three are reported to the player as
@@ -391,10 +419,13 @@ suite("1. the kit comes off the claims office's hire rack", () => {
     const rack = await read(k, 'look');
     expect(rack, `the claims office holds: ${rack}`).toMatch(/rack|bailer/i);
 
+    // ⭐⭐ **Two hands and two pockets** (size and carrying, MR !576).
+    // The jar and the bailer take the hands; the gauge and the dial are
+    // small enough for a pocket, which is where `get` puts them once the
+    // hands are full.
     for (const thing of [
       'jar',
       'bailer',
-      'liner',
       'gauge',
       // ⚠ `theodolite` is the dial's own unique keyword; a bare `dial`
       // is ambiguous and `miners-dial` is hyphenated. The row authors
@@ -405,9 +436,24 @@ suite("1. the kit comes off the claims office's hire rack", () => {
     }
     await k.drainProse();
 
+    // ⭐ …and the LINER is a yard of staved tube at eighteen kilos: no
+    // pocket takes it and both hands are full, so `get` refuses rather
+    // than setting it straight back down. That is the carrying model
+    // being honest, asserted as such — the liner stays on the rack for
+    // the trip that needs it (nothing in this drive lines the hole).
+    const liner = await say(k, 'get "liner"');
+    expect(
+      refusedFor(liner),
+      `a third big thing went somewhere with both hands full: ${JSON.stringify(liner.notes)}`,
+    ).not.toBeNull();
+    const onRack = (await k.query('here:I', { fields: ['displayName'] }))
+      .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+      .join(' | ');
+    expect(onRack, `the rack still holds: ${onRack}`).toMatch(/liner/i);
+
     const kit = await carried(k);
     expect(kit, `the kit is: ${kit}`).toMatch(/bailer/i);
-    expect(kit).toMatch(/liner/i);
+    expect(kit).not.toMatch(/liner/i);
     expect(kit).toMatch(/gauge/i);
     // ⭐ The surveying instrument is MINING's: this trade adds none for
     // its structural read.
@@ -416,18 +462,26 @@ suite("1. the kit comes off the claims office's hire rack", () => {
     expect(kit).toMatch(/jar|glowcap/i);
   });
 
-  it('⚠⚠ the valley\'s own till cannot take money — a venue defect, reported', async () => {
-    // Asserted so that the day somebody fixes it THIS FAILS and the
-    // drive buys its kit like a player would. `insufficient-funds` here
-    // is a shop that cannot trade, not a buyer who is broke: the account
-    // was funded at the banking hall in `beforeAll`.
+  it('⭐ the valley\'s own till takes money now — the venue defect is fixed', async () => {
+    // ⭐ Once a tripwire: the Rejection till answered `insufficient-funds`
+    // to a funded buyer (a shop that could not trade, not a buyer who was
+    // broke), and this checkpoint asserted that refusal so the day it was
+    // fixed it would FAIL. It did — a fresh world (2026-11-18) returned
+    // no refusal — so it now asserts the fixed behavior: the sale
+    // settles. ⚠ Read in the shop's own words, not as "not refused" —
+    // *"not refused" is not "succeeded."* With both hands full the
+    // bought goods land at the buyer's feet, which is the carrying
+    // model's answer and no concern of this checkpoint's.
     await walk(k, ['south', 'west']);
     for (const line of ['bailer', 'liner']) {
       const out = await say(k, `buy "${line}"`);
       expect(
         refusedFor(out),
-        `if this is null the Rejection till is fixed: ${line}`,
-      ).toBe('insufficient-funds');
+        `the Rejection till refused a funded buyer again: ${line}: ` +
+          JSON.stringify(out.notes),
+      ).toBeNull();
+      const words = await out.said();
+      expect(words, `buying the ${line} said: ${words}`).toMatch(/you buy/i);
     }
   });
 
@@ -520,8 +574,8 @@ suite('5. the claim is one more entry in the register that already existed', () 
   it('⭐ `stake flat` at the counter — no second mechanism', async () => {
     // Back to the claims office: the counter is where title is written,
     // and a bore site is one more `surfaceWorkings` entry.
-    // flat → spring → hillside → claims office.
-    await walk(k, ['northwest', 'west', 'southwest']);
+    // flat → spring → the old workings → hillside → claims office.
+    await walk(k, ['northwest', 'southwest', 'southwest', 'south']);
     const staked = await say(k, 'stake flat');
     expect(refusedFor(staked), 'the flat must be stakeable').toBeNull();
     const register = await read(k, 'look register');
@@ -578,7 +632,8 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     // later checkpoint failed for a reason that had nothing to do with
     // what it was testing. ⭐ A checkpoint that inherits its position
     // inherits every earlier failure.
-    await walk(k, ['north', 'east', 'southeast']);
+    // claims office → hillside → the old workings → spring → the flat.
+    await walk(k, ['north', 'northeast', 'northeast', 'southeast']);
     const sited = await say(k, 'spud');
     expect(
       refusedFor(sited),
@@ -791,12 +846,14 @@ suite('9. the oil country, and the two structures nothing tells apart', () => {
     const seep = await read(k, 'look');
     expect(seep).toMatch(/seep|hollow|black/i);
 
-    await walk(k, ['east']);
+    // ⚠ The whaleback is the hollow's NORTHEAST and the cairn its
+    // NORTHWEST since the boundary build squared the tracks.
+    await walk(k, ['northeast']);
     const wet = await read(k, 'measure structure');
     expect(wet).toMatch(/closure|beds/i);
     expect(wet).not.toMatch(/charged|holds oil|nothing in it/i);
 
-    await walk(k, ['west', 'north']);
+    await walk(k, ['southwest', 'northwest']);
     const dry = await read(k, 'measure structure');
     expect(dry).toMatch(/closure|beds/i);
     expect(dry).not.toMatch(/charged|holds oil|nothing in it|empty/i);

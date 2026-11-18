@@ -333,8 +333,11 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     // ⭐ Load it with the yard's own cordwood — the SAME charge the
     // clamp takes, which is the point. ⚠ (soak repair 2026-11-17) Picked
     // up first: `put` takes only what you carry (`mustBeInInventory`).
-    const got = await say(f, 'get cordwood');
-    understood(got, 'get cordwood');
+    // ⚠ ONE length (size and carrying, MR !576): a count-less `get` takes
+    // the whole set, and the yard's eight lengths are more than two hands —
+    // refused `nowhere-to-carry` (run 2026-11-18).
+    const got = await say(f, 'get 1 cordwood');
+    understood(got, 'get 1 cordwood');
     expect(refusedFor(got), 'no cordwood to pick up in the yard').toBeNull();
     const put = await say(f, 'put cordwood in retort');
     understood(put, 'put cordwood in retort');

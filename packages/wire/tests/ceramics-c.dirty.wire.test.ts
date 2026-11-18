@@ -166,9 +166,37 @@ async function examine(s: Session, keyword: string): Promise<string> {
   return text;
 }
 
+/**
+ * Everything the character carries, one list. ⭐ `me:I`, never `me:i`: a
+ * body holds two things in its hands and the rest rides in pockets and bags
+ * (size and carrying, MR !576), and `me:i` sees only the direct contents.
+ */
 async function held(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] }).catch(() => []);
+  const rows = await s.query('me:I', { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
+}
+
+/**
+ * What is carried AND what stands where the character stands — a thing
+ * handed to full hands is set down at the feet (size and carrying W8), and a
+ * thrown piece lands in the thrower's hands only while a hand is free.
+ */
+async function withMe(s: Session): Promise<string> {
+  const here = await s.query('here:i', { fields: ['displayName'] }).catch(() => []);
+  return `${await held(s)} | ${here.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ')}`;
+}
+
+/** The two places a made piece can be: carried, or set down at the maker's feet. */
+const onOrBy = (key: string): string[] => [`me:I:${key}`, `here:i:${key}`];
+
+/**
+ * ⭐ Set down what is in the hands, each by id (size and carrying, MR !576):
+ * a lump of clay is 12 kg and takes BOTH hands, and a full pair of hands
+ * refuses a `get` and lets a handed or thrown thing fall at the feet. What
+ * is worn or pocketed stays.
+ */
+async function freeHands(s: Session): Promise<void> {
+  for (const id of await idsIn(s, 'me:i:held')) await say(s, `drop #${id}`);
 }
 
 /**
@@ -233,6 +261,10 @@ async function toHour(fromH: number, toH: number): Promise<void> {
 
 /** Dig `n` lumps at the pit and come back to the shop. */
 async function clayFor(s: Session, n: number): Promise<Session> {
+  // ⭐ Hands free before the walk (size and carrying): what is in them is
+  // set down at the shop, where every caller stands — a spade and the clay
+  // both want hands.
+  await freeHands(s);
   let at = await goTo(s, PIT);
   // ⭐ The pit's three spades are the gang's too: when every one is in a
   // moulder's or the potter's hands, a player waits for one to come back
@@ -249,15 +281,28 @@ async function clayFor(s: Session, n: number): Promise<Session> {
   if (!/spade/i.test(await held(at))) await hand(at, '/trade/quarrying/thing/spade');
   expect(await held(at), 'a spade from the pit').toMatch(/spade/i);
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
-  // The won clay lies where it fell — take what was won, not the gang's
-  // heap with it: a bare `get clay` handed the potter 75 kg (run 19), and
-  // then nothing — not even a mug — could be lifted.
-  await say(at, `get ${n} clay`);
   // ⭐ The spade is the pit's: leave it for the next hand (the NPC brains
   // do). Two drive potters carrying spades off left the pit with none.
+  // ⚠ And FIRST (size and carrying): a lump is 12 kg and takes both hands,
+  // so with the spade in one the clay was refused.
   await say(at, 'drop spade');
-  expect(await held(at), 'clay won').toMatch(/clay/i);
-  at = await goTo(at, SHOP);
+  // The won clay lies where it fell — take what was won, not the gang's
+  // heap with it: a bare `get clay` handed the potter 75 kg (run 19), and
+  // then nothing — not even a mug — could be lifted. ⚠ A load at a time:
+  // two lumps (24 kg) is what two hands lift, and six at once (72 kg) is
+  // past a body's strain and refused `too-heavy`. The earlier loads are
+  // set down by the wheel; the last comes in hand.
+  for (let left = n; left > 0; ) {
+    const load = Math.min(2, left);
+    await say(at, `get ${load} clay`);
+    left -= load;
+    expect(await held(at), 'clay won').toMatch(/clay/i);
+    at = await goTo(at, SHOP);
+    if (left > 0) {
+      await say(at, 'drop clay');
+      at = await goTo(at, PIT);
+    }
+  }
   return at;
 }
 
@@ -309,6 +354,9 @@ let trimmedMug: string | undefined;
 // in bisque is hidden from the eye, so 23's tinker gets these (run 36
 // looked for a visible crack and found none).
 let dunted: string[] = [];
+// The thin bowl 23 dropped on earth and took back up, by id — set down for
+// the tinker's piece when the hands are full (size and carrying).
+let earthBowlId: string | undefined;
 
 /**
  * ⭐ The piece an act leaves under `query`: the id that was not there
@@ -316,14 +364,35 @@ let dunted: string[] = [];
  * `drop crock` let go of ashpot, and `put crock on campfire` set the wrong
  * crock in the flame.
  */
-async function freshIn(s: Session, query: string, act: () => Promise<unknown>): Promise<string | undefined> {
+async function freshIn(
+  s: Session,
+  query: string | string[],
+  act: () => Promise<unknown>,
+  wait?: { step: string; max: number },
+): Promise<string | undefined> {
+  // ⭐ Several places at once (size and carrying): a piece thrown with the
+  // clay in both hands is set down at the thrower's feet — `onOrBy`.
+  const queries = typeof query === 'string' ? [query] : query;
   const ids = async (): Promise<string[]> =>
-    ((await s.query(query, { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
+    (
+      await Promise.all(
+        queries.map(
+          async (q) => (await s.query(q, { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[],
+        ),
+      )
+    )
+      .flat()
       .map((r) => r.stuffId ?? '')
       .filter((x) => x !== '');
   const before = new Set(await ids());
   await act();
-  return (await ids()).find((id) => !before.has(id));
+  let fresh = (await ids()).find((id) => !before.has(id));
+  // The throw may still be going after its hour: wait for the piece.
+  for (let i = 0; wait && !fresh && i < wait.max; i++) {
+    await advance(wait.step);
+    fresh = (await ids()).find((id) => !before.has(id));
+  }
+  return fresh;
 }
 let novicesFirstMug = '';
 
@@ -343,10 +412,10 @@ let novicesMug: string | undefined;
 let ashpot: string | undefined;
 let leadpot: string | undefined;
 
-/** Throw one piece and keep its id under `key` — the piece the act left in hand. */
+/** Throw one piece and keep its id under `key` — the piece the act left in hand, or at the feet. */
 async function throwPiece(s: Session, key: string, form: string): Promise<{ id: string | undefined; said: string }> {
   let said = '';
-  const id = await freshIn(s, `me:i:${key}`, async () => {
+  const id = await freshIn(s, onOrBy(key), async () => {
     said = (await act(s, `shape clay into ${form}`, '1 hour')).said;
   });
   if (id) (made[key] ??= []).push(id);
@@ -395,7 +464,7 @@ suite('⭐ 15 — throw at your band', () => {
   it('a novice throws a heavy, thick-walled mug', async () => {
     novice = await clayFor(novice, 2);
     let thrown = '';
-    novicesMug = await freshIn(novice, 'me:i:mug', async () => {
+    novicesMug = await freshIn(novice, onOrBy('mug'), async () => {
       thrown = (await act(novice, 'shape clay into mug', '1 hour')).said;
     });
     expect(thrown, `the novice's mug: ${thrown}`).toMatch(/mug/i);
@@ -425,7 +494,9 @@ suite('⭐ 15 — throw at your band', () => {
     expect(await examine(potter, `#${jug.id}`)).toMatch(/tall|pint/i);
     const named = await say(potter, `name #${jug.id} Mother's jug`);
     expect(named).toMatch(/mother/i);
-    expect(await held(potter), 'the jug answers to its name').toMatch(/Mother's jug/i);
+    // Carried, or at the potter's feet: the clay is in both hands (size and
+    // carrying), so a thrown piece is set down.
+    expect(await withMe(potter), 'the jug answers to its name').toMatch(/Mother's jug/i);
     // The rest of the day's pieces — two crocks, a jar, a thin bowl, a
     // handle, a plant pot — for 16 onward, each kept by id.
     for (const [key, form] of [
@@ -440,7 +511,7 @@ suite('⭐ 15 — throw at your band', () => {
     ] as const) {
       await throwPiece(potter, key, form);
     }
-    expect(await held(potter)).toMatch(/crock/i);
+    expect(await withMe(potter)).toMatch(/crock/i);
     expect(made['crock']?.length ?? 0, 'the two crocks, by id').toBe(2);
   }, 3_600_000);
 });
@@ -448,6 +519,10 @@ suite('⭐ 15 — throw at your band', () => {
 suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
   it('at leather-hard: a foot turned, a handle joined, the potter’s stamp pressed in', async () => {
     // On the boards to dry (there is no `drop all`: each piece by id).
+    // ⚠ The clay first (size and carrying): it fills both hands, and the
+    // trimming wants a hand for the mug and one for the jug.
+    await freeHands(potter);
+    await freeHands(novice);
     for (const id of Object.values(made).flat()) await potter.cmd(`drop #${id}`);
     await potter.drainProse();
     await say(novice, `drop #${novicesMug}`);
@@ -486,9 +561,12 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     // down, run 35) or still in hand.
     const pulled = madeOf('handle');
     expect(pulled, 'the potter\'s pulled handle').toBeDefined();
-    if ((await idsIn(potter, 'me:i:handle')).has(pulled!)) await say(potter, `drop #${pulled}`);
+    if ((await idsIn(potter, 'me:I:handle')).has(pulled!)) await say(potter, `drop #${pulled}`);
     const handle = await until(potter, `#${pulled}`, /leather-hard|bone-dry/i, '1 hour', 24);
     expect(handle, `the handle firm enough to join: ${handle}`).toMatch(/leather-hard/i);
+    // ⚠ Two hands (size and carrying): the trimmed mug goes back on the
+    // board so the handle can come to hand beside the jug.
+    await say(potter, `drop #${mine!.stuffId}`);
     await say(potter, `get #${pulled}`);
     const fit = await act(potter, `fit #${pulled} to #${jug}`, '30 minutes');
     expect(refusedFor(fit.r), `join: ${fit.said}`).toBeNull();
@@ -497,11 +575,15 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     const stamped = await say(potter, `impress stamp on #${jug}`);
     expect(stamped, `stamp: ${stamped}`).toMatch(/mark/i);
     expect(await examine(potter, `#${jug}`)).toMatch(/bears .+ mark/i);
+    // The jug on the board, so each piece comes to the free hand in turn
+    // and goes back down (size and carrying: two hands, one holds the stamp).
+    await say(potter, `drop #${jug}`);
     for (const ware of ['crock', 'jar', 'bowl']) {
       const id = madeOf(ware);
       if (!id) continue;
       await say(potter, `get #${id}`);
       await say(potter, `impress stamp on #${id}`);
+      await say(potter, `drop #${id}`);
     }
     for (const id of Object.values(made).flat()) await potter.cmd(`drop #${id}`);
     await potter.drainProse();
@@ -513,16 +595,26 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     // (run 27: "nothing in it to fit anything to"). Followed by identity.
     const mug = trimmedMug;
     expect(mug, 'the trimmed mug from 16').toBeTruthy();
-    expect(await say(potter, `get #${mug}`)).toMatch(/pick up|already/i);
+    // ⚠ (size and carrying) The clay first: a lump takes both hands, so the
+    // mug waits on the board while it is dug and thrown, and comes to hand
+    // after.
     potter = await clayFor(potter, 1);
     // ⚠ The throw may still be going after the hour: wait for the handle.
-    // A thrown piece lands in the THROWER's hands (`Clay.yieldPieces`), so
-    // it is looked for there — the floor held none (run 34), and a bare
-    // `get handle` there could take the potter NPC's.
-    const handleId = await freshIn(potter, 'me:i:handle', async () => {
-      await act(potter, 'shape clay into handle', '1 hour');
-      await until(potter, 'me:i:handle', /handle/i, '1 hour', 6);
-    });
+    // A thrown piece lands in the THROWER's hands (`Clay.yieldPieces`) — or,
+    // with the clay in both, at the thrower's feet — so it is looked for
+    // there, by the id that was not there before: a bare `get handle` could
+    // take the potter NPC's (run 34).
+    const handleId = await freshIn(
+      potter,
+      onOrBy('handle'),
+      async () => {
+        await act(potter, 'shape clay into handle', '1 hour');
+      },
+      { step: '1 hour', max: 6 },
+    );
+    // Done with the clay: set down, and the mug back in hand.
+    await freeHands(potter);
+    expect(await say(potter, `get #${mug}`)).toMatch(/pick up|already/i);
     const thrown = handleId ? await examine(potter, `#${handleId}`) : '';
     expect(thrown, 'the fresh handle').toMatch(/handle/i);
     // ⭐ A soft handle will not join at all — "too soft to join, it would
@@ -634,26 +726,33 @@ suite('⭐ 18 — glaze', () => {
     await toHour(8, 14);
     // The two tubs: ash (or lead) with a little clay and water, stirred.
     potter = await clayFor(potter, 1);
-    await say(potter, 'get 1 pail');
-    await say(potter, 'fill pail from butt');
-    await say(potter, 'get ash');
+    // ⚠ The lump goes in FIRST (size and carrying): it takes both hands, so
+    // the pail and the ash come to hand after it is in the tub.
     // ⚠ Two-word names are quoted on a command line (run 27: `put ash in
     // ash tub` matched no shape of `put`).
-    await say(potter, 'put ash in "ash tub"');
     await say(potter, 'put 1 clay in "ash tub"');
+    await say(potter, 'get 1 pail');
+    await say(potter, 'fill pail from butt');
+    // ONE heap: a bare `get ash` takes the whole set.
+    await say(potter, 'get 1 ash');
+    await say(potter, 'put ash in "ash tub"');
     await say(potter, 'pour pail into "ash tub"');
     const ash = await act(potter, 'stir "ash tub"', '20 minutes');
     expect(ash.said, `the ash glaze: ${ash.said}`).toMatch(/glaze|stir|blend/i);
     expect(await examine(potter, 'ash tub')).toMatch(/ash glaze|glaze/i);
+    // (The pail is set down at the shop while the clay is dug — `clayFor`.)
     potter = await clayFor(potter, 1);
+    await say(potter, 'put 1 clay in "lead tub"');
+    await say(potter, 'get 1 pail');
     await say(potter, 'fill pail from butt');
     // ⚠ The lead is SETUP, handed: the shop's one pig went into the potter
     // NPC's own lead glaze, and `get lead` found only the tub (run 35).
     const pig = await hand(potter, '/stuff/thing/lead-pig');
     await say(potter, `put #${pig} in "lead tub"`);
-    await say(potter, 'put 1 clay in "lead tub"');
     await say(potter, 'pour pail into "lead tub"');
     await act(potter, 'stir "lead tub"', '20 minutes');
+    // The pail down, so the two crocks come to hand.
+    await freeHands(potter);
     expect(await examine(potter, 'lead tub')).toMatch(/lead glaze|glaze/i);
     // Two bisque crocks, dipped inside.
     // One at a time: a plural `crocks` bound nothing in the kiln and fell
@@ -666,7 +765,7 @@ suite('⭐ 18 — glaze', () => {
     const crocks: string[] = [];
     for (const id of made['crock'] ?? []) {
       // A sound one, in hand: a burst or slumped piece takes no glaze (run 36).
-      if (!(await idsIn(potter, 'me:i:crock')).has(id)) continue;
+      if (!(await idsIn(potter, 'me:I:crock')).has(id)) continue;
       if (!/burst|slumped/i.test(await detailOf(potter, id))) crocks.push(id);
     }
     expect(crocks.length, 'two sound bisque crocks in hand').toBeGreaterThanOrEqual(2);
@@ -705,11 +804,14 @@ suite('⭐ 18 — glaze', () => {
     // ⭐ By id, one sound piece of each of the potter's own: a word bound
     // whichever piece came first, and the ear then rang a different one.
     const loaded: string[] = [];
+    // ⚠ The glazed crocks on the board first (size and carrying): each piece
+    // below comes to a hand on its way into the kiln.
+    await freeHands(potter);
     // ⚠ Only the potter's own pieces of each form, by the ids 15 kept — a
     // crock answers to "pot" too, and run 37 loaded ashpot into the hot kiln
     // (20b then found no ashpot) — and only ones in reach (on the boards or
     // in hand), not still in the kiln from 17.
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
     for (const ware of ['mug', 'jar', 'bowl', 'pot']) {
       let piece: string | undefined;
       for (const id of made[ware] ?? []) {
@@ -725,13 +827,18 @@ suite('⭐ 18 — glaze', () => {
     expect(loaded.length, 'ware in the kiln to dunt').toBeGreaterThan(0);
     await fireKiln(potter, '6 hours');
     await say(potter, 'douse kiln');
-    for (const id of loaded) await say(potter, `get #${id} from kiln`);
+    // Out hot, one at a time onto the board: up to four pieces and two hands
+    // (size and carrying).
+    for (const id of loaded) {
+      await say(potter, `get #${id} from kiln`);
+      await say(potter, `drop #${id}`);
+    }
     await advance('2 hours');
     // ⭐ A dunt in an UNGLAZED body is hidden (`Thermal.shockBody`: only a
     // glaze's craze line shows it, and only a shock twice the body's
     // tolerance cracks it for the eye) — so the eye may find nothing on
     // bisque, and run 36's did not. The EAR is the read that always works.
-    const ware = await examine(potter, 'me:i');
+    const ware = (await Promise.all(loaded.map((id) => examine(potter, `#${id}`)))).join('\n');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] opened hot, to the eye: ${/crack|dunt/i.test(ware) ? 'a visible crack' : 'nothing (bisque hides a dunt)'}`);
     let rang = '';
@@ -812,6 +919,8 @@ suite('⭐ 21 — the weeping jar', () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
+    // The crocks from 19 on the board: the thermometer and the jar want hands.
+    await freeHands(potter);
     await mint(SHOP, THERMOMETER);
     await say(potter, 'get thermometer');
     // ⛔ STAGED (soak-harness census): a weep needs a warm day. At or below
@@ -830,8 +939,13 @@ suite('⭐ 21 — the weeping jar', () => {
     // 15 kept, that are in reach (on the boards or in hand) — 17's bisque
     // jar out of the kiln first.
     type JarRow = { stuffId?: string; longDescription?: string };
-    for (const id of made['jar'] ?? []) await say(potter, `get #${id} from kiln`);
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
+    // Out of the kiln onto the board, one at a time (two hands, one holds the
+    // thermometer).
+    for (const id of made['jar'] ?? []) {
+      await say(potter, `get #${id} from kiln`);
+      await say(potter, `drop #${id}`);
+    }
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
     const jarRows: JarRow[] = [];
     for (const id of made['jar'] ?? []) {
       if (reach.has(id)) jarRows.push({ stuffId: id, longDescription: await detailOf(potter, id) });
@@ -934,8 +1048,8 @@ suite('⭐ 22 — the filter (W8)', () => {
     // not the one standing in the crock, and both read empty (finalize).
     const idOf = async (q: string): Promise<string> =>
       String(((await w.query(q, { fields: 'ref' }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId ?? '');
-    const crockId = await idOf('me:i:crock');
-    const filterId = await idOf('me:i:filter');
+    const crockId = await idOf('me:I:crock');
+    const filterId = await idOf('me:I:filter');
     expect(crockId && filterId, 'the filterer holds a crock and a filter').toBeTruthy();
     w = await goTo(w, room);
     // The crock stands on the ground and the filter goes in it.
@@ -1015,9 +1129,15 @@ suite('⭐ 23 — breakage and mending', () => {
     // alluvial clay" held on the setts). Green ware is no use either.
     const ruined = (r: Row): boolean =>
       /burst|slumped|still [a-z ]*clay|It is green/i.test(String(r.longDescription ?? ''));
-    // 17 bisqued one of them, and it can still be in the kiln: out first.
-    for (const id of made['bowl'] ?? []) await say(potter, `get #${id} from kiln`);
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:i'))]);
+    // 17 bisqued one of them, and it can still be in the kiln: out first,
+    // onto the board — the hands emptied for it (size and carrying), so the
+    // two bowls chosen below come to them.
+    await freeHands(potter);
+    for (const id of made['bowl'] ?? []) {
+      await say(potter, `get #${id} from kiln`);
+      await say(potter, `drop #${id}`);
+    }
+    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
     const allBowls: Row[] = [];
     for (const id of made['bowl'] ?? []) {
       if (!reach.has(id)) continue;
@@ -1040,6 +1160,7 @@ suite('⭐ 23 — breakage and mending', () => {
     // floor's, not the throw's).
     const stoneBowl = bowls[0]!;
     const earthBowl = bowls[1] ?? (await hand(potter, '/trade/ceramics/thing/bowl'));
+    earthBowlId = earthBowl;
     for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
     // ⭐ The novice's thick mug by the id 15 kept (17 loads by id now, so it
     // never went into the kiln — run 39 found it there when 17 loaded by
@@ -1080,13 +1201,10 @@ suite('⭐ 23 — breakage and mending', () => {
   it('the tinker rivets a cracked bowl — mended, and the mend shows', async () => {
     // The dunted (visibly cracked) ware from 18 is the tinker's job.
     await toHour(10, 11);
-    potter = await goTo(potter, GATE);
-    const tinker = await examine(potter, 'tinker');
-    expect(tinker, 'the tinker on his stop').not.toEqual('');
     // ⭐ The piece a hot opening CRACKED (18b), by identity: a bare `bowl`
     // handed the tinker a sound green one — "There is nothing wrong with
     // it" (run 35).
-    const cracked = ((await potter.query('me:i', { fields: 'detail' }).catch(() => [])) as {
+    const cracked = ((await potter.query('me:I', { fields: 'detail' }).catch(() => [])) as {
       stuffId?: string;
       longDescription?: string;
     }[]).find((r) => /crack|dunt/i.test(String(r.longDescription ?? '')));
@@ -1094,6 +1212,19 @@ suite('⭐ 23 — breakage and mending', () => {
     // bisque, and the ear is what found them.
     const piece = cracked?.stuffId ?? dunted[0];
     expect(piece, 'a cracked or dunted piece from the hot kiln').toBeDefined();
+    // ⚠ (size and carrying) 18b set its hot ware down on the shop's board,
+    // two hands being two: fetched from there for the tinker, the earth
+    // bowl set down for it if both hands are full.
+    if (!(await idsIn(potter, 'me:I')).has(piece!)) {
+      potter = await goTo(potter, SHOP);
+      if (earthBowlId && (await idsIn(potter, 'me:i:held')).has(earthBowlId)) {
+        await say(potter, `drop #${earthBowlId}`);
+      }
+      await say(potter, `get #${piece}`);
+    }
+    potter = await goTo(potter, GATE);
+    const tinker = await examine(potter, 'tinker');
+    expect(tinker, 'the tinker on his stop').not.toEqual('');
     const cracked2 = { stuffId: piece };
     // ⚠ The tinker QUOTES and waits for a yes (the paid mend's prompt), and
     // the order's reply only comes once it is answered: answer it while the
@@ -1118,14 +1249,23 @@ suite('⭐ 20 — flame and body', () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
+    // ⚠ The grog into the temper pit FIRST (size and carrying): the clay
+    // takes both hands, so the grog cannot ride along with it.
+    potter = await goTo(potter, TEMPER);
+    expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
     potter = await goTo(potter, SHOP);
     // Stoneware: a crock fired hot and long, wide open.
     potter = await clayFor(potter, 2);
-    // A thrown piece lands in the thrower's hands (`Clay.yieldPieces`).
-    const crockId = await freshIn(potter, 'me:i:crock', async () => {
-      await act(potter, 'shape clay into crock', '1 hour');
-      await until(potter, 'me:i:crock', /crock/i, '1 hour', 6);
-    });
+    // A thrown piece lands in the thrower's hands (`Clay.yieldPieces`), or
+    // with the clay in both at the thrower's feet.
+    const crockId = await freshIn(
+      potter,
+      onOrBy('crock'),
+      async () => {
+        await act(potter, 'shape clay into crock', '1 hour');
+      },
+      { step: '1 hour', max: 6 },
+    );
     expect(crockId, 'the stoneware crock, thrown').toBeDefined();
     const crock = `#${crockId}`;
     // The grogged body: grog trodden into clay in the temper pit.
@@ -1133,20 +1273,28 @@ suite('⭐ 20 — flame and body', () => {
     // ONE lump: a bare `put clay` tipped all eight the potter carried, and
     // kneaded together they were one mass too heavy to lift (paint finalize).
     await say(potter, 'put 1 clay in pit');
-    expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
+    // The rest set down, so the kneaded clay comes up into the hands.
+    await freeHands(potter);
     await act(potter, 'knead pit', '30 minutes');
     await say(potter, 'get clay from pit');
     potter = await goTo(potter, SHOP);
-    const bowlId = await freshIn(potter, 'me:i:bowl', async () => {
-      await act(potter, 'shape clay into bowl', '1 hour');
-      await until(potter, 'me:i:bowl', /bowl/i, '1 hour', 6);
-    });
+    const bowlId = await freshIn(
+      potter,
+      onOrBy('bowl'),
+      async () => {
+        await act(potter, 'shape clay into bowl', '1 hour');
+      },
+      { step: '1 hour', max: 6 },
+    );
     expect(bowlId, 'the grogged bowl, thrown').toBeDefined();
     const bowl = `#${bowlId}`;
     await say(potter, `drop "${crock}"`);
     await say(potter, `drop "${bowl}"`);
     // ⛔ STAGED (soak-harness census): bone-dry is days on the shelf.
     await stageDry(potter, crock, 1);
+    // The rest of the grogged clay set down: the firebricks and the ware
+    // want hands (size and carrying).
+    await freeHands(potter);
     // ⚠ Stoneware wants ~1480 K, and this kiln's lining has worn through
     // 17's and 18's firings to a kiln that holds ~1345 K (B38 — the lining
     // is a wear part): the crock came out earthenware (run 28). Relined
@@ -1154,6 +1302,7 @@ suite('⭐ 20 — flame and body', () => {
     for (let i = 0; i < 30; i++) await hand(potter, '/stuff/thing/firebrick');
     const relined = await act(potter, 'fit lining to kiln', '3 hours');
     expect(refusedFor(relined.r), `reline the kiln: ${relined.said}`).toBeNull();
+    await freeHands(potter);
     for (const piece of [crock, bowl]) {
       await say(potter, `get "${piece}"`);
       await say(potter, `put "${piece}" in kiln`);
@@ -1172,11 +1321,17 @@ suite('⭐ 20 — flame and body', () => {
     // The cook fire.
     await mint(SHOP, CAMPFIRE);
     await mint(SHOP, CHARCOAL, 2);
+    // The two pieces down while the fire is laid (two hands), then each
+    // back up and onto it.
+    await say(potter, `drop "${crock}"`);
+    await say(potter, `drop "${bowl}"`);
     await say(potter, 'get 1 charcoal');
     await say(potter, 'stoke charcoal into campfire');
     await say(potter, 'light campfire');
     // ⚠ ON, not in: a campfire takes things on it (run 27: "it takes on").
+    await say(potter, `get "${crock}"`);
     await say(potter, `put "${crock}" on campfire`);
+    await say(potter, `get "${bowl}"`);
     await say(potter, `put "${bowl}" on campfire`);
     await advance('1 hour');
     expect(await examine(potter, crock), 'stoneware in the flame').toMatch(/crack/i);
@@ -1240,6 +1395,8 @@ suite('⭐ 25 — the stall', () => {
     const plantPot = madeOf('pot');
     expect(plantPot, 'the potter\'s plant pot, by id').toBeDefined();
     potter = await goTo(potter, SHOP);
+    // The hands emptied for it (size and carrying): 24 left clay in them.
+    await freeHands(potter);
     await say(potter, `get #${plantPot} from kiln`).catch(() => '');
     await say(potter, `get #${plantPot}`).catch(() => '');
     expect(await held(potter)).toMatch(/plant pot|pot/i);
@@ -1263,13 +1420,18 @@ suite('⭐ 25 — the stall', () => {
     // ⚠ The stall's own plant-pot line sells ahead of a consignment (the
     // Stock order: a shelf good first, then a listing — retail.md): buy
     // until the consigned pot is the one in hand, or the stall has none.
+    // ⚠ (size and carrying) Hands free first, and a stall pot that is not
+    // the consigned one set down again: a buy with both hands full is set
+    // down at the buyer's feet, where `me:I` does not see it.
+    await freeHands(novice);
     let bought = '';
-    for (let i = 0; i < 4 && !(await idsIn(novice, 'me:i')).has(plantPot!); i++) {
+    for (let i = 0; i < 4 && !(await idsIn(novice, 'me:I')).has(plantPot!); i++) {
+      if (i > 0) await freeHands(novice);
       bought = await say(novice, 'buy "plant pot"');
       if (!/you buy/i.test(bought)) break;
     }
     expect(bought).toMatch(/you buy/i);
-    expect((await idsIn(novice, 'me:i')).has(plantPot!), 'the consigned pot, bought').toBe(true);
+    expect((await idsIn(novice, 'me:I')).has(plantPot!), 'the consigned pot, bought').toBe(true);
     const pot = await examine(novice, `#${plantPot}`);
     expect(pot, 'the bought pot reads its body').toMatch(/earthenware|terracotta|fired/i);
     expect(pot, 'the consigned pot, its maker on it').toContain(`Made by ${potterName}`);
@@ -1282,7 +1444,7 @@ suite('⭐ 25 — the stall', () => {
     novice = await goTo(novice, STORE);
     const bought = await say(novice, 'buy "small plant pot"');
     expect(bought).toMatch(/you buy/i);
-    const pot = await examine(novice, 'me:i:pot');
+    const pot = await examine(novice, 'me:I:pot');
     // ⭐ The pottery's row: a fired earthenware pot. With the pottery's
     // shelf bare it is an import — no maker, no mark — and was dearer.
     expect(pot, 'the store pot').toMatch(/flower pot|plant pot/i);

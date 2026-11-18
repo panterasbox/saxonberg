@@ -258,24 +258,43 @@ suite('⭐ 2. buy in — leaf at the house, the kit in town', () => {
     try {
       const bought = await say(s, 'buy leaf');
       expect(refusedFor(bought), 'the house sells leaf').toBeNull();
-      expect(await names(s, 'me:i')).toMatch(/mulberry leaves/i);
+      // ⚠ `me:I` throughout this file, not `me:i` (size and carrying W9): a
+      // good in a pocket is its garment's contents, not the body's.
+      expect(await names(s, 'me:I')).toMatch(/mulberry leaves/i);
     } finally {
       s.close();
+    }
+    // ⚠ (soak repair 2026-11-18, size and carrying) A body has two hands.
+    // The armful of leaf goes to the kitchen where the tray will be and is
+    // set down there, so the kit is bought with the hands free — the tray
+    // and the reel take a hand each, and nothing big is set down at the
+    // store's counter and left behind.
+    const kitchen = await at(COOKHOUSE);
+    try {
+      expectOk(await say(kitchen, 'drop leaf'));
+    } finally {
+      kitchen.close();
     }
   }, 300_000);
 
   it('eggs, a tray, a reel and a brush at the general store', async () => {
     const s = await at(STORE);
     try {
-      for (const thing of ['imported', 'cheap', 'tray', 'reel', 'brush']) {
+      // ⚠ (soak repair 2026-11-18, size and carrying) The big things
+      // first, into the two free hands; the egg cards are small and a
+      // bought good with the hands full goes in a pocket it fits.
+      for (const thing of ['tray', 'reel', 'imported', 'cheap', 'brush']) {
         const r = await say(s, `buy "${thing}"`);
         expect(refusedFor(r), `buy "${thing}"`).toBeNull();
       }
-      const kit = await names(s, 'me:i');
+      const kit = await names(s, 'me:I');
       expect(kit).toMatch(/imported silkworm eggs/i);
       expect(kit).toMatch(/rearing tray/i);
       expect(kit).toMatch(/hand reel/i);
-      expect(kit).toMatch(/mounting brush/i);
+      // The brush is bought either way: carried if a pocket takes it, else
+      // set down at the buyer's feet with the hands full (the carry
+      // routing's honest outcome). Nothing later uses it.
+      expect(`${kit} | ${await names(s, 'here:i')}`).toMatch(/mounting brush/i);
     } finally {
       s.close();
     }
@@ -313,7 +332,7 @@ suite('⭐ 3–4. a lot on a tray, and leaf on the lot', () => {
       const tray = await read(s, 'look tray');
       expect(tray).toMatch(/eggs, waiting for warmth|worms/i);
       // The card was consumed — the eggs are the tray's now.
-      expect(await names(s, 'me:i')).not.toMatch(/imported silkworm eggs/i);
+      expect(await names(s, 'me:I')).not.toMatch(/imported silkworm eggs/i);
     } finally {
       s.close();
     }
@@ -322,11 +341,17 @@ suite('⭐ 3–4. a lot on a tray, and leaf on the lot', () => {
   it('`put leaf in tray` — leaf is what a tray takes', async () => {
     const s = await at(COOKHOUSE);
     try {
+      // The leaf was set down here on the way (step 2): back into a hand.
+      expectOk(await say(s, 'get "mulberry leaves"'));
       const put = await say(s, 'put leaf in tray');
       expect(refusedFor(put)).toBeNull();
       expect(await names(s, 'here:i:tray:i')).toMatch(/mulberry leaves/i);
       const shelf = await say(s, 'put reel in tray');
       expect(refusedFor(shelf), 'a tray is not a shelf').not.toBeNull();
+      // ⚠ (soak repair 2026-11-18, size and carrying) The reel is set down
+      // by the oven it will be used at (a tool is used where it sits), so
+      // the cocoons, the skeins and the bolt to come find a free hand.
+      expectOk(await say(s, 'drop reel'));
     } finally {
       s.close();
     }
@@ -388,7 +413,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
       const started = await say(s, 'unwind cocoons --count 6 with basin');
       expect(refusedFor(started), 'the basin reels stifled cocoons over a lit fire').toBeNull();
       await settle(s, started);
-      const kit = await names(s, 'me:i');
+      const kit = await names(s, 'me:I');
       expect(kit).toMatch(/skein of raw silk/i);
       expect(kit).toMatch(/pupae/i);
       const skein = await read(s, 'look hank');
@@ -407,7 +432,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
       await settle(s, thrown);
       // DIAG (soak repair 2026-11-17): the hand reel next refused `too-few`
       // for ten — record what is left in hand after two basin reelings.
-      console.log('DIAG cocoons in hand after the basin', await names(s, 'me:i:cocoon'));
+      console.log('DIAG cocoons in hand after the basin', await names(s, 'me:I:cocoon'));
     } finally {
       s.close();
     }
@@ -425,7 +450,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
       const started = await say(s, 'unwind cocoons --count 10 with reel');
       expect(refusedFor(started), 'a hand reel over a lit oven reels').toBeNull();
       await settle(s, started);
-      const kit = await names(s, 'me:i');
+      const kit = await names(s, 'me:I');
       expect((kit.match(/skein of raw silk/gi) ?? []).length + (/2 skeins/i.test(kit) ? 1 : 0)).toBeGreaterThan(0);
     } finally {
       s.close();
@@ -435,7 +460,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
   it('⭐⭐ AC 8 — the thrown silk is a skein of RAW SILK yarn, not linen', async () => {
     const s = await at(MILL);
     try {
-      const kit = await names(s, 'me:i');
+      const kit = await names(s, 'me:I');
       expect(kit).toMatch(/raw silk yarn/i);
       expect(kit).not.toMatch(/linen yarn/i);
     } finally {
@@ -484,9 +509,15 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
   it('⭐ AC 16 — the silk bolt is bought, and carries its weaver’s mark', async () => {
     const s = await at(STORE);
     try {
+      // ⚠ (soak repair 2026-11-18, size and carrying) Set down what is done
+      // with first — the cocoons left over and the thrown yarn (AC 8 read
+      // it) — so the bolt comes to a hand and is not set down at the
+      // counter, and a hand is free for the rod in step 19.
+      await say(s, 'drop cocoons');
+      await say(s, 'drop yarn');
       const r = await say(s, 'buy "bolt of raw silk"');
       expect(refusedFor(r)).toBeNull();
-      expect(await names(s, 'me:i')).toMatch(/bolt of raw silk/i);
+      expect(await names(s, 'me:I')).toMatch(/bolt of raw silk/i);
     } finally {
       s.close();
     }

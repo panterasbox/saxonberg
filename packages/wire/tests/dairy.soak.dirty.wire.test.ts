@@ -413,6 +413,11 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
 
   it('⭐ spoilage samples: a jug left here in the warm, a crock in the cheese room', async () => {
     await doing(k, 'get thermometer');
+    // ⭐ Two hands (size and carrying): the pail is in one, and every vessel
+    // the drive lifts from here on wants the other. The thermometer goes
+    // where the game's own refusal says to put it — it reads from an open
+    // pocket.
+    await doing(k, 'put thermometer in breast pocket');
     await doing(k, 'get jug');
     await doing(k, 'pour me:i:pail into jug --amount 1L');
     await doing(k, 'drop jug');
@@ -638,6 +643,8 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
     note(`look hoop (set) → ${set}`);
     expect(set).toMatch(/set|wheel/i);
     await doing(k, 'get stone');
+    // Set the stone down: the pail is in one hand, the wheel wants the other.
+    await doing(k, 'drop stone');
     const got = await doing(k, 'get wheel');
     expect(got).toMatch(/wheel/i);
     expect(await carried(k)).toMatch(/wheel/i);
@@ -725,13 +732,14 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     // climate build: 268 K at a clear dawn) — milk will not sour below
     // 283 K. The cheese is set where a stove is kept in: the vat, the
     // starter and the hoop go to the Dry.
-    await doing(k, 'get vat');
-    await doing(k, 'get starter');
-    await doing(k, 'get hoop');
-    await goTo(DRY);
-    await doing(k, 'drop vat');
-    await doing(k, 'drop starter');
-    await doing(k, 'drop hoop');
+    // ⭐ One at a time (size and carrying): the pail of milk is in one hand,
+    // so each goes over in the other.
+    for (const vessel of ['vat', 'starter', 'hoop']) {
+      await goTo(GOAT_PEN);
+      await doing(k, `get ${vessel}`);
+      await goTo(DRY);
+      await doing(k, `drop ${vessel}`);
+    }
     await doing(k, 'pour me:i:pail into vat');
     // ⚠ The pen's crock was last fed at boot and a whey culture starves in
     // six days — it is dead, correctly. The craft's own remedy: raw milk
@@ -803,6 +811,9 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
   });
 
   it('⭐⭐ `split wheel` — a wedge; `consign wedge` on the co-op shelf', async () => {
+    // ⭐ Two hands (size and carrying): the wheel in one, the knife in the
+    // other — the empty pail waits on the cheese-room floor.
+    await doing(k, 'drop me:i:pail');
     await doing(k, 'get wheel');
     await doing(k, 'get knife');
     // Name the edge: the view's default tool is the FIRST tool carried, and
@@ -814,6 +825,11 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     // The wedge comes away into the hand; the rest goes back on the rack.
     await doing(k, 'put wheel on rack');
     await doing(k, 'drop knife');
+    // With both hands full the wedge went to a pocket or the floor: to hand
+    // (refused, harmlessly, when it is already there), and the pail with it.
+    await act(k, 'get wedge');
+    await doing(k, 'get 1 pail');
+    expect(await carried(k), 'the wedge is carried up').toMatch(/wedge/i);
     await say(k, 'up');
     await k.drainProse();
     await goTo(CREAMERY);
@@ -945,10 +961,17 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     // hand already past the dirty threshold (`stampTheHand`). So the
     // hands are fouled the dairy's own way — milking other cows first,
     // unwashed — until they read filthy.
+    // ⚠ Only a TAKE soils the hand, and a head cut out of the herd has
+    // nothing standing in her: she fills from the draft (fresh-world run,
+    // 2026-11-18 — 0 and 4 milked at once said "nothing in her yet", and
+    // nothing soiled the hands). So one cow at a time — two drafted make
+    // `milk cow` ask which — each let stand nine hours before she is
+    // milked. Bounded: the herd's other heads, not 2 (rested in step 26).
     let me = await read(k, 'look me');
-    for (const cow of [0, 4, 2]) {
+    for (const cow of [1, 5, 0, 4]) {
       if (/hands are filthy/i.test(me)) break;
       await doing(k, `draft ${cow} from dairy`);
+      await advance('9 hours');
       await act(k, 'milk cow into me:i:pail');
       await doing(k, 'return cow');
       await emptyPail();
@@ -957,6 +980,8 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
     note(`look me (hands, before the milking) → ${me}`);
     expect(me).toMatch(/hands are filthy/i);
     await doing(k, 'draft 3 from dairy');
+    // She fills from the draft, as the fouling cows did.
+    await advance('9 hours');
     const milked = await doing(k, 'milk cow into me:i:pail');
     expect(milked).not.toMatch(/on the floor|nothing to catch/i);
     await doing(k, 'return cow');

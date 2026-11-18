@@ -129,8 +129,13 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
   return note?.reason ?? null;
 }
 
+/**
+ * What the session carries, as one line. ⚠ `me:I`, not `me:i` (size and
+ * carrying W9): a thing in a pocket is its garment's contents, so a good
+ * that lands in a pocket is carried without being a top-level content.
+ */
 async function carried(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] });
+  const rows = await s.query('me:I', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -241,9 +246,24 @@ const MALT_PORTIONS = 3;
 async function millGristInPortions(): Promise<void> {
   // The rations first — a working body eats, and the store is the
   // general store's.
-  k.close();
-  k = await Session.open(handle, { startLocation: STORE });
-  for (let i = 0; i < MALT_PORTIONS + 2; i++) await say(k, 'buy rations');
+  // ⚠ (soak repair 2026-11-18, size and carrying) Two at a time, set down
+  // on the still-house floor. A ration pack is a discrete thing (not a
+  // stack), so five of them fill both hands and the rest are set down at
+  // the STORE's counter — and a 15 kg sack of malt takes BOTH hands, so
+  // bought with the hands full it was set down at the cash-and-carry and
+  // never reached the quern. A distiller keeps her food by the quern and
+  // fetches the malt with her hands free; `eat` reaches the floor.
+  const RATIONS = MALT_PORTIONS + 2;
+  for (let bought = 0; bought < RATIONS; bought += 2) {
+    k.close();
+    k = await Session.open(handle, { startLocation: STORE });
+    for (let i = bought; i < Math.min(bought + 2, RATIONS); i++) {
+      await say(k, 'buy rations');
+    }
+    k.close();
+    k = await Session.open(handle, { startLocation: FLOOR });
+    await say(k, 'drop rations');
+  }
   k.close();
   k = await Session.open(handle, { startLocation: CASH_AND_CARRY });
   // ⚠ `"malt sack"`, not `malt`: the grist sack answers to `malt` too.
@@ -256,7 +276,9 @@ async function millGristInPortions(): Promise<void> {
   k.close();
   k = await Session.open(handle, { startLocation: FLOOR });
   await waitForDaylight(k);
-  const sacks = await k.query('me:i:[keyword.malt]', { fields: ['displayName'] });
+  // `me:I`: carried anywhere on the body (a hand, a pocket), not only at
+  // the top level.
+  const sacks = await k.query('me:I:[keyword.malt]', { fields: ['displayName'] });
   const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
   expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
   const empties = (await k.query('here:i:[keyword.empty]', {
