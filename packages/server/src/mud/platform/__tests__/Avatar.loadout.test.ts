@@ -23,7 +23,7 @@ import { MixinApi } from "../../api/mixin";
 import { MqlApi } from "../../api/mql";
 import { BankingApi } from "../../api/banking";
 import type { CommandGiver } from "../../lib/command/CommandGiver";
-import type { AetherHost } from "../../lib/message/Aether";
+import type { AetherHost } from "../../lib/augmentation/AetherHost";
 import type { Comms } from "../../lib/comms/Comms";
 import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
 import type { Forums } from "../../lib/forum/Forums";
@@ -70,24 +70,24 @@ function runLoadout(avatar: Avatar): Promise<void> {
   ).installDefaultLoadout();
 }
 
-function hostedUpdates(avatar: Avatar): Stuff[] {
-  return (avatar as unknown as AetherHost).getHostedUpdates() as unknown as Stuff[];
+function hostedApps(avatar: Avatar): Stuff[] {
+  return (avatar as unknown as AetherHost).getHostedApps() as unknown as Stuff[];
 }
 
 function hostedComms(avatar: Avatar): (Stuff & Comms)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & Comms =>
+  return hostedApps(avatar).filter((u): u is Stuff & Comms =>
     MixinApi.isComms(u),
   );
 }
 
 function hostedCredentials(avatar: Avatar): (Stuff & CredentialWallet)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & CredentialWallet =>
+  return hostedApps(avatar).filter((u): u is Stuff & CredentialWallet =>
     MixinApi.isCredentialWallet(u),
   );
 }
 
 function hostedForums(avatar: Avatar): (Stuff & Forums)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & Forums =>
+  return hostedApps(avatar).filter((u): u is Stuff & Forums =>
     MixinApi.isForums(u),
   );
 }
@@ -102,13 +102,13 @@ describe("Avatar.installDefaultLoadout", () => {
           return makeStuff(() => new AetherImplant());
         }
         if (path === CommsUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new CommsUpdate());
+          return withPath(makeStuff(() => new CommsUpdate()), path);
         }
         if (path === CredentialWalletUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new CredentialWalletUpdate());
+          return withPath(makeStuff(() => new CredentialWalletUpdate()), path);
         }
         if (path === ForumsUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new ForumsUpdate());
+          return withPath(makeStuff(() => new ForumsUpdate()), path);
         }
         throw new Error(`unexpected clone: ${path}`);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -193,7 +193,7 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(after).not.toBeNull();
   });
 
-  it("is idempotent on re-entry (keyed on already-hosts-comms)", async () => {
+  it("is idempotent on re-entry (installApp is idempotent by path)", async () => {
     const avatar = makeAvatarOfSpecies([]);
     await runLoadout(avatar);
     await runLoadout(avatar);

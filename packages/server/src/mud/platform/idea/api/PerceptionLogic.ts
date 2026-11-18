@@ -682,8 +682,8 @@ function walkAugmentedModalities(viewer: Stuff): Modality[] {
   // (comms grants none; attunement does), so this is substrate-only —
   // it proves the symmetry without changing behavior today. `isAether`
   // narrows the viewer to an `AetherHost`, so no cast is needed.
-  if (MixinApi.isAether(viewer)) {
-    for (const u of viewer.getHostedUpdates()) {
+  if (MixinApi.isAetherHost(viewer)) {
+    for (const u of viewer.getHostedApps()) {
       addGrants(MixinApi.getActiveMixins(u));
     }
   }
@@ -1782,8 +1782,8 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
   };
   // The apps an implant hosts are on the person with it.
   const pushHosted = (host: Stuff): void => {
-    if (!MixinApi.isAether(host)) return;
-    for (const u of host.getHostedUpdates()) {
+    if (!MixinApi.isAetherHost(host)) return;
+    for (const u of host.getHostedApps()) {
       if (u !== actor) push(u, 'attached');
     }
   };

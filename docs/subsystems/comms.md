@@ -106,7 +106,7 @@ The acoustic verbs are contributed via
 (`['dm.yaml', 'reply.yaml', 'broadcast.yaml', 'chat.yaml']`) — note these
 moved off `AetherMixin` when comms became a hosted update. They reach the
 host's command-source walk through the **hosted-update self-seeding**
-(`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`), with
+(`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`), with
 the comms update as `commandSource` (exactly one source — see the
 [augmentation.md](./augmentation.md) contribution-walk generalization).
 The `chat.yaml` contribution is the channel surface — its substrate

@@ -297,9 +297,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
      */
     registerFor(traveller: Stuff): ActOutcome<RegisterDone> | RegisterRefusal {
       if (!this.isArrival()) return { ok: false, reason: "not-arrival" };
-      const holder = MixinApi.isAether(traveller)
+      const holder = MixinApi.isAetherHost(traveller)
         ? (traveller
-            .getHostedUpdates()
+            .getHostedApps()
             .find(
               (s): s is Stuff & AetherHosted & CredentialWallet =>
                 MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
@@ -517,9 +517,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       // "— not yet registered" reflects IDENTITY clearance (the viewer's own
       // aether-hosted wallet — a single-object read on the viewer's own
       // hosted updates), not whatever card they happen to carry.
-      const holder = MixinApi.isAether(viewer)
+      const holder = MixinApi.isAetherHost(viewer)
         ? (viewer
-            .getHostedUpdates()
+            .getHostedApps()
             .find(
               (s): s is Stuff & AetherHosted & CredentialWallet =>
                 MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
@@ -621,9 +621,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       // own hosted updates). A loaded card handed to another player confers no
       // clearance. When the actor hosts no wallet (un-attuned, card-only) the
       // clearance store is the born-with floor only.
-      const identity = MixinApi.isAether(traveller)
+      const identity = MixinApi.isAetherHost(traveller)
         ? (traveller
-            .getHostedUpdates()
+            .getHostedApps()
             .find(
               (s): s is Stuff & AetherHosted & CredentialWallet =>
                 MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),

@@ -15,7 +15,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { InactiveCapabilityError } from '../security/RequiresActive';
-import type { AetherHost } from '../message/Aether';
+import type { AetherHost } from '../augmentation/AetherHost';
 import type { AetherHosted } from '../augmentation/AetherHosted';
 import type { CalendarKeeping } from './Calendar';
 
@@ -47,7 +47,7 @@ export function CalendarAppMixin<TBase extends MixinConstructor<Stuff>>(
 
     requireCalendarKeeper(verb: string): Stuff & CalendarKeeping {
       const operator = this.getOperator();
-      if (!operator || !MixinApi.isAether(operator)) {
+      if (!operator || !MixinApi.isAetherHost(operator)) {
         throw new InactiveCapabilityError('AetherMixin', verb);
       }
       if (!MixinApi.isCalendarKeeping(operator)) {

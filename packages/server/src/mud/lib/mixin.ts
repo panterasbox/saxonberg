@@ -317,6 +317,7 @@ export const Mixins = {
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
   Aether: 'AetherMixin',
+  AetherHost: 'AetherHostMixin',
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',

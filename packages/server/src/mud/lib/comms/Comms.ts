@@ -102,7 +102,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /**
      * Verbs the comms capability grants. These flow into the host's
      * recency stack via the hosted-update self-seeding
-     * (`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`),
+     * (`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`),
      * with the comms update as `commandSource`.
      */
     static commandContributions: CommandContributions = {
@@ -149,7 +149,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // co-composed on the update class (CommsUpdate / the radio's
       // hosted comms). The cast names that pairing contract.
       const operator = (this as unknown as AetherHosted).getHost();
-      if (!operator || !MixinApi.isAether(operator)) {
+      if (!operator || !MixinApi.isAetherHost(operator)) {
         throw new InactiveCapabilityError("AetherMixin", "tell");
       }
 

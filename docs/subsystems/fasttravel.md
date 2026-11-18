@@ -139,7 +139,7 @@ card. The split is deliberate:
   record. A carried `TravelCard` **or** the born-with implant satisfies
   it, so onboarding and the un-implanted are never stranded.
 - **Clearance** ("are you cleared for *this* destination?") — a direct
-  single-object read over the actor's own `getHostedUpdates()` (one
+  single-object read over the actor's own `getHostedApps()` (one
   level), so clearance is bound to *who the actor is*. `register`
   writes here; the `teleport` fork's `isRegistered` check and
   `renderDepartures`' "not yet registered" annotation read here.

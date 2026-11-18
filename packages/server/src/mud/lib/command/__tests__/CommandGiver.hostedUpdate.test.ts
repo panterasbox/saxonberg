@@ -12,12 +12,13 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandGiverMixin } from '../CommandGiver';
 import { AetherMixin } from '../../message/Aether';
+import { AetherHostMixin } from '../../augmentation/AetherHost';
 import CommsUpdate from '../../../platform/idea/CommsUpdate';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 // A giver that is also an aether host (composes CommandGiver + Aether).
-class TestGiver extends CommandGiverMixin(AetherMixin(Idea)) {}
+class TestGiver extends CommandGiverMixin(AetherHostMixin(AetherMixin(Idea))) {}
 
 const COMMS_VERBS = ['dm', 'reply', 'broadcast', 'chat'];
 
@@ -29,7 +30,7 @@ describe('CommandGiver hosted-update seeding', () => {
   it('hosting a comms update surfaces its verbs with the update as source', () => {
     const giver = makeStuff(() => new TestGiver());
     const comms = makeStuff(() => new CommsUpdate());
-    giver.hostUpdate(comms);
+    giver.hostApp(comms);
 
     const affordances = giver.getAffordances();
     const verbs = affordances.map((a) => a.command.getPrimaryVerb());
@@ -45,10 +46,10 @@ describe('CommandGiver hosted-update seeding', () => {
   it('unhosting retires the verbs', () => {
     const giver = makeStuff(() => new TestGiver());
     const comms = makeStuff(() => new CommsUpdate());
-    giver.hostUpdate(comms);
+    giver.hostApp(comms);
     expect(affordedVerbs(giver)).toContain('dm');
 
-    giver.unhostUpdate(comms);
+    giver.unhostApp(comms);
     const verbs = affordedVerbs(giver);
     for (const v of COMMS_VERBS) expect(verbs).not.toContain(v);
   });

@@ -1736,14 +1736,14 @@ export class CommandApi {
    * the augment/update" pattern). Hosting surfaces the verbs;
    * unhosting retires them — gain/lose-post-spawn live.
    *
-   * Called by `AetherMixin.hostUpdate` / `unhostUpdate`.
+   * Called by `AetherHostMixin.hostApp` / `unhostApp`.
    */
-  static applyHostedUpdateDelta(
+  static applyHostedAppDelta(
     host: Stuff,
     update: Stuff,
     op: 'host' | 'unhost'
   ): void {
-    logic().applyHostedUpdateDelta(host, update, op);
+    logic().applyHostedAppDelta(host, update, op);
   }
 
   /**
@@ -1754,10 +1754,10 @@ export class CommandApi {
    * outside a delta (e.g. a test that hosts then reads affordances)
    * still surfaces their verbs. Returns `[]` for a non-host.
    */
-  static collectHostedUpdateDefs(
+  static collectHostedAppDefs(
     host: Stuff
   ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
-    return logic().collectHostedUpdateDefs(host);
+    return logic().collectHostedAppDefs(host);
   }
 
   /**

@@ -17,6 +17,7 @@ import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
 import type { CommandGiver } from "../../command/CommandGiver";
 import { AetherMixin } from "../../message/Aether";
+import { AetherHostMixin } from "../../augmentation/AetherHost";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { Idea } from "../../stuff/Idea";
@@ -64,7 +65,7 @@ afterEach(() => {
 });
 
 // An attuned actor that can both carry (Container) and host (Aether).
-class Traveller extends AetherMixin(ContainerMixin(ContainableMixin(Idea))) {}
+class Traveller extends AetherHostMixin(AetherMixin(ContainerMixin(ContainableMixin(Idea)))) {}
 
 const isWallet = (s: Stuff): s is Stuff & CredentialWallet =>
   MixinApi.isCredentialWallet(s);
@@ -121,7 +122,7 @@ describe("either-base resolution (one scan finds the holder)", () => {
     const actor = makeStuff(() => new Traveller());
     const wallet = makeStuff(() => new CredentialWalletUpdate());
     wallet.ensureCredential("travel"); // seed/clone mints this in prod
-    (actor as unknown as { hostUpdate: (u: unknown) => void }).hostUpdate(
+    (actor as unknown as { hostApp: (u: unknown) => void }).hostApp(
       wallet,
     );
 

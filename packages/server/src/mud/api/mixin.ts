@@ -38,6 +38,7 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
 import type { Aether } from '../lib/message/Aether';
 import type { AetherHosted } from '../lib/augmentation/AetherHosted';
+import type { AetherHost } from '../lib/augmentation/AetherHost';
 import type { Comms } from '../lib/comms/Comms';
 import type { Forums } from '../lib/forum/Forums';
 import type { CalendarKeeping } from '../lib/calendar/Calendar';
@@ -1181,6 +1182,11 @@ export class MixinApi {
 
   public static isAether(obj: Stuff): obj is Stuff & Aether {
     return this.hasMixin(obj, Mixins.Aether);
+  }
+
+  /** Does `obj` host aether software (apps)? Composition, not tuning. */
+  public static isAetherHost(obj: Stuff): obj is Stuff & AetherHost {
+    return this.hasMixin(obj, Mixins.AetherHost);
   }
 
   public static isAetherHosted(obj: Stuff): obj is Stuff & AetherHosted {

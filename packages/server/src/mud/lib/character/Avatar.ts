@@ -55,6 +55,7 @@ import { ClientStateMixin } from "../connection/ClientState";
 import { BroadcastMixin } from "../livestream/Broadcast";
 import { SaxonbergClientMixin } from "../connection/SaxonbergClient";
 import { AetherMixin } from "../message/Aether";
+import { AetherHostMixin } from "../augmentation/AetherHost";
 import { ContactsMixin } from "../social/Contacts";
 import { WardrobeMixin } from "../slot/Wardrobe";
 import { NotifyPolicyMixin } from "../social/NotifyPolicy";
@@ -154,10 +155,9 @@ export interface AvatarInitContext {
   isGuest?: boolean;
 }
 
-// AetherMixin composes onto Avatar — players have implants (per the
-// char-gen / augmentation slates' diegetic story); NPCs opt in
-// per-class by composing AetherMixin themselves when content requires
-// it. The mixin gates `tell` and (future) chat / remote-emote.
+// AetherMixin composes onto Avatar — every played body can perceive the
+// aether once a tuner confers it; no NPC ever does. AetherHostMixin beside
+// it: a person hosts their own apps (the wallet, calendar and forums).
 // PersistableMixin is composed **outermost** so its persistence-host
 // behaviors (materialize/seed on `onCreate`, capture-on-destruct
 // backstop, the persistable `canEvict` fall-through) wrap the rest. Avatar
@@ -187,6 +187,7 @@ const AvatarBase = PersistableMixin(
         BroadcastMixin(
         ClientStateMixin(
           HasInteractiveMixin(
+            AetherHostMixin(
             AetherMixin(
               // ⭐ A played person keeps a personal calendar (D12) — dated
               // reminders on the implant. Inside PersistableMixin, so the
@@ -223,6 +224,7 @@ const AvatarBase = PersistableMixin(
         ),
       ),
     ),
+  ),
   ),
   ),
   ),
@@ -1319,28 +1321,24 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   /**
-   * Install the v1 default loadout — attune the avatar, then inject the
-   * default hosted updates (comms + the travel credential). Called from
-   * `onCreate`, runs once per clone (every login, since the runtime
-   * Avatar is destructed at logout and re-cloned on the next session).
+   * Install the default loadout — attune the avatar, then install the
+   * person's default apps (comms, forums, the wallet, the calendar).
+   * Called from `onCreate`, and again after a returning player's
+   * materialize.
    *
-   * Keys off **whether the avatar is attuned by any source**: if
-   * `AetherMixin` isn't already active (a born-attuned species confers
-   * it intrinsically), occupy the `AetherImplant` in the cranial slot to
-   * confer it. Either way the avatar is then an `AetherHost`, so inject
-   * the two default updates onto it.
+   * Attunement: if `AetherMixin` isn't already active (a born-attuned
+   * species confers it intrinsically), seat the `AetherImplant` in an
+   * empty cranial slot to confer it.
    *
-   * Idempotency keys off **"already hosts a comms update"** — correct
-   * for both paths (a born-attuned avatar never occupies cranial).
-   * Session-durable persistence is preserved: the credential update is
-   * re-cloned each session, so `registered` resets to the born-with
-   * floor each login.
+   * ⭐ Every step is idempotent, so there is no "already ran" guard: the
+   * implant only fills an empty slot, and `installApp` returns an app
+   * already installed (aether-devices D2) — a restored person's installed
+   * list stands their apps up first. The wallet relinks every time.
    *
-   * Stand-in for char-gen's baseline issuance; when char-gen ships, the
-   * loadout install moves there. Defensive wrapper around the whole body
-   * so a missing seed / species / body plan in a fresh dev DB doesn't
-   * crash the clone cascade — failures log and the sense / dm verbs
-   * surface their own polite refusals downstream.
+   * Defensive wrapper around the whole body so a missing seed / species /
+   * body plan in a fresh dev DB doesn't crash the clone cascade — failures
+   * log and the sense / dm verbs surface their own polite refusals
+   * downstream.
    */
   protected async installDefaultLoadout(): Promise<void> {
     try {
@@ -1350,18 +1348,11 @@ export default abstract class Avatar extends AvatarBase {
       // intrinsic conferral resolves).
       await SpeciesApi.preloadAnatomy(this);
 
-      // Avatar composes AetherMixin, so the host surface
-      // (`getHostedUpdates` / `hostUpdate`) is on `this` directly — no
-      // cast. The `isAether` guards stay as cheap runtime checks.
-
-      // Idempotency: already hosting a comms update means the loadout
-      // ran on this clone.
-      if (
-        MixinApi.isAether(this) &&
-        this.getHostedUpdates().some((u) => MixinApi.isComms(u))
-      ) {
-        return;
-      }
+      // ⭐ No "already ran" guard: every step below is idempotent — the
+      // implant only fills an empty cranial slot, `installApp` returns an
+      // app already installed (aether-devices D2). A restored person's
+      // installed list stands their apps up before this runs, and the
+      // wallet still relinks below.
 
       // Attune by some source. A born-attuned species already has
       // AetherMixin active — skip the implant. Otherwise occupy the
@@ -1398,24 +1389,16 @@ export default abstract class Avatar extends AvatarBase {
         }
       }
 
-      // Inject the default updates — only if attunement made this a
-      // usable host (implant occupied or species-born).
-      if (!MixinApi.isAether(this)) return;
-      const comms = await StuffApi.clone<CommsUpdate>(
-        CommsUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(comms);
-      const forums = await StuffApi.clone<ForumsUpdate>(
-        ForumsUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(forums);
+      // Install the default apps through the one way software gets onto a
+      // host (aether-devices D2).
+      await this.installApp(CommsUpdate.TEMPLATE_PATH);
+      await this.installApp(ForumsUpdate.TEMPLATE_PATH);
       // One wallet app holds every credential kind (payment + travel),
       // replacing the per-credential implant twins. Its seed ships an empty
       // payment record and a floored travel record.
-      const wallet = await StuffApi.clone<CredentialWalletUpdate>(
+      const wallet = (await this.installApp(
         CredentialWalletUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(wallet);
+      )) as unknown as CredentialWalletUpdate;
       // ⭐ The accounts are the record; the wallet app is re-cloned every
       // login, so it links again whatever this person banks with — after
       // a server restart it held none, and nothing they bought anywhere
@@ -1425,12 +1408,8 @@ export default abstract class Avatar extends AvatarBase {
         const pay = wallet.ensureCredential("payment");
         for (const id of await BankingApi.accountIdsOf(me)) pay.linkAccount(id);
       }
-      // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet,
-      // re-provisioned every login exactly as they are.
-      const calendar = await StuffApi.clone<CalendarUpdate>(
-        CalendarUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(calendar);
+      // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet.
+      await this.installApp(CalendarUpdate.TEMPLATE_PATH);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

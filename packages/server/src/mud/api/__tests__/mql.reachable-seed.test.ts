@@ -114,14 +114,15 @@ describe('MQL reachable seed — corporeal legs', () => {
 // ─── Three-base capability model: self + host-descent legs ──────────
 
 import { AetherMixin } from '../../lib/message/Aether';
+import { AetherHostMixin } from '../../lib/augmentation/AetherHost';
 import { AetherHostedMixin } from '../../lib/augmentation/AetherHosted';
 
 // An attuned actor: hosts updates (AetherMixin) + carries inventory.
-class AttunedActor extends AetherMixin(
+class AttunedActor extends AetherHostMixin(AetherMixin(
   ContainerMixin(ContainableMixin(Idea)),
-) {}
+)) {}
 // A carried attuned Thing (the future radio): a host you carry.
-class CarriedRadio extends AetherMixin(ContainableMixin(Idea)) {}
+class CarriedRadio extends AetherHostMixin(AetherMixin(ContainableMixin(Idea))) {}
 // An incorporeal hosted update.
 class HostedUpdate extends AetherHostedMixin(Idea) {}
 
@@ -170,7 +171,7 @@ describe('MQL reachable seed — self + host-descent legs', () => {
 
   it('host-descent (self): an update hosted on the actor is found', () => {
     const update = makeStuff(() => new HostedUpdate());
-    actor.hostUpdate(update);
+    actor.hostApp(update);
     expect(findIn(reachableFrom(actor), update.stuffId)).toBe(update);
   });
 
@@ -178,18 +179,18 @@ describe('MQL reachable seed — self + host-descent legs', () => {
     const radio = makeStuff(() => new CarriedRadio());
     ContainmentApi.move(radio, actor);
     const update = makeStuff(() => new HostedUpdate());
-    radio.hostUpdate(update);
+    radio.hostApp(update);
     expect(findIn(reachableFrom(actor), update.stuffId)).toBe(update);
   });
 
   it('order: a self-hosted update wins over a carried match', () => {
     const update = makeStuff(() => new HostedUpdate());
-    actor.hostUpdate(update);
+    actor.hostApp(update);
     const carried = makeStuff(() => new HostedUpdate());
     // Park a second matchable update on a carried radio.
     const radio = makeStuff(() => new CarriedRadio());
     ContainmentApi.move(radio, actor);
-    radio.hostUpdate(carried);
+    radio.hostApp(carried);
 
     expect(
       findIn(reachableFrom(actor), update.stuffId, carried.stuffId),

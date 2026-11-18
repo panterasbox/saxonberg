@@ -26,7 +26,7 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { InactiveCapabilityError } from '../security/RequiresActive';
 import type { AetherHosted } from '../augmentation/AetherHosted';
-import type { AetherHost } from '../message/Aether';
+import type { AetherHost } from '../augmentation/AetherHost';
 
 export interface Forums {
   /**
@@ -47,7 +47,7 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
     /**
      * Verbs the forum capability grants. Flows into the host's recency
      * stack via the hosted-update self-seeding
-     * (`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`),
+     * (`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`),
      * with the forum update as `commandSource`.
      */
     static commandContributions: CommandContributions = {
@@ -66,7 +66,7 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
 
     requireOperator(verb: string): Stuff & AetherHost {
       const operator = this.getOperator();
-      if (!operator || !MixinApi.isAether(operator)) {
+      if (!operator || !MixinApi.isAetherHost(operator)) {
         throw new InactiveCapabilityError('AetherMixin', verb);
       }
       return operator;

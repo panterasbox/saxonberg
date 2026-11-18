@@ -20,7 +20,8 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
-import { AetherMixin, type AetherHost } from '../../../../../lib/message/Aether';
+import { AetherMixin } from '../../../../../lib/message/Aether';
+import { AetherHostMixin, type AetherHost } from '../../../../../lib/augmentation/AetherHost';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SlottedMixin } from '../../../../../lib/slot/Slotted';
@@ -38,7 +39,7 @@ import type { MqlManyResult } from '../../../../../api/mql';
 import type { FieldMeta } from '../../../../../lib/mixin';
 
 class Actor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
+  AetherHostMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good))))),
 ) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [
@@ -121,9 +122,9 @@ describe('DmController', () => {
     const alice = makeActor('Alice', true);
     const bob = makeActor('Bob', true);
     const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
+    alice.hostApp(aliceComms);
     const bobComms = makeStuff(() => new CommsUpdate());
-    bob.hostUpdate(bobComms);
+    bob.hostApp(bobComms);
 
     const controller = makeStuff(() => new DmController());
     const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);
@@ -159,7 +160,7 @@ describe('DmController', () => {
     const alice = makeActor('Alice', true);
     const bob = makeActor('Bob', false); // no implant → no verbal-esp
     const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
+    alice.hostApp(aliceComms);
 
     const controller = makeStuff(() => new DmController());
     const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);

@@ -556,7 +556,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       await super.onCreate(_context);
       const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
-      this._seedHostedUpdateSources();
+      this._seedHostedAppSources();
     }
 
     /**
@@ -677,7 +677,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // helpers, ad-hoc scripts): surface any hosted updates' verbs
       // even when the host gained them outside a host/unhost delta.
       // Idempotent — `pushCommandSource` dedupes by (source, bucket).
-      this._seedHostedUpdateSources();
+      this._seedHostedAppSources();
     }
 
     /**
@@ -689,9 +689,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      *
      * @internal
      */
-    private _seedHostedUpdateSources(): void {
+    private _seedHostedAppSources(): void {
       const giver = this as unknown as Stuff;
-      for (const { source, defs } of CommandApi.collectHostedUpdateDefs(
+      for (const { source, defs } of CommandApi.collectHostedAppDefs(
         giver
       )) {
         this.pushCommandSource(source, 'self', defs);

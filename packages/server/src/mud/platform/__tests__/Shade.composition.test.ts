@@ -127,7 +127,7 @@ describe('ShadeAvatar — activations differ, composition does not', () => {
 
   it('carries no credential wallet — which is what confines it to the commons', async () => {
     const sh = await shadeFor('ghost-8');
-    const updates = MixinApi.isAether(sh) ? sh.getHostedUpdates() : [];
+    const updates = MixinApi.isAetherHost(sh) ? sh.getHostedApps() : [];
     const hasWallet = updates.some((u) => MixinApi.isCredentialWallet(u));
     expect(hasWallet).toBe(false);
   });

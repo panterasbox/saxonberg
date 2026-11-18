@@ -289,11 +289,11 @@ what says no *physical* modality may ever be granted that way.)
   must-be-hosted invariant. The capability mixin (`CommsMixin`,
   `CredentialWalletMixin`) co-composes on the same update class
   (`CommsUpdate`, `CredentialWalletUpdate`).
-- **Host side** — `AetherMixin` carries `_hostedUpdates` (the
+- **Host side** — `AetherMixin` carries `_hostedApps` (the
   source-of-truth collection) and the sealed chokepoints
-  `hostUpdate` / `unhostUpdate` (`@Final @Unshadowable`).
-  `hostUpdate` pushes + back-refs + notifies command routing;
-  `unhostUpdate` removes + retires contributions + **destroys an
+  `hostApp` / `unhostApp` (`@Final @Unshadowable`).
+  `hostApp` pushes + back-refs + notifies command routing;
+  `unhostApp` removes + retires contributions + **destroys an
   orphaned update** (the must-be-hosted invariant).
 - **The invariant lives on the relation, NOT on `Idea`.** A bare `Idea`
   (Biome / Zone / Controller) composes no `AetherHostedMixin` and is
@@ -330,8 +330,8 @@ concept and a single level; do not teach the seed another leg.
 The surfaces that already aggregate slotted-augment contributions extend
 to include a host's hosted updates:
 
-- **Command-source** — `CommandApi.collectHostedUpdateDefs` +
-  `applyHostedUpdateDelta` push each hosted update's `self`-bucket verbs
+- **Command-source** — `CommandApi.collectHostedAppDefs` +
+  `applyHostedAppDelta` push each hosted update's `self`-bucket verbs
   onto the host's recency stack with the update as `commandSource`.
   `CommandGiverMixin` seeds them in `onCreate` and the lazy
   `_ensureSelfEntry` safety net; host/unhost surfaces/retires them live

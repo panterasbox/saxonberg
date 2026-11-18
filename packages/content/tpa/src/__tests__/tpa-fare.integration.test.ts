@@ -10,6 +10,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
+import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { MobileMixin } from "@saxonberg/server/mud/lib/spatial/Mobile";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
@@ -65,13 +66,13 @@ const TPA_BIZ = "/world/test/fare/tpa";
 class Node extends FastTravelMixin(Good) {
   static _mixinName = "Node";
 }
-class Traveller extends AetherMixin(
+class Traveller extends AetherHostMixin(AetherMixin(
   MobileMixin(
     SensorMixin(
       CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Agent)))),
     ),
   ),
-) {
+)) {
   static _mixinName = "Traveller";
 }
 
@@ -134,7 +135,7 @@ function makeWalletTraveller(name: string): Traveller {
     return a;
   });
   const wallet = makeStuff(() => new CredentialWalletUpdate());
-  (t as unknown as { hostUpdate(u: Stuff): void }).hostUpdate(wallet);
+  (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   // Identity clearance for ARRIVE (so the ride is gated on funds, not
   // registration).
   wallet.getCredential("travel")!.register(ARRIVE);
@@ -202,11 +203,11 @@ async function tpaBal(): Promise<number> {
 /** The traveller's identity wallet (the hosted CredentialWalletUpdate —
  *  a single-object read on the traveller's own hosted updates). */
 function walletOf(t: Stuff): CredentialWallet {
-  if (!MixinApi.isAether(t)) {
+  if (!MixinApi.isAetherHost(t)) {
     throw new Error("traveller is not an aether host");
   }
   return t
-    .getHostedUpdates()
+    .getHostedApps()
     .find(
       (s): s is Stuff & AetherHosted & CredentialWallet =>
         MixinApi.isCredentialWallet(s),

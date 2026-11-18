@@ -22,6 +22,7 @@ import ManaCell from "@saxonberg/content-arcana/src/thing/ManaCell";
 import ManaMain from "@saxonberg/content-arcana/src/thing/ManaMain";
 import { BATTERY_SLOT } from "@saxonberg/content-arcana/src/lib/ManaPowered";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
+import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { MobileMixin } from "@saxonberg/server/mud/lib/spatial/Mobile";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
@@ -53,7 +54,7 @@ const DEPART = "/world/test/mana/depart";
 const ARRIVE = "/world/test/mana/arrive";
 const MAIN = "/world/test/mana/main";
 
-class Traveller extends AetherMixin(
+class Traveller extends AetherHostMixin(AetherMixin(
   EnvironmentMixin(
     MobileMixin(
       SensorMixin(
@@ -61,7 +62,7 @@ class Traveller extends AetherMixin(
       ),
     ),
   ),
-) {
+)) {
   static _mixinName = "Traveller";
 }
 
@@ -121,7 +122,7 @@ function traveller(name: string): Traveller {
     return a;
   });
   const wallet = makeStuff(() => new CredentialWalletUpdate());
-  (t as unknown as { hostUpdate(u: Stuff): void }).hostUpdate(wallet);
+  (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   wallet.getCredential("travel")!.register(ARRIVE);
   return t;
 }

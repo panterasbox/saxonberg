@@ -11,7 +11,8 @@ import { StuffApi } from '../../../api/stuff';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
-import { AetherMixin, type AetherHost } from '../../message/Aether';
+import { AetherMixin } from '../../message/Aether';
+import { AetherHostMixin, type AetherHost } from '../../augmentation/AetherHost';
 import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { SlottedMixin } from '../../slot/Slotted';
@@ -31,7 +32,7 @@ import type { FieldMeta } from '../../mixin';
 // An attuned, embodied actor: Slotted (carries the implant) + Aether
 // (the host) + Sensor (hears its own self frame) + Named + Organism.
 class AttunedActor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
+  AetherHostMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good))))),
 ) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [
@@ -88,9 +89,9 @@ describe('CommsMixin (comms-as-update)', () => {
     const alice = makeAttuned('Alice');
     const bob = makeAttuned('Bob');
     const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
+    alice.hostApp(aliceComms);
     const bobComms = makeStuff(() => new CommsUpdate());
-    bob.hostUpdate(bobComms);
+    bob.hostApp(bobComms);
 
     aliceComms.tell(bob as unknown as Stuff, 'hello there');
 

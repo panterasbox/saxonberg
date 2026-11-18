@@ -503,10 +503,10 @@ including the one documented `AetherHosted` cast naming the orthogonal
 co-composition.
 
 It is **born-with**: `Avatar.installDefaultLoadout` clones a
-`ForumsUpdate` and `hostUpdate`s it onto the Avatar's aether, alongside
+`ForumsUpdate` and `hostApp`s it onto the Avatar's aether, alongside
 the comms + travel-credential updates. The `forum` verbs surface on the
 host's recency stack via the hosted-update self-seeding
-(`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`); the
+(`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`); the
 controller reaches the holder's update via the `commandSource` that
 afforded the verb, else the MQL `reachable` pool filtered on
 `MixinApi.isForums` (the `DmController` fallback).

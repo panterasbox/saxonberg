@@ -16,6 +16,7 @@ import RegisterController from "../idea/cmd/movement/RegisterController";
 import TravelCard from "../thing/TravelCard";
 import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
+import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { MobileMixin } from "@saxonberg/server/mud/lib/spatial/Mobile";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
@@ -53,13 +54,13 @@ const ARRIVE = "/world/test/arrive"; // restricted destination (arrival-capable)
 
 // An attuned traveller: hosts updates (identity wallet), carries inventory,
 // moves, gives + receives commands.
-class Traveller extends AetherMixin(
+class Traveller extends AetherHostMixin(AetherMixin(
   MobileMixin(
     SensorMixin(
       CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Agent)))),
     ),
   ),
-) {
+)) {
   static _mixinName = "Traveller";
 }
 
@@ -166,16 +167,16 @@ function makeTraveller(name: string): Traveller {
   });
   // Give it a born-with identity wallet (the aether-hosted CredentialWallet).
   const wallet = makeStuff(() => new CredentialWalletUpdate());
-  (t as unknown as { hostUpdate(u: Stuff): void }).hostUpdate(wallet);
+  (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   return t;
 }
 
 function identityTravel(t: Stuff): CredentialWallet {
   // A single-object read on the traveller's own hosted updates (the old
   // findHostedUpdate leg-2 isolation, now a direct read).
-  const w = MixinApi.isAether(t)
+  const w = MixinApi.isAetherHost(t)
     ? (t
-        .getHostedUpdates()
+        .getHostedApps()
         .find(
           (s): s is Stuff & AetherHosted & CredentialWallet =>
             MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
