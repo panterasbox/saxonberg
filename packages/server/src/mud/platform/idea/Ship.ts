@@ -2081,7 +2081,9 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * row's `extent` is her PLAN, and every smack's rooms are keyed copies of
    * its rows — so no path is hers alone, and `hasMember`, her landings and
    * her resident members read nothing off it (her warren's `structureOf`
-   * answers for her rooms). An authored ship's extent is her own rooms.
+   * answers for her rooms). An authored ship is a single copy of her kind
+   * (zone-instancing D12), told the same way — a lookup by a room's PATH
+   * never answers a ship.
    *
    * @hook
    */

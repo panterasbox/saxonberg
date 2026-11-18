@@ -805,6 +805,7 @@ MetabolicMixin.metabolicClockStamp = 0
 MetabolicMixin.solidVolume = 0
 MetabolicMixin.toxinBurdens = 0
 MetabolicMixin.toxinMakers = 0
+MintedZone.mintedBy = 0
 MixtureMixin.composition = 0
 Modality.family = 0
 Modality.modality = 0
@@ -1151,6 +1152,7 @@ Ship.moored = 0
 Ship.overboard = 0
 Ship.owed = 0
 Ship.registeredName = 0
+Ship.serial = 0
 Ship.settled = 0
 Ship.settling = 0
 Ship.shipRegister = 0
@@ -1496,7 +1498,10 @@ WorkspaceMixin.sourceCwd = 0
 WorldClockState.elapsedGameTimeS = 0
 WorldClockState.lastShutdownRealMs = 0
 WorldClockState.scale = 0
-Zone.name = 0"
+Zone.name = 0
+ZoneMintingMixin._copyZones = 0
+ZoneMintingMixin.joins = 0
+ZoneMintingMixin.zoneNaming = 0"
 `;
 
 exports[`⭐ the composition panel’s surfaceable fields (28) > SNAPSHOT: the fields deliberately declared as spoilers 1`] = `
