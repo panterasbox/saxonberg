@@ -385,9 +385,9 @@ of HER copy, a way out (her `ashore`, her `side`) as authored. The plan's
 rows are never served: the location graph attaches nothing for a
 Structure row whose rooms a `warren:` mints, and a kind's membership is
 her warren's, never a path (`Structure.memberExtent` answers `''` for
-her). An AUTHORED ship (the Hesper) copies no plan: her own rows are the
-place, and they are served — her warren (`ShipWarren/authored`) adopts
-her live rooms. ⭐ Only her HOLD keeps a record (`platform/location/Hold`
+her). An AUTHORED ship (the Hesper) is a single copy of her kind: her
+warren (`ShipWarren/authored`) copies her own rows into her zone,
+`<her zone row>/<serial>`, as a smack's are (zone-instancing D12). ⭐ Only her HOLD keeps a record (`platform/location/Hold`
 = `Persistable(Compartment)`); her deck and cabin are plain rooms the
 warren stands up again at wake, and before she sleeps `ShipWarren.stow`
 moves what is loose up top into the hold. Her register, her company's

@@ -69,8 +69,9 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   zone a way joins ADJACENT cells through OPPOSITE sides and its opening
   (the way's own, `Exit.getOpening`) fits the face — or it is a **track**
   (`kind: /platform/idea/exits/track`), the long walk over open ground to a
-  place on its bearing with no room between. Across zones (or a holding's
-  own frame) a way is a threshold and nothing is checked; a way that breaks
+  place on its bearing with no room between. Across zones (a holding, a
+  ship, a patch is a zone of its own) a way is a threshold and nothing is
+  checked; a way that breaks
   a rule installs **unbuilt** with a diagnostic, and `lint:locations`
   (`wayEdges`) checks it from the rows' `coords:` and `kind:`. See
   [boundary.md § The edge rules](./boundary.md#the-edge-rules--every-way-inside-a-zone-is-true-to-the-grid).
@@ -699,15 +700,15 @@ place its cell:
 | an authored row (`Locale`, `Street`, `Offstage`…) | its own `coords:` in its zone |
 | a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
 | a lounge satellite, a mine cell | its warren (`LoungeWarren.wireHubExit`, `MineWarren.placeInGrid`) |
-| a holding's room (a house, a let unit, a dorm room, a field) | the HOLDING's own frame — `HoldingWarren.layOut`: the entry room at the origin, the floorplan's cardinal exits from it; a room plotted off by name sits in the row beyond the house |
+| a holding's or a ship's room (a house, a let unit, a dorm room, a field, a deck) | its plan row's own `coords:` — on the grid of the COPY's zone, reflected when the copy is mirrored ([zone.md § Copies](./zone.md)) |
 | a circle's floor, a tombstone | the origin of a frame of its own |
 
-⚠ A holding is a frame, not a patch of the street's grid: every house of a
-plat would otherwise claim the same cells, and the generic
-`/stuff/location/room/*` rows resolve no zone. So a door between a
+⚠ A holding is a zone of its own, not a patch of the street's grid: every
+house of a plat would otherwise claim the same cells. So a door between a
 holding's room and the grid outside it (the dorm's `unit-3` and `out`)
-crosses frames and may be named, as a door between zones may
-(`Warren.laysOutOwnFrame`, read in `Location.addExit`).
+crosses zones and may be named, as any door between zones may — judged by
+the zones that STAND (`Location.addExit`). Until the zone-instancing build
+this was a per-holding "frame" (`Warren.laysOutOwnFrame`), retired.
 
 ⭐ **A room's size is its zone's cell** (user: *"room size need to be
 bound to the zone — if it's not that's a bug"*); an authored `extent`
