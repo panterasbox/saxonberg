@@ -128,3 +128,67 @@ recipe (the vatting shape) rather than a pour, exactly as blending did.
 **The grappa / pomace schedule** — cut from the whiskey build because
 the pomace *material* is tagged `solid` and bulk is liquid in v1. Nothing
 was lost: the grappa recipe had never run either.
+
+## The overnight drive (2026-08-31, moved from call-security-performance-slate 2026-11-18)
+
+The performance work was never the point; it was what made the world
+drivable. With a dispatch at 2.1 µs and the economy funded, the whole
+libations acceptance surface came within reach in one session.
+
+**Checklist items verified live, on a world dropped and rebuilt from
+nothing:** 1 (fresh boot), 2 (the back loop — Mara restocking with no
+player: `cogs -309, wages -68, subsidy 20000`), 3 (the keeper loop, no
+wizard), 4 (the tablet in a stranger's hands: the sheet shows, the wallet
+refuses), 5 (**a drink**), 6 (the glass pool), 8 (packs + lints).
+
+⭐ **The drink, end to end, scripted from an empty world:** a player
+hired by Dave through his dialogue tree, `wallet use house`, eleven
+purchases at the cash-and-carry stamped to the bar, carried back,
+shelved, ice poured into the bin — then:
+
+```
+order gin & tonic  -> a highball glass is set down in front of you.
+look highball      -> "A tall straight-sided glass. It is on the rocks,
+                      fizzing, with a lime. It looks fair: honestly made,
+                      if unremarkable. Made by Remy. It holds a gin and
+                      tonic, fizzing over ice.  In it: a lime."
+feel highball      -> "A highball glass feels cool."
+```
+
+Garnish, carbonation, ice, grade, crafted provenance, temperature — the
+plan's own acceptance line ("a G&T colder than the rail — `feel`") in
+one read.
+
+#### The bugs the drive found, in the order they mattered
+
+1. **Nothing funded the world.** Money supply 0; every venue drifting
+   negative on wages; `buy` refused. → `banking.openingCapital`.
+2. **The supply aggregate raced itself** — nine businesses opening at
+   once wrote six `bank_supply` rows. Exposed, not caused, by (1).
+3. **A disambiguated pick anchored focus on the WORD**, so every later
+   command re-asked and the session went silent. → `#<stuffId>`.
+4. **`feel` and `taste` had never run.** Both verbs, both validators,
+   both modality singletons ship — and no body plan granted touch or
+   taste. A verb gated on a capability nothing confers fails closed and
+   quietly forever.
+5. **Six keyword collisions in one room**, and the substring rule
+   underneath them (`kw.includes(query)` — a keyword claims every word
+   inside it).
+
+#### ⚠ Still open
+
+- Item 7: **the card arm is verified** — the clean two-socket test I
+  should have run first. The keeper drives the tablet RESTING in the
+  room; both sockets receive `card-opened stock/"house stock"`, and the
+  bystander gets only the card, never the keeper's prose. *The display
+  you can see shows X.*
+  ⚠ My earlier "the bystander never got it" was two mistakes at once: a
+  dead WebSocket, and a tablet in someone's POCKET (which correctly
+  shows nobody — `sees()` needs to perceive the screen). The video arm
+  stays undrivable: no row ships one, by ruling.
+- Dilution over a game-hour, the mojito's `muddled` marker, and the
+  bitters 1 mL debit: not yet driven.
+- `put ice in bin` answers "an ice bin isn't a place". Correct — the bin
+  is Bulkable and the verb is `pour ice into bin`, which is what the
+  restocks brain does — but the message helps nobody, and the plan's own
+  checklist says `put … in bin`.

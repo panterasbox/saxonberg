@@ -4,11 +4,12 @@
 > the boot work shipped →
 > [call-security.md](../../subsystems/call-security.md) ·
 > [persistence.md](../../subsystems/persistence.md)
-> **Left:** `findDescriptor` accessor-ness caching · the static-Api apply
-> thunk · hoisting the viewer-invariant checks out of `describeCore` ·
-> `pushDirect`'s second `describeCore` entry · three small libations-
-> drive loose ends (§8, arguably belongs on libations-slate rather than
-> here — see the compaction ledger)
+> **Left:** in requirements 2026-11-18 →
+> [call-security-performance-requirements.md](../../requirements/call-security-performance-requirements.md):
+> the per-read descriptor walk (⭐ the world's largest item, not the
+> smallest) · the proxy read trap · the frame push + async context · the
+> static-Api apply thunk · hoisting the viewer-invariant checks out of
+> `describeCore` · the double describe in the keyword path
 > **Size:** a tail
 
 *2026-08-30, from the libations live drive (MR !206). The founder's
@@ -85,69 +86,13 @@ persistence.md — see Handoff in the compaction ledger.
 
 ---
 
-## 8. The overnight drive (2026-08-31) — what the fixed gate made reachable
+## 8. The overnight drive — moved to libations-slate
 
-The performance work was never the point; it was what made the world
-drivable. With a dispatch at 2.1 µs and the economy funded, the whole
-libations acceptance surface came within reach in one session.
-
-**Checklist items verified live, on a world dropped and rebuilt from
-nothing:** 1 (fresh boot), 2 (the back loop — Mara restocking with no
-player: `cogs -309, wages -68, subsidy 20000`), 3 (the keeper loop, no
-wizard), 4 (the tablet in a stranger's hands: the sheet shows, the wallet
-refuses), 5 (**a drink**), 6 (the glass pool), 8 (packs + lints).
-
-⭐ **The drink, end to end, scripted from an empty world:** a player
-hired by Dave through his dialogue tree, `wallet use house`, eleven
-purchases at the cash-and-carry stamped to the bar, carried back,
-shelved, ice poured into the bin — then:
-
-```
-order gin & tonic  -> a highball glass is set down in front of you.
-look highball      -> "A tall straight-sided glass. It is on the rocks,
-                      fizzing, with a lime. It looks fair: honestly made,
-                      if unremarkable. Made by Remy. It holds a gin and
-                      tonic, fizzing over ice.  In it: a lime."
-feel highball      -> "A highball glass feels cool."
-```
-
-Garnish, carbonation, ice, grade, crafted provenance, temperature — the
-plan's own acceptance line ("a G&T colder than the rail — `feel`") in
-one read.
-
-### The bugs the drive found, in the order they mattered
-
-1. **Nothing funded the world.** Money supply 0; every venue drifting
-   negative on wages; `buy` refused. → `banking.openingCapital`.
-2. **The supply aggregate raced itself** — nine businesses opening at
-   once wrote six `bank_supply` rows. Exposed, not caused, by (1).
-3. **A disambiguated pick anchored focus on the WORD**, so every later
-   command re-asked and the session went silent. → `#<stuffId>`.
-4. **`feel` and `taste` had never run.** Both verbs, both validators,
-   both modality singletons ship — and no body plan granted touch or
-   taste. A verb gated on a capability nothing confers fails closed and
-   quietly forever.
-5. **Six keyword collisions in one room**, and the substring rule
-   underneath them (`kw.includes(query)` — a keyword claims every word
-   inside it).
-
-### ⚠ Still open
-
-- Item 7: **the card arm is verified** — the clean two-socket test I
-  should have run first. The keeper drives the tablet RESTING in the
-  room; both sockets receive `card-opened stock/"house stock"`, and the
-  bystander gets only the card, never the keeper's prose. *The display
-  you can see shows X.*
-  ⚠ My earlier "the bystander never got it" was two mistakes at once: a
-  dead WebSocket, and a tablet in someone's POCKET (which correctly
-  shows nobody — `sees()` needs to perceive the screen). The video arm
-  stays undrivable: no row ships one, by ruling.
-- Dilution over a game-hour, the mojito's `muddled` marker, and the
-  bitters 1 mL debit: not yet driven.
-- `put ice in bin` answers "an ice bin isn't a place". Correct — the bin
-  is Bulkable and the verb is `pour ice into bin`, which is what the
-  restocks brain does — but the message helps nobody, and the plan's own
-  checklist says `put … in bin`.
+The libations drive record and its three loose ends (dilution over a game
+hour, the mojito's `muddled` marker, the bitters debit, `put ice in bin`'s
+message) moved to
+[libations-slate § The overnight drive](../trades/libations-slate.md) on
+2026-11-18. They were the bar's, not the gate's.
 
 ## Cross-references
 
@@ -169,3 +114,29 @@ crowded-rooms cut; after that build the empty world idles at 0.17 of a core,
 and what remains is the cast's own acts at content's cadence running on this
 tax (the owner accepted 0.17 against the 0.15 target rather than pull either
 lever).
+
+## Reuse ledger for the plan (2026-11-18)
+
+Every concept the build needs, and what already does it. Line numbers are
+from master at a6cf85555.
+
+| concept | what does it today | this build |
+|---|---|---|
+| a per-class cache that hot reload invalidates | `SecurityApi.resolveCallPolicy`'s `#policyCache`, keyed weakly on the constructor and stamped with `#policyGeneration` that every policy writer bumps | **reuse the shape** for the descriptor (accessor-ness) cache. ⚠ Its invalidation must also follow a hot-reload prototype swap, not just a policy write: check what `HotReloadApi` mutates (a new class, or methods on the old prototype) before choosing the key |
+| the per-read getter test | `findDescriptor` (`api/proxy.ts`): walks the prototype chain with `getOwnPropertyDescriptor`, allocating a descriptor per level, on EVERY get-trap read that is not a passthrough key | **replace** with a cached accessor-or-not answer per (prototype, prop). An own instance field still answers from the instance first |
+| the per-proxy method-wrapper cache | `wrapperCache` (a `WeakMap` per `ProxyApi.wrap`), keyed by the raw function | **reuse**; it already keeps `obj.foo === obj.foo` |
+| the single-interceptor fast path | `ProxyApi.#runPipeline`'s `length === 1` branch | **reuse**; no chain is built |
+| the caller-proof-per-call-site claim | `claimFramePush` / `_frameMutatorAllowlist` (`lib/security/execution-context.ts`) | **reuse**; untouched |
+| the frame stack | `FrameNode` linked list, `_pushFrame` (`api/execution-context.ts:42`), over `AsyncLocalStorage.run` | **measure first**; ALS `run` + `getStore` + `executionAsyncResource` were ~6% together. A cut here must keep async propagation exact |
+| the static-Api wrapper | `decorateApiClass` → `wrapped` (`api/security.ts` ~660), one `body.apply` thunk per call | **cut the thunk**; keep `_callSecWrapped` and the name |
+| the static-policy lookup | `resolveStaticCallPolicy` (1.5% of busy) | **cache** with the same generation stamp as the instance form, if it is not already |
+| the gate's unwrapped collaborators | `ShadowApi._gateEntries()` | **reuse**; untouched |
+| the recognition entry checks | `describeCore` (`platform/idea/api/RecognitionLogic.ts:372`, checks at :406) and the twin at :539: `MixinApi.isSensor(viewer)` / `isPerception(viewer)` per candidate | **hoist** to once per walk where the walk has one viewer |
+| the keyword path's double describe | `perceivedKeywordsImpl` (:548) calls `describeCore` twice (`concise`, `distinguishing`, :560–561) and `pushDirect` calls `describe` beside it | **share** one result per (viewer, target) within the call, not across resolves (the per-resolve cache was rated low value) |
+| the instruments | `scripts/bench-gate.ts`; `WIRE_CPU_PROF` (`packages/wire/runner/boot.ts`); `crowd-timing.dirty.wire.test.ts`, the quiet-box procedure | **reuse**; the drive is these, before and after |
+| the tamper / inert / self-heal guarantees | the destroyed-object guard in the security interceptor; R2.3 self-heal in the get trap; the `_isMockFunction` passthrough | **reuse unchanged**; each is a drive step or a test that must stay green |
+
+Outside this layer, seen in the same profile, NOT this build's: the
+`PathTrie.#walk` (3.5%) and `MixinApi.hasMixin` (2.6%). Recorded for
+whichever build owns the path index and the mixin registry.
+
