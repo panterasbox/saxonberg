@@ -859,7 +859,16 @@ flat across depth 0/25/100/200; `lint:boundary` and `lint:gates` pass;
 **Acceptance.** Static-call row down by more than 10%; nothing else worse.
 **Commit.** `perf(security): the static wrapper remembers its policy (W4)`
 
-### W5 — Recognition (D6)
+### W5 — Recognition (D6) — ✅ DONE
+
+> `recognitionOf` (every gate and recall, once) + `renderForm` (one form
+> from it); `describeCore` keeps its name and callers, and
+> `perceivedKeywordsImpl` renders both forms from one recognition. The
+> before-table (six situations × six forms + keywords) was captured as
+> inline snapshots on master's code first, and is unchanged; the sight-gate
+> count test was red on master (2 calls) and is green (1). 48 recognition-
+> adjacent files (belief, disguise, identification, perception verbs, MQL)
+> green.
 
 - Split `describeCore`; `perceivedKeywordsImpl` reads the state once.
 - Unit tests in a new `platform/idea/api/__tests__/RecognitionLogic.test.ts`

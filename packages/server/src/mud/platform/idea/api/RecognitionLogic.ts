@@ -390,9 +390,30 @@ function describeCore(
   }
   if (form === 'handle') return target.handlePhrase().render();
 
-  const withFeatures = form === 'distinguishing';
-  const withStatus = form === 'presence';
+  return renderForm(recognitionOf(viewer, target, baseline), target, form, baseline);
+}
 
+/**
+ * What `viewer` perceives `target` as, worked out ONCE — every perception
+ * gate and every recall — so the forms a caller wants can all be rendered
+ * from it (call-security-performance W5, D6). `perceivedKeywords` wants two
+ * forms of every candidate, and running every gate twice for them was the
+ * cost: the forms differ only in the last branch, for a true stranger.
+ *
+ * Not a memo: it lives for one call. A shadow can confer a sense between
+ * two calls, so nothing here outlives the call that asked.
+ */
+type Recognition =
+  /** No viewer, or one who cannot run perception queries. */
+  | { readonly kind: 'viewerless' }
+  /** A gate ended it (cannot see; a mask): the same words in every form. */
+  | { readonly kind: 'fallback'; readonly text: string }
+  /** A person: the recalled name and the identified type, either absent. */
+  | { readonly kind: 'persona'; readonly instanceName: string | null; readonly typeName: string | null }
+  /** Anything else: the core is settled (label, type, look or baseline). */
+  | { readonly kind: 'thing'; readonly core: string };
+
+function recognitionOf(viewer: Stuff | undefined, target: Stuff, baseline: string): Recognition {
   // No viewer at all: a log, a snapshot, the history ring, the group
   // label the occupant block builds for a whole room at once. Nobody is
   // being recognized — but the object's OWN decorations still apply, and
@@ -400,12 +421,10 @@ function describeCore(
   // viewer is exactly what the old `salientFeaturesOf(target)` was, and
   // collapsing it to the baseline silently stopped the room's similarity
   // grouping finding "12 dwarves in red robes".
-  if (!viewer) return viewerlessForm(target, form, baseline);
+  if (!viewer) return VIEWERLESS;
 
   // The viewer must be able to run perception queries.
-  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
-    return viewerlessForm(target, form, baseline);
-  }
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return VIEWERLESS;
   // Backstop visibility gate. ⭐ Not for what you KNOW without seeing it
   // (size and carrying drive, steps 14 and 20): what is on your own body —
   // the mug in your own shut pack, by touch — and what the builder lens
@@ -414,12 +433,12 @@ function describeCore(
     (MixinApi.isCarrying(viewer) && viewer.tierOf(target) !== 'elsewhere') ||
     PerceptionApi.perceivedHow(viewer, target) === 'builder';
   if (!known && !canSeeGate(viewer, target)) {
-    return obscured(target);
+    return { kind: 'fallback', text: obscured(target) };
   }
 
   // A masked being: the known name is withheld by *not* consulting
   // recognition.
-  if (isMasked(target)) return baseline;
+  if (isMasked(target)) return { kind: 'fallback', text: baseline };
 
   // The type-axis name, if the viewer has identified this type.
   const typeName = identificationName(viewer, target);
@@ -449,21 +468,7 @@ function describeCore(
       referent && MixinApi.isBeliefStore(viewer)
         ? (viewer.recall(RECOGNITION, referent)?.knownAs ?? null)
         : null;
-    let core: string;
-    // ⭐ `formal` is the full name WITH honorific and suffix — but only
-    // for somebody this viewer actually recognizes. It is a richer form
-    // of a name you already have, never a way to learn one.
-    if (form === 'formal' && instanceName && MixinApi.isNamed(target)) {
-      const full = target.getFullName();
-      if (full) return full;
-    }
-    if (instanceName && typeName) core = `${instanceName}, ${typeName}`;
-    else if (instanceName) core = instanceName;
-    else if (typeName) core = typeName; // identified, not yet recognized
-    // A true stranger: the bare stem, or the worn-augmented salient form
-    // when the caller wants distinguishing features (targeting).
-    else core = withFeatures ? salientFeaturesImpl(target) : strangerStem(target);
-    return withStatus ? decorate(core, target) : core;
+    return { kind: 'persona', instanceName, typeName };
   }
 
   // Items / inert things: the identified type; else the DERIVED
@@ -475,10 +480,43 @@ function describeCore(
   // even once you know what the thing is.
   const label = MixinApi.isLabelled(target) ? target.getLabel() : '';
   if (label.length > 0) {
-    const core = typeName ? `${label} (${typeName})` : label;
-    return withStatus ? decorate(core, target) : core;
+    return { kind: 'thing', core: typeName ? `${label} (${typeName})` : label };
   }
-  const core = typeName ?? unidentifiedLook(viewer, target) ?? baseline;
+  return { kind: 'thing', core: typeName ?? unidentifiedLook(viewer, target) ?? baseline };
+}
+
+const VIEWERLESS: Recognition = { kind: 'viewerless' };
+
+/**
+ * One form of `target` from a recognition already worked out. The
+ * fallback branches (no-sensor / obscured / masked) never decorate.
+ */
+function renderForm(
+  rec: Recognition,
+  target: Stuff,
+  form: PresentationForm,
+  baseline: string
+): string {
+  if (rec.kind === 'viewerless') return viewerlessForm(target, form, baseline);
+  if (rec.kind === 'fallback') return rec.text;
+  const withStatus = form === 'presence';
+  if (rec.kind === 'thing') return withStatus ? decorate(rec.core, target) : rec.core;
+
+  const { instanceName, typeName } = rec;
+  // ⭐ `formal` is the full name WITH honorific and suffix — but only
+  // for somebody this viewer actually recognizes. It is a richer form
+  // of a name you already have, never a way to learn one.
+  if (form === 'formal' && instanceName && MixinApi.isNamed(target)) {
+    const full = target.getFullName();
+    if (full) return full;
+  }
+  let core: string;
+  if (instanceName && typeName) core = `${instanceName}, ${typeName}`;
+  else if (instanceName) core = instanceName;
+  else if (typeName) core = typeName; // identified, not yet recognized
+  // A true stranger: the bare stem, or the worn-augmented salient form
+  // when the caller wants distinguishing features (targeting).
+  else core = form === 'distinguishing' ? salientFeaturesImpl(target) : strangerStem(target);
   return withStatus ? decorate(core, target) : core;
 }
 
@@ -557,8 +595,11 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // tokenizer splits on punctuation), `mary` and `vest` still find them, and
     // the jumper in your hand outranks the stranger who is wearing one (the
     // drive: `order wash for jumper` bound a person).
-    const plain = describeCore(viewer, target, 'concise');
-    const worn = describeCore(viewer, target, 'distinguishing');
+    // ⭐ Both forms from ONE recognition (W5): every gate and recall once.
+    const baseline = target.getPresentation();
+    const rec = recognitionOf(viewer, target, baseline);
+    const plain = renderForm(rec, target, 'concise', baseline);
+    const worn = renderForm(rec, target, 'distinguishing', baseline);
     const perceived = [
       ...new Set(
         [
