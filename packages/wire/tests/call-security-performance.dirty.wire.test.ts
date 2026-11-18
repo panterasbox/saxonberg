@@ -378,10 +378,18 @@ suite('steps 5 and 7 — every MR', () => {
     const handles: string[] = [];
     const placeBefore = new Map<string, string>();
 
-    it('precheck: the box is quiet', () => {
-      const refusal = quietBoxRefusal(listenerPid());
+    it('precheck: the box is quiet', async () => {
+      // ⚠ A fresh-database boot is itself the load the precheck reads:
+      // the W0 run read 2.06 straight after the boot and 1.9 a minute
+      // later, falling. So it waits up to five minutes for the box to
+      // settle before refusing — the refusal is still by name.
+      let refusal = quietBoxRefusal(listenerPid());
+      for (let waited = 0; refusal !== null && waited < 300_000; waited += 15_000) {
+        await new Promise((r) => setTimeout(r, 15_000));
+        refusal = quietBoxRefusal(listenerPid());
+      }
       expect(refusal, `box not quiet: ${refusal}`).toBeNull();
-    });
+    }, 360_000);
 
     it('2 — the empty world idles at ≤ 0.15 of a core over ten minutes', async () => {
       const foreign = foreignMeter();

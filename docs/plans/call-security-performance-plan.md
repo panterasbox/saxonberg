@@ -551,6 +551,9 @@ assertions working through a proxy, and hundreds of tests rely on it.
     `EvalScript → ScriptApi.runSandboxed → ScriptLogic → <target>`). That
     is eval's standing reach, not this build's to change; it is reported to
     the owner (MR description) and goes to the slate at `/finalize`.
+  - **D15 — the quiet box's foreign bound.** See Drive record → Baseline:
+    the timed rows are recorded with their foreign load; the gate is the
+    profile's layer milliseconds, which another process cannot move.
   - **Step 7's edit is written to the file directly** (as
     `typecheck.wire.test.ts` does): the in-game `cp -s` asks for CODE title
     over `/platform/thing/`, which the founder does not hold. The install is
@@ -642,7 +645,11 @@ Every wave ends at a commit, leaves the tree green on `pnpm test:near` and
 its row into the table at the end of this section. Node commands in this
 build are prefixed `NODE_OPTIONS= VSCODE_INSPECTOR_OPTIONS=`.
 
-### W0 — Instruments and the baseline (no layer change)
+### W0 — Instruments and the baseline (no layer change) — ✅ DONE
+
+> e0af07435 + the baseline commit. The bench was dead on master (D13);
+> staging went by D14; the baseline's crowd-window layer is 40.6 s
+> (54.8%), the gate 20.3 s. W0's profile keeps the plan's order.
 
 **Goal.** A number for every acceptance criterion, taken on unchanged code,
 and a ranking that can overrule this plan's order.
@@ -843,7 +850,7 @@ targeting by a worn feature behave as before in the wire file's step 3.
 
 | after | call ns | own-field read | method read | getter read | absent read | static call | depth 200 |
 |---|---|---|---|---|---|---|---|
-| W0 (master) | | | | | | | |
+| W0 (master; busy box, load 5–6) | 1 053 | 118 | 149 | 513 | 701 | 137 | 932 |
 | W1 | | | | | | | |
 | W2 | | | | | | | |
 | W3 | | | | | | | |
@@ -1062,19 +1069,39 @@ Read first, in this order:
 
 ### Baseline — W0, master's code
 
+Run 2026-11-18 12:52–13:17, `quiet-run` (suite lock, dropped DB, four
+siblings and the soak lane holding), `CSP_RECORD=1 WIRE_QUIET=1
+WIRE_BOOT=1 WIRE_PORT=2014 WIRE_CPU_PROF=<dir>`, on the W0 commit
+(`e0af07435`). The baseline JSON is committed beside the wire file.
+
 | measure | value | load beside it |
 |---|---|---|
-| idle cores | | |
-| `say` p95 · in-turn p95 | | |
-| on-screen card | | |
-| thirty log in p95 · five into the full square p95 | | |
-| freeze samples over 100 ms | | |
-| restart p95 | | |
-| layer share, crowd window · idle window | | |
-| out of scope: `PathTrie.#walk` · `MixinApi.hasMixin` | | |
-| `bench-gate` (see the per-wave table) | | |
-| bench under `--experimental-async-context-frame` (reported) | | |
-| W0's ranking of the layer's rows | | |
+| idle cores (uptime 401–1001 s) | **0.289** | foreign 0.71 cores → *inconclusive* by the 0.5 bound |
+| `say` p95 · in-turn p95 | 75 ms · 96 ms | foreign 1.34 → *inconclusive* |
+| on-screen card | not measured by this file (crowd-timing's step) | — |
+| thirty log in p95 · five into the full square p95 | 2 170 ms · 2 727 ms | foreign 1.34 |
+| freeze samples over 100 ms | 33 of 195 | foreign 1.34 |
+| restart p95 | 1 542 ms | — |
+| **layer, crowd window** (uptime 1001–1150 s) | **40 629 ms of 74 189 ms busy — 54.8%** | (CPU self time; not moved by foreign load) |
+| layer, idle window (401–1001 s) | 51 698 ms of 88 029 ms busy — 58.7% | |
+| out of scope: `PathTrie.#walk` · `MixinApi.hasMixin` | crowd 2 173 · 2 482 ms (2.9% · 3.3%); idle 3 037 · 2 555 ms | |
+| `bench-gate` (busy box, `--force`) | see the per-wave table | load 5–6 |
+| bench under `--experimental-async-context-frame` | no gain: call 1 028 vs 1 053 ns; depth 200 **1 438** vs 932 ns (worse) | same box, back to back |
+| W0's ranking of the layer's rows (crowd) | `findDescriptor` 12.6% · trap `get` 12.6% · gate closure (security.ts anon) 6.4% · `_pushFrame` 3.7% · ALS `run` 3.5% · proxy wrapper 3.0% · `#proceed`-side closure 2.7% · `resolveCallPolicy` 1.9% · `#runPipeline` 1.8% · ALS lookup 1.5% · `resolveStaticCallPolicy` 1.3% | the plan's order stands |
+
+**The gate this build must meet** (requirements, owner ruling): layer ≤
+**20 315 ms** over the same crowd window's acts; idle ≤ 0.15 cores.
+
+⚠ **Foreign CPU (D15).** With five agent sessions and the VS Code server
+alive, the box's ambient foreign CPU is ~0.7 cores with every sibling
+holding (the crowd window's 1.34 includes a sibling's typecheck that
+resumed before it saw the hold). The 0.5 bound cannot be met while the
+sessions exist, so the timed rows are recorded *with* their foreign load
+and the after-run is taken the same way. The gate number — the layer's
+self milliseconds — is a CPU-profile figure and is not moved by another
+process's load. Idle at 0.289 is well above crowded-rooms' 0.173 (master
+has grown since); the ≤ 0.15 goal is therefore a near-halving of the idle
+world, which the layer cut alone may not reach (R1).
 
 ### After — W6
 
