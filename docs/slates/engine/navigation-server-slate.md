@@ -1,6 +1,8 @@
 # Navigation server slate — what the server must change for the client's models
 
-**Status:** slated 2026-11-14, a sub-slate of the navigation build
+**Status:** slated 2026-11-14; ⭐ **first pass BUILT** by the
+navigation-server build (MR !595, 2026-11-17) — see § Left after the first
+pass for what remains. A sub-slate of the navigation build
 ([navigation-requirements](../../requirements/navigation-requirements.md)).
 **Size:** a set of light server touches. The owner's plan: *"a first pass
 trying not to touch the server much, then follow up — some light server
@@ -220,6 +222,51 @@ crumbs read *Terminus › Terminus*. Rename the city's row (`terminus-city.yaml`
 to *Terminus City* (the owner: *"fine for now"*). ⚠ Not a one-line edit:
 TPA boards name destinations by Locality name, and the name lookup resolves
 the collision to the broader place today — the build checks both.
+
+## Left after the first pass (navigation-server, MR !595)
+
+Built: the one subscription protocol (`docs/subsystems/subscription.md`),
+your map as a copy and where-you-are as seven sections, claims that know
+where (`location-graph.md`), ways that never disagree with trying
+(`boundary.md`), `route` as data, `locate` retired. What the build left:
+
+- **Section fields not computed:** `place.staged` / `searched` / `found`;
+  the building's `entrance` beyond `{ here: true }` (its name and the first
+  direction toward it, from your map).
+- **A remote way's door name and opening on edge claims (S8)** — attaches at
+  the cartographer's edge claim, beside `state`.
+- **A named reach on `LineFrame`** (the outer crumb says the river and km);
+  **a trail of reckonings** (one reckoned claim per sea today) — the
+  *your map grows* build.
+- **The room card's `exits` refreshing on a door** — `Exit.wayChanged()` is
+  the seam (boundary-slate).
+- **Movement in progress (S19)** — an eighth section of the same source
+  (step-beat-slate).
+- **Renaming the two shipped registries to sources** — a naming sweep.
+- **`you.hands` pairs held things to hand slots by order** — a per-slot
+  read on `Attired` would be exact.
+- **Not driven** at the build's drive: the Delve's lower level (dark), the
+  two charts, two holdings of one plan, the horizon at the headland beyond
+  geography's step 15, the Kestrel, the mounted / led / pole cases — their
+  substrate is unit-tested.
+- **Card pause / resume** — crowded-rooms carries it; on this protocol it is
+  `subscription-pause` / `-resume`, the paused flag in the MQL source's
+  state, resume answering `subscription-result` at rev 0.
+
+**What the drive found** (the plan's drive record, kept here when the plan
+retired): the map copy's read refused itself at its own gate; the building
+section's name read empty; ⭐ **concurrent writes to one map document lost
+claims** (a look, the walked edge and the walked place each loaded, grew and
+saved the same document — now serialized per document); ⭐ `route` printed a
+row path when an edge claim's `toLabel` (a path) was taken for a name; ⭐ the
+horizon section, the place's first read at a session's open, took the
+unread weather as clear and named a light eighteen miles off through fog (it
+now stands the horizon up first, as a `look` does). Drive premises
+corrected: the Delve is pitch black past its mouth and covered by no
+Locality (so a walk there writes nothing, rightly), and Duncan Hall has no
+Building row. ⚠ Open, not this build's: the sync horizon read still answers
+unknown weather as clear (`seeingFrom` on a null `peekSkyType`) for any
+caller that has not stood the place up.
 
 ## Not here
 

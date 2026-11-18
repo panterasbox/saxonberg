@@ -188,6 +188,7 @@ behavior. Read the relevant doc before editing in its area.
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for verbs: YAML shape, controller refs as paths, domain-local commands, categories
   - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`do`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
+  - [subscription.md](./docs/subsystems/subscription.md) — the ONE wire for every state push: `subscribe` names a source by template path, `rev`-stamped deltas, `SubscriptionSourceMixin`'s six sources (MQL, forums, client state, the press ticker, your map, where you are); events stay events
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
   - [card-surface.md](./docs/subsystems/card-surface.md) — the right column as a FEED of cards, and a LOG not an index: one birth path (a command pushes; the wire cannot name a card), pinned = the whole lifetime, live = scoped to attention (newest holds the subscription), ONE inspection card laid out by `StuffKind`, subject-bound subscriptions, one sweep, `shell.result` as a filter
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy

@@ -650,13 +650,15 @@ column's card feed — one birth path gated on a command view's
 `opens_card:`, one relevance-window sweep, and the subscription handle a
 live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
-`MqlSubscriptionApi` is the second wire channel alongside prose /
-dispatch-response. Inbound `subscribe` / `unsubscribe`
-messages route through `Application.processUserMessage` to the
-substrate, which projects an MQL query's result + re-projects on
-relevant state changes. Outbound envelopes ride the same
-`MessageApi.sendEnvelope` path the dispatch-response framework uses.
-See `docs/subsystems/mql-subscription.md`.
+**The subscription protocol** is the second wire channel alongside prose /
+dispatch-response, and the ONE wire for every state push (navigation-server,
+2026-11). Inbound `subscribe` / `unsubscribe` name a SOURCE by template path;
+`SubscriptionRegistry` (the session verbs on `Interactive`, `SubscriptionApi.poke`)
+holds the per-session table, `rev` and the three emits; a source is a
+singleton composing `SubscriptionSourceMixin` (`lib/subscription/`) — the MQL
+and forum registries, `ClientStateSource`, `PressFeedSource`, `MapCopySource`,
+`WhereaboutsSource`. `MqlSubscriptionApi` keeps the MQL source's projection
+and one-shot queries. See `docs/subsystems/subscription.md`.
 
 `PromptApi` is the third wire-side substrate. Server callers
 `await` an interactive prompt (`choice` / `confirm` / `text` /
