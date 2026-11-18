@@ -1436,3 +1436,39 @@ drive). Results up to then:
   Rewritten as a promise chain with no early return (`evRaw`); a failure
   now fails the step.
 - 10 (restart) did not run.
+
+### B5 — the harbors drive as the B3 regression proof (2026-11-17)
+
+`harbors.dirty` on a fresh world, then the same drive on unmodified
+`origin/master` (3f4ce0bd1) from a temporary detached worktree, same
+database, run one after the other.
+
+| run | passed | failed |
+|---|---|---|
+| this branch, before the fixes below | 5 | 19 |
+| this branch, after them (`4e05eba70`) | **16** | 8 |
+| `origin/master` | 11 | 13 |
+
+**Every step that fails on this branch fails on master too** (2, 4, 7, 17,
+18, 21, 22, 23 — same messages). Master's last green harbors run was
+2026-11-05; size-and-carrying (`get`/`put`/placement/fixed-in-place)
+merged since, which matches most of them. Not this build's; recorded,
+not fixed here.
+
+Found and fixed (both commits on this MR):
+
+- ⚠ **8's tidal mud was PRE-EXISTING** — master fails `go hesper` with the
+  same `DocumentNotResidentError` (its diagnostic row reads the same).
+  `Floor.resolveUnderfoot` stamped a material PATH on rungs 2, 4 and 5
+  and loaded none of them; every reader is sync. The ladder now ends by
+  citing what it stamped (`2e2cbde37`). Five master failures (A2 8, 3, 5,
+  24, 25) go green on this branch because of it.
+- ⭐ **This build's: a water place cloned before its copy zone** (B2). A
+  sea/reach patch, bank or stop was cloned from its row first and adopted
+  into its copy after; once the kind's zone ROW was resident the clone
+  resolved to it and the row refused the room (D4) — `launch` at sea
+  failed. The warrens now wake the copy first and clone with `zoneFrom`
+  a path UNDER it (`<copy>/<row leaf>` — the copy itself answers "a zone
+  is not inside itself"); `PersistableApi.standUpKeyed` takes an optional
+  `zoneFrom` for stops; `MovingZone.adopt` keeps a place already cloned
+  into it (`546a92e53`, `4e05eba70`).
