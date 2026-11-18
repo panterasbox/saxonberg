@@ -425,8 +425,9 @@ export abstract class CommandController<
       context.refuse(topicOrRefusal);
       return;
     }
+    const topic = topicOrRefusal;
     MessageApi.scene(context.commandGiver)
-      .topic(topicOrRefusal)
+      .topic(topic)
       .toSelf(Mml.compose`${line}`)
       .send();
     context.note({ kind: 'controller-rejected', reason, detail });

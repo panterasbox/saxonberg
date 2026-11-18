@@ -337,8 +337,9 @@ async function reportStop(
   for (const note of stopped.notes) ctx?.note(note);
   if (!MixinApi.isSensor(actor)) return;
   const worded = await CommandApi.wordReason("script-stopped", { line: stopped.line }).catch(() => null);
+  const topic = worded?.topic ?? "shell.error";
   MessageApi.scene(actor as Stuff & Sensor)
-    .topic(worded?.topic ?? "shell.error")
+    .topic(topic)
     .toSelf(worded?.line ?? Mml.compose`The script stopped at ${stopped.line}.`)
     .send();
 }
