@@ -338,6 +338,8 @@ have a bunch of good stories; what's missing is the mechanics."*
 So the Future rung holds **fusion, the fabricator and the automaton** to start, and anything else
 with a story. The mechanics are the open work.
 
+→ Designed in [future-tech-slate](../trades/future-tech-slate.md).
+
 ### 3.1 ⭐⭐ The covenant is the row. The vocabulary is not.
 
 *Implementing a law must not entrench it* — moving epoch from a sentence
