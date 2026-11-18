@@ -248,20 +248,63 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     emote(emote: Emote, opts?: EmoteOptions): void {
+      this.sendEmoteScenes(
+        this.renderEmote(emote, opts),
+        { verb: emote.verb, emoji: emote.emoji, tags: emote.tags },
+        {
+          verb: emote.verb,
+          ...(emote.emoji !== undefined ? { emoji: emote.emoji } : {}),
+          tags: emote.tags,
+        },
+        opts?.target,
+        opts?.inReactionTo,
+      );
+    }
+
+    emoteFree(text: string, target?: Stuff, inReactionTo?: string): void {
+      this.sendEmoteScenes(
+        this.renderFreeForm(text, target),
+        { freeForm: true, text },
+        { verb: 'free-form', tags: [], customText: text },
+        target,
+        inReactionTo,
+      );
+    }
+
+    /**
+     * ⭐ The room carries emotes (aether-devices D7). An emote is TWO
+     * scenes, never one:
+     *
+     * - **the room** — self, everyone sharing the actor's place, and a
+     *   target standing there — with NO modality. Every sensor in the
+     *   place receives it, NPCs included, so an `emote` witness fires.
+     *   Arcane-science rule 1: every place carries what is expressed in
+     *   it to whoever is there. No device, no sense, no gate.
+     * - **past the room** — a target somewhere else gets one `toTarget`
+     *   frame stamped `emotive-esp`; whether it arrives is the
+     *   receiver's reception. Sent only when the actor is tuned — an
+     *   NPC never is, so its leg is a skip, not a refusal (P3); a
+     *   player's refusal is asked by the controller before this runs.
+     *
+     * Emotes get no sense of their own: the room scene's missing
+     * modality is a statement about the carrier, true of every emote.
+     */
+    private sendEmoteScenes(
+      bodies: EmoteBodies,
+      payload: Record<string, unknown>,
+      reaction: { verb: string; emoji?: string; tags: string[]; customText?: string },
+      target: Stuff | undefined,
+      inReactionTo: string | undefined,
+    ): void {
       const actor = this as unknown as Stuff;
-      const bodies = this.renderEmote(emote, opts);
+      const inRoom = target !== undefined && this.sharesPlaceWith(target);
       const scene = MessageApi.scene(actor)
         .topic('act.emote')
-        .modality('emotive-esp')
         .toSelf(bodies.self)
-        .payload({
-          verb: emote.verb,
-          emoji: emote.emoji,
-          tags: emote.tags,
-        });
+        .payload(payload);
 
-      if (opts?.target && bodies.target) {
-        scene.toTarget(opts.target, bodies.target);
+      if (target && inRoom && bodies.target) {
+        scene.toTarget(target, bodies.target);
       }
 
       if (MixinApi.isContainable(actor)) {
@@ -279,59 +322,41 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // NON-reaction emote is itself a reactable act (the else branch);
       // a reaction's own frame is NEVER noted reactable — the
       // regress-stopper.
-      if (opts?.inReactionTo !== undefined) {
-        const decision = ReactionApi.onScopedEmote({
-          reactor: actor,
-          inReactionTo: opts.inReactionTo,
-          verb: emote.verb,
-          ...(emote.emoji !== undefined ? { emoji: emote.emoji } : {}),
-          tags: emote.tags,
-        });
-        if (decision.suppressFanOut) return; // counter only, no line
-        scene.meta({ inReactionTo: opts.inReactionTo });
-      } else {
-        noteEmoteReactable(actor);
-      }
-      scene.send();
-    }
-
-    emoteFree(text: string, target?: Stuff, inReactionTo?: string): void {
-      const actor = this as unknown as Stuff;
-      const bodies = this.renderFreeForm(text, target);
-      const scene = MessageApi.scene(actor)
-        .topic('act.emote')
-        .modality('emotive-esp')
-        .toSelf(bodies.self)
-        .payload({ freeForm: true, text });
-
-      if (target && bodies.target) {
-        scene.toTarget(target, bodies.target);
-      }
-
-      if (MixinApi.isContainable(actor)) {
-        scene.toPeers(bodies.peer);
-      } else if (MixinApi.isContainer(actor)) {
-        scene.toContents(bodies.peer);
-      } else {
-        throw new Error(
-          'SoulMixin requires composition with Container or Containable for in-room emote',
-        );
-      }
-
       if (inReactionTo !== undefined) {
         const decision = ReactionApi.onScopedEmote({
           reactor: actor,
           inReactionTo,
-          verb: 'free-form',
-          tags: [],
-          customText: text,
+          ...reaction,
         });
-        if (decision.suppressFanOut) return;
+        if (decision.suppressFanOut) return; // counter only, no line
         scene.meta({ inReactionTo });
       } else {
         noteEmoteReactable(actor);
       }
       scene.send();
+
+      if (target && !inRoom && bodies.target) {
+        // The sender's half of "a tuner at both ends". Skip, not refuse:
+        // an untuned actor here is an NPC (players are refused upstream).
+        if (!MixinApi.isActive(actor, 'AetherMixin')) return;
+        MessageApi.scene(actor)
+          .topic('act.emote')
+          .modality('emotive-esp')
+          .toTarget(target, bodies.target)
+          .payload(payload)
+          .send();
+      }
+    }
+
+    /** Is `other` standing in the same place as this actor? */
+    private sharesPlaceWith(other: Stuff): boolean {
+      const actor = this as unknown as Stuff;
+      if (!MixinApi.isContainable(actor) || !MixinApi.isContainable(other)) {
+        // A pure container (the place itself) holds its own audience.
+        return MixinApi.isContainable(other) && other.getContainer() === actor;
+      }
+      const here = actor.getContainer();
+      return here !== null && here !== undefined && other.getContainer() === here;
     }
   };
 }
