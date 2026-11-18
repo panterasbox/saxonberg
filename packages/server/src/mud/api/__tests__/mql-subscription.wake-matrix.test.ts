@@ -144,6 +144,7 @@ const RESIDUAL: Record<string, string> = {
   worn: 'Attired; fires `occupants` on the wearer — a creature fixture',
   exits: 'Exitable; no fire site (census: no mutation site)',
   placed: 'the host’s own field — covered by the desk case below',
+  present: 'a PLACE’s field (who is here) — covered by "a live place card says who is here" below',
 };
 
 /** The fields a REF row of the thing depends on — what a place card shows of it. */
@@ -391,3 +392,44 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
   });
 });
 
+
+/**
+ * ⭐⭐ A live place card's "Here" is LIVE (navigation-server review): the
+ * look's prose froze it at the look, so an arrival reached the card as a
+ * delta and never showed. `present` is the same people rule as `look`'s
+ * (`Place.peopleHereFor`), projected as a field.
+ */
+describe('⭐⭐ a live place card says who is here (navigation-server review)', () => {
+  it('someone walking in joins `present`; walking out leaves it; the look agrees on the chip', async () => {
+    const place = await StuffApi.create(() => new Place());
+    const elsewhere = await StuffApi.create(() => new Place());
+    const { avatar, interactive } = await viewerIn(place, 'Alice', 'here');
+    void avatar;
+    const sent: Array<{ type: string; changes?: Array<{ fields?: { present?: Array<{ label: string }> } }> }> = [];
+    vi.spyOn(interactive, 'sendEnvelope').mockImplementation((t: unknown) => {
+      sent.push(t as never);
+    });
+    const bob = await StuffApi.create(() => new Avatar());
+    bob.setName('Bob');
+    ContainmentApi.move(bob, elsewhere);
+    const snap = interactive.subscribe('room', SUBSCRIPTION_SOURCES.mql, {
+      query: '', cardinality: 'one', fields: [...DETAIL_FIELDS], subjectId: place.stuffId,
+    }, { silent: true }) as Array<{ present?: Array<{ label: string }> }>;
+    expect(snap[0]?.present ?? []).toEqual([]);
+
+    ContainmentApi.move(bob, place);
+    await SubscriptionApi._drainScheduledForTesting();
+    const presentNow = (): string[] => {
+      const deltas = sent.filter((e) => e.type === 'subscription-delta');
+      const last = deltas.at(-1)?.changes?.find((c) => c.fields?.present !== undefined);
+      return (last?.fields?.present ?? []).map((p) => p.label);
+    };
+    expect(presentNow()).toEqual([bob.describeFor(avatar)]);
+    // The same chip `look` would show for this viewer — one rule.
+    expect(place.peopleHereFor(avatar)).toEqual([bob.presenceChipFor(avatar)]);
+
+    ContainmentApi.move(bob, elsewhere);
+    await SubscriptionApi._drainScheduledForTesting();
+    expect(presentNow()).toEqual([]);
+  });
+});

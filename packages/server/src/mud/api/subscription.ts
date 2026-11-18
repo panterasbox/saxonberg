@@ -173,6 +173,8 @@ export const DETAIL_FIELDS: FieldSet = [
   'placed',
   'placement',
   'holds',
+  // ⭐ Who is here, live — a place's "Here" line (navigation-server review).
+  'present',
 ];
 
 // eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through SubscriptionApi

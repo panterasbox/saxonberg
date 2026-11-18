@@ -51,7 +51,8 @@ test.describe('crowded rooms, in a browser', () => {
       const card = page.locator('[data-card-kind="subject"]').first();
       await expect(card).toBeVisible({ timeout: 60_000 });
       const key = (await card.getAttribute('data-card-key')) ?? 'look';
-      const before = await card.innerText();
+      // ⭐ Who the card says is here before the arrival (its live "Here").
+      const peopleBefore = await card.getByTestId('segment-person').count();
 
       await runCommand(page, `client-card minimize ${key}`);
       await expect.poll(() => sent.some((m) => m.startsWith('subscription-pause:')), { timeout: 10_000 }).toBe(true);
@@ -66,11 +67,14 @@ test.describe('crowded rooms, in a browser', () => {
         await expect.poll(() => sent.some((m) => m.startsWith('subscription-resume:')), { timeout: 10_000 }).toBe(true);
         const restored = page.locator('[data-card-kind="subject"]').first();
         await expect(restored).toBeVisible();
-        // The card is current: somebody arrived while it was trayed, and it
-        // shows a room that is not the one it was trayed on, within 2 s.
+        // ⭐ The card is current: somebody arrived while it was trayed (or
+        // just after — the walk's commands race the restore), and its "Here"
+        // shows them. The line is live data (`present`), not the look's prose
+        // frozen at the look (navigation-server review); before, this only
+        // checked that SOME text changed, which anything could satisfy.
         await expect
-          .poll(async () => (await restored.innerText()) !== before, { timeout: 2_000 })
-          .toBe(true);
+          .poll(async () => restored.getByTestId('segment-person').count(), { timeout: 5_000 })
+          .toBeGreaterThan(peopleBefore);
       } finally {
         await b.close();
       }

@@ -62,6 +62,7 @@ type AnyClassRef = abstract new (...args: never[]) => unknown;
 import type { SpatialZone } from '../zone/SpatialZone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import type { SegmentItem } from '@saxonberg/types';
 
 /**
  * Metadata for destroyed objects (used for debugging).
@@ -289,6 +290,40 @@ export abstract class Stuff {
     // fixture asking for `bare` and silently getting `concise` is a
     // test that passes for the wrong reason.
     return this.fallbackForm(form);
+  }
+
+  /**
+   * ⭐ How this reads as a CHIP for `viewer` — the clickable name a list
+   * line shows (`look`'s "Here" and "You also see", a live room card): its
+   * {@link describeFor} and the keyword a click sends. One rule for every
+   * list that names things.
+   */
+  chipFor(viewer: Stuff): SegmentItem {
+    return {
+      stuffId: this.stuffId,
+      label: this.describeFor(viewer),
+      keyword: MixinApi.isPerceptible(this) ? (this.getPrimaryKeyword() ?? '') : '',
+      count: 1,
+    };
+  }
+
+  /**
+   * ⭐ How this reads as a PERSON in a "Here" line for `viewer`: its
+   * {@link chipFor}, its status line (and *broadcasting* when on air), and
+   * what it rests on — the seat as its own chip, so both stay clickable.
+   */
+  presenceChipFor(viewer: Stuff): SegmentItem {
+    const item = this.chipFor(viewer);
+    const own = MixinApi.isStatus(this) ? this.getStatus() : '';
+    // ⭐ The chip says so too (D9) — the same read as the presence line.
+    const onAir = MixinApi.isBroadcastHost(this) && this.isOnAir() ? 'broadcasting' : '';
+    const status = [own, onAir].filter((p) => p !== '').join(', ');
+    const rest = MixinApi.isPosed(this) ? this.currentRest() : null;
+    return {
+      ...item,
+      ...(status ? { status } : {}),
+      ...(rest ? { seat: { posture: rest.phrase, on: rest.host.chipFor(viewer) } } : {}),
+    };
   }
 
   /** The describe ladder with no recognition engine registered. */

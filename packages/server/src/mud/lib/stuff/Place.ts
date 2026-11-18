@@ -35,7 +35,7 @@
  */
 
 import { Stuff } from './Stuff';
-import { ContainerMixin } from '../spatial/Container';
+import { ContainerMixin, type Container } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
@@ -50,6 +50,9 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
+import { PerceptionApi } from '../../api/perception';
+import { SubscriptionApi, type SubscribableFieldDescriptor } from '../../api/subscription';
+import type { SegmentItem } from '@saxonberg/types';
 import type { GeoPosition } from '../expanse/GeoPosition';
 import { HorizonOverride, type HorizonOverrideRecord } from '../perception/HorizonOverride';
 import { Vantage } from '../perception/Vantage';
@@ -228,6 +231,23 @@ export interface HorizonVantage {
   own: string | null;
 }
 
+/**
+ * ⭐ WHO IS HERE for `viewer` — the one rule `look`'s "Here" and the live
+ * `present` field share: the place's loose contents, organisms only, never
+ * the viewer, through `perceived` (the live projection passes its memoized
+ * filter). Module-private and NOT a method on purpose: a live projection's
+ * helpers (`perceivedAmong`, `noteRead`) admit only the projection's own
+ * frame, and a proxied method call pushes the place's.
+ */
+function peopleHere(
+  place: Stuff & Container,
+  viewer: Stuff,
+  perceived: (candidates: Stuff[]) => Stuff[],
+): Stuff[] {
+  const others = place.getContents().filter((c) => c.stuffId !== viewer.stuffId && MixinApi.isOrganism(c));
+  return place.getLooseContents(perceived(others));
+}
+
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
 // `world/practicum/warded-cell.yaml:18` authors it and the field's own
@@ -242,6 +262,48 @@ export default class Place extends PlaceBase {
     horizon: { persistent: true, authorable: true },
     featured: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐⭐ `present` — WHO IS HERE, live (navigation-server review). A room
+   * card's "Here" line used to be the look's prose, frozen at the look: a
+   * live card got the arrival as a delta and never showed it. This is the
+   * same rule `look` uses ({@link peopleHereFor}), projected as a field so
+   * an arrival, a departure, a seat taken or a name learned re-projects it.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'present',
+      // Membership is the place's contents and where in it each child sits;
+      // each person listed is read for its posture (the seat) and its name.
+      dependsOnFields: ['contents', 'placement'],
+      read: (stuff, viewer) => {
+        if (!MixinApi.isContainer(stuff)) return [];
+        const people = peopleHere(stuff, viewer, (xs) =>
+          SubscriptionApi.collecting
+            ? SubscriptionApi.perceivedAmong(xs, (c) => PerceptionApi.perceives(viewer, c))
+            : PerceptionApi.perceived(viewer, xs),
+        );
+        // Each person listed is read for its seat and its name.
+        if (SubscriptionApi.collecting && people.length > 0) {
+          SubscriptionApi.noteRead(people, ['posture', 'name']);
+        }
+        return people.map((o) => o.presenceChipFor(viewer));
+      },
+    },
+  ];
+
+  /**
+   * ⭐ The people here that `viewer` perceives, as the chips "Here" shows —
+   * ONE rule for `look` and the live card. Loose contents only (a body on a
+   * host is that host's), organisms only, never the viewer. Inside a live
+   * projection every child it enumerated is a dependency, and each person
+   * it lists is one on its posture and name (crowded-rooms D1).
+   */
+  public peopleHereFor(viewer: Stuff): SegmentItem[] {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isContainer(self)) return [];
+    return peopleHere(self, viewer, (xs) => PerceptionApi.perceived(viewer, xs)).map((o) => o.presenceChipFor(viewer));
+  }
 
   /**
    * ⭐⭐ The structures whose LANDING this place is — the buildings whose

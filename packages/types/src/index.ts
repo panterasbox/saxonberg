@@ -2193,6 +2193,12 @@ export interface StuffDetailRecord extends StuffRefRecord {
   mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
   /**
+   * ⭐ A place's people, LIVE — the chips its "Here" line shows (the same
+   * rule as `look`'s, `Place.peopleHereFor`): a live room card renders
+   * "Here" from this, so an arrival shows (navigation-server review).
+   */
+  present?: SegmentItem[];
+  /**
    * What the subject is **wearing** — the body half against `contents`'
    * pack half, and a partition of the same set rather than a second copy
    * of it: a worn garment is filtered OUT of `contents` and appears

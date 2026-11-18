@@ -471,6 +471,19 @@ lines in scrollback carry; see subscription.md), and the client shows it
 The where-you-are panes (the navigator's crumbs, ways and outside) carry
 the same mark, per section.
 
+⭐⭐ **A live place card's "Here" is live data** (navigation-server review).
+A room card's text is the look's segments — its prose, frozen at the look —
+so an arrival reached a live card as a delta and never SHOWED: the card
+looked live and was not. The place now projects `present` (in
+`DETAIL_FIELDS`): who is here for the viewer, by the same rule as `look`'s
+"Here" (a place's loose contents, organisms, never the viewer, perceived),
+each person's chip from the person's own `presenceChipFor` (name, status,
+seat) — `look` reads the same method, so the two cannot disagree. The card
+rebuilds "Here" from it (`liveHere` in `InspectionBody`) where the look's
+line sat; a STATIC card keeps the look's line, which says when it was
+taken. ⚠ "You also see" is still the look's: the things in a room rarely
+come and go, and a live list of them is the next step if they do.
+
 ## ⭐⭐ Subject-bound subscriptions
 
 A live inspection card does **not** run its `query`. `'$subject'` is an

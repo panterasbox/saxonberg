@@ -147,6 +147,15 @@ row — never a new message type and never a kernel list edit.
   card showing them wakes too). `Bistate.setState` fires `open`/`on`/
   `folded`, so a door opened by the VERB is heard (the setter override the
   table replaced was never called by `open door`).
+- ⚠ **The projection helpers are the descriptor's, not a method's.**
+  `SubscriptionApi.perceivedAmong` / `noteRead` / `sharedRead` admit only
+  the live projection's own frame (a descriptor's `read` lambda) and the
+  MQL source. A `Stuff` method is a proxied call that pushes its own frame,
+  so a descriptor that calls `place.someMethod()` which then calls them is
+  REFUSED — the projection fails and the card silently stops waking (cost
+  a bisection on `present`). Keep the rule in a module-private function
+  both the method and the descriptor call, and pass the live filter in
+  from the descriptor (`Place.ts`'s `peopleHere`).
 - ⭐⭐ **Every change names its cause.** A `subscription-delta` carries
   `causes`: the ids of the command(s) whose work produced it — the same id
   as the prose that command sent (`meta.commandId` /
