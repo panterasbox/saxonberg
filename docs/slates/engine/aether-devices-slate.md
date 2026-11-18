@@ -7,7 +7,7 @@
 > [chat.md](../../subsystems/chat.md)); attunement as a state of the **person**, with comms, forums,
 > the wallet and the calendar hosted on the person ([augmentation.md](../../subsystems/augmentation.md));
 > born-attuned species; screens and their by-mind ladder ([display.md](../../subsystems/display.md)).
-> **Left:** the `stuck` net and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
+> **Left:** `help ask` and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
 > confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) ·
 > one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · a power
 > state on tuners, so a covenant's *power it down* is real (§ 9) · the town's node (§ 9) · the
@@ -69,8 +69,14 @@ these other systems. That should be the other promise."*
 1. **Nobody is ever stranded without a way to ask for help** — and that net sits **outside the
    fiction**: the player talking to staff, not the character talking to anyone (EverQuest's
    `/petition`, WoW's *character stuck* service). It needs no tuner, no coverage and no epoch, and
-   like logout (guarantee P9) it always works. Nothing like it exists today. Working name **`stuck`**
-   (not `help`, which is the rulebook) **[name OPEN]** →
+   like logout (guarantee P9) it always works. Nothing like it exists today. ⭐ **It lives in `help`**
+   **[DECIDED — the owner: *"I'd rather just build it all into the help system. Why have multiple
+   things"*]** — a `help ask <what's wrong>` subcommand beside `verb`, `api` and `search`
+   ([help.md](../../subsystems/help.md)), and the bare `help` card offers it. A player who types
+   their trouble at `help` in plain words (`help I'm stuck in a cave and my phone is dead`) finds no
+   topic, and the answer hands them the exact `help ask …` line to run — the way a phrase typed bare
+   is handed back quoted. Nothing is sent without the player running it (the command definition
+   predicts everything) →
    [guarantees-of-play-slate](../society/guarantees-of-play-slate.md).
 2. **A social player never meets a mechanic that stops them talking, unless they walk into one.**
    Every restriction on talking belongs to a place you enter on purpose, past a posted edge. Where
@@ -78,7 +84,7 @@ these other systems. That should be the other promise."*
    engages with any of this. This is the comms floor (P2) stated from the player's side.
 3. **So a `dm` may honestly fail** inside a place that restricts it — and it never fails silently. It
    is held and sent the moment it can go, and the refusal names the way out: *"Your phone is off —
-   this goes when you power it on or reach the needle house. Stuck? Type `stuck`."* The scrambling
+   this goes when you power it on or reach the needle house. Stuck? `help ask` reaches a person."* The scrambling
    instinct is caught and pointed somewhere.
 
 **Losing your phone** — theft can reach even a social player. **[DECIDED — the owner]**:

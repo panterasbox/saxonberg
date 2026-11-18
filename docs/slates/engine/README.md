@@ -10,7 +10,7 @@ block, never this file. Back to [all slates](../README.md).
 | slate | size | status | left |
 |---|---|---|---|
 | [absent-body](./absent-body-slate.md) | tail | UNBUILT | the autonomic-defense stance itself · brain-mechanism vs pure-stance · the grace/duration question · the interaction with `combat.maxBeats` … |
-| [aether-devices](./aether-devices-slate.md) | build | UNBUILT | the `stuck` net and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) … |
+| [aether-devices](./aether-devices-slate.md) | build | UNBUILT | `help ask` and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) … |
 | [agency](./agency-slate.md) | build | UNBUILT | the agency grant (UseGrant-shaped · scoped · revocable) · the principal/agent split in the execution context … |
 | [automata](./automata-slate.md) | tail | UNBUILT | the consult verb + context assembly · the mode model (`{trigger, recipe, voice}`) · the trigger set and its rate caps · the overnight digest + the decaying pyramid … |
 | [avatar-family](./avatar-family-slate.md) | build | UNBUILT | **overlay mode built** — `copy` first, `through` second · the **27 REFUSE collections triaged** (9 stand, 17 move, 1 is a write-path defect) · `holder_snapshots` onto overlay, retiring `SandboxAvatar.shouldPersist()` as the cheat guard · `shouldPersist(): boolean` → a **per-mixin capture allowlist** on the epistemic/material line the fork allowlist already draws … |
