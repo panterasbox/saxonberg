@@ -33,6 +33,15 @@ test.describe('navigation server — the navigator reads the subscription', () =
         .not.toBe(before);
       await expect(nav).toContainText(/market square/i);
 
+      // ⭐⭐ The pane says WHAT changed it (navigation-server review): the
+      // ways carry a mark whose words are the move's own line — the
+      // command you ran — not magic.
+      const mark = page.getByTestId('change-mark-nav:ways');
+      await expect(mark).toBeVisible({ timeout: 10_000 });
+      await expect(mark).toHaveAttribute('title', /^Changed by: /);
+      await mark.click();
+      await expect(page.getByTestId('change-why-nav:ways')).toContainText(/show in scrollback/);
+
       // The ways out are the ones you can take, by name.
       await expect(page.getByTestId('nav-exit-south')).toBeVisible();
     } finally {
