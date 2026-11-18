@@ -134,6 +134,6 @@ describe('SeaWarren (river D30)', () => {
     await w.launchPlaceFor(deck('hesper'));
     const call = clone.mock.calls.find((c) => String(c[0]).endsWith('/water'))!;
     expect(order).toEqual(['wake /system/water/location/sea/patch/1']);
-    expect(call[2]).toEqual({ zoneFrom: '/system/water/location/sea/patch/1' });
+    expect(call[2]).toEqual({ zoneFrom: '/system/water/location/sea/patch/1/water' });
   });
 });

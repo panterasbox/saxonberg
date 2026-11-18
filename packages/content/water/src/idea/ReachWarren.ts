@@ -177,7 +177,10 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
     return StuffApi.clone<MemberStuff>(
       this._budRow,
       undefined,
-      this._budZone !== undefined ? { zoneFrom: this._budZone } : undefined,
+      // A path UNDER the copy, by the row's leaf: a zone is not inside itself.
+      this._budZone !== undefined
+        ? { zoneFrom: `${this._budZone}/${this._budRow.slice(this._budRow.lastIndexOf('/') + 1)}` }
+        : undefined,
     );
   }
 
@@ -322,7 +325,7 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
       // Its zone stands first; the stop is stood up INTO it.
       const zone = await this.copyZoneFor(`${STOP_ZONE}/${zoneLeafOf(key)}`);
       const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key, {
-        zoneFrom: zone.getIdentityPath() ?? undefined,
+        zoneFrom: `${zone.getIdentityPath()}/water`,
       })) as unknown as ReachStop | null;
       if (stood === null) throw new Error(`ReachWarren: the stop ${key} could not be stood up`);
       if (stood.getLinePosition() === null) {

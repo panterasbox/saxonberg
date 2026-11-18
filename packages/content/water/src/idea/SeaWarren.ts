@@ -90,7 +90,8 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
     return StuffApi.clone<MemberStuff>(
       PATCH_ROW,
       undefined,
-      this._budZone !== undefined ? { zoneFrom: this._budZone } : undefined,
+      // A path UNDER the copy, by the row's leaf: a zone is not inside itself.
+      this._budZone !== undefined ? { zoneFrom: `${this._budZone}/water` } : undefined,
     );
   }
 
@@ -242,7 +243,7 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
       // Its zone stands first; the stop is stood up INTO it.
       const zone = await this.wakeCopyZone(STOP_ZONE, this.stopZoneLeaf(key));
       const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key, {
-        zoneFrom: zone.getIdentityPath() ?? undefined,
+        zoneFrom: `${zone.getIdentityPath()}/water`,
       })) as unknown as SeaStop | null;
       if (stood === null) throw new Error(`SeaWarren: the stop ${key} could not be stood up`);
       if (stood.getExpansePosition() === null) {
