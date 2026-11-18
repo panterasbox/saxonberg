@@ -148,13 +148,58 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 | device | manifests as | what follows |
 |---|---|---|
 | implant | extra-sensory — you *know* it | private; works blind, in the dark, in a fight |
-| phone | **sight** — a lit screen you read | someone close can read over your shoulder; a lit screen shows in the dark (a hider who reads their phone gives themselves away); unread while you cannot see |
+| phone | **sight** by default — a lit screen you read; or sound or vibration, by its mode (below) | someone close can read over your shoulder; a lit screen shows in the dark (a hider who reads their phone gives themselves away); unread while you cannot see |
 | needle | sight — letters turned on a dial | slow, short |
-| aether-radio | **[OPEN]** sound from a speaker? | if so, the room overhears it — and content-declaration § 5 forbids a carrier *coupling* through hearing, which is not the same as *manifesting* as sound |
+| aether-radio | sound from a speaker the room overhears; headphones if you have them | the ladder forbids a radio *coupling* to the aether through hearing — *playing* as sound is a different thing |
 
-**[OPEN]** — does a phone read aloud to someone who cannot see (as real phones do), so it
-manifests as sound and the room can hear? Does writing on a phone need a free hand (an implant
-needs none)? What does an implant do while you sleep?
+### ⭐⭐ A phone does everything a phone can do **[DECIDED — the owner, 2026-11-18]**
+
+*"It's a phone, it should do everything a phone can do."* So:
+
+- **The owner sets the mode, as on a real phone:**
+  - **screen** — read by sight; someone beside you can read over your shoulder;
+  - **speaker** — the room hears it (reading aloud to someone who cannot see is one use of it);
+  - **earbuds** — private sound; the shipped `Headset` row becomes an earbud accessory instead of
+    the worn-implant workaround;
+  - **silent or vibrate** — felt, not heard.
+
+  A phone that rings in a theater, or in your pocket while you hide, is your own setting — stealth
+  content, never a rule.
+- **Writing:** type with a hand (silent) or dictate (aloud — the room hears what you say). Nothing is
+  blocked; with both hands on a weapon you dictate and everyone hears. A soft limit with an honest
+  cost.
+- **The implant does everything a phone does, inside your head** — private, hands-free, never
+  overheard. Asleep, messages wait like notifications; an alarm can wake you, as a phone's can.
+- **The aether-radio is a radio** — the table above.
+
+### The lens pass on *a phone does everything*
+
+1. **Pedagogy** — a phone is a corporeal `Thing`, so it may carry physical sensors (camera, compass,
+   light sensor, location) without touching the rule that the aether never carries a measurement
+   ([augmentation.md](../../subsystems/augmentation.md) § the three-base model). Under
+   [instrumentation.md](../../subsystems/instrumentation.md)'s *the instrument sets the ceiling*, the
+   phone is a cheap, **low-ceiling** instrument for many readings and a dedicated instrument reads
+   higher — true to life, and it keeps the instrument trades.
+2. **Expression** — every feature is an app, and an ordinary app is a row (§ 6): flashlight, camera,
+   map, compass, clock. Found-footage horror (*Blair Witch*, *Cloverfield*) needs exactly the
+   flashlight and the camera. ⚠ **The map app shows your own map document** — walked, seen, searched,
+   published — **never the world's index**; [location-graph.md](../../subsystems/location-graph.md)'s
+   firewall applies.
+3. **Immersion** — a lit screen in the dark, a ring at the wrong moment, shoulder-surfing: all
+   honest. **Participation** — the repairer, the app maker, the thief, the spy reading your screen.
+4. **Values** — a phone that does everything is the attention device: notifications only for what
+   you subscribed to, and do-not-disturb *(grain)*.
+5. **Continuity** — ⭐⭐ **the phone is the great obsoleter, and that is Terminus's modern arc.** It
+   eats the flashlight, the camera and the photographer, the compass, the map shop, the watch — and
+   **the town clock**, lens 7's own example of civic infrastructure that made time common, which the
+   phone makes private again. Those people and institutions are the content, best lived through.
+6. **Economy** — the battery is the consumable; the flashlight and video drain it faster, which
+   drives chargers and power demand. The phone takes the low end of every instrument market, not
+   the high end.
+7. **Governance** — *no phones in the theater* and *no cameras in the bathhouse* are **the same
+   mechanism as the epochs** (§ 9): a law on operation, obeyed or broken in front of witnesses. One
+   rule covers period towns and private venues; the [privacy-slate](../platform/privacy-slate.md)'s
+   private room is where it matters most.
 
 ## 5. The tuners
 
@@ -336,10 +381,11 @@ exit you can find without help).
 | concept | already does it | this build |
 |---|---|---|
 | attunement | `AetherMixin`, `_augmentGated`, conferred by `AetherImplant` or `Species.innateMixins` | reuse |
-| conferral by carrying | only slot occupants confer (`MixinApi.getActiveMixins`); `Headset` is the worn workaround | ⭐ generalize to hand + ready tier; retire `Headset` as a class |
+| conferral by carrying | only slot occupants confer (`MixinApi.getActiveMixins`); `Headset` is the worn workaround | ⭐ generalize to hand + ready tier; `Headset` stops being a worn implant and becomes the phone's earbuds |
 | apps | hosted updates (`CommsUpdate`, `ForumsUpdate`, `CredentialWalletUpdate`, `CalendarUpdate`) + display cards (`Cards.ts`) | unify; an app as a row |
 | the phone | `Tablet` (`Display(Good)`) | a tuner row on it — not a new class unless the conferral needs one |
 | local emotes | every emote frame stamped `emotive-esp` | the room carries; reception gated only past the room |
 | starting kit | `Avatar.installDefaultLoadout` seats the implant | seat the phone instead |
 | the room as carrier | a place is a carrier in arcane-science rule 1 | write the clause |
 | screens | `DisplayMixin`, `CommandController.resolveScreen` | the access-check, rows and one-wire-shape cleanup |
+| a phone's modes and sensors | `LightSource` (the flashlight), the `Reading` rows (instrumentation), the per-player map document, `ChargedMixin` (the battery) | reuse — each feature an app row over what exists |
