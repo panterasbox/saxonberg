@@ -298,6 +298,7 @@ class CommandContextImpl implements CommandContext {
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
   public filterPolicy?: OnFilteredPolicy;
+  public scriptLine?: string;
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -319,6 +320,7 @@ class CommandContextImpl implements CommandContext {
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
     if (args.barId !== undefined) this.barId = args.barId;
     if (args.filterPolicy !== undefined) this.filterPolicy = args.filterPolicy;
+    if (args.scriptLine !== undefined) this.scriptLine = args.scriptLine;
   }
 
   requireInteractive(what: string): Interactive | null {

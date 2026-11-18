@@ -209,9 +209,11 @@ export abstract class CommandController<
         // command's envelope went when the step began.
         if (!words.onRefused) {
           const refusal = new Refusal(out.reason, (out.facts ?? {}) as RefusalFacts);
-          // On the context too, for a script awaiting the step to meet it.
+          // On the context, for a script awaiting the step to meet it —
+          // and then the script's stop line says it, ONCE. Only a typed
+          // command, whose envelope went when the step began, is told now.
           context.refuse(refusal);
-          await CommandApi.reportFailure(refusal);
+          if (context.scriptLine === undefined) await CommandApi.reportFailure(refusal);
           return;
         }
         MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.onRefused(out)).send();

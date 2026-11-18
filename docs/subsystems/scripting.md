@@ -423,7 +423,9 @@ try { fell oak } on locked, /trade/forestry/reasons/wrong-tool { say no } on * {
 - **An engaged step** (`fell`) is awaited; the scheduler stamps how it ended
   (`Engagement.endedBy`). An abort other than `thrown` wakes the script with
   `interrupted` (`$why.abort` is the abort reason); a refusal the step's
-  completion returned is thrown the same way. A script the player `stop`s is
+  completion returned is thrown the same way — and said only by the stop
+  line: a command a script dispatched carries `CommandContext.scriptLine`, and
+  the late path words a refusal at once only for a typed command. A script the player `stop`s is
   cancelled — no handler runs. ⚠ The wake fires at the step's EXPECTED end
   (and re-checks), not at the interruption — a deferred seam.
 - **The stop is said once** (`ScriptLogic.reportStop`): a refusal with a row

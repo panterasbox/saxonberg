@@ -14,6 +14,9 @@ import { CommandApi } from '../../../api/command';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import PingController from '../../../platform/idea/cmd/system/PingController';
 import { DiagnosticApi } from '../../../api/diagnostics';
+import { CommandController } from '../CommandController';
+import { Mml } from '../../../api/mml';
+import type { CommandContext } from '../../../api/command';
 import { ContentError, Refusal } from '../../errors';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ScriptApi } from '../../../api/script';
@@ -306,5 +309,71 @@ describe('failure model W3 — late failures are owned', () => {
     expect(DiagnosticApi.record).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/x/recipes/bad', channel: 'content-error' }),
     );
+  });
+});
+
+/** A controller that engages a step whose completion is refused (the world changed under it). */
+class LateRefusingController extends CommandController {
+  async execute(): Promise<void> {
+    /* not dispatched — `engage` drives the protocol directly */
+  }
+  engage(context: CommandContext, target: Idea): Promise<void> {
+    return this.engagePlan(context, {
+      ok: true,
+      durationMs: 1000,
+      effortW: 0,
+      facts: undefined,
+      onComplete: () => ({ ok: false, reason: 'locked', facts: { target } }),
+    }, { beginSelf: () => Mml.compose`` });
+  }
+}
+
+describe('failure model — a late completion refusal is said ONCE', () => {
+  let giver: TestGiver;
+  let door: Idea;
+
+  beforeEach(() => {
+    vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
+    giver = makeStuff(() => new TestGiver());
+    door = makeStuff(() => new Idea());
+    standRow(LOCKED, { facts: { target: 'thing' }, says: 'The lock holds on {{ target | item }}.' });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const ctxFor = (scriptLine?: string): CommandContext =>
+    CommandApi.createCommandContext({
+      commandGiver: giver,
+      location: null,
+      commandText: scriptLine ?? 'open north',
+      executionId: 'e',
+      commandId: 'c',
+      verb: 'open',
+      command: CommandApi.getCommand('platform/cmd/system/ping.yaml')!,
+      ...(scriptLine !== undefined ? { scriptLine } : {}),
+    });
+
+  const settle = async (): Promise<void> => {
+    for (let i = 0; i < 20; i++) await new Promise((r) => setTimeout(r, 0));
+  };
+
+  it('in a script: left on the context for the stop line, and NOT said at once', async () => {
+    const ctx = ctxFor('open north');
+    await makeStuff(() => new LateRefusingController()).engage(ctx, door);
+    await settle();
+    expect(ctx.getRefusal()?.reason).toBe('locked');
+    expect(said(giver)).not.toContain('The lock holds');
+  });
+
+  it('a typed command: said once, at once (its envelope already went)', async () => {
+    const ctx = ctxFor();
+    await ExecutionContextApi.runRoot(null, 'typed', async () => {
+      ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: giver });
+      await makeStuff(() => new LateRefusingController()).engage(ctx, door);
+      await settle();
+    });
+    expect(said(giver).match(/The lock holds/g)).toHaveLength(1);
   });
 });

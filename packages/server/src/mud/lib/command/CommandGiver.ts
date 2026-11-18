@@ -1879,6 +1879,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         location,
         // The script line, so a stop can name it (failure-model D5).
         commandText: line,
+        scriptLine: line,
         executionId: SecurityApi.uuid(),
         commandId: SecurityApi.uuid(),
         verb: command.getPrimaryVerb(),

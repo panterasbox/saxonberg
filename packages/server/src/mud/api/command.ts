@@ -166,6 +166,15 @@ export interface CommandContext {
   filterPolicy?: OnFilteredPolicy;
 
   /**
+   * ⭐ The script line this command is, when a script dispatched it
+   * (failure-model). A script is there to say what became of it: a refusal
+   * that arrives after the envelope went (an engaged step's completion) is
+   * left on the context for the script's stop line to word, never also said
+   * at once. Absent for a typed command.
+   */
+  scriptLine?: string;
+
+  /**
    * ⭐⭐ **The one guard every prompt seam uses.** Returns the
    * Interactive to ask, or — when nobody is there to answer (a script
    * line, an NPC) — notes `command-rejected { reason: 'needs-input',
@@ -231,6 +240,8 @@ export interface CreateCommandContextArgs {
   barId?: string;
   /** `--strict` / `--loose`; see {@link CommandContext.filterPolicy}. */
   filterPolicy?: OnFilteredPolicy;
+  /** The dispatching script's line; see {@link CommandContext.scriptLine}. */
+  scriptLine?: string;
 }
 
 /**

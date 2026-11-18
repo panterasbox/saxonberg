@@ -703,10 +703,11 @@ protected refuse(context: CommandContext, refusal: AnyActRefusal | Refusal): voi
   `lint:lib-statics`.
 - **B9. `engagePlan`'s words type** takes `onRefused` optional without
   changing `ActWords` (nine other controllers call `words.onRefused` directly).
-- **B10. A late completion refusal is said twice inside a script** — once at
-  once (the late path), once in the stop line. Recorded as a seam, not fixed:
-  telling a script's step from a typed one needs a context flag nobody else
-  wants.
+- **B10. A late completion refusal is said ONCE inside a script** (review,
+  2026-11-18 — the build first shipped it said twice). A script-dispatched
+  command's context carries `scriptLine`; `engagePlan`'s late path leaves the
+  refusal on the context and words it at once only for a typed command, so
+  inside a script the stop line is the one place it is said.
 - **B11. `fell`'s `decline` stays** for its legacy codes (`no-axe`,
   `not-a-standard`, `no-stand`, `not-a-tree`); only `refusalWords` went.
 - **B12. Shipped `.msh` scripts:** the lounge's three were read; the
