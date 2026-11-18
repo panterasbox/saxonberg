@@ -58,9 +58,10 @@ ships one and `NPC`/`Character` compose no Aether. So an NPC without an
 authored implant neither receives nor sends implant comms — `dm` cannot
 reach a remote NPC, and remote emotes pass it by (see
 [emotes.md](./emotes.md)). The comms slate's *universal always-on*
-commitment and its remote-NPC scenarios are unbuilt on that side; the
-per-NPC implant is content the `npc-dialogue` `addressed`/`tell` entry
-will need.
+commitment and its remote-NPC scenarios are unbuilt on that side, and
+⛔ **will stay so**: distance comms are player-to-player only — you talk
+to an NPC with `say`, in person (the owner, 2026-11-18;
+[aether-devices-slate](../slates/engine/aether-devices-slate.md) § 2).
 
 ### Comms is a hosted update; `AetherMixin` is the host
 

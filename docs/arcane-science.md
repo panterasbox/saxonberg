@@ -281,13 +281,19 @@ the question unavoidable → [worlds-slate](./slates/world/worlds-slate.md).)
 
 1. **What it is.** A physical field present throughout the metaverse, which none of the five senses
    meets. It is reached only through a **carrier** — a place, an object, a device, an organ — or by
-   a kind of creature born attuned. Any carrier reaches any other.
+   a kind of creature born attuned. Any carrier reaches any other. ⭐ **Every place carries what is
+   expressed in it to whoever is there** — so an emote reaches everyone in its room with no carrier
+   on either side, and a tuner (or being born attuned) is what reaches past the place you stand in
+   **[DECIDED — the owner, 2026-11-18;
+   [aether-devices-slate](./slates/engine/aether-devices-slate.md) § 3]**.
 2. **What it carries: information, and nothing else.** Never energy, never matter, never a self.
 3. **How fast: at once.** A message arrives the instant it is sent, measured in Coordinated
    Metaversal Time, across any distance — a room, a continent, a galaxy.
 4. **How well: by the field where you stand.** A message needs enough field at both ends. Strength
    varies by place; nodes and relays raise it; it can fall silent. Distance never weakens it — only
-   place does.
+   place does. ⚠ **Silence is rare, extreme and posted** — the aether's one job is that a `dm`
+   pretty much always works, and nobody is left unable to talk or to find their way out
+   ([aether-devices-slate](./slates/engine/aether-devices-slate.md) § 1).
 5. **What it does with what it carries.** It routes by address — a person, a group, a channel — and
    every message carries its true sender. It speaks for people; it does not vouch for things: it
    opens no door and proves no possession.
