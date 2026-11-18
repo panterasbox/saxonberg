@@ -1205,6 +1205,18 @@ What the player read, verbatim from the run:
    a staged outage must outlast the world's own background writes; a handler
    run during an outage must not write.
 
+**Final run:** one full run on a fresh boot after every fix — **12/12**.
+
+**The browser walk** (`e2e/tests/failure-model-walk.spec.ts`, Chromium
+against the real client): **3/3** — the `locked` sentence and the stop line
+each render once; the misspelled reason's corrected line is a tappable
+command and, tapped, defines the script; the bank's thrown refusal reads
+like any other and `on *` handles it; forestry's reason is worded once and
+handled by its path. ⭐ It found one thing the wire could not: the
+suggestion read *"…did you mean 'locked'?. Did you mean <line>?"* — the
+parser's error now says *"the nearest is 'locked'"* and the tappable line
+asks the one question.
+
 **B2 (each checkpoint can fail):** steps 2, 4, 8, 9, 11 and 12 were each
 observed red against real defects or wrong staging before their fixes;
 steps 1, 3, 5, 6, 7 and 10 were not separately broken — their assertions

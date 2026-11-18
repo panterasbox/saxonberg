@@ -377,7 +377,7 @@ async function checkTrys(
           const near = await reasons.nearest(code);
           const fixed = near !== null ? text.replace(new RegExp(`(\\bon\\s+(?:[^{]*?[\\s,])?)${escapeRe(code)}(?=[\\s,{])`), `$1${near}`) : null;
           return {
-            error: `there is no reason '${code}'${near !== null ? ` — did you mean '${near}'?` : ""}`,
+            error: `there is no reason '${code}'${near !== null ? ` — the nearest is '${near}'` : ""}`,
             ...(fixed !== null && fixed !== text ? { suggestion: fixed } : {}),
           };
         }

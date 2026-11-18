@@ -132,7 +132,7 @@ suite('⭐⭐ the failure model — refusals worded by their rows', () => {
 
   it('5. [instant · player] a misspelled reason is refused at parse, with the corrected line to tap', async () => {
     const { r, w } = await say(bank, 'def fmbad { try { open pumphouse } on lockd { say no } }');
-    expect(w).toMatch(/there is no reason 'lockd' — did you mean 'locked'\?/);
+    expect(w).toMatch(/there is no reason 'lockd' — the nearest is 'locked'\. Did you mean def fmbad \{ try \{ open pumphouse \} on locked \{ say no \} \} ?\?/);
     const note = (r.notes as Array<{ kind: string; reason?: string; suggestion?: string }>).find(
       (n) => n.kind === 'command-rejected' && n.reason === 'parse-failed',
     );
