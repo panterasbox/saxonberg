@@ -37,7 +37,12 @@ export type InboundHandler = (
 import { handlePing } from './ping';
 import { handleCommand } from './command';
 import { handleMqlQuery } from './mql';
-import { handleSubscribe, handleUnsubscribe } from './subscription';
+import {
+  handleSubscribe,
+  handleUnsubscribe,
+  handleSubscriptionPause,
+  handleSubscriptionResume,
+} from './subscription';
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
@@ -48,6 +53,8 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   command: handleCommand,
   subscribe: handleSubscribe,
   unsubscribe: handleUnsubscribe,
+  'subscription-pause': handleSubscriptionPause,
+  'subscription-resume': handleSubscriptionResume,
   'mql-query': handleMqlQuery,
   'prompt-response': handlePromptResponse,
   'prompt-cancel': handlePromptCancel,

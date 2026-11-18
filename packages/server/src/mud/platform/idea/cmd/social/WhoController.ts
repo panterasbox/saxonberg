@@ -22,6 +22,7 @@ import { PlayerApi } from '../../../../api/player';
 import { SocialApi, type RosterRow } from '../../../../api/social';
 import { CardApi } from '../../../../api/card';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { PerceptionApi } from '../../../../api/perception';
 
 /**
  * ⭐ **Retopic'd to `shell.result`.** `who` is a structured command
@@ -78,9 +79,15 @@ export default class WhoController extends CommandController<WhoModel> {
     }
 
     if (!MixinApi.isNotifyPolicy(viewer)) return;
-    let rows: RosterRow[] = await Promise.all(
-      people.map((p) => viewer.composeRosterRow(p))
-    );
+    // ⭐ One frame, the light held — as `look` lists a room (crowded-rooms
+    // D17).
+    let rows: RosterRow[];
+    const release = PerceptionApi.holdLightSteady();
+    try {
+      rows = people.map((p) => viewer.composeRosterRow(p));
+    } finally {
+      release();
+    }
 
     // --country: narrow on the already-public country field (no leak).
     if (model.country) {

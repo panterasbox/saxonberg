@@ -482,7 +482,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * `durableKey` is the seam that closes it, and it is a **direct poke
    * from the ledger, not a broadcast** — one known producer, one known
-   * consumer. See {@link SubscriptionApi.notifyDurableSubject}.
+   * consumer: `SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject })`.
    */
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {

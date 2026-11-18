@@ -90,8 +90,6 @@ export interface MqlSubscribeSpec {
   /** Required unless `chrome` names one. */
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
-  focusDependent?: boolean;
-  locationDependent?: boolean;
 }
 
 /**
@@ -813,11 +811,9 @@ class WebSocketClient {
   }
 
   /**
-   * The MQL source's door onto {@link subscribe} — a standing query.
-   * Dependency flags (`focusDependent` / `locationDependent`) install
-   * holder-level dependency entries the result-walk wouldn't naturally
-   * find — opt in when the query is a holder-pointer expression like
-   * `$focus` or `here`.
+   * The MQL source's door onto {@link subscribe} — a standing query. A
+   * relative query (`$focus`, `here`) wakes on its holder's changes with
+   * nothing asked for (crowded-rooms D1).
    */
   public subscribeMql(spec: MqlSubscribeSpec): string {
     return this.subscribe(SUBSCRIPTION_SOURCES.mql, spec);
@@ -836,6 +832,26 @@ class WebSocketClient {
         payload: { type: "unsubscribe", subscriptionId },
       });
     }
+  }
+
+  /**
+   * ⭐ A subscription the server opened (a live card's — its id is the
+   * card's `instanceId`) is NOT ON SCREEN (crowded-rooms D4): the server
+   * stops computing and sending it. Not re-sent on reconnect — after one,
+   * every card starts shown.
+   */
+  public pauseSubscription(subscriptionId: string): void {
+    if (!this.isConnected()) return;
+    this.send({ type: "subscription-pause", payload: { subscriptionId } });
+  }
+
+  /**
+   * ⭐ It is on screen again: the server answers one fresh
+   * `subscription-result` (`rev` 0, a reset) and resumes its deltas.
+   */
+  public resumeSubscription(subscriptionId: string): void {
+    if (!this.isConnected()) return;
+    this.send({ type: "subscription-resume", payload: { subscriptionId } });
   }
 
   /**

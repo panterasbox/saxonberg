@@ -13,6 +13,7 @@ import express, { type Express, type RequestHandler } from 'express';
 import type { Server as HttpServer } from 'http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { monitorEventLoopDelay, type IntervalHistogram } from 'node:perf_hooks';
 import session from 'express-session';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
@@ -34,6 +35,7 @@ import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
 import { StuffApi } from '../mud/api/stuff';
+import { ExecutionContextApi } from '../mud/api/execution-context';
 
 /**
  * Server - Main application server.
@@ -157,6 +159,34 @@ export class Server {
   }
 
   /**
+   * The loop-delay histogram as the drive reads it: how many samples, how
+   * many of them over 100 ms (from the percentile map — a histogram keeps
+   * no per-sample list), the worst, and the p99. Milliseconds.
+   */
+  private static loopRead(h: IntervalHistogram): {
+    count: number;
+    over100: number;
+    maxMs: number;
+    p99Ms: number;
+  } {
+    const toMs = (ns: number): number => Math.round(ns / 1e4) / 100;
+    const count = h.count;
+    let over100 = 0;
+    for (const [pct, ns] of h.percentiles) {
+      if (ns > 100e6) {
+        over100 = Math.round((count * (100 - pct)) / 100);
+        break;
+      }
+    }
+    return {
+      count,
+      over100,
+      maxMs: count ? toMs(h.max) : 0,
+      p99Ms: count ? toMs(h.percentile(99)) : 0,
+    };
+  }
+
+  /**
    * Setup basic routes.
    */
   private setupRoutes(): void {
@@ -180,12 +210,24 @@ export class Server {
     // ⚠ Process-local: read it from a server that has been up a while.
     // A freshly-booted one reports zeros, which looks identical to
     // "nothing scans" and is the opposite of the finding.
+    //
+    // ⭐ `cpu` and `loop` are CUMULATIVE since boot (crowded-rooms D12):
+    // the process's own CPU microseconds, and an event-loop-delay histogram
+    // that is never reset. A reader takes two reads and subtracts, so two
+    // readers (a drive and a person) cannot disturb each other.
+    const loop = monitorEventLoopDelay({ resolution: 10 });
+    loop.enable();
     this.app.get('/stats', (req, res) => {
       res.json({
         connections: ConnectionApi.getConnectionCount(),
         objects: StuffApi.getObjectCount(),
         uptime: process.uptime(),
         registryReads: StuffApi.registryReadStats(),
+        cpu: process.cpuUsage(),
+        loop: Server.loopRead(loop),
+        // Writes a walk made while holding the world still (crowded-rooms
+        // D9); 0 is the only healthy reading.
+        walkWrites: ExecutionContextApi.walkWriteCount(),
       });
     });
 

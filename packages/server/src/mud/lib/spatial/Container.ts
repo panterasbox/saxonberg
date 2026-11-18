@@ -946,10 +946,10 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'contents',
         // ⭐ Rung 1: a placement change on a child (an apple placed ON a
         // desk that is already IN this room) moves nothing in this
-        // container's set, so `contents` alone would not wake — the
-        // field is name-keyed on the bus, so a `placement` fire anywhere
-        // re-resolves every open container card, which re-projects its
-        // children with their fresh placement.
+        // container's set. The child's own row and the resolve that
+        // enumerated it are dependencies (crowded-rooms D1), so its
+        // `placement` fire wakes this card; on the host itself only
+        // `contents` matters.
         dependsOnFields: ['contents', 'placement'],
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
@@ -960,15 +960,40 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           // MQL names the same children for everyone (D23); the card shows
           // what THIS viewer perceives — a stranger's pockets, a shut chest
           // and a concealed-undiscovered child never enter the projection.
-          const visible = PerceptionApi.perceived(
-            viewer,
+          // ⭐ Inside a live subscription's projection the resolve reports
+          // what it read: each child it enumerated is a dependency, so a cup
+          // taken off a desk wakes the room's card (crowded-rooms D1).
+          // ⭐ Membership is the same for every viewer (`:visible` and
+          // `:carried` ask nothing of the asker); only `- me` is the
+          // viewer's. Inside a live projection it is resolved ONCE per field
+          // fire and shared by every card on this place (crowded-rooms W8).
+          const resolveMembers = (): ReturnType<typeof MqlApi.resolveMany> =>
             MqlApi.resolveMany(
-              `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
+              `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin]`,
               // The card's viewer is a character (a CommandGiver); the static
               // type at this seam is only `Stuff & Sensor`.
-              { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
-            ).stuff,
-          );
+              {
+                commandGiver: viewer as unknown as Stuff & CommandGiver,
+                scope: 'here',
+                ...(SubscriptionApi.collecting ? { trackTouched: true } : {}),
+              },
+            );
+          const members = SubscriptionApi.collecting
+            ? SubscriptionApi.sharedRead(`contents:${host.stuffId}`, resolveMembers)
+            : resolveMembers();
+          const named = {
+            ...members,
+            stuff: members.stuff.filter((c) => c.stuffId !== viewer.stuffId),
+          };
+          // Membership: whether a child is listed here at all.
+          if (named.touched && SubscriptionApi.collecting) {
+            SubscriptionApi.noteRead(named.touched, ['placement', 'container']);
+          }
+          // Inside a live projection each child's answer is memoized until it
+          // fires (crowded-rooms W8); otherwise the plain filter.
+          const visible = SubscriptionApi.collecting
+            ? SubscriptionApi.perceivedAmong(named.stuff, (c) => PerceptionApi.perceives(viewer, c))
+            : PerceptionApi.perceived(viewer, named.stuff);
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.

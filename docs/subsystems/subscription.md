@@ -53,7 +53,7 @@ interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key:
   ledger or a session telling a source its answer may have changed, the
   hint in the source's own words: the sections (where you are), a
   `{ durableSubject }` a ledger just wrote, a holder whose session changed
-  bodies (the MQL source). It also carries the subscribable-field
+  bodies, a viewer's `{ belief }` about a subject (the MQL source). It also carries the subscribable-field
   substrate any source projects through (`SubscribableFieldDescriptor`,
   `fireFieldChange`, `projectFields`, `projectAspect`), the MQL source's
   one-shot `handleQuery`, and the sandbox reap (`cancelAllForScope`).
@@ -69,9 +69,23 @@ interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key:
 - **`SubscriptionSourceMixin`** (`lib/subscription/`): `openSubscription(sub,
   params)` answers the snapshot (synchronously when it can — a live card's
   open must have its answer in hand) or refuses in a word;
-  `closeSubscription(sub)`; `pokeSubscriptions(holder, hint)`. A source
+  `closeSubscription(sub)`; `pokeSubscriptions(holder, hint)`;
+  `pauseSubscription(sub)` / `resumeSubscription(sub)`. A source
   holds a `Subscription` handle — `push(changes)`, `fail(reason)`, `end()`,
   `state` — and never builds an envelope or keeps an id table.
+- ⭐ **Pause and resume** (crowded-rooms D4/D5, ported onto the protocol at
+  the merge). `subscription-pause {subscriptionId}` says a subscription is
+  NOT ON SCREEN — a card scrolled away, minimized, behind a `full` card, the
+  tab hidden; the client says it, the server never infers it. The registry
+  drops everything pushed while paused and tells the source
+  (`pauseSubscription(sub)`), which may also stop computing (the MQL source
+  drops its dependencies and memo). `subscription-resume` asks the source
+  for a fresh snapshot (`resumeSubscription(sub)`; the default closes and
+  reopens with the params it was opened with) and sends ONE
+  `subscription-result` at `rev` 0 — a reset the client replaces its copy
+  with — then deltas from `rev` 1. Session verbs: `pauseSubscription`,
+  `resumeSubscription`, `isSubscriptionPaused` (a card's rebind keeps a
+  pause). Unknown ids are skipped.
 - **Silent opens.** A live card (`CardRegistry`) and the two session
   subscriptions open silently: the snapshot rides their own envelope
   (`card-opened`; `connection-established.clientState` / `.releaseWindow`),

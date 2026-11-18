@@ -23,7 +23,9 @@
  */
 
 import { useEffect } from "react";
+import type React from "react";
 import type {
+  SubscriptionResultEnvelope,
   CardClosedEnvelope,
   CardOpenedEnvelope,
   CardPinnedEnvelope,
@@ -196,6 +198,18 @@ export function useCardFeed(): void {
      * because `instanceId === subscriptionId` by construction. No new
      * envelope and no join table — the card OWNS the handle.
      */
+    /*
+     * ⭐ A RESULT for a card's id means RESUMED (crowded-rooms D5): until
+     * now a card's only snapshot rode `card-opened`. It is a reset — the
+     * card's records are replaced.
+     */
+    const handleResult = (envelope: Envelope): void => {
+      const env = envelope as SubscriptionResultEnvelope;
+      const store = useStore.getState();
+      if (!store.cards[env.subscriptionId]) return;
+      store.setCardRecords(env.subscriptionId, (env.snapshot ?? []) as CardRecord[]);
+    };
+
     const handleDelta = (envelope: Envelope): void => {
       const env = envelope as SubscriptionDeltaEnvelope<Change["fields"]>;
       const store = useStore.getState();
@@ -213,6 +227,7 @@ export function useCardFeed(): void {
     websocketClient.onEnvelope("card-pinned", handlePinned);
     websocketClient.onEnvelope("card-arranged", handleArranged);
     websocketClient.onEnvelope("subscription-delta", handleDelta);
+    websocketClient.onEnvelope("subscription-result", handleResult);
 
     return () => {
       websocketClient.offEnvelope("card-opened", handleOpened);
@@ -221,6 +236,89 @@ export function useCardFeed(): void {
       websocketClient.offEnvelope("card-pinned", handlePinned);
       websocketClient.offEnvelope("card-arranged", handleArranged);
       websocketClient.offEnvelope("subscription-delta", handleDelta);
+      websocketClient.offEnvelope("subscription-result", handleResult);
     };
   }, []);
+}
+
+/** Pause after this long continuously unseen; resume at once (D4). */
+const PAUSE_AFTER_MS = 500;
+
+/** Per live card: has the server been told it is hidden, and the pending pause. */
+const shown = new Map<string, { paused: boolean; timer: ReturnType<typeof setTimeout> | null }>();
+
+/** Tell the server what is on screen — debounced away, immediate back. */
+function setCardShown(instanceId: string, visible: boolean): void {
+  let st = shown.get(instanceId);
+  if (!st) {
+    st = { paused: false, timer: null };
+    shown.set(instanceId, st);
+  }
+  if (visible) {
+    if (st.timer !== null) {
+      clearTimeout(st.timer);
+      st.timer = null;
+    }
+    if (st.paused) {
+      st.paused = false;
+      websocketClient.resumeSubscription(instanceId);
+    }
+    return;
+  }
+  if (st.paused || st.timer !== null) return;
+  const entry = st;
+  entry.timer = setTimeout(() => {
+    entry.timer = null;
+    entry.paused = true;
+    websocketClient.pauseSubscription(instanceId);
+  }, PAUSE_AFTER_MS);
+}
+
+/** Forget a card that closed or stopped being live — nothing to tell. */
+function forgetCardShown(instanceId: string): void {
+  const st = shown.get(instanceId);
+  if (st?.timer) clearTimeout(st.timer);
+  shown.delete(instanceId);
+}
+
+/**
+ * ⭐⭐ The client says what is ON SCREEN (crowded-rooms D4): a live card is
+ * shown while its body is mounted, intersects the viewport, and the
+ * document is visible. Unseen for half a second, the server is told to
+ * pause it (nothing computed, nothing sent); seen again, it resumes and
+ * sends one fresh result. The server never guesses — a client that never
+ * reports keeps every card current. A card in the tray or displaced by a
+ * `medium`/`full` card has no mounted body, so it pauses on unmount.
+ */
+export function useCardShown(
+  instanceId: string,
+  live: boolean,
+  bodyRef: React.RefObject<HTMLElement | null>,
+): void {
+  useEffect(() => {
+    if (!live) {
+      forgetCardShown(instanceId);
+      return;
+    }
+    const el = bodyRef.current;
+    let intersecting = true;
+    const update = (): void =>
+      setCardShown(instanceId, intersecting && document.visibilityState !== "hidden");
+    let observer: IntersectionObserver | null = null;
+    if (el && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver((entries) => {
+        intersecting = entries.some((e) => e.isIntersecting);
+        update();
+      });
+      observer.observe(el);
+    }
+    document.addEventListener("visibilitychange", update);
+    update();
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", update);
+      // Unmounted (trayed, displaced, closed): unseen.
+      setCardShown(instanceId, false);
+    };
+  }, [instanceId, live, bodyRef]);
 }

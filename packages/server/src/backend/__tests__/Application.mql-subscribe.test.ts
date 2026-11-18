@@ -55,7 +55,7 @@ describe('Application — MQL subscription routes', () => {
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const params = { query: '$focus', cardinality: 'many', fields: 'detail', focusDependent: true };
+    const params = { query: '$focus', cardinality: 'many', fields: 'detail' };
     app.processUserMessage('sock-1', {
       type: 'subscribe',
       payload: {
@@ -67,6 +67,25 @@ describe('Application — MQL subscription routes', () => {
     });
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith('s1', SUBSCRIPTION_SOURCES.mql, params);
+  });
+
+  it('⭐ subscription-pause / -resume routes reach the session verbs (crowded-rooms D5)', () => {
+    const interactive = makeFakeInteractive('sock-1');
+    const pause = vi.fn();
+    const resume = vi.fn();
+    (interactive as never as Record<string, unknown>).pauseSubscription = pause;
+    (interactive as never as Record<string, unknown>).resumeSubscription = resume;
+    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(interactive);
+    app.processUserMessage('sock-1', {
+      type: 'subscription-pause',
+      payload: { type: 'subscription-pause', subscriptionId: 'card-1' },
+    });
+    app.processUserMessage('sock-1', {
+      type: 'subscription-resume',
+      payload: { type: 'subscription-resume', subscriptionId: 'card-1' },
+    });
+    expect(pause).toHaveBeenCalledWith('card-1');
+    expect(resume).toHaveBeenCalledWith('card-1');
   });
 
   it('the unsubscribe route reaches interactive.cancelSubscription', () => {

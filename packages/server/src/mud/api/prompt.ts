@@ -1,7 +1,7 @@
 /**
  * PromptApi — server-side prompt substrate.
  *
- * Pattern mirrors `SubscriptionApi` in `api/mql-subscription.ts`:
+ * Pattern mirrors `SubscriptionApi` in `api/subscription.ts`:
  * per-Interactive registry of pending prompts, outbound envelopes via
  * `MessageApi.sendEnvelope`, inbound entry points called by the
  * backend inbound handler table (`backend/inbound/prompt.ts`); tests

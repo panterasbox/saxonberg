@@ -67,6 +67,12 @@ export interface MqlContext {
    * — the only thing there that locks. Never set by player-typed MQL.
    */
   admits?: (s: Stuff) => boolean;
+  /**
+   * ⭐ Code-only (crowded-rooms N2): report what the resolve READ as
+   * `touched` on the result — a live subscription installs a dependency on
+   * each. Opt-in, so no other caller pays for the record.
+   */
+  trackTouched?: boolean;
 }
 
 /**
@@ -205,6 +211,8 @@ export interface MqlOne {
  */
 export interface MqlMany {
   stuff: Stuff[];
+  /** What the resolve read, when `ctx.trackTouched` asked (crowded-rooms N2). */
+  touched?: Stuff[];
   via?: MqlMatchVia;
   /**
    * ⭐ Each match's OWN attribution, index-aligned with `stuff` — present

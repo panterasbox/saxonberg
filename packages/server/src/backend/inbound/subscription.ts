@@ -9,7 +9,12 @@
  * channel).
  */
 
-import type { SubscribeMessage, UnsubscribeMessage } from '@saxonberg/types';
+import type {
+  SubscribeMessage,
+  UnsubscribeMessage,
+  SubscriptionPauseMessage,
+  SubscriptionResumeMessage,
+} from '@saxonberg/types';
 import type { InboundHandler } from './index';
 
 export const handleSubscribe: InboundHandler = (ctx, message) => {
@@ -41,4 +46,22 @@ export const handleUnsubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as Partial<UnsubscribeMessage> | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
   ctx.interactive.cancelSubscription(payload.subscriptionId);
+};
+
+/**
+ * ⭐ The client says a subscription it holds is not on screen (crowded-rooms
+ * D4) — a card scrolled away, minimized, behind a `full` card, or the tab
+ * hidden. One fact, one source: the server never infers it.
+ */
+export const handleSubscriptionPause: InboundHandler = (ctx, message) => {
+  const payload = message.payload as Partial<SubscriptionPauseMessage> | undefined;
+  if (!payload || typeof payload.subscriptionId !== 'string') return;
+  ctx.interactive.pauseSubscription(payload.subscriptionId);
+};
+
+/** ⭐ …and on screen again: one fresh result at `rev` 0, then deltas. */
+export const handleSubscriptionResume: InboundHandler = (ctx, message) => {
+  const payload = message.payload as Partial<SubscriptionResumeMessage> | undefined;
+  if (!payload || typeof payload.subscriptionId !== 'string') return;
+  ctx.interactive.resumeSubscription(payload.subscriptionId);
 };

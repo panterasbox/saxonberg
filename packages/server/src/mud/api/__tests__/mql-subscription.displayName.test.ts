@@ -75,7 +75,7 @@ describe('MQL subscription — displayName on Stuff', () => {
     const obj = makeStuff(() => new Plain());
     const descriptors = collectSubscribableFields(obj);
     const displayName = descriptors.get('displayName')!;
-    expect(displayName.dependsOnFields).toEqual(['name', 'shortDescription']);
+    expect(displayName.dependsOnFields).toEqual(['name', 'shortDescription', 'occupants']);
   });
 
   it('displayName declares ShadowChangedEvent in changes', () => {

@@ -505,6 +505,26 @@ export default class Interactive extends Idea {
   }
 
   /**
+   * ⭐ The client says this subscription is not on screen (crowded-rooms
+   * D4): nothing is sent, and its source may stop computing, until
+   * {@link resumeSubscription}. The `subscription-pause` wire. Unknown ids
+   * are a skip.
+   */
+  public pauseSubscription(subscriptionId: string): void {
+    subscriptionRegistry().pause(this, subscriptionId);
+  }
+
+  /** ⭐ On screen again: one fresh result at `rev` 0, then deltas (`subscription-resume`). */
+  public resumeSubscription(subscriptionId: string): void {
+    void subscriptionRegistry().resume(this, subscriptionId);
+  }
+
+  /** Is this subscription paused? */
+  public isSubscriptionPaused(subscriptionId: string): boolean {
+    return subscriptionRegistry().isPaused(this, subscriptionId);
+  }
+
+  /**
    * Re-resolve every MQL subscription this Interactive holds — the sandbox
    * crossing calls this after moving a socket between bodies, so the
    * client's cards re-render for the body it now drives.

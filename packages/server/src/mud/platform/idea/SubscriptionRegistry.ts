@@ -71,6 +71,8 @@ class Handle implements Subscription {
   state: unknown = undefined;
   rev = 0;
   open = true;
+  /** Not on screen (crowded-rooms D4): nothing pushed is sent. */
+  paused = false;
   /** Changes pushed before the snapshot went out — sent right after it. */
   early: SubscriptionChange[][] | null = [];
 
@@ -79,6 +81,8 @@ class Handle implements Subscription {
     readonly interactive: Interactive,
     readonly source: string,
     readonly src: Source,
+    /** What it was opened with — a resume that reopens reads it again. */
+    readonly params: unknown,
     private readonly owner: {
       delta(h: Handle, changes: SubscriptionChange[]): void;
       fail(h: Handle, reason: string, detail?: string): void;
@@ -91,7 +95,8 @@ class Handle implements Subscription {
   }
 
   push(changes: SubscriptionChange[]): void {
-    if (!this.open || changes.length === 0) return;
+    // ⭐ A paused subscription sends nothing; its resume answers afresh.
+    if (!this.open || this.paused || changes.length === 0) return;
     if (this.early !== null) {
       this.early.push(changes);
       return;
@@ -111,6 +116,10 @@ class Handle implements Subscription {
 
   isOpen(): boolean {
     return this.open;
+  }
+
+  isPaused(): boolean {
+    return this.paused;
   }
 }
 
@@ -210,6 +219,55 @@ export default class SubscriptionRegistry extends Idea {
     src.pokeSubscriptions(holder, hint);
   }
 
+  /**
+   * ⭐ The client says this subscription is not on screen (crowded-rooms
+   * D4): a card scrolled away, minimized, behind a `full` card, the tab
+   * hidden. Nothing pushed is sent, and the source is told so it can stop
+   * computing. The id stays. One fact, one source: the server never infers
+   * it. An id the session does not hold, or one already paused, is a skip.
+   */
+  @CallSecurity(SubscriptionApiCallers)
+  public pause(interactive: Interactive, subscriptionId: string): void {
+    const h = this.table.get(interactive)?.get(subscriptionId);
+    if (h === undefined || h.paused) return;
+    h.paused = true;
+    h.src.pauseSubscription(h);
+  }
+
+  /**
+   * ⭐ On screen again: the source answers a fresh snapshot, sent as ONE
+   * `subscription-result` at `rev` 0 — a reset the client replaces its copy
+   * with — and deltas resume from there. An id that is not paused is a skip.
+   */
+  @CallSecurity(SubscriptionApiCallers)
+  public resume(interactive: Interactive, subscriptionId: string): void | Promise<void> {
+    const h = this.table.get(interactive)?.get(subscriptionId);
+    if (h === undefined || !h.paused) return;
+    h.paused = false;
+    h.rev = 0;
+    h.early = [];
+    let answer: unknown;
+    try {
+      answer = h.src.resumeSubscription(h);
+    } catch (err) {
+      answer = { refused: true, reason: 'resolve', detail: err instanceof Error ? err.message : String(err) };
+    }
+    if (isThenable(answer)) {
+      return Promise.resolve(answer).then(
+        (a) => void this.settle(h, a, {}),
+        (err: unknown) =>
+          void this.settle(h, { refused: true, reason: 'resolve', detail: err instanceof Error ? err.message : String(err) }, {}),
+      );
+    }
+    this.settle(h, answer, {});
+  }
+
+  /** Is this subscription paused (a card's rebind keeps a pause)? */
+  @CallSecurity(SubscriptionApiCallers)
+  public isPaused(interactive: Interactive, subscriptionId: string): boolean {
+    return this.table.get(interactive)?.get(subscriptionId)?.paused === true;
+  }
+
   /** See `Interactive` (the session's own verb). */
   @CallSecurity(SubscriptionApiCallers)
   public has(interactive: Interactive, subscriptionId: string): boolean {
@@ -247,7 +305,7 @@ export default class SubscriptionRegistry extends Idea {
     params: unknown,
     opts: SubscriptionOpenOptions,
   ): unknown | null | Promise<unknown | null> {
-    const h = new Handle(id, interactive, source, src, {
+    const h = new Handle(id, interactive, source, src, params, {
       delta: (handle, changes) => this.sendDelta(handle, changes),
       fail: (handle, reason, detail) => this.failHandle(handle, reason, detail),
       forget: (handle) => this.drop(handle),

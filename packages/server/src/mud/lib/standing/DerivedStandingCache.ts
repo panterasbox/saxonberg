@@ -27,7 +27,7 @@
  *   2. The miss schedules a background fold, at most one in flight per
  *      subject.
  *   3. When it lands, `onWarm` runs — a **direct** poke to
- *      `SubscriptionApi.notifyDurableSubject`, so the subscription
+ *      `SubscriptionApi.poke(…, { durableSubject })`, so the subscription
  *      re-resolves and the real figure arrives as a delta moments
  *      later. No event, no bus: one known producer, one known
  *      consumer.

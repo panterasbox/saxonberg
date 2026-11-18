@@ -351,8 +351,8 @@ tests failed.
 ⚠ `subject` is therefore a live row (the stock sheet is the other), and
 it is the one that earns it: it is the card the player is looking at,
 which is the whole basis on which liveness is granted. **`who` ships static** for a reason that has
-not changed — the dependency vocabulary is `focusDependent` /
-`locationDependent` / the `durableKey` poke channel, and **nothing wakes
+not changed — the dependency vocabulary is the holder entry, the fields a
+row reads and the `durableKey` poke, and **nothing wakes
 on connect or disconnect**. A live `who` would resolve once and then be
 permanently wrong while looking exactly like it worked.
 
@@ -417,6 +417,35 @@ target and the registry's gate would deny every tick — *silently*,
 because a scheduled callback has nobody to report to. `CardApi.boot`
 wraps it in `ExecutionContextApi.runRoot` with the logic singleton as
 principal.
+
+## ⭐⭐ Shown vs live — a card you cannot see costs nothing (crowded-rooms D4/D5)
+
+`live` keeps its meaning: the card **holds** a subscription. Whether it is
+**shown** is a second fact, and the CLIENT is its one source — the server
+never infers it from `minimized` or a size, which would be a second source
+that could disagree. A live card is shown while its body is mounted (not in
+the tray, not displaced by a `medium`/`full` card, not filtered out by a
+view), intersects the viewport, and the document is visible
+(`useCardShown` in `useCardFeed.ts`). Unseen for 500 ms the client sends
+`subscription-pause`; the moment it is seen again,
+`subscription-resume` — no delay is ever added to anything on screen.
+
+Paused, the server drops the subscription's dependencies and memo and keeps
+the id (`Interactive.pauseSubscription`): nothing is computed or sent.
+Resumed, it resolves afresh and answers ONE `mql-subscription-result`, which
+the card feed applies as a reset of the card's records (a result for a
+card's id means *resumed*; until then a card's only snapshot rode
+`card-opened`). A card's close cancels its subscription, which forgets the
+pause; the `here` card's rebind is a cancel-and-reopen that re-applies it
+(the open's snapshot rides `card-touched`, then it closes again). Card
+*events* still flow while paused — the pause is of state. A client that
+never reports keeps every card current; after a reconnect every card starts
+shown and nothing is replayed.
+
+⚠ This rides the current MQL transport because navigation-server's D1
+(`subscription-pause` / `-resume` on its `SubscriptionRegistry`) had not
+merged when it shipped; that build's W1 migration carries these two message
+types and the paused set across.
 
 ## ⭐⭐ Subject-bound subscriptions
 

@@ -464,13 +464,11 @@ describe("subscribeMql", () => {
     query: "$focus",
     cardinality: "many" as const,
     fields: "detail" as const,
-    focusDependent: true,
   };
   const LOCATION_SPEC = {
     query: "here",
     cardinality: "one" as const,
     fields: "ref" as const,
-    locationDependent: true,
   };
 
   beforeEach(() => {

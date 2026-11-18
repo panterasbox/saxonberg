@@ -230,8 +230,8 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
 
   /**
    * ⚠ **Static, and that is a decision rather than a shortcut.** The
-   * dependency vocabulary is `focusDependent`, `locationDependent` and
-   * the `durableKey` poke channel — **nothing wakes on connect or
+   * dependency vocabulary is the holder entry every query-bound
+   * subscription installs, the fields it reads, and the `durableKey` poke — **nothing wakes on connect or
    * disconnect**. A live `who` would resolve once and then be
    * permanently wrong while looking exactly like it worked, which is the
    * immortal-card shape. Building a presence wake means every login

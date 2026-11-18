@@ -34,6 +34,8 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import EventRegistry from '../../../platform/idea/EventRegistry';
+import { EventApi } from '../../../api/event';
 import '../../../platform/idea/WorldClockRegistry';
 import { Placements } from '../../spatial/Placement';
 
@@ -54,6 +56,18 @@ const DAY = 86_400;
 let now = 1_000_000;
 const setNow = (s: number): void => {
   now = 1_000_000 + s;
+};
+/**
+ * Move the injected clock to game-second `s` THROUGH the clock, so every
+ * wake due in the stretch fires (crowded-rooms D8: a set finishes on its
+ * own wake, never on a read).
+ */
+const advanceTo = (s: number): void => {
+  const target = 1_000_000 + s;
+  const by = target - now;
+  // The clock reads the provider (`now`) as its start, so move it after.
+  WorldClockApi._advanceForTesting(by);
+  now = target;
 };
 
 const WHEEL = '/stuff/thing/_drain/wheel';
@@ -142,7 +156,12 @@ function hoopOnPail(): { hoop: TestHoop; pail: TestPail } {
 }
 
 describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A host-bound clock wake (the set's, D8) listens for its host's
+    // destruct, which needs the event registry.
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     setNow(0);
@@ -163,7 +182,7 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
     const { hoop, pail } = hoopOnPail();
     expect(hoop.drainsInto()).toBe(pail);
     hoop.reconcileSetting(); // stamps the start
-    setNow(0.5 * DAY + 60);
+    advanceTo(0.5 * DAY + 60);
     hoop.reconcileSetting();
     await settle();
 
@@ -192,14 +211,14 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
   it('the pool is debited as it sets, and the set solid is the ORIGINAL charge less the drainings', async () => {
     const { hoop, pail } = hoopOnPail();
     hoop.reconcileSetting();
-    setNow(0.25 * DAY);
+    advanceTo(0.25 * DAY);
     hoop.reconcileSetting();
     const midL = hoop.getBulkAmount('interior').rawValue();
     const caughtL = pail.getBulkAmount('interior').rawValue();
     expect(caughtL).toBeGreaterThan(0);
     expect(midL).toBeCloseTo(2 - caughtL, 9);
 
-    setNow(0.5 * DAY + 60);
+    advanceTo(0.5 * DAY + 60);
     hoop.reconcileSetting();
     await settle();
     const [cast] = [...hoop.getContents()] as unknown as Provision[];
@@ -217,10 +236,10 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
     ContainmentApi.move(hoop, r);
     expect(hoop.drainsInto()).toBeNull();
     hoop.reconcileSetting();
-    setNow(0.25 * DAY);
+    advanceTo(0.25 * DAY);
     hoop.reconcileSetting();
     expect(hoop.getBulkAmount('interior').rawValue()).toBeLessThan(2);
-    setNow(0.5 * DAY + 60);
+    advanceTo(0.5 * DAY + 60);
     hoop.reconcileSetting();
     await settle();
     const [cast] = [...hoop.getContents()] as unknown as Provision[];

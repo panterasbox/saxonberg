@@ -42,6 +42,7 @@ import { Evaporation } from '../material/Evaporation';
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";
+import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
@@ -198,6 +199,20 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */
     private _thermalRegReconciling = false;
+    /**
+     * ⭐ What the body wears, read ONCE per reconcile (crowded-rooms D16):
+     * nothing it wears can change inside one synchronous reconcile, and the
+     * three readers below walked every exterior part × its worn stack up to
+     * three times a slice. Transient; `null` outside a reconcile.
+     */
+    private _reconcileClo: number | null = null;
+
+    /** The body's worn insulation (clo) — the reconcile's one read, else live. */
+    private wornClo(): number {
+      if (this._reconcileClo !== null) return this._reconcileClo;
+      const host = this.regHost;
+      return MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+    }
     /** Debounce flags so the reconcile doesn't spam cues per slice. */
     private _shiverNoted = false;
     private _sweatNoted = false;
@@ -323,6 +338,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     public reconcileThermalRegulation(): void {
       if (this._thermalRegReconciling) return;
+      // ⭐ The room's reading holds the world still (crowded-rooms D15): a
+      // card's projection of a body reads it as its last reconcile left it.
+      if (ExecutionContextApi.worldHeldStill) return;
       const D = THERMAL_DEFAULTS;
 
       const nowS = this.regNowSeconds();
@@ -348,9 +366,18 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         this.thermalRegStamp = nowS;
         return;
       }
+      // ⭐ Below the model's own step, do nothing YET and do not re-stamp
+      // (the `reconcileMetabolism` shape, crowded-rooms D18): the elapsed
+      // time accumulates and the next read past a step integrates all of
+      // it. Without it every core-temperature read — every `get`'s carry
+      // check — integrated a sliver.
+      // A pending heat load is the body's own event and is integrated at
+      // once (a fireball's heat shows on the next read, not a minute on).
+      if (elapsed < D.REG_STEP_SEC && !(this.heatLoadJ > 0)) return;
 
       this._thermalRegReconciling = true;
       try {
+        this._reconcileClo = MixinApi.isAttired(self) ? self.bodyInsulation().rawValue() : 0;
         this.refreshEffectiveAmbientFromEnvelope();
         let remaining = elapsed;
         let steps = 0;
@@ -365,6 +392,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         this.thermalRegStamp = nowS;
       } finally {
         this._thermalRegReconciling = false;
+        this._reconcileClo = null;
       }
     }
 
@@ -496,9 +524,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // ⭐ Insulation impedes loss both ways. Worn clo sits in series
         // with the body's own resistance, and flux goes as 1/R — so the
         // parka that holds warmth in is what stops work-heat getting out.
-        const clo = MixinApi.isAttired(host)
-          ? host.bodyInsulation().rawValue()
-          : 0;
+        const clo = this.wornClo();
         const body = D.SHED_BODY_CLO;
         const damping = body / (body + Math.max(0, clo));
         const shed = Math.min(
@@ -905,9 +931,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * answers zero, as before.
      */
     protected wornInsulationKelvin(): number {
-      const self = this.regHost;
-      if (!MixinApi.isAttired(self)) return 0;
-      return self.bodyInsulation().rawValue() * THERMAL_DEFAULTS.CLO_TO_KELVIN;
+      return this.wornClo() * THERMAL_DEFAULTS.CLO_TO_KELVIN;
     }
 
     /**
@@ -928,9 +952,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      */
     protected bodyTau(): number {
       const base = this.regHost.getTau().rawValue();
-      const self = this.regHost;
-      if (!MixinApi.isAttired(self)) return base;
-      const clo = self.bodyInsulation().rawValue();
+      const clo = this.wornClo();
       if (!(clo > 0)) return base;
       return base * (1 + clo / THERMAL_DEFAULTS.SHED_BODY_CLO);
     }

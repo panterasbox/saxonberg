@@ -1037,12 +1037,9 @@ export interface PromptEnvelope {
  * a `subscription-error` with reason `parse`. The `fields`
  * parameter is ignored in focus mode.
  *
- * `focusDependent` / `locationDependent` install holder-level
- * dependency entries the result-walk wouldn't naturally find — the
- * subscription wakes on `setFocus` / `setContainer` respectively.
- * Used by client subscriptions that watch the holder's pointer
- * fields (e.g., a focus-card query like `$focus` or a current-room
- * query like `here`).
+ * Every query-bound subscription depends on its HOLDER (crowded-rooms
+ * D1): a relative query (`$focus`, `here`) wakes on `setFocus` /
+ * `setContainer` with nothing asked for.
  */
 /**
  * A **card** the server knows by name.
@@ -1234,8 +1231,6 @@ export interface MqlSubscriptionParams {
   cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
-  focusDependent?: boolean;
-  locationDependent?: boolean;
 }
 
 /**
@@ -1940,9 +1935,6 @@ export interface CardPinnedEnvelope {
  * Discriminator is `queryId` (not `subscriptionId`) so a client may
  * have both subscriptions and queries in flight without correlation
  * collisions.
- *
- * `focusDependent` / `locationDependent` are meaningless for one-shot
- * reads (no subscription state to wake) and are NOT carried.
  */
 export interface MqlQueryMessage {
   type: 'mql-query';
@@ -2594,6 +2586,29 @@ export interface SubscribeMessage {
 /** Client → server: stop. */
 export interface UnsubscribeMessage {
   type: 'unsubscribe';
+  subscriptionId: string;
+}
+
+/**
+ * ⭐ Client → server: this subscription is NOT ON SCREEN (crowded-rooms
+ * D4/D5) — a card scrolled away, minimized, displaced by a `full` card, or
+ * the tab hidden. Nothing is sent for it, and its source may stop
+ * computing; the id stays. One fact, one source: the server never infers
+ * it. Unknown ids are skipped.
+ */
+export interface SubscriptionPauseMessage {
+  type: 'subscription-pause';
+  subscriptionId: string;
+}
+
+/**
+ * ⭐ Client → server: on screen again. Answered by ONE fresh
+ * {@link SubscriptionResultEnvelope} at `rev` 0 — a reset the client
+ * replaces its copy with — and deltas from there. Ids that are not paused
+ * are skipped.
+ */
+export interface SubscriptionResumeMessage {
+  type: 'subscription-resume';
   subscriptionId: string;
 }
 

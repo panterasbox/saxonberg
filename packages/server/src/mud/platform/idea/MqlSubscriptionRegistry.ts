@@ -62,6 +62,7 @@ import { ShellApi } from '../../api/shell';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
+  SubscriptionApi,
   collectSubscribableFields,
   projectFocus,
   resolveFieldSet,
@@ -94,6 +95,54 @@ const SubscriptionApiCallers = SecurityPolicies.AnyOf(
  */
 const DURABLE_SUBJECT_KIND = '__durable-subject';
 
+/**
+ * ⭐ The synthetic kind a belief change pokes (crowded-rooms D2): keyed
+ * `<viewerId>|<subjectId>`, so a viewer who learns who someone is
+ * re-projects THAT viewer's rows of THAT person, and nobody else's.
+ */
+const VIEWER_BELIEF_KIND = '__viewer-belief';
+
+/**
+ * Which fields of a target admit a fire: a set of field names, or `null` —
+ * any field (crowded-rooms D1).
+ */
+type FieldFilter = ReadonlySet<string> | null;
+
+/**
+ * ⭐ One memoized row (crowded-rooms D3): its record, every Stuff whose fire
+ * would make it stale (itself, its nested rows, what its descriptors' own
+ * resolves read), and what it installed — so a reused row re-installs its
+ * dependencies without being projected again.
+ */
+interface RowMemoEntry {
+  rec: Record<string, unknown>;
+  reads: Set<string>;
+  projected: Array<[Stuff, readonly string[]]>;
+  descriptorReads: Array<[Stuff, FieldFilter]>;
+}
+
+/** A subscription's row memo, and what has fired since its last pass. */
+interface RowMemo {
+  rows: Map<string, RowMemoEntry>;
+  /**
+   * ⭐ The viewer's perception answer per child a descriptor filtered
+   * (crowded-rooms W8): stale when the child fires, like its row. Light
+   * alone fires nothing — the residual the wake already accepts.
+   */
+  seen?: Map<string, boolean>;
+  /** Stuff ids that fired since the last pass. */
+  stale: Set<string>;
+  /** Something fired that no row can name (the holder, a ledger): drop it all. */
+  invalid: boolean;
+}
+
+/** Union two filters; `null` (any) absorbs. */
+function unionFilter(a: FieldFilter | undefined, b: FieldFilter): FieldFilter {
+  if (a === undefined) return b;
+  if (a === null || b === null) return null;
+  return new Set([...a, ...b]);
+}
+
 interface SubscriptionState {
   /** The protocol's handle — deltas and errors go out through it. */
   handle: LiveSubscription;
@@ -103,8 +152,6 @@ interface SubscriptionState {
   cardinality: SubscriptionCardinality;
   fields: FieldSet;
   detailKey?: string;
-  focusDependent: boolean;
-  locationDependent: boolean;
   /**
    * ⭐ Bound to ONE Stuff by id, instead of to a query. See
    * `SubscribeRequest.subjectId`: every query form is relative and
@@ -114,6 +161,8 @@ interface SubscriptionState {
   subjectId?: string;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
+  /** ⭐ Row-level dirt and the projection memo (crowded-rooms D3). */
+  memo: RowMemo;
   /**
    * Circle scope captured at registration (sandbox build): the batched
    * re-resolve re-plants this on its per-subscription root, so a
@@ -143,6 +192,16 @@ interface DependencyHandle {
   kind: string;
   by: string;
   value: unknown;
+  /** The fields that wake it (`null` any) — kept so a re-derive can reconcile. */
+  filter?: FieldFilter;
+}
+
+/** Two filters say the same thing. */
+function sameFilter(a: FieldFilter | undefined, b: FieldFilter): boolean {
+  if ((a ?? null) === null || b === null) return (a ?? null) === b;
+  if (a!.size !== b.size) return false;
+  for (const f of b) if (!a!.has(f)) return false;
+  return true;
 }
 
 function describeValue(v: unknown): string {
@@ -188,19 +247,26 @@ function projectStuffInto(
   viewer: Stuff & Sensor,
   detailKey: string | undefined,
 ): RecordValue {
-  if (detailKey !== undefined) {
-    return projectFocus(stuff, detailKey, viewer) as RecordValue;
+  // ⭐ A live card's projection is the room's own reading: it holds the
+  // world still (crowded-rooms D9).
+  const release = ExecutionContextApi.holdWorldStill('card projection');
+  try {
+    if (detailKey !== undefined) {
+      return projectFocus(stuff, detailKey, viewer) as RecordValue;
+    }
+    const descriptors = collectSubscribableFields(stuff);
+    const out: Record<string, unknown> = { stuffId: stuff.stuffId };
+    for (const name of fields) {
+      const d = descriptors.get(name);
+      if (!d || !d.read) continue;
+      const value = d.read(stuff, viewer);
+      if (value === undefined) continue;
+      out[name] = value;
+    }
+    return out as RecordValue;
+  } finally {
+    release();
   }
-  const descriptors = collectSubscribableFields(stuff);
-  const out: Record<string, unknown> = { stuffId: stuff.stuffId };
-  for (const name of fields) {
-    const d = descriptors.get(name);
-    if (!d || !d.read) continue;
-    const value = d.read(stuff, viewer);
-    if (value === undefined) continue;
-    out[name] = value;
-  }
-  return out as RecordValue;
 }
 
 /**
@@ -238,12 +304,145 @@ function resolveByQuery(
   giver: Stuff & CommandGiver,
 ): Stuff[] {
   const expanded = ShellApi.expandVariables(query, giver);
-  const ctx = { commandGiver: giver, scope: expanded };
+  // ⭐ Tracked (crowded-rooms N2): what the resolve READ comes back beside
+  // what it matched, and each becomes a dependency.
+  const ctx = { commandGiver: giver, scope: expanded, trackTouched: true };
   // ⭐ An unperceived id never reaches the wire (D23): MQL names, the
   // subscriber perceives — before the projection and before the diff.
   const named = MqlApi.resolveMany(expanded, ctx);
+  touchedByLastResolve = named.touched ?? [];
   const seen = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
   return cardinality === 'one' ? seen.slice(0, 1) : seen;
+}
+
+/**
+ * What the last {@link resolveByQuery} read. Module state, read at once by
+ * the (synchronous) caller that just resolved — the registry's projection
+ * is one synchronous unit.
+ */
+let touchedByLastResolve: Stuff[] = [];
+
+/**
+ * Resolve and project one subscription's rows as one synchronous unit, and
+ * report what it read: the Stuff its query touched, and every Stuff any
+ * projection (top-level or nested inside a descriptor) projected, with the
+ * fields it projected.
+ */
+function resolveAndProject(
+  sub: { subjectId?: string; query: string; cardinality: SubscriptionCardinality; fields: FieldSet; detailKey?: string },
+  giver: Stuff & CommandGiver,
+  viewer: Stuff & Sensor,
+  memo: RowMemo = { rows: new Map(), stale: new Set(), invalid: true },
+  shared: (key: string, compute: () => unknown) => unknown = (_k, compute) => compute(),
+): {
+  stuffList: Stuff[];
+  rows: Map<string, RecordValue>;
+  touched: Stuff[];
+  projected: Map<Stuff, Set<string>>;
+  readByDescriptors: Map<Stuff, FieldFilter>;
+} {
+  touchedByLastResolve = [];
+  const stuffList = sub.subjectId
+    ? resolveSubjectBound(sub.subjectId, viewer)
+    : resolveByQuery(sub.query, sub.cardinality, giver);
+  const touched = touchedByLastResolve;
+  touchedByLastResolve = [];
+  const rows = new Map<string, RecordValue>();
+  const projected = new Map<Stuff, Set<string>>();
+  const readByDescriptors = new Map<Stuff, FieldFilter>();
+  // ⭐ One light walk per place for the whole projection (a vision gate per
+  // row) — see `PerceptionApi.holdLightSteady`.
+  const release = PerceptionApi.holdLightSteady();
+  try {
+    // ⭐ Row-level dirt (crowded-rooms D3): a row is reused when none of
+    // what it read has fired since; every open row collects what its
+    // children read, so a parent is recomputed when a child changed.
+    type Frame = { key: string; reads: Set<string>; projected: Array<[Stuff, readonly string[]]>; descriptorReads: Array<[Stuff, FieldFilter]> };
+    const frames: Frame[] = [];
+    const used = new Map<string, RowMemoEntry>();
+    const usedSeen = new Map<string, boolean>();
+    const fresh = (m: RowMemoEntry): boolean => {
+      if (memo.invalid) return false;
+      for (const id of m.reads) if (memo.stale.has(id)) return false;
+      return true;
+    };
+    const noteProjected = (stuff: Stuff, fields: readonly string[], topLevel: boolean): void => {
+      for (const f of frames) {
+        f.reads.add(stuff.stuffId);
+        f.projected.push([stuff, fields]);
+      }
+      if (topLevel) return;
+      let set = projected.get(stuff);
+      if (!set) projected.set(stuff, (set = new Set()));
+      for (const f of fields) set.add(f);
+    };
+    const noteRead = (stuff: Stuff, filter: FieldFilter): void => {
+      for (const f of frames) {
+        f.reads.add(stuff.stuffId);
+        f.descriptorReads.push([stuff, filter]);
+      }
+      const had = readByDescriptors.get(stuff);
+      readByDescriptors.set(stuff, filter === null ? null : unionFilter(had, filter));
+    };
+    const enter = (stuff: Stuff, fields: readonly string[], topLevel: boolean): Record<string, unknown> | undefined => {
+      noteProjected(stuff, fields, topLevel);
+      const key = `${stuff.stuffId}|${fields.join(',')}`;
+      const hit = memo.rows.get(key);
+      if (hit !== undefined && fresh(hit)) {
+        used.set(key, hit);
+        for (const id of hit.reads) for (const f of frames) f.reads.add(id);
+        for (const [s2, f2] of hit.projected) noteProjected(s2, f2, false);
+        for (const [s2, filter] of hit.descriptorReads) noteRead(s2, filter);
+        return hit.rec;
+      }
+      frames.push({ key, reads: new Set([stuff.stuffId]), projected: [], descriptorReads: [] });
+      return undefined;
+    };
+    const leave = (rec: Record<string, unknown>): void => {
+      const f = frames.pop();
+      if (f === undefined) return;
+      used.set(f.key, { rec, reads: f.reads, projected: f.projected, descriptorReads: f.descriptorReads });
+    };
+    const topFields: readonly string[] =
+      sub.detailKey !== undefined ? [`@detail:${sub.detailKey}`] : sub.fields;
+    SubscriptionApi.collectProjections(
+      () => {
+        for (const stuff of stuffList) {
+          const hit = enter(stuff, topFields, true);
+          if (hit !== undefined) {
+            rows.set(stuff.stuffId, hit as RecordValue);
+            continue;
+          }
+          const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
+          leave(rec);
+          rows.set(stuff.stuffId, rec);
+        }
+      },
+      {
+        enter: (stuff, fields) => enter(stuff, fields, false),
+        leave: (_stuff, _fields, rec) => leave(rec),
+        read: (stuffs, fields) => {
+          const filter: FieldFilter = fields === null ? null : new Set(fields);
+          for (const st of stuffs) noteRead(st, filter);
+        },
+        shared: <T,>(key: string, compute: () => T): T => shared(key, compute) as T,
+        perceives: (stuff, compute) => {
+          const prior = memo.seen?.get(stuff.stuffId);
+          const answer =
+            prior !== undefined && !memo.invalid && !memo.stale.has(stuff.stuffId) ? prior : compute();
+          usedSeen.set(stuff.stuffId, answer);
+          return answer;
+        },
+      },
+    );
+    memo.rows = used;
+    memo.seen = usedSeen;
+    memo.stale.clear();
+    memo.invalid = false;
+  } finally {
+    release();
+  }
+  return { stuffList, rows, touched, projected, readByDescriptors };
 }
 
 /** How long one drain may run before it gives the loop back. */
@@ -274,9 +473,17 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
   private registry: Map<Interactive, Map<string, SubscriptionState>> =
     new Map();
 
+  /**
+   * ⭐ kind → by → value → (subscription → the fields that wake it). A
+   * dependency on a Stuff is `(FieldChanged, 'target', stuffId)` with a
+   * field filter (crowded-rooms D1): the Stuff that was read, with the
+   * fields that were read. The name-only `('field', name)` entries — which
+   * woke every subscription in the world on any `container` fire — are
+   * retired.
+   */
   private index: Map<
     string,
-    Map<string, Map<unknown, Set<SubscriptionState>>>
+    Map<string, Map<unknown, Map<SubscriptionState, FieldFilter>>>
   > = new Map();
 
   private listeners: Map<
@@ -285,6 +492,23 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
   > = new Map();
 
   private dirty: Set<SubscriptionState> = new Set();
+
+  /**
+   * ⭐ Bumped by every field fire (crowded-rooms W8). A shared,
+   * viewer-independent read made at one epoch is reused by every
+   * subscription re-resolved at the same epoch — the re-resolves are reads
+   * and fire nothing, so one arrival's thirty room cards share one
+   * membership resolve; the next fire retires it.
+   */
+  private fireEpoch = 0;
+  private sharedReads = new Map<string, { epoch: number; value: unknown }>();
+  private readonly sharedRead = (key: string, compute: () => unknown): unknown => {
+    const hit = this.sharedReads.get(key);
+    if (hit !== undefined && hit.epoch === this.fireEpoch) return hit.value;
+    const value = compute();
+    this.sharedReads.set(key, { epoch: this.fireEpoch, value });
+    return value;
+  };
   private scheduled = false;
 
   /* ─── public surface ─── */
@@ -322,8 +546,6 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     const cardinality = rawCardinality;
     const fields = resolveFieldSet(shelf ? shelf.fields : req.fields);
     const detailKey = shelf ? undefined : req.detailKey;
-    const focusDependent = !shelf && req.focusDependent === true;
-    const locationDependent = !shelf && req.locationDependent === true;
 
     if (detailKey !== undefined && cardinality !== 'one') {
       return refuse('parse', 'detailKey requires cardinality one');
@@ -340,29 +562,23 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     const viewer = holder as Stuff & Sensor;
 
     const subjectId = shelf ? undefined : req.subjectId;
-    let stuffList: Stuff[];
+    const memo: RowMemo = { rows: new Map(), stale: new Set(), invalid: true };
+    let resolved: ReturnType<typeof resolveAndProject>;
     try {
-      stuffList = subjectId
-        ? resolveSubjectBound(subjectId, viewer)
-        : resolveByQuery(query, cardinality, giver);
+      resolved = resolveAndProject(
+        { query, cardinality, fields, detailKey, ...(subjectId !== undefined ? { subjectId } : {}) },
+        giver,
+        viewer,
+        memo,
+        this.sharedRead,
+      );
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'parse';
       return refuse(reason, err instanceof Error ? err.message : String(err));
     }
 
-    // ⭐ One light walk per place for the whole projection (a vision gate
-    // per row) — see `PerceptionApi.holdLightSteady`.
-    const lastResult = new Map<string, RecordValue>();
-    const release = PerceptionApi.holdLightSteady();
-    try {
-      for (const stuff of stuffList) {
-        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-        lastResult.set(stuff.stuffId, rec);
-      }
-    } finally {
-      release();
-    }
+    const lastResult = resolved.rows;
 
     const registrantScope = ExecutionContextApi.getCircleScope();
     const sub: SubscriptionState = {
@@ -373,15 +589,14 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       cardinality,
       fields,
       detailKey,
-      focusDependent,
-      locationDependent,
       ...(subjectId !== undefined ? { subjectId } : {}),
       lastResult,
       dependencyHandles: [],
+      memo,
       birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
     };
 
-    this.deriveAndInstallDependencies(sub, stuffList);
+    this.deriveAndInstallDependencies(sub, resolved, viewer);
 
     let bucket = this.registry.get(interactive);
     if (!bucket) {
@@ -414,6 +629,11 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
    *   that {@link SubscribableFieldDescriptor.durableKey} re-resolves. One
    *   known producer poking one known consumer: a method call, never a
    *   broadcast through `EventApi`.
+   * - **`{ belief: { viewerId, subjectId } }`** (crowded-rooms D2) — a
+   *   viewer's belief about a subject changed (they learned who someone
+   *   is, their regard moved, a disguise was seen through): that viewer's
+   *   rows of that subject re-project, and nobody else's. Poked by the
+   *   `BeliefStore` mutators.
    * - **a holder** — the body behind a session changed (the sandbox
    *   crossing moves a socket between bodies). That is not a dependency of
    *   any query but a change of who it is FOR, so every subscription of a
@@ -422,9 +642,16 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
    */
   @CallSecurity(SubscriptionSourceCallers)
   public override pokeSubscriptions(holder: Stuff | null, hint?: unknown): void {
-    const subject = (hint as { durableSubject?: string } | undefined)?.durableSubject;
-    if (subject !== undefined) {
-      this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject });
+    const said = hint as
+      | { durableSubject?: string; belief?: { viewerId: string; subjectId: string } }
+      | undefined;
+    if (said?.durableSubject !== undefined) {
+      this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject: said.durableSubject });
+      return;
+    }
+    if (said?.belief !== undefined) {
+      const { viewerId, subjectId } = said.belief;
+      this.routeFire(VIEWER_BELIEF_KIND, 'key', { key: `${viewerId}|${subjectId}` });
       return;
     }
     for (const [interactive, bucket] of this.registry) {
@@ -530,6 +757,45 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
   }
 
   /**
+   * ⭐ Paused (crowded-rooms D4/D5): drop its dependencies and memo — the
+   * registry already sends nothing, and this stops the COMPUTING. The id
+   * and the query stay for the resume.
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override pauseSubscription(handle: LiveSubscription): void {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return;
+    this.teardownSubscription(sub);
+    sub.memo = { rows: new Map(), stale: new Set(), invalid: true };
+  }
+
+  /**
+   * ⭐ Resumed: resolve and project afresh and re-install the dependencies;
+   * the rows are the snapshot the registry sends as a reset.
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override resumeSubscription(handle: LiveSubscription): RecordValue[] | SubscriptionRefusal {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return { refused: true, reason: 'closed', detail: 'nothing kept to resume' };
+    const holder = handle.interactive.getHolder();
+    if (!holder || !MixinApi.isCommandGiver(holder) || !MixinApi.isSensor(holder)) {
+      return { refused: true, reason: 'permission', detail: 'the session drives no body that perceives' };
+    }
+    const viewer = holder as Stuff & Sensor;
+    let resolved: ReturnType<typeof resolveAndProject>;
+    try {
+      resolved = resolveAndProject(sub, holder as Stuff & CommandGiver, viewer, sub.memo, this.sharedRead);
+    } catch (err) {
+      const reason: MqlSubscriptionErrorReason =
+        err instanceof MqlPermissionError ? 'permission' : 'resolve';
+      return { refused: true, reason, detail: err instanceof Error ? err.message : String(err) };
+    }
+    sub.lastResult = resolved.rows;
+    this.deriveAndInstallDependencies(sub, resolved, viewer);
+    return [...resolved.rows.values()];
+  }
+
+  /**
    * Cancel every subscription whose birth scope is `scope` — the
    * sandbox reap seam: a circle's live queries die with its session.
    * Field-born subscriptions are untouched (they continue across a
@@ -599,55 +865,101 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
 
   /* ─── internal helpers ─── */
 
+  /**
+   * ⭐⭐ A dependency is the Stuff that was read, with the fields that were
+   * read (crowded-rooms D1):
+   *
+   * - each Stuff projected — top-level or nested inside a descriptor — with
+   *   the union of its projected fields' `dependsOnFields`;
+   * - each Stuff the query's resolve TOUCHED (`MqlContext.trackTouched`):
+   *   any field — a newcomer fires `contents` on the place it was
+   *   enumerated from;
+   * - the holder, for a query-bound subscription: any field (every
+   *   relative seed and every shell variable answers from the asker);
+   * - the holder and the subject of a subject-bound one: `container` (the
+   *   two facts its perception gate re-reads);
+   * - each row showing a `displayName`: the viewer's belief about it.
+   *
+   * `durableKey` and a descriptor's `changes` sources are unchanged.
+   */
   private deriveAndInstallDependencies(
     sub: SubscriptionState,
-    stuffList: Stuff[],
+    read: {
+      stuffList: Stuff[];
+      touched: Stuff[];
+      projected: Map<Stuff, Set<string>>;
+      readByDescriptors: Map<Stuff, FieldFilter>;
+    },
+    viewer: Stuff,
   ): void {
+    // ⭐ Reconciled, not torn down (crowded-rooms D3): an entry the new read
+    // still wants is kept as it is; only what changed is removed or added.
+    const keyOf = (kind: string, by: string, value: unknown): string => `${kind}|${by}|${describeValue(value)}`;
+    const prev = new Map<string, DependencyHandle>();
+    for (const h of sub.dependencyHandles) prev.set(keyOf(h.kind, h.by, h.value), h);
+    const next: DependencyHandle[] = [];
     const seenTuples = new Set<string>();
-    const installTuple = (kind: string, by: string, value: unknown): void => {
-      const tupleKey = `${kind}|${by}|${describeValue(value)}`;
+    const installTuple = (kind: string, by: string, value: unknown, filter: FieldFilter = null): void => {
+      const tupleKey = keyOf(kind, by, value);
       if (seenTuples.has(tupleKey)) return;
       seenTuples.add(tupleKey);
-      this.indexAdd(kind, by, value, sub);
-      sub.dependencyHandles.push({ kind, by, value });
-      // The durable-subject kind has no bus behind it — it is poked
-      // directly by a `{ durableSubject }` poke.
-      if (kind !== DURABLE_SUBJECT_KIND) this.ensureListener(kind, by);
+      const had = prev.get(tupleKey);
+      if (had !== undefined) {
+        prev.delete(tupleKey);
+        if (!sameFilter(had.filter, filter)) {
+          this.indexRemove(kind, by, value, sub);
+          this.indexAdd(kind, by, value, sub, filter);
+        }
+        next.push({ kind, by, value, filter });
+        return;
+      }
+      this.indexAdd(kind, by, value, sub, filter);
+      next.push({ kind, by, value, filter });
+      // The synthetic kinds have no bus behind them — they are poked
+      // directly (a `{ durableSubject }` or `{ belief }` poke).
+      if (kind !== DURABLE_SUBJECT_KIND && kind !== VIEWER_BELIEF_KIND) this.ensureListener(kind, by);
     };
 
-    if (sub.focusDependent) {
-      installTuple(FieldChangedEvent.KIND, 'field', 'focus');
-    }
-    if (sub.locationDependent) {
-      installTuple(FieldChangedEvent.KIND, 'field', 'container');
-    }
+    const targets = new Map<string, FieldFilter>();
+    const addTarget = (stuffId: string, filter: FieldFilter): void => {
+      targets.set(stuffId, unionFilter(targets.get(stuffId), filter));
+    };
+    const believed = new Set<string>();
 
-    for (const stuff of stuffList) {
+    // Rows: the top-level projection and every nested one, by the fields
+    // each projected.
+    const rowFields = new Map<Stuff, Set<string>>();
+    for (const stuff of read.stuffList) {
+      rowFields.set(stuff, new Set(sub.detailKey !== undefined ? [] : sub.fields));
+    }
+    for (const [stuff, fields] of read.projected) {
+      const had = rowFields.get(stuff);
+      rowFields.set(stuff, had ? new Set([...had, ...fields]) : new Set(fields));
+    }
+    const topLevel = new Set(read.stuffList);
+
+    for (const [stuff, fields] of rowFields) {
       const descriptors = collectSubscribableFields(stuff);
+      const deps = new Set<string>();
       for (const [name, d] of descriptors) {
-        if (sub.detailKey !== undefined) {
+        if (topLevel.has(stuff) && sub.detailKey !== undefined) {
           if (!d.perDetailRead) continue;
         } else {
           if (!d.read) continue;
-          if (!sub.fields.includes(name)) continue;
+          if (!fields.has(name)) continue;
         }
         if (d.static === true) continue;
+        for (const dep of d.dependsOnFields ?? [name]) deps.add(dep);
+        if (name === 'displayName') believed.add(stuff.stuffId);
 
-        const fieldDeps = d.dependsOnFields ?? [name];
-        for (const dep of fieldDeps) {
-          installTuple(FieldChangedEvent.KIND, 'field', dep);
-        }
-
-        // ⭐ Durable-subject watch — indexed on the ledger's own key,
-        // not on a live stuffId, so the poke matches exactly the
-        // subject that changed rather than fanning out to everyone.
+        if (!topLevel.has(stuff)) continue;
+        // ⭐ Durable-subject watch — indexed on the ledger's own key, not on
+        // a live stuffId, so the poke matches exactly the subject that
+        // changed rather than fanning out to everyone.
         if (d.durableKey) {
           const key = d.durableKey(stuff);
-          if (key !== undefined) {
-            installTuple(DURABLE_SUBJECT_KIND, 'subject', key);
-          }
+          if (key !== undefined) installTuple(DURABLE_SUBJECT_KIND, 'subject', key);
         }
-
         for (const cs of d.changes ?? []) {
           if (cs.by === 'target') {
             installTuple(cs.on.KIND, 'target', stuff.stuffId);
@@ -658,7 +970,31 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
           }
         }
       }
+      if (deps.size > 0) addTarget(stuff.stuffId, deps);
     }
+
+    for (const t of read.touched) addTarget(t.stuffId, null);
+    for (const [t, filter] of read.readByDescriptors) addTarget(t.stuffId, filter);
+    const holder = sub.interactive.getHolder() as Stuff | null;
+    if (sub.subjectId !== undefined) {
+      if (holder) addTarget(holder.stuffId, new Set(['container']));
+      addTarget(sub.subjectId, new Set(['container']));
+    } else if (holder) {
+      addTarget(holder.stuffId, null);
+    }
+
+    for (const [stuffId, filter] of targets) {
+      installTuple(FieldChangedEvent.KIND, 'target', stuffId, filter);
+    }
+    for (const subjectId of believed) {
+      installTuple(VIEWER_BELIEF_KIND, 'key', `${viewer.stuffId}|${subjectId}`);
+    }
+    // What the new read no longer wants.
+    for (const h of prev.values()) {
+      this.indexRemove(h.kind, h.by, h.value, sub);
+      this.releaseListener(h.kind, h.by);
+    }
+    sub.dependencyHandles = next;
   }
 
   private indexAdd(
@@ -666,6 +1002,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     by: string,
     value: unknown,
     sub: SubscriptionState,
+    filter: FieldFilter = null,
   ): void {
     let byMap = this.index.get(kind);
     if (!byMap) {
@@ -677,12 +1014,12 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       valueMap = new Map();
       byMap.set(by, valueMap);
     }
-    let set = valueMap.get(value);
-    if (!set) {
-      set = new Set();
-      valueMap.set(value, set);
+    let subs = valueMap.get(value);
+    if (!subs) {
+      subs = new Map();
+      valueMap.set(value, subs);
     }
-    set.add(sub);
+    subs.set(sub, unionFilter(subs.get(sub), filter));
   }
 
   private indexRemove(
@@ -695,10 +1032,10 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     if (!byMap) return;
     const valueMap = byMap.get(by);
     if (!valueMap) return;
-    const set = valueMap.get(value);
-    if (!set) return;
-    set.delete(sub);
-    if (set.size === 0) {
+    const subs = valueMap.get(value);
+    if (!subs) return;
+    subs.delete(sub);
+    if (subs.size === 0) {
       valueMap.delete(value);
       if (valueMap.size === 0) {
         byMap.delete(by);
@@ -740,19 +1077,46 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
 
   private routeFire(kind: string, by: string, payload: unknown): void {
     if (payload == null || typeof payload !== 'object') return;
+    if (kind === FieldChangedEvent.KIND) {
+      this.fireEpoch += 1;
+      this.sharedReads.clear();
+    }
     const value = (payload as Record<string, unknown>)[by];
     const byMap = this.index.get(kind);
     if (!byMap) return;
     const valueMap = byMap.get(by);
     if (!valueMap) return;
-    const set = valueMap.get(value);
-    if (!set || set.size === 0) return;
-    for (const sub of set) {
-      this.markDirty(sub);
+    const subs = valueMap.get(value);
+    if (!subs || subs.size === 0) return;
+    const field = (payload as Record<string, unknown>)['field'];
+    // Which Stuff fired — the row-level dirt (D3). A belief poke names its
+    // subject; a ledger poke names nothing a row read.
+    const staleId =
+      by === 'target' && typeof value === 'string'
+        ? value
+        : kind === VIEWER_BELIEF_KIND && typeof value === 'string'
+          ? (value.split('|')[1] ?? null)
+          : null;
+    for (const [sub, filter] of subs) {
+      // ⭐ The field filter (crowded-rooms D1): a card wakes when a Stuff it
+      // read fires a field it read.
+      if (filter !== null && (typeof field !== 'string' || !filter.has(field))) continue;
+      // The holder fired: everything relative to the asker may differ.
+      const holderId = (sub.interactive.getHolder() as Stuff | null)?.stuffId ?? null;
+      this.markDirty(sub, staleId !== null && staleId !== holderId ? staleId : null);
     }
   }
 
-  private markDirty(sub: SubscriptionState): void {
+  /**
+   * Mark `sub` for re-resolve. `staleId` names the Stuff whose fire caused
+   * it (crowded-rooms D3) — only rows that read it are re-projected; `null`
+   * (or omitted) drops the whole memo.
+   */
+  private markDirty(sub: SubscriptionState, staleId: string | null = null): void {
+    // ⭐ Paused (crowded-rooms D4/D5): nothing computed until the resume.
+    if (sub.handle.isPaused()) return;
+    if (staleId === null) sub.memo.invalid = true;
+    else sub.memo.stale.add(staleId);
     this.dirty.add(sub);
     if (!this.scheduled) {
       this.scheduled = true;
@@ -848,11 +1212,9 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
-    let stuffList: Stuff[];
+    let resolved: ReturnType<typeof resolveAndProject>;
     try {
-        stuffList = sub.subjectId
-          ? resolveSubjectBound(sub.subjectId, viewer)
-          : resolveByQuery(sub.query, sub.cardinality, giver);
+        resolved = resolveAndProject(sub, giver, viewer, sub.memo, this.sharedRead);
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
           err instanceof MqlPermissionError ? 'permission' : 'resolve';
@@ -862,30 +1224,15 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
         return;
       }
 
-      // ⭐ The re-resolve that pinned the server over a shop counter: one
-      // light walk per place, not one per row (silk's browser walk).
-      const newResult = new Map<string, RecordValue>();
-    const release = PerceptionApi.holdLightSteady();
-      try {
-      for (const stuff of stuffList) {
-        const rec = projectStuffInto(stuff, sub.fields, viewer, sub.detailKey);
-        newResult.set(stuff.stuffId, rec);
-      }
-    } finally {
-      release();
-    }
+    // ⭐ The re-resolve that pinned the server over a shop counter: one
+    // light walk per place, not one per row (silk's browser walk) — held in
+    // `resolveAndProject`.
+    const newResult = resolved.rows;
 
     const changes = this.diff(sub.lastResult, newResult, sub.cardinality);
     sub.lastResult = newResult;
 
-    for (const handle of sub.dependencyHandles) {
-      this.indexRemove(handle.kind, handle.by, handle.value, sub);
-      if (handle.kind !== DURABLE_SUBJECT_KIND) {
-        this.releaseListener(handle.kind, handle.by);
-      }
-    }
-    sub.dependencyHandles = [];
-    this.deriveAndInstallDependencies(sub, stuffList);
+    this.deriveAndInstallDependencies(sub, resolved, viewer);
 
     if (changes.length === 0) return;
     sub.handle.push(changes);

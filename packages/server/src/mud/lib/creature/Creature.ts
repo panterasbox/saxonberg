@@ -640,9 +640,15 @@ export class Creature extends CreatureBase {
    * 8 % fat, an obese one 40 %. ⭐ Fat floats: the consumer is the water.
    */
   public getBodyDensity(): Quantity<'kg/m³'> {
-    const flesh = this.getReserve('flesh');
+    // ⭐ Reads the stored reserve RAW (crowded-rooms D13), as
+    // `withBodyComposition` does for mass: a size is read under every
+    // crossing and every move into a place — the mover's AND every
+    // bystander's — and a read that reconciled made a body hunger because
+    // somebody walked into its room. Flesh moves on the metabolism clock;
+    // a body fits, floats and clears a door as its last reconcile left it.
+    const flesh = this.reserves['flesh'];
     const fraction = flesh
-      ? flesh.current.rawValue() / Math.max(1, flesh.capacity.rawValue())
+      ? flesh.currentValue / Math.max(1, flesh.capacityValue)
       : 0.55;
     const fat = 0.08 + 0.32 * fraction;
     return Quantity.of(1 / (fat / 900 + (1 - fat) / 1100), 'kg/m³');

@@ -47,6 +47,10 @@ export interface Subscription {
   end(): void;
   /** Still open? */
   isOpen(): boolean;
+  /** Not on screen (paused by the client)? Pushes are dropped while it is. */
+  isPaused(): boolean;
+  /** What it was opened with. */
+  readonly params: unknown;
   /** What the source keeps for this subscription. */
   state: unknown;
 }
@@ -76,6 +80,19 @@ export interface SubscriptionSource {
    * nothing.
    */
   pokeSubscriptions(holder: Stuff | null, hint?: unknown): void;
+  /**
+   * The client says it is not on screen. Nothing pushed is sent while it
+   * is paused (the registry drops it); a source that can also STOP
+   * COMPUTING for it drops its dependencies here.
+   */
+  pauseSubscription(sub: Subscription): void;
+  /**
+   * On screen again: answer a fresh snapshot (sent as `subscription-result`
+   * at `rev` 0), or refuse in a word.
+   */
+  resumeSubscription(
+    sub: Subscription,
+  ): unknown | SubscriptionRefusal | Promise<unknown | SubscriptionRefusal>;
 }
 
 export function SubscriptionSourceMixin<TBase extends MixinConstructor>(
@@ -106,6 +123,26 @@ export function SubscriptionSourceMixin<TBase extends MixinConstructor>(
     pokeSubscriptions(holder: Stuff | null, hint?: unknown): void {
       void holder;
       void hint;
+    }
+
+    /**
+     * @hook Paused (crowded-rooms D4). Default: keep computing; the registry
+     *   drops what is pushed meanwhile.
+     */
+    pauseSubscription(sub: Subscription): void {
+      void sub;
+    }
+
+    /**
+     * @hook Resumed: answer afresh. Default: drop what was kept and open
+     *   again with the same params — every source's snapshot is already its
+     *   open.
+     */
+    resumeSubscription(
+      sub: Subscription,
+    ): unknown | SubscriptionRefusal | Promise<unknown | SubscriptionRefusal> {
+      this.closeSubscription(sub);
+      return this.openSubscription(sub, sub.params);
     }
   };
 }

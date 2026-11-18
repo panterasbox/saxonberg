@@ -59,6 +59,7 @@ import { Stuff as StuffBase } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { PersistApi } from '../../api/persist';
 import { MixinApi } from '../../api/mixin';
+import { SubscriptionApi } from '../../api/subscription';
 import { Mixins } from '../mixin';
 import type {
   BeliefSlice,
@@ -75,6 +76,7 @@ import {
   Unshadowable,
 } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /**
  * Realm constant: instance-continuity memory. Keyed by the target's
@@ -565,7 +567,21 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _beliefs = new Map<string, BeliefRecord>();
 
+    /**
+     * ⭐ What this viewer believes of `referent` just changed (crowded-rooms
+     * D2): re-project this viewer's live rows of it, nobody else's. Every
+     * write goes through `know` / `forget` / `forgetField`, so the poke is
+     * here once. A referent with nothing live in the world has no row.
+     */
+    private beliefChanged(referent: string): void {
+      // A referent is an identity path (a person) or a stuffId (a thing).
+      const subject = StuffApi.findByIdentityPath<Stuff>(referent)[0] ?? StuffApi.findById(referent);
+      if (!subject) return;
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { belief: { viewerId: (this as unknown as Stuff).stuffId, subjectId: subject.stuffId } });
+    }
+
     know(realm: string, referent: string, update: BeliefUpdate = {}): void {
+      this.beliefChanged(referent);
       const k = keyOf(realm, referent);
       const now = Date.now();
       const existing = this._beliefs.get(k);
@@ -677,6 +693,7 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     forget(realm: string, referent: string): void {
+      this.beliefChanged(referent);
       this._beliefs.delete(keyOf(realm, referent));
       void deleteRecordImpl(this as unknown as Stuff, realm, referent).catch(
         () => {},
@@ -686,6 +703,7 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
     forgetField(realm: string, referent: string, field: BeliefField): void {
       const record = this._beliefs.get(keyOf(realm, referent));
       if (!record) return;
+      this.beliefChanged(referent);
       if (field === 'knownAs') {
         record.knownAs = null;
       } else {

@@ -220,7 +220,9 @@ export abstract class Stuff {
       // VisionModality → … → Stuff). Same routine the prose path uses,
       // so the surfaces can't diverge.
       read: (stuff) => stuff.getPresentation(),
-      dependsOnFields: ['name', 'shortDescription'],
+      // ⭐ `occupants`: a change of dress changes how everyone perceives the
+      // wearer, so it is a fire on the wearer (crowded-rooms D2).
+      dependsOnFields: ['name', 'shortDescription', 'occupants'],
       changes: [{ on: ShadowChangedEvent, by: 'target' }],
     },
   ];

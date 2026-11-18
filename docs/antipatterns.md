@@ -2413,8 +2413,9 @@ protocol**, and each implementer is a singleton behind it. A facade per
 implementer (`MqlSubscriptionApi` beside `SubscriptionApi`, `SmellApi`
 beside `PerceptionApi`) makes a second way in for the same act, and its
 bespoke verbs are the protocol's verb wearing a disguise:
-`MqlSubscriptionApi.notifyDurableSubject(s)` and `refreshForInteractive(i)`
-were both *"your answer may have changed"*, which is `poke(source,
+`MqlSubscriptionApi.notifyDurableSubject(s)`, `notifyBelief(viewer,
+subject)` and `refreshForInteractive(i)` were all *"your answer may have
+changed"*, which is `poke(source,
 holder, hint)` with a hint in the source's own words.
 
 **The test:** take the implementer-specific verb and ask what it means
@@ -2432,7 +2433,10 @@ SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject }
 ```
 
 Found at review of the navigation-server build (MR !595), which built
-the one protocol and left the MQL source's facade standing beside it.
+the one protocol and left the MQL source's facade standing beside it — and
+a sibling build, meanwhile, added a third bespoke poke to that facade
+(`notifyBelief`), which is how a second Api grows: it is where the next
+person looks.
 
 ## Don't add a per-sense Api — modalities are singletons
 
@@ -6722,3 +6726,18 @@ fact; a refusal on a *no* answer reports a consequence.
   root: a field on a host most of whose members do not mean it.
 - [Object identity where you mean person identity](#object-identity-where-you-mean-person-identity)
   — keying on the body's row when the fact is the person's.
+
+## A read the room makes for everyone that changes the world
+
+| Don't | Do |
+|---|---|
+| A reconcile-on-read getter (`getTemperature`, a mould's `getContents`, a body's `getReserve`) that integrates state to now, reached by the light walk, the sound gather, the smell fold or a card's projection | The walk holds the world still (`ExecutionContextApi.holdWorldStill`) and the getter answers **as banked** inside it; a thing's state advances at **its own changes** and on **its own game-clock wake** (`MouldMixin.wakeAtS` is the shape) |
+| A size read or a sight gate that integrates a BODY (a crossing's fit check reconciled every bystander's metabolism) | Read the stored stock (`reserves['flesh']`, `this.conditions`) — the `withBodyComposition` precedent; a body integrates at its own acts and deliberate reads |
+
+**Why.** Whatever the room reads for everyone runs as often as people
+look, so the world comes to depend on WHO LOOKED: a mould watched every
+minute set at a different moment from one left alone, and a cast member in
+a busy square starved while one in a quiet shop did not (crowded-rooms,
+2026-11). Inside a hold every write chokepoint throws `WalkWriteError` in a
+test world, so a new walk-time write fails the first test that walks over
+it. See [perception.md § The room's reading holds the world still](./subsystems/perception.md).

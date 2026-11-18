@@ -75,7 +75,8 @@ possibly go in it?"* (cleanliness); a hook needs more than one implementer
 A general substrate that leaves the old one's surface standing beside it is
 two of the thing, not one. *Evidence:* navigation-server !595 built the one
 subscription protocol and its `SubscriptionApi`, and left
-`MqlSubscriptionApi` (own logic singleton, two bespoke pokes) beside it —
+`MqlSubscriptionApi` (own logic singleton, bespoke pokes — and a sibling
+build added a third meanwhile) beside it —
 *"now there's multiple subscription apis. we only need one for
 everything"*. See [antipatterns.md § An Api per implementer of a
 protocol](./antipatterns.md#an-api-per-implementer-of-a-protocol).

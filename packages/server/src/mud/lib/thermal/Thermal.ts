@@ -33,6 +33,7 @@
  * `docs/subsystems/thermal.md`.
  */
 
+import { ExecutionContextApi } from '../../api/execution-context';
 import { Final, Unshadowable } from '../security/decorators';
 import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
@@ -50,6 +51,7 @@ import { Quantity } from "../quantity";
 import type { Coolbox } from "./Coolbox";
 import type { Atmospheric } from "../biome/Atmospheric";
 import { MixinApi } from "../../api/mixin";
+import { PerceptionApi } from "../../api/perception";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
@@ -752,8 +754,29 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- the lazy reads (SYNC) ----------
 
     public getTemperature(): Quantity<"K"> {
+      // ⭐ Inside the room's reading (crowded-rooms D9) nothing is stamped:
+      // the body answers off its banked curve, read forward — a cooling pot
+      // still smells cooler, and nothing about it has changed.
+      if (ExecutionContextApi.worldHeldStill) {
+        return Quantity.of(this.forwardTemperatureK(), "K");
+      }
       if (!this._thermalReconciling) this.reconcileThermal();
       return Quantity.of(this.stampedTemperatureK, "K");
+    }
+
+    /**
+     * The banked temperature carried forward to now along the last
+     * reconcile's forward segment (toward the ambient it last saw), without
+     * stamping anything.
+     */
+    private forwardTemperatureK(): number {
+      const nowS = this.thermalNowSeconds();
+      const T = this.stampedTemperatureK;
+      if (nowS === null || this.thermalClockStamp === 0) return T;
+      const dt = nowS - this.thermalClockStamp;
+      const tau = this._lastDrift?.tauS ?? this.getTau().rawValue();
+      if (!(dt > 0) || !(tau > 0)) return T;
+      return Decay.toward(T, this.lastAmbientK, dt, tau);
     }
 
     public getSurfaceTemperature(): Quantity<"K"> {
@@ -1169,6 +1192,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public reconcileThermal(): void {
       if (this._thermalReconciling) return;
+      // The room's reading holds the world still (crowded-rooms D9).
+      if (ExecutionContextApi.worldHeldStill) return;
       const D = THERMAL_DEFAULTS;
 
       const nowS = this.thermalNowSeconds();

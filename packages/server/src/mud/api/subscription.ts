@@ -39,6 +39,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Interactive from '../platform/idea/Interactive';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MixinApi } from './mixin';
@@ -49,6 +51,7 @@ import {
 } from '../lib/events/FieldChangedEvent';
 import { SubscriptionLogic } from '../platform/idea/api/SubscriptionLogic';
 import { fileURLToPath } from 'url';
+import { ExecutionContextApi } from './execution-context';
 
 // DI seam: re-exported so `MqlSubscriptionRegistry` registers its class
 // through this facade rather than importing the logic singleton directly
@@ -107,6 +110,29 @@ export interface SubscribableFieldDescriptor {
    * guest), in which case nothing is indexed.
    */
   durableKey?: (stuff: Stuff) => string | undefined;
+}
+
+/**
+ * What a live subscription's projection is told while it runs (crowded-rooms
+ * D1, D3) — see `SubscriptionApi.collectProjections`. `enter` may return
+ * a memoized record (a row none of whose reads has fired since), which
+ * `projectFields` returns as is; otherwise the row is projected and `leave`
+ * is told what it came to. `read` is a descriptor's own resolve's record.
+ *
+ * @internal the registry's
+ */
+export interface ProjectionCollector {
+  enter(stuff: Stuff, fields: FieldSet): Record<string, unknown> | undefined;
+  leave(stuff: Stuff, fields: FieldSet, record: Record<string, unknown>): void;
+  read(stuffs: readonly Stuff[], fields: FieldSet | null): void;
+  /** A descriptor's perception filter, memoized per child (crowded-rooms W8). */
+  perceives(stuff: Stuff, compute: () => boolean): boolean;
+  /**
+   * A viewer-INDEPENDENT read shared across every subscription re-resolved
+   * until the next field fire anywhere (crowded-rooms W8): thirty room cards
+   * resolving one place's membership on one arrival resolve it once.
+   */
+  shared<T>(key: string, compute: () => T): T;
 }
 
 /* ─────────────────────── Field-set aliases ─────────────────────── */
@@ -306,6 +332,7 @@ export class SubscriptionApi {
       return oldValue;
     }
     const stuffId = (target as { stuffId: string }).stuffId;
+    ExecutionContextApi.wouldWrite(`${field} fired on ${stuffId}`);
     const payload: FieldChangedPayload = {
       target: stuffId,
       field,
@@ -328,6 +355,16 @@ export class SubscriptionApi {
     fieldNames: FieldSet,
     viewer: Stuff & Sensor,
   ): Record<string, unknown> {
+    // A live subscription's projection is collecting what it projects
+    // (crowded-rooms D1): a nested row is a dependency like a top-level one.
+    // ⭐ A live subscription's projection is collecting (crowded-rooms D1,
+    // D3): a nested row is a dependency like a top-level one, and a row
+    // whose reads have not fired since it was last projected is reused.
+    const projector = SubscriptionApi.#projector;
+    if (projector !== null) {
+      const hit = projector.enter(stuff, fieldNames);
+      if (hit !== undefined) return hit;
+    }
     const descriptors = collectSubscribableFields(stuff);
     const out: Record<string, unknown> = { stuffId: stuff.stuffId };
     for (const name of fieldNames) {
@@ -350,6 +387,7 @@ export class SubscriptionApi {
       if (value === undefined) continue;
       out[name] = value;
     }
+    if (projector !== null) projector.leave(stuff, fieldNames, out);
     return out;
   }
 
@@ -415,6 +453,105 @@ export class SubscriptionApi {
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
     logic()._clearAll();
+  }
+
+  /** The live projection's collector — see {@link collectProjections}. */
+  static #projector: ProjectionCollector | null = null;
+
+  /**
+   * True while a live subscription's projection is collecting
+   * ({@link collectProjections}) — a descriptor that resolves MQL asks it
+   * to track what it read only then. An accessor: unwrapped, free.
+   */
+  static get collecting(): boolean {
+    return SubscriptionApi.#projector !== null;
+  }
+
+  /**
+   * A descriptor's own resolve READ these (its `touched`): each is a
+   * dependency of the subscription projecting it, on `fields` — a
+   * descriptor that enumerates a holder's children names the fields that
+   * decide MEMBERSHIP (a cup taken off a desk onto the floor is new to the
+   * room's loose contents, and the room's resolve had enumerated it); what
+   * a child SHOWS is its own projected row's. Omitted `fields` = any.
+   * A no-op outside {@link collectProjections} (crowded-rooms D1).
+   *
+   * @internal the descriptors' — it does anything only inside
+   * {@link collectProjections}, whose own frame is the caller a descriptor's
+   * plain `read` runs under; gated to that frame (or the registry), never
+   * eval.
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static noteRead(stuffs: readonly Stuff[], fields?: FieldSet): void {
+    const projector = SubscriptionApi.#projector;
+    if (projector === null) return;
+    projector.read(stuffs, fields ?? null);
+  }
+
+  /**
+   * ⭐ A descriptor's perception filter over children, memoized per child
+   * inside a live subscription's projection (crowded-rooms W8): a child that
+   * has not fired keeps its last answer, so one arrival into a room of
+   * thirty asks one new question, not thirty-one. `perceives` is the
+   * caller's own gate (the viewer is the subscription's, fixed); outside a
+   * projection it is applied plainly.
+   *
+   * @internal the descriptors' — gated as {@link noteRead}
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static perceivedAmong(list: readonly Stuff[], perceives: (s: Stuff) => boolean): Stuff[] {
+    const projector = SubscriptionApi.#projector;
+    if (projector === null) return list.filter(perceives);
+    return list.filter((s) => projector.perceives(s, () => perceives(s)));
+  }
+
+  /**
+   * ⭐ A viewer-independent read, shared by every live projection until the
+   * next field fire anywhere (crowded-rooms W8) — a place's membership, which
+   * all thirty room cards ask on one arrival. Outside a projection it is
+   * computed plainly. The key must name everything the read depends on that
+   * is not the world's state (its holder, its query).
+   *
+   * @internal the descriptors' — gated as {@link noteRead}
+   */
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
+      SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
+    ),
+  )
+  public static sharedRead<T>(key: string, compute: () => T): T {
+    const projector = SubscriptionApi.#projector;
+    return projector === null ? compute() : projector.shared(key, compute);
+  }
+
+  /**
+   * Run a live subscription's projection, telling `onProject` every Stuff
+   * {@link projectFields} projects inside it and with what fields — a
+   * descriptor's nested row is a dependency like a top-level one
+   * (crowded-rooms D1). Synchronous; nests.
+   *
+   * @internal the registry's
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'))
+  public static collectProjections<T>(run: () => T, projector: ProjectionCollector): T {
+    const prev = SubscriptionApi.#projector;
+    SubscriptionApi.#projector = projector;
+    try {
+      return run();
+    } finally {
+      SubscriptionApi.#projector = prev;
+    }
   }
 }
 

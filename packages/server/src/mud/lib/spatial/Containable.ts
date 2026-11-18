@@ -138,6 +138,16 @@ export interface Containable {
   _setPlacement(host: (Stuff & Placing) | null, name?: string): void;
 
   /**
+   * @hook ⭐ The placement pair just changed from `was` to `now` (member
+   * names; `''` = placed on nothing). Called by `ContainmentApi.move` at
+   * every site that stamps the pair (crowded-rooms N4): announces it — every
+   * card showing this thing wakes — and re-reads the ambient for a Thermal
+   * thing, since a member that encloses changes its scope. A host whose own
+   * state the move changes (a mould standing on a press) extends it.
+   */
+  placementChanged(was: string, now: string): void;
+
+  /**
    * ⭐ **What stands between me and my container, for air, sight and
    * reach.** The placement host when this thing is placed under a
    * member whose `encloses` is true (a compartment with its own air);
@@ -406,7 +416,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.environment = container;
       // Fire a `FieldChangedEvent { field: 'container' }` so MQL
-      // subscriptions flagged `locationDependent` wake on movement
+      // subscriptions wake on movement (the holder entry, crowded-rooms D1)
       // (the inspection card's breadcrumb-root subscription is the
       // current consumer). Containability change is the load-bearing
       // signal for "the player walked to a new room" / "this item
@@ -606,6 +616,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     _setPlacement(host: (Stuff & Placing) | null, name?: string): void {
       this._placementHost = host;
       this._placementName = host ? (name ?? Placements.ON) : '';
+    }
+
+    public placementChanged(was: string, now: string): void {
+      const sup = (Base.prototype as { placementChanged?: (w: string, n: string) => void }).placementChanged;
+      if (typeof sup === 'function') sup.call(this, was, now);
+      SubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placement', was, now);
+      const self = this as unknown as Stuff;
+      if (MixinApi.isThermal(self)) void self.restamp();
     }
   }
   return ContainableMixin;

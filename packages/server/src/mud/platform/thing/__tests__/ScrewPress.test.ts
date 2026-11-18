@@ -31,6 +31,8 @@ import { BiomeApi } from '../../../api/biome';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../idea/WorldClockRegistry';
+import EventRegistry from '../../idea/EventRegistry';
+import { EventApi } from '../../../api/event';
 import { Placements } from '../../../lib/spatial/Placement';
 
 class TestHoop extends PlacingMixin(
@@ -56,6 +58,15 @@ const TILE = '/stuff/thing/_press/tile';
 
 let now = 1_000_000;
 const setNow = (s: number): void => {
+  now = 1_000_000 + s;
+};
+/**
+ * Move the injected clock THROUGH the clock, so each set's wake fires
+ * (crowded-rooms D8: a set finishes on its wake, never on a read).
+ */
+const advanceTo = (s: number): void => {
+  const by = 1_000_000 + s - now;
+  WorldClockApi._advanceForTesting(by);
   now = 1_000_000 + s;
 };
 
@@ -117,7 +128,12 @@ function moistureOf(s: unknown): number {
 }
 
 describe('the screw press (ceramics S16)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A host-bound wake needs the event registry (it listens for its host's
+    // destruct).
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     setNow(0);
@@ -158,7 +174,7 @@ describe('the screw press (ceramics S16)', () => {
 
     stoned.reconcileSetting();
     pressed.reconcileSetting();
-    setNow(0.26 * 86_400);
+    advanceTo(0.26 * 86_400);
     stoned.getContents();
     pressed.getContents();
     await settle();

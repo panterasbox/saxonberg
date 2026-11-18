@@ -161,4 +161,45 @@ describe('SubscriptionRegistry — the one protocol', () => {
     expect(source.pokes).toBe(1);
     expect(StuffApi.findByTemplatePath('/test/idea/NeverStood')).toBeUndefined();
   });
+
+  /**
+   * ⭐ Pause is the protocol's (crowded-rooms D4/D5, ported onto the one
+   * wire): nothing pushed is sent while paused; the resume answers ONE
+   * fresh `subscription-result` at rev 0 and deltas count on from there.
+   * This source has no pause of its own, so the default resume reopens it
+   * with the params it was opened with.
+   */
+  it('⭐ a paused subscription sends nothing; its resume is one fresh result at rev 0, then rev 1', () => {
+    const s = session(envelopes);
+    s.subscribe('card', SOURCE, { which: 'this' });
+    const first = source.open[0]!;
+    first.push([{ op: 'replace', key: 'x', fields: 1 }]);
+    s.pauseSubscription('card');
+    expect(s.isSubscriptionPaused('card')).toBe(true);
+    const sentBefore = envelopes.length;
+    first.push([{ op: 'replace', key: 'x', fields: 2 }]);
+    expect(envelopes.length, 'nothing sent while paused').toBe(sentBefore);
+
+    s.resumeSubscription('card');
+    expect(s.isSubscriptionPaused('card')).toBe(false);
+    const after = envelopes.slice(sentBefore);
+    expect(after.map((e) => [e.type, e.rev])).toEqual([['subscription-result', 0]]);
+    // The default resume reopened with the same params.
+    expect(source.closed).toEqual(['card']);
+    expect(source.open).toHaveLength(2);
+    source.open[1]!.push([{ op: 'replace', key: 'x', fields: 3 }]);
+    expect(envelopes.at(-1)).toMatchObject({ type: 'subscription-delta', rev: 1 });
+  });
+
+  it('pause and resume skip an id the session does not hold, and a reopened id starts shown', () => {
+    const s = session(envelopes);
+    expect(() => s.pauseSubscription('nope')).not.toThrow();
+    expect(() => s.resumeSubscription('nope')).not.toThrow();
+    s.subscribe('c', SOURCE);
+    s.pauseSubscription('c');
+    s.cancelSubscription('c');
+    s.subscribe('c', SOURCE);
+    expect(s.isSubscriptionPaused('c')).toBe(false);
+    expect(envelopes.filter((e) => e.type === 'subscription-error')).toEqual([]);
+  });
 });

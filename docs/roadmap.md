@@ -119,6 +119,16 @@ controller; signed-out bodies are destructed (linkdead stay). What it left:
 crowd timing → [crowded-rooms-slate](./slates/tech-debt/crowded-rooms-slate.md),
 the radial → [affordance-verb-slate](./slates/engine/affordance-verb-slate.md).
 
+## ⭐ Shipped: crowded rooms (2026-11-18)
+
+Thirty people in the square: `say` p95 110 ms (2.7 s before), all at once
+1.5 s (5 s), login p95 2.3 s (15 s); an empty world idles at 0.17 of a core
+(0.81; accepted against 0.15). The room's own reading never changes the
+world (a mould sets on the clock whoever looks); a body read no longer
+integrates the body; a card re-resolves only what changed and a hidden card
+costs nothing. Left — a login or an arrival into a full room →
+[crowded-rooms-slate § The next ceiling](./slates/tech-debt/crowded-rooms-slate.md).
+
 ## ⭐ Shipped: the envelope (2026-09-24)
 
 Two questions, one answer — *why can you see on the city streets at

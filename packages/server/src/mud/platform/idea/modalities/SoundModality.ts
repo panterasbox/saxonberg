@@ -30,6 +30,7 @@ import { MixinApi } from '../../../api/mixin';
 import { Traversal } from '../../../lib/location/Traversal';
 import type { Leg } from '../../../lib/location/Traversal';
 import { StuffApi } from '../../../api/stuff';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
 
@@ -261,7 +262,14 @@ function finalize(acc: LinearAccumulator): Sound {
 
 export class SoundModality extends Modality {
   public override signalAt(loc: Stuff & Container): Sound | null {
-    const acc = walkAt(loc, 0, new Set<string>());
+    // ⭐ The sound gather holds the world still (crowded-rooms D9).
+    const release = ExecutionContextApi.holdWorldStill('sound gather');
+    let acc: ReturnType<typeof walkAt>;
+    try {
+      acc = walkAt(loc, 0, new Set<string>());
+    } finally {
+      release();
+    }
     const result = finalize(acc);
     if (result.amplitude.rawValue() <= 0 && result.sources.length === 0) {
       return null;
