@@ -33,9 +33,12 @@ and that's just a governance and economic problem."*
 - **The Future rung is the top of the prime-mover ladder** (Muscle · Draft · Wheel · Engine ·
   Electric · Signal · **Future**). It is a threshold, and anything past it may live here if it has
   math and a story.
-- ⭐ **No fourth invented item.** [arcane-science.md](../../arcane-science.md) holds a budget of
-  three invented things and calls a fourth a modelling error. Everything in this slate is real
-  physics at parameters we cannot build yet, so it plugs into equations the engine already computes.
+- ⭐ **Start from real physics at extreme parameters** where it serves — fusion, the fabricator and
+  the automaton each plug into equations the engine already computes. **Where it does not serve,
+  invent** (§ 1a: *"we're making all this stuff up"*) — the sums must add up and a story explains
+  them. ⚠ **[OPEN]** whether an invented future mechanism counts against
+  [arcane-science.md](../../arcane-science.md)'s budget of three invented things, which calls a
+  fourth a modelling error.
 - **Where the infinities live** — faster-than-light travel, time travel, free energy (Galt's motor in
   *Atlas Shrugged*: power drawn from the air with no fuel and no cost). None of those is on this
   rung. Faster-than-light **information** is already the aether's one exception (the second
