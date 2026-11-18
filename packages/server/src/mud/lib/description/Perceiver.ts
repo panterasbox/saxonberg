@@ -273,7 +273,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       };
       await section('zone', () => this.zoneSection(place));
       await section('localities', () => this.localitiesSection(place));
-      await section('horizon', () => this.horizonSection());
+      await section('horizon', () => this.horizonSection(place));
       await section('building', () => this.buildingSection(place));
       await section('ways', () => this.waysSection(place));
       await section('place', () => this.placeSection(place));
@@ -351,11 +351,16 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * What stands on the horizon, landmarks first — the rough direction and
      * miles `scan horizon` says, ⛔ never a bearing in degrees (a precise
-     * bearing is `measure bearing`'s skill). Read from warm state only.
+     * bearing is `measure bearing`'s skill). Stood up first, then read sync.
      */
-    private async horizonSection(): Promise<HorizonSection> {
+    private async horizonSection(place: Stuff): Promise<HorizonSection> {
       const { PerceptionApi } = await import('../../api/perception');
       const viewer = this as unknown as Stuff;
+      // ⚠ Stand the horizon up first, as a deliberate `look` does (geography
+      // D9): at a session's open this is the place's FIRST read, and before
+      // its weather is known the sync horizon read takes the air as clear —
+      // the section named a light eighteen miles off through fog (drive 15g).
+      if (place.isPlace()) await place.standUpHorizon();
       const view = PerceptionApi.horizonFor(viewer);
       const { default: Structure } = await import('../structure/Structure');
       const things = view.things.map((t) => {

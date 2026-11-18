@@ -1,12 +1,13 @@
 /**
- * ⭐⭐ The navigation-server blocking drive
- * (`docs/requirements/navigation-server-requirements.md` § The drive).
+ * ⭐⭐ The navigation-server blocking drive (the build's requirements,
+ * retired at its sweep; what remains is `docs/slates/engine/
+ * navigation-server-slate.md` § Left after the first pass).
  *
  * Every step asserts WHAT THE CLIENT RECEIVED over the real socket: a
  * `NavClient` subscribes to your map and to where-you-are exactly as the
  * client does, and is fed every frame before the per-command capture is
- * cleared. Steps are numbered as the requirements number them; a step not
- * driven here is named in the plan's drive record.
+ * cleared. Steps keep the requirements' numbering; the steps not driven
+ * here are named in the slate.
  *
  * Paces: every step `instant` except 17 (a restart, `short`). No soak drive.
  */
@@ -245,12 +246,10 @@ suite('navigation-server — the blocking drive', () => {
   it('15g · (geography\'s step 15) the horizon section says what `query horizon` says, and no frame carries a bearing in degrees', async () => {
     const { s, nav } = await session(uniqueHandle('nav-brow'), BROW);
     await beat();
-    // ⭐ The section is the horizon AS READ ON ARRIVAL (requirements: never a
-    // feed while you stand still), and fog and dusk on the brow change what
-    // shows. So compare one moment with itself: a `look` re-reads it, and
-    // `query horizon` follows at once.
-    expectOk(await s.cmd('look'));
-    await beat();
+    // ⭐ The section is the horizon AS READ ON ARRIVAL — the place's first
+    // read at a session's open. It once took the brow's unread weather as
+    // clear and named the light on Gannet Rock through fog; the verb, read
+    // after the weather was known, did not.
     const horizon = nav.section('horizon');
     const said = plain(await s.prose('query horizon'));
     record.push(`15g: horizon ${JSON.stringify(horizon?.things.slice(0, 4))} · query horizon: ${said.slice(0, 200)}`);
