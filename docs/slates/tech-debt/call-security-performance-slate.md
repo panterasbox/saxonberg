@@ -158,3 +158,14 @@ one read.
 [antipatterns.md](../../antipatterns.md) ·
 [testing.md](../../testing.md) ·
 *(supersedes the retired `gate-cost-slate` — its surface is salvaged above)*
+
+## Second measurement — crowded-rooms (2026-11-17)
+
+Profiles of a Terminus world (busy box, shares only): in the idle window,
+the crowd of thirty and the last five logins alike, **~60% of SELF time**
+sits in the call-security / proxy machinery — `findDescriptor`, the proxy
+`get`, policy resolution, `_pushFrame`. It is the floor under every class
+crowded-rooms cut; after that build the empty world idles at 0.17 of a core,
+and what remains is the cast's own acts at content's cadence running on this
+tax (the owner accepted 0.17 against the 0.15 target rather than pull either
+lever).

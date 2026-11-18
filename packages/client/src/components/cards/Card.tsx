@@ -41,6 +41,7 @@ import { CARD_LABEL } from "./useCardFeed";
 import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 import { PopOutPortal, usePopOut } from "./PopOut";
+import { useCardShown } from "./useCardFeed";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
@@ -280,6 +281,8 @@ export function Card({
   const size = card.size ?? "unit";
   const dropCard = useStore((s) => s.dropCard);
   const bodyRef = React.useRef<HTMLDivElement>(null);
+  // ⭐ What is on screen, told to the server (crowded-rooms D4).
+  useCardShown(card.instanceId, card.live === true && card.closed === undefined, bodyRef);
   const [overflowing, setOverflowing] = React.useState(false);
   React.useLayoutEffect(() => {
     const el = bodyRef.current;

@@ -70,3 +70,24 @@ to be a read and annotated as one.
 
 Any build. It is a sweep with a gate. The first consumer is the next build
 that touches a write path.
+
+## From crowded-rooms (2026-11-18, MR !598)
+
+The room's own reading (light walk, sound gather, smell fold, card
+projection) now holds the world still, and a body's size read and sight gate
+read stored stocks. What that build named and left here:
+
+- **A body has no clock of its own.** It integrates only at its own acts and
+  deliberate reads, and an unowned body drops any gap over
+  `MAX_REASONABLE_GAP_SEC`. Whether a cast member hungers still depends on
+  whether something deliberately read it inside that window (narrower now,
+  not gone). A body's own wake (the mould's D8 shape) would make the whole
+  cast metabolize unwatched — a change to what the world does unwatched, so
+  the owner's call.
+- **Two timed transitions with no closed-form deadline:** bleed-out onset
+  (`beginDying` at the blood floor) and sustained-shock relief happen only in
+  a reconcile. A dying PLAYER's window end is now booked on the clock
+  (`nextInterestingAt`); these two are not.
+- **Reconcile-on-read sites the walks do not reach** — any of them may make a
+  thing's state depend on who looked; the walks' tripwire
+  (`WalkWriteError`) catches only what a walk reaches.

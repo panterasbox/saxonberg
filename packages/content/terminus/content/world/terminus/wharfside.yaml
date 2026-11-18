@@ -14,8 +14,6 @@ class: /platform/idea/location/CartesianZone
 data:
   name: Wharfside
   cellSize: 4.0
-  # ⭐ The horizon from here (maritime R3) names the ZONE the terminal
-  # stands in; whether its clock tower is in view is derived (open sky,
-  # its height against the zones' size). Described once, on the tower.
-  horizon:
-    - /world/terminus/terminal
+  # ⭐ No horizon declaration (geography D5): the terminal's clock tower is
+  # on the skyline by the rule — where this place stands on the chart, how
+  # high it is, how tall the tower stands. Described once, on the tower.

@@ -49,6 +49,7 @@ import {
   candidatesForPerson,
   candidatesForReachable,
   candidateFor,
+  noteTouched,
   matchCandidate,
   scoreCandidates,
   TIER_PHRASE,
@@ -699,6 +700,7 @@ function candidatesForAnchor(
   // The anchor itself — its top-level details are its own keywords.
   out.push(candidateFor(stuff, viewer));
   if (MixinApi.isContainer(stuff)) {
+    noteTouched(stuff);
     for (const item of stuff.getContents()) out.push(candidateFor(item, viewer));
   }
   if (MixinApi.isExitable(stuff)) {
@@ -1172,12 +1174,18 @@ function candidatesForElementDerivable(
  * the reversal.)
  */
 function visibleInside(holder: Stuff): readonly Stuff[] {
-  return MixinApi.isContainer(holder) ? holder.getContents() : [];
+  noteTouched(holder);
+  const inside = MixinApi.isContainer(holder) ? holder.getContents() : [];
+  for (const c of inside) noteTouched(c);
+  return inside;
 }
 
 /** `:I` — the whole tree under a holder, for everyone. */
 function visibleInsideDeep(holder: Stuff): Stuff[] {
-  return MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
+  noteTouched(holder);
+  const inside = MixinApi.isContainer(holder) ? holder.getDeepContents() : [];
+  for (const c of inside) noteTouched(c);
+  return inside;
 }
 
 function applyTransform(

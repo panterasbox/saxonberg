@@ -73,3 +73,21 @@ export class FinalViolationError extends Error {
     this.qualifiedMethod = qualifiedMethod;
   }
 }
+
+/**
+ * ⭐ **A walk wrote** (crowded-rooms D9). The room's own reading — the light
+ * walk, the sound gather, the smell fold, a live card's projection — holds
+ * the world still (`ExecutionContextApi.holdWorldStill`): what the room reads for
+ * everyone may not change the world, or the world comes to depend on who
+ * looked. A write inside the window is an ENGINE DEFECT; a test world throws
+ * this, any other world records a diagnostic and lets the write proceed.
+ */
+export class WalkWriteError extends Error {
+  constructor(
+    readonly walk: string,
+    readonly write: string,
+  ) {
+    super(`the ${walk} wrote while the world was held still: ${write}`);
+    this.name = 'WalkWriteError';
+  }
+}

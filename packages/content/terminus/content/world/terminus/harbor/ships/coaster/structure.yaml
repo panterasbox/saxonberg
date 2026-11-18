@@ -31,3 +31,6 @@ data:
   # The gangway: no keyway, never bolted — the line's ships are open.
   gangwayKeyway: ""
   gangwayLocked: false
+  # ⭐ Seen by night (geography D6/Q2) — her riding lights. A ship that shows none
+  # is not seen after dark.
+  showsLight: true

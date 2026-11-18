@@ -104,7 +104,7 @@ function contactEntryFor(
 export class ProfileLogic extends ApiLogic {
   /** See {@link SocialApi.composeRow}. */
   @CallSecurity(ProfileViewerCallers)
-  public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
+  public composeRow(viewer: Stuff, target: Stuff): RosterRow {
     // The roster row IS the per-viewer projection of a person — the
     // same category as naming, and the same read aperture.
     return SecurityApi.projectAcross(viewer, target, () =>
@@ -112,10 +112,16 @@ export class ProfileLogic extends ApiLogic {
     this);
   }
 
-  private async composeRowImpl(
+  /**
+   * ⭐ Synchronous (crowded-rooms D17): nothing in a row awaits, and a
+   * roster of thirty composed in ONE synchronous frame walks each place's
+   * light once under `holdLightSteady` — an `await` per row walked it
+   * thirty times, a quarter of a login into a crowd.
+   */
+  private composeRowImpl(
     viewer: Stuff,
     target: Stuff,
-  ): Promise<RosterRow> {
+  ): RosterRow {
     const self = viewer.stuffId === target.stuffId;
     const recognized =
       self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));

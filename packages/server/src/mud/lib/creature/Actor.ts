@@ -111,7 +111,11 @@ export abstract class Actor extends ActorBase {
 
   /** Is a caustic still working on the head — the eyes? */
   public hasCausticAtHead(): boolean {
-    return this.getConditions().some(
+    // ⭐ The conditions AS THEY STAND (crowded-rooms D14): `agentActive`
+    // flips only at the splash and the rinse, never with time, so the stored
+    // collection gives the same answer without integrating the VIEWER's body
+    // under every sight gate — every `describeFor` of every Scene frame.
+    return this.conditions.some(
       (c) =>
         c.kind === 'trauma' &&
         c.type === 'caustic' &&

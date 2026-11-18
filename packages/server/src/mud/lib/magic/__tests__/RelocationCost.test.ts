@@ -134,6 +134,20 @@ describe('MagicApi.relocationCost — m·g·Δh, and nothing else', () => {
     );
   });
 
+  it('⭐ a stair is a climb: the storey adds to the zone ground (geography D13)', async () => {
+    const t = traveller(70);
+    const lobby = room(50);
+    ContainmentApi.move(t as never, lobby as never);
+    const loft = room(50);
+    // Same zone ground; the loft stands three storeys (9 m) above it.
+    const storeys = vi.spyOn(Locale.prototype, 'heightAboveGroundM');
+    storeys.mockImplementation(function (this: unknown) {
+      return this === loft ? 9 : 0;
+    });
+    // 70 kg × 9.81 × 9 m = 6180.3 J
+    expect(await MagicApi.relocationCost({ traveller: t, to: loft })).toBeCloseTo(6.1803, 3);
+  });
+
   // ─────────────────────── the two floors ───────────────────────
 
   it('downhill is FREE, and never a refund', async () => {

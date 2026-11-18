@@ -26,13 +26,15 @@ settings:
   # uncertainty per hour under way.
   - key: expanse.reckoningGrowthNmPerHour
     value: "0.5"
-  # ⭐ The horizon ashore (maritime R4): a structure in a named zone is in
-  # view when its height plus the elevation between clears the distance
-  # the zones' size implies, divided by this. 20 puts a 25 m tower in view
-  # across half a kilometre of roofs. A crude dial; optics widen it later.
-  - key: perception.horizonRatio
-    value: "20"
   # A kept watch (`watch horizon`) looks again this often, in game
   # minutes, and says only what came into or went out of view.
   - key: perception.watchGameMinutes
     value: "5"
+  # ⭐ The skyline (geography D1/D2): a structure is worth seeing from afar
+  # when it is a landmark or stands at least this many meters tall.
+  - key: perception.skyline.minHeightM
+    value: "12"
+  # How many structures beyond the landmarks a skyline names — the most
+  # prominent first (how tall each stands in the eye).
+  - key: perception.skyline.size
+    value: "7"

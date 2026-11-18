@@ -82,6 +82,18 @@ function serverEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
+/**
+ * ⭐ `WIRE_CPU_PROF=<dir>` profiles the world (crowded-rooms W0): the flags
+ * ride `tsx`'s command line, which hands them to the server's node (Node 22
+ * refuses `--cpu-prof` in `NODE_OPTIONS`). The profile is written at a clean
+ * exit — stop the world with SIGTERM, which it handles.
+ */
+function serverArgs(): string[] {
+  const prof = process.env.WIRE_CPU_PROF;
+  const flags = prof ? ['--cpu-prof', `--cpu-prof-dir=${prof}`] : [];
+  return ['exec', 'tsx', ...flags, 'src/preload.js'];
+}
+
 async function answering(url: string): Promise<boolean> {
   try {
     const res = await fetch(`${url}/healthz`, {
@@ -125,7 +137,7 @@ export async function bootOwnedWorld(): Promise<string> {
     // file (a pipe would die with us), and recorded so `WIRE_REUSE=1` can
     // attach to it — the iteration loop then costs no boot at all.
     const fd = openSync(WIRE_LOG, 'w');
-    child = spawn('pnpm', ['exec', 'tsx', 'src/preload.js'], {
+    child = spawn('pnpm', serverArgs(), {
       cwd: SERVER_DIR,
       env: serverEnv(),
       stdio: ['ignore', fd, fd],
@@ -138,7 +150,7 @@ export async function bootOwnedWorld(): Promise<string> {
     );
   } else {
     const log = createWriteStream(WIRE_LOG, { flags: 'w' });
-    child = spawn('pnpm', ['exec', 'tsx', 'src/preload.js'], {
+    child = spawn('pnpm', serverArgs(), {
       cwd: SERVER_DIR,
       env: serverEnv(),
       stdio: ['ignore', 'pipe', 'pipe'],

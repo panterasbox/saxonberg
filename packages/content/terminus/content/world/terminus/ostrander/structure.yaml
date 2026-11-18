@@ -45,3 +45,6 @@ data:
   hull: { draftM: 0.25, beamM: 7, lengthM: 38 }
   fuel: { material: /stuff/idea/material/wood, kgPerKm: 6 }
   bunker: /world/terminus/ostrander/thing/bunker
+  # ⭐ Seen by night (geography D6/Q2) — her steaming lights. A ship that shows none
+  # is not seen after dark.
+  showsLight: true

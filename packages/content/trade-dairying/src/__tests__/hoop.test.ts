@@ -18,7 +18,10 @@ import { makeStuff, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/s
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MAT, readRow } from './rows';
-import { standUp, tearDown, at, vessel, DAY } from './world';
+import { standUp, tearDown, vessel, DAY } from './world';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
 class TestRoom extends ContainerMixin(Idea) {
@@ -29,6 +32,20 @@ const WHEEL_ROW = '/trade/dairying/thing/wheel';
 const mat = (p: string): Material => StuffApi.findByTemplatePath<Material>(p)!;
 
 let cloned: string[] = [];
+
+/**
+ * ⭐ The game clock, moved THROUGH the clock so the hoop's own wake fires
+ * (crowded-rooms D8: a set finishes on its wake, never on a read). An
+ * injected real clock at scale 1000 — one real ms is one game second.
+ */
+let realMs = 1_000_000;
+let startS = 0;
+function at(s: number): void {
+  const target = startS + s;
+  const by = target - WorldClockApi.getNow().rawValue();
+  if (by > 0) WorldClockApi._advanceForTesting(by);
+  realMs += Math.max(0, by);
+}
 
 /** The hoop as its row authors it, standing in a room, filled with curd. */
 function hoop(curdPath: string, litres: number): { hoop: Hoop; room: TestRoom } {
@@ -72,6 +89,17 @@ const moisture = (w: Wheel): number => (w as unknown as { _moisture: number })._
 describe('the cheese hoop', () => {
   beforeEach(async () => {
     await standUp();
+    // The hoop's wake is a real clock schedule: drop the getNow spy and
+    // drive the clock itself; a host-bound wake needs the event registry.
+    vi.mocked(WorldClockApi.getNow).mockRestore();
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
+    WorldClockApi._resetForTesting();
+    realMs = 1_000_000;
+    WorldClockApi._setNowProviderForTesting(() => realMs);
+    WorldClockApi.setScale(1000);
+    startS = WorldClockApi.getNow().rawValue();
     cloned = [];
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       cloned.push(path);

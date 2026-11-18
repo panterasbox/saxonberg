@@ -91,18 +91,18 @@ describe('an iron pot of lye on a lit hearth', () => {
     pot.setBulkAmount('interior', Quantity.of(6, 'L'));
     pot.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.05 });
     ContainmentApi.move(pot, hearth, Placements.ON);
-    pot.getContents();
+    pot.getTemperature(); // the boil is the thermal reconcile's (crowded-rooms D8)
     // ⭐ The world's order: the pot sits on a COLD hearth, then the fire is
     // laid and lit.
     advanceGameS(600);
-    pot.getContents();
+    pot.getTemperature(); // the boil is the thermal reconcile's (crowded-rooms D8)
     chargeWood(hearth as unknown as Stuff & Burner, 20);
     expect(hearth.ignite().lit).toBe(true);
     // A pot of lye on a lit hearth, its flame derived from the fuel.
     let boiled = false;
     for (let h = 1; h <= 6; h++) {
       advanceGameS(3600);
-      pot.getContents();
+      pot.getTemperature(); // the boil is the thermal reconcile's (crowded-rooms D8)
       const litres = pot.getBulkAmount('interior').rawValue();
       if (litres > 0 && litres < 6) {
         boiled = true;

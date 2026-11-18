@@ -50,6 +50,9 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
+import type { GeoPosition } from '../expanse/GeoPosition';
+import { HorizonOverride, type HorizonOverrideRecord } from '../perception/HorizonOverride';
+import { Vantage } from '../perception/Vantage';
 import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
@@ -193,6 +196,37 @@ const PlaceBase = AddressableMixin(
   ),
 );
 
+/**
+ * ⭐ Where a place stands on the chart (geography D4), and who answers for
+ * it: the craft or structure whose point it is (a point of its own, no
+ * radius), or the Locality it stands in (with the radius inside which a
+ * thing is *close by*).
+ */
+export interface ChartPoint {
+  at: GeoPosition;
+  owner: Stuff;
+  /** The Locality's radius in metres when the owner is one; `null` for a point of its own. */
+  radiusM: number | null;
+}
+
+/** An observer's eye above the ground they stand on, meters. */
+const STANDING_EYE_M = 2;
+
+/**
+ * ⭐ Where a place looks out FROM (geography D2/D4): the eye, the key its
+ * kept skyline is filed under, the near radius (its Locality's, when it
+ * stands at one — inside it a thing is *close by*), and its own structure
+ * (never on its own skyline).
+ */
+export interface HorizonVantage {
+  vantage: Vantage;
+  /** Point owner `|` eye meters; `null` for a moving point (a craft) — computed per read. */
+  keepAs: string | null;
+  /** The Locality's radius when the place stands at one; else `0`. */
+  nearM: number;
+  own: string | null;
+}
+
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):
 // `world/practicum/warded-cell.yaml:18` authors it and the field's own
@@ -240,11 +274,11 @@ export default class Place extends PlaceBase {
   }
 
   /**
-   * The ZONES scanned from this room, overriding its zone's `horizon`
-   * (the `suppressesMagic` shape: the room's own value wins, then the zone
-   * walk). `null` defers; `[]` is *nothing from in here* (maritime R3).
+   * This room's word on its horizon, over its zone's (geography D5; the
+   * `suppressesMagic` shape: the room's own value wins, then the zone
+   * walk). `null` defers. See {@link HorizonOverride}.
    */
-  protected horizon: string[] | null = null;
+  protected horizon: HorizonOverrideRecord | null = null;
   /**
    * Structures this room FEATURES on its horizon beyond the landmarks —
    * the room's author saying *from here, this is worth naming first*.
@@ -252,9 +286,26 @@ export default class Place extends PlaceBase {
    */
   protected featured: string[] = [];
 
-  public getHorizon(): string[] | null { return this.horizon; }
-  public setHorizon(value: string[] | null): void {
-    this.horizon = Array.isArray(value) ? value.map((p) => String(p)) : null;
+  public getHorizon(): HorizonOverride | null {
+    return this.horizon === null ? null : new HorizonOverride(this.horizon);
+  }
+  /** Throws on the retired list form and on an unknown key. */
+  public setHorizon(value: HorizonOverrideRecord | null): void {
+    this.horizon = value === null || value === undefined ? null : new HorizonOverride(value).toJSON();
+  }
+
+  /**
+   * ⭐ The horizon override that governs this place — its own, else the
+   * nearest its zone walk declares (resident zones; synchronous), else
+   * `null`: the rule alone.
+   */
+  public horizonOverride(): HorizonOverride | null {
+    if (this.horizon !== null) return new HorizonOverride(this.horizon);
+    // ⚠ The zone walk reflects through `getHorizon()`, so it hands back the
+    // value object already; a raw record is accepted too.
+    const zoned = this.getZone()?.peekField<HorizonOverride | HorizonOverrideRecord>('horizon') ?? null;
+    if (zoned === null) return null;
+    return zoned instanceof HorizonOverride ? zoned : new HorizonOverride(zoned);
   }
 
   public getFeatured(): string[] { return [...this.featured]; }
@@ -316,6 +367,105 @@ export default class Place extends PlaceBase {
     if (own !== undefined) return own;
     const name = this.getDurableHandle() ?? this.getTemplatePath();
     return name ? NavigationApi.structureAt(name) : null;
+  }
+
+  /**
+   * ⭐ **Where this place stands on the chart** (geography D4), synchronous:
+   *
+   * 1. a place with a position at sea (a patch of water), or whose
+   *    structure is a craft with one (a ship's deck) — that fix;
+   * 2. its structure's own point (a building's authored `position`, or the
+   *    sea node its rock stands at);
+   * 3. the nearest positioned Locality over its address, with that
+   *    Locality's radius;
+   * 4. `null` — not on any chart (a test world), by construction.
+   */
+  public chartPoint(): ChartPoint | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isPositioned(self)) {
+      const at = self.getExpansePosition();
+      if (at !== null) return { at, owner: self, radiusM: null };
+    }
+    const s = this.structureNow();
+    if (s !== null) {
+      const ss = s as unknown as Stuff;
+      const at = MixinApi.isPositioned(ss) ? ss.getExpansePosition() : s.chartPoint();
+      if (at !== null) return { at, owner: ss, radiusM: null };
+    }
+    const locality = this.weatherLocality()?.positionedLocality() ?? null;
+    const at = locality?.getPosition() ?? null;
+    if (locality === null || at === null) return null;
+    return { at, owner: locality as unknown as Stuff, radiusM: locality.getRadiusM() };
+  }
+
+  /**
+   * ⭐ Where this place looks out from (geography D2/D4) — its chart point
+   * and an eye standing on its floor, `null` when it is on no chart. The
+   * kept skyline's key is the point's owner and the eye's height: the
+   * headland and the strand share a Locality and must not share a skyline.
+   */
+  public horizonVantage(): HorizonVantage | null {
+    const cp = this.chartPoint();
+    if (cp === null) return null;
+    const eye = this.heightAboveSeaM() + STANDING_EYE_M;
+    const moving = MixinApi.isPositioned(cp.owner);
+    const owner = cp.owner.getIdentityPath() ?? cp.owner.stuffId;
+    return {
+      vantage: new Vantage(cp.at, eye),
+      keepAs: moving ? null : `${owner}|${Math.round(eye)}`,
+      nearM: cp.radiusM ?? 0,
+      own: this.structureNow()?.getTemplatePath() ?? null,
+    };
+  }
+
+  /**
+   * ⭐ **Stand up what this place's horizon will name** (geography D9) —
+   * the handful on its kept skyline and the seas and structures its
+   * override reaches, by following their paths (load on use; never a
+   * search). Awaited before a deliberate look at the place; KICKED (never
+   * awaited) when the room joins its zone — a ship standing up reaches
+   * back for its sea, so nothing in a load path may wait on this.
+   */
+  public async standUpHorizon(): Promise<void> {
+    await NavigationApi.skylineReady();
+    await this.resolveWeatherLocality();
+    const paths = new Set<string>(this.horizonOverride()?.reach ?? []);
+    const v = this.horizonVantage();
+    if (v !== null) {
+      for (const e of NavigationApi.skylineNow(v.vantage, { own: v.own, keepAs: v.keepAs, nearM: v.nearM })) {
+        if (e.live === null) paths.add(e.path);
+      }
+    }
+    await Promise.all(
+      [...paths].map((p) =>
+        StuffApi.singleton<Stuff>(p).catch((err) =>
+          console.warn(`Place: '${p}', on the horizon from '${this.getTemplatePath()}', did not stand up:`, err),
+        ),
+      ),
+    );
+  }
+
+  /**
+   * How high this place stands above the ground its zone stands on,
+   * metres. `0` on a place with no storey of its own; a {@link Location}
+   * answers `z × cellSize` (the rule `SpatialZone` documents).
+   */
+  public heightAboveGroundM(): number {
+    return 0;
+  }
+
+  /**
+   * ⭐ **This place's total height above the sea**, metres: its zone's
+   * `elevation` (the ground's) plus {@link heightAboveGroundM} — *z tells
+   * you the height within a zone, you need the zone for the total* (the
+   * owner, 2026-11-17). What an eye looks from, what the air pressure and
+   * magic's climb read (geography D13). The ground and its water read
+   * `ZoneApi.elevationFor` instead — a stairwell is not a waterfall.
+   */
+  public heightAboveSeaM(): number {
+    const ground = this.getZone()?.peekField<number>('elevation') ?? null;
+    const g = typeof ground === 'number' && Number.isFinite(ground) ? ground : 0;
+    return g + this.heightAboveGroundM();
   }
 
   /**

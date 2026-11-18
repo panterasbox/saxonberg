@@ -276,8 +276,8 @@ export default class LaneCatalogue extends WayIndexMixin(Idea) {
    */
   private static async seaNodeNamed(named: string, here: Stuff): Promise<string | null> {
     if (!(here instanceof Place)) return null;
-    const horizon = here.getHorizon() ?? here.getZone()?.peekField<string[]>('horizon') ?? null;
-    for (const path of horizon ?? []) {
+    // The seas this place's horizon reaches (geography D5's `reach`).
+    for (const path of here.horizonOverride()?.reach ?? []) {
       const sea = await StuffApi.singleton<Stuff>(path).catch(() => null);
       if (!(sea instanceof Expanse)) continue;
       const node = await sea.nodeByKeyword(named);

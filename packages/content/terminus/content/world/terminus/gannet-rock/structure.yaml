@@ -21,3 +21,6 @@ data:
   # ⭐ No position of its own (maritime review, 2026-10-13): a light on a
   # rock is where its rock is — the Greywater's `gannet-rock` node, whose
   # landing is in this extent. The sea finds it as a landmark there.
+  # ⭐ A light by night (geography D6) — the one thing on the Greywater a
+  # skyline still names after dark.
+  showsLight: true
