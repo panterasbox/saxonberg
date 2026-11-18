@@ -94,6 +94,23 @@ const say = (line: string): void => {
   QUIET ? 'the crowded-rooms timing drive (quiet box)' : 'the crowded-rooms timing drive — SKIPPED: set WIRE_QUIET=1 on a quiet box (docs/testing.md)',
   () => {
     let thirty: CrowdRecord | null = null;
+    /** The mould's looks by one player alone in the square: "empty-room time". */
+    let emptyLookP95 = 0;
+
+    /** Ten looks at and ten into a hoop dropped by `s`, each timed. */
+    async function mouldLooks(s: Session): Promise<number[]> {
+      await hand(s, '/trade/dairying/thing/hoop');
+      await s.cmd('drop hoop');
+      const looks: number[] = [];
+      for (let i = 0; i < 10; i++) {
+        for (const text of ['look hoop', 'look in hoop']) {
+          const t = performance.now();
+          await s.cmd(text);
+          looks.push(performance.now() - t);
+        }
+      }
+      return looks;
+    }
     const handles: string[] = [];
     const placeBefore = new Map<string, string>();
 
@@ -116,13 +133,28 @@ const say = (line: string): void => {
       // requirement's 0.15 — the rest is the cast's own work at content's
       // cadence on the call-security floor. The gate holds the ruling.
       expect(cores).toBeLessThan(0.2);
-    }, 700_000);
+
+      // ⭐ The baseline step 8 is measured against: the same looks, by one
+      // player alone in the square ("empty-room time", the requirement's own
+      // words). Taken here, before anyone else logs in.
+      const alone = await Session.open(uniqueHandle('timing-alone'), { startLocation: CROWD_PLACE });
+      emptyLookP95 = p95(await mouldLooks(alone));
+      await alone.cmd('get hoop');
+      alone.close();
+      say(`8 (baseline): look at / into the hoop alone p95 ${Math.round(emptyLookP95)} ms`);
+    }, 800_000);
 
     it('2–9 — thirty arrive, speak, watch a card, look at a mould, leave', async () => {
       thirty = await runCrowd('timing-30', {
         size: 30,
         during: async (crowd) => {
           for (const s of crowd) handles.push(s.handle);
+          // Where each stands, read as a player reads it — FIRST, so step 10
+          // has its comparison whatever a later step finds.
+          for (const s of crowd) {
+            const where = await s.queryOne('here', 'ref');
+            placeBefore.set(s.handle, String(where?.displayName ?? ''));
+          }
           // ── 6: a card you can see. `look` leaves the `here` card live. ──
           const watcher = crowd[0]!;
           await watcher.cmd('look');
@@ -135,12 +167,11 @@ const say = (line: string): void => {
           watcher.clearCaptures();
           const t0 = performance.now();
           await walker.cmd('go southwest');
-          await watcher.awaitEnvelope<{ subscriptionId: string }>(
-            'mql-subscription-delta',
-            (e) => e.subscriptionId === hereId,
-            2_000,
-          );
-          say(`6: on-screen card caught up in ${Math.round(performance.now() - t0)} ms`);
+          const caught6 = await watcher
+            .awaitEnvelope<{ subscriptionId: string }>('mql-subscription-delta', (e) => e.subscriptionId === hereId, 2_000)
+            .then(() => true, () => false);
+          say(`6: on-screen card ${caught6 ? `caught up in ${Math.round(performance.now() - t0)} ms` : 'did NOT catch up within 2 s'}`);
+          expect.soft(caught6, '6: an on-screen card shows a change within 2 s').toBe(true);
 
           // ── 7: a card you cannot see. Minimize it, say so as a client does. ──
           await watcher.cmd(`client-card minimize ${hereKey}`);
@@ -156,32 +187,22 @@ const say = (line: string): void => {
             .envelopesOf<{ subscriptionId?: string }>('mql-subscription-delta')
             .concat(watcher.envelopesOf<{ subscriptionId?: string }>('mql-subscription-result'))
             .filter((e) => e.subscriptionId === hereId);
-          expect(leaked, 'a hidden card receives nothing').toEqual([]);
+          expect.soft(leaked, '7: a hidden card receives nothing').toEqual([]);
           const t1 = performance.now();
           watcher.resumeSubscription(hereId);
-          await watcher.awaitEnvelope<{ subscriptionId: string }>(
-            'mql-subscription-result',
-            (e) => e.subscriptionId === hereId,
-            2_000,
-          );
-          say(`7: hidden card received 0 envelopes; caught up ${Math.round(performance.now() - t1)} ms after shown`);
+          const caught7 = await watcher
+            .awaitEnvelope<{ subscriptionId: string }>('mql-subscription-result', (e) => e.subscriptionId === hereId, 2_000)
+            .then(() => true, () => false);
+          say(`7: hidden card received ${leaked.length} envelopes; ${caught7 ? `caught up ${Math.round(performance.now() - t1)} ms after shown` : 'did NOT catch up within 2 s of being shown'}`);
+          expect.soft(caught7, '7: a hidden card is current within 2 s of being shown').toBe(true);
           await watcher.cmd(`client-card restore ${hereKey}`);
           walker.close();
 
           // ── 8: a mould in the crowd — look at it and into it, timed. ──
-          const cheesemaker = crowd[1]!;
-          await hand(cheesemaker, '/trade/dairying/thing/hoop');
-          await cheesemaker.cmd('drop hoop');
-          const looks: number[] = [];
-          for (let i = 0; i < 10; i++) {
-            for (const text of ['look hoop', 'look in hoop']) {
-              const t = performance.now();
-              await cheesemaker.cmd(text);
-              looks.push(performance.now() - t);
-            }
-          }
-          say(`8: look at / into the hoop p95 ${Math.round(p95(looks))} ms`);
-          expect(p95(looks)).toBeLessThan(250);
+          const looks = await mouldLooks(crowd[1]!);
+          say(`8: look at / into the hoop in the crowd p95 ${Math.round(p95(looks))} ms (alone: ${Math.round(emptyLookP95)} ms)`);
+          // "In empty-room time": within half again of the same looks alone.
+          expect.soft(p95(looks), '8: a mould looked at in empty-room time').toBeLessThanOrEqual(Math.max(1, emptyLookP95) * 1.5);
 
           // ── the five logins into the FULL square. ──
           const into: number[] = [];
@@ -192,13 +213,7 @@ const say = (line: string): void => {
             s.close();
           }
           say(`logins into the full square: p95 ${Math.round(p95(into))} ms`);
-          expect(p95(into)).toBeLessThan(2_000);
-
-          // Where each stands, read as a player reads it, before they leave.
-          for (const s of crowd) {
-            const here2 = await s.queryOne('here', 'ref');
-            placeBefore.set(s.handle, String(here2?.displayName ?? ''));
-          }
+          expect.soft(p95(into), 'logins into the full square').toBeLessThan(2_000);
         },
       });
       const r = thirty;

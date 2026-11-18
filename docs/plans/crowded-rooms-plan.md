@@ -1907,6 +1907,19 @@ by a profile; this is the reading of the code and the probe. The levers
 are named for review (§ Risks: the first projection is one unit of N
 rows; D7's row target was met for child rows, not for a place's own row).
 
+### The third quiet-box run (2026-11-18, the harness fixed)
+
+Precheck passed (load 0.53). Idle **0.162** ✓. Step 6 **1,505 ms** ✓.
+Step 7: the hidden card received **0** envelopes and was current **48 ms**
+after being shown ✓. Step 8: the mould's looks in the crowd p95 **362 ms**
+against a 250 ms bound the drive had invented — the requirement's words are
+*"in empty-room time"*, so the drive now measures the same looks by one
+player alone in the square earlier in the run and gates the crowd's p95 at
+1.5× that. The crowd phase's checks are soft (recorded, the run goes on),
+and the places for step 10 are read first, so one miss no longer hides
+the steps behind it. The hundred: logins p95 3.9 s; `say` alone p95 178 ms;
+load 0.53 → 0.81, foreign 0.20.
+
 ### The second quiet-box run (2026-11-17, after W8)
 
 Precheck passed (load 0.37 at start).
