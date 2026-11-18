@@ -889,7 +889,7 @@ flat across depth 0/25/100/200; `lint:boundary` and `lint:gates` pass;
 targeting by a worn feature behave as before in the wire file's step 3.
 **Commit.** `perf(recognition): one recognition state per keyword read (W5)`
 
-### W6 — The drive, the record, the docs
+### W6 — The drive, the record, the docs — ✅ DONE (drive record below)
 
 - Quiet-box run of the wire file in compare mode with `WIRE_CPU_PROF`;
   `profile-layer` over the same windows as W0; `bench-gate`.
@@ -1165,5 +1165,58 @@ world, which the layer cut alone may not reach (R1).
 
 ### After — W6
 
-*(the same table, the command lines, the count of steps run and passed, and
-what each failure was)*
+Run 2026-11-18 14:18–14:44, the same `quiet-run` (suite lock, dropped
+DB, four siblings and the soak lane holding), compare mode, on
+`9d0664b0c` (W5 + a docs-only master merge). **9 of 10 checks pass; the
+miss is idle.**
+
+| measure | baseline (W0) | after (W6) | |
+|---|---|---|---|
+| 5a–5e, 7 | 5e ✗ (the bypass) | **all ✓** | 5e red → green is W1b in the wire world |
+| idle cores | 0.289 (foreign 0.71) | **0.244** (foreign 0.38, conclusive) | ✗ vs ≤ 0.15 — see below |
+| `say` p95 · in-turn p95 | 75 · 96 ms | **53 · 71 ms** | ✓ (≤ +10%) |
+| thirty log in p95 · five into the full square p95 | 2 170 · 2 727 ms | 2 221 · **2 399** ms | reported |
+| freeze samples over 100 ms | 33 of 195 | **3 of 162** | reported |
+| restart p95 | 1 542 ms | **1 451 ms** | ✓ |
+| **layer, crowd window** (same acts) | 40 629 ms of 74 189 busy (54.8%) | **20 260 ms** of 44 852 (45.2%) | ✓ **49.9%** of baseline (gate ≤ 20 315) — at the line |
+| layer per second of the crowd window | 272 ms/s (149 s) | 157 ms/s (129 s) | 58% — the after-run did the same acts 20 s faster |
+| layer, idle window (600 s each) | 51 698 ms (58.7%) | 32 541 ms (49.0%) | 63% |
+| out of scope: `PathTrie.#walk` · `MixinApi.hasMixin` (crowd) | 2 173 · 2 482 ms | 1 138 · 1 864 ms | reported |
+| `bench-gate`, gated call (load 2–4, two rounds vs W0's files) | 1 061 / 990 ns | 812 / 1 017 ns | flat in depth (893–1 098 at 200) |
+
+Commands: `PROFDIR=<dir> quiet-run.sh` (the wrapper is
+`WIRE_QUIET=1 WIRE_BOOT=1 WIRE_BOOT_TIMEOUT=900000 WIRE_PORT=2014
+WIRE_CPU_PROF=<dir> pnpm wire call-security-performance` under the suite
+lock, after `pnpm reset:db`); `pnpm tsx scripts/profile-layer.ts
+<CPU.*.0.001.cpuprofile> --from 1051.3 --to 1180.6` (crowd: the run's
+`loginsStart`→`duringEnd` marks) and `--from 451.3 --to 1051.3` (idle).
+
+**The bench, W0's three layer files against the final ones, alternated on
+the quietest box of the day (load 2–4):** deep method read 739–823 →
+250–276 ns · absent read 740–837 → 255–257 · getter read 564–634 →
+424–444 · own-field read 127–137 → 90–98 · static call 125–260 → 79–86 ·
+the gated call 990–1 061 → 812–1 017, flat in depth.
+
+**The profile after:** `findDescriptor` is gone (was 12.6% of the crowd's
+busy time); `resolveStaticCallPolicy` has left the top rows (W4 stays, by
+its own condition); `_pushFrame`'s self time and `getStore` are near zero
+(W3). The trap's own `get` is now the largest line (18.9% of busy, 8.5 s):
+what is left in it is the own-descriptor read, the cache lookups, the
+passthrough test and `Reflect.get` — every read still pays the trap, which
+is the **structural lever** the plan defers to the owner (reads inside an
+admitted method body).
+
+**⚠ The idle goal (≤ 0.15) is out of this layer's reach — measured, not
+argued.** Idle is 0.244 cores, of which the layer is 32.5 s / 600 s =
+**0.054 cores**. Removing the layer entirely would leave ~0.19 cores, above
+the goal. The rest of the idle world's CPU is the cast's labor at
+content's cadence plus what the profile's main thread does not carry (GC,
+the worker thread, the Mongo driver). So by R1 this is a **recorded miss**,
+and the next idle build is not a call-security build. No check was
+removed to approach it.
+
+**The cost gate is met at the line**, not with room: 20 260 ms against a
+20 315 ms ceiling over the same acts (49.9%). Per second of the window it
+is 58%, because the after-run finished the same acts 20 s sooner — which
+is the speed-up showing, not a different workload. The idle window, of
+fixed length, is 63%.

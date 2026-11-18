@@ -2041,16 +2041,54 @@ common operation. Measured under **`tsx`, the production runtime**
 (`deployment.md` — the server runs from TypeScript source, not a
 compiled build), with `packages/server/scripts/bench-gate.ts`:
 
-| | ns/call | vs a raw call |
+| | ns | vs a raw call |
 |---|---|---|
 | the method, unwrapped | 5 | 1x |
-| **gated method call** | **2 140** | **424x** |
-| *(before the 2026-08-30 pass)* | *50 700* | *2 000x* |
+| **gated method call** | **~810–1 020** | **~160x** |
+| *(2026-08-30 pass)* | *2 140* | *424x* |
+| *(before it)* | *50 700* | *2 000x* |
+| a read of a method declared deep in the chain | ~260 | |
+| a read of a name nothing declares | ~255 | |
+| a prototype getter read (gated) | ~430 | |
+| an own-field read | ~95 | |
+| a decorated static Api call | ~80 | |
 
 Flat in world size, **flat in call depth**, and not a first-touch cost —
 a constant, paid per dispatch.
 
-### How it got from 50 µs to 2.1
+⭐⭐ **A bench of one call cannot rank a world of reads.** The 2026-08-30
+pass parked the read trap's chain walk as "~55 ns of 2.1 µs, not worth
+touching", from this bench. A profile of the running world put that walk
+first (12–15% of all busy time): every `this.x` inside a method body is a
+trap read, mixin chains are deep, and the world does far more reads than
+calls. So the number that decides this layer's work is the WORLD's:
+`scripts/profile-layer.ts` over a `WIRE_CPU_PROF` profile of the crowd
+drive (`docs/testing.md § The quiet box`). In a thirty-body crowd the
+layer went from 54.8% of busy (40.6 s) to 45.2% (20.3 s) over the same
+acts (call-security-performance, 2026-11-18).
+
+### How it got from 2.1 µs to under 1, and the reads to a third
+
+The call-security-performance build (2026-11, plan retired at its sweep):
+
+1. **The accessor answer is cached per prototype** — see *Is it a
+   getter?* above. A read of an inherited method went from ~820 to ~260 ns.
+2. **An own property is read once** — its value is the descriptor
+   already read to ask whether it is a getter.
+3. **One store read per dispatch.** The gate read the AsyncLocalStorage
+   store three times (boundary, caller, push) and the static wrapper
+   twice; each now reads it once (`ExecutionContextApi._dispatchContext`)
+   and hands the node to the claimed push as `parent`. `CallFrame` lost a
+   `timestamp` nothing read.
+4. **The static wrapper remembers its policy**, re-resolved when the
+   policy generation moves.
+5. **Recognition is worked out once per keyword read** (belief.md).
+
+⚠ The async-context runtime flag (`--experimental-async-context-frame`,
+Node 22) was measured and **not** adopted: no gain on the call, and worse
+at depth 200 (1 438 vs 932 ns).
+
+### How it got from 50 µs to 2.1 (2026-08-30)
 
 Five changes, none of them the thing the first profile pointed at. The
 full investigation, with the numbers at each step, is
