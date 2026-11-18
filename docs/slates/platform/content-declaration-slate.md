@@ -7,7 +7,8 @@
 > to all authored content.
 > **Left:** the declaration schema itself (the field list) · the
 > **covenant row** (per-locality restriction + its enforcement mode) ·
-> `Epoch`'s first reader · **drift measurement** as a mirror · the
+> ⭐ **the seven prime-mover bands** (§ 3.0 — `Epoch.ts` re-vocabularied, the ~20
+> stamps re-mapped, *runs on* and *made with* derived) · `Epoch`'s first reader · **drift measurement** as a mirror · the
 > aether-carrier ladder · ⭐ the **network schedule as a takeable prop**
 > (§6.3 — the one squarely buildable item here) · night as a **shift
 > change** rather than a description (§1) · the solvability check
@@ -175,6 +176,78 @@ Current state: `lib/craft/Epoch.ts` is a five-word `const` tuple
 (`prehistory · medieval · industrial · modern · future`), one field and
 one guard on `ToolMixin`, **~10 content rows that all say `medieval`, and
 no readers.** Free to change today; not in a year.
+
+### 3.0 ⭐⭐⭐ An epoch is a prime mover — seven bands **[DECIDED — the owner, 2026-11-18]**
+
+The five words (`prehistory · medieval · industrial · modern · future`) were chosen in passing and
+had no rule behind them. Worked out in the aether-devices conversation
+([aether-devices-slate](../engine/aether-devices-slate.md) § 9 — *power it down, it's a law*), from
+the owner's question: *"is what defines an epoch not materials or assembly but power consumption or
+transformation? … right now we don't really have hard rules for what makes something one epoch or
+another."* And: *"my main concern is just where the lines are and what makes for the most
+interesting content … we go right from prehistory to medieval which seems like a big jump … maybe
+it's just the names."*
+
+> ⭐⭐⭐ **An epoch is what does the work — the prime mover** (Vaclav Smil, *Energy and
+> Civilization*; Leslie White's energy law). Every line is a real physical threshold, and every name
+> says the rule.
+
+| band | what does the work | the threshold | the genre an author means | who loses their living |
+|---|---|---|---|---|
+| **Muscle** | people, and fire for heat only | — | stone age, early iron | — |
+| **Draft** | + animals: plow, cart, horse | work from a body you did not have to be | antiquity, sword and sandal | the porter, to the cart |
+| **Mill** | + water and wind | work from a flow you did not eat | medieval fantasy | the hand quern — lords banned querns to force use of their mill (governance content) |
+| **Steam** | + heat engines — fuel turned into motion, **cars included** | Carnot: heat into work | Victorian, steampunk | the cottage weaver (the Luddites) |
+| **Electric** | + generated power on a grid: motors, light | energy moved and delivered anywhere | Jazz Age, dieselpunk | the lamplighter, the ice trade |
+| **Circuit** | + electronics: electrons doing information | the signal, not the power | modern | the switchboard operator, the town clock, everything the phone eats |
+| **Mana** | + the postulate | the one impossible thing | the future, magic | — |
+
+- **Bare names** (the owner) — the word *is* the rule. ⭐ **No band is a culture**: a Song-dynasty
+  town and a Norman one are both *Mill*. § 3.4's live risk (*the first author who asks for
+  `antiquity` will mean culture*) is dissolved — the antiquity band is *Draft* and promises nothing
+  about togas.
+- **Cars stay with Steam** (the owner): an engine burning fuel is a heat engine; internal combustion
+  does not get its own line.
+- **Why seven, by § 3.6's test** (a band earns its place when two things a covenant must separate
+  fall either side of it): every line is a genre line authors will want to declare — the hand quern
+  against the watermill; steampunk without electric light; a 1920s town with light and a radio but
+  no phones (real Amish rules draw lines like that). And the old prehistory → medieval jump splits
+  along shipped substrate on both sides: draft animals and haulage (`conveyance.md`), mills and water
+  rights (`watershed.md`).
+- **Every line obsoletes somebody** — design-lenses § 5's *who is holding the obsolete half*, one
+  arc per line.
+
+#### Two axes, both derived — never stamped by hand
+
+- **Runs on** — the latest prime mover an object consumes while operating. A chainsaw has an
+  engine: Steam. A phone runs on a charged battery and electronics: Circuit.
+- **Made with** — the latest prime mover its production chain needed. A steel handsaw runs on
+  muscle; its steel needed powered bellows: Mill.
+- An object's epoch is the later of the two. ⭐ **Powering down drops *runs on* and leaves *made
+  with*** — which is the line the aether conversation drew: a covenant on **operation** (*power it
+  down*) reads *runs on*; *"no modern tech, even unpowered"* reads *made with*, and only `witness` /
+  `norm` enforce it.
+- **Derivation:** authors say what powers a thing; a station declares its prime mover; a product
+  inherits *made with* from the station that made it, which inherits from what powers the station.
+  The hand stamps become checks against the derivation, and then go.
+- **What it already explains:** `Epoch.ts`'s own covenant example (*handsaws, not chainsaws*) is an
+  engine; `analyze grid` already derives a place's epoch from its power
+  ([energy.md](../../subsystems/energy.md)); the carrier ladder (the needle is unpowered, the radio
+  draws power, the phone is electronics); *"a bloomery and a blast furnace are not the same era"*
+  (the blast furnace needs water-powered bellows); the threaded fastener as the industrial joint
+  ([assembly-slate](../trades/assembly-slate.md) § 2 — standard threads need powered machine tools,
+  so it falls out of *made with*); and the Iron Age is *Muscle*, which is historically right.
+
+#### For the build
+
+- `lib/craft/Epoch.ts` → the seven words. The ~20 stamps re-map (old `prehistory` → `Muscle`;
+  `medieval` → `Draft` or `Mill` by what made it; `industrial` → `Steam`; `modern` → `Electric` or
+  `Circuit`; `future` → `Mana`), then the derivation checks them.
+- Every station row declares its prime mover — content work across every trade.
+- Docs still using the five old words (about 16 files) move to the seven at that build, not
+  piecemeal.
+- ⚠ **The implant's prime mover** is open: *Mana* if it is future tech; the body's own heat would
+  make it *Muscle*, which is wrong.
 
 ### 3.1 ⭐⭐ The covenant is the row. The vocabulary is not.
 

@@ -209,13 +209,15 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 
 ## 5. The tuners
 
-| epoch | tuner | it is |
+| band | tuner | it is |
 |---|---|---|
-| prehistory | the standing stones | a **place** that carries further |
-| medieval | the sympathetic needle | an **object** |
-| industrial | the aether-radio | a **device** |
-| modern | ⭐ the phone — the starting tuner | a device in your pocket |
-| future | the implant | an **organ** — the tuner you cannot lose |
+| Muscle | the standing stones | a **place** that carries further |
+| Mill | the sympathetic needle | an **object** |
+| Electric | the aether-radio | a **device** that draws power |
+| Circuit | ⭐ the phone — the starting tuner | a device in your pocket |
+| Mana | the implant | an **organ** — the tuner you cannot lose |
+
+(Bands are the prime-mover epochs, [content-declaration-slate § 3.0](../platform/content-declaration-slate.md).)
 
 (The ladder is content-declaration-slate § 5's, as corrected in off-grid-slate § 2.)
 
