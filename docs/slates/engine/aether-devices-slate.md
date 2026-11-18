@@ -9,10 +9,10 @@
 > born-attuned species; screens and their by-mind ladder ([display.md](../../subsystems/display.md)).
 > **Left:** the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
 > confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) ·
-> one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · ⭐ **the
-> epochs — a phone is modern, so what do you carry elsewhere** (§ 9, the next conversation) · the
+> one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · a power
+> state on tuners, so a covenant's *power it down* is real (§ 9) · the town's node (§ 9) · the
 > original question: instruments driven by mind (§ 10)
-> **Size:** a build (§§ 3, 5, 6) plus a design pass (§ 9)
+> **Size:** a build (§§ 3, 5, 6, 9)
 
 ## 0. The asks
 
@@ -199,7 +199,8 @@ now. [off-grid-slate](./off-grid-slate.md) § 9's starting shape holds, sharpene
 5. **Continuity** — every tuner answers the same `dm`. ⭐ **Who holds the obsolete half:** the
    needle-house keeper, the switchboard operator, the town crier, the letter carrier — and the
    institution, the needle house as a public place where news met people. A phone serves one person;
-   the lounge screen is the counter-move. And § 9 is this lens's open question.
+   the lounge screen is the counter-move. Across epochs, a modern tuner is powered down by law and
+   the town's node or a bought needle carries you (§ 9).
 6. **Economy** — produces devices and apps; consumes power (a phone has a battery, and the charge
    economy exists); was the demand there first — yes for text and presence, not yet for video.
 7. **Governance** — a carrier ban is a posted covenant, appealable to the Compact courts where it
@@ -207,13 +208,59 @@ now. [off-grid-slate](./off-grid-slate.md) § 9's starting shape holds, sharpene
    sanction *(lean — awaiting the owner)*; a public call box redistributes reach from those who own a
    phone *(civic infrastructure)*.
 
-## 9. ⭐⭐ Open — the epochs: a phone is modern, so what do you carry? **[NEXT]**
+## 9. ⭐⭐ The epochs — you power it down; it's a law **[DECIDED — the owner, 2026-11-18]**
 
-The owner, 2026-11-18: *"The phone is modern so you can't take it everywhere. Does this mean you
-have to have a bunch of different devices for different content? That's not awful but we might be
-able to make it better. On the other end is making the phone some sort of magic device that changes
-its epoch and capability on the fly with location. That's extreme but it also solves the problem.
-The reality is probably somewhere in the middle."* — the next conversation.
+The owner's question: *"The phone is modern so you can't take it everywhere. Does this mean you
+have to have a bunch of different devices for different content? … On the other end is making the
+phone some sort of magic device that changes its epoch and capability on the fly with location.
+That's extreme but it also solves the problem. The reality is probably somewhere in the middle."*
+
+The decision came from the implant: *"an implant you can't just check at the door, it's wired into
+your skull. But an implant is undoubtedly future tech that has no place in a medieval town. So the
+only possible option is you can enter but with it powered down."* And: **"You power it down, it's a
+law."**
+
+- **A covenant regulates operation, never possession.** You walk into a medieval town with your
+  phone or your implant; you power it down at the posted edge. Nothing is checked, swapped, sealed
+  or stored, and one rule covers the phone and the implant alike.
+- **It is a law, so it can be broken.** Running a modern tuner inside is a crime people can witness —
+  the enforcement ladder's `witness` / `norm` rungs ([content-declaration-slate](../platform/content-declaration-slate.md)
+  § 3.8), never a `wall`. Nothing in the engine switches your device off for you.
+- **Talking inside the town:**
+  - **in the room** — always; the place carries (§ 3);
+  - **at a distance, at the town's node** — the bottom rung of the ladder, *a place you go to* (a
+    needle house, a temple, the post office). Messages to you wait there. Ordinary civic
+    infrastructure, like the well — not a service for visitors;
+  - **or with a tuner you bought** — needles are sold in the market, like a local SIM card abroad.
+    Someone who spends time in medieval places keeps one; a day-tripper uses the node.
+- **Honest cost:** distance talk in a medieval town is slower and needs you to go somewhere, unless
+  you bought a needle. *Strange, not silent.*
+- **A world medieval all the way through** starts its players with a needle instead of a phone.
+
+⚠ **What it needs:** a **power state** on a tuner — augmentation lists it as unbuilt (*Wave 2+*,
+[augmentation.md](../../subsystems/augmentation.md)) — so that a powered-down phone or implant
+really does not tune you, and powering it on inside is the act a witness sees.
+
+### Rejected on the way, so nobody re-derives them
+
+- **The cloakroom swap** (the town keeps your phone and lends its tuner at the edge) — still a
+  different device per epoch; the owner: *"the cloakrooms just make it so you don't have to carry
+  all of them at the same time."*
+- **The phone check at a door** — breaks on getting it back (a back door, crossing A → B → C), and
+  puts stashes on authors and juggling on players.
+- **The sealed pouch, and a duty on the town to supply tuners** — *"imagine if my city has to have
+  people … at every city crossing swapping out my car for a horse and buggy because of a law they
+  could easily change. No city would ever do that."*
+- **"Talking is exempt from epochs"** — stated as a rule with no source. The real source is
+  guarantee of play P2 / arcane-science rule 6 (*regulate the instrument, never leave a person with
+  none*), which the town's node and the room now satisfy without a swap desk.
+- **The phone that changes its epoch with location** — the fiction betraying itself (lens 3a) and
+  every older tuner trade erased (lens 6).
+
+### Still open
+
+- **Widen P2?** As written the comms floor protects you *"where you live and log in"*; § 1's *"a dm
+  should pretty much always work unless there's an extreme reason"* is wider.
 
 ## 10. Open — instruments driven by mind (the original question, 2026-11-02)
 
