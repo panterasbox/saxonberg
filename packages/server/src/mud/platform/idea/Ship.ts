@@ -51,7 +51,7 @@ import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
 import Bollard from '../thing/Bollard';
 import BerthExit, { type Berthed } from './BerthExit';
-import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
+import ShipWarren from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import Rope from '../thing/Rope';
 import { BilgeMixin } from '../../lib/expanse/Bilge';
@@ -265,6 +265,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     owed: { persistent: true },
     charter: { persistent: true },
     warren: { persistent: true, authorable: true, ref: 'identity:relation' },
+    serial: { persistent: true, authorable: true },
     settling: { persistent: true },
     settled: { persistent: true },
     wreck: { persistent: true },
@@ -1268,7 +1269,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     if (house === '') return null;
     let c: Stuff | null;
     if (this.isOfKind()) {
-      const serial = this.serial() ?? '';
+      const serial = this.mintedSerial() ?? '';
       if (serial === '' || !house.endsWith(`/${serial}`)) return null;
       c = await this.mintCompany();
     } else {
@@ -1334,13 +1335,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * her way aboard shows a viewer on the landing (`BerthExit.peekDestination`).
    */
   public watchRoomNow(): (Stuff & Container) | null {
-    if (this.isOfKind()) {
-      const room = this._warren?.entryRoom() ?? null;
-      return room !== null && MixinApi.isContainer(room) ? room : null;
-    }
-    // An authored ship's entrance is a row of its own: its one instance.
-    const entrance = this.getEntrance();
-    const room = entrance ? StuffApi.findByIdentityPath<Stuff>(entrance).find((r) => !r.isDestroyed()) ?? null : null;
+    const room = this._warren?.entryRoom() ?? null;
     return room !== null && MixinApi.isContainer(room) ? room : null;
   }
 
@@ -1362,7 +1357,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    */
   public async commission(buyer: Stuff, name: string, landingPath: string, register: ShipRegister): Promise<string> {
     const handle = this.getDurableHandle();
-    const serial = this.serial();
+    const serial = this.mintedSerial();
     if (!handle || !serial) {
       throw new Error(`Ship.commission: only a ship of a kind, minted under her serial, is commissioned (got ${handle ?? '?'})`);
     }
@@ -1448,7 +1443,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * restored. `null`, loudly, when she has no seed to mint from.
    */
   private async mintCompany(named?: string, founder?: UnitHolder): Promise<Stuff | null> {
-    const serial = this.serial();
+    const serial = this.mintedSerial();
     const handle = this.getDurableHandle();
     if (!serial || !handle) return null;
     const current = this.house ?? '';
@@ -2021,16 +2016,10 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * authored attaches a kind's ship to a sea.
    */
   private async standKind(): Promise<void> {
-    // ⭐ An authored ship's warren stands with her too: her hull's clock
-    // is its shell, and her rooms that stand now join it.
-    if (!this.isOfKind()) {
-      await this.standWarren();
-      return;
-    }
     this._sleeping = false;
     await this.standWarren();
     // Her company stands with her once she has one (commissioned: her house is hers by serial).
-    if ((this.house ?? '').endsWith(`/${this.serial() ?? ''}`)) await this.mintCompany();
+    if ((this.house ?? '').endsWith(`/${this.mintedSerial() ?? ''}`)) await this.mintCompany();
     await this.refreshOwners();
     try {
       (await this.liveFrame())?.adopt(this as never);
@@ -2066,15 +2055,11 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     }
     void this.bringLinesIn();
     this.removeBerth();
-    // ⭐ Her warren goes with her: a kind's rooms come down whole; an
-    // authored ship's adopted rows are let go of, never destructed — they
-    // are rooms in their own right.
+    // ⭐ Her warren goes with her, and her rooms come down whole with it —
+    // every ship's rooms are a copy her warren stands (zone-instancing D12).
     const w = this._warren;
     this._warren = null;
-    if (w !== null && !w.isDestroyed()) {
-      if (!this.isOfKind()) w.releaseRooms();
-      StuffApi.destruct(w as unknown as Stuff);
-    }
+    if (w !== null && !w.isDestroyed()) StuffApi.destruct(w as unknown as Stuff);
     super.onDestruct();
   }
 
@@ -2096,12 +2081,35 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * row's `extent` is her PLAN, and every smack's rooms are keyed copies of
    * its rows — so no path is hers alone, and `hasMember`, her landings and
    * her resident members read nothing off it (her warren's `structureOf`
-   * answers for her rooms). An authored ship's extent is her own rooms.
+   * answers for her rooms). An authored ship is a single copy of her kind
+   * (zone-instancing D12), told the same way — a lookup by a room's PATH
+   * never answers a ship.
    *
    * @hook
    */
   protected override memberExtent(): string {
-    return this.isOfKind() ? '' : super.memberExtent();
+    return '';
+  }
+
+  /**
+   * ⭐ An AUTHORED ship's serial (zone-instancing D12): the word her copy
+   * of her zone is named by (`<her zone row>/<serial>`) and her warren is
+   * keyed by — `hesper`, `ostrander`. A ship of a kind takes hers at the
+   * yard, as the leaf of her minted identity ({@link mintedSerial}); the
+   * kind row authors none.
+   */
+  protected serial: string = '';
+
+  public getSerial(): string { return this.serial; }
+  public setSerial(v: string | null): void { this.serial = typeof v === 'string' ? v : ''; }
+
+  /**
+   * The key her copy is stood up by — her minted serial for a ship of a
+   * kind, her authored `serial` for an authored ship: one name for every
+   * ship, wherever it came from.
+   */
+  private copyKey(): string | null {
+    return this.mintedSerial() ?? (this.serial !== '' ? this.serial : null);
   }
 
   public getWarrenRow(): string | null { return this.warren; }
@@ -2131,7 +2139,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * one-row ship.
    */
   public isOfKind(): boolean {
-    return this.serial() !== null;
+    return this.mintedSerial() !== null;
   }
 
   /**
@@ -2141,7 +2149,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * rooms `(room row, <serial>/<leaf>)` and her company
    * `<company row>/<serial>` — all keyed by it.
    */
-  private serial(): string | null {
+  private mintedSerial(): string | null {
     const row = this.getTemplatePath();
     const id = this.getIdentityPath();
     if (!row || !id || id === row || !id.startsWith(`${row}/`)) return null;
@@ -2172,9 +2180,14 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     if (live !== null && !live.isDestroyed()) return live;
     if (this._warrenPending !== null) return this._warrenPending;
     this._warrenPending = (async () => {
-      const row = this.warren ?? AUTHORED_SHIP_WARREN;
-      const key = this.serial() ?? this.getTemplatePath();
-      if (!key) return null;
+      const row = this.warren;
+      const key = this.copyKey();
+      if (row === null || key === null) {
+        console.warn(
+          `Ship: ${this.getDurableHandle()} names no warren or no serial — every ship's rooms are a copy her warren stands`,
+        );
+        return null;
+      }
       try {
         const w = await PersistableApi.standUpKeyed(row, key);
         if (!(w instanceof ShipWarren)) {
@@ -2197,9 +2210,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   /** The member rooms that are resident now — her warren's. */
   private async liveMembers(): Promise<(Stuff & Container)[]> {
     const w = await this.standWarren();
-    if (w === null) return [];
-    if (!this.isOfKind()) await w.adoptResident();
-    return w.liveRooms();
+    return w === null ? [] : w.liveRooms();
   }
 
   /**
@@ -2208,7 +2219,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * while her zone does (the `Structure` rule) and never sleeps.
    */
   public async sleepIfEmpty(): Promise<void> {
-    if (!this.isOfKind() || this.getCourse() !== null || this._sleeping) return;
+    if (this.getCourse() !== null || this._sleeping) return;
     // ⭐ Aboard is anywhere in her rooms — sitting in her dinghy on deck is
     // aboard (the owner got into the dinghy to
     // launch it, she counted nobody on deck, slept, and stowed the stones
@@ -2231,7 +2242,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * taking it stands her up again (`BerthExit`).
    */
   public async sleep(): Promise<void> {
-    if (!this.isOfKind() || this._sleeping || this.isDestroyed()) return;
+    if (this._sleeping || this.isDestroyed()) return;
     this._sleeping = true;
     this._asleep = this.sleepNow();
     await this._asleep;
@@ -2267,7 +2278,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     if (w !== null && !w.isDestroyed()) out.push(w as unknown as Stuff & Persistable);
     // ⭐ Her minted company: its table is kept with her.
     const house = this.house ?? '';
-    const serial = this.serial() ?? '';
+    const serial = this.mintedSerial() ?? '';
     if (this.isOfKind() && serial !== '' && house.endsWith(`/${serial}`)) {
       const c = StuffApi.findByTemplatePath<Stuff>(house);
       if (c !== undefined && !c.isDestroyed() && MixinApi.isPersistable(c)) out.push(c);
@@ -2292,16 +2303,8 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
 
   /** The entrance — the deck the watch is kept on. */
   override async watchRoom(): Promise<(Stuff & Container) | null> {
-    // ⭐ A ship of a kind: her deck is her warren's entry room, keyed.
-    if (this.isOfKind()) return (await this.standWarren())?.entryRoom() ?? null;
-    const entrance = this.getEntrance();
-    if (!entrance) return null;
-    try {
-      const s = await StuffApi.singleton<Stuff>(entrance);
-      return MixinApi.isContainer(s) ? s : null;
-    } catch {
-      return null;
-    }
+    // ⭐ Every ship's deck is her warren's entry room, keyed.
+    return (await this.standWarren())?.entryRoom() ?? null;
   }
 
   /** What her rooms carry that is not people — cargo, stores, fuel, kg. */

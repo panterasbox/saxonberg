@@ -79,13 +79,11 @@ export const UNRESTRICTED = "unrestricted";
 // houses on three lots are three halls from one `hall.yaml`. Never a
 // singleton — so a `Location`, one of many laid out to a plan.
 //
-// ⚠ The PLAN is the holding's floorplan, not the street's grid. A lot's
-// rooms on the lots zone's grid would land on the next lot's, and a
-// generic `/stuff/location/room/*` row resolves no zone at all. So the
-// holding lays its rooms out in its own frame (`HoldingWarren.layOut`,
-// the floorplan's cardinal exits from the entry room) and stamps each
-// room's coordinates; a door out of the holding — the dorm's `out`, the
-// corridor's `unit-3` — crosses frames (`Warren.laysOutOwnFrame`).
+// ⚠ The PLAN is the holding's floorplan, not the street's grid. Each
+// holding is a COPY of its plan's zone — a zone of its own, named for its
+// parcel (zone-instancing) — so its rooms take the cells their rows author
+// on its own grid, and a door out of it (the dorm's `out`, the corridor's
+// `unit-3`) joins two zones.
 //
 // ⭐ And its SIZE is its zone's cell, like every Location's (the user: a
 // room's size bound to anything else is a bug). Its holding names each

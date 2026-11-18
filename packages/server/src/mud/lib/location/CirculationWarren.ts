@@ -407,8 +407,18 @@ export abstract class CirculationWarren extends Warren {
     for (const w of await CirculationWarren.institutionsCovering(key)) {
       const parent = w.getParentExtent();
       if (!parent || !key.startsWith(parent + '/')) continue;
+      // ⭐ The holding is the PARCEL that covers the key — its extent is the
+      // holding's key — never the first path segment under the parent: a
+      // Hinkley lot is `<parent>/lots/lot-N`, and the segment rule took
+      // `<parent>/lots` for the holding, so a character parked in their own
+      // yard could not be re-entered (found by the zone-instancing drive).
+      const covering = await ParcelApi.coveringParcelOf(key);
+      const parcel = covering?.getExtent() ?? null;
       const rest = key.slice(parent.length + 1);
-      const holdingKey = `${parent}/${rest.split('/')[0]!}`;
+      const holdingKey =
+        parcel !== null && parcel.startsWith(parent + '/')
+          ? parcel
+          : `${parent}/${rest.split('/')[0]!}`;
       await w.admit(holdingKey);
       const holding = w.holdingFor(holdingKey);
       if (!holding) continue;
@@ -585,8 +595,9 @@ export abstract class CirculationWarren extends Warren {
    * then reap; re-`admit` re-materializes), then circulation reaps
    * **outside-in** — a node reaps only when it holds no live holding
    * AND no live node sits beyond it on any route, keeping the graph
-   * contiguous back to the authored entrance. Authored nodes are never
-   * reaped (they are content, not clones).
+   * contiguous back to the authored entrance — and never while somebody
+   * stands in it. Authored nodes are never reaped (they are content, not
+   * clones).
    */
   protected async reconcile(): Promise<void> {
     // 1. Holding dormancy — an empty holding captures + reaps.
@@ -617,6 +628,11 @@ export abstract class CirculationWarren extends Warren {
         continue;
       }
       if (plan.isAuthored(nodeId)) continue; // content is never reaped
+      // ⭐ Never out from under somebody: a node anyone stands in stays
+      // (found by the zone-instancing drive — a student stepping out of
+      // their dorm unit put it to sleep, and the corridor they stood in was
+      // reaped, evacuating them to the void).
+      if (this.occupantsOf(room).length > 0) continue;
       const holdingHere = this.hasLiveHoldingOnNode(nodeId, plan);
       const nodeBeyond = liveNodes().some(
         ([other]) =>

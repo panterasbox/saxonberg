@@ -203,7 +203,9 @@ export abstract class Zone extends Idea {
 
   /** The sync ancestor step: the nearest RESIDENT enclosing zone's {@link peekField}. */
   public peekAncestorField<T>(fieldName: string): T | null {
-    const ownPath = this.getTemplatePath();
+    // Where the zone is FILED (zone-instancing D2): a copy's identity, an
+    // authored zone's row — the live index is keyed the same way.
+    const ownPath = this.getIdentityPath() ?? this.getTemplatePath();
     if (!ownPath) return null;
     for (const ancestor of Template.ancestorPaths(ownPath)) {
       const z = StuffApi.findByTemplatePath<Zone>(ancestor);

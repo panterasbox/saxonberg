@@ -57,10 +57,10 @@ export function MovingZoneMixin<TBase extends MixinConstructor<SpatialZone & Loc
      */
     public adopt(place: Place & Positioned): void {
       const prior = place.getZone();
-      if (prior !== null && (prior as unknown) !== (this as unknown)) {
-        (prior as unknown as LocationZone).removeLocation(place);
-      }
       this._place = place;
+      // Cloned INTO this zone already (a warren wakes the copy first): kept.
+      if ((prior as unknown) === (this as unknown)) return;
+      if (prior !== null) (prior as unknown as LocationZone).removeLocation(place);
       (this as unknown as LocationZone).addLocation(place);
     }
 

@@ -4,6 +4,11 @@
 # on a fresh copy.
 class: /trade/farming/location/Tract
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 1
   fieldName: the upper bench
   shortDescription: "upper bench"
   keywords: [upper bench, bench, tract, ground]

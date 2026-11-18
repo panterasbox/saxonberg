@@ -1,8 +1,13 @@
 # /world/terminus/hinkley-hills/house — the ZONE of the Hinkley house
-# PLAN: the house's rooms authored as an ordinary
-# place. Nothing stands here in play — every sold lot's house is a copy
-# minted from these rows, standing in the `lots` zone under its lot's key.
-class: /platform/idea/location/CartesianZone
+# PLAN, and a zone that is COPIED (zone-instancing D1): every sold lot's
+# house is a copy of it, minted by the house programme under the lot's
+# extent (`/world/terminus/hinkley-hills/lots/lot-N`) — a zone of its own,
+# with its own grid, whose rooms take the cells their rows author and
+# which inherits from the lot it stands on (its government, its weather).
+# Nothing stands in this row's own instance: a room joins a copy, never the
+# row.
+class: /platform/idea/location/MintedZone
 data:
   name: the Hinkley house
   cellSize: 6.0
+  mintedBy: /world/terminus/hinkley-hills/idea/house-programme

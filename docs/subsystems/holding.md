@@ -131,8 +131,8 @@ protected wireCirculationNode(node: string): Promise<void>
 protected entryEdgeFor(key: string): Promise<Exit | null>
 ```
 
-`DormWarren` stands a holding up as a programme over the `dormroom`
-row and lays a `DormDoor` way; `BuildingWarren` does the same with
+`DormWarren` stands a holding up as a programme over the dorm unit's
+`room` row (`duncan-hall/unit/room`) and lays a `DormDoor` way; `BuildingWarren` does the same with
 `FrontDoorExit` off a corridor; `PlatWarren` does it with a
 `LotGateExit` off a road segment. Nothing else differs. ⭐ Each then
 hangs ONE entry door in that way through the base's
@@ -422,7 +422,7 @@ building a programme names to anything.
 |---|---|
 | valley farmstead | `farmstead-house` (`location/house`, main) · `farmstead-barn` (`location/barn`); the yard and three tracts are open ground |
 | Hinkley house | `house-building` over `house/indoors/` (hall, kitchen, living, bedroom, bathroom); the yard and garden are open ground |
-| Duncan Hall dorm | `dorm-building` over the `dormroom` row |
+| Duncan Hall dorm | `dorm-building` over the unit's `room` row |
 | Seznick flat | none — every unit stands in Seznick House |
 
 A ship's hull is the same fabric on `Ship` (her seams a `Durable` fabric
@@ -764,9 +764,9 @@ plan derives none. The shipped plans:
 | Hinkley `house-programme` | `hinkley-hills/house` | `hinkley-hills/house/*` (the house's own rooms under `house/indoors/`, its building's extent; `living`/`bedroom` extend the generic rows), own zone `house.yaml` |
 | valley `farmstead` | `hearts-delight/farmstead` | `hearts-delight/farmstead/{location,tract}/*` (+ `location/house` extends the generic bedroom), own zone `farmstead.yaml` |
 | Seznick `unit-programme` | `seznick-house/location` | `seznick-house/location/*` (its zone; + `bathroom` extends the generic row) |
-| Duncan Hall `dorm-programme` | the `dormroom` row | the `dormroom` row itself |
+| Duncan Hall `dorm-programme` | `duncan-hall/unit` — a zone row of its own (zone-instancing D5; the one plan whose extent had not been a zone) | `duncan-hall/unit/room`, keyed `<extent>/room` |
 | `Ship/smack` (the kind) | `/stuff/location/ship/smack` | its deck, cabin and hold (each room's own `floorM`); `ShipWarren/smack` names nothing |
-| `ShipWarren/authored` | **none** — an authored ship's own rows already ARE the place, and they are served; the warren adopts her live rooms | — |
+| `ShipWarren/authored` | her own zone row (each authored ship's) — she is a single copy of her kind (zone-instancing D12) | her own rooms, copied under her `serial` |
 
 **The copy** (`FloorplanWarren.wake`): every room row is cloned keyed
 `(room row, <key>/<leaf>)` with its `exits:` withheld (a way applied by
@@ -869,8 +869,8 @@ ways are the rooms' own `exits:`, a locked edge is a keyed-door `kind:`
 the holding hangs a door in (`hangKeyedDoors`, since the boundary build), `share` is the tract's, the footprint the
 programme's. ⭐ And `MineWarren` now `extends FloorplanWarren` (review 3,
 the base swap its header planned): it copies no plan, its carve mints keyed members through the base's
-`mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
-and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
+`mintKeyed`, its cells sit on its own zone's grid (it mints no zone — not a
+`ZoneMinting` warren) and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
 reads the holding's main building (`MixinApi.isDurable`); `analyze rooms`
 is `RoomsReading.readRooms` (controller-liquidity W21 — it sat on `Place`
 from W17 to W21; an interpretation over the warren, the archetypes, the

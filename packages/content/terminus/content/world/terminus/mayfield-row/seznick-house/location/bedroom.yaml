@@ -2,6 +2,11 @@
 # purchase (the store's ladder-visible rung above the dorm's 1.5).
 class: /platform/location/PersistentRoom
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: -1
+    y: 0
+    z: 0
   # ⭐⭐ **The sandbox's door, and it is in your BEDROOM because a
   # sandbox belongs to your home.** `linkForEnterer`'s *owned* case: a
   # crossing standing in a space you hold links YOUR circle, and a guest

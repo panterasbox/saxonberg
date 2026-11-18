@@ -54,12 +54,12 @@ describe("the yard ships the kit that makes it workable", () => {
     expect(populates).toContain(`/${HINKLEY}/thing/standpipe`);
   });
 
-  it("is NOT a Location — a per-lot room is off the grid", () => {
-    // N lots cannot share one coordinate, and a cartesian yard divided
-    // its open sky by the zone's cellSize² down to 16.7 lux — under the
-    // light floor its own crop needs.
+  it("is a furnished room at the origin of its lot's own copy of the house", () => {
+    // Each lot's house is a zone of its own (zone-instancing D9), so the
+    // yard's row authors its cell — every copy claims it once, on its own
+    // grid.
     expect(yard.class).toBe("/platform/location/PersistentLocation");
-    expect(yard.data?.coords).toBeUndefined();
+    expect(yard.data?.coords).toEqual({ x: 0, y: 0, z: 0 });
   });
 });
 

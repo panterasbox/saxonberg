@@ -29,6 +29,8 @@ import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -64,9 +66,15 @@ const NM_M = 1852;
 /** A ship as the sea's warren asks of her: a structure that voyages. */
 type ShipShape = Structure & Voyaging & Positioned;
 
-export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren)) {
+export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(RoomWarren))) {
   /** The patches standing now. Runtime: a sea patch is never persisted. */
   private _patches = new Set<SeaPatch>();
+  /**
+   * The copy zone the next patch is cloned INTO (zone-instancing D13): its
+   * zone stands before the patch, so the clone never resolves to the kind's
+   * row — the row's own instance refuses a room.
+   */
+  private _budZone: string | undefined = undefined;
   private _serial = 0;
   private _mintChain: Promise<unknown> = Promise.resolve();
   /** ⭐ The stops standing now, by key — each persisted by its own record. */
@@ -74,16 +82,17 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
 
   /* ───────────────────────── Warren policy ───────────────────────── */
 
-  public override laysOutOwnFrame(): boolean {
-    return true;
-  }
-
   protected occupantsOf(m: MemberStuff): (Stuff & Container)[] {
     return m.getContents().filter((c) => MixinApi.isTangible(c)) as unknown as (Stuff & Container)[];
   }
 
   protected async createMember(): Promise<MemberStuff> {
-    return StuffApi.clone<MemberStuff>(PATCH_ROW);
+    return StuffApi.clone<MemberStuff>(
+      PATCH_ROW,
+      undefined,
+      // A path UNDER the copy, by the row's leaf: a zone is not inside itself.
+      this._budZone !== undefined ? { zoneFrom: `${this._budZone}/water` } : undefined,
+    );
   }
 
   public async admitArrival(): Promise<void> {
@@ -231,7 +240,11 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
     return this.serial(async () => {
       const again = this._stops.get(key);
       if (again && !again.isDestroyed()) return again;
-      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key)) as unknown as SeaStop | null;
+      // Its zone stands first; the stop is stood up INTO it.
+      const zone = await this.wakeCopyZone(STOP_ZONE, this.stopZoneLeaf(key));
+      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key, {
+        zoneFrom: `${zone.getIdentityPath()}/water`,
+      })) as unknown as SeaStop | null;
       if (stood === null) throw new Error(`SeaWarren: the stop ${key} could not be stood up`);
       if (stood.getExpansePosition() === null) {
         stood.setExpanse(sea);
@@ -254,26 +267,45 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
     if (key === '' || this._stops.get(key) === stop) return;
     this._stops.set(key, stop);
     if (!this.hasMember(stop as unknown as MemberStuff)) this.addMember(stop as unknown as MemberStuff);
-    const zoneId = `${STOP_ZONE}/${key.replace(/[^A-Za-z0-9.@-]+/g, '-')}`;
+    const zoneId = `${STOP_ZONE}/${this.stopZoneLeaf(key)}`;
     const z = stop.getZone();
     if (z === null || (z.getIdentityPath() ?? z.getTemplatePath()) !== zoneId) {
-      // identity-keyed-by: lookup — the stop's getZone() resolves to this
-      // instance; nothing persists under it (a zone is minted with its stop).
-      const zone = await StuffApi.clone<SeaZone>(STOP_ZONE, undefined, { asIdentityPath: zoneId });
+      // A copy of the stop kind's zone, named under its row (zone-instancing
+      // D13): nothing persists under it — a zone is minted with its stop.
+      const zone = (await this.wakeCopyZone(STOP_ZONE, zoneId.slice(STOP_ZONE.length + 1))) as unknown as SeaZone;
       zone.adopt(stop as never);
     }
   }
 
+  /** A stop's zone's leaf under the stop kind's row: its key, path-safe. */
+  private stopZoneLeaf(key: string): string {
+    return key.replace(/[^A-Za-z0-9.@-]+/g, '-');
+  }
+
   private async mintPatch(ship: ShipShape): Promise<SeaPatch> {
-    const patch = await this.serial(async () => (await this.createMemberSerialized()) as unknown as SeaPatch);
+    this._serial += 1;
+    // A copy of the patch kind's zone, named under its row by the serial
+    // (zone-instancing D13): nothing persists under it. It stands FIRST and
+    // the patch is cloned into it (the ship's order: zone before rooms).
+    const zone = (await this.wakeCopyZone(PATCH_ZONE, String(this._serial))) as unknown as SeaZone;
+    let patch: SeaPatch;
+    try {
+      patch = await this.serial(async () => {
+        this._budZone = zone.getIdentityPath() ?? undefined;
+        try {
+          return (await this.createMemberSerialized()) as unknown as SeaPatch;
+        } finally {
+          this._budZone = undefined;
+        }
+      });
+    } catch (err) {
+      this.sleepCopyZone(zone as never);
+      throw err;
+    }
     const pos = ship.getExpansePosition()!;
     patch.setExpanse(ship.getExpanse());
     patch.setExpansePosition(pos);
     this.addMember(patch as unknown as MemberStuff);
-    this._serial += 1;
-    // identity-keyed-by: lookup — the patch's getZone() resolves to this
-    // instance; nothing persists under it (a zone is minted with its patch).
-    const zone = await StuffApi.clone<SeaZone>(PATCH_ZONE, undefined, { asIdentityPath: `${PATCH_ZONE}/${this._serial}` });
     zone.adopt(patch as never);
     const sea = ship.getExpanse() ? await StuffApi.singleton<WaterExpanse>(ship.getExpanse()!).catch(() => null) : null;
     const depth = sea ? await sea.depthAt(pos).catch(() => 20) : 20;
@@ -302,15 +334,14 @@ export default class SeaWarren extends LaunchableMixin(SingletonMixin(RoomWarren
   private reap(m: MemberStuff): void {
     if (m.isDestroyed()) return;
     for (const r of this._patches) if ((r as unknown) === (m as unknown)) this._patches.delete(r);
-    const zone = m.getZone() as unknown as (Stuff & { removeLocation(p: unknown): boolean }) | null;
+    const zone = m.getZone() as unknown as Stuff | null;
     this.removeMember(m);
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
+    const moving = zone !== null && MixinApi.isMovingZone(zone) ? (zone as unknown as MintedZone) : null;
+    if (moving !== null) moving.removeLocation(m as unknown as Place);
     StuffApi.destruct(m as unknown as Stuff);
-    // ⭐ The zone goes with its place (D38): minted with it, reaped with it —
-    // not left for eviction (the drive's world ran out of memory).
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff) && !(zone as unknown as Stuff).isDestroyed()) {
-      StuffApi.destruct(zone as unknown as Stuff);
-    }
+    // ⭐ The zone goes with its place (D38), put to sleep by the warren that
+    // minted it — not left for eviction (the drive's world ran out of memory).
+    if (moving !== null) this.sleepCopyZone(moving);
   }
 
   /* ───────────────────────── reads ───────────────────────── */

@@ -1,8 +1,12 @@
 # Corrigan — one of the line's two regulars: her rooms are
 # ordinary rooms in their own zone, so the way named for her on a quay
 # crosses into somewhere else (a ship's rooms are never the quay's zone).
-class: /platform/idea/location/CartesianZone
+# ⭐ A zone that is COPIED (zone-instancing D12): her rooms stand in a copy
+# of it, `<this row>/corrigan`, made by her warren as every ship's are — the
+# row's own instance holds no room.
+class: /platform/idea/location/MintedZone
 data:
   name: Corrigan
   cellSize: 4.0
   # No `horizon`: afloat, what is in view is computed from two heights.
+  mintedBy: /platform/idea/ShipWarren/authored

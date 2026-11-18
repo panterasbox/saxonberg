@@ -73,7 +73,7 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   from restore, and seeding on every wake would double-seed). The establishing
   context lays them down exactly once via **`seedBornWith`** on the no-record
   branch, then captures; thereafter it restores. So a `DormRoom` declares its
-  bed/desk/footlocker as `props:` data (`dormroom.yaml`) — a content author
+  bed/desk/footlocker as `props:` data (`duncan-hall/unit/room.yaml`) — a content author
   edits the fixture set with no code change — and carries no imperative install
   method. (Avatar's loadout stays imperative in `installDefaultLoadout`: it
   attunes + hosts implant apps, which isn't a plain clone-into-inventory list;

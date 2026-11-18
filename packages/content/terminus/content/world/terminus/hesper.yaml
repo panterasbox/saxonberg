@@ -6,9 +6,13 @@
 # variable. Nothing about her is inside the sea.
 #
 # ⚠ The name is a placeholder.
-class: /platform/idea/location/CartesianZone
+# ⭐ A zone that is COPIED (zone-instancing D12): her rooms stand in a copy
+# of it, `<this row>/hesper`, made by her warren as every ship's are — the
+# row's own instance holds no room.
+class: /platform/idea/location/MintedZone
 data:
   name: The Hesper
   cellSize: 4.0
   # No `horizon`: afloat, what is in view is COMPUTED from two heights
   # (maritime R4) — nothing is named.
+  mintedBy: /platform/idea/ShipWarren/authored

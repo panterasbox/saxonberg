@@ -260,11 +260,12 @@ export class TestAuthRoutes {
       if (typeof body?.sleptDays === 'number') spec.sleptDays = body.sleptDays;
       if (body?.settling === true) spec.settling = true;
       const badAt = at !== undefined && place === null;
-      if (typeof ship !== 'string' || ship === '' || badAt || Object.keys(spec).length === 0) {
+      // An empty spec stands her up where she lies, with her rooms.
+      if (typeof ship !== 'string' || ship === '' || badAt) {
         res.status(400).json({
           error:
             "test-ship wants {ship: '/row/path', at?: {node: '/path'} | {frame: '/path', cite: '…'}, " +
-            'hull?: band, bilgeL?: litres, sleptDays?: days, settling?: true} — at least one of them',
+            'hull?: band, bilgeL?: litres, sleptDays?: days, settling?: true} — none of them stands her up where she lies',
         });
         return;
       }

@@ -36,6 +36,7 @@ import {
   expectOk,
   advanceWorldClock,
   worldClockNow,
+  stageShip,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -243,6 +244,9 @@ suite('stage D — a ship on the river', () => {
   it('28. over her side under way: you are in the river where she is; her course waits for you unless she leaves you', async () => {
     const steam2 = await steam(master, 'course downstream slow');
     expect(steam2, steam2).toMatch(/under way downstream/);
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/ostrander/structure', {});
     const swimmer = await session(uniqueHandle('rds'), DECK);
     const over = await swimmer.cmd('go side');
     expect(over.status, squash(await over.said())).toBe('ok');

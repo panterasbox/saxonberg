@@ -21,11 +21,17 @@
 # own Building row with its own extent. The
 # yard and the tracts lie under neither, so they are open ground.
 #
+# ⭐ Each farm is a ZONE of its own (zone-instancing D1): a copy of
+# `farmstead.yaml`, named by its key — the lot's extent — and joined to the
+# world through the lot's parcel.
+#
 # `footprintM2`: the ground the yard (400), the farmhouse (120) and the
 # barn (150) stand on, which no tract covers.
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: owner-all
+  zoneNaming: key
+  joins: parcel
   extent: /world/terminus/hearts-delight/farmstead
   entrance: /world/terminus/hearts-delight/farmstead/location/yard
   footprintM2: 670

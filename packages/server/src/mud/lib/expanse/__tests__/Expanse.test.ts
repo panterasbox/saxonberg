@@ -206,9 +206,14 @@ describe('ExpanseApi.craftAt', () => {
     // ⭐ The ship is ATTACHED to its rooms in the location graph's record
     // (its own `extent`) — no catalogue, no search.
     attachGraph({ '/test/ship': [['/test/ship/structure', 'structure']] });
-    expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull(); // no position: ashore
+    expect(await ExpanseApi.craftAt('/test/ship/structure')).toBeNull(); // no position: ashore
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
-    expect(await ExpanseApi.craftAt('/test/ship/deck')).toBe(ship);
+    // ⭐ A ship answers by HER identity — what a room asked which structure
+    // it is part of names (`Place.structure()`).
+    expect(await ExpanseApi.craftAt('/test/ship/structure')).toBe(ship);
+    // ⚠ Never by a room's PATH (zone-instancing D12): every ship is told by
+    // her warren, so no path is hers alone — not even an authored ship's.
+    expect(await ExpanseApi.craftAt('/test/ship/deck')).toBeNull();
     expect(await ExpanseApi.craftAt('/test/elsewhere')).toBeNull();
   });
 });
@@ -266,11 +271,14 @@ describe('the weather on the water (maritime R9/R10)', () => {
     vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) => live.get(p) ?? null) as never);
     const graph = attachGraph({});
     live.set('/platform/idea/LocationGraphRegistry', graph as unknown as Stuff);
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // cold: nothing attached yet
     graph.table = { '/test/ship': [['/test/ship/structure', 'structure']] };
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull(); // the bands are not compiled yet
+    // ⭐ Asked by HER identity (the weather's positional lean names the
+    // structure its room is part of): the bands first.
+    expect(ExpanseApi.leanAtSync('/test/ship/structure')).toBeNull(); // the bands are not compiled yet
     await sea.bands();
-    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toEqual({ fog: 8 });
+    expect(ExpanseApi.leanAtSync('/test/ship/structure')).toEqual({ fog: 8 });
+    // ⚠ Never by a room's path (zone-instancing D12).
+    expect(ExpanseApi.leanAtSync('/test/ship/deck')).toBeNull();
     expect(ExpanseApi.leanAtSync('/test/elsewhere')).toBeNull();
     expect(() => band('bad', (b) => b.setWeatherLean({ fog: -1 }))).toThrow(/non-negative/);
   });

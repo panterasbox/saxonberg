@@ -41,6 +41,8 @@ import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { Drift } from '@saxonberg/server/mud/lib/location/Drift';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -119,7 +121,7 @@ interface StopRecord {
   side: RiverSide | 'mid';
 }
 
-export default class ReachWarren extends LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren))) {
+export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren)))) {
   /** Where the singleton lives. */
   static readonly PATH = '/system/water/idea/ReachWarren';
 
@@ -134,6 +136,12 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
 
   /** Which row the next `createMember()` clones (set inside the chain). */
   private _budRow = PATCH_ROW;
+  /**
+   * The copy zone the next bud is cloned INTO (zone-instancing D13): a
+   * place's zone stands before the place, so its clone never resolves to
+   * the kind's row — the row's own instance refuses a room.
+   */
+  private _budZone: string | undefined = undefined;
   /** A patch's zone identity is its serial. Runtime. */
   private _serial = 0;
   private _patches = new Set<ReachPatch>();
@@ -156,11 +164,6 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
 
   /* ───────────────────────── Warren policy ───────────────────────── */
 
-  /** ⭐ A moving place lays out its own frame: its ways are never a grid's. */
-  public override laysOutOwnFrame(): boolean {
-    return true;
-  }
-
   /**
    * ⭐ Anything tangible keeps a river place (D6): a canoe, a body, a
    * dropped sword — not only somebody connected. A patch holding only a
@@ -171,7 +174,14 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
   }
 
   protected async createMember(): Promise<MemberStuff> {
-    return StuffApi.clone<MemberStuff>(this._budRow);
+    return StuffApi.clone<MemberStuff>(
+      this._budRow,
+      undefined,
+      // A path UNDER the copy, by the row's leaf: a zone is not inside itself.
+      this._budZone !== undefined
+        ? { zoneFrom: `${this._budZone}/${this._budRow.slice(this._budRow.lastIndexOf('/') + 1)}` }
+        : undefined,
+    );
   }
 
   public async admitArrival(): Promise<void> {
@@ -312,7 +322,11 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
     return this.serial(async () => {
       const again = this._stops.get(key);
       if (again && !again.isDestroyed()) return again;
-      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key)) as unknown as ReachStop | null;
+      // Its zone stands first; the stop is stood up INTO it.
+      const zone = await this.copyZoneFor(`${STOP_ZONE}/${zoneLeafOf(key)}`);
+      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key, {
+        zoneFrom: `${zone.getIdentityPath()}/water`,
+      })) as unknown as ReachStop | null;
       if (stood === null) throw new Error(`ReachWarren: the stop ${key} could not be stood up`);
       if (stood.getLinePosition() === null) {
         const width = this.widthAt(course, km);
@@ -550,14 +564,12 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
   }
 
   private async mintPatch(pos: LinePosition): Promise<ReachPatch> {
-    const patch = await this.serial(async () => {
-      this._budRow = PATCH_ROW;
-      return (await this.createMemberSerialized()) as unknown as ReachPatch;
-    });
+    this._serial += 1;
+    const zoneId = `${PATCH_ZONE}/${pos.course}/${this._serial}`;
+    const patch = (await this.budInto(PATCH_ROW, zoneId)) as unknown as ReachPatch;
     patch.placeOnLine(`${LINE_PREFIX}${pos.course}`, { ...pos });
     this.addMember(patch as unknown as MemberStuff);
-    this._serial += 1;
-    await this.giveZone(patch, `${PATCH_ZONE}/${pos.course}/${this._serial}`);
+    await this.giveZone(patch, zoneId);
     this._patches.add(patch);
     this._lastAt.set(patch.stuffId, WorldClockApi.getNow().rawValue());
     await this.refreshWater(patch);
@@ -573,13 +585,41 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
    * `addLocation` — the only writer of a room's zone.
    */
   private async giveZone(place: ReachPlace, identity: string): Promise<void> {
-    const current = place.getZone() as unknown as Stuff | null;
-    if (current !== null && current.getIdentityPath() === identity) return;
-    const kind = identity.startsWith(STOP_ZONE) ? STOP_ZONE : identity.startsWith(BANK_ZONE) ? BANK_ZONE : PATCH_ZONE;
-    // identity-keyed-by: lookup — the place's getZone() resolves to this
-    // instance; nothing persists under it (a zone is minted again with its place).
-    const zone = await StuffApi.clone<ReachZone>(kind, undefined, { asIdentityPath: identity });
+    const zone = await this.copyZoneFor(identity);
     zone.adopt(place as never);
+  }
+
+  /**
+   * ⭐ A copy of its kind's zone, named under the row by the place's key
+   * and joined to a frame (zone-instancing D13): the warren's one checked
+   * mint. Nothing persists under it — a zone is minted again with its place.
+   */
+  private async copyZoneFor(identity: string): Promise<ReachZone> {
+    const kind = identity.startsWith(STOP_ZONE) ? STOP_ZONE : identity.startsWith(BANK_ZONE) ? BANK_ZONE : PATCH_ZONE;
+    return (await this.wakeCopyZone(kind, identity.slice(kind.length + 1))) as unknown as ReachZone;
+  }
+
+  /**
+   * Bud one place from `row` INTO the copy zone `zoneId`, which stands
+   * first (the ship's order: her zone before her rooms). A bud that fails
+   * puts its zone back to sleep.
+   */
+  private async budInto(row: string, zoneId: string): Promise<MemberStuff> {
+    const zone = await this.copyZoneFor(zoneId);
+    try {
+      return await this.serial(async () => {
+        this._budRow = row;
+        this._budZone = zone.getIdentityPath() ?? zoneId;
+        try {
+          return await this.createMemberSerialized();
+        } finally {
+          this._budZone = undefined;
+        }
+      });
+    } catch (err) {
+      this.sleepCopyZone(zone as never);
+      throw err;
+    }
   }
 
   /**
@@ -1340,14 +1380,12 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
   }
 
   private async mintBank(pos: LinePosition): Promise<BankPatch> {
-    const bank = await this.serial(async () => {
-      this._budRow = BANK_ROW;
-      return (await this.createMemberSerialized()) as unknown as BankPatch;
-    });
+    this._serial += 1;
+    const zoneId = `${BANK_ZONE}/${pos.course}/${this._serial}`;
+    const bank = (await this.budInto(BANK_ROW, zoneId)) as unknown as BankPatch;
     bank.placeOnLine(`${LINE_PREFIX}${pos.course}`, { ...pos });
     this.addMember(bank as unknown as MemberStuff);
-    this._serial += 1;
-    await this.giveZone(bank as unknown as ReachPlace, `${BANK_ZONE}/${pos.course}/${this._serial}`);
+    await this.giveZone(bank as unknown as ReachPlace, zoneId);
     this._banks.add(bank);
     const ex = bank as unknown as Stuff & Container & Exitable;
     await this.installWay(ex, 'upstream', 'walk-up');
@@ -1382,23 +1420,17 @@ export default class ReachWarren extends LaunchableMixin(SingletonMixin(Persista
   /** Remove a member and its zone with it (D38). */
   private reap(m: MemberStuff): void {
     if (m.isDestroyed()) return;
-    const zone = m.getZone() as unknown as (Stuff & { removeLocation(p: unknown): boolean }) | null;
+    const zone = m.getZone() as unknown as Stuff | null;
     this.removeMember(m);
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
+    const moving = zone !== null && MixinApi.isMovingZone(zone) ? (zone as unknown as MintedZone) : null;
+    if (moving !== null) moving.removeLocation(m as unknown as Place);
     StuffApi.destruct(m as unknown as Stuff);
-    // ⭐ The zone goes with its place (D38): minted with it, reaped with it —
-    // not left for eviction (the drive's world ran out of memory).
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff) && !(zone as unknown as Stuff).isDestroyed()) {
-      StuffApi.destruct(zone as unknown as Stuff);
-    }
-    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) {
-      try {
-        StuffApi.destruct(zone as unknown as Stuff);
-      } catch {
-        /* it goes when nothing holds it */
-      }
-    }
+    // ⭐ The zone goes with its place (D38): minted with it, put to sleep
+    // with it by the warren that minted it — not left for eviction (the
+    // drive's world ran out of memory).
+    if (moving !== null) this.sleepCopyZone(moving);
   }
+
 
   private forgetStop(stop: ReachStop): void {
     const key = stop.getPersistenceKey();

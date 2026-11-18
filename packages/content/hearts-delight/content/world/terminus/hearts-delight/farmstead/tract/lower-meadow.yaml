@@ -4,6 +4,11 @@
 # on a fresh copy.
 class: /trade/farming/location/Tract
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 1
+    y: 0
+    z: 0
   fieldName: the lower meadow
   shortDescription: "lower meadow"
   keywords: [lower meadow, meadow, tract, ground]

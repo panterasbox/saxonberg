@@ -99,7 +99,8 @@ const HOLDER_PATH = `${SUBURB}/lot-holder`;
 const BOOK_PATH = `${SUBURB}/plat-book`;
 const STREET_PATH = `${SUBURB}/lane`;
 const PROGRAMME = `${SUBURB}/house-programme`;
-const YARD_ROW = `${SUBURB}/yard`;
+const HOUSE_ZONE = `${SUBURB}/house`;
+const YARD_ROW = `${HOUSE_ZONE}/yard`;
 const ROAD_ROW = `${SUBURB}/road-segment`;
 
 interface Doc extends Record<string, unknown> {
@@ -190,14 +191,23 @@ function installStore(): void {
   add('/system/residence/thing/boundaries/lot-gate', '/platform/thing/Door', { shortDescription: 'gate', keywords: ['gate'], open: true });
 
   // A one-room plan, the programme's own (harbors review 3; no blueprint
-  // row): its extent is the room's row.
+  // row): a zone holding one room. Each sold lot is a copy of that zone,
+  // named for the lot (zone-instancing D1, D5).
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    extent: YARD_ROW,
+    extent: HOUSE_ZONE,
     entrance: YARD_ROW,
     upkeepTerm: 'owner-all',
+    zoneNaming: 'key',
+    joins: 'parcel',
+  });
+  add(HOUSE_ZONE, '/platform/idea/location/MintedZone', {
+    name: 'the house',
+    cellSize: 6,
+    mintedBy: PROGRAMME,
   });
   add(YARD_ROW, '/platform/location/PersistentLocation', {
     shortDescription: 'the yard behind the house',
+    coords: { x: 0, y: 0, z: 0 },
   });
   add(ROAD_ROW, '/platform/location/PersistentLocation', {
     shortDescription: 'a reach of the lane',
@@ -703,9 +713,10 @@ describe('title', () => {
     expect(yard.getTemplatePath()).toBe(YARD_ROW);
     expect(
       (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
-    // A one-room plan's copy is keyed by the holding's own key — no
-    // leaf (the dorm's shape).
-    ).toBe(LOT2);
+    // Every plan room has a leaf, a one-room plan's too (zone-instancing
+    // D5): the copy is the zone named for the lot, its rooms under it.
+    ).toBe(`${LOT2}/yard`);
+    expect(yard.getZone()?.getIdentityPath()).toBe(LOT2);
     // The holding is the keyed programme, carrying the tenure term (D5).
     const holding = holder.holdingFor(LOT2)! as unknown as HoldingWarren;
     expect(holding).toBeInstanceOf(HoldingWarren);

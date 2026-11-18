@@ -2,7 +2,7 @@
  * ⭐ Every place but the void has coordinates (the place taxonomy,
  * cleanliness B53). A place a warren MINTS takes the cell its wiring says
  * it is in — `Location.plotBesideNeighbour` — and a door between a
- * holding's own frame and the grid outside it may be named.
+ * holding (a zone of its own) and the grid outside it may be named.
  */
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";

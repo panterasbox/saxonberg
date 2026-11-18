@@ -29,7 +29,12 @@ const YARD = '/world/terminus/goods-yards/yard';
 const LANE = '/world/terminus/hinkley-hills/location/lane';
 const HEATH = '/world/moor/stormy-heath';
 const SMITHY = '/world/terminus/hearthworks/location/smithy';
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+// ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
+// orphan room with no unit, no door and no copy — which can no longer exist:
+// each let unit is a zone of its own and its row refuses a room
+// (zone-instancing D4). The furnishing archetype is the same kind of row,
+// outside any copied zone.
+const DORM = '/stuff/location/room/bedroom';
 const CLEARING = '/world/terminus/rejection/hanging-wood/oak-clearing';
 
 /**

@@ -267,6 +267,111 @@ instance and the zone walk is never consulted. They are not unified
 because the questions are not the same one — see
 [templates.md § Inheritance](./templates.md).
 
+## ⭐⭐ Copies — a zone minted by a warren
+
+**Every copy of a place a warren makes is a zone of its own** (the
+zone-instancing build, 2026-11): each Hinkley house, farmstead, Seznick
+unit and Duncan Hall unit; every smack; the four authored ships; every
+reach and sea patch and stop. Before it, a copy's rooms stood in the
+shared zone of their plan, and a holding laid itself out in a private
+"frame" so that two houses did not claim the same cells — a workaround
+every caller had to know about (`Warren.laysOutOwnFrame`,
+`Location.crossesHoldingFrame`). The frames are gone.
+
+**Why, in the owner's words** (2026-11-14): *"the zones themselves need to
+be cloneable, not just the stuff inside it … the warren needs to give those
+zones their own identity path … so long as it's managed through the warren
+and we architect it in a way that these patterns are repeatable."* It is
+[ref-shapes.md](../ref-shapes.md)'s identity doctrine applied to zones: a
+zone ROW is lineage (*a Hinkley-style holding*), a copy is a minted identity
+named by its warren, and a room in a copy belongs to the copy. ⚠ **The
+crack, accepted and kept narrow:** *"the only true record of the zone graph
+is runtime state … what we can make declarative we should."* So content
+still says which zones can be copied, by whom, named how and joined where;
+only *which copies exist now* is runtime, and the location graph records
+them as they stand.
+
+**The zone ROW says it is copied, and by whom.** A copied zone's row is a
+`MintedZone` (`platform/idea/location/MintedZone.ts`, or a pack subclass —
+`ReachZone`, `SeaZone`) and authors `mintedBy:` naming the warren ROW that
+copies it. **The row's own instance holds no room** (`addLocation` throws
+*"a room joins a copy, never the row"*); a thing or idea filed under the row
+is only stamped. `isCopy()` = the identity differs from the template.
+
+**The warren says how copies are named and where they join** —
+`ZoneMintingMixin` (`lib/location/ZoneMinting.ts`), composed by exactly the
+four warrens that mint zones (`HoldingWarren`, `ShipWarren`, `ReachWarren`,
+`SeaWarren`; not `Warren`, not `FloorplanWarren` — a mine carves on its own
+zone's grid). Its row authors:
+
+| field | values | means |
+|---|---|---|
+| `zoneNaming` | `key` | the copy's identity IS the warren's key — a parcel extent, `/world/terminus/hinkley-hills/lots/lot-7` |
+| | `under-row` | `<zone row>/<key>` — a ship's serial, a patch's `<course>/<n>` |
+| `joins` | `parcel` | a parcel must cover the identity at mint; the copy is indexed |
+| | `berth` | no parcel; indexed; the way in comes and goes (a ship) |
+| | `frame` | the zone must be a `MovingZone`; never indexed, never kept (moving water) |
+
+The plan's `extent` IS the zone row, so it is not written twice; `mintedBy`
+is checked at run time as well as by the lint — `wakeCopyZone` refuses a row
+that does not name the minting warren, a copy that would shadow a row, and a
+`parcel` copy no parcel covers. The one mint site is
+`StuffApi.clone(zoneRow, undefined, { asIdentityPath })`.
+
+**A copy's zone stands BEFORE its rooms, and its rooms are cloned INTO it**
+(`zoneFrom: <copy identity>/<leaf>` — a path *under* the copy, because a
+path that is itself a copy answers "a zone is not inside itself"). Then the
+warren checks every woken room is in that zone (`checkCopyRooms`). A water
+place that was cloned first and adopted after landed on the row once the row
+was resident — the harbors drive found it as `launch` refused at sea.
+
+**The resolvers find a live copy before any row.** At each ancestor path
+`resolveZoneForPath` / `resolveEnclosingZoneForPath` ask for a live
+`MintedZone` copy filed at that identity before looking the row up. No
+registry: a copy is found by its identity, as anything is.
+
+**A copy inherits from where it is FILED** — `getEnclosingZone` and
+`Zone.peekAncestorField` walk the ancestors of the IDENTITY (a row's own
+instance has identity = template, so nothing changed for an authored zone).
+A `key` copy is filed in the world tree, so a house reads its lot's
+government, weather, sky and ground — never the folder its plan is filed
+in. An `under-row` copy is filed under its row, so a ship's settings are her
+kind's; what is around her is read where she lies by the shipped reads.
+
+**A copy keeps nothing.** Its zone composes no `Persistable`; its identity is
+re-derived at every wake from what already survives a restart (the
+holding's record key, a ship's serial, a stop's key). It sleeps with its
+rooms (`sleepCopyZone`) and is retired for good only when the copy ends
+(`destroyCopy` — the end of a lease).
+
+**Coordinates are authored.** Every plan room row authors `coords:` (the
+entrance at the origin); a mirrored copy reflects them on its own grid
+(`east-west` negates x, `north-south` negates y), and `Floorplan.load`
+refuses a plan room with none. A moving place is the single place of its
+zone and is seated at its origin by `MovingZone.adopt`.
+
+**A way between two zones is judged by the zones that STAND**
+(`Location.addExit`): the source's stamped zone, and the destination's when
+it stands, else the path resolver. A way into a sleeping copy resolves to
+the plan's row zone, never an outside place's, so it is still a way between
+zones.
+
+**Elsewhere:** the location graph records a standing copy's rooms as
+`origin: 'copy'` nodes ([location-graph.md](./location-graph.md));
+`lint:locations` checks the declarations (a copied zone names its warren; a
+warren declares naming and joins; a plan's extent is its copied zone; every
+plan room authors its cell; an authored ship authors her `serial`); ships
+are copies too ([ship.md](./ship.md)).
+
+**Seams left open** (attach points, no stubs): copying a zone that holds
+zones (a locality, an instanced district) is a new `zoneNaming`/`joins`
+word and a warren class; a spherical copy needs `MintedZone` promoted off
+`CartesianZone`; a ship has no destroy path (a wreck stands), so only a
+holding's `revert` calls `destroyCopy`; an inbound edge on the join place
+waits for a reader; a ship's own handle as a minted copy is the
+[navigation-server slate](../slates/engine/navigation-server-slate.md)'s
+follow-up.
+
 ## Zone derivation rule
 
 When the clone pipeline stamps `Stuff.zone` for a freshly-cloned
@@ -296,11 +401,12 @@ without loading the destination room. See
 >   the destination lands back in the enclosing spatial zone and the exit
 >   is refused anyway — with an error naming the *parent's* zone, which
 >   reads as if the branch you authored does not exist.
-> - **It must be an AUTHORED template row.** The walk reads template
->   ancestry in Mongo, so a zone *minted* at runtime — with its identity
->   stamped by `asIdentityPath` — is invisible to it. One authored branch zone above N
->   minted children is the shape; a zone per minted child is not
->   available at all.
+> - **A minted zone must be a COPY its row declares.** The walk reads
+>   template ancestry, and since zone-instancing it asks first for a live
+>   `MintedZone` copy filed at each ancestor identity — so a zone per
+>   minted child IS the shape now (each house, each ship), declared by its
+>   row's `mintedBy` (§ Copies). A zone minted any other way (a bare
+>   `asIdentityPath` clone of a non-`MintedZone` row) is still invisible.
 
 ## Folder/leaf invariant
 
@@ -489,3 +595,12 @@ instance. `ZoneApi.resolveEnclosingZoneForPath` joined
 `resolveZoneForPath` as its any-Zone sister: the spatial resolver skips
 non-spatial zones, so asking it about `/home` or `/studio` answers
 `null`, which reads as "not wire". See [sandbox.md](./sandbox.md).
+
+The zone-instancing build (`build/zone-instancing`, MR !599, 2026-11-17)
+added copies: `MintedZone`, `ZoneMintingMixin`, the live-copy-first
+resolvers and identity-ancestry inheritance (§ Copies above), and retired
+the holding "frame" (`Warren.laysOutOwnFrame`,
+`Location.crossesHoldingFrame`/`holdingFrameOf`,
+`FloorplanWarren.layOut`). Its decisions were numbered D1–D15 in its
+plan (retired at the sweep — `git log -- docs/plans/zone-instancing-plan.md`);
+the code comments that cite *zone-instancing Dn* mean them.

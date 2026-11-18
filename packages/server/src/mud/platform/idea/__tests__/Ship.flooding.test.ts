@@ -21,7 +21,9 @@ import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
-import ShipWarren, { AUTHORED_SHIP_WARREN } from '../ShipWarren';
+import Locale from '../../location/Locale';
+import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import ShipWarren from '../ShipWarren';
 import Compartment from '../../location/Compartment';
 import TemplateApplier from '../TemplateApplier';
 import { Document } from '../../../lib/persistence/Document';
@@ -40,6 +42,9 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+
+/** The warren row every authored ship names (zone-instancing D12). */
+const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -90,7 +95,7 @@ function installStore(): void {
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
-  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
+  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
     extent: ROOMS,
@@ -100,10 +105,12 @@ function installStore(): void {
   });
   // ⭐ Her kind's PLAN is her kind row's own `extent` + `entrance` (harbors
   // review, 2026-11-03 — no blueprint row); her warren row names nothing.
-  add(WARREN, '/platform/idea/ShipWarren', {});
-  add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
-  add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
-  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  // Each smack is a copy of her kind's zone, named under its row by her
+  // serial (zone-instancing D11).
+  add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
+  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
+  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
+  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(WELL, '/platform/thing/BilgeWell', { shortDescription: 'bilge well' });
   add(PUMP, '/platform/thing/Pump', { shortDescription: 'bilge pump', throughputLps: 0.6, strokeS: 20 });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
@@ -292,7 +299,9 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     for (let i = 0; i < 6; i++) await ship.countAct(act(a));
     expect(ship.isSunk()).toBe(false);
     // `b` goes over the side: everyone still aboard has used theirs.
-    const ashore = await StuffApi.clone<Stuff & Container>(DECK);
+    // Anywhere off her: a plain place (a deck row stood alone is refused —
+    // her rooms are her copy's, zone-instancing D4).
+    const ashore = makeStuffAtPath(() => new Locale(), '/test/ashore') as unknown as Stuff & Container;
     ContainmentApi.move(b, ashore as unknown as Stuff & Container); // her room's witness asks again
     for (let i = 0; i < 10 && !ship.isSunk(); i++) await new Promise((r) => setTimeout(r, 0));
     expect(ship.isSunk()).toBe(true);

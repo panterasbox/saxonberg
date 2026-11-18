@@ -491,7 +491,13 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
 - **`lint:locations`** — three checks over the location vocabulary: the
   `PersistentLocation` roster and the minted `Location` roster are
   enumerated (adding a row is a design question a reviewer should see),
-  and structurally, **a zone row that zones nothing fails**.
+  and structurally, **a zone row that zones nothing fails**. Since
+  zone-instancing it also checks the COPY declarations as errors: a
+  `MintedZone` row names its warren (`mintedBy`); a `ZoneMinting` warren
+  authors `zoneNaming`/`joins` from their closed vocabularies; a plan's
+  extent is its copied zone; every plan room authors `coords:`; an
+  authored ship authors a unique `serial` — plus a census of plan rows
+  still exempt from the plot rule, ratcheted to 0.
 - **`lint:schema`** — the collection ↔ schema doc ↔ record class ↔
   subsystem doc link. Six assertions, including that every
   `static collectionName` is `Collections.X` and never a literal (this

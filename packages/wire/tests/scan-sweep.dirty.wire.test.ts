@@ -50,6 +50,7 @@ import {
   plain,
   expectOk,
   advanceWorldClock,
+  stageShip,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
@@ -137,6 +138,9 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
   it('⭐⭐ the Hesper\'s deck (her outfit unbooted): HELP WANTED, and `apply` takes the lookout seat', async () => {
     // Her outfit operates the deck, so the graph attaches it there and
     // coming aboard stands the house up — the lookout seat asks nothing.
+    // ⭐ Her rooms are a copy she stands (zone-instancing D12): stand her up
+    // before opening a session in one by its row.
+    await stageShip('/world/terminus/hesper/structure', {});
     const s = await Session.open(uniqueHandle('lookout'), { startLocation: DECK });
     try {
       let seen = '';
