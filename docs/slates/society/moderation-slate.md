@@ -563,9 +563,8 @@ accounts (a sanction on an external id suffices first).
   the appeal and the entrenchment tier named. Today it is a Competence band and nothing else.
 - **Rehabilitation** — its own conversation ([prison-slate](./prison-slate.md) § 12). The prison
   conversation itself is done (prison-slate, rewritten 11-07).
-- ⭐ (2026-11-18, § 23) **The reserved list** — threats, doxxing, content involving minors,
-  organized campaigns: what else harms across every boundary; and may the Compact remove items, or
-  only add them?
+- ⭐ (2026-11-18, § 23) **The reserved list** — written (the test, the list, three layers); left:
+  may the Compact remove items from its own layer, or only add them?
 - **Local court service and Compact standing** — only for rulings that survive appeal? (§ 23)
 - **The one-to-one DM's default jurisdiction** — the narrowest extent covering both parties (§ 23).
 
@@ -698,9 +697,8 @@ space."*
    extent covering every place it landed: two channels under one realm go to the realm; two realms go
    to the Compact. Computed, so anyone can predict the venue. *One level higher* would be arbitrary;
    spreading raises **the sentence** (a pattern is graver than an act), not the venue.
-2. **A reserved list always goes to the root**, wherever it lands — credible threats of real-world harm,
-   doxxing, sexual content involving minors, organized campaigns against a person **[the owner's to
-   finish]**: harm no boundary in the game contains. The Compact's, entrenched.
+2. **A reserved list always goes to the root**, wherever it lands — *the reserved list* below: the
+   test, the matters, and three layers of entrenchment.
 
 **Local rules add to the conduct code (§ 15), never subtract** **[DECIDED — lens 7, Tier A]**: a
 channel may forbid swearing; it may not permit doxxing.
@@ -728,6 +726,46 @@ path, which might make things a little more discoverable."*
 - **DMs stay as § 11 decided.** A one-to-one DM has no holder, so it is moderated only by report and
   falls to **the narrowest extent covering both parties**, usually the realm **[LEAN]**; a group DM is
   held by everyone in it.
+
+### ⭐⭐⭐ The reserved list — what always goes to the root **[DECIDED in shape — the owner]**
+
+**The test, so the list does not just grow: a matter is reserved when no local court can be trusted with
+it.** Four ways that happens:
+
+1. **The harm escapes the game** — it lands on a real person outside the world, where no boundary in the
+   game contains it.
+2. **The law requires central handling** — whoever hosts the server has duties no community can waive.
+3. **It attacks the machinery** — it harms every extent at once by corrupting what they all stand on.
+4. **The local court is the accused** — an extent cannot judge its own holders acting in that role.
+
+**The list, by reason**
+
+| reason | matters |
+|---|---|
+| **escapes the game** | credible threats of real-world violence · doxxing · stalking or harassment that follows a person off the platform · swatting and any attempt to send real authorities at someone · sextortion and coercion · real-money fraud (phishing for logins, payment scams, selling what does not exist) · impersonating a real person |
+| **the law requires it** | sexual content involving minors, and grooming (a US host must report to NCMEC — no local discretion) · credible terrorism or mass-violence content · children under the host's minimum age (an account matter; COPPA in the US) · legal process: takedown notices, subpoenas, data-protection requests |
+| **attacks the machinery** | ⭐ tampering with the record ([record-integrity-slate](../platform/record-integrity-slate.md)) · ⭐ fake accounts used to manipulate the Compact — alts voting, seconding or holding standing, corrupting every chamber's tally at once · hacking, and exploiting bugs in ways that damage the world for everyone (duplicating money, crashing the world) · botting and automation at scale · evading a root-level ban |
+
+⭐ **"The local court is the accused" is a jurisdiction rule, not an item:** **a case goes to the lowest
+holder that does not include the accused among its holders.** A gossip-channel moderator abusing their
+seat goes to the realm, not the gossip channel; a Terminus official goes to the level above Terminus. It
+reaches the root only when the accused holds power all the way up — the PM, the operator.
+
+⭐ **Not every reserved matter is an offense.** **Self-harm and suicide risk** reach the root **as care,
+not as a case**: the person is routed to resources quickly and privately, and nothing goes on a record
+or before a court. The list is of *matters* the root handles, and some are not accusations.
+
+**Three layers, entrenched differently**
+
+| layer | examples | who may change it |
+|---|---|---|
+| **the host's floor** | reporting content involving minors, legal process, age rules | **nobody in the game** — the law of wherever the server runs; the host is a separate actor with its own floor |
+| **the machinery** | record tampering, fake-account manipulation, root-ban evasion, exploits | **Tier A** — it protects the system every other rule depends on |
+| **the Compact's list** | threats, doxxing, off-platform stalking, fraud, impersonation | **the Compact**, at its highest amendment bar; it may add — whether it may remove is **[OPEN — the owner]** |
+
+**Speed: some cannot wait for court day.** For a reserved matter: **an immediate hold** by the operator or
+the root's seat — the strongest needed to stop the harm, logged; **referral outward** where the law
+requires it, to real authorities; **the case afterward**, the hold still subject to expiry and appeal.
 
 ### Lens pass
 
