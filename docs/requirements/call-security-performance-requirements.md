@@ -70,9 +70,12 @@ The reuse ledger is in the slate (§ Reuse ledger for the plan).
 
 - **The empty world idles at ≤ 0.15 of a core.** That is the original
   crowded-rooms target, restored.
-- **The layer's share of the world's busy time is at most half** of the
+- **The layer's own CPU time over the same drive is at most half** of the
   baseline this build re-profiles on master before it changes anything.
-  The same quiet-box drive is run before and after.
+  The same quiet-box drive (same acts, same windows) is run before and
+  after. ⚠ The cost halves, not the share: halving a 57% share would need
+  the layer about 3.3× cheaper. Half the cost lands near a 40% share, and
+  the share is reported (owner ruling, 2026-11-18).
 - **A gated method call costs less on the bench** than 2.1 µs, flat in call
   depth as it is now.
 - **No player-facing number gets worse**: `say` p95, in-turn p95, the
@@ -80,11 +83,18 @@ The reuse ledger is in the slate (§ Reuse ledger for the plan).
 - **Every security property the layer holds today still holds**, observably:
   - a call from outside its allowed caller is still refused;
   - a forged frame is still refused;
-  - a method or getter edited by hot reload takes effect in the running
-    world without a restart;
+  - a method or getter edited by hot reload is used by every new clone of
+    that class in the running world without a restart, while existing
+    instances keep the class they were built from (hot reload's contract,
+    [hot-reload.md](../subsystems/hot-reload.md));
   - a pointer to a destroyed object still reads as nothing;
   - a destroyed object is still inert;
-  - a test's spy still replaces the method it spies.
+  - a test's spy still replaces the method it spies **in a test run**.
+- ⭐ **A function marked as a test spy is checked like any other outside a
+  test run.** Today the layer hands any function carrying the spy marker
+  back unchecked, in production too, so anything that can set the marker
+  on a function slips past the gate. The owner ruled (2026-11-18) that
+  this build closes it, since it edits that read path anyway.
 
 ## Non-goals
 
@@ -116,8 +126,9 @@ everywhere.
 None in the world. No place, object or NPC changes. In the code, the
 nearest neighbors are:
 
-- **Hot reload.** The layer's caches must see an edited class the moment
-  hot reload swaps it.
+- **Hot reload.** It installs a NEW class and leaves existing instances on
+  the old one. The layer's caches must answer for the new class the moment
+  it is installed, and keep answering correctly for the old one.
 - **The test suite's reliance on the gate.** Some tests prove a refusal by
   calling from the wrong place; those must still be refused.
 - **build-2's small edit to the mixin registry.** Nothing this build plans
@@ -139,8 +150,8 @@ already reordered it once.
 ### What "done" is measured against
 
 **Answer:** the world, not the bench. The gate is the quiet-box crowd
-drive's idle number and the layer's share of a world profile, before and
-after on the same box. The bench number is reported alongside.
+drive's idle number and the layer's own CPU time in a world profile, before
+and after on the same box, over the same acts and windows. The bench number is reported alongside.
 **Why:** the bench is what told the slate that the largest item was small.
 
 ### Is login into a full room gated?
@@ -194,8 +205,9 @@ is step 6.
    and looks at a mould in the crowd. `say` p95 and in-turn p95 are no
    worse than step 1. Login p95, the five into the full square and the
    freeze samples are reported against step 1, not gated.
-4. **The profile** (`short`, `staged`). Same run. The layer's share of
-   busy time is at most half of step 1's.
+4. **The profile** (`short`, `staged`). Same run. The layer's own CPU
+   time in the crowd window is at most half of step 1's. Its share of busy
+   time is reported.
 5. **A refusal is still a refusal** (`instant`, `staged`).
    - A wizard `eval` calls a gated method from outside its allowed
      caller, and is refused.
@@ -203,14 +215,19 @@ is step 6.
    - It calls a method on a destroyed object, and the object is inert.
    - It reads a field that pointed at a destroyed object, and the field
      reads as nothing.
+   - It puts a function marked as a test spy on an object and calls it
+     from outside its allowed caller. It is refused: outside a test run
+     the marker buys nothing.
 6. **The thirty come back** (`short`, `player`). The world restarts. The
    thirty log back in where they quit, with restart p95 no worse than
    step 1.
 7. **Hot reload still lands** (`instant`, `staged`). With the crowd
-   standing, an author edits a getter's body on a class the crowd is
-   using, then a method's body, through the in-game write verbs. Hot
-   reload swaps the class. The next `look` in the crowd shows the edited
-   getter's result; the next act shows the edited method's.
+   standing, an author edits a class through the in-game write verbs:
+   one getter's body and one method's body. They also turn a plain
+   method into a getter of the same name, which is the edit a cached
+   getter-or-not answer could get wrong. Hot reload installs the class.
+   A fresh clone of it shows all three edits. An instance cloned before
+   the edit still behaves as it did, exactly as today.
 8. **The gate bench** (`instant`, `staged`). One gated method call is
    below 2.1 µs and flat in depth. Reported.
 
@@ -221,15 +238,18 @@ None. Nothing here moves with the game clock.
 ## Acceptance criteria
 
 - On the quiet box, the empty world idles at ≤ 0.15 of a core.
-- On the same box, a world profile of the crowd drive puts the
-  call-security layer at no more than half its baseline share of busy
-  time.
+- On the same box, a world profile of the crowd drive shows the
+  call-security layer spending no more than half its baseline CPU time
+  over the same acts.
 - Thirty players in one place see `say` and in-turn latency no worse than
   before. After a restart they come back where they quit, no slower.
 - A call from the wrong place, a forged frame, a destroyed object and a
   pointer to one all behave exactly as they did before.
-- An author's edit to a running class takes effect in the standing world
-  without a restart.
+- Outside a test run, a function marked as a test spy is refused from the
+  wrong place like any other.
+- An author's edit to a running class is used by every new clone in the
+  standing world without a restart, including a method that became a
+  getter; existing instances behave as before.
 - Login into a full room is reported before and after, and handed to the
   next-ceiling build with its new number.
 
