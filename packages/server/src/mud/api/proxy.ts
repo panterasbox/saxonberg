@@ -245,7 +245,11 @@ export class ProxyApi {
           );
         }
 
-        const value = Reflect.get(target, prop, receiver);
+        // An own property's value is the descriptor already in hand (an own
+        // data property's `value` IS what `Reflect.get` would return; an
+        // own setter-only accessor reads `undefined` either way). Only an
+        // inherited name pays the second lookup.
+        const value = own !== undefined ? own.value : Reflect.get(target, prop, receiver);
 
         // R2.3 self-heal. A slot declared `ref: 'instance'` that holds a
         // destroyed Stuff reads as `null`, and the slot is cleared so

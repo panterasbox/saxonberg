@@ -766,7 +766,12 @@ green (not quiet-box).
 `api/` green (spies still pass in tests); bench rows not worse (D8).
 **Commit.** `fix(proxy): the spy passthrough holds only in a test run (W1b)`
 
-### W2 — The trap's remainder, by the profile
+### W2 — The trap's remainder, by the profile — ✅ DONE
+
+> Taken: an own property's value is the descriptor already read (own-field
+> read 161–167 → 104–133 ns, three alternated rounds on a busy box). Not
+> taken: testing `typeof prop` once and re-ordering the passthrough test —
+> one cheap check each, which cannot clear D8's 10% on a row; not tried.
 
 **Goal.** Whatever `get` still shows after W1. Start with a `--hot` profile
 of the read rows and a short world profile (busy-box shares are fine for
@@ -875,7 +880,7 @@ targeting by a worn feature behave as before in the wire file's step 3.
 |---|---|---|---|---|---|---|---|---|
 | W0 (master; busy box, load 5–6) | 1 053 | 118 | 149 | 834–849 | 513 | 701 | 137 | 932 |
 | W1 (busy box, load 9–10, two rounds) | 1 175 / 1 097 | 158 / 117 | 154 / 156 | 311 / 347 | 639 / 719 | 277 / 369 | 167 / 184 | 1 099 / 1 391 |
-| W2 | | | | | | | | |
+| W2 (busy box, load 16, three rounds) | 1 250 / 1 203 / 1 360 | 129 / 104 / 133 | 173 / 169 / 187 | 331 / 354 / 399 | 680 / 653 / 768 | — | — | — |
 | W3 | | | | | | | | |
 | W4 | | | | | | | | |
 
