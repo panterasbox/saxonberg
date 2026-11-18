@@ -1,5 +1,10 @@
 # Off-grid slate — the aether, its carriers, and what going off grid costs
 
+> ⚠⚠ **Partly superseded 2026-11-18 by [aether-devices-slate](./aether-devices-slate.md)** — the
+> aether has one job (a `dm` pretty much always works; nobody is stranded), so *off grid as risk*
+> (§§ 5, 7) is reversed to *rare, extreme and posted*; every place carries emotes to whoever is in it;
+> distance comms are player-to-player only; and voice/video (§ 9) moved there. Read that slate first.
+>
 > **Status: UNBUILT** — designed at high level 2026-10-28 with the owner. What ships: the aether
 > transport — `dm`/`tell`, chat channels, remote emotes on `AetherMixin`
 > ([comms.md](../../subsystems/comms.md), [chat.md](../../subsystems/chat.md)); the baseline
