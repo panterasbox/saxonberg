@@ -33,6 +33,7 @@ import {
   ExecutionContextApi,
   OMNI_SCOPE,
   type FramePush,
+  type FrameToken,
 } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
@@ -659,7 +660,9 @@ export class SecurityApi {
       : original;
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
-      const caller = ExecutionContextApi.getCurrentTarget();
+      // One store read per static call (W3): the caller, and the push's parent.
+      const node = ExecutionContextApi._dispatchContext();
+      const caller = node === null ? null : node.frame.target;
       const allowed = policy.allows(caller, cls, methodName, args);
       if (allowed instanceof Promise) {
         return allowed.then((ok) => {
@@ -670,8 +673,13 @@ export class SecurityApi {
         });
       }
       if (!allowed) SecurityApi.#denyStatic(cls, methodName, policy);
-      return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
-        body.apply(this, args)
+      return SecurityApi.#pushFrame()(
+        caller,
+        cls,
+        methodName,
+        undefined,
+        () => body.apply(this, args),
+        node
       );
     };
     Object.defineProperty(wrapped, 'name', {
@@ -1629,12 +1637,15 @@ export class SecurityApi {
     // objects stay inert no-ops) and BEFORE the entry policy (denials
     // are boundary-attributed). Fast path: two loads, one compare —
     // `null === null` (with no jurisdiction bound) covers the entire
-    // zero-circle world. Both context fields come from ONE frame-0
-    // read (`_boundaryContext`).
+    // zero-circle world. ⭐ The dispatch reads the frame stack ONCE
+    // (`_dispatchContext`): the boundary's two fields come off its root,
+    // the caller off its top, and the push below links under it.
     const rcvScope = ctx.target.getCircleScope();
-    const bctx = ExecutionContextApi._boundaryContext();
-    const ctxScope = bctx.scope;
-    if (rcvScope !== ctxScope || bctx.bound !== null) {
+    const node = ExecutionContextApi._dispatchContext();
+    const md = node === null ? undefined : node.root.frame.metadata;
+    const ctxScope = (md?.circleScope as string | undefined) ?? null;
+    const bound = (md?.jurisdictionBound as string | undefined) ?? null;
+    if (rcvScope !== ctxScope || bound !== null) {
       let pass =
         ctxScope === '*' ||
         SecurityApi.#BOUNDARY_EXEMPT_METHODS.has(ctx.prop) ||
@@ -1646,13 +1657,13 @@ export class SecurityApi {
         (ctxScope === null &&
           rcvScope !== null &&
           SecurityApi.#INBOUND_TRANSPORT_METHODS.has(ctx.prop));
-      if (!pass && bctx.bound !== null && rcvScope === ctxScope) {
+      if (!pass && bound !== null && rcvScope === ctxScope) {
         // Jurisdiction bound (governed eval, Decision K): a FIELD
         // receiver inside the bound's extent is in-jurisdiction —
         // writes are real inside, denied outside. Rare path (only a
         // governed root sets a bound); allowed to be O(depth).
         if (rcvScope === null) {
-          pass = SecurityApi.#inJurisdiction(ctx.target, bctx.bound);
+          pass = SecurityApi.#inJurisdiction(ctx.target, bound);
         }
       }
       if (!pass) {
@@ -1667,7 +1678,7 @@ export class SecurityApi {
           `sandbox boundary denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}: ` +
             `context scope ${scopeLabel(ctxScope)} vs receiver scope ` +
             `${scopeLabel(rcvScope)}` +
-            (bctx.bound !== null ? ` (jurisdiction ${bctx.bound})` : ''),
+            (bound !== null ? ` (jurisdiction ${bound})` : ''),
           {
             stuffId: ctx.target.stuffId,
             methodName: ctx.prop,
@@ -1679,20 +1690,22 @@ export class SecurityApi {
 
     // 2. entry policy
     const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
-    const caller = ExecutionContextApi.getCurrentTarget();
+    const caller = node === null ? null : node.frame.target;
     const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop, ctx.args);
 
     if (allowedOrPromise instanceof Promise) {
       // Async policy — rare (a policy that awaits a group lookup). This
       // is the one branch that still allocates a closure per dispatch,
-      // and it does not run on the hot path.
+      // and it does not run on the hot path. It hands the push NO parent:
+      // the push re-reads the store in the continuation (the same context,
+      // by AsyncLocalStorage's own guarantee).
       return allowedOrPromise.then((ok) => {
         if (!ok) SecurityApi.#deny(ctx, policy);
-        return SecurityApi.#proceed(ctx, caller, shadowGate, next);
+        return SecurityApi.#proceed(ctx, caller, shadowGate, next, undefined);
       });
     }
     if (!allowedOrPromise) SecurityApi.#deny(ctx, policy);
-    return SecurityApi.#proceed(ctx, caller, shadowGate, next);
+    return SecurityApi.#proceed(ctx, caller, shadowGate, next, node);
   };
 
   /** The denial throw, hoisted so the gate allocates nothing to refuse. */
@@ -1723,7 +1736,8 @@ export class SecurityApi {
     ctx: InterceptionContext,
     caller: unknown,
     shadowGate: ShadowGateEntries | null,
-    next: () => unknown
+    next: () => unknown,
+    parent: FrameToken | null | undefined
   ): unknown {
     // 2a. Residency last-touch instrumentation. Fires only on a
     // successful (non-denied) dispatch — denied calls don't count as
@@ -1768,7 +1782,9 @@ export class SecurityApi {
     // 4. no shadows — push the host's frame and continue the pipeline.
     // `next` is already the zero-arg thunk the push wants; wrapping it
     // in `() => next()` would allocate for nothing.
-    return SecurityApi.#pushFrame()(caller, ctx.proxy, ctx.prop, undefined, next);
+    // `parent` is the node the gate read in this same synchronous turn
+    // (nothing between pushed a frame that is still on the stack).
+    return SecurityApi.#pushFrame()(caller, ctx.proxy, ctx.prop, undefined, next, parent);
   }
 
   /**

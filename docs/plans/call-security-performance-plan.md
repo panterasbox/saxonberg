@@ -790,7 +790,17 @@ taken* and has no commit.
 **Acceptance.** As D8; W1's tests untouched and green.
 **Commit.** `perf(proxy): <what was taken> (W2)`
 
-### W3 — Frames and the async context (D4)
+### W3 — Frames and the async context (D4) — ✅ DONE
+
+> Census: **no reader of `CallFrame.timestamp`** in `packages/` (source,
+> tests, wire, client) — the field and its three `Date.now()` writers are
+> gone. `_dispatchContext()` + exported `FrameToken` (the node interface,
+> renamed outward; `getCallStack` already materializes from it); the push
+> takes an optional `parent`; `_boundaryContext` deleted; the async-policy
+> branches pass none. Tests: `execution-context.dispatch.test.ts` (six).
+> Bench (load 17, three rounds): static call 205/215/311 → 156/173/154 ns,
+> getter read 800/763/940 → 717/668/605; the call row is inside that box's
+> noise both ways. `lint:boundary`/`gates`/`module-scope`/`imports` pass.
 
 1. Census `timestamp` readers on `CallFrame` across `packages/`. Record the
    list in the commit.
@@ -881,7 +891,7 @@ targeting by a worn feature behave as before in the wire file's step 3.
 | W0 (master; busy box, load 5–6) | 1 053 | 118 | 149 | 834–849 | 513 | 701 | 137 | 932 |
 | W1 (busy box, load 9–10, two rounds) | 1 175 / 1 097 | 158 / 117 | 154 / 156 | 311 / 347 | 639 / 719 | 277 / 369 | 167 / 184 | 1 099 / 1 391 |
 | W2 (busy box, load 16, three rounds) | 1 250 / 1 203 / 1 360 | 129 / 104 / 133 | 173 / 169 / 187 | 331 / 354 / 399 | 680 / 653 / 768 | — | — | — |
-| W3 | | | | | | | | |
+| W3 (load 17, three rounds) | 1 330 / 1 401 / 1 185 | — | — | — | 717 / 668 / 605 | — | 156 / 173 / 154 | 1 443 / 1 293 / 1 234 |
 | W4 | | | | | | | | |
 
 ---
