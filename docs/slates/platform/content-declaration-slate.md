@@ -200,8 +200,20 @@ it's just the names."*
 | **Steam** | + heat engines — fuel turned into motion, **cars included** | Carnot: heat into work | Victorian, steampunk | the cottage weaver (the Luddites) |
 | **Electric** | + generated power on a grid: motors, light | energy moved and delivered anywhere | Jazz Age, dieselpunk | the lamplighter, the ice trade |
 | **Circuit** | + electronics: electrons doing information | the signal, not the power | modern | the switchboard operator, the town clock, everything the phone eats |
-| **Mana** | + the postulate | the one impossible thing | the future, magic | — |
+| **Future** *(undesigned)* | + the next prime mover — fusion is the owner's first guess | **[OPEN]** | science fiction | **[OPEN]** |
 
+- ⛔⛔ **Magic is not a band, and not future tech** (the owner, 2026-11-18 — *"one big correction I
+  keep having to make"*). *"Magic isn't even tech, it's a flag on any rung of the ladder. What magic
+  does is let you blend in specific capabilities from rungs higher up and portion them out in
+  specific ways in your content, and it gives you a story for doing so. Whether magic is even
+  allowed is a check like any other epoch check, but it's its own thing. Future tech is tech."* So a
+  place declares its rung **and**, separately, whether magic is allowed. A first draft of this table
+  had *Mana* as the seventh band; that was wrong. ⚠ `Epoch.ts`'s docstring and design-lenses § 5
+  said *"magic and future tech are one axis"* — corrected there, and in code at the build.
+- **The future rung is real tech, to be designed** from the known horizon and the prior art (GURPS
+  and Traveller tech levels, the Civilization / Alpha Centauri / Stellaris trees, the Kardashev
+  scale). **[OPEN]**
+- **"Steam" is provisional** — the owner likes cars in the band and is unsure of the name.
 - **Bare names** (the owner) — the word *is* the rule. ⭐ **No band is a culture**: a Song-dynasty
   town and a Norman one are both *Mill*. § 3.4's live risk (*the first author who asks for
   `antiquity` will mean culture*) is dissolved — the antiquity band is *Draft* and promises nothing
@@ -242,12 +254,11 @@ it's just the names."*
 
 - `lib/craft/Epoch.ts` → the seven words. The ~20 stamps re-map (old `prehistory` → `Muscle`;
   `medieval` → `Draft` or `Mill` by what made it; `industrial` → `Steam`; `modern` → `Electric` or
-  `Circuit`; `future` → `Mana`), then the derivation checks them.
+  `Circuit`; `future` → the future rung), then the derivation checks them.
 - Every station row declares its prime mover — content work across every trade.
 - Docs still using the five old words (about 16 files) move to the seven at that build, not
   piecemeal.
-- ⚠ **The implant's prime mover** is open: *Mana* if it is future tech; the body's own heat would
-  make it *Muscle*, which is wrong.
+- ⚠ **The implant's prime mover** is open — it is future tech, so it waits on the future rung.
 
 ### 3.1 ⭐⭐ The covenant is the row. The vocabulary is not.
 

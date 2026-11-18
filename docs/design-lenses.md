@@ -597,7 +597,7 @@ never as a limb. Naming it after its examples is why it read as a genre
 note and got skipped.
 
 Run the design against the seven prime-mover bands — **Muscle · Draft · Mill · Steam · Electric ·
-Circuit · Mana** — and check what has to change (each band is what does the work; see
+Circuit · Future**, with magic a separate flag on any of them — and check what has to change (each band is what does the work; see
 [content-declaration-slate § 3.0](./slates/platform/content-declaration-slate.md); the five older
 words `prehistory · medieval · industrial · modern · future` retire at the build that re-maps them).
 
@@ -616,12 +616,16 @@ So continuity is the mechanism by which lens 2's promise **compounds**
 instead of resetting every time the world changes epoch — which is why
 it inherits lens 2's fork-deciding power rather than needing its own.
 
-**Future tech and magic are the same axis seen from two sides.** Both
-function identically in narrative once they are sufficiently advanced,
-which is exactly why the magic model is built as *invented content
-confined to one postulate* sitting on real thermodynamics — conservation
-holds globally, and a working is priced like a heat pump. Magic that
-obeys laws and technology that obeys laws are the same design problem.
+⛔ **Magic is NOT future tech** (the owner, 2026-11-18, correcting this
+paragraph's earlier claim that they were *"the same axis seen from two
+sides"*). Future tech is tech: a rung of the ladder. **Magic is a flag on
+any rung** — it lets content borrow specific capabilities from higher
+rungs, portioned out, with a story for why — and whether a place allows
+it is its own check. What the two DO share is the discipline: the magic
+model is *invented content confined to one postulate* sitting on real
+thermodynamics — conservation holds globally, and a working is priced
+like a heat pump — so magic that obeys laws and technology that obeys
+laws are held to the same honesty.
 
 ⭐⭐ **The interface is visible to the command interpreter**, which makes
 the test concrete rather than a thought experiment:
