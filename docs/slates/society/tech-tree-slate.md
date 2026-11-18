@@ -15,11 +15,13 @@
 >   ([classroom-and-credential-slate](./classroom-and-credential-slate.md));
 > - the magic grid as a lens, never an effect-builder ([magic.md](../../subsystems/magic.md)).
 >
-> **Left:** the node catalog (the platform's received law, written down) · the kernel sweep — every
-> law-bearing piece of code cites its law (§ 6) · the derivation from a content row to its nodes,
-> shared with the epoch build's *made with* · the author check on a pack · covenants that cite nodes
-> · the course shape (its own conversation) · who writes a Tier C statute's course · where the
-> platform's received law lives · the social-technology boundary in detail
+> **Left:** the node catalog (the platform's received law, written down) · the annotation palette,
+> its import gate and its projection (§ 6b), each decorator with its first reader · the kernel sweep
+> — every law-bearing piece of code cites its law · the derivation from a content row to its nodes,
+> shared with the epoch build's *made with* · the amendment diff (§ 6a) · the author check on a pack
+> · covenants that cite nodes · the course's remaining shape · who writes a Tier C statute's course
+> · where the platform's received law lives · the social-technology boundary · the power ratchet
+> · the physics receipt — the recorder, the banded wording, `trace last` (§ 6d)
 > **Size:** a design pass, then a kernel sweep folded into the epoch re-map build, then content —
 > the catalog and the courses — which is the real cost
 
@@ -175,7 +177,7 @@ that; I'm just wondering what exactly we're signing up for."*
    kinetics, the logic that computes things (routing, the cast pipeline). The one real sweep.
    Wizard-layer only; content changes nothing. **Census-then-ratchet**: a lint counts the pieces
    that cite nothing, and the count only falls. It doubles as the legal record of what the platform
-   enforces.
+   enforces. **How it cites — inert, typed decorators behind an import gate — is § 6b.**
 3. **A row's nodes are derived, never stamped** — the union of what it composes, plus its station.
    The same derivation the epoch build already owes for *made with* (the ~20 stamps re-derived,
    every station declaring its prime mover). ⭐ **Fold both into one pass: that is why now.**
@@ -186,6 +188,238 @@ that; I'm just wondering what exactly we're signing up for."*
 
 ⚠ **A lint can check that code cites a law, never that it cites the right one.** The mapping is
 judgment and needs review, as the subsystem docs did.
+
+## 6a. ⭐⭐⭐ Code is reality; the curriculum and the law describe it **[DECIDED in shape]**
+
+The owner: *"For us, the reality == the code and code == reality. Laws and academia can actually
+disagree with that — they shouldn't, but they could."* And on what this work is: *"the thing you're
+actually doing now is taking all the TypeScript code we've written to support content and making it
+the university curriculum. And we also need an expression of the same ideas legislatively that
+agrees with the university."* The structure comes from that and the lenses. The two externalities
+that do not move are **Wikipedia** and **study.com**.
+
+### One law, four faces
+
+| face | the question | who supplies it |
+|---|---|---|
+| **the real thing** | how does it work on Earth? | Wikipedia (reference) and study.com (instruction) |
+| ⭐ **the rule** | exactly what this world computes — parameters, scope, and where it departs from Earth | us, from the code |
+| **the practice** | where in the world you meet it | derived from content: what composes it |
+| **the authoring** | how content invokes it | derived from the code's authorable surface |
+
+Our authoring work is the **rule face**. The outside world owns reality's face; the other two
+derive from what exists. Study.com maps in at the law: its real-subject instruction fills the first
+face.
+
+### ⭐⭐⭐ The rule face *is* the statute
+
+Written precisely — what is computed, its parameters, its scope, its stated departures — the rule is
+legislation. So **the law and the curriculum agree because they are one artifact read two ways**:
+the statute is the rule face in clauses; the course teaches it against the real thing, with the
+practice and authoring faces as worked material. The course is generated from the statute and
+carries the version it teaches, so a lag shows when the statute moves (§ 9).
+
+**Agreement with reality is checked both ways:** every clause names the code that enforces it, and
+every rule in the code cites a clause. A rule with no clause is an unlegislated law; a clause with no
+code is a law nobody enforces — fine for Tier C, a defect for Tier B. Where they disagree, **the code
+is what is true** and the description is wrong.
+
+### ⭐⭐ Clauses carry tiers, not whole laws
+
+A cooling law's **form** (rate proportional to the temperature difference) is nature, amendable by
+nobody; a material's **constant** is a parameter we tune in code; some game-rule parameters (a tip
+split, a fine, a tax rate) may be the **polity's**. Tagging each clause with who may amend it shows
+the polity exactly where its foothold is, law by law, and tells the course which parts are physics
+and which are policy (lenses 4 and 7).
+
+### ⭐⭐ Our development process is the legislative record
+
+When code cites clauses, an MR that changes a rule's behavior **is an amendment** — detected, not
+hand-written: diffing the projection (§ 6b) between master and a branch shows a changed clause value,
+a new law, a moved tier. **The MR supplies only the *why*, and only when that diff is non-empty.**
+So the experimental early versions leave a complete record a later legislature argues from.
+
+### The structure that falls out
+
+- **Fields** — natural philosophy, the game's own rules, civics — are departments (§ 5).
+- **Laws** are the units, about a lesson cluster each, likely 100–200.
+- **Clauses** are the exact rules, each with its tier and its code citation.
+- **Edges** are laws citing laws — the prerequisites.
+- **Courses are selections and orderings of laws for an audience** — a player, an author, a
+  legislator. They are packaging and cheap to rearrange; the laws are what lasts. ⚠ This replaces
+  § 8's *"its course catalog is the tree"*: the catalog is **over** the tree, never one course per
+  node.
+
+## 6b. ⭐⭐⭐ The annotation palette — inert decorators behind an import gate **[DECIDED in shape]**
+
+The owner: *"we don't want the instrumentation to affect reality — that's the operation working in
+reverse. It sounds like what we want are annotations, which implies the use of decorators … could the
+decorator palette be used to also plug into governance or academia, or even the economy?"*
+
+⭐ **Every decorator in the kernel today changes behavior** — `@CallSecurity` (on about 1,400
+methods), `@Shadowing`, `@TestOnly`, `@RequiresActive`, `@Final`, `@Unshadowable` all wrap, gate or
+replace. The only descriptive metadata is `static fieldMeta` (`authorable: true`), a plain table.
+This palette is a **new kind**, and must look different.
+
+### Inert by construction
+
+- **Its own module**, apart from the security decorators. Each body records a fact about a class
+  or member in a write-once slot and returns the target **unchanged** — no wrapping, no replacing.
+  A lint proves it.
+- ⭐⭐⭐ **The import gate is the real guarantee: reality may not read its description.** Code on
+  the simulation path may not import the metadata's reader; only the out-of-fiction set may — the
+  projection, the wiki, the course and item generators, the legal record. *(invariant — worth
+  entrenching as platform law, not only a lint.)* ⚠ **Restated by § 6d:** the receipt's recorder
+  sits in the path, so the invariant is *no outcome may depend on a description*, and the gate
+  governs where descriptions may flow.
+- **Typed arguments** — `@law(Laws.NewtonCooling)`, not a string, so a typo or a renamed law fails
+  to compile (the advantage over a TSDoc tag like `@hook`). Read **statically** by the compiler API
+  into a **projection document** — the canonical record — and readable at runtime **only behind
+  the gate**, because the item generator must *call* annotated code (§ 6c, lens 1).
+- **`@law` takes an id, never a display name.** *Newton* is Earth's name; who discovered cooling in
+  this world is content, named by its peoples ([place-names-slate](../world/place-names-slate.md)).
+- **Exported to packs** with the rest of the kernel surface: a capability pack annotates its own
+  `src/` with laws under its own root.
+
+### The palette
+
+| decorator | goes on | what it records | its first reader |
+|---|---|---|---|
+| `@law(id)` | the method or class that computes a law | what the code is about | the course and item generators |
+| `@clause(id)` | a clause's parameter — a named class static, not a loose literal | the exact rule and its value | the statute text; the amendment diff |
+| `@departs(id, why)` | where we simplified Earth on purpose | the *contrasts* note, where the difference lives | the course's rule face |
+| `@amendable(tier)` | a clause's parameter | who may change it | the legal record |
+| `@faucet(kind)` / `@sink(kind)` | every site that mints or destroys goods or money | where things enter and leave the world | the faucet audit (*goods faucets, never money faucets*) |
+| `@measures(what)` | every counter the engine keeps | what the platform counts about people | a public list of counters (the measurement doctrine) |
+
+⚠ **`@amendable('C')` is where the one-way rule bites.** A parameter the polity may amend must take
+its value from the legal code at runtime, and **that read is ordinary code** — codification, not
+the decorator. The annotation only records that the statute is the source of truth; a lint checks
+that every Tier C parameter really is read from the law store.
+
+### ⭐⭐⭐ The line: what reality reads is code; what only describers read is annotation
+
+If the simulation must read it, it is a real field or method. If only describers read it, it is an
+annotation. That splits the enforcement ladder exactly:
+
+- **wall** changes an outcome, so it must be **codified** — a covenant that *refuses* gunpowder
+  needs a real check on the act, never a lookup of which code carries `@law(gunpowder)`;
+- **witness** judges a *person*, and judging a person needs a named criterion, so it is codified
+  too (lens 7, § 6c);
+- **camera** and **norm** observe and state, so they may run on descriptions.
+
+The same rule covers epoch: if covenants **enforce** *runs on*, then *runs on* is a real derived
+property of objects, not an annotation a covenant reads.
+
+## 6c. Lens pass on the palette — what it decided
+
+1. **Pedagogy** — the strongest item does not restate the cooling law; it **calls the annotated
+   method** and asks you to predict the result, so the world is the answer key and a course cannot
+   drift. `@departs` keeps the world derivable for a student who knows Earth. **Gap:** a clause's
+   *prose* can still drift from its code; items that call the code catch it, prose does not.
+2. **Expression** — content authors never touch a decorator (a row's laws derive); a capability
+   pack annotates its own code; Tier C parameters give a realm real knobs. Annotate only law-bearing
+   code — the census sizes it, nowhere near the 1,400 security sites. *(grain)*
+3. **3a Immersion** — invisible to the fiction; law ids out of fiction, names realm content.
+   **3b Participation** — Tier C parameters; a player journalist publishing the faucet map; players
+   auditing what is counted about them. **Gap:** players meet annotations only out of fiction.
+4. **Values** — which parameters are Tier C, and what counts as a faucet (a fish landed is minting;
+   a crafted good transforms), have no derivable answer. `@departs` makes every simplification we
+   chose legible.
+5. **Continuity** — annotations ship in the diff with the code they describe, so description cannot
+   silently lag reality; typed ids survive refactors; the projection diff detects amendments.
+6. **Economy** — the cost is the catalog, the extractor, the lints and the sweep, in wizard labor,
+   ours; the demand is already here (the university's rule face, the faucet audit, the counter list).
+   ⭐ **Each decorator ships with its first reader** — a flag nobody honors is decoration (EotL) —
+   so one ratchet per decorator, started when its reader ships.
+7. **Governance** — witness is codified (it judges a person); re-tiering a clause moves power, and
+   the projection diff puts it on the record; the import gate is an invariant for the platform's own
+   law.
+
+| question | answer | lens |
+|---|---|---|
+| read at build time or at runtime? | both; runtime only for the out-of-fiction set, behind the gate | 1 |
+| witness | codified, on the wall side | 7 |
+| census and ratchet | one per decorator, started when its first reader ships | 6 |
+| law names | ids in code; display names are realm content | 3a |
+| amendments in MRs | the projection diff detects them; the MR supplies *why* | 5 |
+
+## 6d. ⭐⭐⭐ The physics receipt — the world shows its work **[DECIDED in shape]**
+
+The owner: *"one interesting thing this does is we could actually tell a player every execution
+'hey, here's what physics actually happened this command', in a way that was coincidental with the
+university and the government."*
+
+Every act can come with a **receipt**: these laws ran, with these clause values, on these things —
+each line linked to the lesson that teaches the law and the clause that defines it. The receipt, the
+textbook and the statute book cite the same thing because they **are** the same thing.
+
+### Something has to watch — so the gate is restated
+
+An inert decorator cannot know when its method runs. **The call-security proxy already sees every
+call**, with its arguments and return; when an act is being recorded, it notes calls into `@law`
+methods and hands them to an out-of-fiction recorder. That sits in the simulation path, so § 6b's
+*"nothing on the simulation path imports the reader"* is too strict. ⭐⭐⭐ **The invariant is: no
+outcome may depend on a description.** The recorder may read annotations to *describe* a call; it
+never touches an argument, a return value or control flow, and it writes only to the player's
+buffer. A lint checks it.
+
+### ⭐⭐⭐ A full receipt leaks hidden state — so it is banded
+
+Several systems are hidden on purpose, and a raw trace would give each away: contamination no sense
+reports (*"infect fired"*), the charged-or-dry trap a drill is a bet on, concealment, seeded
+deposits, a hidden trap a search has not yet surfaced. So the receipt is **what the code did, as far
+as you could know it**:
+
+- **only quantities you could have perceived or measured** — hidden state stays hidden at every band;
+- **banded by your competence in each law** — *competence buys information*:
+  - none: *"the stew cooled"*;
+  - some: *"it cooled toward the room's temperature, faster because the pot is thin"*;
+  - full: the law with its clause values, for what you could measure.
+
+⭐ **The loop it makes: study a law and the world explains itself to you in more detail.** The course
+enriches the receipt; the receipt makes you want the course.
+
+### What else it gives
+
+- **Due process for free** — when an outcome judged you (a fine, a refusal, a wall), the receipt
+  names the clause and its tier, Tier C ordinances included.
+- **The agent playtesters** — if an agent resident cannot work the world out from receipts and
+  courses, neither can a player ([live-instance-testing-slate](../tech-debt/live-instance-testing-slate.md)).
+- **Wizards** — the unbanded receipt, in the sandbox, is a debugger.
+
+### The lens pass
+
+1. **Pedagogy** — every act becomes a worked example. ⚠ A *forecast* would do the player's job:
+   learning happens in predicting and then checking. Reading receipts is not evidence of competence
+   (else a band could be farmed by reading).
+2. **Expression** — ordinary content gets receipts for free, derived from the annotated code; a
+   pack's annotated laws appear automatically. The cost is each law's banded wording in the catalog
+   (roughly three bands × 150 laws), generated and reviewed. *(grain)*
+3. **3a Immersion** — banding by what you could perceive keeps the fiction honest; law names are the
+   realm's, so it never says *Newton*. **3b Participation** — players publish receipts (*why the cart
+   overturned*): forensics and journalism nobody scripted. ⚠ An omniscient trace would be perfect
+   forensic evidence and would end the investigation play the university's story arc is built on.
+4. **Values** — how much the world explains itself has no right answer: per viewer an appetite
+   setting, per realm the realm's call (a mystery realm may want it off). *(grain)*
+5. **Continuity** — a receipt cites the law version that ran, so an amendment shows in play; acts on
+   any rung explain themselves the same way.
+6. **Economy** — recording costs nothing when nobody records, but asking *after* the act needs it
+   recorded *when it happened*: a small buffer. The demand was there first (the rule face, the
+   agents, debugging).
+7. **Governance** — the buffer is a measurement (`@measures`), held only for you, shown only to you,
+   gone at logout; your receipts are private unless presented, like transcripts. A wizard reading a
+   live player's full trace is surveillance.
+
+| question | answer | lens |
+|---|---|---|
+| when | **after the act only, never a forecast** *(invariant)* | 1 |
+| where | **`trace last`**, as a card — `trace` already answers questions about the simulation rather than the place, and only the platform ships its subcommands; no new verb, and asking is itself an act of curiosity | 2 |
+| detail | banded by competence; only what you could perceive | 1, 3a |
+| omniscient trace | **never in the fiction**; unbanded only in the sandbox *(invariant)* | 3b, 7 |
+| storage | a per-session buffer of your last few acts, in memory, gone at logout, never persisted | 6, 7 |
+| on or off | per viewer an appetite setting (hidden by default, one click, never prevented); per realm the realm's call | 4 |
+| the gate | no outcome depends on a description; the recorder writes only to your buffer | 7 |
 
 ## 7. ⭐⭐ Covenants are statutes that cite nodes **[DECIDED in shape]**
 
@@ -208,14 +442,16 @@ One catalog, two readers:
 - **Not the banned allowlist.** The land-use slate refused per-room tool lists because a list only
   grows when somebody edits it. A node list does not: new content falls under existing nodes, so the
   covenant stays right with nobody maintaining it.
+- ⚠ **A wall needs codification** (§ 6b): a covenant that *refuses* reads a real property of the
+  act, never the annotations. Camera and norm may run on the annotations.
 - **The university extent is a covenant that admits every node** — the owner: *"within the
   university extent inside the city, it's anything goes."* Terminus's own epoch law stays undecided
   and the university does not depend on it.
 
 ## 8. ⭐⭐ The ways through the tree **[LEAN]**
 
-**For authors, the university is the main road** — its course catalog *is* the tree, and Eternal
-University teaches all of it, the Future rung and arcane science included. An author presents the
+**For authors, the university is the main road** — its course catalog is laid over the tree (§ 6a),
+and Eternal University teaches all of it, the Future rung and arcane science included. An author presents the
 credential when their content cites a node. Side roads, which also give lens 7 its appeals:
 
 - **a grant from the polity** — governance confers a node on an author directly (our base pack, a
@@ -296,12 +532,23 @@ content for Tier C); the university teaches — which is all it does (the standi
 3. Node grain — one law, or one technology. **[LEAN: laws as nodes, technologies as derived
    clusters]**
 4. The social-technology line (§ 5).
-5. The course shape — its own conversation, with Wikipedia now and study.com later. ⚠ The repo is
-   public: nothing internal to study.com goes in it.
+5. The course's remaining shape — assessment, the reader, credentials — over § 6a's units, with
+   Wikipedia now and study.com later. ⚠ The repo is public: nothing internal to study.com goes in it.
 6. Whether a fictional organism (smithing's glowing headlamp fungus) cites a law that a covenant can
    reach, or needs the magic flag ([content-declaration-slate](../platform/content-declaration-slate.md)
    § 3.0a).
-
+7. ⭐ **The power ratchet** — a clause may move from B to the polity (C) freely, but moving it back
+   from C to B needs the polity's consent, so power only ratchets toward the people. Constitutional,
+   and the owner's call.
+8. **The faucet boundary** — what counts as minting versus transforming.
+9. **An in-fiction statute book** — the law published as paper, so players meet the legal code
+   inside the world.
+10. **One statute text or two** — an in-world text (this world's natural philosophy, no Earth) and a
+    plain annex set against Earth's physics.
+11. **The receipt buffer's length** (§ 6d) — the last act only, or the last handful, so you can ask
+    about the act *before* the one that surprised you.
+12. **A receipt as evidence in fiction** — presented at an inquest the way a transcript is. Banding
+    keeps it honest, but it is an out-of-fiction artifact entering an in-fiction process.
 ## Cross-references
 
 - [content-declaration-slate](../platform/content-declaration-slate.md) — the prime-mover ladder,
