@@ -8,7 +8,8 @@
 > ([race.md](../../subsystems/race.md) § Material); seats any person or program can hold
 > ([employment.md](../../subsystems/employment.md)); work as power × time
 > ([exertion.md](../../subsystems/exertion.md)).
-> **Left:** the Future rung's three mechanics, each the extension of a shipped one (§§ 2–4) · who
+> **Left:** the Future rung's three mechanics, each the extension of a shipped one (§§ 2–4) · the
+> triangle's numbers — each root's downside made real in its math (§ 1a) · the pair techs (§ 1a) · who
 > owns a design (§ 3) · the automaton's story — governance and economy (§ 4) · what magic may borrow
 > from this rung (§ 5) · ⭐ the rung's first content
 > **Size:** a design pass, then one build per idea
@@ -44,6 +45,52 @@ and that's just a governance and economic problem."*
 - **Each idea extends a shipped mechanic** and answers the same commands (design-lenses § 5,
   continuity): a fabricator answers the crafting verbs, an automaton holds a seat, a fusion plant
   feeds the grid.
+
+## 1a. ⭐⭐⭐ Three roots, a triangle, and a tree **[DECIDED — the owner, 2026-11-18]**
+
+The owner: *"What I like about having multiple things like this is we can try our best to give every
+one a downside, so there's some decision matrix at work as to what specific future tech you want to
+employ for any given job. That we have three root tech nodes at the bottom of the rest of the tree
+actually makes it interesting — it could even be a rock-paper-scissors kind of relationship between
+the three. Again, we're making all this stuff up, so we can really do whatever we want with it.
+That's why we also talk about it and magic in the same breath."*
+
+**Invented, like magic — so the same rule binds both:** the sums must add up, and a story explains
+the sums. The difference stands: future tech is a **rung**, magic is a **flag**.
+
+### Each root is strong where the other two are weak
+
+| root | its strength | its downside |
+|---|---|---|
+| **Fusion** | **scale** — enormous, cheap power | only at huge, fixed sites; capital-heavy; makes nothing and moves nowhere |
+| **Fabricator** | **specificity** — makes *anything* from a design | energy-hungry per kilogram; slow on bulk; needs pure feedstock; designs are someone's property |
+| **Automaton** | **adaptability** — goes anywhere, decides | draws power, wears out and needs parts; someone answers for it; it displaces people |
+
+### Rock-paper-scissors, by job
+
+- **Smelt a mountain of ore** — fusion wins; the fabricator is too slow, an automaton lacks the power.
+- **A part you need right now** — the fabricator wins.
+- **Tending, repair in the field, judgment work** — the automaton wins.
+
+Each root loses the job it is not shaped for. The choice of root is the decision matrix.
+
+### The cycle underneath: each root's downside is the next one's strength
+
+- **Fusion powers the fabricator's** energy bill.
+- **The fabricator makes the automaton's** parts.
+- **Automata run the fusion plant** where people cannot safely work.
+
+So the roots counter each other job by job and depend on each other overall: nobody wants only one,
+and a polity that refuses one weakens the other two.
+
+### The tree grows from pairs
+
+| pair | what grows | its story |
+|---|---|---|
+| fusion + fabricator | **transmutation** — making elements | eases the fabricator's feedstock limit; the RGOs that supply rare elements lose their monopoly |
+| fabricator + automaton | **machines that build machines** — the self-replicator | governance's nightmare: growth nobody ordered |
+| automaton + fusion | **machines that go where people can't** — the deep sea, orbit | the [orbit-slate](../world/orbit-slate.md)'s station |
+| all three | the top of the top | story to taste |
 
 ## 2. Fusion — the energy pack's generation, with a threshold **[LEAN]**
 
