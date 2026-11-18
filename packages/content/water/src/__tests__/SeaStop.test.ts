@@ -67,7 +67,7 @@ afterEach(() => {
  */
 function seaWarren(): SeaWarren {
   const w = makeStuff(() => new SeaWarren());
-  vi.spyOn(w, 'wakeCopyZone').mockResolvedValue({ adopt: () => undefined } as never);
+  vi.spyOn(w, 'wakeCopyZone').mockImplementation((async (row: string, key: string) => ({ adopt: () => undefined, getIdentityPath: () => `${row}/${key}` })) as never);
   return w;
 }
 

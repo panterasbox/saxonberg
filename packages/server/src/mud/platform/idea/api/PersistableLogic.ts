@@ -1109,7 +1109,7 @@ async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | 
  * The spine no longer auto-materializes on register (D1); this walk is
  * the nested host's establishing context, reconstructing the whole tree.
  */
-async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
+async function cloneHost(scope: string, key?: string, zoneFrom?: string): Promise<Stuff | null> {
   if (!scope) return null;
   if (key !== undefined) {
     // ⭐⭐ RESOLVE FIRST. A keyed host's identity is the pair, and two
@@ -1141,7 +1141,7 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
       );
       return null;
     }
-    const nested = await StuffApi.clone<Stuff>(scope);
+    const nested = await StuffApi.clone<Stuff>(scope, undefined, zoneFrom !== undefined ? { zoneFrom } : undefined);
     if (nested && MixinApi.isPersistable(nested)) {
       nested.setPersistenceKey(key);
       await materializeImpl(nested, key);
@@ -1719,8 +1719,12 @@ export class PersistableLogic extends ApiLogic {
 
   /** See {@link PersistableApi.standUpKeyed}. */
   @CallSecurity(PersistableApiCallers)
-  public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
-    return cloneHost(scope, key);
+  public async standUpKeyed(
+    scope: string,
+    key: string,
+    opts?: { zoneFrom?: string },
+  ): Promise<Stuff | null> {
+    return cloneHost(scope, key, opts?.zoneFrom);
   }
 
   /** See {@link PersistableApi.placeIdOf}. */

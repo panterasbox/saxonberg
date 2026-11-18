@@ -154,9 +154,17 @@ export class PersistableApi {
    * in the world sharing one record and clobbering each other. Every
    * route that stands a keyed host up — an owner logging in, a room
    * materializing, a boot roll — has to ask this one question.
+   *
+   * `opts.zoneFrom` — the path a minted shell resolves its zone from, when
+   * its row's own zone is not where it stands: a place a warren copies a
+   * zone for (zone-instancing) joins that copy, never the row.
    */
-  static standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
-    return logic().standUpKeyed(scope, key);
+  static standUpKeyed(
+    scope: string,
+    key: string,
+    opts?: { zoneFrom?: string },
+  ): Promise<Stuff | null> {
+    return logic().standUpKeyed(scope, key, opts);
   }
 
   /**

@@ -79,7 +79,7 @@ const deck = (name: string) =>
  */
 function seaWarren(): SeaWarren {
   const w = makeStuff(() => new SeaWarren());
-  vi.spyOn(w, 'wakeCopyZone').mockResolvedValue({ adopt: () => undefined } as never);
+  vi.spyOn(w, 'wakeCopyZone').mockImplementation((async (row: string, key: string) => ({ adopt: () => undefined, getIdentityPath: () => `${row}/${key}` })) as never);
   return w;
 }
 
@@ -117,5 +117,23 @@ describe('SeaWarren (river D30)', () => {
     ships.gannet = ship('gannet', new GeoPosition(42.02, -8.47));
     const w = seaWarren();
     expect(await w.launchPlaceFor(deck('gannet'))).not.toBe(await w.launchPlaceFor(deck('hesper')));
+  });
+
+  it('⭐ the patch is cloned INTO its copy zone, which stands first — never onto the row', async () => {
+    // The harbors drive: once the patch kind's zone ROW was resident, a
+    // patch cloned before its copy resolved to the row, and the row's own
+    // instance refused the room (zone-instancing D4).
+    ships.hesper = ship('hesper', new GeoPosition(42, -8.47));
+    const order: string[] = [];
+    const w = makeStuff(() => new SeaWarren());
+    vi.spyOn(w, 'wakeCopyZone').mockImplementation((async (row: string, key: string) => {
+      order.push(`wake ${row}/${key}`);
+      return { adopt: () => undefined, getIdentityPath: () => `${row}/${key}` };
+    }) as never);
+    const clone = vi.mocked(StuffApi.clone);
+    await w.launchPlaceFor(deck('hesper'));
+    const call = clone.mock.calls.find((c) => String(c[0]).endsWith('/water'))!;
+    expect(order).toEqual(['wake /system/water/location/sea/patch/1']);
+    expect(call[2]).toEqual({ zoneFrom: '/system/water/location/sea/patch/1' });
   });
 });

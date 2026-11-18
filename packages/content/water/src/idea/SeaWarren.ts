@@ -69,6 +69,12 @@ type ShipShape = Structure & Voyaging & Positioned;
 export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(RoomWarren))) {
   /** The patches standing now. Runtime: a sea patch is never persisted. */
   private _patches = new Set<SeaPatch>();
+  /**
+   * The copy zone the next patch is cloned INTO (zone-instancing D13): its
+   * zone stands before the patch, so the clone never resolves to the kind's
+   * row — the row's own instance refuses a room.
+   */
+  private _budZone: string | undefined = undefined;
   private _serial = 0;
   private _mintChain: Promise<unknown> = Promise.resolve();
   /** ⭐ The stops standing now, by key — each persisted by its own record. */
@@ -81,7 +87,11 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
   }
 
   protected async createMember(): Promise<MemberStuff> {
-    return StuffApi.clone<MemberStuff>(PATCH_ROW);
+    return StuffApi.clone<MemberStuff>(
+      PATCH_ROW,
+      undefined,
+      this._budZone !== undefined ? { zoneFrom: this._budZone } : undefined,
+    );
   }
 
   public async admitArrival(): Promise<void> {
@@ -229,7 +239,11 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
     return this.serial(async () => {
       const again = this._stops.get(key);
       if (again && !again.isDestroyed()) return again;
-      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key)) as unknown as SeaStop | null;
+      // Its zone stands first; the stop is stood up INTO it.
+      const zone = await this.wakeCopyZone(STOP_ZONE, this.stopZoneLeaf(key));
+      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key, {
+        zoneFrom: zone.getIdentityPath() ?? undefined,
+      })) as unknown as SeaStop | null;
       if (stood === null) throw new Error(`SeaWarren: the stop ${key} could not be stood up`);
       if (stood.getExpansePosition() === null) {
         stood.setExpanse(sea);
@@ -252,7 +266,7 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
     if (key === '' || this._stops.get(key) === stop) return;
     this._stops.set(key, stop);
     if (!this.hasMember(stop as unknown as MemberStuff)) this.addMember(stop as unknown as MemberStuff);
-    const zoneId = `${STOP_ZONE}/${key.replace(/[^A-Za-z0-9.@-]+/g, '-')}`;
+    const zoneId = `${STOP_ZONE}/${this.stopZoneLeaf(key)}`;
     const z = stop.getZone();
     if (z === null || (z.getIdentityPath() ?? z.getTemplatePath()) !== zoneId) {
       // A copy of the stop kind's zone, named under its row (zone-instancing
@@ -262,16 +276,35 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
     }
   }
 
+  /** A stop's zone's leaf under the stop kind's row: its key, path-safe. */
+  private stopZoneLeaf(key: string): string {
+    return key.replace(/[^A-Za-z0-9.@-]+/g, '-');
+  }
+
   private async mintPatch(ship: ShipShape): Promise<SeaPatch> {
-    const patch = await this.serial(async () => (await this.createMemberSerialized()) as unknown as SeaPatch);
+    this._serial += 1;
+    // A copy of the patch kind's zone, named under its row by the serial
+    // (zone-instancing D13): nothing persists under it. It stands FIRST and
+    // the patch is cloned into it (the ship's order: zone before rooms).
+    const zone = (await this.wakeCopyZone(PATCH_ZONE, String(this._serial))) as unknown as SeaZone;
+    let patch: SeaPatch;
+    try {
+      patch = await this.serial(async () => {
+        this._budZone = zone.getIdentityPath() ?? undefined;
+        try {
+          return (await this.createMemberSerialized()) as unknown as SeaPatch;
+        } finally {
+          this._budZone = undefined;
+        }
+      });
+    } catch (err) {
+      this.sleepCopyZone(zone as never);
+      throw err;
+    }
     const pos = ship.getExpansePosition()!;
     patch.setExpanse(ship.getExpanse());
     patch.setExpansePosition(pos);
     this.addMember(patch as unknown as MemberStuff);
-    this._serial += 1;
-    // A copy of the patch kind's zone, named under its row by the serial
-    // (zone-instancing D13): nothing persists under it.
-    const zone = (await this.wakeCopyZone(PATCH_ZONE, String(this._serial))) as unknown as SeaZone;
     zone.adopt(patch as never);
     const sea = ship.getExpanse() ? await StuffApi.singleton<WaterExpanse>(ship.getExpanse()!).catch(() => null) : null;
     const depth = sea ? await sea.depthAt(pos).catch(() => 20) : 20;
