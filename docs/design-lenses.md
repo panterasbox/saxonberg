@@ -596,8 +596,8 @@ subject: magic is one epoch's fiction and belongs here as an **example**,
 never as a limb. Naming it after its examples is why it read as a genre
 note and got skipped.
 
-Run the design against the seven prime-mover bands — **Muscle · Draft · Mill · Steam · Electric ·
-Circuit · Future**, with magic a separate flag on any of them — and check what has to change (each band is what does the work; see
+Run the design against the seven prime-mover bands — **Muscle · Draft · Wheel · Engine · Electric ·
+Signal · Future**, with magic a separate flag on any of them — and check what has to change (each band is what does the work; see
 [content-declaration-slate § 3.0](./slates/platform/content-declaration-slate.md); the five older
 words `prehistory · medieval · industrial · modern · future` retire at the build that re-maps them).
 

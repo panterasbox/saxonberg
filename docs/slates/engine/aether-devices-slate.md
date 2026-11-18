@@ -212,9 +212,11 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 | band | tuner | it is |
 |---|---|---|
 | Muscle | the standing stones | a **place** that carries further |
-| Mill | the sympathetic needle | an **object** |
+| Draft | a speaking-stone — a carried shard of the stones | an **object** **[LEAN]** |
+| Wheel | the sympathetic needle | an **object** |
+| Engine | the aether-telegraph — an office with a key and a tape | a **place** you go to again **[LEAN]** |
 | Electric | the aether-radio | a **device** that draws power |
-| Circuit | ⭐ the phone — the starting tuner | a device in your pocket |
+| Signal | ⭐ the phone — the starting tuner | a device in your pocket |
 | Future | the implant | an **organ** — the tuner you cannot lose |
 
 (Bands are the prime-mover epochs, [content-declaration-slate § 3.0](../platform/content-declaration-slate.md).)
