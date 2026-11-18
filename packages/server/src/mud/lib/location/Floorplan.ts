@@ -15,9 +15,9 @@
  * layers of Structure rows where only one describes something real).
  * Per-room facts are the room's own fields (a compartment's `floorM`, a
  * tract's `share`); the ground the buildings cover is the owner's
- * `footprintM2`. ⚠ A plan's rows author no `coords:` — a row's cell
- * registers on its zone's grid, and every copy stands in one zone; a
- * copy's layout is read from its ways (`FloorplanWarren.layOut`).
+ * `footprintM2`. ⭐ A plan's rows author their `coords:` — every copy is a
+ * zone of its own (zone-instancing D9), so each copy's rooms take their
+ * cells on its own grid, reflected when the copy is mirrored.
  *
  * This class READS the rows — it never stands the plan up. A copy is
  * minted from the rows, and the plan's rooms are served to nobody: the
@@ -28,10 +28,9 @@
  *
  * Membership is FOLLOWED, never searched: the entrance, and every room a
  * way inside the extent leads to from a room already found — the ways
- * the author wrote. A one-room plan (the dorm's) names its room as both
- * its extent and its entrance. A room's LEAF is the last segment of its
- * row path (unique within the plan); a one-room plan has none — its copy
- * is keyed by the warren's own key.
+ * the author wrote. A room's LEAF is the last segment of its row path
+ * (unique within the plan) — a one-room plan's room too (the dorm's
+ * `unit/room`), so a copy's rooms are always keyed under the copy.
  *
  * ⭐⭐ **Its buildings are authored too**.
  * The owner's `buildings:` names each building of the kind, the main one
@@ -51,12 +50,19 @@ import type { ExitInstruction } from '../boundary/Exitable';
 export interface FloorplanRoom {
   /** The room's row — what every copy clones from. */
   row: string;
-  /** The key under copy N (`<N>/<leaf>`); absent for a one-room plan. */
-  leaf?: string;
+  /** The key under copy N (`<N>/<leaf>`) — the last segment of its row path. */
+  leaf: string;
   /** Is this the plan's entrance? */
   entry: boolean;
   /** The row's authored exits, by direction. */
   exits: Record<string, ExitInstruction>;
+  /**
+   * ⭐ The room's cell on its COPY's grid, as its row authors it
+   * (`coords:` — required: `load` refuses a room with none). Every copy is
+   * a zone of its own (zone-instancing D9), so one row's cell is claimed
+   * once per copy.
+   */
+  coords: [number, number, number];
 }
 
 /** One building of a plan, as its row says. */
@@ -140,20 +146,30 @@ export class Floorplan {
         queue.push(way.destination);
       }
     }
-    const single = places.length === 1;
     const leaves = new Set<string>();
+    // ⭐ Every plan room authors its cell (zone-instancing D9): each copy is
+    // a zone of its own, and a room with no cell would join no grid.
+    const cellOf = (path: string): [number, number, number] => {
+      const raw = (places.find((p) => p.path === path)?.data as Record<string, unknown> | undefined)?.coords;
+      const cell = coordsOf(raw);
+      if (cell === null) {
+        throw new Error(`Floorplan '${this.path}': '${path}' authors no cell on its copy's grid (coords:)`);
+      }
+      return cell;
+    };
     const rooms = places.map((t): FloorplanRoom => {
       const d = (t.data ?? {}) as Record<string, unknown>;
-      const leaf = single ? undefined : t.path.slice(t.path.lastIndexOf('/') + 1);
-      if (leaf !== undefined) {
-        if (leaves.has(leaf)) throw new Error(`Floorplan '${this.path}': two rooms are '${leaf}'`);
-        leaves.add(leaf);
-      }
+      // ⭐ Every room has a leaf, a one-room plan's too (zone-instancing D5):
+      // the copy's identity is the zone, its rooms are under it.
+      const leaf = t.path.slice(t.path.lastIndexOf('/') + 1);
+      if (leaves.has(leaf)) throw new Error(`Floorplan '${this.path}': two rooms are '${leaf}'`);
+      leaves.add(leaf);
       return {
         row: t.path,
         leaf,
         entry: t.path === entrance,
         exits: exitsOf(d.exits),
+        coords: cellOf(t.path),
       };
     });
     const footprint = Number(data.footprintM2);
@@ -217,6 +233,14 @@ export class Floorplan {
     }
     return out;
   }
+}
+
+/** A row's authored `coords: { x, y, z }`, or `null` for none. */
+function coordsOf(raw: unknown): [number, number, number] | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { x, y, z } = raw as { x?: unknown; y?: unknown; z?: unknown };
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') return null;
+  return [x, y, z];
 }
 
 /** A row's `exits:` map, entries with a destination only. */

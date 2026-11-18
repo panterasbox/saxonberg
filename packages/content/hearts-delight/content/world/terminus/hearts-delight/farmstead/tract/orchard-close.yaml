@@ -4,6 +4,11 @@
 # on a fresh copy.
 class: /trade/farming/location/Tract
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 1
+    y: 1
+    z: 0
   fieldName: the orchard close
   shortDescription: "orchard close"
   keywords: [orchard close, close, tract, ground]

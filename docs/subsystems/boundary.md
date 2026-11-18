@@ -869,10 +869,14 @@ the straight line between**, and **nothing hangs in it** (a boundary needs a
 shared face). The way back is still the opposite word. *A compass word over
 open country is a bearing, never a promise of a straight road.*
 
-Across zones — or between a holding's own frame and another — a way is a
-**threshold**: the grids share no face and nothing is checked. A way that
+Across zones — a holding, a ship and a water patch are each a zone of
+their own ([zone.md § Copies](./zone.md)) — a way is a **threshold**: the grids share no face and nothing is checked. A way that
 breaks a rule installs **unbuilt** (*nothing lies that way yet*) and the
-diagnostic names the row, the direction and the reason. `lint:locations`
+diagnostic names the row, the direction and the reason. ⭐ The rules judge a
+way installed LIVE too, not only one applied from its row's spec:
+`Exitable.installExit(…, judgeAs)` takes the authored spec to judge it by,
+and `FloorplanWarren.wireWays` passes it — a copy's inside ways are
+installed when it wakes, and before zone-instancing they were never judged. `lint:locations`
 (`wayEdges`) checks rules 1–2 and the track rules from the rows' `coords:`
 and `kind:` in CI; rule 3 needs resolved `extends:` chains and the zone's
 cell size, so it is the runtime's. The sweep that turned the rule on found

@@ -48,7 +48,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 // gains `Reserved` + `postedAs`, which a bedsit wants anyway.
 export default class DormRoom extends PersistentRoom {
   /** The shared clone-namespace path — the D1 record `scope`. */
-  static readonly SCOPE = '/world/terminus/eternal/duncan-hall/location/dormroom';
+  static readonly SCOPE = '/world/terminus/eternal/duncan-hall/unit/room';
 
   /**
    * The dorm's address in the addressing namespace — content knows its
@@ -67,9 +67,13 @@ export default class DormRoom extends PersistentRoom {
    */
   static fieldMeta: FieldMeta = {};
 
-  /** Is this the room of the unit at `unitExtent`? (The copy keyed on it.) */
+  /**
+   * Is this the room of the unit at `unitExtent`? — does it stand in that
+   * unit's copy (zone-instancing D5: each unit is a zone named for its
+   * extent, its room keyed `<extent>/room`).
+   */
   public isUnit(unitExtent: string): boolean {
-    return this.getPersistenceKey() === unitExtent;
+    return this.getZone()?.getIdentityPath() === unitExtent;
   }
 }
 

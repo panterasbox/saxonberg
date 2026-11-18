@@ -62,7 +62,12 @@ declareFile({
 /** The instrument case — the one room where a dial can be borrowed. */
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
 /** A dorm room: interior, unlit, and nobody's instrument in it. */
-const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
+// ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
+// orphan room with no unit, no door and no copy — which can no longer exist:
+// each let unit is a zone of its own and its row refuses a room
+// (zone-instancing D4). The furnishing archetype is the same kind of row,
+// outside any copied zone.
+const DORM = '/stuff/location/room/bedroom';
 /** Open ground with a sky over it — where a sundial has something to cast. */
 const CROSSING = '/world/terminus/university-avenue/location/crossing';
 /** A working face at Rejection — where a sample comes from. */

@@ -1,11 +1,12 @@
 # The warren an AUTHORED ship stands: one row IS one ship
 # (the Hesper, the Ostrander, the line's regulars), her rooms rows of their
-# own under her `extent`. ⭐ It copies NO plan: an
-# authored ship's own rows already ARE the place — her rooms under an
-# extent with ordinary ways between them — and they are served. So it
-# mints nothing and adopts whichever of her
-# rooms stand instead, so `which ship is this room?` and `who is aboard?`
-# are her warren's answers for every ship, authored or of a kind. Keyed by
-# the ship's own row.
+# own under her `extent`. Keyed by the ship's own row.
+#
+# ⭐ It names and joins its copies as every ship's warren does
+# (zone-instancing D12): a copy of her zone named under its row by her
+# serial (`zoneNaming: under-row`), joined to the world by her berth
+# (`joins: berth`).
 class: /platform/idea/ShipWarren
-data: {}
+data:
+  zoneNaming: under-row
+  joins: berth

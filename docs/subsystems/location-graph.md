@@ -58,11 +58,25 @@ one dorm room reading as found in all forty —
   `PlatPlan.nodeIdentityOf(nodeId, parentExtent)`, which is
   re-derivable from the plan plus the extent, so it survives the node
   being reaped and re-minted.
+- A **copy node** (`origin: 'copy'`, zone-instancing) is a room of a
+  STANDING copy — a house, a let unit, a ship's deck — each a zone of its
+  own ([zone.md § Copies](./zone.md)). Its identity is the room's durable
+  handle (`<row>#<key>`), its `zone` the copy's identity, its coords the
+  copy's (mirrored) cells, its edges the copy's ways. **Recorded at wake by
+  upsert** (`NavigationApi.recordCopy`, from the warren's `recordCopy`),
+  **kept through a sleep, retired only when the copy ends**
+  (`NavigationApi.retireCopy` — the end of a lease). Copy nodes are not
+  derivable from rows, so the rebuild sweep, `removeRow` and `checkGraph`
+  leave them alone; a dropped collection gets each copy back at its next
+  wake. A `joins: frame` copy (moving water) is never recorded. There is no
+  inbound stub: `pointingAt(place)` already answers which copies join a
+  place.
 
 ⚠ **Everything else is a KIND**, minted many times through a warren or
 a programme, and is deliberately **absent**. A holding's interior is
-somebody's house behind a gate; the gate is all the graph knows, as one
-**slot stub** per frontage. The elastic half of the world is perceived
+somebody's house behind a gate; until it stands, the gate is all the graph
+knows, as one **slot stub** per frontage (a standing copy is recorded — the
+copy node above). The elastic half of the world is perceived
 live and never stored — which is also why a lounge satellite is nothing
 here, and nothing on anybody's map.
 

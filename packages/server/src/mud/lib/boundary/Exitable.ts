@@ -186,6 +186,13 @@ export interface Exitable {
     kindOrExit: string | Exit,
     opts: ExitOptions,
     configure?: (exit: E) => void,
+    /**
+     * The AUTHORED way this one is a copy of (a plan room's `exits:` entry,
+     * installed by its warren between two rooms of one copy): it is judged
+     * against the grid as an authored way is, and installed UNBUILT, with
+     * the reason, when it is not true to it (zone-instancing B4).
+     */
+    judgeAs?: ExitInstruction,
   ): Promise<E>;
 
   /**
@@ -594,6 +601,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       kindOrExit: string | Exit,
       opts: ExitOptions,
       configure?: (exit: E) => void,
+      judgeAs?: ExitInstruction,
     ): Promise<E> {
       const exit =
         typeof kindOrExit === 'string'
@@ -603,13 +611,17 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       if (exit.isBound()) {
         exit.rebind(opts);
         await this.addExit(exit);
-        return exit as E;
+      } else {
+        // The room binding the edge is the caller, so the participant
+        // gate on `bind` (`FromMixin(Exitable)` + a party-to-the-edge
+        // `where`) passes without a carve-out.
+        exit.bind(opts);
+        await this.addExit(exit);
       }
-      // The room binding the edge is the caller, so the participant
-      // gate on `bind` (`FromMixin(Exitable)` + a party-to-the-edge
-      // `where`) passes without a carve-out.
-      exit.bind(opts);
-      await this.addExit(exit);
+      // ⭐ A copy of an authored way is judged as the authored way is.
+      if (judgeAs !== undefined && (await this._refuseIfUntrue(opts.direction, judgeAs, null))) {
+        return (this.exits.get(opts.direction) ?? exit) as E;
+      }
       return exit as E;
     }
 

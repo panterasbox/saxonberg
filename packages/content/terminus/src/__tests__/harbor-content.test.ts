@@ -120,7 +120,9 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(d.hull).toMatchObject({ lengthM, draftM });
       expect(d.extent).toBe(`${SHIPS}/${kind}`);
       expect(d.expanse).toBe('/stuff/idea/WaterExpanse/greywater');
-      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
+      // ⭐ Her rooms are a copy her warren stands (zone-instancing D12).
+      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/MintedZone');
+      expect((row.data as { warren?: string }).warren).toBe('/platform/idea/ShipWarren/authored');
       const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number; as?: string; on?: string }>; exits: Record<string, { kind?: string }> };
       expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
       // ⭐ Her lines are kept AT her bitts — that is what makes a rope one of hers.

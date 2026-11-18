@@ -2,14 +2,14 @@
 # programme (residences D16/P1). One keyed instance per leased unit
 # (scope = this row, key = the unit parcel extent).
 #
-# ⭐ Its PLAN is its own (no blueprint row),
-# and the degenerate one: the unit IS one room, so the plan's extent and
-# entrance are both the shipped dormroom row (a plan's rooms are every
-# place at or under its extent). The copy of a one-room plan is keyed by
-# the holding's own key — (scope = the dormroom row, key = the unit
-# extent, no leaf) — so every existing record shape and the pinned dorm
-# suite hold. `buildings`: the room is its one building's extent and
-# entrance, so each leased unit keeps its own fabric and coat.
+# ⭐ Its PLAN is its own (no blueprint row): the unit's zone (`unit.yaml`)
+# holding its one room (`unit/room`), which is also the way in. Each let
+# unit is a COPY — a zone of its own, named by its key (the unit parcel
+# extent, `zoneNaming: key`) and joined to the world through that parcel
+# (`joins: parcel`). The room is keyed like any plan room,
+# (scope = the room row, key = <unit extent>/room) (zone-instancing D5).
+# `buildings`: the room is its one building's extent and entrance, so each
+# leased unit keeps its own fabric and coat.
 #
 # `upkeepTerm: institution-all` — the university owes the shell AND the
 # fixtures (the shipped status quo, now readable as a term, D5). No
@@ -17,8 +17,10 @@
 # FrontDoorExit is for the two new rungs.
 class: /system/residence/idea/HoldingWarren
 data:
-  extent: /world/terminus/eternal/duncan-hall/location/dormroom
-  entrance: /world/terminus/eternal/duncan-hall/location/dormroom
+  extent: /world/terminus/eternal/duncan-hall/unit
+  entrance: /world/terminus/eternal/duncan-hall/unit/room
+  zoneNaming: key
+  joins: parcel
   buildings:
     - /world/terminus/eternal/duncan-hall/idea/dorm-building
   upkeepTerm: institution-all

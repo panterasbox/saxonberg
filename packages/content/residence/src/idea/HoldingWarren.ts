@@ -18,8 +18,8 @@
  * the persistence spine's unique-key guard.
  *
  * ⭐ **The lift.** The floorplan mint, keyed rooms,
- * whole-warren dormancy and `layOut` are the kernel's `FloorplanWarren`
- * now. What stays here is only what is residential: the address stem,
+ * whole-warren dormancy are the kernel's `FloorplanWarren` now, and the
+ * copy's zone the kernel's `ZoneMintingMixin`. What stays here is only what is residential: the address stem,
  * the parcel keyway hung on the copy's keyed doors (`hangKeyedDoors`), the
  * parcel's open ground (`openGroundM2`), the relay to the institution,
  * the tenure term (who OWES the upkeep), and the holding's BUILDINGS.
@@ -49,6 +49,7 @@
  */
 
 import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
 import {
   Floorplan,
   type FloorplanRoom,
@@ -82,7 +83,7 @@ export const UPKEEP_TERMS = [
 const KEYED_DOOR_WAY = '/system/residence/idea/exits/keyed-door';
 const KEYED_DOOR_ROW = '/system/residence/thing/boundaries/keyed-door';
 
-export default class HoldingWarren extends FloorplanWarren {
+export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
     addressBase: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
@@ -188,7 +189,17 @@ export default class HoldingWarren extends FloorplanWarren {
    */
   public override async wake(): Promise<void> {
     await this.refreshKeyway();
+    // ⭐ The copy is a zone of its own (zone-instancing D3): stood up
+    // BEFORE its rooms, which the resolver stamps into it by their keys,
+    // and checked after — a room stamped elsewhere missed its copy.
+    const plan = await this.loadPlan();
+    const key = this.holdingKey();
+    const zone = plan !== null && key !== null ? await this.wakeCopyZone(plan.extent, key) : null;
     await super.wake();
+    if (zone !== null) {
+      this.checkCopyRooms(zone, this.getMembers() as unknown as Stuff[]);
+      await this.recordCopy(zone, this.copyRooms());
+    }
     await this.hangKeyedDoors();
     await this.wakeHouses();
   }
@@ -202,7 +213,9 @@ export default class HoldingWarren extends FloorplanWarren {
   protected override addressFor(spec: FloorplanRoom): string | null {
     const base = this.addressBase || this.derivedAddressBase();
     if (!base) return null;
-    return spec.leaf ? `${base}/${spec.leaf}` : base;
+    // A one-room plan's room IS the holding: its address is the base (the
+    // dorm's `terminus/city/campus/duncan-hall`), never `<base>/room`.
+    return this.planRooms().length === 1 ? base : `${base}/${spec.leaf}`;
   }
 
   private derivedAddressBase(): string {
@@ -369,7 +382,11 @@ export default class HoldingWarren extends FloorplanWarren {
         if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
       }
     }
+    const plan = await this.loadPlan();
     await super.revert();
+    // ⭐ The lease is over: the copy is gone for good, its nodes with it
+    // (zone-instancing D7). A sleep keeps them; only this retires them.
+    if (extent && plan !== null) await this.destroyCopy(plan.extent, extent);
   }
 
   /** The record key a building persists under: the main one the holding's own extent. */

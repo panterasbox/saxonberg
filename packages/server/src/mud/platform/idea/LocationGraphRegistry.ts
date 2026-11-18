@@ -41,7 +41,7 @@ import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
 import { PlatPlan } from '../../lib/location/PlatPlan';
 import { CirculationWarren } from '../../lib/location/CirculationWarren';
 import Place from '../../lib/stuff/Place';
-import { PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
+import { type CopyRoom, PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
 import type { AttachmentKind, SkylineEntry, SkylineQuery } from '../../api/navigation';
 import { AddressApi } from '../../api/address';
 import { AppApi } from '../../api/app';
@@ -233,7 +233,8 @@ export default class LocationGraphRegistry extends Idea {
       // ⚠ The UNGATED impl: a self-call through the proxy arrives at the
       // gate as the registry, not NavigationLogic, and is denied — which
       // made every save of a row that is not a place (a building, a
-      // business) throw here (found by the geography build).
+      // business) throw here (found by the geography build; and by
+      // zone-instancing A3, independently).
       await this.removeRowImpl(path);
     }
   }
@@ -247,7 +248,51 @@ export default class LocationGraphRegistry extends Idea {
   private async removeRowImpl(path: string): Promise<void> {
     this.attachmentsDirty = true;
     const existing = await PlaceNode.find<PlaceNode>({ template: path });
-    for (const row of existing) await row.delete();
+    // A copy's nodes are not this row's: they leave with their copy.
+    for (const row of existing) if (row.origin !== 'copy') await row.delete();
+  }
+
+  /**
+   * ⭐ Record a standing COPY's rooms (zone-instancing D7): one node per
+   * room, upserted on its handle, its zone the copy's identity. Nodes this
+   * copy recorded before and no longer has are dropped. Called by the
+   * minting warren at every wake; a copy that sleeps keeps its nodes.
+   */
+  @CallSecurity(NavigationLogicOnly)
+  public async recordCopy(zone: string, rooms: readonly CopyRoom[]): Promise<number> {
+    const keep = new Set(rooms.map((r) => r.identity));
+    for (const stale of await PlaceNode.find<PlaceNode>({ zone })) {
+      if (stale.origin === 'copy' && !keep.has(stale.identity)) await stale.delete();
+    }
+    for (const room of rooms) {
+      const node = (await this.findNode(room.identity)) ?? new PlaceNode();
+      node.identity = room.identity;
+      node.template = room.template;
+      node.origin = 'copy';
+      node.zone = zone;
+      node.address = room.address;
+      node.coords = room.coords;
+      node.edges = await this.edgesOf({ exits: room.exits });
+      node.published = this.publishedAt(zone);
+      node.travel = null;
+      // A way out of a copy is a way out of its zone: every edge that does
+      // not lead to a sibling room of this copy crosses.
+      node.crossesZone = node.edges.some((e) => {
+        const to = e.to ?? e.toPath;
+        return typeof to === 'string' && !keep.has(to);
+      });
+      node.generation = this.generation;
+      await node.save();
+    }
+    return rooms.length;
+  }
+
+  /** The copy is gone for good: drop every node it recorded. */
+  @CallSecurity(NavigationLogicOnly)
+  public async retireCopy(zone: string): Promise<number> {
+    const nodes = (await PlaceNode.find<PlaceNode>({ zone })).filter((n) => n.origin === 'copy');
+    for (const n of nodes) await n.delete();
+    return nodes.length;
   }
 
   /** Re-read `published` for every node under `extent`. */
@@ -534,8 +579,13 @@ export default class LocationGraphRegistry extends Idea {
       }
       if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
            typeof data.berth === 'string') &&
-          !plans.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
-        if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
+          row.class && (await this.isStructureClass(row.class))) {
+        // A plan's extent is the kind its copies are made from: it attaches
+        // nothing. ⭐ Her sea, her line and her berth attach her whatever
+        // her rooms are — an authored ship is a copy of her plan too
+        // (zone-instancing D12), and a kind row authors none of them, so a
+        // KIND still attaches to no sea.
+        if (typeof data.extent === 'string' && !plans.has(row.path)) add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to
         // theirs (river D2): the river loads what is attached to it.
@@ -836,7 +886,9 @@ export default class LocationGraphRegistry extends Idea {
   @CallSecurity(NavigationLogicOnly)
   public async checkGraph(scope?: string): Promise<GraphFinding[]> {
     await this.ensureWarm();
-    const all = await this.allNodes();
+    // ⭐ The invariants judge AUTHORED content; a copy's soundness is its
+    // plan's, checked from the rows by `lint:locations` (D7).
+    const all = (await this.allNodes()).filter((n) => n.origin !== 'copy');
     const nodes: GraphNode[] = all.map((n) => n.toGraphNode());
     this.markEntrances(nodes);
     return new GraphInvariants(nodes).findings(scope);
@@ -942,8 +994,10 @@ export default class LocationGraphRegistry extends Idea {
 
   /** Drop every node NOT stamped with `generation` — the rebuild sweep. */
   private async sweepStaleGenerations(generation: number): Promise<number> {
+    // ⭐ A copy's node is not derivable from the rows, so no rebuild can
+    // sweep it: it leaves only by `retireCopy` (zone-instancing D7).
     const stale = (await this.allNodes()).filter(
-      (n) => n.generation !== generation,
+      (n) => n.origin !== 'copy' && n.generation !== generation,
     );
     for (const row of stale) await row.delete();
     return stale.length;

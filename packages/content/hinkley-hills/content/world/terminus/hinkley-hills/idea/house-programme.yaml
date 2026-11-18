@@ -16,12 +16,19 @@
 # its one building; the yard and the garden lie under no building's, so
 # they are open ground.
 #
+# ⭐ Each lot's house is a ZONE of its own (zone-instancing D1): a copy of
+# the plan's zone row (`house.yaml`), named by its KEY — the lot's extent
+# (`zoneNaming: key`) — and joined to the world through the lot's parcel
+# (`joins: parcel`).
+#
 # `footprintM2`: the ground the house and yard stand on that the garden
 # does not — the lot's workable area less this is the garden's open ground
 # (tracts build D27).
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: owner-all
+  zoneNaming: key
+  joins: parcel
   extent: /world/terminus/hinkley-hills/house
   entrance: /world/terminus/hinkley-hills/house/yard
   footprintM2: 220

@@ -36,8 +36,10 @@
  * exits, its entry and its layout outside the rooms. Copy N clones every room row and applies ONE
  * rewrite: a way whose destination is inside the extent leads to the same
  * room of copy N; a way out stays as authored. Mirroring is a property of
- * the COPY, applied in the same pass: every copied direction is reflected
- * across the copy's axis, and the layout read from those ways with it.
+ * the COPY, applied in the same pass: every copied direction and every
+ * authored cell is reflected across the copy's axis. ⭐ Each copy is a zone
+ * of its own (zone-instancing), so its rooms take the cells their rows
+ * author on its grid.
  *
  * Identity is the keyed model (D17): every member's `templatePath`
  * resolves to a real row; per-instance uniqueness rides the persistence
@@ -67,6 +69,7 @@ import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
 import type { FieldMeta } from '../mixin';
 import type { MirrorAxis } from './PlatPlan';
+import type { CopyRoom } from './PlaceNode';
 
 type MemberStuff = Stuff & Container;
 
@@ -239,8 +242,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
 
   /**
    * Stand the whole copy up: every plan room keyed
-   * `(roomRow, <key>[/leaf])` via the spine's restore-or-seed, its ways
-   * wired (the rewrite rule), the rooms laid out. Idempotent per room
+   * `(roomRow, <key>/<leaf>)` via the spine's restore-or-seed, on the cell
+   * its row authors (mirrored), its ways wired (the rewrite rule). Idempotent per room
    * (live rooms are reused, wired ways stand).
    */
   public async wake(): Promise<void> {
@@ -248,75 +251,6 @@ export abstract class FloorplanWarren extends FloorplanBase {
     if (plan === null) return;
     for (const spec of plan.rooms) await this.wakeRoom(spec);
     for (const spec of plan.rooms) await this.wireWays(plan, spec);
-    this.layOut();
-  }
-
-  /** ⭐ A copy is a frame of its own — see {@link layOut}. */
-  public override laysOutOwnFrame(): boolean {
-    return true;
-  }
-
-  /**
-   * ⭐⭐ **Every place has coordinates — a copy's rooms in the WARREN's
-   * frame** (the place taxonomy, cleanliness B53). The entrance is the
-   * origin, and the copy's own cardinal ways lay the rest out from it —
-   * the Hinkley yard (0,0,0), its hall one north at (0,1,0), the kitchen
-   * east of the hall at (1,1,0). Read through the mirror, so a reflected
-   * copy is laid out reflected. A room the cardinal ways do not reach sits
-   * in a row beyond, in plan order; a cell two ways disagree about
-   * keeps its first room.
-   *
-   * ⚠ A plan's room row authors NO `coords:`: a row's
-   * cell registers on its ZONE's grid, and every copy of a row stands in
-   * one zone — every Hinkley yard would claim one square of the lots'
-   * grid. The ways already say where each room is. Derived, never stored.
-   */
-  public layOut(): void {
-    const plan = this._plan;
-    if (plan === null || plan.rooms.length === 0) return;
-    const leafOf = (r: FloorplanRoom): string => r.leaf ?? '';
-    const byRow = new Map(plan.rooms.map((r) => [r.row, leafOf(r)] as const));
-    const edges: Array<{ from: string; to: string; dir: string }> = [];
-    for (const r of plan.rooms) {
-      for (const [dir, way] of Object.entries(r.exits)) {
-        const to = byRow.get(way.destination);
-        if (to !== undefined) edges.push({ from: leafOf(r), to, dir: mirrored(dir, this.mirrorAxis) });
-      }
-    }
-    const keyOf = (c: readonly number[]): string => c.join(',');
-    const cells = new Map<string, [number, number, number]>();
-    const taken = new Set<string>();
-    const place = (leaf: string, cell: [number, number, number]): void => {
-      cells.set(leaf, cell);
-      taken.add(keyOf(cell));
-    };
-    const entry = plan.rooms.find((r) => r.entry) ?? plan.rooms[0]!;
-    place(leafOf(entry), [0, 0, 0]);
-    const queue = [leafOf(entry)];
-    while (queue.length > 0) {
-      const from = queue.shift()!;
-      const at = cells.get(from)!;
-      for (const e of edges) {
-        if (e.from !== from || cells.has(e.to)) continue;
-        const off = NavigationApi.directionOffset(e.dir);
-        if (!off) continue;
-        const cell: [number, number, number] = [at[0] + off[0], at[1] + off[1], at[2] + off[2]];
-        if (taken.has(keyOf(cell))) continue;
-        place(e.to, cell);
-        queue.push(e.to);
-      }
-    }
-    const beyond = Math.max(...[...cells.values()].map((c) => c[1])) + 1;
-    let x = 0;
-    for (const r of plan.rooms) {
-      if (cells.has(leafOf(r))) continue;
-      while (taken.has(keyOf([x, beyond, 0]))) x += 1;
-      place(leafOf(r), [x, beyond, 0]);
-    }
-    for (const [leaf, cell] of cells) {
-      const room = this.roomForLeaf(leaf || undefined);
-      if (room && MixinApi.isCartesianCoordinates(room)) room.setCoordinates(cell);
-    }
   }
 
   /** Stand one plan room up (reused when live). */
@@ -333,6 +267,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
     const room = await this.mintKeyed(spec.row, key, {
       zoneFrom: this.zoneFromFor(spec, key),
       withholdExits: Object.keys(spec.exits).length > 0,
+      coords: mirroredCell(spec.coords, this.mirrorAxis),
     });
     // The room's address — before the room finishes itself, which may
     // read it (a tract seeds its ground from its locality).
@@ -359,12 +294,20 @@ export abstract class FloorplanWarren extends FloorplanBase {
     opts: {
       zoneFrom?: string;
       withholdExits?: boolean;
+      /** The room's cell on its copy's grid (its row's, reflected by the copy's mirror). */
+      coords?: readonly [number, number, number];
       beforeRestore?: (room: MemberStuff) => void;
     } = {},
   ): Promise<MemberStuff> {
+    const overlay: Record<string, unknown> = {
+      ...(opts.withholdExits ? { exits: {} } : {}),
+      ...(opts.coords !== undefined
+        ? { coords: { x: opts.coords[0], y: opts.coords[1], z: opts.coords[2] } }
+        : {}),
+    };
     const room = await StuffApi.clone<MemberStuff>(row, undefined, {
       ...(opts.zoneFrom !== undefined ? { zoneFrom: opts.zoneFrom } : {}),
-      ...(opts.withholdExits ? { dataOverlay: { exits: {} } } : {}),
+      ...(Object.keys(overlay).length > 0 ? { dataOverlay: overlay } : {}),
     });
     this.addMember(room);
     opts.beforeRestore?.(room);
@@ -443,8 +386,53 @@ export abstract class FloorplanWarren extends FloorplanBase {
           wheelPassable: way.wheelPassable,
           edgeMinutes: way.edgeMinutes,
         },
+        undefined,
+        // Judged against the copy's grid as the authored way is (B4).
+        way,
       );
     }
+  }
+
+  /**
+   * ⭐ This copy's rooms as the location graph records them
+   * (zone-instancing D7): each live room's handle, row, cell and address,
+   * and its ways read through THIS copy — a way inside the plan leads to
+   * the sibling room's handle, a way out stays as authored, every
+   * direction and cell reflected by the mirror. The warren hands these
+   * over so the index never re-reads a row and forgets the mirror.
+   */
+  public copyRooms(): CopyRoom[] {
+    const plan = this._plan;
+    if (plan === null) return [];
+    const handleOf = new Map<string, string>();
+    for (const spec of plan.rooms) {
+      // The keyed room's handle, `<row>#<key>` — built from the key this
+      // warren stood it up under, so a room that keeps no record (a porch,
+      // a farm yard) is named exactly as a furnished one is.
+      const key = this.roomKeyOf(spec.leaf);
+      if (key !== null && this.roomForKey(key) !== null) handleOf.set(spec.row, `${spec.row}#${key}`);
+    }
+    const out: CopyRoom[] = [];
+    for (const spec of plan.rooms) {
+      const identity = handleOf.get(spec.row);
+      if (identity === undefined) continue;
+      const exits: Record<string, Record<string, unknown>> = {};
+      for (const [authored, way] of Object.entries(spec.exits)) {
+        const inside =
+          way.destination === plan.extent || way.destination.startsWith(`${plan.extent}/`);
+        const destination = inside ? handleOf.get(way.destination) : way.destination;
+        if (destination === undefined) continue;
+        exits[mirrored(authored, this.mirrorAxis)] = { ...way, destination };
+      }
+      out.push({
+        identity,
+        template: spec.row,
+        coords: mirroredCell(spec.coords, this.mirrorAxis),
+        address: this.addressFor(spec) ?? '',
+        exits,
+      });
+    }
+    return out;
   }
 
   /** The live room for a leaf, or null. */
@@ -589,6 +577,17 @@ const MIRRORS: Readonly<Record<MirrorAxis, Readonly<Record<string, string>>>> = 
     northwest: 'southwest', southwest: 'northwest',
   },
 };
+
+/** A cell reflected across `axis` (D9): east-west negates x, north-south negates y. */
+function mirroredCell(
+  cell: readonly [number, number, number],
+  axis: '' | MirrorAxis,
+): [number, number, number] {
+  const [x, y, z] = cell;
+  if (axis === 'east-west') return [x === 0 ? 0 : -x, y, z];
+  if (axis === 'north-south') return [x, y === 0 ? 0 : -y, z];
+  return [x, y, z];
+}
 
 /** `direction` reflected across `axis`; `up`, `down` and the axis itself stay. */
 function mirrored(direction: string, axis: '' | MirrorAxis): string {

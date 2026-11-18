@@ -9,6 +9,10 @@ class: /platform/idea/Ship
 data:
   name: the Kittiwake
   extent: /world/terminus/harbor/ships/ketch
+  # ⭐ Her rooms are a copy her warren stands, as every ship's are
+  # (zone-instancing D12): keyed and named by her serial.
+  warren: /platform/idea/ShipWarren/authored
+  serial: kittiwake
   entrance: /world/terminus/harbor/ships/ketch/deck
   shortDescription: Kittiwake
   register: definite

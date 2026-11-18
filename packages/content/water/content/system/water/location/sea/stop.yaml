@@ -5,3 +5,5 @@ class: /system/water/location/SeaZone
 data:
   name: the sea
   cellSize: 100
+  # Copied by its warren, one copy per place, never kept (zone-instancing D13).
+  mintedBy: /system/water/idea/SeaWarren

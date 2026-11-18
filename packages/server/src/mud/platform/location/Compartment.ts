@@ -279,26 +279,9 @@ export default class Compartment extends HaulOutMixin(WaterPlaceMixin(
 
   private notePopulation(thing: Stuff & Containable): void {
     if (!MixinApi.isHasInteractive(thing as unknown as Stuff)) return;
-    const warren = this.getWarren();
-    if (warren !== null) {
-      warren.notifyPopulationChange(this as unknown as Stuff & Location);
-      return;
-    }
-    // ⭐ An authored ship's room that loaded after her warren adopted her
-    // rooms: somebody came aboard, so it joins her now —
-    // `maintain` and the bilge well find her through it.
-    void this.joinShip();
-  }
-
-  /** Ask the ship this room is a room of to adopt it (an authored ship's warren adopts on read). */
-  private async joinShip(): Promise<void> {
-    try {
-      const ship = await this.structure();
-      if (!(ship instanceof Ship)) return;
-      await (await ship.standWarren())?.adoptResident();
-    } catch (err) {
-      console.warn(`Compartment: ${this.getTemplatePath()} could not join her ship:`, err);
-    }
+    // Every ship's rooms are her warren's copy (zone-instancing D12), so a
+    // room always has the warren to tell.
+    this.getWarren()?.notifyPopulationChange(this as unknown as Stuff & Location);
   }
 }
 

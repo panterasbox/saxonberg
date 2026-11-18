@@ -26,8 +26,17 @@ purpose: |
   effective class composes `SingletonMixin`, plus every circulation node
   a warren's `PlatPlan` declares. Every other location row describes a
   KIND of place, minted many times through a warren or a programme, and
-  is deliberately absent — the elastic half of the world is perceived
-  live and never stored.
+  is absent as a row.
+
+  ⭐ A standing COPY of a plan (a house, a dorm unit, a ship's decks) is
+  recorded as itself (`origin: copy`, zone-instancing D7): one node per
+  room, keyed on the room's durable handle (`<row>#<key>`), its `zone` the
+  copy's identity, written by the minting warren at every wake. ⚠ These
+  are the one part of the collection the rows cannot rebuild: a rebuild's
+  sweep keeps them, re-projecting their plan row keeps them, and they
+  leave only when the copy is destroyed (`retireCopy`). A dropped
+  collection gets each back at its copy's next wake. The invariant check
+  ignores them — a copy's soundness is its plan's, checked from the rows.
 
   `published` is denormalised from the covering parcel so the traversal
   gate can read it synchronously without resolving a destination. The
@@ -64,7 +73,11 @@ invariants:
     ⭐ It never reaches a client. A player's knowledge of the world is
     their own map document, and the two never join.
   - >-
-    A node is a place; a KIND row is not a node.
+    A node is a place; a KIND row is not a node. A standing copy's rooms
+    are nodes (`origin: copy`), each under its copy's zone.
+  - >-
+    ⚠ The one exception to DERIVED: `origin: copy` nodes are written at
+    a copy's wake and removed only when it is destroyed.
   - >-
     ⛔ An authored `blocked: true` exit projects NO edge. A blocked way
     is a way that is not there.

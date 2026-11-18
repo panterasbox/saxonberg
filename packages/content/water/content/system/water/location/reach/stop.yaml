@@ -5,3 +5,5 @@ class: /system/water/location/ReachZone
 data:
   name: the river
   cellSize: 30
+  # Copied by its warren, one copy per place, never kept (zone-instancing D13).
+  mintedBy: /system/water/idea/ReachWarren

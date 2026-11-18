@@ -13,11 +13,17 @@
 # bedroom west and the bathroom beyond it. Each unit's rooms are keyed
 # `(room row, <unit extent>/<leaf>)`; the plan's rows are never served.
 #
+# ⭐ Each unit is a ZONE of its own (zone-instancing D1): a copy of
+# `location.yaml`, named by its key — the unit's extent — and joined to
+# the world through the unit's parcel.
+#
 # ⭐ It names NO `buildings`: a flat is not a building of its own, it is in
 # one — every unit's extent lies under Seznick House's (`structure.yaml`),
 # so its rooms read that building's fabric and coat.
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: landlord-shell
+  zoneNaming: key
+  joins: parcel
   extent: /world/terminus/mayfield-row/seznick-house/location
   entrance: /world/terminus/mayfield-row/seznick-house/location/hall

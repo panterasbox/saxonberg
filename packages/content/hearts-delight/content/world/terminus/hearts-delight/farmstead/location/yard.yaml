@@ -6,6 +6,11 @@
 # the exception). It comes up from this row each time its holding wakes.
 class: /platform/location/Location
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   shortDescription: farmyard
   keywords: [yard, farmyard, farmstead]
   register: definite

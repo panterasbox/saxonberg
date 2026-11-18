@@ -13,11 +13,12 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
 import Material from '../../material/Material';
 import Location from '../../location/Location';
 import { MixinApi } from '../../../api/mixin';
+import { MaterialApi } from '../../../api/material';
 import { Mixins } from '../../mixin';
 import { UNBOUNDED_CAPACITY } from '../../slot/Slotted';
 import { CANONICAL_GROUND_SLOT } from '../Floor';
@@ -170,6 +171,23 @@ describe('getMaterial — authored, then stamped, then nothing', () => {
     await f.resolveUnderfoot();
     expect(f.getUnderfootRung()).toBe(2);
     expect(f.getMaterial()!.getName()).toBe('clay');
+  });
+
+  it('⭐ a stamped path is LOADED with the floor — every reader is sync', async () => {
+    // The zone-instancing drive: a room's `floor: { material }` (the
+    // estuary mouth's tidal mud) was stamped cold and the first `go` read
+    // it and threw DocumentNotResidentError.
+    const cited = vi.spyOn(MaterialApi.materials(), 'ensureCited');
+    const room = makeStuff(() => new Location());
+    (room as unknown as { getFloorSpec(): unknown }).getFloorSpec = () => ({
+      material: '/stuff/idea/material/earth/cold-mud',
+    });
+    const f = bareFloor();
+    room.addFixture(f, 'floor');
+    cited.mockReturnValue(undefined);
+    await f.resolveUnderfoot();
+    expect(cited).toHaveBeenCalledWith(['/stuff/idea/material/earth/cold-mud']);
+    cited.mockRestore();
   });
 });
 

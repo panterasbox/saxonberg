@@ -46,6 +46,28 @@ function stepOutward(
   return next;
 }
 
+/**
+ * ⭐ The live COPY of a zone filed at exactly `path`, if one stands
+ * (zone-instancing D2) — a `MintedZone` minted under that identity by its
+ * warren. The row's own instance (identity = template) is not a copy and
+ * answers `null` here; the row lookup that follows finds it.
+ *
+ * Read off the live index, never a registry: a copy exists while its warren
+ * has it standing, and a sleeping copy's path falls through to its row.
+ */
+async function liveCopyAt(path: string): Promise<Zone | null> {
+  const bucket = StuffApi.findByIdentityPath<Stuff>(path);
+  if (bucket.length === 0) return null;
+  // Through the class loader (the module instance every row's class comes from).
+  const MintedZone = (await StuffApi.loadClassByPath(
+    '/platform/idea/location/MintedZone',
+  )) as typeof import('../location/MintedZone').default;
+  for (const s of bucket) {
+    if (s instanceof MintedZone && !s.isDestroyed() && s.isCopy()) return s;
+  }
+  return null;
+}
+
 function hasPrototype(value: unknown): value is ClassWithPrototype {
   return (
     typeof value === 'function' &&
@@ -127,9 +149,15 @@ export class ZoneLogic extends ApiLogic {
   /** See {@link ZoneApi.getEnclosingZone}. */
   @CallSecurity(ZoneApiCallers)
   public async getEnclosingZone(zone: Zone): Promise<Zone | null> {
-    const ownPath = zone.getTemplatePath();
+    // ⭐ Walk where the zone is FILED, not where its row is (D2). An
+    // authored zone's identity is its row, so nothing changes for one; a
+    // copy minted at a lot's extent walks the lot's chain, and a copy filed
+    // under its row walks the row's.
+    const ownPath = zone.getIdentityPath() ?? zone.getTemplatePath();
     if (!ownPath) return null;
     for (const ancestor of Template.ancestorPaths(ownPath)) {
+      const copy = await liveCopyAt(ancestor);
+      if (copy !== null) return copy;
       const tpl = await Template.findByPath(ancestor);
       if (!tpl) continue;
       if (!(await this.isFolderClass(tpl.class))) continue;
@@ -201,11 +229,15 @@ export class ZoneLogic extends ApiLogic {
   public async resolveEnclosingZoneForPath(
     templatePath: string
   ): Promise<Zone | null> {
+    const selfCopy = await liveCopyAt(templatePath);
+    if (selfCopy !== null) return selfCopy;
     const selfTemplate = await Template.findByPath(templatePath);
     if (selfTemplate && (await this.isFolderClass(selfTemplate.class))) {
       return await StuffApi.singleton<Zone>(templatePath);
     }
     for (const ancestor of Template.ancestorPaths(templatePath)) {
+      const copy = await liveCopyAt(ancestor);
+      if (copy !== null) return copy;
       const ancestorTpl = await Template.findByPath(ancestor);
       if (!ancestorTpl) continue;
       if (!(await this.isFolderClass(ancestorTpl.class))) continue;
@@ -219,12 +251,19 @@ export class ZoneLogic extends ApiLogic {
   public async resolveZoneForPath(
     templatePath: string
   ): Promise<SpatialZone | null> {
+    // A zone is not inside itself — a live copy at this exact path, or a
+    // spatial zone row, answers null.
+    if ((await liveCopyAt(templatePath)) !== null) return null;
     const selfTemplate = await Template.findByPath(templatePath);
     if (selfTemplate && (await this.isSpatialZoneClass(selfTemplate.class))) {
       return null;
     }
 
     for (const ancestor of Template.ancestorPaths(templatePath)) {
+      // ⭐ A live copy filed at this ancestor wins over any row (D2): a
+      // room keyed under a standing house is stamped into the house.
+      const copy = await liveCopyAt(ancestor);
+      if (copy !== null) return copy as SpatialZone;
       const ancestorTpl = await Template.findByPath(ancestor);
       if (!ancestorTpl) continue;
       if (!(await this.isSpatialZoneClass(ancestorTpl.class))) continue;

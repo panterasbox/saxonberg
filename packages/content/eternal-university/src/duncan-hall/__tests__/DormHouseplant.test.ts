@@ -183,7 +183,12 @@ function seedDomain(): void {
     '/world/terminus/eternal/duncan-hall/idea/dorm-building',
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-building.yaml`,
   );
-  addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/location/dormroom.yaml`);
+  addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/unit/room.yaml`);
+  // The unit plan's zone — each let unit is a copy of it (zone-instancing D5).
+  addSeed(
+    DormRoom.SCOPE.slice(0, DormRoom.SCOPE.lastIndexOf('/')),
+    `${SEEDS}world/terminus/eternal/duncan-hall/unit.yaml`,
+  );
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,
     `${SEEDS}world/terminus/eternal/duncan-hall/location/corridor.yaml`,
@@ -890,7 +895,7 @@ describe('the dorm houseplant — durability', () => {
     const subtree = room.getDeepContents() as Stuff[];
     const hosts = subtree.filter((x) => x instanceof Plant);
     for (const h of hosts) await PersistableApi.capture(h);
-    await PersistableApi.capture(room, unit);
+    await PersistableApi.capture(room); // under its own key, `<unit>/room`
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     if (!room.isDestroyed()) StuffApi.destruct(room);
     // Destructing the room evacuates rather than culls, so the pot and its

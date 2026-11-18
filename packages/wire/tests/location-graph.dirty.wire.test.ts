@@ -123,7 +123,7 @@ suite('⭐⭐ 1 — a secret found in one room is not found in all of them', () 
     const out = await wizard.cmd(
       `eval --parcel /world/terminus return (() => {` +
         `const rows = StuffApi.findAllByTemplatePath(` +
-        `'/world/terminus/eternal/duncan-hall/location/dormroom');` +
+        `'/world/terminus/eternal/duncan-hall/unit/room');` +
         `if (rows.length < 2) return 'only ' + rows.length + ' dorm room(s) standing';` +
         `const keys = rows.slice(0, 2).map(r => r.getDurableHandle());` +
         `return JSON.stringify(keys);` +

@@ -141,11 +141,10 @@ block, never this file. Back to [all slates](../README.md).
 | [routing](./routing-slate.md) | tail | SHIPPED | seven attach points, each with a named destination; two content gaps the build surfaced and did not close (75 of 128 places declare no address; a `walked` claim does not record what you were driving); and one vacancy — `knows:` makes a **guide** an economically coherent role for the first time. |
 | [structures](./structures-slate.md) | build | BUILT | what a BUILDING owns beyond the ship's case — the roof, the stack, the envelope between rooms (the flue below), fire spread and storeys. |
 
-## ⚠ No readable status block — fix the block (4)
+## ⚠ No readable status block — fix the block (3)
 
 | slate | size | status | left |
 |---|---|---|---|
 | [locality-knowledge](./locality-knowledge-slate.md) | ? | ? | — |
 | [navigation-server](./navigation-server-slate.md) | ? | ? | — |
 | [step-beat](./step-beat-slate.md) | ? | ? | — |
-| [zone-instancing](./zone-instancing-slate.md) | ? | ? | — |

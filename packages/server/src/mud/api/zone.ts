@@ -9,10 +9,13 @@
  *    whose `class:` resolves to a `SpatialZone` subclass. Non-spatial
  *    Zone subclasses (Clade, future taxonomic / permission scopes)
  *    are skipped — they're folders for the template-tree invariant,
- *    but never become a `Stuff.zone`.
+ *    but never become a `Stuff.zone`. ⭐ At each ancestor a LIVE COPY
+ *    filed at that identity (a `MintedZone` its warren stood up — a
+ *    house, a ship's decks) wins over the row (zone-instancing D2).
  *
- * 2. **`getEnclosingZone`** — nearest Zone-class template ancestor
- *    for any zone instance. The orchestration step that
+ * 2. **`getEnclosingZone`** — nearest Zone ancestor of where a zone
+ *    instance is FILED (its identity; an authored zone's is its row),
+ *    so a copy inherits from where it stands. The orchestration step that
  *    `Zone.lookupAncestorField` (the polymorphic field-inheritance
  *    walk in `lib/zone/Zone.ts`) delegates to.
  *
@@ -81,8 +84,10 @@ export class ZoneApi {
   }
 
   /**
-   * Nearest Zone-class template ancestor of `zone`, or `null` at
-   * universe-root (or when `zone` has no `templatePath`, e.g., a
+   * Nearest Zone ancestor of where `zone` is FILED — its identity path,
+   * which for an authored zone is its row and for a copy is the identity
+   * its warren minted it under (a lot's extent, `<kind row>/<serial>`) —
+   * or `null` at universe-root (or when `zone` has no `templatePath`, e.g., a
    * fixture built via `makeStuff` without a path stamp). Skips
    * non-Zone path segments. Lazy-clones the ancestor via
    * `StuffApi.singleton` (cache-or-clone; subsequent calls are O(1)).
@@ -158,16 +163,17 @@ export class ZoneApi {
   /**
    * Resolve the nearest *spatial* zone for a template path.
    *
-   * Walks ancestor paths from nearest to root; returns the singleton
-   * SpatialZone at the first ancestor whose template's class extends
-   * `SpatialZone`. Non-spatial zone ancestors (Clades, future
+   * Walks ancestor paths from nearest to root; returns the live copy
+   * filed at the first ancestor that has one (a `MintedZone` its warren
+   * stood up), else the singleton SpatialZone at the first ancestor
+   * whose template's class extends `SpatialZone`. Non-spatial zone ancestors (Clades, future
    * permission/rule scopes) are skipped — they're folders for the
    * template-tree invariant, but not the spatial zone for the
    * descendant.
    *
    * Returns `null` when:
-   *   - The template at `templatePath` is itself a spatial Zone (a
-   *     zone isn't inside itself).
+   *   - The template at `templatePath` is itself a spatial Zone, or a
+   *     live copy is filed there (a zone isn't inside itself).
    *   - No ancestor resolves to a spatial Zone template.
    *
    * Calls `StuffApi.singleton(ancestor)` so the second resolution for

@@ -17,6 +17,11 @@
 # smack's cabin at once.
 class: /platform/location/Compartment
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   shortDescription: smack's deck
   keywords: [deck, smack deck, ship deck]
   register: definite

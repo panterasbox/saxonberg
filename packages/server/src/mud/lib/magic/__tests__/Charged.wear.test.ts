@@ -121,8 +121,16 @@ function makeRing(opts: { alwaysOn?: boolean; band?: string; capacityTau?: numbe
   return r;
 }
 
-/** Let the void'd discharge promise land. */
-const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+/**
+ * Let the void'd discharge promise land. It runs through the zone resolver
+ * and the condition mint (no real I/O here), whose number of async hops is
+ * theirs to change — so drain the queue for a bounded number of turns rather
+ * than betting on one: a single `setTimeout(0)` went red when the resolver
+ * gained a live-copy check per ancestor (zone-instancing).
+ */
+const settle = async (): Promise<void> => {
+  for (let i = 0; i < 25; i++) await new Promise((r) => setTimeout(r, 0));
+};
 
 function heldBy(wearer: Wearer, ring: Worn): number {
   return wearer.getConditions().filter((c) => c.kind === 'sustained' && c.sustainedBy === ring.getTemplatePath()).length;

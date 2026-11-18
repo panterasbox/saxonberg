@@ -980,6 +980,12 @@ Three generic substrate capabilities support it:
   keyed `Tract`) is routed through `CirculationWarren.admitFor` and
   accepted only when that is the very pair, else refused — minted on its
   own it stood outside its warren, whose next wake minted a second copy.
+  ⭐ It is asked of the CLASS, before anything is cloned
+  (`standsUpAloneByClass`, zone-instancing): a shell cloned only to be asked
+  now lands on a copied zone's row, which refuses a room. And
+  `standUpKeyed(scope, key, { zoneFrom })` mints a host that stands alone
+  INTO a zone its row's path does not name — a water stop into its own copy
+  zone ([zone.md § Copies](./zone.md)).
 - **Self-owner** — a `HasInteractive` host owns its own record
   (`owner = scope`), so the account-deletion cascade `deleteAllFor(<avatar
   path>)` is a keyed match; and `ContainerMixin.captureSlice` **skips**
@@ -1478,7 +1484,14 @@ the room is not standing when the placement restores, because the whole
 holding is dormant. So `capturePlacement` records the pair, and
 `restorePlacement` re-enters through `CirculationWarren.admitFor(key)` —
 which finds the institution whose parent extent prefixes the key, stands
-the holding back up, and returns the exact room.
+the holding back up, and returns the exact room. ⚠ `admitFor` now finds the holding by the
+parcel that COVERS the key (it took the first path segment under the parent
+— `…/hinkley-hills/lots` — and a character parked in their Hinkley yard
+could not be re-entered; zone-instancing drive). ⭐ And a ship's room
+records **`structure?`** — the ship's handle — in its placement: restore
+stands HER up (`ExpanseApi.standUpCraft`) and takes the room her warren
+minted under the key. No institution's `admitFor` matches a ship's serial,
+so before this every passenger of a slept smack came back nowhere.
 
 That is the **"log out in your own yard, log back into the same yard"**
 acceptance, and it is the general form of the dorm's Warren
