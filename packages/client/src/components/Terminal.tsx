@@ -314,7 +314,7 @@ function TranscriptRow({
   if (onAir && frame.topic.startsWith('speech.relay')) return null;
 
   return (
-    <FrameRow {...press}>
+    <FrameRow {...press} data-frame-id={frame.id}>
       <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
       <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
         {frame.sigil ? `${frame.sigil} ` : ''}

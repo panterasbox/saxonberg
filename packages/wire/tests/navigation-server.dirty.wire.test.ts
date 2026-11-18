@@ -174,9 +174,20 @@ suite('navigation-server — the blocking drive', () => {
     const tried = await s.cmd('go east');
     expect(tried.status).not.toBe('ok');
     expect(await words(tried)).toContain(take!.reason);
+    const mark = nav.mark();
     expectOk(await s.cmd(take!.works!.command!));
     await beat();
     record.push(`6a: you after the stoop ${JSON.stringify(nav.section('you'))}`);
+    // ⭐ Every change names its cause (navigation-server review): the deltas
+    // this command's work produced carry its id — the id its own lines carry.
+    const deltas = nav.log.slice(mark).filter((e) => e.type === 'subscription-delta' && e.sub === 'where');
+    const causes = new Set(deltas.flatMap((e) => (e.frame.causes as string[] | undefined) ?? []));
+    const lineIds = new Set(
+      s.allFrames().flatMap((f) => [f.meta?.commandId, f.meta?.causingCommandId]).filter((x): x is string => typeof x === 'string'),
+    );
+    record.push(`6a: the stoop's deltas name ${JSON.stringify([...causes])}; its lines carry ${JSON.stringify([...lineIds])}`);
+    expect(deltas.length, 'the stoop changed where you are').toBeGreaterThan(0);
+    expect([...causes].some((c) => lineIds.has(c)), 'a delta names the command its own lines name').toBe(true);
   }, 120_000);
 
   it('7 · `route to` a known room: the plan arrives as data and says what the prose says', async () => {

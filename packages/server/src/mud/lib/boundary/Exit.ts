@@ -549,19 +549,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   }
 
   /**
-   * ⭐ This way's state changed (a door opened, a bolt thrown, a gangway
-   * locked): every body standing at its source that can see it is told its
-   * ways may have changed (navigation-server D9).
-   */
-  public wayChanged(): void {
-    const src = this.source;
-    if (!src || !MixinApi.isContainer(src)) return;
-    for (const who of src.getContents()) {
-      if (MixinApi.isSaxonbergClient(who)) who.refreshNavigation(['ways']);
-    }
-  }
-
-  /**
    * ⭐ The way's whole state in one word — what every screen shows
    * (`WayRecord.state`): no boundary → `open`; a boundary no body can cross
    * even open → `window`; else the boundary's own word, `locked` over `shut`

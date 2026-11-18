@@ -99,23 +99,64 @@ interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key:
 | `ForumSubscriptionRegistry` | `{ scope }` | `{ scope, records }` | the entry | wakes itself (the forum ledger) |
 | `ClientStateSource` | — | the holder's client state | the key | `pushClientStateUpdate` |
 | `PressFeedSource` | — | the live window | the releaseId | the press's mutators (`null` holder) |
-| `MapCopySource` | `{ locality? }` | your map, claims tagged | `<locality>\|<claim key>` | `NavigationApi.recordPlace`, by owner key |
-| `WhereaboutsSource` | — | `{ sections }` | the section's name | `SaxonbergClient.refreshNavigation(names?)` |
+| `MapCopySource` | `{ locality? }` | your map, claims tagged | `<locality>\|<claim key>` | `NavigationApi.recordPlace`, by owner key (one save per document per beat) |
+| `WhereaboutsSource` | — | `{ sections }` | the section's name | wakes itself — its declared table, `WHEREABOUTS_WAKES` — plus the clock and a moving place |
 
 A new kind of state is a new SOURCE — a class composing the mixin, and a
 row — never a new message type and never a kernel list edit.
 
 ## Where you are and your map (navigation-server)
 
-- **`WhereaboutsSource`** keeps one flush per beat per holder: a poke marks
+- **`WhereaboutsSource`** keeps one flush per beat per holder: a wake marks
   sections dirty and arms one `ScheduleApi.schedule(0, …)`; the flush calls
   `Perceiver.navigation(names)` once and sends each subscription only the
   sections that differ from what IT was last sent, each section stamped `v`
-  + 1. A failed read is absent and sends nothing. Triggers: arrival (all),
-  your own command (`you`, `ways`, `place`), a way you see changing state
-  (`Exit.wayChanged` → `ways`), a moving place moving and a voyage's watch
-  (`localities`, `zone`, `place`). The horizon is sent on arrival and in a
-  snapshot only.
+  + 1. A failed read is absent and sends nothing. The horizon is sent on
+  arrival and in a snapshot only.
+- ⭐⭐ **What wakes it is ONE declared table, `WHEREABOUTS_WAKES`**
+  (`platform/idea/WhereaboutsSource.ts`; navigation-server review). A
+  section re-reads when something it showed fires a field change — the
+  same `FieldChangedEvent` a live card wakes on — and each row says whose
+  field (your **body**, your **place**, a **way** out or its door,
+  something you **carry**), which field, which sections, and why in a
+  player's words:
+
+  | whose | field | sections | why |
+  |---|---|---|---|
+  | body | `container` | all | you moved |
+  | body | `contents` | you · ways · place | what you hold or carry changed — hands, load, a key, a lamp, a lead |
+  | body | `posture` | you · ways · place | you sat, stood, lay or stooped |
+  | body | `engagements` | you · ways | a fight or an act began or ended |
+  | body | `hauling` | you · ways | you hitched or unhitched a cart |
+  | body | `occupants` | you · ways | someone mounted you, or got down |
+  | body | `settings` | you | your pace |
+  | place | `contents` | place | who and what is here — the crowd, the light |
+  | place | `name` | place | the place was renamed |
+  | way | any | ways | a door opened, shut or locked; a gangway bolted |
+  | carried | `on` | you · place | a lamp you carry was lit or put out |
+
+  Two wakes no field carries, and no command causes, poke it instead: **the
+  clock** (the weather's segment boundary → every holder's `place`) and **a
+  place that moves under you** (a ship's voyage, a river's reach →
+  `localities`, `zone`, `place`). ⛔ **Nothing else.** It used to be poked
+  by hand from six places, among them after EVERY command you ran — so
+  `say` recomputed the ways (every exit's full gate check) and the panes
+  changed for reasons nobody could name. Adding something a pane shows is
+  a row here and a `fireFieldChange` at its setter (doors, posture,
+  engagements, settings and hitching fire for this table — and so a live
+  card showing them wakes too). `Bistate.setState` fires `open`/`on`/
+  `folded`, so a door opened by the VERB is heard (the setter override the
+  table replaced was never called by `open door`).
+- ⭐⭐ **Every change names its cause.** A `subscription-delta` carries
+  `causes`: the ids of the command(s) whose work produced it — the same id
+  as the prose that command sent (`meta.commandId` /
+  `meta.causingCommandId`). A source that pushes later than it learns
+  (the MQL source, where-you-are) calls `sub.noteCause()` where it marks
+  dirty, because only there is the command in the execution context; a
+  push reads it again itself. The client ties the change to the line
+  (`ChangeMark`, card-surface.md): *changed by: <the line>*, *you didn't
+  see what changed this* (a command, but no line of it reached you — the
+  perception gate comes free), or *time passed* (no command: the clock).
 - **`MapCopySource`** is always the map of whoever the session drives (its
   `mapOwnerKey()` — a shade reads its person's); nobody else's can be asked
   for. Every path on the wire is a `TaggedPath` (`{ path, spoiler: 1 }`);

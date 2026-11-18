@@ -106,16 +106,6 @@ export class Boundary extends BoundaryBase {
   // --- sides ---------------------------------------------------------------
 
   /** The two sides, A first; either may be empty. */
-  /**
-   * ⭐ This boundary's state changed: both ways through it tell whoever
-   * stands at them (navigation-server D9).
-   */
-  public waysChanged(): void {
-    for (const side of [this.sideA, this.sideB]) {
-      if (side && !side.isDestroyed()) side.wayChanged();
-    }
-  }
-
   public getSides(): readonly [Exit | null, Exit | null] {
     return [this.sideA, this.sideB];
   }

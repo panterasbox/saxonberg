@@ -1171,6 +1171,8 @@ class WebSocketClient {
     const env = envelope as SubscriptionDeltaEnvelope;
     if (this.navIds && env.subscriptionId === this.navIds.whereabouts) {
       store.applyNavChanges(env.changes);
+      // ⭐ Each section that changed remembers which command changed it.
+      for (const change of env.changes) store.noteSurfaceChange(`nav:${change.key}`, env.causes);
       return;
     }
     if (this.navIds && env.subscriptionId === this.navIds.mapCopy) {

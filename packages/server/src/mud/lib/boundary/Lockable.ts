@@ -67,6 +67,7 @@ import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * Why a `lock`/`unlock` act was refused. ⭐ The ORDER is the method's
@@ -178,7 +179,7 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
           `Lockable.locked must be a boolean, got ${typeof value}`,
         );
       }
-      this._locked = value;
+      this._locked = SubscriptionApi.fireFieldChange(this, 'locked', this._locked, value);
     }
 
     /**

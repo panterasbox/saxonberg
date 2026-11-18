@@ -219,6 +219,8 @@ export function useCardFeed(): void {
         env.subscriptionId,
         applyChanges(card.records, env.changes as Change[]),
       );
+      // ⭐ The card remembers which command changed it (navigation-server review).
+      store.noteSurfaceChange(`card:${env.subscriptionId}`, env.causes);
     };
 
     websocketClient.onEnvelope("card-opened", handleOpened);

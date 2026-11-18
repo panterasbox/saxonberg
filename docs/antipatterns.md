@@ -2405,6 +2405,28 @@ content; only the controller knows. The `default:` branch above
 is for *typos*, and the framework owns that.
 
 
+## A refresh nobody can name — the hand-placed poke
+
+A screen that keeps itself current must answer two questions a player can
+check: **what makes it change** and **what changed it this time.** A
+hand-placed poke answers neither. *"Refresh the panes"* written after every
+command, after a move, in a door's setter and in a ship's voyage is a list
+that exists nowhere, so nobody can say why a pane changed (or did not), and
+"after every command" recomputes for `say`.
+
+**The rule.** A live surface wakes from the FIELDS its reads showed, fired
+at their setters (`SubscriptionApi.fireFieldChange`) — the same event a live
+card wakes on — through ONE declared table of whose field wakes what and
+why (`WHEREABOUTS_WAKES`). Only what no field and no command carries (the
+clock, a place moving under you) is an explicit poke, and the table names
+those too. **And every push names its cause** (`causes`: the command ids
+the transcript's lines carry), so the client ties a change to a line.
+
+**The tell:** a `refresh…()` call placed after an action rather than a
+fire inside the state change. The navigation-server build found one such
+poke hiding a bug: `Boundary.setOpen` told the ways, but `open door` never
+calls `setOpen` — only the after-every-command poke made it look right.
+
 ## An Api per implementer of a protocol
 
 When several things implement one protocol — six subscription sources,

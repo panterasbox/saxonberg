@@ -2638,6 +2638,15 @@ export interface SubscriptionDeltaEnvelope<F = unknown> {
   subscriptionId: string;
   rev: number;
   changes: SubscriptionChange<F>[];
+  /**
+   * ⭐ What changed it: the ids of the command(s) whose work produced this
+   * delta — the same id as `MessageFrame.meta.causingCommandId` on the
+   * prose that command sent, so a client ties the change to the line in
+   * scrollback (yours, or one you saw somebody else's command make). An
+   * id with no line the viewer received is a change whose cause they did
+   * not see. Absent: no command did it (the clock, the world).
+   */
+  causes?: string[];
 }
 
 /**

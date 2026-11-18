@@ -39,8 +39,20 @@ export interface Subscription {
   readonly source: string;
   /** The body the session drives now (it can change: the sandbox crossing). */
   holder(): Stuff | null;
-  /** Send these changes as one delta (`rev + 1`). Empty is a no-op. */
+  /**
+   * Send these changes as one delta (`rev + 1`). Empty is a no-op. The
+   * delta names its CAUSE — the command(s) whose work produced it — read
+   * from the execution context here, plus every cause {@link noteCause}d
+   * since the last push.
+   */
   push(changes: SubscriptionChange[]): void;
+  /**
+   * ⭐ Remember what is causing a change that will be pushed LATER (a
+   * source that batches to a beat marks now and pushes after). Call it
+   * where the subscription is marked dirty: the causing command is only
+   * in the execution context there.
+   */
+  noteCause(): void;
   /** Refuse or end it in a word: an error goes out and it is closed. */
   fail(reason: string, detail?: string): void;
   /** The source has ended it itself, quietly (its state is already gone). */

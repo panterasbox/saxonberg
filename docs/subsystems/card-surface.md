@@ -447,6 +447,30 @@ shown and nothing is replayed.
 merged when it shipped; that build's W1 migration carries these two message
 types and the paused set across.
 
+## ⭐⭐ A card that changed says what changed it (navigation-server review)
+
+The card idea began as *every card is bound to the command that produces
+or refreshes it* — and the reason that mattered is that everyone knows
+what it means for a command to run, and has tools for finding out more.
+Birth kept it (a command pushes a card); a LIVE card's later changes lost
+it, and a card that changes on its own is magic. So the binding came back
+as the cause rather than the trigger: every `subscription-delta` names the
+command(s) whose work produced it (`causes` — the same id that command's
+lines in scrollback carry; see subscription.md), and the client shows it
+(`client/src/components/cards/ChangeMark.tsx`, over the change slice):
+
+- the card glows briefly when it changes, and a small mark stays for a
+  few seconds — nothing permanent;
+- hover the mark: *changed by: <the line>* — the act's own line first;
+  tap it: the line and **show in scrollback**;
+- a command with no line that reached you: *you didn't see what changed
+  this* (a door unlocked from the other side) — honest, and the perception
+  gate comes free, because the line exists only if you perceived it;
+- no command at all: *time passed* (the clock).
+
+The where-you-are panes (the navigator's crumbs, ways and outside) carry
+the same mark, per section.
+
 ## ⭐⭐ Subject-bound subscriptions
 
 A live inspection card does **not** run its `query`. `'$subject'` is an

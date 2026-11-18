@@ -1115,6 +1115,9 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
   private markDirty(sub: SubscriptionState, staleId: string | null = null): void {
     // ⭐ Paused (crowded-rooms D4/D5): nothing computed until the resume.
     if (sub.handle.isPaused()) return;
+    // ⭐ The fire's command is in the context HERE; the re-resolve runs on
+    // a later tick where it is not. The delta names it.
+    sub.handle.noteCause();
     if (staleId === null) sub.memo.invalid = true;
     else sub.memo.stale.add(staleId);
     this.dirty.add(sub);

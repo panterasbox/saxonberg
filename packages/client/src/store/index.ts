@@ -52,6 +52,7 @@ import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
 import { createNavSlice, type NavSlice } from "./navSlice";
+import { createChangeSlice, type ChangeSlice } from "./changeSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -245,6 +246,12 @@ export interface Frame {
    */
   commandId?: string;
   /**
+   * ⭐ The command whose work composed this frame, even a beat later
+   * (`meta.causingCommandId`) — what a changed card or pane's `causes`
+   * name, so the change is tied to this line.
+   */
+  causingCommandId?: string;
+  /**
    * Set on a frame that is itself a reaction (`meta.inReactionTo` =
    * the act's `commandId`). Lets the client group reaction prose lines
    * onto the target message's always-on indicator with no extra wire.
@@ -325,6 +332,7 @@ interface StoreState
     StudioSlice,
     CardFeedSlice,
     NavSlice,
+    ChangeSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -1134,6 +1142,9 @@ export const useStore = create<StoreState>((set, get) => ({
   // ⭐ Your map and where you are — the two navigation subscriptions.
   // Only touches `navSections` / `mapCopy`.
   ...createNavSlice(set as Parameters<typeof createNavSlice>[0]),
+
+  // ⭐ What last changed each live surface, and which command did it.
+  ...createChangeSlice(set as Parameters<typeof createChangeSlice>[0]),
 
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the

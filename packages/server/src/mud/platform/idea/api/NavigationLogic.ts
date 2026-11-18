@@ -44,6 +44,7 @@ import type {
   RoutePlan,
   RouteSource,
 } from '../../../lib/location/RoutePlan';
+import { ScheduleApi } from '../../../api/schedule';
 
 /** Where the graph registry stands. */
 const GRAPH_REGISTRY_PATH = '/platform/idea/LocationGraphRegistry';
@@ -238,6 +239,8 @@ interface StepCarry {
  * survives the logic singleton's HMR recreate.
  */
 const mapWrites = new Map<string, Promise<void>>();
+/** The claims gathering for each document's next save (one beat). */
+const mapBatches = new Map<string, { claims: MapClaim[]; done: Promise<void> }>();
 
 @Unshadowable
 export class NavigationLogic extends ApiLogic {
@@ -1019,19 +1022,35 @@ export class NavigationLogic extends ApiLogic {
     claims: readonly MapClaim[],
   ): Promise<void> {
     if (!viewerKey || !locality || claims.length === 0) return;
-    // ⭐⭐ ONE write at a time per map document. A walk writes three times
-    // at once — the arrival look's claims, the walked edge, the walked
-    // place — and each is read → grow → save of the WHOLE document, so the
-    // last save overwrote the others' claims: a claim pushed to the client
-    // was lost on disk (the navigation-server drive found it at a restart).
+    // ⭐⭐ ONE write at a time per map document, and ONE save per beat. A
+    // walk writes three times — the arrival look's claims, the walked edge,
+    // the walked place — and each was a read → grow → save of the WHOLE
+    // document: three round-trips, and before they were serialized the last
+    // save overwrote the others' claims (the drive found it at a restart).
+    // Claims for a document now gather for one beat and are saved once,
+    // after any save already in flight.
     const key = `${viewerKey}|${locality}`;
+    const gathering = mapBatches.get(key);
+    if (gathering) {
+      gathering.claims.push(...claims);
+      return gathering.done;
+    }
+    const batch = { claims: [...claims], done: Promise.resolve() };
+    mapBatches.set(key, batch);
     const prior = mapWrites.get(key) ?? Promise.resolve();
-    const mine = prior.catch(() => undefined).then(() => this.growAndSave(viewerKey, locality, claims));
-    mapWrites.set(key, mine);
+    batch.done = prior
+      .catch(() => undefined)
+      .then(() => new Promise<void>((resolve) => void ScheduleApi.schedule(0, () => resolve())))
+      .then(() => {
+        // From here, a new claim starts the NEXT batch, queued behind this save.
+        if (mapBatches.get(key) === batch) mapBatches.delete(key);
+        return this.growAndSave(viewerKey, locality, batch.claims);
+      });
+    mapWrites.set(key, batch.done);
     try {
-      await mine;
+      await batch.done;
     } finally {
-      if (mapWrites.get(key) === mine) mapWrites.delete(key);
+      if (mapWrites.get(key) === batch.done) mapWrites.delete(key);
     }
   }
 

@@ -328,7 +328,7 @@ describe('⭐⭐ concurrent writes to one map document lose nothing (the drive f
       await tick();
       return saved ? [{ path: `/home/mapper/map/${LOCALITY}`, data: JSON.parse(JSON.stringify(saved)) }] : [];
     }) as never);
-    vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
+    const saves = vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
       await tick();
       saved = data as unknown as MapDocument;
     }) as never);
@@ -338,5 +338,26 @@ describe('⭐⭐ concurrent writes to one map document lose nothing (the drive f
       NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'walked' })]),
     ]);
     expect(saved!.claims.map((c) => `${c.kind}:${c.channel}`).sort()).toEqual(['edge:seen', 'place:seen', 'place:walked']);
+    // ⭐ One beat, one save (navigation-server review): not three round-trips.
+    expect(saves).toHaveBeenCalledTimes(1);
+  });
+
+  it('a claim arriving while a save is in flight is the NEXT save, and lands too', async () => {
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 5));
+    vi.spyOn(DocumentApi, 'readMaps').mockImplementation((async () => {
+      await tick();
+      return saved ? [{ path: `/home/mapper/map/${LOCALITY}`, data: JSON.parse(JSON.stringify(saved)) }] : [];
+    }) as never);
+    let late: Promise<void> | null = null;
+    const saves = vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
+      // The first save is in flight when the walked claim arrives.
+      late ??= NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'walked' })]);
+      await tick();
+      saved = data as unknown as MapDocument;
+    }) as never);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'seen' })]);
+    await late;
+    expect(saves).toHaveBeenCalledTimes(2);
+    expect(saved!.claims.map((c) => `${c.kind}:${c.channel}`).sort()).toEqual(['place:seen', 'place:walked']);
   });
 });

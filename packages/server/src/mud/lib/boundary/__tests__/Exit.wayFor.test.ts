@@ -13,6 +13,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
+import { SubscriptionApi } from '../../../api/subscription';
 import { BoundaryApi } from '../../../api/boundary';
 import { ContainmentApi } from '../../../api/containment';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -106,12 +107,20 @@ describe('Exit.wayFor — the verdict is the check moving runs', () => {
     expect(way.take).toEqual({ ok: false, gate: 'breakaway', reason: words });
   });
 
-  it('a state change tells whoever stands at the way', async () => {
+  it('⭐ a state change FIRES on the door — by the setter and by the verb\'s own path', async () => {
+    // What a screen showing the way watches (WHEREABOUTS_WAKES' `way` row,
+    // a live card's door). `open()` never called `setOpen`, so the old
+    // setter-override told nobody when a door was opened by `open door`.
     const door = await StuffApi.create(() => new Door());
     door.setShortDescription('oak door');
     BoundaryApi.attach(door, north);
-    const told = vi.spyOn(north, 'wayChanged');
+    const fired = vi.spyOn(SubscriptionApi, 'fireFieldChange');
+    const fields = (): string[] => fired.mock.calls.filter((c) => c[0] === door).map((c) => c[1]);
     door.setLocked(true);
-    expect(told).toHaveBeenCalled();
+    expect(fields()).toContain('locked');
+    door.setLocked(false);
+    fired.mockClear();
+    door.open(null);
+    expect(fields(), 'the verb path').toContain('open');
   });
 });

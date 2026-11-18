@@ -419,6 +419,9 @@ function App() {
         ...(frame.meta?.commandId !== undefined
           ? { commandId: frame.meta.commandId }
           : {}),
+        ...(frame.meta?.causingCommandId !== undefined
+          ? { causingCommandId: frame.meta.causingCommandId }
+          : {}),
         ...(frame.meta?.inReactionTo !== undefined
           ? { inReactionTo: frame.meta.inReactionTo }
           : {}),

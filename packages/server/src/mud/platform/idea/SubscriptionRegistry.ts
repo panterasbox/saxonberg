@@ -40,6 +40,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { Mixins } from '../../lib/mixin';
 import type Interactive from './Interactive';
 import type {
@@ -73,6 +74,8 @@ class Handle implements Subscription {
   open = true;
   /** Not on screen (crowded-rooms D4): nothing pushed is sent. */
   paused = false;
+  /** The commands whose work the next delta carries (see `noteCause`). */
+  causes: Set<string> = new Set();
   /** Changes pushed before the snapshot went out — sent right after it. */
   early: SubscriptionChange[][] | null = [];
 
@@ -94,9 +97,15 @@ class Handle implements Subscription {
     return this.interactive.getHolder() as Stuff | null;
   }
 
+  noteCause(): void {
+    const id = ExecutionContextApi.getCurrentCausingCommandId();
+    if (id !== null) this.causes.add(id);
+  }
+
   push(changes: SubscriptionChange[]): void {
     // ⭐ A paused subscription sends nothing; its resume answers afresh.
     if (!this.open || this.paused || changes.length === 0) return;
+    this.noteCause();
     if (this.early !== null) {
       this.early.push(changes);
       return;
@@ -361,11 +370,18 @@ export default class SubscriptionRegistry extends Idea {
   private sendDelta(h: Handle, changes: SubscriptionChange[]): void {
     if (!h.open || changes.length === 0) return;
     h.rev += 1;
+    // ⭐ Every change names its cause (navigation-server review): the
+    // command(s) whose work produced it — the same id the prose frames of
+    // that command carry, so the client ties the change to the line. None:
+    // no command did it (the clock, the world).
+    const causes = [...h.causes];
+    h.causes.clear();
     h.interactive.sendEnvelope({
       type: 'subscription-delta',
       subscriptionId: h.id,
       rev: h.rev,
       changes,
+      ...(causes.length > 0 ? { causes } : {}),
     });
   }
 

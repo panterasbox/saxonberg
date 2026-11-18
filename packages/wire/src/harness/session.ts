@@ -727,6 +727,11 @@ export class Session {
     return this.rawFrames.filter((f) => f.topic === topic);
   }
 
+  /** Every captured message frame since the last `cmd()`, any topic. */
+  allFrames(): CapturedFrame[] {
+    return this.rawFrames.slice();
+  }
+
   /** Drop every captured envelope and frame. `cmd()` does this itself. */
   clearCaptures(): void {
     this.envelopes.length = 0;

@@ -238,8 +238,9 @@ where (`location-graph.md`), ways that never disagree with trying
 - **A named reach on `LineFrame`** (the outer crumb says the river and km);
   **a trail of reckonings** (one reckoned claim per sea today) — the
   *your map grows* build.
-- **The room card's `exits` refreshing on a door** — `Exit.wayChanged()` is
-  the seam (boundary-slate).
+- ~~The room card's `exits` refreshing on a door~~ — done at review: a
+  door's `open`/`locked` and a gangway's bolt FIRE now, so a card showing
+  them wakes like the ways do.
 - **Movement in progress (S19)** — an eighth section of the same source
   (step-beat-slate).
 - **Renaming the two shipped registries to sources** — a naming sweep.
@@ -252,6 +253,35 @@ where (`location-graph.md`), ways that never disagree with trying
 - **Card pause / resume** — crowded-rooms carries it; on this protocol it is
   `subscription-pause` / `-resume`, the paused flag in the MQL source's
   state, resume answering `subscription-result` at rev 0.
+
+**Performance and legibility — what review left** (the owner: *"performance
+whatever, and then a pass making sure our public interfaces are legible,
+no overlap or gaps, and someone else could build on top"*). Done at
+review: where-you-are wakes from one declared table, not after every
+command; map writes save once per document per beat; every push names its
+command. Left:
+
+- **Cache a way's verdict** per (body state, exit state) — a fire on either
+  is the invalidation; the ways section still re-checks every exit when it
+  re-reads.
+- **Finer deltas**: a way that changed, not the whole ways section.
+- **Pause the navigation panes** off screen — the protocol pauses any
+  source; only cards report.
+- **One dependency mechanism**: where-you-are's table watches whole things
+  (body, place, ways, carried) by field; the MQL source records what each
+  row actually read. They share the event; a source that wants row-level
+  precision should ride the MQL source's index, not grow a third.
+- **Typed poke hints** — each source's hint is `unknown` and its own words
+  (`names`, `durableSubject`, `belief`); a source should declare its hint
+  type so a reader can see what it takes.
+- **`handleQuery`** (a one-shot query) rides `SubscriptionApi` without
+  being a subscription.
+- **A body swap**: the sandbox crossing re-points MQL (a holder poke) but
+  where-you-are stays bound to the body it opened on; a session-level
+  re-open of every source is the fix, and `Interactive.refreshMqlSubscriptions`
+  becomes it.
+- **Riding**: a RIDER's `you.mount` wakes on nothing yet (the mount fires
+  `occupants`; the rider does not) — the drive does not mount.
 
 **What the drive found** (the plan's drive record, kept here when the plan
 retired): the map copy's read refused itself at its own gate; the building

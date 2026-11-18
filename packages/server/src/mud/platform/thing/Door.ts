@@ -45,12 +45,6 @@ export default class Door extends DoorBase {
     },
   ];
 
-  /** The bolt thrown or drawn: the ways through it are told (navigation-server D9). */
-  public override setLocked(value: boolean): void {
-    super.setLocked(value);
-    this.waysChanged();
-  }
-
   static fieldMeta: FieldMeta = {
     closesBehind: { persistent: true, authorable: true },
     freeFrom: { ref: 'identity:relation', persistent: true, authorable: true },

@@ -89,6 +89,7 @@ import {
   type Maintainable,
   type MaintainAnswer,
 } from '../../lib/structure/Maintainable';
+import { SubscriptionApi } from '../../api/subscription';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -1656,12 +1657,14 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   public isGangwayLocked(): boolean { return this.gangwayLocked; }
   /** The bolt thrown or drawn — kept, and told to her way aboard (it answers for her while she sleeps). */
   public setGangwayLocked(v: boolean): void {
+    const was = this.gangwayLocked;
     this.gangwayLocked = v === true;
     const exit = this.berthExit;
     if (exit !== null && !exit.isDestroyed()) {
       exit.configureBerth(this as unknown as Stuff & Berthed);
-      // ⭐ Her gangway is a way people see (navigation-server D9).
-      exit.wayChanged();
+      // ⭐ Her gangway is a way people see: it fires on the WAY (her berth
+      // exit), which every screen showing that way watches.
+      SubscriptionApi.fireFieldChange(exit, 'gangwayLocked', was, this.gangwayLocked);
     }
     this.persistMooring();
   }
