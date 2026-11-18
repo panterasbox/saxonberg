@@ -48,6 +48,7 @@ import type Material from "../material/Material";
 import type { Acidity } from "../material/Acidity";
 import type { BulkPayload } from "../bulk/Bulkable";
 import { MixinApi } from "../../api/mixin";
+import { ExecutionContextApi } from '../../api/execution-context';
 import { BiomeApi } from "../../api/biome";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
@@ -703,6 +704,9 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public reconcileMetabolism(): void {
       if (this._reconciling) return;
+      // ⭐ The room's reading holds the world still (crowded-rooms D15): a
+      // card's projection of a body reads it as its last reconcile left it.
+      if (ExecutionContextApi.worldHeldStill) return;
       const D = METABOLIC_DEFAULTS;
 
       // Read the in-session game-time. When no world clock is running

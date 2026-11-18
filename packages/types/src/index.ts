@@ -1696,6 +1696,28 @@ export interface MqlUnsubscribeMessage {
 }
 
 /**
+ * ⭐ The client says a subscription it holds is NOT ON SCREEN (crowded-rooms
+ * D4/D5): a card scrolled away, minimized, displaced by a `full` card, or
+ * the tab hidden. The server stops computing and sending it — its
+ * dependencies are dropped and nothing is emitted — and keeps the id. One
+ * fact, one source: the server never infers it. Unknown ids are skipped.
+ */
+export interface MqlSubscriptionPauseMessage {
+  type: 'mql-subscription-pause';
+  subscriptionId: string;
+}
+
+/**
+ * ⭐ The subscription is on screen again: the server answers ONE fresh
+ * `mql-subscription-result` (a reset — the client replaces what it holds)
+ * and resumes sending deltas. Ids that are not paused are skipped.
+ */
+export interface MqlSubscriptionResumeMessage {
+  type: 'mql-subscription-resume';
+  subscriptionId: string;
+}
+
+/**
  * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
  * same `query` / `cardinality` / `fields` / `detailKey` fields — but
  * the substrate reuses ONLY the parse + resolve + project pipeline:

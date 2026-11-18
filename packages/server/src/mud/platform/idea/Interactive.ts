@@ -484,6 +484,25 @@ export default class Interactive extends Idea {
     mqlSubscriptionLogic().handleUnsubscribe(this, subscriptionId);
   }
 
+  /**
+   * ⭐ The client says this subscription is not on screen (crowded-rooms
+   * D4): nothing is computed or sent until {@link resumeSubscription}. The
+   * `mql-subscription-pause` wire. Unknown ids are a skip.
+   */
+  public pauseSubscription(subscriptionId: string): void {
+    mqlSubscriptionLogic().handlePause(this, subscriptionId);
+  }
+
+  /** ⭐ On screen again: one fresh result, then deltas (`mql-subscription-resume`). */
+  public resumeSubscription(subscriptionId: string): void {
+    mqlSubscriptionLogic().handleResume(this, subscriptionId);
+  }
+
+  /** Is this subscription paused? */
+  public isSubscriptionPaused(subscriptionId: string): boolean {
+    return mqlSubscriptionLogic().isPaused(this, subscriptionId);
+  }
+
   /** Drop every live MQL subscription (disconnect). */
   public cancelAllMqlSubscriptions(): void {
     mqlSubscriptionLogic().cancelAllForInteractive(this);

@@ -29,6 +29,7 @@ import { HotReloadApi } from "./hot-reload";
 import { PersistableLogic } from "../platform/idea/api/PersistableLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import { ExecutionContextApi } from './execution-context';
 import type {
   MixinSlice,
   EstateEntry,
@@ -72,6 +73,7 @@ export class PersistableApi {
    * residency sweep / autosave) writes back to the same `(scope, key)` record.
    */
   static capture(host: Stuff, key?: string): Promise<void> {
+    ExecutionContextApi.wouldWrite(`capture ${host.stuffId}`);
     return logic().capture(host, key);
   }
 

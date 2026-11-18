@@ -32,6 +32,8 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import Ash from '@saxonberg/content-trade-fuel/src/thing/Ash';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 
 /** ⭐ The leach percolates over half a game day (cordage W7): a clock to run it on. */
@@ -44,9 +46,18 @@ function clock(): void {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
     makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
   }
+  // A heap's percolation wake is host-bound: it listens for its host's
+  // destruct, which needs the event registry (crowded-rooms D8).
+  EventApi._setRegistryForTesting(
+    makeStuffAtPath(() => new EventRegistry(), '/platform/idea/EventRegistry'),
+  );
 }
 /** Let the water work down through the ash: a game day passes (the provider is real ms at scale 1). */
 function aDay(): void {
+  // THROUGH the clock, so each heap's wake fires at its due time
+  // (crowded-rooms D8) — nobody has to read the hopper for the ash to come
+  // through.
+  WorldClockApi._advanceForTesting(86_400_000);
   now += 86_400_000;
 }
 

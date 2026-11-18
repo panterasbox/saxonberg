@@ -48,6 +48,7 @@ import { SecurityApi } from './security';
 import PlacementCatalogue from '../platform/idea/PlacementCatalogue';
 import ShapeCatalogue from '../platform/idea/ShapeCatalogue';
 import { Placements } from '../lib/spatial/Placement';
+import { ExecutionContextApi } from './execution-context';
 // `GotoController` is reached lazily via a string module id to avoid a
 // value-level static-import cycle (api/containment → controller →
 // ContainmentApi).
@@ -272,6 +273,7 @@ export class ContainmentApi {
     to: ContainerStuff | (Stuff & Placing) | null,
     placement?: string,
   ): void {
+    ExecutionContextApi.wouldWrite(`move ${item.stuffId}`);
     logic().move(item, to, placement);
   }
 

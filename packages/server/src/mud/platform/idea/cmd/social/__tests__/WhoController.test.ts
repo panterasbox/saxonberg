@@ -77,7 +77,7 @@ describe('WhoController', () => {
   it('lists every online person, lensed, with country and a notable status', async () => {
     const viewer = {
       stuffId: 'v1',
-      composeRosterRow: async (t: { stuffId: string }) =>
+      composeRosterRow: (t: { stuffId: string }) =>
         ROWS[t.stuffId as keyof typeof ROWS]!,
     } as unknown as Stuff;
     await makeStuff(() => new WhoController()).execute({} as never, ctxFor(viewer));
@@ -92,7 +92,7 @@ describe('WhoController', () => {
   it('--country narrows on the already-public country field', async () => {
     const viewer = {
       stuffId: 'v1',
-      composeRosterRow: async (t: { stuffId: string }) =>
+      composeRosterRow: (t: { stuffId: string }) =>
         ROWS[t.stuffId as keyof typeof ROWS]!,
     } as unknown as Stuff;
     await makeStuff(() => new WhoController()).execute(

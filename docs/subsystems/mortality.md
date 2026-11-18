@@ -99,6 +99,17 @@ flips into a state a medic can act on.
 `dying` band between `critical` and `dead`. It persists, so a dying body
 evicted and restored is still dying with its accrued time intact.
 
+⭐ **A dying PLAYER dies on the clock** (crowded-rooms D21, 2026-11): the
+window's end is one of the deadlines in `Vitals.nextInterestingAt`, so the
+body's one-shot alarm (`rescheduleNotify`, booked by `afflict`) runs the
+reconcile that expires it — whether or not anything reads them. It used to
+be the next Scene rendered to them (the viewer's sight gate reconciled the
+body), so death came sooner in a crowd than alone. An NPC's dying still
+resolves when it is read (the alarm is a courtesy to a body with a
+session). ⚠ Bleed-out onset (`beginDying` at the blood floor) and
+sustained-shock relief have no closed-form deadline and still happen only
+in a reconcile — named in the silent-write-census slate.
+
 **The window comes from the driver**, not a central table — bleeding out
 and freezing to death are not the same length of story, and the producer
 that knows the mechanism knows the number:
