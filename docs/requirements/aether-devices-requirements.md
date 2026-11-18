@@ -24,6 +24,15 @@ everyone in it, NPCs included. Seeding slate: [aether-devices-slate](../slates/e
   not.
 - **A screen.** What reaches you through it, you *read* off it. Only the implant is truly
   extra-sensory.
+- ⭐ **Built in vs installed** (the owner: *"we need to have a clear concept of what's built into
+  the phone and what's installed on it from day one"*):
+  - **built into the phone** — the tuner, the power switch, the battery and the screen. They are the
+    phone; nothing removes them;
+  - **installed on it** — **apps**. Day one ships one: **Messages**, which carries `dm`, `reply`,
+    chat channels and remote emotes. Without it, a tuned phone reaches nobody.
+- **Activated to its owner.** A phone works only for the person it is activated to; in anyone else's
+  hands it tunes nobody and runs nothing. The free starter phone is activated to its new player for
+  good, so it is worthless to anyone else.
 - **Supply:** no electronics trade exists, so it is a bought-in good — given to you at the start,
   sold at the Terminus general store.
 - **Scale:** one is enough; carrying two adds nothing.
@@ -55,9 +64,13 @@ everyone in it, NPCs included. Seeding slate: [aether-devices-slate](../slates/e
 - **Builds in flight** — none touches the aether, emotes, the starting kit or screens.
   `build/navigation-server` edits neighboring lines of the body and carrying code only.
 
+- **Apps today** — comms, forums, the wallet and the calendar are attached to the *person*, not to
+  any device. They are not moved in this build.
+
 **Therefore what is genuinely new here is:** a tuner that works because you carry it rather than
-because it is in a body slot; a battery that runs down and charges; the room carrying emotes to
-everyone in it while the aether carries them past it; and the phone itself, with a charger.
+because it is in a body slot; **an app installed on a device**, which the device runs; a phone
+activated to its owner; a battery that runs down and charges; the room carrying emotes to everyone
+in it while the aether carries them past it; and the phone itself, with a charger.
 
 ## Goals
 
@@ -65,6 +78,10 @@ everyone in it while the aether carries them past it; and the phone itself, with
   today.
 - **Carrying the phone in hand or ready tunes you in**; packed, powered off or dead, it does not.
 - **You can power a phone off and on** with `switch`.
+- **A phone runs apps.** What is built in and what is installed is clear from day one; the
+  **Messages** app carries DMs, chat and remote emotes, and you can uninstall and reinstall it.
+- **A phone works only for the person it is activated to**, and the free starter phone is worthless
+  to anyone else.
 - **The phone has a battery** that lasts a full play session of ordinary use and charges cheaply and
   easily — *"this isn't the place in the game where we want to put up barriers"* (the owner).
 - **A phone left on a charger keeps charging while you are logged out.**
@@ -86,7 +103,14 @@ everyone in it while the aether carries them past it; and the phone itself, with
   [guarantees-of-play-slate](../slates/society/guarantees-of-play-slate.md) § 5.
 - **Getting an implant** (a process, surgery) → [surgery-specialty-slate](../slates/trades/surgery-specialty-slate.md)
   and a later content pass; the owner wants *"a cool process"*.
-- **One kind of app, as rows; the phone's other features** (flashlight, camera, map) **and its modes**
+- **Moving the calendar, wallet and forums onto the phone** → a later build (the owner: *"we don't
+  have to migrate all the calendar or other stuff"*). They stay attached to the person.
+- **Where else apps come from** — buying them, an app store with prices, apps that players make →
+  [aether-devices-slate](../slates/engine/aether-devices-slate.md) § 6, a later build. Day one, the
+  phone's own list offers Messages, free.
+- **Unlocking someone else's phone** (a reset trade, a fence) → a later content pass. Day one, only a
+  phone's owner can reset it.
+- **The phone's other features** (flashlight, camera, map) **and its modes**
   (speaker, earbuds, silent) → [aether-devices-slate](../slates/engine/aether-devices-slate.md) §§ 4, 6,
   a later build. The modes carry a privacy question (a speaker reads real players' messages to the
   room) that belongs with the [privacy-slate](../slates/platform/privacy-slate.md).
@@ -134,6 +158,26 @@ everyone in it while the aether carries them past it; and the phone itself, with
 ### The phone is the starting kit, the implant is retired
 Every new character's starting kit includes a phone, in a pocket. **The owner, 2026-10-28.** The
 implant stays in the world for guests and for a later acquisition process.
+
+### Built in vs installed; one Messages app
+- **Built in:** the tuner, the power switch, the battery, the screen.
+- **Installed:** apps. **Messages** carries `dm`, `reply`, chat channels and remote emotes as one app —
+  the owner left one-or-three open (*"doesn't matter too much"*), and one is the smaller surface;
+  splitting it later is a row change.
+- **`look phone`** lists its charge and its installed apps.
+- **`install messages`** and **`uninstall messages`** act on the phone in your hand or ready. Bare
+  `install` lists what is available. Installing Messages is free and instant, so uninstalling it is a
+  choice, never a trap.
+- **The implant runs apps the same way** — a guest's implant comes with Messages installed.
+- The calendar, wallet and forums stay attached to the person, as today.
+
+### Activated to its owner
+Like a real phone's activation lock. A phone is activated to the first person who holds it new — the
+new player for the free one, the buyer for a bought one. In anyone else's hands it is a brick: it
+tunes nobody and runs no apps. **The free starter phone can never be reset**, so it is worth nothing
+to anyone but its player — the owner's *"bind itself to the user or otherwise be worthless to anyone
+but the new player."* A **bought** phone can be reset by its owner (`reset phone`) before selling it
+on. Theft is still a loss to you — the stake stays — but a thief gains a brick, not a phone to sell.
 
 ### Hand or ready tunes you; packed does not
 The carrying tiers already exist and players already learn them. A phone in your rucksack is a phone
@@ -212,6 +256,10 @@ unless marked *staged*.
 1. **Spawn with a phone.** A is created; `i` lists a phone, ready (in a pocket). `look phone` shows a
    full charge. *instant · player*
 2. **DM works.** A `dm B hello`; B receives it, read off the phone. *instant · player*
+2a. **Built in and installed.** `look phone` shows its charge and one installed app, Messages.
+    *instant · player*
+2b. **Uninstall.** A `uninstall messages`; `dm B hi` is refused — *install Messages* — and held. A
+    `install messages`; the held message goes out. *instant · player*
 3. **No implant.** A's body has no implant in its cranial slot (`look me` / `i`). *instant · player*
 4. **Remote emote.** From another room, A sends B a directed emote; B gets it. *instant · player*
 5. **The room carries emotes to NPCs.** A, in the lounge, emotes at Remy; Remy reacts. *instant ·
@@ -234,8 +282,12 @@ unless marked *staged*.
     passes; A logs back in to a charged phone. *short · player*
 14. **Restart.** The world restarts; A logs in: the phone is in the same place with the same charge,
     and anything A had held is still held. *staged (restart)*
-15. **Buy one.** A drops the phone; B walks off with it. A goes to the Terminus general store and buys
-    a phone and a charger; the new phone tunes A. *instant · player*
+15. **Theft is a loss, and a brick.** A drops the phone; B picks it up. B cannot use it — it tunes
+    nobody, runs nothing — and B cannot reset it; the general store will not buy it. *instant · player*
+15a. **Buy one.** A goes to the Terminus general store and buys a phone and a charger; the new phone
+    activates to A and tunes A. *instant · player*
+15b. **Reset and sell on.** A `reset phone` on the bought phone and hands it to B; it activates to B.
+    *instant · player*
 16. **Blind.** *staged:* A is blinded. B's `dm` waits; when A can see again it arrives. *staged*
 17. **Guest.** G logs in as a guest: G can `dm` A, has an implant, and has no phone to drop or sell.
     *instant · player*
@@ -259,6 +311,10 @@ unless marked *staged*.
 8. A message you cannot send is held with a refusal that names the fix, and goes out when you can;
    messages to you wait and arrive with *while you were away*.
 9. A phone and a charger can be bought at the Terminus general store.
+9a. `look phone` shows what is installed; Messages can be uninstalled and reinstalled, and without
+    it you cannot send.
+9b. A phone in anyone's hands but its owner's tunes nobody; the free starter phone cannot be reset or
+    sold; a bought phone can be reset by its owner and passed on.
 10. Guests keep an implant; the shade is tuned; a holodeck body has no tuner unless its owner gives
     it one.
 11. A message read off a phone waits while you cannot see.

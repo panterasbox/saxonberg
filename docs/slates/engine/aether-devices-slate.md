@@ -258,6 +258,14 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **Getting an implant** waits for *"a cool process"* and the surgery slate.
 - **The starter phone is a value leak** like today's starter clothes →
   [money-integrity-slate](../tech-debt/money-integrity-slate.md).
+- ⭐ **Apps run on the device, from day one** (the owner, reversing § 1's *apps are not installed on
+  the device* for new apps): *"I do want to make sure we design and build the concept of an app
+  running on the phone now … a clear concept of what's built into the phone and what's installed on
+  it."* Built in: the tuner, power, battery, screen. Installed: **Messages** (DMs, chat, remote
+  emotes). The calendar, wallet and forums stay on the person — *"we don't have to migrate"*.
+- ⭐ **Activated to its owner** — a phone tunes and runs apps only for the person it is activated to;
+  the free starter phone can never be reset (*"bind itself to the user or otherwise be worthless to
+  anyone but the new player"*). A bought phone can be reset by its owner.
 - **A tuner within reach was dropped** — hand or ready tunes you; charging happens while you are
   logged out.
 
