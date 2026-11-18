@@ -18,7 +18,9 @@
 > window, outcomes, opinions attached to clauses (§ 7j) · committees as groups with grants — carving,
 > paths for every operation, per-collection tools, the DBA seat, sovereignty and the Compact's appeal,
 > public duties and private protections (§ 7l) · the interface — `bill`, `law`, `office`, `committee`,
-> `directive`, `job`, `allowance`, the enforcement verbs, `case`, and their cards (§ 7m)
+> `directive`, `job`, `allowance`, the enforcement verbs, `case`, and their cards (§ 7m) · the person
+> docket — five kinds of matter, epistemic evidence in the fiction, judge and jury, Tier A due process,
+> interim rules, closed sentences, the record (§ 7o)
 > **Size:** a design pass, then the procedure law as received law, then the record and the merge
 > gate as a build
 
@@ -975,6 +977,148 @@ the same verb, with a notice as the target.
 | the DBA | confirmed by the legislature; raw operations logged | 7 |
 | a new collection operation | class 5 | 7 |
 
+## 7o. ⭐⭐⭐ The person docket **[DECIDED in shape]**
+
+The court's other docket (§ 7j): cases that judge a person. Three questions shape it, and they differ
+from code review — **whose harm is it** (the fiction's, or a real person's)? **what counts as
+evidence** (what someone perceived, or what the engine knows)? **who decides facts, and who decides
+law?**
+
+### Five kinds of matter, one `case` verb
+
+| kind | brought by | the question | example |
+|---|---|---|---|
+| **appeal of a notice** | the person | did the clause justify this act against me? | contesting a fine or a bar (§ 7f) |
+| **criminal** | a prosecutor's seat (executive) | did they break the law? | theft; assault outside the bar's rules |
+| **civil** | a person | do they owe me? | a breached contract, damaged goods, a boundary |
+| **warrant** | the executive, one-sided | is there cause to search, arrest or summon? | searching a private parcel (§ 7l) |
+| **conduct** | anyone | did they harm a real person? | harassment, cheating, abuse of a seat |
+
+An appeal of a notice is code review's three questions applied to an act. The rest are new.
+
+### ⭐⭐⭐ In-fiction justice uses only what someone could know **[DECIDED — lens 1]**
+
+Players are *meant* to commit crimes in the fiction (the owner's PvP stance), and catching them is the
+game — witnesses, forensics, the deduction the university's story arc is built on. The engine knows
+everything; the harm ledger records every injury exactly. An in-fiction court that read it would solve
+every crime at once and end the investigation play — the receipt's invariant again (*no omniscient trace
+in the fiction*, [tech-tree-slate](./tech-tree-slate.md) § 6d).
+
+- **In-fiction cases are epistemic.** Admissible: witness testimony, receipts banded to what each
+  witness knew, physical evidence gathered by forensics, documents. **Never the engine's ledger.** A
+  perfect crime can go unpunished, and that is correct — the price of keeping investigation learnable.
+- **Out-of-fiction conduct cases may use everything.** Harassing a real person is real harm; safety beats
+  mystery, so the engine's logs are admissible. This is moderation
+  ([moderation-slate](./moderation-slate.md), [prison-slate](./prison-slate.md)).
+- **Every case carries the in-or-out flag, set at filing by the clerk** — neither party can launder a
+  fiction grievance into the conduct track to reach the omniscient evidence; a misfiling is appealable.
+- ⭐ **Conduct cases never appear in the fiction** — a real harassment case is not dramatized in the
+  world.
+- ⭐ **NPCs may testify, never sit on a jury** **[DECIDED — lens 3a]**. An NPC's testimony is what it
+  perceived and believes — epistemic, admissible. Judging is a person's act: no NPC weight
+  ([guild-slate](./guild-slate.md)).
+
+### Who decides **[DECIDED — lens 1]**
+
+- **A judge decides the law; a jury decides the facts.** The judge (or a panel) by lot from the
+  credentialed, as in code review; **the jury by lot from players with standing** — lay people. *Did they
+  do it?* is a question for peers. Mechanical exclusions: the parties, their alts (one account), anyone
+  with a recent stake. ⭐ The jury is how ordinary players learn the law by doing it — Tocqueville's
+  *free school*.
+- **Jury duty is labor** — standing by formula, per case (§ 7h).
+- **Counsel is a profession** — players holding a law credential represent parties, paid by the party or
+  appointed and paid by the court.
+- **Jury nullification stays possible** — a jury may acquit in the face of the law.
+
+### Due process — Tier A **[DECIDED — lens 7]**
+
+Every person case gets **notice** (the clause or charge), **the evidence**, **a response** (in writing by
+default; in-fiction, **a hearing** in a courtroom as a place — a conversation in a room, which a text
+world does cheaply and well), **a standard of proof** (beyond reasonable doubt for criminal; more likely
+than not for civil and appeals — defaults the polity may set), and **appeal** — to the high court, and
+from any private or extent court to the Compact (§ 7l). **No polity can repeal these.**
+
+- **Warrants are one-sided**, so the person is notified after execution and may challenge the warrant
+  then.
+
+### While a case is pending **[DECIDED — lens 7]**
+
+The code docket's *a silent court approves* does not fit persons: nobody should be punished by the
+court's slowness, and flooding the court with appeals should not erase every penalty. **Each tool
+declares its interim rule** — a fine is **escrowed** pending appeal, neither paid nor forgiven; a bar
+**stands** (it is for safety) unless the court lifts it; a seizure stays in custody. **An unruled case
+escalates to the high court** rather than deciding itself.
+
+### Sentences — a closed list **[DECIDED in shape]**
+
+Typed in law with ranges, as sentencing guidelines are; a court cannot invent one: fines and
+restitution · a bar from an extent · revoking a license · confiscation · public labor (never profit for a
+private party) · jail, in game time. ⚠ **Jail obeys *never strand a player*** — the help system still
+works, and sentences are bounded (Tier A). A polity's penal philosophy — rehabilitative or harsh — is
+these typed clauses.
+
+- ⭐ **No standing penalties** **[DECIDED — lens 7, from the measurement doctrine]**. Standing *measures*
+  contribution; a court that cut it would falsify the measure, breaking *the engine measures, the polity
+  imposes*. Courts impose through sentences. **Abuse of a seat can cost the seat.**
+- ⭐ **Fine revenue goes to the general treasury, never to the institution that levied it**
+  **[DECIDED — lens 6]** — otherwise policing becomes a revenue business (the US Justice Department's
+  2015 Ferguson report). Fines help close the treasury's revenue gap (§ 7g) through the general fund.
+
+### The record **[DECIDED — lens 5]**
+
+- **In-fiction convictions are public in the fiction** — reputation; NPCs and players may come to learn
+  of it — with **expungement after a period**, so the record does not follow someone forever. **They stay
+  in their realm.**
+- **Conduct records are private** to the person, the Compact and future conduct cases — and **follow the
+  account**, across realms: harassing real people is the platform's business wherever it happens.
+
+### The interface
+
+The same `case` verb (§ 7m), plus:
+
+| subcommand | does |
+|---|---|
+| `case charge <person> <clause>` | a prosecutor's seat files a criminal case |
+| `case sue <person> <claim>` | a civil case |
+| `case respond <case>` | the accused's or defendant's answer |
+| `case counsel <case> <person>` | retains or appoints counsel |
+| `case evidence <case> add <item or receipt>` | submits evidence — what you perceived, or what you hold |
+| `case verdict <case>` | a juror's finding of fact |
+| `case sentence <case> <sentence>` | the judge, from the clause's list and range |
+
+Every notice card carries an **appeal** action: `case file` with the notice attached.
+
+### Lens pass
+
+1. **Pedagogy** — criminal, civil and administrative law, burdens of proof, judge and jury, due process,
+   warrants, sentencing guidelines, expungement; **lens 1 chose epistemic evidence in the fiction and lay
+   juries.**
+2. **Expression** — authors build crimes, mysteries and private tribunals with no engine work; a polity's
+   penal philosophy is typed clauses.
+3. **3a Immersion** — a courtroom as a place; conduct cases never in the fiction; **NPCs testify, never
+   judge.** **3b Participation** — crime, detection and lawyering as play and trade; a polity may write a
+   bad law (the Compact's appeal is the floor) and a jury may nullify.
+4. **Values** — what counts as a crime, the standards of proof, the sentence ranges and the expungement
+   period are the polity's law, with drafted defaults.
+5. **Continuity** — in-fiction records stay in their realm; conduct records follow the account; sentences
+   in game time survive any epoch.
+6. **Economy** — counsel a profession; jury duty standing by formula; fines to the general treasury;
+   public labor never private profit.
+7. **Governance** — due process Tier A; interim rules per tool and escalation; no standing penalties; the
+   clerk owns the track flag.
+
+| question | answer | lens |
+|---|---|---|
+| evidence in the fiction | epistemic only, never the engine's ledger | 1 |
+| evidence in conduct cases | everything, the engine's logs included | 1, 7 |
+| fact and law | lay juries by lot from players with standing; credentialed judges | 1 |
+| NPCs | testify from what they perceived; never jurors | 3a |
+| records | in-fiction in the realm; conduct with the account | 5 |
+| fines | to the general treasury, never the levying institution | 6 |
+| due process | Tier A — notice, evidence, response, appeal; bounded jail that never strands | 7 |
+| pending cases | interim rule per tool; an unruled case escalates | 7 |
+| standing | never a penalty; abuse of a seat can cost the seat | 7 |
+
 ## 8. Lens pass
 
 1. **Pedagogy** — the government is legible as a system a student can derive: three outputs, one
@@ -1034,6 +1178,11 @@ the same verb, with a notice as the target.
 23. **Funding compensation for a taking** — waits on treasury revenue (§ 7n).
 24. **Drafting beyond `bill clause`** — does drafting need a real editor? Plausibly the first governance
     GUI piece worth building (§ 7m).
+25. **Default standards of proof** per kind of case (§ 7o).
+26. **The expungement period and the default sentence ranges** (§ 7o).
+27. **Counsel for someone who cannot pay** — appointed and paid by the court? (§ 7o)
+28. **Who prosecutes on a private parcel** — the owner, or the extent's prosecutor? (§ 7o)
+29. **How the conduct track meets the moderation and prison slates** (§ 7o).
 
 ## Cross-references
 
