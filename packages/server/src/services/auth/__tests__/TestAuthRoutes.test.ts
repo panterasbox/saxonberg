@@ -221,8 +221,10 @@ describe('TestAuthRoutes', () => {
     });
 
     it('400 on a malformed body; a refusal relayed in its own words', async () => {
-      const bad = await request(makeApp()).post('/auth/test-ship').send({ ship: '/s' });
+      const bad = await request(makeApp()).post('/auth/test-ship').send({ ship: '' });
       expect(bad.status).toBe(400);
+      const badAt = await request(makeApp()).post('/auth/test-ship').send({ ship: '/s', at: { nowhere: true } });
+      expect(badAt.status).toBe(400);
       const refused = await request(makeApp())
         .post('/auth/test-ship')
         .send({ ship: '/test/not-a-ship', at: { node: '/n' } });

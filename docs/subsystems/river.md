@@ -90,7 +90,15 @@ ONE singleton for the realm. Its members:
 
 ⭐ **Zones never change at runtime (D38):** every member has its own moving
 zone instance minted from its kind row and reaped with it; the zone answers
-elevation, address and climate from the frame position.
+elevation, address and climate from the frame position. ⭐ That zone is a
+COPY of its kind's zone row (zone-instancing D13 — `ReachZone`/`SeaZone`
+are `MovingZoneMixin(MintedZone)`, minted by the warren's `wakeCopyZone`,
+`zoneNaming: under-row`, `joins: frame`, never recorded in the location
+graph). **The copy stands before the place, and the place is cloned INTO
+it** (`zoneFrom: <copy>/<row leaf>`; a stop through
+`PersistableApi.standUpKeyed(…, { zoneFrom })`): a place cloned first
+resolved to the kind's ROW once the row was resident, and the row refuses
+a room — the harbors drive found it as `launch` refused at sea.
 
 **Ways are worked out when taken** (`ReachExit`, never mapped): `left` /
 `right` (the bank decides — a wall or steep bank refuses; a margin racing

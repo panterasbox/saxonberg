@@ -11,7 +11,7 @@
  * Everything else extends `Location` or `SphericalLocation`: an authored
  * row says its `coords:`; a place a warren mints takes the cell its
  * wiring says it is in (`Location.plotBesideNeighbour`); a holding lays
- * its rooms out in a frame of its own (`Warren.laysOutOwnFrame`).
+ * its rooms out on the cells their rows author, a zone of its own.
  *
  * Root for spatial containers in the world.
  *
@@ -379,9 +379,10 @@ export default class Place extends PlaceBase {
    *   key, `<row>#<key>` (the same string a persistable room answers —
    *   house A and house B are two places on a map, not one, and not
    *   none); else `null` and nothing is written (a lounge satellite).
-   * - `at.zone`: the copy's frame identity when its warren lays out its
-   *   own frame, else its zone's path. `at.x/y/z`: its cell, written at
-   *   perception and never afterwards; `level` is its storey (`z`).
+   * - `at.zone`: its zone's IDENTITY — in a copy (a house of a lot, a ship
+   *   of a kind) the copy's own minted zone, so two copies of one plan are
+   *   two places on a map (zone instancing). `at.x/y/z`: its cell, written
+   *   at perception and never afterwards; `level` is its storey (`z`).
    *
    * @hook A moving place answers its river or sea instead. Default: as above.
    */
@@ -392,7 +393,8 @@ export default class Place extends PlaceBase {
     const row = self.getTemplatePath();
     const place = self.getDurableHandle() ?? (minted !== null && row ? `${row}#${minted}` : null);
     if (place === null) return null;
-    const zone = warren?.frameIdentityOf(self) ?? self.getZone()?.getTemplatePath() ?? null;
+    const home = self.getZone();
+    const zone = home ? (home.getIdentityPath() ?? home.getTemplatePath()) : null;
     const at: MapClaimPosition = {};
     if (zone) at.zone = zone;
     if (MixinApi.isCartesianCoordinates(self)) {

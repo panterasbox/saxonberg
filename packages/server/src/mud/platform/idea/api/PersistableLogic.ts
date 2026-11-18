@@ -247,7 +247,12 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     // exactly as a keyed room's record would.
     const minted = w?.mintedKeyOf(anchor) ?? null;
     const row = anchor.getIdentityPath();
-    if (minted !== null && row) return { container: row, containerKey: minted, ...nested };
+    if (minted !== null && row) {
+      // ⭐ Whose room it is (a ship's), so restore can stand HER up and
+      // re-enter the room through her — no institution covers a serial.
+      const structure = w?.structureOf(anchor)?.getDurableHandle() ?? null;
+      return { container: row, containerKey: minted, ...(structure ? { structure } : {}), ...nested };
+    }
   }
   const container = anchor.getIdentityPath();
   return container ? { container, ...nested } : null;
@@ -380,6 +385,12 @@ async function resolvePlacementAnchor(
     );
     const room = await CirculationWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
+    // A structure's keyed room (a ship's deck): stand her up, then take the
+    // room her warren minted under the key.
+    if (place.structure) {
+      const theirs = await keyedRoomOfStructure(place.structure, place.container, place.containerKey);
+      if (theirs !== null) return theirs;
+    }
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +
         `'${place.container}#${place.containerKey}' unresolvable — ` +
@@ -404,6 +415,33 @@ async function resolvePlacementAnchor(
       );
     }
     if (target && MixinApi.isContainer(target)) return target as Stuff & Container;
+  }
+  return null;
+}
+
+/**
+ * The room `key` of `structure` — a ship's keyed room — once she stands:
+ * the live `row` instance her warren minted under that key, or null. She is
+ * stood up by her handle as any craft is (a record, or her row).
+ */
+async function keyedRoomOfStructure(
+  structure: string,
+  row: string,
+  key: string,
+): Promise<(Stuff & Container) | null> {
+  try {
+    const { ExpanseApi } = await import('../../../api/expanse');
+    const ship = await ExpanseApi.standUpCraft(structure);
+    if (ship === null) return null;
+    // Her rooms stand with her (her warren wakes as she does).
+    if (MixinApi.isVoyaging(ship)) await ship.watchRoom();
+  } catch (err) {
+    console.warn(`PersistableLogic.restorePlacement: structure '${structure}' did not stand up:`, err);
+    return null;
+  }
+  for (const r of StuffApi.findByIdentityPath<Stuff>(row)) {
+    if (r.isDestroyed() || !MixinApi.isWarrenMember(r) || !MixinApi.isContainer(r)) continue;
+    if (r.getWarren()?.mintedKeyOf(r) === key) return r as Stuff & Container;
   }
   return null;
 }
@@ -1071,7 +1109,7 @@ async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | 
  * The spine no longer auto-materializes on register (D1); this walk is
  * the nested host's establishing context, reconstructing the whole tree.
  */
-async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
+async function cloneHost(scope: string, key?: string, zoneFrom?: string): Promise<Stuff | null> {
   if (!scope) return null;
   if (key !== undefined) {
     // ⭐⭐ RESOLVE FIRST. A keyed host's identity is the pair, and two
@@ -1084,26 +1122,27 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
     // but never fatal, and the stale record heals on its next capture.
     const live = liveKeyed(scope, key);
     if (live) return live;
-    const nested = await StuffApi.clone<Stuff>(scope);
+    // ⭐ A room a warren owns is stood up BY its warren, never alone:
+    // minted here it would stand outside the warren, and the warren's next
+    // wake would mint a second copy under the same key. A key an
+    // institution covers (a holding's room, a dorm's unit) goes through its
+    // `admitFor` — the seam a parked character re-enters a keyed room by —
+    // whose answer must be this very pair. Anything else (a ship's hold:
+    // her ship stands her rooms up with her) is refused. ⚠ Asked of the
+    // CLASS, before anything is cloned (zone-instancing): a copy's room
+    // cloned from its row outside its copy would land in the plan's zone
+    // row, which refuses a room.
+    if (!(await standsUpAloneByClass(scope))) {
+      const owned = await roomOwnedByInstitution(scope, key);
+      if (owned) return owned;
+      console.warn(
+        `PersistableLogic.standUpKeyed: '${scope}#${key}' is a room its ` +
+          `warren stands up — not minted alone`,
+      );
+      return null;
+    }
+    const nested = await StuffApi.clone<Stuff>(scope, undefined, zoneFrom !== undefined ? { zoneFrom } : undefined);
     if (nested && MixinApi.isPersistable(nested)) {
-      // ⭐ A room a warren owns is stood up BY its warren, never alone
-      //: minted here it would stand outside the
-      // warren, and the warren's next wake would mint a second copy under
-      // the same key. The shell is let go unkeyed and unrestored; a key an
-      // institution covers (a holding's room, a dorm's unit) goes through
-      // its `admitFor` — the seam a parked character re-enters a keyed
-      // room by — whose answer must be this very pair. Anything else (a
-      // ship's hold: her ship stands her rooms up with her) is refused.
-      if (!nested.standsUpAlone()) {
-        StuffApi.destruct(nested);
-        const owned = await roomOwnedByInstitution(scope, key);
-        if (owned) return owned;
-        console.warn(
-          `PersistableLogic.standUpKeyed: '${scope}#${key}' is a room its ` +
-            `warren stands up — not minted alone`,
-        );
-        return null;
-      }
       nested.setPersistenceKey(key);
       await materializeImpl(nested, key);
     }
@@ -1116,6 +1155,22 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
   // singleton host can come to life — walked to / booted, or restored as
   // a room's nested `{ ref }` — on one path, so neither can mint a second.
   return StuffApi.singleton<Stuff>(scope);
+}
+
+/**
+ * May an instance of `scope`'s class stand up alone by its key? Answered by
+ * the class (every `standsUpAlone` is a constant of its class), so the
+ * question is settled before a shell is minted. A row that is not a
+ * persistable answers yes — it is cloned as before.
+ */
+async function standsUpAloneByClass(scope: string): Promise<boolean> {
+  const row = await Template.findByPath(scope);
+  if (!row) return true;
+  const cls = (await StuffApi.loadClassByPath(row.class)) as AnyConstructor & {
+    prototype: { standsUpAlone?: () => boolean };
+  };
+  if (!MixinApi.hasMixin(cls, Mixins.Persistable)) return true;
+  return cls.prototype.standsUpAlone!() !== false;
 }
 
 /**
@@ -1664,8 +1719,12 @@ export class PersistableLogic extends ApiLogic {
 
   /** See {@link PersistableApi.standUpKeyed}. */
   @CallSecurity(PersistableApiCallers)
-  public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
-    return cloneHost(scope, key);
+  public async standUpKeyed(
+    scope: string,
+    key: string,
+    opts?: { zoneFrom?: string },
+  ): Promise<Stuff | null> {
+    return cloneHost(scope, key, opts?.zoneFrom);
   }
 
   /** See {@link PersistableApi.placeIdOf}. */

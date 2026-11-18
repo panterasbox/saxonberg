@@ -342,9 +342,9 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!zone) return undefined;
       const { SpatialZone } = await import('../zone/SpatialZone');
       const facts = zone instanceof SpatialZone ? zone.frameFacts() : { label: (zone as unknown as Stuff).getPresentation() };
-      // ⭐ In a copy, the copy's identity (a house of a lot, a ship of a kind).
-      const subject = place.isPlace() ? (place as unknown as Place).mapSubject() : null;
-      const id = subject?.at.zone ?? zone.getTemplatePath() ?? null;
+      // ⭐ In a copy, the copy's own zone identity (a house of a lot, a ship
+      // of a kind — zone instancing), else the zone's path.
+      const id = zone.getIdentityPath() ?? zone.getTemplatePath() ?? null;
       return { v: 0, ...(id ? { id: { path: id, spoiler: 1 as const } } : {}), ...facts };
     }
 

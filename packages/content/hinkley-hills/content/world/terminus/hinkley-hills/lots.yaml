@@ -1,30 +1,19 @@
 # /world/terminus/hinkley-hills/lots — the ZONE the sold lots live in.
 #
-# ⭐ It no longer exists for the reason it was built for. A grid admits a
-# NON-CARDINAL exit only across a zone boundary, and the gate into a lot
-# used to be directioned by the lot leaf (`lot-1`) — not a direction at
-# all — so this zone was what made the edge legal. Gates are CARDINAL
-# now: a road runs along one axis and leaves the other six planar points
-# free, so a lot faces north or southwest and the ring assigns which.
-# The boundary is no longer load-bearing for that.
+# ⭐ Every sold lot's house is a zone of its own (zone-instancing): a copy
+# of the house plan's zone (`house.yaml`) minted at the lot's extent
+# (`lots/lot-N`), so its rooms take their cells on the copy's own grid and
+# never on this one. This zone is what the copies are FILED under: a
+# copy's fields walk where it stands, so a house reads this zone, then the
+# district's — the lot's government, its weather, its sky.
 #
-# It stays for the OTHER reason, which was always the better one: a lot
-# is not a grid cell of the street (N lots cannot share one coordinate),
-# and a yard that fell back into the district's zone would be measured by
-# the district's grid.
+# Gates are CARDINAL: a road runs along one axis and leaves the other six
+# planar points free, so a lot faces north or southwest and the ring
+# assigns which. The gate leads from the lane's zone into the lot's copy.
 #
-# One authored zone here puts every lot's minted room on the far side of
-# that boundary, with NO per-lot template row — a minted identity has no
-# row in `domain`, and `ZoneApi.resolveZoneForPath` walks template
-# ancestry in Mongo, so a per-lot zone could not have been minted anyway.
-#
-# A CartesianZone rather than a FolderZone for the same reason: only a
-# SpatialZone can be a room's zone (`resolveZoneForPath` skips folders),
-# so a FolderZone here would be walked straight past and every yard would
-# land back in the district's zone — which is the failure this fixes.
-# `cellSize` is inert today: the rooms in here are PersistentLocations, not
-# Locations, so nothing reads the grid. It is set to the
-# district's 6 m so that it does not lie if one ever does.
+# A CartesianZone rather than a FolderZone: the enclosing walk reads any
+# zone, and a SpatialZone here keeps the lots measured by the district's
+# 6 m cell should anything read it.
 #
 # Ownership is NOT here. Each lot's title is a row in the gated `parcels`
 # collection, keyed on its extent under this branch.

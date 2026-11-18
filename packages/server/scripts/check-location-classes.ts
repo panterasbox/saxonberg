@@ -36,7 +36,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { extendsAny, packSources } from "./pack-roots";
+import { composesMixin, extendsAny, packSources, MUD } from "./pack-roots";
 import { reaches } from "./check-mass";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -159,7 +159,7 @@ const FURNISHED = [
   // builds that *"`DormRoom` IS a room archetype … and it has been
   // carrying the correct composition all along"*. The warren assigns
   // its position at runtime, which is exactly what this list is for.
-  "eternal-university/content/world/terminus/eternal/duncan-hall/location/dormroom.yaml",
+  "eternal-university/content/world/terminus/eternal/duncan-hall/unit/room.yaml",
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
@@ -195,6 +195,8 @@ export interface Row {
   exits: Array<[string, string, string?, string?]>;
   /** The row's authored cell, when it plots one (inline or block form). */
   xyz?: [number, number, number];
+  /** The row's scalar `data:` fields (two-space keys), as written. */
+  fields?: Record<string, string>;
 }
 
 /** Every shipped row's `class:`, keyed by its pack-relative path. */
@@ -254,12 +256,22 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
            */
           coords: /^ {2}coords:/m.test(text),
           exits,
+          fields: scalarFields(text),
           ...(cx !== null && cy !== null ? { xyz: [cx, cy, cz ?? 0] as [number, number, number] } : {}),
         });
       }
     }
   };
   walk(contentDir);
+  return out;
+}
+
+/** A row's two-space scalar keys (`  mintedBy: /x/y`), quotes stripped. */
+function scalarFields(text: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const m of text.matchAll(/^ {2}([A-Za-z_][\w]*):[^\S\n]*([^\s#|>][^\n#]*?)[^\S\n]*(?:#.*)?$/gm)) {
+    out[m[1]!] = m[2]!.replace(/^['"]|['"]$/g, '');
+  }
   return out;
 }
 
@@ -468,12 +480,9 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * `ColumnWarren` clones one per band under a deep water and stamps it a
  * cell below its surface, so a band row is a KIND of depth, never a
  * place an author positions. *
- * ⭐ A ship KIND's rooms: her `ShipWarren` mints one of each
- * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
- * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
- * every smack's deck row, never a place an author positions. Only the hold
- * keeps a record (`Hold`, review 2 — persistence is the exception); the
- * deck and cabin are plain `Compartment`s, from their rows each wake.
+ * (A plan's rooms — a house's, a smack's — are no longer here: every copy
+ * is a zone of its own, so they author their cells and `copyDeclarations`
+ * rule 4 judges them; zone-instancing.)
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",
@@ -481,22 +490,11 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
   "trade-farming/content/trade/farming/location/tract.yaml",
-  // ⭐ A layout's tracts (tracts build): kinds of place, one keyed copy per
-  // holding, laid out by the holding's floorplan.
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/lower-meadow.yaml",
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/orchard-close.yaml",
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/upper-bench.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/house/garden.yaml",
-  // A farmstead's yard: a plain kind of room, one copy per holding.
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
   "water/content/system/water/location/band/bed.yaml",
   "water/content/system/water/location/band/dark.yaml",
   "water/content/system/water/location/band/lit.yaml",
   "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
   "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
-  "terminus/content/stuff/location/ship/smack/deck.yaml",
-  "terminus/content/stuff/location/ship/smack/cabin.yaml",
-  "terminus/content/stuff/location/ship/smack/hold.yaml",
 ];
 
 /**
@@ -522,13 +520,210 @@ export function unplottedLocations(rows: readonly Row[]): string[] {
   const zones = new Set(
     rows.filter((r) => isZoneClass(r.cls)).map((r) => stemOf(r.file)),
   );
+  // ⭐ A plan's rows are judged by `copyDeclarations` rule 4, with NO
+  // roster: every copy is a zone of its own, so its rows author their cells.
+  const underCopy = copiedRowFiles(rows);
   return rows
-    .filter((r) => isCartesianClass(r.cls) && !exempt.has(r.file))
+    .filter((r) => isCartesianClass(r.cls) && !exempt.has(r.file) && !underCopy.has(r.file))
     .filter(
       (r) =>
         !r.coords ||
         !ancestorsOf(stemOf(r.file)).some((a) => zones.has(a)),
     )
+    .map((r) => r.file)
+    .sort();
+}
+
+/* ── zone-instancing D10: what content says about copies ─────────── */
+
+/** The kernel class every copied zone row's class is (or extends). */
+const MINTED_ZONE = "/platform/idea/location/MintedZone";
+/** The capability a warren composes to mint copies. */
+const ZONE_MINTING = "ZoneMintingMixin";
+
+/** A zone row whose instances are copies. */
+function isMintedZoneClass(classPath: string): boolean {
+  return extendsAny(classPath, [MINTED_ZONE]);
+}
+
+const mintingCache = new Map<string, boolean>();
+let mintingSources: ReturnType<typeof packSources> | null = null;
+/** A warren class that mints copies (composes `ZoneMintingMixin`). */
+function isZoneMintingClass(classPath: string): boolean {
+  mintingSources ??= packSources();
+  return composesMixin(classPath, ZONE_MINTING, mintingSources, mintingCache);
+}
+
+/**
+ * The two closed vocabularies, read off the mixin's own source (a script
+ * does not import the mudlib) — so a word added there is a word this gate
+ * accepts, with no second list.
+ */
+function vocabulary(name: "ZONE_NAMINGS" | "COPY_JOINS"): string[] {
+  const src = readFileSync(join(MUD, "lib", "location", "ZoneMinting.ts"), "utf8");
+  const m = new RegExp(`export const ${name} = \\[([^\\]]*)\\]`).exec(src);
+  if (!m) throw new Error(`check-location-classes: ${name} not found in ZoneMinting.ts`);
+  return [...m[1]!.matchAll(/'([^']+)'/g)].map((x) => x[1]!);
+}
+
+/** Every row file that lies under a COPIED zone row (a MintedZone). */
+function copiedRowFiles(rows: readonly Row[]): Set<string> {
+  const minted = new Set(
+    rows.filter((r) => isMintedZoneClass(r.cls)).map((r) => templatePathOf(r.file)),
+  );
+  const zones = new Set(rows.filter((r) => isZoneClass(r.cls)).map((r) => templatePathOf(r.file)));
+  const out = new Set<string>();
+  for (const r of rows) {
+    if (!isCartesianClass(r.cls)) continue;
+    const nearest = ancestorsOf(templatePathOf(r.file)).find((a) => zones.has(a));
+    if (nearest !== undefined && minted.has(nearest)) out.add(r.file);
+  }
+  return out;
+}
+
+/**
+ * ⭐⭐ **What content says about copies is checked** (zone-instancing D10).
+ * Four rules, errors with no ceiling:
+ *
+ * 1. a zone row whose class is a `MintedZone` authors `mintedBy`, naming a
+ *    row whose class composes `ZoneMintingMixin`;
+ * 2. a warren row whose class composes it authors `zoneNaming` and `joins`
+ *    from the closed vocabularies, and once it has a plan (its own
+ *    `extent`, or a row whose `warren:` names it) some zone row names it;
+ * 3. a plan owner — such a warren row with an `extent`, or a row whose
+ *    `warren:` names one — has an `extent` that is a `MintedZone` row
+ *    copied by that warren;
+ * 4. every location row under a `MintedZone` row authors `coords:` (bar
+ *    `OWN_FRAME`, a moving place seated by its zone) — a copy is a zone of
+ *    its own, so its rows say where they stand on its grid;
+ * 5. an authored ship (a row naming a minting warren and lying somewhere —
+ *    `expanse`, `line` or `berth`) authors `serial`: one word, unique among
+ *    the ships of that warren, naming no row under her extent.
+ *
+ * The runtime holds the same line (`ZoneMintingMixin.wakeCopyZone` throws
+ * on an undeclared row; `MintedZone` refuses a room on the row itself);
+ * this is the half that fails before anything boots.
+ */
+export function copyDeclarations(rows: readonly Row[]): string[] {
+  const out: string[] = [];
+  const byPath = new Map<string, Row>();
+  for (const r of rows) byPath.set(templatePathOf(r.file), r);
+  const namings = vocabulary("ZONE_NAMINGS");
+  const joins = vocabulary("COPY_JOINS");
+  const minters = rows.filter((r) => isZoneMintingClass(r.cls));
+  const mintedZones = rows.filter((r) => isMintedZoneClass(r.cls));
+  const namedBy = new Set(mintedZones.map((z) => z.fields?.mintedBy ?? ""));
+
+  // 1.
+  for (const z of mintedZones) {
+    const by = z.fields?.mintedBy;
+    if (!by) {
+      out.push(`${z.file}: a copied zone (MintedZone) names the warren that copies it (mintedBy)`);
+      continue;
+    }
+    const w = byPath.get(by);
+    if (!w) out.push(`${z.file}: mintedBy '${by}' is no row`);
+    else if (!isZoneMintingClass(w.cls)) {
+      out.push(`${z.file}: mintedBy '${by}' is ${w.cls}, which mints no zones (no ${ZONE_MINTING})`);
+    }
+  }
+  // 2. and 3. (the warren's own plan)
+  for (const w of minters) {
+    const path = templatePathOf(w.file);
+    const f = w.fields ?? {};
+    if (!namings.includes(f.zoneNaming ?? "")) {
+      out.push(`${w.file}: zoneNaming '${f.zoneNaming ?? ""}' is not one of ${namings.join(", ")}`);
+    }
+    if (!joins.includes(f.joins ?? "")) {
+      out.push(`${w.file}: joins '${f.joins ?? ""}' is not one of ${joins.join(", ")}`);
+    }
+    // A warren with a plan — its own `extent`, or a row whose `warren:`
+    // names it — copies a zone, and that zone row says so.
+    const hasPlan = Boolean(f.extent) || rows.some((r) => r.fields?.warren === path && r.fields?.extent);
+    if (hasPlan && !namedBy.has(path)) {
+      out.push(`${w.file}: copies a plan and no zone row names it (mintedBy)`);
+    }
+    if (f.extent) planExtentFinding(w.file, path, f.extent, byPath, out);
+  }
+  // 3. (a plan on a row that names its warren — a ship kind)
+  for (const r of rows) {
+    const f = r.fields ?? {};
+    if (!f.warren || !f.extent) continue;
+    const w = byPath.get(f.warren);
+    if (!w || !isZoneMintingClass(w.cls)) continue;
+    planExtentFinding(r.file, f.warren, f.extent, byPath, out);
+  }
+  // 5. An authored ship — a row that names a minting warren and lies
+  //    somewhere (`expanse`, `line` or `berth`) — is keyed by her serial.
+  const serials = new Map<string, Map<string, string>>();
+  for (const r of rows) {
+    const f = r.fields ?? {};
+    if (!f.warren || !(f.expanse || f.line || f.berth)) continue;
+    const w = byPath.get(f.warren);
+    if (!w || !isZoneMintingClass(w.cls)) continue;
+    const serial = f.serial ?? "";
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(serial)) {
+      out.push(`${r.file}: an authored ship names her serial — one lower-case word her copy is named by (serial:), got '${serial}'`);
+      continue;
+    }
+    const seen = serials.get(f.warren) ?? new Map<string, string>();
+    serials.set(f.warren, seen);
+    const other = seen.get(serial);
+    if (other !== undefined) out.push(`${r.file}: serial '${serial}' is ${other}'s too — two ships of one warren cannot share a name`);
+    else seen.set(serial, r.file);
+    const extent = (f.extent ?? "").replace(/\/+$/, "");
+    if (extent && byPath.has(`${extent}/${serial}`)) {
+      out.push(`${r.file}: serial '${serial}' names a row under her extent ('${extent}/${serial}') — her copy would shadow it`);
+    }
+  }
+
+  // 4.
+  const ownFrame = new Set(OWN_FRAME);
+  for (const file of copiedRowFiles(rows)) {
+    const r = rows.find((x) => x.file === file)!;
+    if (!r.coords && !ownFrame.has(file)) {
+      out.push(`${file}: a room of a copied plan authors its cell on the copy's grid (coords:)`);
+    }
+  }
+  return out.sort();
+}
+
+function planExtentFinding(
+  file: string,
+  minter: string,
+  extent: string,
+  byPath: Map<string, Row>,
+  out: string[],
+): void {
+  const z = byPath.get(extent.replace(/\/+$/, ""));
+  if (!z) out.push(`${file}: its plan's extent '${extent}' is no row — a plan's extent is its zone row`);
+  else if (!isMintedZoneClass(z.cls)) {
+    out.push(`${file}: its plan's extent '${extent}' is ${z.cls}, not a copied zone (MintedZone)`);
+  } else if (z.fields?.mintedBy !== minter) {
+    out.push(`${file}: its plan's zone '${extent}' is copied by '${z.fields?.mintedBy ?? ""}', not '${minter}'`);
+  }
+}
+
+/**
+ * The census (D10): plan rows still exempt from the plot rule — rows on a
+ * roster under a plan's extent that author no cell. Gated at its ceiling;
+ * it reaches zero when the last plan (the smack's, B1) is declared.
+ */
+export const PLAN_ROWS_UNPLOTTED_CEILING = 0;
+
+export function unplottedPlanRows(rows: readonly Row[]): string[] {
+  const extents = new Set<string>();
+  for (const r of rows) {
+    const f = r.fields ?? {};
+    if (f.extent && (f.warren || isZoneMintingClass(r.cls))) extents.add(f.extent.replace(/\/+$/, ""));
+  }
+  const exempt = new Set<string>([...MINTED_ROWS, ...FURNISHED, ...WARREN_PLACED]);
+  return rows
+    .filter((r) => exempt.has(r.file) && !r.coords)
+    .filter((r) => {
+      const p = templatePathOf(r.file);
+      return [...extents].some((e) => p === e || p.startsWith(`${e}/`));
+    })
     .map((r) => r.file)
     .sort();
 }
@@ -738,6 +933,8 @@ function main(): void {
   const unplotted = unplottedLocations(rows);
   const namedSameZone = sameZoneNamedExits(rows);
   const badEdges = wayEdges(rows);
+  const copies = copyDeclarations(rows);
+  const planUnplotted = unplottedPlanRows(rows);
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
   if (
@@ -749,7 +946,9 @@ function main(): void {
     unzoned.length === 0 &&
     unplotted.length === 0 &&
     namedSameZone.length === 0 &&
-    badEdges.length === 0
+    badEdges.length === 0 &&
+    copies.length === 0 &&
+    planUnplotted.length <= PLAN_ROWS_UNPLOTTED_CEILING
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
@@ -757,9 +956,30 @@ function main(): void {
         `${MINTED_ROWS.length} on Location, every one a KIND; ` +
         `every zone row zones something; every cartesian row PLOTS on a ` +
         `coordinate system; every row's coords and named doors are legal; every way inside a ` +
-        `zone joins adjacent cells through opposite sides.`,
+        `zone joins adjacent cells through opposite sides; every copied zone ` +
+        `is declared; ${planUnplotted.length} plan row(s) still unplotted ` +
+        `(ceiling ${PLAN_ROWS_UNPLOTTED_CEILING}).`,
     );
     return;
+  }
+  if (copies.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${copies.length} finding(s) about COPIES ` +
+        `(zone-instancing D10). A zone a warren copies says so (class ` +
+        `MintedZone, mintedBy), the warren says how it names and joins its ` +
+        `copies (zoneNaming, joins), a plan's extent is its zone row, and ` +
+        `every room of a copied plan authors its cell:`,
+    );
+    for (const f of copies) console.error(`  ✗ ${f}`);
+  }
+  if (planUnplotted.length > PLAN_ROWS_UNPLOTTED_CEILING) {
+    console.error(
+      `\ncheck-location-classes: ${planUnplotted.length} plan row(s) author no ` +
+        `cell, above the ceiling of ${PLAN_ROWS_UNPLOTTED_CEILING}. The count may ` +
+        `fall, never rise — declare the plan's zone a MintedZone and give its ` +
+        `rows their cells:`,
+    );
+    for (const f of planUnplotted) console.error(`  ✗ ${f}`);
   }
   if (badEdges.length > 0) {
     console.error(

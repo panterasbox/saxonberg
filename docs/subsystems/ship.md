@@ -43,8 +43,9 @@ it). *Is it a ship?* is `instanceof Ship`.
   blueprint row ([holding.md § Plans](./holding.md),
   [construction.md](./construction.md)).
 - **An AUTHORED ship** (the Hesper, the Ostrander, the Kittiwake, the
-  Corrigan): one row is one ship. Her rows are the place, they are served,
-  and her warren adopts them.
+  Corrigan): one row is one ship — and a **single copy of her kind**
+  (zone-instancing D12): her rows are her plan, and her warren copies them
+  into her own zone, `<her zone row>/<serial>`, exactly as a smack's.
 
 The hull is `hull: {lengthM, beamM, draftM, depthM?}`. `depthM` is keel to
 deck, what she can take in before she is full. Without it,
@@ -90,8 +91,30 @@ keyed `(warren row, her serial)` (her row for an authored ship) by
   `ashore`, her `side`) is as authored. The rooms' zone is the kind's,
   resolved under the room row's folder (`zoneFromFor`).
 - **An authored ship's warren** (`/platform/idea/ShipWarren/authored`)
-  copies no plan and **adopts** her resident rooms (`adoptResident`). It
-  lets them go on destruct and never destructs them.
+  copies HER plan, exactly as a kind's does: ⭐ an authored ship is a
+  **single copy of her kind** (zone-instancing D12, the owner's ruling
+  2026-11-17 — *"both authored content and minted content … as much in
+  common as possible"*). Her row authors `warren:` and a `serial`
+  (`hesper`, `ostrander`, `kittiwake`, `corrigan`); her zone row is a
+  `MintedZone` and her rooms stand in her copy of it,
+  `<her zone row>/<serial>`. Her HANDLE stays her row, so the register,
+  the berth roll, the charter book and the dues are keyed as before.
+  Adoption (`adoptResident`, `releaseRooms`) is gone.
+- ⭐ **No code branches on a ship's origin for what she DOES.** Sleep is
+  one rule — she sleeps when nobody is aboard and she is not under way —
+  and she stands again on reference (her berth, her sea, a session at her
+  deck). Her frame adopts her as she stands. Origin stays data: her
+  company is her authored `house:` row rather than one minted at
+  commissioning.
+- **A ship is never found by a room's PATH.** `Ship.memberExtent()` is
+  `''` for every ship; `NavigationApi.structureAt(<room path>)` answers no
+  ship. A room is asked (`Place.structure()` → her warren), and the
+  weather's lean and `ExpanseApi.craftAt` take HER identity.
+- **Back aboard after she slept** — a keyed ship room's placement records
+  her (`HostPlacement.structure`): restore stands her up and takes the room
+  her warren minted under the key (before, it went to the institutions'
+  `admitFor`, which no serial matches — every smack's passenger came back
+  nowhere).
 - `ShipWarren.structureOf(member)` answers *which ship is this room?* for
   every member. A smack's deck row is every smack's, so no path can tell
   two apart.
@@ -137,8 +160,9 @@ going down. Her deck and cabin come up from their rows each wake.
 - **Taking that way stands her up** (`ExpanseApi.standUpCraft`), re-ties
   her lines and leads onto her deck. A way taken while she is going to
   sleep waits it out (`Ship.goingToSleep()`) and stands her up again.
-- **An authored ship never sleeps**: she stands while her zone does. Under
-  way, any ship vetoes eviction.
+- **An authored ship sleeps by the same rule** (zone-instancing D12 —
+  until then she never slept): nobody aboard and not under way. She stands
+  again on reference like any ship. Under way, any ship vetoes eviction.
 - **After a restart** a sleeping ship of a kind is attached to nothing
   authored, so the landing's **berth roll** stands her up: the landing's
   first use (`FrameSited.frameSiteStood`) reads its `berth-roll` document

@@ -27,6 +27,7 @@ import PersistentLocation from '@saxonberg/server/mud/platform/location/Persiste
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
+import LocationGraphRegistry from '@saxonberg/server/mud/platform/idea/LocationGraphRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -48,6 +49,7 @@ import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/te
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 
 type MemberStuff = Stuff & Container;
 
@@ -150,6 +152,10 @@ function seedDomain(): void {
     buildings: ['/world/prog-test/house-building', '/world/prog-test/shed-building'],
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
+    // ⭐ Each holding's copy is a zone of its own, named by its parcel
+    // extent (zone-instancing D1).
+    zoneNaming: 'key',
+    joins: 'parcel',
   });
   add('/world/prog-test/house-building', '/system/residence/idea/HoldingBuilding', {
     shortDescription: 'house',
@@ -163,22 +169,26 @@ function seedDomain(): void {
     extent: ROOM_D,
     entrance: ROOM_D,
   });
-  // The plan's own zone (its rows author cells), and the lots' zone —
-  // a copy's rooms stand in the lots', by their keys.
-  add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
+  // The plan's own zone — COPIED: each holding's rooms stand in its own
+  // copy, minted at the holding's extent — and the lots' zone, which the
+  // copies are filed under.
+  add('/world/prog-test/house', '/platform/idea/location/MintedZone', { name: 'the house', cellSize: 6, mintedBy: PROGRAMME });
   add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
   add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
+    coords: { x: 0, y: 0, z: 0 },
     props: ['/world/prog-test/coatrack'],
     exits: { north: { destination: ROOM_B }, east: { destination: ROOM_C } },
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
+    coords: { x: 0, y: 1, z: 0 },
     exits: { south: { destination: ROOM_A } },
   });
   // A PLAIN room: keeps nothing, so has no record (tracts build review).
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
+    coords: { x: 1, y: 0, z: 0 },
     // Open to the sky — but that is not why it is no building's: no
     // building the programme names has it under its extent.
     enclosure: 'none',
@@ -190,6 +200,7 @@ function seedDomain(): void {
   // place could ask it which building it is in.)
   add(ROOM_D, '/platform/location/PersistentLocation', {
     shortDescription: 'a shed',
+    coords: { x: 1, y: 1, z: 0 },
     exits: { south: { destination: ROOM_C } },
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
@@ -387,7 +398,7 @@ describe('the residential programme (D16)', () => {
     expect(admit).not.toHaveBeenCalled();
   });
 
-  it('⭐⭐ lays its rooms out in its OWN frame, from its plan (B53)', async () => {
+  it('⭐⭐ lays its rooms out on the cells its plan rows author (B53, zone-instancing D9)', async () => {
     // Every place but the void has coordinates. A holding's rooms take
     // theirs from their plan rows: the hall at
     // (0,0,0), the bedroom north of it.
@@ -400,23 +411,30 @@ describe('the residential programme (D16)', () => {
       (r as { getCoordinates(): [number, number, number] }).getCoordinates();
     expect(cell(hall)).toEqual([0, 0, 0]);
     expect(cell(holding.roomForLeaf('bedroom'))).toEqual([0, 1, 0]);
-    // A frame of its own — a door out of it may be named, like a door
-    // between zones.
-    expect(holding.laysOutOwnFrame()).toBe(true);
   });
 
-  it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
-    // A room's size is its zone's cell. The plan rows live at
-    // `/world/prog-test/house/` (no zone), the lot under a 4 m zone — so a
-    // copy's rooms take the lot's.
+  it('⭐⭐ its rooms stand in the HOLDING\'s own zone — a copy of the plan\'s, named for the lot (zone-instancing)', async () => {
+    // A room's size is its zone's cell. Each holding is a COPY of the
+    // plan's zone row (6 m), minted at the holding's extent: its rooms
+    // stand in it, never in the lots' 4 m zone and never in the row.
     seedLot();
     await bootRegistries();
     const w = await institution();
     const hall = await w.admit(LOT1);
     expect(hall).toBeInstanceOf(PersistentLocation);
     expect(hall.getTemplatePath()).toBe(ROOM_A);
-    expect(hall.getZone()?.getTemplatePath()).toBe(PARENT);
-    expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(16);
+    const zone = hall.getZone()!;
+    expect(zone.getTemplatePath()).toBe('/world/prog-test/house');
+    expect(zone.getIdentityPath()).toBe(LOT1);
+    // ⭐ navigation-server D2 on zone instancing: a map claim names the COPY's
+    // zone — house A and house B are two places on a map, never the row's one.
+    const subject = (hall as unknown as { mapSubject(): { at: { zone?: string } } | null }).mapSubject();
+    expect(subject?.at.zone).toBe(LOT1);
+    expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(36);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    for (const leaf of ['bedroom', 'porch', 'shed']) {
+      expect(holding.roomForLeaf(leaf)!.getZone()).toBe(zone);
+    }
   });
 
   it('⭐ sleeps and wakes WHOLE — rooms + fixtures + placed goods together', async () => {
@@ -833,3 +851,229 @@ describe('the maintenance act (D4/D5)', () => {
     expect(verbs).toContain('maintain');
   });
 });
+
+describe('a holding is a copy — a zone of its own (zone-instancing A1)', () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  const LOT2 = `${PARENT}/lot-2`;
+  function seedLot2(): void {
+    col('parcels').push({
+      _id: `p-${++idCounter}`,
+      extent: LOT2,
+      zonePath: LOT2,
+      owner: { kind: 'player', templatePath: '/platform/agent/Avatar/june' },
+      parentParcel: PARENT,
+      grants: [],
+      allowance: null,
+    });
+  }
+  const cell = (r: unknown) =>
+    (r as { getCoordinates(): [number, number, number] }).getCoordinates();
+
+  it('⭐ two holdings of one programme stand in two zones, each named for its extent', async () => {
+    seedLot();
+    seedLot2();
+    await bootRegistries();
+    const w = await institution();
+    const hall1 = await w.admit(LOT1);
+    const hall2 = await w.admit(LOT2);
+    const z1 = hall1.getZone()!;
+    const z2 = hall2.getZone()!;
+    expect(z1).not.toBe(z2);
+    expect(z1.getIdentityPath()).toBe(LOT1);
+    expect(z2.getIdentityPath()).toBe(LOT2);
+    // ⭐ The same cell in two grids: the plan's row claims one per copy.
+    expect(cell(hall1)).toEqual([0, 0, 0]);
+    expect(cell(hall2)).toEqual([0, 0, 0]);
+  });
+
+  it('⭐ a room reads its lot’s chain — never the folder the plan is filed in', async () => {
+    seedLot();
+    await bootRegistries();
+    const lots = await StuffApi.singleton<Stuff>(PARENT);
+    (lots as unknown as Record<string, unknown>).biome = 'the lots’';
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const zone = hall.getZone()!;
+    expect(await zone.lookupField<string>('biome')).toBe('the lots’');
+  });
+
+  it('a mirrored copy is laid out reflected on its own grid', async () => {
+    seedLot();
+    await bootRegistries();
+    const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+    holding.setMirrorAxis('east-west');
+    await PersistableApi.restoreOrSeed(holding, LOT1);
+    await holding.wake();
+    expect(cell(holding.roomForLeaf('hall'))).toEqual([0, 0, 0]);
+    expect(cell(holding.roomForLeaf('bedroom'))).toEqual([0, 1, 0]);
+    expect(cell(holding.roomForLeaf('porch'))).toEqual([-1, 0, 0]);
+    expect(cell(holding.roomForLeaf('shed'))).toEqual([-1, 1, 0]);
+    // …and the porch's way back to the hall is reflected with it.
+    expect((holding.roomForLeaf('porch') as unknown as Exitable).getExit('east')).toBeDefined();
+  });
+
+  it('⭐ the copy’s zone sleeps with the holding and is minted again, under the same name, at the next wake', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const zone = hall.getZone()!;
+    await (w as unknown as { reconcile(): Promise<void> }).reconcile();
+    expect(hall.isDestroyed()).toBe(true);
+    expect(zone.isDestroyed()).toBe(true);
+    expect(StuffApi.findByIdentityPath(LOT1).filter((s) => !s.isDestroyed())).toHaveLength(0);
+    const reborn = await w.admit(LOT1);
+    const again = reborn.getZone()!;
+    expect(again).not.toBe(zone);
+    expect(again.getIdentityPath()).toBe(LOT1);
+  });
+
+  it('refuses to mint a zone row that names another warren', async () => {
+    seedLot();
+    const house = col('content').find((d) => d.path === '/world/prog-test/house')!;
+    (house.data as Record<string, unknown>).mintedBy = '/world/prog-test/elsewhere';
+    await bootRegistries();
+    const w = await institution();
+    await expect(w.admit(LOT1)).rejects.toThrow(/copied by '\/world\/prog-test\/elsewhere'/);
+  });
+
+  it('refuses a copy no parcel covers (joins: parcel)', async () => {
+    await bootRegistries();
+    const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+    await PersistableApi.restoreOrSeed(holding, '/world/elsewhere/lot-9');
+    await expect(holding.wake()).rejects.toThrow(/no parcel covers it/);
+  });
+
+  describe('the location graph records the copy (zone-instancing A3)', () => {
+    const copyNodes = () => col('location_graph').filter((n) => n.origin === 'copy');
+    const standGraph = () =>
+      makeStuffAtPath(() => new LocationGraphRegistry(), '/platform/idea/LocationGraphRegistry');
+
+    it('⭐ a wake records one node per room under the copy’s zone; a sleep keeps them', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const w = await institution();
+      await w.admit(LOT1);
+      const nodes = copyNodes();
+      expect(nodes.map((n) => n.identity).sort()).toEqual(
+        [`${ROOM_A}#${LOT1}/hall`, `${ROOM_B}#${LOT1}/bedroom`, `${ROOM_C}#${LOT1}/porch`, `${ROOM_D}#${LOT1}/shed`].sort(),
+      );
+      expect(nodes.every((n) => n.zone === LOT1)).toBe(true);
+      const hall = nodes.find((n) => n.template === ROOM_A)!;
+      expect((hall.edges as Array<{ dir: string; to: string }>).find((e) => e.dir === 'north')!.to).toBe(
+        `${ROOM_B}#${LOT1}/bedroom`,
+      );
+      // Asleep: the copy is still on the map.
+      await (w as unknown as { reconcile(): Promise<void> }).reconcile();
+      expect(copyNodes()).toHaveLength(4);
+    });
+
+    it('a mirrored copy is recorded mirrored', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      holding.setMirrorAxis('east-west');
+      await PersistableApi.restoreOrSeed(holding, LOT1);
+      await holding.wake();
+      const porch = copyNodes().find((n) => n.template === ROOM_C)!;
+      expect(porch.coords).toEqual([-1, 0, 0]);
+      expect((porch.edges as Array<{ dir: string }>).map((e) => e.dir).sort()).toEqual(['east', 'north']);
+    });
+
+    it('⭐ the end of the lease retires them', async () => {
+      seedLot();
+      await bootRegistries();
+      standGraph();
+      const w = await institution();
+      await w.admit(LOT1);
+      const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+      await holding.revert();
+      expect(copyNodes()).toHaveLength(0);
+    });
+  });
+
+  it('⭐ a parked character re-enters a room whose lot lies a folder below the institution (Hinkley: `<parent>/lots/lot-N`)', async () => {
+    // Found by the zone-instancing drive: the holding was taken to be the
+    // first segment under the parent (`<parent>/lots`), so a character left
+    // in their own yard could not be re-entered. The holding is the PARCEL
+    // that covers the key.
+    seedLot();
+    await bootRegistries();
+    const w = makeStuffAtPath(() => new TestInstitution(), WARREN_PATH);
+    w.setParentExtent('/world/prog-test');
+    await w.refreshProvisioned();
+    vi.spyOn(NavigationApi, 'attachedTo').mockResolvedValue([WARREN_PATH]);
+    const room = await CirculationWarren.admitFor(`${LOT1}/bedroom`);
+    expect(room).not.toBeNull();
+    expect(room!.getTemplatePath()).toBe(ROOM_B);
+    expect(room!.getZone()?.getIdentityPath()).toBe(LOT1);
+  });
+
+  describe('the edge rules judge every way inside a copy (zone-instancing B4)', () => {
+    const patch = (path: string, data: Record<string, unknown>) => {
+      const row = col('content').find((d) => d.path === path)!;
+      row.data = { ...(row.data as Record<string, unknown>), ...data };
+    };
+
+    it('⭐ a NAMED way between two rooms of one copy is refused — they share a grid', async () => {
+      seedLot();
+      // The porch names its way to the shed instead of a compass point.
+      patch(ROOM_C, { exits: { west: { destination: ROOM_A }, shedward: { destination: ROOM_D } } });
+      await bootRegistries();
+      const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      await PersistableApi.restoreOrSeed(holding, LOT1);
+      await expect(holding.wake()).rejects.toThrow(/non-cardinal direction 'shedward'/);
+    });
+
+    it('⭐ a way whose cells are not adjacent is installed UNBUILT, and says why', async () => {
+      seedLot();
+      // The bedroom authored two cells north of the hall, the way still `north`.
+      patch(ROOM_B, { coords: { x: 0, y: 2, z: 0 } });
+      await bootRegistries();
+      const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      await PersistableApi.restoreOrSeed(holding, LOT1);
+      await holding.wake();
+      const way = (holding.roomForLeaf('hall') as unknown as Exitable).getExit('north')!;
+      expect(way.isUnbuilt()).toBe(true);
+    });
+
+    it('a named way OUT of a copy is a way between zones — admitted with the far side standing or not', async () => {
+      seedLot();
+      patch(ROOM_A, {
+        exits: { north: { destination: ROOM_B }, east: { destination: ROOM_C }, out: { destination: STREET } },
+      });
+      await bootRegistries();
+      const holding = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      await PersistableApi.restoreOrSeed(holding, LOT1);
+      await holding.wake();
+      expect((holding.roomForLeaf('hall') as unknown as Exitable).getExit('out')).toBeDefined();
+      // And with the lane standing first.
+      await StuffApi.singleton(STREET);
+      const other = await StuffApi.clone<HoldingWarren>(PROGRAMME);
+      seedLot2Extent();
+      await PersistableApi.restoreOrSeed(other, `${PARENT}/lot-9`);
+      await other.wake();
+      expect((other.roomForLeaf('hall') as unknown as Exitable).getExit('out')).toBeDefined();
+    });
+
+    function seedLot2Extent(): void {
+      col('parcels').push({
+        _id: `p-${++idCounter}`,
+        extent: `${PARENT}/lot-9`,
+        zonePath: `${PARENT}/lot-9`,
+        owner: { kind: 'player', templatePath: '/platform/agent/Avatar/kim' },
+        parentParcel: PARENT,
+        grants: [],
+        allowance: null,
+      });
+    }
+  });
+});
+

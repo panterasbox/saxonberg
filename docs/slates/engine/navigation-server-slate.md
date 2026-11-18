@@ -11,7 +11,7 @@ needs it (**first pass**) or it follows (**follow-up**).
 
 ⭐ **Priority (the owner, 2026-11-14):** this server work comes first, so
 the client is unblocked as soon as possible. The order: this slate's
-first-pass items (S0–S15) as one server build; [zone-instancing-slate](./zone-instancing-slate.md)
+first-pass items (S0–S15) as one server build; zone instancing ([zone.md § Copies](../../subsystems/zone.md), shipped MR !599)
 as its own build beside or after it; then the tooltip build and the
 navigation pane on the client.
 
@@ -151,7 +151,7 @@ is wrong before anything reads it for the pane.
 A room inside a copy (a house on a lot, a dorm room, a smack's decks, a
 reach patch) is stamped today with **its row's zone**, shared by every copy,
 and **derived coordinates** that collide between copies (*frames* —
-[zone-instancing-slate](./zone-instancing-slate.md)). So S1 records, for
+zone instancing ([zone.md § Copies](../../subsystems/zone.md), shipped MR !599)). So S1 records, for
 such a room, **the copy's identity** — the key its warren mints — as the
 zone, and the copy's coordinates. House A and house B are separate on your
 map from day one, and when zone instancing makes that key a real zone, the

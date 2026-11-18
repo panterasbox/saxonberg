@@ -526,6 +526,8 @@ export interface ShipStageResult {
   ship: string;
   frame: string;
   at: unknown;
+  /** Her deck's zone identity (an empty stage only): her copy of her kind's zone. */
+  zone?: string | null;
 }
 
 /**

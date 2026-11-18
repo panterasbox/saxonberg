@@ -234,7 +234,12 @@ async function sea(): Promise<TestExpanse> {
 
 function shipAt(path: string, at: GeoPosition, opts: { lit?: boolean; extent?: string } = {}): Ship {
   const s = makeStuffAtPath(() => new Ship(), path);
-  s.setExtent(opts.extent ?? path);
+  const extent = opts.extent ?? path;
+  s.setExtent(extent);
+  // A ship's rooms are told by her warren (zone-instancing D12); this
+  // fixture's rooms are plain rooms under her extent, so membership is
+  // answered by the path here.
+  vi.spyOn(s, 'hasMember').mockImplementation((p: string) => p === extent || p.startsWith(`${extent}/`));
   s.setHeightM(18);
   s.setKeywords([path.split('/').pop()!]);
   s.setShortDescription(path.split('/').pop()!);

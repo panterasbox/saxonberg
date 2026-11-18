@@ -60,6 +60,17 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
+/**
+ * A sea warren whose zone mint is stubbed: these tests are about the water
+ * and its ways, and run with no rows (the mint's own checks are
+ * `ZoneMinting`'s tests; zone-instancing D13).
+ */
+function seaWarren(): SeaWarren {
+  const w = makeStuff(() => new SeaWarren());
+  vi.spyOn(w, 'wakeCopyZone').mockImplementation((async (row: string, key: string) => ({ adopt: () => undefined, getIdentityPath: () => `${row}/${key}` })) as never);
+  return w;
+}
+
 describe('SeaStop (harbors B5)', () => {
   it('⭐⭐ a wreck marked under it: the way into her goes on its bed band, her deck leads back up to it', async () => {
     const deck = exitable('deck');
@@ -112,7 +123,7 @@ describe('SeaStop (harbors B5)', () => {
     vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
       p === SEA ? { depthAt: async () => 30 } : { stuffId: p }) as never);
     vi.spyOn(StuffApi, 'clone').mockResolvedValue({ adopt: () => undefined } as never);
-    const w = makeStuff(() => new SeaWarren());
+    const w = seaWarren();
     const stop = await w.stopOver(hesper as never);
     expect(stop).toBe(stood);
     expect(stood.getExpanse()).toBe(SEA);

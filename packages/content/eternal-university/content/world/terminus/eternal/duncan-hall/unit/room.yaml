@@ -11,6 +11,11 @@
 # `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
 class: /world/terminus/eternal/duncan-hall/location/DormRoom
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
   # to and look at. The room follows the sun: bright at noon, dark

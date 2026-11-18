@@ -24,7 +24,7 @@ import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { MapCopySnapshot } from '@saxonberg/types';
-import type { PlaceNode } from '../lib/location/PlaceNode';
+import type { CopyRoom, PlaceNode } from '../lib/location/PlaceNode';
 import type { GraphFinding } from '../lib/location/GraphInvariants';
 import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
 import type { RouteOutcome } from '../lib/location/RoutePlan';
@@ -288,6 +288,21 @@ export class NavigationApi {
    */
   public static attachStructure(extent: string, structure: Structure): void {
     logic().attachStructure(extent, structure);
+  }
+
+  /**
+   * ⭐ Record a standing COPY's rooms in the location graph
+   * (zone-instancing D7): one node per room under the copy's zone
+   * identity, upserted at every wake by the warren that minted it. The
+   * one part of the index the rows cannot rebuild — a rebuild keeps it.
+   */
+  public static recordCopy(zone: string, rooms: readonly CopyRoom[]): Promise<number> {
+    return logic().recordCopy(zone, rooms);
+  }
+
+  /** The copy is gone for good: drop the nodes {@link recordCopy} wrote. */
+  public static retireCopy(zone: string): Promise<number> {
+    return logic().retireCopy(zone);
   }
 
   /** Undo {@link attachStructure}. */

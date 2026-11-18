@@ -29,8 +29,8 @@
  * authored singletons and its workings are CARVED, so there is no kind of
  * room set to copy — the base's wake mints nothing, and every member is a
  * cell somebody cut. Its members sit on its zone's grid (the cell IS the
- * identity), so it lays out no frame of its own
- * (`laysOutOwnFrame() → false`), and a carved cell keeps its own record
+ * identity), so it makes no copy of a zone (it composes no
+ * `ZoneMintingMixin`), and a carved cell keeps its own record
  * by its own acts (`abandon` captures a held cell), never as the warren's
  * dependent.
  *
@@ -395,14 +395,6 @@ export default class MineWarren extends MineWarrenBase {
   }
 
   // ─────────────────────── Warren policy hooks ───────────────────────
-
-  /**
-   * ⭐ A mine's members are cells on its zone's GRID — the coordinate is
-   * the identity — never a frame of its own (a copy's rooms are).
-   */
-  public override laysOutOwnFrame(): boolean {
-    return false;
-  }
 
   /**
    * A carved cell keeps its own record by its own acts — `abandon`

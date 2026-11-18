@@ -1,0 +1,16 @@
+# /world/terminus/eternal/duncan-hall/unit — the ZONE of a Duncan Hall dorm
+# unit's PLAN, and a zone that is COPIED (zone-instancing D1, D5): every
+# let unit is a copy of it, minted by the dorm programme at the unit's
+# parcel extent — a zone of its own, holding the unit's one room
+# (`unit/room`) at the origin of its own grid, and inheriting from where
+# the unit stands. The unit's door (`unit-N`, named for the unit it opens)
+# leads from the corridor's zone into the unit's copy: a way between two
+# zones, so it may be named. Nothing stands in this row's own instance: a
+# room joins a copy, never the row.
+#
+# `cellSize`: the hall's 3 m — a narrow single room.
+class: /platform/idea/location/MintedZone
+data:
+  name: a Duncan Hall dorm unit
+  cellSize: 3.0
+  mintedBy: /world/terminus/eternal/duncan-hall/idea/dorm-programme

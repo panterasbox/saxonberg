@@ -4,4 +4,10 @@
 # when empty. Stood up by whatever first asks (a boat launched, somebody
 # over the side); no boot step, nothing persisted.
 class: /system/water/idea/SeaWarren
-data: {}
+# Each place it makes is the one place in a zone of its own: a copy of its
+# kind's zone named under the row (`under-row`), joined to a FRAME — the
+# river's line, the sea's chart — never kept and never recorded (`frame`;
+# zone-instancing D13).
+data:
+  zoneNaming: under-row
+  joins: frame

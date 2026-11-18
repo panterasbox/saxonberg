@@ -5,7 +5,7 @@
  *
  * What a house and a ship share: the whole-warren wake over
  * `(scope = row, key = <key>/<leaf>)` records, the intra-plan wiring,
- * the plan's own frame, the whole-warren capture that a re-wake
+ * the cells the plan's rows author, the whole-warren capture that a re-wake
  * restores (born-with props land once), revert, and the hooks a subclass
  * speaks through. (The fabric is a STRUCTURE's — a building's or a
  * ship's `Durable` condition under its coat — never a floorplan's.)
@@ -84,12 +84,12 @@ function installStore(): void {
   // The plan itself is the warren's own fields (no blueprint row).
   // The zone a copy's rooms stand in (resolved from their keys).
   add('/test/fp', '/platform/idea/location/CartesianZone', { name: 'test vessels' });
-  add(DECK, '/platform/location/PersistentLocation', {
+  add(DECK, '/platform/location/PersistentLocation', { coords: { x: 0, y: 0, z: 0 },
     shortDescription: 'the deck',
     props: [CLEAT],
     exits: { down: { destination: HOLD } },
   });
-  add(HOLD, '/platform/location/PersistentLocation', {
+  add(HOLD, '/platform/location/PersistentLocation', { coords: { x: 0, y: 0, z: -1 },
     shortDescription: 'the hold',
     exits: { up: { destination: DECK } },
   });
@@ -191,20 +191,12 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(w.getMembers()).toHaveLength(2);
   });
 
-  it('⭐ lays its rooms out in its OWN frame', async () => {
+  it('⭐ lays its rooms out on the cells their rows author', async () => {
     const w = await standUp();
     const cell = (r: unknown) =>
       (r as { getCoordinates(): [number, number, number] }).getCoordinates();
     expect(cell(w.entryRoom())).toEqual([0, 0, 0]);
     expect(cell(w.roomForLeaf('hold'))).toEqual([0, 0, -1]);
-    expect(w.laysOutOwnFrame()).toBe(true);
-    // ⭐ navigation-server D2: a copy is a frame of its own — every room's
-    // claim says so, with its cell in that frame and its storey.
-    const hold = w.roomForLeaf('hold') as unknown as Place;
-    const subject = hold.mapSubject();
-    expect(subject?.at).toMatchObject({ x: 0, y: 0, z: -1, level: -1 });
-    expect(subject?.at.zone).toBe(w.frameIdentityOf(hold as never));
-    expect(w.frameIdentityOf(hold as never)).toBeTruthy();
   });
 
   it('⭐⭐ one capture of the warren (its rooms are its dependents) then a re-wake: the born-with prop lands ONCE', async () => {
@@ -257,10 +249,11 @@ describe('FloorplanWarren (harbors P1)', () => {
       col('content').push({ _id: `m-${path}`, path, class: cls, data });
     row('/test/fp2', { name: 'farms' }, '/platform/idea/location/CartesianZone');
     row('/test/fp2/yard', {
+      coords: { x: 0, y: 0, z: 0 },
       exits: { east: { destination: '/test/fp2/meadow' }, up: { destination: '/test/fp2/bench' } },
     });
-    row('/test/fp2/meadow', { exits: { west: { destination: '/test/fp2/yard' } } });
-    row('/test/fp2/bench', { exits: { down: { destination: '/test/fp2/yard' } } });
+    row('/test/fp2/meadow', { coords: { x: 1, y: 0, z: 0 }, exits: { west: { destination: '/test/fp2/yard' } } });
+    row('/test/fp2/bench', { coords: { x: 0, y: 0, z: 1 }, exits: { down: { destination: '/test/fp2/yard' } } });
     const w = makeStuffAtPath(() => new TestFloorplan(), PLAN);
     w.setExtent('/test/fp2');
     w.setEntrance('/test/fp2/yard');
@@ -287,14 +280,16 @@ describe('FloorplanWarren (harbors P1)', () => {
         extent: '/test/fp3', entrance: '/test/fp3/yard', ...(buildings ? { buildings } : {}),
       }).load();
     row('/test/fp3/yard', {
+      coords: { x: 0, y: 0, z: 0 },
       exits: { north: { destination: '/test/fp3/home/hall' }, east: { destination: '/test/fp3/shed' } },
     });
     // A way joins the hall to the shed — and they are still two buildings.
     row('/test/fp3/home/hall', {
+      coords: { x: 0, y: 1, z: 0 },
       exits: { south: { destination: '/test/fp3/yard' }, up: { destination: '/test/fp3/home/loft' }, east: { destination: '/test/fp3/shed' } },
     });
-    row('/test/fp3/home/loft', { exits: { down: { destination: '/test/fp3/home/hall' } } });
-    row('/test/fp3/shed', { exits: { west: { destination: '/test/fp3/yard' } } });
+    row('/test/fp3/home/loft', { coords: { x: 0, y: 1, z: 1 }, exits: { down: { destination: '/test/fp3/home/hall' } } });
+    row('/test/fp3/shed', { coords: { x: 1, y: 0, z: 0 }, exits: { west: { destination: '/test/fp3/yard' } } });
     row('/test/fp3-house', { extent: '/test/fp3/home', entrance: '/test/fp3/home/hall' }, '/platform/idea/Building');
     row('/test/fp3-shed', { extent: '/test/fp3/shed', entrance: '/test/fp3/shed' }, '/platform/idea/Building');
     const loaded = await plan(['/test/fp3-house', '/test/fp3-shed']);

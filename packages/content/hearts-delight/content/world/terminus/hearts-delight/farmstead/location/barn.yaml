@@ -5,6 +5,11 @@
 # room overlay, furnishing.md). Nothing else here needs saving.
 class: /platform/location/PersistentRoom
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 0
+    y: 1
+    z: 0
   shortDescription: barn
   keywords: [barn, threshing floor, floor]
   register: definite

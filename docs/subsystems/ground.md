@@ -42,6 +42,14 @@ consumer of a floor's material is synchronous and rung 3 is not:
 4. `Location.floorDefaults(onGrade)` — the room-kind default;
 5. the plain default (a plain floor is a board floor).
 
+⚠ **What the ladder stamps, it loads.** Rungs 2, 4 and 5 stamp a material
+PATH, and every reader is synchronous, so `resolveUnderfoot` ends by citing
+the stamped material (`MaterialApi.materials().ensureCited`, load-on-use
+D2a). Until 2026-11-17 it loaded none of them, and the first `look` or `go`
+to read a room's authored `floor: { material }` threw
+`DocumentNotResidentError` — `go hesper` at the estuary mouth, its tidal mud
+(found by the zone-instancing drive; master threw it too).
+
 **3. The KIND is derived, never authored.** `f(materialClass, onGrade,
 worked, standingWater)` over `GROUND_KIND_FOLD`, closed at eleven words:
 `rock · set-paving · slab · earth · mire · beaten-floor · loose · boards ·

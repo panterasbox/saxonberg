@@ -134,6 +134,11 @@ export interface ShipStageReport {
   /** The frame she is on now, by path, and where on it. */
   readonly frame: string;
   readonly at: FramePos | null;
+  /**
+   * The zone her deck stands in, by identity — her copy of her kind's zone
+   * (zone-instancing D11/D12) — or null when her rooms are not standing.
+   */
+  readonly zone?: string | null;
 }
 
 /** What `testharness gravity-set` did (size and carrying drive 19). */
@@ -433,7 +438,16 @@ export class TestHarnessLogic extends ApiLogic {
     const wear = spec.hull !== undefined || spec.bilgeL !== undefined || spec.sleptDays !== undefined;
     const settle = spec.settling === true;
     if (!spec.at && !wear && !settle) {
-      throw new Error('testharness ship: say what — `at node:<path>`, `at <frame> <cite>`, `hull <band>`, `bilge <L>`, `slept <days>` or `settling`');
+      // ⭐ Nothing to change: she is stood up where she lies, with her rooms
+      // (zone-instancing D12 — every ship's rooms are a copy she stands, so
+      // a drive opening a session in one stands HER first).
+      const deck = await ship.watchRoom();
+      return {
+        ship: ship.getDurableHandle() ?? handle,
+        frame: ship.getExpanse() ?? '',
+        at: this.lyingAt(ship),
+        zone: deck?.getZone()?.getIdentityPath() ?? null,
+      };
     }
     const nowS = WorldClockApi.getNow().rawValue();
     let framePath = ship.getExpanse() ?? '';

@@ -9,6 +9,11 @@
 # second hot-water house is one more row, no code.
 class: /platform/location/PersistentRoom
 data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: 1
+    y: 2
+    z: 0
   # ⭐ The house's pipe is lead (water-supply): soft acid water takes it up.
   plumbing: lead
   # What it is made of (rubber's construction: walls and roof).

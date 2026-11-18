@@ -299,9 +299,12 @@ describe('anchor and restart', () => {
     expect(sea.craft()).toContain(ship);
   });
 
-  it('a restored craft at anchor starts nothing — the sea\'s compile registers its ships', async () => {
+  it('a restored craft at anchor starts nothing — and is among her sea\'s craft as she stands', async () => {
     await ship.onRestored();
     expect(started).toHaveLength(0);
-    expect(sea.craft()).not.toContain(ship);
+    // ⭐ Every ship stands the one way (zone-instancing D12): her frame
+    // adopts her as she stands, authored or of a kind — before, an authored
+    // ship waited for the sea's compile to register her.
+    expect(sea.craft()).toContain(ship);
   });
 });
