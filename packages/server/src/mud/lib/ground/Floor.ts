@@ -709,6 +709,20 @@ export function FloorMixin<
      * moves and this decision is void.
      */
     public async resolveUnderfoot(): Promise<void> {
+      await this.climbLadder();
+      // ⭐ The stamped material loads with the floor (load-on-use D2 a):
+      // every reader of a floor's material is synchronous, and rungs 2, 4
+      // and 5 stamp a PATH nothing else loads — a room's
+      // `floor: { material }` was read cold by the first `look` or `go`
+      // that asked (zone-instancing drive: `go hesper` at the estuary
+      // mouth, tidal mud).
+      if (this.underfootMaterialPath) {
+        await MaterialApi.materials().ensureCited([this.underfootMaterialPath]);
+      }
+    }
+
+    /** The five rungs, stamped (see {@link resolveUnderfoot}). */
+    private async climbLadder(): Promise<void> {
       // Rung 1 — the author's own field. Nothing to stamp: `getMaterial`
       // already prefers it, and stamping would shadow a later edit.
       if (super.getMaterial()) {
