@@ -15,7 +15,10 @@
 > executive's codification orders and status (§ 7e) · the closed toolkit (§ 7f) · the bounty board,
 > escrow and the independent central bank (§ 7g) · the standing formula and allowances (§ 7h) · the
 > court's case flow — the clerk's checks, LLM staff, sortition panels and the high court, the ruling
-> window, outcomes, opinions attached to clauses (§ 7j)
+> window, outcomes, opinions attached to clauses (§ 7j) · committees as groups with grants — carving,
+> paths for every operation, per-collection tools, the DBA seat, sovereignty and the Compact's appeal,
+> public duties and private protections (§ 7l) · the interface — `bill`, `law`, `office`, `committee`,
+> `directive`, `job`, `allowance`, the enforcement verbs, `case`, and their cards (§ 7m)
 > **Size:** a design pass, then the procedure law as received law, then the record and the merge
 > gate as a build
 
@@ -708,6 +711,270 @@ bounded by the ruling window.
 | rulings | attach to clauses, not code; an amended clause's rulings become history | 5 |
 | judging | labor standing by formula, per case, from the court's own appropriation | 6 |
 
+## 7l. ⭐⭐⭐ Committees are groups with grants — one primitive for every branch **[DECIDED — the owner]**
+
+The owner: *"Legislative committees and subdivision committees are basically the same thing. Private
+parcels, which is most of them, govern themselves. Someone at the top level, `/terminus/`, can carve up
+the rest of the tree however they want, and at any depth can form a committee granted write access to
+that code. Committees are shaped by what they have access to, and that should be abstracted to whatever
+artifacts or operations we want to bind, whether it's a budget or a city block or whatever."*
+
+A **committee is a group plus grants**; a grant binds the group to artifacts and operations. *Power is
+write access to an extent* describes the whole government, not only land.
+
+| what it looks like | the same thing, as grants |
+|---|---|
+| a private parcel | a committee of one, granted its subtree |
+| a city block | a committee granted the block's subtree, and its code if its seats are wizards |
+| the budget committee | a committee granted origination on the budget lines (§ 7d) |
+| an executive institution | a committee granted tools — fine, bar, merge code under a subtree, spend a line (§ 7f) |
+| a court panel | ⭐ a committee granted ruling on one case — formed by lot, dissolved by its ruling (§ 7j) |
+| the legislature | the root committee: everyone, over the realm's root |
+
+- ⭐ **Founding an institution by statute *is* forming a committee with grants** (§ 2). Making law and
+  carving the tree are one act; whoever holds a scope may subdivide it at any depth.
+- **No escalation:** you may grant only a subset of what you hold. **The grantor may revoke**, on the
+  record, with a reason, and **a revocation is appealable** — it judges the people on the committee.
+- **A committee's UI is derived from its grants** — what you see and can do is exactly what you are
+  bound to. Nobody designs a *budget committee screen*; a new kind of committee needs no code.
+
+### Path everything — the operations, never the rows **[DECIDED — the owner]**
+
+*"Yes, path everything — that's why we have three different trees that all mirror each other. But the
+other Mongo collections have to stay keyed how they are."*
+
+- **The three mirrored trees** — content, documents, source — are addressed by path, and the access
+  machinery already answers by longest prefix. Every bindable thing joins them: budget lines, tools,
+  dockets, law.
+
+```
+/world/terminus/…                     the city — places, content, code
+/world/terminus/law/…                 its statutes
+/world/terminus/treasury/budget/…     budget lines
+/world/terminus/tools/fine            a tool
+/world/terminus/docket/…              cases in its jurisdiction
+```
+
+- ⭐ **The other collections keep their keys; their *operations* get paths.** Correcting the bank
+  ledger is not write access to `bank_ledger` — it is a named tool (*reverse an entry*, the ledger being
+  append-only) with its own grant. Rows stay keyed; operations live in the namespace.
+- ⭐ **Each collection declares its closed set of operations** — *"specific tools for specific
+  operations on all the different Mongo collections, rather than letting operators write raw queries."*
+  Each collection's authored schema doc (`packages/server/src/schema/<collection>.yaml`) is the natural
+  home: reverse an entry, merge duplicate accounts, purge a person's data, export. **A new operation is
+  class 5** — a new power over data is reviewed before merge.
+- **An operation that touches a person** — purging their data, merging their accounts, reversing their
+  entry — **produces a notice and an appeal**, as the enforcement tools do (§ 7f).
+- **Domain over the collections is a separate grant axis** from the trees — the platform's executive
+  grants it; no extent does.
+- ⭐ **The DBA is a seat — the `eval` of data.** *"We probably want like one DBA-type that can do whatever
+  Mongo stuff they need."* Raw access for what the tools do not cover; every raw operation logged with its
+  actor, and one that does what a tool covers shows as acting outside a tool. **Confirmed by the
+  legislature** — the most powerful seat after the PM, and it touches every person's data.
+
+### Sovereignty, private courts, and the Compact's appeal **[DECIDED — the owner]**
+
+*"I do think private courts can exist, but they're kind of their own fiction. The fact is the Terminus
+committee is all three branches for the extent it controls. But yes, you can always appeal to the
+Compact no matter where you are, public or private. It's just that private parcelholders can and should
+get certain protections public ones don't."*
+
+- ⭐ **An extent's top committee is sovereign over its extent** — all three branches. How it divides
+  itself (a legislature, an executive, a court, or none of that) is its own constitution. **Separation of
+  powers is the Compact's design for itself and a default we recommend; the engine does not enforce
+  it.**
+- **Private courts exist as their own fiction** — a manor court, a guild's tribunal: committees with
+  ruling grants over their own extent, and no special engine power.
+- ⭐⭐⭐ **What the engine enforces: appeal to the Compact is always available, everywhere, public or
+  private.** With no-escalation, it is **Tier A and enforced by code** — walls, not norms.
+
+### Public duties, private protections **[DECIDED in shape — the owner]**
+
+Public power carries **duties**; private holding carries **protections** — the state-action line.
+
+| | public extents (a polity's committee) | private parcels |
+|---|---|---|
+| **records** | open — every act logged and public | private |
+| **judging a person** | due process: a notice, the clause, an appeal, every time | house rules; no clause required |
+| **access** | equal — may not bar arbitrarily | ⭐ **the right to exclude** (*Cedar Point Nursery v. Hassid*, 2021) |
+| **entry and search by public power** | — | ⭐ **a warrant** (the Fourth Amendment) |
+| **taking** | — | ⭐ **never without compensation** (the takings clause) |
+| **appeal to the Compact** | always; full review | always; but only against **the Compact's own law** — otherwise the owner gets deference |
+
+A visitor barred from a private parcel may appeal and wins only if the bar broke the Compact's own law;
+*the owner gave no reason* is not a ground. The same bar from a public square needs a clause and gets full
+review.
+
+## 7m. ⭐⭐⭐ The interface — every branch's commands, cards and documents **[DECIDED in shape]**
+
+The owner: *"I just want to make sure we've actually thought through the UI for all of it — that's what I
+started with for the legislature and it somehow got dropped … the whole tools-for-executive got kinda
+handwaved. What are the actual tools they need? I'm sure we can anticipate most of this without waiting
+for laws to be passed. Same thing with the courts."*
+
+**Already live, and reused:** `office` (list · assign · vacate), `committee` (show · channel),
+`treasury` (the Minister of Finance's book · appropriate), `reserve` (the central bank governor's supply
+· set · a recorded override), `job` (post · claim · complete · fulfill), `git` (diff · log · publish ·
+revert), `standing`, `forum`, `press`, `notify`, `pack`, `config`, `eval`, `wallet freeze`, `title
+transfer`. Conventions: an institution is a noun with subcommands; one view, one word; every thing has an
+inspection card.
+
+### The legislature — every player
+
+**`bill`** — the commoner's whole job.
+
+| subcommand | does |
+|---|---|
+| `bill draft [title]` | starts a private draft; opens the clause forms |
+| `bill clause <draft> <form>` | adds a typed clause from a slot's form (*"set the fine for loitering to ___"*) |
+| `bill amend <bill>` | starts a draft that is a new version of a filed bill |
+| `bill file <draft>` | freezes it, runs the duplicate check, lists it as seeking a second |
+| `bill second <bill>` | moves it to the floor |
+| `bill support · oppose · drop <bill>` | holds, flips or drops your position in all three tallies |
+| `bill list [floor · seeking · passed · mine · watched]` | the docket, sorted by momentum |
+| `bill show <bill>` | the bill card |
+| `bill watch <bill>` | alerts on changes |
+| `bill sign · veto · statement <bill>` | the PM's acts, gated by the seat **[LEAN — one noun is easier to learn]** |
+
+**The bill card**, in sections you open one at a time: the digest · the text · **the diff against current
+law** · clauses, each self-executing or directive with the institution it routes to · the fiscal note
+(measured) · affected people and places (aggregates) · conflicts · **tallies over time** · positions (or
+totals only, under a secret ballot) · the seconder · other versions · the thread · the PM's statement ·
+the timeline.
+
+**`law`** — what is in force.
+
+| subcommand | does |
+|---|---|
+| `law show <law>` | the law card: text; per clause its tier, state (codified · uncodified · contradicted · taught), owning committee, **the rulings under it** (§ 7j), history, course |
+| `law list [extent]` | the code, by field |
+| `law diff <law> <version>` | how it changed |
+| `law watch <law>` | *anything amending the cooling law* |
+
+**Elected seats** — the PM, committee seats — on **`office`**: `office list`, `office show <office>`,
+`office stand <office>` (candidacy), `office back <office> <person>` (a position for a person — also how a
+rival unseats the PM by constructive no-confidence, § 7e), `office drop`. **`standing`** gains your
+positions.
+
+### Committees — any branch, any depth
+
+`committee` (exists) becomes the one verb for carving (§ 7l): `committee show [scope]` (who holds this,
+granted what) · `committee list` · `committee form <name> <grants>` · `committee grant · revoke
+<committee> <grant>` · `committee log <committee>` (every act, with the authority invoked).
+
+### The executive — by tool
+
+**The codification queue** — `directive` (`order` is the retail verb):
+
+| subcommand | does |
+|---|---|
+| `directive list [committee]` | the queue, with status and age |
+| `directive show <d>` | the clause, its plan, status, bounty |
+| `directive assign <d> <committee>` | the PM routing what the toolkit could not |
+| `directive plan <d>` | attaches the plan — with its interpretation |
+| `directive block <d> unfunded · infeasible · upstream <reason>` | a report back to the legislature |
+| `directive post <d>` | to the bounty board, as a `job` with escrow |
+| `directive submit <d>` | links the merge request — the handoff to the court |
+
+**The bounty board** is `job`: `job claim <job> split <who:share,…>` declares the crew's split; completion
+is automatic on codification (§ 7h).
+
+**Money:** `treasury` (the books, appropriations as enacted) · `reserve` (the governor, under the monetary
+rule) · **`allowance show · award <person> <amount> <reason>`** — discretionary standing from a fixed,
+targeted allowance, logged (§ 7h).
+
+**Code and content:** `git publish` gains `class <n>` and `under <clause>` and **refuses without both**; a
+class 6 publish auto-files its ratification bill and starts its expiry clock · `git revert` · `pack` ·
+`config set` for parameters within a delegated range (class 3) — Tier C values come from enactments, never
+from `config`.
+
+**Collections:** each collection's declared operations, as tools; the DBA's raw access, logged (§ 7l).
+
+**Enforcement on persons** — diegetic, top-level verbs, each producing **a notice to the person**: what
+was done, under which clause, and the appeal.
+
+| verb | does |
+|---|---|
+| `fine <person> <clause>` | the amount comes from the clause, never typed in |
+| `license grant · revoke <person> <license>` | |
+| `bar <person> <extent> <clause> [until]` | exclusion from an extent |
+| `seize <item> <clause>` | into custody, never to the seizer |
+| `wallet freeze` | exists |
+| `warrant` · `summon` | requests to the court — search, arrest, appearance |
+
+**Statements:** `bill statement` for the PM; `press` for everything else. **Off the books:** `eval` is
+logged with its actor; in a live world, doing what a tool covers, it shows as acting outside a tool.
+
+### The court
+
+**`case`**
+
+| subcommand | does |
+|---|---|
+| `case list [mine · panel · open]` | the docket |
+| `case show <case>` | the case card |
+| `case file <target>` | a challenge — to a merge, a notice, an act |
+| `case second <case>` | dockets it |
+| `case brief <case>` | an amicus filing, credentials shown when presented |
+| `case find <case> <clause> justified · exceeds · contradicts` | **a judge's finding, clause by clause** |
+| `case rule <case> approve · remand · gap · strike` | each judge's vote; the panel's majority decides |
+| `case opinion · dissent <case>` | attaches the reasoning |
+| `case appeal <case>` | to the high court — or, from any extent's court, to the Compact |
+| `case recuse <case>` | a conflict the mechanical exclusions missed |
+
+**The case card — a judge's workspace:** the clerk's report (✓ or ✗ per mechanical check) · the staff's
+summary and scope-creep flags · **each clause beside the code that cites it**, with a slot for each
+judge's finding · the plan as brief · amicus filings · the projection diff · the ruling window's deadline.
+Being drawn for a panel arrives by `notify`; precedent shows on `law show`. The docket for persons uses
+the same verb, with a notice as the target.
+
+### The documents
+
+| branch | documents |
+|---|---|
+| legislature | bill versions; positions (the shipped table); bill events; law versions; enactment records with tally snapshots |
+| executive | committee records and grants; directives, plans, block reports; jobs with escrow; merges with class and authority; notices to persons; allowance awards; the committee log |
+| court | cases; clerk reports; briefs; per-clause findings; opinions, dissents, orders; the precedent index |
+
+## 7n. Lens pass on committees and the interface
+
+1. **Pedagogy** — one primitive makes civics derivable: anywhere, `committee show` says who governs here
+   and what they may do. Real doctrine: the state-action line, the warrant requirement, the takings
+   clause, the right to exclude; per-collection operations teach data stewardship. **Lenses 1 and 2 chose
+   UI derived from grants.** ⚠ A commoner meets several nouns — `bill`, `law`, `office`, `committee`,
+   `case` — and the enforcement verbs; each needs a one-card help like the procedure card (§ 7a).
+2. **Expression** — the ordinary case is carving (grants, no code): a neighborhood watch, a guild court, a
+   block association. The bespoke case is a new tool or collection operation (class 5). Private courts
+   need no engine work.
+3. **3a Immersion** — ⭐ **one flag everywhere**: committees, tools and cases each declare whether they are
+   inside the fiction or outside it (the Terminus council fiction-facing, the Compact meta). ⭐ **The
+   enforcement verbs stay top-level** — acts a person performs in the world; *fine him* reads in the
+   fiction where *enforce fine him* never would. **3b Participation** — players found institutions nobody
+   designed, and each sovereign extent picks its constitution, one with no separation at all included. A
+   top holder who never carves is politics, not a defect.
+4. **Values** — the protections list, the owner's deference on appeal, and recommending separation as a
+   default have no derivable answer.
+5. **Continuity** — rows keep their keys, operations carry paths. ⚠ **Grants bind to paths, and content
+   gets rewritten** — the credential's problem again: a grant must move with the **title**, not the old
+   path, or rewriting the world orphans its government.
+6. **Economy** — ⭐ the protections are what make private investment worth it: exclusion and no taking
+   without compensation are why anyone builds on land they hold. Budget lines as paths let any committee be
+   granted spending with no separate money system. ⚠ Compensation needs treasury revenue.
+7. **Governance** — no-escalation and the Compact's appeal are Tier A and code-enforced; a revocation is
+   logged with its reason and appealable; operations on a person's records give notice and appeal; the DBA
+   is confirmed by the legislature with raw operations logged; a new collection operation is class 5.
+
+| question | answer | lens |
+|---|---|---|
+| a committee's UI | derived from its grants | 1, 2 |
+| in or out of fiction | one flag on every committee, tool and case | 3a |
+| enforcement verbs | top-level, diegetic | 3a |
+| no escalation; appeal to the Compact | Tier A, enforced by code | 7 |
+| revoking a grant | logged with its reason; appealable | 7 |
+| operations on a person's records | a notice and an appeal | 7 |
+| the DBA | confirmed by the legislature; raw operations logged | 7 |
+| a new collection operation | class 5 | 7 |
+
 ## 8. Lens pass
 
 1. **Pedagogy** — the government is legible as a system a student can derive: three outputs, one
@@ -761,6 +1028,12 @@ bounded by the ruling window.
     credentialed (§ 7j).
 19. **Removing a high-court judge** — probably the legislature's 3 of 3 (§ 7k).
 20. **The small-pool rule** for the early game (§ 7j).
+21. **Grants that survive content rewrites** — bind to the title, not the path (§ 7n).
+22. **The private protections and the owner's deference** — warrant, compensation, exclusion: the right
+    three, or more? (§ 7l)
+23. **Funding compensation for a taking** — waits on treasury revenue (§ 7n).
+24. **Drafting beyond `bill clause`** — does drafting need a real editor? Plausibly the first governance
+    GUI piece worth building (§ 7m).
 
 ## Cross-references
 
