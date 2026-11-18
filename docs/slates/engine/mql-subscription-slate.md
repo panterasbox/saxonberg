@@ -96,7 +96,7 @@ channel because they're reads.
 
 Shipped → [mql-subscription.md](../../subsystems/mql-subscription.md) (both
 additions landed: the field-set is a separate `fields` parameter, not
-a grammar clause; `MqlSubscriptionApi` + `MqlSubscriptionRegistry` own
+a grammar clause; `SubscriptionApi` + `MqlSubscriptionRegistry` own
 the lifecycle).
 
 ---
@@ -356,7 +356,7 @@ with explicit storage + intrinsic default only.
 ### The composition walk + dependency derivation
 
 Shipped → `MixinApi.getAllSubscribableFields` +
-`MqlSubscriptionApi.projectFields` +
+`SubscriptionApi.projectFields` +
 `MqlSubscriptionRegistry.deriveAndInstallDependencies`
 ([mql-subscription.md § Descriptor mechanism, § Meta-bus dependency index](../../subsystems/mql-subscription.md)).
 

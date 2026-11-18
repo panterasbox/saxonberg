@@ -49,9 +49,9 @@ import type {
 } from '../../lib/subscription/SubscriptionSource';
 import type { SubscriptionChange } from '@saxonberg/types';
 
-/** The Api (poke, tests) and the session's own verbs. */
+/** The Api's logic singleton (poke, tests) and the session's own verbs. */
 const SubscriptionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
+  SecurityPolicies.FromTemplate('/platform/idea/api/subscription'),
   SecurityPolicies.FromModule('/platform/idea/Interactive'),
 );
 

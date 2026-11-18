@@ -46,8 +46,8 @@ re-implemented on a second channel.
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi` — a thin facade over `MqlSubscriptionRegistry`; descriptor types, projection helpers, `handleQuery`, the stateless `fireFieldChange` / `projectFields` |
-| `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`) — owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Every method gates to `FromModule(MqlSubscriptionApi)`. |
+| `packages/server/src/mud/api/subscription.ts` | `SubscriptionApi` — THE subscription Api ([subscription.md](./subscription.md)): `poke`, the descriptor types and projection helpers (`fireFieldChange` / `projectFields` / `projectAspect`), `handleQuery`, `cancelAllForScope` |
+| `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`, `SUBSCRIPTION_SOURCES.mql`) — the MQL SOURCE: owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Its source methods admit only the protocol's `SubscriptionRegistry`; the rest only `SubscriptionApi`'s logic singleton. |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
@@ -60,16 +60,20 @@ re-implemented on a second channel.
 
 ## Surface
 
-### `MqlSubscriptionApi`
+### `SubscriptionApi`
+
+The MQL source has no Api of its own — it is opened, closed and poked
+through the one protocol ([subscription.md](./subscription.md)):
 
 ```ts
-handleSubscribe(req: SubscribeRequest): void
-handleUnsubscribe(interactive: Interactive, subscriptionId: string): void
-handleQuery(req: QueryRequest): void
-cancelAllForInteractive(interactive: Interactive): void
+interactive.subscribe(id, SUBSCRIPTION_SOURCES.mql, params)   // open
+interactive.cancelSubscription(id)                              // close
+SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject })  // a ledger wrote
+interactive.refreshMqlSubscriptions()  // pokes with the body the session now drives
+SubscriptionApi.handleQuery(req)       // the one-shot `query` wire
 ```
 
-`SubscribeRequest`:
+`SubscribeRequest` (the params, as the source reads them):
 
 ```ts
 interface SubscribeRequest {
@@ -324,7 +328,7 @@ resolve correctly when `setFocus` fires.
 
 ### `mql-query` one-shot channel
 
-`MqlSubscriptionApi.handleQuery` exposes a wire-facing one-shot
+`SubscriptionApi.handleQuery` exposes a wire-facing one-shot
 read that **shares the parse + resolve + project pipeline** with
 `handleSubscribe` but skips all subscription state — no
 registration, no dependency-index entries, no listener
@@ -359,7 +363,7 @@ interface MqlQueryErrorEnvelope {
 ```
 
 `Application.processUserMessage` routes inbound `'mql-query'`
-messages through `MqlSubscriptionApi.handleQuery` — same shape
+messages through `SubscriptionApi.handleQuery` — same shape
 as the existing `'subscribe'` route. Holder and cardinality
 checks mirror `handleSubscribe` so a client's error-handling
 code can branch by `reason` uniformly across subscribes and
@@ -492,7 +496,7 @@ implementation here would drift from it.
 
 `practisingCompetence` reads a ledger whose Api is async
 (`actor.competenceBands()`). **Do not widen `read` to return a
-promise.** `MqlSubscriptionApi.projectFields` is
+promise.** `SubscriptionApi.projectFields` is
 sync, and `ContainerMixin`'s own `contents` descriptor calls it from
 *inside* its `read` — so a promise would make projection async
 **recursively through nested containment**, on the inspection card's hot
@@ -569,7 +573,7 @@ So a descriptor whose value comes from a durable-keyed ledger declares:
 durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
 ```
 
-and its producer calls `MqlSubscriptionApi.notifyDurableSubject(key)`
+and its producer calls `SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: key })`
 straight after persisting.
 
 **No event class, no `EventApi` fire.** The bus is for genuinely global
@@ -581,7 +585,7 @@ wakes every other player's standing card.
 Mechanically it reuses everything: the tuple is installed under a
 synthetic `DURABLE_SUBJECT_KIND` so the index, the refcount and the
 teardown path all work unchanged — the only special case is that this
-kind acquires **no bus listener**, because `notifyDurableSubject` routes
+kind acquires **no bus listener**, because a `{ durableSubject }` poke routes
 into `routeFire` directly.
 
 `durableKey` returning `undefined` (a guest, with no durable identity)
@@ -597,7 +601,7 @@ exposing `kind: string` and `payload: P` directly:
 
 | Class | KIND | Discriminator | Firing site |
 |---|---|---|---|
-| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `MqlSubscriptionApi.fireFieldChange` or inline |
+| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `SubscriptionApi.fireFieldChange` or inline |
 | `PropertyChangedEvent` | `'stuff.propertyChanged'` | `property` (property-bag key) | `PropertiedMixin.setProp` |
 | `ShadowChangedEvent` | `'stuff.shadowChanged'` | `cause`, `shadow` | **Declared but unfired.** Wires up with the shadow lifecycle in a later subsystem. |
 | `GenericEvent<P>` | per-instance | — | Escape hatch when no specific class fits. Has no static `KIND`; routes via string-keyed `EventApi.on(name, …)` only. |
@@ -621,11 +625,11 @@ meta-bus index discriminates by `(EventClass.KIND, attribute, value)`,
 and `FieldChangedEvent` carries `field` while `PropertyChangedEvent`
 carries `property`.
 
-### `MqlSubscriptionApi.fireFieldChange` helper
+### `SubscriptionApi.fireFieldChange` helper
 
 ```ts
 setName(value: string): void {
-  this.name = MqlSubscriptionApi.fireFieldChange(
+  this.name = SubscriptionApi.fireFieldChange(
     this, 'name', this.name, value,
   );
 }
@@ -635,7 +639,7 @@ Strict-equals (`Object.is`) compares old vs new. On equal, skip
 emission and return `oldValue`. On change, fire the event and return
 `newValue`. Setter is a single line.
 
-The helper lives on `MqlSubscriptionApi`, not on `FieldChangedEvent`,
+The helper lives on `SubscriptionApi`, not on `FieldChangedEvent`,
 so the substrate owns its own helpers and the event class stays a
 pure DTO.
 
@@ -746,7 +750,7 @@ change lists emit no envelope (silent no-op).
 `Application.handleUserDisconnect`:
 
 1. Resolves the `Interactive` from the socket id.
-2. Calls `MqlSubscriptionApi.cancelAllForInteractive(interactive)`
+2. Calls `interactive.cancelAllSubscriptions()`
    **before** `ConnectionManager.removeInteractive(socketId)`. The Api
    delegates to `MqlSubscriptionRegistry.cancelAllForInteractive`,
    which clears the Interactive's entry in the Registry's
@@ -994,7 +998,7 @@ content and reaching for a plausible default.
 ## Build history
 
 - **Canonical-kind registry retired during MR iteration.** Wave 1
-  shipped `MqlSubscriptionApi.registerKind(name, spec)` with a
+  shipped `SubscriptionApi.registerKind(name, spec)` with a
   `kind?: string` overlay on `MqlSubscribeMessage` /
   `MqlQueryMessage`. The mechanism was a pure server-side macro
   over the raw spec — the substrate's load-bearing machinery

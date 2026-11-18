@@ -75,10 +75,9 @@ import { MqlApi } from '../../api/mql';
 import { ChatApi } from '../../api/chat';
 import { PerceptionApi } from '../../api/perception';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   resolveFieldSet,
-} from '../../api/mql-subscription';
-import { SubscriptionApi } from '../../api/subscription';
+} from '../../api/subscription';
 
 /**
  * Admits the Api facade, the `CardLogic` singleton — by template path
@@ -1526,7 +1525,7 @@ export default class CardRegistry extends CardRegistryBase {
     }
     state.records = stuffList.map(
       (s) =>
-        MqlSubscriptionApi.projectFields(
+        SubscriptionApi.projectFields(
           s,
           fields,
           viewer,

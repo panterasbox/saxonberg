@@ -6,7 +6,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -15,7 +15,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -40,12 +39,12 @@ async function setup(): Promise<Interactive> {
   return interactive;
 }
 
-describe('MqlSubscriptionApi — dirty scheduler', () => {
+describe('SubscriptionApi — dirty scheduler', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('multiple events in one tick coalesce to one re-resolve', async () => {
@@ -64,7 +63,7 @@ describe('MqlSubscriptionApi — dirty scheduler', () => {
     avatar.setName('Carol');
     avatar.setName('Dave');
     expect(spy).not.toHaveBeenCalled(); // setImmediate hasn't run yet
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     // One re-resolve for the lone subscription, regardless of three fires.
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();

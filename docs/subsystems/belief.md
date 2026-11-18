@@ -150,7 +150,7 @@ recipient (`body.toString(recipient)`), **every scene line and look output
 becomes per-recipient viewer-aware for free** — a broadcast names the same
 target "Bob" to a friend and "a hooded figure" to a stranger, with no
 change to the ~56 call sites. The client-data path
-(`MqlSubscriptionApi.projectFields`) applies the same routine to the
+(`SubscriptionApi.projectFields`) applies the same routine to the
 universal `displayName` field, so the inspection card and the scrollback
 can't diverge.
 

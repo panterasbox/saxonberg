@@ -94,12 +94,12 @@ description plus every filter-blind augmenter line. The only overrides:
 look text **plus** filter-gated lines (palate, soil smell), plus the Placing `──` lines. It
 has **no** Owned-by, display, In-it or glance lines.
 
-### 0.4 The inspection card (`lib/connection/Cards.ts:217-229`; `api/mql-subscription.ts:106-138`; client `packages/client/src/components/cards/CardBodies.tsx:1345-1508`)
+### 0.4 The inspection card (`lib/connection/Cards.ts:217-229`; `api/subscription.ts:106-138`; client `packages/client/src/components/cards/CardBodies.tsx:1345-1508`)
 
 The `subject` card projects `DETAIL_FIELDS`: displayName, quantity, primaryKeyword,
 shortDescription, longDescription, illustration, details, bulkMaterial, mass, contents, worn,
 exits, placed, placement, holds. `projectFields` omits only `undefined`, so `null` and `[]`
-are sent (`api/mql-subscription.ts:314-340`).
+are sent (`api/subscription.ts:314-340`).
 
 Each field is declared by a mixin:
 

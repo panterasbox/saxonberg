@@ -861,7 +861,7 @@ Application just triggers it. It runs *before* `removeInteractive` so
 any final substrate-side delivery still has a live Interactive to
 address (and a controller's prompt-catch block can react while the
 Interactive is still around). Each subsystem exposes its own
-`cancelAllForInteractive(this)` (`MqlSubscriptionApi`, `ForumsApi`,
+`cancelAllForInteractive(this)` (`SubscriptionApi`, `ForumsApi`,
 its own reaction/prompt teardown; adding a new per-Interactive
 substrate means appending one call in `teardownSubstrateState`, not
 touching Application.

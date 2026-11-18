@@ -25,7 +25,7 @@ import { PerceptionApi } from '../../api/perception';
 import {
   collectSubscribableFields,
   REF_FIELDS,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import {
   CommandApi,
   type CommandContext,

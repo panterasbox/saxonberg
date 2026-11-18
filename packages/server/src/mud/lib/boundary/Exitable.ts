@@ -73,7 +73,7 @@ function isTemplateNotFound(err: unknown, path: string): boolean {
     err instanceof Error && err.message === `Template not found: ${path}`
   );
 }
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 
 /**
  * Public shape added by ExitableMixin.

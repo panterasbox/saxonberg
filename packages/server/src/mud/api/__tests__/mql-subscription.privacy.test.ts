@@ -7,7 +7,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { collectSubscribableFields } from '../mql-subscription';
+import { collectSubscribableFields } from '../subscription';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { TangibleMixin } from '../../lib/material/Tangible';

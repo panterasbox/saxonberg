@@ -36,7 +36,7 @@ import { CommandApi } from '../mud/api/command';
 import { StackableApi } from '../mud/api/stackable';
 import { registerSchedulerRegistryClass } from '../mud/api/scheduler';
 import { registerWorldClockRegistryClass } from '../mud/api/worldclock';
-import { registerMqlSubscriptionRegistryClass } from '../mud/api/mql-subscription';
+import { registerMqlSubscriptionRegistryClass } from '../mud/api/subscription';
 import { registerCardRegistryClass } from '../mud/api/card';
 import CardRegistry from '../mud/platform/idea/CardRegistry';
 import EventSubscriptions from '../mud/platform/idea/EventSubscriptions';

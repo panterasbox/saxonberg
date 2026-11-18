@@ -118,7 +118,7 @@ reputation build avoids). State uses `private`, not `#private` (the
 call-security-proxy rule). Every public method is gated
 `FromModule('/api/reaction#ReactionApi')` + `SelfOnly`; the thin
 `api/reaction.ts` `ReactionApi` facade is the only legitimate caller.
-Mirrors the `MqlSubscriptionApi ↔ MqlSubscriptionRegistry` split, minus
+Mirrors the `SubscriptionApi ↔ MqlSubscriptionRegistry` split, minus
 the HMR logic-singleton indirection (registry state survives an Api
 reload because it lives on the Stuff).
 

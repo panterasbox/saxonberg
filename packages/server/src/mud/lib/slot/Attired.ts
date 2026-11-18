@@ -73,10 +73,10 @@ import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   REF_FIELDS,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { Impression, type ImpressionClause } from './Impression';
 import { SOIL_BANDS } from '../cleanliness/Soilable';
 import { Quantity } from '../quantity';
@@ -613,7 +613,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
           return PerceptionApi.perceived(viewer, host.wornStack() as unknown as Stuff[])
             .filter((item) => item.stuffId !== viewer.stuffId && MixinApi.isVisible(item))
             .map((item) =>
-              MqlSubscriptionApi.projectFields(
+              SubscriptionApi.projectFields(
                 item as unknown as Stuff,
                 REF_FIELDS,
                 viewer,

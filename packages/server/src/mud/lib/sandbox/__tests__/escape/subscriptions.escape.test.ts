@@ -8,7 +8,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../../api/subscription';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { EventApi } from '../../../../api/event';
@@ -19,7 +19,6 @@ import {
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
 import Avatar from '../../../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../../../../api/subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /*
@@ -75,7 +74,7 @@ describe('sandbox-escape: subscriptions', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     ExecutionContextApi._clearForTesting();
   });
 
@@ -106,15 +105,15 @@ describe('sandbox-escape: subscriptions', () => {
       { circleScope: SCOPE }
     );
 
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(2);
 
     // Reap: the circle's live queries die with its session…
-    const cancelled = MqlSubscriptionApi.cancelAllForScope(SCOPE);
+    const cancelled = SubscriptionApi.cancelAllForScope(SCOPE);
     expect(cancelled).toBe(1);
     // …and the field-born one keeps running, unpoisoned.
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     // Reap is idempotent.
-    expect(MqlSubscriptionApi.cancelAllForScope(SCOPE)).toBe(0);
+    expect(SubscriptionApi.cancelAllForScope(SCOPE)).toBe(0);
   });
 });

@@ -8,7 +8,7 @@ import {
   REF_FIELDS,
   DETAIL_FIELDS,
   resolveFieldSet,
-} from '../mql-subscription';
+} from '../subscription';
 
 describe('MQL subscription — field-set aliases', () => {
   it('REF_FIELDS shape', () => {

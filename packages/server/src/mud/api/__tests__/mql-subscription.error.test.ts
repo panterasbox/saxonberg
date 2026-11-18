@@ -6,7 +6,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -14,7 +14,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -55,12 +54,12 @@ function captureEnvelopes(avatar: Avatar): Array<{ type: string; [k: string]: un
   return collected;
 }
 
-describe('MqlSubscriptionApi — error envelopes', () => {
+describe('SubscriptionApi — error envelopes', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('duplicate id → reason: parse, second registration is rejected', async () => {
@@ -82,7 +81,7 @@ describe('MqlSubscriptionApi — error envelopes', () => {
       subscriptionId: 's1',
       reason: 'duplicate',
     });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 
   it('detailKey with cardinality: many → reason: parse, no registration', async () => {
@@ -97,7 +96,7 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]!.reason).toBe('parse');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('⭐⭐ a standing `world` query is refused for EVERYONE — no exception', async () => {
@@ -119,7 +118,7 @@ describe('MqlSubscriptionApi — error envelopes', () => {
       subscriptionId: 's-world',
       reason: 'permission',
     });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('malformed MQL query → reason: parse, no registration', async () => {
@@ -133,6 +132,6 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors.length).toBeGreaterThan(0);
     expect(['parse', 'resolve']).toContain(errors[0]!.reason);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 });

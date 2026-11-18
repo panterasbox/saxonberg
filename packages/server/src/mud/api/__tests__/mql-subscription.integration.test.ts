@@ -8,7 +8,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -16,7 +16,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -49,12 +48,12 @@ async function setup(): Promise<{
   return { interactive, avatar, envelopes };
 }
 
-describe('MqlSubscriptionApi — integration loop', () => {
+describe('SubscriptionApi — integration loop', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('single-cardinality displayName subscription: result → setName → delta → unsubscribe', async () => {
@@ -75,7 +74,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
 
     envelopes.length = 0;
     avatar.setName('Bob');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
@@ -89,8 +88,8 @@ describe('MqlSubscriptionApi — integration loop', () => {
     });
 
     interactive.cancelSubscription('s1');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
 
   it('disconnect cleanup: cancelAllForInteractive after multiple subscriptions', async () => {
@@ -104,12 +103,12 @@ describe('MqlSubscriptionApi — integration loop', () => {
     query: 'me',
     cardinality: 'one',
   });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(2);
 
     interactive.cancelAllSubscriptions();
 
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
 
   it('focused-detail subscription rejects cardinality: many', async () => {
@@ -122,7 +121,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
     const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]!.reason).toBe('parse');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('duplicate subscriptionId is rejected; original survives', async () => {
@@ -139,6 +138,6 @@ describe('MqlSubscriptionApi — integration loop', () => {
     const errors = envelopes.filter((e) => e.type === 'subscription-error');
     expect(errors).toHaveLength(1);
     expect(errors[0]!.reason).toBe('duplicate');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 });

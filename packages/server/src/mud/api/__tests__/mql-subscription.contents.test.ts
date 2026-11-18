@@ -18,7 +18,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -29,7 +29,6 @@ import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Place from '../../lib/stuff/Place';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -84,12 +83,12 @@ async function makeBrassThermometer(short: string): Promise<Good> {
   });
 }
 
-describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
+describe('SubscriptionApi — contents projection (Wave 1)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('projects contents on a Container host with three Visible children', async () => {
@@ -141,7 +140,7 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     const t2 = await makeBrassThermometer('an iron lantern');
     ContainmentApi.move(t2, location);
 
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
@@ -194,15 +193,15 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     // no `contents` key. Use `projectFields` directly against an Idea
     // instance (Avatar / Place both compose ContainerMixin).
     await bootRegistry();
-    const { MqlSubscriptionApi, DETAIL_FIELDS } = await import(
-      '../mql-subscription'
+    const { SubscriptionApi, DETAIL_FIELDS } = await import(
+      '../subscription'
     );
     const { Idea } = await import('../../lib/stuff/Idea');
     const plain = await StuffApi.create(() => new Idea());
-    const rec = MqlSubscriptionApi.projectFields(
+    const rec = SubscriptionApi.projectFields(
       plain,
       DETAIL_FIELDS,
-      plain as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
+      plain as unknown as Parameters<typeof SubscriptionApi.projectFields>[2],
     );
     expect(rec.contents).toBeUndefined();
     expect('contents' in rec).toBe(false);

@@ -46,9 +46,21 @@ interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key:
   (`interactive.sendEnvelope`), never every session of a body.
 - **The session's verbs are on `Interactive`**: `subscribe(id, source,
   params, { silent })`, `cancelSubscription`, `cancelAllSubscriptions`,
-  `hasSubscription` (`lint:object-verbs`). `SubscriptionApi.poke(source,
-  holder | null, hint)` is the one static: a body (or a ledger) telling a
-  source its answer may have changed.
+  `hasSubscription` (`lint:object-verbs`).
+- ⭐⭐ **One Api: `SubscriptionApi`** (`api/subscription.ts`), over one
+  logic singleton (`SubscriptionLogic`, `/platform/idea/api/subscription`).
+  Its producer verb is `poke(source, holder | null, hint)` — a body, a
+  ledger or a session telling a source its answer may have changed, the
+  hint in the source's own words: the sections (where you are), a
+  `{ durableSubject }` a ledger just wrote, a holder whose session changed
+  bodies (the MQL source). It also carries the subscribable-field
+  substrate any source projects through (`SubscribableFieldDescriptor`,
+  `fireFieldChange`, `projectFields`, `projectAspect`), the MQL source's
+  one-shot `handleQuery`, and the sandbox reap (`cancelAllForScope`).
+  ⚠ There was a second, `MqlSubscriptionApi`, with its own logic
+  singleton and two bespoke pokes (`notifyDurableSubject`,
+  `refreshForInteractive`); it was folded in at review (MR !595) — a
+  source is a source, and it does not get a facade of its own.
 - **Finding a source.** A standing instance at the path is asked whether it
   is a source; otherwise the row's CLASS is read (`StuffApi.classForRef` —
   loads the module, instantiates nothing) and refused (`source`) unless it

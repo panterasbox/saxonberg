@@ -1,13 +1,13 @@
 /**
- * MqlSubscriptionRegistry — singleton Idea holding the MQL
- * subscription substrate's runtime state.
+ * MqlSubscriptionRegistry — the MQL SOURCE of the one subscription
+ * protocol: a singleton Idea holding the standing queries' runtime state.
  *
- * Lives at `/platform/idea/MqlSubscriptionRegistry`. The thin `MqlSubscriptionApi`
- * facade at `api/mql-subscription.ts` is the only legitimate caller —
- * every public method on this class carries
- * `@CallSecurity(FromModule('/api/mql-subscription#MqlSubscriptionApi'))`
- * so external code that grabs the Stuff via `StuffApi.findByTemplatePath`
- * cannot poke its state.
+ * Lives at `/platform/idea/MqlSubscriptionRegistry`
+ * (`SUBSCRIPTION_SOURCES.mql`). Its three source methods admit only the
+ * protocol's `SubscriptionRegistry`; the rest only `SubscriptionApi`'s
+ * logic singleton (`/platform/idea/api/subscription`), so external code
+ * that grabs the Stuff via `StuffApi.findByTemplatePath` cannot poke its
+ * state.
  *
  * State held here:
  *   - `registry` — per-Interactive map of subscriptionId → state.
@@ -17,7 +17,7 @@
  *     handle + refcount, so we install one listener per pair total.
  *   - `dirty` / `scheduled` — `setImmediate`-batched re-resolve queue.
  *
- * HMR-aware: reload of `api/mql-subscription.ts` invalidates only the
+ * HMR-aware: reload of `api/subscription.ts` invalidates only the
  * cached pointer in the Api; subscription state survives. Reload of
  * THIS file re-clones the Stuff (state resets, listeners would need to
  * re-register from scratch).
@@ -69,20 +69,19 @@ import {
   type SubscriptionCardinality,
   type SubscribeRequest,
   type QueryRequest,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 
-/**
- * See WorldClockRegistry — same gate shape, same rationale. Admits the
- * Api facade, the `MqlSubscriptionLogic` singleton (caller template path
- * `/platform/idea/api/mql-subscription`, which actually forwards every
- * registry-backed call), and internal `this.foo()` self-calls.
- */
 /** The protocol's registry is the only caller of a source's three methods. */
 const SubscriptionSourceCallers = SecurityPolicies.FromModule('/platform/idea/SubscriptionRegistry');
 
-const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
-  SecurityPolicies.FromTemplate('/platform/idea/api/mql-subscription'),
+/**
+ * See WorldClockRegistry — same gate shape, same rationale. Admits the
+ * `SubscriptionLogic` singleton (caller template path
+ * `/platform/idea/api/subscription`, which forwards every registry-backed
+ * call of `SubscriptionApi`), and internal `this.foo()` self-calls.
+ */
+const SubscriptionApiCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromTemplate('/platform/idea/api/subscription'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -91,7 +90,7 @@ const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
  *
  * It reuses the whole index / refcount / teardown machinery, but
  * deliberately has **no bus listener** — nothing ever fires it through
- * `EventApi`. `notifyDurableSubject` routes into the index directly.
+ * `EventApi`. A `{ durableSubject }` poke routes into the index directly.
  */
 const DURABLE_SUBJECT_KIND = '__durable-subject';
 
@@ -405,13 +404,36 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     this.forget(sub);
   }
 
-  /** ⭐ The MQL source wakes itself — its event index marks what changed. */
+  /**
+   * ⭐ The MQL source mostly wakes itself — its event index marks what
+   * changed. A poke is for what no event carries:
+   *
+   * - **`{ durableSubject }`** — a ledger just wrote a row keyed on a
+   *   durable subject (`/platform/agent/Avatar/<playerId>`), which no live
+   *   `stuffId` event can name. Every subscription whose fields declared
+   *   that {@link SubscribableFieldDescriptor.durableKey} re-resolves. One
+   *   known producer poking one known consumer: a method call, never a
+   *   broadcast through `EventApi`.
+   * - **a holder** — the body behind a session changed (the sandbox
+   *   crossing moves a socket between bodies). That is not a dependency of
+   *   any query but a change of who it is FOR, so every subscription of a
+   *   session that now drives `holder` re-resolves (found live: the
+   *   location card still read "the wire alcove" from inside the circle).
+   */
   @CallSecurity(SubscriptionSourceCallers)
-  public override pokeSubscriptions(_holder: Stuff | null, _hint?: unknown): void {
-    // its dependency index is the poke
+  public override pokeSubscriptions(holder: Stuff | null, hint?: unknown): void {
+    const subject = (hint as { durableSubject?: string } | undefined)?.durableSubject;
+    if (subject !== undefined) {
+      this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject });
+      return;
+    }
+    for (const [interactive, bucket] of this.registry) {
+      if (holder !== null && interactive.getHolder() !== holder) continue;
+      for (const sub of bucket.values()) this.markDirty(sub);
+    }
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public handleQuery(
     req: Omit<QueryRequest, 'query' | 'cardinality'> &
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>,
@@ -508,45 +530,13 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
   }
 
   /**
-   * Re-resolve every subscription this Interactive holds, right now.
-   *
-   * Subscriptions re-resolve when a tracked DEPENDENCY changes — but
-   * swapping the body behind a socket isn't a dependency of any query,
-   * it's a change of who the query is *for*. After the sandbox crossing
-   * moves a socket to a wire body (or back), its cards would otherwise
-   * keep rendering the room the player already left (found live: the
-   * location card still read "the wire alcove" from inside the circle).
-   */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public refreshForInteractive(interactive: Interactive): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    for (const sub of bucket.values()) this.markDirty(sub);
-  }
-
-  /**
-   * ⭐ **The durable-subject witness** — see
-   * {@link MqlSubscriptionApi.notifyDurableSubject}.
-   *
-   * Routes straight into the dependency index under the synthetic
-   * {@link DURABLE_SUBJECT_KIND}. No event is constructed and nothing
-   * touches `EventApi`: this is one known producer (a standing ledger)
-   * poking one known consumer (this registry), which the codebase's
-   * rule says is a method call, not a broadcast.
-   */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public notifyDurableSubject(subject: string): void {
-    this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject });
-  }
-
-  /**
    * Cancel every subscription whose birth scope is `scope` — the
    * sandbox reap seam: a circle's live queries die with its session.
    * Field-born subscriptions are untouched (they continue across a
    * crossing — the world-side resolve stays field-pure). Returns the
    * cancel count.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public cancelAllForScope(scope: string): number {
     let cancelled = 0;
     for (const [interactive, bucket] of [...this.registry.entries()]) {
@@ -564,14 +554,14 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
 
   /* ─── test seams ─── */
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _getRegistrySize(): number {
     let count = 0;
     for (const bucket of this.registry.values()) count += bucket.size;
     return count;
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _getDependencyIndexEntryCount(): number {
     let count = 0;
     for (const byMap of this.index.values()) {
@@ -584,7 +574,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     return count;
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public async _drainScheduled(): Promise<void> {
     await Promise.resolve();
     await Promise.resolve();
@@ -593,7 +583,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
     await new Promise<void>((resolve) => setImmediate(resolve));
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _clearAll(): void {
     for (const byMap of this.listeners.values()) {
       for (const entry of byMap.values()) {
@@ -621,7 +611,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       this.indexAdd(kind, by, value, sub);
       sub.dependencyHandles.push({ kind, by, value });
       // The durable-subject kind has no bus behind it — it is poked
-      // directly by `notifyDurableSubject`.
+      // directly by a `{ durableSubject }` poke.
       if (kind !== DURABLE_SUBJECT_KIND) this.ensureListener(kind, by);
     };
 
@@ -1034,7 +1024,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       (holder as Stuff & Sensor).onEnvelope(template);
     } else {
       console.warn(
-        `MqlSubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
+        `SubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
           `queryId=${queryId} reason=${reason}`,
       );
     }

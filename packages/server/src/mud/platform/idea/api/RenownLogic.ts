@@ -38,8 +38,9 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { GroupRef } from '../../../lib/social/GroupProvider';
 import { PersistApi } from '../../../api/persist';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { Decay } from '../../../lib/Decay';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
 );
@@ -107,7 +108,7 @@ async function appendImpl(fields: RenownEventFields): Promise<void> {
   await ev.save();
   // AFTER the write: a consumer that recomputes must not read a
   // ledger that has not been written yet.
-  MqlSubscriptionApi.notifyDurableSubject(ev.subject);
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.subject });
 }
 
 /**

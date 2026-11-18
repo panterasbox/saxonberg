@@ -79,7 +79,7 @@ import type Interactive from "../../platform/idea/Interactive";
 import { TemplatePathPrefixes } from "../paths";
 import { EstateMixin } from "../chattel/Estate";
 import type { FieldMeta } from "../mixin";
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import { InfluenceApi } from '../../api/influence';
 import { RenownApi } from '../../api/renown';
 
@@ -482,7 +482,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * `durableKey` is the seam that closes it, and it is a **direct poke
    * from the ledger, not a broadcast** — one known producer, one known
-   * consumer. See {@link MqlSubscriptionApi.notifyDurableSubject}.
+   * consumer. See {@link SubscriptionApi.notifyDurableSubject}.
    */
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {

@@ -58,7 +58,7 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { Vitals } from '../vitals/Vitals';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { SubscriptionApi } from '../../api/subscription';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
@@ -68,6 +68,7 @@ import {
   type CompetenceBandName,
 } from '../advancement/CompetenceBand';
 import { DirtKinds } from '../cleanliness/DirtKind';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /** One exertion: metabolic watts held for game-seconds. */
 export interface Exertion {
@@ -463,7 +464,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (this._notedBodyState !== null && state !== this._notedBodyState) {
         const subject = self.getIdentityPath();
-        if (subject) MqlSubscriptionApi.notifyDurableSubject(subject);
+        if (subject) SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject });
       }
       this._notedBreath = breath;
       this._notedBodyState = state;

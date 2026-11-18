@@ -74,7 +74,7 @@ because *a static card that looked live would be a lie*, and a refresh
 button on a live card is a bandage over a wake that does not fire —
 **and, worse, it is how nobody finds out**. A `here` card was immortal
 through eleven passing tests because every one of them called
-`refreshForInteractive` by hand.
+the refresh by hand.
 
 ⭐⭐ **Liveness is per card: a card you PLACED, PINNED, or that fills a
 ROLE holds a subscription; a card that just flows through the feed is a
@@ -956,7 +956,7 @@ are strictly independent (a stale invalid stored value is
 silently shadowed by the derived-pool head).
 
 **Set-fires-field-change**: real changes route through
-`MqlSubscriptionApi.fireFieldChange(this, 'primaryKeyword', ...)`
+`SubscriptionApi.fireFieldChange(this, 'primaryKeyword', ...)`
 so subscriptions on `'primaryKeyword'` (any ref record on a
 Perceptible host) wake.
 
@@ -1310,7 +1310,7 @@ interface MqlQueryErrorEnvelope {
 }
 ```
 
-`MqlSubscriptionApi.handleQuery(req: QueryRequest)`:
+`SubscriptionApi.handleQuery(req: QueryRequest)`:
 
 - Reuses ONLY the parse + resolve + project pipeline.
 - NO registration in `#registry`, NO dependency-index entries,
@@ -1762,7 +1762,7 @@ them here so future debugging knows the substrate's choices
 weren't always the obvious ones:
 
 - **Canonical-kind registry retired.** The build initially
-  shipped a server-side `MqlSubscriptionApi.registerKind` /
+  shipped a server-side `SubscriptionApi.registerKind` /
   `CanonicalKindSpec` registry that let clients subscribe by
   name (`'me.focus'`). The registry was a pure server-side
   macro over the wire — same bytes, alias-only — so it was

@@ -4,7 +4,7 @@
  * Two of the five live standing figures read ledgers whose Api is
  * async (`TraitApi.pronouncedFor`, `AdvancementApi.bandsFor`), while
  * `SubscribableFieldDescriptor.read` is **synchronous**. That is not an
- * oversight to route around: `MqlSubscriptionApi.projectFields` is sync,
+ * oversight to route around: `SubscriptionApi.projectFields` is sync,
  * and `ContainerMixin`'s own `contents` descriptor calls it from inside
  * its `read` — so widening `read` to return a promise would make
  * projection async *recursively through nested containment*, on the
@@ -27,7 +27,7 @@
  *   2. The miss schedules a background fold, at most one in flight per
  *      subject.
  *   3. When it lands, `onWarm` runs — a **direct** poke to
- *      `MqlSubscriptionApi.notifyDurableSubject`, so the subscription
+ *      `SubscriptionApi.notifyDurableSubject`, so the subscription
  *      re-resolves and the real figure arrives as a delta moments
  *      later. No event, no bus: one known producer, one known
  *      consumer.

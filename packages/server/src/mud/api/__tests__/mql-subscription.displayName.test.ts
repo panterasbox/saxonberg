@@ -9,7 +9,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { collectSubscribableFields } from '../mql-subscription';
+import { collectSubscribableFields } from '../subscription';
 import { NamedMixin } from '../../lib/description/Named';
 import { Idea } from '../../lib/stuff/Idea';
 import { Stuff } from '../../lib/stuff/Stuff';

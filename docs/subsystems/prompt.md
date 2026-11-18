@@ -140,8 +140,8 @@ input and the variation lives in what the caller does with the answer.
 Inbound message type        Routes to
 ─────────────────────       ────────────────────────────
 command                     CommandGiver.executeCommand
-subscribe               MqlSubscriptionApi
-unsubscribe             MqlSubscriptionApi
+subscribe               SubscriptionApi
+unsubscribe             SubscriptionApi
 prompt-response             interactive.handlePromptResponse  ← bypasses command bus
 prompt-cancel               interactive.handlePromptCancel    ← bypasses command bus
 ```
@@ -285,7 +285,7 @@ box is the honest affordance.
 ```ts
 Application.handleUserDisconnect:
   1. Resolve Interactive from socketId.
-  2. MqlSubscriptionApi.cancelAllForInteractive(interactive);
+  2. interactive.cancelAllSubscriptions();
   3. interactive.cancelPrompts('host-disconnected');
   4. ConnectionManager.removeInteractive(socketId);
 ```
@@ -448,7 +448,7 @@ clear the answer.
 
 ## ⭐ A settled prompt wakes its card
 
-`PromptLogic.cleanup` calls `MqlSubscriptionApi.notifyPromptSettled`.
+`PromptLogic.cleanup` calls `SubscriptionApi.notifyPromptSettled`.
 
 `HOLD_WAKES_ON` records that an `unanswered` card needs no location
 dependency because *the prompt's own resolution is what wakes it* — this

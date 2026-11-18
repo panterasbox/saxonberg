@@ -48,7 +48,7 @@ import {
 // load-time cycle. The default fragment is built by `Mml.ref` instead;
 // subclasses that decorate value-import `Mml` themselves.
 import type { Mml } from '../../api/mml';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
@@ -213,7 +213,7 @@ export abstract class Stuff {
     {
       name: 'displayName',
       // Viewer-blind baseline here; the viewer-aware re-point lives in
-      // the projection layer (`MqlSubscriptionApi.projectFields`), which
+      // the projection layer (`SubscriptionApi.projectFields`), which
       // threads the subscriber and applies `RecognitionApi.describe`.
       // Keeping the perception/belief dependency out of the root `Stuff`
       // module avoids a module-eval cycle (Stuff → recognition →

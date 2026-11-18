@@ -63,7 +63,7 @@
  */
 
 import { Lock, type LockType } from '../lock/Lock';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';

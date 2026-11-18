@@ -71,6 +71,14 @@ implementer and an Api with one concept in it are not new substrate; they
 are a method in the wrong place. *Evidence:* as R2; *"what else would
 possibly go in it?"* (cleanliness); a hook needs more than one implementer
 (!335); promote at the third consumer, never invent it.
+⭐ **And when the build GENERALIZES something, is the specific one gone?**
+A general substrate that leaves the old one's surface standing beside it is
+two of the thing, not one. *Evidence:* navigation-server !595 built the one
+subscription protocol and its `SubscriptionApi`, and left
+`MqlSubscriptionApi` (own logic singleton, two bespoke pokes) beside it —
+*"now there's multiple subscription apis. we only need one for
+everything"*. See [antipatterns.md § An Api per implementer of a
+protocol](./antipatterns.md#an-api-per-implementer-of-a-protocol).
 
 ### P2. Host placement: does every host on it *mean* it?
 The shipped test — *a guard that re-narrows the host set means the host is

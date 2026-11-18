@@ -5,7 +5,7 @@
  * silently on mismatch.
  */
 
-import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
+import { SubscriptionApi } from '../../mud/api/subscription';
 import type { MqlQueryMessage } from '@saxonberg/types';
 import type { InboundHandler } from './index';
 
@@ -21,7 +21,7 @@ export const handleMqlQuery: InboundHandler = (ctx, message) => {
   ) {
     return;
   }
-  MqlSubscriptionApi.handleQuery({
+  SubscriptionApi.handleQuery({
     interactive: ctx.interactive,
     queryId: payload.queryId,
     query: payload.query,

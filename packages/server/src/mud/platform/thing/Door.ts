@@ -22,7 +22,7 @@
 
 import Boundary from './Boundary';
 import { LockableMixin } from '../../lib/boundary/Lockable';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { FieldMeta } from '../../lib/mixin';
 import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';

@@ -37,7 +37,7 @@ import {
   type ChannelTable,
   type ChannelValues,
 } from './Conduit';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { FieldMeta } from '../mixin';
 import { Colour } from '../perception/Colour';
 import { NavigationApi } from '../../api/navigation';

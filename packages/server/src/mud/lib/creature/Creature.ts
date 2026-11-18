@@ -79,7 +79,7 @@ import type { BoundaryOpening } from '../boundary/Conduit';
 import { BODY_PROFILE_HEIGHT, type BodyProfile } from '../../platform/idea/LocomotionMode';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 
 // Body stack (inner → outer):
 //   Container + Containable + Disguisable + Visible + Respiration +

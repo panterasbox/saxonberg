@@ -22,7 +22,7 @@ import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { CommandLineApi } from '../command-line';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { ContainmentApi } from '../containment';
 import Locale from '../../platform/location/Locale';
@@ -55,7 +55,7 @@ describe('the normalized command is what a card re-issues', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 

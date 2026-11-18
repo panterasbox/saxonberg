@@ -16,7 +16,7 @@ import type { VetoResult } from '../../../lib/errors';
 import type { Warren } from '../../../lib/location/Warren';
 import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
 import type {
@@ -162,7 +162,7 @@ export class ContainmentLogic extends ApiLogic {
     if (to !== null && item.getContainer() === to && item.getPlacement() !== null) {
       const was = item.getPlacement()?.name ?? '';
       item._setPlacement(null);
-      MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
+      SubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, '');
       if (MixinApi.isThermal(item)) void item.restamp();
       return;
     }
@@ -383,7 +383,7 @@ function placeOn(
   moveCore(item, targetEnv as ContainerStuff, false, undefined, true);
   item._setPlacement(host, name);
   // Rung 1: the placement member just changed — wake every card showing it.
-  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
+  SubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', '', name);
   // A member that encloses changes the thing's ambient scope even when the
   // container did not change.
   if (MixinApi.isThermal(item)) void item.restamp();
@@ -418,7 +418,7 @@ function placeIn(
   moveCore(item, host, false, undefined, false, key);
   item._setPlacement(host, key);
   // Rung 1: the region just changed — wake every card showing it.
-  MqlSubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, key);
+  SubscriptionApi.fireFieldChange(item as unknown as Stuff, 'placement', was, key);
   if (MixinApi.isThermal(item)) void item.restamp();
   // `moveCore` asked the pressing when the container changed; from one
   // region to another it did not move, so ask here.
@@ -571,7 +571,7 @@ function moveCore(
   if (from !== to && item.getPlacement() !== null && following === undefined) {
     item._setPlacement(null);
     // Rung 1: the placement is gone — wake the cards that showed it.
-    MqlSubscriptionApi.fireFieldChange(
+    SubscriptionApi.fireFieldChange(
       item as unknown as Stuff,
       'placement',
       'on',
@@ -621,7 +621,7 @@ function moveCore(
       // world drops what was on it where it stood.
       const was = f.getPlacement()?.name ?? '';
       f._setPlacement(null);
-      MqlSubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
+      SubscriptionApi.fireFieldChange(f as unknown as Stuff, 'placement', was, '');
       continue;
     }
     moveCore(f, to, force, visited, true);

@@ -62,7 +62,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { SubscriptionApi } from '../../api/subscription';
 import { GrammarApi } from '../../api/grammar';
 import { ParcelApi } from '../../api/parcel';
 import { NavigationApi } from '../../api/navigation';
@@ -498,11 +498,11 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     const record = this.wayRecord();
     const far = this.peekDestination() as Stuff | null;
     const facts: Record<string, string | number | boolean> = MixinApi.isSensor(viewer)
-      ? { ...MqlSubscriptionApi.projectAspect(this as unknown as Stuff, 'way', viewer) }
+      ? { ...SubscriptionApi.projectAspect(this as unknown as Stuff, 'way', viewer) }
       : {};
     const boundary = this.getBoundary();
     if (boundary && MixinApi.isSensor(viewer)) {
-      Object.assign(facts, MqlSubscriptionApi.projectAspect(boundary, 'way', viewer));
+      Object.assign(facts, SubscriptionApi.projectAspect(boundary, 'way', viewer));
     }
     const way: NavWay = {
       ...record,

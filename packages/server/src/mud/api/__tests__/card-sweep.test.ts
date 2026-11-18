@@ -20,7 +20,7 @@ import { ScheduleApi } from '../schedule';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import CardRegistry from '../../platform/idea/CardRegistry';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -48,7 +48,7 @@ describe('card eviction is a sweep', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 

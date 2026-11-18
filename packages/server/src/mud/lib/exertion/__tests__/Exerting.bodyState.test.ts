@@ -14,7 +14,7 @@ import { Creature } from '../../creature/Creature';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';
 import { MessageApi } from '../../../api/message';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { Quantity } from '../../quantity';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -39,8 +39,9 @@ describe('the body as words, and the moment it changes', () => {
       b.send = () => {};
       return b as never;
     });
-    vi.spyOn(MqlSubscriptionApi, 'notifyDurableSubject').mockImplementation((s: string) => {
-      pokes.push(s);
+    vi.spyOn(SubscriptionApi, 'poke').mockImplementation((_source, _holder, hint) => {
+      const s = (hint as { durableSubject?: string } | undefined)?.durableSubject;
+      if (s !== undefined) pokes.push(s);
     });
   });
   afterEach(() => {

@@ -51,9 +51,9 @@ import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { Placement } from './Placement';
 import type { KeptWithinStep } from '../persistence/PersistenceSlice';
 import { Placements } from './Placement';
@@ -413,7 +413,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       // entered/left an inventory" — same shape `addContainable` /
       // `removeContainable` use on the container side for the
       // `contents` projection.
-      MqlSubscriptionApi.fireFieldChange(
+      SubscriptionApi.fireFieldChange(
         this,
         'container',
         old,

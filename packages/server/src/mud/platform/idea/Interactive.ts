@@ -38,6 +38,7 @@ import type {
   ArrangementCard,
   TerminalFilter,
 } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
   ChoicePromptOpts,
@@ -47,7 +48,6 @@ import type {
   TextPromptOpts,
 } from '../../api/prompt';
 import { ConnectionLogic } from './api/ConnectionLogic';
-import { MqlSubscriptionLogic } from './api/MqlSubscriptionLogic';
 import { CardLogic } from './api/CardLogic';
 import { PromptLogic } from './api/PromptLogic';
 import ReactionRegistry from './ReactionRegistry';
@@ -68,12 +68,6 @@ function connectionLogic(): ConnectionLogic {
   return StuffApi.singletonSync(
     '/platform/idea/api/connection',
     () => new ConnectionLogic(),
-  );
-}
-function mqlSubscriptionLogic(): MqlSubscriptionLogic {
-  return StuffApi.singletonSync(
-    '/platform/idea/api/mql-subscription',
-    () => new MqlSubscriptionLogic(),
   );
 }
 function cardLogic(): CardLogic {
@@ -516,7 +510,10 @@ export default class Interactive extends Idea {
    * client's cards re-render for the body it now drives.
    */
   public refreshMqlSubscriptions(): void {
-    mqlSubscriptionLogic().refreshForInteractive(this);
+    // A poke with the body it now drives: the MQL source re-resolves this
+    // session's subscriptions for it.
+    const body = this.getHolder();
+    if (body !== null) subscriptionRegistry().poke(SUBSCRIPTION_SOURCES.mql, body, undefined);
   }
 
   /* ─────────────────── the reaction surface ──────────────────── */

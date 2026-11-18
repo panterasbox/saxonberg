@@ -428,7 +428,7 @@ set. Two kinds are recognized:
   white-box unit test can exercise an internal stage. Today:
   `api/prompt.ts#buildPromptContext`,
   `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
-  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `api/subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
@@ -620,7 +620,7 @@ warm-up, and no class ever readies its Api's data. See
 [call-security.md](./subsystems/call-security.md).
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `PromptApi`,
+`ContainmentApi`, `MqlApi`, `SubscriptionApi`, `PromptApi`,
 `MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
@@ -657,8 +657,10 @@ dispatch-response, and the ONE wire for every state push (navigation-server,
 holds the per-session table, `rev` and the three emits; a source is a
 singleton composing `SubscriptionSourceMixin` (`lib/subscription/`) — the MQL
 and forum registries, `ClientStateSource`, `PressFeedSource`, `MapCopySource`,
-`WhereaboutsSource`. `MqlSubscriptionApi` keeps the MQL source's projection
-and one-shot queries. See `docs/subsystems/subscription.md`.
+`WhereaboutsSource`. ⭐ **One Api for all of it, `SubscriptionApi`** (over
+`SubscriptionLogic`): every producer pokes through it, and it carries the
+subscribable-field projection and the MQL source's one-shot query — a
+source never gets a facade of its own. See `docs/subsystems/subscription.md`.
 
 `PromptApi` is the third wire-side substrate. Server callers
 `await` an interactive prompt (`choice` / `confirm` / `text` /

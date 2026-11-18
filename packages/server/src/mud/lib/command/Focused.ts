@@ -52,9 +52,9 @@ import { PronounMemory } from '../../api/mql';
 import type { CommandContributions } from '../../api/command';
 import type { SyntheticVarEntry } from '../../api/shell';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 
 /**
  * Public shape provided by FocusedMixin.
@@ -152,7 +152,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     setFocus(fragment: string): void {
       const trimmed = fragment.trim();
       const next = trimmed.length > 0 ? trimmed : 'here';
-      this._focus = MqlSubscriptionApi.fireFieldChange(
+      this._focus = SubscriptionApi.fireFieldChange(
         this,
         'focus',
         this._focus,
@@ -161,7 +161,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     }
 
     clearFocus(): void {
-      this._focus = MqlSubscriptionApi.fireFieldChange(
+      this._focus = SubscriptionApi.fireFieldChange(
         this,
         'focus',
         this._focus,

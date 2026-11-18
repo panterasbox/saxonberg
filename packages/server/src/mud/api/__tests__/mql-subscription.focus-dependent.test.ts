@@ -12,7 +12,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -21,7 +21,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -54,12 +53,12 @@ async function setup(): Promise<{
   return { interactive, avatar, envelopes };
 }
 
-describe('MqlSubscriptionApi — focusDependent flag', () => {
+describe('SubscriptionApi — focusDependent flag', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('focusDependent: true adds an additional index entry over the baseline', async () => {
@@ -71,7 +70,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     fields: ['displayName'],
   });
     const baselineCount =
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
+      SubscriptionApi._getDependencyIndexEntryCountForTesting();
 
     // Same shape, but focusDependent: true. Expect exactly one
     // additional entry for the holder-level focus dep.
@@ -82,7 +81,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     focusDependent: true,
   });
     const withFocusDepCount =
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
+      SubscriptionApi._getDependencyIndexEntryCountForTesting();
 
     // Each subscription adds (baseline/subscription) memberships;
     // the focusDep subscription adds one more for the focus tuple.
@@ -101,7 +100,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     expect(spy).not.toHaveBeenCalled(); // setImmediate hasn't fired yet.
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
@@ -120,7 +119,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     avatar.setFocus('banana');
     avatar.setFocus('cherry');
     expect(spy).not.toHaveBeenCalled();
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
@@ -134,11 +133,11 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     focusDependent: true,
   });
     expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
+      SubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBeGreaterThan(0);
     interactive.cancelSubscription('s1');
     expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
+      SubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBe(0);
   });
 
@@ -153,7 +152,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
   });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

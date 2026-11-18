@@ -795,7 +795,7 @@ discard. **Rung 2 — the recursive nesting view — is the next build; this
 is the honest bytes plus a flat per-item read, no expand tree.**
 
 Three subscribable fields carry it (the projection seam is
-`MqlSubscriptionApi.projectFields`, § [card-surface.md](./card-surface.md)):
+`SubscriptionApi.projectFields`, § [card-surface.md](./card-surface.md)):
 
 | field | mixin | on | read |
 |---|---|---|---|

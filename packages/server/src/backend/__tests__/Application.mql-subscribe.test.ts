@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
+import { SubscriptionApi } from '../../mud/api/subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/platform/idea/Interactive';
@@ -98,13 +98,13 @@ describe('Application — MQL subscription routes', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('mql-query route reaches MqlSubscriptionApi.handleQuery', () => {
+  it('mql-query route reaches SubscriptionApi.handleQuery', () => {
     const interactive = makeFakeInteractive('sock-1');
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
     const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .spyOn(SubscriptionApi, 'handleQuery')
       .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',
@@ -133,7 +133,7 @@ describe('Application — MQL subscription routes', () => {
       interactive,
     );
     const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .spyOn(SubscriptionApi, 'handleQuery')
       .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',

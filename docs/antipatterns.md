@@ -2183,13 +2183,13 @@ new FieldChangedEvent({ target: this.stuffId, field, oldValue, newValue });
 ```
 
 For setter sites that follow the "noop-check + capture + assign + fire"
-pattern, use the `MqlSubscriptionApi.fireFieldChange` helper instead
+pattern, use the `SubscriptionApi.fireFieldChange` helper instead
 of the long form:
 
 ```ts
 // CORRECT — one-line setter
 setName(value: string): void {
-  this.name = MqlSubscriptionApi.fireFieldChange(
+  this.name = SubscriptionApi.fireFieldChange(
     this, 'name', this.name, value,
   );
 }
@@ -2405,7 +2405,39 @@ content; only the controller knows. The `default:` branch above
 is for *typos*, and the framework owns that.
 
 
+## An Api per implementer of a protocol
+
+When several things implement one protocol — six subscription sources,
+seven modalities, the locomotion modes — there is **one Api for the
+protocol**, and each implementer is a singleton behind it. A facade per
+implementer (`MqlSubscriptionApi` beside `SubscriptionApi`, `SmellApi`
+beside `PerceptionApi`) makes a second way in for the same act, and its
+bespoke verbs are the protocol's verb wearing a disguise:
+`MqlSubscriptionApi.notifyDurableSubject(s)` and `refreshForInteractive(i)`
+were both *"your answer may have changed"*, which is `poke(source,
+holder, hint)` with a hint in the source's own words.
+
+**The test:** take the implementer-specific verb and ask what it means
+in the protocol's vocabulary. If it means an existing verb with a
+different argument, it is that verb, and the hint carries the
+difference. What is genuinely one implementer's own (the MQL source's
+one-shot `query`) can ride the protocol's Api as one more static, or be
+the singleton's own method — never a second facade.
+
+```ts
+// WRONG — a second Api for one source
+MqlSubscriptionApi.notifyDurableSubject(subject);
+// RIGHT — the protocol's verb, the source's own words in the hint
+SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject });
+```
+
+Found at review of the navigation-server build (MR !595), which built
+the one protocol and left the MQL source's facade standing beside it.
+
 ## Don't add a per-sense Api — modalities are singletons
+
+*(The sensory case of [An Api per implementer of a
+protocol](#an-api-per-implementer-of-a-protocol).)*
 
 Adding `SmellApi`, `SoundApi`, or any per-modality static class is
 the wrong shape. Modalities are templated `Idea` singletons

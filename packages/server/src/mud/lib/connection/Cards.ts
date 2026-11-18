@@ -44,7 +44,7 @@
  */
 
 import type { CardId } from '@saxonberg/types';
-import type { FieldAlias, FieldSet } from '../../api/mql-subscription';
+import type { FieldAlias, FieldSet } from '../../api/subscription';
 
 /**
  * Where a card's content comes from.

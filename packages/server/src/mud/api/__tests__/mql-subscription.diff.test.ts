@@ -5,7 +5,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -13,7 +13,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import { SubscriptionApi } from '../subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
@@ -56,12 +55,12 @@ function captureEnvelopes(avatar: Avatar): AnyEnvelope[] {
   return collected;
 }
 
-describe('MqlSubscriptionApi — diff', () => {
+describe('SubscriptionApi — diff', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('single-cardinality field change produces op: update with diffed fields', async () => {
@@ -77,7 +76,7 @@ describe('MqlSubscriptionApi — diff', () => {
 
     envelopes.length = 0;
     avatar.setName('Bob');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
@@ -102,7 +101,7 @@ describe('MqlSubscriptionApi — diff', () => {
     // setName('Alice') noop-skips at the FieldChangedEvent layer
     // because Object.is(old, new). Verifies no spurious delta.
     avatar.setName('Alice');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(envelopes.filter((e) => e.type === 'subscription-delta')).toEqual([]);
   });
 });
