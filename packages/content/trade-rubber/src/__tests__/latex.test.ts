@@ -35,6 +35,8 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
+import { EventApi } from '@saxonberg/server/mud/api/event';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const row = (rel: string): Record<string, unknown> =>
@@ -144,20 +146,31 @@ describe('⭐⭐ latex sets in a pan, the way curd does', () => {
     return m;
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       const c = makeStuff(() => new Casting());
       stampTemplatePathForTest(c, path);
       return c;
     }) as never);
+    // ⭐ A set finishes on its own wake (crowded-rooms D8), a real clock
+    // schedule: drive the clock itself (one real ms = one game second), and
+    // stand up the event registry a host-bound wake listens on.
+    vi.mocked(WorldClockApi.getNow).mockRestore();
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 1_000_000);
+    WorldClockApi.setScale(1000);
   });
 
   it('a pan of latex left a game day holds a sheet of raw rubber, lighter by its serum', async () => {
     const p = pan();
     p.setBulkMaterial('interior', latex());
     p.setBulkAmount('interior', Quantity.of(2, 'L'));
+    p.reconcileSetting(); // the fill is the pan's own change: it banks and arms its wake
     expect(p.setState()).toBe('filled');
-    now += DAY + 60;
+    WorldClockApi._advanceForTesting(DAY + 60);
     expect(p.setState()).not.toBe('filled');
     for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
     const sheet = p.getContents().find((c) => c.getTemplatePath() === SHEET);

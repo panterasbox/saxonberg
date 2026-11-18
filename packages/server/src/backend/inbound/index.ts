@@ -39,6 +39,8 @@ import { handleCommand } from './command';
 import {
   handleMqlSubscribe,
   handleMqlUnsubscribe,
+  handleMqlSubscriptionPause,
+  handleMqlSubscriptionResume,
   handleMqlQuery,
 } from './mql';
 import { handlePromptResponse, handlePromptCancel } from './prompt';
@@ -55,6 +57,8 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   command: handleCommand,
   'mql-subscribe': handleMqlSubscribe,
   'mql-unsubscribe': handleMqlUnsubscribe,
+  'mql-subscription-pause': handleMqlSubscriptionPause,
+  'mql-subscription-resume': handleMqlSubscriptionResume,
   'mql-query': handleMqlQuery,
   'forum-subscribe': handleForumSubscribe,
   'forum-unsubscribe': handleForumUnsubscribe,

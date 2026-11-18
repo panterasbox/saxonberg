@@ -1049,6 +1049,48 @@ checkpoints and `drive-identity` 6 of 18. Porting the Playwright specs
 found a third (`job post` had grown a required condition clause). A
 drive nobody runs decays silently, and decays fast.
 
+## ⭐⭐ The quiet box — timing is evidence only here (crowded-rooms, 2026-11)
+
+A round trip is honest only on an idle box. Every number written into a
+plan, an MR or a slate comes from a quiet-box run with the load beside it;
+profiles on a busy box are for SHARES, never times.
+
+**The procedure** (`tests/crowd-timing.dirty.wire.test.ts`):
+
+1. Take the suite lock (`tools/lib/suite-lock.sh`).
+2. List other Saxonberg servers (`pgrep -af preload.js`, then
+   `readlink /proc/<pid>/cwd`) and ask the sessions that own them to stop
+   them. ⛔ Never kill a sibling's world.
+3. Drop this worktree's database; run
+   `WIRE_QUIET=1 WIRE_BOOT=1 WIRE_PORT=<yours> pnpm wire crowd-timing`.
+4. The file's first act is the **precheck** (`quietBoxRefusal`): 1-minute
+   load under 1.0, and no Saxonberg server or vitest outside its own
+   process tree. A busy box fails `box not quiet: <what>`.
+5. Throughout, each phase records the CPU the box spent outside the
+   harness and its server (`foreignMeter`: `/proc/stat` busy, less the
+   server's `/stats.cpu` and the harness's own). Over half a core marks
+   the phase **inconclusive**, which fails under that name; re-run it.
+
+Without `WIRE_QUIET=1` every step reports itself skipped, by name. `crowd.
+dirty` keeps the greeting count on every MR; `crowd.soak` keeps its generous
+bounds after merge.
+
+**The instruments** it reads: `/stats` carries `cpu` (the process's own
+CPU, cumulative) and `loop` (an event-loop-delay histogram since boot,
+never reset) — a reader takes two reads and subtracts, so readers never
+disturb each other; `walkWrites` counts writes a walk made while holding
+the world still (0 is the only healthy reading). `/healthz` is sampled from
+a WORKER thread, so the harness's thirty sockets are not what it measures.
+`WIRE_CPU_PROF=<dir>` profiles a wire world (the flags ride `tsx`'s
+command line); a profile is written at a clean exit — stop the world with
+SIGTERM. Slice it by the server uptime the crowd record marks per phase.
+
+⭐ **The tripwire is armed in every wire world**: the room's own reading
+(the light walk, the sound gather, the smell fold, a card's projection)
+holds the world still, and a write inside it THROWS in a test world
+(`WalkWriteError`; perception.md § The room's reading holds the world
+still). A drive that walks over a walk-time write fails there.
+
 ## The boot cost — what a wire run pays for a world
 
 Measured 2026-09-06 in `build-1` against Atlas, per the wire-tests

@@ -303,6 +303,8 @@ describe("⚠⚠ the client cannot open a card", () => {
       "card-pinned",
       "card-arranged",
       "mql-subscription-delta",
+      // ⭐ A result for a card's id is a RESUME's snapshot (crowded-rooms D5).
+      "mql-subscription-result",
     ]);
     /*
      * ⭐ Nothing subscribed, and nothing could: `MqlSubscribeMessage`

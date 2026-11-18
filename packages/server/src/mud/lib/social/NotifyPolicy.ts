@@ -113,7 +113,7 @@ export interface NotifyPolicy {
   /** The full inspection card for `target`, viewer-redacted. */
   composeProfileCard(target: Stuff): Promise<ProfileCard>;
   /** The one viewer-lensed roster row for `target` (`who` / live card). */
-  composeRosterRow(target: Stuff): Promise<RosterRow>;
+  composeRosterRow(target: Stuff): RosterRow;
   /** Push a full viewer-lensed roster snapshot to this viewer's session. */
   snapshotRoster(): void;
 }
@@ -287,7 +287,7 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
       return profileLogic().composeCard(this as unknown as Stuff, target);
     }
 
-    public composeRosterRow(target: Stuff): Promise<RosterRow> {
+    public composeRosterRow(target: Stuff): RosterRow {
       return profileLogic().composeRow(this as unknown as Stuff, target);
     }
 

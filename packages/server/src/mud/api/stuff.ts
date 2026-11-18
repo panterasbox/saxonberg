@@ -496,6 +496,8 @@ export class StuffApi {
       madeFrom?: Stuff | readonly Stuff[];
     }
   ): Promise<T> {
+    // ⭐ The walk tripwire (crowded-rooms D9) — a clone is a write.
+    ExecutionContextApi.wouldWrite(`clone ${templatePath}`);
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
     // template that re-enters its own clone before the recursion
     // stack-overflows. Normal clones aren't recursive — only the
@@ -1018,6 +1020,9 @@ export class StuffApi {
     factory: () => T,
     context?: unknown
   ): Promise<T> {
+    // ⭐ The walk tripwire (crowded-rooms D9). Not in `createSync`: that
+    // mints the logic singletons, the tripwire's own among them.
+    ExecutionContextApi.wouldWrite('create');
     // Sentinel must be set immediately around the factory invocation
     // with no intervening async — see clone() for the rationale.
     const prevSentinel = Stuff._beginConstruction();
@@ -1372,6 +1377,7 @@ export class StuffApi {
    * @param object - The object to destroy
    */
   public static destruct(object: Stuff): void {
+    ExecutionContextApi.wouldWrite(`destruct ${object.stuffId}`);
     StuffApi.#destructCore(object, false);
   }
 

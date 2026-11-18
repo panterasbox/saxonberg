@@ -23,6 +23,9 @@ import type { PresenceStatus, RosterFrame } from '@saxonberg/types';
 import type Avatar from '../../../lib/character/Avatar';
 import type { Subscription } from '../../../api/event';
 import { SecurityApi } from '../../../api/security';
+import { PerceptionApi } from '../../../api/perception';
+import type { RosterRow } from '../../../api/social';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 
 // Gated to the SocialApi facade — presence/profile reads fold into
 // SocialApi (one navigable surface); this logic singleton stays separate
@@ -115,9 +118,14 @@ function sendRosterImpl(viewer: Avatar, payload: RosterFrame): void {
 /** Push the full viewer-lensed roster to one viewer (card open / login). */
 async function snapshotForImpl(viewer: Avatar): Promise<void> {
   if (viewer.isDestroyed() || !viewer.isConnected()) return;
+  // ⭐ One synchronous frame, the light held (crowded-rooms D17): each
+  // place's light is walked once for the whole roster, not once a row.
   const rows = [];
-  for (const person of onlineImpl()) {
-    rows.push(await viewer.composeRosterRow(person));
+  const release = PerceptionApi.holdLightSteady();
+  try {
+    for (const person of onlineImpl()) rows.push(viewer.composeRosterRow(person));
+  } finally {
+    release();
   }
   sendRosterImpl(viewer, { kind: 'roster', action: 'snapshot', rows });
 }
@@ -146,6 +154,24 @@ async function fanImpl(
       ? PlayerApi.findAvatarByPlayerId(actorPlayerId)
       : undefined;
   if (action === 'add' && !actor) return;
+  // ⭐ Compose every viewer's row first, in one frame with the light held
+  // (crowded-rooms D17); then send — nothing is sent inside the hold.
+  const composed = new Map<Stuff, RosterRow>();
+  if (action === 'add' && actor) {
+    const release = PerceptionApi.holdLightSteady();
+    try {
+      for (const viewer of PlayerApi.getAllAvatars()) {
+        if (viewer.isDestroyed() || !viewer.isConnected()) continue;
+        try {
+          composed.set(viewer, viewer.composeRosterRow(actor));
+        } catch {
+          // a bad recipient never aborts the scan
+        }
+      }
+    } finally {
+      release();
+    }
+  }
   for (const viewer of PlayerApi.getAllAvatars()) {
     if (viewer.isDestroyed() || !viewer.isConnected()) continue;
     if (
@@ -157,7 +183,8 @@ async function fanImpl(
     }
     try {
       if (action === 'add' && actor) {
-        const row = await viewer.composeRosterRow(actor);
+        const row = composed.get(viewer);
+        if (!row) continue;
         sendRosterImpl(viewer, {
           kind: 'roster',
           action: 'add',

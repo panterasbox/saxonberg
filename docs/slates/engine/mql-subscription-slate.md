@@ -1182,3 +1182,20 @@ The cockpit, inspection-card and prompt-stack rewrites happened;
   rewires the completion path. Left as-is for now; the conceptual
   intent ("world-deltas flow on a separate channel from envelopes")
   remains correct.
+
+## From crowded-rooms (2026-11-18, MR !598) — what it left here
+
+- **Pausing more than cards.** The pause protocol (`mql-subscription-pause` /
+  `-resume`, `Interactive.pauseSubscription`) pauses ANY subscription;
+  crowded-rooms wired only cards. The widget shelf, a forum board and the
+  map's copy are the next consumers. When navigation-server's D1 lands, the
+  two messages move to its `subscription-pause`/`-resume` (agreed with
+  build-2).
+- **Light is not a wake.** Daylight is continuous and fires nothing, so a
+  card does not re-gate on light alone; its next wake does. The perception
+  memo per child (`perceivedAmong`) has the same residual.
+- **`focusDependent` / `locationDependent`** are accepted and inert (a holder
+  dependency subsumes them); removing them from the wire type is
+  navigation-server's `params` change.
+- **The first projection** (a card opening, a login) is one unit of N rows —
+  see crowded-rooms-slate § The next ceiling.

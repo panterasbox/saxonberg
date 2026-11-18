@@ -3121,6 +3121,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     private reconcileConditions(): void {
       if (this._reconcilingConditions) return;
+      // ⭐ The room's reading holds the world still (crowded-rooms D15): a
+      // card's projection of a body reads it as its last reconcile left it.
+      if (ExecutionContextApi.worldHeldStill) return;
       this.reconcileConditionsNow();
       this.noticeGripLost();
     }
@@ -4292,7 +4295,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         )
         .map((c) => c.symptomsAt as number)
         .filter((at) => at > nowS);
-      return times.length === 0 ? null : Math.min(...times);
+      // ⭐ The dying window's end (crowded-rooms D21). `expireDying` runs
+      // only inside a reconcile, and nothing incidental reconciles a body any
+      // more (D13–D15) — so a dying player's death is booked on the clock,
+      // not at the next thing rendered to them. A deadline already past is
+      // NOW: the alarm fires at once rather than being filtered away.
+      const dying = this.conditions
+        .filter((c): c is DyingRecord => c.kind === 'dying' && c.tickedAt !== undefined)
+        .map((d) => Math.max(nowS, (d.tickedAt as number) + (d.windowSec - d.elapsed)));
+      const all = [...times, ...dying];
+      return all.length === 0 ? null : Math.min(...all);
     }
 
     /**

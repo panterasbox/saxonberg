@@ -30,7 +30,7 @@
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { SecurityError } from '../lib/security/errors';
+import { SecurityError, WalkWriteError } from '../lib/security/errors';
 import { SecurityApi } from './security';
 import { ModuleApi } from './module';
 import type { CommandContext } from './command';
@@ -404,6 +404,71 @@ async function _recordGuardError(
  */
 export class ExecutionContextApi {
   private constructor() {}
+
+  /* ───────────── the room's reading holds the world still ─────────────
+   * (crowded-rooms D9, D15.) What the room reads for everyone — the light
+   * walk, the sound gather, the smell fold, a live card's projection — may
+   * never change the world, or the world comes to depend on who looked. A
+   * hold is a property of the SYNCHRONOUS FRAME, like the call stack, so it
+   * lives here: the write chokepoints (`StuffApi`, `EventApi`) sit below
+   * every subsystem Api in the import graph and already import this one,
+   * and this class is undecorated, so a hot getter's stand-off reads the
+   * flag with no security frame.
+   */
+
+  /** The walks holding the world still, innermost last. */
+  static #stillWalks: string[] = [];
+  /** Writes made inside a hold outside a test world (the `/stats` count). */
+  static #walkWrites = 0;
+  /** One warning per distinct walk × write, per process. */
+  static #walkWritesSaid = new Set<string>();
+
+  /**
+   * ⭐⭐ Hold the world still for a walk's own synchronous duration. Inside
+   * the hold a reconcile-on-read getter a walk reaches answers AS BANKED
+   * (its reconciler stands off on {@link worldHeldStill}), and every write
+   * chokepoint calls {@link wouldWrite}. A deliberate act (`look` at a thing,
+   * `get … from`) is NOT inside a hold. Returns the release; call it in a
+   * `finally`.
+   */
+  public static holdWorldStill(walk: string): () => void {
+    ExecutionContextApi.#stillWalks.push(walk);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const at = ExecutionContextApi.#stillWalks.lastIndexOf(walk);
+      if (at >= 0) ExecutionContextApi.#stillWalks.splice(at, 1);
+    };
+  }
+
+  /** True while a walk holds the world still ({@link holdWorldStill}). */
+  public static get worldHeldStill(): boolean {
+    return ExecutionContextApi.#stillWalks.length > 0;
+  }
+
+  /**
+   * The tripwire, called by every write chokepoint (a field fire, a clone or
+   * create, a destruct, a move, a capture) with what it is about to do. A
+   * no-op outside a hold. Inside one: a test world throws `WalkWriteError`;
+   * any other warns once per walk × write, counts it, and lets the write
+   * proceed — a player's `say` is not broken by a pack's defect.
+   */
+  public static wouldWrite(write: string): void {
+    const walk = ExecutionContextApi.#stillWalks[ExecutionContextApi.#stillWalks.length - 1];
+    if (walk === undefined) return;
+    if (SecurityApi.isTestEnvironment()) throw new WalkWriteError(walk, write);
+    ExecutionContextApi.#walkWrites += 1;
+    const key = `${walk}|${write}`;
+    if (ExecutionContextApi.#walkWritesSaid.has(key)) return;
+    ExecutionContextApi.#walkWritesSaid.add(key);
+    console.warn(`the ${walk} wrote while the world was held still: ${write}`);
+  }
+
+  /** Writes made inside a hold this process (outside a test world). */
+  public static walkWriteCount(): number {
+    return ExecutionContextApi.#walkWrites;
+  }
 
   /**
    * Look up the immediate caller — the `caller` of the frame at the top

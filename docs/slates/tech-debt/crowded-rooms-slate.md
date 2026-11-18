@@ -1,8 +1,50 @@
 # Crowded rooms
 
-> **Status: PARTIAL** — the greeting count, one light walk per Scene, and the signed-out body leaving the world shipped with controllers-are-io → [behavior.md](../../subsystems/behavior.md), [messaging.md](../../subsystems/messaging.md), [connection.md](../../subsystems/connection.md)
-> **Left:** `say` p95 under 250 ms with 30 people in the room · no loop stall over 100 ms · the N² card re-resolve per move · the one stall per card · the empty world's ~60% of a core on NPC labor · a clock on `tools/soak`
+> **Status: PARTIAL** — the crowded-rooms build (MR !598, 2026-11-18) shipped `say` under 250 ms at thirty (p95 110 ms), the room's own reading never writing, exact subscription dispatch with a row memo, hidden cards pausing, an idle world at 0.17 of a core (accepted by the owner against 0.15), and the restart → [mql-subscription.md](../../subsystems/mql-subscription.md), [perception.md](../../subsystems/perception.md), [card-surface.md](../../subsystems/card-surface.md), [mould.md](../../subsystems/mould.md), [behavior.md](../../subsystems/behavior.md)
+> **Left:** **a login or an arrival into a full room** — login p95 2.28 s (target 2 s), logins into a full square p95 3.45 s, 19 freeze samples over 100 ms during the arrivals, a mould's looks 2.3× alone (all accepted as recorded misses, owner 2026-11-18) · the call-security tax under everything · the re-used-world `getContainerChain` defect · a clock on `tools/soak`
 > **Size:** a build
+
+## ⭐ The next ceiling — a body arriving in a full room (after crowded-rooms, 2026-11-18)
+
+The fourth quiet-box run of `crowd-timing.dirty.wire.test.ts` (the plan's
+Drive record, retired with the plan; numbers kept here) reached every step.
+What passed: idle 0.173 cores · `say` p95 110 ms · in turn p95 68 ms · the
+on-screen card 1.45 s · a hidden card receives nothing and is current 53 ms
+after shown · thirty back after a restart p95 1.49 s, each where they quit.
+What missed, **accepted by the owner as recorded misses**:
+
+| step | measured | target |
+|---|---|---|
+| thirty log in (at the avenue block) | p95 2.28 s (max 5.1 s) | < 2 s |
+| five log in INTO the full square | p95 3.45 s | < 2 s |
+| no freeze while they arrive | 19 of 207 `/healthz` samples over 100 ms (max 850 ms); the server's own loop 14, p99 52 ms | 0 |
+| a mould looked at in the crowd | p95 446 ms vs 196 ms alone | ≤ 1.5× alone |
+| (reported) a hundred | login p95 3.6 s; `say` p95 163 ms; 73 of 261 over 100 ms (max 8.4 s) | — |
+
+**All one shape: a body's first projection into a crowd.** A login (or an
+arrival) costs: the body's restore, the arrival Scene rendered to every
+sensor in the place (Scene render was 10.7% of the crowd at W0 and was not
+cut), the newcomer's row described for every viewer's room card (the memo
+cannot help — it is new to every card), every card on the place re-resolved
+(31 × ~2 ms after W8, then the drain's 2× rest), and the newcomer's own first
+`here` card — one unit of N rows. The mould's looks miss because they share
+those frames.
+
+**Where to start** (none profiled yet — the next build's W0): profile one
+login into thirty (`WIRE_CPU_PROF`, the crowd record's uptime marks slice
+it); measure Scene render per sensor with thirty sensors; measure the first
+`here` projection. Candidates, unweighed: render a Scene's frame once per
+distinct viewer-equivalence class; describe the newcomer once per
+recognition state rather than per viewer; let the first projection of a
+card ride a slice of its own.
+
+**Also found, outside the crowded-rooms diff:** on a world re-used across
+wire runs (a second `WIRE_REUSE=1` run), subscribing a fresh player's `here`
+card throws in `PerceptionLogic.onBodyOf` — `getContainerChain()` returns
+`undefined` for the live square the viewer stands in — so the card is not
+live. A fresh world never shows it. The error envelope was invisible until
+the wire harness stopped dropping unrequested subscription envelopes
+(crowded-rooms, `session.ts`). Unexplained; worth one probe on master.
 
 ## The requirement
 
@@ -103,3 +145,20 @@ clock, or a named person who starts it, is part of this build.
   room, a lifeboat or a lift holds* is derivable from size — a physical
   ceiling beside this slate's performance one. Whether the two meet (the
   physical number as the cap, or each its own) is open.
+
+## Reuse ledger for the plan
+
+Written at /requirements, 2026-11-17 (the requirements and plan retired with MR !598).
+Every row is one the plan must account for: reused, generalized, or
+*genuinely new* with what was searched.
+
+| concept the build needs | what already does it | reuse / generalize |
+|---|---|---|
+| a card re-checked when its subject changes | `MqlSubscriptionRegistry` dependency index (`(KIND, attr, value)` → subscriptions; re-derived per re-resolve) | **generalize** — its field events fire *globally* ("conservative-coarse dispatch", mql-subscription.md); narrowing to the moved body is the N² fix |
+| the drain that gives replies priority | `MqlSubscriptionRegistry.drainDirty` time slices (D27) | **reuse**; the slice cannot cut *inside* one re-resolve, so the one-stall-per-card fix is in the re-resolve, not the drain |
+| a card's liveness following attention | `CardRegistry` (client-surface D4: the newest holds the subscription; pinning keeps it) | **generalize** — attention today is server-side recency; "on screen" is a client fact the server lacks |
+| the client telling the server what it holds | navigation-server W1's one subscription protocol (in flight, build-2) | **reuse, sequenced** — the seen/unseen signal should ride that protocol, not a new envelope |
+| NPC background work | the one deliberation beat per agent (`lib/behavior/BehaviorBeat.ts`, `Behaved`), `lint:idle-cadence` | **reuse** — cut the cost per beat; content's authored cadences untouched |
+| a read that writes | `lib/mould/Mould.ts` calls `reconcileSetting()` inside its contents read (lines ~581, ~599) | **fix** — the reconcile moves out of the read path |
+| the crowd drive and its record | `packages/wire` `runCrowd`, `crowd.dirty` + `crowd.soak` wire files, `/healthz` loop sampling | **reuse** — add the card, mould, restart and N=100 phases and the box-load record |
+| a quiet-box run | none | genuinely new as a *procedure* (stop sibling worlds, record load), not as code — searched `tools/` for a load gate |

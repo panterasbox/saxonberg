@@ -25,6 +25,8 @@ import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import EventRegistry from '../../../platform/idea/EventRegistry';
+import { EventApi } from '../../../api/event';
 import '../../../platform/idea/WorldClockRegistry';
 
 class TestMould extends MouldMixin(
@@ -50,6 +52,18 @@ const CUP = '/stuff/thing/_cure/cup';
 let now = 1_000_000;
 const setNow = (s: number): void => {
   now = 1_000_000 + s;
+};
+/**
+ * Move the injected clock to game-second `s` THROUGH the clock, so every
+ * wake due in the stretch fires (crowded-rooms D8: a set finishes on its
+ * own wake, never on a read).
+ */
+const advanceTo = (s: number): void => {
+  const target = 1_000_000 + s;
+  const by = target - now;
+  // The clock reads the provider (`now`) as its start, so move it after.
+  WorldClockApi._advanceForTesting(by);
+  now = target;
 };
 let cloned: string[] = [];
 
@@ -128,7 +142,12 @@ async function settle(): Promise<void> {
 }
 
 describe('cure and the absorbed drain (ceramics S17, D24)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // A host-bound clock wake (the set's, D8) listens for its host's
+    // destruct, which needs the event registry.
+    const events = await StuffApi.create(() => new EventRegistry());
+    stampTemplatePathForTest(events, '/platform/idea/EventRegistry');
+    EventApi._setRegistryForTesting(events);
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     setNow(0);
@@ -162,9 +181,12 @@ describe('cure and the absorbed drain (ceramics S17, D24)', () => {
     cup.setMass(Quantity.of(0.3, 'kg'));
     expect((await caseMould.takeImpression(cup, cup)).ok).toBe(true);
     caseMould.reconcileSetting(); // seed
-    setNow(10 * 60);
-    expect(caseMould.setState()).toBe('setting');
-    setNow(16 * 60);
+    advanceTo(10 * 60);
+    // Two-thirds through, and not set: nothing is cast until the cure's own
+    // wake at fifteen minutes (crowded-rooms D8).
+    await settle();
+    expect(cloned).toEqual([]);
+    advanceTo(16 * 60);
     caseMould.reconcileSetting();
     await settle();
     expect(cloned).toEqual([PLASTER_MOULD]);
@@ -191,7 +213,7 @@ describe('cure and the absorbed drain (ceramics S17, D24)', () => {
     ContainmentApi.move(plaster, r);
     fill(plaster, SLIP, 0.5);
     plaster.reconcileSetting(); // seed
-    setNow(0.1 * 86_400);
+    advanceTo(0.1 * 86_400);
     plaster.reconcileSetting();
     await settle();
     expect(cloned).toEqual([CUP]);
@@ -205,7 +227,7 @@ describe('cure and the absorbed drain (ceramics S17, D24)', () => {
     ContainmentApi.move(tin, makeStuff(() => new TestRoom()));
     fill(tin, SLIP, 0.5);
     tin.reconcileSetting();
-    setNow(2 * 86_400);
+    advanceTo(2 * 86_400);
     tin.reconcileSetting();
     await settle();
     expect(cloned).toEqual([]);
@@ -223,7 +245,7 @@ describe('cure and the absorbed drain (ceramics S17, D24)', () => {
       fill(m, SLIP, 0.5);
       m.reconcileSetting();
     }
-    setNow(0.05 * 86_400);
+    advanceTo(0.05 * 86_400);
     dry.reconcileSetting();
     wet.reconcileSetting();
     expect((dry as unknown as { setProgress: number }).setProgress).toBeGreaterThan(

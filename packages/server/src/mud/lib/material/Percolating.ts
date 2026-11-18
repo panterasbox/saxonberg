@@ -11,8 +11,10 @@
  *
  * The mechanism, and nothing else:
  *   - `receivePercolant(litres)` — liquid is put on the solid;
- *   - the REACH (`0..1`, how far down it has got) advances on read, over
- *     the host's `percolationDays()`, while there is liquid working;
+ *   - the REACH (`0..1`, how far down it has got) advances over the host's
+ *     `percolationDays()` while there is liquid working — banked at the
+ *     heap's own changes and finished on a game-clock wake at its due time
+ *     (crowded-rooms D8), never by whoever happens to read it;
  *   - each advance calls the host's `@hook onPercolated(from, to)`, which
  *     decides what the reach did to it (the loaf lifts its bands and gives
  *     up molasses);
@@ -28,8 +30,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
+import type { ClockHandle } from '../../api/worldclock';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import type { Bulkable } from '../bulk/Bulkable';
+import type { Container } from '../spatial/Container';
 import { TemplatePaths } from '../paths';
 
 const SECONDS_PER_GAME_DAY = 86_400;
@@ -56,6 +62,7 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       percolantL: { persistent: true, runtimeState: true },
       percolationReach: { persistent: true, runtimeState: true },
       percolationStamp: { persistent: true, runtimeState: true },
+      percolationWakeAtS: { persistent: true, runtimeState: true },
     };
 
     /** Litres of liquid working through the solid. */
@@ -65,8 +72,57 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     /** Game-seconds of the last reconcile; `0` = idle. */
     public percolationStamp = 0;
 
+    /**
+     * ⭐ Game-seconds the liquid will be through, or `0` (crowded-rooms D8).
+     * Persisted and re-armed by {@link setPercolationWakeAtS}, so a restart
+     * mid-leach finishes on time.
+     */
+    public percolationWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _percolationWake: ClockHandle | null = null;
+
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _percolating = false;
+
+    /** Set (or clear, `0`) when the liquid will be through, and arm it. */
+    public setPercolationWakeAtS(value: number): void {
+      this._percolationWake?.cancel();
+      this._percolationWake = null;
+      this.percolationWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.percolationWakeAtS === 0) return;
+      this._percolationWake = WorldClockApi.at(
+        Quantity.of(this.percolationWakeAtS, 's'),
+        () => {
+          this._percolationWake = null;
+          this.percolationWakeAtS = 0;
+          this.reconcilePercolation();
+        },
+        { host: this as unknown as Stuff, tag: 'percolation' },
+      );
+    }
+
+    /**
+     * Re-derive the due time from the reach banked now: the rate is the
+     * host's own (`percolationDays()`), which may read where it stands.
+     */
+    private armPercolation(now: number): void {
+      if (!(this.percolantL > 0) || this.percolationReach >= 1) {
+        if (this.percolationWakeAtS !== 0) this.setPercolationWakeAtS(0);
+        return;
+      }
+      const days = Math.max(1e-6, this.percolationDays());
+      const untilS = (1 - this.percolationReach) * days * SECONDS_PER_GAME_DAY;
+      this.setPercolationWakeAtS(now + Math.max(1, Math.ceil(untilS)));
+    }
+
+    /** ⭐ A heap moved: bank, and re-derive the due time where it now stands. */
+    public onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+      const sup = (Base.prototype as {
+        onMoved?: (f: (Stuff & Container) | null, t: (Stuff & Container) | null) => void;
+      }).onMoved;
+      if (typeof sup === 'function') sup.call(this, from, to);
+      this.reconcilePercolation();
+    }
 
     /**
      * @hook How many game-days the liquid takes to reach the bottom. The
@@ -90,6 +146,7 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       this.percolantL += litres;
       const now = percolationNowSeconds();
       if (now !== null && this.percolationStamp === 0) this.percolationStamp = now;
+      if (now !== null) this.armPercolation(now);
     }
 
     public getReach(): number {
@@ -116,11 +173,14 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 
     public reconcilePercolation(): void {
       if (this._percolating) return;
+      // The room's reading holds the world still (crowded-rooms D9).
+      if (ExecutionContextApi.worldHeldStill) return;
       if (!(this.percolantL > 0) || this.percolationReach >= 1) return;
       const now = percolationNowSeconds();
       if (now === null) return;
       if (this.percolationStamp === 0) {
         this.percolationStamp = now;
+        this.armPercolation(now);
         return;
       }
       const elapsed = now - this.percolationStamp;
@@ -128,7 +188,10 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       if (!(elapsed > 0)) return;
       const days = Math.max(1e-6, this.percolationDays());
       const from = this.percolationReach;
-      const to = Math.min(1, from + elapsed / (days * SECONDS_PER_GAME_DAY));
+      const raw = from + elapsed / (days * SECONDS_PER_GAME_DAY);
+      // A wake fires within the clock's epsilon of its due time; a reach a
+      // hair short of the bottom is at it.
+      const to = raw >= 1 - 1e-9 ? 1 : raw;
       this.percolationReach = to;
       if (to >= 1) {
         // Through: what liquid was left has come out the bottom.
@@ -141,6 +204,7 @@ export function PercolatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       } finally {
         this._percolating = false;
       }
+      this.armPercolation(now);
     }
   };
 }
