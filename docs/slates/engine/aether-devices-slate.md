@@ -7,7 +7,7 @@
 > [chat.md](../../subsystems/chat.md)); attunement as a state of the **person**, with comms, forums,
 > the wallet and the calendar hosted on the person ([augmentation.md](../../subsystems/augmentation.md));
 > born-attuned species; screens and their by-mind ladder ([display.md](../../subsystems/display.md)).
-> **Left:** the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
+> **Left:** the `stuck` net and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
 > confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) ·
 > one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · a power
 > state on tuners, so a covenant's *power it down* is real (§ 9) · the town's node (§ 9) · the
@@ -54,6 +54,36 @@ Consequences, each a reversal of something proposed earlier in the same conversa
   ever wants one, is some other, non-aether thing.)
 - **Apps are not installed on the device.** Attunement is a state of the person, and comms, forums,
   the wallet and the calendar are hosted on the person. The shipped architecture was right.
+
+### ⭐⭐⭐ Reframed the same day: two promises, and a `dm` carries neither alone **[DECIDED — the owner, 2026-11-18]**
+
+Working through the epochs (§ 9) showed that *"a dm should pretty much always work"* asked the aether
+to carry a safety guarantee. The owner: *"I just don't want people to ever feel like they're
+stranded and can't ask for help. Maybe the answer is that we don't consider dms load bearing for
+this … when you're stuck somewhere and scrambling you're not thinking about what command to best
+use, you just want to send a message to your buddy or an admin."* And: *"I want social players to
+never have to worry about mechanics that prevent them from talking. If I'm 100% social … I can just
+sit in an epoch-free area all the time chatting to whomever I want. I don't have to engage with
+these other systems. That should be the other promise."*
+
+1. **Nobody is ever stranded without a way to ask for help** — and that net sits **outside the
+   fiction**: the player talking to staff, not the character talking to anyone (EverQuest's
+   `/petition`, WoW's *character stuck* service). It needs no tuner, no coverage and no epoch, and
+   like logout (guarantee P9) it always works. Nothing like it exists today. Working name **`stuck`**
+   (not `help`, which is the rulebook) **[name OPEN]** →
+   [guarantees-of-play-slate](../society/guarantees-of-play-slate.md).
+2. **A social player never meets a mechanic that stops them talking, unless they walk into one.**
+   Every restriction on talking belongs to a place you enter on purpose, past a posted edge. Where
+   you start, live, log in and gather stays free of them, and a player who never leaves it never
+   engages with any of this. This is the comms floor (P2) stated from the player's side.
+3. **So a `dm` may honestly fail** inside a place that restricts it — and it never fails silently. It
+   is held and sent the moment it can go, and the refusal names the way out: *"Your phone is off —
+   this goes when you power it on or reach the needle house. Stuck? Type `stuck`."* The scrambling
+   instinct is caught and pointed somewhere.
+
+⚠ **The one hole in promise 2: losing your phone.** Theft can reach a social player who never left
+an ordinary place, and *"losing your phone is really bad"* (§ 5). **[OPEN]** — whether ordinary
+places protect against it, or a replacement is easy there.
 
 ## 2. ⭐⭐ Who talks at a distance: players, and only players **[DECIDED — the owner, 2026-11-18]**
 

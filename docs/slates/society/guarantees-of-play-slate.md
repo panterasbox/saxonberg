@@ -75,3 +75,11 @@ home (P2's *where you live*).
 1. **P1's route** — the nearest public way out, or any.
 2. **P2's "where you live"** — the residence record, or where you last logged in.
 3. **Whether the convention should entrench P1–P4** at ratification.
+4. ⭐ **The `stuck` net** (from [aether-devices-slate](../engine/aether-devices-slate.md) § 1,
+   2026-11-18) — an out-of-fiction way for a player to reach staff when their character is stuck,
+   needing no tuner, coverage or epoch, and always working like logout (P9). The owner: *"I just
+   don't want people to ever feel like they're stranded and can't ask for help."* Its own guarantee
+   row, or part of P1? And its name (working: `stuck`).
+5. **P2 from the player's side** — a social player never meets a mechanic that stops them talking
+   unless they walk into one: every restriction on talking belongs to a place entered on purpose,
+   past a posted edge.
