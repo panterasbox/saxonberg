@@ -341,6 +341,16 @@ sees the wrapper, not the spy. The handler short-circuits when the
 property's value carries that flag — a method swapped for a spy is the
 test's intentional escape hatch.
 
+⛔ **Only in a test run** (call-security-performance, 2026-11-18, owner
+ruling). Outside a process running a test runner
+(`SecurityApi.isTestRunner()`: `VITEST`) the flag is not
+read and the function is wrapped and gated like any method — before, the
+marker was a property anyone could set on a function they placed on a
+Stuff, and it bought an ungated method in production. A world the suite
+booted (`SAXONBERG_TEST_WORLD=1`) is a test *environment* but runs no
+test runner, so it is refused there too; the wire drive's step 5e proves
+it. The answer is read once per `ProxyApi.wrap`.
+
 ### `Interceptor` and `InterceptionContext`
 
 ```typescript

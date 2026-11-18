@@ -773,10 +773,28 @@ export class SecurityApi {
    */
   public static isTestEnvironment(): boolean {
     return (
-      Boolean(process.env.VITEST) ||
+      SecurityApi.isTestRunner() ||
       process.env.NODE_ENV === 'test' ||
       process.env.SAXONBERG_TEST_WORLD === '1'
     );
+  }
+
+  /**
+   * Is the test RUNNER executing in this process — i.e. may a test spy
+   * (`vi.fn()`, `vi.spyOn`) exist here at all? `VITEST`, and nothing
+   * else (call-security-performance D12).
+   *
+   * Narrower than {@link isTestEnvironment} on purpose. A world the suite
+   * booted is a test environment but runs no test runner — the wire
+   * harness talks to it over a socket — so no spy can exist in it. And
+   * `NODE_ENV=test` does not say a runner is here: a wire world INHERITS
+   * it from the vitest process that spawned it (the runner scrubs `VITEST`
+   * and leaves `NODE_ENV`, and dotenv never overrides an inherited
+   * value), and `bench-gate` sets it to stand the world as a unit test
+   * does. The proxy's spy passthrough asks this, so both are refused it.
+   */
+  public static isTestRunner(): boolean {
+    return Boolean(process.env.VITEST);
   }
 
   /**

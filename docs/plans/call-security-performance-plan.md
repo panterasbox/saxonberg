@@ -730,7 +730,19 @@ than 10%; own-field row and the call row not worse; wire steps 5 and 7
 green (not quiet-box).
 **Commit.** `perf(proxy): the accessor answer is cached per prototype (W1)`
 
-### W1b — The spy passthrough is a test-run affordance (D11)
+### W1b — The spy passthrough is a test-run affordance (D11) — ✅ DONE
+
+> By D12, not D11's letter: `SecurityApi.isTestRunner()` (`VITEST` only),
+> which `isTestEnvironment()` composes. ⚠ Found on the way: **every wire
+> world runs with `NODE_ENV=test`** — vitest sets it in the runner, the
+> runner scrubs `VITEST` but not `NODE_ENV`, and dotenv never overrides an
+> inherited value (the worktree's `.env` says `development`). So `NODE_ENV`
+> cannot say "a runner is here", and `ReactionRegistry.ensureTimer`'s
+> `NODE_ENV === 'test'` guard means **the reaction flush has never armed
+> in a wire world** — reported in the MR for the owner, not fixed here.
+> Unit tests: three in `proxy.test.ts`; the gated one seen red with the
+> old unconditional passthrough. Wire 5e: the boot before this fix still
+> answered `unchecked` (it was `NODE_ENV`); re-proved at the next boot.
 
 **Goal.** Outside a test run, a spy-marked function is gated like any method.
 

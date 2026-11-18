@@ -2,7 +2,7 @@
  * ProxyApi — generic Stuff-instance Proxy infrastructure.
  *
  * Owns the get-trap mechanics: descriptor lookup, wrapper caching,
- * mock-spy passthrough, the `RAW_TARGET` introspection seam. Doesn't
+ * mock-spy passthrough (in a test run only), the `RAW_TARGET` introspection seam. Doesn't
  * know anything about security policies, shadows, or destroyed-object
  * guards — those concerns live in `SecurityApi` (see
  * `mud/api/security.ts`), which registers a `#`-private interceptor
@@ -197,6 +197,13 @@ export class ProxyApi {
     const wrapProto = Object.getPrototypeOf(stuff) as object | null;
     const wrapAccessors = ProxyApi.#accessorsOf(wrapProto);
 
+    // ⛔ The spy passthrough is a TEST-RUNNER affordance: outside a process
+    // running vitest a function carrying `_isMockFunction` is wrapped and
+    // gated like any method (owner ruling 2026-11-18; D12). Read once per
+    // wrap — the environment does not change within a process — so in
+    // production the flag is never even read.
+    const spyPassthrough = SecurityApi.isTestRunner();
+
     const handler: ProxyHandler<T> = {
       get(target, prop, receiver) {
         if (prop === RAW_TARGET) return target;
@@ -276,8 +283,10 @@ export class ProxyApi {
         // breaks `toHaveBeenCalled` assertions because the test
         // sees the wrapper instead of the spy. A method that was
         // deliberately swapped for a spy is the test's intentional
-        // escape hatch; let it through unmediated.
-        if ((value as { _isMockFunction?: boolean })._isMockFunction) {
+        // escape hatch; let it through unmediated — IN A TEST RUN only.
+        // Anywhere else the marker is just a property anyone can set, and
+        // honoring it handed out an ungated method.
+        if (spyPassthrough && (value as { _isMockFunction?: boolean })._isMockFunction) {
           return value;
         }
 

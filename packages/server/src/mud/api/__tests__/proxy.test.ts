@@ -292,3 +292,63 @@ describe('ProxyApi read trap — each kind of read', () => {
     expect(fresh.shape).toBe('getter');
   });
 });
+
+/**
+ * ⛔ The spy passthrough is a test-runner affordance (call-security-
+ * performance W1b, D12; owner ruling 2026-11-18). A function carrying
+ * `_isMockFunction` used to come back unwrapped in ANY process — so any
+ * code able to set that property on a function it placed on a Stuff got
+ * an ungated method. Outside a test runner it is now gated like any
+ * method. The environment is read once per wrap, so a wrap made with the
+ * runner markers cleared is a wrap made outside a test run.
+ */
+describe('ProxyApi spy passthrough — a test-run affordance', () => {
+  beforeEach(() => StuffApi.clearAll());
+
+  class Vault extends Good {
+    @CallSecurity(SecurityPolicies.FromModule('/nowhere/at/all'))
+    public open(): string {
+      return 'opened';
+    }
+  }
+
+  /** Make `fn()`'s wraps as a process that is not running a test runner. */
+  function outsideATestRun<T>(fn: () => T): T {
+    // `NODE_ENV=test` stays: a wire world inherits it, and is still not a
+    // test run (D12).
+    const vitest = process.env.VITEST;
+    delete process.env.VITEST;
+    try {
+      return fn();
+    } finally {
+      if (vitest === undefined) delete process.env.VITEST;
+      else process.env.VITEST = vitest;
+    }
+  }
+
+  it('outside a test run, a spy-marked replacement of a gated method is gated', () => {
+    const v = outsideATestRun(() => makeStuff(() => new Vault()));
+    const forged = Object.assign(() => 'unchecked', { _isMockFunction: true });
+    (ProxyApi.unwrap(v) as unknown as { open: () => string }).open = forged;
+    expect(() => v.open()).toThrow(SecurityError);
+  });
+
+  it('in a test run, a spy still replaces the method it spies', () => {
+    const v = makeStuff(() => new Vault());
+    const spy = vi.spyOn(Vault.prototype, 'open').mockReturnValue('spied');
+    try {
+      expect(v.open).toBe(spy);
+      expect(v.open()).toBe('spied');
+      expect(spy).toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('the gate itself is unchanged either way', () => {
+    const inRun = makeStuff(() => new Vault());
+    const outside = outsideATestRun(() => makeStuff(() => new Vault()));
+    expect(() => inRun.open()).toThrow(SecurityError);
+    expect(() => outside.open()).toThrow(SecurityError);
+  });
+});
