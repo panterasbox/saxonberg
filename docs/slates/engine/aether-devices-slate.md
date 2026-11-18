@@ -266,6 +266,15 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - ⭐ **Activated to its owner** — a phone tunes and runs apps only for the person it is activated to;
   the free starter phone can never be reset (*"bind itself to the user or otherwise be worthless to
   anyone but the new player"*). A bought phone can be reset by its owner.
+- **One new verb, `apps`** (`apps`, `apps install`, `apps uninstall`) — the noun is the apps, not
+  the phone, because the implant runs apps too. Everything else uses a shared verb: `switch`, `put …
+  on charger`, `title transfer`.
+- **Ownership is the lock** — a phone runs for whoever holds its title (chattel); the starter's title
+  cannot be transferred. No `reset` verb.
+- **Brands** — phone models are corpo brands (Aevex premium and the implant's maker, Hollis budget,
+  Vionne luxury); **Messages is no corpo's** — an open standard, so a corporation never owns the
+  comms floor. Your starting phone's brand comes from your lineage
+  ([lineage-slate](../society/lineage-slate.md)).
 - **A tuner within reach was dropped** — hand or ready tunes you; charging happens while you are
   logged out.
 

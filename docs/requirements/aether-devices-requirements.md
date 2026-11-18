@@ -30,9 +30,12 @@ everyone in it, NPCs included. Seeding slate: [aether-devices-slate](../slates/e
     phone; nothing removes them;
   - **installed on it** — **apps**. Day one ships one: **Messages**, which carries `dm`, `reply`,
     chat channels and remote emotes. Without it, a tuned phone reaches nobody.
-- **Activated to its owner.** A phone works only for the person it is activated to; in anyone else's
-  hands it tunes nobody and runs nothing. The free starter phone is activated to its new player for
-  good, so it is worthless to anyone else.
+- **It runs for its owner.** A phone works only for whoever holds its **title**; in anyone else's
+  hands it tunes nobody and runs nothing. The free starter phone's title can never be transferred,
+  so it is worthless to anyone else.
+- **A product with a brand.** A phone model is a corpo brand — **Aevex** (tech and augments; it also
+  makes the implant), **Hollis** (the budget phone), **Vionne** (luxury). **Messages belongs to no
+  corpo**: it is an open standard, like the aether itself.
 - **Supply:** no electronics trade exists, so it is a bought-in good — given to you at the start,
   sold at the Terminus general store.
 - **Scale:** one is enough; carrying two adds nothing.
@@ -80,8 +83,9 @@ in it while the aether carries them past it; and the phone itself, with a charge
 - **You can power a phone off and on** with `switch`.
 - **A phone runs apps.** What is built in and what is installed is clear from day one; the
   **Messages** app carries DMs, chat and remote emotes, and you can uninstall and reinstall it.
-- **A phone works only for the person it is activated to**, and the free starter phone is worthless
-  to anyone else.
+- **A phone works only for whoever holds its title**, and the free starter phone is worthless to
+  anyone else.
+- **Phones carry corpo brands; the comms floor does not** — Messages is nobody's.
 - **The phone has a battery** that lasts a full play session of ordinary use and charges cheaply and
   easily — *"this isn't the place in the game where we want to put up barriers"* (the owner).
 - **A phone left on a charger keeps charging while you are logged out.**
@@ -108,8 +112,12 @@ in it while the aether carries them past it; and the phone itself, with a charge
 - **Where else apps come from** — buying them, an app store with prices, apps that players make →
   [aether-devices-slate](../slates/engine/aether-devices-slate.md) § 6, a later build. Day one, the
   phone's own list offers Messages, free.
-- **Unlocking someone else's phone** (a reset trade, a fence) → a later content pass. Day one, only a
-  phone's owner can reset it.
+- **Unlocking someone else's phone** (a fence, a forged title) → a later content pass.
+- **Your family decides your starting phone's brand** → [lineage-slate](../slates/society/lineage-slate.md)'s
+  starting kit (the owner: *"depending on your lineage you may start with one brand of phone or
+  another — that's good content"*). Until lineage ships, every new player gets the same default.
+- **A real-world sponsor's name on the starter phone** → nowhere until decided deliberately; the
+  founding offering's sponsorship belongs to the owner.
 - **The phone's other features** (flashlight, camera, map) **and its modes**
   (speaker, earbuds, silent) → [aether-devices-slate](../slates/engine/aether-devices-slate.md) §§ 4, 6,
   a later build. The modes carry a privacy question (a speaker reads real players' messages to the
@@ -165,19 +173,33 @@ implant stays in the world for guests and for a later acquisition process.
   the owner left one-or-three open (*"doesn't matter too much"*), and one is the smaller surface;
   splitting it later is a row change.
 - **`look phone`** lists its charge and its installed apps.
-- **`install messages`** and **`uninstall messages`** act on the phone in your hand or ready. Bare
-  `install` lists what is available. Installing Messages is free and instant, so uninstalling it is a
-  choice, never a trap.
+- ⭐ **One new verb, `apps`** — `apps` lists what is installed and what is available;
+  **`apps install messages`** and **`apps uninstall messages`** act on the device you are carrying.
+  The noun is the apps, not the phone, because the implant runs apps too — the owner: *"unless you
+  need to share these verbs with another device, we should probably be using subcommands scoped to"*
+  a noun verb. Installing Messages is free and instant, so uninstalling it is a choice, never a trap.
+- **Every other act uses a shared verb:** `switch` (power), `put … on charger` (charging), `title
+  transfer` (passing a phone on).
 - **The implant runs apps the same way** — a guest's implant comes with Messages installed.
 - The calendar, wallet and forums stay attached to the person, as today.
 
-### Activated to its owner
-Like a real phone's activation lock. A phone is activated to the first person who holds it new — the
-new player for the free one, the buyer for a bought one. In anyone else's hands it is a brick: it
-tunes nobody and runs no apps. **The free starter phone can never be reset**, so it is worth nothing
-to anyone but its player — the owner's *"bind itself to the user or otherwise be worthless to anyone
-but the new player."* A **bought** phone can be reset by its owner (`reset phone`) before selling it
-on. Theft is still a loss to you — the stake stays — but a thief gains a brick, not a phone to sell.
+### Its owner is its lock
+Like a real phone's activation lock, but it is simply **ownership**: a phone runs for whoever holds
+its title, through the shipped per-item ownership ([chattel.md](../subsystems/chattel.md)). In anyone
+else's hands it is a brick: it tunes nobody and runs no apps. Buying one at a shop gives you its
+title, as buying anything does; passing a bought phone on is **`title transfer phone to <player>`** —
+the shipped verb, extended from parcels and ship shares to goods. **The free starter phone's title
+can never be transferred**, so it is worth nothing to anyone but its player — the owner's *"bind
+itself to the user or otherwise be worthless to anyone but the new player."* Theft is still a loss to
+you — the stake stays — but a thief gains a brick, not a phone to sell.
+
+### Brands
+A phone model is a brand row owned by a corpo
+([corpo.md](../subsystems/corpo.md) — maker, brand and capital are separate): **Aevex** (tech and
+augments — the premium phone, and the implant's maker), **Hollis** (mass retail — the budget phone),
+**Vionne** (luxury). Day one: the **starter phone is a Hollis budget model**, and the general store
+sells the Hollis and the Aevex. ⭐ **Messages is no corpo's** — an open standard, like the aether: a
+corporation never owns the comms floor (lens 7); corpos may ship competing messengers later.
 
 ### Hand or ready tunes you; packed does not
 The carrying tiers already exist and players already learn them. A phone in your rucksack is a phone
@@ -258,8 +280,9 @@ unless marked *staged*.
 2. **DM works.** A `dm B hello`; B receives it, read off the phone. *instant · player*
 2a. **Built in and installed.** `look phone` shows its charge and one installed app, Messages.
     *instant · player*
-2b. **Uninstall.** A `uninstall messages`; `dm B hi` is refused — *install Messages* — and held. A
-    `install messages`; the held message goes out. *instant · player*
+2b. **Uninstall.** A `apps uninstall messages`; `dm B hi` is refused — *install Messages* — and
+    held. A `apps install messages`; the held message goes out. `apps` lists Messages installed.
+    *instant · player*
 3. **No implant.** A's body has no implant in its cranial slot (`look me` / `i`). *instant · player*
 4. **Remote emote.** From another room, A sends B a directed emote; B gets it. *instant · player*
 5. **The room carries emotes to NPCs.** A, in the lounge, emotes at Remy; Remy reacts. *instant ·
@@ -283,11 +306,12 @@ unless marked *staged*.
 14. **Restart.** The world restarts; A logs in: the phone is in the same place with the same charge,
     and anything A had held is still held. *staged (restart)*
 15. **Theft is a loss, and a brick.** A drops the phone; B picks it up. B cannot use it — it tunes
-    nobody, runs nothing — and B cannot reset it; the general store will not buy it. *instant · player*
+    nobody, runs nothing — `title transfer` of it is refused, and the general store will not buy it.
+    *instant · player*
 15a. **Buy one.** A goes to the Terminus general store and buys a phone and a charger; the new phone
     activates to A and tunes A. *instant · player*
-15b. **Reset and sell on.** A `reset phone` on the bought phone and hands it to B; it activates to B.
-    *instant · player*
+15b. **Pass it on.** A `title transfer phone to B` on the bought phone (B consents) and hands it
+    over; it runs for B. `look phone` shows its brand. *instant · player*
 16. **Blind.** *staged:* A is blinded. B's `dm` waits; when A can see again it arrives. *staged*
 17. **Guest.** G logs in as a guest: G can `dm` A, has an implant, and has no phone to drop or sell.
     *instant · player*
@@ -313,8 +337,9 @@ unless marked *staged*.
 9. A phone and a charger can be bought at the Terminus general store.
 9a. `look phone` shows what is installed; Messages can be uninstalled and reinstalled, and without
     it you cannot send.
-9b. A phone in anyone's hands but its owner's tunes nobody; the free starter phone cannot be reset or
-    sold; a bought phone can be reset by its owner and passed on.
+9b. A phone in anyone's hands but its title-holder's tunes nobody; the free starter phone's title
+    cannot be transferred and no shop buys it; a bought phone passes on by `title transfer`.
+9c. A phone shows its corpo brand; Messages carries none.
 10. Guests keep an implant; the shade is tuned; a holodeck body has no tuner unless its owner gives
     it one.
 11. A message read off a phone waits while you cannot see.
