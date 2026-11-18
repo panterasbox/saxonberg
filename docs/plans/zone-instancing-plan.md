@@ -1472,3 +1472,22 @@ Found and fixed (both commits on this MR):
   is not inside itself"); `PersistableApi.standUpKeyed` takes an optional
   `zoneFrom` for stops; `MovingZone.adopt` keeps a place already cloned
   into it (`546a92e53`, `4e05eba70`).
+
+### B5 — the full zone-instancing drive (2026-11-17, fresh world)
+
+`zone-instancing.dirty.wire.test.ts`, stages A + B + the restart, on a
+fresh world after the harbors fixes: **9/10 green.**
+
+- 1–6 (the holdings, the dorm unit) green; **7** both smacks, each a
+  zone of her own; **8** the Hesper — her way aboard, her deck, her zone
+  `<her kind's zone>/<serial>` — green (the tidal-mud blocker is gone);
+  **10** the restart: each house and the unit return under the same zone
+  identities with the same rooms.
+- **9 red on the DRIVE, not the build:** the founder's eval was scoped to
+  `/world/terminus` and a parcel-scoped eval may not read `/system/water`
+  (*sandbox boundary denied*). Re-scoped to `/system/water`. The same
+  eval, run against this world: the stop at Kestrel km 1 stands in
+  `/system/water/location/reach/stop/kestrel/1000/mid`, a copy of the
+  stop zone (`copy: true`). Not re-run as a whole — a dirty file will not
+  run twice against a world it has consumed, and a fresh world costs
+  20 minutes for a one-line change to the step's scope.

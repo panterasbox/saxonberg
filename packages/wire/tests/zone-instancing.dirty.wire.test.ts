@@ -570,7 +570,9 @@ suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
         `.then((w) => w.stopAt('kestrel', 1, 'mid'))` +
         `.then((s) => s.getZone())` +
         `.then((z) => JSON.stringify({ row: z.getTemplatePath(), id: z.getIdentityPath(), copy: z.isCopy() }))`,
-      '/world/terminus',
+      // The eval's jurisdiction is the WATER system's: a parcel-scoped eval
+      // reads only inside its extent, and the stop lives under /system/water.
+      '/system/water',
       YARD,
     );
     expect(stop.row).toBe('/system/water/location/reach/stop');
