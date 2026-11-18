@@ -658,8 +658,20 @@ export class SecurityApi {
           return loading ? loading.then(() => original.apply(this, args)) : original.apply(this, args);
         }
       : original;
+    // ⭐ The wrapper remembers its own policy (W4, D5): one integer compare
+    // per call in place of the cache's WeakMap + Map lookups. It is the
+    // same answer `resolveStaticCallPolicy` gives — re-resolved the moment
+    // any policy writer bumps the generation, so a `@CallSecurity`
+    // registered after this static has been called still takes effect on
+    // the next call. Two bindings, not a closure (R5).
+    let memoGen = -1;
+    let memo: SecurityPolicy | null = null;
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
-      const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
+      let policy = memo;
+      if (policy === null || memoGen !== SecurityApi.#policyGeneration) {
+        policy = memo = SecurityApi.resolveStaticCallPolicy(cls, methodName);
+        memoGen = SecurityApi.#policyGeneration;
+      }
       // One store read per static call (W3): the caller, and the push's parent.
       const node = ExecutionContextApi._dispatchContext();
       const caller = node === null ? null : node.frame.target;

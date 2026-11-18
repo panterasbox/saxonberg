@@ -828,7 +828,20 @@ flat across depth 0/25/100/200; `lint:boundary` and `lint:gates` pass;
 `lib/security/__tests__/**` green; wire step 5 green.
 **Commit.** `perf(frames): one store read per dispatch (W3)`
 
-### W4 — The gate and the static wrapper (D5)
+### W4 — The gate and the static wrapper (D5) — ✅ DONE (provisional by D8)
+
+> The per-wrapper memo, two `let` bindings. The thunk was not touched (W0
+> put the whole static wrapper at ~4% and its closure is not a named line).
+> No other gate line is a candidate: the remaining lines are checks.
+> Tests: three in `decorators.test.ts` (a policy registered after a call,
+> loosened after a denial, the denial message), both memo tests seen red
+> with the memo frozen. ⚠ **D8 could not be settled on this box** (load
+> 15–17): six interleaved runs give static call median 159 → 143 ns
+> (~10%), and an apparent 10–17% call-row regression vanished when the
+> order was reversed. It stays on the strength of what it removes (two
+> map lookups per static call against `resolveStaticCallPolicy`'s 1.3% of
+> busy) and is **reverted at W6 if that line has not left the profile**.
+> `test:near` 302 files green (W3 + W4).
 
 - The per-wrapper policy memo in `#wrapStaticDescriptor`.
 - The thunk only if W0's static-call row put it at or above the floor.
@@ -892,7 +905,7 @@ targeting by a worn feature behave as before in the wire file's step 3.
 | W1 (busy box, load 9–10, two rounds) | 1 175 / 1 097 | 158 / 117 | 154 / 156 | 311 / 347 | 639 / 719 | 277 / 369 | 167 / 184 | 1 099 / 1 391 |
 | W2 (busy box, load 16, three rounds) | 1 250 / 1 203 / 1 360 | 129 / 104 / 133 | 173 / 169 / 187 | 331 / 354 / 399 | 680 / 653 / 768 | — | — | — |
 | W3 (load 17, three rounds) | 1 330 / 1 401 / 1 185 | — | — | — | 717 / 668 / 605 | — | 156 / 173 / 154 | 1 443 / 1 293 / 1 234 |
-| W4 | | | | | | | | |
+| W4 (load 15–17, six runs) | inside noise | — | — | — | — | — | median 143 (W3 159) | — |
 
 ---
 
