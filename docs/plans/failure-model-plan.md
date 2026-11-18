@@ -670,6 +670,60 @@ protected refuse(context: CommandContext, refusal: AnyActRefusal | Refusal): voi
 - P5: the object decides the refusal and its facts; the row words it; the
   controller does neither.
 
+### Build decisions (recorded at build time, 2026-11-18)
+
+- **B1. `open` migrated whole in W0**, not just `locked`: `already-open`,
+  `no-setting` and `bad-setting` got `{ target }` facts and rows with it —
+  one wording switch deleted instead of half of one. (Lens 2: one call per
+  controller.)
+- **B2. `canOpen` returns a closed `OpenVeto`** (`{ ok: true } |
+  ActRefusal<'locked', { target }>`), not `AnyActRefusal`: D3's own rule (a
+  protocol lists its kernel codes). The water pack's `Gate` follows.
+- **B3. Rows avoid a thing at the start of a sentence.** `{{ target | item |
+  cap }}` cannot work: `item` emits a per-viewer tag that `cap` cannot reach.
+  So `locked` says *"The lock holds — the oak door won't open."* A `cap` that
+  reaches a thing tag is a prose-filter change, not this build's.
+- **B4. `Refusal` takes an optional `message`** (for the log and a REST
+  caller). `DocumentLogic`'s and the wiki's refusals keep their old
+  sentences there, so a CMS route that shows `err.message` is unchanged.
+- **B5. Board and store codes renamed for collisions** (D10's grep):
+  `board-unowned`, `not-board-member`, `not-entry-author`,
+  `document-access-denied`. The wiki's eleven sites became seven codes
+  (`wiki-unnamed`, `wiki-no-section`, `wiki-no-revision`, `wiki-may-not-edit`
+  carrying the wiki's own sentence as `why`, `wiki-guest`,
+  `wiki-moderators-only`, `wiki-name-held`).
+- **B6. The bank's `insufficient balance`** was a plain `Error` (a bug to the
+  root) — it is the refusal `insufficient-funds` now; `pay` passes any
+  settlement `Refusal` on. That is drive step 6's verb.
+- **B7. A save's validator failure is a refusal**, `invalid-document { path,
+  why }` — the author saving it is told why; it is not a content error
+  (nobody played it yet).
+- **B8. `tryClausesOf` is an instance method on `Interpreter`** (the parser
+  makes a throwaway reader) — a public static on a `lib/` class would raise
+  `lint:lib-statics`.
+- **B9. `engagePlan`'s words type** takes `onRefused` optional without
+  changing `ActWords` (nine other controllers call `words.onRefused` directly).
+- **B10. A late completion refusal is said twice inside a script** — once at
+  once (the late path), once in the stop line. Recorded as a seam, not fixed:
+  telling a script's step from a typed one needs a context flag nobody else
+  wants.
+- **B11. `fell`'s `decline` stays** for its legacy codes (`no-axe`,
+  `not-a-standard`, `no-stand`, `not-a-tree`); only `refusalWords` went.
+- **B12. Shipped `.msh` scripts:** the lounge's three were read; the
+  cocktail recipes SHOULD stop at a refused pour (no stirring an empty glass),
+  and `last-call` only `say`s. No `try` added.
+- **B13. `PersistApi`'s "Not connected" counts as an outage** too, alongside
+  the driver's connectivity errors, so an offline store says *try again*.
+
+- **B14. A content error is marked by the diagnostic's `channel`
+  (`content-error`), not a new `RuntimeDiagnostic.code`** as D6 said: the
+  row's `code` column is the compiler's numeric code, and `channel` already
+  exists as a producer's override for rows that classify by mechanism. No
+  schema change.
+- **B15. `DriveResult.stopped` carries the stopped line's `notes`**, held back
+  from the run's notes, so a refusal is said once — by the stop report — and
+  a handled one is never said.
+
 ## ⭐⭐ Host placement
 
 | Thing | Host | What that claims about everything else on the host |
@@ -753,6 +807,8 @@ W5 completes and runs it.
 
 ### W0 — reasons, the family, the envelope
 
+> ✅ **Done** (28b672098, with W1). `open` migrated whole (B1); `canOpen` a closed `OpenVeto` (B2); rows never start with a thing (B3).
+
 **Goal:** a refusal with a row is worded by the root, returned or thrown.
 **Implements:** D1, D2, D3 (the classes), D4, D9 (the in-frame half), D11.
 
@@ -788,6 +844,8 @@ produces the identical line and note (unit test); a plain `throw` shows the
 
 ### W1 — the first consumers
 
+> ✅ **Done** (28b672098). Five classes deleted; colliding codes renamed (B5); `pay` is drive step 6's verb (B6); forestry touched no kernel file. Committed with W0: the shared files (`CommandGiver`, `CommandLogic`) carry both.
+
 **Goal:** D10 complete. **Implements:** D10, D3 (the fold).
 
 - Boundary: `Lockable`, `Throttleable`, `UnlockController`, `LockController`,
@@ -807,6 +865,8 @@ outside `packages/content/trade-forestry/`.
 **Commit:** `build(failure-model W1): boundary, bank, board, store, wiki and forestry answer in reasons`
 
 ### W2 — scripts
+
+> ✅ **Done** (9d21308f2). ⚠ Surprise: every script test that relied on a bad line being skipped now stops — five tests updated to the new rule. `tryClausesOf` is an instance method (B8). The lounge's scripts need no `try` (B12).
 
 **Goal:** D5 complete. **Implements:** D5.
 
@@ -833,6 +893,8 @@ refused at parse with the fitted line; `unlock #<id>` binds the door.
 
 ### W3 — content errors, unavailable, late failures
 
+> ✅ **Done** (15e0b03cc). The content-error marker is the diagnostic `channel`, not a new `code` (B14). A save's validator failure is a refusal, `invalid-document` (B7). Shipped recipe bands were all valid already (E2 is not present on master).
+
 **Goal:** D6, D8, D9 complete.
 
 - `lib/craft/Recipe.ts` (`fromData` bands); `api/pack.ts` + `PackLogic`
@@ -856,6 +918,8 @@ wizard.
 **Commit:** `build(failure-model W3): content errors to the maintainer, outages retryable, late failures owned`
 
 ### W4 — the ratchets
+
+> ✅ **Done**. Ceilings measured on this tree: reason-rows 0 hard · 966 unrowed · 580 legacy; content-refs 0; silent-catch 1017 (restamp fixed); floating-promises 179; act-nulls 172. Each made to fail once.
 
 **Goal:** D7. Four scripts, four `lint:*` entries in
 `packages/server/package.json`, each ceiling measured on this tree.

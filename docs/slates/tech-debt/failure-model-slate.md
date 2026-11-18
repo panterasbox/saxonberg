@@ -1,12 +1,21 @@
 # The failure model: throw, refuse, or return nothing
 
-> **Status: UNBUILT. A conversation the owner wants (2026-11-10), not yet had.**
-> **Left:** the conversation · a taxonomy of failures and which channel each
-> takes · when a refusal may be thrown · where error classes live · what
-> reaches the client · pack-extensible reason vocabularies · the
-> "null means something went wrong" census · floating promises · content
-> errors at load time vs at use
-> **Size:** a build after the conversation (doctrine, then census-then-ratchet sweeps)
+> **Status: PARTIAL** — the model shipped with the failure-model build
+> (`build/failure-model`, 2026-11): reasons as `reason` rows any pack ships,
+> one thrown family (`Refusal` · `Unavailable` · `ContentError` in
+> `lib/errors.ts`), the `refused` note worded at emit, scripts that stop at a
+> refusal and `try … on`, content errors to the row's title holder, the
+> outage refusal, late failures owned by `CommandApi.reportFailure`, and five
+> census gates. See response-envelope.md, scripting.md, diagnostics.md.
+> **Left:** the burn-down (unrowed codes · legacy wordings · silent catches ·
+> floating promises · act nulls — each a ratchet) · a kernel protocol taking
+> the open `ReasonPath` arm (`TravelNode.ride`) · the traverse's refusals
+> (`go north` at a locked door) · the other six `command-rejected` reasons
+> and `PromptCancelledError` · an interrupted step waking at the interruption
+> · a typed lint for a promise dropped with no `void` · the
+> `if (!connected()) return []` guards · client rendering of a refusal
+> beyond its sentence · reasons in `help`
+> **Size:** tails (each a ratchet's burn-down), plus one wave for the wake
 
 ## Why
 

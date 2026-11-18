@@ -251,6 +251,13 @@ in `lib/spatial/__tests__/Containable.nullEnv.test.ts`.
 
 ### ⭐⭐ Writes on a detached subject — never a silent skip (2026-10-29)
 
+> ⭐ This is one entry in the platform's failure palette (failure-model,
+> 2026-11): a refusal is returned or thrown as a `Refusal` and worded by its
+> reason row; a defect is a plain `Error` (here `DetachedError`) that every
+> guarded root reports through `CommandApi.reportFailure` — the `went-wrong`
+> line to the player, the message only in the diagnostic. See
+> [response-envelope.md § `refused`](./response-envelope.md).
+
 The matrix covers reads, and its "silently skip" kept being copied into
 WRITES: acts that put something into the world and need a place for it
 (the sherds of a pot that breaks, a spill, a cast, drainings). A write

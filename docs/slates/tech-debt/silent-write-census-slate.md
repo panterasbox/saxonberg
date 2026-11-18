@@ -1,9 +1,12 @@
 # Silent writes — census, then ratchet
 
-> **Status: UNBUILT · opened 2026-10-29 (owner, ceramics review !437).**
-> **Left:** the census gate · sorting each guard as a read (legitimate
-> skip) or a write (a defect) · the burn-down.
-> **Size:** a tail (a gate, then a sweep).
+> **Status: PARTIAL** — the gates shipped with the failure-model build
+> (2026-11): `lint:silent-catch` and `lint:floating-promises` are the census,
+> at today's count, and the async-completion root (B103) is owned
+> (`SchedulerRegistry` reports a rejected completion).
+> **Left:** the burn-down of both ratchets · sorting each `connected()` guard
+> as a read (a legitimate skip) or a write (a defect).
+> **Size:** a tail.
 > **Absorbed by:** [failure-model-slate.md](./failure-model-slate.md)
 > (2026-11-10): this census is the write half of the broader throw /
 > refuse / return-nothing conversation.
