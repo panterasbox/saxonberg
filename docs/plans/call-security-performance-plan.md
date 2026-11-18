@@ -1215,6 +1215,10 @@ the worker thread, the Mongo driver). So by R1 this is a **recorded miss**,
 and the next idle build is not a call-security build. No check was
 removed to approach it.
 
+**The full suite** (`tools/suite`, at code-complete, on `8bd87d7cc`): all
+**56 packages pass** — server 16 170 tests (2 skipped, 2 todo), client
+1 061. `lint:family`: all 111 gates pass.
+
 **The cost gate is met at the line**, not with room: 20 260 ms against a
 20 315 ms ceiling over the same acts (49.9%). Per second of the window it
 is 58%, because the after-run finished the same acts 20 s sooner — which
