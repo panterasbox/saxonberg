@@ -9,6 +9,9 @@
 > disruption events / rerouting / sabotage (beyond a cut or closed line) ·
 > cross-restart credential durability (no body section here — the design is
 > fasttravel.md § Credential caveat (v1))
+> ⭐ **2026-11-17 direction** (§ *Carriers, tickets and mass*, at the end): carriers lease gates,
+> the bearer ticket and the starting ticket, mass-and-container pricing, "walk first" as one
+> carrier's policy, precision only off the network.
 > **Size:** a wave
 
 Working slate for **fast travel** — the *Eternal City Teleport Authority*
@@ -156,4 +159,103 @@ a faction/maintainer. **(Economy/fees land whenever that subsystem does.)**
   defined in their slates.
 - **The author/housing content** — the dorm/lobby are content; this just
   places terminals in public nodes.
+
+## ⭐⭐⭐ Carriers, tickets and mass — a direction, not decisions **[LEAN; owner direction 2026-11-17]**
+
+Talked through with the owner while designing the walk from the lounge to the campus (the TPA
+station is on that path; [university-avenue-slate](../world/university-avenue-slate.md)). The owner:
+*"Now's the time to fuck with shit before there's a real network riding on any of it,"* and *"we
+can revisit any of it."*
+
+### The lens: who holds which extent
+
+The owner: power is exactly what write access to an extent gives you. *"Some extents control the
+network and some control just the individual nodes, and then there's other shared content. How
+it's all divvied up determines what parties control what interests in the entire experience and
+can do things like set rates or issue tickets."*
+
+What ships already has two interests: **the network** (the Authority, self-governing over the TPA
+pack's own extent, taking a network fee) and **the node** (the business operating each departure
+terminal fixture, taking the rest of the fare; for Terminus, the city).
+
+The direction maps onto how air travel actually splits:
+
+| layer | who holds the extent | what writing to it lets them do |
+|---|---|---|
+| **the fabric**: the physics of teleporting, its workings, mana | the arcana system | what any teleport costs; which workings exist |
+| **the station**: a terminal building | **the place** (Terminus holds its station; the lounge its terminal) | lease gates, set the station's rules, collect rent |
+| **a carrier**: usually a corpo | the carrier's own extent | its gates' equipment, routes, timetables, fares, tickets, whether it takes cargo |
+| **the Authority** | the TPA's own extent | open: standards and a common board above the carriers, or one carrier among several (the public line) |
+
+### Carriers
+
+- **A departure gate is a carrier's gate.** Each carrier runs its own timetable, so the hub feels
+  busy because carriers compete. The owner likes *"one terminal for arrivals, and then different
+  departure gates each running their own schedule of departures … it makes the thing feel busy, like
+  a real passenger hub."*
+- **A dark gate is unleased.** A gate coming back into service because a carrier moved in, or a
+  new destination was built, is a world event; keep at least one dark.
+- **Regional and interdimensional carriers are route sets:** a regional line runs inside a realm;
+  an interdimensional line connects realms through the lounge, where every realm connects. This is a
+  business and content distinction, **not** a physical one: the aether is everywhere and crosses
+  every boundary (it carries comms), unless an author deliberately shuts it off in a bounded space.
+- **Cargo is a carrier's decision.** Freight carriers lease the wharf cargo terminal's gates
+  ([logistics-slate § Cargo through terminals](../trades/logistics-slate.md)).
+- ⭐ **"Walk first, then ride" becomes one carrier's policy, not a law of the network.** The public
+  line keeps it (you register a place by going there). Another carrier sells tickets to places
+  you've never been; another carries only members, or the invited.
+
+### The ticket — a bearer token, not a credential
+
+- **A new kind of thing:** a printed paper ticket (the paper system ships) for one named trip,
+  **consumed by the carrier at boarding**. No registration, no wallet. The torn ticket stub already
+  in the crossing's gutter is what's left of one.
+- **⭐ Bootstrap every new character with one:** intake hands you a ticket from the lounge to
+  Terminus, the operator's welcome, on whichever carrier runs that route. You arrive by ticket, the
+  way first trips work for everyone.
+- **A first trip registers the place** for carriers whose policy is walk-first, so a ticket buys an
+  introduction to a place, never ongoing access.
+- **Money versus experience.** The owner: *"I'd prefer the big content unlocks in this game come
+  from experiences and not just money."* Money buys tickets from carriers that sell them;
+  **experiences get you onto the others**: a members-only carrier, a guild's own line, an invitation
+  from a resident (letters of introduction, visas), a class trip, a job posted abroad. The most
+  interesting places can be the ones a ticket can't reach. Entry to Saxonberg, the capital, is its
+  extent holder's policy.
+
+### Mass, not height and not distance
+
+- **⛔ Height climbed is out.** The shipped cost (mass × gravity × height climbed) is physically
+  true under the postulate but tiny, makes a downhill hop free, and ignores what matters; the owner
+  calls it nonsense. (arcane-science.md carries a revision note.)
+- **⛔ Distance is out.** Latitude and longitude mean something only on one world, and nothing in
+  the models measures how far each thing is from every other thing.
+- **⭐ Mass is the cost.** *"Passenger travel is pretty cheap but freight goes up with mass. And
+  maybe you pay for how much shit you're carrying too, or even by the type of containers you have,
+  like your carry-ons on a plane."*
+  - a passenger fare covers a person plus a **personal allowance** (the carry-on);
+  - past the allowance you pay **by weight and by container class** (a crate, a pallet, a container:
+    the unit loads), each its own rate;
+  - freight goes through cargo carriers.
+- **The story, if wanted:** the more matter moved, the more the working must hold in place.
+- **A mass-based cost doesn't depend on which world you're on**, so interdimensional travel can use
+  the same working: a point for unifying on one fabric. Unifying is the lean, not a requirement.
+- **The money and mana arrangement stays as shipped** (the fare to the carrier; mana from the
+  terminal's own supply or the traveller's, by the traveller's choice). It is complicated, and open
+  to revisiting.
+
+### The network is reliable; precision is for casting
+
+The terminal is effectively the caster, which is why the network is predictable. The owner does not
+want to touch the network's reliability. Precision belongs to ad-hoc casting
+([spellbook-slate § Precision](./spellbook-slate.md)).
+
+### Open
+
+1. **What becomes of the Authority:** the public carrier that keeps walk-first, or a standards body
+   above the carriers.
+2. **Who runs the lounge's routes:** the operator's own carrier (the lounge is the operator's brand),
+   or an interdimensional corpo leasing its terminal.
+3. **Gate leases:** what a station charges, and who may lease.
+4. **The container classes and their rates.**
+5. **The starting ticket's issuer** and what it says on it.
 
