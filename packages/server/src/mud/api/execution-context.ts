@@ -135,6 +135,16 @@ export interface RunRootOpts {
 }
 
 /**
+ * Who is acting, as a continuation carries it
+ * ({@link ExecutionContextApi.captureActor}): a person or object, or the
+ * named system — at most one of the two is set.
+ */
+export interface ActorClaim {
+  actor: unknown | null;
+  system: string | null;
+}
+
+/**
  * One link of the call stack.
  *
  * ⭐ A linked list, not an array, and that is the whole point: a push is
@@ -679,6 +689,159 @@ export class ExecutionContextApi {
     const top = node.frame;
     if (!top.metadata) top.metadata = {};
     top.metadata.actingAuthor = principal;
+  }
+
+  /* ───────────── who is ACTING (call-security pass, D1–D7) ─────────────
+   *
+   * ⭐⭐ Two questions, two reads. The AUTHOR ({@link getActingAuthor}) is
+   * whose WORK this is — a maker's mark, blame, provenance — and is null
+   * for a forced chain, because a brain's act has no author. The ACTOR is
+   * whose AUTHORITY is being exercised, and a forced NPC is acting as
+   * itself. A protective method that takes "who is doing this" as a
+   * parameter checks the parameter against {@link getActor}
+   * (`AccessApi.requireActor`) and never trusts the argument alone.
+   *
+   * The actor is read from frames the framework stamps and nothing else:
+   * the nearest frame that BEARS one, from the top —
+   *   - a Command frame → its giver (forced or not: the compulsion gate in
+   *     `CommandGiverMixin.executeCommand` already admitted the frame);
+   *   - `metadata.actingSystem` → the named system ({@link runAsSystem});
+   *   - `metadata.actor` → a continuation's starter, or an object acting
+   *     as itself ({@link runAsSelf});
+   *   - `metadata.actingAuthor` → a REST/CMS boundary's principal.
+   */
+
+  /** The nearest actor-bearing frame, or null when nobody is acting. */
+  static #actorBearer(): ActorClaim | null {
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const f = n.frame;
+      if (f.kind === FrameKind.Command) {
+        const ctx = f.metadata?.commandContext as { commandGiver?: unknown } | undefined;
+        return { actor: ctx?.commandGiver ?? f.target, system: null };
+      }
+      const md = f.metadata;
+      if (md === undefined) continue;
+      if (typeof md.actingSystem === 'string') return { actor: null, system: md.actingSystem };
+      if (md.actor != null) return { actor: md.actor, system: null };
+      if (md.actingAuthor != null) return { actor: md.actingAuthor, system: null };
+    }
+    return null;
+  }
+
+  /**
+   * ⭐⭐ **Who is acting** — the person (or object acting as itself) whose
+   * authority the current work exercises, or `null` when nobody is (no
+   * actor was ever named, or the {@link actingSystem system} is acting).
+   * Unlike {@link getActingAuthor} it is NOT null for a forced chain: an
+   * NPC's forced command is the NPC acting.
+   */
+  public static getActor(): unknown | null {
+    return ExecutionContextApi.#actorBearer()?.actor ?? null;
+  }
+
+  /**
+   * The name of the system acting (`'boot'`, `'residency'`, …) when the
+   * nearest actor-bearing frame is engine work run as the system, else
+   * `null`. When this answers, {@link getActor} is `null`.
+   */
+  public static actingSystem(): string | null {
+    return ExecutionContextApi.#actorBearer()?.system ?? null;
+  }
+
+  /**
+   * Capture who is acting now, for a continuation to carry
+   * ({@link runAsCaptured}). Both halves null when nobody is.
+   */
+  public static captureActor(): ActorClaim {
+    return ExecutionContextApi.#actorBearer() ?? { actor: null, system: null };
+  }
+
+  /**
+   * Run `fn` as the actor a continuation {@link captureActor captured}. A
+   * frame pushed over the current one, keeping its target (so no
+   * `@CallSecurity` gate sees a different caller); a no-op claim runs `fn`
+   * as is. Framework only — the frame-mutator allowlist.
+   */
+  public static runAsCaptured<T>(claim: ActorClaim, fn: () => T): T {
+    _assertFrameMutatorAllowed('runAsCaptured');
+    if (claim.actor == null && claim.system == null) return fn();
+    return ExecutionContextApi.#pushActor(
+      claim.system != null ? { actingSystem: claim.system } : { actor: claim.actor },
+      'runAsCaptured',
+      fn,
+    );
+  }
+
+  /**
+   * ⭐ Run `fn` as the named SYSTEM — engine work nobody in the world asked
+   * for (boot, a residency sweep, a maintenance tick). At a protective
+   * check the system is admitted for any claim, and the frame says so. With
+   * no stack at all (boot) it plants an omni-scoped root, which is what
+   * work with no execution context already was (`ScheduleApi`'s
+   * registration scope). Framework only — the frame-mutator allowlist.
+   */
+  public static runAsSystem<T>(name: string, fn: () => T): T {
+    _assertFrameMutatorAllowed('runAsSystem');
+    if (!name) throw new SecurityError('runAsSystem: the system must be named');
+    if (_als.getStore() == null) {
+      const root: CallFrame = {
+        caller: null,
+        target: null,
+        method: `system:${name}`,
+        kind: FrameKind.Root,
+        metadata: { circleScope: OMNI_SCOPE, actingSystem: name },
+      };
+      return _als.run(_linkFrame(root, null), fn);
+    }
+    return ExecutionContextApi.#pushActor({ actingSystem: name }, `system:${name}`, fn);
+  }
+
+  /**
+   * ⭐ Run `fn` as the object whose method is running — an NPC's brain, a
+   * hitch unhitching itself in its own upkeep. Takes no principal: the
+   * self is the current frame's target (the proxy pushes one per method
+   * call), so an object can only ever become ITSELF. Throws outside any
+   * frame (no self to be).
+   */
+  public static runAsSelf<T>(fn: () => T): T {
+    const self = ExecutionContextApi.getCurrentTarget();
+    if (self == null || typeof self !== 'object') {
+      throw new SecurityError('runAsSelf: no object is running to act as itself');
+    }
+    return ExecutionContextApi.#pushActor({ actor: self }, 'runAsSelf', fn);
+  }
+
+  /** Push an actor-bearing frame that keeps the current frame's target. */
+  static #pushActor<T>(metadata: Record<string, unknown>, method: string, fn: () => T): T {
+    const node = _als.getStore() ?? null;
+    const target = node?.frame.target ?? null;
+    return _pushFrame(target, target, method, { metadata }, fn, node);
+  }
+
+  /**
+   * ⭐ **Whose code is running** — the content path a refusal of a lying
+   * claim is reported against (the `call-security` diagnostic, routed to
+   * the path's title holder). The innermost command's resolved controller
+   * when one is set (a replaced controller is its own row); else the
+   * template path of the nearest frame target that has one (a brain's NPC,
+   * a sweep's singleton). `null` when nothing on the stack names a path.
+   */
+  public static getActingCodePath(): string | null {
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const f = n.frame;
+      if (f.kind === FrameKind.Command) {
+        const ctx = f.metadata?.commandContext as
+          | { command?: { resolvedController?: string } }
+          | undefined;
+        const path = ctx?.command?.resolvedController;
+        if (path) return path;
+      }
+    }
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const path = _guardPath(n.frame.target);
+      if (path) return path;
+    }
+    return null;
   }
 
   /**

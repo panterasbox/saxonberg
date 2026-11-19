@@ -18,8 +18,11 @@
  */
 
 import { ExecutionContextApi } from './execution-context';
+import type { ActorClaim } from './execution-context';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { SecurityError } from '../lib/security/errors';
 
 /**
  * Per-scope index of live handles registered from circle contexts —
@@ -80,6 +83,14 @@ export interface ScheduleOptions {
    * is severed.
    */
   propagateAttribution?: boolean;
+  /**
+   * ⭐ Run every fire as the named SYSTEM (`'residency'`, `'roster'`) —
+   * engine work nobody in the world asked for, admitted at any protective
+   * check and named in every diagnostic (call-security pass D3). Honored
+   * only from the Api tier or a kernel singleton (`/platform/idea/<X>`); a
+   * pack or a controller naming the system throws.
+   */
+  system?: string;
 }
 
 export interface RecurringOptions extends ScheduleOptions {
@@ -132,13 +143,28 @@ interface InternalHandle {
 interface Attribution {
   commandId: string | null;
   author: unknown | null;
+  /** ⭐ Who is ACTING (call-security pass D2) — not the author: a forced start has an actor. */
+  actor: ActorClaim;
 }
 
-function captureAttribution(propagate: boolean): Attribution {
-  if (!propagate) return { commandId: null, author: null };
+const NOBODY: ActorClaim = { actor: null, system: null };
+
+function captureAttribution(opts: ScheduleOptions | undefined): Attribution {
+  const system = opts?.system;
+  if (system !== undefined) {
+    const caller = ExecutionContextApi.getCaller();
+    if (!SecurityPolicies.SystemNamer.allows(caller, ScheduleApi, 'schedule')) {
+      throw new SecurityError(
+        `ScheduleApi: only the Api tier or a kernel singleton may run work as the system ('${system}')`,
+      );
+    }
+  }
+  const propagate = opts?.propagateAttribution ?? true;
+  if (!propagate) return { commandId: null, author: null, actor: system ? { actor: null, system } : NOBODY };
   return {
     commandId: ExecutionContextApi.getCurrentCausingCommandId(),
     author: ExecutionContextApi.getCausingAuthor(),
+    actor: system ? { actor: null, system } : ExecutionContextApi.captureActor(),
   };
 }
 
@@ -162,7 +188,8 @@ function planRunInner(
   fn: () => void,
   opts: { circleScope: string } | undefined
 ): void {
-  if (causing.commandId === null && causing.author === null) {
+  const { actor, system } = causing.actor;
+  if (causing.commandId === null && causing.author === null && actor == null && system == null) {
     void ExecutionContextApi.runRootGuarded(
       ScheduleApi,
       'fire',
@@ -179,6 +206,7 @@ function planRunInner(
       ExecutionContextApi.updateCurrentFrameMetadata({
         ...(causing.commandId !== null ? { causingCommandId: causing.commandId } : {}),
         ...(causing.author !== null ? { causingAuthor: causing.author } : {}),
+        ...(system != null ? { actingSystem: system } : actor != null ? { actor } : {}),
       });
       fn();
     },
@@ -204,7 +232,7 @@ export class ScheduleApi {
     fn: () => void,
     opts?: ScheduleOptions
   ): ScheduleHandle {
-    const causing = captureAttribution(opts?.propagateAttribution ?? true);
+    const causing = captureAttribution(opts);
     const birthScope = _registrationScope();
     const id = SecurityApi.uuid();
     let cancelled = false;
@@ -241,7 +269,7 @@ export class ScheduleApi {
     fn: () => void,
     opts?: RecurringOptions
   ): ScheduleHandle {
-    const causing = captureAttribution(opts?.propagateAttribution ?? true);
+    const causing = captureAttribution(opts);
     const birthScope = _registrationScope();
     const initialDelay = opts?.initialDelayMs ?? intervalMs;
     const mode = opts?.mode ?? 'fixed-delay';

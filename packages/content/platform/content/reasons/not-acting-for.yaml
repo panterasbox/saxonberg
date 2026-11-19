@@ -1,0 +1,6 @@
+# A protective act was handed somebody other than who is acting — code
+# claimed to act for them (call-security pass D4). The code's keeper reads
+# a `call-security` diagnostic naming the path; the player reads this.
+facts:
+  claimed: thing
+says: "You can't act for {{ claimed | item }}."

@@ -147,7 +147,24 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, stage state with the wire harness\u2019s stage() (POST /auth/test-stage).')
   public static stage(path: string, method: string, args: readonly unknown[] = []): Promise<StageReport> {
-    return logic().stage(path, method, args);
+    // Staging is the SYSTEM acting (call-security pass D3): it may set a
+    // state on anybody's behalf, and every check it meets says so.
+    return ExecutionContextApi.runAsSystem('test-stage', () => logic().stage(path, method, args));
+  }
+
+  /**
+   * ⭐ Run `fn` as `person` acting (call-security pass D15) — the honest
+   * actor a unit test of a protective method needs, stated rather than
+   * assumed. A root targeting `person`, tagged as its acting author, so
+   * `ExecutionContextApi.getActor()` (and the author) answer `person`.
+   * Replaces the hand-copied `asGiver` helpers.
+   */
+  @TestOnly('Tests state who acts with TestHarnessApi.actAs; in play, the actor is whoever typed the command.')
+  public static actAs<T>(person: unknown, fn: () => T): T {
+    return ExecutionContextApi.runRoot(person, 'actAs', () => {
+      ExecutionContextApi.tagActingAuthor(person);
+      return fn();
+    });
   }
 
   /**

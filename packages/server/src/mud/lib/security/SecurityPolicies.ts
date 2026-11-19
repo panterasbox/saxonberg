@@ -632,6 +632,22 @@ function Custom(
 }
 
 /**
+ * ⭐ `SystemNamer` — who may run scheduled work AS THE SYSTEM
+ * (`ScheduleApi`/`WorldClockApi`'s `system:` option; call-security pass
+ * D3): the Api tier and the kernel's own singletons (`/platform/idea/<X>`,
+ * one segment — never a controller under `/platform/idea/cmd/`). A pack has
+ * neither, so a pack can never name the system.
+ */
+const SystemNamerPolicy: SecurityPolicy = (() => {
+  const singletons = FromTemplate('/platform/idea/*');
+  return {
+    name: 'SystemNamer',
+    allows: (caller, target, method) =>
+      ApiOnlyPolicy.allows(caller, target, method) || singletons.allows(caller, target, method),
+  };
+})();
+
+/**
  * Static-class style namespace (matches the codebase's preference for
  * static utility classes — see StuffApi, MixinApi, etc.).
  *
@@ -645,6 +661,7 @@ export const SecurityPolicies = {
   SystemRoot: SystemRootPolicy,
   SelfOnly: SelfOnlyPolicy,
   ApiOnly: ApiOnlyPolicy,
+  SystemNamer: SystemNamerPolicy,
   Custom,
   AllOf,
   AnyOf,

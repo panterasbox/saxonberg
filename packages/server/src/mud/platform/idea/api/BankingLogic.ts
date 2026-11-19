@@ -150,34 +150,10 @@ const COIN_PATH = "/stuff/thing/Coin";
  * ledger row always names *someone*.
  */
 function actingActorKey(): string {
-  const principal = actingPrincipal() as {
+  const principal = ExecutionContextApi.getActor() as {
     getIdentityPath?(): string | null;
   } | null;
   return principal?.getIdentityPath?.() ?? "system";
-}
-
-/**
- * The acting principal as a Stuff (for moving coin to/from it), or null.
- *
- * The PAYER is the command frame's giver whenever the command chain has
- * one consistent giver — forced or not. A forced command still runs AS
- * its giver (a brain's hand at the counter, Dave hiring through a
- * dialogue dispatch), and the money authority it spends is the wallet
- * that giver carries, which is the whole wallet rule. Authorship
- * attribution (`getActingAuthor`) keeps failing closed on a forced
- * chain — provenance is a different question from who is paying. A
- * cross-actor cascade (A's command triggering B's) has no single giver
- * and pays as nobody, exactly as before. Outside any command frame the
- * tagged author (a REST boundary's Avatar) is the principal.
- */
-function actingPrincipal(): Stuff | null {
-  const commands = ExecutionContextApi.getCommandStack();
-  if (commands.length > 0) {
-    const givers = new Set(commands.map((c) => c.context.commandGiver));
-    if (givers.size !== 1) return null;
-    return (commands[0]!.context.commandGiver as unknown as Stuff) ?? null;
-  }
-  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
 
 /** Coin-shaped duck type — avoids importing the Coin class here. */
@@ -252,7 +228,7 @@ async function openAccountImpl(
     // Re-open by an existing holder: the wallet credential is
     // session-durable, so a returning player's implant carries an
     // unlinked payment record — `bank open` doubles as the re-link.
-    autoLinkToWallet(actingPrincipal(), already.accountId);
+    autoLinkToWallet(ExecutionContextApi.getActor() as Stuff | null, already.accountId);
     return already.accountId;
   }
 
@@ -269,7 +245,7 @@ async function openAccountImpl(
   AccountBalance.putCached(row.accountId, 0, currency);
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
-  autoLinkToWallet(actingPrincipal(), row.accountId);
+  autoLinkToWallet(ExecutionContextApi.getActor() as Stuff | null, row.accountId);
   // ⭐ No opening float (economic bootstrap D9). The till used to be
   // stocked by a MINT paired with a credit to the branch — an authored
   // faucet. A till fills from deposits now, and a withdrawal past what it
@@ -1279,7 +1255,7 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
  * before it is performed (repair P1). Read-only.
  */
 function canSettleImpl(amount: Money): boolean {
-  const payer = actingPrincipal();
+  const payer = ExecutionContextApi.getActor() as Stuff | null;
   if (!payer) return false;
   const cred = reachableCredential(payer);
   const account = cred?.getActiveAccount() ?? null;
@@ -1297,7 +1273,7 @@ async function settleImpl(
   original: Charge,
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
-  const payer = actingPrincipal();
+  const payer = ExecutionContextApi.getActor() as Stuff | null;
   if (!payer) throw new Refusal("no-payer");
   // ⭐ The payee's creditors take their share of this inflow as rider
   // splits inside the same transaction (economic bootstrap D12).
@@ -2145,7 +2121,7 @@ async function issueCardImpl(
   capMinor: number,
   holder?: Stuff,
 ): Promise<Stuff & CredentialWallet> {
-  const principal = holder ?? actingPrincipal();
+  const principal = holder ?? (ExecutionContextApi.getActor() as Stuff | null);
   const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
   const pay = card.ensureCredential("payment");
   pay.linkAccount(accountId);
@@ -2845,7 +2821,7 @@ export class BankingLogic extends ApiLogic {
     // the ledger; per-account, never collective (a bank run is a feature);
     // over the cap → refuse and push onto the ledger (card/transfer). Scales
     // with standing (Circle → higher cap).
-    const cap = withdrawalCapFor(account, actingPrincipal());
+    const cap = withdrawalCapFor(account, ExecutionContextApi.getActor() as Stuff | null);
     if (cap > 0) {
       const already = await withdrawnTodayImpl(account.accountId);
       if (already + amount.minor > cap) {
@@ -2870,7 +2846,7 @@ export class BankingLogic extends ApiLogic {
           `in cash right now (till low)`,
       );
     }
-    const principal = actingPrincipal();
+    const principal = ExecutionContextApi.getActor() as Stuff | null;
     if (!principal || !MixinApi.isContainer(principal)) {
       throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
     }
@@ -2988,7 +2964,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
   public activeCredential(): PaymentCredential | null {
-    const actor = actingPrincipal();
+    const actor = ExecutionContextApi.getActor() as Stuff | null;
     return actor ? reachableCredential(actor) : null;
   }
 

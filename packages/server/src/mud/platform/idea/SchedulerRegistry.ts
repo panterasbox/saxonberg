@@ -49,6 +49,7 @@ import { Events } from '../../lib/events';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
+  type ActorClaim,
 } from '../../api/execution-context';
 import { HotReloadApi } from '../../api/hot-reload';
 import { MixinApi } from '../../api/mixin';
@@ -139,6 +140,12 @@ export default class SchedulerRegistry extends Idea {
    * has no author.
    */
   private causingAuthors: Map<string, unknown> = new Map();
+  /**
+   * ⭐ Who was ACTING when each engagement started (call-security pass D2)
+   * — planted beside the author. Unlike the author it is set for a forced
+   * start: an NPC's engagement completes as the NPC.
+   */
+  private causingActors: Map<string, ActorClaim> = new Map();
   private hostSubscriptions: Map<string, Subscription<unknown>> = new Map();
   private activityRegistry: Map<string, ActivityClass> = new Map();
 
@@ -388,6 +395,7 @@ export default class SchedulerRegistry extends Idea {
     }
     this.emissionTimers.clear();
     this.causingAuthors.clear();
+    this.causingActors.clear();
     for (const sub of this.hostSubscriptions.values()) {
       try {
         sub.unsubscribe();
@@ -411,6 +419,8 @@ export default class SchedulerRegistry extends Idea {
     const actor = e.actor;
     const author = ExecutionContextApi.getCausingAuthor();
     if (author != null) this.causingAuthors.set(e.engagementId, author);
+    const acting = ExecutionContextApi.captureActor();
+    if (acting.actor != null || acting.system != null) this.causingActors.set(e.engagementId, acting);
     // Direct participant call: `_setEngagement` is gated on THIS
     // registry (`FromTemplate('/platform/idea/SchedulerRegistry')`), so the
     // registry calls as itself — no synthetic SchedulerApi root needed.
@@ -677,10 +687,14 @@ export default class SchedulerRegistry extends Idea {
   private plantAuthor(id: string): void {
     const author = this.causingAuthors.get(id);
     if (author != null) ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: author });
+    const acting = this.causingActors.get(id);
+    if (acting?.system != null) ExecutionContextApi.updateCurrentFrameMetadata({ actingSystem: acting.system });
+    else if (acting?.actor != null) ExecutionContextApi.updateCurrentFrameMetadata({ actor: acting.actor });
   }
 
   private clearTimersAndSubs(id: string): void {
     this.causingAuthors.delete(id);
+    this.causingActors.delete(id);
     const timer = this.completionTimers.get(id);
     if (timer) {
       timer.cancel();

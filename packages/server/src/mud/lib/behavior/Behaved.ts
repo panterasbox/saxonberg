@@ -41,6 +41,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -810,7 +811,10 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       const ctx = this._context(wiring, perceived, source);
       try {
-        await descriptor.act(ctx);
+        // ⭐ A brain's act is the NPC's OWN act (call-security pass D10) —
+        // even when a witness fired it inside a player's command, or its
+        // timer was armed while a player loaded the room.
+        await ExecutionContextApi.runAsSelf(() => descriptor.act(ctx));
       } catch (e) {
         this._warn(`brain '${wiring.spec.brain}' threw: ${asMsg(e)}`);
       }

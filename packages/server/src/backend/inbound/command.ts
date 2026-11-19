@@ -163,11 +163,15 @@ export async function handleControlCommand(
   if (!avatar) return refuse('streamer-offline');
   if (MixinApi.isAlias(avatar) && avatar.getAlias('stream')) return refuse('alias-shadows-stream');
   let status: string | null = null;
-  await avatar.executeCommand(text, {
-    onOutcome: (s) => {
-      status = s;
-    },
-  });
+  // Rooted AT the streamer, like the socket path: the token's player is the
+  // one acting (call-security pass D8 — their own act, never compelled).
+  await ExecutionContextApi.runRoot(avatar, 'executeCommand', () =>
+    avatar.executeCommand(text, {
+      onOutcome: (s) => {
+        status = s;
+      },
+    }),
+  );
   if (status === null) return refuse('no-outcome');
   feed.sendControlResult(socketId, text, status === 'ok', status === 'ok' ? undefined : status);
 }

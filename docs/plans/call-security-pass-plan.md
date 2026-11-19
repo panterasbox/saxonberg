@@ -437,6 +437,63 @@ is the sandbox's decision.
 No environment branch is added to `requireActor` or the gate. The build
 wraps the direct calls it breaks and replaces the four `asGiver` copies.
 
+### Decisions the build made (B-numbered, for the MR)
+
+- **B1 (W0) — S2's carrier is two context statics, not a frame field per
+  scheduler.** `ExecutionContextApi.captureActor()` → `ActorClaim
+  {actor, system}` and `runAsCaptured(claim, fn)` (frame-mutator allowlisted;
+  pushes a frame that keeps the current target, so no `@CallSecurity` gate
+  sees a different caller). `ScheduleApi`, `SchedulerRegistry`,
+  `WorldClockRegistry` and `SandboxLogic` all use the pair. Decided by the
+  nearest pattern (`causingAuthor` is captured and replanted the same way).
+- **B2 (W0) — identity is compared by `ProxyApi.identityOf`, a registry of
+  the proxies `ProxyApi.wrap` made.** D4 said "peel proxies with
+  `ProxyApi.unwrap`" — but `unwrap` reads `RAW_TARGET` off the value, which a
+  forged object can answer with the actor's own raw self (proved in
+  `actor.test.ts`). `identityOf` peels only proxies it made. New static on a
+  bootstrap Api; genuinely new (no existing map of made proxies).
+- **B3 (W0) — "honored only from the Api tier" is a named policy,
+  `SecurityPolicies.SystemNamer`** (ApiOnly ∪ `FromTemplate('/platform/idea/*')`,
+  one segment, so registries/wardens qualify and controllers never do). Both
+  `ScheduleApi` and `WorldClockApi` check it against `getCaller()`.
+- **B4 (W0) — boot is wrapped at `AppBootstrap.run`, three calls only**
+  (the manifest, the spawn sweep, the first roster pass), not the whole
+  method: the relay readers' inbound traffic is somebody's, and an ALS
+  context inherited by a reader's socket would make every relayed line "the
+  system". `runAsSystem` at an empty stack plants an OMNI-scoped root, so
+  timers armed at boot keep the omni registration scope they had.
+- **B5 (W0) — WorldClock schedules carry the actor too.** Verified: a
+  `WorldClockApi.every/after` callback carried NO attribution (it ran on the
+  heartbeat's omni root). Each `Schedule` now captures `{actor, system}` at
+  registration and fires under `runAsCaptured`. The registry's own ticks are
+  named (`weather`, `fire`, `lighting`, `clock`).
+- **B6 (W0) — named sweeps:** `residency` (eviction, reset, spawn),
+  `roster`, `reactions`, `clock`, `weather`, `fire`, `lighting`,
+  `test-stage`. The other Api-tier recurring arms (renown, producer,
+  consumer, record, sandbox sweeper, attendant, watch, reset, card) are armed
+  at boot and inherit `boot` through the capture — not renamed one by one.
+- **B7 (W0) — `lint:actor-claims`' rule, refined from D13 by running it:**
+  the actor is the predicate's FIRST argument when it is parameter-rooted
+  (`by`, `by.getIdentityPath()`), the next parameter-rooted one past a
+  leading `this` (`canUnhitch(this, by)`), or the receiver for the two asked
+  OF a person (`isFulfilling`, `isOnShiftFor`); a first argument read from
+  the engine is nobody this function was handed. Exempt also covers a
+  predicate-shaped name (`can…`/`may…` — `canTraverse(mover)` is a read).
+  "Any argument" counted paths, actions and items (56 → 49). Opened at
+  **49**. The census widens W1–W3 past the roster: on-shift titling
+  (`Tract.markField`, `Working.winOre`, `IceSheet.cutBlock`,
+  `CraftingLogic.fulfillingHand`, the doorman/stokes brains), the CMS and
+  document gates, `readWorldAs`, `sourceWriteRefusal`, `visibleChannels`,
+  `Group.rename`, `Sealable/Throttleable.openPlanFor`, the herdbook acts.
+- **B8 (W0) — the stream-deck control command is rooted at its streamer**
+  (`backend/inbound/command.ts`), as the socket path is: it had no root at
+  all, which the compulsion gate would read as nobody acting.
+- **W0 audit (timers outside the Api tier):** `Coroutine` (a script's waits)
+  arms `WorldClockApi.after/every` from inside the script, so it captures the
+  scripter (B5); `CombatSession`, `Avatar` periodic save, `FastTravel`,
+  `Wellhead`, `AirPocket`, and the one-shots named in W0 call no roster act
+  and run no command. The control path (B8) was the one root with nobody.
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |
