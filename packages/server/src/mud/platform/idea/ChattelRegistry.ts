@@ -57,6 +57,9 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** The current-state title index, keyed on the durable per-instance id. */
   private index = new Map<string, ChattelOwner>();
 
+  /** The ids whose title is bound — never transferable (aether-devices D10). */
+  private boundIds = new Set<string>();
+
   /**
    * ⭐ The place (and pin) last written per good (db-performance H4): a
    * custody walk re-places a good where it already stands often enough to
@@ -145,11 +148,22 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     return all.filter((r) => r.place.startsWith(placePrefix));
   }
 
-  /** Establish title — the initial stamp (a `mint` event). */
+  /** Is the title on `chattelId` bound — never transferable? Sync. */
   @CallSecurity(ChattelApiCallers)
-  public async stamp(chattelId: string, owner: ChattelOwner): Promise<void> {
+  public isBound(chattelId: string): boolean {
+    return this.boundIds.has(chattelId);
+  }
+
+  /** Establish title — the initial stamp (a `mint` event); `bound` binds it. */
+  @CallSecurity(ChattelApiCallers)
+  public async stamp(
+    chattelId: string,
+    owner: ChattelOwner,
+    bound = false,
+  ): Promise<void> {
     const prior = this.index.get(chattelId) ?? null;
-    await this.upsert(chattelId, owner);
+    await this.upsert(chattelId, owner, bound);
+    if (bound) this.boundIds.add(chattelId);
     await this.appendEvent(prior ? "transfer" : "mint", chattelId, prior, owner);
     this.index.set(chattelId, owner);
   }
@@ -177,6 +191,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     await ChattelRecord.deleteByChattelId(chattelId);
     await this.appendEvent("released", chattelId, prior, null);
     this.index.delete(chattelId);
+    this.boundIds.delete(chattelId);
     this.placed.delete(chattelId);
   }
 
@@ -192,15 +207,24 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /**
    * Title the row — one keyed write of the owner and the time (db-performance
    * H4; it was a find then a save). The write names its fields, so a field
-   * the stamp gains is one more name in the list.
+   * the stamp gains is one more name in the list: `bound` (aether-devices
+   * D10) is written when the stamp binds, and never cleared here.
    */
-  private async upsert(chattelId: string, owner: ChattelOwner): Promise<void> {
+  private async upsert(
+    chattelId: string,
+    owner: ChattelOwner,
+    bound = false,
+  ): Promise<void> {
     const record = new ChattelRecord();
     record.chattelId = chattelId;
     record.owner = owner;
+    if (bound) record.bound = true;
     record.titledAt = Date.now();
     await PersistApi.saveMany(ChattelRecord.collectionName, [
-      await record.toBatchWrite({ key: ['chattelId'], fields: ['owner', 'titledAt'] }),
+      await record.toBatchWrite({
+        key: ['chattelId'],
+        fields: bound ? ['owner', 'titledAt', 'bound'] : ['owner', 'titledAt'],
+      }),
     ]);
   }
 
@@ -227,11 +251,13 @@ export default class ChattelRegistry extends ChattelRegistryBase {
 
   private async rebuildIndex(): Promise<void> {
     this.index.clear();
+    this.boundIds.clear();
     this.placed.clear();
     for (const record of await ChattelRecord.findAll()) {
       const id = record.getChattelId();
       const owner = record.getOwner();
       if (id.length > 0 && owner) this.index.set(id, owner);
+      if (id.length > 0 && record.isBound()) this.boundIds.add(id);
     }
   }
 }

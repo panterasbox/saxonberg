@@ -28,9 +28,11 @@ import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import type { Haulable } from './Haulable';
 import type { VetoResult } from '../errors';
+import { ExecutionContextApi } from '../../api/execution-context';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
 import { SubscriptionApi } from '../../api/subscription';
+import { AccessApi } from '../../api/access';
 
 /**
  * ⭐ Every reason a hitch refuses — `HitchController` words each
@@ -77,6 +79,13 @@ export interface Hauler {
    * letting go of its own cart always may. Nothing hitched → `{ok: true}`.
    */
   unhitch(by: Stuff): VetoResult;
+  /**
+   * ⭐ The harness SLIPS from `cart` — uncoupled as this hauler's OWN act
+   * (call-security pass D6), so no third party's veto applies: re-hitching
+   * elsewhere, a teleport of either side. A no-op unless `cart` is the one
+   * this hauler pulls. Returns whether it was uncoupled.
+   */
+  slipFrom(cart: Stuff): boolean;
   /** Effective-kg draft this creature bears for its hitched cart (0 if none). */
   getHaulDraft(): Quantity<'kg'>;
 }
@@ -109,7 +118,8 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public hitch(cart: Stuff & Haulable): void {
       // Drop any existing cart first (one hauler pulls one cart in v1).
-      this.unhitch(this as unknown as Stuff);
+      const held = this.getHauledCart();
+      if (held) this.slipFrom(held);
       this._hauling = SubscriptionApi.fireFieldChange(this, 'hauling', this._hauling, cart);
       cart.setHauledBy(this as unknown as Stuff & Hauler);
     }
@@ -149,6 +159,8 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public unhitch(by: Stuff): VetoResult {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const cart = this._hauling;
       if (!cart) return { ok: true };
       const veto = cart.canUnhitch(this as unknown as Stuff, by);
@@ -156,6 +168,13 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._hauling = SubscriptionApi.fireFieldChange(this, 'hauling', this._hauling, null);
       cart.setHauledBy(null);
       return { ok: true };
+    }
+
+    public slipFrom(cart: Stuff): boolean {
+      const held = this._hauling;
+      if (!held || held.stuffId !== cart.stuffId) return false;
+      const self = this as unknown as Stuff;
+      return ExecutionContextApi.runAsSelf(() => this.unhitch(self)).ok;
     }
 
     public getHaulDraft(): Quantity<'kg'> {

@@ -235,6 +235,8 @@ export default class WikiRenderer extends Idea {
     body: string,
     reader?: Stuff | null,
   ): Promise<string> {
+    // who is acting must be who is named (call-security pass D5); the min below already bounds a lie — now it is also refused
+    AccessApi.requireActor(reader ?? null);
     const acting = await this.resolveReader({});
     const ceiling =
       reader === undefined

@@ -47,6 +47,7 @@ import {
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 type MemberStuff = Stuff & Container;
 
@@ -313,10 +314,10 @@ async function run(
   });
   await withRootContext(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await (ctrl as LeaseController).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => (ctrl as LeaseController).execute(
       { player: { stuff: player } } as ModelData as never,
       ctx,
-    );
+    ));
   });
   return ctx;
 }

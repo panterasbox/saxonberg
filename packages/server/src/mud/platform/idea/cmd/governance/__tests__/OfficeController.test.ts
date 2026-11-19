@@ -41,6 +41,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -170,10 +171,10 @@ async function run(
         : model.subcommand === 'vacate'
           ? OfficeVacateController
           : OfficeListController;
-    return makeStuff(() => new Ctrl()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new Ctrl()).execute(
       model as never,
       ctx,
-    );
+    ));
   });
 }
 

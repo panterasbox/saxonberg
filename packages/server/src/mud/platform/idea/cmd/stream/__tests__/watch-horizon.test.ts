@@ -22,6 +22,7 @@ import { MessageApi } from '../../../../../api/message';
 import { SchedulerApi } from '../../../../../api/scheduler';
 import { HorizonWatch, HORIZON_WATCH_TYPE } from '../../../../../lib/perception/HorizonWatch';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** No SaxonbergClient: an NPC can keep a watch. */
 class Lookout extends EngagedMixin(SensorMixin(CommandGiverMixin(ContainableMixin(Idea)))) {
@@ -60,7 +61,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('watch horizon', () => {
   it('⭐ starts a HorizonWatch on the watcher — no player client needed', async () => {
     const start = vi.spyOn(SchedulerApi, 'start').mockReturnValue({ ok: true } as never);
-    await makeStuff(() => new WatchHorizonController()).execute({ subcommand: 'horizon' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WatchHorizonController()).execute({ subcommand: 'horizon' } as never, ctx$)))(ctx());
     expect(start).toHaveBeenCalledTimes(1);
     expect(start.mock.calls[0]![0]).toBeInstanceOf(HorizonWatch);
     expect(said.join('\n')).toMatch(/You settle to watching the horizon/);
@@ -71,7 +72,7 @@ describe('watch horizon', () => {
       (t: string) => (t === HORIZON_WATCH_TYPE ? ({} as never) : undefined),
     );
     const start = vi.spyOn(SchedulerApi, 'start');
-    await makeStuff(() => new WatchHorizonController()).execute({ subcommand: 'horizon' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WatchHorizonController()).execute({ subcommand: 'horizon' } as never, ctx$)))(ctx());
     expect(start).not.toHaveBeenCalled();
     expect(said.join('\n')).toMatch(/already keeping a watch/);
   });
@@ -82,7 +83,7 @@ describe('watch horizon', () => {
       (t: string) => (t === HORIZON_WATCH_TYPE ? w : undefined),
     );
     const cancel = vi.spyOn(SchedulerApi, 'cancel').mockImplementation(() => {});
-    await makeStuff(() => new WatchOffController()).execute({ subcommand: 'off' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WatchOffController()).execute({ subcommand: 'off' } as never, ctx$)))(ctx());
     expect(cancel).toHaveBeenCalledWith(w, 'cancelled');
     expect(said.join('\n')).toMatch(/stand down/);
   });

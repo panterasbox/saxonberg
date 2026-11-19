@@ -35,6 +35,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // A speaker / introducee: can speak, perceive, hold beliefs, and is a
 // recognizable being (Organism + Named + Visible).
@@ -103,7 +104,7 @@ describe('IntroduceController', () => {
     ContainmentApi.move(listener, room);
 
     const controller = makeStuff(() => new IntroduceController());
-    controller.execute(model(), context(mara, room));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(), ctx$)))(context(mara, room));
 
     const rec = listener.recall(RECOGNITION, mara.getTemplatePath()!);
     expect(rec?.knownAs).toBe('Mara');
@@ -119,7 +120,7 @@ describe('IntroduceController', () => {
     ContainmentApi.move(absent, elsewhere); // out of earshot
 
     const controller = makeStuff(() => new IntroduceController());
-    controller.execute(model(), context(mara, room));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(), ctx$)))(context(mara, room));
 
     expect(absent.recall(RECOGNITION, mara.getTemplatePath()!)).toBeNull();
     expect(mara.describeFor(absent)).toBe('a tall stranger');
@@ -138,7 +139,7 @@ describe('IntroduceController', () => {
     alice.know(RECOGNITION, bob.getTemplatePath()!, { knownAs: 'Bob' });
 
     const controller = makeStuff(() => new IntroduceController());
-    controller.execute(model(bob), context(alice, room));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(bob), ctx$)))(context(alice, room));
 
     expect(listener.recall(RECOGNITION, bob.getTemplatePath()!)?.knownAs).toBe(
       'Bob',
@@ -156,7 +157,7 @@ describe('IntroduceController', () => {
     ContainmentApi.move(listener, room);
 
     const controller = makeStuff(() => new IntroduceController());
-    controller.execute(model(bob), context(alice, room));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(bob), ctx$)))(context(alice, room));
 
     // No record written for the listener — Alice couldn't vouch.
     expect(listener.recall(RECOGNITION, bob.getTemplatePath()!)).toBeNull();
@@ -187,7 +188,7 @@ describe('IntroduceController', () => {
     ContainmentApi.move(listener, room);
 
     const controller = makeStuff(() => new IntroduceController());
-    await controller.execute(model(), context(mara, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(), ctx$)))(context(mara, room));
 
     // Listener's regard toward Mara ticked up (the demo bump).
     expect(listener.regardFor(mara)).toBeGreaterThan(0);
@@ -207,7 +208,7 @@ describe('IntroduceController', () => {
     expect(listener.recall(RECOGNITION, mara.getTemplatePath()!)?.knownAs).toBeNull();
 
     const controller = makeStuff(() => new IntroduceController());
-    controller.execute(model(), context(mara, room));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model(), ctx$)))(context(mara, room));
 
     // Same single record, now named.
     expect(listener.recallRealm(RECOGNITION).size).toBe(1);

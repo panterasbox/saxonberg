@@ -41,6 +41,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SHOP = '/stuff/test/sign/location/shop';
 const COUNTER = '/stuff/test/sign/thing/counter';
@@ -122,10 +123,10 @@ async function lookBodies(): Promise<string[]> {
     // Bare `look`: the dispatcher's `$focus` default resolves to the
     // room, and the controller takes the room branch when the target IS
     // the location.
-    return makeStuff(() => new LookController()).execute(
+    return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new LookController()).execute(
       { target: { stuff: shop, raw: '' } } as never,
       c,
-    );
+    ));
   });
   return bodies;
 }

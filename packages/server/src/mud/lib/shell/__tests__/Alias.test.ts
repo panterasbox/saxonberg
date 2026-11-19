@@ -29,6 +29,7 @@ import {
   Collections,
 } from '../../../../backend/PersistenceManager';
 import type { MessageFrame } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 /* ───────── Test mixins ───────── */
 
@@ -583,7 +584,7 @@ describe('AliasMixin — pipeline integration', () => {
 
   it('alias l = ping, then `l` invokes ping (alias fired)', async () => {
     giver.setAlias('l', 'ping', { actor: giver });
-    await giver.executeCommand('l');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('l'));
     // executeCommand returns void; the input-echo frame is the
     // proof the dispatch ran the expanded form. ping's success path
     // produces no controller failure — the implicit assertion is
@@ -596,7 +597,7 @@ describe('AliasMixin — pipeline integration', () => {
 
   it('input-echo payload carries expandedText when an alias fires', async () => {
     giver.setAlias('l', 'ping', { actor: giver });
-    await giver.executeCommand('l');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('l'));
     const cmdFrame = giver.received.find((f) =>
       String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
@@ -610,7 +611,7 @@ describe('AliasMixin — pipeline integration', () => {
   });
 
   it('input-echo payload.expandedText is absent when no alias fires', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     const cmdFrame = giver.received.find((f) =>
       String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
@@ -639,7 +640,7 @@ describe('AliasMixin — pipeline integration', () => {
     }
     const npc = makeStuff(() => new Npc());
     ContainmentApi.move(npc, location);
-    await npc.executeCommand('ping');
+    await TestHarnessApi.actAs(npc, () => npc.executeCommand('ping'));
     // No alias on the NPC, dispatch flows through directly. The
     // input-echo frame proves the call ran.
     const cmdFrame = npc.received.find((f) =>

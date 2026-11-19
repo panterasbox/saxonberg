@@ -70,6 +70,7 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** A persistable room — what a real house room clones to. */
 class TitleTestRoom extends PersistableMixin(
@@ -354,7 +355,7 @@ async function run(
   const bound = desk ? { ...m, desk: { stuff: desk } } : m;
   await withRootContext(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(giver as unknown as Stuff);
-    await ctrl.execute(bound as TitleExec, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(bound as TitleExec, ctx));
   });
   return ctx;
 }

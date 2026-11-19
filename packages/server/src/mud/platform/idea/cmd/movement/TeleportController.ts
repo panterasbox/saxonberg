@@ -442,10 +442,10 @@ export default class TeleportController extends TeleportControllerBase {
    * someone else confers nothing).
    */
   private static registeredNodes(giver: Stuff): readonly string[] {
-    if (!MixinApi.isAether(giver)) return [];
+    if (!MixinApi.isAetherHost(giver)) return [];
     const holder =
       giver
-        .getHostedUpdates()
+        .getHostedApps()
         .find(
           (s): s is Stuff & AetherHosted & CredentialWallet =>
             MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),

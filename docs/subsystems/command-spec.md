@@ -598,6 +598,21 @@ boot logs one line naming them. Pair it with the
 `requiresTestWorld` validator so the gate sits in the view's own data
 too.
 
+### ⭐ `compellable:` — may another body's code ask you to run it?
+
+`never` (the default, and the right answer for nearly every verb) or
+`consent`, on the verb or on one subcommand (`title buy`). Another body's
+code — a realtor, a scripted NPC — that runs a command on YOUR body is
+refused unless the verb says `consent` AND its controller class declares
+`static compellable = true`; then your own client is asked, every time,
+worded by the engine from the line: *"The realtor would have you run
+`title buy lot-7`. Let them?"*. `help` prints *"Another character may ask
+you to do this; you are always asked first."* under such a verb. ⛔ Speech,
+conferral, membership and giving title or money away are never
+compellable, whatever a view says — `lint:compellable` holds the class half
+and the never-list. Rule and refusals:
+[call-security.md § Compulsion](./call-security.md).
+
 ### A manner is an option — `wash --hard`
 
 `scrub` was `wash` with more time in it, so it is `wash <x> --hard` (the

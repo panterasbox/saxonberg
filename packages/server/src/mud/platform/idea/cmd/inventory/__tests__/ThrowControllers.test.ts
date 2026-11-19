@@ -21,6 +21,7 @@ import { ThrownLanding } from '../../../../../lib/material/ThrownLanding';
 import ThrowController from '../ThrowController';
 import ThrowToController from '../ThrowToController';
 import ThrowAtController from '../ThrowAtController';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Rock extends ContainableMixin(NamedMixin(Idea)) {}
 class Thrower extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
@@ -74,10 +75,7 @@ afterEach(() => {
 describe('throw', () => {
   it('pitches it onto the floor: no target, no fight', async () => {
     const { room, giver, rock } = scene();
-    await makeStuff(() => new ThrowController()).execute(
-      { item: { stuff: rock, raw: 'rock' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowController()).execute({ item: { stuff: rock, raw: 'rock' } } as never, ctx$)))(context(giver));
     expect(rock.getContainer()).toBe(room);
     expect(lines.join(' ')).toMatch(/hurl/);
     expect(giver.deliverThrown).not.toHaveBeenCalled();
@@ -87,10 +85,7 @@ describe('throw', () => {
 describe('throw to', () => {
   it('a thing with no answer to being caught is refused, and stays', async () => {
     const { giver, rock } = scene();
-    await makeStuff(() => new ThrowToController()).execute(
-      { item: { stuff: rock, raw: 'rock' }, recipient: 'ann' } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowToController()).execute({ item: { stuff: rock, raw: 'rock' }, recipient: 'ann' } as never, ctx$)))(context(giver));
     expect(notes.map((n) => n.reason)).toEqual(['not-tossable']);
     expect(rock.getContainer()).toBe(giver);
   });
@@ -102,10 +97,7 @@ describe('throw at', () => {
     const post = makeStuff(() => new Rock());
     ContainmentApi.move(post, room);
     giver.deliverThrown.mockResolvedValue({ arrived: 'wide' });
-    await makeStuff(() => new ThrowAtController()).execute(
-      { item: { stuff: rock, raw: 'rock' }, target: { stuff: post, raw: 'post' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowAtController()).execute({ item: { stuff: rock, raw: 'rock' }, target: { stuff: post, raw: 'post' } } as never, ctx$)))(context(giver));
     expect(giver.deliverThrown).toHaveBeenCalledWith(rock, post);
     expect(lines.join(' ')).toMatch(/goes wide/);
   });
@@ -115,20 +107,14 @@ describe('throw at', () => {
     const post = makeStuff(() => new Rock());
     ContainmentApi.move(post, room);
     giver.mayDeliverTo.mockReturnValue({ ok: false, refusedBy: post } as never);
-    await makeStuff(() => new ThrowAtController()).execute(
-      { item: { stuff: rock, raw: 'rock' }, target: { stuff: post, raw: 'post' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowAtController()).execute({ item: { stuff: rock, raw: 'rock' }, target: { stuff: post, raw: 'post' } } as never, ctx$)))(context(giver));
     expect(giver.deliverThrown).not.toHaveBeenCalled();
     expect(notes.map((n) => n.reason)).toEqual(['splash-would-catch-a-bystander']);
   });
 
   it('you cannot throw it at yourself', async () => {
     const { giver, rock } = scene();
-    await makeStuff(() => new ThrowAtController()).execute(
-      { item: { stuff: rock, raw: 'rock' }, target: { stuff: giver, raw: 'me' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowAtController()).execute({ item: { stuff: rock, raw: 'rock' }, target: { stuff: giver, raw: 'me' } } as never, ctx$)))(context(giver));
     expect(notes.map((n) => n.reason)).toEqual(['self-target']);
   });
 });
@@ -170,10 +156,7 @@ describe('letting go (C51)', () => {
     const { MixinApi } = await import('../../../../../api/mixin');
     vi.spyOn(MixinApi, 'isSlotted').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isSlottable').mockReturnValue(true);
-    await makeStuff(() => new ThrowController()).execute(
-      { item: { stuff: rock, raw: 'rock' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowController()).execute({ item: { stuff: rock, raw: 'rock' } } as never, ctx$)))(context(giver));
     expect(notes.map((n) => n.reason)).toEqual(['cursed-will-not-release']);
     expect(rock.getContainer()).toBe(giver);
     expect(rock.getContainer()).not.toBe(room);
@@ -190,10 +173,7 @@ describe('letting go (C51)', () => {
     const { MixinApi } = await import('../../../../../api/mixin');
     vi.spyOn(MixinApi, 'isSlotted').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isSlottable').mockReturnValue(true);
-    await makeStuff(() => new ThrowController()).execute(
-      { item: { stuff: rock, raw: 'rock' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ThrowController()).execute({ item: { stuff: rock, raw: 'rock' } } as never, ctx$)))(context(giver));
     expect(release).toHaveBeenCalledWith(rock);
     expect(rock.getContainer()).toBe(room);
   });

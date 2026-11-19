@@ -30,6 +30,7 @@ import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { Quantity } from '../../../../../lib/quantity';
 import Thing from '../../../../thing/Thing';
 import Location from '../../../../../lib/location/Location';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** A cup: a hand takes it, nothing wields it. */
 class Cup extends SlottableMixin(Thing) {}
@@ -99,7 +100,7 @@ describe('`unwield` — anything in a hand, nothing else', () => {
     ContainmentApi.move(cup, room);
     carry(me, cup);
     expect(me.tierOf(cup)).toBe('hand');
-    await makeStuff(() => new UnwieldController()).execute({ target: one(cup, 'cup') } as ModelData as never, ctx(me, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnwieldController()).execute({ target: one(cup, 'cup') } as ModelData as never, ctx$)))(ctx(me, room));
     expect(me.tierOf(cup)).toBe('hand');
     expect(said.join('\n')).toMatch(/nowhere on you to put/);
   });
@@ -109,7 +110,7 @@ describe('`unwield` — anything in a hand, nothing else', () => {
     const { me, plan } = makeBody();
     ContainmentApi.move(me, room);
     const bag = wornBag(me, plan, 'satchel', 'torso');
-    await makeStuff(() => new UnwieldController()).execute({ target: one(bag, 'satchel') } as ModelData as never, ctx(me, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnwieldController()).execute({ target: one(bag, 'satchel') } as ModelData as never, ctx$)))(ctx(me, room));
     expect(me.wears(bag)).toBe(true);
     expect(said.join('\n')).toMatch(/You aren't holding/);
   });

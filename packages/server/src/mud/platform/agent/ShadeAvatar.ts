@@ -81,26 +81,6 @@ export default class ShadeAvatar extends IncorporealMixin(Avatar) {
   }
 
   /**
-   * Intrinsic attunement — no implant, no slot occupancy.
-   *
-   * `Species.innateMixins` would be the obvious home, but it is
-   * species-level REFERENCE data shared by every member of a species and
-   * never mutated at runtime; a shade cannot use it without corrupting the
-   * species. The conferral seam
-   * (`MixinApi.collectAugmentConferralNames` → `getConferredMixinNames`)
-   * is per-host and already read structurally, so it is the right one.
-   *
-   * ⚠ Not an `override` since the trades-and-labor build: `EmployedMixin`
-   * used to declare this method too (to fold a JOB's grants into the
-   * augment walk) and a shade inherited it. That fold is gone — a job's
-   * grants are data on the seat now — so a shade is the seam's one
-   * consumer and declares it outright.
-   */
-  public getConferredMixinNames(): string[] {
-    return ['AetherMixin'];
-  }
-
-  /**
    * The shell fork carries the deceased's `alive` lifecycle across; force
    * it back. Without this a shade would read as a living body and the
    * survival drivers would start running on it again.

@@ -8,14 +8,15 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { AetherHostedMixin } from '../AetherHosted';
-import { AetherMixin, type AetherHost } from '../../message/Aether';
+import { AetherMixin } from '../../message/Aether';
+import { AetherHostMixin, type AetherHost } from '../../augmentation/AetherHost';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class TestUpdate extends AetherHostedMixin(Idea) {}
-class TestHost extends AetherMixin(Idea) {}
+class TestHost extends AetherHostMixin(AetherMixin(Idea)) {}
 
 describe('AetherHostedMixin', () => {
   it('starts unhosted; setHost records the back-ref', () => {

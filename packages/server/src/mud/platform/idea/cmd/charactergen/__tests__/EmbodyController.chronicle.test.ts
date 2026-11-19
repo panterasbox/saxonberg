@@ -30,6 +30,7 @@ import { PersonaMixin } from '../../../../../lib/character/Persona';
 class StubAvatar extends PersonaMixin(Idea) {
   setSex(_s: string): void {}
   async wearGarments(_paths: readonly string[]): Promise<void> {}
+  async receiveStartingKit(_kit: readonly unknown[]): Promise<void> {}
   async enter(): Promise<void> {}
   getIsGuest(): boolean {
     return false;
@@ -47,6 +48,7 @@ import { WorldClockApi } from '../../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SAPIENS =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
@@ -168,10 +170,10 @@ describe('EmbodyController.commit → chronicle seeding', () => {
   });
 
   it('a freshly embodied character has >=1 claim AND >=1 founding deed', async () => {
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
       { rest: 'confirm' } as CommandModel & { rest?: string },
       ctx
-    );
+    ));
 
     const mine = [...store.values()].filter((d) => d.owner === avatarPath);
     const claims = mine.filter((d) => d.kind === 'claim');

@@ -23,6 +23,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Actor extends PersonaMixin(Idea) {}
 
@@ -92,7 +93,7 @@ describe('ChronicleController render', () => {
     await actor.recordDeed({ text: 'deed-early', when: 100 });
 
     const ctrl = makeStuff(() => new ChronicleController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     expect(captured).not.toBeNull();
     const body = captured!.toString();
@@ -109,7 +110,7 @@ describe('ChronicleController render', () => {
     actor.setBio('A blank slate.');
 
     const ctrl = makeStuff(() => new ChronicleController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain('A blank slate.');

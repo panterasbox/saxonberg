@@ -131,6 +131,7 @@ describe('CmsApi — content backend', () => {
     // Context yields an actor who holds the fixture branch; content reads
     // are per path (content-packs wave 3).
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(ACTOR);
     vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     tmpStore = installInMemoryStore([
       { path: '/cmstest', class: ZONE_CLASS, data: {} },
@@ -404,6 +405,7 @@ describe('CmsApi — content backend', () => {
 
   it('fails closed when the context has no acting principal', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     await expect(
       CmsApi.read('content', '/cmstest/alpha')
@@ -421,6 +423,7 @@ describe('CmsApi — source backend', () => {
     StuffApi.clearAll();
     // Context yields a developer; source is developer-gated.
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(ACTOR);
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     // The CMS source backend is rooted at the mudlib, so the temp tree
     // must live under mud/ and CMS paths are mud-relative.
@@ -494,6 +497,7 @@ describe('CmsApi — source backend', () => {
 
   it('source read is denied with no acting avatar (fails closed)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     await expect(CmsApi.listTree('source', '/')).rejects.toMatchObject({
       code: 'denied',
     });

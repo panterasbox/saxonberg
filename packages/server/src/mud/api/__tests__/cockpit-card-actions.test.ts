@@ -20,6 +20,7 @@ import { MessageApi } from '../message';
 import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../test-harness';
 
 let tags: string[][] = [];
 let said: string[] = [];
@@ -67,7 +68,7 @@ function controllerFor(action: string) {
 function run(h: Harness, model: Record<string, unknown>) {
   const ctx = makeContext(h, { commandText: 'client-card', verbs: ['cockpit'] });
   const { action, ...rest } = model as { action: string };
-  controllerFor(action).execute({ ...rest, subcommand: action } as never, ctx);
+  TestHarnessApi.actAs(ctx.commandGiver, () => controllerFor(action).execute({ ...rest, subcommand: action } as never, ctx));
   return ctx.getNotes();
 }
 

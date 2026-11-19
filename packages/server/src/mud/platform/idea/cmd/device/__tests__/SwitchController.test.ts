@@ -27,6 +27,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -79,29 +80,23 @@ describe('SwitchController', () => {
 
   it('toggles an off lamp on', async () => {
     expect(lamp.isOn()).toBe(false);
-    await makeStuff(() => new SwitchController()).execute(
-      { target: one(lamp, 'lamp') } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SwitchController()).execute({ target: one(lamp, 'lamp') } as CommandModel, ctx$)))(ctxFor(avatar, room));
     expect(lamp.isOn()).toBe(true);
   });
 
   it('sets explicit off', async () => {
     lamp.switchOn();
-    await makeStuff(() => new SwitchController()).execute(
-      { target: one(lamp, 'lamp'), state: 'off' } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SwitchController()).execute({ target: one(lamp, 'lamp'), state: 'off' } as CommandModel, ctx$)))(ctxFor(avatar, room));
     expect(lamp.isOn()).toBe(false);
   });
 
   it('rejects a non-switchable target', async () => {
     const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new SwitchController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new SwitchController()).execute(
       { target: one(rock, 'rock') } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

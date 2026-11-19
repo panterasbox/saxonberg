@@ -26,6 +26,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** Run a controller execute with `who` tagged as the acting author. */
 async function executeAs(
@@ -72,10 +73,10 @@ describe('the knowledge gate at the hearth', () => {
   it('the cooking one-shot rides the same deed gate', async () => {
     const declined = makeContext(builder, room, 'cook stew');
     await executeAs(builder, () =>
-      makeStuff(() => new CookController()).execute(
+      TestHarnessApi.actAs(declined.commandGiver, () => makeStuff(() => new CookController()).execute(
         { dish: 'stew' } as never,
         declined,
-      ),
+      )),
     );
     expect(rejectedWith(declined, 'not-learned')).toBe(true);
 
@@ -88,10 +89,10 @@ describe('the knowledge gate at the hearth', () => {
     );
     const open = makeContext(builder, room, 'cook stew');
     await executeAs(builder, () =>
-      makeStuff(() => new CookController()).execute(
+      TestHarnessApi.actAs(open.commandGiver, () => makeStuff(() => new CookController()).execute(
         { dish: 'stew' } as never,
         open,
-      ),
+      )),
     );
     expect(rejectedWith(open, 'not-learned')).toBe(false);
   });

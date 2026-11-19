@@ -43,18 +43,13 @@ export default class IssueController extends CommandController<IssueModel> {
       return this.fail(context, 'Issue which type? Name one — O, A, B, or AB.', 'no-lot');
     }
 
-    // ⭐ The seat gate: an on-shift holder of the window's operating
-    // business, or its proprietor. No player passes today (the roster has
-    // no open seat), which is how v1 stays NPC-run by construction.
-    if (!(await window.keptBy(giver))) {
-      return this.fail(context, 'You do not keep this window.', 'not-on-the-window');
-    }
-
+    // ⭐ The seat gate is the window's (`takeUnit` asks `keptBy` of the
+    // issuer, who must be who is acting): an on-shift holder of the
+    // window's operating business, or its proprietor. No player passes
+    // today (the roster has no open seat) — v1 stays NPC-run by construction.
     const recipient = (model.recipient?.stuff as Stuff | undefined) ?? giver;
-    const moved = await window.takeUnit(lot, recipient, giver);
-    if (!moved) {
-      return this.fail(context, `The window is out of type ${lot}.`, 'lot-empty');
-    }
+    const taken = await window.takeUnit(lot, recipient, giver);
+    if (!taken.ok) return this.refuse(context, taken);
     const who = recipient === giver ? 'yourself' : recipient.getPresentation();
     MessageApi.scene(giver)
       .topic(TOPIC)

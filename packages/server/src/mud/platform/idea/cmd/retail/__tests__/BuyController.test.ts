@@ -50,6 +50,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from '../../../../../api/test-harness';
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
@@ -248,12 +249,7 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute(
-        // ⚠ A controller test skips the BINDER, so the model carries what
-        // `buy.yaml` would have bound — the counter is a declared arg now.
-        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "torch", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -299,10 +295,7 @@ describe("BuyController — buy that stamps", () => {
     StackableApi.installMergeOnArrival();
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute(
-        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "stave", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
 
     expect(heap.getContainer()).toBe(stock);
@@ -315,10 +308,7 @@ describe("BuyController — buy that stamps", () => {
     // ⚠ A bought piece is TITLED, and a titled lot does not merge — the
     // second stave arrives as its own piece beside the first.
     await asOwner(giver, () =>
-      controller.execute(
-        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "stave", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
     const after = giver.getContents().filter((c) => c !== card);
     expect(after).toHaveLength(2);
@@ -352,10 +342,10 @@ describe("BuyController — buy that stamps", () => {
     );
     const ctx = makeContext(giver, loc, stock);
     await asOwner(giver, () =>
-      makeStuff(() => new BuyController()).execute(
+      TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BuyController()).execute(
         { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
         ctx,
-      ),
+      )),
     );
     const reason = ctx
       .getNotes()
@@ -389,10 +379,10 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(heap as never, stock as never);
     const ctx = makeContext(giver, loc, stock);
     await asOwner(giver, () =>
-      makeStuff(() => new BuyController()).execute(
+      TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BuyController()).execute(
         { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
         ctx,
-      ),
+      )),
     );
     const reason = ctx
       .getNotes()
@@ -424,12 +414,7 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute(
-        // ⚠ A controller test skips the BINDER, so the model carries what
-        // `buy.yaml` would have bound — the counter is a declared arg now.
-        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "torch", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -470,12 +455,7 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute(
-        // ⚠ A controller test skips the BINDER, so the model carries what
-        // `buy.yaml` would have bound — the counter is a declared arg now.
-        { thing: "pot", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "pot", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
 
     expect(pot.getContainer()).toBe(giver);
@@ -502,12 +482,7 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute(
-        // ⚠ A controller test skips the BINDER, so the model carries what
-        // `buy.yaml` would have bound — the counter is a declared arg now.
-        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
-        makeContext(giver, loc, stock),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ thing: "torch", counter: { stuff: stock as never, raw: "counter" } }, ctx$)))(makeContext(giver, loc, stock)),
     );
 
     expect(torch.getContainer()).toBe(stock); // still on the shelf
@@ -546,10 +521,10 @@ describe("BuyController — buy that stamps", () => {
     const controller = makeStuff(() => new BuyController());
     const ctx = makeContext(giver, loc, stock);
     await asOwner(giver, () =>
-      controller.execute(
+      TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
         { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
         ctx,
-      ),
+      )),
     );
     const reason = ctx
       .getNotes()

@@ -28,6 +28,7 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { PackReconcileResult } from '../../../../../api/pack';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** The controller `pack.yaml` names for a subcommand. */
 const CONTROLLERS: Record<string, () => PackControllerBase> = {
@@ -105,13 +106,13 @@ async function runAs(model: PackArgs): Promise<void> {
   actor.addInteractive(interactive);
   const ctrl = controllerFor(model);
   // ⭐ The COMMAND's Interactive is what a prompt asks (D23).
-  await ctrl.execute(model, ctxFor(actor as unknown as Idea, interactive));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model, ctx$)))(ctxFor(actor as unknown as Idea, interactive));
 }
 
 async function run(model: PackArgs): Promise<void> {
   const actor = makeStuffAtPath(() => new Idea(), '/platform/agent/Avatar/dev');
   const ctrl = controllerFor(model);
-  await ctrl.execute(model, ctxFor(actor));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model, ctx$)))(ctxFor(actor));
 }
 
 beforeEach(() => {

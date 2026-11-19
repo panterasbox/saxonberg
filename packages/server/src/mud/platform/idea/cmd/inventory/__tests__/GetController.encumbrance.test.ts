@@ -32,6 +32,7 @@ import {
   sensingBearer,
   massThing,
 } from '../../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // A Container + Sensor (so the pickup scene delivers) that is NOT
 // LoadBearing — no Vitals/Reserved/Slotted gauge, so the lift gate is
@@ -84,7 +85,7 @@ describe('GetController — encumbrance lift gate', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(bearer, loc);
-    await controller.execute(makeModel([anvil], 'anvil'), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel([anvil], 'anvil'), ctx));
 
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
@@ -106,7 +107,7 @@ describe('GetController — encumbrance lift gate', () => {
     ContainmentApi.move(crate, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(makeModel([crate], 'crate'), makeContext(bearer, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel([crate], 'crate'), ctx$)))(makeContext(bearer, loc));
 
     expect(crate.getContainer()).toBe(bearer);
     expect(bearer.getLoadRatio()).toBeGreaterThan(1.0);
@@ -121,7 +122,7 @@ describe('GetController — encumbrance lift gate', () => {
     ContainmentApi.move(anvil, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(makeModel([anvil], 'anvil'), makeContext(bin, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel([anvil], 'anvil'), ctx$)))(makeContext(bin, loc));
 
     // PlainBin is not LoadBearing → no gate; the heavy item moves in.
     expect(anvil.getContainer()).toBe(bin);

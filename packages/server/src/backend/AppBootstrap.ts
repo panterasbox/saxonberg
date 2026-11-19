@@ -21,6 +21,7 @@ import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
 import { BootstrapManager } from './BootstrapManager';
+import { ExecutionContextApi } from '../mud/api/execution-context';
 import { CommandApi } from '../mud/api/command';
 import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
@@ -225,7 +226,11 @@ export class AppBootstrap {
     await StuffApi.ready(...declaring);
     console.info(`AppBootstrap: ${declaring.length} Api(s)' needs stood`);
 
-    await BootstrapManager.run();
+    // ⭐ The manifest, the spawn sweep and the first roster pass are the
+    // SYSTEM acting (call-security pass D3): nobody in the world asked for
+    // them, and what they arm inherits it. The relay readers below are not
+    // — their inbound traffic belongs to whoever it is from.
+    await ExecutionContextApi.runAsSystem('boot', () => BootstrapManager.run());
 
     // The boot-time SPAWN sweep — the world stands at target on a fresh
     // boot, not a game-day later: every producer's floor row (a template
@@ -235,7 +240,7 @@ export class AppBootstrap {
     // A deliberate POST-MANIFEST sequencer line (not a boot entry, P2):
     // it counts the live population the manifest just cloned, and the
     // manifest cannot express "after everything".
-    const spawned = await ResidencyApi.spawnNow();
+    const spawned = await ExecutionContextApi.runAsSystem('boot', () => ResidencyApi.spawnNow());
     console.info(
       `ResidencyApi: boot spawn sweep — ${spawned.placed} placed, ` +
         `${spawned.declined} region(s) at target of ${spawned.regions}`,
@@ -247,7 +252,7 @@ export class AppBootstrap {
     // entries, which platform dependsOn edges cannot name without
     // coupling to optional packs. The RECURRING tick is the
     // EmploymentEngine singleton's (manifest-booted).
-    EmploymentApi.tickRoster();
+    ExecutionContextApi.runAsSystem('boot', () => EmploymentApi.tickRoster());
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

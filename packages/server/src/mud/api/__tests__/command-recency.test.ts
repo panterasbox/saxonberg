@@ -37,6 +37,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -249,7 +250,7 @@ describe('CommandGiverMixin recency stack', () => {
   it('returns "unknown-verb" envelope when the verb is not on the stack at all', async () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver;
     ContainmentApi.move(giver, makeStuff(() => new Place()));
-    await (giver as unknown as CommandGiver).executeCommand('gibberishverb');
+    await TestHarnessApi.actAs((giver as unknown as CommandGiver), () => (giver as unknown as CommandGiver).executeCommand('gibberishverb'));
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as import('@saxonberg/types').DispatchResponseEnvelope;
     expect(env.outcome.status).toBe('declined');
@@ -265,7 +266,7 @@ describe('CommandGiverMixin recency stack', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver;
     const loc = makeStuff(() => new Place());
     ContainmentApi.move(giver, loc);
-    await (giver as unknown as CommandGiver).executeCommand('ping | ping');
+    await TestHarnessApi.actAs((giver as unknown as CommandGiver), () => (giver as unknown as CommandGiver).executeCommand('ping | ping'));
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as import('@saxonberg/types').DispatchResponseEnvelope;
     expect(env.outcome.status).toBe('declined');

@@ -17,9 +17,12 @@ help: |
   Where a channel permits it, `chat gossip --anon <message>` posts you
   as a short handle — "a weaver" — instead of by name. A channel's
   owner decides with `chat anonymity <name> permit|forbid`.
+
+  Posting needs a phone ready and switched on with Messages installed;
+  a post that can't go is held and goes when it can. Joining, leaving
+  and managing channels need nothing.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresVerbalESP
 fallthrough: true
 subcommands:
   list:

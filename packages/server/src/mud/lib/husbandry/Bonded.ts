@@ -41,6 +41,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { NameTakingMixin } from '../description/NameTaking';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { AccessApi } from '../../api/access';
 import type { FeedingStyle } from '../../platform/idea/species/Species';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
@@ -664,6 +665,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       name: string,
       by: Stuff,
     ): Promise<NameRefusal | NameTaken> {
+      AccessApi.requireActor(by);
       const self = this as unknown as Stuff & Named;
       const wanted = name.trim();
       if (!wanted) return { ok: false, reason: 'no-name-given' };

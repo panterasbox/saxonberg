@@ -1,0 +1,37 @@
+# The Hollis Pal — the budget phone, and the one every new player is
+# issued (aether-devices). A phone is an aether tuner: carried in a hand or
+# ready (a pocket, a belt), switched on, it lets its bearer send and read
+# at a distance; packed in a rucksack or switched off, it does not, and
+# says why. What arrives through it is READ off its screen. It runs
+# Messages from the factory, and offers it back if you uninstall it.
+class: /platform/thing/Phone
+data:
+  shortDescription: Hollis Pal phone
+  keywords: [phone, pal, "hollis pal", "hollis phone", "hollis pal phone"]
+  register: indefinite
+  longDescription: >
+    A palm-sized slab of toughened glass in a rubbery grey shell, the
+    Hollis lion stamped small on the back. The screen wakes when you
+    turn it toward you.
+  # Rubber, not glass: the shell is what meets the floor. The starter phone
+  # is somebody's only tuner, and a glass one broke on the first drop
+  # (aether-devices drive, step 15) — nobody is stranded by dropping it.
+  _materialPath: /stuff/idea/material/organic/rubber
+  mass: 0.18
+  dimensions: { width: 0.07, depth: 0.01, height: 0.145 }
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  brand: hollis-pal
+  on: true
+  installedApps: [/platform/idea/app/messages]
+  offersApps: [/platform/idea/app/messages]
+  manifestsAs: read
+  # The battery (D5) — a grain: 12 Wh at 0.10 W standby is five game days
+  # (ten real hours) on a full charge; a 10 W charger fills it in about
+  # an hour of game time.
+  capacityWh: 12
+  standbyW: 0.10
+  useWh: 0.002
+  acceptW: 10
+  # Runs only for whoever holds its title (D10): a stolen phone is a brick.
+  ownerLocked: true

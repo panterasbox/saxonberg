@@ -33,6 +33,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance, RecencyBucket } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Note } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class TestThing extends ContainableMixin(
   DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea)))),
@@ -106,7 +107,7 @@ describe('verb@source at the dispatcher', () => {
       command: undefined as never,
       ...(interactive !== undefined ? { interactive: interactive as never } : {}),
     });
-    return giver()._runChain(parsed, outer);
+    return TestHarnessApi.actAs(giver(), () => giver()._runChain(parsed, outer));
   };
 
   const targetOf = (r: Run): Stuff | null => (r.model.target as MqlOneResult | undefined)?.stuff ?? null;

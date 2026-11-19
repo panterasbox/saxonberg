@@ -24,6 +24,7 @@ import { makeBody, wornBag } from '../../../../../lib/slot/__tests__/carrying-fi
 import Location from '../../../../../lib/location/Location';
 import type { CommandContext } from '../../../../../api/command';
 import type { Trauma } from '../../../Condition';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function stubScene(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -73,7 +74,7 @@ describe('treat — the bandage in a worn medic\'s pouch, where it sits', () => 
     const { room, me, pouch, bandage } = healer();
     expect(bandage.getContainer()).toBe(pouch);
     const { ctx } = ctxFor(me, room);
-    await makeStuff(() => new TreatController()).execute({}, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx));
     const w = me.getConditions().find((c) => c.kind === 'trauma') as Trauma;
     expect(w.dressed).toBe(true);
     expect(StuffApi.findById(bandage.stuffId)).toBeFalsy();
@@ -87,7 +88,7 @@ describe('treat — the bandage in a worn medic\'s pouch, where it sits', () => 
       reason: 'remedy-out-of-reach',
     });
     const { ctx, note } = ctxFor(me, room);
-    await makeStuff(() => new TreatController()).execute({}, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'controller-rejected',

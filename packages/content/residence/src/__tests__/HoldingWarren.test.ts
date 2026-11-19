@@ -51,6 +51,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 type MemberStuff = Stuff & Container;
 
@@ -700,13 +701,13 @@ describe('the maintenance act (D4/D5)', () => {
       const t = i as { hasCapability?(c: string): boolean };
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       {
         ...(kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }),
         ...(target === undefined ? {} : { target: { stuff: target, raw: 'target' } }),
       } as CommandModel,
       ctx,
-    );
+    ));
     return ctx;
   }
 

@@ -526,7 +526,8 @@ immediately. **Activations differ; composition does not.**
 | identity | `/platform/agent/Avatar/<id>` | same |
 | material verbs | allowed | refused (`requiresEmbodied`) |
 | lifecycle | `alive` | `undead` |
-| attunement | implant | intrinsic |
+| attunement | a phone (an implant for a guest) | the shade species' innate `AetherMixin` |
+| species | chosen at char-gen | **the shade species**, for every shade |
 
 **`undead` is animate without being alive.** `SpeciesLogic.isAnimate`
 already admits it, so a shade walks and speaks; `isLivingBody()` excludes
@@ -540,9 +541,13 @@ is a platform-half surface that must keep reaching a dead player, so
 registration is not merely safe: it is the point.
 
 **Attuned with no hardware.** A ghost wearing a cranial implant would be
-silly. The shade confers `AetherMixin` directly through the per-host
-conferral seam (`Species.innateMixins` is shared reference data and cannot
-be used). It is perceptible because *being dead does not log you off* — the
+silly. ⭐ You lose your body when you die, and every shade is ONE species
+(`/stuff/idea/species/shade`, the owner's ruling in aether-devices,
+2026-11-18): `ConditionLogic.mintShadeFrom` overlays it, and its
+`innateMixins` carry `AetherMixin`, so the shade is tuned by the same species
+leg as any born-attuned species. The per-host conferral seam it used to
+need (when a shade kept the dead person's species) is retired. Re-embodying
+restores the body of record, species and all. It is perceptible because *being dead does not log you off* — the
 aether is the internet, and a shade is still on it. It is **not** a spirit
 field, and a mystical reading of it is a standing correction.
 

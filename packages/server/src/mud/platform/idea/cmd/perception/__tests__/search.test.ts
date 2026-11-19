@@ -48,6 +48,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // A plain seeker for the pure `resolveSearch` layer (belief store only).
 // The awareness-band read runs ON the seeker since the OO sweep; the
@@ -218,7 +219,7 @@ describe('SearchController + SearchActivity — costed & interruptible', () => {
 
   it('a completed broad search discovers the concealed thing', async () => {
     const controller = makeStuff(() => new SearchController());
-    await controller.execute({} as CommandModel, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({} as CommandModel, ctx$)))(ctx());
     // Not yet — the effect lands at completion, not dispatch.
     expect(PerceptionApi.hasDiscovered(actor as never, hidden as never)).toBe(
       false,
@@ -235,7 +236,7 @@ describe('SearchController + SearchActivity — costed & interruptible', () => {
     // search is still pending; a completion that called `this` would land
     // on a dead proxy and discover nothing, silently (controller-liquidity D12).
     const controller = makeStuff(() => new SearchController());
-    await controller.execute({} as CommandModel, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({} as CommandModel, ctx$)))(ctx());
     await StuffApi.destruct(controller);
     expect(controller.isDestroyed()).toBe(true);
     WorldClockApi._advanceForTesting(6000);
@@ -247,7 +248,7 @@ describe('SearchController + SearchActivity — costed & interruptible', () => {
 
   it('an interrupted search finds nothing (ambushed mid-rummage)', async () => {
     const controller = makeStuff(() => new SearchController());
-    await controller.execute({} as CommandModel, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({} as CommandModel, ctx$)))(ctx());
     expect(PerceptionApi.hasDiscovered(actor as never, hidden as never)).toBe(
       false,
     );

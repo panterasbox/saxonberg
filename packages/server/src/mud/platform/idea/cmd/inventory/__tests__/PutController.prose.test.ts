@@ -20,6 +20,7 @@ import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture
 import { makeBody, tool, carry, pack } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../../lib/location/Location';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const one = (stuff: Stuff | null, raw: string, prep?: string): MqlOneResult => ({ stuff, raw, ...(prep ? { prep } : {}) });
 
@@ -64,10 +65,10 @@ describe('`put X in <container>` — the plain inside reads "in the pouch"', () 
       verb: 'put',
       command: CommandDefinition.fromYaml('verbs: [put]\ncontroller: NoopController\ndescription: stub\n', '<test>'),
     });
-    await makeStuff(() => new PutController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new PutController()).execute(
       { item: one(key, 'key'), target: one(pouch, 'belt pouch', 'in') } as ModelData as never,
       c,
-    );
+    ));
     expect(key.getContainer(), said.join(' | ')).toBe(pouch);
     // The names render per viewer (an Mml thing tag); the words around them are the line.
     const line = said.join('\n').replace(/<[^>]*>/g, '#');

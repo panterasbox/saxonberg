@@ -39,6 +39,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const WATER = '/stuff/idea/material/_test/steps/water';
 const BLEND = '/stuff/idea/material/_test/steps/blend';
@@ -120,10 +121,10 @@ describe('wash', () => {
       const spy = vi.spyOn(SchedulerApi, 'start');
       const ctx = makeContext(actor, room, 'wash coupe');
       await executeAs(actor, () =>
-        makeStuff(() => new WashController()).execute(
+        TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new WashController()).execute(
           { target: many(coupe), water: many(water), ...extra } as never,
           ctx,
-        ),
+        )),
       );
       const d = (spy.mock.calls.at(-1)?.[0] as unknown as { duration?: number } | undefined)?.duration;
       spy.mockRestore();
@@ -141,7 +142,7 @@ describe('wash', () => {
     ContainmentApi.move(coupe, room);
     const ctx = makeContext(actor, room, 'wash coupe');
     await executeAs(actor, () =>
-      makeStuff(() => new WashController()).execute({ target: many(coupe) } as never, ctx),
+      TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new WashController()).execute({ target: many(coupe) } as never, ctx)),
     );
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'no-water')).toBe(true);
     await completeStep(3000);
@@ -159,10 +160,7 @@ describe('wash', () => {
     ContainmentApi.move(water, room);
 
     await executeAs(actor, () =>
-      makeStuff(() => new WashController()).execute(
-        { target: many(coupe), water: many(water) } as never,
-        makeContext(actor, room, 'wash coupe'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WashController()).execute({ target: many(coupe), water: many(water) } as never, ctx$)))(makeContext(actor, room, 'wash coupe')),
     );
     // Not at dispatch —
     expect(coupe.isSoiled()).toBe(true);
@@ -197,7 +195,7 @@ describe('muddle', () => {
 
     const noTool = makeContext(actor, room, 'muddle');
     await executeAs(actor, () =>
-      makeStuff(() => new MuddleController()).execute({ vessel: ref(shaker, 'shaker') } as never, noTool),
+      TestHarnessApi.actAs(noTool.commandGiver, () => makeStuff(() => new MuddleController()).execute({ vessel: ref(shaker, 'shaker') } as never, noTool)),
     );
     expect(noTool.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'missing-tool')).toBe(true);
     expect(shaker.getBuildMethod()).toBeNull();
@@ -206,10 +204,7 @@ describe('muddle', () => {
     muddler.setCapabilities(['muddler']);
     ContainmentApi.move(muddler, actor);
     await executeAs(actor, () =>
-      makeStuff(() => new MuddleController()).execute(
-        { vessel: ref(shaker, 'shaker'), muddler: many(muddler) } as never,
-        makeContext(actor, room, 'muddle'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new MuddleController()).execute({ vessel: ref(shaker, 'shaker'), muddler: many(muddler) } as never, ctx$)))(makeContext(actor, room, 'muddle')),
     );
     expect(shaker.getBuildMethod()).toBeNull();
     await completeStep(6000);

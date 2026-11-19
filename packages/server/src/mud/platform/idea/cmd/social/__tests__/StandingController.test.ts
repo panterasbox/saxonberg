@@ -25,6 +25,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Actor extends Idea {}
 
@@ -79,7 +80,7 @@ describe('StandingController render', () => {
 
     const actor = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/render');
     const ctrl = makeStuff(() => new StandingController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain('established'); // the band
@@ -97,7 +98,7 @@ describe('StandingController render', () => {
 
     const actor = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/zero');
     const ctrl = makeStuff(() => new StandingController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain('dormant');
@@ -114,7 +115,7 @@ describe('StandingController render', () => {
 
     const actor = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/three');
     const ctrl = makeStuff(() => new StandingController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain('Play');

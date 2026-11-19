@@ -64,6 +64,7 @@ import type { Trauma } from '../../../platform/idea/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 let n = 0;
 let real = 0;
@@ -422,7 +423,7 @@ describe('disarm — found-gated', () => {
     ContainmentApi.move(m, makeStuff(() => new Place()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     const context = ctx(m, m.getContainer());
-    await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context));
     expect(trap.isArmed()).toBe(true); // still live — you can't defuse what you can't see
   });
 
@@ -437,7 +438,7 @@ describe('disarm — found-gated', () => {
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Good);
     const context = ctx(m, m.getContainer());
-    await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context));
     expect(trap.getHazardState()).toBe('disarmed');
   });
 });

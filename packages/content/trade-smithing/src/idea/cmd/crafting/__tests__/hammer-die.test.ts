@@ -27,6 +27,7 @@ import {
   makeTool,
 } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** A die: an anvil-capable tool that takes a blank's shape from a blow. */
 class TestDie extends StrikingDieMixin(Tool) {
@@ -67,10 +68,10 @@ describe('hammer on a die', () => {
     const ctx = makeContext(actor, room, 'hammer blank on die');
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(actor);
-      await makeStuff(() => new HammerController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HammerController()).execute(
         { target: ref(blank, 'blank'), striker: many(striker), anvil: many(die) } as never,
         ctx,
-      );
+      ));
     });
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(false);
     await completeStep(5000);

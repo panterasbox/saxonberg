@@ -44,6 +44,7 @@ import {
   makeStuffAtPath,
   stampIdentityPathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKS = join(HERE, '..', '..', '..');
@@ -185,10 +186,10 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     const context = makeContext(who, room, `stake ${block}`);
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(who);
-      await makeStuff(() => new StakeController()).execute(
+      await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new StakeController()).execute(
         { block, register: { stuff: register, raw: 'register' } } as never,
         context,
-      );
+      ));
     });
     expect(
       context.getNotes().filter((n) => n.kind === 'controller-rejected'),
@@ -252,10 +253,10 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     const context = makeContext(pat, room, 'stake 24,20,0');
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(pat);
-      await makeStuff(() => new StakeController()).execute(
+      await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new StakeController()).execute(
         { block: '24,20,0', register: { stuff: register, raw: 'register' } } as never,
         context,
-      );
+      ));
     });
     expect(
       context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason,

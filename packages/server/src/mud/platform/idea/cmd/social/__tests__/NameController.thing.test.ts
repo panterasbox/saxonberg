@@ -20,6 +20,7 @@ import { PersistableApi } from '../../../../../api/persistable';
 import { makeStuff, stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestCharacter extends Character {}
 
@@ -53,10 +54,7 @@ function blade(reforgedBy: string): Tool {
 }
 
 async function name(actor: unknown, thing: Tool, wanted: string): Promise<void> {
-  await makeStuff(() => new NameController()).execute(
-    { target: { stuff: thing } as unknown as MqlOneResult, animalName: wanted } as never,
-    ctx(actor),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new NameController()).execute({ target: { stuff: thing } as unknown as MqlOneResult, animalName: wanted } as never, ctx$)))(ctx(actor));
 }
 
 let smith: TestCharacter;

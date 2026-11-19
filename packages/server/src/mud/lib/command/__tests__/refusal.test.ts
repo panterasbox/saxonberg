@@ -30,6 +30,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -165,7 +166,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
     vi.spyOn(PingController.prototype, 'execute').mockImplementation(async (_m, ctx) => {
       ctx.refuse({ ok: false, reason: 'locked', facts: { target: door } });
     });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     const env = asEnv(giver.envelopes[0]!);
@@ -182,7 +183,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
     vi.spyOn(PingController.prototype, 'execute').mockImplementation(async (_m, ctx) => {
       ctx.refuse({ ok: false, reason: 'locked', facts: { target: door } });
     });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
     const returnedNote = refusedNote();
     const returnedLine = said(giver);
@@ -192,7 +193,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
     vi.spyOn(PingController.prototype, 'execute').mockImplementation(async () => {
       throw new Refusal('/platform/reasons/locked', { target: door });
     });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     expect(refusedNote()).toEqual(returnedNote);
@@ -204,7 +205,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
     vi.spyOn(PingController.prototype, 'execute').mockImplementation(async () => {
       throw new Error('secret-internal-boom');
     });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     const env = asEnv(giver.envelopes[0]!);
@@ -224,7 +225,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
       ctx.refuse({ ok: false, reason: 'locked', facts: { target: door } });
     });
     standRow(LOCKED, { facts: { target: 'thing' }, says: 'Barred fast: {{ target | item }}.' });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
     expect(said(giver)).toContain('Barred fast:');
   });
@@ -233,7 +234,7 @@ describe('failure model W0 — reasons, the family, the envelope', () => {
     vi.spyOn(PingController.prototype, 'execute').mockImplementation(async (_m, ctx) => {
       ctx.refuse({ ok: false, reason: 'no-such-reason-row' });
     });
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     await settleUntil(() => giver.envelopes.length > 0);
     expect(said(giver)).toContain('Something went wrong there.');
     expect(DiagnosticApi.record).toHaveBeenCalledWith(

@@ -26,6 +26,7 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import Place from '../../../../../lib/stuff/Place';
 import { makeStuff, makeStuffAtPath, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Canoe extends HirableMixin(Good) {}
 
@@ -67,10 +68,10 @@ async function rent(av: Avatar, book: HireBook, boat: Stuff, days?: string): Pro
   });
   await withRootContext(null, 'rent.test', () => {
     ExecutionContextApi.tagActingAuthor(av);
-    return makeStuff(() => new RentController()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new RentController()).execute(
       { boat: { stuff: boat as never, raw: 'canoe' }, days, book: { stuff: book as never, raw: '' } } as never,
       ctx,
-    );
+    ));
   });
   return ctx;
 }

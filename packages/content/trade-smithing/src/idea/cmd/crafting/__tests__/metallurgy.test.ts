@@ -46,6 +46,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const IRON = '/stuff/idea/material/element/iron';
 const STEEL = '/stuff/idea/material/alloy/steel';
@@ -74,14 +75,11 @@ async function step(
 ): Promise<void> {
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await makeStuff(() => new Ctor()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => makeStuff(() => new Ctor()).execute({
         target: ref(target, 'it'),
         striker: many(striker),
         anvil: many(anvil),
-      } as never,
-      makeContext(actor, room, 'step') as never,
-    );
+      } as never, ctx$)))(makeContext(actor, room, 'step') as never);
   });
   await completeStep(ms);
   // ⚠ Consolidation clones its bar from a row (a store round-trip), so
@@ -246,10 +244,10 @@ describe('⚠⚠ cast iron refuses, and the refusal says what it is', () => {
     const context = makeContext(actor, room, 'hammer pig');
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(actor);
-      await makeStuff(() => new HammerController()).execute(
+      await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new HammerController()).execute(
         { target: ref(p, 'pig'), striker: many(striker), anvil: many(anvil) } as never,
         context,
-      );
+      ));
     });
     expect(
       context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason,

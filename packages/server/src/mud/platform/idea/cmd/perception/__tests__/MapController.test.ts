@@ -38,6 +38,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { MapClaim, MapDocument } from '../../../../../lib/location/MapClaim';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const VIEWER_ROW = '/platform/agent/PrimaryAvatar';
 const VIEWER_ID = '/platform/agent/Avatar/mapper';
@@ -86,10 +87,10 @@ function docOf(claims: MapClaim[]): MapDocument {
 
 async function run(giver: Stuff, locality?: string): Promise<CommandContext> {
   const c = ctx(giver, locality ? `map ${locality}` : 'map');
-  await makeStuffAtPath(
+  await TestHarnessApi.actAs(c.commandGiver, () => makeStuffAtPath(
     () => new MapController(),
     '/platform/idea/cmd/perception/MapController',
-  ).execute({ locality } as never, c);
+  ).execute({ locality } as never, c));
   return c;
 }
 

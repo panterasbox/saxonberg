@@ -1253,6 +1253,9 @@ export interface ExampleDefinition {
   note?: string;
 }
 
+/** Whether another body's code may ask a body to run a verb (call-security pass D8). */
+export type Compellable = 'never' | 'consent';
+
 export interface SubcommandDefinition {
   description?: string;
   /** Multi-line authored help prose for this subcommand. */
@@ -1260,6 +1263,8 @@ export interface SubcommandDefinition {
   /** Worked invocations specific to this subcommand. */
   examples?: ExampleDefinition[];
   controller?: string;
+  /** This subcommand's own {@link CommandView.compellable}; the verb's when absent. */
+  compellable?: Compellable;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
   /**
@@ -1378,6 +1383,13 @@ export interface CommandView {
    * verb does not exist. See the `testharness` view.
    */
   testOnly?: boolean;
+  /**
+   * ⭐ May another character's code ask this body to run the verb
+   * (call-security pass D8–D11)? `never` (the default — nobody can) or
+   * `consent` (the body's own player is asked first, every time). Honored
+   * only when the controller class also declares `static compellable`.
+   */
+  compellable?: Compellable;
   /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input
@@ -1805,36 +1817,36 @@ export class CommandApi {
   }
 
   /**
-   * Recency-stack delta for a hosted-update host/unhost (the aether
-   * hosting relation). A hosted update contributes its
+   * Recency-stack delta for a hosted-app host/unhost (the aether
+   * hosting relation). an app contributes its
    * `self`-bucket command definitions to its host's stack with the
    * update Stuff as the recency source, so `getAffordances()` resolves
    * `commandSource` to the update (the "verb dispatch routes through
    * the augment/update" pattern). Hosting surfaces the verbs;
    * unhosting retires them — gain/lose-post-spawn live.
    *
-   * Called by `AetherMixin.hostUpdate` / `unhostUpdate`.
+   * Called by `AetherHostMixin.hostApp` / `unhostApp`.
    */
-  static applyHostedUpdateDelta(
+  static applyHostedAppDelta(
     host: Stuff,
     update: Stuff,
     op: 'host' | 'unhost'
   ): void {
-    logic().applyHostedUpdateDelta(host, update, op);
+    logic().applyHostedAppDelta(host, update, op);
   }
 
   /**
-   * Collect each hosted update's `self`-bucket command definitions for
+   * Collect each app's `self`-bucket command definitions for
    * a host, paired with the update as the affording source. Used by
    * `CommandGiverMixin`'s self-seeding (both `onCreate` and the
    * lazy `_ensureSelfEntry` safety net) so a host that gained updates
    * outside a delta (e.g. a test that hosts then reads affordances)
    * still surfaces their verbs. Returns `[]` for a non-host.
    */
-  static collectHostedUpdateDefs(
+  static collectHostedAppDefs(
     host: Stuff
   ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
-    return logic().collectHostedUpdateDefs(host);
+    return logic().collectHostedAppDefs(host);
   }
 
   /**

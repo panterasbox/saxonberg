@@ -1,0 +1,5 @@
+# Calendar — the personal calendar app, installed on the person by the
+# default loadout. The entries live on the person, not here.
+class: /platform/idea/CalendarApp
+data:
+  appName: Calendar

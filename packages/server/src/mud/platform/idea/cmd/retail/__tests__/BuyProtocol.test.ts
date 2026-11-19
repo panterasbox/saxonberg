@@ -20,6 +20,7 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import Place from '../../../../../lib/stuff/Place';
 import { makeStuff, makeStuffAtPath, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** A seller of one word — the protocol, and nothing else. */
 class Stall extends ForSaleMixin(Good) {
@@ -56,10 +57,10 @@ async function buy(bound: Stuff | null, thing: string, raw = ''): Promise<Comman
   });
   await withRootContext(null, 'buy-protocol.test', () => {
     ExecutionContextApi.tagActingAuthor(av);
-    return makeStuff(() => new BuyController()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BuyController()).execute(
       { counter: bound ? { stuff: bound as never, raw } : undefined, thing } as never,
       ctx,
-    );
+    ));
   });
   return ctx;
 }

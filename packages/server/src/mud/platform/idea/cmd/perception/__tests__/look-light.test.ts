@@ -50,6 +50,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const ROOM = '/stuff/test/light/location/cellar';
 const ALICE = '/platform/agent/Avatar/light-alice';
@@ -103,10 +104,7 @@ async function lookBodies(): Promise<string[]> {
   });
   await withRootContext(null, 'light.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new LookController()).execute(
-      { target: { stuff: room, raw: '' } } as never,
-      ctx(),
-    );
+    return ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LookController()).execute({ target: { stuff: room, raw: '' } } as never, ctx$)))(ctx());
   });
   return bodies;
 }

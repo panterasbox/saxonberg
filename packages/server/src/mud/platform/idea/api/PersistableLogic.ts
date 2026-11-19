@@ -541,7 +541,23 @@ function captureFields(
   const self = host as unknown as Record<string, unknown>;
   const out: Record<string, unknown> = {};
   for (const field of fields) {
-    if (!(field in host)) continue;
+    const cap = field.charAt(0).toUpperCase() + field.slice(1);
+    if (!(field in host)) {
+      // ⚠ A declared BOOLEAN noun with no slot of its own still has a
+      // value, read by its predicate. `Switchable`'s `on` lives in the
+      // bistate core, so this check skipped it and every switch came back in
+      // its row's state after a restore (a phone switched off woke up on —
+      // aether-devices drive, step 14). ⛔ Only `is<Field>()`: a slotless
+      // field read through `get<Field>()` (a Location's `coords`, null until
+      // its zone places it) restored as `setCoords(null)` and killed the
+      // boot — a slotless non-boolean stays uncaptured, as before.
+      const read = self[`is${cap}`];
+      if (typeof read !== "function") continue;
+      const v = (read as () => unknown).call(host);
+      if (typeof v !== "boolean") continue;
+      out[field] = v;
+      continue;
+    }
     let value = self[field];
     // ⚠ A function is never data. `Sealable`'s noun `open` is also its
     // verb `open()`, so the bracket read found the method, the snapshot
@@ -549,7 +565,6 @@ function captureFields(
     // place failed to come back (the sugar estate's cistern, drive 25).
     // The boolean-noun convention says where the value is: `isOpen()`.
     if (typeof value === "function") {
-      const cap = field.charAt(0).toUpperCase() + field.slice(1);
       const read = self[`is${cap}`] ?? self[`get${cap}`];
       if (typeof read !== "function") continue;
       value = (read as () => unknown).call(host);

@@ -1,7 +1,7 @@
 /**
- * Residual AetherMixin (post-split) = attunement. Asserts transmission
- * left the mixin (`tell` + the comms command contributions gone) while
- * the ESP modalities and the `isAether` composition predicate stay.
+ * Residual AetherMixin = attunement, perceiving only. Transmission left
+ * for `CommsMixin`; hosting left for `AetherHostMixin` (aether-devices
+ * D2). The ESP modalities and the `isAether` predicate stay.
  */
 
 import "../../../../test-bootstrap";
@@ -36,5 +36,11 @@ describe('residual AetherMixin (attunement, post-split)', () => {
   it('isAether narrows a composed actor (attunement is composition here)', () => {
     const a = makeStuff(() => new AetherActor());
     expect(MixinApi.isAether(a)).toBe(true);
+  });
+
+  it('no longer hosts software — hosting is AetherHostMixin (D2)', () => {
+    const a = makeStuff(() => new AetherActor());
+    expect(MixinApi.isAetherHost(a)).toBe(false);
+    expect((a as unknown as { hostApp?: unknown }).hostApp).toBeUndefined();
   });
 });

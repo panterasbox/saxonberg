@@ -35,6 +35,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // Compose a giver that's both CommandGiver and Container — drop's
 // inventory check needs it.
@@ -126,10 +127,7 @@ describe('DropController — bareword path (no quantity)', () => {
     ContainmentApi.move(sword, giver);
 
     const controller = makeStuff(() => new DropController());
-    await controller.execute(
-      makeModel(makeResult([sword], 'sword')),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(makeResult([sword], 'sword')), ctx$)))(makeContext(giver, loc));
     expect(sword.getContainer()).toBe(loc);
   });
 
@@ -140,10 +138,10 @@ describe('DropController — bareword path (no quantity)', () => {
 
     const controller = makeStuff(() => new DropController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(makeResult([], 'turnips')),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -178,15 +176,12 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 5 },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     expect(stack.getQuantity()).toBe(25);
   });
 
@@ -204,15 +199,12 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 99 },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
   });
 
   it('rejects strictly when the count exceeds supply', async () => {
@@ -230,7 +222,7 @@ describe('DropController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new DropController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'count', n: 99 },
@@ -238,7 +230,7 @@ describe('DropController — quantity-bearing path', () => {
         })
       ),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'quantity-clamped-rejected',
@@ -265,15 +257,12 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(stack, giver);
 
     const controller = makeStuff(() => new DropController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([stack], 'coins', {
           value: { kind: 'all' },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     expect(stack.getContainer()).toBe(loc);
     expect(stack.getQuantity()).toBe(10);
   });
@@ -285,7 +274,7 @@ describe('DropController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new DropController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(
         makeResult([], 'turnips', {
           value: { kind: 'count', n: 2 },
@@ -293,7 +282,7 @@ describe('DropController — quantity-bearing path', () => {
         })
       ),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -326,15 +315,12 @@ describe('DropController — quantity-bearing path', () => {
     ContainmentApi.move(silver, giver);
 
     const controller = makeStuff(() => new DropController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([gold, silver], 'coins', {
           value: { kind: 'count', n: 3 },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     // Two operands: the 2-stack of gold (full), and a 1-split from silver.
     expect(gold.getContainer()).toBe(loc);
     expect(silver.getQuantity()).toBe(1); // 2 - 1 split-off
@@ -369,7 +355,7 @@ describe('DropController — the fall', () => {
     vi.spyOn(brick as unknown as Stuff, 'isDestroyed').mockReturnValue(true);
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const controller = makeStuff(() => new DropController());
-    await controller.execute(makeModel(makeResult([brick], 'brick')), makeContext(giver, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(makeResult([brick], 'brick')), ctx$)))(makeContext(giver, loc));
     await new Promise((res) => setTimeout(res, 10));
     expect(warn).not.toHaveBeenCalledWith('DropController: the fall failed:', expect.anything());
   });

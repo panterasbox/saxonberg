@@ -33,6 +33,7 @@ import type {
   MakeForumOptions,
   ArgumentRelation,
 } from '../../../api/forums';
+import { AccessApi } from '../../../api/access';
 
 const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
 /** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
@@ -159,6 +160,7 @@ export class ForumsLogic extends ApiLogic {
     title: string,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, board._id!);
     const author = authorIdOf(actor);
     // On an argument board a root Entry is the prose **spine** — reputation-
@@ -193,6 +195,7 @@ export class ForumsLogic extends ApiLogic {
     parent: Entry,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, parent.board);
     if (parent.getState() === 'locked') {
       throw new Error('That thread is locked.');
@@ -235,6 +238,7 @@ export class ForumsLogic extends ApiLogic {
     relation: ArgumentRelation,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, parent.board);
     if (parent.getState() === 'locked') {
       throw new Error('That claim is locked.');
@@ -280,6 +284,7 @@ export class ForumsLogic extends ApiLogic {
     entry: Entry,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     // The author, or the board-subject's owner (controller-liquidity D9:
     // asked here, of the actor, not in the controller).
     const subject = await subjectOfBoard(entry.board);
@@ -317,6 +322,7 @@ export class ForumsLogic extends ApiLogic {
     entry: Entry,
     direction: VoteValue,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, entry.board);
     const board = await Board.findById(entry.board);
     if (board && board.getOrganizer() === 'ordered') {
@@ -572,6 +578,8 @@ async function subjectOfBoard(boardId: string): Promise<Subject | null> {
  * refuses.
  */
 async function refuseUnlessAudience(actor: Stuff, boardId: string): Promise<void> {
+  // who is acting must be who is named (call-security pass D5)
+  AccessApi.requireActor(actor);
   const subject = await subjectOfBoard(boardId);
   if (!subject) {
     throw new Refusal('board-unowned');

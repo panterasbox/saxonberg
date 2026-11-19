@@ -29,6 +29,8 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity, TestOnly } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { ExecutionContextApi } from './execution-context';
+import { SecurityError } from '../lib/security/errors';
 import { WorldClockLogic } from '../platform/idea/api/WorldClockLogic';
 import { fileURLToPath } from 'url';
 
@@ -45,6 +47,12 @@ export type ClockCallback = (handle: ClockHandle) => void;
 export interface ScheduleOpts {
   /** When set, the schedule auto-cancels if this Stuff destructs. */
   host?: Stuff;
+  /**
+   * ⭐ Fire as the named SYSTEM (call-security pass D3) — see
+   * `ScheduleApi`'s option of the same name. Honored only from the Api tier
+   * or a kernel singleton; anyone else naming it throws.
+   */
+  system?: string;
   /** Free-form label for bulk cancel via `cancelByTag`. */
   tag?: string;
   /**
@@ -246,11 +254,21 @@ export class WorldClockApi {
 
   /* ──────────────────── scheduling primitives ──────────────────── */
 
+  /** `system:` is the Api tier's and the kernel singletons' alone (D3). */
+  static #assertSystemNamer(opts: ScheduleOpts | undefined): void {
+    if (opts?.system === undefined) return;
+    if (SecurityPolicies.SystemNamer.allows(ExecutionContextApi.getCaller(), WorldClockApi, 'every')) return;
+    throw new SecurityError(
+      `WorldClockApi: only the Api tier or a kernel singleton may run work as the system ('${opts.system}')`,
+    );
+  }
+
   public static after(
     delay: Quantity<'s'> | string,
     cb: ClockCallback,
     opts?: ScheduleOpts
   ): ClockHandle {
+    WorldClockApi.#assertSystemNamer(opts);
     return logic().after(delay, cb, opts);
   }
 
@@ -259,6 +277,7 @@ export class WorldClockApi {
     cb: ClockCallback,
     opts?: ScheduleOpts
   ): ClockHandle {
+    WorldClockApi.#assertSystemNamer(opts);
     return logic().at(deadline, cb, opts);
   }
 
@@ -267,6 +286,7 @@ export class WorldClockApi {
     cb: ClockCallback,
     opts?: ScheduleOpts & { startAt?: Quantity<'s'>; runs?: number }
   ): ClockHandle {
+    WorldClockApi.#assertSystemNamer(opts);
     return logic().every(interval, cb, opts);
   }
 

@@ -43,6 +43,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SHOP = '/stuff/test/apply/location/shop';
 const YARD = '/stuff/test/apply/location/yard';
@@ -116,7 +117,7 @@ async function apply(
   const c = ctx(room, 'apply');
   await withRootContext(null, 'apply.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new JobApplyController()).execute(model as never, c);
+    return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new JobApplyController()).execute(model as never, c));
   });
   return c;
 }
@@ -128,10 +129,10 @@ async function clock(
   const c = ctx(room, `clock ${sub}`);
   await withRootContext(null, 'clock.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new ClockController()).execute(
+    return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new ClockController()).execute(
       { subcommand: sub } as never,
       c,
-    );
+    ));
   });
   return c;
 }
@@ -225,7 +226,7 @@ describe('⭐ apply — the player moves first', () => {
   it('⭐ D9: `Organization.apply` called direct cannot hire past the criteria', async () => {
     biz.positions = [seat({ requires: { gigs: 2 } })] as never;
     vi.spyOn(ContractApi, 'settledGigsBy').mockResolvedValue(0);
-    const verdict = await biz.apply(alice as never, 'hand');
+    const verdict = await TestHarnessApi.actAs(alice as never, () => biz.apply(alice as never, 'hand'));
     expect(verdict).toMatchObject({ ok: false, kind: 'gigs' });
     expect(biz.holdersOf('hand')).toEqual([]);
   });

@@ -1,31 +1,22 @@
 /**
- * CommsMixin — the comms capability, as a hosted *update*.
+ * CommsMixin — a person's comms: the words they send at a distance, who
+ * they last spoke with, and (from W4) what is waiting.
  *
- * Carries Aether transmission: the `tell` send (the `dm` / `reply` /
- * `broadcast` / `chat` verb family) and the DM cohort state. Composes
- * around a bare `Idea` (the incorporeal `CommsUpdate`, hosted on aether
- * attunement) and could equally compose around a `Thing` (the future
- * radio) — no corporeal assumption.
+ * Composed on the person (`Avatar` — every played body; ⚠ never
+ * `Character`: no NPC ever talks at a distance). Carries the `tell` send
+ * behind the `dm` / `reply` / `broadcast` / `chat` verbs, and the DM cohort
+ * state. The sender of every frame is the person (`this`).
  *
- * **Comms transmits on behalf of its host (the operator).** A comms
- * update has no presence of its own — it is not a `Sensor`, has no name,
- * and can't be a scene speaker. `tell` resolves its operator via
- * `getHost()` (the `AetherHosted` back-ref) and routes every
- * speaker-as-actor and speaker-as-name use through the host: the
- * self-echo frame, the mention resolver, and the emitted speaker name.
+ * **What the person's comms asks before a message goes** (aether-devices
+ * D2, D8): `sendOrHold` — is there a host that would carry it right now
+ * (`aetherHostNow`: the first augment it bears that confers the aether
+ * sense and hosts apps; else the body itself when tuned by nature), and does
+ * that host have **Messages** installed? Messages is an app
+ * (`/platform/idea/app/messages`) that does nothing by itself: it is what
+ * this mixin looks for. Controllers ask and render; none decides.
  *
- * **Soft pairing with `AetherHostedMixin`.** `CommsMixin` reads
- * `getHost()`, which a co-composed `AetherHostedMixin` provides — comms
- * is always co-composed with it (on `CommsUpdate` today, and on the
- * future radio's hosted comms update). The two mixins stay orthogonal
- * (so the bound can't be expressed on the union-typed mixin
- * constructor), so `tell` reaches `getHost()` through a single
- * documented cast naming that pairing.
- *
- * Residual `AetherMixin` keeps attunement (the ESP perception
- * modalities + the host collection); it no longer carries transmission.
- * Net: **attunement = perceive the aether + host software; the comms
- * update = transmit on it.**
+ * Perceiving the aether is `AetherMixin` (the gated sense a tuner
+ * confers); hosting software is `AetherHostMixin`.
  */
 
 import type { MixinConstructor } from "../mixin";
@@ -33,11 +24,16 @@ import type { Stuff } from "../stuff/Stuff";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import type { CommandContributions } from "../../api/command";
+import { ScheduleApi } from "../../api/schedule";
+import { WorldClockApi } from "../../api/worldclock";
+import { SubscriptionApi, type SubscribableFieldDescriptor } from "../../api/subscription";
+import { PerceptionApi } from "../../api/perception";
+import type { FieldMeta } from "../mixin";
+import { SUBSCRIPTION_SOURCES, type MessageFrame } from "@saxonberg/types";
 import { InactiveCapabilityError } from "../security/RequiresActive";
 import { MixinApi } from "../../api/mixin";
-import { MqlApi } from "../../api/mql";
-import type { CommandGiver } from "../command/CommandGiver";
-import type { AetherHosted } from "../augmentation/AetherHosted";
+import type { AetherHost } from "../augmentation/AetherHost";
+import type { Augment } from "../augmentation/Augment";
 
 /**
  * ⭐ `<spoiler>` is the one piece of markup a conversation admits.
@@ -93,18 +89,133 @@ export interface Comms {
    * frames.
    */
   recordInboundCohort(cohort: readonly Stuff[]): void;
+
+  /**
+   * Can a message leave this person right now? `null` means go; otherwise
+   * the refusal — its row words the fix and whether the line was kept. The one question the send
+   * controllers ask (D8). `commandText` is the line the player ran.
+   */
+  sendOrHold(commandText: string): AetherRefusal | null;
+
+  /**
+   * The words for why nothing can leave right now, or `null` — the same
+   * line `sendOrHold` says, without holding anything. For a gate on a verb
+   * that is not held (`forum`, `broadcast`).
+   */
+  cannotSendLine(): string | null;
+
+  /**
+   * Can a frame that arrived over the aether be taken now? `null` means
+   * deliver; otherwise why it waits (D8, D9).
+   */
+  receptionRefusal(frame: MessageFrame): ReceptionRefusalReason | null;
+
+  /**
+   * Hold `frame` if it came over the aether and cannot be taken now —
+   * appended to `heldInbound` and dropped from delivery. Returns whether
+   * it was held. Also notices when anything held can now go, and
+   * schedules the flush. Asked by the person's `filterMessage` (D8).
+   */
+  holdIfUnreachable(frame: MessageFrame): boolean;
+
+  /**
+   * Deliver what was held and re-run what was typed while it could not
+   * go — *"While you were away…"*. Runs on its own once anything held
+   * can move (the next frame, or `enter`).
+   */
+  flushHeld(): Promise<void>;
+
+  /**
+   * Whether this person can reach past the room, as the word the status
+   * bar shows (D13): `tuned 80%`, `tuned`, `packed`, `off`, `dead`,
+   * `not yours`, `no Messages`, `no tuner`.
+   */
+  aetherWord(): string;
+
+  /**
+   * Something that tunes this person just changed (a phone readied,
+   * switched on, set down, charged): flush what is held if it can now move,
+   * and refresh the status word. Told by the device on its own acts (D8 —
+   * the act says something; never a timer).
+   */
+  noticeTuning(): void;
+
+  /**
+   * Is this body its own aether host — tuned by its nature (a shade, a
+   * born-attuned species: the gated sense active with no device
+   * conferring it)? Derived from the gating, never declared.
+   */
+  isOwnAetherHost(): boolean;
 }
+
+/** Why a message cannot leave (or arrive) right now. */
+export type AetherRefusalReason =
+  | "none"
+  | "packed"
+  | "off"
+  | "dead"
+  | "not-yours"
+  | "no-messages";
+
+/** Why a frame over the aether waits: a send reason, or the eyes (D9). */
+export type ReceptionRefusalReason = AetherRefusalReason | "cannot-see";
+
+/**
+ * A refusal to send (failure-model D11): `aether-<why>`, whose row words the
+ * fix and whether the line was kept — pass it on with `context.refuse`.
+ */
+export interface AetherRefusal {
+  ok: false;
+  /** `aether-<why>` — the reason row's code. */
+  reason: `aether-${AetherRefusalReason}`;
+  /** Why, in the person's own vocabulary. */
+  why: AetherRefusalReason;
+  /** `kept`: held to run when it can go; `cap`: not kept, past the cap. */
+  facts: { kept?: string; cap?: string };
+  /** Was the command kept to run when it can go? (`false` past the cap.) */
+  held: boolean;
+}
+
+/** The most typed lines a person holds (D8). */
+const HELD_OUTBOUND_CAP = 50;
+/** The most frames a person holds; past it the oldest are kept and the rest counted. */
+const HELD_INBOUND_CAP = 200;
+/** The modalities that ride the aether (and so can wait). */
+const AETHER_MODALITIES = new Set(["verbal-esp", "emotive-esp"]);
+/** Topics whose frames need Messages on the receiving host (D9). */
+const MESSAGES_TOPICS = ["speech.comms", "speech.channel", "act.emote"];
+
+/** Which device reasons are easiest to fix, first (D2): the fix is a word. */
+const FIXABILITY: readonly AetherRefusalReason[] = ["off", "packed", "dead", "not-yours"];
+
+/** The key Messages is installed under (its row's last segment). */
+const MESSAGES = "messages";
+
+/**
+ * The one-line fix each reason names (D8), for `cannotSendLine` — the
+ * unheld verbs' validator (`forum`, `broadcast`), which can only return a
+ * string. A held send is worded by its `aether-<why>` reason row.
+ */
+const REFUSAL_LINES: Record<AetherRefusalReason, string> = {
+  none:
+    "You have nothing that reaches past this room. A phone does — the general store sells one.",
+  packed: "Your phone is in your pack — ready it to send.",
+  off: "Your phone is off — `switch phone on`.",
+  dead: "Your phone is dead — charge it.",
+  "not-yours": "That phone runs only for its owner.",
+  "no-messages": "Messages isn't installed — `apps install messages`.",
+};
 
 export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class CommsMixin extends Base implements Comms {
     static _mixinName = "CommsMixin";
 
-    /**
-     * Verbs the comms capability grants. These flow into the host's
-     * recency stack via the hosted-update self-seeding
-     * (`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`),
-     * with the comms update as `commandSource`.
-     */
+    /** The status bar's AETHER row reads this off the `self` card (D13). */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      { name: "aetherState", read: (stuff) => (stuff as unknown as Comms).aetherWord() },
+    ];
+
+    /** A person's own distance verbs. */
     static commandContributions: CommandContributions = {
       self: [
         "platform/cmd/social/dm.yaml",
@@ -116,10 +227,34 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       environment: [],
     };
 
+    static fieldMeta: FieldMeta = {
+      heldOutbound: { persistent: true },
+      heldInbound: { persistent: true },
+      heldInboundLost: { persistent: true },
+    };
+
     /**
-     * Cohort state. Runtime-only — NOT persisted. Resets implicitly on
-     * destruct (the update dies with its host). TypeScript `private`
-     * per the proxy-receiver constraint.
+     * Persisted: the command lines the person ran that could not go yet,
+     * in order — re-run as typed when they can (D8). Nothing is invented
+     * at send time; a line that no longer resolves fails in its own words.
+     */
+    heldOutbound: string[] = [];
+
+    /** Persisted: frames that arrived over the aether and could not be taken. */
+    heldInbound: MessageFrame[] = [];
+
+    /** Persisted: how many arriving frames were dropped past the cap. */
+    heldInboundLost = 0;
+
+    /** One flush in flight at a time. Runtime only. */
+    private _flushScheduled = false;
+
+    /** The AETHER word as last shown — a change pokes the card. Runtime only. */
+    private _notedAetherWord: string | null = null;
+
+    /**
+     * Cohort state. Runtime-only — NOT persisted. TypeScript `private` per
+     * the proxy-receiver constraint.
      */
     private _lastInboundDmCohort: Stuff[] | null = null;
     private _lastOutboundDmCohort: Stuff[] | null = null;
@@ -141,15 +276,11 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       text: string,
       opts?: { channelId?: string },
     ): void {
-      // Resolve the operator (the host this update is plugged into).
-      // An unhosted comms update has no one to send as; an operator
-      // that isn't an aether host can't transmit.
-      // CommsMixin and AetherHostedMixin compose orthogonally, so the
-      // `getHost` back-ref isn't on this mixin's own `this` type; it's
-      // co-composed on the update class (CommsUpdate / the radio's
-      // hosted comms). The cast names that pairing contract.
-      const operator = (this as unknown as AetherHosted).getHost();
-      if (!operator || !MixinApi.isAether(operator)) {
+      // The person sends as themselves. Transport, not decision: the
+      // controllers asked `sendOrHold` first, so an untuned sender here is
+      // a caller bug — throw (P3), never send unheard.
+      const operator = this as unknown as Stuff;
+      if (!MixinApi.isActive(operator, "AetherMixin")) {
         throw new InactiveCapabilityError("AetherMixin", "tell");
       }
 
@@ -235,28 +366,237 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           )
           .send();
         // Stamp the recipient's inbound cohort on the recipient's own
-        // comms update (the recipient's OWN reachable scan — the MQL
-        // `reachable` pool anchored on the recipient, not the sender).
-        // A recipient who is attuned but has no comms update receives
-        // the dm but has nowhere to record the cohort — null-guard,
-        // don't throw (they can't reply anyway).
-        const recipientComms =
-          MqlApi.resolveMany("person", {
-            // Recipients here are Characters (CommandGivers); the
-            // static type at this seam is only `Stuff`.
-            commandGiver: t as unknown as Stuff & CommandGiver,
-            scope: "person",
-          }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ??
-          null;
-        if (recipientComms) {
+        // comms — a person composes it; anything else has nowhere to
+        // record a cohort (and could not reply anyway).
+        if (MixinApi.isComms(t)) {
           const inbound = isMulti
             ? [operator, ...targets.filter((o) => o !== t)]
             : [operator];
-          recipientComms.recordInboundCohort(inbound);
+          t.recordInboundCohort(inbound);
         }
       }
 
       this._lastOutboundDmCohort = [...targets];
+      this.spendOnHost();
+    }
+
+    isOwnAetherHost(): boolean {
+      const me = this as unknown as Stuff;
+      if (!MixinApi.isAetherHost(me) || !MixinApi.isActive(me, "AetherMixin")) return false;
+      // Tuned, and no borne device is what tunes it: tuned by nature.
+      return !this.borneAugments().some(
+        (a) => a.conferralRefusal() === null && a.confers().includes("AetherMixin"),
+      );
+    }
+
+    aetherWord(): string {
+      const now = this.aetherHostNow();
+      if (!now.ok) {
+        return now.reason === "none" ? "no tuner" : now.reason === "not-yours" ? "not yours" : now.reason;
+      }
+      if (!now.host.hasApp(MESSAGES)) return "no Messages";
+      if (!MixinApi.isBattery(now.host)) return "tuned";
+      const pct = now.host.chargeFraction(Math.floor(WorldClockApi.getNow().value));
+      return `tuned ${Math.floor(pct * 10) * 10}%`;
+    }
+
+    /**
+     * Poke the `self` card when the AETHER word changes (D13). Asked on
+     * every frame the person receives: every act that re-tunes a person
+     * tells them something (readying, switching, installing). The first
+     * read of a session seeds silently.
+     */
+    private noteAetherWord(): void {
+      const word = this.aetherWord();
+      if (this._notedAetherWord !== null && word !== this._notedAetherWord) {
+        const subject = (this as unknown as Stuff).getIdentityPath();
+        if (subject) SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject });
+      }
+      this._notedAetherWord = word;
+    }
+
+    /** @nothing a line that can go now is not held — the send proceeds. */
+    sendOrHold(commandText: string): AetherRefusal | null {
+      const why = this.sendRefusal();
+      if (why === null) return null;
+      const reason = `aether-${why}` as const;
+      if (this.heldOutbound.length >= HELD_OUTBOUND_CAP) {
+        return { ok: false, reason, why, facts: { cap: String(HELD_OUTBOUND_CAP) }, held: false };
+      }
+      this.heldOutbound.push(commandText);
+      return { ok: false, reason, why, facts: { kept: "yes" }, held: true };
+    }
+
+    cannotSendLine(): string | null {
+      const now = this.aetherHostNow();
+      return !now.ok ? REFUSAL_LINES[now.reason] : null;
+    }
+
+    receptionRefusal(frame: MessageFrame): ReceptionRefusalReason | null {
+      const now = this.aetherHostNow();
+      if (!now.ok) return now.reason;
+      const topic = frame.topic ?? "";
+      if (
+        MESSAGES_TOPICS.some((t) => topic.startsWith(t)) &&
+        !now.host.hasApp(MESSAGES)
+      ) {
+        return "no-messages";
+      }
+      // D9: what a screen shows needs eyes and a waking mind. Sight is an
+      // organ question with no light in it — a lit screen reads in the
+      // dark. A blindness condition meets this rule with no change here.
+      if (now.host.getManifestsAs() === "read" && !this.canReadAScreen()) {
+        return "cannot-see";
+      }
+      return null;
+    }
+
+    holdIfUnreachable(frame: MessageFrame): boolean {
+      const modality = frame.meta?.modality;
+      const ours = frame.tags?.includes("audience:actor") ?? false;
+      if (modality && AETHER_MODALITIES.has(modality) && !ours) {
+        if (this.receptionRefusal(frame) !== null) {
+          if (this.heldInbound.length >= HELD_INBOUND_CAP) {
+            this.heldInboundLost += 1;
+          } else {
+            this.heldInbound.push(frame);
+          }
+          return true;
+        }
+      }
+      // Delivered over the aether: the host it came through spends a read.
+      if (modality && AETHER_MODALITIES.has(modality) && !ours) this.spendOnHost();
+      this.scheduleFlushIfMovable();
+      this.noteAetherWord();
+      return false;
+    }
+
+    /**
+     * A message sent or read through a host with a battery spends `useWh`
+     * of it (D5). A host without one (an implant, a body tuned by nature)
+     * spends nothing.
+     */
+    private spendOnHost(): void {
+      const now = this.aetherHostNow();
+      if (!now.ok || !MixinApi.isBattery(now.host)) return;
+      const me = this as unknown as Stuff;
+      now.host.spendUse(Math.floor(WorldClockApi.getNow().value), me.stuffId);
+    }
+
+    async flushHeld(): Promise<void> {
+      this._flushScheduled = false;
+      const me = this as unknown as Stuff;
+      // Inbound: every held frame that can be taken now, in order.
+      const ready = this.heldInbound.filter((f) => this.receptionRefusal(f) === null);
+      const lost = this.heldInboundLost;
+      if (ready.length > 0 || (lost > 0 && this.heldInbound.length === ready.length)) {
+        this.heldInbound = this.heldInbound.filter((f) => !ready.includes(f));
+        this.heldInboundLost = 0;
+        const lostNote = lost > 0 ? ` (${lost} more were lost — too many waited.)` : "";
+        MessageApi.scene(me)
+          .topic("speech.comms")
+          .toSelf(Mml.fromMarkup(`\nWhile you were away…${lostNote}\n`))
+          .send();
+        if (MixinApi.isSensor(me)) for (const f of ready) me.onMessage(f);
+      }
+      // Outbound: the lines typed while nothing could carry them.
+      if (this.heldOutbound.length > 0 && this.sendRefusal() === null) {
+        const lines = this.heldOutbound;
+        this.heldOutbound = [];
+        if (!MixinApi.isCommandGiver(me)) return;
+        for (const line of lines) {
+          MessageApi.scene(me)
+            .topic("speech.comms")
+            .toSelf(Mml.compose`Sending what you held: ${line}`)
+            .send();
+          await me.executeCommand(line);
+        }
+      }
+    }
+
+    noticeTuning(): void {
+      // After the act that told us: a device is told mid-move, before the
+      // move core has put it in its bearer's sources or its hand.
+      ScheduleApi.schedule(0, () => {
+        this.scheduleFlushIfMovable();
+        this.noteAetherWord();
+      });
+    }
+
+    /** Is anything held, and can some of it move now? Then flush once, after this frame. */
+    private scheduleFlushIfMovable(): void {
+      if (this._flushScheduled) return;
+      if (this.heldOutbound.length === 0 && this.heldInbound.length === 0) return;
+      const outboundCan = this.heldOutbound.length > 0 && this.sendRefusal() === null;
+      const inboundCan = this.heldInbound.some((f) => this.receptionRefusal(f) === null);
+      if (!outboundCan && !inboundCan) return;
+      this._flushScheduled = true;
+      ScheduleApi.schedule(0, () => void this.flushHeld());
+    }
+
+    /** Awake, and able to perceive by sight (D9). */
+    private canReadAScreen(): boolean {
+      const me = this as unknown as Stuff;
+      if (MixinApi.isVitals(me) && me.getConsciousness() !== "conscious") return false;
+      return PerceptionApi.canPerceive(me, PerceptionApi.modalityByName("vision"));
+    }
+
+    /** Why a message cannot leave right now, or `null`. */
+    private sendRefusal(): AetherRefusalReason | null {
+      const now = this.aetherHostNow();
+      if (!now.ok) return now.reason;
+      return now.host.hasApp(MESSAGES) ? null : "no-messages";
+    }
+
+    /**
+     * The host whose Messages would carry a message right now (D2): the
+     * first augment this body bears that nothing stops
+     * (`conferralRefusal() === null`), that confers the aether sense and
+     * that hosts apps; else the body itself when it is tuned by nature.
+     * None → the most fixable reason among the devices it bears, or
+     * `none`.
+     */
+    private aetherHostNow():
+      | { ok: true; host: Stuff & AetherHost }
+      | { ok: false; reason: AetherRefusalReason } {
+      const me = this as unknown as Stuff;
+      let best: AetherRefusalReason | null = null;
+      for (const augment of this.borneAugments()) {
+        if (!MixinApi.isAetherHost(augment)) continue;
+        const why = augment.conferralRefusal();
+        if (why === null) {
+          if (augment.confers().includes("AetherMixin")) return { ok: true, host: augment };
+          continue;
+        }
+        if (why === "not-borne") continue;
+        if (best === null || FIXABILITY.indexOf(why) < FIXABILITY.indexOf(best)) best = why;
+      }
+      // No device tunes it: is the body tuned by its own nature?
+      if (MixinApi.isAetherHost(me) && MixinApi.isActive(me, "AetherMixin")) {
+        return { ok: true, host: me };
+      }
+      return { ok: false, reason: best ?? "none" };
+    }
+
+    /**
+     * The augments this body bears (D1): what its slots hold, and what it
+     * carries — the carried devices whose verbs sit on its recency stack.
+     */
+    private borneAugments(): (Stuff & Augment)[] {
+      const me = this as unknown as Stuff;
+      const out: (Stuff & Augment)[] = [];
+      const add = (o: Stuff): void => {
+        if (MixinApi.isAugment(o) && !out.includes(o)) out.push(o);
+      };
+      if (MixinApi.isSlotted(me)) {
+        for (const occupants of me.getAllOccupants().values()) {
+          for (const o of occupants) add(o);
+        }
+      }
+      if (MixinApi.isCommandGiver(me)) {
+        for (const o of me.getCommandSources("environment")) add(o);
+      }
+      return out;
     }
   }
   return CommsMixin;

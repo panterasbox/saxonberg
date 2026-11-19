@@ -17,6 +17,7 @@ import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-wo
 import type { Stuff } from '../../stuff/Stuff';
 import type Place from '../../stuff/Place';
 import type { Affordance, CommandGiver } from '../CommandGiver';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const ctx = { commandGiver: {} as Stuff & CommandGiver, location: {} as Place };
 const defOf = (yaml: string): CommandDefinition => CommandDefinition.fromYaml(yaml, '<test>');
@@ -96,7 +97,7 @@ describe('the dispatcher says it when nothing claims the line', () => {
       verb: 'buyish',
       command: views[0]!,
     });
-    return { ctx: await giver._runChain(parsed, outer), ran };
+    return { ctx: await TestHarnessApi.actAs(giver, () => giver._runChain(parsed, outer)), ran };
   };
 
   it('⭐ bind-failed with the quoted line', async () => {

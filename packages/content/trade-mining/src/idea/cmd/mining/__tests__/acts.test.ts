@@ -61,6 +61,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Cell, Working } from '../../../../lib/Working';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';
@@ -135,7 +136,7 @@ async function run(
   text: string,
 ): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, where, text);
-  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx));
   return ctx;
 }
 

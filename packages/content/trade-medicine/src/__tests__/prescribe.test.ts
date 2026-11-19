@@ -28,6 +28,7 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Prescription } from '@saxonberg/server/mud/lib/vitals/Prescription';
 import PrescriptionThing from '@saxonberg/server/mud/platform/thing/Prescription';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Doc extends AdvancementMixin(CarryingMixin(Creature)) {
   static override _mixinName: string = 'Doc';
@@ -102,10 +103,7 @@ describe('prescribe', () => {
 
   it('a competent doctor writes a slip stamped for the patient + active', async () => {
     const { doc, patient } = scene();
-    await makeStuff(() => new PrescribeController()).execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
-      ctxFor(doc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PrescribeController()).execute({ patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined }, ctx$)))(ctxFor(doc));
     const slips = slipsHeldBy(doc);
     expect(slips).toHaveLength(1);
     expect(slips[0]!.isFor(patient.getIdentityPath()!, 'anaesthesia')).toBe(true);
@@ -114,20 +112,14 @@ describe('prescribe', () => {
   it('⭐ the REPLACEMENT flow — lose the slip, re-prescribe, the new one works', async () => {
     const { doc, patient } = scene();
     const ctrl = () => makeStuff(() => new PrescribeController());
-    await ctrl().execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
-      ctxFor(doc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined }, ctx$)))(ctxFor(doc));
     const first = slipsHeldBy(doc)[0]!;
     // Lose it — the physical Thing is destroyed (dropped, taken, torn up).
     await StuffApi.destruct(first);
     expect(slipsHeldBy(doc)).toHaveLength(0);
 
     // Re-prescribe: NOT blocked, and the fresh slip is valid for the patient.
-    await ctrl().execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
-      ctxFor(doc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined }, ctx$)))(ctxFor(doc));
     const replacement = slipsHeldBy(doc);
     expect(replacement).toHaveLength(1);
     expect(replacement[0]!.isFor(patient.getIdentityPath()!, 'anaesthesia')).toBe(true);
@@ -137,10 +129,7 @@ describe('prescribe', () => {
   it('⚠ an unlicensed giver is refused', async () => {
     const { doc, patient } = scene();
     doc.band = 'novice';
-    await makeStuff(() => new PrescribeController()).execute(
-      { patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined },
-      ctxFor(doc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PrescribeController()).execute({ patient: { stuff: patient } as unknown as MqlOneResult, active: 'anaesthesia', pad: undefined }, ctx$)))(ctxFor(doc));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'unlicensed' }),
     );

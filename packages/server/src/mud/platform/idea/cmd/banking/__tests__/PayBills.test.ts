@@ -19,6 +19,7 @@ import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { MqlOneResult } from "../../../../../api/mql";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
 import { makeStuff, makeStuffAtPath } from "../../../../../lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 /** A desk that keeps two bills for whoever pays at it. */
 class TestOffice extends PayableMixin(Idea) {
@@ -55,10 +56,10 @@ function context(): CommandContext {
 async function pay(amount?: string): Promise<void> {
   const recipient = { stuff: office, raw: "office" } as unknown as MqlOneResult;
   ctx = context();
-  await makeStuff(() => new PayController()).execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PayController()).execute(
     { recipient, ...(amount !== undefined ? { amount } : {}) } as never,
     ctx
-  );
+  ));
 }
 
 beforeEach(() => {

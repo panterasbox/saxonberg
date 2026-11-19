@@ -426,6 +426,8 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     index: number,
     by: Stuff,
   ): Promise<boolean | 'not-keeper'> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     const herd = await this.read(herdId);
     if (herd === null) return false;
     // ⭐ The keeper's act (controller-liquidity D9): asked before the book
@@ -555,6 +557,8 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     herdId: string,
     to: Field | null,
   ): Promise<HerdRecord | null | 'not-keeper' | 'outside-home' | 'already-there'> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const herd = await this.read(herdId);
     if (herd === null) return null;
     if (to) {
@@ -586,6 +590,8 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     index: number,
     overlay: HeadOverlay,
   ): Promise<boolean | 'not-keeper'> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const herd = await this.read(herdId);
     if (herd === null) return false;
     if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
@@ -602,6 +608,8 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     index: number,
     atS: number,
   ): Promise<boolean | 'not-keeper'> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const herd = await this.read(herdId);
     if (herd === null) return false;
     if (!(await this.mayKeep(actor, herd))) return 'not-keeper';
@@ -735,6 +743,8 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     index: number,
     into: Stuff | null,
   ): Promise<DraftAnswer> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     const found = await this.read(herdId);
     if (found === null) return { ok: false, reason: 'no-herd' };
     const herd = await this.reapStrays(found);

@@ -36,6 +36,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BloodUnit } from '@saxonberg/server/mud/lib/vitals/Blood';
 import { rememberDisciplines } from '@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 // Character is abstract; a concrete subclass is what a Cast/Avatar is.
 class TestCharacter extends Character {}
@@ -132,14 +133,11 @@ describe('transfuse — the harm row', () => {
     const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
     const bag = bloodBag(giver, 'B');
 
-    await makeStuff(() => new TransfuseController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TransfuseController()).execute({
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: { stuff: bag } as unknown as MqlOneResult,
         syringe: undefined,
-      },
-      ctxFor(giver),
-    );
+      }, ctx$)))(ctxFor(giver));
 
     expect(record).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'harm', consented: false }),
@@ -152,14 +150,11 @@ describe('transfuse — the harm row', () => {
     const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
     const bag = bloodBag(giver, 'O');
 
-    await makeStuff(() => new TransfuseController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TransfuseController()).execute({
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: { stuff: bag } as unknown as MqlOneResult,
         syringe: undefined,
-      },
-      ctxFor(giver),
-    );
+      }, ctx$)))(ctxFor(giver));
     expect(record).not.toHaveBeenCalled();
   });
 
@@ -168,14 +163,11 @@ describe('transfuse — the harm row', () => {
     const record = vi.spyOn(AccountabilityApi, 'record').mockImplementation(() => {});
     const bag = bloodBag(giver, 'B'); // would react, but self → no row
 
-    await makeStuff(() => new TransfuseController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TransfuseController()).execute({
         patient: undefined,
         vessel: { stuff: bag } as unknown as MqlOneResult,
         syringe: undefined,
-      },
-      ctxFor(giver),
-    );
+      }, ctx$)))(ctxFor(giver));
     expect(record).not.toHaveBeenCalled();
   });
 });
@@ -212,14 +204,11 @@ describe('transfuse — the engaged give lands after its controller is gone (con
     const bag = bloodBag(giver, 'B');
 
     const ctrl = makeStuff(() => new TransfuseController());
-    await ctrl.execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({
         patient: { stuff: patient } as unknown as MqlOneResult,
         vessel: { stuff: bag } as unknown as MqlOneResult,
         syringe: undefined,
-      },
-      ctxFor(giver),
-    );
+      }, ctx$)))(ctxFor(giver));
     expect(note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'engagement-started' }));
     // The dispatcher's `finally`: the controller is gone before the give lands.
     await StuffApi.destruct(ctrl);

@@ -32,6 +32,7 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { Idea } from '../../../lib/stuff/Idea';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 import { StuffApi } from '../../../api/stuff';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class Climber extends CommandGiverMixin(NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea))))) {
   received: unknown[] = [];
@@ -118,7 +119,7 @@ describe('Ladder — somebody can finally climb', () => {
     });
     const target: MqlOneResult = { stuff: r.stuff, raw: 'down' };
     if (r.via) target.via = r.via;
-    await controller.execute({ target } as ModelData as CommandModel, makeContext(climber, head));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target } as ModelData as CommandModel, ctx$)))(makeContext(climber, head));
     expect(climber.getContainer()).toBe(foot);
   });
 

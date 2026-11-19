@@ -36,6 +36,7 @@ import {
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type Interactive from '../../../Interactive';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestLocation extends Place {}
 
@@ -113,7 +114,7 @@ describe('TraceAddressController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new TraceAddressController());
-    await ctrl.execute(makeModel({ location: here(room) }), makeContext(avatar, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(makeModel({ location: here(room) }), ctx$)))(makeContext(avatar, room));
 
     expect(avatar.received).toHaveLength(1);
     const body = (avatar.received[0] as { body: string }).body;
@@ -130,7 +131,7 @@ describe('TraceAddressController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new TraceAddressController());
-    await ctrl.execute(makeModel({ location: here(room) }), makeContext(avatar, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(makeModel({ location: here(room) }), ctx$)))(makeContext(avatar, room));
 
     const body = (avatar.received[0] as { body: string }).body;
     expect(body).toContain('(none)');
@@ -146,12 +147,12 @@ describe('TraceAddressController', () => {
 
     const ctrl = await StuffApi.create(() => new TraceAddressController());
     const ctx = makeContext(avatar, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
       makeModel({
         location: { stuff: thing, raw: 'thing' } as unknown as MqlOneResult,
       }),
       ctx,
-    );
+    ));
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       true,
     );

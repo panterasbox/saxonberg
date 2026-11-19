@@ -41,6 +41,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** Run a controller execute with `actor` tagged as the acting author. */
 async function executeAs(
@@ -92,14 +93,11 @@ async function hammerWith(anvil: Tool, ingot: Stock): Promise<void> {
   ContainmentApi.move(anvil, room);
   ContainmentApi.move(ingot, room);
   await executeAs(actor, () =>
-    makeStuff(() => new HammerController()).execute(
-      {
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HammerController()).execute({
         target: ref(ingot, 'ingot'),
         striker: many(striker),
         anvil: many(anvil),
-      } as never,
-      makeContext(actor, room, 'hammer ingot'),
-    ),
+      } as never, ctx$)))(makeContext(actor, room, 'hammer ingot')),
   );
 }
 
@@ -148,10 +146,7 @@ describe('rate paces the conferring kind', () => {
     ContainmentApi.move(ingot, room);
     const before = ingot.getHeatedToK();
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(ingot, 'ingot') } as never,
-        makeContext(actor, room, 'heat ingot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(ingot, 'ingot') } as never, ctx$)))(makeContext(actor, room, 'heat ingot')),
     );
     await completeStep(3900); // HEAT_MS 4000 — not yet
     expect(ingot.getHeatedToK()).toBe(before);
@@ -191,10 +186,7 @@ describe('the engaged repair', () => {
     ContainmentApi.move(jerkin, room);
     ContainmentApi.move(makeStock(LEATHER, 0.5), room);
     await executeAs(actor, () =>
-      makeStuff(() => new RepairController()).execute(
-        { item: ref(jerkin, 'jerkin'), kit: many(mender) } as never,
-        makeContext(actor, room, 'repair jerkin'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RepairController()).execute({ item: ref(jerkin, 'jerkin'), kit: many(mender) } as never, ctx$)))(makeContext(actor, room, 'repair jerkin')),
     );
   }
 
@@ -232,10 +224,10 @@ describe('the engaged repair', () => {
     const controller = makeStuff(() => new RepairController());
     const ctx = makeContext(actor, room, 'repair jerkin');
     await executeAs(actor, () =>
-      controller.execute(
+      TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
         { item: ref(jerkin, 'jerkin'), kit: many(kit) } as never,
         ctx,
-      ),
+      )),
     );
     // The dispatcher destructs the per-dispatch clone when execute
     // returns — a `this.<method>()` in onComplete would [inert] no-op

@@ -64,6 +64,7 @@ import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import { AccessApi } from '../../api/access';
 /** Fallback when app-settings is unread (pre-warm / tests); the seeded
  * `chat.historyCap` is authoritative at runtime. */
 const DEFAULT_HISTORY_CAP = 200;
@@ -255,6 +256,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     persistent: Channel[];
     adHoc: AdHocChannel[];
   }> {
+    AccessApi.requireActor(actor);
     const map = await this.ensureNameCache();
     const subjects = await this.requireSubjects();
     const persistent: Channel[] = [];
@@ -483,6 +485,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     reader: Stuff,
     channelId: string,
   ): Promise<ChannelHistoryResult> {
+    AccessApi.requireActor(reader);
     const ad = this.byHandle.get(channelId);
     if (ad) {
       if (!this.isAdHocMember(reader, ad)) {
@@ -529,6 +532,8 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     actor: Stuff,
     c: Channel,
   ): Promise<ActRefusal<ChannelRefusalReason> | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     if (c.kind !== 'player-created') {
       return { ok: false, reason: 'not-player-created' };
     }

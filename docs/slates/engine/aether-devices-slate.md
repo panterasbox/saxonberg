@@ -1,18 +1,16 @@
 # Aether devices slate — the field, the tuners, and the screens
 
-> **Status: UNBUILT** — opened 2026-11-02 out of the lock design (lock-slate § 7) as *instruments
-> driven by mind*; ⭐ **re-founded 2026-11-18** in a design conversation with the owner on aether
-> connectivity, screens and the implant. Shipped and still right: the aether transport (`dm`/`tell`,
-> chat channels, remote emotes — [comms.md](../../subsystems/comms.md),
-> [chat.md](../../subsystems/chat.md)); attunement as a state of the **person**, with comms, forums,
-> the wallet and the calendar hosted on the person ([augmentation.md](../../subsystems/augmentation.md));
-> born-attuned species; screens and their by-mind ladder ([display.md](../../subsystems/display.md)).
-> **Left:** `help ask` and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
-> confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) ·
-> one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · a power
-> state on tuners, so a covenant's *power it down* is real (§ 9) · the town's node (§ 9) · the
-> original question: instruments driven by mind (§ 10)
-> **Size:** a build (§§ 3, 5, 6, 9)
+> **Status: PARTLY BUILT** — the aether-devices build (MR !615, 2026-11-19) shipped §§ 3, 5, 6's
+> one kind of app, and § 9's power state: the room carries emotes so NPCs perceive them; the phone
+> is the starting tuner and the free implant is a guest's; a carried tuner confers attunement and
+> says why not; apps are one kind (`App` rows, `apps` verb); held, never silent; the battery and the
+> charger; ownership as the lock; every shade the shade species. Reference:
+> [aether-devices.md](../../subsystems/aether-devices.md).
+> **Left:** `help ask` and the social promise (§ 1 → guarantees-of-play-slate, customer service) ·
+> the screen cleanup (§ 6 → display-manifestation-slate) · calls designed, not built (§ 7) · the
+> *power it down* law and the town's node (§ 9 → the epoch build, content-declaration-slate § 3.0) ·
+> the original question: instruments driven by mind (§ 10)
+> **Size:** design (§§ 7, 10); the rest rides other slates
 
 ## 0. The asks
 
@@ -239,6 +237,45 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **The implant can't be lost** — that is its whole case, and someone has to choose it (medicine
   fits it).
 
+### Decided for the first build (2026-11-18, the requirements conversation)
+
+→ built; see [aether-devices.md](../../subsystems/aether-devices.md) (the requirements and plan retired at the sweep, 2026-11-19).
+
+- **The battery is in the first build** (the owner). It lasts a full play session of ordinary use,
+  drains on the game clock only while your body is online, and charges with `put phone on charger`
+  wherever the premises has power — **including while you are logged out**. *"Keeping your phone
+  charged should be cheap and easy — this isn't the place in the game where we want to put up
+  barriers."*
+- **Guests keep a forced implant** — *"I'm just worried about phones leaking into the economy through
+  guests … or anything for that matter."*
+- **The shade is tuned intrinsically; a holodeck circle body gets nothing by default** — *"you
+  shouldn't be forcing any decisions on a holodeck user. What if the whole point is to test not having
+  an implant?"* The circle's owner equips it; the circle's rule that nothing made inside can leave
+  stops leaks.
+- **`help ask` waits for customer service** — *"we'll handle customer service later."*
+- **Getting an implant** waits for *"a cool process"* and the surgery slate.
+- **The starter phone is a value leak** like today's starter clothes →
+  [money-integrity-slate](../tech-debt/money-integrity-slate.md).
+- ⭐ **Apps run on the device, from day one** (the owner, reversing § 1's *apps are not installed on
+  the device* for new apps): *"I do want to make sure we design and build the concept of an app
+  running on the phone now … a clear concept of what's built into the phone and what's installed on
+  it."* Built in: the tuner, power, battery, screen. Installed: **Messages** (DMs, chat, remote
+  emotes). The calendar, wallet and forums stay on the person — *"we don't have to migrate"*.
+- ⭐ **Activated to its owner** — a phone tunes and runs apps only for the person it is activated to;
+  the free starter phone can never be reset (*"bind itself to the user or otherwise be worthless to
+  anyone but the new player"*). A bought phone can be reset by its owner.
+- **One new verb, `apps`** (`apps`, `apps install`, `apps uninstall`) — the noun is the apps, not
+  the phone, because the implant runs apps too. Everything else uses a shared verb: `switch`, `put …
+  on charger`, `title transfer`.
+- **Ownership is the lock** — a phone runs for whoever holds its title (chattel); the starter's title
+  cannot be transferred. No `reset` verb.
+- **Brands** — phone models are corpo brands (Aevex premium and the implant's maker, Hollis budget,
+  Vionne luxury); **Messages is no corpo's** — an open standard, so a corporation never owns the
+  comms floor. Your starting phone's brand comes from your lineage
+  ([lineage-slate](../society/lineage-slate.md)).
+- **A tuner within reach was dropped** — hand or ready tunes you; charging happens while you are
+  logged out.
+
 ## 6. Screens, and one kind of app
 
 - **The phone is also a held screen** — a `Tablet`-shaped display in your hand, so it shows your
@@ -398,4 +435,8 @@ exit you can find without help).
 | starting kit | `Avatar.installDefaultLoadout` seats the implant | seat the phone instead |
 | the room as carrier | a place is a carrier in arcane-science rule 1 | write the clause |
 | screens | `DisplayMixin`, `CommandController.resolveScreen` | the access-check, rows and one-wire-shape cleanup |
+| the battery | no electrical battery exists; `ChargedMixin` is denominated in τ (mana) | ⭐ genuinely new, or a generalized charge economy — the plan decides |
+| power on/off | `SwitchableMixin` and the `switch` verb | reuse for the phone's power state |
+| the charger | `put` with a placement; the energy pack's `GridPowered` and the premises meter | a charger row on the grid |
+| held messages | the person-targeting slate's *held until they return* | the plan decides whether it exists in code |
 | a phone's modes and sensors | `LightSource` (the flashlight), the `Reading` rows (instrumentation), the per-player map document, `ChargedMixin` (the battery) | reuse — each feature an app row over what exists |

@@ -24,6 +24,7 @@ import { PlayerApi } from '../../api/player';
 import { GroupApi } from '../../api/group';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Avatar from '../../lib/character/Avatar';
+import { TestHarnessApi } from '../../api/test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter: number;
@@ -140,15 +141,15 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     const other = makeAvatar('p2');
     await channels.createPlayerChannel(owner, 'Gossip');
 
-    expect(await channels.renamePlayerChannel(other, 'Gossip', 'Rumor')).toEqual({
+    expect(await TestHarnessApi.actAs(other, () => channels.renamePlayerChannel(other, 'Gossip', 'Rumor'))).toEqual({
       ok: false,
       reason: 'not-owner',
     });
-    expect(await channels.setAnonymity(other, 'Gossip', 'forbidden')).toEqual({
+    expect(await TestHarnessApi.actAs(other, () => channels.setAnonymity(other, 'Gossip', 'forbidden'))).toEqual({
       ok: false,
       reason: 'not-owner',
     });
-    expect(await channels.disbandPlayerChannel(other, 'Gossip')).toEqual({
+    expect(await TestHarnessApi.actAs(other, () => channels.disbandPlayerChannel(other, 'Gossip'))).toEqual({
       ok: false,
       reason: 'not-owner',
     });
@@ -156,11 +157,11 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     const c = await channels.resolveByName('Gossip');
     expect(c?.permitsAnonymity()).toBe(true);
 
-    const set = await channels.setAnonymity(owner, 'Gossip', 'forbidden');
+    const set = await TestHarnessApi.actAs(owner, () => channels.setAnonymity(owner, 'Gossip', 'forbidden'));
     expect(set.ok && set.channel.permitsAnonymity()).toBe(false);
-    const renamed = await channels.renamePlayerChannel(owner, 'Gossip', 'Rumor');
+    const renamed = await TestHarnessApi.actAs(owner, () => channels.renamePlayerChannel(owner, 'Gossip', 'Rumor'));
     expect(renamed.ok && renamed.channel.name).toBe('Rumor');
-    expect((await channels.disbandPlayerChannel(owner, 'Rumor')).ok).toBe(true);
+    expect((await TestHarnessApi.actAs(owner, () => channels.disbandPlayerChannel(owner, 'Rumor'))).ok).toBe(true);
     expect(await channels.resolveByName('Rumor')).toBeNull();
   });
 
@@ -172,7 +173,7 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     vi.mocked(GroupApi.roleOf).mockImplementation(async (key: string) =>
       key === 'p3' ? 'owner' : null,
     );
-    expect((await channels.disbandPlayerChannel(captain, 'Crew')).ok).toBe(true);
+    expect((await TestHarnessApi.actAs(captain, () => channels.disbandPlayerChannel(captain, 'Crew'))).ok).toBe(true);
   });
 
   it('refuses a rename onto a reserved word or a taken name, after the owner gate', async () => {
@@ -180,11 +181,11 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     const owner = makeAvatar('p1');
     await channels.createPlayerChannel(owner, 'Gossip');
     await channels.createPlayerChannel(owner, 'Market');
-    expect(await channels.renamePlayerChannel(owner, 'Gossip', 'Market')).toEqual({
+    expect(await TestHarnessApi.actAs(owner, () => channels.renamePlayerChannel(owner, 'Gossip', 'Market'))).toEqual({
       ok: false,
       reason: 'name-taken',
     });
-    expect(await channels.renamePlayerChannel(owner, 'Nowhere', 'X')).toEqual({
+    expect(await TestHarnessApi.actAs(owner, () => channels.renamePlayerChannel(owner, 'Nowhere', 'X'))).toEqual({
       ok: false,
       reason: 'no-such-channel',
     });
@@ -213,13 +214,13 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     groupMembers.get(ref)!.add(owner.getIdentityPath()!);
     channels.appendToHistory(c._id!, { body: 'hello' } as never);
 
-    expect(await channels.historyFor(other, c._id!)).toEqual({
+    expect(await TestHarnessApi.actAs(other, () => channels.historyFor(other, c._id!))).toEqual({
       ok: false,
       reason: 'not-member',
     });
-    const mine = await channels.historyFor(owner, c._id!);
+    const mine = await TestHarnessApi.actAs(owner, () => channels.historyFor(owner, c._id!));
     expect(mine.ok && mine.frames.length).toBe(1);
-    expect(await channels.historyFor(owner, 'no-such-id')).toEqual({
+    expect(await TestHarnessApi.actAs(owner, () => channels.historyFor(owner, 'no-such-id'))).toEqual({
       ok: false,
       reason: 'no-such-channel',
     });
@@ -233,15 +234,15 @@ describe('ChannelCatalogue — the gates are the catalogue\'s (D9)', () => {
     const ad = channels.openAdHoc(a, [a, b]);
     channels.appendToHistory(ad.handle, { body: 'psst' } as never);
     // Same row, another person: refused (a lineage key admitted everyone).
-    expect(await channels.historyFor(stranger, ad.handle)).toEqual({
+    expect(await TestHarnessApi.actAs(stranger, () => channels.historyFor(stranger, ad.handle))).toEqual({
       ok: false,
       reason: 'not-member',
     });
     // The same person stood back up (a new body, one identity): admitted.
     const aAgain = makeAvatar('p1');
-    const res = await channels.historyFor(aAgain, ad.handle);
+    const res = await TestHarnessApi.actAs(aAgain, () => channels.historyFor(aAgain, ad.handle));
     expect(res.ok && res.frames.length).toBe(1);
-    const visible = await channels.visibleChannels(stranger);
+    const visible = await TestHarnessApi.actAs(stranger, () => channels.visibleChannels(stranger));
     expect(visible.adHoc).toHaveLength(0);
   });
 });

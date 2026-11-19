@@ -31,6 +31,7 @@ import {
   Collections,
 } from "../../../../backend/PersistenceManager";
 import type { EnvelopeTemplate, DispatchResponseEnvelope } from "@saxonberg/types";
+import { TestHarnessApi } from "../../../api/test-harness";
 
 const TestGiverBase = CommandGiverMixin(
   EnvironmentMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -91,28 +92,28 @@ describe("named scripts — def persistence + do", () => {
 
   it("a def at one prompt is invocable by do at the next", async () => {
     // The `script` parser is the default now — `def` (a builtin) runs.
-    await giver.executeCommand("def twice { ping; ping }");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("def twice { ping; ping }"));
 
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("do twice");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do twice"));
     expect(pingCount(resolveModel)).toBe(2);
   });
 
   it("do binds the script's param (observed via a conditional)", async () => {
-    await giver.executeCommand('def gated ($x) { if ($x == "go") { ping } }');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('def gated ($x) { if ($x == "go") { ping } }'));
 
     const goSpy = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("do gated with go");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do gated with go"));
     expect(pingCount(goSpy)).toBe(1); // $x == "go" → the ping fires
     goSpy.mockRestore();
 
     const stopSpy = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("do gated with stop");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do gated with stop"));
     expect(pingCount(stopSpy)).toBe(0); // $x != "go" → no ping
   });
 
   it("do declines a script that isn't defined", async () => {
-    await giver.executeCommand("do nonesuch");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do nonesuch"));
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(
       env.outcome.notes.some(
@@ -131,16 +132,16 @@ describe("named scripts — def persistence + do", () => {
       keywords: ["twice"],
     });
     const canMake = vi.spyOn(CraftingApi, "canMake").mockResolvedValue(false);
-    await giver.executeCommand("def twice { ping; ping }");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("def twice { ping; ping }"));
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("do twice");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do twice"));
     expect(pingCount(resolveModel)).toBe(2);
     expect(canMake).not.toHaveBeenCalled();
   });
 
   it("a bare command still parses byte-identically (the flip is wrap-not-replace)", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping"));
     expect(resolveModel).toHaveBeenCalledTimes(1);
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(env.outcome.status).toBe("ok");

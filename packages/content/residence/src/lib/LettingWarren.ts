@@ -44,6 +44,7 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 import { Ascent, type AscentRefusal } from "./Ascent";
+import { AccessApi } from "@saxonberg/server/mud/api/access";
 
 /** Why a let refused. */
 export type LetRefusal =
@@ -146,6 +147,8 @@ export abstract class LettingWarren extends CirculationWarren {
    * reflects it.
    */
   public async let(by: Stuff, tenant: Stuff | null, opts: { theme?: string } = {}): Promise<LetAnswer> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     const parent = this.getParentExtent();
     const owner = (await ParcelApi.coveringParcelOf(parent))?.getOwner() ?? null;
     if (!owner) return { ok: false, reason: "no-owner", detail: `${parent} has no owner of record` };
@@ -213,6 +216,8 @@ export abstract class LettingWarren extends CirculationWarren {
    * the slot frees and the keyway dies with the row.
    */
   public async endLet(by: Stuff, tenant: Stuff | null): Promise<EndLetAnswer> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     if (!(await this.mayLetFor(by))) {
       return { ok: false, reason: "not-authorized", detail: "neither staff nor the owner" };
     }

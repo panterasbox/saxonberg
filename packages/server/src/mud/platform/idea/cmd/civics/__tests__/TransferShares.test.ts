@@ -37,6 +37,7 @@ import { PersistenceManager } from '../../../../../lib/persistence/__tests__/bac
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuff, makeStuffAtPath, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 import type { GovernmentDescriptor } from '../../../Government';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const REG = '/platform/idea/ShipRegister/test-city';
 const GULL = '/test/ship/gull';
@@ -126,7 +127,7 @@ async function run(giver: Avatar, model: Record<string, unknown>): Promise<Comma
   const ctx = makeContext(giver);
   await withRootContext(null, 'transfer-shares.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new TitleTransferController()).execute(model as unknown as CommandModel as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new TitleTransferController()).execute(model as unknown as CommandModel as never, ctx));
   });
   return ctx;
 }

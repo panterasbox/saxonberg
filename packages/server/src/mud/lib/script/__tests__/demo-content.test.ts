@@ -52,6 +52,7 @@ import {
   Collections,
 } from "../../../../backend/PersistenceManager";
 import type { EnvelopeTemplate } from "@saxonberg/types";
+import { TestHarnessApi } from "../../../api/test-harness";
 
 // The authored exemplars live in the `saxonberg-lounge` content pack
 // (`content/msh/*.msh`), not in the kernel tree.
@@ -232,7 +233,7 @@ describe("the engine runs authored shapes paced over the bus", () => {
 
   it("dispatches every statement of an inline multi-statement script", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("ping; ping; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping; ping; ping"));
     expect(pingCount(resolveModel)).toBe(3);
   });
 
@@ -241,7 +242,7 @@ describe("the engine runs authored shapes paced over the bus", () => {
 
     // The run detaches at the `wait` (the prompt stays live): only the
     // first ping has dispatched.
-    await giver.executeCommand("ping; wait 2s; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping; wait 2s; ping"));
     expect(pingCount(resolveModel)).toBe(1);
 
     // Advance the GAME clock past the wait → the pump resumes → the

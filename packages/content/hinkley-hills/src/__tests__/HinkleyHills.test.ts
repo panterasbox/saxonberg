@@ -76,6 +76,7 @@ import {
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '@saxonberg/server/mud/lib/perception/modalities/__tests__/test-helpers';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -439,7 +440,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
     const ctx = ctxFor(giver, yard);
     const ctrl = makeStuff(() => new PlantController());
-    await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx));
 
     expect(reasons(ctx)).not.toContain('land-use-forbids-cultivation');
   });
@@ -454,7 +455,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
     const ctx = ctxFor(giver, office);
     const ctrl = makeStuff(() => new PlantController());
-    await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx));
 
     expect(reasons(ctx)).toContain('land-use-forbids-cultivation');
     const detail = ctx
@@ -478,7 +479,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
     const ctx = ctxFor(giver, office);
     const ctrl = makeStuff(() => new PlantController());
-    await ctrl.execute(model(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx));
 
     expect(reasons(ctx)).not.toContain('land-use-forbids-cultivation');
     expect(pot.isFixedGround()).toBe(false);
@@ -503,7 +504,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
     const ctx = ctxFor(giver, forest);
     const ctrl = makeStuff(() => new PlantController());
-    await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx));
 
     expect(reasons(ctx)).not.toContain('land-use-forbids-cultivation');
   });
@@ -525,7 +526,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
     const ctx = ctxFor(giver, cell);
     const ctrl = makeStuff(() => new PlantController());
-    await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx));
 
     expect(reasons(ctx)).toContain('land-use-forbids-cultivation');
   });
@@ -561,10 +562,10 @@ describe('Hinkley Hills — the land-use gate', () => {
       const seed = makeSeed();
       ContainmentApi.move(seed, giver);
       const ctx = ctxFor(giver, room as unknown as LitRoom);
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         model(one(seed, 'seed'), one(bed, 'bed', 'in')),
         ctx,
-      );
+      ));
       expect(reasons(ctx).includes('land-use-forbids-cultivation')).toBe(
         refused,
       );
@@ -666,10 +667,10 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
       const seed = makeSeed();
       ContainmentApi.move(seed, me);
       const plantCtx = ctxFor(me, yard);
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(plantCtx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         model(one(seed, 'seed'), one(bed, 'bed', 'in')),
         plantCtx,
-      );
+      ));
       expect(reasons(plantCtx)).not.toContain(
         'land-use-forbids-cultivation',
       );
@@ -680,19 +681,16 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
       for (let d = 4; d <= 96; d += 4) {
         walkNow = WALK_BASE + d * DAY;
         refillCan(can, 4);
-        await makeStuff(() => new WaterController()).execute(
-          waterModel(one(crop, 'carrots'), can as unknown as Stuff),
-          ctxFor(me, yard),
-        );
+        await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(waterModel(one(crop, 'carrots'), can as unknown as Stuff), ctx$)))(ctxFor(me, yard));
       }
       expect(crop.getGrowthStage()).toBe('mature');
 
       // ── harvest ──
       const harvestCtx = ctxFor(me, yard);
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(harvestCtx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         harvestModel(one(crop, 'carrots')),
         harvestCtx,
-      );
+      ));
       expect(reasons(harvestCtx)).not.toContain('not-mature');
 
       const held = me
@@ -709,10 +707,7 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
 
       // ── the bed is poorer, and I only feed it after round 2 ──
       if (round === 2) {
-        await makeStuff(() => new FeedController()).execute(
-          feedModel(one(bed, 'bed')),
-          ctxFor(me, yard),
-        );
+        await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FeedController()).execute(feedModel(one(bed, 'bed')), ctx$)))(ctxFor(me, yard));
         expect(bed.nutrientFraction()).toBe(1);
       }
       walkNow += 2 * DAY;

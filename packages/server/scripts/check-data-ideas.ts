@@ -84,13 +84,22 @@ import {
 
 /**
  * Data-only `Idea` classes in the tree today (the census; it may only fall).
- * 2026-11-17: Condition, CredentialWalletUpdate, Discipline, LocomotionMode,
+ * 2026-11-17: Condition, CredentialWalletUpdate (WalletApp since aether-devices), Discipline, LocomotionMode,
  * Corpo, Spell, Modality, QuantityMarshaller, BodyPlan (kernel); Deposit
  * (ground), Lane and ServiceRoute (transport). `--report` lists them.
  * (SoundModality left the census in crowded-rooms W1: its gather now holds
  * the world still, an Api call.)
  */
-export const DATA_IDEAS_CEILING = 12;
+// aether-devices: +1, a STATED rise for the owner's eye — `App` (D2, D2a).
+// It replaced `CommsUpdate`, which carried comms and so was never counted;
+// Messages is now a pure marker the person's comms looks for. Caller audit:
+// an App is ACTED ON (cloned and hosted by `AetherHostMixin.installApp`,
+// destroyed by `unhostApp` and its host's destruct) and is a link in the
+// MQL `reachable` chain (a host's apps) — limb 3 of the Idea test, which
+// this syntax-only census cannot see; its subclasses (`ForumsApp`,
+// `CalendarApp`) carry behavior and are not counted. The plan (P10) said to
+// bring it back as a finding: it is the MR's first item.
+export const DATA_IDEAS_CEILING = 13;
 
 const IDEA_ROOT = "/lib/stuff/Idea";
 const LOGIC_ROOT = "/lib/stuff/ApiLogic";

@@ -21,6 +21,7 @@ import { VisibleMixin } from '../../description/Visible';
 import { PerceptibleMixin } from '../../description/Perceptible';
 import { TangibleMixin } from '../../material/Tangible';
 import { NamedMixin } from '../../description/Named';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -73,7 +74,7 @@ describe('the dispatcher asks for a missing object', () => {
       return lines.length === 1 ? real(parsed, outer) : outer;
     });
 
-    await giver.executeCommand('drop', { interactive: interactive as never });
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('drop', { interactive: interactive as never }));
 
     // (What the prompt OFFERS goes through the perception gate, and this
     // bare giver perceives nothing — the candidate list is checked in the
@@ -92,7 +93,7 @@ describe('the dispatcher asks for a missing object', () => {
       last = ctx as never;
       return ctx;
     });
-    await giver.executeCommand('drop');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('drop'));
     expect(lines).toEqual(['drop']);
     expect(last!.getNotes().some((n) => n.kind === 'command-rejected' && n.reason === 'shape-fall-through')).toBe(true);
   });

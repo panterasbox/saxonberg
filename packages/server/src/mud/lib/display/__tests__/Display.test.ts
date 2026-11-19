@@ -56,6 +56,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const BIZ = '/stuff/test/display/business';
 const REMOTE = '/stuff/test/display/remote';
@@ -356,9 +357,7 @@ describe('DisplayMixin — a display drives itself', () => {
         body: Mml.compose`Tonight: the old fashioned.`,
       });
       const controller = makeStuff(() => new LookController());
-      await controller.execute(
-        { target: { stuff: board as unknown as Stuff, raw: 'board' } } as never,
-        CommandApi.createCommandContext({
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target: { stuff: board as unknown as Stuff, raw: 'board' } } as never, ctx$)))(CommandApi.createCommandContext({
           commandGiver: viewer.avatar as never,
           location: booth as never,
           commandText: 'look board',
@@ -369,8 +368,7 @@ describe('DisplayMixin — a display drives itself', () => {
             'verbs: [look]\ncontroller: NoopController\ndescription: stub\nopens_card: subject\n',
             '<test>',
           ),
-        }),
-      );
+        }));
       const said = JSON.stringify(viewer.envelopes);
       expect(said).toContain('Tonight: the old fashioned.');
     });

@@ -30,6 +30,7 @@ import {
   type ModelData,
 } from '../../../../../api/command';
 import type Interactive from '../../../Interactive';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestLocation extends Place {}
 
@@ -117,7 +118,7 @@ describe('TraceAtmosphereController', () => {
     const ctrl = await StuffApi.create(
       () => new TraceAtmosphereController(),
     );
-    await ctrl.execute(makeModel({}), makeContext(avatar, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(makeModel({}), ctx$)))(makeContext(avatar, room));
 
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
@@ -144,10 +145,7 @@ describe('TraceAtmosphereController', () => {
     const ctrl = await StuffApi.create(
       () => new TraceAtmosphereController(),
     );
-    await ctrl.execute(
-      makeModel({ detail: 'hearth' }),
-      makeContext(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(makeModel({ detail: 'hearth' }), ctx$)))(makeContext(avatar, room));
 
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('value="800"');

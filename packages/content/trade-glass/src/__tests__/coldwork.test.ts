@@ -28,6 +28,7 @@ import ScribeController from "../idea/cmd/glass/ScribeController";
 import SnapController from "../idea/cmd/glass/SnapController";
 import GrozeController from "../idea/cmd/glass/GrozeController";
 import GlazeController from "../idea/cmd/glass/GlazeController";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 const IRON = "/stuff/idea/material/element/iron";
 const PANE_ROW = "/trade/glass/thing/pane";
@@ -60,7 +61,7 @@ async function run(
   model: Record<string, unknown>,
 ): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, room as unknown as Stuff, "glass");
-  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx));
   return ctx;
 }
 

@@ -36,6 +36,7 @@ import { TemplatePaths } from "../../../../../lib/paths";
 import mustBeEdible from "../../../../../lib/command/validators/mustBeEdible";
 import requiresConscious from "../../../../../lib/command/validators/requiresConscious";
 import { standShippedConditions } from "../../../../../lib/vitals/__tests__/conditions";
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
@@ -103,10 +104,7 @@ describe("EatController", () => {
     const item = edibleItem("an apple", apple);
     ContainmentApi.move(item as never, loc as never);
 
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item, "apple") } as never,
-      ctxFor(eater, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item, "apple") } as never, ctx$)))(ctxFor(eater, loc));
 
     expect(eater.solidVolume).toBeCloseTo(METABOLIC_DEFAULTS.EAT_PORTION_LITRES);
     expect((eater.digestionPools.sugar ?? 0)).toBeGreaterThan(0);
@@ -123,10 +121,7 @@ describe("EatController", () => {
     const item = edibleItem("an apple", apple);
     ContainmentApi.move(item as never, loc as never);
 
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item, "apple") } as never,
-      ctxFor(eater, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item, "apple") } as never, ctx$)))(ctxFor(eater, loc));
 
     expect(eater.solidVolume).toBeCloseTo(METABOLIC_DEFAULTS.SOLID_CAP_LITRES);
     const stillHere = (loc as unknown as { getContents(): Stuff[] })

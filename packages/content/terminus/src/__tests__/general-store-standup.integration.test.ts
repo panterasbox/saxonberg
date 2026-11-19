@@ -55,6 +55,11 @@ const ARCANA_SRC = fileURLToPath(new URL("../../../arcana/src", import.meta.url)
 // system's rows and its `HaulageRig` class, stocked cross-pack.
 const TRANSPORT_DIR = fileURLToPath(new URL("../../../transport/content/system/transport/", import.meta.url));
 const TRANSPORT_SRC = fileURLToPath(new URL("../../../transport/src", import.meta.url));
+// The phone charger (aether-devices D12) — the energy pack's row and class.
+const ENERGY_DIR = fileURLToPath(new URL("../../../energy/content/system/energy/", import.meta.url));
+const ENERGY_SRC = fileURLToPath(new URL("../../../energy/src", import.meta.url));
+// The apps a phone or a headset installs from its row (aether-devices D2).
+const APP_DIR = fileURLToPath(new URL("../../../platform/content/platform/idea/app/", import.meta.url));
 // The homebrew kit's trade rows (fermentation D15).
 const WINE_DIR = fileURLToPath(new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url));
 const BREW_DIR = fileURLToPath(new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url));
@@ -286,6 +291,8 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
   { prefix: "/system/residence/", dir: () => RESIDENCE_DIR },
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
+  { prefix: "/system/energy/", dir: () => ENERGY_DIR },
+  { prefix: "/platform/idea/app/", dir: () => APP_DIR },
   { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
   { prefix: "/trade/brewing/", dir: () => BREW_DIR },
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
@@ -419,6 +426,8 @@ describe("general-store standup (real seeds)", () => {
       seedDoc("counter"),
       ...goods,
       ...shelfPaths.map(objDoc),
+      // A phone or a headset clones the Messages row it lists.
+      objDoc("/platform/idea/app/messages"),
     ];
     // ⭐ A row that authors `shape: rod` (a holster, a scabbard) resolves
     // its shape on hydrate — the platform's shapes are documents the
@@ -441,6 +450,7 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(APICULTURE_SRC, "/trade/apiculture");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
+    ModuleApi.registerPackSource(ENERGY_SRC, "/system/energy");
     ModuleApi.registerPackSource(COOKING_SRC, "/trade/cooking");
     ModuleApi.registerPackSource(HAULAGE_SRC, "/trade/haulage");
     ModuleApi.registerPackSource(TEXTILES_SRC, "/trade/textiles");

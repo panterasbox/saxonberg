@@ -44,6 +44,7 @@ import {
   stampTemplatePathForTest,
 } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 /** Where the commons' spell rows live, and the class every one names (the catalogue warms BY CLASS). */
@@ -182,10 +183,7 @@ describe("CastController + CastActivity", () => {
     const caster = makeCaster(room ?? (room = makeStuff(() => new Room())));
     const before = mana(caster);
     const controller = makeStuff(() => new CastController());
-    await controller.execute(
-      { spell: "glowlight" } as unknown as CommandModel,
-      ctx(caster, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ spell: "glowlight" } as unknown as CommandModel, ctx$)))(ctx(caster, room));
     // Dispatch schedules; nothing has been spent or installed yet.
     expect(mana(caster)).toBe(before);
     expect(caster.hasCondition((c) => c.kind === "sustained")).toBe(false);
@@ -203,10 +201,7 @@ describe("CastController + CastActivity", () => {
     const caster = makeCaster(room);
     const before = mana(caster);
     const controller = makeStuff(() => new CastController());
-    await controller.execute(
-      { spell: "glowlight" } as unknown as CommandModel,
-      ctx(caster, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ spell: "glowlight" } as unknown as CommandModel, ctx$)))(ctx(caster, room));
     SchedulerApi.cancelAll(caster as never); // the barge-in
     WorldClockApi._advanceForTesting(5000);
     await new Promise((r) => setTimeout(r, 0));
@@ -222,10 +217,7 @@ describe("CastController + CastActivity", () => {
     const caster = makeCaster(room);
     testBand = "untrained";
     const controller = makeStuff(() => new CastController());
-    await controller.execute(
-      { spell: "glowlight" } as unknown as CommandModel,
-      ctx(caster, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ spell: "glowlight" } as unknown as CommandModel, ctx$)))(ctx(caster, room));
     expect(selfLines.join(" ")).toMatch(/beyond your/);
     expect(mana(caster)).toBe(120);
   });

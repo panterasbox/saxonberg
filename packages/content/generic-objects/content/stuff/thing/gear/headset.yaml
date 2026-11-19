@@ -16,3 +16,7 @@ data:
     "/stuff/idea/species/BodyPlan/biped": [head]
   _materialPath: /stuff/idea/material/alloy/brass
   mass: 0.15
+  # An aether host like the implant it is (aether-devices D2): Messages.
+  installedApps: [/platform/idea/app/messages]
+  offersApps: [/platform/idea/app/messages]
+  manifestsAs: known

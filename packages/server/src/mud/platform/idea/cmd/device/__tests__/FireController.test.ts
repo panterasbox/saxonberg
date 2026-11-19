@@ -43,6 +43,7 @@ import {
 } from '../../crafting/__tests__/branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import WorldClockRegistry from '../../../../idea/WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** The test's own stone and what heat makes of it. */
 const STONE_M = '/stuff/idea/material/_test/fire-stone';
@@ -81,10 +82,10 @@ async function fire(model: Record<string, unknown> = {}): Promise<CommandContext
   const context = makeContext(actor, room, 'fire');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await makeStuff(() => new FireController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new FireController()).execute(
       { kiln: { stuff: kiln, raw: 'kiln' }, ...model } as never,
       context,
-    );
+    ));
   });
   return context;
 }

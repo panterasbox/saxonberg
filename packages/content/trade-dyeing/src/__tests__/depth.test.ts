@@ -34,6 +34,7 @@ import Dyestuff from '../lib/Dyestuff';
 import DyestuffCatalogue from '../idea/DyestuffCatalogue';
 import DyeBath from '../lib/DyeBath';
 import MordantController from '../idea/cmd/dyeing/MordantController';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Cloth extends DyedMixin(Good) {
   static _mixinName = 'DepthTestCloth';
@@ -86,10 +87,10 @@ function cloth(fibre: keyof typeof fibres): Cloth {
 
 async function dye(c: Cloth, b: Bath): Promise<number> {
   const ctx: CommandContext = makeContext(dyer as unknown as Stuff, room as unknown as Stuff, 'dye');
-  await makeStuff(() => new DyeController()).execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new DyeController()).execute(
     { target: { stuff: c, raw: 'cloth' }, bath: { stuff: [b], raw: '' } } as never,
     ctx,
-  );
+  ));
   await completeStep(DyeBath.DYE_BASE_MS * 2);
   const top = c.getDyeStack().at(-1)!;
   return top.strength;
@@ -162,10 +163,10 @@ describe('⭐ C9 — the mordant is the bath, and a dose is spent (controller-li
   }
   async function mordant(c: Cloth, b: Bath, named = false): Promise<CommandContext> {
     const ctx = makeContext(dyer as unknown as Stuff, room as unknown as Stuff, 'mordant');
-    await makeStuff(() => new MordantController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new MordantController()).execute(
       { target: { stuff: c, raw: 'cloth' }, bath: { stuff: [b], raw: '', ...(named ? { prep: 'in' } : {}) } } as never,
       ctx,
-    );
+    ));
     await completeStep(DyeBath.MORDANT_BASE_MS * 2);
     return ctx;
   }

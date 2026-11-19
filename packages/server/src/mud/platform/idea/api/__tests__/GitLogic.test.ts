@@ -89,6 +89,7 @@ beforeEach(() => {
 
   writable = new Set<string>([BAR_LOGICAL, ROW_LOGICAL]);
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
+  vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(ACTOR);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
   // Echo the source-logical path as the "zone" so `can` can key on it.
   vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockImplementation(
@@ -124,6 +125,7 @@ describe('GitApi.status', () => {
 
   it('is denied with no acting avatar (fails closed)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null as never);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null as never);
     await expect(GitApi.status()).rejects.toMatchObject({ code: 'denied' });
   });
 
@@ -284,6 +286,7 @@ describe('GitApi.publish', () => {
 
   it('is denied with no acting avatar', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null as never);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null as never);
     await expect(GitApi.publish('x')).rejects.toMatchObject({
       code: 'denied',
     });

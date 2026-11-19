@@ -1906,8 +1906,9 @@ export class EmploymentLogic extends ApiLogic {
         }
       },
       // The pass is a function of the hour it runs in; a backlog of
-      // missed hours is one pass at the latest.
-      { coalesce: true },
+      // missed hours is one pass at the latest. It relocates staff: the
+      // system acting (call-security pass D3), never a person.
+      { coalesce: true, system: 'roster' },
     );
   }
 

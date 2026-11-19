@@ -37,6 +37,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -110,7 +111,7 @@ describe('CommandContext.commandSource threading', () => {
 
   it('attributes an innate verb to the giver', async () => {
     const spy = vi.spyOn(PingController.prototype, 'execute');
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;
     expect(ctx.commandSource).toBe(giver);
@@ -128,7 +129,7 @@ describe('CommandContext.commandSource threading', () => {
     );
     const spy = vi.spyOn(PingController.prototype, 'execute');
 
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;
@@ -146,7 +147,7 @@ describe('CommandContext.commandSource threading', () => {
     vi.spyOn(CommandApi, 'resolveParser').mockResolvedValue(stubParser);
     const spy = vi.spyOn(PingController.prototype, 'execute');
 
-    await giver.executeCommand('anything-the-stub-ignores');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('anything-the-stub-ignores'));
 
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;

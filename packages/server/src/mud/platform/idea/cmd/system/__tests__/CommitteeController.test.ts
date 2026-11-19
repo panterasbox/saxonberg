@@ -23,6 +23,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 class TestLocation extends Place {}
 
@@ -65,10 +66,10 @@ async function run(
       model.subcommand === "channel"
         ? makeStuff(() => new CommitteeChannelController())
         : makeStuff(() => new CommitteeShowController());
-    return ctrl.execute(
+    return TestHarnessApi.actAs(context.commandGiver, () => ctrl.execute(
       model as never,
       context
-    );
+    ));
   });
 }
 

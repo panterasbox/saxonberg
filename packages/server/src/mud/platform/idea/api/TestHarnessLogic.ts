@@ -469,8 +469,13 @@ export class TestHarnessLogic extends ApiLogic {
           `stage calls set*/add*/pond/invalidateCache only`,
       );
     }
-    // `singleton` is the get-or-create: the live instance when one stands.
-    const target = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    // `#<stuffId>` names ONE live instance (aether-devices: a phone in a
+    // pocket is one of many of its kind, so a path cannot address it);
+    // otherwise `singleton` is the get-or-create — the live instance when
+    // one stands.
+    const target = path.startsWith('#')
+      ? (StuffApi.findById(path.slice(1)) ?? null)
+      : await StuffApi.singleton<Stuff>(path).catch(() => null);
     if (target === null || target.isDestroyed()) {
       throw new Error(`testharness stage: nothing loads at '${path}'`);
     }
