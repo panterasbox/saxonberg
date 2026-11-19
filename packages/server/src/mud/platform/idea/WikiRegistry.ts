@@ -258,6 +258,7 @@ export default class WikiRegistry extends WikiRegistryBase {
     reader: Stuff | null,
     pageId: string,
   ): Promise<RevisionView[]> {
+    AccessApi.requireActor(reader);
     const renderer = await this.renderer();
     const rows = await WikiRevision.findForPage(pageId);
     const oldestFirst = [...rows].reverse();
@@ -293,6 +294,7 @@ export default class WikiRegistry extends WikiRegistryBase {
     page: WikiPage,
     rev: number,
   ): Promise<string | null> {
+    AccessApi.requireActor(reader);
     const row = await WikiRevision.findRev(page._id ?? '', rev);
     const raw = row
       ? row.getBody()
@@ -309,6 +311,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    * conflict) that must not read past the ceiling.
    */
   public async redactFor(reader: Stuff | null, body: string): Promise<string> {
+    AccessApi.requireActor(reader);
     return (await this.renderer()).redactSource(body, reader);
   }
 

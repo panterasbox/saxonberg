@@ -53,6 +53,7 @@ import { ThrottleableMixin } from '../../../../../lib/spatial/Throttleable';
 import { CommandLineApi } from '../../../../../api/command-line';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))
@@ -110,7 +111,7 @@ async function openCmd(
 ): Promise<ReturnType<typeof makeContext>> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
-  await controller.execute(makeModel({ target } as ModelData), ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel({ target } as ModelData), ctx));
   return ctx;
 }
 
@@ -129,7 +130,7 @@ async function closeCmd(
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `close ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
-  return controller.execute(makeModel({ target } as ModelData), ctx);
+  return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel({ target } as ModelData), ctx));
 }
 
 async function goCmd(
@@ -140,7 +141,7 @@ async function goCmd(
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'here');
-  return controller.execute(makeModel({ target } as ModelData), ctx);
+  return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel({ target } as ModelData), ctx));
 }
 
 describe('OpenController / CloseController / doors integration', () => {
@@ -307,10 +308,10 @@ describe('OpenController / CloseController / doors integration', () => {
     avatar.received.length = 0;
     const ctx = makeContext(avatar, locA, 'open oak to half');
     const target = buildMqlOneResult(avatar as unknown as Stuff, 'oak', 'inventory, here');
-    await makeStuff(() => new OpenController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new OpenController()).execute(
       makeModel({ target, setting: 'half' } as ModelData),
       ctx,
-    );
+    ));
     expect(door.isOpen()).toBe(false);
     expect(refusedOf(ctx)?.reason).toBe('no-setting');
   });
@@ -321,17 +322,14 @@ describe('OpenController / CloseController / doors integration', () => {
     gate.setName('headgate');
     ContainmentApi.move(gate as never, locA);
     const ctx = makeContext(avatar, locA, 'open headgate to a quarter');
-    await makeStuff(() => new OpenController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new OpenController()).execute(
       makeModel({ target: { stuff: gate, raw: 'headgate' }, setting: 'a quarter' } as ModelData),
       ctx,
-    );
+    ));
     expect(gate.getOpening()).toBe(0.25);
     expect(gate.isOpen()).toBe(true);
     expect(gate.getWorkLog().at(-1)!.opening).toBe(0.25);
-    await makeStuff(() => new CloseController()).execute(
-      makeModel({ target: { stuff: gate, raw: 'headgate' } } as ModelData),
-      makeContext(avatar, locA, 'close headgate'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CloseController()).execute(makeModel({ target: { stuff: gate, raw: 'headgate' } } as ModelData), ctx$)))(makeContext(avatar, locA, 'close headgate'));
     expect(gate.getOpening()).toBe(0);
     expect(gate.getWorkLog()).toHaveLength(2);
   });

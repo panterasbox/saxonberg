@@ -22,6 +22,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class Shelf extends PersistableMixin(ConsignmentShelfMixin(DetailedMixin(Vessel))) {}
 
@@ -54,7 +55,7 @@ describe('consign takes what you carry, never what you wear', () => {
 
   it('⭐ a worn shirt is refused `worn`, and stays on its wearer', async () => {
     const { me, shirt, shelf } = await scene();
-    const answer = await shelf.consignBy(me, shirt, 6);
+    const answer = await TestHarnessApi.actAs(me, () => shelf.consignBy(me, shirt, 6));
     expect(answer).toEqual({ ok: false, reason: 'worn' });
     expect(shirt.getContainer()).toBe(me);
     expect(me.wears(shirt)).toBe(true);
@@ -74,7 +75,7 @@ describe('consign takes what you carry, never what you wear', () => {
     expect(me.wears(mug)).toBe(false);
     expect(me.wears(key)).toBe(false);
     for (const g of [mug, key]) {
-      const answer = await shelf.consignBy(me, g, 6);
+      const answer = await TestHarnessApi.actAs(me, () => shelf.consignBy(me, g, 6));
       expect(answer.ok ? 'ok' : answer.reason).toBe('no-account');
     }
   });

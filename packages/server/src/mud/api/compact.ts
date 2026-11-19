@@ -39,6 +39,7 @@ import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { CompactLogic } from "../platform/idea/api/CompactLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
+import { AccessApi } from "./access";
 
 export type { OfficeHolderResult, OfficeRosterRow, OfficeAssignResult };
 
@@ -157,6 +158,8 @@ export class CompactApi {
     subject: Stuff | null,
     fn: () => T
   ): Promise<T | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(subject);
     if (!(await CompactApi.holdsOffice(subject, PRIME_MINISTER))) return null;
     return ExecutionContextApi.run(
       CompactApi,

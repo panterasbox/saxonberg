@@ -104,6 +104,7 @@ import { Mml } from '../../api/mml';
 import { POSTURE_REST_BASE } from '../character/Posed';
 import { CLEAN_TIERS, type CleanTier } from '../cleanliness/Soilable';
 import { DirtKinds } from '../cleanliness/DirtKind';
+import { AccessApi } from '../../api/access';
 
 /** Alias for readability at the magic arm's call sites. */
 /** Is `thing` on `body` — held, worn, or inside something it carries? */
@@ -1452,6 +1453,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** See the interface docstring (D24a). */
     public searchRefusal(by: Stuff): ActRefusal<'resists'> | null {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const self = this as unknown as Stuff;
       if (self.stuffId === by.stuffId) return null;
       // A corpse has lost its agency (the Thing branch) — it cannot resist.

@@ -30,6 +30,7 @@ import GroundCharacter, { TEXTURE_MATERIALS } from '@saxonberg/content-ground/sr
 import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const EXTENT = '/world/_test/farm';
 const BENCH = `${EXTENT}/location/bench`;
@@ -49,6 +50,13 @@ function bench(area = 1200): Tract {
 }
 
 const holder = (): Stuff => makeStuff(() => new Idea());
+
+
+/** One person both acting and named (call-security pass D15): `holder()` makes a new one per call. */
+const asOne = <T,>(make: () => Stuff, act: (who: Stuff) => T): T => {
+  const who = make();
+  return TestHarnessApi.actAs(who, () => act(who));
+};
 
 describe('marking fields on a tract', () => {
   let clone: { mock: { calls: unknown[] } };
@@ -92,7 +100,7 @@ describe('marking fields on a tract', () => {
   it('⭐ a new field is its share; the unmarked ground shrinks to what is left', async () => {
     const t = bench(1200);
     const litres = t.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity.rawValue();
-    const r = await t.markField(holder(), 'barley field', 1 / 3);
+    const r = await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.line).toMatch(/a third of the bench/);
     const field = t.fieldByKey('barley-field')!;
@@ -106,7 +114,7 @@ describe('marking fields on a tract', () => {
 
   it('⭐ a field keeps its own record, keyed under its tract, and the tract owns it (D26)', async () => {
     const t = bench(1200);
-    await t.markField(holder(), 'barley field', 1 / 3);
+    await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     const field = t.fieldByKey('barley-field')!;
     expect(PersistableApi.restoreOrSeed).toHaveBeenCalledWith(field, `${t.groundPath()}/barley-field`);
     expect(t.dependentPersistables()).toEqual([field]);
@@ -115,31 +123,31 @@ describe('marking fields on a tract', () => {
   it('a new field carries the unmarked ground\'s soil, never fresh', async () => {
     const t = bench(1200);
     t.setSoilReserveFraction(SOIL_NITROGEN_RESERVE_KEY, 0.07);
-    await t.markField(holder(), 'barley field', 1 / 3);
+    await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     expect(t.fieldByKey('barley-field')!.soilReserveFraction(SOIL_NITROGEN_RESERVE_KEY)).toBeCloseTo(0.07, 6);
   });
 
   it('the rest, then nothing left; more than is left names what is', async () => {
     const t = bench(1200);
-    expect((await t.markField(holder(), 'barley field', 1 / 3)).ok).toBe(true);
-    const over = await t.markField(holder(), 'wheat field', 0.75);
+    expect((await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3))).ok).toBe(true);
+    const over = await asOne(holder, (who) => t.markField(who, 'wheat field', 0.75));
     expect(over.ok).toBe(false);
     if (!over.ok) {
       expect(over.reason).toBe('over-the-whole');
       expect(over.line).toMatch(/Only two-thirds of the bench is unmarked/);
     }
-    const rest = await t.markField(holder(), 'wheat field', null);
+    const rest = await asOne(holder, (who) => t.markField(who, 'wheat field', null));
     expect(rest.ok).toBe(true);
     expect(t.fieldByKey('wheat-field')!.getAreaM2()).toBeCloseTo(800, 6);
-    const none = await t.markField(holder(), 'oat field', null);
+    const none = await asOne(holder, (who) => t.markField(who, 'oat field', null));
     expect(none.ok).toBe(false);
     if (!none.ok) expect(none.reason).toBe('all-marked');
   });
 
   it('a name it has moves the line; never through a standing crop', async () => {
     const t = bench(1200);
-    await t.markField(holder(), 'barley field', 1 / 3);
-    const moved = await t.markField(holder(), 'the barley field', 1 / 2);
+    await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
+    const moved = await asOne(holder, (who) => t.markField(who, 'the barley field', 1 / 2));
     expect(moved.ok).toBe(true);
     expect(t.fieldByKey('barley-field')!.getAreaM2()).toBeCloseTo(600, 6);
     const crop = makeStuffAtPath(() => {
@@ -162,20 +170,20 @@ describe('marking fields on a tract', () => {
       return p;
     }, '/trade/farming/thing/plant/_test-barley');
     ContainmentApi.move(crop, t as never);
-    const refused = await t.markField(holder(), 'barley field', 1 / 3);
+    const refused = await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     expect(refused.ok).toBe(false);
     if (!refused.ok) {
       expect(refused.reason).toBe('crop-stands');
       expect(refused.line).toMatch(/cannot move a boundary through standing barley/);
     }
-    const kept = await t.unmarkField(holder(), t.fieldByKey('barley-field')!);
+    const kept = await asOne(holder, (who) => t.unmarkField(who, t.fieldByKey('barley-field')!));
     expect(kept.ok).toBe(false);
   });
 
   it('⭐ a house plot takes beds, not fields — in the zoning\'s words', async () => {
     scale = 'bed';
     use = 'residential';
-    const r = await bench().markField(holder(), 'barley field', 1 / 3);
+    const r = await asOne(holder, (who) => bench().markField(who, 'barley field', 1 / 3));
     expect(r.ok).toBe(false);
     if (!r.ok) {
       expect(r.reason).toBe('zoned-against-fields');
@@ -185,16 +193,16 @@ describe('marking fields on a tract', () => {
 
   it('unparcelled ground is not policed; a stranger may not divide titled ground', async () => {
     covered = false;
-    expect((await bench().markField(holder(), 'barley field', 1 / 3)).ok).toBe(true);
+    expect((await asOne(holder, (who) => bench().markField(who, 'barley field', 1 / 3))).ok).toBe(true);
     covered = true;
     held = [];
-    const r = await bench().markField(holder(), 'barley field', 1 / 3);
+    const r = await asOne(holder, (who) => bench().markField(who, 'barley field', 1 / 3));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe('not-held');
   });
 
   it('unmeasured ground cannot be divided', async () => {
-    const r = await bench(0).markField(holder(), 'barley field', 1 / 3);
+    const r = await asOne(holder, (who) => bench(0).markField(who, 'barley field', 1 / 3));
     expect(r.ok).toBe(false);
     if (!r.ok) {
       expect(r.reason).toBe('unmeasured');
@@ -204,12 +212,12 @@ describe('marking fields on a tract', () => {
 
   it('⭐ unmarking folds the field back in, by area, and deletes its record', async () => {
     const t = bench(1200);
-    await t.markField(holder(), 'barley field', 1 / 3);
+    await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     const field = t.fieldByKey('barley-field')!;
     field.setPersistenceKey(`${t.groundPath()}/barley-field`);
     field.setSoilReserveFraction(SOIL_NITROGEN_RESERVE_KEY, 0.6);
     t.setSoilReserveFraction(SOIL_NITROGEN_RESERVE_KEY, 0.3);
-    const r = await t.unmarkField(holder(), field);
+    const r = await asOne(holder, (who) => t.unmarkField(who, field));
     expect(r.ok).toBe(true);
     expect(t.getFields()).toHaveLength(0);
     expect(field.isDestroyed()).toBe(true);
@@ -222,8 +230,8 @@ describe('marking fields on a tract', () => {
 
   it('a tract read from its gate lists its fields, one line each', async () => {
     const t = bench(1200);
-    await t.markField(holder(), 'barley field', 1 / 3);
-    await t.markField(holder(), 'wheat field', null);
+    await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
+    await asOne(holder, (who) => t.markField(who, 'wheat field', null));
     const lines = t.tractLines().join(' ');
     expect(lines).toMatch(/At the barley field the grass is/);
     expect(lines).toMatch(/At the wheat field the grass is/);

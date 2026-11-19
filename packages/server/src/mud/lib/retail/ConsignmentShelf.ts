@@ -38,6 +38,7 @@ import type { HeldGood, HeldGoodsShelf } from "./HeldGoods";
 import { Freshness } from "../material/Freshness";
 import type { Chattel } from "../chattel/Chattel";
 import type { ActOutcome, ActRefusal } from "../craft/ActPlan";
+import { AccessApi } from "../../api/access";
 
 /** Why `consignBy` refused — each a gate of the shelf's, in order. */
 export type ConsignRefusal =
@@ -232,6 +233,8 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       item: Stuff & Containable,
       askMinor: number,
     ): Promise<ConsignAnswer> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(actor);
       // ⭐ What you WEAR does not go up: you hand the shop a good you carry
       // (a hand, a pocket, a belt, a bag) — the shirt on your back you take
       // off first. Since the flip `inventory` is everything on you, and a

@@ -10,8 +10,9 @@
  * refuses a claim that is not the engine's answer to *who is acting*
  * (call-security pass D4).
  *
- * **What it counts** (every non-controller, non-test source file in the
- * kernel and in every pack's `src/`, read as a syntax tree): a function is
+ * **What it counts** (every non-controller, non-brain, non-test source file
+ * in the kernel and in every pack's `src/`, read as a syntax tree): a
+ * function is
  * **deciding** for parameter `p` when it passes `p` as the ACTOR (the
  * first argument drawn from a parameter) to a permission predicate — {@link ACTOR_PREDICATES}, which is `lint:controller-gates`'
  * vocabulary widened with the predicates the pass's survey found — or to a
@@ -39,7 +40,7 @@ import ts from "typescript";
 import { controllerFiles, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 import { GATE_PATTERNS } from "./check-controller-gates";
 
-export const ACTOR_CLAIMS_CEILING = 49; // call-security pass W0: opened at its own count
+export const ACTOR_CLAIMS_CEILING = 0; // call-security pass: opened at 49 (W0), driven to 0 by W1–W3, held
 
 /**
  * The permission predicates, by method name: the controller-gates
@@ -132,7 +133,9 @@ function requiredActor(call: ts.CallExpression): string | null {
   const callee = call.expression;
   if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== "requireActor") return null;
   if (!ts.isIdentifier(callee.expression) || callee.expression.text !== "AccessApi") return null;
-  const a = call.arguments[0];
+  let a = call.arguments[0];
+  // `requireActor(reader ?? null)` — an optional actor, normalized.
+  if (a && ts.isBinaryExpression(a) && a.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) a = a.left;
   return a && ts.isIdentifier(a) ? a.text : null;
 }
 
@@ -249,7 +252,11 @@ export function census(): ActorClaimsCensus {
   const unchecked: string[] = [];
   const checked: string[] = [];
   for (const { file } of mudSourceFiles()) {
-    if (controllers.has(file) || /__tests__|\.test\.ts$/.test(file)) continue;
+    // A BRAIN (`…/behavior/<verb>.ts`) is not counted: its `host` comes from
+    // the framework's BrainContext and the brain runs AS that NPC (D10's
+    // `runAsSelf`) — never a caller's claim. Its predicates are reads about
+    // others (the doorman judging a mover).
+    if (controllers.has(file) || /__tests__|\.test\.ts$|\/behavior\/[a-z][\w-]*\.ts$/.test(file)) continue;
     const rel = file.startsWith(repo) ? file.slice(repo.length + 1) : file;
     for (const fn of scanFile(file, readFileSync(file, "utf8"))) {
       if (fn.exempt) continue;

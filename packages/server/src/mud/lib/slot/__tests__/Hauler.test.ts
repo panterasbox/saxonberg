@@ -11,6 +11,7 @@ import { MixinApi } from '../../../api/mixin';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { massThing } from '../../encumbrance/__tests__/encumbrance-fixtures';
 import { cart, haulingBearer } from './haulage-fixtures';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 describe('HaulerMixin — hauler side', () => {
   beforeEach(() => installV1QuantityMarshallers());
@@ -34,7 +35,7 @@ describe('HaulerMixin — hauler side', () => {
       const bearer = haulingBearer();
       const c = cart();
       bearer.hitch(c);
-      bearer.unhitch(bearer);
+      TestHarnessApi.actAs(bearer, () => bearer.unhitch(bearer));
       expect(bearer.isHitched()).toBe(false);
       expect(bearer.getHauledCart()).toBeNull();
       expect(c.getHauledBy()).toBeNull();
@@ -48,11 +49,11 @@ describe('HaulerMixin — hauler side', () => {
       const isPerson = vi
         .spyOn(MixinApi, 'isCommandGiver')
         .mockImplementation(((s: { stuffId: string }) => s.stuffId === bearer.stuffId) as never);
-      expect(bearer.unhitch(stranger)).toEqual({ ok: false, reason: 'held-by-another' });
+      expect(TestHarnessApi.actAs(stranger, () => bearer.unhitch(stranger))).toEqual({ ok: false, reason: 'held-by-another' });
       expect(c.getHauledBy()).toBe(bearer);
       // A draft animal's cart is anybody's to unhitch.
       isPerson.mockReturnValue(false);
-      expect(bearer.unhitch(stranger)).toEqual({ ok: true });
+      expect(TestHarnessApi.actAs(stranger, () => bearer.unhitch(stranger))).toEqual({ ok: true });
       expect(c.getHauledBy()).toBeNull();
       isPerson.mockRestore();
     });

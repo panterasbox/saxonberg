@@ -34,6 +34,9 @@ import type { BloodUnit } from '../../vitals/Blood';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Containable } from '../../spatial/Containable';
 import type { Container } from '../../spatial/Container';
+import { TestHarnessApi } from '../../../api/test-harness';
+import { DiagnosticApi } from '../../../api/diagnostics';
+import { Refusal } from '../../errors';
 
 /** A body that carries (size and carrying W8: the capability is the carrier classes'). */
 class CarrierBody extends CarryingMixin(Creature) {}
@@ -147,15 +150,46 @@ describe('DonationBankMixin — taking and receiving', () => {
     ContainmentApi.move(bag('O'), vault);
     const recipient = withHands(makeStuff(() => new CarrierBody()));
     stampTemplatePathForTest(recipient, '/platform/agent/Avatar/recip');
-    const moved = await withRootContext(w as unknown as Stuff, 'issue', () =>
-      w.takeUnit('O', recipient as unknown as Stuff, null),
+    const keeper = makeStuff(() => new CarrierBody());
+    stampTemplatePathForTest(keeper, '/platform/agent/Avatar/keeper');
+    vi.spyOn(w, 'keptBy').mockResolvedValue(true);
+    const taken = await TestHarnessApi.actAs(keeper, () =>
+      w.takeUnit('O', recipient as unknown as Stuff, keeper as unknown as Stuff),
     );
-    expect(moved).not.toBeNull();
+    expect(taken.ok).toBe(true);
+    const moved = taken.ok ? taken.unit : null;
     expect(w.getLots().get('O')?.units).toBe(1);
     // The holder now sits with the recipient.
     expect(
       [...(recipient as unknown as { getContents(): Iterable<unknown> }).getContents()],
     ).toContain(moved);
+  });
+
+  it('⛔ an issue with NO issuer is refused, and the lot is still held (call-security pass D6)', async () => {
+    const vault = chest();
+    const w = window(vault);
+    ContainmentApi.move(bag('O'), vault);
+    const recipient = withHands(makeStuff(() => new CarrierBody()));
+    const taken = await withRootContext(w as unknown as Stuff, 'issue', () =>
+      w.takeUnit('O', recipient as unknown as Stuff, null),
+    );
+    expect(taken).toEqual({ ok: false, reason: 'no-issuer' });
+    expect(w.getLots().get('O')?.units).toBe(1);
+  });
+
+  it('an issuer who is not who is acting is refused before the window is read', async () => {
+    const vault = chest();
+    const w = window(vault);
+    ContainmentApi.move(bag('O'), vault);
+    const keeper = makeStuff(() => new CarrierBody());
+    const liar = makeStuff(() => new CarrierBody());
+    const kept = vi.spyOn(w, 'keptBy').mockResolvedValue(true);
+    vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
+    await expect(
+      TestHarnessApi.actAs(liar, () => w.takeUnit('O', liar as unknown as Stuff, keeper as unknown as Stuff)),
+    ).rejects.toBeInstanceOf(Refusal);
+    expect(kept).not.toHaveBeenCalled();
+    expect(w.getLots().get('O')?.units).toBe(1);
   });
 
   it('takeCompatibleUnitFor empties the holder (the house transfuses you)', async () => {

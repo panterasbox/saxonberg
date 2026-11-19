@@ -165,6 +165,8 @@ async function gateContentWrite(
   actor: Stuff | null,
   target: string
 ): Promise<string | null> {
+  // who is acting must be who is named (call-security pass D5)
+  AccessApi.requireActor(actor);
   const liveAtTarget = StuffApi.findByTemplatePath<Stuff>(target) ?? null;
   if (liveAtTarget instanceof Zone) {
     if (!(await AccessApi.canMutateZone(actor, liveAtTarget))) {
@@ -601,6 +603,7 @@ export class CmsLogic extends ApiLogic {
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
+    AccessApi.requireActor(actor);
     let data: Record<string, unknown>;
     try {
       const parsed = JSON.parse(body) as unknown;

@@ -472,7 +472,7 @@ export default class SchedulerRegistry extends Idea {
               SchedulerApi,
               'emission',
               () => {
-                this.plantAuthor(e.engagementId);
+                ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(e.engagementId));
                 this.fireEmission(e, em);
               },
               'swallow',
@@ -495,7 +495,7 @@ export default class SchedulerRegistry extends Idea {
             SchedulerApi,
             'completion',
             () => {
-              this.plantAuthor(id);
+              ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(id));
               const live = this.engagementsById.get(id);
               if (!live || !isDurativeActivity(live)) return;
               this.completeFromTimer(live);
@@ -683,13 +683,21 @@ export default class SchedulerRegistry extends Idea {
     }
   }
 
-  /** Plant the engagement's author on the root its continuation runs in. */
-  private plantAuthor(id: string): void {
+  /**
+   * What the engagement's continuation root carries: its author and ⭐ who
+   * was acting when it started (call-security pass D2). RETURNED, and planted
+   * by the caller on its own root — ⚠ a method call is a proxied frame of
+   * its own, so planting from inside one wrote the metadata onto that frame
+   * and it vanished on return (the author plant had been lost the same way).
+   */
+  private continuationMetadata(id: string): Record<string, unknown> {
+    const md: Record<string, unknown> = {};
     const author = this.causingAuthors.get(id);
-    if (author != null) ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: author });
+    if (author != null) md.causingAuthor = author;
     const acting = this.causingActors.get(id);
-    if (acting?.system != null) ExecutionContextApi.updateCurrentFrameMetadata({ actingSystem: acting.system });
-    else if (acting?.actor != null) ExecutionContextApi.updateCurrentFrameMetadata({ actor: acting.actor });
+    if (acting?.system != null) md.actingSystem = acting.system;
+    else if (acting?.actor != null) md.actor = acting.actor;
+    return md;
   }
 
   private clearTimersAndSubs(id: string): void {

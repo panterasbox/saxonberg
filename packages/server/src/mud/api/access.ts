@@ -224,6 +224,8 @@ export class AccessApi {
     sourceLogical: string,
     action: SourceWriteAction = 'write'
   ): Promise<string | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     if (actor === null) return 'nobody is acting';
     if (CODE_FILE_RE.test(sourceLogical) && !(await AccessApi.isWizard(actor))) {
       return `${sourceLogical} is TypeScript, and authoring code asks for the wizard axis`;

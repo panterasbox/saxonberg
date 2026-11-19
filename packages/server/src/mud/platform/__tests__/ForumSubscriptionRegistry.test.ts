@@ -39,6 +39,7 @@ import {
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import { TestHarnessApi } from '../../api/test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -163,7 +164,7 @@ describe('ForumSubscriptionRegistry', () => {
   it('delivers an initial snapshot then a live delta on a vote', async () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
-    const thread = await creator.postThread(board, 'Best soup?', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'Best soup?', 'body'));
 
     const interactive = fakeInteractive();
     await interactive.subscribe('b1', SUBSCRIPTION_SOURCES.forum, {
@@ -181,7 +182,7 @@ describe('ForumSubscriptionRegistry', () => {
     envelopes.length = 0;
     // A vote fires ForumEventFired (persist-then-fire) → drives a delta.
     const voter = makeActor();
-    await voter.castVote(thread, 'up');
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up'));
     await flush();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
@@ -207,7 +208,7 @@ describe('ForumSubscriptionRegistry', () => {
       });
     envelopes.length = 0;
 
-    const t = await creator.postThread(board, 'New', 'body');
+    const t = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'New', 'body'));
     await flush();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
@@ -218,7 +219,7 @@ describe('ForumSubscriptionRegistry', () => {
   it('stops delivering deltas after unsubscribe', async () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     const interactive = fakeInteractive();
     await interactive.subscribe('b1', SUBSCRIPTION_SOURCES.forum, {
         scope: { kind: 'board', id: board._id! },
@@ -226,7 +227,8 @@ describe('ForumSubscriptionRegistry', () => {
     interactive.cancelSubscription('b1');
     envelopes.length = 0;
 
-    await (makeActor()).castVote(thread, 'up');
+    const voter = makeActor();
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up'));
     await flush();
     expect(envelopes.find((e) => e.type === 'subscription-delta')).toBeUndefined();
   });
@@ -246,22 +248,22 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
       open: true,
       organizer: 'ordered',
     });
-    const spine = await creator.postThread(
+    const spine = await TestHarnessApi.actAs(creator, () => creator.postThread(
       board,
       'RCV',
       'Adopt ranked-choice voting.'
-    );
+    ));
     return { board, spine };
   }
 
   it('projects the lens and clears an open-objection badge live when answered', async () => {
     const creator = makeActor();
     const { board, spine } = await makeArgumentBoard(creator);
-    const con = await creator.attachClaim(
+    const con = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'objects-to',
       'Harder to count.'
-    );
+    ));
 
     const interactive = fakeInteractive();
     await interactive.subscribe('a1', SUBSCRIPTION_SOURCES.forum, {
@@ -279,11 +281,11 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
 
     envelopes.length = 0;
     // Answer the objection — attach any child. The badge must clear live.
-    const answer = await creator.attachClaim(
+    const answer = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       con,
       'objects-to',
       'Software counts fine.'
-    );
+    ));
     await flush();
 
     const delta = envelopes.find((e) => e.type === 'subscription-delta');
@@ -301,11 +303,11 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
   it('two viewers with different circles see different highlights over one structure', async () => {
     const creator = makeActor();
     const { board, spine } = await makeArgumentBoard(creator);
-    const claim = await creator.attachClaim(
+    const claim = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'supports',
       'Reduces spoilers.'
-    );
+    ));
     const claimAuthor = claim.getAuthor(); // = creator.stuffId in this harness.
 
     // The circle highlight reads the holder's contacts.
@@ -372,13 +374,13 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
       open: true,
       organizer: 'ordered',
     });
-    const thesis = await creator.postThread(
+    const thesis = await TestHarnessApi.actAs(creator, () => creator.postThread(
       board,
       'Shorten it',
       'four days is enough',
-    );
+    ));
     const objector = makeActor();
-    await objector.attachClaim(thesis, 'objects-to', 'the six quiet days are not idle');
+    await TestHarnessApi.actAs(objector, () => objector.attachClaim(thesis, 'objects-to', 'the six quiet days are not idle'));
 
     const interactive = fakeInteractive();
     await interactive.subscribe('s2', SUBSCRIPTION_SOURCES.forum, {

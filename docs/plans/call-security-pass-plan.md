@@ -494,6 +494,50 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   `Wellhead`, `AirPocket`, and the one-shots named in W0 call no roster act
   and run no command. The control path (B8) was the one root with nobody.
 
+- **B9 (W1) — brains are not counted by the census.** A brain module's
+  `host` comes from the framework's `BrainContext` and the brain runs as
+  that NPC (D10); its predicates are reads about others (`doorman.judge`
+  asks the doorman about a mover). `lint:actor-claims` skips
+  `…/behavior/<verb>.ts`.
+- **B10 (W1) — the hitch's self-claims go through `Hauler.slipFrom(cart)`**
+  (new member on the existing mixin): the hauler uncoupling as itself
+  (`runAsSelf`), only from the cart it pulls. `hitch`'s re-hitch, the cart's
+  `slipHitch` and `Mobile`'s teleport release all call it; before, the cart
+  passed the hauler as the actor from the cart's own code.
+- **B11 (W1) — `takeUnit` answers `TakeUnitAnswer`** (`no-issuer`,
+  `not-keeper`, `lot-empty`, or `{ok, unit}`) with three new platform rows;
+  `IssueController` lost its own `keptBy` precheck (a controller-liquidity
+  D9 gap, now on the window).
+- **B12 (W1) — `mayTakeDown` (#11) and `mayDrive` (#12) get no call.** Their
+  only consumers are controllers (`GetController`, the watch/show verbs,
+  `CommandController.resolveScreen`) and no model act exists to host the
+  check; a replaced controller could skip the predicate entirely, so a
+  check inside it buys nothing. Recorded as D9 gaps on the slate.
+- **B13 (W1) — `SchedulerRegistry.plantAuthor` never planted anything.** A
+  method call is a proxied frame, so `updateCurrentFrameMetadata` inside it
+  wrote onto that frame, which vanished on return — engagement completions
+  carried neither the author nor (new) the actor. Now
+  `continuationMetadata(id)` RETURNS the metadata and the root's own
+  closure plants it. Found by trade-mining's hew test (a completion acting
+  as nobody). ⚠ Durative completions now carry their author too: what a
+  firing makes an hour later is the firer's, as `getCausingAuthor`'s
+  docstring always claimed.
+- **B14 (W2) — the census widened the roster** to the on-shift titling
+  acts, the document/CMS write gates, `readWorldAs`, `sourceWriteRefusal`,
+  `visibleChannels`, `Group.rename`, the herdbook acts and the open
+  planners; each got the call. The wiki's "a reader naming a moderator
+  cannot raise the ceiling" test now asserts the stronger outcome: refused.
+- **B15 (W1–W3) — tests state who acts.** Direct calls of protective acts
+  and controller `execute(model, ctx)` calls in tests are wrapped in
+  `TestHarnessApi.actAs(<the actor>, …)` (a person's own method acts as its
+  receiver); tests that spy `getActingAuthor` spy `getActor` alike. The four
+  hand-copied `asGiver` helpers are left in place — they still state their
+  giver through a command frame and keep passing.
+- **W1–W3 landed as one commit**: the waves share their test fallout file
+  by file, and splitting them bought nothing a reviewer reads. The census
+  went 49 → 39 (W1, two of them brains) → 21 (W2) → **0** (W3), and its
+  ceiling is pinned at 0 in the same commit (W5's flip, done early).
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |

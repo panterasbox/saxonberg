@@ -72,6 +72,8 @@ export default class TrapKit extends Good {
    * non-consenting sentient), placed, and the kit is spent.
    */
   public async armBy(actor: Stuff): Promise<ArmRefusal | ActOutcome<ArmFacts>> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     if (!room || !MixinApi.isContainer(room)) return { ok: false, reason: 'no-room' };
     if (!(await this.mayPlaceIn(actor, room))) return { ok: false, reason: 'not-your-property' };

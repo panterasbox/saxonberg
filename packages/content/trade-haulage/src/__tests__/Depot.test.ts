@@ -42,6 +42,7 @@ import {
   clerk,
   installStore,
 } from './haulage-fixtures';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'HaulageTestRoom';
@@ -266,7 +267,7 @@ describe('the warehouse', () => {
     expect(crate.getContainer()).toBe(shed);
 
     // Nobody on shift: refused.
-    const refused = await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'));
+    const refused = await asClerk(() => TestHarnessApi.actAs(brewer as unknown as Stuff, () => shed.withdraw(brewer as unknown as Stuff, 'crate')));
     expect(refused).toMatchObject({ ok: false, reason: 'no-keeper' });
 
     const man = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/warehouseman');
@@ -274,7 +275,7 @@ describe('the warehouse', () => {
       { organizationPath: DEPOT, positionKey: 'warehouseman', status: 'on-shift', hiredAt: 0, onShiftSince: 0 },
     ];
     ContainmentApi.move(man as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
-    const out = await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'));
+    const out = await asClerk(() => TestHarnessApi.actAs(brewer as unknown as Stuff, () => shed.withdraw(brewer as unknown as Stuff, 'crate')));
     expect(out.ok).toBe(true);
     expect(crate.getContainer()).toBe(brewer);
     expect(await registry.receiptsOf(business(DEPOT))).toEqual([
@@ -365,15 +366,15 @@ describe('⭐ the bearer receipt', () => {
     await asClerk(() => shed.deposit(crate as unknown as Stuff & Containable, brewer as unknown as Stuff));
     const [paper] = sheetsOf(brewer);
     ContainmentApi.move(paper as unknown as Stuff & Containable, carter as unknown as Stuff & Container);
-    expect(await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'))).toMatchObject({
+    expect(await asClerk(() => TestHarnessApi.actAs(brewer as unknown as Stuff, () => shed.withdraw(brewer as unknown as Stuff, 'crate')))).toMatchObject({
       ok: false,
       reason: 'no-receipt',
     });
-    const out = await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'));
+    const out = await asClerk(() => TestHarnessApi.actAs(carter as unknown as Stuff, () => shed.withdraw(carter as unknown as Stuff, 'crate')));
     expect(out.ok).toBe(true);
     expect(crate.getContainer()).toBe(carter);
     // Spent: answered so, and the paper stays in hand.
-    expect(await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'))).toMatchObject({
+    expect(await asClerk(() => TestHarnessApi.actAs(carter as unknown as Stuff, () => shed.withdraw(carter as unknown as Stuff, 'crate')))).toMatchObject({
       ok: false,
       reason: 'already-settled',
     });
@@ -386,7 +387,7 @@ describe('⭐ the bearer receipt', () => {
     const copy = makeStuff(() => new Sheet());
     copy.setMarkText('RECEIVED into warehouse: a crate. To be delivered to the BEARER.');
     ContainmentApi.move(copy as unknown as Stuff & Containable, carter as unknown as Stuff & Container);
-    expect(await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'))).toMatchObject({
+    expect(await asClerk(() => TestHarnessApi.actAs(carter as unknown as Stuff, () => shed.withdraw(carter as unknown as Stuff, 'crate')))).toMatchObject({
       ok: false,
       reason: 'no-receipt',
     });

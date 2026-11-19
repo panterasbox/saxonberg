@@ -1233,7 +1233,7 @@ function detachForTeleport(mover: Stuff): string | null {
   if (MixinApi.isHauling(mover) && mover.isHitched()) {
     const cart = mover.getHauledCart();
     const name = cart ? cart.getPresentation() : 'the cart';
-    mover.unhitch(mover);
+    if (cart) mover.slipFrom(cart);
     return name;
   }
   // The cart side: a Mobile cart (a boat hauled out) leaves its hauler.

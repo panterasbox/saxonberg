@@ -34,6 +34,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { AccessApi } from '../../api/access';
 
 /**
  * ⭐ What a thing can be SEALED with — a gummed flap, a blob
@@ -229,6 +230,8 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** @hook See {@link Sealable.openPlanFor}. Open or shut — a setting is refused. */
     openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const may = this.canOpen(by);
       if (!may.ok) return may;
       const thing = this as unknown as Stuff;
