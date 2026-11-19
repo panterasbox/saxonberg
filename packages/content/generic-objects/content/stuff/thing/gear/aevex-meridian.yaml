@@ -7,10 +7,12 @@ data:
   keywords: [phone, meridian, aevex, "aevex meridian", "aevex phone", "aevex meridian phone"]
   register: indefinite
   longDescription: >
-    A slim pane of dark glass edged in brushed metal, so thin it seems to
-    be mostly screen. The Aevex mark glows faintly on the back whenever it
+    A slim pane of dark glass in a thin sheath of matte black rubber, so
+    thin it seems to be mostly screen. The Aevex mark glows faintly on the back whenever it
     is in your hand.
-  _materialPath: /stuff/idea/material/glass/glass
+  # Rubber, like the Hollis: a phone is somebody's tuner, and a glass one
+  # broke on the first drop (aether-devices drive, step 15; owner, review).
+  _materialPath: /stuff/idea/material/organic/rubber
   mass: 0.17
   dimensions: { width: 0.072, depth: 0.008, height: 0.15 }
   slotClaims:
