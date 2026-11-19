@@ -223,9 +223,10 @@ path to the wiki.
 
 ### Spoilers and the path
 
-One spoiler block everywhere. **A thing's path is a spoiler at level 2**: a
-player at the ordinary appetite (1) sees it collapsed, one click open; at
-appetite 2 and above it is open; a guest (0) sees it collapsed. **One
+One spoiler block everywhere. **A thing's path is a spoiler at level 2**:
+the appetite defaults to 0 for everyone, so a player sees it collapsed, one
+click open, until they raise their appetite to 2 or above. (The wiki's
+*ceiling* — what a reader may see at all — never withholds a path.) **One
 appetite setting governs the wiki and every tooltip** — today's wiki
 setting is widened (and renamed) so it no longer reads as wiki-only.
 Hidden by default, one click, never prevented.
@@ -293,8 +294,8 @@ light step is 7.
    from its help topic. Press Shift (or dwell): the stack locks and shows a
    breadcrumb. Esc closes one level; Esc again closes the rest.
 5. *(instant · player)* Hover a term whose source is a wiki page: its
-   opening section, with a spoiler in it collapsed at appetite 1. Set the
-   appetite to 3: the same term shows it open. A section above the
+   opening section, with a level-1 spoiler in it collapsed at the default
+   appetite (0). Set the appetite to 1: the same term shows it open. A section above the
    reader's capability is absent, not collapsed.
 6. *(instant · player)* The "What is this, really?" line on a thing is
    collapsed at appetite 1, opens on one click, and shows the path; at
@@ -336,7 +337,8 @@ None — nothing in this build waits on the clock.
 - A live thing's tooltip never says more than the viewer perceives now.
 - A wiki-sourced tooltip shows exactly what reading the page would, at the
   same appetite and capability.
-- A path is collapsed at appetite 0–1 and open at 2 and above; one appetite
+- A path is collapsed below appetite 2 (the default is 0) and open at 2 and
+  above; one appetite
   setting governs the wiki and tooltips.
 - A phone player reaches every tooltip by long press without losing the tap
   → command sheet or the row's long-press menu.
