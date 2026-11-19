@@ -28,8 +28,10 @@ import {
   TipDepthContext,
   cancelTipGrace,
   insideTip,
+  openTipNow,
   scheduleTipGrace,
 } from "./useTip";
+import { termTip } from "../../services/tooltipSource";
 
 const Panel = styled.div`
   z-index: 80;
@@ -241,6 +243,16 @@ function SheetTip({
   onPin: (command: string) => void;
 }): React.ReactElement {
   const closeAll = useStore((s) => s.closeAllTips);
+  // ⭐ In the sheet a tap on a TERM pushes its tooltip onto the stack (a
+  // phone has no hover to nest by); any other link runs as it would.
+  const sheetLinks: DocLinkHandlers = {
+    ...links,
+    onCommandClick: (cmd) => {
+      const term = termTip(cmd);
+      if (term) openTipNow(entry.depth + 1, entry.anchor, term, true, true);
+      else links.onCommandClick(cmd);
+    },
+  };
   return createPortal(
     <>
       <Scrim data-testid="tip-scrim" onClick={closeAll} />
@@ -252,7 +264,7 @@ function SheetTip({
         data-depth={entry.depth}
       >
         <StackBar stack={stack} entry={entry} sheet onPin={onPin} />
-        <Content entry={entry} links={links} />
+        <Content entry={entry} links={sheetLinks} />
       </Sheet>
     </>,
     entry.anchor.ownerDocument.body,

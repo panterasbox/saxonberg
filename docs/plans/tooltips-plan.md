@@ -665,7 +665,20 @@ lint family green. Stage files by name.
   takes effect without a reconnect.
 - **Commit:** `refactor(settings): W4 — a setting declares that the client mirrors it; spoiler.appetite`
 
-### W5 — Client: the three sources, the spoiler block, pin (D3–D7)
+### W5 — Client: the three sources, the spoiler block, pin (D3–D7) ✅
+> **Done.** One shared rule `useSpoilerOpen(level)` drives the tooltip's
+> `SpoilerBlock` AND the terminal's `<spoiler>` span (which now honors its
+> level — a level-1 span is open at appetite 1). Every clickable MML tag is
+> a `<Tip>` anchor here, not in W6 — nesting needs the links inside a
+> tooltip to be anchors, so W6 keeps chips, ways, focus and long press.
+> Decisions: **the card head stays `KindMark` + `Title`** (the same icon-map
+> kind icon + name `DocHeader` draws; swapping the component would move the
+> head's drag and pick wiring for no visible change) — the facts and the
+> spoiler ARE the shared components, asserted markup-for-markup. CharGen's
+> veiled rows stay a `<details>` fold: they are a "more" disclosure with no
+> level, not a spoiler. The sheet pushes a TERM on tap (a phone has no hover
+> to nest by). Ratchet 97 → 94.
+
 - `services/websocket.ts`: `query()` and `wikiExcerpt()` (request id →
   promise, the `resolveAffordances` pattern; add both message types to the
   outbound union).

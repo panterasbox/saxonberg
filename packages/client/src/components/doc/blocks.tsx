@@ -35,6 +35,17 @@ export function useAppetite(): number {
   });
 }
 
+/**
+ * ⭐ The one spoiler rule, for every spoiler the client draws (the tooltip
+ * block, the terminal's `<spoiler>` span): open iff `level <= appetite`,
+ * else collapsed until clicked — that occurrence only.
+ */
+export function useSpoilerOpen(level: number): [open: boolean, reveal: () => void] {
+  const appetite = useAppetite();
+  const [opened, setOpened] = React.useState(false);
+  return [opened || level <= appetite, () => setOpened(true)];
+}
+
 // ── Header ──────────────────────────────────────────────────────────────
 
 const Head = styled.div`
@@ -218,9 +229,7 @@ const SpoilerOpen = styled.div`
  * one click, never prevented.
  */
 export function SpoilerBlock({ spoiler }: { spoiler: TooltipSpoiler }): React.ReactElement {
-  const appetite = useAppetite();
-  const [opened, setOpened] = React.useState(false);
-  const open = opened || spoiler.level <= appetite;
+  const [open, setOpened] = useSpoilerOpen(spoiler.level);
   return open ? (
     <SpoilerOpen data-testid="doc-spoiler" data-spoiler-level={spoiler.level} data-open="true">
       {spoiler.label}: <code>{spoiler.text}</code>
@@ -233,7 +242,7 @@ export function SpoilerBlock({ spoiler }: { spoiler: TooltipSpoiler }): React.Re
       data-open="false"
       onClick={(e) => {
         e.stopPropagation();
-        setOpened(true);
+        setOpened();
       }}
     >
       {spoiler.label}

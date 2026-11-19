@@ -31,7 +31,10 @@ import { useStore } from "../../store/index";
 import type { CardState } from "../../store/cardFeedSlice";
 import { tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
-import { mediaUrl, SERVER_URL } from "../../config";
+import { mediaUrl } from "../../config";
+import { helpSummary } from "../../services/tooltipSource";
+import { thingDoc, type ThingRecord } from "../doc/docs";
+import { FactRows, SpoilerBlock } from "../doc/blocks";
 import { MmlRenderer } from "../MmlRenderer";
 import { colorForTopic } from "../GutterStripe";
 import { actionCommand, lookCommand, useLinkMode } from "./clickTarget";
@@ -191,36 +194,22 @@ const ActionLabel = styled.div`
   color: ${tokens.color.sectionLabel};
 `;
 
-/* ─── interface summaries (the gutter hover) ─── */
+/* ─── interface summaries (the gutter) ─── */
 
-/** Session cache of mixin summaries, from the help catalogue (#89). */
-const summaries = new Map<string, string | null>();
-
+/**
+ * An interface's one-line summary, from the help catalogue (#89) — through
+ * the tooltip's help source, so the gutter and a help term's tooltip share
+ * one fetch and one cache (tooltips W5).
+ */
 function useSummary(source: SegmentSource | null): string | null {
   const key = source?.kind === "mixin" ? `mixin.${source.name}` : null;
-  const [summary, setSummary] = React.useState<string | null>(
-    key ? (summaries.get(key) ?? null) : null,
-  );
+  const [summary, setSummary] = React.useState<string | null>(null);
   React.useEffect(() => {
     if (!key) return;
-    if (summaries.has(key)) {
-      setSummary(summaries.get(key) ?? null);
-      return;
-    }
     let live = true;
-    void (async () => {
-      try {
-        const res = await fetch(
-          `${SERVER_URL}/api/help/topic?id=${encodeURIComponent(key)}`,
-          { credentials: "include" },
-        );
-        const body = res.ok ? ((await res.json()) as { topic?: { summary?: string } }) : null;
-        summaries.set(key, body?.topic?.summary || null);
-      } catch {
-        summaries.set(key, null);
-      }
-      if (live) setSummary(summaries.get(key) ?? null);
-    })();
+    void helpSummary(key).then((s) => {
+      if (live) setSummary(s);
+    });
     return () => {
       live = false;
     };
@@ -465,6 +454,10 @@ export function InspectionBody({
   const beside = size === "unit" && shape !== "wide";
   const showImage = Boolean(illustration) && (!cut || imageOpen);
 
+  const thing = record
+    ? thingDoc(record as ThingRecord, card.takenAt !== undefined ? { at: card.takenAt } : {})
+    : null;
+
   const afforded = (answer?.verbs ?? []).filter(
     (v) => v.source === "subject" && v.state !== "disabled",
   );
@@ -531,6 +524,11 @@ export function InspectionBody({
           ) : null}
         </React.Fragment>
       ))}
+      {/* ⭐ The same facts and spoiler block a tooltip about this thing
+          shows — one builder, one set of blocks (tooltips D2): the card and
+          the tooltip cannot disagree about what it is. */}
+      {thing?.facts?.length ? <FactRows facts={thing.facts} /> : null}
+      {thing?.spoilers?.map((sp) => <SpoilerBlock key={sp.label} spoiler={sp} />)}
       {afforded.length > 0 && stuffId ? (
         <>
           <ActionLabel>Actions</ActionLabel>
