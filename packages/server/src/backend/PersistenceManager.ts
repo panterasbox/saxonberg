@@ -596,11 +596,11 @@ export class PersistenceManager {
 
   /**
    * The connection pool's size — every worktree shares one cluster limit.
-   * ⭐ 16 by measurement (db-performance D12): with the build's round-trip
-   * cuts in, thirty players working still queued 396 check-outs at 10
-   * (peak 807 waiting). Raised only after the cuts, never past 24 here.
+   * ⭐ 24 by measurement (db-performance D12): with the build's round-trip
+   * cuts in, thirty players working still queued 396 check-outs at 10 and
+   * 196 at 16. Raised only after the cuts, and never past 24 in this build.
    */
-  private static readonly POOL_MAX = 16;
+  private static readonly POOL_MAX = 24;
 
   /** Cumulative pool events since connect (db-performance, D10). */
   #pool = {

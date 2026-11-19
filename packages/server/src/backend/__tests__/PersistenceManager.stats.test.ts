@@ -54,7 +54,7 @@ describe('PersistenceManager.stats', () => {
 
   it('reports the pool shape, and no caller table with the trace off', () => {
     const s = pm.stats();
-    expect(s.pool.max).toBe(16);
+    expect(s.pool.max).toBe(24);
     for (const k of ['inUse', 'waiting', 'waited', 'waitMs', 'peakWaiting'] as const) {
       expect(s.pool[k]).toBeGreaterThanOrEqual(0);
     }
