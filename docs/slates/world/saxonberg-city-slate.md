@@ -19,7 +19,8 @@
 > the windows (§ 3) · the municipal government with an NPC mayor (§ 5) · the reserved embassy row ·
 > the generic seat-of-government pack (§ 6, its own design) · the second grant (waits on the
 > stewardship cascade) · the PM's Residence (office-keyed tenure — the one novel mechanic) · § 9's open
-> list
+> list · ⭐ (2026-11-18, § 8a) the TPA headquarters · the Saxonberg paper, the fourth estate's first
+> institution, which runs the public channels
 > **Size:** a build
 
 **Captured 2026-08-01; rewritten 2026-11-07.** The City of Saxonberg: the **diegetic seat of the
@@ -204,6 +205,44 @@ One axis, D.C.-style: the chambers at one end, the executive at the other.
 
 Zoning: civic for the axis and the premises, residential for A Street, commercial for B Street — three
 of the closed six.
+
+## 8a. ⭐⭐ Two private institutions at the seat — the TPA headquarters and the paper **[DECIDED in shape — the owner, 2026-11-18]**
+
+A seat of government houses institutions that are not government — Washington has the Post. Two belong
+here and nowhere else, because they are the only things besides the Compact whose reach is the whole
+platform. **Preliminary; a content session follows.**
+
+### The TPA headquarters
+
+The owner: *"I think it needs its own representation in the city of Saxonberg … putting some pre-built
+content there for it will really cement what the TPA is and exists to do. I'm not saying it's Compact
+run … but the TPA headquarters doesn't belong anywhere in the game except Saxonberg."* The window (§ 3)
+onto the teleport network:
+
+- **the network control room** — a live board of every terminal across every world, its light and
+  status (the display substrate carries it);
+- **the registry** — which carrier leases which gate, where every terminal is, what each serves;
+- **the standards office** — what makes a terminal a terminal, the light scheme, safety;
+- **the clearing house** — where the network fee from every fare settles;
+- **the incident board** — outages and closures: the TPA's own **service channel**, its one
+  legitimately network-wide channel — status, not chatter;
+- **the founding charter and a small museum** — the homage to EotL's Teleport Authority and its
+  Eternal City Terminal, and where a new player learns what the network is.
+
+**Its governance is as shipped and slated, not decided here:** the Authority is a self-governing Business,
+*not the state*, whose committee's group the PM's office owns ([fasttravel.md](../../subsystems/fasttravel.md));
+whether it becomes the public carrier or a standards body above the carriers is
+[fast-travel-slate](../engine/fast-travel-slate.md) § *Carriers*, open 1. The headquarters fits either.
+
+### The Saxonberg paper — the public square
+
+The owner: *"The 'public' channels probably should be all operated by the press in Saxonberg, whoever
+turns out to run that on behalf of the population. It's its own estate. I'm not going to try and
+interfere with that — just set up the stage and let someone perform."* Gossip about the game is about
+the meta, not about Terminus, so it needs a holder whose beat is the whole platform: **a national paper
+at the capital**, private and independent of all three branches. **The operator holds it at launch**,
+under the paper's own name, until it is handed off. The full design of the public channels and launch
+moderation is [moderation-slate](../society/moderation-slate.md) § 24.
 
 ## 9. Open
 

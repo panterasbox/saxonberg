@@ -459,7 +459,9 @@ credential when their content cites a node. Side roads, which also give lens 7 i
 - **demonstrated work** — content shipped under a camera-level node holds up under review, and
   standing accrues, as agent residents earn it;
 - **peer sign-off** by authors who already hold the node — guild-shaped, among people, with no NPC
-  weight ([guild-slate](./guild-slate.md)).
+  weight. ⭐ **Guild masters are this road for their region** (2026-11-18,
+  [guild-slate](./guild-slate.md) § *The university feeds the guild*): the guild is the frontier, the
+  university the canon ([guild-slate](./guild-slate.md)).
 
 **Soft by default.** The polity picks the enforcement level per node: most likely *camera*
 (uncredentialed content is marked, not refused), with *wall* for the few that are easy to get badly

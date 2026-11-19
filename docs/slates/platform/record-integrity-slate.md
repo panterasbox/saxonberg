@@ -11,7 +11,11 @@
 > discipline · the Merkle checkpoint ·
 > anchoring via `GitApi` to third-party hosts · the published export +
 > standalone verifier · the member self-audit view · an external beacon
-> for draws (the grinding attack named in requirements)
+> for draws (the grinding attack named in requirements) · ⭐ (2026-11-18) the
+> interface — the ✓ line on every meta card and `verify` (§ *The interface*) ·
+> chaining declared per collection, every append-only ledger · erasure by
+> destroying data beside its fingerprint · a format version on every entry ·
+> the break alarm and the standing bounty · realms witnessing each other
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the government design run. The
@@ -90,6 +94,11 @@ reintroduces exactly the trust the scheme exists to remove. Self-audit
 plus the roll is the **proportionate** first cut.)*
 
 ## Scope: governance only
+
+> ⛔ **Superseded 2026-11-18** (§ *The interface, the alarm, and witnessing*):
+> **every append-only ledger is chained**, declared per collection — the cost is
+> near zero, and chaining a chosen subset invites *"why not that one?"*. The bank
+> ledger joins.
 
 Chain what the constitution names, not gameplay: **the Roll**, **the
 docket**, **office handoffs**, **investiture / confidence**, **draws**,
@@ -199,6 +208,121 @@ failure:
    *my acts, on the record.*
 7. **External beacon** for draws.
 
+## ⭐⭐⭐ The interface, the alarm, and witnessing (2026-11-18)
+
+Talked through with the owner, out of the courts design
+([separation-of-powers-slate](../society/separation-of-powers-slate.md)). The
+owner: *"In the manifesto I kinda say 'blockchain' and assume people know what
+that means … my first question is what's it gonna cost me? And is this thing like
+tape, where it's impossible to search but super cheap to append to?"* Then: *"What
+interface, if any, do we need for the record, and who uses it?"*
+
+### What it costs, and why it is not tape
+
+- **A hash chain**: each entry carries the fingerprint (SHA-256) of the one before;
+  edit an old entry and every later link visibly breaks. The rest of what people
+  call *blockchain* — mining, tokens, consensus among strangers — solves a problem
+  we do not have: agreeing on a record when **nobody is trusted to write it**. We
+  have one writer; it need not be trusted, only **caught**.
+- **The loophole is a recomputed chain; the fix is anchoring** — publishing the
+  latest fingerprint where we do not control it: a git push to a public host, a
+  free public timestamp (OpenTimestamps anchors into Bitcoin with no coin on our
+  side), a public post. Anchoring publicly also stops showing different histories
+  to different people.
+- **Cost, in dollars, effectively zero**: microseconds per hash; about 64 bytes per
+  entry (a million entries ≈ 64 MB); one published hash an hour; verification runs
+  on the verifier's machine. **The real cost is discipline**: ordered appends per
+  chain, canonical serialization, and no in-place updates (§ *Two implementation
+  hazards*; `positions` first).
+- ⭐ **Not tape.** The chain is two extra fields on ordinary rows; rows stay indexed
+  and queryable exactly as now. What changes is **no edit, no delete — a correction
+  is a reversing entry**, as accounting has always worked. A Merkle checkpoint folds
+  new entries into one anchored fingerprint, and proving one entry is in it takes
+  about 20 hashes for a million entries.
+- **The two honest limits** (§ *The honest limits*): it proves nothing was changed
+  afterward, never that an entry was true when written — the open code and the
+  court's code review cover that half; and **erasure** (below).
+
+### Who uses it
+
+| who | needs | how often |
+|---|---|---|
+| **every player** | trust that what they see was not changed; a check of their own entries | rarely, by choice |
+| **judges** | proof an entry is genuine and unaltered, as evidence | every case citing the record |
+| **legislators and press** | history — what was enacted, when, the tallies | often, through `law` and `bill`, not the chain |
+| **outside watchdogs** | the whole record, verified independently, no character needed | continuously, by tooling |
+| **the server** | write, anchor, self-check | always, automatically |
+
+### ⭐⭐ The interface — a ✓ on every card, and one verb
+
+- **Every meta card** — a bill, a law, a ruling, a notice, a vote, a ledger entry —
+  shows one line: *on the record · entry 41,207 · verified ✓ · anchored 18 min ago*.
+  The padlock in a browser: the interface for nearly everyone.
+- **`verify`** **[DECIDED — lens 1]** — *record* is taken by the record layer behind
+  `recall`, and the verb should say what you do:
+  - `verify <bill · law · case · notice · entry>` — ⭐ **shows its work**: the entry,
+    its fingerprint, the link to the one before, the checkpoint, the anchor, each
+    step checked (the physics receipt's principle — "don't trust, verify" is itself
+    the lesson);
+  - `verify mine` — **the member self-audit**: every entry about you, checked and
+    listed; ⭐ for a secret ballot, the record holds a sealed fingerprint of each
+    vote, so you confirm *your* vote was counted without revealing it;
+  - `verify status` — the record's health: last anchor, any reported break.
+- **Outside the game:** the public export (every entry, or its fingerprint where it
+  holds personal data) · **the standalone verifier**, open source and run on your own
+  machine — deliberately outside our code, since a verifier we run proves little ·
+  the anchor list.
+
+### ⭐⭐ When it breaks
+
+A failing proof is **self-evident** — anyone can re-run it — so a break settles the
+facts at once; what remains for the court is *who*.
+
+- **Anyone may report a break**, the failing proof attached.
+- **A public alarm**: `verify status` turns red everywhere; every card shows it.
+- **A conduct case files automatically** against whoever held write access at the
+  time ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7o).
+- ⭐ **No automatic suspension** **[DECIDED — lens 7]**: suspending write access before
+  a ruling would be punishment before process, and could halt the realm, since the
+  writers run it. **Interim suspension is the court's to order.**
+- **Recovery** goes back to the last good anchor; anchors are the restore points.
+- ⭐ **A standing bounty for proving a break** **[DECIDED — lens 6]**: the most
+  valuable labor for the Compact, standing by formula. Nobody can manufacture one to
+  collect it — only write-access holders could, and they are excluded.
+
+### ⭐ Realms witness each other **[DESIGNED now; built at the second realm]**
+
+Each realm publishes its latest checkpoint into its neighbors' records. Rewriting
+one realm's history would then mean rewriting every realm that witnessed it — the
+federation as its own notary, and the most honest answer to *who watches the
+watchers*: everyone else.
+
+### Decisions
+
+| question | answer | lens |
+|---|---|---|
+| the verb | `verify`, which shows each step; the ✓ is the summary | 1 |
+| which collections | **declared in each collection's schema doc** — no code per ledger | 2 |
+| how much | **every append-only ledger**, the bank ledger included | 6 |
+| in-fiction documents | ⭐ **never certified** — forgery in the fiction (a forged letter, a laundered corpse) is gameplay; the chain vouches that a case happened, never that its evidence is genuine | 3a |
+| anchoring | **Tier A** — *the record can never be faked* is a manifesto floor, meaningless if a polity can stop anchoring | 3b, 7 |
+| a proven break | standing by formula; writers excluded | 6 |
+| after a break | alarm and an automatic case; interim suspension only by court order | 7 |
+| realm witnessing | designed now, built at the second realm | the owner |
+
+### Gaps the pass found
+
+- ⚠ **A format version on every entry** (lens 5) — the serialization will change; an
+  old entry must re-hash the way it was first hashed, or an upgrade looks like
+  tampering.
+- **Genesis is now** — no players and no data, so the chain starts clean.
+- **Erasure** (lens 4, the owner's to confirm) — the chain holds a *fingerprint* of
+  personal data, the data lives beside it (encrypted with a per-person key where
+  needed); erasing destroys the data or the key, the chain still verifies, and the
+  person's data is gone. It is the *purge a person's data* operation
+  ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7l) and
+  is designed with the chain from the start.
+
 ## Open questions (for requirements)
 
 1. **One chain or many?** Per-log chains with a checkpoint hashing all
@@ -208,11 +332,12 @@ failure:
    as governance? (Cheap either way; the anchor push is the only cost.)
 3. **Retention of the exportable log** — permanent, or checkpointed
    compaction with the old chain retained by replicas?
-4. **Does the bank ledger join in v1?** It has the chokepoint already;
-   the argument against is scope, not difficulty.
-5. **What exactly does the self-audit view show** — every act, or the
-   governance subset? (Instinct: governance first; the chronicle
-   already covers deeds.)
+4. ~~**Does the bank ledger join in v1?**~~ **Yes** — every append-only
+   ledger is chained (2026-11-18).
+5. ~~**What exactly does the self-audit view show**~~ — `verify mine`: every
+   entry about you on every chained ledger (2026-11-18).
 6. **Signature upgrade path** — if per-actor keys land later, do
    historical unsigned entries stay valid (grandfathered, with the
    transition itself anchored)?
+7. **Erasure** — confirm fingerprints in the chain with data stored beside
+   them, destroyed to erase (2026-11-18).
