@@ -54,7 +54,8 @@ test.describe('db-performance — your standing is yours, across death', () => {
         await runCommand(page, 'standing');
         expect(await page.getByText(/You show up and take part/).count()).toBeGreaterThan(before);
       }).toPass({ timeout: 30_000 });
-      await expect(page.getByText(/You have not yet shown up/)).toHaveCount(0);
+      // (Not "no 'not yet shown up' anywhere": the polls before the first
+      // scoring pass said so, truly, and the scrollback keeps them.)
     } finally {
       await close();
     }
