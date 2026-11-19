@@ -10,7 +10,8 @@
 > **Left:** stations and receivers · propagation as the light model at another frequency · the station as a
 > business · spectrum law as Tier C · the radio-engineering hardware · ⭐ (§ 7) the two carriers — the aether
 > for real streamed media at launch, physical for in-fiction reach · one trade across the ladder, crier to
-> stream · craft measured by agendas kept · venues owning their screens
+> stream · craft measured by agendas kept · venues owning their screens · (§ 8) the town crier — a job over
+> existing verbs, promulgation as a polity's choice
 > **Size:** a build
 
 ## 0. Why reach comes from the transmitter **[DECIDED — lenses 1, 3a]**
@@ -204,5 +205,79 @@ the stream (moderation § 14a), is broadcast content: the judiciary on air.
 
 ### Open
 
-1. **The crier** — a launch job, or later?
+1. ~~**The crier**~~ — designed in § 8.
 2. **Television** — designed now as broadcast to screens, or left for the Signal rung's content?
+
+## 8. ⭐⭐ The town crier **[DECIDED in shape]**
+
+**No new mechanics.** `shout` already carries acoustically across nearby rooms, and `ring` on a bell is *"loud
+enough to be heard in the next street."* A crier rings a bell, shouts a proclamation, and posts the paper
+notice after — three existing acts and paper. **The crier is a job** ([lens 2]); what matters is who employs
+it and what it is for.
+
+### What a crier did
+
+Proclaimed the law (new ordinances, proclamations, market days) and then nailed the notice to a post — where
+*posting* news comes from; announced for hire (merchants' sales, lost property, events); was protected —
+harming a crier was an offense against whoever sent them, the original *don't shoot the messenger*; still
+exists ceremonially, with competitions for the best cry (*"Oyez, oyez, oyez"*).
+
+### What it is for, when the aether delivers everything free
+
+1. **Places the aether's screens do not reach** — in a Wheel-covenant town, tuners powered down by law, news
+   arrives by voice, the Post's paper edition, or the crier. On the lower rungs the crier *is* broadcasting.
+2. ⭐ **Notice of the law, in the fiction** — due process rests on people being able to know the law; in real
+   systems a law binds once **promulgated**, and the crier was how. Ours are in force on enactment
+   ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 3), but **a polity may choose a
+   promulgation rule** — a covenant town's ordinances bind once cried in the square and posted.
+3. **Presence** — news spoken by a person in a square is part of the place.
+4. **Advertising** — a merchant pays to have a sale cried, the oldest ad market there is.
+5. **Ceremony** — opening a market, announcing a verdict; on any rung, even a city full of screens.
+
+### Who holds the seat, given the pen
+
+- **The city's crier is a public office**: its proclamations are government speech; it cries what the city's
+  executive gives it. **A private crier** works for whoever hires them — merchants, the Post, a candidate:
+  private speech.
+- **NPC or player** — crying prepared text is mechanical, so an NPC may hold the floor, ⭐ **but only for
+  official notices** **[DECIDED — lens 7]**: judging whether a paid private announcement is libel or breaks the
+  conduct code is judgment, a person's. A private announcement needs a person to accept it — a player crier,
+  or the employer's staff approving it before the NPC reads it. **A player crier adds judgment and
+  performance** — a voice people stop to hear.
+
+### Craft and economy
+
+The Discipline is **public speaking and oratory** — projection, delivery, memory. Pay is the city's wage for
+official notices and fees from private clients; the Post may hire criers to carry its headlines into
+covenant towns. Craft is measured by **announcements delivered as agreed** — the agenda kept (§ 7), never
+time spent shouting.
+
+### Lens pass
+
+1. **Pedagogy** — promulgation and notice (*ignorance of the law is no excuse* holds only because laws are
+   published; real governments keep an official gazette for it; Rome posted laws in the Forum); oratory; the
+   cry's reach derivable from the acoustic model.
+2. **Expression** — **a job over existing verbs**, no new mechanics; anyone may hire a crier; promulgation a
+   clause in a polity's own law.
+3. **3a Immersion** — presence in the fiction. ⭐ **Nothing out of fiction depends on a crier**
+   **[DECIDED — lens 3a]**: the Compact's notices, help and messages stay on the aether, so the never-strand
+   rule holds even where screens are dark (`help` always works); the crier carries the fiction's local news
+   and law, never the meta layer's. **3b Participation** — player criers with personality, crying
+   competitions, rival criers, criers hired for an election, heckling.
+4. **Values** — whether a town requires promulgation, and which notices are cried: the polity's.
+5. **Continuity** — every rung from Muscle up; in a city of screens, ceremony.
+6. **Economy** — wages and fees. ⭐ **A seat a locality creates when it wants one, not a launch requirement**
+   **[DECIDED — lens 6]**: Terminus has screens at launch, and the real demand — covenant towns, ceremony, ads
+   in a square — is small.
+7. **Governance** — ⭐ **if a polity adopts promulgation, crying an enacted law is a *ministerial* duty with a
+   deadline, and silence enacts** **[DECIDED — lens 7]**: otherwise an executive blocks a law by never crying
+   it — the slow-walk again. The crier has no discretion over enacted law; uncried by the deadline, the law
+   takes effect anyway, as the PM's window and the court's. *Marbury v. Madison* was about a commission
+   nobody delivered, and the Court called delivering it ministerial. **Only a person accepts a private
+   announcement.** Protecting criers at work is the polity's law; the crier's acts are logged like any
+   official's.
+
+### Open
+
+1. **Promulgation off by default** — a clause a polity opts into?
+2. **Crier protection** — a default law, or each polity's own?
