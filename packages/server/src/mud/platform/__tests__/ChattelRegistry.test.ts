@@ -237,12 +237,12 @@ describe("chattel possession core", () => {
     const torch = makeTorch();
     await torch.stampChattel(makeOwner("alice"));
     const many = vi.spyOn(PersistApi, "saveMany");
-    await torch.setChattelPlace("/world/a");
-    await torch.setChattelPlace("/world/a");
-    await torch.setChattelPlace("/world/b");
+    await torch.setChattelPlace("/test/place/a");
+    await torch.setChattelPlace("/test/place/a");
+    await torch.setChattelPlace("/test/place/b");
     expect(many.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(2);
     const [row] = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
-    expect(row!.place).toBe("/world/b");
+    expect(row!.place).toBe("/test/place/b");
   });
 
   /**

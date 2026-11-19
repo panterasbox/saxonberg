@@ -28,7 +28,7 @@ let ms = M0;
 let G0 = 0;
 const A = '/platform/agent/Avatar/a';
 const B = '/platform/agent/Avatar/b';
-const TOWN = '/world/terminus';
+const TOWN = '/test/town';
 const GUILD = 'group:/corpo/guild';
 
 let db: RecordTestDb;

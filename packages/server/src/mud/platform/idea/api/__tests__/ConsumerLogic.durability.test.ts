@@ -192,10 +192,10 @@ describe('ConsumerLogic keys participation on the person', () => {
 
   it('an NPC (no minted identity) keys on its own row — identity falls back to it', async () => {
     await bootConsumer();
-    const npc = await mint('/world/lounge/agent/bartender');
+    const npc = await mint('/test/agent/bartender');
     fireDispatch(npc.stuffId, 'cmd-n');
     await flush();
-    expect(await ConsumerApi.eventsFor('/world/lounge/agent/bartender')).toHaveLength(1);
+    expect(await ConsumerApi.eventsFor('/test/agent/bartender')).toHaveLength(1);
   });
 
   it('⭐ a giver with no identity at all — a login screen — earns nothing (D3)', async () => {

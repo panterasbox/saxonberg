@@ -53,14 +53,14 @@ afterEach(() => {
 
 describe('a capture is one keyed write', () => {
   it('two concurrent first captures of one host leave ONE row', async () => {
-    const r = room('/world/sweep/one', 'k1', 'first');
+    const r = room('/test/sweep/one', 'k1', 'first');
     await Promise.all([PersistableApi.capture(r), PersistableApi.capture(r)]);
-    const rows = db.all('holder_snapshots').filter((x) => x.scope === '/world/sweep/one');
+    const rows = db.all('holder_snapshots').filter((x) => x.scope === '/test/sweep/one');
     expect(rows).toHaveLength(1);
   });
 
   it('a capture makes no read of the record — one write, keyed on scope and owner', async () => {
-    const r = room('/world/sweep/two', 'k2');
+    const r = room('/test/sweep/two', 'k2');
     const find = vi.spyOn(PersistApi, 'find');
     const many = vi.spyOn(PersistApi, 'saveMany');
     await PersistableApi.capture(r);
@@ -72,7 +72,7 @@ describe('a capture is one keyed write', () => {
 
 describe('the shutdown sweep', () => {
   it('writes N hosts in ⌈N/25⌉ batches and reports N', async () => {
-    for (let i = 0; i < 60; i++) room(`/world/sweep/r${i}`, `k${i}`);
+    for (let i = 0; i < 60; i++) room(`/test/sweep/r${i}`, `k${i}`);
     const many = vi.spyOn(PersistApi, 'saveMany');
     const report = await PersistableApi.captureAtShutdown();
     expect(report.captured).toBe(60);
@@ -83,8 +83,8 @@ describe('the shutdown sweep', () => {
   });
 
   it('a host whose prepare throws is counted failed; the rest are written', async () => {
-    for (let i = 0; i < 5; i++) room(`/world/sweep/ok${i}`, `ok${i}`);
-    const bad = room('/world/sweep/bad', 'bad');
+    for (let i = 0; i < 5; i++) room(`/test/sweep/ok${i}`, `ok${i}`);
+    const bad = room('/test/sweep/bad', 'bad');
     vi.spyOn(bad, 'getIdentityPath').mockReturnValue(null);
     const report = await PersistableApi.captureAtShutdown();
     expect(report.failed).toBe(1);
@@ -92,7 +92,7 @@ describe('the shutdown sweep', () => {
   });
 
   it('a batch the database refuses is counted failed, whole', async () => {
-    for (let i = 0; i < 3; i++) room(`/world/sweep/x${i}`, `x${i}`);
+    for (let i = 0; i < 3; i++) room(`/test/sweep/x${i}`, `x${i}`);
     vi.spyOn(PersistApi, 'saveMany').mockRejectedValueOnce(new Error('the link dropped'));
     const report = await PersistableApi.captureAtShutdown();
     expect(report).toMatchObject({ captured: 0, failed: 3 });
