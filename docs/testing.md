@@ -1238,6 +1238,20 @@ all four shapes have now been tried in one file:
 surfaces far away: no instrument in hand reads as *the instrument is not
 in reach*, which looks like a defect in the reading ladder.
 
+## ⭐ Tests state who acts — `TestHarnessApi.actAs` (call-security pass)
+
+A protective method checks the actor it is handed against who the engine
+says is acting (`AccessApi.requireActor`), and a command run on a body is
+gated unless that body is acting. A unit test that calls such a method, or
+a controller's `execute(model, ctx)`, with no frame at all is "nobody
+acting" and is refused. Say who acts:
+`TestHarnessApi.actAs(person, () => thing.lock(person))`;
+`TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model, ctx))`.
+There is no test-environment branch in the check. A test that spies
+`ExecutionContextApi.getActingAuthor` to set a REST principal spies
+`getActor` alike. Staging through `TestHarnessApi.stage` runs as the
+system (`test-stage`) and may set state on anybody's behalf.
+
 ## Open: test seams a drive would want
 
 - ~~**A runtime weather pin for drives**~~ — shipped by the soak-harness build:

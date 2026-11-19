@@ -1518,6 +1518,25 @@ switch — it passes the answer on — so `lint:reason-rows` is that census now.
 ⚠ `lint:floating-promises` cannot see a promise dropped with NO `void`;
 that needs types, and a typed lint is a deferred seam.
 
+### The call-security pass gates — who is acting, counted (2026-11-19)
+
+- **`lint:actor-claims`** — a function that hands one of its parameters to
+  a permission predicate as the ACTOR (the first parameter-rooted argument;
+  the receiver of `isFulfilling`/`isOnShiftFor`) without first calling
+  `AccessApi.requireActor` on it. The vocabulary is `lint:controller-gates`'
+  `GATE_PATTERNS` (read, not copied) plus the pass's survey. Predicates
+  (`can…`/`may…`, a declared `boolean`) and brains are not counted. Opened
+  at **49**, driven to **0** in one build, held at 0; the output also
+  publishes how many protective methods check their actor. ⚠ Blind to a
+  hand-rolled comparison no predicate names — name the predicate.
+- **`lint:compellable`** — both keys of a command another body's code may
+  ask a body to run: every `compellable: consent` view names a controller
+  that declares `static compellable = true`, and every such class is named;
+  no declaring controller under `social · governance · banking · employment
+  · work · system · author · shell · stream · charactergen` (the never-list:
+  speech, conferral, membership, money given, verbs that run others); and a
+  ratchet on the declaring classes, **1** (`title buy`).
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

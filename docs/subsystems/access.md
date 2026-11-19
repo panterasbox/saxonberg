@@ -501,6 +501,19 @@ null and fail closed). `getCurrentCommandGiver()` returning `null`
 (no command in flight) evaluates against an unauthenticated subject
 and fails closed.
 
+## ⭐ `requireActor` — the subject must be who is acting
+
+A predicate (`can`, `canAtPath`, a model's `mayLetFor`) answers for the
+subject it is handed. A protective act that hands it an actor parameter
+first proves the parameter: `AccessApi.requireActor(claimed)` passes only
+when `claimed` is the same object as `ExecutionContextApi.getActor()` (or
+the named system is acting, or the claim is `null`), and otherwise refuses
+`not-acting-for` and tells the lying code's title holder through a
+`call-security` diagnostic. Synchronous; one frame walk. The act/predicate
+line: an act (writes or discloses) makes the call; a yes/no read about a
+third party does not — the lie buys only an answer. Full rule:
+[call-security.md § The actor check](./call-security.md).
+
 ## Source-path → template-path resolution
 
 `resolveSourceFolderZone(sourcePath)` walks the source path

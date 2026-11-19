@@ -570,6 +570,26 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   listing. The realtor still asks WHICH lot (a choice prompt is asking, not
   compelling).
 
+- **W5 — the roster, row by row (done with W1–W3's flip to 0).** #1 ✓
+  (`Named`, `Bonded`) · #2 ✓ · #3 ✓ (+ `slipFrom`) · #4 ✓ · #5 ✓ · #6 ✓ · #7 ✓
+  (fails closed) · #8 ✓ · #9 ✓ · #10 ✓ (`Organism`, `Livestock`) · #11 ✗ and
+  #12 ✗ (B12: controller-only predicates, no act to host it) · #13 ✓
+  (`historyFor`, `visibleChannels`, `governRefusal` — which `setAnonymity`,
+  `renamePlayerChannel` and disband pass through) · #14 ✓ (+ `editBody`) ·
+  #15 ✓ (+ `WikiRenderer.redactSource`) · #16 ✓ · #17 ✓ · #18 ✓
+  (`Group.rename`) · #19 ✓ (`let`/`endLet`; `DormWarren` through `super`;
+  `MarketStalls.let`) · #20 ✓ · #21 ✓ (the herdbook acts) · #22 ✓ · #23 ✓ ·
+  #24 ✓ (`openPlanFor`, where `canOpen` is asked). Census: unchecked **0**;
+  checked: printed by `lint:actor-claims` on every run.
+- **W6 — the drive's scope.** The wire drive carries the player-facing and
+  the lie steps (1–4, 7–9). Steps 5 (an NPC's beat, a dialogue dispatch), 6
+  (a bore completing for its starter), 10 (the blood bank) and 11 (a sweep as
+  the system) are proved by unit tests (`Behaved.test` converse,
+  `actor.test` continuations, trade-mining's hew completion — B13 —,
+  `DonationBank.test`, `actor.test` system arms) and by every wire drive in
+  the suite still passing with the gate in: a brain, a timer or a sweep that
+  lost its actor would refuse loudly there.
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |
@@ -626,7 +646,7 @@ No guard re-narrows any host set. Nothing is added to `Thing`, `Stuff`,
 Each wave ends at one commit and is gated by `pnpm test:near`, every
 touched pack's vitest and `lint:family`.
 
-### W0 — the kernel: who is acting
+### W0 — the kernel: who is acting ✅ (49dfde3f5)
 Implements D1, D2, D3, D4, D7, D15 and the brain half of D10.
 - `api/execution-context.ts`: S1, S3, S4, S5.
 - `api/schedule.ts`, `platform/idea/SchedulerRegistry.ts`,
@@ -675,7 +695,7 @@ records a `call-security` row at the controller's path; banking's payer
 tests unchanged.
 **Commit:** `feat(security): the engine says who is acting`.
 
-### W1 — kernel sites: things and places
+### W1 — kernel sites: things and places ✅ (be6a396c5, with W2–W3)
 Roster #1–#12, #24 and D6. Files as in the roster table; plus
 `packages/content/trade-medicine/src/idea/cmd/medical/IssueController.ts`
 and reason row `no-issuer`. Tests wrapped with `actAs`.
@@ -685,7 +705,7 @@ different claimed person is refused before any state is read;
 is still held; `lint:actor-claims` falls.
 **Commit:** `refactor(security): kernel protective acts require their actor (things)`.
 
-### W2 — kernel sites: records and words
+### W2 — kernel sites: records and words ✅ (be6a396c5)
 Roster #13–#18. `ChannelCatalogue`, `ChatLogic`, `ForumsLogic`,
 `WikiRegistry`, `DocumentLogic.callUp`, `Organization.apply`, the group
 rename act.
@@ -694,7 +714,7 @@ redacted view; `packages/content/trade-printing/src/thing/Printer.ts` l.32
 still calls up a document for its own actor.
 **Commit:** `refactor(security): kernel protective acts require their actor (records)`.
 
-### W3 — pack sites
+### W3 — pack sites ✅ (be6a396c5)
 Roster #19–#23 and the `Livestock` half of #10: `residence`
 (`LettingWarren`, `PlatBook`), `eternal-university` (`DormWarren`),
 `terminus` (`MarketStalls`), `trade-ranching`, `transport`,
@@ -703,7 +723,7 @@ Roster #19–#23 and the `Livestock` half of #10: `residence`
 their packs' tests.
 **Commit:** `refactor(security): pack protective acts require their actor`.
 
-### W4 — compellability and the Realtor
+### W4 — compellability and the Realtor ✅ (84fd4435a)
 Implements D8, D9, the dialogue half of D10, D11, D12, D14.
 - `lib/command/command.schema.json`, `CommandDefinition.ts`,
   `scripts/check-view-keys.ts` (verb and subcommand surfaces),
@@ -736,7 +756,7 @@ cannot dispatch; a view claiming `consent` over `SayController` is
 refused at save. `Realtor.test.ts` updated.
 **Commit:** `feat(security): the compulsion gate — a body is asked`.
 
-### W5 — the census holds at zero
+### W5 — the census holds at zero ✅ (pinned at 0 in be6a396c5)
 Flip `lint:actor-claims` to 0; cross-check the roster table row by row;
 publish both numbers (unchecked: 0; checked sites: the `requireActor`
 count) in the lint's output and in `docs/lint-family.md`.

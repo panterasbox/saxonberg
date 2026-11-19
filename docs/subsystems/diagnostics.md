@@ -203,6 +203,16 @@ it reads only the `content-error` row's sentence. Runtime rows from
 message and stack — the one place they live, since the player is never
 shown them.
 
+### ⭐ A refused claim goes to the lying code's keeper (call-security pass)
+
+`channel: 'call-security'` rides the same title route as `content-error`
+(one routing set, `TITLE_ROUTED`): `AccessApi.requireActor` refused a claim
+that was not who is acting, or the compulsion gate refused a body being
+driven, and `path` is the code that did it
+(`ExecutionContextApi.getActingCodePath()` — a replaced controller's row,
+a brain's NPC). Its title holder reads *"<act>: <actor> claimed to act for
+<claimed>"* in `errors`; the player reads only the refusal's row.
+
 ## Gating
 
 Server-authoritative on the **context-derived** actor
