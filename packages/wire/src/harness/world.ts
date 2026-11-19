@@ -29,6 +29,8 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
+import { spawnSync } from 'child_process';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../runner/boot';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { allFiles, currentFile } from './registry';
@@ -551,4 +553,36 @@ export async function stageShip(handle: string, spec: ShipStageSpec): Promise<Sh
     throw new Error(`stageShip('${handle}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
   }
   return out as ShipStageResult;
+}
+
+/**
+ * ⭐ Restart the owned world: stop whatever listens on the wire port, reap
+ * it, and boot it again — then point the harness at the new one. Every
+ * persisted thing must be read back afterwards (review question R4).
+ * Lifted from the drives that each carried a copy.
+ */
+export async function restartWorld(): Promise<void> {
+  const listener = Number(
+    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
+  );
+  if (listener > 0) {
+    process.kill(listener, 'SIGTERM');
+    const deadline = Date.now() + 180_000;
+    for (;;) {
+      try {
+        process.kill(listener, 0);
+      } catch {
+        break;
+      }
+      if (Date.now() > deadline) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  await stopOwnedWorld();
+  const serverDir = join(REPO_ROOT, 'packages', 'server');
+  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
+    cwd: serverDir,
+    stdio: 'ignore',
+  });
+  process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 }

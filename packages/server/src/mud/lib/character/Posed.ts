@@ -25,6 +25,7 @@ import { MixinApi } from '../../api/mixin';
 import type { CommandContributions } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * ⭐ **The posture → rest-base table** — how much a posture lets a body
@@ -230,7 +231,9 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 
     public setPosture(value: string): void {
-      this.posture = value;
+      // ⭐ Fires: a screen showing your posture (what you can reach, the
+      // ways you can take, a low ceiling) re-reads it.
+      this.posture = SubscriptionApi.fireFieldChange(this, 'posture', this.posture, value);
     }
 
     public getRestingOnPath(): string {

@@ -388,7 +388,7 @@ export default class LookController extends CommandController<LookModel> {
               heading: 'Here',
               sources: [LookController.lookSource('Here')],
               text: this.render(Mml.compose`── Here: ${who}.`, actor),
-              items: occupants.map((o) => this.personOf(o, actor)),
+              items: occupants.map((o) => o.presenceChipFor(actor)),
             });
           }
           if (items.length > 0) {
@@ -844,31 +844,9 @@ export default class LookController extends CommandController<LookModel> {
   }
 
   /** One chip for a list segment — the thing as this viewer names it. */
+  /** A thing's chip — the thing's own rule ({@link Stuff.chipFor}). */
   private itemOf(x: Stuff, actor: Stuff): SegmentItem {
-    return {
-      stuffId: x.stuffId,
-      label: x.describeFor(actor),
-      keyword: MixinApi.isPerceptible(x) ? (x.getPrimaryKeyword() ?? '') : '',
-      count: 1,
-    };
-  }
-
-  /**
-   * A person's chip: their name, their status line, and what they rest on
-   * — the seat as its own chip, so both stay clickable.
-   */
-  private personOf(o: Stuff, actor: Stuff): SegmentItem {
-    const item = this.itemOf(o, actor);
-    const own = MixinApi.isStatus(o) ? o.getStatus() : '';
-    // ⭐ The chip says so too (D9) — the same read as the presence line.
-    const onAir = MixinApi.isBroadcastHost(o) && o.isOnAir() ? 'broadcasting' : '';
-    const status = [own, onAir].filter((p) => p !== '').join(', ');
-    const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
-    return {
-      ...item,
-      ...(status ? { status } : {}),
-      ...(rest ? { seat: { posture: rest.phrase, on: this.itemOf(rest.host, actor) } } : {}),
-    };
+    return x.chipFor(actor);
   }
 
   /**

@@ -19,7 +19,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type Exit from '../lib/boundary/Exit';
-import type { TraversalGuard } from '../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../lib/boundary/Exit';
 import type {
   LocomotionMode,
   BodyProfile,
@@ -202,13 +202,25 @@ export class LocomotionApi {
    *   3. exit-allowed-modes (`Exit.canTraverse`)
    *   4. enablement (per-mode, field-driven via `getEnablementMixin`)
    */
+  /**
+   * ⭐ What your body refuses whichever way you go, in the gates' own words
+   * (navigation-server review): your body plan, your posture, your hands,
+   * an awkward load, too much to carry. Facts about YOU — shown once in the
+   * `you` section (`bars`); every way's verdict repeats them because trying
+   * any way says them.
+   */
+  public static bodyRefusals(actor: Stuff, mode: LocomotionMode): string[] {
+    return logic().bodyRefusals(actor, mode);
+  }
+
   public static async canTraverseExit(
     actor: Stuff & Containable,
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
+    opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
-    return logic().canTraverseExit(actor, exit, mode, direction);
+    return logic().canTraverseExit(actor, exit, mode, direction, opts);
   }
 
   // ── enablement walk ──────────────────────────────────────────────

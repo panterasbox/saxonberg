@@ -14,7 +14,7 @@
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin (on Creature) provides: inventory, get, drop
- * - PerceiverMixin provides: look / scry / locate
+ * - PerceiverMixin provides: look / scry
  * - Avatar provides: ping, help, player (diagnostic commands)
  *
  * Key Design Points:

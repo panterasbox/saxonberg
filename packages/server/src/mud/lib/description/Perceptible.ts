@@ -46,9 +46,9 @@ import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
 /**
@@ -287,7 +287,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
               `keyword pool [${pool.join(', ')}]; storing anyway`,
           );
         }
-        this.primaryKeyword = MqlSubscriptionApi.fireFieldChange(
+        this.primaryKeyword = SubscriptionApi.fireFieldChange(
           this,
           'primaryKeyword',
           this.primaryKeyword,
@@ -295,7 +295,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
         return;
       }
-      this.primaryKeyword = MqlSubscriptionApi.fireFieldChange(
+      this.primaryKeyword = SubscriptionApi.fireFieldChange(
         this,
         'primaryKeyword',
         this.primaryKeyword,

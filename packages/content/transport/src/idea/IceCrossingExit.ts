@@ -40,7 +40,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 
 import type WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 import type { IceRecord } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
@@ -132,14 +132,14 @@ export default class IceCrossingExit extends Exit {
    */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     await this.refreshCrossing();
     const refusal = this.refusalFor(IceCrossingExit.massOf(mover));
     if (refusal !== null) {
       return { ok: false, gate: 'blocked', reason: IceCrossingExit.prose(refusal) };
     }
-    return await super.canTraverse(mover, mode);
+    return await super.canTraverse(mover, mode, opts);
   }
 
   /** What is wrong with the ice for a body of `moverKg`, or `null`. */

@@ -161,7 +161,7 @@ describe('topic taxonomy — the tree carries subject, not facets', () => {
     // what arrived, not which verb caused it — otherwise every new verb
     // is a new topic, which is how the corpus reached 89.
     const verbish = [...corpus.keys()].filter((k) =>
-      /\.(analyze|measure|weigh|look|scry|find|locate|listen|smell|taste|feel)\b/.test(
+      /\.(analyze|measure|weigh|look|scry|find|listen|smell|taste|feel)\b/.test(
         k
       )
     );

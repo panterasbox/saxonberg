@@ -98,6 +98,8 @@ export type DefendOutcome =
 export type HandActDestination = Stuff | 'unfasten' | 'take-off';
 
 export interface Combatant {
+  /** `Mobile.traverse`'s mover witness: walking out of a fight is fleeing it. */
+  beforeTraverse(via: Exit): TraversalGuard;
   /**
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
    * delivery profile, one injury through `inflict`). A thing has mass and it
@@ -191,6 +193,12 @@ export interface Combatant {
   getStandingStopCondition(): string;
   /** This fighter's live morale band, or null out of combat. */
   moraleBand(): MoraleBand | null;
+  /**
+   * ⭐ What leaving the fight would cost — how many foes take a parting
+   * shot, and the refusal when you cannot break away; `null` out of combat.
+   * A fact about YOU, the same whichever way you leave by.
+   */
+  leavingTheFight(): { foes: number; breakaway: string | null } | null;
   /**
    * The live combat-state line as `viewer` reads it, or null out of
    * combat: poise through the fog of the VIEWER's sharpness — a
@@ -558,6 +566,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public moraleBand(): MoraleBand | null {
       return combatLogic().moraleBand(this as unknown as Stuff);
+    }
+
+    /** See {@link Combatant.leavingTheFight}. */
+    public leavingTheFight(): { foes: number; breakaway: string | null } | null {
+      return combatLogic().leavingTheFight(this as unknown as Stuff);
     }
 
     public combatStateLineFor(viewer: Stuff): string | null {

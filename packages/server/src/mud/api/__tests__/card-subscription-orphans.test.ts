@@ -20,7 +20,7 @@ import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { ContainmentApi } from '../containment';
 import Locale from '../../platform/location/Locale';
 import { makeHarness, makeContext } from './card-harness';
@@ -30,7 +30,7 @@ describe('a card owns its subscription handle', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 
@@ -66,14 +66,14 @@ describe('a card owns its subscription handle', () => {
       { subjectId: lamp.stuffId },
     );
     expect(CardApi._getSizeForTesting()).toBe(4);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     for (const card of h.interactive.listCards()) {
       h.interactive.closeCard(card.instanceId, 'dismissed');
     }
 
     expect(CardApi._getSizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('the sweep tears the handle down too', async () => {
@@ -89,7 +89,7 @@ describe('a card owns its subscription handle', () => {
     yard.setShortDescription('the yard');
     const id = h.interactive.pushCard('subject', { subjectId: yard.stuffId })!;
     expect(h.interactive.arrangeCard(id, 'place').refused).toBeNull();
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     /*
      * ⚠ The WINDOW is the `cards.window` setting (600 s by default),
@@ -99,7 +99,7 @@ describe('a card owns its subscription handle', () => {
      */
     h.avatar.setSetting('cards.window', 5, h.avatar);
     expect(CardApi._sweepNowForTesting(60_000, Date.now() + 6_000)).toBe(1);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('a rearrange tears down what it manages and leaves inspection alone', async () => {
@@ -134,7 +134,7 @@ describe('a card owns its subscription handle', () => {
       }),
       'news',
     );
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     h.interactive.applyCardArrangement([{ cardId: 'who' }]);
 
@@ -143,12 +143,12 @@ describe('a card owns its subscription handle', () => {
       'subject',
       'who',
     ]);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     // …and closing it by hand still leaves nothing behind.
     const place = h.interactive.listCards().find((c) => c.cardId === 'subject');
     h.interactive.closeCard(place!.instanceId, 'dismissed');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
   it('disconnect drops the whole set and its handles, silently', async () => {
@@ -167,7 +167,7 @@ describe('a card owns its subscription handle', () => {
     h.interactive.cancelAllCards();
 
     expect(CardApi._getSizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     /*
      * ⚠ No `card-closed` envelopes: there is nobody to tell. A
      * disconnect is not a reason a card went away, it is the end of the

@@ -58,8 +58,9 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import type {
-  MqlSubscriptionResultEnvelope,
-  MqlSubscriptionDeltaEnvelope,
+  MqlRecord,
+  SubscriptionResultEnvelope,
+  SubscriptionDeltaEnvelope,
   Envelope,
   SelfFigureRecord,
   ShelfRowId,
@@ -201,7 +202,7 @@ export const GLANCE_ROWS = 3;
 
 /**
  * The player's shelf: server-authoritative, with the shipped default
- * standing in until the first `client-state-update` lands, filtered to
+ * standing in until the first client-state change lands, filtered to
  * known ids so a shelf saved before a row was retired cannot ask for a
  * row that is gone.
  *
@@ -500,14 +501,14 @@ export function useSelfFigures(): void {
     const selfId = websocketClient.subscribeMql({ chrome: "self" });
 
     const handleResult = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionResultEnvelope;
+      const env = envelope as SubscriptionResultEnvelope<MqlRecord[]>;
       if (env.subscriptionId !== selfId) return;
-      const record = env.result[0] as SelfFigureRecord | undefined;
+      const record = env.snapshot[0] as SelfFigureRecord | undefined;
       useStore.getState().setShelfFigures(record ?? null);
     };
 
     const handleDelta = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionDeltaEnvelope;
+      const env = envelope as SubscriptionDeltaEnvelope<Partial<MqlRecord>>;
       if (env.subscriptionId !== selfId) return;
       /*
        * ⚠ **The single-cardinality trap — fixed at the SOURCE, and this
@@ -546,12 +547,12 @@ export function useSelfFigures(): void {
       }
     };
 
-    websocketClient.onEnvelope("mql-subscription-result", handleResult);
-    websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
+    websocketClient.onEnvelope("subscription-result", handleResult);
+    websocketClient.onEnvelope("subscription-delta", handleDelta);
 
     return () => {
-      websocketClient.offEnvelope("mql-subscription-result", handleResult);
-      websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
+      websocketClient.offEnvelope("subscription-result", handleResult);
+      websocketClient.offEnvelope("subscription-delta", handleDelta);
       websocketClient.unsubscribe(selfId);
     };
   }, []);

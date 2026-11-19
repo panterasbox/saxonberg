@@ -1,11 +1,11 @@
 /**
- * MqlSubscriptionApi.fireFieldChange — Object.is noop-skip,
+ * SubscriptionApi.fireFieldChange — Object.is noop-skip,
  * fire-on-change semantics, return-value contract.
  */
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -29,7 +29,7 @@ async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
-describe('MqlSubscriptionApi.fireFieldChange', () => {
+describe('SubscriptionApi.fireFieldChange', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
@@ -42,7 +42,7 @@ describe('MqlSubscriptionApi.fireFieldChange', () => {
     EventApi.on(FieldChangedEvent, (e) => {
       seen.push(e.payload);
     });
-    const ret = MqlSubscriptionApi.fireFieldChange(
+    const ret = SubscriptionApi.fireFieldChange(
       { stuffId: 's1' },
       'name',
       'foo',
@@ -59,7 +59,7 @@ describe('MqlSubscriptionApi.fireFieldChange', () => {
     EventApi.on(FieldChangedEvent, (e) => {
       seen.push(e.payload);
     });
-    const ret = MqlSubscriptionApi.fireFieldChange(
+    const ret = SubscriptionApi.fireFieldChange(
       { stuffId: 's2' },
       'name',
       'old',
@@ -78,7 +78,7 @@ describe('MqlSubscriptionApi.fireFieldChange', () => {
     EventApi.on(FieldChangedEvent, (e) => {
       seen.push(e.payload);
     });
-    const ret = MqlSubscriptionApi.fireFieldChange(
+    const ret = SubscriptionApi.fireFieldChange(
       { stuffId: 's3' },
       'mass',
       NaN,

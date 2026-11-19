@@ -313,15 +313,6 @@ export interface PublicReleaseRow {
 }
 
 /**
- * Payload of a `world.press.feed` frame (the news-ticker fan-out;
- * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
- * (empty body, structured payload). The client routes by `action`:
- * `snapshot` replaces the whole feed, `upsert` inserts/replaces one row by
- * `releaseId`, `remove` deletes by `releaseId`. The initial `snapshot`
- * arrives on connect via `ConnectionEstablishedPayload.releaseWindow`
- * (the welcome payload, not a frame) — there is no request RPC.
- */
-/**
  * One heading in an article, as the wiki card's outline shows it.
  * `anchor` is the **sticky** anchor — the durable citation target, not
  * a slug re-derived from the title, so a reworded heading keeps it.
@@ -372,17 +363,24 @@ export interface WikiPageFrame {
   preview?: boolean;
 }
 
+/**
+ * What changed in the press ticker's live window — the hint the press
+ * poke carries to the press-feed source (`SUBSCRIPTION_SOURCES.pressFeed`),
+ * which pushes it as a `replace` (upsert) or `remove` keyed by
+ * `releaseId`. The initial window is the source's snapshot, carried on
+ * `ConnectionEstablishedPayload.releaseWindow`.
+ */
 export type ReleaseFeedFrame =
   | { kind: 'release'; action: 'upsert'; row: ReleaseRow }
-  | { kind: 'release'; action: 'remove'; releaseId: string }
-  | { kind: 'release'; action: 'snapshot'; rows: ReleaseRow[] };
+  | { kind: 'release'; action: 'remove'; releaseId: string };
 
 /**
  * One row of the `social.rules` client-state projection — a flattened,
  * wire-safe view of a `NotifyRule` for the "Social / Notifications"
  * settings card. The server pushes the viewer's effective ordered list
  * (stored rules spliced into the virtual reserved baseline) via
- * `host.pushClientStateUpdate('social.rules', SocialRulesState)` after
+ * `host.pushClientStateUpdate('social.rules', SocialRulesState)` (a
+ * change on the client-state subscription) after
  * every `notify` mutation; the card reads it as a **read-only cache** —
  * the per-character rule store stays the single source of truth, and all
  * writes go back through the `notify` verb.
@@ -414,7 +412,7 @@ export interface SocialRuleProjection {
 /**
  * The `social.rules` client-state projection value — the viewer's
  * effective ordered notify-rule list, top = highest precedence. Pushed
- * server→client (`client-state-update`) after every `notify` mutation
+ * server→client (a change on the client-state subscription) after every `notify` mutation
  * (and on a bare `notify` list) so the settings card re-renders without a
  * reconnect snapshot. Not a persisted client-state key — a pure push
  * cache.
@@ -649,6 +647,30 @@ export interface MqlErrorNote {
  * `indexed: false` means the whole registry was walked because the shape
  * answered to no index — the number that grows with the realm.
  */
+/**
+ * ⭐ A route plan as DATA (navigation-server D5) — beside `route`'s prose,
+ * saying the same: every leg, the cost on each axis, the assumptions, and
+ * which leg is least certain. A note because the plan is the command's
+ * outcome, and notes are how outcomes travel. Paths tagged (D6).
+ */
+export interface RoutePlanNote {
+  kind: 'route-plan';
+  /** The destination as you know it. */
+  to: string;
+  plans: WireRoutePlan[];
+}
+
+export interface WireRoutePlan {
+  /** Aboard: the first leg is off her, onto where she lies. */
+  ashoreFrom?: string;
+  nodes: { place: TaggedPath; name: string }[];
+  legs: { from: TaggedPath; to: TaggedPath; dir: string; minutes: number | null; conditional: boolean }[];
+  cost: { minutes: number; legs: number; conditional: number; unmeasured: number };
+  assumptions: { kind: 'conditional' | 'stale' | 'unmeasured' | 'disputed'; leg: number; text: string }[];
+  /** The least certain leg's index, or -1 when every leg is sure. */
+  leastCertain: number;
+}
+
 export interface RegistryScanNote {
   kind: 'registry-scan';
   /** The command field whose query this was. */
@@ -918,6 +940,7 @@ export interface WikiEditConflictNote {
 }
 
 export type Note =
+  | RoutePlanNote
   | WikiEditConflictNote
   | QuantityClampedNote
   | QuantityClampedRejectedNote
@@ -1011,15 +1034,12 @@ export interface PromptEnvelope {
  * slice at the key, merged across mixins into a
  * `StuffDetailFocusRecord`. Focus mode requires `cardinality: 'one'`;
  * a `'many'` subscribe with a `detailKey` is rejected with
- * `MqlSubscriptionErrorEnvelope { reason: 'parse' }`. The `fields`
+ * a `subscription-error` with reason `parse`. The `fields`
  * parameter is ignored in focus mode.
  *
- * `focusDependent` / `locationDependent` install holder-level
- * dependency entries the result-walk wouldn't naturally find — the
- * subscription wakes on `setFocus` / `setContainer` respectively.
- * Used by client subscriptions that watch the holder's pointer
- * fields (e.g., a focus-card query like `$focus` or a current-room
- * query like `here`).
+ * Every query-bound subscription depends on its HOLDER (crowded-rooms
+ * D1): a relative query (`$focus`, `here`) wakes on `setFocus` /
+ * `setContainer` with nothing asked for.
  */
 /**
  * A **card** the server knows by name.
@@ -1188,9 +1208,11 @@ export const DEFAULT_SHELF: readonly ShelfRowId[] = [
   "body",
 ];
 
-export interface MqlSubscribeMessage {
-  type: 'mql-subscribe';
-  subscriptionId: string;
+/**
+ * The MQL source's `params` on a `subscribe` ({@link SubscribeMessage}
+ * with `source: SUBSCRIPTION_SOURCES.mql`) — a standing query.
+ */
+export interface MqlSubscriptionParams {
   /**
    * ⭐⭐ **The client can no longer name a CARD at the wire level.**
    *
@@ -1209,8 +1231,6 @@ export interface MqlSubscribeMessage {
   cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
-  focusDependent?: boolean;
-  locationDependent?: boolean;
 }
 
 /**
@@ -1293,37 +1313,7 @@ export type CardPayload =
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
   | { kind: 'survey'; survey: SurveyFrame }
-  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
-  | { kind: 'navigation'; where: Whereabouts };
-
-/**
- * ⭐ Where you are, at zone level — the navigator card's body (the map
- * slate's zone navigation card, wave-1 stub). Navigation, not inspection:
- * nothing here describes what the room LOOKS like.
- *
- * Every field is what the server could honestly read; absent means it
- * could not, and the card says so rather than inventing a value.
- */
-export interface Whereabouts {
-  /** The room you stand in. */
-  place: { stuffId: string; name: string };
-  /** The Structure the room is part of (a building), innermost. */
-  structure?: { name: string };
-  /** The covering Localities, OUTERMOST first (Terminus › the City › …). */
-  localities: { name: string; address: string }[];
-  /** Your cell in the zone's grid, when the place has coordinates. */
-  coords?: { x: number; y: number; z: number };
-  /** The ways out you can perceive (concealed exits are absent). */
-  exits: WhereaboutsExit[];
-  /** What spans places: the sky over the locality. */
-  conditions: {
-    weather?: string;
-    season?: string;
-    daylight?: 'day' | 'night';
-  };
-  /** The innermost government whose ground this is; null = none claims it. */
-  jurisdiction: string | null;
-}
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
 
 /**
  * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
@@ -1350,8 +1340,252 @@ export interface WayRecord {
   boundary?: { stuffId: string; name: string; primaryKeyword?: string };
 }
 
-/** A whereabouts exit — a {@link WayRecord}. */
-export type WhereaboutsExit = WayRecord;
+// ============================================================================
+// ⭐⭐ Navigation as data (navigation-server) — your map and where you are
+// ============================================================================
+
+/**
+ * ⭐ A path on the wire, among the spoiler levels (navigation-server D6):
+ * level 1, the lowest non-open one — appetite, one click, never a
+ * capability. Every identity or template path the navigation sources send
+ * is one of these; a Locality ADDRESS is not a path and travels bare.
+ */
+export interface TaggedPath {
+  path: string;
+  spoiler: 1;
+}
+
+/** What kind of Locality, by address depth: 1 realm, 2 settlement, 3+ district. */
+export const LOCALITY_KINDS = ['realm', 'settlement', 'district'] as const;
+export type LocalityKind = (typeof LOCALITY_KINDS)[number];
+
+/** Where a claim's place is, written when it was perceived. */
+export interface WirePosition {
+  zone?: TaggedPath;
+  x?: number;
+  y?: number;
+  z?: number;
+  level?: number;
+  /** On a river's line: which course, and how far above the mouth. */
+  line?: { course: TaggedPath; km: number };
+  /** At sea, by somebody's reckoning (never the true position). */
+  geo?: { latDeg: number; lonDeg: number };
+  reckoned?: true;
+  errorNm?: number;
+  bracket?: string;
+}
+
+/**
+ * One claim of your map, as the client holds it — the stored claim with
+ * every path tagged. `key` is the claim's identity within its Locality
+ * document (a change replaces it by that key).
+ */
+export interface WireClaim {
+  key: string;
+  kind: 'place' | 'edge' | 'band' | 'locality';
+  place: TaggedPath | string;
+  label?: TaggedPath;
+  name?: string;
+  keywords?: string[];
+  group?: string;
+  dir?: string;
+  to?: TaggedPath | null;
+  toLabel?: TaggedPath | null;
+  channel: 'walked' | 'seen' | 'searched' | 'published' | 'charted' | 'told';
+  conditional?: boolean;
+  where?: string;
+  toldBy?: TaggedPath;
+  via?: TaggedPath;
+  viaName?: string;
+  at?: WirePosition;
+  state?: WayState;
+  government?: { key: string; name: string };
+  localityKind?: LocalityKind;
+  firstSeen: number;
+  lastSeen: number;
+}
+
+/** Your map: every Locality document you hold a claim in. */
+export interface MapCopySnapshot {
+  documents: { locality: string; claims: WireClaim[] }[];
+}
+
+/**
+ * ⭐ Where the craft you are aboard lies (navigation-server D10) — made
+ * fast at a landing, on a river's line, or at sea. Names, never paths:
+ * the landing and the river are what a body aboard can see.
+ */
+export type Lie =
+  | { at: 'berth'; ship: string; landing?: string }
+  | { at: 'river'; ship?: string; river: string; km: number }
+  | { at: 'sea'; ship?: string };
+
+/** The zone you stand in, as a frame — never its extent or levels. */
+export interface ZoneSection {
+  v: number;
+  id?: TaggedPath;
+  kind?: 'grid' | 'sphere' | 'chart' | 'water';
+  cellSizeM?: number;
+  label?: string;
+}
+
+/** Your Localities, outermost first, and whose ground this is. */
+export interface LocalitiesSection {
+  v: number;
+  chain: {
+    name: string;
+    address: string;
+    kind?: LocalityKind;
+    government?: { key: string; name: string };
+  }[];
+  /** The last crumb aboard: the ship. */
+  ship?: { name: string };
+  /** Where she (or the moving place) lies. */
+  outer?: Lie;
+  /** Innermost first — what `government` answers here. */
+  jurisdiction: { key: string; name: string }[];
+}
+
+/** What stands on the horizon, landmarks first — rough direction, never degrees. */
+export interface HorizonSection {
+  v: number;
+  atSea: boolean;
+  things: {
+    stuffId: string;
+    name: string;
+    landmark: boolean;
+    /** The rough direction and miles `query horizon` gives — or *close by* (no point). */
+    glance?: { point?: string; closeBy?: boolean; roughMiles?: number };
+  }[];
+  traffic: number;
+}
+
+/** The building you are in (or, outside, the ones standing here). */
+export interface BuildingSection {
+  v: number;
+  name?: string;
+  storey?: number;
+  storeys?: number;
+  /** `{ here: true }`, or the entrance's name and the first way toward it on your map. */
+  entrance?: { here: true } | { name: string; dir?: string };
+  heightM?: number;
+  landmark?: boolean;
+  titleSold?: boolean;
+  /** Outside: the buildings standing here. */
+  landed?: { name: string; landmark: boolean }[];
+}
+
+/** What would let you through a way you cannot take as you stand. */
+export interface WayWorks {
+  mode?: string;
+  command?: string;
+  remove?: { stuffId: string; name: string };
+  dismount?: true;
+  freeHands?: number;
+}
+
+/**
+ * ⭐ Can you take it now — the check `go` runs, asked without moving
+ * (navigation-server D8). Three honest forms: *no*, in trying's words;
+ * *yes*; *yes, as far as you know* (`unseen`). Only what differs from way
+ * to way: a fact about you whichever way you leave (a fight) is
+ * `YouSection.fighting`.
+ */
+export type WayTake =
+  | { ok: true; unseen?: true }
+  | { ok: false; gate: string; reason: string; works?: WayWorks };
+
+/** One way out, as the ways section carries it. */
+export interface NavWay extends WayRecord {
+  oneWay?: boolean;
+  muffled?: boolean;
+  needs?: string;
+  lengthM?: number;
+  opening?: string;
+  /** The way's and its boundary's projected facts (`aspect: 'way'`). */
+  facts?: Record<string, string | number | boolean>;
+  take?: WayTake;
+}
+
+export interface WaysSection {
+  v: number;
+  ways: NavWay[];
+}
+
+/** The place you stand in. */
+export interface PlaceSection {
+  v: number;
+  stuffId: string;
+  name: string;
+  at?: { x: number; y: number; z: number };
+  light?: string;
+  dark?: boolean;
+  openSky?: boolean;
+  weather?: string;
+  season?: string;
+  daylight?: 'day' | 'night';
+  water?: string;
+  staged?: boolean;
+  crowd?: number;
+  lowCeiling?: boolean;
+  /** The total height above the sea: the zone's elevation plus the room's within it. */
+  elevationM?: number;
+  searched?: boolean;
+  found?: number;
+}
+
+/** You, as moving needs you. */
+export interface YouSection {
+  v: number;
+  pace?: string;
+  posture?: string;
+  hands?: { slot: string; holds?: string }[];
+  freeHands?: number;
+  load?: string;
+  /** What your load bars, in the gates' own words. */
+  bars?: string[];
+  light?: string;
+  mount?: string;
+  led?: string[];
+  cart?: string;
+  /**
+   * ⭐ You are in a fight: leaving by ANY way is fleeing it — `foes` take a
+   * parting shot each, and `breakaway` is the refusal when there are too
+   * many to break away from (every way then refuses in those words).
+   */
+  fighting?: { foes: number; breakaway: string | null };
+}
+
+/**
+ * ⭐ What you perceive from here, now — seven sections. The where-you-are
+ * source's snapshot; a change replaces ONE section by its name. A read
+ * that failed leaves its section absent.
+ */
+export interface NavSections {
+  zone?: ZoneSection;
+  localities?: LocalitiesSection;
+  horizon?: HorizonSection;
+  building?: BuildingSection | null;
+  ways?: WaysSection;
+  place?: PlaceSection;
+  you?: YouSection;
+}
+
+export type NavSectionName = keyof NavSections;
+export const NAV_SECTION_NAMES: readonly NavSectionName[] = [
+  'zone',
+  'localities',
+  'horizon',
+  'building',
+  'ways',
+  'place',
+  'you',
+];
+
+export interface WhereaboutsSnapshot {
+  sections: NavSections;
+}
+
 
 /**
  * ⭐ What a terminal card shows (client-surface D6): a view by name (the
@@ -1690,35 +1924,8 @@ export interface CardPinnedEnvelope {
   pinned: boolean;
 }
 
-export interface MqlUnsubscribeMessage {
-  type: 'mql-unsubscribe';
-  subscriptionId: string;
-}
-
 /**
- * ⭐ The client says a subscription it holds is NOT ON SCREEN (crowded-rooms
- * D4/D5): a card scrolled away, minimized, displaced by a `full` card, or
- * the tab hidden. The server stops computing and sending it — its
- * dependencies are dropped and nothing is emitted — and keeps the id. One
- * fact, one source: the server never infers it. Unknown ids are skipped.
- */
-export interface MqlSubscriptionPauseMessage {
-  type: 'mql-subscription-pause';
-  subscriptionId: string;
-}
-
-/**
- * ⭐ The subscription is on screen again: the server answers ONE fresh
- * `mql-subscription-result` (a reset — the client replaces what it holds)
- * and resumes sending deltas. Ids that are not paused are skipped.
- */
-export interface MqlSubscriptionResumeMessage {
-  type: 'mql-subscription-resume';
-  subscriptionId: string;
-}
-
-/**
- * One-shot MQL read. Mirrors {@link MqlSubscribeMessage} on the wire —
+ * One-shot MQL read. Mirrors {@link MqlSubscriptionParams} on the wire —
  * same `query` / `cardinality` / `fields` / `detailKey` fields — but
  * the substrate reuses ONLY the parse + resolve + project pipeline:
  * no registration in the per-Interactive registry, no dependency-
@@ -1728,9 +1935,6 @@ export interface MqlSubscriptionResumeMessage {
  * Discriminator is `queryId` (not `subscriptionId`) so a client may
  * have both subscriptions and queries in flight without correlation
  * collisions.
- *
- * `focusDependent` / `locationDependent` are meaningless for one-shot
- * reads (no subscription state to wake) and are NOT carried.
  */
 export interface MqlQueryMessage {
   type: 'mql-query';
@@ -1989,6 +2193,12 @@ export interface StuffDetailRecord extends StuffRefRecord {
   mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
   /**
+   * ⭐ A place's people, LIVE — the chips its "Here" line shows (the same
+   * rule as `look`'s, `Place.peopleHereFor`): a live room card renders
+   * "Here" from this, so an arrival shows (navigation-server review).
+   */
+  present?: SegmentItem[];
+  /**
    * What the subject is **wearing** — the body half against `contents`'
    * pack half, and a partition of the same set rather than a second copy
    * of it: a worn garment is filtered OUT of `contents` and appears
@@ -2099,30 +2309,11 @@ export interface StuffDetailFocusRecord {
   [key: string]: unknown;
 }
 
-export interface MqlSubscriptionResultEnvelope {
-  type: 'mql-subscription-result';
-  frameId: number;
-  subscriptionId: string;
-  /**
-   * Flat-mode subscriptions ship `StuffRefRecord | StuffDetailRecord`;
-   * focus-mode subscriptions ship `StuffDetailFocusRecord`. Same
-   * envelope shape carries both.
-   */
-  result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
-}
+/** One record a live MQL subscription carries — flat or focus mode. */
+export type MqlRecord = StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord;
 
-export interface Change {
-  op: 'replace' | 'update' | 'add' | 'remove';
-  key: string;
-  fields?: Partial<StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord>;
-}
-
-export interface MqlSubscriptionDeltaEnvelope {
-  type: 'mql-subscription-delta';
-  frameId: number;
-  subscriptionId: string;
-  changes: Change[];
-}
+/** A change the MQL source pushes — the protocol's change, its fields a partial record. */
+export type Change = SubscriptionChange<Partial<MqlRecord>>;
 
 export type MqlSubscriptionErrorReason =
   | 'parse'
@@ -2130,17 +2321,9 @@ export type MqlSubscriptionErrorReason =
   | 'permission'
   | 'closed';
 
-export interface MqlSubscriptionErrorEnvelope {
-  type: 'mql-subscription-error';
-  frameId: number;
-  subscriptionId: string;
-  reason: MqlSubscriptionErrorReason;
-  detail?: string;
-}
-
 /**
  * One-shot query result. Mirrors
- * {@link MqlSubscriptionResultEnvelope} but correlates to a
+ * the MQL source's `subscription-result` but correlates to a
  * {@link MqlQueryMessage} via `queryId` instead of
  * `subscriptionId`. The wire shape of the projected records is
  * identical — flat-mode queries ship `StuffRefRecord | StuffDetailRecord`,
@@ -2334,15 +2517,9 @@ export interface ForumEntryRecord {
   inCircle?: boolean;
 }
 
-export interface ForumSubscribeMessage {
-  type: 'forum-subscribe';
-  subscriptionId: string;
+/** The forum source's `params` on a `subscribe`. */
+export interface ForumSubscriptionParams {
   scope: ForumSubscriptionScope;
-}
-
-export interface ForumUnsubscribeMessage {
-  type: 'forum-unsubscribe';
-  subscriptionId: string;
 }
 
 /**
@@ -2352,10 +2529,7 @@ export interface ForumUnsubscribeMessage {
  * its own scope — it asked for it — so a tag here would be a second copy
  * of a fact that cannot get out of step.
  */
-export interface ForumSubscriptionResultEnvelope {
-  type: 'forum-subscription-result';
-  frameId: number;
-  subscriptionId: string;
+export interface ForumSubscriptionSnapshot {
   scope: ForumSubscriptionScope;
   records: (ForumEntryRecord | ForumSubjectRecord)[];
 }
@@ -2367,21 +2541,172 @@ export interface ForumChange {
   fields?: ForumEntryRecord | ForumSubjectRecord;
 }
 
-export interface ForumSubscriptionDeltaEnvelope {
-  type: 'forum-subscription-delta';
-  frameId: number;
-  subscriptionId: string;
-  changes: ForumChange[];
-}
-
 export type ForumSubscriptionErrorReason = 'parse' | 'resolve' | 'closed';
 
-export interface ForumSubscriptionErrorEnvelope {
-  type: 'forum-subscription-error';
+// ============================================================================
+// ⭐⭐ The subscription protocol — ONE wire for every state push
+// ============================================================================
+
+/**
+ * ⭐⭐ Where each subscription source lives — its template path. A source
+ * is named on the wire by its path and loaded on use; there is no list
+ * the server keeps (navigation-server D1). These are the engine's own.
+ */
+export const SUBSCRIPTION_SOURCES = {
+  mql: '/platform/idea/MqlSubscriptionRegistry',
+  forum: '/platform/idea/ForumSubscriptionRegistry',
+  /** Your client state — a keyed store, a change per key replaced. */
+  clientState: '/platform/idea/ClientStateSource',
+  /** The press ticker's live window — a change per release. */
+  pressFeed: '/platform/idea/PressFeedSource',
+  /** ⭐ Your map, as a copy the client holds — a change per claim. */
+  mapCopy: '/platform/idea/MapCopySource',
+  /** ⭐ What you perceive from here, now — a change per section. */
+  whereabouts: '/platform/idea/WhereaboutsSource',
+} as const;
+
+/**
+ * ⭐ The subscriptions the SERVER opens for every played session at
+ * session entry, silently, like a live card's: their snapshots ride
+ * `connection-established` (`clientState`, `releaseWindow`) so the first
+ * render has them, and their changes ride `subscription-delta` under
+ * these ids. A reconnect is a new session entry, so a new snapshot.
+ */
+export const SESSION_SUBSCRIPTIONS = {
+  clientState: 'session:client-state',
+  pressFeed: 'session:press-feed',
+} as const;
+
+/**
+ * Client → server: keep `source`'s answer for `params` current under
+ * `subscriptionId`. Answered by a {@link SubscriptionResultEnvelope}
+ * (the snapshot, `rev` 0) or a {@link SubscriptionErrorEnvelope}.
+ */
+export interface SubscribeMessage {
+  type: 'subscribe';
+  subscriptionId: string;
+  source: string;
+  params?: unknown;
+}
+
+/** Client → server: stop. */
+export interface UnsubscribeMessage {
+  type: 'unsubscribe';
+  subscriptionId: string;
+}
+
+/**
+ * ⭐ Client → server: this subscription is NOT ON SCREEN (crowded-rooms
+ * D4/D5) — a card scrolled away, minimized, displaced by a `full` card, or
+ * the tab hidden. Nothing is sent for it, and its source may stop
+ * computing; the id stays. One fact, one source: the server never infers
+ * it. Unknown ids are skipped.
+ */
+export interface SubscriptionPauseMessage {
+  type: 'subscription-pause';
+  subscriptionId: string;
+}
+
+/**
+ * ⭐ Client → server: on screen again. Answered by ONE fresh
+ * {@link SubscriptionResultEnvelope} at `rev` 0 — a reset the client
+ * replaces its copy with — and deltas from there. Ids that are not paused
+ * are skipped.
+ */
+export interface SubscriptionResumeMessage {
+  type: 'subscription-resume';
+  subscriptionId: string;
+}
+
+/** One keyed change to a subscription's copy. */
+export interface SubscriptionChange<F = unknown> {
+  op: 'add' | 'replace' | 'update' | 'remove';
+  key: string;
+  fields?: F;
+}
+
+/**
+ * The snapshot. `rev` is 0; each delta after it is `rev + 1`. A break in
+ * `rev` is a defect, never a repair path: repair is always to subscribe
+ * again (a gap, a reconnect, a restart).
+ */
+export interface SubscriptionResultEnvelope<S = unknown> {
+  type: 'subscription-result';
   frameId: number;
   subscriptionId: string;
-  reason: ForumSubscriptionErrorReason;
+  rev: number;
+  snapshot: S;
+}
+
+export interface SubscriptionDeltaEnvelope<F = unknown> {
+  type: 'subscription-delta';
+  frameId: number;
+  subscriptionId: string;
+  rev: number;
+  changes: SubscriptionChange<F>[];
+  /**
+   * ⭐ What changed it: the ids of the command(s) whose work produced this
+   * delta — the same id as `MessageFrame.meta.causingCommandId` on the
+   * prose that command sent, so a client ties the change to the line in
+   * scrollback (yours, or one you saw somebody else's command make). An
+   * id with no line the viewer received is a change whose cause they did
+   * not see. Absent: no command did it (the clock, the world).
+   */
+  causes?: string[];
+}
+
+/**
+ * The subscription is refused or ended. `reason` is the source's word —
+ * `source` (no such source), `duplicate` (the id is in use), and each
+ * source's own (`parse`, `resolve`, `permission`, `closed`).
+ */
+export interface SubscriptionErrorEnvelope {
+  type: 'subscription-error';
+  frameId: number;
+  subscriptionId: string;
+  reason: string;
   detail?: string;
+}
+
+/**
+ * ⭐ Each source's shapes, by path — so the client and the harness narrow
+ * on the source they asked for.
+ */
+export interface SubscriptionSources {
+  '/platform/idea/MqlSubscriptionRegistry': {
+    params: MqlSubscriptionParams;
+    snapshot: MqlRecord[];
+    fields: Partial<MqlRecord>;
+  };
+  '/platform/idea/ForumSubscriptionRegistry': {
+    params: ForumSubscriptionParams;
+    snapshot: ForumSubscriptionSnapshot;
+    fields: ForumEntryRecord | ForumSubjectRecord;
+  };
+  /** Change key: the client-state key; `replace` carries the value. */
+  '/platform/idea/ClientStateSource': {
+    params: undefined;
+    snapshot: Record<string, unknown>;
+    fields: unknown;
+  };
+  /** Change key: the releaseId; `replace` carries the row, `remove` none. */
+  '/platform/idea/PressFeedSource': {
+    params: undefined;
+    snapshot: ReleaseRow[];
+    fields: ReleaseRow;
+  };
+  /** Change key: `<locality>|<claim key>`, always `replace`. */
+  '/platform/idea/MapCopySource': {
+    params: { locality?: string } | undefined;
+    snapshot: MapCopySnapshot;
+    fields: { locality: string; claim: WireClaim };
+  };
+  /** Change key: the section's name, always `replace`. */
+  '/platform/idea/WhereaboutsSource': {
+    params: undefined;
+    snapshot: WhereaboutsSnapshot;
+    fields: NavSections[NavSectionName];
+  };
 }
 
 // ============================================================================
@@ -2783,14 +3108,11 @@ export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
   | PromptEnvelope
-  | MqlSubscriptionResultEnvelope
-  | MqlSubscriptionDeltaEnvelope
-  | MqlSubscriptionErrorEnvelope
+  | SubscriptionResultEnvelope
+  | SubscriptionDeltaEnvelope
+  | SubscriptionErrorEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
-  | ForumSubscriptionResultEnvelope
-  | ForumSubscriptionDeltaEnvelope
-  | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | AffordanceResultEnvelope
@@ -2813,14 +3135,11 @@ export type EnvelopeTemplate =
   | Omit<DispatchResponseEnvelope, 'frameId'>
   | Omit<ActivityUpdateEnvelope, 'frameId'>
   | Omit<PromptEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<SubscriptionResultEnvelope, 'frameId'>
+  | Omit<SubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<SubscriptionErrorEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionDeltaEnvelope, 'frameId'>
-  | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<AffordanceResultEnvelope, 'frameId'>
@@ -4225,23 +4544,6 @@ export interface CharGenRosterPayload {
  */
 export interface ClientStateWriteMessage {
   type: 'client-state-write';
-  payload: { key: string; value: unknown };
-}
-
-/**
- * Outbound server→client push of a `ClientStateMixin` value. Server
- * code that mutates a client-state key out-of-band (e.g. the `style`
- * verb writes the overlay, an admin rewrites a player's tab layout)
- * pushes the new value so the client can re-render immediately
- * without waiting for the reconnect snapshot.
- *
- * Distinct from `ClientStateWriteMessage` (which is the *client's*
- * optimistic mutation, server-validated). The two messages share no
- * shape beyond `{key, value}` because the contracts differ — write is
- * a request, update is an authoritative push.
- */
-export interface ClientStateUpdateMessage {
-  type: 'client-state-update';
   payload: { key: string; value: unknown };
 }
 

@@ -364,7 +364,7 @@ needs to observe the gate must prime the fold first.
 They are the **sync** faces of an async ledger: `bandsFor` awaits
 `transcripts`, and a `subscribableFields.read` cannot. Each rides a
 `DerivedStandingCache` whose loader does the async fold and whose
-invalidation is the ledger's own `notifyDurableSubject` poke —
+invalidation is the ledger's own `{ durableSubject }` poke —
 `undefined` means "the fold has not landed yet", which is a legitimate
 answer the descriptor passes straight through.
 
@@ -657,7 +657,7 @@ pilot is NOT this Discipline: a pilot's knowledge is `told` claims.
 ## The standing witness
 
 After each append is persisted, the ledger calls
-**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+**`SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })`** — a direct method
 call on the one consumer that cares.
 
 Every standing here derives on read, which works fine for a verb (you

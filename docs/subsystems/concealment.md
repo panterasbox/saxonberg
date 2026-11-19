@@ -280,7 +280,7 @@ that builds a viewer's world:
 5. **The client wire** — `Container.contents` (the `subscribableFields`
    projection on `lib/spatial/Container.ts`) filters concealed-undiscovered
    children out of the MQL projection. *(This is the shipped seam — the
-   plan named `MqlSubscriptionLogic.projectFields`; as built, the fog lands
+   plan named `SubscriptionLogic.projectFields`; as built, the fog lands
    at the Container-contents `read` projector, which is what the
    subscription serializes.)*
 

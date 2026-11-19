@@ -1,6 +1,6 @@
 # PerceiverMixin
 
-Owns the verbs of perception: `look`, `scry`, `locate`, `find`, the
+Owns the verbs of perception: `look`, `scry`, `find`, the
 five sense verbs (`smell`, `listen`, `feel`, `taste`, `sense`), and
 `assess` (a body's condition/wounds — medicine-gated detail out of
 combat, the costed fog-graded tactical read mid-fight). Composed on
@@ -17,7 +17,7 @@ Character:
   Owns descriptions and keywords. Contributes **no verbs** — pure
   target shape.
 - **`Perceiver`** (`lib/description/Perceiver.ts`) — issues
-  perception verbs. Contributes `look` / `scry` / `locate` / `find`
+  perception verbs. Contributes `look` / `scry` / `find`
   plus the five sense verbs (`smell` / `listen` / `feel` / `taste` /
   `sense`) and `assess` on the **actor-side** bucket (`self`).
 
@@ -62,7 +62,6 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | `look` | `self` | PerceiverMixin | — (plural: a set or several things is a list) |
 | `watch` | `self` | PerceiverMixin | — (the stream form refuses a non-player; `watch horizon` is any perceiver's) |
 | `scry` | `self` | PerceiverMixin | — |
-| `locate` | `self` | PerceiverMixin | — |
 | `find` | `self` | PerceiverMixin | — |
 | `smell` | `self` | PerceiverMixin | `requiresSmell` |
 | `listen` | `self` | PerceiverMixin | `requiresHearing` |
@@ -209,3 +208,12 @@ environment + inventory.
   wielded instrument as the source. A verb can be afforded by many
   source objects (innate `'self'`, instrument, future skill / implant);
   the source object — not a category enum — is the discriminator.
+
+## `navigation(names)` (navigation-server, 2026-11)
+
+`Perceiver.navigation(names?)` answers what this body perceives from here,
+now, in seven sections — zone, localities, horizon, building, ways, place,
+you — each read in its own try (a failed read is absent, never a guess).
+It replaced `whereabouts()`. `learnReckoning(craft, bracket)` is the third
+`learn*`: a reckoning taken at a helm goes on the map. The sections reach the
+client through the where-you-are subscription ([subscription.md](./subscription.md)).

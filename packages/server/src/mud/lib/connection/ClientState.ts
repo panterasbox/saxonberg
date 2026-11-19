@@ -33,31 +33,10 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
-import type Interactive from '../../platform/idea/Interactive';
+import type { Stuff } from '../stuff/Stuff';
+import { SubscriptionApi } from '../../api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import type { HasInteractive } from './HasInteractive';
-
-/**
- * Strategy-injected `client-state-update` push function. The
- * Application module calls `setClientStateUpdatePush` once during
- * boot to wire its own `sendClientStateUpdateToInteractive` here —
- * we don't import `Application` directly because doing so creates
- * a load-time cycle (Application → Avatar/Login → ClientState),
- * and this module is consumed at module-evaluation time by Login.
- * The setter pattern defers the resolution until after both modules
- * have finished loading.
- */
-type PushImpl = (interactive: Interactive, key: string, value: unknown) => void;
-let _pushImpl: PushImpl | null = null;
-
-/**
- * Wire the client-state-update push. Called once by `Application`
- * during boot; tests can call it with a spy to assert push behavior
- * without standing up a real backend.
- */
-// eslint-disable-next-line no-restricted-syntax -- documented exception: DI injection seam (backend → mudlib). Application wires the client-state push at boot; tests inject a spy. See architecture.md § sanctioned-exception registry.
-export function setClientStateUpdatePush(impl: PushImpl | null): void {
-  _pushImpl = impl;
-}
 
 /**
  * One client-state schema entry. Declared on any mixin in the chain as
@@ -155,7 +134,7 @@ export interface ClientState extends HasInteractive {
 
   /**
    * Push an authoritative client-state value to every connected
-   * Interactive on this host (server→client `client-state-update`).
+   * session on this host — a change on its client-state subscription.
    * Caller is responsible for having already called `setClientState`
    * and persisted; this is the push half only.
    */
@@ -297,7 +276,8 @@ export function ClientStateMixin<
 
     /**
      * Push an authoritative client-state value out to every
-     * connected Interactive on this host. Parallel to the existing
+     * session on this host — a change on its client-state subscription
+     * (`ClientStateSource`). Parallel to the existing
      * `client-state-write` inbound flow but flips the direction —
      * server mutates, client follows. Used by the `style` verb
      * (and future server-initiated client-state changes) so the
@@ -306,15 +286,14 @@ export function ClientStateMixin<
      * Caller MUST have already called `setClientState(key, value)`
      * + `save()`. This is the push half; persistence is upstream.
      */
-    public pushClientStateUpdate(
-      this: HasInteractive,
-      key: string,
-      value: unknown,
-    ): void {
-      if (!_pushImpl) return; // Pre-boot or test without wired push
-      for (const interactive of this.getInteractives()) {
-        _pushImpl(interactive, key, value);
-      }
+    public pushClientStateUpdate(key: string, value: unknown): void {
+      // ⭐ The one subscription protocol (navigation-server D1): every
+      // session's client-state subscription is told; a body nobody
+      // subscribed for pokes into nothing.
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.clientState, this as unknown as Stuff, {
+        key,
+        value,
+      });
     }
   };
 }

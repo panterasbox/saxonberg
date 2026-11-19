@@ -62,7 +62,7 @@ These are the SSB subclasses.
 - **Biome `_ambientSmellMml` / `_ambientSoundMml` have NO consumer anywhere.** A grep finds only the getters at `lib/biome/Biome.ts:325-336`.
 
 ### 0.4 The card, as wire and as render
-**Fields.** `DETAIL_FIELDS` (`api/mql-subscription.ts:120-137`) is the field set. Each field is projected only if some mixin on the subject declares a `subscribableFields` descriptor for it.
+**Fields.** `DETAIL_FIELDS` (`api/subscription.ts:120-137`) is the field set. Each field is projected only if some mixin on the subject declares a `subscribableFields` descriptor for it.
 
 | field | source | value for a room |
 |---|---|---|

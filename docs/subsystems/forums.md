@@ -1,5 +1,13 @@
 # Forums
 
+> ⭐ **On the one subscription wire (navigation-server, 2026-11).** This
+> registry is the forum source (`/platform/idea/ForumSubscriptionRegistry`) behind [subscription.md](./subscription.md): `subscribe` /
+> `unsubscribe`, answered by `subscription-result` (rev 0) / `-delta` (rev + 1) /
+> `-error`. Its own message types are retired; the registry keeps what a
+> subscription MEANS (its index, its diff) and the protocol keeps the id
+> table, `rev` and the emits.
+
+
 Forums are durable, addressable, multi-author boards riding the aether
 implant — the persistent twin of [chat](./chat.md). Where a chat channel
 is an ephemeral 200-frame ring, a forum board, every entry, and the vote
@@ -298,9 +306,9 @@ State + flow:
   unsubscribes.
 
 The wire frames (`@saxonberg/types`):
-`forum-subscription-result` (initial snapshot, `records:
-ForumEntryRecord[]`), `forum-subscription-delta` (`changes: ForumChange[]`,
-the add/replace/remove ops), `forum-subscription-error`. A
+`subscription-result` (initial snapshot, `records:
+ForumEntryRecord[]`), `subscription-delta` (`changes: ForumChange[]`,
+the add/replace/remove ops), `subscription-error`. A
 `ForumEntryRecord` carries `up`/`down`/`score`/`displayScore` (true score
 + the gated display value), `parent` (for nesting), `authorName`
 (resolved on read), `createdAt`, etc.
@@ -644,8 +652,8 @@ HMR-able logic singleton at `/platform/idea/api/forums`); both follow the
 separate `ForumSubscriptionRegistry` runtime singleton — a review refactor
 (it was once its own `ForumSubscriptionApi`). The registry's gated
 methods carry `@CallSecurity(FromModule('/api/forums#ForumsApi'))`, so
-the facade is the only legitimate caller. The `forum-subscribe` /
-`forum-unsubscribe` inbound handlers and the disconnect teardown call
+the facade is the only legitimate caller. The `subscribe` /
+`unsubscribe` inbound handlers and the disconnect teardown call
 through it.
 
 The new collections registered with `PersistenceManager`:
@@ -689,7 +697,7 @@ the nav target) and click-driven; the player stays in
   bar into a `chat <handle>` prefix. v1 is **board-scoped only**; the
   promoted-thread nested chat (the subject-path stack) is deferred.
 - `forumActions.ts` is the IO boundary: it wires the
-  `forum-subscription-result` / `-delta` / `-error` envelopes into store
+  `subscription-result` / `-delta` / `-error` envelopes into store
   actions (`applyForumResult` / `applyForumDelta` / `clearForumSubscription`)
   and offers the outbound ops; the store slice (`forumRecords` keyed by
   `subscriptionId`, `forumNav`) stays pure state.

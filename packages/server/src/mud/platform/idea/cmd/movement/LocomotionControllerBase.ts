@@ -238,43 +238,35 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   }
 
   /**
-   * Verb-templated rejection prose. Concrete controllers override per
-   * gate to taste (e.g., Climb says "this climb looks too hard for
-   * you" at the capability gate; the base falls back to a generic
-   * shape). Always call `super.composeRejection(...)` for gates the
-   * subclass doesn't customize.
+   * The refusal to print. The model worded it — the gate, or the mode
+   * row's `refusals` — so a way's verdict and trying it say the same
+   * sentence; a controller adds no words of its own.
    */
   protected composeRejection(
     guard: TraversalGuard,
     mode: LocomotionMode,
     _model: LocomotionModel,
   ): string {
+    // ⭐ The model words every refusal (navigation-server D8): the gate, or
+    // the mode's own words for it (`LocomotionMode.refusals`), made the
+    // sentence; the controller prints it. These are the fallbacks for a
+    // guard that carries none.
+    if (guard.reason) return guard.reason;
     switch (guard.gate) {
-      case 'bodyPlan':
-        return `Your body can't ${mode.getName()}.`;
-      case 'posture':
-        return `You can't ${mode.getName()} from this posture.`;
       case 'exitMode':
-        return guard.reason ?? `You can't ${mode.getName()} that way.`;
-      case 'enablement':
-        return guard.reason ?? `There's no way to ${mode.getName()} here.`;
-      case 'capability':
-        return guard.reason ?? "That's too hard for you.";
+        return `You can't ${mode.getName()} that way.`;
       case 'noConveyance':
-        return `You're not ${mode.getName()}ing anything.`;
+        return mode.refusalFor('noConveyance', '') ?? `You're not ${mode.getName()}ing anything.`;
       case 'blocked':
-        // The exit's own words when it has them — a snowbound pass or an
-        // unsafe ford says WHY (found by the climate drive: the snow
-        // sentence never reached the player).
-        return guard.reason ?? 'The way is blocked.';
+        return 'The way is blocked.';
       case 'door':
-        return guard.reason ?? 'The way is closed.';
+        return 'The way is closed.';
       case 'terrain':
-        return guard.reason ?? "You can't drag the cart that way.";
+        return "You can't drag the cart that way.";
       case 'breakaway':
-        return guard.reason ?? "The cart won't budge.";
+        return "The cart won't budge.";
       default:
-        return guard.reason ?? "You can't go that way.";
+        return "You can't go that way.";
     }
   }
 }

@@ -182,6 +182,7 @@ export default class ReachPatch extends ReachPlaceBase {
    * ⭐ The river under you has changed — told, not the horizon (river D6).
    */
   public override async onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void> {
+    await super.onFrameMoved(from, to);
     if (to?.frame !== 'line') return;
     const cat = this.catalogue();
     const line = cat?.lineOfSync(to.at.course) ?? null;

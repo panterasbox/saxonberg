@@ -181,7 +181,7 @@ from inside a ship's restore deadlocks.
 ## The plot — the other position
 
 `Plot` is the reckoning: the last fix carried along the courses steered,
-knowing nothing of the set. `course` and `locate` report THIS, labelled
+knowing nothing of the set. `course` at the helm reports THIS, labelled
 as a reckoning, with an uncertainty (`expanse.reckoningGrowthNmPerHour`)
 worded by the reader's `navigation` band — never refused. A fix
 collapses it, and every fix is an ACT: a bearing taken on a fixed thing

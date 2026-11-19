@@ -13,7 +13,7 @@ import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { CARDS } from '../../lib/connection/Cards';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import Interactive from '../../platform/idea/Interactive';
@@ -41,7 +41,7 @@ describe('a card lives on one axis: pinned or not', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 
@@ -303,7 +303,7 @@ describe('the lifetime knobs', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 

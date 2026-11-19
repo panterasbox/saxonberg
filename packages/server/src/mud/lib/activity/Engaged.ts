@@ -29,6 +29,7 @@ import type { CommandContributions } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { TemplatePaths } from '../paths';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * The participant contract on the engagement-slot map: the writer is the
@@ -173,7 +174,11 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
       slot: EngagementSlot,
       engagement: Engagement,
     ): void {
+      const was = this._engagements.get(slot);
       this._engagements.set(slot, engagement);
+      // ⭐ An act or a fight began: what you can do and where you can go
+      // may differ (the ways refuse a body still in a fight).
+      SubscriptionApi.fireFieldChange(this, 'engagements', was ?? null, engagement);
     }
 
     /**
@@ -184,7 +189,9 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     public _clearEngagement(slot: EngagementSlot): void {
+      const was = this._engagements.get(slot);
       this._engagements.delete(slot);
+      SubscriptionApi.fireFieldChange(this, 'engagements', was ?? null, null);
     }
   }
 

@@ -13,9 +13,6 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { SecurityApi } from '../../../api/security';
 import { ExecutionContextApi } from '../../../api/execution-context';
-import { PlayerApi } from '../../../api/player';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 import { AppApi } from '../../../api/app';
@@ -30,6 +27,7 @@ import {
 } from '../../../lib/press/Release';
 import type { Publisher } from '../../../lib/press/Publisher';
 import { PressApi } from '../../../api/press';
+import { SubscriptionApi } from '../../../api/subscription';
 import type PressBoard from '../PressBoard';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { StoredDocument } from '../../../lib/document/StoredDocument';
@@ -39,12 +37,11 @@ import type {
   ArchiveQuery,
 } from '../../../api/press';
 import type { ReleaseFeedFrame, PublicReleaseRow } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const PressApiCallers = SecurityPolicies.FromModule('/api/press#PressApi'
 );
 
-/** The news-ticker fan-out topic — a presence-PUBLIC OOC channel. */
-const FEED_TOPIC = 'publication.press';
 
 /** Default press-room page size. A press room is not an archive. */
 const PRESS_ROOM_DEFAULT_LIMIT = 20;
@@ -87,27 +84,14 @@ function resolveAuthorImpl(): string | null {
 }
 
 /**
- * Fan one already-composed release-feed frame out to every online viewer,
- * presence-PUBLIC: OOC-public, identical for every viewer (NO per-viewer
- * lensing), so the caller composes the payload exactly once. Per-viewer
- * isolation: a bad recipient never aborts the scan. The `sendRosterImpl`
- * precedent, on the `publication.press` topic. Unlike the roster (which
- * taps externally-emitted presence events via `PresenceRelay`), the
- * release trigger originates inside the mutators below, so this fan is
- * called inline (no event tap).
+ * ⭐ Tell the press ticker's subscribers what changed (navigation-server
+ * D1): the frame is the poke's hint, and `PressFeedSource` pushes it as one
+ * change to every open subscription. Identical for every viewer (no
+ * per-viewer lensing). A source nobody subscribed to is not standing and
+ * costs nothing.
  */
 function fanFeedImpl(frame: ReleaseFeedFrame): void {
-  for (const viewer of PlayerApi.getAllAvatars()) {
-    if (viewer.isDestroyed() || !viewer.isConnected()) continue;
-    try {
-      MessageApi.scene(viewer)
-        .topic(FEED_TOPIC)
-        .toSelf(Mml.fromMarkup(''), frame)
-        .send();
-    } catch {
-      // best-effort relay — drop this viewer, continue the scan
-    }
-  }
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.pressFeed, null, frame);
 }
 
 /**

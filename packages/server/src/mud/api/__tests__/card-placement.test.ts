@@ -12,7 +12,7 @@ import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import Locale from '../../platform/location/Locale';
 
@@ -20,7 +20,7 @@ beforeEach(() => {
   StuffApi.clearAll();
   ShadowApi._clearAllForTesting();
   EventApi._clearAllForTesting();
-  MqlSubscriptionApi._clearAllForTesting();
+  SubscriptionApi._clearAllForTesting();
   CardApi._clearAllForTesting();
 });
 
@@ -48,17 +48,17 @@ describe('per-card liveness (D4)', () => {
     const h = await makeHarness();
     const id = await lookAtThing(h, 'stool');
     expect(card(h, id).live).toBe(false);
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const before = SubscriptionApi._getRegistrySizeForTesting();
 
     expect(h.interactive.arrangeCard(id, 'place').refused).toBeNull();
     expect(card(h, id).live).toBe(true);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
     const wake = h.ofType('card-touched').find((t) => t.instanceId === id && t.live === true);
     expect(wake?.result).toBeDefined();
 
     h.interactive.arrangeCard(id, 'unplace');
     expect(card(h, id).live).toBe(false);
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(before);
     const stamped = h.ofType('card-touched').find((t) => t.instanceId === id && t.live === false);
     expect(typeof stamped?.takenAt).toBe('number');
   });

@@ -428,11 +428,13 @@ set. Two kinds are recognized:
   white-box unit test can exercise an internal stage. Today:
   `api/prompt.ts#buildPromptContext`,
   `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
-  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `api/subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
+  fills at boot. Today: none (`setClientStateUpdatePush` retired with the
+  one subscription protocol, navigation-server W1 — the push is a poke on
+  the client-state source).
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
@@ -618,7 +620,7 @@ warm-up, and no class ever readies its Api's data. See
 [call-security.md](./subsystems/call-security.md).
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `PromptApi`,
+`ContainmentApi`, `MqlApi`, `SubscriptionApi`, `PromptApi`,
 `MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
@@ -648,13 +650,17 @@ column's card feed — one birth path gated on a command view's
 `opens_card:`, one relevance-window sweep, and the subscription handle a
 live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
-`MqlSubscriptionApi` is the second wire channel alongside prose /
-dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
-messages route through `Application.processUserMessage` to the
-substrate, which projects an MQL query's result + re-projects on
-relevant state changes. Outbound envelopes ride the same
-`MessageApi.sendEnvelope` path the dispatch-response framework uses.
-See `docs/subsystems/mql-subscription.md`.
+**The subscription protocol** is the second wire channel alongside prose /
+dispatch-response, and the ONE wire for every state push (navigation-server,
+2026-11). Inbound `subscribe` / `unsubscribe` name a SOURCE by template path;
+`SubscriptionRegistry` (the session verbs on `Interactive`, `SubscriptionApi.poke`)
+holds the per-session table, `rev` and the three emits; a source is a
+singleton composing `SubscriptionSourceMixin` (`lib/subscription/`) — the MQL
+and forum registries, `ClientStateSource`, `PressFeedSource`, `MapCopySource`,
+`WhereaboutsSource`. ⭐ **One Api for all of it, `SubscriptionApi`** (over
+`SubscriptionLogic`): every producer pokes through it, and it carries the
+subscribable-field projection and the MQL source's one-shot query — a
+source never gets a facade of its own. See `docs/subsystems/subscription.md`.
 
 `PromptApi` is the third wire-side substrate. Server callers
 `await` an interactive prompt (`choice` / `confirm` / `text` /

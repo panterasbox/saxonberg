@@ -29,7 +29,7 @@
  */
 
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
-import type { TraversalGuard } from '../../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../../lib/boundary/Exit';
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import { Lock } from '../../lib/lock/Lock';
 import { StuffApi } from '../../api/stuff';
@@ -209,8 +209,11 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
     return new Lock(this.ship()?.getGangwayKeyway() ?? this.keywayWhenAsleep, 'pin-tumbler');
   }
 
-  public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {
-    const ship = await this.standing();
+  public override async canTraverse(mover: Stuff & Containable, mode?: string, opts?: TraverseOptions): Promise<TraversalGuard> {
+    // ⭐ A probe never stands a sleeping ship up (navigation-server D8): a
+    // ship that is not standing answers *as far as you know*.
+    const ship = opts?.probe ? this.ship() : await this.standing();
+    if (opts?.probe && ship === null) return { ok: true, unseen: true };
     const here = this.getSource().getTemplatePath();
     if (ship === null || ship.getBerth() !== here) {
       return { ok: false, gate: 'blocked', reason: 'She is not alongside.' };
@@ -222,7 +225,7 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
         reason: this.getLock().keyway ? "Your key doesn't fit her gangway." : 'Her gangway is locked.',
       };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   /**

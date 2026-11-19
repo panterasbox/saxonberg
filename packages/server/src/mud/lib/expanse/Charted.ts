@@ -25,7 +25,7 @@ import type { MapClaim } from '../location/MapClaim';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
-import { SpatialZone } from '../zone/SpatialZone';
+import { Expanse } from './Expanse';
 
 /** One thing a chart shows, as the chart shows it. */
 export interface ChartEntry {
@@ -78,14 +78,22 @@ export function ChartedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const locality = await localityOf(this.of);
       const now = NavigationApi.mapNow();
       const by = reader.mapOwnerKey();
+      // ⭐ A chart is a SOURCE (navigation-server D2): `via` names it, so two
+      // charts are two claims; `at.zone` is the water it is a chart of. ⛔ It
+      // never reads the live node — that would be the index correcting a
+      // wrong chart.
+      const self = this as unknown as Stuff;
+      const via = told ? {} : { via: self.getTemplatePath() ?? '', viaName: self.getPresentation() };
       const claims: MapClaim[] = this.entries.map((e) => ({
         kind: e.kind === 'band' ? 'band' : 'place',
         place: e.path,
         label: e.path,
         name: e.name,
         ...(e.where ? { where: e.where } : {}),
+        at: { zone: this.of },
         channel: told ? 'told' : 'charted',
         ...(told ? { toldBy: told.by } : {}),
+        ...via,
         firstSeen: now,
         lastSeen: now,
         recordedBy: by,
@@ -96,11 +104,11 @@ export function ChartedMixin<TBase extends MixinConstructor>(Base: TBase) {
   };
 }
 
-/** The map a chart files under: its expanse's address, else its key. */
+/** The map a chart files under — its sea's own rule (`Expanse.mapLocality`). */
 async function localityOf(expansePath: string): Promise<string> {
   try {
     const e = await StuffApi.singleton<Stuff>(expansePath);
-    if (e instanceof SpatialZone && e.getAddress()) return e.getAddress()!;
+    if (e instanceof Expanse) return e.mapLocality();
   } catch {
     /* the key, then */
   }

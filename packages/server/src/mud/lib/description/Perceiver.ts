@@ -1,6 +1,5 @@
 /**
- * PerceiverMixin — owns the verbs of perception (`look`, `scry`,
- * `locate`).
+ * PerceiverMixin — owns the verbs of perception (`look`, `scry`).
  *
  * Sister of `Sensor` and `Visible`. The split is by responsibility:
  *
@@ -31,12 +30,29 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
 import type { Stuff } from '../stuff/Stuff';
-import type { Whereabouts, WhereaboutsExit } from '@saxonberg/types';
+import type {
+  BuildingSection,
+  HorizonSection,
+  Lie,
+  YouSection,
+  ZoneSection,
+  LocalitiesSection,
+  NavSectionName,
+  NavSections,
+  PlaceSection,
+  WaysSection,
+} from '@saxonberg/types';
+import { NAV_SECTION_NAMES } from '@saxonberg/types';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
+import type Place from '../stuff/Place';
+import type { Voyaging } from '../expanse/Voyaging';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
+
+/** Which sections have already warned that their read failed. */
+const warnedSections = new Set<string>();
 
 /**
  * Canonical physical-sense channel vocabulary. The Perceiver-side
@@ -102,13 +118,23 @@ export const SENSE_CHANNELS: readonly SenseChannel[] = [
  */
 export interface Perceiver extends Sensor {
   /**
-   * ⭐ Where I am, at zone level — the navigator card's body: the covering
-   * Localities, the Structure, my cell, the ways out I can PERCEIVE, the
-   * sky over the place, and whose ground it is. A read that fails leaves
-   * its field absent; `null` when I am nowhere. On the viewer because the
-   * viewer is its subject (lint:object-verbs).
+   * ⭐ What I perceive from here, now — the named sections of the
+   * where-you-are source (navigation-server D7; all seven when `names` is
+   * omitted). Each read in its own try: a read that fails leaves its
+   * section ABSENT rather than a guess, and one broken subsystem never
+   * blanks the rest. `{}` when I am nowhere. Without `v` — the source
+   * stamps that when it sends. On the viewer because the viewer is its
+   * subject (lint:object-verbs).
    */
-  whereabouts(): Promise<Whereabouts | null>;
+  navigation(names?: readonly NavSectionName[]): Promise<NavSections>;
+
+  /**
+   * ⭐ I just took `craft`'s reckoning at her helm — the third `learn*`
+   * beside `learnSurroundings` and `learnTimetable` (navigation-server
+   * D2): what I was told, in the bracket I can state it to, goes on my
+   * map. Never her true position.
+   */
+  learnReckoning(craft: Stuff & Voyaging, bracket: string): void;
 
   /**
    * ⭐⭐ **A place is being described to me — work out what I can
@@ -216,97 +242,307 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       return exits;
     }
 
-    /** See {@link Perceiver.whereabouts}. */
-    async whereabouts(): Promise<Whereabouts | null> {
+    /** See {@link Perceiver.navigation}. */
+    async navigation(names?: readonly NavSectionName[]): Promise<NavSections> {
       const viewer = this as unknown as Stuff;
-      // Lazily: these reads pull in address, weather, celestial and civics
-      // substrate a foundational mixin must not load at module scope.
-      const [{ AddressApi }, { WeatherApi }, { CelestialApi }, { GovernmentApi }, { NavigationApi }] =
-        await Promise.all([
-          import('../../api/address'),
-          import('../../api/weather'),
-          import('../../api/celestial'),
-          import('../../api/government'),
-          import('../../api/navigation'),
-        ]);
-      if (!MixinApi.isContainable(viewer)) return null;
+      if (!MixinApi.isContainable(viewer)) return {};
       const place = viewer.getContainer();
-      if (!place) return null;
+      if (!place) return {};
+      const want = new Set<NavSectionName>(names ?? NAV_SECTION_NAMES);
+      const out: NavSections = {};
       /*
-       * ⚠ Each read is its own try: a read that fails leaves its field
-       * ABSENT, and the card says it does not know rather than showing a
-       * guess. One broken subsystem must not blank the whole navigator.
+       * ⚠ Each section is its own try: a read that fails leaves its
+       * section ABSENT, and the screen says it does not know rather than
+       * showing a guess. Warned once per section kind, never swallowed
+       * silently (refuse/skip/throw).
        */
-      const attempt = async <T>(read: () => T | Promise<T>): Promise<T | undefined> => {
+      const section = async <K extends NavSectionName>(
+        name: K,
+        read: () => Promise<NavSections[K] | undefined>,
+      ): Promise<void> => {
+        if (!want.has(name)) return;
         try {
-          return await read();
-        } catch {
-          return undefined;
+          const value = await read();
+          if (value !== undefined) out[name] = value;
+        } catch (err) {
+          if (!warnedSections.has(name)) {
+            warnedSections.add(name);
+            console.warn(`navigation: the ${name} section could not be read: ${(err as Error).message}`);
+          }
         }
       };
+      await section('zone', () => this.zoneSection(place));
+      await section('localities', () => this.localitiesSection(place));
+      await section('horizon', () => this.horizonSection(place));
+      await section('building', () => this.buildingSection(place));
+      await section('ways', () => this.waysSection(place));
+      await section('place', () => this.placeSection(place));
+      await section('you', () => this.youSection());
+      return out;
+    }
 
-      const resolution = await attempt(() => AddressApi.resolveFor(place));
+    /** Your Localities, outermost first, and whose ground this is. */
+    private async localitiesSection(place: Stuff): Promise<LocalitiesSection> {
+      const [{ AddressApi }, { GovernmentApi }] = await Promise.all([
+        import('../../api/address'),
+        import('../../api/government'),
+      ]);
+      const resolution = await AddressApi.resolveFor(place);
       const address = resolution?.address ?? null;
       // The sync chain read stands on the index the awaited `resolveFor`
       // built (`AddressApi.needs`, load-on-use W5).
-      const localities = address
+      // ⭐ Each Locality says what it does not withhold: its kind and whose
+      // it is (navigation-server D3).
+      const chain = address
         ? AddressApi.coverageChainOf(address)
-            .map((l) => ({ name: l.getName(), address: l.getAddress() }))
-            .filter((l) => l.name.length > 0)
+            .filter((l) => l.getName().length > 0)
+            .map((l) => {
+              const learnable = l.getLearnable();
+              const govKey = learnable.includes('government') ? l.getGovernmentKey() : null;
+              const gov = govKey ? GovernmentApi.getGovernment(govKey) : null;
+              return {
+                name: l.getName(),
+                address: l.getAddress(),
+                ...(learnable.includes('kind') ? { kind: l.getKind() } : {}),
+                ...(gov ? { government: { key: gov.key, name: gov.name } } : {}),
+              };
+            })
             .reverse()
         : [];
-
-      const structure = await attempt(() => NavigationApi.structureAtNow(place.getTemplatePath() ?? ''));
-      // Lazily: a static import of Location from a logic singleton runs the
-      // mixin chain before it is ready (the SandboxLogic precedent).
-      const { default: Location } = await import('../location/Location');
-      const coords = place instanceof Location ? place.getCoords() : null;
-
-      // ⭐ The perception-gated list: a concealed exit is not here.
-      const here = place.getZone();
-      // ⭐ The same `WayRecord` the room card's `exits` subscription emits
-      // (boundary build), plus where the way leads — this push resolves it.
-      const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
-        ? place.obviousExitsFor(viewer).map((exit) => {
-            // ⚠ A deferred way (a berth, a holding's front door) has no
-            // destination until someone crosses it, and `getDestination`
-            // THREW for it — `map` on the bank died with *destination not
-            // materialized* (the boundary browser walk). Resolve as before,
-            // and fall back to what is standing.
-            let dest: Stuff | null;
-            try {
-              dest = exit.getDestination();
-            } catch {
-              dest = exit.peekDestination();
-            }
-            return {
-              ...exit.wayRecord(),
-              ...(dest ? { destination: dest.getPresentation() } : {}),
-              crossesZone: !!dest && dest.getZone() !== here,
-            };
-          })
+      // ⭐ Whose ground this is, by the one question `government` asks
+      // (navigation-server S11): aboard a ship her port, then her flag.
+      const jurisdiction = MixinApi.isContainer(place)
+        ? (await GovernmentApi.subjectTo(place)).map((g) => ({ key: g.key, name: g.name }))
         : [];
+      // ⭐ Aboard a craft the last crumb is the ship, and the outermost says
+      // where she lies (D10); a body in moving water with no ship gets the
+      // same from the place's own position.
+      const structure = place.isPlace() ? await (place as unknown as Place).structure() : null;
+      const craft = structure as unknown as Stuff | null;
+      if (craft && MixinApi.isVoyaging(craft)) {
+        return { v: 0, chain, ship: { name: craft.getPresentation() }, outer: await craft.lies(), jurisdiction };
+      }
+      if (MixinApi.isMovingPlace(place)) {
+        const pos = place.framePos();
+        const frame = await place.liveFrame().catch(() => null);
+        const outer: Lie | undefined =
+          pos?.frame === 'line'
+            ? { at: 'river', river: frame ? (frame as unknown as Stuff).getPresentation() : 'the river', km: Math.round(pos.at.km * 10) / 10 }
+            : pos?.frame === 'chart'
+              ? { at: 'sea' }
+              : undefined;
+        return { v: 0, chain, ...(outer ? { outer } : {}), jurisdiction };
+      }
+      return { v: 0, chain, jurisdiction };
+    }
 
+    /** The zone you stand in, as a frame: what kind, its cell, a label — never its extent. */
+    private async zoneSection(place: Stuff): Promise<ZoneSection | undefined> {
+      const zone = place.getZone();
+      if (!zone) return undefined;
+      const { SpatialZone } = await import('../zone/SpatialZone');
+      const facts = zone instanceof SpatialZone ? zone.frameFacts() : { label: (zone as unknown as Stuff).getPresentation() };
+      // ⭐ In a copy, the copy's own zone identity (a house of a lot, a ship
+      // of a kind — zone instancing), else the zone's path.
+      const id = zone.getIdentityPath() ?? zone.getTemplatePath() ?? null;
+      return { v: 0, ...(id ? { id: { path: id, spoiler: 1 as const } } : {}), ...facts };
+    }
+
+    /**
+     * What stands on the horizon, landmarks first — the rough direction and
+     * miles `scan horizon` says, ⛔ never a bearing in degrees (a precise
+     * bearing is `measure bearing`'s skill). Stood up first, then read sync.
+     */
+    private async horizonSection(place: Stuff): Promise<HorizonSection> {
+      const { PerceptionApi } = await import('../../api/perception');
+      const viewer = this as unknown as Stuff;
+      // ⚠ Stand the horizon up first, as a deliberate `look` does (geography
+      // D9): at a session's open this is the place's FIRST read, and before
+      // its weather is known the sync horizon read takes the air as clear —
+      // the section named a light eighteen miles off through fog (drive 15g).
+      if (place.isPlace()) await place.standUpHorizon();
+      const view = PerceptionApi.horizonFor(viewer);
+      const { default: Structure } = await import('../structure/Structure');
+      const things = view.things.map((t) => {
+        const landmark = t.stuff instanceof Structure ? t.stuff.isLandmark() : false;
+        // ⭐ What `query horizon` says (geography): close by, or the compass
+        // point and rough miles — never the bearing in degrees.
+        const point = t.bearingDeg !== null && t.rangeNm !== null
+          ? PerceptionApi.glance(t.bearingDeg, t.rangeNm).split(',')[0]!.trim()
+          : null;
+        return {
+          stuffId: t.stuff.stuffId,
+          name: t.stuff.getPresentation(),
+          landmark,
+          ...(t.closeBy
+            ? { glance: { closeBy: true } }
+            : point !== null && t.rangeNm !== null
+              ? {
+                  glance: {
+                    point,
+                    ...(t.rangeNm < 1 ? { closeBy: true } : { roughMiles: Math.round(t.rangeNm) }),
+                  },
+                }
+              : {}),
+        };
+      });
+      things.sort((a, b) => Number(b.landmark) - Number(a.landmark));
+      return { v: 0, atSea: view.atSea, things, traffic: view.traffic.length };
+    }
+
+    /**
+     * You, as moving needs you: your pace, posture, what each hand holds,
+     * your load in its words, the light you carry, what you ride, lead and
+     * pull.
+     */
+    private async youSection(): Promise<YouSection> {
+      const { LocomotionApi } = await import('../../api/locomotion');
+      const me = this as unknown as Stuff;
+      const pace = LocomotionApi.defaultModeFor(me);
+      const out: YouSection = { v: 0, pace };
+      // ⭐ What your body refuses whichever way you go — once, here, never
+      // copied onto each way as a marker (navigation-server review).
+      const mode = await LocomotionApi.loadMode(pace).catch(() => null);
+      if (mode !== null) {
+        const bars = LocomotionApi.bodyRefusals(me, mode);
+        if (bars.length > 0) out.bars = bars;
+      }
+      if (MixinApi.isPosed(me)) out.posture = me.getPosture();
+      if (MixinApi.isCarrying(me)) {
+        const held = me.heldThings();
+        const slots = me.handSlots();
+        out.hands = slots.map((slot, i) => ({
+          slot,
+          ...(held[i] ? { holds: held[i]!.getPresentation() } : {}),
+        }));
+        out.freeHands = me.freeHands();
+        const led = me.ledAnimals().map((a) => a.getPresentation());
+        if (led.length > 0) out.led = led;
+      }
+      if (MixinApi.isLoadBearing(me)) {
+        const load = me.burdenWords();
+        if (load) out.load = load;
+      }
+      if (MixinApi.isContainer(me)) {
+        const light = me.getContents().find(
+          (t) => MixinApi.isLightSource(t) && t.getEmittedFlux().rawValue() > 0,
+        );
+        if (light) out.light = light.getPresentation();
+      }
+      const { Creature } = await import('../creature/Creature');
+      if (me instanceof Creature) {
+        const pair = me.mountedPair();
+        if (pair && pair.rider === (me as unknown)) out.mount = pair.mount.getPresentation();
+      }
+      if (MixinApi.isHauling(me)) {
+        const cart = me.getHauledCart();
+        if (cart) out.cart = cart.getPresentation();
+      }
+      // ⭐ A fight is a fact about you, the same whichever way you leave.
+      if (MixinApi.isCombatant(me)) {
+        const fighting = me.leavingTheFight();
+        if (fighting !== null) out.fighting = fighting;
+      }
+      return out;
+    }
+
+    /**
+     * The building you are in: its name, the storey you are on and how many,
+     * whether this is its entrance, its height, a landmark, whether its
+     * title is sold. Outside one: the buildings standing here.
+     */
+    private async buildingSection(place: Stuff): Promise<BuildingSection | null> {
+      // ⭐ The place is asked: a keyed room's structure is its warren's.
+      const structure = place.isPlace() ? await (place as unknown as Place).structure() : null;
+      if (structure) {
+        const path = place.getTemplatePath() ?? '';
+        const storeys = structure.getStoreys();
+        const at = storeys.findIndex((st) => st.key === structure.storeyOf(path)?.key);
+        const entrance = structure.getEntrance();
+        return {
+          v: 0,
+          name: structure.getPresentation(),
+          ...(at >= 0 ? { storey: at } : {}),
+          ...(storeys.length > 0 ? { storeys: storeys.length } : {}),
+          ...(entrance !== null && (entrance === path || entrance === place.getDurableHandle()) ? { entrance: { here: true as const } } : {}),
+          heightM: structure.getHeightM(),
+          landmark: structure.isLandmark(),
+          titleSold: structure.isTitleSold(),
+        };
+      }
+      if (!place.isPlace()) return null;
+      const landed = (place as unknown as Place)
+        .landedStructuresNow()
+        .map((b) => ({ name: b.getPresentation(), landmark: b.isLandmark() }));
+      return landed.length > 0 ? { v: 0, landed } : null;
+    }
+
+    /**
+     * The ways out you can perceive — a concealed exit is not here — each
+     * saying whether you can take it now, in trying's words
+     * (`Exit.wayFor`, navigation-server D8). Nothing is materialized.
+     */
+    private async waysSection(place: Stuff): Promise<WaysSection> {
+      const viewer = this as unknown as Stuff;
+      if (!MixinApi.isExitable(place) || !MixinApi.isContainable(viewer)) return { v: 0, ways: [] };
+      const ways = [];
+      for (const exit of place.obviousExitsFor(viewer)) ways.push(await exit.wayFor(viewer));
+      return { v: 0, ways };
+    }
+
+    /** The place you stand in: its name, your cell, the sky over it. */
+    private async placeSection(place: Stuff): Promise<PlaceSection> {
+      const [{ WeatherApi }, { CelestialApi }] = await Promise.all([
+        import('../../api/weather'),
+        import('../../api/celestial'),
+      ]);
+      // Lazily: a static import of Location from a mixin runs the chain
+      // before it is ready (the SandboxLogic precedent).
+      const { default: Location } = await import('../location/Location');
+      const at = place instanceof Location ? place.getCoords() : null;
       const sample = MixinApi.isContainer(place)
-        ? await attempt(() => WeatherApi.sampleFor(place))
+        ? await WeatherApi.sampleFor(place).catch(() => undefined)
         : undefined;
-      const day = await attempt(() => CelestialApi.isDayAt(place));
-      const government = address
-        ? await attempt(() => GovernmentApi.governmentAt(address))
-        : undefined;
-
+      const day = await Promise.resolve(CelestialApi.isDayAt(place)).catch(() => undefined);
+      const { PerceptionApi } = await import('../../api/perception');
+      const viewer = this as unknown as Stuff;
+      // ⭐ The band `look` renders by, read without looking — nothing learned.
+      const light = PerceptionApi.lightBandFor(viewer, place);
+      const band = light?.band ?? null;
+      const dark = light?.dark ?? false;
+      // Who else is here that you perceive — a hidden body is not, until found.
+      const crowd = MixinApi.isContainer(place)
+        ? place.getContents().filter((t) => t !== viewer && t.isAgent() && PerceptionApi.perceives(viewer, t)).length
+        : 0;
+      // ⭐ The total height above the sea (owner, 2026-11-17): the zone's
+      // elevation plus the room's height within it — z cells of the cell size.
+      // ⭐ The total height above the sea (owner, 2026-11-17): geography's
+      // `Place.heightAboveSeaM()` — the zone's elevation plus the room's
+      // height within it. `ZoneApi.elevationFor` stays the GROUND's.
+      const elevationM = place.isPlace() ? (place as unknown as Place).heightAboveSeaM() : null;
+      const ceiling = place instanceof Location ? place.getCeilingHeight() : null;
+      const stature = MixinApi.isPosed(viewer) ? viewer.getStature() : null;
       return {
-        place: { stuffId: place.stuffId, name: place.getPresentation() },
-        ...(structure ? { structure: { name: structure.getName() } } : {}),
-        localities,
-        ...(coords ? { coords } : {}),
-        exits,
-        conditions: {
-          ...(sample ? { weather: sample.type, season: sample.season } : {}),
-          ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
-        },
-        jurisdiction: government?.name ?? null,
+        v: 0,
+        stuffId: place.stuffId,
+        name: place.getPresentation(),
+        ...(at ? { at } : {}),
+        ...(band !== null ? { light: band } : {}),
+        dark,
+        ...(MixinApi.isSkyExposed(place) ? { openSky: place.isSkyExposed() } : {}),
+        ...(sample ? { weather: sample.type, season: sample.season } : {}),
+        ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
+        ...(MixinApi.isWaterPlace(place) ? { water: place.stateNow() } : {}),
+        crowd,
+        ...(ceiling !== null && stature !== null ? { lowCeiling: ceiling.rawValue() < stature } : {}),
+        ...(elevationM !== null ? { elevationM: Math.round(elevationM * 10) / 10 } : {}),
       };
+    }
+
+    /** See {@link Perceiver.learnReckoning}. */
+    learnReckoning(craft: Stuff & Voyaging, bracket: string): void {
+      const viewer = this as unknown as Stuff;
+      if (MixinApi.isCartographer(viewer)) viewer.recordReckoning(craft, bracket);
     }
 
     /** See {@link Perceiver.learnTimetable}. */
@@ -351,7 +587,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/stream/watch-stream.yaml',
         'platform/cmd/stream/watch-on.yaml',
         'platform/cmd/perception/scry.yaml',
-        'platform/cmd/perception/locate.yaml',
         'platform/cmd/shell/find.yaml',
         'platform/cmd/perception/smell.yaml',
         'platform/cmd/perception/listen.yaml',
@@ -371,7 +606,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Composition constraint: `Perceiver` requires `Sensor` to be
      * present on the same host. The perception verbs (`look` /
-     * `scry` / `locate`) render scenes to the perceiver's own
+     * `scry`) render scenes to the perceiver's own
      * channel via `handleMessage`, which lives on `Sensor`. The
      * public-shape interface declares `Perceiver extends Sensor`
      * so the type narrowing in `MixinApi.isPerceiver` exposes the

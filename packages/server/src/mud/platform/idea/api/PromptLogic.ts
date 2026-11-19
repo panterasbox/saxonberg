@@ -365,7 +365,7 @@ function cleanup(record: ResolverRecord): void {
    * make visible.
    *
    * One known producer poking one known consumer, so it is a method
-   * call rather than an event — the `notifyDurableSubject` shape.
+   * call rather than an event — the `{ durableSubject }` poke's shape.
    *
    * ⚠ It now pokes the CARD substrate rather than the MQL one. The
    * guarantee is unchanged and its expression is simpler: a prompt card

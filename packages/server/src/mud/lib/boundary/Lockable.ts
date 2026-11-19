@@ -63,9 +63,11 @@
  */
 
 import { Lock, type LockType } from '../lock/Lock';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * Why a `lock`/`unlock` act was refused. ⭐ The ORDER is the method's
@@ -103,6 +105,16 @@ export interface Lockable {
 export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LockableMixin extends Base {
     static _mixinName: string = 'LockableMixin';
+
+    /** ⭐ A way's facts (navigation-server D9): the bolt, and whether YOUR key fits. */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      { name: 'locked', aspect: 'way', read: (stuff) => (stuff as unknown as Lockable).isLocked() },
+      {
+        name: 'keyHeld',
+        aspect: 'way',
+        read: (stuff, viewer) => (stuff as unknown as Lockable).opensFor(viewer),
+      },
+    ];
 
     static fieldMeta: FieldMeta = {
       locked: { persistent: true, authorable: true },
@@ -167,7 +179,7 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
           `Lockable.locked must be a boolean, got ${typeof value}`,
         );
       }
-      this._locked = value;
+      this._locked = SubscriptionApi.fireFieldChange(this, 'locked', this._locked, value);
     }
 
     /**

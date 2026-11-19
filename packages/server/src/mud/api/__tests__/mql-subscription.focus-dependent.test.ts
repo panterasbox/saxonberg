@@ -1,10 +1,10 @@
 /**
- * ⭐ The `focusDependent` flag is SUBSUMED (crowded-rooms D1): every
- * query-bound subscription installs a dependency on its HOLDER, any field —
- * every relative seed and every shell variable (`$focus`) answers from the
- * asker — so `setFocus` / `clearFocus` wake it whether or not it asked. The
- * flag is accepted and adds nothing; it stays in the wire type until
- * navigation-server's `params` retires it.
+ * ⭐ A focus change wakes every query-bound subscription (crowded-rooms
+ * D1): each installs a dependency on its HOLDER, any field — every
+ * relative seed and every shell variable (`$focus`) answers from the asker
+ * — so `setFocus` / `clearFocus` wake it with nothing asked for. The
+ * `focusDependent` / `locationDependent` flags this replaced are gone from
+ * the wire (navigation-server).
  *
  * The inspection card's `$focus` subscription is the canonical
  * consumer; this file exercises the substrate behavior directly.
@@ -12,7 +12,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -21,6 +21,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -46,114 +47,73 @@ async function setup(): Promise<{
   );
   interactive.transferTo(avatar);
   const envelopes: Array<{ type: string; [k: string]: unknown }> = [];
-  vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+  vi.spyOn(Interactive.prototype, 'sendEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as { type: string });
   });
   return { interactive, avatar, envelopes };
 }
 
-describe('MqlSubscriptionApi — focusDependent flag', () => {
+describe('a focus change wakes a query-bound subscription (the holder entry)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
-  it('focusDependent: true adds nothing over the baseline (the holder entry subsumes it)', async () => {
-    const { interactive } = await setup();
-    // Baseline: subscribe without focusDependent.
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'baseline',
-      query: 'me',
-      cardinality: 'one',
-      fields: ['displayName'],
-    });
-    const baselineCount =
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
-
-    // Same shape, but focusDependent: true. Expect exactly one
-    // additional entry for the holder-level focus dep.
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 'focusDep',
-      query: 'me',
-      cardinality: 'one',
-      fields: ['displayName'],
-      focusDependent: true,
-    });
-    const withFocusDepCount =
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
-
-    // The flag adds nothing: the holder entry is installed either way.
-    expect(withFocusDepCount).toBe(2 * baselineCount);
-  });
-
-  it('setFocus triggers re-resolve for focusDependent subscriptions', async () => {
+  it('setFocus triggers re-resolve', async () => {
     const { interactive, avatar } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: ['displayName'],
-      focusDependent: true,
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: ['displayName'],
+  });
 
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     expect(spy).not.toHaveBeenCalled(); // setImmediate hasn't fired yet.
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
 
   it('multiple setFocus calls in one tick coalesce to one re-resolve', async () => {
     const { interactive, avatar } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: ['displayName'],
-      focusDependent: true,
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: ['displayName'],
+  });
 
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
     avatar.setFocus('banana');
     avatar.setFocus('cherry');
     expect(spy).not.toHaveBeenCalled();
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
 
   it('teardown drops the holder-level focus dep along with the rest', async () => {
     const { interactive } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: ['displayName'],
-      focusDependent: true,
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: ['displayName'],
+  });
     expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
+      SubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBeGreaterThan(0);
-    interactive.cancelMqlSubscription('s1');
+    interactive.cancelSubscription('s1');
     expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
+      SubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBe(0);
   });
 
   it('a query-bound subscription wakes on its holder’s focus without the flag', async () => {
     const { interactive, avatar } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
       query: 'me',
       // 'displayName' only, no flag: the holder entry still wakes it.
       cardinality: 'one',
@@ -161,7 +121,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     avatar.setFocus('apple');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });

@@ -28,6 +28,11 @@ function gridKey(x: number, y: number, z: number): string {
 }
 
 export default class CartesianZone extends SingletonMixin(LocationZoneMixin(SpatialZone)) {
+  /** ⭐ See {@link SpatialZone.frameFacts}. */
+  public override frameFacts(): { kind: 'grid'; cellSizeM?: number; label: string } {
+    return { kind: 'grid', cellSizeM: this.getCellSize(), label: this.getPresentation() };
+  }
+
   /**
    * Linear cell extent, in **meters**. A cube-cell zone with
    * `cellSize: 3` carries `3m × 3m × 3m` cells — 9 m² floor area,

@@ -395,6 +395,32 @@ export interface InspectionBodyProps {
   onProseClick?: (text: string) => void;
 }
 
+/**
+ * ⭐⭐ A LIVE place card's "Here" is live (navigation-server review). The
+ * look's segments are its prose, frozen at the look; a live card's record
+ * carries `present` — the same people rule, re-projected when somebody
+ * arrives, leaves, sits or is named — so "Here" is rebuilt from it, where
+ * the look's line sat (or before "You also see" when nobody was here then).
+ * A static card keeps the look's line: it says when it was taken.
+ */
+export function liveHere(segments: LookSegment[], present: SegmentItem[] | undefined): LookSegment[] {
+  if (present === undefined) return segments;
+  const at = segments.findIndex((seg) => seg.heading === "Here");
+  const was = at >= 0 ? segments[at]! : undefined;
+  const rest = segments.filter((seg) => seg.heading !== "Here");
+  if (present.length === 0) return rest;
+  const here: LookSegment = {
+    shape: "list",
+    heading: "Here",
+    sources: was?.sources ?? [],
+    text: "",
+    items: present,
+  };
+  const before = at >= 0 ? at : rest.findIndex((seg) => seg.heading === "You also see");
+  const pos = before >= 0 ? before : rest.length;
+  return [...rest.slice(0, pos), here, ...rest.slice(pos)];
+}
+
 export function InspectionBody({
   card,
   onSendCommand,
@@ -408,8 +434,9 @@ export function InspectionBody({
   // ⭐ Where the explore navigator is docked it owns the ways out; the room
   // card does not repeat them (owner, 2026-11-08: exits in one place).
   const navigatorDocked = useStore((st) => Object.values(st.cards).some((c) => c.cardId === "map" && !c.closed));
-  const segments = (card.segments ?? []).filter(
-    (seg) => !(navigatorDocked && seg.heading === "Obvious exits"),
+  const segments = liveHere(
+    (card.segments ?? []).filter((seg) => !(navigatorDocked && seg.heading === "Obvious exits")),
+    card.live === true ? record?.present : undefined,
   );
   const [openSource, setOpenSource] = React.useState<SegmentSource | null>(null);
   const [quietOpen, setQuietOpen] = React.useState(false);

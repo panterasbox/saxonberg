@@ -310,6 +310,12 @@ export class CombatLogic extends ApiLogic {
    * `combatant` brain (which acts on it) and by `assess` (which shows it
    * to a player, who then decides for themselves).
    */
+  /** See {@link Combatant.leavingTheFight}. */
+  @CallSecurity(CombatantCallers)
+  public leavingTheFight(actor: Stuff): { foes: number; breakaway: string | null } | null {
+    return leavingTheFightImpl(actor);
+  }
+
   @CallSecurity(CombatantCallers)
   public moraleBand(actor: Stuff): MoraleBand | null {
     const session = sessionForImpl(actor);
@@ -5433,17 +5439,35 @@ function findCoupInRoom(actor: Stuff, target: Stuff): Coup | null {
  * on success the actor is removed from the fight and the traverse proceeds.
  * Individual only — coordinated party-retreat + pursuit stay deferred.
  */
-function disengageImpl(actor: Stuff): { ok: boolean; message?: string } {
+/**
+ * ⭐ What leaving the fight would cost `actor`, as a READ (navigation-server
+ * review): how many foes are still locked on (each takes a parting shot),
+ * and the refusal when there are too many to break away from. `null` out of
+ * combat. The one read `disengage` acts on and the `you` section shows, so
+ * the two can never disagree.
+ */
+function leavingTheFightImpl(actor: Stuff): { foes: number; breakaway: string | null } | null {
   const session = sessionForImpl(actor);
-  if (!session || !session.isActive()) return { ok: true };
-  const graph = session.getGraph();
-  const incoming = graph
+  if (!session || !session.isActive()) return null;
+  const foes = session
+    .getGraph()
+    .incomingEdges(actor)
+    .filter((e) => !session.getState(e.attacker)?.down).length;
+  return {
+    foes,
+    breakaway: recoverySuppressed(foes) ? "You're too hard-pressed to break away!" : null,
+  };
+}
+
+function disengageImpl(actor: Stuff): { ok: boolean; message?: string } {
+  const leaving = leavingTheFightImpl(actor);
+  if (leaving === null) return { ok: true };
+  if (leaving.breakaway !== null) return { ok: false, message: leaving.breakaway };
+  const session = sessionForImpl(actor)!;
+  const incoming = session
+    .getGraph()
     .incomingEdges(actor)
     .filter((e) => !session.getState(e.attacker)?.down);
-
-  if (recoverySuppressed(incoming.length)) {
-    return { ok: false, message: "You're too hard-pressed to break away!" };
-  }
 
   // Parting shots from every foe still locked on.
   const energy = dial(AppSettingKeys.combatFleePartingShotEnergy, 1.6);

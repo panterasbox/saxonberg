@@ -6,7 +6,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -16,6 +16,7 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -39,38 +40,34 @@ async function setup(): Promise<{ interactive: Interactive; avatar: Avatar }> {
   return { interactive, avatar };
 }
 
-describe('MqlSubscriptionApi — meta-bus dependency index', () => {
+describe('SubscriptionApi — meta-bus dependency index', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('subscription on a target gains index entries proportional to its descriptors', async () => {
     const { interactive } = await setup();
-    expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    expect(SubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     expect(
-      MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
+      SubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBeGreaterThan(0);
   });
 
   it('firing FieldChangedEvent for the subscribed target marks dirty (re-resolve runs)', async () => {
     const { interactive, avatar } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     EventApi.fire(
       new FieldChangedEvent({
@@ -80,20 +77,18 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
         newValue: 'Bob',
       }),
     );
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
   });
 
   it('firing FieldChangedEvent for an unrelated target does NOT mark dirty', async () => {
     const { interactive } = await setup();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     const spy = vi.spyOn(MqlApi, 'resolveMany');
     // 'field: bogus' value isn't indexed; 'target: stranger-stuff-id'
     // doesn't match the subscribed avatar.
@@ -105,7 +100,7 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
         newValue: 'Y',
       }),
     );
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     // The subscription's 'by: field' index entry uses value 'name',
     // so the unrelated target's fire *does* match the field-name
     // index. This is the conservative-coarse policy — re-resolve
@@ -114,6 +109,6 @@ describe('MqlSubscriptionApi — meta-bus dependency index', () => {
     // Spy may or may not have been called depending on how the
     // resolver scopes; we only assert the substrate stays alive.
     spy.mockRestore();
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 });

@@ -52,7 +52,7 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MaterialSummary } from '@saxonberg/types';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';

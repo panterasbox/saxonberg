@@ -13,6 +13,7 @@
 
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
+import type Place from '../../stuff/Place';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Floorplan } from '../Floorplan';
 import { FloorplanWarren } from '../FloorplanWarren';
