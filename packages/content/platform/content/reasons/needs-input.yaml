@@ -1,0 +1,6 @@
+# A command needed an answer (which one? how many?) and nobody was there to
+# give it — a script line, an NPC. A script fails closed on it.
+facts:
+  detail: text?
+says: "{% if detail %}{{ detail | cap }}.{% else %}That needs an answer, and there is nobody to give one.{% endif %}"
+topic: shell.error

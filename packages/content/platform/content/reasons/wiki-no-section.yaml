@@ -1,0 +1,4 @@
+facts:
+  section: text
+  page: text
+says: "There is no section '{{ section }}' in {{ page }}."

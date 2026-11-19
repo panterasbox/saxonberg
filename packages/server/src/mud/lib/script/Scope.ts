@@ -29,6 +29,8 @@
  */
 
 import type { ScriptValue } from "./Value";
+import { Refusal } from "../errors";
+import { CommandApi } from "../../api/command";
 
 export class Scope {
   private readonly bindings = new Map<string, ScriptValue>();
@@ -54,13 +56,35 @@ export class Scope {
    */
   get(name: string): ScriptValue {
     if (this.bindings.has(name)) return this.bindings.get(name);
-    return this.parent !== null ? this.parent.get(name) : undefined;
+    if (this.parent !== null && this.parent.has(name)) return this.parent.get(name);
+    return this.field(name);
+  }
+
+  /**
+   * ⭐ The one dotted read (failure-model D5): `why.target` — when the base
+   * is bound to a {@link Refusal} — answers its canonical `reason` code or
+   * the named fact. Nothing else has fields; there is no general member
+   * access. In `Scope`, so the interpreter and the `( )` island read it
+   * the same way.
+   */
+  private field(name: string): ScriptValue {
+    const dot = name.indexOf(".");
+    if (dot <= 0) return undefined;
+    const base = this.get(name.slice(0, dot));
+    if (!(base instanceof Refusal)) return undefined;
+    const key = name.slice(dot + 1);
+    if (key === "reason") return CommandApi.reasons().codeOf(base.reason);
+    const fact = base.facts[key];
+    return fact === undefined ? undefined : (fact as ScriptValue);
   }
 
   /** True iff `name` is bound in this frame or any ancestor. */
   has(name: string): boolean {
     if (this.bindings.has(name)) return true;
-    return this.parent !== null ? this.parent.has(name) : false;
+    if (this.parent !== null && this.parent.has(name)) return true;
+    // A dotted read of a bound refusal is bound (`$why.target`).
+    const dot = name.indexOf(".");
+    return dot > 0 && this.field(name) !== undefined;
   }
 
   /**

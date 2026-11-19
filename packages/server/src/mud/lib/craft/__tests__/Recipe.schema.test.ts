@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Recipe } from '../Recipe';
+import { ContentError } from '../../errors';
 import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
@@ -175,6 +176,21 @@ describe('Recipe schema round-trip', () => {
   it('refuses what the retired seeder refused: empty inputSlots, missing outputTemplate', () => {
     expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [], outputTemplate: '/t' }, '/test/recipes/x')).toThrow(/inputSlots/);
     expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [{}] }, '/test/recipes/x')).toThrow(/outputTemplate/);
+  });
+
+  it('⭐ refuses a band that is not a band as a CONTENT error, naming the row and field (failure-model D6)', () => {
+    const base = { inputSlots: [{ type: 'x', minGrade: 'poor' }], outputTemplate: '/t' };
+    expect(() => Recipe.fromData({ ...base, baseGradeBand: 'shoddy' }, '/test/recipes/bad')).toThrow(ContentError);
+    try {
+      Recipe.fromData({ inputSlots: [{ type: 'x', minGrade: 'legendary' }], outputTemplate: '/t' }, '/test/recipes/bad');
+      expect.unreachable();
+    } catch (err) {
+      expect(err).toBeInstanceOf(ContentError);
+      expect((err as ContentError).row).toBe('/test/recipes/bad');
+      expect((err as ContentError).field).toBe('inputSlots[0].minGrade');
+      expect((err as ContentError).what).toBe('the bad recipe');
+    }
+    expect(() => Recipe.fromData({ ...base, baseGradeBand: 'fine' }, '/test/recipes/good')).not.toThrow();
   });
 
   it('massYield parses in [0,1], round-trips, and refuses out of range (D6)', () => {

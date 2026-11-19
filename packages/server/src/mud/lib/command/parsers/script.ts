@@ -51,9 +51,10 @@
  * the default `Parser` value.
  */
 
-import type { Parser, ParseResult, ParserContext } from "../../../api/command";
+import { CommandApi, type Parser, type ParseResult, type ParserContext } from "../../../api/command";
 import type { Script, Pipeline, Command, Arg } from "../../script/ast";
 import { ScriptBuiltins } from "../../script/builtins";
+import { Interpreter } from "../../script/Interpreter";
 import msh, { detectEmotePrefix } from "./msh";
 
 /* ──────────────────────────── lexer ──────────────────────────── */
@@ -330,6 +331,70 @@ function splitOn(
   return groups;
 }
 
+/* ──────────────────────── the `try` check ────────────────────── */
+
+/** Every `try` command in a script, nested blocks included. */
+function trysIn(ast: Script): Command[] {
+  const out: Command[] = [];
+  const walk = (script: Script): void => {
+    for (const pipeline of script.statements) {
+      for (const command of pipeline.commands) {
+        if (command.word === "try") out.push(command);
+        for (const arg of command.args) if (arg.kind === "block") walk(arg.body);
+      }
+    }
+  };
+  walk(ast);
+  return out;
+}
+
+/**
+ * ⭐ Refuse, at parse, a `try` the run could not honor (failure-model D5):
+ * a malformed one; an `on` naming a reason no row ships — with the line
+ * corrected to the nearest code in that directory, when one is near; a
+ * reason that words a defect (`went-wrong`), which no script may catch.
+ * `null` when every `try` is sound.
+ */
+async function checkTrys(
+  ast: Script,
+  text: string,
+  context: ParserContext,
+): Promise<ParseResult | null> {
+  const trys = trysIn(ast);
+  if (trys.length === 0) return null;
+  const reader = new Interpreter(context.commandGiver, { sliceSteps: 1, maxSteps: 1, maxDispatch: 0, maxDepth: 0 });
+  const reasons = CommandApi.reasons();
+  for (const command of trys) {
+    const clauses = reader.tryClausesOf(command);
+    if (clauses === null) {
+      return { error: "try needs { a body } and then on <reason> { a handler } — one or more" };
+    }
+    for (const clause of clauses) {
+      for (const code of clause.codes) {
+        if (code === "*") continue;
+        const reason = await reasons.find(code);
+        if (reason === null) {
+          const near = await reasons.nearest(code);
+          const fixed = near !== null ? text.replace(new RegExp(`(\\bon\\s+(?:[^{]*?[\\s,])?)${escapeRe(code)}(?=[\\s,{])`), `$1${near}`) : null;
+          return {
+            error: `there is no reason '${code}'${near !== null ? ` — the nearest is '${near}'` : ""}`,
+            ...(fixed !== null && fixed !== text ? { suggestion: fixed } : {}),
+          };
+        }
+        if (!reason.isCatchable()) {
+          return { error: `'${code}' is a defect, not a refusal — no script may handle it` };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** `text` with every regex metacharacter escaped. */
+function escapeRe(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}
+
 /* ──────────────────────────── Parser ─────────────────────────── */
 
 const script: Parser = {
@@ -366,7 +431,9 @@ const script: Parser = {
 
     const built = buildScript(lexed.tokens);
     if ("error" in built) return { error: built.error };
-    return { script: { ast: built.ast } };
+    const ast = built.ast;
+    if (trysIn(ast).length === 0) return { script: { ast } };
+    return checkTrys(ast, text, context).then((refused) => refused ?? { script: { ast } });
   },
 };
 

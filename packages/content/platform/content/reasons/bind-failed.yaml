@@ -1,0 +1,4 @@
+facts:
+  detail: text?
+says: "Couldn't fit that command to anything here{% if detail %}: {{ detail }}{% endif %}."
+topic: shell.error

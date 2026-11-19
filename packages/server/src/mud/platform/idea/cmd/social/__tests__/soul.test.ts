@@ -18,7 +18,7 @@ import { MessageApi } from '../../../../../api/message';
 import { AccessApi } from '../../../../../api/access';
 import { Mml } from '../../../../../api/mml';
 import { Emote } from '../../../../../lib/social/Emote';
-import { DocumentRefusal } from '../../../../../lib/document/StoredDocument';
+import { Refusal } from '../../../../../lib/errors';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CommandContext } from '../../../../../api/command';
@@ -124,7 +124,7 @@ describe('soul — one controller per subcommand', () => {
 
     // ⭐ The title gate is the document store's (W8 — no controller
     // pre-check): the catalogue's write refuses, and the verb words it.
-    const refused = new DocumentRefusal('access-denied', "you don't have permission to write that document");
+    const refused = new Refusal('document-access-denied', { path: '/x' }, { message: "you don't have permission to write that document" });
     set.mockRejectedValueOnce(refused);
     const c = ctxAs('nobody');
     await makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c);

@@ -9,10 +9,10 @@ import { ParcelApi } from "../../../api/parcel";
 import { ProvenanceApi } from "../../../api/provenance";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import {
-  DocumentRefusal,
   StoredDocument,
   type DocumentKeyQuery,
 } from "../../../lib/document/StoredDocument";
+import { Refusal } from "../../../lib/errors";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Publisher } from "../../../lib/press/Publisher";
@@ -654,7 +654,17 @@ async function saveImpl(
 ): Promise<void> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
+  if (denial !== null) throw new Refusal("document-access-denied", { path }, { message: denial });
+  // ⭐ The installer's own validator (failure-model D6): a row a pack could
+  // not ship is not stored by a save either. A dynamic import, as the
+  // catalogues reach the store, to keep the pack hub out of this cycle.
+  // The author saving it is told why — a refusal, not a defect.
+  try {
+    (await import("../../../api/pack")).PackApi.validateDocument(kind, data, path);
+  } catch (err) {
+    const why = err instanceof Error ? err.message : String(err);
+    throw new Refusal("invalid-document", { path, why }, { message: why, cause: err });
+  }
 
   const existing = await StoredDocument.findByPath(path);
 
@@ -715,7 +725,7 @@ const COMMAND_VIEW_KIND = "command-view";
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
-  if (denial !== null) throw new DocumentRefusal("access-denied", denial);
+  if (denial !== null) throw new Refusal("document-access-denied", { path }, { message: denial });
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
   const kind = doc.kind;
@@ -835,6 +845,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'formation':
     case 'placement':
     case 'shape':
+    case 'reason':
     case 'topic':
     case 'standby-reason':
     case 'lower-third-panel':

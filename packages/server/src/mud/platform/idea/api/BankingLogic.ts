@@ -31,7 +31,7 @@ import type {
   SettlementMethod,
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
-import { SettleRefused } from "../../../lib/banking/Charge";
+import { Refusal } from "../../../lib/errors";
 import { AppApi } from "../../../api/app";
 import { AddressApi } from "../../../api/address";
 // The own-Api self-import (the PressLogic precedent): a free function
@@ -1298,7 +1298,7 @@ async function settleImpl(
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
-  if (!payer) throw new SettleRefused("no-payer", "BankingLogic.settle: no acting payer");
+  if (!payer) throw new Refusal("no-payer");
   // ⭐ The payee's creditors take their share of this inflow as rider
   // splits inside the same transaction (economic bootstrap D12).
   const { charge, repayments } = await withRepaymentSplits(original);
@@ -1319,7 +1319,7 @@ async function settleLegs(
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
-      throw new SettleRefused("cannot-hold-coin", "BankingLogic.settle: the payer can't hold coin");
+      throw new Refusal("cannot-hold-coin");
     }
     // Off-ledger handover to a physical receiver (a till, a person's hand).
     if (charge.payeeContainer) {
@@ -1329,7 +1329,7 @@ async function settleLegs(
         charge.amount.minor,
         charge.amount.currency,
       );
-      if (!ok) throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
+      if (!ok) throw new Refusal("insufficient-coin", { amount: charge.amount.render() });
       return { method: "cash" };
     }
     // No physical receiver: bank the coin instantly across the cash bridge
@@ -1338,16 +1338,16 @@ async function settleLegs(
     // the payee has no local till (a global TPA operating-budget account), so
     // a cash fare's city+TPA split still holds (D12 cash bridge).
     if (!charge.payeeAccountId) {
-      throw new SettleRefused("needs-payee", "BankingLogic.settle: cash needs a payee");
+      throw new Refusal("needs-payee");
     }
     const payerC = payer as Stuff & Container;
     if (cashOnHand(payerC) < charge.amount.minor) {
-      throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
+      throw new Refusal("insufficient-coin", { amount: charge.amount.render() });
     }
     const cashSplits = charge.splits ?? [];
     const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
     if (cashSplitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
-      throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
+      throw new Refusal("splits-exceed");
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
     // refuse before any ledger leg posts (the caller falls back to the card).
@@ -1357,10 +1357,7 @@ async function settleLegs(
       charge.amount.currency,
     );
     if (!drained) {
-      throw new SettleRefused(
-        "inexact-cash",
-        "BankingLogic.settle: can't make the exact amount in cash",
-      );
+      throw new Refusal("inexact-cash", { amount: charge.amount.render() });
     }
     const bridgeLegs: LedgerLeg[] = [];
     const bridgeMain = charge.amount.minor - cashSplitTotal;
@@ -1417,13 +1414,13 @@ async function settleLegs(
     if (frozen) throw new Error(`BankingLogic.settle: ${frozen}`);
   }
   if (balanceMinor(routingAccount) < charge.amount.minor) {
-    throw new Error("BankingLogic.settle: insufficient balance");
+    throw new Refusal("insufficient-funds", { amount: charge.amount.render() });
   }
 
   const splits = charge.splits ?? [];
   const splitTotal = splits.reduce((s, x) => s + x.amount.minor, 0);
   if (splitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
-    throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
+    throw new Refusal("splits-exceed");
   }
   const legs: LedgerLeg[] = [];
   const mainAmount = charge.amount.minor - splitTotal;

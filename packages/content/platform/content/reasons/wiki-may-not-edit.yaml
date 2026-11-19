@@ -1,0 +1,4 @@
+# The wiki's own sentence for why this person may not write here.
+facts:
+  why: text
+says: "{{ why | cap }}."

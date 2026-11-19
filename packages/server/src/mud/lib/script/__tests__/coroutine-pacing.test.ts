@@ -75,8 +75,8 @@ async function tick(realMs: number): Promise<void> {
 
 /** A two-statement script (hand-written generator) that dispatches twice. */
 function* twoSteps(): Eval<undefined> {
-  yield { kind: "dispatch", command: STEP, model: {}, prep: {} };
-  yield { kind: "dispatch", command: STEP, model: {}, prep: {} };
+  yield { kind: "dispatch", command: STEP, model: {}, prep: {}, line: "step" };
+  yield { kind: "dispatch", command: STEP, model: {}, prep: {}, line: "step" };
   return undefined;
 }
 
@@ -98,6 +98,7 @@ function makeRun() {
     return {
       getNotes: () => [],
       getStatus: () => "ok",
+      getRefusal: () => null,
       note: () => {},
       setStatus: () => {},
     } as unknown as CommandContext;

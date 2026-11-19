@@ -1,0 +1,3 @@
+facts:
+  tree: thing
+says: "{{ tree | item }} is not yet a tree. Leave it."

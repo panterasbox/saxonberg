@@ -60,6 +60,13 @@ export interface ScheduledEmission {
  */
 export interface Engagement {
   engagementId: string;
+  /**
+   * ⭐ How it ended (failure-model D5), stamped by the scheduler where it
+   * ends: `'completed'`, or the abort reason. Absent while it runs. A
+   * script awaiting the step reads it to tell a finished step from an
+   * interrupted one.
+   */
+  endedBy?: AbortReason | 'completed';
   readonly type: string;
   readonly actor: Stuff & Engaged;
   readonly startedAt: number;
