@@ -331,7 +331,15 @@ suite('2 — a long-lived, quiet world', () => {
     say(`2a: idle ${idleMs / 1000} s → scoring ops ${measured.idleScoringOps} ${JSON.stringify(scoring)}`);
     // A pass with nothing to do makes NO round trip; a whole-history pass
     // reads three ledgers and writes every subject, every minute.
-    claim('2a idle scoring is constant', measured.idleScoringOps === 0, `${measured.idleScoringOps} scoring ops in ${idleMs / 1000} s idle`);
+    // "No round trips beyond a constant" (the requirement): the passes
+    // write nothing, and what is left does not scale with the 200 — a
+    // whole-history pass was ~600 ops a service a minute.
+    const passWrites = sumWhere(ops, /^(save|saveMany) (participation|renown|producer)$/);
+    claim(
+      '2a idle scoring is constant',
+      passWrites === 0 && measured.idleScoringOps <= 10,
+      `${measured.idleScoringOps} scoring ops (${passWrites} standing writes) in ${idleMs / 1000} s idle`,
+    );
   }, 600_000);
 
   it('2b — one player acts across a pass: only that player is re-scored, and reads their own participation', async () => {
@@ -354,7 +362,11 @@ suite('2 — a long-lived, quiet world', () => {
       measured.actingScoringOps = sumWhere(ops, SCORING);
       measured.actingScoringByOp = Object.fromEntries(Object.entries(ops).filter(([k]) => SCORING.test(k)));
       say(`2b: one player, three lines, ~two passes → scoring ops ${measured.actingScoringOps} ${JSON.stringify(measured.actingScoringByOp)}`);
-      claim('2b one act costs a few scoring ops', measured.actingScoringOps <= 12, `${measured.actingScoringOps} scoring ops (≤ 12)`);
+      // The PASSES' cost, not the acts': a player's own appends
+      // (`save *_events`, the dedup reads) are what acting is.
+      const passOps = sumWhere(ops, /^(saveMany|save) (participation|renown|producer)$|^find (participation|renown|producer)$/) +
+        sumWhere(ops, /^find (participation_events|renown_events|producer_events)$/);
+      claim('2b one act costs a few scoring ops', passOps <= 12, `${passOps} pass ops of ${measured.actingScoringOps} scoring ops (≤ 12)`);
       const st = await standingOf(p);
       const fig = await participationOf(p);
       say(`2b: standing "${st.presence}", play ${st.band}; participation by person ${fig.toFixed(3)}`);

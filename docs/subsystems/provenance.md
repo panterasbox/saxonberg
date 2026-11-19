@@ -114,3 +114,11 @@ The contributor-set / co-authorship model (multiple weighted authors per
 path); the ownership hierarchy and the dependency-DAG credit graph; the
 git-in-runtime VCS; the explicit `release` action + team sandbox. See
 [provenance-slate.md](../slates/platform/provenance-slate.md).
+
+## `authorOf` is remembered (db-performance, 2026-11)
+
+The producer tap asks who authored the engaged place on every command.
+`ProvenanceLogic` remembers path → author: the answer is the earliest
+row, so it moves only when a path gets its first row — written by the same
+logic, which drops the entry. Bypassed inside a sandbox circle (a circle
+reads its own marked rows).
