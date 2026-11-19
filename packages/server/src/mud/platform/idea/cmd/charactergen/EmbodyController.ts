@@ -838,6 +838,10 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     EmbodyController.#config = {
       species: parsed.species ?? [],
       aspirations: parsed.aspirations ?? [],
+      // ⚠ Copied by name like the rosters: a key left out here is dropped
+      // silently (the drive's first run — every new player arrived with
+      // no phone).
+      startingKit: parsed.startingKit ?? [],
     };
     return EmbodyController.#config;
   }
