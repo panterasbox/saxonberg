@@ -48,6 +48,7 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import type PlatBook from "@saxonberg/content-residence/src/idea/PlatBook";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
+import { Refusal } from "@saxonberg/server/mud/lib/errors";
 
 /** One unsold lot, as the office describes it. */
 interface Offer {
@@ -201,23 +202,37 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
       if (!offer) return;
 
       const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
-      const yes = await interactive.promptConfirm(
-        `Buy ${offer.book} ${offer.leaf} for ${price}?`,
-        "no",
-      );
-      if (!yes) {
-        MessageApi.scene(npc)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`"No hurry. The ground isn't going anywhere."`)
-          .send();
-        return;
-      }
+      // The realtor states the terms in its own words; the yes is not the
+      // realtor's to ask. ⭐ The engine asks it (call-security pass D9): the
+      // purchase runs on YOUR body, so your client is asked whether to let
+      // the realtor have you run `title buy …` — worded from the command
+      // itself, which is the one thing a realtor cannot misdescribe.
+      MessageApi.scene(npc)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`"${offer.book} ${offer.leaf} — ${price}, freehold. I'll put it through for you."`)
+        .send();
 
       // ⭐ AS THE BUYER. Not `dispatch` (which runs as the NPC) — the
       // command runs with the player's own affordances, validators,
       // money and ascent gate, and refuses to THEM if it refuses.
       if (!MixinApi.isCommandGiver(player)) return;
-      await player.forceCommand(`title buy ${offer.leaf}`);
+      try {
+        await player.forceCommand(`title buy ${offer.leaf}`);
+      } catch (err) {
+        if (!(err instanceof Refusal)) throw err;
+        if (err.reason === 'compel-declined') {
+          MessageApi.scene(npc)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`"No hurry. The ground isn't going anywhere."`)
+            .send();
+          return;
+        }
+        if (err.reason === 'cannot-consent') {
+          await Realtor.LIST_EFFECT.apply({ npc, player, effect: {} });
+          return;
+        }
+        throw err;
+      }
     },
   };
 }

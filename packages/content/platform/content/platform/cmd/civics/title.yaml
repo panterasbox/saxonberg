@@ -73,6 +73,11 @@ subcommands:
         requires: [TangibleMixin]
   buy:
     controller: /system/residence/idea/cmd/civics/TitleBuyController
+    # ⭐ A purchase at a counter at its posted price may be ASKED of you —
+    # the Realtor offers to save you the walk — and you are asked first,
+    # every time (call-security pass; the owner's ruling: never = giving
+    # title or money AWAY, which `transfer` does and `buy` does not).
+    compellable: consent
     description: "Buy a lot outright"
     help: |
       Funds are checked, the money moves, and the Registry writes the

@@ -1253,6 +1253,9 @@ export interface ExampleDefinition {
   note?: string;
 }
 
+/** Whether another body's code may ask a body to run a verb (call-security pass D8). */
+export type Compellable = 'never' | 'consent';
+
 export interface SubcommandDefinition {
   description?: string;
   /** Multi-line authored help prose for this subcommand. */
@@ -1260,6 +1263,8 @@ export interface SubcommandDefinition {
   /** Worked invocations specific to this subcommand. */
   examples?: ExampleDefinition[];
   controller?: string;
+  /** This subcommand's own {@link CommandView.compellable}; the verb's when absent. */
+  compellable?: Compellable;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
   /**
@@ -1378,6 +1383,13 @@ export interface CommandView {
    * verb does not exist. See the `testharness` view.
    */
   testOnly?: boolean;
+  /**
+   * ⭐ May another character's code ask this body to run the verb
+   * (call-security pass D8–D11)? `never` (the default — nobody can) or
+   * `consent` (the body's own player is asked first, every time). Honored
+   * only when the controller class also declares `static compellable`.
+   */
+  compellable?: Compellable;
   /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input

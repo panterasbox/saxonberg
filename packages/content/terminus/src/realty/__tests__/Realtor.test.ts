@@ -30,6 +30,8 @@ import { DialogueEffectRegistry } from "@saxonberg/server/mud/lib/npc/DialogueEf
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { Refusal } from "@saxonberg/server/mud/lib/errors";
+import { MessageApi } from "@saxonberg/server/mud/api/message";
 
 /** The provisioner half a book asks for capacity and the next free leaf
  * (a `PlatWarren` — the book names its provisioner by class now). */
@@ -183,13 +185,13 @@ describe("the realty window", () => {
 });
 
 describe("the purchase", () => {
-  it("⭐⭐ runs `title buy` AS THE BUYER, after their own confirmation", async () => {
+  it("⭐⭐ runs `title buy` AS THE BUYER — the realtor states the terms; the engine asks the yes", async () => {
     book("/world/fx/hinkley/plat-book", "Hinkley Hills", "/world/fx/hinkley", 500, "lot-7");
     const iris = withClient(buyer());
     captureCommands(iris);
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
     choiceFn.mockResolvedValue("/world/fx/hinkley/lots/lot-7" as never);
-    const confirm = confirmFn.mockResolvedValue(true);
+    const said = vi.spyOn(MessageApi, "scene");
 
     await Realtor.BUY_EFFECT.apply({
       npc: ricky as unknown as Stuff,
@@ -197,27 +199,32 @@ describe("the purchase", () => {
       effect: {},
     });
 
-    // The price was shown before the yes was taken.
-    expect(confirm.mock.calls[0]![0]).toMatch(/Hinkley Hills lot-7/);
+    // ⭐ The realtor no longer asks its own yes (call-security pass D9):
+    // the compulsion gate asks it, from the command line itself.
+    expect(confirmFn).not.toHaveBeenCalled();
+    expect(said).toHaveBeenCalled();
     // And the command ran as IRIS — never as Ricky.
     expect(issued).toEqual([
       { actor: iris as unknown as Stuff, line: "title buy lot-7" },
     ]);
   });
 
-  it("buys nothing when the buyer says no", async () => {
+  it("buys nothing when the buyer says no — and says no hurry", async () => {
     book("/world/fx/hinkley/plat-book", "Hinkley Hills", "/world/fx/hinkley", 500, "lot-7");
     const iris = withClient(buyer());
-    captureCommands(iris);
+    vi.spyOn(iris as unknown as { forceCommand: (l: string) => Promise<void> }, "forceCommand").mockRejectedValue(
+      new Refusal("compel-declined", { who: iris as unknown as Stuff }),
+    );
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
     choiceFn.mockResolvedValue("/world/fx/hinkley/lots/lot-7" as never);
-    confirmFn.mockResolvedValue(false);
 
-    await Realtor.BUY_EFFECT.apply({
-      npc: ricky as unknown as Stuff,
-      player: iris as unknown as Stuff,
-      effect: {},
-    });
+    await expect(
+      Realtor.BUY_EFFECT.apply({
+        npc: ricky as unknown as Stuff,
+        player: iris as unknown as Stuff,
+        effect: {},
+      }),
+    ).resolves.toBeUndefined();
     expect(issued).toEqual([]);
   });
 

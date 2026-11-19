@@ -1,0 +1,5 @@
+# The verb may be asked of a body with its consent, but there is nobody at
+# that body to ask — an NPC, or a player who is not connected (D9).
+facts:
+  who: thing
+says: "{{ who | item | cap }} isn't here to say yes."

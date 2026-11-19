@@ -28,6 +28,7 @@ import {
   Collections,
 } from "../../../../backend/PersistenceManager";
 import type { EnvelopeTemplate, DispatchResponseEnvelope } from "@saxonberg/types";
+import { TestHarnessApi } from "../../../api/test-harness";
 
 const TestGiverBase = CommandGiverMixin(
   EnvironmentMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -95,7 +96,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
   it("dispatches every statement of a multi-statement script over the bus", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
-    await giver.executeCommand("ping; ping; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping; ping; ping"));
 
     // Each scripted command went through the real resolve→validate→
     // execute tail (the {bound} path), once per statement.
@@ -109,7 +110,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
     // No separator, no block → msh fast path → the normal _runChain, not
     // the interpreter. resolveModel is still called once (the verb runs).
-    await giver.executeCommand("ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping"));
     expect(resolveModel).toHaveBeenCalledTimes(1);
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(env.outcome.status).toBe("ok");
@@ -118,7 +119,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
   it("⭐ an unknown verb stops the script there, and the stop is said (failure-model D5)", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
-    await giver.executeCommand("frobnicate; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("frobnicate; ping"));
 
     // The script stopped at the unknown verb: `ping` never ran.
     const verbs = resolveModel.mock.calls.map(
@@ -134,10 +135,10 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
   });
 
   it("⭐ `do <script>` reports where its script stopped (failure-model D5)", async () => {
-    await giver.executeCommand("def fmx { frobnicate; ping }");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("def fmx { frobnicate; ping }"));
     giver.envelopes.length = 0;
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
-    await giver.executeCommand("do fmx");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do fmx"));
     const verbs = resolveModel.mock.calls.map((c) => c[1].command.getPrimaryVerb());
     expect(verbs).toEqual(["do"]);
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;

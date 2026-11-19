@@ -64,6 +64,17 @@ export abstract class CommandController<
   T extends CommandModel = CommandModel,
 > extends Idea {
   /**
+   * ⭐ The CLASS's half of "may another body's code ask this?" (call-security
+   * pass D11). A view is content any titleholder can save, naming any
+   * controller, so a view's `compellable: consent` is honored only when the
+   * controller it names declares `static compellable = true` — written by a
+   * wizard or a pack and reviewed, never by a CMS save. `false` here: no
+   * verb can be asked of you unless its code says so. `lint:compellable`
+   * holds the count and the never-list.
+   */
+  static compellable = false;
+
+  /**
    * Execute the command with a resolved CommandModel.
    *
    * Controllers should:

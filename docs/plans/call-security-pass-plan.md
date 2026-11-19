@@ -538,6 +538,38 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   went 49 → 39 (W1, two of them brains) → 21 (W2) → **0** (W3), and its
   ceiling is pinned at 0 in the same commit (W5's flip, done early).
 
+- **B16 (W4) — "the caller is the giver" looks past the giver's own
+  `forceCommand`.** D8 read `getCaller()` inside `executeCommand`, but
+  `forceCommand` calls `this.executeCommand`, so that caller is ALWAYS the
+  giver — the Realtor's `player.forceCommand(…)` would have read as the
+  player's own act. The gate walks down past the giver's own
+  `forceCommand` frame to whoever called it. An arrival reflex (the
+  giver's own method calling its own `forceCommand`) stays its own act.
+- **B17 (W4) — the gate runs at the head of `executeCommand`, before the
+  frame is tagged, not at the head of `_executeOne`.** It parses the line
+  itself (the body's parser, then the body's aliases), and requires EVERY
+  view that claims the verb (for that subcommand) to say `consent` and its
+  controller class to agree — fail closed across candidates. A refusal is
+  then a plain throw to the compelling code, never a note on the body's
+  envelope, and nothing (validator, binder, preload) has run. Only a single
+  plain command line can be compelled; a script or a bound short-circuit is
+  `not-compellable`.
+- **B18 (W4) — D11's second key is checked at run time, not at view load
+  or CMS save.** The gate clones the claiming controller and reads its
+  class's `static compellable`; a view saying `consent` over a class that
+  does not agree is refused (`not-compellable` + a `call-security`
+  diagnostic naming the view and the class). `lint:compellable` (a)/(b)
+  holds every SHIPPED view to the same rule at build time. A load-time
+  `ContentError` was not added: the CommandDefinition is built before its
+  controller class is resolvable, and the run-time check is the one a
+  saved view cannot skip.
+- **B19 (W4) — the Realtor states the terms in its own line** ("Hinkley
+  Hills lot-7 — 500 zorkmids, freehold. I'll put it through for you.")
+  and the engine asks *"<realtor> would have you run `title buy lot-7`.
+  Let them?"*; `compel-declined` → "No hurry", `cannot-consent` → the
+  listing. The realtor still asks WHICH lot (a choice prompt is asking, not
+  compelling).
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |

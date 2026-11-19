@@ -62,7 +62,8 @@ import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
 import { Final, Unshadowable } from '../security/decorators';
 import { Refusal } from '../errors';
-import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
+import { ExecutionContextApi, FrameKind, OMNI_SCOPE } from '../../api/execution-context';
+import { ProxyApi } from '../../api/proxy';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import { EventApi } from '../../api/event';
@@ -546,6 +547,50 @@ async function resolveActorParser(actor: Stuff): Promise<Parser> {
   return CommandApi.resolveParser(spec);
 }
 
+/** Who compelled a command, as the gate reads it (call-security pass D8). */
+interface Compeller {
+  /** The acting person or object; `null` when nobody is acting. */
+  actor: unknown | null;
+  /** Its name for a diagnostic. */
+  name: string;
+  /** Running in a sandbox circle or a governed `eval` (D14). */
+  sandboxed: boolean;
+}
+
+/**
+ * ⭐ Is `giver` being asked to run a command by somebody else's code? `null`
+ * when it is the giver's own act: it is acting already (its brain, its
+ * player's line, a continuation it started), the system is acting, or the
+ * call came from the giver's own code — the caller of `executeCommand`,
+ * looking past the giver's own `forceCommand` (an arrival reflex, a login
+ * `embody`, the socket root). Identity as in `requireActor`: the same
+ * object, never an id. Read before the command frame is tagged.
+ */
+function compelledBy(giver: Stuff): Compeller | null {
+  if (ExecutionContextApi.actingSystem() !== null) return null;
+  const self = ProxyApi.identityOf(giver);
+  const actor = ExecutionContextApi.getActor();
+  if (actor != null && ProxyApi.identityOf(actor) === self) return null;
+  const stack = ExecutionContextApi.getCallStack();
+  let i = stack.length - 1;
+  let caller: unknown = stack[i]?.caller ?? null;
+  while (
+    i > 0 &&
+    stack[i - 1]!.method === 'forceCommand' &&
+    ProxyApi.identityOf(stack[i - 1]!.target) === self
+  ) {
+    i -= 1;
+    caller = stack[i]!.caller;
+  }
+  if (caller != null && ProxyApi.identityOf(caller) === self) return null;
+  const scope = ExecutionContextApi.getCircleScope();
+  return {
+    actor: actor ?? null,
+    name: actor == null ? 'nobody' : ((actor as Stuff).getIdentityPath() ?? 'something'),
+    sandboxed: (scope !== null && scope !== OMNI_SCOPE) || ExecutionContextApi.getJurisdictionBound() !== null,
+  };
+}
+
 /**
  * Mixin that adds command execution and a per-giver recency stack.
  */
@@ -860,10 +905,84 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       return this.executeCommand(commandText, { ...opts, forced: true });
     }
 
+    /**
+     * ⭐ A command another body's code asked of this one (call-security pass
+     * D8–D9). Refused outright unless every verb that could claim the line
+     * is compellable with consent on BOTH keys — the view's `compellable:`
+     * and its controller class's `static compellable` — and then this body's
+     * OWN player is asked, worded by the engine from the line after this
+     * body's aliases. Nobody to ask is `cannot-consent`; no is
+     * `compel-declined`. Every refusal is THROWN to the compelling code,
+     * before any validator, binder or controller has run. Code with nobody
+     * acting, or sandboxed code (`eval`, a circle), never compels (D14).
+     */
+    async _askCompelled(commandText: string, compeller: Compeller): Promise<void> {
+      const giver = this as unknown as Stuff & CommandGiver;
+      const refuse = (reason: string, why: string): never => {
+        void DiagnosticApi.record({
+          path: ExecutionContextApi.getActingCodePath(),
+          channel: 'call-security',
+          severity: 'warning',
+          message: `${why}: ${compeller.name} tried to make ${giver.getIdentityPath() ?? 'a body'} run \`${commandText}\``,
+        }).catch(() => undefined);
+        throw new Refusal(reason, { who: giver });
+      };
+      if (compeller.actor === null) return refuse('not-compellable', 'compelled with nobody acting');
+      if (compeller.sandboxed) return refuse('not-compellable', 'compelled from sandboxed code');
+      const parser = await resolveActorParser(giver);
+      const parsed = await parser.parse(commandText, {
+        commandGiver: giver,
+        location: MixinApi.isContainable(giver) ? giver.getContainer() : null,
+        available: this.getAvailableCommands(),
+      });
+      if (!parsed.parsed) return refuse('not-compellable', 'compelled a line that is not one command');
+      let line = parsed.parsed;
+      let lineText = commandText;
+      if (MixinApi.isAlias(giver)) {
+        const expanded = ShellApi.expandAliases(line, giver as Stuff & Alias);
+        line = expanded.parsed;
+        if (expanded.expansion) lineText = expanded.expansion.expandedText;
+      }
+      const second = line.rawTokens[1];
+      const word = second && second.kind === 'word' ? second.value.toLowerCase() : undefined;
+      const claimants = this.getAvailableCommands().filter((d) => d.verbs.includes(line.verb));
+      if (claimants.length === 0) return refuse('not-compellable', 'compelled a verb this body has not got');
+      for (const d of claimants) {
+        const sub = word !== undefined && d.getSubcommand(word) ? word : undefined;
+        if (d.compellableFor(sub) !== 'consent') return refuse('not-compellable', 'compelled a never-verb');
+        const path = sub !== undefined ? d.controllerForSubcommand(sub) : d.resolvedController;
+        if (!path) return refuse('not-compellable', 'compelled a verb with no controller');
+        // ⭐ The second key: the CLASS must agree (D11) — a view alone is
+        // content anyone with title can save.
+        const controller = await StuffApi.clone<CommandController>(path);
+        const agrees = (controller.constructor as { compellable?: unknown }).compellable === true;
+        await StuffApi.destruct(controller);
+        if (!agrees) return refuse('not-compellable', `the view at ${d.filePath} says consent and ${path} does not`);
+      }
+      const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+      if (!interactive) throw new Refusal('cannot-consent', { who: giver });
+      const asker = compeller.actor as Stuff;
+      let yes = false;
+      try {
+        yes = await interactive.promptConfirm(
+          `${asker.getPresentation()} would have you run \`${lineText}\`. Let them?`,
+          'no',
+        );
+      } catch {
+        // @quiet a prompt that ends unanswered (cancelled, disconnected) is a no.
+        yes = false;
+      }
+      if (!yes) throw new Refusal('compel-declined', { who: giver });
+    }
+
     async executeCommand(
       commandText: string,
       opts: ExecuteCommandOpts = {}
     ): Promise<void> {
+      // ⭐⭐ The compulsion gate (call-security pass D8) — read BEFORE this
+      // frame is tagged, so "who is acting" is still whoever asked.
+      const compeller = compelledBy(this as unknown as Stuff);
+      if (compeller !== null) await this._askCompelled(commandText, compeller);
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
       // Derive the dispatch context. `verb` and `command` are
