@@ -619,6 +619,14 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   `asker.describeFor(giver)`: *"a land agent in a good coat gone slightly
   shiny would have you run `title buy lot-4`. Let them?"*. The drive asserts it.
 
+- **B24 (walk) — a consented command reported to nobody.** A compelled
+  command ran with no originating client (as every `forceCommand` did), so a
+  REFUSAL of it — a buyer who said yes and could not pay — was worded onto an
+  envelope no client received: the walk's founder said yes and saw nothing at
+  all. Once the body's player has said yes the outcome is theirs: the gate
+  returns the consenting Interactive and the command reports to it. Unit test
+  + a walk step (an unfunded buyer is told).
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |
@@ -975,3 +983,13 @@ while the shipped controller answered (no lie told) and passed once the lie
 reached `takeName`; step 9 (`never`) and step 7 (`consent`) are each other's
 twin — one prompts, one refuses with no prompt. Steps 5, 6, 10, 11: unit tests
 (see W6).
+
+### The walk
+
+`e2e/tests/call-security-pass-walk.spec.ts` — Chromium against the real
+client (server on 2019, `AUTH_MODE=test`, `SAXONBERG_TEST_WORLD=1`,
+`CLIENT_URL` matched; Vite on 5179). **3/3 green.** An honest gate opens; a
+funded buyer taps through Ricky's tree, is asked *"a land agent … would have
+you run `title buy lot-N`. Let them?"* on the prompt strip, taps No ("No
+hurry", nothing bought), then Yes ("… is yours"); an unfunded buyer who taps
+Yes is told why (B24 — before the fix, nothing at all).

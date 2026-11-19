@@ -96,7 +96,7 @@ args:
     prompt = vi.fn().mockResolvedValue(true);
     vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((x: unknown) => x === giver) as never);
     (ProxyApi.unwrap(giver) as unknown as { getInteractives(): Set<unknown> }).getInteractives = () =>
-      new Set([{ promptConfirm: prompt }]);
+      new Set([{ promptConfirm: prompt, touchInput: () => undefined }]);
   });
   afterEach(() => vi.restoreAllMocks());
 
@@ -129,7 +129,16 @@ args:
   });
 
   it("⭐ a consent verb asks the body's own player, worded from the line; yes runs it as the body", async () => {
+    let reportsTo: unknown = 'unset';
+    const g = giver as unknown as { _runChain(...a: unknown[]): Promise<unknown> };
+    vi.mocked(g._runChain).mockImplementation(async (parsed: unknown, outer: unknown) => {
+      ran.push((parsed as { verb: string }).verb);
+      reportsTo = (outer as { interactive?: unknown }).interactive;
+      return outer;
+    });
     await compel('buyit lot 4');
+    // ⭐ The outcome reports to the client that said yes.
+    expect(reportsTo).toMatchObject({ promptConfirm: prompt });
     expect(prompt).toHaveBeenCalledWith(expect.stringMatching(/would have you run `buyit lot 4`\. Let them\?/), 'no');
     expect(ran).toEqual(['buyit']);
   });

@@ -916,7 +916,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * before any validator, binder or controller has run. Code with nobody
      * acting, or sandboxed code (`eval`, a circle), never compels (D14).
      */
-    async _askCompelled(commandText: string, compeller: Compeller): Promise<void> {
+    async _askCompelled(commandText: string, compeller: Compeller): Promise<Interactive> {
       const giver = this as unknown as Stuff & CommandGiver;
       const refuse = (reason: string, why: string): never => {
         void DiagnosticApi.record({
@@ -976,6 +976,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         yes = false;
       }
       if (!yes) throw new Refusal('compel-declined', { who: giver });
+      return interactive;
     }
 
     async executeCommand(
@@ -985,7 +986,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // ⭐⭐ The compulsion gate (call-security pass D8) — read BEFORE this
       // frame is tagged, so "who is acting" is still whoever asked.
       const compeller = compelledBy(this as unknown as Stuff);
-      if (compeller !== null) await this._askCompelled(commandText, compeller);
+      if (compeller !== null) {
+        // ⭐ Once its player has said yes, the command's outcome — a
+        // refusal included — is THEIRS to read: it reports to the client
+        // that consented (a forced command had no client to report to, and
+        // the walk found a refused purchase saying nothing at all).
+        const consented = await this._askCompelled(commandText, compeller);
+        opts = { ...opts, interactive: opts.interactive ?? consented };
+      }
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
       // Derive the dispatch context. `verb` and `command` are
