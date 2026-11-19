@@ -105,6 +105,25 @@ function installFakeStore(pm: PersistenceManager): Map<string, FakeRow[]> {
         return { insertedId: { toString: () => 'id' } };
       },
       updateOne: async () => ({}),
+      // A batched write (db-performance `saveMany`), in memory: inserts,
+      // and keyed upserts merged into the matching row.
+      bulkWrite: async (ops: Array<Record<string, any>>) => {
+        let inserted = 0;
+        let touched = 0;
+        for (const op of ops) {
+          if (op.insertOne) {
+            rowsFor(name).push(op.insertOne.document);
+            inserted++;
+            continue;
+          }
+          const { filter, update, upsert } = op.updateOne;
+          const hit = rowsFor(name).find((r) => matches(r, filter));
+          if (hit) Object.assign(hit, update.$set);
+          else if (upsert) rowsFor(name).push({ ...filter, ...update.$set, ...(update.$setOnInsert ?? {}) });
+          touched++;
+        }
+        return { insertedCount: inserted, matchedCount: touched, upsertedCount: 0 };
+      },
       deleteMany: async (filter: Record<string, unknown>) => {
         const rows = rowsFor(name);
         const keep = rows.filter((r) => !matches(r, filter));
