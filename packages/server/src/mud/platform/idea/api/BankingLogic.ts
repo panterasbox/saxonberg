@@ -14,7 +14,7 @@ import type {
   FullReconcileResult,
   EscrowHoldResult,
 } from "../../../lib/banking/LedgerEntry";
-import AccountBalance from "../../../lib/banking/AccountBalance";
+import AccountBalance, { type AccountMeta } from "../../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../../lib/banking/SupplyAggregate";
 import { Account } from "../../../lib/banking/Account";
 import { Money } from "../../../lib/banking/Money";
@@ -198,10 +198,44 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
 }
 
 
+/**
+ * ⭐ The accounts the warmed index holds that match `pick`, as fresh rows —
+ * or `null` when the index cannot answer (never warmed, or an entry it has
+ * not seen saved), and the caller asks the database (db-performance H2).
+ * Every account row is written through `AccountBalance.save`, which keeps
+ * the index's copy current, so a payroll or a deposit no longer pays a
+ * round trip to learn which accounts a person holds.
+ */
+function indexedAccounts(pick: (id: string, row: AccountMeta) => boolean): AccountBalance[] | null {
+  const index = AccountBalance.cached();
+  if (index.size === 0) return null;
+  const out: AccountBalance[] = [];
+  for (const [id, entry] of index) {
+    if (!entry.row) return null;
+    if (!pick(id, entry.row)) continue;
+    const r = new AccountBalance();
+    if (entry.row._id) r._id = entry.row._id;
+    r.accountId = id;
+    r.owner = entry.row.owner;
+    r.bank = entry.row.bank;
+    r.bankPath = entry.row.bankPath;
+    r.corpoKey = entry.row.corpoKey;
+    r.isPrimary = entry.row.isPrimary;
+    r.isActive = entry.row.isActive;
+    r.balance = entry.balance;
+    r.currency = entry.currency;
+    out.push(r);
+  }
+  return out;
+}
+
 /** Find every account owned by `ownerKey`. */
 async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
   if (!active()) return [];
-  return AccountBalance.find<AccountBalance>({ owner: ownerKey });
+  return (
+    indexedAccounts((_id, row) => row.owner === ownerKey) ??
+    AccountBalance.find<AccountBalance>({ owner: ownerKey })
+  );
 }
 
 /** The `ownerKey`'s account at the `bank` institution, or null. */
@@ -210,6 +244,8 @@ async function accountAtImpl(
   bank: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
+  const hit = indexedAccounts((_id, r) => r.owner === ownerKey && r.bank === bank);
+  if (hit) return hit[0] ?? null;
   const [row] = await AccountBalance.find<AccountBalance>({
     owner: ownerKey,
     bank,
@@ -222,6 +258,8 @@ async function accountByIdImpl(
   accountId: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
+  const hit = indexedAccounts((id) => id === accountId);
+  if (hit) return hit[0] ?? null;
   const [row] = await AccountBalance.find<AccountBalance>({ accountId });
   return row ?? null;
 }
