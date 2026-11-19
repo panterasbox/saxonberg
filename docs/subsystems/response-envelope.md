@@ -767,6 +767,14 @@ before sending, or to hand the in-flight context to the replacement.
 
 ## History
 
+- **Failure model (2026-11, MR !611, `f8507426a..` the branch's sweep):**
+  the `refused` note kind and wording at emit from `reason` rows; the
+  thrown `Refusal` family and `CommandApi.reportFailure`; `controller-error`
+  carries the worded sentence, never the exception text; scripts stop at a
+  refusal and `try … on` handles one. The plan (build decisions B1–B15, the
+  drive record) and the requirements are retired —
+  `git show e2eac3e28:docs/plans/failure-model-plan.md`.
+
 The slate (requirements), build plan, and per-controller audit
 manifest were deleted once the build shipped — their load-bearing
 content is in this doc and the architectural-decisions section
