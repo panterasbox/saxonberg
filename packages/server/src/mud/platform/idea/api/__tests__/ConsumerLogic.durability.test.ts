@@ -1,11 +1,13 @@
 /**
- * Phase 0 — participation durable identity re-key. The dispatch tap
- * (`CommandDispatchedEvent` → participation bucket) carries the giver's
- * live, ephemeral `stuffId`; the store must bank under the durable
- * `templatePath` so participation survives re-clone (reboot / relog) — the
- * other half of the engagement-cluster re-key (renown is the sibling).
- * Re-keying only one half would silently zero the consumer product
- * (`renownOf × participationOf`), so this half is guarded independently.
+ * Participation keys on the PERSON (db-performance W1, D1/D3). The dispatch
+ * tap (`CommandDispatchedEvent` → participation bucket) carries the giver's
+ * live, ephemeral `stuffId`; the store banks under the giver's durable
+ * IDENTITY path — never its lineage. ⚠ Every player body is cloned from one
+ * row (`/platform/agent/PrimaryAvatar`), so a lineage key files every
+ * player under one subject, and a shade (`/platform/agent/ShadeAvatar`)
+ * under another; every reader asks by identity and read nothing. A giver
+ * with no identity at all (a login screen) is a person nobody can ask
+ * about, and is skipped.
  *
  * EventApi is wired with a transient `EventRegistry`; Mongo is faked with an
  * in-memory collection; the recompute scheduler is stubbed so boot() leaves
@@ -49,11 +51,19 @@ async function flush(): Promise<void> {
   await new Promise((r) => setTimeout(r, 0));
 }
 
-/** Mint a registered Stuff at `path` with an auto-assigned, distinct stuffId. */
-async function mint(path: string): Promise<Stuff> {
+const PRIMARY = '/platform/agent/PrimaryAvatar';
+const SHADE = '/platform/agent/ShadeAvatar';
+
+/**
+ * Mint a registered Stuff of `lineage` (its template row) carrying the
+ * minted `identity` — the shape the clone pipeline stamps on a player's
+ * body (D17: lineage and identity apart). An auto-assigned, distinct stuffId.
+ */
+async function mint(lineage: string | null, identity?: string): Promise<Stuff> {
   return StuffApi.create(() => {
     const s = new Idea();
-    Stuff._stampTemplatePath(s, path);
+    Stuff._stampTemplatePath(s, lineage);
+    if (identity) Stuff._stampIdentityPath(s, identity);
     return s;
   });
 }
@@ -123,36 +133,48 @@ async function bootConsumer(): Promise<void> {
   await s.warm();
 }
 
-describe('ConsumerLogic durable identity re-key (stuffId → templatePath)', () => {
-  it('stores a dispatch bucket under the templatePath, not the live stuffId', async () => {
+describe('ConsumerLogic keys participation on the person', () => {
+  it('stores a dispatch bucket under the identity path, not the live stuffId or the lineage', async () => {
     await bootConsumer();
-    const giver = await mint('/platform/agent/Avatar/p1');
-    expect(giver.stuffId).not.toBe('/platform/agent/Avatar/p1'); // genuinely ephemeral
+    const giver = await mint(PRIMARY, '/platform/agent/Avatar/p1');
 
     fireDispatch(giver.stuffId, 'cmd-1');
     await flush();
 
     expect(await ConsumerApi.eventsFor(giver.stuffId)).toHaveLength(0);
+    expect(await ConsumerApi.eventsFor(PRIMARY)).toHaveLength(0);
     const rows = await ConsumerApi.eventsFor('/platform/agent/Avatar/p1');
     expect(rows).toHaveLength(1);
     expect(rows[0]!.subject).toBe('/platform/agent/Avatar/p1');
   });
 
-  it('aggregates across re-clone — a new stuffId at the same templatePath credits one log', async () => {
+  it('⭐ two players cloned from ONE row are two subjects', async () => {
     await bootConsumer();
-    const before = await mint('/platform/agent/Avatar/p1');
-    fireDispatch(before.stuffId, 'cmd-a');
+    const a = await mint(PRIMARY, '/platform/agent/Avatar/p1');
+    const b = await mint(PRIMARY, '/platform/agent/Avatar/p2');
+    fireDispatch(a.stuffId, 'cmd-a');
+    fireDispatch(b.stuffId, 'cmd-b');
     await flush();
 
-    // Reboot/relog: old instance reaped, fresh clone, NEW stuffId, SAME path.
-    StuffApi.unregister(before);
-    const after = await mint('/platform/agent/Avatar/p1');
-    expect(after.stuffId).not.toBe(before.stuffId);
-    // A different real-time bucket so the {subject, bucket} dedup doesn't
+    expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p1')).toHaveLength(1);
+    expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p2')).toHaveLength(1);
+    expect(await ConsumerApi.eventsFor(PRIMARY)).toHaveLength(0);
+  });
+
+  it('⭐ a shade continues its person — one log across bodies', async () => {
+    await bootConsumer();
+    const living = await mint(PRIMARY, '/platform/agent/Avatar/p1');
+    fireDispatch(living.stuffId, 'cmd-a');
+    await flush();
+
+    // Death: the living body goes, a shade of the same person stands.
+    StuffApi.unregister(living);
+    const shade = await mint(SHADE, '/platform/agent/Avatar/p1');
+    // Another real-time bucket, so the {subject, bucket} dedup does not
     // collapse the second credit (this is about the key, not the dedup).
     EventApi.fire(
       new CommandDispatchedEvent({
-        subjectId: after.stuffId,
+        subjectId: shade.stuffId,
         commandId: 'cmd-b',
         at: 4242,
         realAt: 2_000_000,
@@ -161,6 +183,15 @@ describe('ConsumerLogic durable identity re-key (stuffId → templatePath)', () 
     await flush();
 
     expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p1')).toHaveLength(2);
+    expect(await ConsumerApi.eventsFor(SHADE)).toHaveLength(0);
+  });
+
+  it('an NPC (no minted identity) keys on its own row — identity falls back to it', async () => {
+    await bootConsumer();
+    const npc = await mint('/world/lounge/agent/bartender');
+    fireDispatch(npc.stuffId, 'cmd-n');
+    await flush();
+    expect(await ConsumerApi.eventsFor('/world/lounge/agent/bartender')).toHaveLength(1);
   });
 });
 

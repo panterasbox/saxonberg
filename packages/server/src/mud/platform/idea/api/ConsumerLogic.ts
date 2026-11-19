@@ -63,17 +63,22 @@ function active(): boolean {
 }
 
 /**
- * Resolve a live `stuffId` to its **durable** identity key — the
- * `templatePath` participation banks on (`/platform/agent/Avatar/<playerId>` for an
- * avatar). The giver's `stuffId` is re-minted on re-clone (reboot / relog),
- * so keying the bucket log on it silently resets standing; the durable
- * templatePath is the same key renown re-keys to, so the consumer product
- * (`renownOf × participationOf`) stays aligned. Falls back to the raw id
- * when no template stamp resolves — never drops a signal. (Mirrors
- * `RenownLogic.durableKey`; the substrate shares no code.)
+ * Resolve a live `stuffId` to the **person** it is — the identity path
+ * participation banks on (`/platform/agent/Avatar/<playerId>` for a
+ * player, its own row for an NPC). The giver's `stuffId` is re-minted on
+ * re-clone (reboot / relog), so keying the bucket log on it silently resets
+ * standing; and ⚠⚠ the giver's LINEAGE (`getTemplatePath()`) is the row it
+ * was cloned from, which every player body shares
+ * (`/platform/agent/PrimaryAvatar`, and `ShadeAvatar` for every shade) — a
+ * lineage key was every player at once, and nobody any reader asks about
+ * (db-performance W1, D1). The identity is the key renown already used, so
+ * the consumer product (`renownOf × participationOf`) multiplies two
+ * figures about one person, and a shade continues its person. Falls back
+ * to the raw id when nothing resolves. (Mirrors `RenownLogic.durableKey`;
+ * the substrate shares no code.)
  */
 function durableKey(stuffId: string): string {
-  return StuffApi.findById(stuffId)?.getTemplatePath() ?? stuffId;
+  return StuffApi.findById(stuffId)?.getIdentityPath() ?? stuffId;
 }
 
 /** Read a numeric AppSetting with a pre-boot/tests fallback. */
@@ -147,7 +152,7 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
 /** Map a captured dispatch into a participation signal and append it. */
 async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
   await appendImpl({
-    // The live giver id keys storage on the durable templatePath (Phase 0).
+    // The live giver id keys storage on the person (D1).
     subject: durableKey(p.subjectId),
     kind: 'command',
     at: p.at,

@@ -80,11 +80,13 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
   (`reaction` | `reception` | …), `signal` (raw kind-specific payload),
   `locality` + `groups` (the two scope axes), and **both clocks** — `at`
   (game-time seconds, drives decay) and `realAt` (epoch ms, analytics).
-  `subject`/`source` are the durable `templatePath` (`/platform/agent/Avatar/<playerId>`
-  for an avatar), **not** the ephemeral `stuffId` — the influence build's
-  Phase 0 durability re-key: the `stuffId` is re-minted on re-clone, so it
+  `subject`/`source` are the durable **identity path** (`getIdentityPath()`
+  — `/platform/agent/Avatar/<playerId>` for an avatar, its own row for an
+  NPC), **not** the ephemeral `stuffId` and **not** the lineage (every
+  player body shares one row): the `stuffId` is re-minted on re-clone, so it
   stays a live-resolution handle (scope resolution) while the *stored* key is
-  the templatePath. (Value objects now live in `lib/standing/` — the
+  the identity. (Participation keyed on the lineage until db-performance W1;
+  renown already keyed on the identity.) (Value objects now live in `lib/standing/` — the
   consolidated home; see [influence.md](./influence.md).)
 - **`RenownStanding`** (`lib/standing/RenownStanding.ts`, collection
   `renown`) — the materialized per-`{subject, scope}` aggregate; a

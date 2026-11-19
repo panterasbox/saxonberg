@@ -147,11 +147,24 @@ name — see [influence.md](./influence.md)). The capture event is in
 "engagement") to avoid colliding with `lib/activity/`'s in-session
 `EngagedMixin` — a different concept (sustained in-session actions).
 
-Standing banks on the durable `templatePath` (`/platform/agent/Avatar/<playerId>`),
-**not** the ephemeral `stuffId` (re-minted on re-clone) — the durability
-re-key the influence build's Phase 0 landed across the whole engagement
-cluster. The `stuffId` stays a live-resolution handle; only the stored key
-is the templatePath.
+Standing banks on the giver's durable **identity path**
+(`getIdentityPath()` — `/platform/agent/Avatar/<playerId>` for a player,
+its own row for an NPC), **not** the ephemeral `stuffId` (re-minted on
+re-clone) and **not** its lineage. The `stuffId` stays a live-resolution
+handle; only the stored key is the identity.
+
+⚠⚠ **Until db-performance W1 (2026-11) the stored key was the lineage**
+(`getTemplatePath()`), and every player body is cloned from one row — so
+every player's participation was ONE subject (`/platform/agent/PrimaryAvatar`),
+every shade's another, and every reader that asks by identity (`standing`,
+the profile, the dashboard) read zero. Those rows were left where they are
+(no migration) and decay, read by nobody; each person's participation
+starts from the fix. The identity key also makes a shade continue its
+person: a living body and its shade are one standing.
+
+**A giver with no identity is skipped** (D3): a login screen's commands
+earn nothing. Its raw `stuffId` was a subject no reader could ever ask
+for, minted once per connection and re-scored forever.
 
 ## Tuning (AppSettings, no code defaults)
 
