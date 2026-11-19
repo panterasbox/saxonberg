@@ -269,7 +269,7 @@ describe('ProxyApi read trap — each kind of read', () => {
     // kind changed. Existing instances keep the old prototype.
     const v1 = (() => {
       class Probe extends Good {
-        public shape(): string {
+        public facet(): string {
           return 'method';
         }
       }
@@ -277,19 +277,19 @@ describe('ProxyApi read trap — each kind of read', () => {
     })();
     const v2 = (() => {
       class Probe extends Good {
-        public get shape(): string {
+        public get facet(): string {
           return 'getter';
         }
       }
       return Probe;
     })();
     const old = makeStuff(() => new v1());
-    expect(old.shape()).toBe('method');
+    expect(old.facet()).toBe('method');
     const fresh = makeStuff(() => new v2());
-    expect(fresh.shape).toBe('getter');
-    expect(typeof old.shape).toBe('function');
-    expect(old.shape()).toBe('method');
-    expect(fresh.shape).toBe('getter');
+    expect(fresh.facet).toBe('getter');
+    expect(typeof old.facet).toBe('function');
+    expect(old.facet()).toBe('method');
+    expect(fresh.facet).toBe('getter');
   });
 });
 

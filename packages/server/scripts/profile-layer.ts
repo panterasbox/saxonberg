@@ -1,6 +1,6 @@
 /**
  * profile-layer — what the call-security layer costs in a world, read from
- * a V8 `.cpuprofile` (call-security-performance plan D3).
+ * a V8 `.cpuprofile` (the call-security-performance build, 2026-11).
  *
  * A bench of one gated call cannot rank a world of reads (the slate parked
  * the read trap's inheritance walk as "~55 ns, not worth it" from a bench;
@@ -14,7 +14,7 @@
  *               `executionAsyncResource`, `lookupPublicResource`)
  *   busy      = all self time less `(idle)`
  *
- * The definition is fixed (D3) so a before and an after are comparable;
+ * The definition is fixed so a before and an after are comparable;
  * do not widen it to make a number move. Recognition is NOT in it (it is
  * content the layer taxes); `PathTrie.#walk` and `MixinApi.hasMixin` are
  * reported on their own lines and not counted.
@@ -65,7 +65,7 @@ const LAYER_FILES = [
 const SHADOW_GATE = new Set(["_shadowsFor", "_consumeBypass", "shadowsFor", "consumeBypass"]);
 const ALS = new Set(["run", "getStore", "executionAsyncResource", "lookupPublicResource"]);
 
-/** Is this frame's self time the layer's (D3)? */
+/** Is this frame's self time the layer's? */
 function inLayer(cf: CallFrame): boolean {
   const f = fileOf(cf.url);
   if (LAYER_FILES.includes(f)) return true;

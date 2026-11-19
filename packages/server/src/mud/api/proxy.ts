@@ -199,7 +199,7 @@ export class ProxyApi {
 
     // ⛔ The spy passthrough is a TEST-RUNNER affordance: outside a process
     // running vitest a function carrying `_isMockFunction` is wrapped and
-    // gated like any method (owner ruling 2026-11-18; D12). Read once per
+    // gated like any method (owner ruling 2026-11-18). Read once per
     // wrap — the environment does not change within a process — so in
     // production the flag is never even read.
     const spyPassthrough = SecurityApi.isTestRunner();

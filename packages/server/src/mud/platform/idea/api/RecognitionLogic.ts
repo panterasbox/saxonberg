@@ -396,7 +396,7 @@ function describeCore(
 /**
  * What `viewer` perceives `target` as, worked out ONCE — every perception
  * gate and every recall — so the forms a caller wants can all be rendered
- * from it (call-security-performance W5, D6). `perceivedKeywords` wants two
+ * from it (call-security-performance, 2026-11). `perceivedKeywords` wants two
  * forms of every candidate, and running every gate twice for them was the
  * cost: the forms differ only in the last branch, for a true stranger.
  *
@@ -595,7 +595,7 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // tokenizer splits on punctuation), `mary` and `vest` still find them, and
     // the jumper in your hand outranks the stranger who is wearing one (the
     // drive: `order wash for jumper` bound a person).
-    // ⭐ Both forms from ONE recognition (W5): every gate and recall once.
+    // ⭐ Both forms from ONE recognition: every gate and recall once.
     const baseline = target.getPresentation();
     const rec = recognitionOf(viewer, target, baseline);
     const plain = renderForm(rec, target, 'concise', baseline);

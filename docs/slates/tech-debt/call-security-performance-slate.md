@@ -1,15 +1,15 @@
 # Call security performance — the investigation, and what it found
 
-> **Status: PARTIAL** — the five gate optimizations (50 µs → 2.1 µs) and
-> the boot work shipped →
+> **Status: PARTIAL** — two passes shipped: the gate (50 µs → 2.1 µs,
+> 2026-08-30) and the reads (call-security-performance, MR !610,
+> 2026-11-18: the layer's crowd cost halved, the read trap's chain walk
+> cached, one store read per dispatch, the spy passthrough closed) →
 > [call-security.md](../../subsystems/call-security.md) ·
 > [persistence.md](../../subsystems/persistence.md)
-> **Left:** in requirements 2026-11-18 →
-> [call-security-performance-requirements.md](../../requirements/call-security-performance-requirements.md):
-> the per-read descriptor walk (⭐ the world's largest item, not the
-> smallest) · the proxy read trap · the frame push + async context · the
-> static-Api apply thunk · hoisting the viewer-invariant checks out of
-> `describeCore` · the double describe in the keyword path
+> **Left:** ⭐ the structural lever (reads inside an admitted method body —
+> the owner's question) · eval passes `ApiOnly` · wire worlds inherit
+> `NODE_ENV=test` · `PathTrie.#walk` + `MixinApi.hasMixin` for the
+> registry's owner · the per-walk viewer check
 > **Size:** a tail
 
 *2026-08-30, from the libations live drive (MR !206). The founder's
@@ -36,7 +36,7 @@ call per object costs N gate dispatches"), and what was NOT traded away
 guard) are all in
 [call-security.md § What a gated call costs](../../subsystems/call-security.md#what-a-gated-call-costs)
 — code-verified: `claimFramePush` / `_frameMutatorAllowlist`
-(`lib/security/execution-context.ts`), `ShadowApi._gateEntries()`,
+(`api/execution-context.ts`), `ShadowApi._gateEntries()`,
 `resolveCallPolicy`'s generation-stamped cache, `FrameNode`'s linked
 list — all present exactly as described. Not reproduced in the doc: the
 per-step intermediate arc (7300 → 4500 → 3500 → 3150 ns as each of the
@@ -61,28 +61,64 @@ persistence.md — see Handoff in the compaction ledger.
 
 ---
 
-## 7. Left on the table
+## 7. The second pass — SHIPPED, graduated to call-security.md
 
-- **`findDescriptor`** walks the prototype chain and allocates a
-  descriptor per level, on every property access. ~55 ns of the
-  remaining 2.1 µs. The safe form caches only *accessor-ness* per
-  prototype (a method does not become a getter under HMR) and skips the
-  walk entirely for the common case. Not done: the reward no longer
-  justifies touching the get trap.
-- **The static-Api wrapper's apply thunk** — one closure per static Api
-  call, off the dispatch path but everywhere else.
-- **Recognition, and the walk around it.** Salvaged from the retired
-  `gate-cost-slate`, which measured the MQL scope walk before the gate
-  was fixed and named two candidates the pass above never took:
-  - **Hoist the viewer-invariant checks out of `describeCore`.**
-    `isSensor(viewer)` / `isPerception(viewer)` are the same for all ~35
-    candidates in one walk and are re-asked per candidate.
-  - **`pushDirect` calls `describe` AND `perceivedKeywords`**, and for an
-    ORGANISM the latter re-enters `describeCore` a second time
-    (`RecognitionLogic:390`).
-  - Caching recognition per (viewer, target) per resolve was considered
-    and is **low value**: each candidate is visited once per resolve, so
-    the win is smaller than it looks.
+The call-security-performance build (MR !610, 2026-11-18) took the rows
+this section used to list: the accessor answer cached per prototype (the
+walk was the world's largest single line, though the bench had priced it
+at ~55 ns), an own property read once, one store read per dispatch, the
+static wrapper's policy memo, recognition worked out once per keyword read
+(`pushDirect` no longer existed; the double describe was
+`perceivedKeywords`' own), and the spy passthrough closed outside a test
+run. Numbers and the lesson — *a bench of one call cannot rank a world of
+reads* — are in
+[call-security.md § What a gated call costs](../../subsystems/call-security.md#what-a-gated-call-costs).
+The static wrapper's apply thunk was measured as not worth a trailing
+argument pair, and Node's `--experimental-async-context-frame` as no gain
+(worse at depth 200).
+
+**What it did not reach: idle.** The empty world idles at 0.244 cores
+against crowded-rooms' 0.15 target, and the layer is 0.054 of that — the
+layer could vanish and the world would still idle near 0.19. The idle
+world's remaining cost is the cast's labor at content's cadence, garbage
+collection, the worker thread and the Mongo driver. **The next idle build
+is not a call-security build.**
+
+## 7½. Left
+
+- ⭐⭐ **The structural lever: reads inside a method body.** After the
+  second pass the trap's own `get` is the largest line in the world
+  profile (18.9% of a crowd's busy time). Most trap reads are `this.x`
+  from a method the gate has ALREADY admitted, because a method runs with
+  `this === proxy`. Whether a body's own field reads need the trap at all
+  is a question about what the shadow and self-call guarantees are for —
+  the owner's, not a measurement's. It is the only item seen that could
+  move the layer by a factor rather than by points.
+- ⚠ **A wizard's `eval` passes every `ApiOnly` gate**, `destroy()`
+  included: eval code runs under the `ScriptLogic` frame
+  (`EvalScript → ScriptApi.runSandboxed → ScriptLogic → <target>`), which
+  `ApiOnly` admits because logic singletons are the Api tier. That is
+  eval's standing reach; whether it should be is a sandbox question
+  (sandbox.md), found by the drive's step 5a.
+- ⚠ **Every wire world runs with `NODE_ENV=test`**, inherited from the
+  vitest process that spawns it (the runner scrubs `VITEST`, not
+  `NODE_ENV`, and dotenv never overrides an inherited value; the worktree
+  `.env` says `development`). One consequence:
+  `ReactionRegistry.ensureTimer` returns early, so **the reaction flush has
+  never armed in a wire world**. The fix belongs to the wire runner
+  (`packages/wire/src/runner/boot.ts`'s `serverEnv`), with a check of
+  every `NODE_ENV === 'test'` reader.
+- **`PathTrie.#walk` and `MixinApi.hasMixin`** — 2.5% and 4.2% of the
+  crowd's busy time after the pass, outside this layer (non-goals). One
+  `MixinApi.isX(host)` is three static-wrapper dispatches (`isX` →
+  `hasMixin` → `ShadowApi.getAllShadows`). For the build that owns the
+  registry.
+- **A per-walk viewer check.** `isSensor(viewer)` / `isPerception(viewer)`
+  now run once per candidate (was twice), but they cannot be hoisted to
+  once per walk without the registry's own answer: `hasMixin` consults
+  shadows, and a shadow can confer `Sensor` between calls.
+- Caching recognition per (viewer, target) per resolve stays **low
+  value**: each candidate is visited once per resolve.
 
 ---
 
@@ -104,39 +140,12 @@ message) moved to
 [testing.md](../../testing.md) ·
 *(supersedes the retired `gate-cost-slate` — its surface is salvaged above)*
 
-## Second measurement — crowded-rooms (2026-11-17)
+## The measurements (2026-11-17 and -18)
 
-Profiles of a Terminus world (busy box, shares only): in the idle window,
-the crowd of thirty and the last five logins alike, **~60% of SELF time**
-sits in the call-security / proxy machinery — `findDescriptor`, the proxy
-`get`, policy resolution, `_pushFrame`. It is the floor under every class
-crowded-rooms cut; after that build the empty world idles at 0.17 of a core,
-and what remains is the cast's own acts at content's cadence running on this
-tax (the owner accepted 0.17 against the 0.15 target rather than pull either
-lever).
-
-## Reuse ledger for the plan (2026-11-18)
-
-Every concept the build needs, and what already does it. Line numbers are
-from master at a6cf85555.
-
-| concept | what does it today | this build |
-|---|---|---|
-| a per-class cache that hot reload invalidates | `SecurityApi.resolveCallPolicy`'s `#policyCache`, keyed weakly on the constructor and stamped with `#policyGeneration` that every policy writer bumps | **reuse the shape** for the descriptor (accessor-ness) cache. ⚠ Its invalidation must also follow a hot-reload prototype swap, not just a policy write: check what `HotReloadApi` mutates (a new class, or methods on the old prototype) before choosing the key |
-| the per-read getter test | `findDescriptor` (`api/proxy.ts`): walks the prototype chain with `getOwnPropertyDescriptor`, allocating a descriptor per level, on EVERY get-trap read that is not a passthrough key | **replace** with a cached accessor-or-not answer per (prototype, prop). An own instance field still answers from the instance first |
-| the per-proxy method-wrapper cache | `wrapperCache` (a `WeakMap` per `ProxyApi.wrap`), keyed by the raw function | **reuse**; it already keeps `obj.foo === obj.foo` |
-| the single-interceptor fast path | `ProxyApi.#runPipeline`'s `length === 1` branch | **reuse**; no chain is built |
-| the caller-proof-per-call-site claim | `claimFramePush` / `_frameMutatorAllowlist` (`lib/security/execution-context.ts`) | **reuse**; untouched |
-| the frame stack | `FrameNode` linked list, `_pushFrame` (`api/execution-context.ts:42`), over `AsyncLocalStorage.run` | **measure first**; ALS `run` + `getStore` + `executionAsyncResource` were ~6% together. A cut here must keep async propagation exact |
-| the static-Api wrapper | `decorateApiClass` → `wrapped` (`api/security.ts` ~660), one `body.apply` thunk per call | **cut the thunk**; keep `_callSecWrapped` and the name |
-| the static-policy lookup | `resolveStaticCallPolicy` (1.5% of busy) | **cache** with the same generation stamp as the instance form, if it is not already |
-| the gate's unwrapped collaborators | `ShadowApi._gateEntries()` | **reuse**; untouched |
-| the recognition entry checks | `describeCore` (`platform/idea/api/RecognitionLogic.ts:372`, checks at :406) and the twin at :539: `MixinApi.isSensor(viewer)` / `isPerception(viewer)` per candidate | **hoist** to once per walk where the walk has one viewer |
-| the keyword path's double describe | `perceivedKeywordsImpl` (:548) calls `describeCore` twice (`concise`, `distinguishing`, :560–561) and `pushDirect` calls `describe` beside it | **share** one result per (viewer, target) within the call, not across resolves (the per-resolve cache was rated low value) |
-| the instruments | `scripts/bench-gate.ts`; `WIRE_CPU_PROF` (`packages/wire/runner/boot.ts`); `crowd-timing.dirty.wire.test.ts`, the quiet-box procedure | **reuse**; the drive is these, before and after |
-| the tamper / inert / self-heal guarantees | the destroyed-object guard in the security interceptor; R2.3 self-heal in the get trap; the `_isMockFunction` passthrough | **reuse unchanged**; each is a drive step or a test that must stay green |
-
-Outside this layer, seen in the same profile, NOT this build's: the
-`PathTrie.#walk` (3.5%) and `MixinApi.hasMixin` (2.6%). Recorded for
-whichever build owns the path index and the mixin registry.
-
+The world profile is the instrument (`scripts/profile-layer.ts` over a
+`WIRE_CPU_PROF` profile of `call-security-performance.dirty.wire.test.ts`
+on the quiet box). In a thirty-body crowd the layer was 54.8% of busy
+(40.6 s) before the second pass and 45.2% (20.3 s) after, over the same
+acts; `say` p95 75 → 53 ms, freeze samples over 100 ms 33/195 → 3/162.
+The committed baseline beside the wire file is master's code at
+`e0af07435`; a later build re-records it with `CSP_RECORD=1`.

@@ -754,7 +754,7 @@ export class ExecutionContextApi {
 
   /**
    * The current frame node, or `null` with no stack — the ONE store read a
-   * dispatch makes (call-security-performance W3, D4). The security gate
+   * dispatch makes (call-security-performance, 2026-11). The security gate
    * reads the caller (`frame.target`) and the sandbox boundary's two
    * fields (`root.frame.metadata.circleScope` / `.jurisdictionBound`, an
    * O(1) read since `root` rides every node) off it, and hands it back to

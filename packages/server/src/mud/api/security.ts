@@ -658,12 +658,13 @@ export class SecurityApi {
           return loading ? loading.then(() => original.apply(this, args)) : original.apply(this, args);
         }
       : original;
-    // ⭐ The wrapper remembers its own policy (W4, D5): one integer compare
+    // ⭐ The wrapper remembers its own policy: one integer compare
     // per call in place of the cache's WeakMap + Map lookups. It is the
     // same answer `resolveStaticCallPolicy` gives — re-resolved the moment
     // any policy writer bumps the generation, so a `@CallSecurity`
     // registered after this static has been called still takes effect on
-    // the next call. Two bindings, not a closure (R5).
+    // the next call. Two bindings, not a closure: a closure on this path
+    // costs a `defineProperty(fn, "name")` under the tsx runtime.
     let memoGen = -1;
     let memo: SecurityPolicy | null = null;
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
@@ -672,7 +673,7 @@ export class SecurityApi {
         policy = memo = SecurityApi.resolveStaticCallPolicy(cls, methodName);
         memoGen = SecurityApi.#policyGeneration;
       }
-      // One store read per static call (W3): the caller, and the push's parent.
+      // One store read per static call: the caller, and the push's parent.
       const node = ExecutionContextApi._dispatchContext();
       const caller = node === null ? null : node.frame.target;
       const allowed = policy.allows(caller, cls, methodName, args);
@@ -802,7 +803,7 @@ export class SecurityApi {
   /**
    * Is the test RUNNER executing in this process — i.e. may a test spy
    * (`vi.fn()`, `vi.spyOn`) exist here at all? `VITEST`, and nothing
-   * else (call-security-performance D12).
+   * else (call-security-performance, 2026-11-18).
    *
    * Narrower than {@link isTestEnvironment} on purpose. A world the suite
    * booted is a test environment but runs no test runner — the wire

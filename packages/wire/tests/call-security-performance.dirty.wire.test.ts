@@ -1,7 +1,8 @@
 /**
- * ⭐⭐ The call-security-performance drive (requirements § The drive; plan
- * D9, D10). Every read and every call on a world object passes the
- * call-security layer; this build makes that layer cheaper. The drive
+ * ⭐⭐ The call-security-performance drive (2026-11; what it measured is in
+ * call-security-performance-slate). Every read and every call on a world
+ * object passes the call-security layer; this build made that layer
+ * cheaper. The drive
  * proves two things: that it is cheaper in the world (timed, quiet box
  * only), and that nothing it decides changed (every MR).
  *
@@ -337,8 +338,8 @@ suite('steps 5 and 7 — every MR', () => {
   it('7 — hot reload: a fresh clone sees all three edits; an old instance none', async () => {
     // ⚠ The edit is written to the file directly, as `typecheck.wire.test.ts`
     // does: the in-game `cp -s` asks for CODE title over
-    // `/platform/thing/`, which the founder does not hold (plan D10's
-    // fallback). The install is the in-game `reload`, which is the act
+    // `/platform/thing/`, which the founder does not hold (so the
+    // drive writes it). The install is the in-game `reload`, which is the act
     // under test.
     writeFileSync(PROBE_FILE, probeSource('v2'));
     const r = await founder.cmd(`reload ${PROBE_CLASS}`);
