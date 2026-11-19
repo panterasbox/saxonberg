@@ -150,37 +150,14 @@ export abstract class WikiControllerBase extends CommandController<WikiModel> {
     page: WikiPage,
     model: WikiModel,
   ): Promise<string> {
+    // ⭐ The render setup lives on the registry (tooltips D4) — one setup
+    // for the verb and the tooltip excerpt.
     const registry = await this.registry();
-    const renderer = await StuffApi.singleton<WikiRenderer>(
-      TemplatePaths.wikiRenderer,
-    );
-    const zone = await registry.zoneFor(page.getNamespace());
     const appetite =
       model.spoiler !== undefined
         ? (SpoilerLevels.parse(model.spoiler) as SpoilerLevel)
         : undefined;
-    const result = await renderer.render(body, {
-      pageId: page._id ?? '',
-      spoilerDefault: page.getSpoilerLevel(),
-      ...(zone ? { namespaceZone: zone } : {}),
-      ...(appetite !== undefined ? { appetite } : {}),
-      resolveLink: async (ref) => {
-        const target = await registry.resolve(ref);
-        return target
-          ? { handle: target.page.getHandle(), title: target.page.getTitle() }
-          : null;
-      },
-      // A snippet IS a page (S1) — it resolves through the same
-      // lookup as everything else, just pinned to its namespace, so
-      // it inherits revisions, history, rollback and protection with
-      // no second store and no second editing path.
-      resolveSnippet: async (name) => {
-        const { name: leaf } = WikiPage.parseRef(name, SNIPPET_NAMESPACE);
-        const hit = await registry.resolve(`${SNIPPET_NAMESPACE}:${leaf}`);
-        return hit ? hit.page.getBody() : null;
-      },
-    });
-    return result.body;
+    return registry.renderFor(page, { body, ...(appetite !== undefined ? { appetite } : {}) });
   }
 
   /**

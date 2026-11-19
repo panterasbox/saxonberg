@@ -616,7 +616,16 @@ lint family green. Stage files by name.
 - **Acceptance:** those tests; `lint:family`.
 - **Commit:** `feat(perception): W2 — a one-shot describe tells nothing sight would not; kind and path on the wire`
 
-### W3 — Server: the glossary (D4, D7)
+### W3 — Server: the glossary (D4, D7) ✅
+> **Done.** `Sections.lead` became `WikiRegistry`'s private `leadOf` (over
+> `Sections.list`): a new public static on a `lib/` class tripped
+> `lint:lib-statics`, and its only caller is the registry. `renderFor` is
+> gated to the verb's controllers; `excerptFor` and `renderFor` share one
+> private `renderInContext`. The excerpt's fact is *updated <date>*
+> (`source: wiki`), not *from the wiki* — the source line already says
+> that. `HelpApi.resolveTopic` also resolves an exact topic id, so the
+> gutter's `mixin.<Name>` lookup goes through `?word=` too.
+
 - `Sections.lead`; `WikiRegistry.renderFor` (+ `WikiControllerBase.renderBody`
   forwards; `renderLoose` untouched); `WikiRegistry.excerptFor`;
   `S/mud/api/wiki.ts`; `S/backend/inbound/wiki.ts` + its line in

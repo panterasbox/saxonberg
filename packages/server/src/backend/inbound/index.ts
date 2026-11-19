@@ -47,6 +47,7 @@ import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
 import { handleAffordanceResolve } from './affordance';
+import { handleWikiExcerpt } from './wiki';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
@@ -61,4 +62,5 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   'client-state-write': handleClientStateWrite,
   'reaction-expand': handleReactionExpand,
   'affordance-resolve': handleAffordanceResolve,
+  'wiki-excerpt': handleWikiExcerpt,
 };
