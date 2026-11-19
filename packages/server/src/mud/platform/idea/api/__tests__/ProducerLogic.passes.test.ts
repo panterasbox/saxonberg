@@ -12,6 +12,7 @@ import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducerApi } from '../../../../api/producer';
 import { PersistApi } from '../../../../api/persist';
+import { StuffApi } from '../../../../api/stuff';
 import { AppSettings } from '../../../../lib/config/AppSettings';
 import ProducerStanding from '../../../../lib/standing/ProducerStanding';
 import { Band } from '../../../../lib/standing/Band';
@@ -47,6 +48,9 @@ function close(a: number, b: number): void {
 const reads = (): number[] => [A, B, C].map((s) => ProducerApi.producerOf(s));
 
 beforeEach(async () => {
+  // A fresh logic singleton: its per-bucket credit memo (H1) belongs to
+  // the store this test installs.
+  StuffApi.clearAll();
   db = installRecordTestDb();
   now = T0;
   vi.spyOn(Date, 'now').mockImplementation(() => now);

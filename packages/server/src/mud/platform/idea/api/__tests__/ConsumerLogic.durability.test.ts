@@ -209,6 +209,28 @@ describe('ConsumerLogic keys participation on the person', () => {
   });
 });
 
+describe('a burst of commands in one bucket reads the ledger once (db-performance H1)', () => {
+  it('three commands, one bucket → one dedup read; a new bucket reads again', async () => {
+    await bootConsumer();
+    const giver = await mint(PRIMARY, '/platform/agent/Avatar/p7');
+    const pm = PersistenceManager.get();
+    const dedup = () =>
+      vi.mocked(pm.find).mock.calls.filter(([c, q]) => c === 'participation_events' && 'bucket' in (q as object)).length;
+    const before = dedup();
+    fireDispatch(giver.stuffId, 'cmd-1');
+    await flush();
+    fireDispatch(giver.stuffId, 'cmd-2');
+    fireDispatch(giver.stuffId, 'cmd-3');
+    await flush();
+    expect(dedup() - before).toBe(1);
+    expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p7')).toHaveLength(1);
+    EventApi.fire(new CommandDispatchedEvent({ subjectId: giver.stuffId, commandId: 'cmd-4', at: 4242, realAt: 9_000_000 }));
+    await flush();
+    expect(dedup() - before).toBe(2);
+    expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p7')).toHaveLength(2);
+  });
+});
+
 describe('the scheduled recompute runs one pass at a time (ceramics drive, run 32)', () => {
   it('⚠ a fire while a pass is still running is skipped — passes never stack on the pool', async () => {
     let fire: (() => void) | null = null;

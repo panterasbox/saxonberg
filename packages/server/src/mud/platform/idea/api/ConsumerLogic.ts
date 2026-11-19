@@ -157,15 +157,25 @@ function bandThresholds(): readonly BandThreshold[] {
  * self-call (which the gate would deny — caller would be `ConsumerLogic`,
  * not the `ConsumerApi` the gate allows).
  */
-async function appendImpl(fields: ParticipationEventFields): Promise<void> {
+async function appendImpl(
+  fields: ParticipationEventFields,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   if (!active()) return;
   const realAt = fields.realAt ?? Date.now();
   const bucket = bucketOf(realAt);
+  // ⭐ The last bucket each subject was credited in (db-performance H1):
+  // a burst of commands in one bucket reads the ledger once, not once a
+  // command. Set only once the row is known to exist.
+  if (creditedBucket.get(fields.subject) === bucket) return;
   const existing = await ParticipationEvent.find({
     subject: fields.subject,
     bucket,
   });
-  if (existing.length > 0) return; // already credited this bucket
+  if (existing.length > 0) {
+    creditedBucket.set(fields.subject, bucket);
+    return; // already credited this bucket
+  }
   const ev = new ParticipationEvent();
   ev.subject = fields.subject;
   ev.bucket = bucket;
@@ -173,6 +183,7 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+  creditedBucket.set(ev.subject, bucket);
   // AFTER the write, never before: a pass must not score a ledger that has
   // not been written yet.
   markDirty(ev.subject);
@@ -180,7 +191,10 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
 }
 
 /** Map a captured dispatch into a participation signal and append it. */
-async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
+async function appendFromDispatch(
+  p: CommandDispatchedPayload,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   // The live giver id keys storage on the person (D1); no person, no
   // signal (D3).
   const subject = durableKey(p.subjectId);
@@ -190,7 +204,7 @@ async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
     kind: 'command',
     at: p.at,
     realAt: p.realAt,
-  });
+  }, creditedBucket);
 }
 
 
@@ -333,6 +347,14 @@ function standingOfImpl(subjectId: string): InfluenceStanding {
  */
 @Unshadowable
 export class ConsumerLogic extends ApiLogic {
+  /**
+   * ⭐ Subject → the last bucket it is known to have a row in
+   * (db-performance H1): a burst of commands in one bucket reads the
+   * ledger once. Instance state, so a hot reload or a fresh singleton
+   * starts empty and pays one read a subject.
+   */
+  private creditedBucket = new Map<string, number>();
+
   /** The dispatch-capture subscription — retained so re-install is a no-op. */
   private dispatchSub: Subscription<CommandDispatchedPayload> | null = null;
 
@@ -374,7 +396,7 @@ export class ConsumerLogic extends ApiLogic {
     this.dispatchSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {
-        void appendFromDispatch(p).catch((err) =>
+        void appendFromDispatch(p, this.creditedBucket).catch((err) =>
           console.error('ConsumerLogic: participation append failed', err)
         );
       }
@@ -384,7 +406,7 @@ export class ConsumerLogic extends ApiLogic {
   /** See {@link ConsumerApi.append}. */
   @CallSecurity(ConsumerApiCallers)
   public async append(fields: ParticipationEventFields): Promise<void> {
-    return appendImpl(fields);
+    return appendImpl(fields, this.creditedBucket);
   }
 
   /**

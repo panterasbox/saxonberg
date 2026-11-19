@@ -130,16 +130,26 @@ function bandThresholds(): readonly BandThreshold[] {
  * module-private free function (no intra-singleton self-call to trip the
  * gate).
  */
-async function appendImpl(fields: ProducerEventFields): Promise<void> {
+async function appendImpl(
+  fields: ProducerEventFields,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   if (!active()) return;
   const realAt = fields.realAt ?? Date.now();
   const bucket = bucketOf(realAt);
+  // ⭐ The last bucket each author×actor pair is known credited in
+  // (db-performance H1): a burst reads the ledger once, not per command.
+  const pair = `${fields.author}\u0000${fields.actor}`;
+  if (creditedBucket.get(pair) === bucket) return;
   const existing = await ProducerEvent.find({
     author: fields.author,
     actor: fields.actor,
     bucket,
   });
-  if (existing.length > 0) return; // already credited this author for this actor-bucket
+  if (existing.length > 0) {
+    creditedBucket.set(pair, bucket);
+    return; // already credited this author for this actor-bucket
+  }
   const ev = new ProducerEvent();
   ev.author = fields.author;
   ev.actor = fields.actor;
@@ -150,6 +160,7 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+  creditedBucket.set(pair, bucket);
   // AFTER the write, never before. The AUTHOR is the subject whose
   // standing moved; the actor merely generated the engagement.
   markDirty(ev.author);
@@ -166,7 +177,10 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
  * the signal carries no location templatePath or actor identity (an
  * incorporeal giver, or one with no identity).
  */
-async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> {
+async function appendFromEngagement(
+  p: CommandDispatchedPayload,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   if (!active()) return;
   const location = p.locationTemplatePath;
   const actor = p.actorIdentityPath;
@@ -181,7 +195,7 @@ async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> 
       weight: share.weight,
       at: p.at,
       realAt: p.realAt,
-    });
+    }, creditedBucket);
   }
 }
 
@@ -352,6 +366,12 @@ function standingForAccountImpl(
  */
 @Unshadowable
 export class ProducerLogic extends ApiLogic {
+  /**
+   * ⭐ Author×actor → the last bucket that pair is known credited in
+   * (db-performance H1). Instance state: a fresh singleton starts empty.
+   */
+  private creditedBucket = new Map<string, number>();
+
   /** The recurring recompute handle — retained so re-install is a no-op. */
   private recomputeHandle: ScheduleHandle | null = null;
   /** The scheduled pass in flight, if any — a fire while it runs is skipped. */
@@ -391,7 +411,7 @@ export class ProducerLogic extends ApiLogic {
     this.engagementSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {
-        void appendFromEngagement(p).catch((err) =>
+        void appendFromEngagement(p, this.creditedBucket).catch((err) =>
           console.error('ProducerLogic: engagement append failed', err)
         );
       }
@@ -401,7 +421,7 @@ export class ProducerLogic extends ApiLogic {
   /** See {@link ProducerApi.append}. */
   @CallSecurity(ProducerApiCallers)
   public async append(fields: ProducerEventFields): Promise<void> {
-    return appendImpl(fields);
+    return appendImpl(fields, this.creditedBucket);
   }
 
   /**
