@@ -115,6 +115,9 @@ function withClient(a: Avatar): Avatar {
     id: "sess-1",
     promptChoice: (...args: unknown[]) => choiceFn(...args),
     promptConfirm: (...args: unknown[]) => confirmFn(...args),
+    // ⭐ The realtor's lines are the BUYER's to read now (they went to the
+    // realtor himself before — the call-security drive found it).
+    sendMessage: () => undefined,
   };
   (a as unknown as { getInteractives(): Set<unknown> }).getInteractives = () =>
     new Set([interactive]);

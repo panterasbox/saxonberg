@@ -826,25 +826,34 @@ export class ExecutionContextApi {
   /**
    * ⭐ **Whose code is running** — the content path a refusal of a lying
    * claim is reported against (the `call-security` diagnostic, routed to
-   * the path's title holder). The innermost command's resolved controller
-   * when one is set (a replaced controller is its own row); else the
-   * template path of the nearest frame target that has one (a brain's NPC,
-   * a sweep's singleton). `null` when nothing on the stack names a path.
+   * the path's title holder). The innermost controller on the stack (a
+   * replaced controller is its own row); else an object acting as itself (a
+   * brain's NPC); else the innermost content path outside the engine's Api
+   * tier. `null` when nothing on the stack names a path.
    */
   public static getActingCodePath(): string | null {
+    // 1. A controller on the stack — the innermost one — is the code that
+    //    made the claim (a replaced controller is its own row). Read off the
+    //    frame's target: a command frame's context names only the verb's
+    //    placeholder until the claiming attempt binds.
     for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
-      const f = n.frame;
-      if (f.kind === FrameKind.Command) {
-        const ctx = f.metadata?.commandContext as
-          | { command?: { resolvedController?: string } }
-          | undefined;
-        const path = ctx?.command?.resolvedController;
+      const path = _guardPath(n.frame.target);
+      if (path && path.includes('/idea/cmd/')) return path;
+    }
+    // 2. An object acting as itself (a brain's NPC, an object's own upkeep).
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const md = n.frame.metadata;
+      if (md?.actor != null && n.frame.method === 'runAsSelf') {
+        const path = _guardPath(md.actor);
         if (path) return path;
       }
     }
+    // 3. The innermost content path that is not the engine's own Api tier
+    //    (⚠ the check itself runs in a logic singleton — the drive found the
+    //    diagnostic naming `/platform/idea/api/access` as the liar).
     for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
       const path = _guardPath(n.frame.target);
-      if (path) return path;
+      if (path && !path.startsWith('/platform/idea/api/')) return path;
     }
     return null;
   }

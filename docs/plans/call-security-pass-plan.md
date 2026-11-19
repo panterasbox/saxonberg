@@ -598,6 +598,21 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   before it had a root), and `ScheduleApi`'s registration scope treats
   system work as omni explicitly.
 
+- **B21 (drive) — the keeper's diagnostic named the check, not the liar.**
+  `getActingCodePath` read the command frame's context (only the verb's
+  placeholder until the claiming attempt binds) and fell back to the nearest
+  frame with a path — `AccessLogic` (`/platform/idea/api/access`). It reached
+  Sol only because he held `/platform`. Now: the innermost controller on the
+  stack, else an object acting as itself, never the Api tier. Unit-tested.
+- **B22 (drive) — the Realtor's lines reached nobody.** Every line of his
+  (pre-existing "No hurry" and "Nothing on the books", and B19's terms) was a
+  `scene(npc).toSelf` — the realtor's own frame. They go to the buyer now.
+- **Drive notes (not defects):** a stranger cannot `talk ricky` — a name
+  you were never told does not bind (`talk to agent` does); the office is dark
+  at night (the drive works by daylight); a buyer must be funded (the tracts
+  drive's method); a session's commands load at login, so the lie is told by
+  someone who arrives after the re-point.
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |

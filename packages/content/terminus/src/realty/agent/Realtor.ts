@@ -139,7 +139,7 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
     async apply({ npc, player }) {
       const offers = await Realtor.offers(npc);
       if (offers.length === 0) {
-        MessageApi.scene(npc)
+        MessageApi.scene(player)
           .topic(TOPIC)
           .toSelf(
             Mml.compose`"Nothing on the books today," ${Mml.actor(npc)} says. "Come back when somebody subdivides."`,
@@ -176,10 +176,10 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
         : undefined;
       const offers = await Realtor.offers(npc);
       if (offers.length === 0) {
-        MessageApi.scene(npc)
+        MessageApi.scene(player)
           .topic(TOPIC)
           .toSelf(
-            Mml.compose`"Nothing on the books today. I'd be selling you air."`,
+            Mml.compose`${Mml.actor(npc)} says, "Nothing on the books today. I'd be selling you air."`,
           )
           .send();
         return;
@@ -207,9 +207,11 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
       // purchase runs on YOUR body, so your client is asked whether to let
       // the realtor have you run `title buy …` — worded from the command
       // itself, which is the one thing a realtor cannot misdescribe.
-      MessageApi.scene(npc)
+      // ⚠ To the BUYER: a scene of the npc's `toSelf` is the npc's own frame,
+      // and these lines reached nobody (the call-security drive found it).
+      MessageApi.scene(player)
         .topic(TOPIC)
-        .toSelf(Mml.compose`"${offer.book} ${offer.leaf} — ${price}, freehold. I'll put it through for you."`)
+        .toSelf(Mml.compose`${Mml.actor(npc)} says, "${offer.book} ${offer.leaf} — ${price}, freehold. I'll put it through for you."`)
         .send();
 
       // ⭐ AS THE BUYER. Not `dispatch` (which runs as the NPC) — the
@@ -221,9 +223,9 @@ export default class Realtor extends CastMixin(StagedMixin(NPC)) {
       } catch (err) {
         if (!(err instanceof Refusal)) throw err;
         if (err.reason === 'compel-declined') {
-          MessageApi.scene(npc)
+          MessageApi.scene(player)
             .topic(TOPIC)
-            .toSelf(Mml.compose`"No hurry. The ground isn't going anywhere."`)
+            .toSelf(Mml.compose`${Mml.actor(npc)} says, "No hurry. The ground isn't going anywhere."`)
             .send();
           return;
         }

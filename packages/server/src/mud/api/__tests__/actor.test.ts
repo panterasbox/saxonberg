@@ -221,3 +221,17 @@ describe('AccessApi.requireActor — the check', () => {
     });
   });
 });
+
+describe('getActingCodePath — whose code made the claim', () => {
+  it('names the controller on the stack, never the check’s own logic singleton', () => {
+    const ctl = person('ctl');
+    const logic = person('logic');
+    vi.spyOn(ctl, 'getTemplatePath').mockReturnValue('/platform/idea/cmd/system/ClaimProbeController');
+    vi.spyOn(logic, 'getTemplatePath').mockReturnValue('/platform/idea/api/access');
+    ExecutionContextApi.runRoot(ctl, 'execute', () =>
+      ExecutionContextApi.run(ctl, logic, 'requireActor', undefined, () => {
+        expect(ExecutionContextApi.getActingCodePath()).toBe('/platform/idea/cmd/system/ClaimProbeController');
+      }),
+    );
+  });
+});
