@@ -806,6 +806,16 @@ shared viewer substrate in the client-shell slate. The client here is
 scoped to "read a page, follow a link, submit an edit" — rudimentary by
 decision, not omission.
 
+⭐ **A tooltip's wiki term** (tooltips W3, [tooltips.md](./tooltips.md)) is
+the second reader, and it goes **through the same gate**:
+- The `wiki-excerpt` message reaches `WikiApi.excerpt` →
+  `WikiRegistry.excerptFor`.
+- It renders the page's opening section with the same setup the verb uses
+  (`WikiRegistry.renderFor`, moved off the controller), for the acting
+  character.
+- The ceiling deletes, and the appetite (`spoiler.appetite`) collapses.
+- A missing page and a page you may not read return one answer, `null`.
+
 ---
 
 ## Maintenance
