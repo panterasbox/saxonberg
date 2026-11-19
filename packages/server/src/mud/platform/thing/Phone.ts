@@ -135,9 +135,7 @@ export default class Phone extends PhoneBase {
     // Settle across where it WAS (a phone lifted off its charger keeps
     // what it took). One from nowhere (a restore) keeps its stamp, so a
     // phone restored onto a charger charges across the whole absence.
-    if (from !== null) {
-      this.settleBattery(Math.floor(WorldClockApi.getNow().value), null, from);
-    }
+    if (from !== null) this.settleAfterMove(Math.floor(WorldClockApi.getNow().value));
     this._refusalMemo = null;
   }
 

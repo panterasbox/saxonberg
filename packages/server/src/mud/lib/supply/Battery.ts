@@ -86,6 +86,12 @@ export interface Battery {
   setChargeFraction(fraction: number, nowS?: number): void;
   /** Capacity in Wh. */
   getCapacityWh(): number;
+  /**
+   * Settle across what it rested on BEFORE the move just made (a phone
+   * lifted off its charger keeps what it took), then remember what it
+   * rests on now. Called by the host's `onMoved`.
+   */
+  settleAfterMove(nowS: number): void;
 }
 
 export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(Base: TBase) {
@@ -118,6 +124,9 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
     /** Runtime: who drew standby at the last settle (a new drawer is a fresh interval). */
     private _drawer: string | null = null;
 
+    /** Runtime: what it rested on at the last settle — read across a move. */
+    private _restedOn: Stuff | null = null;
+
     getCapacityWh(): number {
       return this.capacityWh;
     }
@@ -145,6 +154,22 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
       this.writeStored(this.settled(nowS, drawer, restingOn));
       this.batteryStampS = nowS;
       this._drawer = drawer;
+      this._restedOn = this.restingOn();
+    }
+
+    settleAfterMove(nowS: number): void {
+      this.settleBattery(nowS, null, this._restedOn);
+    }
+
+    /**
+     * What it rests on: the thing it was set ON (a charger — the shipped
+     * placement model keeps a thing put on a surface in the room, with the
+     * surface as its placement host), else its container.
+     */
+    private restingOn(): Stuff | null {
+      const host = this as unknown as Stuff;
+      if (!MixinApi.isContainable(host)) return null;
+      return host.getPlacement()?.host ?? host.getContainer();
     }
 
     spendUse(nowS: number, drawer: string | null): void {
@@ -166,14 +191,8 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
       const from = this.batteryStampS;
       let charge = this.stored();
       if (from === null || !(nowS > from)) return charge;
-      const host = this as unknown as Stuff;
       // Charge: from the thing it rests in or on, when that is powered.
-      const under =
-        restingOn !== undefined
-          ? restingOn
-          : MixinApi.isContainable(host)
-            ? host.getContainer()
-            : null;
+      const under = restingOn !== undefined ? restingOn : this.restingOn();
       if (under !== null && MixinApi.isPowered(under)) {
         const rateW = Math.min(this.acceptW, under.availablePowerW());
         if (rateW > 0) {

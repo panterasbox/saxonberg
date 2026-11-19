@@ -7,7 +7,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import { BatteryMixin } from '../Battery';
 import { ReservedMixin } from '../../reserve/Reserved';
@@ -113,5 +113,28 @@ describe('BatteryMixin', () => {
     const pad = makeStuff(() => new Pad());
     c.settleBattery(H, null, pad); // an hour on the pad, settled as it leaves
     expect(c.chargeWh(H)).toBeCloseTo(10, 4);
+  });
+
+  // ⚠ Found by the drive: `put phone on charger` leaves the phone IN THE
+  // ROOM with the charger as its placement host (the shipped placement
+  // model) — a battery that read only its container never charged.
+  it('rests on its placement host: set ON a powered pad in a room, it charges; lifted off, it keeps it', () => {
+    const c = hollis();
+    c.setChargeFraction(0, 0);
+    const pad = makeStuff(() => new Pad());
+    const room = makeStuff(() => new Pad());
+    room.watts = 0; // the room itself supplies nothing
+    ContainmentApi.move(c, room);
+    const placed = vi
+      .spyOn(c, 'getPlacement')
+      .mockReturnValue({ host: pad as never, name: 'on' });
+    c.settleBattery(0, null); // set down on the pad at t=0
+    expect(c.chargeWh(0.5 * H)).toBeCloseTo(5, 4); // half an hour at 10 W
+    // Lifted off an hour later: the settle across the move uses the pad.
+    placed.mockReturnValue(null);
+    c.settleAfterMove(H);
+    expect(c.chargeWh(H)).toBeCloseTo(10, 4);
+    // …and resting in the unpowered room after, it gains nothing.
+    expect(c.chargeWh(3 * H)).toBeCloseTo(10, 4);
   });
 });
