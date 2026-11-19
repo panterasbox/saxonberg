@@ -25,6 +25,7 @@ import {
   completeStep,
 } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const SHARPEN_MS = 12000;
 
@@ -62,13 +63,13 @@ function boundStone(): { stuff: unknown; raw: string } | undefined {
 async function sharpen(blade: Weapon | Tool): Promise<CommandContext> {
   const ctx = makeContext(actor, room, 'sharpen knife');
   const stone = boundStone();
-  makeStuff(() => new SharpenController()).execute(
+  TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new SharpenController()).execute(
     {
       blade: ref(blade, 'knife'),
       ...(stone ? { stone } : {}),
     } as never,
     ctx,
-  );
+  ));
   return ctx;
 }
 

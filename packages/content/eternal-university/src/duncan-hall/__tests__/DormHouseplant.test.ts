@@ -84,6 +84,7 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { rememberFabric } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
 import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 // Every test here simulates hundreds of game-days of growth through the real
 // verb path, and the acceptance walk runs two full stage ladders. The default
@@ -486,7 +487,7 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'houseplant.test', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await controller.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model as never, ctx));
   });
 }
 

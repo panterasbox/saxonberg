@@ -56,6 +56,7 @@ const AUTHOR = { getTemplatePath: () => '/platform/agent/Avatar/alice' } as unkn
 
 function stubAuthorGateOpen(): void {
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
+  vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(AUTHOR);
 }
 
 beforeEach(() => {
@@ -160,6 +161,7 @@ describe('StudioLogic.describeClass — resolution chain', () => {
 describe('StudioLogic.describeClass — composition reads are everyone\'s', () => {
   it('a null-actor context still reads (everyone is an author — content-packs wave 3)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(StudioTestThing);
     await expect(StudioApi.describeClass(CLASS_PATH)).resolves.toBeDefined();
   });
@@ -293,6 +295,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     // The curated blueprint lands under /blueprints (the platform's claim):
     // the document store's title gate refuses a non-holder.
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     vi.spyOn(StuffApi, 'singleton').mockResolvedValue(
       makeFakeCatalogue() as unknown as never
     );
@@ -477,6 +480,7 @@ describe('StudioLogic.scaffoldClass', () => {
 
   it.skip('(retired with the author tier — scaffoldClass is wizard-gated by the source write, tested below)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     await expect(
       StudioApi.scaffoldClass({
         name: 'Nope',
@@ -492,6 +496,7 @@ describe('StudioLogic.scaffoldClass', () => {
 /** Open the wizard source-write gate on the context-derived actor. */
 function stubWizardGateOpen(): void {
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
+  vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(AUTHOR);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
@@ -522,6 +527,7 @@ function tempSourceTarget(): {
 describe('StudioLogic.commitClass — dispositions + ordering', () => {
   it('non-wizard → denied, no file written, no authoring recorded', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(AUTHOR);
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     const writeSpy = vi.spyOn(SourceTreeApi, 'write');
     const record = vi
@@ -541,6 +547,7 @@ describe('StudioLogic.commitClass — dispositions + ordering', () => {
 
   it('null-actor context → denied, records nothing (anti-spoof)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     vi.spyOn(AccessApi, 'isWizard').mockImplementation(async (s) => s != null);
     const writeSpy = vi.spyOn(SourceTreeApi, 'write');
     const record = vi
@@ -701,6 +708,7 @@ describe('StudioLogic.createTemplate', () => {
 
   it('denies a null context actor (the content-write gate fails closed) and never writes', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
     await expect(
       StudioApi.createTemplate({
@@ -896,6 +904,7 @@ describe('StudioLogic.describeMixin', () => {
 
   it('reads for a null context actor (composition reads are everyone\'s) and rejects an empty name', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(ExecutionContextApi, 'getActor').mockReturnValue(null);
     await expect(StudioApi.describeMixin('StackableMixin')).resolves.toBeDefined();
 
     // An empty name is an invalid request.

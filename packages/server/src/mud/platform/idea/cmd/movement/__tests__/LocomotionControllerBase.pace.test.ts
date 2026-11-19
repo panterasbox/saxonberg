@@ -35,6 +35,7 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { buildMode } from '../../../../../lib/locomotion/__tests__/test-helpers';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { StuffApi } from '../../../../../api/stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const RunnerBase = ExertingMixin(
   ReservedMixin(CommandGiverMixin(NamedMixin(MobileMixin(SensorMixin(ContainableMixin(Idea)))))),
@@ -121,7 +122,7 @@ describe('LocomotionControllerBase — the run that breaks', () => {
     const controller = makeStuff(() => new Controller());
     const ctx = makeContext(runner, locA, verb);
     const model: CommandModel = { target: resolveTarget(runner as unknown as Stuff, 'north') } as ModelData;
-    await controller.execute(model, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model, ctx));
     return ctx;
   };
   const endurance = () => runner.getReserve('endurance')!.current.rawValue();

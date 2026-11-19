@@ -109,6 +109,10 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/typecheck.yaml',
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
+        // ⭐ `force <who> <command>` (call-security pass): drive a body you
+        // KEEP (title over its row), or ask a player — the compulsion gate
+        // decides, as it does for any code that drives a body.
+        'platform/cmd/author/force.yaml',
         // ⭐ The builder lens (size-and-carrying D25): `lens on|off` —
         // inside the extents you HOLD (title, never the wizard axis) you
         // perceive everything, marked `[builder]`; with nothing held it

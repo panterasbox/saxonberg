@@ -30,6 +30,7 @@ import {
   SubjectSubscriberMixin,
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
+import { TestHarnessApi } from '../test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -86,18 +87,18 @@ async function buildMap() {
     open: true,
     organizer: 'ordered',
   });
-  const spine = await creator.postThread(
+  const spine = await TestHarnessApi.actAs(creator, () => creator.postThread(
     board,
     'RCV',
     'Adopt ranked-choice voting.',
-  );
-  const pro = await creator.attachClaim(spine, 'supports', 'Reduces spoilers.');
-  const con = await creator.attachClaim(spine, 'objects-to', 'Harder to count.');
-  const question = await creator.attachClaim(
+  ));
+  const pro = await TestHarnessApi.actAs(creator, () => creator.attachClaim(spine, 'supports', 'Reduces spoilers.'));
+  const con = await TestHarnessApi.actAs(creator, () => creator.attachClaim(spine, 'objects-to', 'Harder to count.'));
+  const question = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
     spine,
     'responds-to',
     'What is RCV?',
-  );
+  ));
   return { creator, board, spine, pro, con, question };
 }
 
@@ -139,7 +140,7 @@ describe('the neutral default lens', () => {
     expect(flagOf(lens, question)).toBe(false);
 
     // Answer it — attach ANY child to the objection.
-    await creator.attachClaim(con, 'objects-to', 'Software counts fine.');
+    await TestHarnessApi.actAs(creator, () => creator.attachClaim(con, 'objects-to', 'Software counts fine.'));
     lens = await ForumsApi.readArgumentLens(board);
     expect(flagOf(lens, con)).toBe(false); // answered → no longer open
   });

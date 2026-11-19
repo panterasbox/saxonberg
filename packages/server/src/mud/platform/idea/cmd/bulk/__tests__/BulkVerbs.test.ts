@@ -52,6 +52,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // `Perception` as well as `Sensor`: `RecognitionApi.describe` refuses to
 // resolve a viewer-aware identity for anything that cannot run perception
@@ -229,62 +230,38 @@ describe('Bulk verbs — fill / sip / drink', () => {
 
   it('fills the thermos to capacity from the unbounded urn', async () => {
     const c = makeStuff(() => new FillController());
-    await c.execute(
-      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
     expect(amountL(thermos)).toBeCloseTo(0.5);
   });
 
   it('sip drops the amount by one sip and fires ingest; drink empties it', async () => {
     // Prime the thermos.
-    await makeStuff(() => new FillController()).execute(
-      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
-    await makeStuff(() => new SipController()).execute(
-      model({ target: one(thermos, 'thermos') }),
-      ctxFor(actor, loc, 'sip'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FillController()).execute(model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SipController()).execute(model({ target: one(thermos, 'thermos') }), ctx$)))(ctxFor(actor, loc, 'sip'));
     expect(amountL(thermos)).toBeCloseTo(0.47);
     expect(actor.ingested).toHaveLength(1);
     expect(actor.ingested[0]).toEqual({ material: 'coffee', litres: 0.03 });
 
-    await makeStuff(() => new DrinkController()).execute(
-      model({ target: one(thermos, 'thermos') }),
-      ctxFor(actor, loc, 'drink'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DrinkController()).execute(model({ target: one(thermos, 'thermos') }), ctx$)))(ctxFor(actor, loc, 'drink'));
     expect(amountL(thermos)).toBeCloseTo(0);
     expect(actor.ingested).toHaveLength(2);
 
     // Refill works — the urn is unbounded.
-    await makeStuff(() => new FillController()).execute(
-      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FillController()).execute(model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
     expect(amountL(thermos)).toBeCloseTo(0.5);
   });
 
   it('⭐ a source FIXED in place gives a draught — you do not drink a butt dry', async () => {
     const butt = vessel('a water butt', { capacityL: 200 });
-    await makeStuff(() => new FillController()).execute(
-      model({ target: one(butt, 'butt'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FillController()).execute(model({ target: one(butt, 'butt'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
     (butt as unknown as { fixedInPlace: boolean }).fixedInPlace = true;
     ContainmentApi.move(butt as never, loc as never);
-    await makeStuff(() => new DrinkController()).execute(
-      model({ target: one(butt, 'butt') }),
-      ctxFor(actor, loc, 'drink'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DrinkController()).execute(model({ target: one(butt, 'butt') }), ctx$)))(ctxFor(actor, loc, 'drink'));
     expect(amountL(butt)).toBeCloseTo(199.75);
   });
 
   it('drink takes a NAMED MEASURE, not just the whole slot', async () => {
-    await makeStuff(() => new FillController()).execute(
-      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FillController()).execute(model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
     expect(amountL(thermos)).toBeCloseTo(0.5);
 
     // `drink thermos --amount 1cup`. An OPTION, not an inline measure:
@@ -294,36 +271,27 @@ describe('Bulk verbs — fill / sip / drink', () => {
     // unambiguous door. Before this the controller drank everything,
     // and the only sizes a player could ask for were "all" and sip's
     // fixed 0.03 L — which made the continuous dose model unreachable.
-    await makeStuff(() => new DrinkController()).execute(
-      model({
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DrinkController()).execute(model({
         amount: '1cup' as never,
         target: one(thermos, 'thermos'),
-      }),
-      ctxFor(actor, loc, 'drink'),
-    );
+      }), ctx$)))(ctxFor(actor, loc, 'drink'));
     expect(amountL(thermos)).toBeGreaterThan(0); // NOT drained
     expect(actor.ingested.at(-1)!.litres).toBeCloseTo(0.24, 2);
 
     // …and with no measure it still finishes the container.
-    await makeStuff(() => new DrinkController()).execute(
-      model({ target: one(thermos, 'thermos') }),
-      ctxFor(actor, loc, 'drink'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DrinkController()).execute(model({ target: one(thermos, 'thermos') }), ctx$)))(ctxFor(actor, loc, 'drink'));
     expect(amountL(thermos)).toBeCloseTo(0);
   });
 
   it('drink coffee resolves through via.bulk to the holder', async () => {
-    await makeStuff(() => new FillController()).execute(
-      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
-      ctxFor(actor, loc, 'fill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FillController()).execute(model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }), ctx$)))(ctxFor(actor, loc, 'fill'));
     const ctx = ctxFor(actor, loc, 'drink');
-    await makeStuff(() => new DrinkController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new DrinkController()).execute(
       model({
         target: one(thermos, 'coffee', { via: { bulk: { affordance: 'interior' } } }),
       }),
       ctx,
-    );
+    ));
     expect(amountL(thermos)).toBeCloseTo(0);
     expect(actor.ingested.at(-1)?.material).toBe('coffee');
   });
@@ -361,7 +329,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   it('pour --amount 2cups → mug gains ~0.35 L (clamped at capacity)', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
-    await makeStuff(() => new PourController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PourController()).execute(
       model({
         // `--amount 2cups` — the option, not an inline measure. The
         // inline form never parsed for a singular arg; see
@@ -371,7 +339,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
         target: one(mug, 'mug'),
       }),
       ctx,
-    );
+    ));
     // 2 cups ≈ 0.473 L; mug capacity 0.35 → clamped.
     expect(amountL(mug)).toBeCloseTo(0.35);
     expect(ctx.getNotes()).toContainEqual(
@@ -381,7 +349,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   it('pour --amount 99cups --exact → declined, rejected note', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
-    await makeStuff(() => new PourController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PourController()).execute(
       model({
         // `--amount 99cups --exact`: strict mode, reachable from a
         // player for the first time.
@@ -391,7 +359,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
         target: one(mug, 'mug'),
       }),
       ctx,
-    );
+    ));
     expect(amountL(mug)).toBeCloseTo(0);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'quantity-clamped-rejected' }),
@@ -399,18 +367,12 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
   });
 
   it('⭐ pour into a brim-full mug → it says the MUG is full, not that there is nothing to pour', async () => {
-    await makeStuff(() => new PourController()).execute(
-      model({ source: one(waterSrc, 'water'), target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'pour'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute(model({ source: one(waterSrc, 'water'), target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'pour'));
     expect(amountL(mug)).toBeCloseTo(0.35);
     const jug = vessel('a water jug', { material: water, amountL: 1, capacityL: 2 });
     ContainmentApi.move(jug as never, actor as never);
     const lines = captureSelfLines();
-    await makeStuff(() => new PourController()).execute(
-      model({ source: one(jug, 'jug'), target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'pour'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute(model({ source: one(jug, 'jug'), target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'pour'));
     expect(amountL(jug)).toBeCloseTo(1);
     expect(lines.join(' ')).toMatch(/already full/);
     expect(lines.join(' ')).not.toMatch(/nothing to pour/);
@@ -418,19 +380,16 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   it('pour coffee into a water-holding mug → material mismatch', async () => {
     // Seed the mug with water first.
-    await makeStuff(() => new PourController()).execute(
-      model({ source: one(waterSrc, 'water'), target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'pour'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute(model({ source: one(waterSrc, 'water'), target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'pour'));
     expect(amountL(mug)).toBeGreaterThan(0);
     const coffeeSrc = vessel('a coffee pot', { material: coffee, amountL: 1, capacityL: 2 });
     ContainmentApi.move(coffeeSrc as never, loc as never);
 
     const ctx = ctxFor(actor, loc, 'pour');
-    await makeStuff(() => new PourController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PourController()).execute(
       model({ source: one(coffeeSrc, 'coffee'), target: one(mug, 'mug') }),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'target-declined', reason: 'material-mismatch' }),
     );
@@ -438,7 +397,7 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   it('pour water into an open colander → drains through to a floor puddle', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
-    await makeStuff(() => new PourController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PourController()).execute(
       model({
         // `--amount 2cups` — the option, not an inline measure. The
         // inline form never parsed for a singular arg; see
@@ -448,27 +407,21 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
         target: one(colander, 'colander'),
       }),
       ctx,
-    );
+    ));
     expect(amountL(colander)).toBeCloseTo(0);
     expect(surfaceAmountL(floor)).toBeGreaterThan(0);
   });
 
   it('spill mug → mug empties; a puddle pools on the floor', async () => {
     // Fill the mug with water first.
-    await makeStuff(() => new PourController()).execute(
-      model({
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute(model({
         source: one(waterSrc, '1 cup water', { quantity: MEASURE(1, 'cup') }),
         target: one(mug, 'mug'),
-      }),
-      ctxFor(actor, loc, 'pour'),
-    );
+      }), ctx$)))(ctxFor(actor, loc, 'pour'));
     const before = amountL(mug);
     expect(before).toBeGreaterThan(0);
 
-    await makeStuff(() => new SpillController()).execute(
-      model({ target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'spill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SpillController()).execute(model({ target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'spill'));
     expect(amountL(mug)).toBeCloseTo(0);
     expect(surfaceAmountL(floor)).toBeCloseTo(before);
   });
@@ -518,10 +471,7 @@ describe('Bulk verbs — drink prose, and the two article rules', () => {
 
   async function drink(holder: Stuff): Promise<string[]> {
     const said = captureSelfLines();
-    await makeStuff(() => new DrinkController()).execute(
-      model({ target: one(holder, 'it') }),
-      ctxFor(actor, loc, 'drink'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DrinkController()).execute(model({ target: one(holder, 'it') }), ctx$)))(ctxFor(actor, loc, 'drink'));
     return said;
   }
 
@@ -605,14 +555,8 @@ describe('Bulk verbs — look composes Material.appearance', () => {
     const mug = vessel('a ceramic mug', { capacityL: 0.35 });
     ContainmentApi.move(mug as never, actor as never);
     // Fill the mug then spill it onto the floor.
-    await makeStuff(() => new PourController()).execute(
-      model({ source: one(src, 'water'), target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'pour'),
-    );
-    await makeStuff(() => new SpillController()).execute(
-      model({ target: one(mug, 'mug') }),
-      ctxFor(actor, loc, 'spill'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute(model({ source: one(src, 'water'), target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'pour'));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SpillController()).execute(model({ target: one(mug, 'mug') }), ctx$)))(ctxFor(actor, loc, 'spill'));
     expect(markupLong(floor)).toContain('A puddle of some water pools here.');
     expect(BulkableApi.floorPuddleSummary(loc)).toBe(
       'A puddle of some water pools on the floor.',

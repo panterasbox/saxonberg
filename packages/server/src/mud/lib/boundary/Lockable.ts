@@ -68,6 +68,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 import { SubscriptionApi } from '../../api/subscription';
+import { AccessApi } from '../../api/access';
 
 /**
  * Why a `lock`/`unlock` act was refused. ⭐ The ORDER is the method's
@@ -190,6 +191,8 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (`no-key` — asked only once the act would otherwise go through).
      */
     lock(by: Stuff): LockAnswer {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const target = this as unknown as Stuff;
       if (this.isLocked()) return { ok: false, reason: 'already-locked', facts: { target } };
       if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };
@@ -199,6 +202,7 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Withdraw the bolt, as `by`. The same order as {@link lock}. */
     unlock(by: Stuff): LockAnswer {
+      AccessApi.requireActor(by);
       const target = this as unknown as Stuff;
       if (!this.isLocked()) return { ok: false, reason: 'already-unlocked', facts: { target } };
       if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };

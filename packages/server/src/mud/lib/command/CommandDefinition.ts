@@ -31,6 +31,7 @@ import type {
   CommandView,
   ViewDefaultAlias,
   SubcommandDefinition,
+  Compellable,
   OptionDefinition,
   PositionalDefinition,
   CommandValidator,
@@ -109,6 +110,12 @@ export class CommandDefinition {
    */
   public readonly testOnly: boolean;
   /**
+   * ⭐ The view's half of "may another body's code ask this?" —
+   * {@link CommandView.compellable}, `never` unless the view says
+   * `consent`. Read per subcommand by {@link compellableFor}.
+   */
+  public readonly compellable: Compellable;
+  /**
    * ⭐ The cards this verb declares it opens (`opens_card:` in the
    * YAML), normalized to a list. `CardApi.open` refuses any card a
    * running command did not declare — see {@link CommandView.opens_card}.
@@ -161,6 +168,7 @@ export class CommandDefinition {
     this.fallthrough = view.fallthrough === true;
     this.async = view.async === true;
     this.testOnly = view.testOnly === true;
+    this.compellable = view.compellable === 'consent' ? 'consent' : 'never';
     this.opensCards =
       view.opens_card === undefined
         ? []
@@ -361,6 +369,16 @@ export class CommandDefinition {
     return resolveController(raw, this.filePath);
   }
 
+  /**
+   * The view's answer for `subcommand` (or the bare verb): the
+   * subcommand's own `compellable:`, else the verb's. `never` by default.
+   * ⚠ Only half of the rule — the controller class must agree (D11).
+   */
+  compellableFor(subcommand?: string): Compellable {
+    const own = subcommand !== undefined ? this.subcommands[subcommand]?.compellable : undefined;
+    return (own ?? this.compellable) === 'consent' ? 'consent' : 'never';
+  }
+
   hasSubcommands(): boolean {
     return Object.keys(this.subcommands).length > 0;
   }
@@ -554,6 +572,13 @@ export class CommandDefinition {
       lines.push('');
     }
 
+    // ⭐ A verb another body's code may ask of you says so (call-security
+    // pass D8: the def predicts it, help prints it).
+    if (defs.some((d) => d.compellable === 'consent' && !d.hasSubcommands())) {
+      lines.push(COMPELLABLE_LINE);
+      lines.push('');
+    }
+
     // Authored prose, below the synthesized syntax — every view's, once.
     const prose = new Set<string>();
     for (const d of defs) {
@@ -575,6 +600,7 @@ export class CommandDefinition {
           lines.push(`${indent}${verb} ${name}${rendered ? ` ${rendered}` : ''}`);
           const body = `${indent}  `;
           if (sub.description) lines.push(`${body}${sub.description}`);
+          if ((sub.compellable ?? d.compellable) === 'consent') lines.push(`${body}${COMPELLABLE_LINE}`);
           if (sub.help) {
             for (const line of sub.help.trimEnd().split('\n')) {
               lines.push(line ? `${body}${line}` : '');
@@ -691,6 +717,9 @@ const DURATION_UNITS: Readonly<Record<string, number>> = {
 };
 
 /** The help line a view with a `type: duration` slot carries. */
+/** The generated `help` line for a verb that may be asked of you (`compellable: consent`). */
+const COMPELLABLE_LINE = 'Another character may ask you to do this; you are always asked first.';
+
 const DURATION_FORMS =
   '  A duration is written 90s, 15m, 2h, 1h30m, 3d, 90 seconds or 2 hours.';
 

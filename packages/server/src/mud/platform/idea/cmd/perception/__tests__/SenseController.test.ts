@@ -41,6 +41,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const Base = OrganismMixin(
   ContainerMixin(
@@ -139,7 +140,7 @@ describe('SenseController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     // Topic is fixed per the verb-as-topic principle — channel
     // attribution lives in body MML, not in the topic.
@@ -160,7 +161,7 @@ describe('SenseController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
   });
@@ -172,7 +173,7 @@ describe('SenseController', () => {
     }).setLongDescription('A vast atrium with a glass ceiling.');
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
   });
@@ -191,7 +192,7 @@ describe('SenseController', () => {
     );
     const target: MqlOneResult = { stuff: item, raw: 'chime' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.body).toContain('A brass chime.');
     expect(f?.body).toContain('It rings softly.');
@@ -209,7 +210,7 @@ describe('SenseController', () => {
       via: { detailPath: ['plaque'] },
     };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.body).toContain('A bronze plaque.');
     expect(f?.body).not.toContain('should NOT come back');
@@ -226,7 +227,7 @@ describe('SenseController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.body).not.toContain('A bookcase looms.');
     expect(f?.body).toContain('Water drips somewhere.');
@@ -242,7 +243,7 @@ describe('SenseController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.body).toContain('A bookcase looms.');
     expect(f?.body).toContain('Water drips somewhere.');
@@ -256,7 +257,7 @@ describe('SenseController', () => {
     }).setLongDescription('A vast atrium with a glass ceiling.');
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new SenseController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.body).toContain('A vast atrium with a glass ceiling.');
   });
@@ -266,7 +267,7 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     const ctx = ctxOf(fix);
     const target: MqlOneResult = { stuff: null, raw: 'imaginary-thing' };
-    c.execute(modelOf(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(modelOf(target), ctx));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'empty-result' }),
     );

@@ -32,6 +32,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 import IceSheet from '../thing/IceSheet';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const DAY = 86_400;
 const T0 = 720 * DAY;
@@ -204,7 +205,7 @@ describe('the acts — scrape, mark, cut', () => {
     const ice = sheet.iceOf(marked)!;
     const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], part: 'marked', length: null, options: {} });
     expect(plan.ok).toBe(true);
-    const block = await sheet.cutBlock(w as unknown as Stuff, marked.id);
+    const block = await TestHarnessApi.actAs(w as unknown as Stuff, () => sheet.cutBlock(w as unknown as Stuff, marked.id));
     expect(block).not.toBeNull();
     const kg = (block as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue();
     expect(kg).toBeCloseTo(Math.round(ice.thicknessM * 0.25 * 917 * 10) / 10, 6);
@@ -219,7 +220,7 @@ describe('the acts — scrape, mark, cut', () => {
     sheet.markPatch(w as unknown as Stuff, makeStuff(() => new Marker()) as unknown as Stuff, null);
     const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], part: 'marked', length: null, options: {} });
     if (!plan.ok) throw new Error('the plan refused');
-    const done = await plan.onComplete();
+    const done = await TestHarnessApi.actAs(w, () => plan.onComplete());
     expect(done).toMatchObject({ ok: true, facts: { kind: 'ice-block' } });
     if (done.ok && done.facts.kind === 'ice-block') {
       expect(done.facts.block).not.toBeNull();
@@ -243,7 +244,7 @@ describe('the acts — scrape, mark, cut', () => {
       }) as never);
       return b;
     }) as unknown as typeof StuffApi.clone);
-    const block = await sheet.cutBlock(w as unknown as Stuff, sheet.patchByWord('marked')!.id);
+    const block = await TestHarnessApi.actAs(w as unknown as Stuff, () => sheet.cutBlock(w as unknown as Stuff, sheet.patchByWord('marked')!.id));
     expect(block).not.toBeNull();
     expect(titled).toEqual([w]);
   });
@@ -262,7 +263,7 @@ describe('the acts — scrape, mark, cut', () => {
     expect(marked).toHaveLength(1);
     expect(marked[0]!.gridM).toBe(0.8);
     expect(total()).toBeCloseTo(before, 9);
-    const block = await sheet.cutBlock(a as unknown as Stuff, marked[0]!.id);
+    const block = await TestHarnessApi.actAs(a as unknown as Stuff, () => sheet.cutBlock(a as unknown as Stuff, marked[0]!.id));
     const ice = sheet.iceOf(marked[0]!)!;
     expect((block as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue()).toBeCloseTo(
       Math.round(ice.thicknessM * 0.8 * 0.8 * 917 * 10) / 10,

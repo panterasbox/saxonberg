@@ -36,6 +36,7 @@ import ScrapeController from '../idea/cmd/ice/ScrapeController';
 import GrooveController from '../idea/cmd/ice/GrooveController';
 import Scraper from '../thing/Scraper';
 import IceMarker from '../thing/IceMarker';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const DAY = 86_400;
 const T0 = 720 * DAY;
@@ -124,7 +125,7 @@ describe('scrape and groove hand the act to the sheet', () => {
       return s;
     });
     const s = ctxFor(w as unknown as Stuff, 'scrape');
-    await makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, s);
+    await TestHarnessApi.actAs(s.commandGiver, () => makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, s));
     expect(rejected(s)).toBeNull();
     expect(sheet.getLog().some((p) => p.kind === 'scraped')).toBe(true);
     const marker = makeStuff(() => {
@@ -133,7 +134,7 @@ describe('scrape and groove hand the act to the sheet', () => {
       return m;
     });
     const m = ctxFor(w as unknown as Stuff, 'groove');
-    await makeStuff(() => new GrooveController()).execute({ tool: { stuff: [marker], raw: '' } } as never, m);
+    await TestHarnessApi.actAs(m.commandGiver, () => makeStuff(() => new GrooveController()).execute({ tool: { stuff: [marker], raw: '' } } as never, m));
     expect(rejected(m)).toBeNull();
     expect(sheet.patchByWord('marked')?.gridM).toBe(0.3);
   });
@@ -146,7 +147,7 @@ describe('scrape and groove hand the act to the sheet', () => {
       return s;
     });
     const ctx = ctxFor(w as unknown as Stuff, 'scrape');
-    await makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, ctx));
     expect(rejected(ctx)).toBe('not-on-ice');
     expect(sheet.getLog()).toHaveLength(1);
   });
@@ -162,7 +163,7 @@ describe('scrape and groove hand the act to the sheet', () => {
       return m;
     });
     const ctx = ctxFor(w as unknown as Stuff, 'groove');
-    await makeStuff(() => new GrooveController()).execute({ tool: { stuff: [plough], raw: '' } } as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new GrooveController()).execute({ tool: { stuff: [plough], raw: '' } } as never, ctx));
     expect(rejected(ctx)).toBe('no-horse');
   });
 });

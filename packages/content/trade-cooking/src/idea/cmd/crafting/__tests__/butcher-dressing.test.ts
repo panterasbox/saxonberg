@@ -62,6 +62,7 @@ import type {
   MqlOneResult,
 } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const MEAT = '/stuff/thing/items/_test/stew-meat';
 const HIDE = '/trade/ranching/thing/_test/hide';
@@ -215,7 +216,7 @@ describe('the yield is the animal\'s', () => {
     const ewe = body(SHEEP, 70, 55);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(ewe), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx());
 
     expect(minted.length).toBeGreaterThan(0);
     const total = cutMasses().reduce((a, b) => a + b, 0);
@@ -231,11 +232,11 @@ describe('the yield is the animal\'s', () => {
     species(COW, [{ cut: MEAT, units: 12, fraction: 0.42 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 55)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 55)), ctx$)))(ctx());
     const ewe = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(COW, 550, 55)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(COW, 550, 55)), ctx$)))(ctx());
     const cow = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(cow).toBeGreaterThan(ewe * 7);
@@ -245,11 +246,11 @@ describe('the yield is the animal\'s', () => {
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 20)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 20)), ctx$)))(ctx());
     const thin = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 95)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 95)), ctx$)))(ctx());
     const finished = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(finished).toBeGreaterThan(thin);
@@ -261,15 +262,15 @@ describe('the yield is the animal\'s', () => {
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, null)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, null)), ctx$)))(ctx());
     const unstamped = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 55)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 55)), ctx$)))(ctx());
     const stamped55 = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 100)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 100)), ctx$)))(ctx());
     const perfect = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(unstamped).toBeCloseTo(stamped55, 1);
@@ -282,7 +283,7 @@ describe('the yield is the animal\'s', () => {
     species(HEN, [{ cut: MEAT, units: 2 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(HEN, 2.5, 55)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(HEN, 2.5, 55)), ctx$)))(ctx());
 
     expect(minted.length).toBeGreaterThan(0);
     // The row's own authored mass stands: the stub mints 1 kg cuts and
@@ -296,11 +297,11 @@ describe('the yield is the animal\'s', () => {
     ]);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body(SHEEP, 70, 10)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 10)), ctx$)))(ctx());
     const starved = cutMasses().reduce((a, b) => a + b, 0);
 
     minted = [];
-    await ctrl.execute(model(body(SHEEP, 70, 100)), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(SHEEP, 70, 100)), ctx$)))(ctx());
     const finished = cutMasses().reduce((a, b) => a + b, 0);
 
     expect(starved).toBeCloseTo(finished, 2);
@@ -316,7 +317,7 @@ describe('the refusals, in the order they are spoken', () => {
     ewe.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(ewe), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx());
 
     expect(reasons()).toContain('still-alive');
     expect(minted).toEqual([]);
@@ -330,7 +331,7 @@ describe('the refusals, in the order they are spoken', () => {
     collie.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(collie), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(collie), ctx$)))(ctx());
 
     expect(reasons()).toContain('no-yield');
     expect(reasons()).not.toContain('still-alive');
@@ -342,7 +343,7 @@ describe('the refusals, in the order they are spoken', () => {
     somebody.setLifecycleState('alive');
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(somebody), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(somebody), ctx$)))(ctx());
 
     expect(reasons()).toContain('sentient-corpse');
     expect(reasons()).not.toContain('still-alive');
@@ -360,7 +361,7 @@ describe('the refusals, in the order they are spoken', () => {
     ContainmentApi.move(moss, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(moss), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(moss), ctx$)))(ctx());
 
     expect(reasons()).toContain('named-animal');
     expect(reasons()).not.toContain('still-alive');
@@ -377,7 +378,7 @@ describe('the refusals, in the order they are spoken', () => {
     expect(MixinApi.isNamed(dead)).toBe(false);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(dead), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(dead), ctx$)))(ctx());
 
     expect(reasons()).not.toContain('named-animal');
     expect(minted.length).toBeGreaterThan(0);
@@ -398,7 +399,7 @@ describe('the refusals, in the order they are spoken', () => {
     ContainmentApi.move(moss, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(moss), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(moss), ctx$)))(ctx());
 
     expect(reasons()).not.toContain('named-animal');
   });
@@ -408,7 +409,7 @@ describe('the refusals, in the order they are spoken', () => {
     ContainmentApi.move(chair, room);
 
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(chair), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(chair), ctx$)))(ctx());
 
     expect(reasons()).toContain('not-a-carcass');
   });

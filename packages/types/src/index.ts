@@ -5129,6 +5129,8 @@ export interface RuntimeDiagnostic {
    * `sandbox.boundary` denial receipts). ⭐ `content-error`
    * (failure-model D6): `path` is a content ROW that is wrong, and the
    * row goes to whoever holds title over it, not its last author.
+   * `call-security` (call-security pass D7): `path` is the code that made a
+   * claim the engine refused, and it goes to that path's title holder too.
    */
   channel?: string;
 }

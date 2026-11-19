@@ -1,0 +1,4 @@
+# The window is somebody's to keep — its proprietor, or whoever is on shift.
+facts:
+  window: thing
+says: "You don't keep {{ window | item }}."

@@ -28,6 +28,7 @@ import { VisibleMixin } from '../../../../../lib/description/Visible';
 import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Body extends PerceptibleMixin(VisibleMixin(SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))))) {
   static _mixinName = 'LedgerBody';
@@ -78,9 +79,7 @@ afterEach(() => vi.restoreAllMocks());
 const ledgerOf = (holder: Body = me): Promise<void> =>
   withRootContext(null, 'ledger.test', async () => {
     const set = [...holder.getContents()] as Stuff[];
-    makeStuff(() => new QueryController()).execute(
-      { set: { stuff: set, raw: 'x:i' }, ledger: true } as never, ctx('query'),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new QueryController()).execute({ set: { stuff: set, raw: 'x:i' }, ledger: true } as never, ctx$)))(ctx('query'));
   });
 
 /** Put each thing in `holder` — what `:i` will name. */
@@ -116,7 +115,7 @@ describe('query --ledger', () => {
 describe('look and the ledger', () => {
   const look = (model: unknown): Promise<void> =>
     withRootContext(null, 'ledger.test', async () => {
-      await makeStuff(() => new LookController()).execute(model as never, ctx('look'));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LookController()).execute(model as never, ctx$)))(ctx('look'));
     });
 
   it('⭐ `look in <thing>` is the same ledger', async () => {
@@ -144,7 +143,7 @@ describe('look and the ledger', () => {
 describe('`query --ledger` and a shut holder (maritime revision 2′)', () => {
   const query = (model: unknown): Promise<void> =>
     withRootContext(null, 'ledger.test', async () => {
-      await makeStuff(() => new QueryController()).execute(model as never, ctx('query'));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new QueryController()).execute(model as never, ctx$)))(ctx('query'));
     });
 
   it('⭐ `query --ledger bob:i` groups just what the query named', async () => {

@@ -36,6 +36,7 @@ import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__te
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { WikiPageFrame } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Principal extends Idea {}
 
@@ -81,7 +82,7 @@ async function run(model: Partial<CommandModel>): Promise<void> {
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
 }
 

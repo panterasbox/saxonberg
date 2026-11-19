@@ -39,6 +39,7 @@ import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { Adornable } from "../../../../../lib/boundary/Adornable";
 import { ChattelLogic } from '../../../api/ChattelLogic';
 import { ChattelMixin } from '../../../../../lib/chattel/Chattel';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -120,10 +121,7 @@ describe("hang", () => {
   it("moves a carried fixture out of custody and onto the room", async () => {
     const { loc, giver, sconce } = scene();
     const controller = makeStuff(() => new HangController());
-    await controller.execute(
-      hangModel(sconce, "sconce"),
-      makeContext(giver, loc, "hang"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(hangModel(sconce, "sconce"), ctx$)))(makeContext(giver, loc, "hang"));
 
     // Out of the hands…
     expect(sconce.getContainer()).toBeNull();
@@ -139,12 +137,9 @@ describe("hang", () => {
   it("refuses to hang the same fixture twice", async () => {
     const { loc, giver, sconce } = scene();
     const controller = makeStuff(() => new HangController());
-    await controller.execute(
-      hangModel(sconce, "sconce"),
-      makeContext(giver, loc, "hang"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(hangModel(sconce, "sconce"), ctx$)))(makeContext(giver, loc, "hang"));
     const ctx = makeContext(giver, loc, "hang");
-    await controller.execute(hangModel(sconce, "sconce"), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(hangModel(sconce, "sconce"), ctx));
     expect(
       ctx
         .getNotes()
@@ -170,10 +165,7 @@ describe("taking it down", () => {
   }> {
     const s = scene();
     const controller = makeStuff(() => new HangController());
-    await controller.execute(
-      hangModel(s.sconce, "sconce"),
-      makeContext(s.giver, s.loc, "hang"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(hangModel(s.sconce, "sconce"), ctx$)))(makeContext(s.giver, s.loc, "hang"));
     return s;
   }
 
@@ -185,10 +177,7 @@ describe("taking it down", () => {
     });
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      getModel([sconce as unknown as Stuff], "sconce"),
-      makeContext(giver, loc, "get"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(getModel([sconce as unknown as Stuff], "sconce"), ctx$)))(makeContext(giver, loc, "get"));
 
     expect(sconce.getAdornedTo()).toBeNull();
     expect((loc as unknown as Stuff & Adornable).getFixtures()).toHaveLength(0);
@@ -205,10 +194,10 @@ describe("taking it down", () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc, "get");
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       getModel([sconce as unknown as Stuff], "sconce"),
       ctx,
-    );
+    ));
 
     expect(sconce.getAdornedTo()).not.toBeNull();
     expect(sconce.getContainer()).toBeNull();
@@ -244,10 +233,7 @@ describe("taking it down", () => {
     vi.spyOn(AccessApi, "can").mockResolvedValue(true);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      getModel([sconce as unknown as Stuff], "sconce"),
-      makeContext(giver, loc, "get"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(getModel([sconce as unknown as Stuff], "sconce"), ctx$)))(makeContext(giver, loc, "get"));
     expect(sconce.getContainer()).toBe(giver);
   });
 
@@ -267,10 +253,10 @@ describe("taking it down", () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc, "get");
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       getModel([sconce as unknown as Stuff, sword], "all"),
       ctx,
-    );
+    ));
 
     // The sword is taken, the sconce stays up, and nobody is lectured.
     expect(sword.getContainer()).toBe(giver);

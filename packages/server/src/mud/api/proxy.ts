@@ -318,7 +318,33 @@ export class ProxyApi {
       },
     };
 
-    return new Proxy(stuff, handler);
+    const proxy = new Proxy(stuff, handler);
+    ProxyApi.#made.set(proxy, stuff);
+    return proxy;
+  }
+
+  /** Every proxy {@link wrap} made → its raw target. Nothing else is in it. */
+  static #made = new WeakMap<object, object>();
+
+  /**
+   * ⭐ **The identity a reference stands for** — the raw Stuff behind a
+   * proxy this Api made, else the value itself. Compare two of these with
+   * `===` to ask "are these the same object?" (call-security pass D4).
+   *
+   * Unlike {@link unwrap} it never asks the value: `RAW_TARGET` is a
+   * property a forged object can answer with somebody else's raw self, and
+   * a `stuffId` or an identity path are members a forgery answers too.
+   * Only a proxy this Api built is peeled.
+   */
+  public static identityOf(value: unknown): unknown {
+    let v: unknown = value;
+    // To a fixpoint: a wrap of a wrap peels to the one raw self.
+    for (let i = 0; i < 8 && v !== null && typeof v === 'object'; i++) {
+      const raw = ProxyApi.#made.get(v as object);
+      if (raw === undefined) break;
+      v = raw;
+    }
+    return v;
   }
 
   /**

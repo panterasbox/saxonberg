@@ -22,6 +22,9 @@ import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BehavedMixin } from '../Behaved';
+import { ProxyApi } from '../../../api/proxy';
+import { TestHarnessApi } from '../../../api/test-harness';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 
 const PROBE = '/lib/behavior/__tests__/fixtures/probe';
@@ -381,5 +384,36 @@ describe('witness dispatch (emote) — the room carries emotes', () => {
       const hit = fires().find((f) => f.source === 'witness');
       expect(hit?.subject).toBe((actor as unknown as { stuffId: string }).stuffId);
     });
+  });
+});
+
+describe('⭐ converse — the NPC opens its own conversation (call-security pass D10)', () => {
+  it("the brain's open runs AS THE NPC, though the player's `talk` asked", async () => {
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    const player = makeStuff(() => new TestPlayer());
+    npc.behaviors = [{ brain: '/lib/behavior/__tests__/fixtures/talker', trigger: 'engage', config: { tree: 1 } }];
+    let actor: unknown = 'unset';
+    let saw: Record<string, unknown> | null = null;
+    vi.spyOn(StuffApi, 'resolveExportSync').mockReturnValue({
+      open: async (args: Record<string, unknown>) => {
+        actor = ExecutionContextApi.getActor();
+        saw = args;
+        return { ok: true };
+      },
+    } as never);
+    const result = await TestHarnessApi.actAs(player, () =>
+      (npc as unknown as { converse(p: unknown): Promise<{ ok: boolean }> }).converse(player),
+    );
+    expect(result).toEqual({ ok: true });
+    expect(ExecutionContextApi.getActor()).toBeNull();
+    expect(ProxyApi.identityOf(actor)).toBe(ProxyApi.identityOf(npc));
+    expect(saw).toMatchObject({ player, npc, config: { tree: 1 } });
+  });
+
+  it('a host with no engage spec is not conversational', async () => {
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
+    const result = await (npc as unknown as { converse(p: unknown): Promise<unknown> }).converse(makeStuff(() => new TestPlayer()));
+    expect(result).toEqual({ ok: false, reason: 'not-conversational' });
   });
 });

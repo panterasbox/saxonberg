@@ -141,6 +141,8 @@ export default class Bailer extends Tool {
    * puts the target deep. Nothing they pay for afterwards credits them.
    */
   public async spudPlanFor(by: Stuff): Promise<ActPlan<undefined, SpudDone, SpudRefusal> | SpudRefusal> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     const room = MixinApi.isContainable(by) ? by.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return { ok: false, reason: 'no-place' };
     const place = room as Stuff & Container;

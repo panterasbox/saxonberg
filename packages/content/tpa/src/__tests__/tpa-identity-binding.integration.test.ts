@@ -43,6 +43,7 @@ import type { FastTravel } from "../lib/FastTravel";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { installStore, type Doc } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 const PH = TemplateApplier.templatePath;
 const D_ROOM = "/world/test/d-room";
@@ -214,7 +215,7 @@ describe("TPA identity binding (integration)", () => {
     ContainmentApi.move(card, a);
 
     const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
-    await registerCtl().execute({} as CommandModel, ctx(a, null, "register", arrive as unknown as Stuff));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => registerCtl().execute({} as CommandModel, ctx$)))(ctx(a, null, "register", arrive as unknown as Stuff));
 
     expect(identityTravel(a).getCredential("travel")!.isRegistered(ARRIVE)).toBe(true);
     // The carried card's OWN set is untouched — clearance is not stored there.
@@ -227,7 +228,7 @@ describe("TPA identity binding (integration)", () => {
 
     // A registers the restricted destination on identity.
     const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
-    await registerCtl().execute({} as CommandModel, ctx(a, null, "register", arrive as unknown as Stuff));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => registerCtl().execute({} as CommandModel, ctx$)))(ctx(a, null, "register", arrive as unknown as Stuff));
 
     // Simulate the OLD vulnerability: a card physically carrying the node in
     // its own set. Hand it to B.
@@ -264,7 +265,7 @@ describe("TPA identity binding (integration)", () => {
 
     // Register R on the implant actor's identity so it can ride.
     const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
-    await registerCtl().execute({} as CommandModel, ctx(implantOnly, null, "register", arrive as unknown as Stuff));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => registerCtl().execute({} as CommandModel, ctx$)))(ctx(implantOnly, null, "register", arrive as unknown as Stuff));
 
     const dRoom = await StuffApi.singleton<Stuff & Container>(D_ROOM);
     await StuffApi.singleton(DEPART);
@@ -292,7 +293,7 @@ describe("TPA identity binding (integration)", () => {
     const a = makeTraveller("erin");
     // Register R so clearance is not the reason for refusal.
     const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
-    await registerCtl().execute({} as CommandModel, ctx(a, null, "register", arrive as unknown as Stuff));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => registerCtl().execute({} as CommandModel, ctx$)))(ctx(a, null, "register", arrive as unknown as Stuff));
 
     const offRoom = await StuffApi.singleton<Stuff & Container>(OFF_ROOM);
     await StuffApi.singleton(OFF_GATE);
@@ -315,10 +316,7 @@ describe("TPA identity binding (integration)", () => {
     const stranger = makeTraveller("hank");
 
     const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
-    await registerCtl().execute(
-      {} as CommandModel,
-      ctx(registered, null, "register", arrive as unknown as Stuff),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => registerCtl().execute({} as CommandModel, ctx$)))(ctx(registered, null, "register", arrive as unknown as Stuff));
 
     const dRoom = await StuffApi.singleton<Stuff & Container>(D_ROOM);
     const gate = await StuffApi.singleton<Stuff & FastTravel>(DEPART);

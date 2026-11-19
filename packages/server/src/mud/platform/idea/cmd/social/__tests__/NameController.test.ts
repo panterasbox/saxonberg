@@ -24,6 +24,7 @@ import { makeStuff, stampTemplatePathForTest } from '../../../../../lib/security
 import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestCharacter extends Character {}
 class TestPet extends BondedMixin(NamedMixin(Good)) {
@@ -40,10 +41,7 @@ function ctx(actor: unknown): CommandContext {
 }
 
 async function name(actor: unknown, thing: Stuff, wanted: string): Promise<void> {
-  await makeStuff(() => new NameController()).execute(
-    { target: { stuff: thing } as unknown as MqlOneResult, animalName: wanted } as never,
-    ctx(actor),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new NameController()).execute({ target: { stuff: thing } as unknown as MqlOneResult, animalName: wanted } as never, ctx$)))(ctx(actor));
 }
 
 let potter: TestCharacter;
@@ -127,10 +125,10 @@ describe('the bond rule is the animal’s', () => {
 describe('the thing takes its name — no controller in the way (W8)', () => {
   it('a direct takeName refuses a stranger and names for the maker', async () => {
     const jug = madeBy(potter.getIdentityPath()!);
-    expect(await jug.takeName('Mine', stranger)).toEqual({ ok: false, reason: 'not-nameable' });
+    expect(await TestHarnessApi.actAs(stranger, () => jug.takeName('Mine', stranger))).toEqual({ ok: false, reason: 'not-nameable' });
     expect(jug.getName()).toBe('');
-    expect(await jug.takeName('  ', potter)).toEqual({ ok: false, reason: 'no-name-given' });
-    expect(await jug.takeName("Mother's jug", potter)).toEqual({
+    expect(await TestHarnessApi.actAs(potter, () => jug.takeName('  ', potter))).toEqual({ ok: false, reason: 'no-name-given' });
+    expect(await TestHarnessApi.actAs(potter, () => jug.takeName("Mother's jug", potter))).toEqual({
       ok: true,
       facts: { promoted: false },
     });
@@ -140,8 +138,8 @@ describe('the thing takes its name — no controller in the way (W8)', () => {
   it('an animal that has not chosen you refuses the promotion', async () => {
     const cat = makeStuff(() => new TestPet());
     vi.spyOn(TestPet.prototype, 'hasChosen').mockReturnValue(false);
-    expect(await cat.takeName('Mouse', stranger)).toEqual({ ok: false, reason: 'not-chosen' });
+    expect(await TestHarnessApi.actAs(stranger, () => cat.takeName('Mouse', stranger))).toEqual({ ok: false, reason: 'not-chosen' });
     cat.setName('Mouse');
-    expect(await cat.takeName('Tom', potter)).toEqual({ ok: false, reason: 'already-named' });
+    expect(await TestHarnessApi.actAs(potter, () => cat.takeName('Tom', potter))).toEqual({ ok: false, reason: 'already-named' });
   });
 });

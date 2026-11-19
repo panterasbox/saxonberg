@@ -98,6 +98,10 @@
       },
       "description": "Verb-level validators that fire BEFORE field validators with `context.commandGiver` populated. Used for command-shape preconditions (animacy, mobility, vocal capacity) that don't tie to a specific arg."
     },
+    "compellable": {
+      "enum": ["never", "consent"],
+      "description": "\u2b50 May another character's code ask this body to run the verb (call-security pass)? `never` (default: nobody can) or `consent` (the body's own player is asked first, every time). Honored only when the controller class declares `static compellable = true`; speech, conferral, membership and giving title or money away are never compellable."
+    },
     "testOnly": {
       "type": "boolean",
       "description": "\u26d4 A TEST-WORLD verb (the `testharness` scaffolding). The view installs everywhere, but the command loader admits it only when `SecurityApi.isTestEnvironment()` \u2014 a world somebody plays in has no such verb: unknown to the dispatcher, never in `help` or the affordances. Pair it with the `requiresTestWorld` validator so the gate is in the view's own data too."
@@ -166,6 +170,10 @@
       "additionalProperties": false,
       "description": "\u26d4 A subcommand stanza is a LEAF \u2014 it may not declare `subcommands:` (or `fallthrough:`). A command is `verb target` or `verb subcommand target`, never deeper (owner rule 2026-11-10); a non-diegetic verb that wants a second word takes a hyphenated compound name (`client-layout save <name>`).",
       "properties": {
+        "compellable": {
+          "enum": ["never", "consent"],
+          "description": "This subcommand's own `compellable:`; the verb's when absent."
+        },
         "description": {
           "type": "string"
         },

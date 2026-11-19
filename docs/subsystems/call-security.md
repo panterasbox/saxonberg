@@ -1260,6 +1260,128 @@ All identity-keyed policies (`FromTemplate`, `FromTemplateMethod`,
 / `resolveTemplatePath` returns `null`) — a class that wasn't stamped by
 the loader transform can never be trusted.
 
+### ⭐⭐ Who is acting — the actor, beside the author
+
+A gate that says *who may call* cannot say *on whose behalf*. Before the
+call-security pass every protective method that took "who is doing this"
+as a parameter (`takeName(name, by)`, `lock(by)`, `withdraw(actor, …)`)
+trusted the argument: any code that could call it could name anybody.
+
+There are now **two reads, and they answer different questions**:
+
+| read | answers | forced chain | used by |
+|---|---|---|---|
+| `ExecutionContextApi.getActingAuthor()` / `getCausingAuthor()` | whose **work** this is — a maker's mark, blame, provenance | `null` (a brain's act has no author) | provenance, chattel title of a fresh good, `inflictedBy`, the document/CMS write gates |
+| `ExecutionContextApi.getActor()` | whose **authority** is being exercised | the NPC (forced or not, the giver is acting) | `AccessApi.requireActor`, banking's payer, the compulsion gate |
+
+`getActor()` walks the live frames from the top and stops at the first that
+**bears** one: a Command frame (its giver); `metadata.actingSystem` (the
+named system — then `getActor()` is `null` and `actingSystem()` answers);
+`metadata.actor` (a continuation's starter, or an object acting as
+itself); `metadata.actingAuthor` (a REST/CMS boundary's principal).
+
+- **Continuations carry it.** `ScheduleApi`, `SchedulerApi` engagements
+  (completion and emissions), `WorldClockApi` schedules and the `eval`
+  roots capture `ExecutionContextApi.captureActor()` when armed and replant
+  it with `runAsCaptured` when they fire. A clock callback acts as whoever
+  armed it — never as whoever happened to move the clock.
+- **The system is named, never implied.** `runAsSystem(name, fn)` (frame
+  allowlist), and a `system: '<name>'` option on `ScheduleApi` /
+  `WorldClockApi`, honored only for `SecurityPolicies.SystemNamer` (the Api
+  tier and the kernel's own `/platform/idea/<X>` singletons — a pack can
+  never name the system). Boot's manifest, spawn sweep and first roster
+  pass run as `boot`, and what they arm inherits it; the residency sweeps,
+  the roster, the clock, weather, fire and lighting are named. ⚠ A root with
+  **no** actor is not the system: a claim made there is refused.
+- **An object acts as itself** with `runAsSelf(fn)` — no principal
+  argument; the self is the current frame's target (the proxy pushes one
+  per method call), so an object can only ever become itself. Brains run
+  under it (`Behaved._runAct`), and so does `BehavedMixin.converse`, which
+  opens a dialogue as the NPC.
+
+### ⭐⭐ The actor check — `AccessApi.requireActor(claimed)`
+
+Every protective method that takes the actor as a parameter makes
+`AccessApi.requireActor(<that param>)` its **first statement**, before any
+other refusal (a liar learns nothing about the target's state). It passes
+when the claim is the same object as `getActor()` — compared by
+`ProxyApi.identityOf`, which peels only proxies `ProxyApi.wrap` made (never
+`RAW_TARGET`, `stuffId` or an identity path: a forgery answers all three);
+when the system is acting; and for a `null` claim (claiming nobody asks
+for the least — a site that must not accept nobody refuses it itself, as
+the blood bank's `takeUnit` does with `no-issuer`). Otherwise it records a
+`call-security` diagnostic against the code that lied
+(`ExecutionContextApi.getActingCodePath()`: the replaced controller's row,
+the brain's NPC), routed to that path's title holder, and throws
+`Refusal('not-acting-for', { claimed })`, worded *"You can't act for …"*.
+
+**Why a call, not a policy.** A method-form `@CallSecurity` replaces the
+class default (each already-gated site would need a hand-composed
+`AllOf`), cannot sit on a module-private helper, and denies with a
+`SecurityError` rather than a worded refusal. The call is one short frame
+walk, and a local rule a census can count.
+
+**`lint:actor-claims`** holds it: a function that passes a parameter as
+the actor to a permission predicate (the `lint:controller-gates`
+vocabulary plus the survey's) without `requireActor` on it is counted;
+predicates (`can…`/`may…`, a `boolean` return) and brains are not. Opened
+at 49, driven to **0** and held. ⚠ A method that decides by a hand-rolled
+comparison no predicate names is invisible to it — name the predicate.
+
+### ⭐⭐ Compulsion — a body is asked
+
+A command one body's code asks ANOTHER body to run (`player.forceCommand`,
+`player.executeCommand` from somebody else's code) is gated at the head of
+`CommandGiverMixin.executeCommand`, before the frame is tagged and before
+anything parses for real. It is the body's **own act**, and never gated,
+when the body is acting already (its player's line, its brain, a
+continuation it started), the system is acting, or the giver's own code
+called it — looking past the giver's own `forceCommand` (an arrival look,
+a login `embody`). Otherwise it is **compelled**, and:
+
+1. code with nobody acting, or sandboxed code (an `eval`, a circle) →
+   `not-compellable`;
+2. every view that claims the line (after the BODY's aliases) must say
+   `compellable: consent` for that subcommand, AND its controller class
+   must declare `static compellable = true` — the view is content anyone
+   with title can save; the class is reviewed code → else
+   `not-compellable` + a `call-security` diagnostic;
+3. the body's own Interactive is asked, default no: *"<asker> would have
+   you run `<line>`. Let them?"* — worded by the engine from the command
+   line, the one thing the asker cannot misdescribe. Nobody to ask (an NPC,
+   an offline player) → `cannot-consent`; no or no answer →
+   `compel-declined`;
+4. yes → the command runs as an ordinary command of the body: its
+   validators, its money, its gates.
+
+**The gate is the only door on the command path** (review, 2026-11-19).
+`CommandGiverMixin._runChain` and `_executeOne` are `SelfOnly` — only the
+giver's own `executeCommand` reaches them — and every
+`CommandController.execute` carries `SecurityPolicies.CommandGiverOf(1)`: a
+controller runs only for the giver its context names, called by that giver
+(the dispatcher; a detached async body is rooted AT the giver). Building a
+context that names another body and running its controller was the side door.
+⚠ A body's verb METHODS called directly (its speech) are still the slate's
+deferred re-gating.
+
+**The keeper drives a body nobody plays.** Whoever holds title over an NPC's
+or an animal's ROW authored its mind, and may make it run anything — no
+consent, no never-list. Owning an animal as chattel is title to a thing, not
+its will: the owner does not drive it, and when its keeper does, a `force`
+diagnostic lands at the owner's home (`/home/<id>`, read in `errors`); every
+drive is also recorded at the body's row. Anyone else is refused
+(`cannot-consent`). The verb is **`force <who> <command>`** (afforded with
+the author verbs); it decides nothing of its own — the gate does.
+
+Every refusal is **thrown to the compelling code**. Speech, conferral,
+membership, and giving title or money away are never compellable —
+`lint:compellable` holds the never-list by controller category, both keys
+on every shipped view, and a ratchet on the declaring classes (1:
+`title buy`, a purchase at a counter at its posted price, which the
+Realtor offers to put through for you). ⚠ The gate covers the **command
+path**: a body's verb *methods* called directly are still possession-is-
+capability (the slate's deferred re-gating).
+
 ### Deferred policies
 
 `Admin`, `ByCommandGiver`, `ByActingAvatar`, `ByResponsibleAvatar` are
@@ -2274,3 +2396,32 @@ base-class exemptions are typechecked for free; the template-path
 strings were not, so a renamed singleton could silently change the
 security surface (the same problem shape `lint:gates` exists for). It
 also asserts the symmetric and inbound-only method sets stay disjoint.
+
+## History — the actor claim and the compulsion gate (MR !635, 2026-11-19)
+
+Commits `49dfde3f5` (W0) through the review wave `921bc432e`. What the
+design learned in the building, so it is not relearned:
+
+- **Author ≠ actor.** Generalizing `getActingAuthor` in place would have
+  made a forced NPC the maker of what it ferments and the titleholder of
+  what it makes; the actor is a second read instead. Banking had already
+  split the two (`actingPrincipal`, now `getActor`).
+- **Identity by `ProxyApi.identityOf`**, which peels only proxies the
+  engine made — `ProxyApi.unwrap` reads `RAW_TARGET` off the value, and a
+  forgery answers it.
+- **"The giver called it" looks past the giver's own `forceCommand`** —
+  read naively it is always true for a forced command.
+- **The drive found what the suite could not:** boot dying on an
+  omni-scoped system root (the world clock reads `*` as quarantined), the
+  keeper's diagnostic naming the check's own logic singleton, a consent
+  question naming a stranger by a name the asked never learned, and — the
+  walk — a consented command that reported to nobody (a refusal of it went
+  unread). And one pre-existing: engagement completions had planted their
+  author onto a method's own short-lived frame (`plantAuthor`), so durative
+  work carried no author at all.
+- **The side doors (review).** The gate in `executeCommand` was one door of
+  several; `_runChain`, `_executeOne` and every controller's `execute`
+  were callable with a context naming any body. Shut: `SelfOnly` and
+  `CommandGiverOf(1)`.
+- **A pet's owner does not drive it (owner, lens pass).** Ownership is
+  title to a thing, not its will; the keeper of its row authored its mind.

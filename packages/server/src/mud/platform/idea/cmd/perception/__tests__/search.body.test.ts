@@ -36,6 +36,7 @@ import Thing from '../../../../thing/Thing';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Garment from '../../../../thing/equipment/Garment';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 class Searcher extends BeliefStoreMixin(
@@ -69,7 +70,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     });
   const search = async (actor: Searcher, body: Stuff): Promise<void> => {
     const controller = makeStuff(() => new SearchController());
-    await controller.execute({ target: { stuff: body, raw: 'corpse' } } as never, ctx(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target: { stuff: body, raw: 'corpse' } } as never, ctx$)))(ctx(actor));
   };
   /** Into `body`'s coat's inner pocket — covered (the flip, W7: never loose on a body). */
   const pocketOn = async (body: Creature, thing: Stuff): Promise<void> => {
@@ -185,7 +186,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     bob.setSpecies(species);
     ContainmentApi.move(bob, room as never);
     await pocketOn(bob, letter);
-    expect(bob.searchRefusal(mara)?.reason).toBe('resists');
+    expect(TestHarnessApi.actAs(mara, () => bob.searchRefusal(mara))?.reason).toBe('resists');
     await search(mara, bob);
     expect(said.join('\n')).toMatch(/won't let you/);
     await finish();

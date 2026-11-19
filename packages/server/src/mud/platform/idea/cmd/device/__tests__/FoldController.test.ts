@@ -31,6 +31,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -89,19 +90,13 @@ describe('FoldController / UnfoldController', () => {
 
   it('folds an unfolded chair', async () => {
     expect(chair.isFolded()).toBe(false);
-    await makeStuff(() => new FoldController()).execute(
-      { target: one(chair, 'chair') } as CommandModel,
-      ctxFor(avatar, room, 'fold'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FoldController()).execute({ target: one(chair, 'chair') } as CommandModel, ctx$)))(ctxFor(avatar, room, 'fold'));
     expect(chair.isFolded()).toBe(true);
   });
 
   it('unfolds a folded chair', async () => {
     chair.fold();
-    await makeStuff(() => new UnfoldController()).execute(
-      { target: one(chair, 'chair') } as CommandModel,
-      ctxFor(avatar, room, 'unfold'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnfoldController()).execute({ target: one(chair, 'chair') } as CommandModel, ctx$)))(ctxFor(avatar, room, 'unfold'));
     expect(chair.isFolded()).toBe(false);
   });
 
@@ -109,10 +104,10 @@ describe('FoldController / UnfoldController', () => {
     const sitter = makeStuff(() => new Sitter());
     chair.occupy(sitter, 'sit');
     const ctx = ctxFor(avatar, room, 'fold');
-    await makeStuff(() => new FoldController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new FoldController()).execute(
       { target: one(chair, 'chair') } as CommandModel,
       ctx,
-    );
+    ));
     expect(chair.isFolded()).toBe(false);
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
@@ -122,10 +117,10 @@ describe('FoldController / UnfoldController', () => {
   it('rejects a non-foldable target', async () => {
     const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room, 'fold');
-    await makeStuff(() => new FoldController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new FoldController()).execute(
       { target: one(rock, 'rock') } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

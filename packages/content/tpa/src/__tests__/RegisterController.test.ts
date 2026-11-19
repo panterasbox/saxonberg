@@ -45,6 +45,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 const NODE = "/system/tpa/thing/test-gate";
 
@@ -125,10 +126,10 @@ describe("RegisterController — AC14, registering costs nothing", () => {
       const post = vi.spyOn(BankingApi, "transfer");
 
       const c = ctx(giver, loc, node as unknown as Stuff);
-      await makeStuff(() => new RegisterController()).execute(
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RegisterController()).execute(
         {} as CommandModel,
         c,
-      );
+      ));
 
       expect(travelCredential(giver).getCredential("travel")!.isRegistered(NODE)).toBe(true);
       expect(settle).not.toHaveBeenCalled();
@@ -153,10 +154,10 @@ describe("RegisterController — AC14, registering costs nothing", () => {
 
     const settle = vi.spyOn(BankingApi, "settle");
     const c = ctx(giver, loc, node as unknown as Stuff);
-    await makeStuff(() => new RegisterController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RegisterController()).execute(
       {} as CommandModel,
       c,
-    );
+    ));
 
     expect(
       c.getNotes().some(

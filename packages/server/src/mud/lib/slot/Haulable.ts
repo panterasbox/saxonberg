@@ -314,7 +314,7 @@ export function HaulableMixin<
       const hauler = this.getHauledBy();
       if (!hauler) return null;
       const name = hauler.getPresentation();
-      return hauler.unhitch(hauler).ok ? name : null;
+      return hauler.slipFrom(this as unknown as Stuff) ? name : null;
     }
 
     /** See {@link Haulable.coverFor}. */

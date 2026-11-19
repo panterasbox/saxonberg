@@ -52,6 +52,7 @@ import type { LifeStage } from '../../platform/idea/species/Species';
 import type { MarkupAugmenter } from '../../api/mml';
 import { ConditionApi } from '../../api/condition';
 import { SpeciesApi } from '../../api/species';
+import { AccessApi } from '../../api/access';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -440,7 +441,9 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isUndead(): boolean { return this.lifecycleState === 'undead'; }
 
     /** @hook See {@link Organism.slaughterRefusal}. */
-    public async slaughterRefusal(_by: Stuff): Promise<SlaughterRefusal | null> {
+    public async slaughterRefusal(by: Stuff): Promise<SlaughterRefusal | null> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const self = this as unknown as Stuff & Organism;
       if (!this.isAlive()) return 'not-an-animal';
       // ⚠⚠ Warm the species before asking it anything: `isSentient`

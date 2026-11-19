@@ -40,6 +40,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 /** Each `bank` subcommand's controller, as the view names them (W8). */
 const BANK = {
@@ -54,7 +55,7 @@ const BANK = {
 function bankSub(m: unknown, ctx: CommandContext): Promise<void> {
   const sub = ((m as { subcommand?: string }).subcommand ?? "balance") as keyof typeof BANK;
   const C = BANK[sub];
-  return makeStuff(() => new C()).execute(m as never, ctx);
+  return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new C()).execute(m as never, ctx));
 }
 
 class TestGiver extends SensorMixin(

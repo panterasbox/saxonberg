@@ -43,6 +43,7 @@ import Good from '../../lib/stuff/Good';
 import Place from '../../lib/stuff/Place';
 import { ContainmentApi } from '../containment';
 import { NamedMixin } from '../../lib/description/Named';
+import { TestHarnessApi } from '../test-harness';
 
 class TestSword extends NamedMixin(Good) {
   static _mixinName = 'TestSword';
@@ -161,10 +162,10 @@ describe("the Prime Minister's typed world query", () => {
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    const out = await CommandApi.resolveModel(
+    const out = await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel(
       { target: 'world:[mixin.NamedMixin]' },
       ctx,
-    );
+    ));
 
     expect(out).toEqual({ result: 'failed' });
     const notes = notesOf(ctx);
@@ -181,10 +182,10 @@ describe("the Prime Minister's typed world query", () => {
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    const out = await CommandApi.resolveModel(
+    const out = await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel(
       { target: 'world:[mixin.NamedMixin]' },
       ctx,
-    );
+    ));
 
     expect('resolved' in out).toBe(true);
     const scan = notesOf(ctx).find((n) => n.kind === 'registry-scan');
@@ -205,7 +206,7 @@ describe("the Prime Minister's typed world query", () => {
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    await CommandApi.resolveModel({ target: 'world' }, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel({ target: 'world' }, ctx));
 
     const scan = notesOf(ctx).find((n) => n.kind === 'registry-scan');
     expect(scan).toMatchObject({ indexed: false, shape: 'world' });
@@ -216,10 +217,10 @@ describe("the Prime Minister's typed world query", () => {
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     const ctx = contextFor(avatar, location, TWO_FIELD_SPEC, 'pair');
 
-    await CommandApi.resolveModel(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel(
       { first: 'world:[mixin.NamedMixin]', second: 'world' },
       ctx,
-    );
+    ));
 
     // ⭐ The subject is the giver, and the question is the executive's
     // — the head of it today. Both fields were refused, so both asked.
@@ -233,16 +234,16 @@ describe("the Prime Minister's typed world query", () => {
     // the dispatch — or into the next one.
     const { avatar, location } = await setup();
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
-    await CommandApi.resolveModel(
+    await TestHarnessApi.actAs(contextFor(avatar, location, SPEC, 'poke').commandGiver, () => CommandApi.resolveModel(
       { target: 'world' },
       contextFor(avatar, location, SPEC, 'poke'),
-    );
+    ));
 
     expect(ExecutionContextApi.getWorldReadGrant()).toBeNull();
 
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
-    const out = await CommandApi.resolveModel({ target: 'world' }, ctx);
+    const out = await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel({ target: 'world' }, ctx));
     expect(out).toEqual({ result: 'failed' });
   });
 
@@ -251,7 +252,7 @@ describe("the Prime Minister's typed world query", () => {
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    await CommandApi.resolveModel({ target: 'sword' }, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel({ target: 'sword' }, ctx));
 
     expect(holds).not.toHaveBeenCalled();
   });
@@ -262,7 +263,7 @@ describe("the Prime Minister's typed world query", () => {
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
     const before = seatStat();
-    await CommandApi.resolveModel({ target: 'world' }, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel({ target: 'world' }, ctx));
     const after = seatStat();
 
     expect(after).toBeDefined();
@@ -281,7 +282,7 @@ describe("the Prime Minister's typed world query", () => {
     const before = seatStat();
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    await CommandApi.resolveModel({ target: 'world' }, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => CommandApi.resolveModel({ target: 'world' }, ctx));
 
     const after = seatStat();
     expect(after?.calls ?? 0).toBe(before?.calls ?? 0);

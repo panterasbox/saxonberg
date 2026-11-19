@@ -174,6 +174,18 @@ the `act` entry live as **statics** so they read without instantiation
 | `trigger` | `{ source: 'cadence' \| 'witness', raw }` |
 | `say` / `emote` / `emoteFree` | Host-bound emission helpers (safe no-ops if the host lacks Vocal/Soul), so brains carry no mixin-narrowing boilerplate |
 
+## ⭐ A brain acts as its NPC (call-security pass)
+
+`Behaved._runAct` runs every brain's `act` under
+`ExecutionContextApi.runAsSelf` — the NPC is acting, even when a witness
+fired the brain inside a player's command or its timer was armed while a
+player loaded the room. A protective act the brain calls with the NPC as
+the actor (`door.unlock(npc)`) passes `AccessApi.requireActor`; one naming
+anybody else is refused. The same holds for a conversation: the NPC opens
+it itself (`BehavedMixin.converse`), so its `dispatch` lines are the
+NPC's own commands, never compelled. ⚠ A brain module's `host` is the
+framework's, so `lint:actor-claims` does not count brains.
+
 ## Path resolution + HMR
 
 A brain is referenced by a *logical path* (`/lib/behavior/patrols`) and

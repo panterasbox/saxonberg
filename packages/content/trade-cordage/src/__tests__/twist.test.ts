@@ -26,6 +26,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Body extends Character {}
 
@@ -153,10 +154,10 @@ describe('twist at the walk (cordage D5)', () => {
       verb: 'twist',
       command: CommandDefinition.fromYaml('verbs: [twist]\ncontroller: NoopController\ndescription: stub\n', '<test>'),
     });
-    await makeStuff(() => new TwistController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new TwistController()).execute(
       { stock: { stuff: [y as unknown as Stuff] }, jack: { stuff: jack as unknown as Stuff }, length: '400 m' } as never,
       context,
-    );
+    ));
     expect(said.join(' ')).toMatch(/The walk is 300 m long; a rope cannot be laid longer than it/);
     expect(context.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
   });

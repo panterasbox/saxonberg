@@ -20,6 +20,7 @@ import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture
 import { makeBody, pack } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import Location from '../../../../../lib/location/Location';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const one = (stuff: Stuff | null, raw: string, prep?: string): MqlOneResult => ({ stuff, raw, ...(prep ? { prep } : {}) });
 
@@ -62,10 +63,10 @@ describe('`get X from <a shut thing>` — shut, `open` first', () => {
       verb: 'get',
       command: CommandDefinition.fromYaml('verbs: [get]\ncontroller: NoopController\ndescription: stub\n', '<test>'),
     });
-    await makeStuff(() => new GetController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new GetController()).execute(
       { targets: { stuff: [], raw: 'pistol' }, source: one(backpack, 'backpack', 'from') } as ModelData as never,
       c,
-    );
+    ));
     const line = said.join('\n');
     expect(line).toMatch(/is shut — `open backpack` first/);
     expect(line).not.toMatch(/don't find/);

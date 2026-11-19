@@ -40,6 +40,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { standAddressIndex } from '../../../../../lib/address/__tests__/address-index';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Room extends AddressableMixin(ContainerMixin(Idea)) {}
 // The stealth-band read runs ON the placer since the OO sweep; pinned
@@ -111,7 +112,7 @@ describe('ArmController — deploy', () => {
     vi.spyOn(StuffApi, 'clone').mockResolvedValue(deployed as never);
 
     const context = ctx(placer);
-    await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context));
 
     expect(deployed.getConcealment()).toBe('hidden');
     expect(deployed.getPlacedBy()).toBe(placer.getTemplatePath());
@@ -127,7 +128,7 @@ describe('ArmController — deploy', () => {
     vi.spyOn(GovernmentApi, 'governmentAt').mockResolvedValue(null);
     const clone = vi.spyOn(StuffApi, 'clone');
     const context = ctx(placer);
-    await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context));
     expect(clone).not.toHaveBeenCalled();
     expect(context.note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected' }));
   });
@@ -137,7 +138,7 @@ describe('ArmController — deploy', () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'player', templatePath: '/home/x' } as never);
     const clone = vi.spyOn(StuffApi, 'clone');
-    expect(await kit.armBy(placer)).toEqual({ ok: false, reason: 'not-your-property' });
+    expect(await TestHarnessApi.actAs(placer, () => kit.armBy(placer))).toEqual({ ok: false, reason: 'not-your-property' });
     expect(clone).not.toHaveBeenCalled();
   });
 
@@ -151,7 +152,7 @@ describe('ArmController — deploy', () => {
     const clone = vi.spyOn(StuffApi, 'clone');
 
     const context = ctx(placer);
-    await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context));
 
     expect(clone).not.toHaveBeenCalled();
     expect(context.note).toHaveBeenCalledWith(
@@ -163,10 +164,10 @@ describe('ArmController — deploy', () => {
     const { placer } = scene();
     const notAKit = makeStuff(() => new Idea());
     const context = ctx(placer);
-    await makeStuff(() => new ArmController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new ArmController()).execute(
       { target: { stuff: notAKit } } as never,
       context,
-    );
+    ));
     expect(context.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-kit' }),
     );
@@ -186,10 +187,7 @@ describe('pick-up-your-own-trap (GetController gate)', () => {
     trap.setPlacedBy('/platform/agent/Avatar/owner'); // theirs
     ContainmentApi.move(trap, room);
 
-    await makeStuff(() => new GetController()).execute(
-      getModel(trap) as never,
-      ctx(placer, room) as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => makeStuff(() => new GetController()).execute(getModel(trap) as never, ctx$)))(ctx(placer, room) as never);
     expect(trap.getContainer()).toBe(placer);
   });
 
@@ -202,10 +200,7 @@ describe('pick-up-your-own-trap (GetController gate)', () => {
     ContainmentApi.move(trap, room);
 
     const context = ctx(stranger, room);
-    await makeStuff(() => new GetController()).execute(
-      getModel(trap) as never,
-      context as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => makeStuff(() => new GetController()).execute(getModel(trap) as never, ctx$)))(context as never);
     expect(trap.getContainer()).toBe(room); // left behind
     expect(context.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-your-trap' }),

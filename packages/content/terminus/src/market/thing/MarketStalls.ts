@@ -67,6 +67,7 @@ import type {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 /** Why `MarketStalls.let` refused. Each is decided before any money moves. */
 export type StallLetRefusal =
@@ -249,6 +250,8 @@ export default class MarketStalls extends Stock {
    * re-minted from the renter every time (nothing in it is its own).
    */
   public async let(renter: Stuff): Promise<StallLetAnswer> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(renter);
     const rent = this.rentMinor;
     const refuse = (reason: StallLetRefusal): StallLetAnswer => ({ ok: false, reason, rentMinor: rent });
     const renterKey = renter.getIdentityPath() ?? '';

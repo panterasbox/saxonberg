@@ -17,6 +17,7 @@ import { PlayerApi } from "../../../../../api/player";
 import { MessageApi } from "../../../../../api/message";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext } from "../../../../../api/command";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 type WizardModel = Record<string, unknown>;
 
@@ -62,7 +63,7 @@ describe("WizardGrantController / WizardRevokeController", () => {
       model.subcommand === "revoke"
         ? makeStuff(() => new WizardRevokeController())
         : makeStuff(() => new WizardGrantController());
-    return ctrl.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   }
 
   it("grant adds the target to wizards (makeWizard=true)", async () => {

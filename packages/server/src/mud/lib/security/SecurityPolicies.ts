@@ -451,6 +451,25 @@ function FromMixin(
  * the argument is the proxy (or the other way round). A caller with no
  * `stuffId` is never the subject.
  */
+/**
+ * ⭐ `CommandGiverOf(ctxIndex)` — the caller IS the command giver the call's
+ * `CommandContext` names (the object at `args[ctxIndex].commandGiver`), the
+ * same object. The gate on `CommandController.execute` (call-security pass):
+ * a controller runs only for the giver whose own dispatch called it, so code
+ * cannot build a context naming another body and run its controller — the
+ * side door around the compulsion gate.
+ */
+function CommandGiverOf(ctxIndex = 1): SecurityPolicy {
+  return {
+    name: `CommandGiverOf(${ctxIndex})`,
+    allows(caller, _target, _method, args) {
+      if (caller === null || typeof caller !== 'object') return false;
+      const ctx = (args ?? [])[ctxIndex] as { commandGiver?: unknown } | undefined;
+      return ctx?.commandGiver === caller;
+    },
+  };
+}
+
 function SelfSubject(argIndex = 0): SecurityPolicy {
   return {
     name: `SelfSubject(${argIndex})`,
@@ -632,6 +651,22 @@ function Custom(
 }
 
 /**
+ * ⭐ `SystemNamer` — who may run scheduled work AS THE SYSTEM
+ * (`ScheduleApi`/`WorldClockApi`'s `system:` option; call-security pass
+ * D3): the Api tier and the kernel's own singletons (`/platform/idea/<X>`,
+ * one segment — never a controller under `/platform/idea/cmd/`). A pack has
+ * neither, so a pack can never name the system.
+ */
+const SystemNamerPolicy: SecurityPolicy = (() => {
+  const singletons = FromTemplate('/platform/idea/*');
+  return {
+    name: 'SystemNamer',
+    allows: (caller, target, method) =>
+      ApiOnlyPolicy.allows(caller, target, method) || singletons.allows(caller, target, method),
+  };
+})();
+
+/**
  * Static-class style namespace (matches the codebase's preference for
  * static utility classes — see StuffApi, MixinApi, etc.).
  *
@@ -645,6 +680,7 @@ export const SecurityPolicies = {
   SystemRoot: SystemRootPolicy,
   SelfOnly: SelfOnlyPolicy,
   ApiOnly: ApiOnlyPolicy,
+  SystemNamer: SystemNamerPolicy,
   Custom,
   AllOf,
   AnyOf,
@@ -656,6 +692,7 @@ export const SecurityPolicies = {
   FromMixin,
   FromController,
   SelfSubject,
+  CommandGiverOf,
 } as const;
 
 export { FromController };

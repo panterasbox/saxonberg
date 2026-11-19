@@ -16,6 +16,7 @@ import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CommandContext } from '../../../../../api/command';
 import { MixinApi } from '../../../../../api/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let captured: string;
 
@@ -80,7 +81,7 @@ describe('WhoController', () => {
       composeRosterRow: (t: { stuffId: string }) =>
         ROWS[t.stuffId as keyof typeof ROWS]!,
     } as unknown as Stuff;
-    await makeStuff(() => new WhoController()).execute({} as never, ctxFor(viewer));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WhoController()).execute({} as never, ctx$)))(ctxFor(viewer));
     expect(captured).toContain('Online — 2');
     expect(captured).toContain('Mara');
     expect(captured).toContain('Brazil');
@@ -95,10 +96,7 @@ describe('WhoController', () => {
       composeRosterRow: (t: { stuffId: string }) =>
         ROWS[t.stuffId as keyof typeof ROWS]!,
     } as unknown as Stuff;
-    await makeStuff(() => new WhoController()).execute(
-      { country: 'brazil' } as never,
-      ctxFor(viewer)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WhoController()).execute({ country: 'brazil' } as never, ctx$)))(ctxFor(viewer));
     expect(captured).toContain('Mara');
     expect(captured).not.toContain('Japan');
   });

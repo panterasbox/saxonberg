@@ -43,6 +43,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { PumpableMixin, type Pumpable, type PumpPrognosis, type PumpResult } from '../../../../../lib/pump/Pumpable';
 import { Mml } from '../../../../../api/mml';
 import type { BuildStepOptions } from '../../crafting/ManualBuildController';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -111,10 +112,10 @@ function capture(): { self: string[]; peers: string[] } {
 
 async function pump(target: Stuff, raw: string, avatar: FakeAvatar, room: Place): Promise<CommandContext> {
   const ctx = ctxFor(avatar, room);
-  await makeStuff(() => new PumpController()).execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PumpController()).execute(
     { target: one(target, raw) } as CommandModel,
     ctx,
-  );
+  ));
   return ctx;
 }
 

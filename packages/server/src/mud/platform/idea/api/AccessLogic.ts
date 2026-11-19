@@ -8,8 +8,12 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { PlayerApi } from '../../../api/player';
 import { TemplatePaths } from '../../../lib/paths';
-import type { Stuff } from '../../../lib/stuff/Stuff';
+import { Stuff } from '../../../lib/stuff/Stuff';
 import type AccessRegistry from '../AccessRegistry';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { ProxyApi } from '../../../api/proxy';
+import { DiagnosticApi } from '../../../api/diagnostics';
+import { Refusal } from '../../../lib/errors';
 
 const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
@@ -26,6 +30,15 @@ const AccessApiCallers = SecurityPolicies.FromModule('/api/access#AccessApi'
  * `dest`/recreate and is cleared by the reload seam below.
  */
 let registryRef: AccessRegistry | null = null;
+
+/** A diagnostic's name for a principal: its identity path, else its class. */
+function nameFor(who: unknown): string {
+  if (who instanceof Stuff) {
+    const path = who.getIdentityPath();
+    if (path) return path;
+  }
+  return (who as { constructor?: { name?: string } } | null)?.constructor?.name ?? 'something';
+}
 function lookupRegistry(): AccessRegistry | null {
   if (registryRef) return registryRef;
   const reg = StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
@@ -70,6 +83,30 @@ function lookupRegistry(): AccessRegistry | null {
  */
 @Unshadowable
 export class AccessLogic extends ApiLogic {
+  /** See {@link AccessApi.requireActor}. */
+  @CallSecurity(AccessApiCallers)
+  public requireActor(claimed: Stuff | null, act: string): void {
+    // Claiming nobody asks for the least: a site that must not accept
+    // nobody refuses it itself (D6).
+    if (claimed == null) return;
+    // The system acts for anyone, and the frame says so (D3).
+    if (ExecutionContextApi.actingSystem() !== null) return;
+    const actor = ExecutionContextApi.getActor();
+    if (actor != null && ProxyApi.identityOf(actor) === ProxyApi.identityOf(claimed)) return;
+    // ⭐ A lie (or code with nobody acting naming somebody). Tell the code's
+    // keeper — fire and forget, a diagnostic never blocks the refusal — and
+    // refuse out loud.
+    const path = ExecutionContextApi.getActingCodePath();
+    const by = actor == null ? 'nobody' : nameFor(actor);
+    void DiagnosticApi.record({
+      path,
+      channel: 'call-security',
+      severity: 'error',
+      message: `${act}: ${by} claimed to act for ${nameFor(claimed)}`,
+    }).catch(() => undefined);
+    throw new Refusal('not-acting-for', { claimed });
+  }
+
   /** See {@link AccessApi.can}. */
   @CallSecurity(AccessApiCallers)
   public async can(

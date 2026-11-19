@@ -56,6 +56,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Placements } from '../../../../../lib/spatial/Placement';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Cook extends AetherMixin(
   SensorMixin(
@@ -145,10 +146,10 @@ describe('`dry` — hang it where the air can reach it', () => {
   it('⭐⭐ puts the cut ON the rack — which is what makes exposure reachable', async () => {
     const { room, cook, rack, cut } = scene(40);
     const c = ctx(cook, room);
-    await makeStuff(() => new DryController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryController()).execute(
       { target: bound(cut, 'cut'), rack: bound(rack, 'rack') } as DryModel,
       c,
-    );
+    ));
     expect(MixinApi.isContainable(cut) && (cut.getPlacement()?.host ?? null)).toBe(rack);
     // …and `place` moved it into the ROOM, not into the rack — which is
     // exactly why `getPlacement()` is the only thing that tells a racked
@@ -165,10 +166,10 @@ describe('`dry` — hang it where the air can reach it', () => {
     });
     ContainmentApi.move(rock as never, room as never);
     const c = ctx(cook, room);
-    await makeStuff(() => new DryController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryController()).execute(
       { target: bound(rock, 'rock'), rack: bound(rack, 'rack') } as DryModel,
       c,
-    );
+    ));
     const notes = c.getNotes().map((n) => JSON.stringify(n)).join(' ');
     expect(notes).toContain('not-dryable');
     // It was NOT hung up.
@@ -261,10 +262,10 @@ describe('`dry` — hang it where the air can reach it', () => {
       const h = hook();
       ContainmentApi.move(h as never, room as never);
       const c = ctx(cook, room);
-      await makeStuff(() => new DryController()).execute(
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryController()).execute(
         { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'from') } as DryModel,
         c,
-      );
+      ));
       expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
         Placements.FROM,
       );
@@ -281,10 +282,7 @@ describe('`dry` — hang it where the air can reach it', () => {
       const { room, cook, cut } = scene(40);
       const h = hook();
       ContainmentApi.move(h as never, room as never);
-      await makeStuff(() => new DryController()).execute(
-        { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'on') } as DryModel,
-        ctx(cook, room),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DryController()).execute({ target: bound(cut, 'cut'), rack: bound(h, 'hook', 'on') } as DryModel, ctx$)))(ctx(cook, room));
       // The player typed `on`; the world hung it FROM. That is how the
       // word gets taught, with no tutorial and no code here knowing.
       expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(
@@ -307,10 +305,7 @@ describe('`dry` — hang it where the air can reach it', () => {
 
     it('the rack is unchanged — `on` still resolves, and still reads `on`', async () => {
       const { room, cook, rack, cut } = scene(40);
-      await makeStuff(() => new DryController()).execute(
-        { target: bound(cut, 'cut'), rack: bound(rack, 'rack', 'on') } as DryModel,
-        ctx(cook, room),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DryController()).execute({ target: bound(cut, 'cut'), rack: bound(rack, 'rack', 'on') } as DryModel, ctx$)))(ctx(cook, room));
       expect(MixinApi.isContainable(cut) && cut.getPlacement()?.name).toBe(Placements.ON);
     });
 
@@ -319,10 +314,10 @@ describe('`dry` — hang it where the air can reach it', () => {
       const h = hook();
       ContainmentApi.move(h as never, room as never);
       const c = ctx(cook, room);
-      await makeStuff(() => new DryController()).execute(
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryController()).execute(
         { target: bound(cut, 'cut'), rack: bound(h, 'hook', 'into') } as DryModel,
         c,
-      );
+      ));
       const notes = c.getNotes().map((n) => JSON.stringify(n)).join(' ');
       expect(notes).toContain('wrong-preposition');
       expect(
@@ -365,10 +360,10 @@ describe('`dry <thing> with <cloth>` — the second shape, its own controller (W
   it('a dry thing is refused — there is no water in it to take out', async () => {
     const { room, cook, towel, thing } = rubScene();
     const c = ctx(cook, room);
-    await makeStuff(() => new DryRubController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryRubController()).execute(
       { target: bound(thing, 'thing'), cloth: bound(towel, 'towel') } as DryRubModel,
       c,
-    );
+    ));
     expect(c.getNotes().map((n) => JSON.stringify(n)).join(' ')).toContain('not-dryable');
   });
 
@@ -378,10 +373,10 @@ describe('`dry <thing> with <cloth>` — the second shape, its own controller (W
     thing.wet(0.9);
     const before = thing.getWetness();
     const c = ctx(cook, room);
-    await makeStuff(() => new DryRubController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DryRubController()).execute(
       { target: bound(thing, 'thing'), cloth: bound(towel, 'towel') } as DryRubModel,
       c,
-    );
+    ));
     expect(c.getNotes().filter((n) => n.kind === 'controller-rejected').map((n) => JSON.stringify(n))).toEqual([]);
     expect(thing.getWetness()).toBeLessThan(before);
     expect(towel.getWetness()).toBeGreaterThan(0);

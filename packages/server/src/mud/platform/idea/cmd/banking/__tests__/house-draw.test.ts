@@ -24,6 +24,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 const BUSINESS = "/world/test/business";
 const DAVE = "/world/test/npc/dave";
@@ -93,7 +94,7 @@ describe("house draw", () => {
 
   it("a proprietor draws: a draw leg, business debited, primary credited", async () => {
     const c = ctx(dave);
-    await asGiver(dave, () => draw().execute({ amount: 80 } as never, c));
+    await asGiver(dave, () => TestHarnessApi.actAs(c.commandGiver, () => draw().execute({ amount: 80 } as never, c)));
     expect(c.note).not.toHaveBeenCalled();
     expect(BankingApi.balanceOf(bizAcct).minor).toBe(120);
     expect(BankingApi.balanceOf(daveAcct).minor).toBe(80);
@@ -105,7 +106,7 @@ describe("house draw", () => {
 
   it("a non-proprietor is refused by the participant gate", async () => {
     const c = ctx(mara);
-    await asGiver(mara, () => draw().execute({ amount: 10 } as never, c));
+    await asGiver(mara, () => TestHarnessApi.actAs(c.commandGiver, () => draw().execute({ amount: 10 } as never, c)));
     expect(c.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "not-proprietor" }),
     );
@@ -114,7 +115,7 @@ describe("house draw", () => {
 
   it("short funds refused (solvency-checked, unlike the wage)", async () => {
     const c = ctx(dave);
-    await asGiver(dave, () => draw().execute({ amount: 500 } as never, c));
+    await asGiver(dave, () => TestHarnessApi.actAs(c.commandGiver, () => draw().execute({ amount: 500 } as never, c)));
     expect(c.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "draw-refused" }),
     );

@@ -390,6 +390,12 @@ Three `command-rejected` reasons are worded from rows too — `needs-input`,
 `parse-failed`, `bind-failed` — with a `suggestion` appended as the line to
 tap. The other six stay on the dispatcher's own arms.
 
+
+**The call-security pass's rows** (platform pack): `not-acting-for`
+(*"You can't act for …"* — a protective act handed somebody other than who
+is acting), `not-compellable`, `cannot-consent`, `compel-declined` (another
+body's code asked a body to run a command), and the blood window's
+`no-issuer`, `not-keeper`, `lot-empty`.
 ### `controller-error` is the dispatcher's catch — controllers don't try/catch
 
 ⭐ Since the failure model (2026-11), `detail` is the WORDED sentence — the

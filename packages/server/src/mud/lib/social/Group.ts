@@ -25,6 +25,7 @@ import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
 import { PlayerApi } from '../../api/player';
 import type { Stuff } from '../stuff/Stuff';
+import { AccessApi } from '../../api/access';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
 
@@ -167,6 +168,8 @@ export class Group extends Document {
    * subscribers, as every managed write is.
    */
   async rename(newName: string, by: Stuff): Promise<{ ok: true } | GroupRenameRefusal> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     // Lazy: the Api reaches this class; a static import is a cycle risk.
     const { GroupApi } = await import('../../api/group');
     if (!(await GroupApi.ownsGroup(by, this))) return { ok: false, reason: 'not-owner' };

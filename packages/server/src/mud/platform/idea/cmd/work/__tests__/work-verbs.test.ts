@@ -52,6 +52,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 class Person extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(Idea))),
@@ -196,7 +197,7 @@ describe("work verbs", () => {
           scope: "reachable",
         }).stuff;
         const bound = stuff ? { raw: "board", stuff } : undefined;
-        return makeStuff(() => new JOB[sub]()).execute({ board: bound, ...model } as never, c);
+        return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new JOB[sub]()).execute({ board: bound, ...model } as never, c));
       },
     };
   }
@@ -209,7 +210,7 @@ describe("work verbs", () => {
   ): Promise<string> {
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `deliver crate to ${DEST}`,
@@ -217,7 +218,7 @@ describe("work verbs", () => {
           ...extra,
         } as never,
         c,
-      ),
+      )),
     );
     const gigs = await ContractApi.openGigsOn(BOARD);
     return gigs[gigs.length - 1]?.contractId ?? "";
@@ -228,7 +229,7 @@ describe("work verbs", () => {
     expect(id).not.toBe("");
     sent = [];
     await asGiver(courier, () =>
-      job().execute({ subcommand: undefined } as never, ctx(courier)),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => job().execute({ subcommand: undefined } as never, ctx$)))(ctx(courier)),
     );
     expect(sent.join("\n")).toContain("deliver crate to bar");
     expect(sent.join("\n")).toContain("25 credits");
@@ -299,7 +300,7 @@ describe("work verbs", () => {
     }
     const short = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+      TestHarnessApi.actAs(short.commandGiver, () => job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short)),
     );
     expect(short.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "contract-refused" }),
@@ -311,7 +312,7 @@ describe("work verbs", () => {
     ContainmentApi.move(third as never, dest);
     const done = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+      TestHarnessApi.actAs(done.commandGiver, () => job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done)),
     );
     expect(done.note).not.toHaveBeenCalled();
   });
@@ -325,7 +326,7 @@ describe("work verbs", () => {
      */
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `deliver ${CRATE} to ${DEST}`,
@@ -333,7 +334,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     expect(c.note).not.toHaveBeenCalled();
     const gigs = await ContractApi.openGigsOn(BOARD);
@@ -363,7 +364,7 @@ describe("work verbs", () => {
     }
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `deliver ${CRATE} to ${DEST}`,
@@ -371,7 +372,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     expect(c.note).not.toHaveBeenCalled();
     const gigs = await ContractApi.openGigsOn(BOARD);
@@ -384,7 +385,7 @@ describe("work verbs", () => {
   it("⚠ a kind that is nothing is refused — the escrow would sit forever", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `deliver /obj/test/no-such-thing to ${DEST}`,
@@ -392,7 +393,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     expect(c.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "contract-refused" }),
@@ -409,7 +410,7 @@ describe("work verbs", () => {
     const id = await postGig();
     const claimCtx = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "claim", id: id.slice(0, 8) } as never, claimCtx),
+      TestHarnessApi.actAs(claimCtx.commandGiver, () => job().execute({ subcommand: "claim", id: id.slice(0, 8) } as never, claimCtx)),
     );
     expect(claimCtx.note).not.toHaveBeenCalled();
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(25);
@@ -417,7 +418,7 @@ describe("work verbs", () => {
     // Before delivery: complete refuses with the not-done prose.
     const early = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete" } as never, early),
+      TestHarnessApi.actAs(early.commandGiver, () => job().execute({ subcommand: "complete" } as never, early)),
     );
     expect(early.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "contract-refused" }),
@@ -426,7 +427,7 @@ describe("work verbs", () => {
     ContainmentApi.move(crate, dest);
     const done = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete" } as never, done),
+      TestHarnessApi.actAs(done.commandGiver, () => job().execute({ subcommand: "complete" } as never, done)),
     );
     expect(done.note).not.toHaveBeenCalled();
     const acct = await BankingApi.primaryAccountIdOf(COURIER);
@@ -437,11 +438,11 @@ describe("work verbs", () => {
   it("a second claim is refused through the verb path", async () => {
     const id = await postGig();
     await asGiver(courier, () =>
-      job().execute({ subcommand: "claim", id } as never, ctx(courier)),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => job().execute({ subcommand: "claim", id } as never, ctx$)))(ctx(courier)),
     );
     const rivalCtx = ctx(poster);
     await asGiver(poster, () =>
-      job().execute({ subcommand: "claim", id } as never, rivalCtx),
+      TestHarnessApi.actAs(rivalCtx.commandGiver, () => job().execute({ subcommand: "claim", id } as never, rivalCtx)),
     );
     expect(rivalCtx.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "contract-refused" }),
@@ -451,12 +452,12 @@ describe("work verbs", () => {
   it("fulfill at the destination seals; abandon reverts + reopens", async () => {
     const id = await postGig();
     await asGiver(courier, () =>
-      job().execute({ subcommand: "claim", id } as never, ctx(courier)),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => job().execute({ subcommand: "claim", id } as never, ctx$)))(ctx(courier)),
     );
     ContainmentApi.move(crate, dest);
     ContainmentApi.move(courier, dest);
     const seal = ctx(courier);
-    await asGiver(courier, () => fulfill().execute({} as never, seal));
+    await asGiver(courier, () => TestHarnessApi.actAs(seal.commandGiver, () => fulfill().execute({} as never, seal)));
     expect(seal.note).not.toHaveBeenCalled();
     expect(
       (await ContractApi.eventsFor(id)).map((e) => e.event),
@@ -466,7 +467,7 @@ describe("work verbs", () => {
     ContainmentApi.move(courier, room);
     const quit = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "abandon" } as never, quit),
+      TestHarnessApi.actAs(quit.commandGiver, () => job().execute({ subcommand: "abandon" } as never, quit)),
     );
     expect(quit.note).not.toHaveBeenCalled();
     expect((await ContractApi.contractById(id))?.state).toBe("open");
@@ -478,7 +479,7 @@ describe("work verbs", () => {
     ContainmentApi.move(courier, nowhere);
     const lost = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: undefined } as never, lost),
+      TestHarnessApi.actAs(lost.commandGiver, () => job().execute({ subcommand: undefined } as never, lost)),
     );
     expect(lost.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "no-board" }),
@@ -489,7 +490,7 @@ describe("work verbs", () => {
 
   it("bare fulfill refuses with no claim, and with several claims", async () => {
     const none = ctx(courier);
-    await asGiver(courier, () => fulfill().execute({} as never, none));
+    await asGiver(courier, () => TestHarnessApi.actAs(none.commandGiver, () => fulfill().execute({} as never, none)));
     expect(none.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "no-claim" }),
     );
@@ -497,11 +498,11 @@ describe("work verbs", () => {
     const idB = await postGig();
     for (const id of [idA, idB]) {
       await asGiver(courier, () =>
-        job().execute({ subcommand: "claim", id } as never, ctx(courier)),
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => job().execute({ subcommand: "claim", id } as never, ctx$)))(ctx(courier)),
       );
     }
     const many = ctx(courier);
-    await asGiver(courier, () => fulfill().execute({} as never, many));
+    await asGiver(courier, () => TestHarnessApi.actAs(many.commandGiver, () => fulfill().execute({} as never, many)));
     expect(many.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "ambiguous-claim" }),
     );
@@ -562,7 +563,7 @@ describe("work verbs", () => {
   it("⭐ `supply 4 pieces of gin` posts a COUNTED category (a stack may fill it)", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `supply 4 pieces of gin to ${DEST}`,
@@ -570,7 +571,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     expect(c.note).not.toHaveBeenCalled();
     const gigs = await ContractApi.openGigsOn(BOARD);
@@ -584,7 +585,7 @@ describe("work verbs", () => {
   it("⭐ ONE demijohn of six litres satisfies `supply 6 litres of gin`", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `supply 6 litres of gin to ${DEST}`,
@@ -592,7 +593,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     expect(c.note).not.toHaveBeenCalled();
     const gigs = await ContractApi.openGigsOn(BOARD);
@@ -608,7 +609,7 @@ describe("work verbs", () => {
     ContainmentApi.move(vesselOf(6) as never, dest);
     const done = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+      TestHarnessApi.actAs(done.commandGiver, () => job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done)),
     );
     expect(done.note).not.toHaveBeenCalled();
   });
@@ -616,7 +617,7 @@ describe("work verbs", () => {
   it("⚠ four litres is not six — the tally is a measure, not a count", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>
-      job().execute(
+      TestHarnessApi.actAs(c.commandGiver, () => job().execute(
         {
           subcommand: "post",
           condition: `supply 6 litres of gin to ${DEST}`,
@@ -624,7 +625,7 @@ describe("work verbs", () => {
           bounty: true,
         } as never,
         c,
-      ),
+      )),
     );
     const gigs = await ContractApi.openGigsOn(BOARD);
     const id = gigs[gigs.length - 1]!.contractId;
@@ -634,7 +635,7 @@ describe("work verbs", () => {
     ContainmentApi.move(vesselOf(2) as never, dest);
     const short = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+      TestHarnessApi.actAs(short.commandGiver, () => job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short)),
     );
     expect(short.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "contract-refused" }),
@@ -644,7 +645,7 @@ describe("work verbs", () => {
     ContainmentApi.move(vesselOf(2) as never, dest);
     const done = ctx(courier);
     await asGiver(courier, () =>
-      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+      TestHarnessApi.actAs(done.commandGiver, () => job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done)),
     );
     expect(done.note).not.toHaveBeenCalled();
   });

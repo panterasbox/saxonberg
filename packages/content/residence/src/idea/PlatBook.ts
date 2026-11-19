@@ -27,6 +27,7 @@ import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 import { Ascent, type AscentRefusal } from "../lib/Ascent";
 import PlatWarren from "./PlatWarren";
+import { AccessApi } from "@saxonberg/server/mud/api/access";
 
 /**
  * Why a land sale refused (`PlatBook.sell`). Every one is decided BEFORE the
@@ -224,6 +225,8 @@ export default class PlatBook extends PlatBookBase {
    * from whoever is acting (a purchase for somebody else is a gift).
    */
   public async sell(extent: string, buyer: Stuff, desk: Stuff): Promise<SaleAnswer> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(buyer);
     const price = this.priceMinor;
     const refuse = (
       reason: SaleRefusal,

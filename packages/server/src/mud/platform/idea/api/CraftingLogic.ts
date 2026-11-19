@@ -106,6 +106,7 @@ import type { BuildContribution } from '../../../lib/craft/ManualBuild';
 import type { Compounding } from '../../../lib/material/Compounding';
 import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 import { CraftingApi } from '../../../api/crafting';
+import { AccessApi } from '../../../api/access';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
 );
@@ -351,6 +352,8 @@ async function canMakeImpl(maker: Stuff, recipe: Recipe): Promise<boolean> {
  * bar for the drink they poured themselves, which is what a till is for.
  */
 function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
+  // who is acting must be who is named (call-security pass D5)
+  AccessApi.requireActor(giver);
   if (!MixinApi.isContainable(giver)) return [];
   const loc = giver.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return [];

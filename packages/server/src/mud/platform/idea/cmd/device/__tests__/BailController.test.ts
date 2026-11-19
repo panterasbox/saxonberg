@@ -30,6 +30,7 @@ import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../../lib/spatial/Container';
 import { LiftSourceMixin, type LiftSource, type BucketLanding } from '../../../../../lib/pump/LiftSource';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))));
 class FakeAvatar extends FakeAvatarBase {
@@ -84,7 +85,7 @@ function ctx(): CommandContext {
 
 async function bail(model: Record<string, unknown>): Promise<CommandContext> {
   const c = ctx();
-  await makeStuff(() => new BailController()).execute(model as CommandModel, c);
+  await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new BailController()).execute(model as CommandModel, c));
   return c;
 }
 

@@ -40,6 +40,7 @@ import type { WatchTarget } from '@saxonberg/types';
 // display, and `watch … on <screen>` binds on the mixin.
 import Tablet from '../../../../thing/Tablet';
 import { ContainmentApi } from '../../../../../api/containment';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -109,7 +110,7 @@ describe('the watch controllers', () => {
         : model.on
           ? () => new WatchOnController()
           : () => new WatchStreamController();
-    await makeStuff(make).execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(make).execute(model as never, ctx));
     return ctx;
   }
 

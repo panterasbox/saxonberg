@@ -30,6 +30,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -82,10 +83,7 @@ describe('TallyController', () => {
   });
 
   async function tally(): Promise<void> {
-    await makeStuff(() => new TallyController()).execute(
-      { target: one(log, 'log') } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TallyController()).execute({ target: one(log, 'log') } as CommandModel, ctx$)))(ctxFor(avatar, room));
   }
 
   it('stamps the time when the actor holds an open, readable watch', async () => {
@@ -117,10 +115,10 @@ describe('TallyController', () => {
   it('rejects a non-log target', async () => {
     const rock = makeStuff(() => new Watch());
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new TallyController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new TallyController()).execute(
       { target: one(rock, 'rock') } as CommandModel,
       ctx,
-    );
+    ));
     expect(log.getMarks().length).toBe(0);
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),

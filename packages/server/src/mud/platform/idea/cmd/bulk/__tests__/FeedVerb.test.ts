@@ -63,6 +63,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(
@@ -391,7 +392,7 @@ describe('feed <bed>', () => {
     expect(bed.nutrientFraction()).toBe(0);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     expect(bed.nutrientFraction()).toBe(1);
     // Only the headroom moved: 100 points at 10 points/L = 10 L.
@@ -404,7 +405,7 @@ describe('feed <bed>', () => {
     ContainmentApi.move(sack, giver);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     expect(bed.nutrientFraction()).toBe(1);
     // 30 points of headroom = 3 L, and the rest stays in the sack.
@@ -418,7 +419,7 @@ describe('feed <bed>', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).toContain('already-fed');
     expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
@@ -433,7 +434,7 @@ describe('feed <bed>', () => {
     bed.seatInSlot(plant, PLANT_SLOT);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily')), ctx$)))(makeContext(giver, room));
 
     expect(bed.nutrientFraction()).toBe(1);
   });
@@ -447,7 +448,7 @@ describe('feed <bed>', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(pot, 'pot')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(pot, 'pot')), ctx));
 
     expect(noteReasons(ctx)).toContain('no-nutrient-reserve');
     expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
@@ -474,7 +475,7 @@ describe('feed <bed>', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(giver, 'alice')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(giver, 'alice')), ctx));
 
     expect(noteReasons(ctx)).toContain('not-cultivable');
   });
@@ -484,7 +485,7 @@ describe('feed <bed>', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).toContain('no-compost-source');
     expect(bed.nutrientFraction()).toBe(0);
@@ -496,7 +497,7 @@ describe('feed <bed>', () => {
     ContainmentApi.move(sack, giver);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     expect(captured).toContain(bed);
     expect(deeds).toHaveLength(1);
@@ -511,10 +512,7 @@ describe('feed <bed>', () => {
     ContainmentApi.move(named, room);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(
-      model(one(bed, 'bed'), one(named, 'sack', 'with')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed'), one(named, 'sack', 'with')), ctx$)))(makeContext(giver, room));
 
     expect(named.getBulkAmount('interior').rawValue()).toBeCloseTo(10, 3);
     expect(carried.getBulkAmount('interior').rawValue()).toBe(20);
@@ -592,7 +590,7 @@ describe('feed <ground> with a slow amendment', () => {
     ContainmentApi.move(sack, giver);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     expect(bed.organicMatterFraction()).toBeGreaterThan(0);
     expect(sack.getBulkAmount('interior').rawValue()).toBeLessThan(20);
@@ -607,7 +605,7 @@ describe('feed <ground> with a slow amendment', () => {
     ContainmentApi.move(makeBoneSack(20), giver);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     const nitrogen = bed.nutrientFraction()!;
     expect(nitrogen).toBeGreaterThan(0);
@@ -619,7 +617,7 @@ describe('feed <ground> with a slow amendment', () => {
     ContainmentApi.move(makeSack(20), giver);
 
     const ctrl = makeStuff(() => new FeedController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     expect(bed.nutrientFraction()).toBe(1);
     expect(bed.organicMatterFraction()).toBe(0);
@@ -631,7 +629,7 @@ describe('feed <ground> with a slow amendment', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).not.toContain('no-compost-source');
   });
@@ -643,7 +641,7 @@ describe('feed <ground> with a slow amendment', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).not.toContain('already-fed');
     expect(bed.organicMatterFraction()).toBeGreaterThan(0);
@@ -658,7 +656,7 @@ describe('feed <ground> with a slow amendment', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).toContain('already-fed');
     expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
@@ -680,7 +678,7 @@ describe('feed <ground> with a slow amendment', () => {
 
     const ctrl = makeStuff(() => new FeedController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
 
     expect(noteReasons(ctx)).toContain('no-amendment-reserve');
   });
@@ -774,7 +772,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     ContainmentApi.move(sack, giver);
 
     const ctx = makeContext(giver, field);
-    await makeStuff(() => new FeedController()).execute(model(one(crop, 'lily')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new FeedController()).execute(model(one(crop, 'lily')), ctx));
 
     expect(noteReasons(ctx)).toContain('part-unnamed');
     expect(JSON.stringify(giver.received)).toContain('Which part?');
@@ -791,10 +789,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     ContainmentApi.move(sack, giver);
 
     // Named by the lane end's stand, fed at the top end.
-    await makeStuff(() => new FeedController()).execute(
-      model(one(laneCrop, 'lily'), undefined, one(top, 'the top end', 'at')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FeedController()).execute(model(one(laneCrop, 'lily'), undefined, one(top, 'the top end', 'at')), ctx$)))(makeContext(giver, field));
 
     expect(top.nutrientFraction()).toBeCloseTo(1, 6);
     expect(lane.nutrientFraction()).toBeCloseTo(0.1, 6);
@@ -827,10 +822,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     const sack = denseSack(20);
     ContainmentApi.move(sack, giver);
 
-    await makeStuff(() => new FeedController()).execute(
-      model(one(crop, 'lily'), undefined, one(top, 'the top end', 'at')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FeedController()).execute(model(one(crop, 'lily'), undefined, one(top, 'the top end', 'at')), ctx$)))(makeContext(giver, field));
 
     const said = JSON.stringify(giver.received);
     expect(said).toContain('You work less than 0.1 kg of crumbly black compost');
@@ -842,10 +834,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     const sack = denseSack(20);
     ContainmentApi.move(sack, giver);
 
-    await makeStuff(() => new FeedController()).execute(
-      model(one(lane, 'lane end')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FeedController()).execute(model(one(lane, 'lane end')), ctx$)))(makeContext(giver, field));
 
     expect(lane.nutrientFraction()).toBeCloseTo(1, 6);
     expect(top.nutrientFraction()).toBeCloseTo(0.1, 6);

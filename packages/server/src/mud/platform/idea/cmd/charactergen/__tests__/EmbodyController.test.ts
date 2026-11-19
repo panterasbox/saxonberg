@@ -28,6 +28,7 @@ import type {
   CharGenStatePayload,
   CharGenFieldState,
 } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SAPIENS_PATH =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
@@ -118,9 +119,9 @@ describe('EmbodyController step model', () => {
   /** `embody confirm` is its own controller (W7c); everything else edits. */
   function run(rest: string): Promise<void> {
     if (rest === 'confirm') {
-      return makeStuff(() => new EmbodyConfirmController()).execute({} as never, ctx);
+      return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new EmbodyConfirmController()).execute({} as never, ctx));
     }
-    return ctrl.execute({ rest } as EmbodyModelLike, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ rest } as EmbodyModelLike, ctx));
   }
   type EmbodyModelLike = CommandModel & { rest?: string };
 

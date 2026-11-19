@@ -35,6 +35,7 @@ import {
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class OrganizationEntity extends OrganizationRow {
   static _mixinName = 'OrganizationEntity';
@@ -88,10 +89,10 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'appoint.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new HouseAppointController()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HouseAppointController()).execute(
       model as never,
       ctx,
-    );
+    ));
   });
 }
 

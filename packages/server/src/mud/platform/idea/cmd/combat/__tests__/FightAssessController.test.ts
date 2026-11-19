@@ -13,6 +13,7 @@ import { Idea } from "../../../../../lib/stuff/Idea";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 class Body extends Idea {
   getPresentation(): string {
@@ -29,7 +30,7 @@ function ctxFor(giver: Stuff): CommandContext {
 }
 
 async function run(giver: Stuff, model: CommandModel): Promise<void> {
-  await makeStuff(() => new FightAssessController()).execute(model as never, ctxFor(giver));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FightAssessController()).execute(model as never, ctx$)))(ctxFor(giver));
 }
 
 function rejected(reason: string): boolean {

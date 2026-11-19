@@ -39,6 +39,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { MessageFrame } from '@saxonberg/types';
 import type { MqlManyResult } from '../../../../../api/mql';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Actor extends CommsMixin(SlottedMixin(
   AetherHostMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good))))),
@@ -137,7 +138,7 @@ describe('DmController', () => {
   async function dm(alice: Stuff, bob: Stuff): Promise<CommandContext> {
     const controller = makeStuff(() => new DmController());
     const ctx = context(alice, alice);
-    await controller.execute(dmModel(bob) as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(dmModel(bob) as never, ctx));
     return ctx;
   }
 

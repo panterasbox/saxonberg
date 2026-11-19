@@ -38,6 +38,7 @@ import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { StyleOverlay } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(
@@ -112,10 +113,7 @@ describe('the client-style controllers', () => {
       verb: 'client-style',
       command: cockpit,
     });
-    await (makeStuff(() => new Ctor() as never) as unknown as { execute(m: never, c: never): unknown }).execute(
-      asm.model as never,
-      ctx as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => (makeStuff(() => new Ctor() as never) as unknown as { execute(m: never, c: never): unknown }).execute(asm.model as never, ctx$)))(ctx as never);
     return { ctx };
   }
 

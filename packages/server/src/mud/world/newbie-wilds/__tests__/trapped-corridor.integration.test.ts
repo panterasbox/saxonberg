@@ -78,6 +78,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
 import type Interactive from '../../../platform/idea/Interactive';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const PH = TemplateApplier.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
@@ -568,10 +569,7 @@ describe('The Sunken Delve — search reveals the secrets', () => {
 
     // Search the corridor — the broad scan (untrained + searchBonus 4 reaches
     // `hidden` = 4) discovers both. Not Engaged → resolves synchronously.
-    await makeStuff(() => new SearchController()).execute(
-      {},
-      ctx(m, room('corridor-1'), 'search'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SearchController()).execute({}, ctx$)))(ctx(m, room('corridor-1'), 'search'));
 
     // After: both are discovered, present, and usable.
     expect(PerceptionApi.hasDiscovered(m, secret as never)).toBe(true);
@@ -597,18 +595,12 @@ describe('The Sunken Delve — disarm is found-gated', () => {
       ({ stuff: dart as unknown as Stuff, raw: 'dart' }) as MqlOneResult;
 
     // Undiscovered — you can't defuse what you can't see.
-    await makeStuff(() => new DisarmController()).execute(
-      { target: tgt() },
-      ctx(m, room('corridor-1'), 'disarm'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: tgt() }, ctx$)))(ctx(m, room('corridor-1'), 'disarm'));
     expect(dart.isArmed()).toBe(true);
 
     // Discover it, then disarm succeeds (sync — the delver isn't Engaged).
     PerceptionApi.recordDiscovery(m, dart as unknown as Stuff);
-    await makeStuff(() => new DisarmController()).execute(
-      { target: tgt() },
-      ctx(m, room('corridor-1'), 'disarm'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: tgt() }, ctx$)))(ctx(m, room('corridor-1'), 'disarm'));
     expect(dart.getHazardState()).toBe('disarmed');
   });
 });

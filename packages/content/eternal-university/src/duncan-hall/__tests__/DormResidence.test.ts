@@ -49,6 +49,7 @@ import {
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CompactApi } from '@saxonberg/server/mud/api/compact';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -322,7 +323,7 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'residence.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return controller.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model as never, ctx));
   });
 }
 

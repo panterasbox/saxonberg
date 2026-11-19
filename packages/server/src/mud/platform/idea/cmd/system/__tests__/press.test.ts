@@ -20,6 +20,7 @@ import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const PUBLISHER = '/compact/press';
 
@@ -107,7 +108,7 @@ describe('the press controllers', () => {
           ? makeStuff(() => new PressPostController())
           : makeStuff(() => new PressReadController());
     }
-    return ctrl.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   }
 
   it('⚠ refuses to guess a publisher — --as is required, never defaulted', async () => {

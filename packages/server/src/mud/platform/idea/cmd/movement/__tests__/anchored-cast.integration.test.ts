@@ -43,6 +43,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CompetenceBandName } from '../../../../../lib/advancement/CompetenceBand';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestCharacter extends Character {
   override async competenceBandFor(): Promise<CompetenceBandName> {
@@ -123,10 +124,7 @@ function ctx(giver: Stuff, location: Stuff): CommandContext {
 
 async function go(giver: Stuff, from: Stuff, raw: string): Promise<void> {
   const ctrl = makeStuff(() => new TeleportController());
-  await ctrl.execute(
-    { destination: { stuff: null, raw } } as CommandModel as never,
-    ctx(giver, from),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ destination: { stuff: null, raw } } as CommandModel as never, ctx$)))(ctx(giver, from));
 }
 
 describe('the anchored front door — off the network entirely', () => {

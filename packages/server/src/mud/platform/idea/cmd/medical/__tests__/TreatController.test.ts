@@ -41,6 +41,7 @@ import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
 import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -157,7 +158,7 @@ describe('TreatController', () => {
     const { medic, room } = medicWith(rag, '/platform/agent/Avatar/medic-a');
     const ctrl = makeStuff(() => new TreatController());
 
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
 
     const w = woundOf(medic);
     expect(w.dressed).toBe(true);
@@ -174,7 +175,7 @@ describe('TreatController', () => {
     const bandage = makeStuff(() => new Bandage());
     const { medic, room } = medicWith(bandage, '/platform/agent/Avatar/medic-b');
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     expect(woundOf(medic).dressed).toBe(true);
     expect(StuffApi.findById(bandage.stuffId)).toBeFalsy();
   });
@@ -187,7 +188,7 @@ describe('TreatController', () => {
     ContainmentApi.move(makeStuff(() => new Bandage()), room);
     const ctrl = makeStuff(() => new TreatController());
 
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'no-wound' })
     );
@@ -199,10 +200,7 @@ describe('TreatController', () => {
 
     // Low: an untrained treater.
     const low = medicWith(makeStuff(() => new Bandage()), '/platform/agent/Avatar/low');
-    await makeStuff(() => new TreatController()).execute(
-      {},
-      ctxFor(low.medic, low.room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(low.medic, low.room));
     const lowRows = await low.medic.transcriptEntries('nursing');
     const lowOutcome = standardOutcome(lowRows);
 
@@ -219,10 +217,7 @@ describe('TreatController', () => {
     expect(await high.medic.competenceBandFor('nursing')).not.toBe(
       'untrained'
     );
-    await makeStuff(() => new TreatController()).execute(
-      {},
-      ctxFor(high.medic, high.room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(high.medic, high.room));
     const highRows = await high.medic.transcriptEntries('nursing');
     const highOutcome = standardOutcome(highRows);
 
@@ -239,16 +234,10 @@ describe('UndressController — the clot gate', () => {
       '/platform/agent/Avatar/undress-a',
       2
     );
-    await makeStuff(() => new TreatController()).execute(
-      {},
-      ctxFor(medic, room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(medic, room));
     expect(woundOf(medic).dressed).toBe(true);
 
-    await makeStuff(() => new UndressController()).execute(
-      {},
-      ctxFor(medic, room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UndressController()).execute({}, ctx$)))(ctxFor(medic, room));
     const w = woundOf(medic);
     expect(w.dressed).toBe(false);
     expect(w.bleeding).toBe(true); // severity 2 > CLOT → reopened
@@ -260,17 +249,11 @@ describe('UndressController — the clot gate', () => {
       '/platform/agent/Avatar/undress-b',
       2
     );
-    await makeStuff(() => new TreatController()).execute(
-      {},
-      ctxFor(medic, room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(medic, room));
     // Simulate the dressed wound having clotted (severity decayed low).
     woundOf(medic).severity = 0.2;
 
-    await makeStuff(() => new UndressController()).execute(
-      {},
-      ctxFor(medic, room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UndressController()).execute({}, ctx$)))(ctxFor(medic, room));
     const w = woundOf(medic);
     expect(w.dressed).toBe(false);
     expect(w.bleeding).toBeFalsy(); // clotted → safe
@@ -283,7 +266,7 @@ describe('UndressController — the clot gate', () => {
       2
     );
     expect(medic.undressWound()).toEqual({ ok: false, reason: 'no-dressing' });
-    await makeStuff(() => new TreatController()).execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(medic, room));
     const first = woundOf(medic);
     const second = { ...first, part: 'body.head', severity: 0.5 } as Trauma;
     (medic.getConditions() as Trauma[]).push(second);
@@ -340,10 +323,7 @@ describe('TreatController — stabilization', () => {
     expect(patient.isDying()).toBe(true);
 
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute(
-      { target: { stuff: patient } } as never,
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: patient } } as never, ctx$)))(ctxFor(medic, room));
 
     expect(patient.isDying()).toBe(false);
     expect(patient.getLifecycleState()).not.toBe('dead');
@@ -363,10 +343,7 @@ describe('TreatController — stabilization', () => {
     patient.beginDying('exsanguination', 300);
 
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute(
-      { target: { stuff: patient } } as never,
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: patient } } as never, ctx$)))(ctxFor(medic, room));
 
     // Out of the window…
     expect(patient.isDying()).toBe(false);
@@ -385,10 +362,7 @@ describe('TreatController — stabilization', () => {
     patient.beginDying('hypothermia', 300);
 
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute(
-      { target: { stuff: patient } } as never,
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: patient } } as never, ctx$)))(ctxFor(medic, room));
 
     const rows = await medic.transcriptEntries('nursing');
     expect(rows.length).toBeGreaterThanOrEqual(1);
@@ -405,10 +379,7 @@ describe('TreatController — stabilization', () => {
     ).mockReturnValue(0);
 
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute(
-      { target: { stuff: patient } } as never,
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: patient } } as never, ctx$)))(ctxFor(medic, room));
 
     expect(patient.isDying()).toBe(true);
     expect(StuffApi.findById(dressing.stuffId)).toBeFalsy();
@@ -417,10 +388,7 @@ describe('TreatController — stabilization', () => {
   it('a body that is neither wounded nor dying is still refused', async () => {
     const { medic, patient, room } = dyingPatient();
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute(
-      { target: { stuff: patient } } as never,
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: patient } } as never, ctx$)))(ctxFor(medic, room));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-wound' }),
     );
@@ -463,7 +431,7 @@ describe('TreatController — the treatment matches the condition', () => {
       '/platform/agent/Avatar/medic-burn',
     );
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'wrong-treatment' }),
@@ -491,10 +459,7 @@ describe('TreatController — the treatment matches the condition', () => {
       fracture,
       '/platform/agent/Avatar/medic-fracture',
     );
-    await makeStuff(() => new TreatController()).execute(
-      {},
-      ctxFor(medic, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TreatController()).execute({}, ctx$)))(ctxFor(medic, room));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'wrong-treatment' }),
     );
@@ -541,7 +506,7 @@ describe('TreatController — the treatment matches the condition', () => {
     );
     medic.setSpecies(species);
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'wound-interior' }),
@@ -565,7 +530,7 @@ describe('TreatController — the treatment matches the condition', () => {
       '/platform/agent/Avatar/medic-cut',
     );
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     expect(note).not.toHaveBeenCalled();
     expect(cut.dressed).toBe(true);
   });
@@ -584,7 +549,7 @@ describe('TreatController — the treatment matches the condition', () => {
       '/platform/agent/Avatar/medic-bruise',
     );
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     const detail = String(
       (note.mock.calls[0]![0] as { detail: string }).detail,
     );
@@ -607,7 +572,7 @@ describe('TreatController — the treatment matches the condition', () => {
       '/platform/agent/Avatar/medic-embed',
     );
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     const detail = String(
       (note.mock.calls[0]![0] as { detail: string }).detail,
     );
@@ -631,7 +596,7 @@ describe('TreatController — the treatment matches the condition', () => {
       '/platform/agent/Avatar/medic-bare',
     );
     const ctrl = makeStuff(() => new TreatController());
-    await ctrl.execute({}, ctxFor(medic, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(medic, room));
     const detail = String(
       (note.mock.calls[0]![0] as { detail: string }).detail,
     );

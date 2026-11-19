@@ -29,6 +29,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let note: ReturnType<typeof vi.fn>;
 function ctxFor(actor: unknown): CommandContext {
@@ -62,7 +63,7 @@ describe('passage — the floor beneath coming back', () => {
     living.setLifecycleState('alive');
     const ctrl = makeStuff(() => new PassageController());
 
-    await ctrl.execute({}, ctxFor(living));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(living));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-shade' }),
@@ -79,7 +80,7 @@ describe('passage — the floor beneath coming back', () => {
     const reembody = vi.spyOn(ConditionApi, 'reembody');
     const ctrl = makeStuff(() => new PassageController());
 
-    await ctrl.execute({}, ctxFor(shade));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(shade));
 
     expect(note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'in-the-water' }));
     expect(reembody).not.toHaveBeenCalled();
@@ -199,7 +200,7 @@ describe('passage — the floor beneath coming back', () => {
     vi.spyOn(MixinApi, 'isVitals').mockReturnValue(false);
     const ctrl = makeStuff(() => new PassageController());
 
-    await ctrl.execute({}, ctxFor(shade));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(shade));
 
     expect(levels).toEqual({ satiation: 40, hydration: 40, endurance: 40 });
   });
@@ -223,7 +224,7 @@ describe('passage — the floor beneath coming back', () => {
     vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
     const ctrl = makeStuff(() => new PassageController());
 
-    await ctrl.execute({}, ctxFor(shade));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({}, ctx$)))(ctxFor(shade));
 
     expect(relieve).toHaveBeenCalledWith(collapse);
     expect(relieve).not.toHaveBeenCalledWith(bruise);

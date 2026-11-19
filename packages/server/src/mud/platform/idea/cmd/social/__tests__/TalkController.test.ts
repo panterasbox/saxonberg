@@ -49,6 +49,7 @@ import {
   DIALOGUE_CONVERSATION_TYPE,
 } from "../../../../../lib/npc/DialogueConversation";
 import type { DialogueTree } from "../../../../../lib/npc/tree";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 const TREE_BRAIN = "/lib/behavior/tree-dialogue";
 
@@ -178,7 +179,7 @@ describe("TalkController", () => {
 
     const ctx = context(player, room);
     const controller = makeStuff(() => new TalkController());
-    await controller.execute(targetModel(npc), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(targetModel(npc), ctx));
     await flush();
 
     expect(rejected(ctx)).toBe(false);
@@ -199,7 +200,7 @@ describe("TalkController", () => {
 
     const ctx = context(player, room);
     const controller = makeStuff(() => new TalkController());
-    await controller.execute(targetModel(scenery), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(targetModel(scenery), ctx));
 
     expect(rejected(ctx)).toBe(true);
     expect(rejectedFor(ctx, "not-conversational")).toBe(true);
@@ -214,7 +215,7 @@ describe("TalkController", () => {
 
     const ctx = context(player, room);
     const controller = makeStuff(() => new TalkController());
-    await controller.execute(targetModel(npc), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(targetModel(npc), ctx));
 
     expect(rejected(ctx)).toBe(true);
     expect(npc.getEngagementBySlot("voice")).toBeUndefined();
@@ -230,12 +231,12 @@ describe("TalkController", () => {
     ContainmentApi.move(second as never, room as never);
 
     const controller = makeStuff(() => new TalkController());
-    await controller.execute(targetModel(npc), context(first, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(targetModel(npc), ctx$)))(context(first, room));
     await flush();
     expect(npc.getEngagementBySlot("voice")).toBeDefined();
 
     const ctx2 = context(second, room);
-    await controller.execute(targetModel(npc), ctx2);
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => controller.execute(targetModel(npc), ctx2));
     expect(rejectedFor(ctx2, "busy")).toBe(true);
   });
 });

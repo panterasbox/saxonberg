@@ -59,6 +59,7 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))),
@@ -234,7 +235,7 @@ describe('fell', () => {
     it('no-axe: nothing bound', async () => {
       const { giver, room } = scene();
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak')), c));
       expect(reasons(c)).toContain('no-axe');
     });
 
@@ -243,7 +244,7 @@ describe('fell', () => {
       const hook = makeAxe(['cutting']);
       ContainmentApi.move(hook, giver);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(hook, 'billhook')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(hook, 'billhook')), c));
       expect(reasons(c)).toContain('wrong-tool');
       expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({
         reason: '/trade/forestry/reasons/wrong-tool',
@@ -258,7 +259,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const c = ctx(giver, room as unknown as Stuff);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c));
       expect(reasons(c)).toContain('no-stand');
     });
 
@@ -267,7 +268,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'beech'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'beech'), one(axe, 'axe')), c));
       expect(reasons(c)).toContain('no-such-species');
     });
 
@@ -276,7 +277,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c));
       expect(reasons(c)).toContain('stand-empty');
       expect(refusedFacts(c)).toMatchObject({ name: expect.any(String) });
     });
@@ -288,7 +289,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c));
       await settle();
 
       const boles = room.getContents().filter((s): s is Bole => s instanceof Bole);
@@ -310,7 +311,7 @@ describe('fell', () => {
       const { giver, room } = scene();
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
       await settle();
       const brash = room.getContents().filter((s) => s.getTemplatePath()?.startsWith('/trade/forestry/thing/brash'));
       expect(brash).toHaveLength(BRASH_BUNDLES_PER_STANDARD);
@@ -335,13 +336,13 @@ describe('fell', () => {
       }, fresh('/trade/forestry/thing/log'));
       ContainmentApi.move(log, room);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(log, 'oak'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(log, 'oak'), one(axe, 'axe')), c));
       await settle();
       expect(reasons(c)).not.toContain('not-a-tree');
       expect(room.standingNow(room.getMix()[0]!)).toBe(7);
       // …but a bound thing with a word the stand does NOT know is refused.
       const c2 = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(log, 'log'), one(axe, 'axe')), c2);
+      await TestHarnessApi.actAs(c2.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(log, 'log'), one(axe, 'axe')), c2));
       expect(reasons(c2)).toContain('not-a-tree');
     });
 
@@ -350,7 +351,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, ''), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, ''), one(axe, 'axe')), c));
       await settle();
       expect(room.standingNow(room.getMix()[0]!)).toBe(7);
     });
@@ -359,10 +360,10 @@ describe('fell', () => {
       const { giver, room } = scene(1);
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
       await settle();
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c));
       expect(reasons(c)).toContain('stand-empty');
       expect(room.getContents().filter((s) => s instanceof Bole)).toHaveLength(1);
     });
@@ -376,12 +377,12 @@ describe('fell', () => {
       const { giver, room } = scene();
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
       await settle();
       const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
       for (let i = 0; i < BOLE_LENGTHS; i += 1) {
         const c = ctx(giver, room);
-        await makeStuff(() => new CutController()).execute(cut(bole, [axe]), c);
+        await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CutController()).execute(cut(bole, [axe]), c));
         await settle();
         expect(reasons(c)).not.toContain('bole-spent');
       }
@@ -397,11 +398,11 @@ describe('fell', () => {
       const { giver, room } = scene();
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
       await settle();
       const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
       const c = ctx(giver, room);
-      await makeStuff(() => new CutController()).execute(cut(bole, [makeAxe(['cutting'])]), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CutController()).execute(cut(bole, [makeAxe(['cutting'])]), c));
       expect(reasons(c)).toContain('no-felling-axe');
       expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
     });
@@ -410,11 +411,11 @@ describe('fell', () => {
       const { giver, room } = scene();
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
-      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
       await settle();
       const bole = room.getContents().find((s): s is Bole => s instanceof Bole)!;
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(bole, 'bole'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(bole, 'bole'), one(axe, 'axe')), c));
       expect(reasons(c)).toContain('not-a-tree');
       expect(JSON.stringify(giver.received)).toMatch(/Cross-cut it with/);
       expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
@@ -435,7 +436,7 @@ describe('fell', () => {
       ContainmentApi.move(bole, room as never);
       expect(Bole.commandContributions.peers).toContain('platform/cmd/crafting/cut.yaml');
       const c = ctx(giver, room as unknown as Stuff);
-      await makeStuff(() => new CutController()).execute(cut(bole, [axe]), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CutController()).execute(cut(bole, [axe]), c));
       await settle();
       expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS - 1);
       expect(giver.getContents()).toHaveLength(2); // the axe and a timber
@@ -497,7 +498,7 @@ describe('fell', () => {
       const panel = panelIn(room);
       const tree = standardIn(panel, 'mature');
       const c = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), c);
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), c));
       await settle();
       expect(tree.isDestroyed()).toBe(true);
       expect(panel.occupiedSlotCount()).toBe(0);
@@ -515,7 +516,7 @@ describe('fell', () => {
         const axe = makeAxe();
         ContainmentApi.move(axe, giver);
         const tree = standardIn(panelIn(room), stage);
-        await makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), ctx(giver, room));
+        await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), ctx$)))(ctx(giver, room));
         await settle();
         const felled = giver.getContents().find((s) => (s as unknown as { getShortDescription?(): string }).getShortDescription?.() === 'felled sapling') as unknown as Thing;
         expect(felled, stage).toBeDefined();
@@ -532,10 +533,10 @@ describe('fell', () => {
       const seedling = standardIn(panel, 'seedling');
       const stool = standardIn(panel, 'mature', { stool: true });
       const c1 = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(seedling, 'sapling'), one(axe, 'axe')), c1);
+      await TestHarnessApi.actAs(c1.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(seedling, 'sapling'), one(axe, 'axe')), c1));
       expect(reasons(c1)).toContain('not-yet-a-tree');
       const c2 = ctx(giver, room);
-      await makeStuff(() => new FellController()).execute(model(one(stool, 'stool'), one(axe, 'axe')), c2);
+      await TestHarnessApi.actAs(c2.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(stool, 'stool'), one(axe, 'axe')), c2));
       expect(reasons(c2)).toContain('not-a-standard');
       expect(seedling.isDestroyed()).toBe(false);
       expect(stool.isDestroyed()).toBe(false);
@@ -548,7 +549,7 @@ describe('fell', () => {
       const axe = makeAxe();
       ContainmentApi.move(axe, giver);
       const tree = standardIn(panelIn(room as unknown as Stuff), 'mature', { standardMaterial: OAK_WOOD });
-      await makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), ctx(giver, room as unknown as Stuff));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), ctx$)))(ctx(giver, room as unknown as Stuff));
       await settle();
       const bole = (room as unknown as { getContents(): Stuff[] }).getContents().find((s): s is Bole => s instanceof Bole)!;
       expect(bole).toBeDefined();

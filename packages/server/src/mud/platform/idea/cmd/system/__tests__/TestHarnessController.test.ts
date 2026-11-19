@@ -83,7 +83,7 @@ describe('testharness controllers', () => {
   } as const;
   const run = (m: Record<string, unknown>) => {
     const Ctrl = BY_WORD[m.subcommand as keyof typeof BY_WORD];
-    return makeStuff(() => new Ctrl()).execute(m as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new Ctrl()).execute(m as never, ctx));
   };
   const rejected = () =>
     note.mock.calls.map((c) => c[0]).find((n) => n.kind === 'controller-rejected');

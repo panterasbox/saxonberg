@@ -665,6 +665,7 @@ export class ResidencyLogic extends ApiLogic {
           console.warn('[residency] eviction sweep failed', err),
         );
       },
+      { system: 'residency' },
     );
   }
 
@@ -708,7 +709,7 @@ export class ResidencyLogic extends ApiLogic {
         // drive). The backlog collapses to the one already under way.
         this.startResetSweep();
       },
-      { coalesce: true },
+      { coalesce: true, system: 'residency' },
     );
   }
 
@@ -774,7 +775,7 @@ export class ResidencyLogic extends ApiLogic {
         // Single-flight with a trailing run, for the reset sweep's reason.
         this.startSpawnSweep();
       },
-      { coalesce: true },
+      { coalesce: true, system: 'residency' },
     );
   }
 

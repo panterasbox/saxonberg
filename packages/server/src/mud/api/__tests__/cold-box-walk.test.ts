@@ -75,6 +75,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
+import { TestHarnessApi } from '../test-harness';
 
 /* ── the box ─────────────────────────────────────────────────────── */
 
@@ -248,10 +249,10 @@ async function runAppoint(
   const ctx = contextFor(giver, 'appoint');
   await withRootContext(null, 'cold-box', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new HouseAppointController()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HouseAppointController()).execute(
       model as never,
       ctx,
-    );
+    ));
   });
   return ctx;
 }

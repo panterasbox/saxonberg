@@ -69,6 +69,7 @@ import { DocumentApi } from '../../api/document';
 import { EmploymentApi } from '../../api/employment';
 import { SecurityApi } from '../../api/security';
 import Sheet from '../../platform/thing/Sheet';
+import { AccessApi } from '../../api/access';
 
 /** A face is any pooled good the store holds as a line's exemplar. */
 type PoolableStuff = Stuff & Containable & Poolable;
@@ -958,6 +959,8 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * pro rata. The fee is charged at the store; the goods are handed over.
      */
     public async withdraw(actor: Stuff, good: string, units = 1): Promise<CustodyOutcome> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(actor);
       await this.reconcile();
       const business = await this.resolveBusiness();
       if (business === null) {

@@ -102,6 +102,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from '../../../lib/banking/__tests__/banking-test-harness';
+import { TestHarnessApi } from '../../../api/test-harness';
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
@@ -317,18 +318,18 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     ContainmentApi.move(hand as never, cashAndCarry as never);
     await outfit.appoint(hand, 'hand');
     const c = ctx(hand, cashAndCarry, null, 'wallet use house');
-    await asPrincipal(hand, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
+    await asPrincipal(hand, () => TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c)));
     expect(rejections(c)).toEqual([]);
     const out: Bottle[] = [];
     for (let i = 0; i < n; i++) {
       const b = ginBottle();
       ContainmentApi.move(b as never, hand as never);
       const cc = ctx(hand, cashAndCarry, counter, `shelf consign gin --ask ${ask}`);
-      await asPrincipal(hand, () => makeStuff(() => new ShelfConsignController()).execute(
+      await asPrincipal(hand, () => TestHarnessApi.actAs(cc.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
         // ⚠ `shelf` is bound by the view; a hand-built model must carry it.
         { thing: bindHeld(hand, 'gin'), ask: String(ask), shelf: { stuff: shelf, raw: 'shelf' } },
         cc,
-      ));
+      )));
       expect(rejections(cc)).toEqual([]);
       out.push(b);
     }
@@ -357,7 +358,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         from.find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
       if (verb === 'wallet') {
         const c = ctx(who, here, null, text);
-        await asPrincipal(who, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
+        await asPrincipal(who, () => TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c)));
         expect(rejections(c)).toEqual([]);
         return;
       }
@@ -373,7 +374,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         const [, condition, reward, flags] = m!;
         const c = ctx(who, here, board, text);
         await asPrincipal(who, () =>
-          makeStuff(() => new JobPostController()).execute(
+          TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new JobPostController()).execute(
             {
               subcommand: 'post',
               board: { raw: 'board', stuff: board },
@@ -386,7 +387,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
                 : {}),
             } as never,
             c,
-          ),
+          )),
         );
         posted.push(...rejections(c));
         return; // a refusal is the brain's own business — it reads the board
