@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { tipOf } from "../../tooltip/__tests__/tipOf";
 import { ChangeMark, describeCause } from "../ChangeMark";
 import { useStore, type Frame } from "../../../store/index";
 
@@ -58,7 +59,7 @@ describe("ChangeMark", () => {
       useStore.getState().noteSurfaceChange("nav:ways", ["c9"]);
     });
     const mark = screen.getByTestId("change-mark-nav:ways");
-    expect(mark.getAttribute("title")).toBe("Changed by: You open the oak door.");
+    expect(tipOf(mark)?.text).toBe("Changed by: You open the oak door.");
     fireEvent.click(mark);
     expect(screen.getByTestId("change-why-nav:ways").textContent).toContain("show in scrollback");
   });

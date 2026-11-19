@@ -26,6 +26,8 @@ import {
   saveFilterSetAsTab,
   setActiveTab,
 } from '../store/consoleActions';
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 const ALL_TAB = 'All';
 
@@ -338,25 +340,22 @@ export function TabStrip({
           It is also the floor: deleting your last view leaves this, so
           the player can never end up with nowhere to look.
         */}
-        <Tab
+        <Tip tip={hoverDoc("Everything, unfiltered")}><Tab
           $active={active === ALL_VIEW}
           data-testid={`tab-${ALL_VIEW}`}
-          title="Everything, unfiltered"
           onClick={() => setActiveTab(ALL_VIEW)}
         >
           {ALL_VIEW}
           <TabCount data-testid={`tab-count-${ALL_VIEW}`}>
             {frames.length}
           </TabCount>
-        </Tab>
+        </Tab></Tip>
         {tabs
           .filter((tab) => tab.name !== ALL_VIEW)
           .map((tab) => (
-          <Tab
-            key={tab.name}
+          <Tip key={tab.name} tip={hoverDoc(noteFor(tab.name))}><Tab
             $active={tab.name === active}
             data-testid={`tab-${tab.name}`}
-            title={noteFor(tab.name)}
             onClick={() => setActiveTab(tab.name)}
           >
             {tab.name}
@@ -401,7 +400,7 @@ export function TabStrip({
                 ×
               </TabAction>
             )}
-          </Tab>
+          </Tab></Tip>
         ))}
         {pendingNew !== null ? (
           <Tab $active={false} data-testid="tab-new-pending">
@@ -419,14 +418,13 @@ export function TabStrip({
             />
           </Tab>
         ) : (
-          <PlusButton
+          <Tip tip={hoverDoc("Compose a view of your own")}><PlusButton
             onClick={startCreate}
             aria-label="New view"
             data-testid="tab-add"
-            title="Compose a view of your own"
           >
             +
-          </PlusButton>
+          </PlusButton></Tip>
         )}
       </Strip>
     );

@@ -169,3 +169,16 @@ export function detailDoc(key: string, command: string): TooltipDoc {
 export function commandDoc(command: string, label?: string): TooltipDoc {
   return { ...(label ? { header: { name: label, kindWord: "command" } } : {}), command };
 }
+
+/**
+ * A former native hover string, as a tooltip (tooltips W7): *Click to send:
+ * X* becomes the command's tooltip; any other text keeps its own words — a
+ * short one as the name, a sentence as prose. `null`/empty → no tooltip.
+ */
+export function hoverDoc(text: string | null | undefined): TooltipDoc | null {
+  if (!text) return null;
+  const send = /^Click to send: (.+)$/.exec(text);
+  if (send) return commandDoc(send[1]!);
+  if (text.length <= 48) return { header: { name: text } };
+  return { prose: text.replace(/&/g, "&amp;").replace(/</g, "&lt;") };
+}

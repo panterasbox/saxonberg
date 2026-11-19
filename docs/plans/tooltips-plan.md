@@ -724,7 +724,19 @@ lint family green. Stage files by name.
 - **Acceptance:** drive steps 2, 3, 7, 9, 10 by hand; ceiling lowered.
 - **Commit:** `feat(tooltips): W6 — every link and chip; focus and long press`
 
-### W7 — The rest of the retrofit; the ratchet closes (D9)
+### W7 — The rest of the retrofit; the ratchet closes (D9) ✅
+> **Done — ratchet at 0.** The 74 left were converted mechanically to
+> `<Tip tip={hoverDoc(<the old string>)}>`: `hoverDoc` keeps each string's
+> own words (*Click to send: X* → the command's tooltip; a short string as
+> the name, a sentence as prose), so no hover text was reworded in a sweep —
+> sharpening a control's tooltip is now a one-line edit at its site.
+> `Icon` lost its SVG title and a standalone icon carries a tooltip of its
+> label; `Seal`'s prop is `label` (it was only ever an accessible name).
+> ⚠ **Found: a disabled control gets no pointer events**, so its tooltip —
+> often the reason it is disabled — would never open. `Tip` now hangs a
+> disabled child's tooltip on a thin wrapper span. Tests that read a native
+> title read the tooltip through a `tipOf` helper.
+
 - Every remaining site, player-facing then CMS/studio; `Icon` `<title>`
   removed; `Seal` prop renamed; `Figure.tsx:292`; `PressRoom.tsx:314`.
 - Ceiling → 3, allowlist `<iframe title=` only.

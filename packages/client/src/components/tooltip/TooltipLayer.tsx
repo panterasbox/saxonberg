@@ -32,6 +32,7 @@ import {
   scheduleTipGrace,
 } from "./useTip";
 import { termTip } from "../../services/tooltipSource";
+import { Tip } from "./Tip";
 
 const Panel = styled.div`
   z-index: 80;

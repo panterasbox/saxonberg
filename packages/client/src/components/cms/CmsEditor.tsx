@@ -16,6 +16,8 @@ import { websocketClient } from "../../services/websocket";
 import { MonacoLazy } from "./MonacoLazy";
 import { StudioForm } from "./studio/StudioForm";
 import { tokens } from "../ui";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Card = styled.div`
   display: flex;
@@ -242,9 +244,9 @@ export const CmsEditor: React.FC = () => {
   return (
     <Card>
       <Header>
-        <PathLabel title={`${open.backend}:${open.path}`}>
+        <Tip tip={hoverDoc(`${open.backend}:${open.path}`)}><PathLabel>
           {open.backend}:{open.path}
-        </PathLabel>
+        </PathLabel></Tip>
         <Actions>
           {notice && !error && <Notice>{notice}</Notice>}
           {studioEligible && (
@@ -270,13 +272,12 @@ export const CmsEditor: React.FC = () => {
             </Tabs>
           )}
           <Kind>{open.kind}</Kind>
-          <SaveButton
+          <Tip tip={hoverDoc("Step through the wardrobe into your circle (sends: go wardrobe)")}><SaveButton
             type="button"
-            title="Step through the wardrobe into your circle (sends: go wardrobe)"
             onClick={testInHolodeck}
           >
             Test in holodeck
-          </SaveButton>
+          </SaveButton></Tip>
           <SaveButton
             onClick={() =>
               mode === "studio" ? void saveStudio() : void cmsSave()

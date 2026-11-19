@@ -35,6 +35,17 @@ export function Tip({
   tip: TipSpec | TooltipDoc | null;
   children: React.ReactElement;
 }): React.ReactElement {
-  const handlers = useTip(toSpec(tip), children.props as AnchorHandlers);
+  const own = children.props as AnchorHandlers & { disabled?: boolean };
+  const handlers = useTip(toSpec(tip), own);
+  // ⚠ A disabled control gets no pointer events, so its tooltip — very
+  // often the REASON it is disabled — would never open. Its tooltip rides a
+  // thin wrapper instead; the control itself is untouched.
+  if (own.disabled === true && tip !== null) {
+    return (
+      <span data-tip-wrap="" style={{ display: "inline-flex" }} {...handlers}>
+        {children}
+      </span>
+    );
+  }
   return React.cloneElement(children, handlers);
 }

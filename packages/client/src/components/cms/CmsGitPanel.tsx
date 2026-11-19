@@ -20,6 +20,8 @@ import type {
   GitStatusResult,
   GitLogEntry,
 } from "@saxonberg/types";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const POLL_MS = 10000;
 
@@ -288,19 +290,17 @@ export const CmsGitPanel: React.FC = () => {
             <Empty>Working tree clean.</Empty>
           ) : (
             status?.files.map((f) => (
-              <FileRow
-                key={f.path}
+              <Tip key={f.path} tip={hoverDoc(f.path)}><FileRow
                 type="button"
                 $active={selected === f.path}
                 onClick={() => void openDiff(f.path)}
-                title={f.path}
               >
                 <Code>
                   {f.index}
                   {f.workingDir}
                 </Code>
                 <span>{f.path}</span>
-              </FileRow>
+              </FileRow></Tip>
             ))
           )}
           <Section>
@@ -313,14 +313,13 @@ export const CmsGitPanel: React.FC = () => {
               <LogRow key={c.sha}>
                 <Sha>{c.sha.slice(0, 8)}</Sha>
                 <span style={{ flex: 1, minWidth: 0 }}>{c.message}</span>
-                <Button
+                <Tip tip={hoverDoc("Additively revert this commit (scoped to what you may write)")}><Button
                   type="button"
                   disabled={busy}
                   onClick={() => void revert(c.sha)}
-                  title="Additively revert this commit (scoped to what you may write)"
                 >
                   Revert
-                </Button>
+                </Button></Tip>
               </LogRow>
             ))
           )}
