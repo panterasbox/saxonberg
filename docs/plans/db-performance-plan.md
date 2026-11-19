@@ -721,7 +721,14 @@ table.
 
 **Commit:** `perf(db): W0 — the database's numbers on /stats, the standing-history stage, the drive and its baseline`
 
-### W1 — one person, one key
+### W1 — one person, one key ✅ (78ba72821 · 82c93ee3e · 1b0ab820f)
+
+> **Build note.** Three commits as planned. `Ship.ts` does not read the
+> actor field (the plan's grounding was wrong there); no pack does. The
+> durability test now mints bodies the way the clone pipeline stamps them
+> (shared lineage, distinct identity); the producer engagement test fires
+> from minted bodies, because a raw path string no longer resolves a
+> person (D3).
 
 **Goal:** participation and the producer's actor key on the person.
 **Decisions:** D1, D2, D3 (three commits, in that order, so C3 and the D3
@@ -750,7 +757,11 @@ wave for participation).
 `fix(producer): the engaging actor is a person` ·
 `fix(participation): a giver with no identity is skipped`
 
-### W2 — batched writes, and the frame drain
+### W2 — batched writes, and the frame drain ✅ (70b94d73c)
+
+> **Build note.** `writePolicy` is the lifted switch; `batchOp` builds the
+> driver's own `AnyBulkWriteOperation` (no cast). `record-test-db` gained a
+> keyed `saveMany`. B2: removing the hook refusal turns its two tests red.
 
 **Goal:** the one new capability, with its first consumer.
 **Decisions:** D7, H5.
@@ -777,7 +788,20 @@ a drive run and `saveMany player_frames` moves once per drain; `lint:pm`,
 
 **Commit:** `feat(persistence): saveMany — a keyed batch write at the chokepoint; the frame drain uses it`
 
-### W3 — scoring costs what happened
+### W3 — scoring costs what happened ✅ (b7ea1fca3)
+
+> **Build note.** `StandingPoint` is homed in `InfluenceStanding.ts` (the
+> standing layer's output-shape file — no new module); renown's
+> `RenownPoint` extends it. The pass puts rows in the index with an
+> instance method `row.remember()` (no new `lib/` static —
+> `lint:lib-statics` unchanged). Renown's value function is memoized on its
+> raw settings, since a read now applies it. ⚠ A test-clock lesson: the
+> world clock's test provider supplies WALL ms and game time derives
+> through the scale — the renown proof first ran with every age clamped to
+> zero and "passed" trivially; it now moves game time through the
+> provider and asserts decay actually happened. The one-pass-at-a-time
+> test was passing by accident (its fake had no `saveMany`, so every pass
+> threw and stayed full); it now proves an idle fire reads nothing.
 
 **Goal:** an idle world's scoring makes no round trips; an act re-scores
 one subject. **Decisions:** D4, D5, D6, S4, S5. One commit per service is
@@ -816,7 +840,17 @@ step 7 unchanged; `test:near`; `lint:schema`, `lint:module-scope`.
 
 **Commit(s):** `perf(standing): a pass re-scores who changed; decay is read, not rewritten` (per service or one)
 
-### W4 — a world that stops has saved everything
+### W4 — a world that stops has saved everything ✅ (514fc1238)
+
+> **Build note.** D9 landed (W0: 30 of 30 connected players came back
+> elsewhere, without what they were handed). The shutdown already fit 30 s
+> at W0 (23.5 s, 131 hosts); W4 is about losing nothing and halving the
+> capture's round trips. ⚠ Cost the plan did not price: ~190 test files
+> fake the persistence manager by hand and had no `saveMany`. Rather than
+> edit each fake's semantics, one test helper (`pm-fake.ts`:
+> `withSaveMany`, `spySaveMany`, `spyPersistSaveMany`) builds a faithful
+> keyed `saveMany` over each fake's own `find`/`save`, and a brace-matched
+> mechanical wrap applied it — no test's expectations changed.
 
 **Goal:** the loaded world's stop fits its grace and loses nothing.
 **Decisions:** D8, D9, S6.
