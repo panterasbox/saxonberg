@@ -6804,3 +6804,29 @@ a busy square starved while one in a quiet shop did not (crowded-rooms,
 2026-11). Inside a hold every write chokepoint throws `WalkWriteError` in a
 test world, so a new walk-time write fails the first test that walks over
 it. See [perception.md § The room's reading holds the world still](./subsystems/perception.md).
+
+## A Protective Method That Believes Its `by`
+
+**Don't:** `takeName(name, by)` / `lock(by)` / `let(by, …)` decide on `by`
+and trust it — any code holding the object can name anybody.
+
+**Do:** `AccessApi.requireActor(by)` as the method's first statement. It
+compares `by` with who the engine says is acting
+(`ExecutionContextApi.getActor()`, read from frames code cannot forge),
+refuses a lie as *"You can't act for …"* and tells the lying code's keeper.
+A yes/no read about a third party (a declared `boolean`, `can…`/`may…`) is
+exempt. `lint:actor-claims` holds the count at 0. See call-security.md
+§ *The actor check*.
+
+## Driving Another Body Behind Its Back
+
+**Don't:** `npc.forceCommand(...)` / `player.forceCommand(...)` from your
+code and assume it runs, or build a `CommandContext` naming another body
+and call its controller's `execute`.
+
+**Do:** a body runs a command for somebody else's code only through the
+compulsion gate: a player is asked (and only for a verb whose view says
+`compellable: consent` AND whose controller class agrees); a body nobody
+plays answers only to its keeper (title over its row). The side doors are
+shut (`SelfOnly`, `CommandGiverOf`). For authors, the verb is
+`force <who> <command>`. See call-security.md § *Compulsion*.

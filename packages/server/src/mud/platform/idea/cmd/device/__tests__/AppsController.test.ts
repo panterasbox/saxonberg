@@ -31,6 +31,7 @@ import { CommandApi, type CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { MessageFrame } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Person extends AetherHostMixin(
   CommandGiverMixin(NamedMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -93,20 +94,17 @@ describe('apps', () => {
   });
 
   it('lists what the device runs', () => {
-    makeStuff(() => new AppsListController()).execute({} as never, ctx(person, implant));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, ctx$)))(ctx(person, implant));
     expect(said(person)).toMatch(/runs: Messages/);
   });
 
   it('uninstall then install round-trips', async () => {
     const c1 = ctx(person, implant);
-    makeStuff(() => new AppsUninstallController()).execute({ app: 'messages' } as never, c1);
+    TestHarnessApi.actAs(c1.commandGiver, () => makeStuff(() => new AppsUninstallController()).execute({ app: 'messages' } as never, c1));
     expect(implant.hasApp('messages')).toBe(false);
     expect(said(person)).toMatch(/You uninstall Messages/);
 
-    await makeStuff(() => new AppsInstallController()).execute(
-      { app: 'messages' } as never,
-      ctx(person, implant),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'messages' } as never, ctx$)))(ctx(person, implant));
     expect(implant.hasApp('messages')).toBe(true);
     expect(said(person)).toMatch(/You install Messages/);
   });
@@ -114,7 +112,7 @@ describe('apps', () => {
   it('an unknown app answers with what is offered', async () => {
     await implant.uninstallApp('messages');
     const c = ctx(person, implant);
-    await makeStuff(() => new AppsInstallController()).execute({ app: 'chess' } as never, c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'chess' } as never, c));
     // Refused with the reason `unknown-app`; its row words the line at emit.
     const refused = c.getNotes().find((n) => n.kind === 'refused');
     expect(refused).toMatchObject({ reason: 'unknown-app' });
@@ -124,16 +122,13 @@ describe('apps', () => {
 
   it('a non-device source (a person host) has nothing to act on', () => {
     const c = ctx(person, person);
-    makeStuff(() => new AppsListController()).execute({} as never, c);
+    TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, c));
     expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'no-device' });
   });
 
   it('`on <device>` picks the named device', () => {
     const named = { stuff: implant, raw: 'implant' } as unknown as MqlOneResult;
-    makeStuff(() => new AppsListController()).execute(
-      { device: named } as never,
-      ctx(person, undefined),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({ device: named } as never, ctx$)))(ctx(person, undefined));
     expect(said(person)).toMatch(/runs: Messages/);
   });
 });

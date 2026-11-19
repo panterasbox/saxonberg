@@ -2396,3 +2396,32 @@ base-class exemptions are typechecked for free; the template-path
 strings were not, so a renamed singleton could silently change the
 security surface (the same problem shape `lint:gates` exists for). It
 also asserts the symmetric and inbound-only method sets stay disjoint.
+
+## History — the actor claim and the compulsion gate (MR !635, 2026-11-19)
+
+Commits `49dfde3f5` (W0) through the review wave `921bc432e`. What the
+design learned in the building, so it is not relearned:
+
+- **Author ≠ actor.** Generalizing `getActingAuthor` in place would have
+  made a forced NPC the maker of what it ferments and the titleholder of
+  what it makes; the actor is a second read instead. Banking had already
+  split the two (`actingPrincipal`, now `getActor`).
+- **Identity by `ProxyApi.identityOf`**, which peels only proxies the
+  engine made — `ProxyApi.unwrap` reads `RAW_TARGET` off the value, and a
+  forgery answers it.
+- **"The giver called it" looks past the giver's own `forceCommand`** —
+  read naively it is always true for a forced command.
+- **The drive found what the suite could not:** boot dying on an
+  omni-scoped system root (the world clock reads `*` as quarantined), the
+  keeper's diagnostic naming the check's own logic singleton, a consent
+  question naming a stranger by a name the asked never learned, and — the
+  walk — a consented command that reported to nobody (a refusal of it went
+  unread). And one pre-existing: engagement completions had planted their
+  author onto a method's own short-lived frame (`plantAuthor`), so durative
+  work carried no author at all.
+- **The side doors (review).** The gate in `executeCommand` was one door of
+  several; `_runChain`, `_executeOne` and every controller's `execute`
+  were callable with a context naming any body. Shut: `SelfOnly` and
+  `CommandGiverOf(1)`.
+- **A pet's owner does not drive it (owner, lens pass).** Ownership is
+  title to a thing, not its will; the keeper of its row authored its mind.

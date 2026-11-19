@@ -38,6 +38,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -127,10 +128,7 @@ describe('Affordance verbs — integration', () => {
 
     // put apple on table
     const putController = makeStuff(() => new PutController());
-    await putController.execute(
-      { item: one(apple, 'apple'), target: one(table, 'table', 'on') } as ModelData as never,
-      makeContext(giver, room, 'put'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => putController.execute({ item: one(apple, 'apple'), target: one(table, 'table', 'on') } as ModelData as never, ctx$)))(makeContext(giver, room, 'put'));
     expect(apple.getContainer()).toBe(room);
     expect((apple.getPlacement()?.host ?? null)).toBe(table);
 
@@ -141,13 +139,10 @@ describe('Affordance verbs — integration', () => {
 
     // give apple to quartermaster
     const giveController = makeStuff(() => new GiveController());
-    await giveController.execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => giveController.execute({
         item: one(apple, 'apple'),
         recipient: one(quartermaster, 'quartermaster', 'to'),
-      } as ModelData as never,
-      makeContext(giver, room, 'give'),
-    );
+      } as ModelData as never, ctx$)))(makeContext(giver, room, 'give'));
     expect(apple.getContainer()).toBe(quartermaster);
     expect((apple.getPlacement()?.host ?? null)).toBeNull();
   });

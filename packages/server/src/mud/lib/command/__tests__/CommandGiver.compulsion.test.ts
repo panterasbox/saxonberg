@@ -204,7 +204,7 @@ args:
   describe('⭐ the keeper drives a body nobody plays (force)', () => {
     beforeEach(() => {
       isPlayer.mockReturnValue(false as never);
-      vi.spyOn(giver, 'getTemplatePath').mockReturnValue('/world/test/agent/dave');
+      vi.spyOn(giver, 'getTemplatePath').mockReturnValue('/test/agent/dave');
     });
 
     it("its keeper (title over its row) drives it — a never-verb, no prompt — and it is recorded", async () => {
@@ -212,9 +212,9 @@ args:
       await compel('chatter you suck');
       expect(ran).toEqual(['chatter']);
       expect(prompt).not.toHaveBeenCalled();
-      expect(can).toHaveBeenCalledWith(asker, 'write-template', '/world/test/agent/dave');
+      expect(can).toHaveBeenCalledWith(asker, 'write-template', '/test/agent/dave');
       expect(DiagnosticApi.record).toHaveBeenCalledWith(
-        expect.objectContaining({ channel: 'force', path: '/world/test/agent/dave' }),
+        expect.objectContaining({ channel: 'force', path: '/test/agent/dave' }),
       );
     });
 
