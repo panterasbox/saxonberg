@@ -57,6 +57,9 @@ function species(): Species {
   const s = makeStuff(() => new Species());
   stampTemplatePathForTest(s, `/stuff/idea/species/animalia/shade-${seq}`);
   s.setBodyPlan(plan);
+  // The shade species is tuned by nature (aether-devices): `AetherMixin`
+  // is innate, as on the shipped `/stuff/idea/species/shade` row.
+  s.setInnateMixins(['AetherMixin']);
   return s;
 }
 
@@ -104,7 +107,8 @@ describe('ShadeAvatar — activations differ, composition does not', () => {
 
   it('is attuned with NO implant occupying a slot', async () => {
     const sh = await shadeFor('ghost-5');
-    expect(sh.getConferredMixinNames()).toContain('AetherMixin');
+    expect(MixinApi.isActive(sh as never, 'AetherMixin')).toBe(true);
+    expect(sh.isOwnAetherHost()).toBe(true);
     // The point: attunement without hardware. A ghost does not wear a
     // cranial implant; it is simply still on the network.
     expect(sh.getOccupants('cranial').size).toBe(0);
@@ -127,7 +131,7 @@ describe('ShadeAvatar — activations differ, composition does not', () => {
 
   it('carries no credential wallet — which is what confines it to the commons', async () => {
     const sh = await shadeFor('ghost-8');
-    const updates = MixinApi.isAether(sh) ? sh.getHostedUpdates() : [];
+    const updates = MixinApi.isAetherHost(sh) ? sh.getHostedApps() : [];
     const hasWallet = updates.some((u) => MixinApi.isCredentialWallet(u));
     expect(hasWallet).toBe(false);
   });

@@ -1,0 +1,6 @@
+# The tuning device runs no Messages (aether-devices D3).
+facts:
+  kept: text?
+  cap: text?
+says: "Messages isn't installed — `apps install messages`.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

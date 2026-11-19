@@ -56,6 +56,9 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** The current-state title index, keyed on the durable per-instance id. */
   private index = new Map<string, ChattelOwner>();
 
+  /** The ids whose title is bound — never transferable (aether-devices D10). */
+  private boundIds = new Set<string>();
+
   public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
@@ -128,11 +131,22 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     return all.filter((r) => r.place.startsWith(placePrefix));
   }
 
-  /** Establish title — the initial stamp (a `mint` event). */
+  /** Is the title on `chattelId` bound — never transferable? Sync. */
   @CallSecurity(ChattelApiCallers)
-  public async stamp(chattelId: string, owner: ChattelOwner): Promise<void> {
+  public isBound(chattelId: string): boolean {
+    return this.boundIds.has(chattelId);
+  }
+
+  /** Establish title — the initial stamp (a `mint` event); `bound` binds it. */
+  @CallSecurity(ChattelApiCallers)
+  public async stamp(
+    chattelId: string,
+    owner: ChattelOwner,
+    bound = false,
+  ): Promise<void> {
     const prior = this.index.get(chattelId) ?? null;
-    await this.upsert(chattelId, owner);
+    await this.upsert(chattelId, owner, bound);
+    if (bound) this.boundIds.add(chattelId);
     await this.appendEvent(prior ? "transfer" : "mint", chattelId, prior, owner);
     this.index.set(chattelId, owner);
   }
@@ -160,6 +174,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     await ChattelRecord.deleteByChattelId(chattelId);
     await this.appendEvent("released", chattelId, prior, null);
     this.index.delete(chattelId);
+    this.boundIds.delete(chattelId);
   }
 
   /** Rebuild the in-memory index from the `chattel` collection (boot / reload). */
@@ -171,11 +186,16 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   // --- ungated privates (intra-singleton self-calls resolve to the
   // Registry, which is outside the ChattelApi allowlist) ---
 
-  private async upsert(chattelId: string, owner: ChattelOwner): Promise<void> {
+  private async upsert(
+    chattelId: string,
+    owner: ChattelOwner,
+    bound = false,
+  ): Promise<void> {
     const record =
       (await ChattelRecord.findByChattelId(chattelId)) ?? new ChattelRecord();
     record.chattelId = chattelId;
     record.owner = owner;
+    if (bound) record.bound = true;
     record.titledAt = Date.now();
     await record.save();
   }
@@ -203,10 +223,12 @@ export default class ChattelRegistry extends ChattelRegistryBase {
 
   private async rebuildIndex(): Promise<void> {
     this.index.clear();
+    this.boundIds.clear();
     for (const record of await ChattelRecord.findAll()) {
       const id = record.getChattelId();
       const owner = record.getOwner();
       if (id.length > 0 && owner) this.index.set(id, owner);
+      if (id.length > 0 && record.isBound()) this.boundIds.add(id);
     }
   }
 }

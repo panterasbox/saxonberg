@@ -83,3 +83,5 @@ home (P2's *where you live*).
 5. **P2 from the player's side** — a social player never meets a mechanic that stops them talking
    unless they walk into one: every restriction on talking belongs to a place entered on purpose,
    past a posted edge.
+6. **P2 and charge** (from the aether-devices requirements, 2026-11-18) — custody may hold a person's
+   phone but may not let it die: denying someone a charger puts them off grid by the back door.

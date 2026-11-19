@@ -22,6 +22,7 @@ import ManaCell from "@saxonberg/content-arcana/src/thing/ManaCell";
 import ManaMain from "@saxonberg/content-arcana/src/thing/ManaMain";
 import { BATTERY_SLOT } from "@saxonberg/content-arcana/src/lib/ManaPowered";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
+import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { MobileMixin } from "@saxonberg/server/mud/lib/spatial/Mobile";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
@@ -31,7 +32,7 @@ import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { EnvironmentMixin } from "@saxonberg/server/mud/lib/shell/Environment";
 import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
-import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
+import WalletApp from "@saxonberg/server/mud/platform/idea/WalletApp";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { MagicApi } from "@saxonberg/server/mud/api/magic";
@@ -53,7 +54,7 @@ const DEPART = "/world/test/mana/depart";
 const ARRIVE = "/world/test/mana/arrive";
 const MAIN = "/world/test/mana/main";
 
-class Traveller extends AetherMixin(
+class Traveller extends AetherHostMixin(AetherMixin(
   EnvironmentMixin(
     MobileMixin(
       SensorMixin(
@@ -61,7 +62,7 @@ class Traveller extends AetherMixin(
       ),
     ),
   ),
-) {
+)) {
   static _mixinName = "Traveller";
 }
 
@@ -120,8 +121,8 @@ function traveller(name: string): Traveller {
     a.setName(name);
     return a;
   });
-  const wallet = makeStuff(() => new CredentialWalletUpdate());
-  (t as unknown as { hostUpdate(u: Stuff): void }).hostUpdate(wallet);
+  const wallet = makeStuff(() => new WalletApp());
+  (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   wallet.getCredential("travel")!.register(ARRIVE);
   return t;
 }

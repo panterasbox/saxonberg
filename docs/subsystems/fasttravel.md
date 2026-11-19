@@ -120,7 +120,7 @@ model (see [augmentation.md](./augmentation.md)):
 - a carryable **`TravelCard`** `Thing` (`/system/tpa/thing/TravelCard` =
   `CredentialWalletMixin(Good)`) — a bearer **instrument**, never a
   clearance store (see **Identity-bound clearance** below);
-- the born-with **`CredentialWalletUpdate`**
+- the born-with **`WalletApp`**
   (`CredentialWalletMixin(AetherHostedMixin(Idea))`) — the one wallet app
   injected into the avatar's aether attunement by
   `Avatar.installDefaultLoadout`, holding the `travel` record alongside
@@ -139,7 +139,7 @@ card. The split is deliberate:
   record. A carried `TravelCard` **or** the born-with implant satisfies
   it, so onboarding and the un-implanted are never stranded.
 - **Clearance** ("are you cleared for *this* destination?") — a direct
-  single-object read over the actor's own `getHostedUpdates()` (one
+  single-object read over the actor's own `getHostedApps()` (one
   level), so clearance is bound to *who the actor is*. `register`
   writes here; the `teleport` fork's `isRegistered` check and
   `renderDepartures`' "not yet registered" annotation read here.
@@ -697,7 +697,7 @@ collection was added (AC26). A `ManaMain` needs nothing: it refills.
 
 Credential registration is **session-durable, not cross-restart**:
 `Avatar.save()` persists only the avatar's own fields (no inventory
-persist-back; the hosted `CredentialWalletUpdate` is re-cloned each session
+persist-back; the hosted `WalletApp` is re-cloned each session
 by `installDefaultLoadout`, so the `travel` record's registered set resets
 to the born-with floor each login), so it does not survive a server restart
 yet. Cross-restart durability rides future persistence work (aug-state

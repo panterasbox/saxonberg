@@ -551,13 +551,10 @@ went active. Three things were wrong with it:
 3. `confers` was open-ended: a row could name any mixin at all.
 
 `MakerMixin`, `MixinApi.isMaker`, `Mixins.Maker` and `Crafter` are gone;
-the seven `Crafter` rows are plain `Cast`. ⭐ The augment fold itself
-**stays** — `ShadeAvatar` overrides `getConferredMixinNames()` to confer
-`AetherMixin` intrinsically (attuned with no implant and no slot, and
-species `innateMixins` is shared reference data a shade cannot write),
-which is a genuine augment conferral and exactly what the seam is for.
-What was deleted is `EmployedMixin`'s implementation of it. See
-[augmentation.md](./augmentation.md).
+the seven `Crafter` rows are plain `Cast`. The per-host fold itself
+outlived this build for one consumer, the shade, and was retired by
+aether-devices: every shade is the shade species and takes `AetherMixin`
+from its `innateMixins`. See [augmentation.md](./augmentation.md).
 
 ## ⭐⭐ The opening, the criterion, and the sign
 

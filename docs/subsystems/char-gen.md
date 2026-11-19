@@ -448,7 +448,7 @@ sequence, in order:
 3. **Clone the runtime Avatar from the SHARED seed** with the overlay
    riding `StuffApi.clone`'s `dataOverlay` and the minted identity path
    via `asIdentityPath` (`onCreate` stamps identity, installs the
-   baseline implant, self-places at the app-config spawn, and captures
+   person's own apps, self-places at the app-config spawn, and captures
    the FIRST snapshot — the moment the character becomes durable).
 4. **Set sex** on the live avatar (species-constrained, so applied after
    the species is in place to avoid hydration-order coupling).
@@ -457,6 +457,12 @@ sequence, in order:
    its body-plan slot claims occupied (`occupyAll`), narrowed
    with `MixinApi.isContainable`/`isWearable`/`isSlotted`. Missing
    garments or slot mismatches are skipped (content may lag).
+5a. **The starting kit** (`startingKit` in `char-gen.yaml`; aether-devices
+   D11) — `PrimaryAvatar.receiveStartingKit`: each entry cloned, titled to
+   the new person (`bound: true` — worthless to anyone else), moved onto
+   the body and `stow`ed into the first pocket it fits. Today one Hollis
+   Pal phone. ⚠ The free implant is a GUEST's now; a player is tuned by the
+   phone in their pocket. Skip with a diagnostic, never the enrolment.
 6. **Hand off**: `ConnectionApi.transfer(interactive, avatar)`, then
    `avatar.enter(interactive, { firstArrival: true })`, then destruct
    `Login`.

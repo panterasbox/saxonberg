@@ -420,10 +420,10 @@ export class ContainmentApi {
   // half the job — the other half is making the replacement findable
   // from where the callers are.
   // (`PerceptionApi.reach`, filtered by api/mql/scope-walk.ts
-  // `candidatesForReachable` — self → own hosted updates → slot occupants
+  // `candidatesForReachable` — self → own apps → slot occupants
   // → carried → the place's surface → peers, on-person first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
   // …)` and narrow locally; identity-bound (own-attunement) reads scan
-  // `actor.getHostedUpdates()` directly.
+  // `actor.getHostedApps()` directly.
 
   /**
    * ⭐⭐ **Everything `actor` can act on**, on-person-first: what they

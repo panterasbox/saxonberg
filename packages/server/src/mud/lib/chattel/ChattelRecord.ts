@@ -62,10 +62,18 @@ export class ChattelRecord extends Document {
     titledAt: { persistent: true },
     place: { persistent: true },
     pin: { persistent: true },
+    bound: { persistent: true },
   };
 
   /** The durable per-instance id this title is keyed on. */
   chattelId: string = "";
+  /**
+   * ⭐ A bound title (aether-devices D10): it can never be transferred —
+   * the starter phone is worthless to anyone but its first owner. A fact
+   * about the title, kept where titles are kept; true only on the rows
+   * that are bound.
+   */
+  bound: boolean = false;
   /** The current owner (a typed principal), or null before first stamp. */
   owner: ChattelOwner | null = null;
   /** Real-time epoch millis of the last title change (for auditing). */
@@ -104,6 +112,11 @@ export class ChattelRecord extends Document {
   }
 
   /** The current-state row for `chattelId`, or null. */
+  /** Is this title bound — never transferable? */
+  isBound(): boolean {
+    return this.bound === true;
+  }
+
   static async findByChattelId(chattelId: string): Promise<ChattelRecord | null> {
     const rows = await ChattelRecord.find<ChattelRecord>({ chattelId });
     return rows[0] ?? null;

@@ -960,22 +960,22 @@ export class CommandLogic extends ApiLogic {
     applyShadowDeltaImpl(host, shadow, op);
   }
 
-  /** See {@link CommandApi.applyHostedUpdateDelta}. */
+  /** See {@link CommandApi.applyHostedAppDelta}. */
   @CallSecurity(CommandApiCallers)
-  public applyHostedUpdateDelta(
+  public applyHostedAppDelta(
     host: Stuff,
     update: Stuff,
     op: 'host' | 'unhost'
   ): void {
-    applyHostedUpdateDeltaImpl(host, update, op);
+    applyHostedAppDeltaImpl(host, update, op);
   }
 
-  /** See {@link CommandApi.collectHostedUpdateDefs}. */
+  /** See {@link CommandApi.collectHostedAppDefs}. */
   @CallSecurity(CommandApiCallers)
-  public collectHostedUpdateDefs(
+  public collectHostedAppDefs(
     host: Stuff
   ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
-    return collectHostedUpdateDefsImpl(host);
+    return collectHostedAppDefsImpl(host);
   }
 
   /** See {@link CommandApi.createCommandContext}. */
@@ -4673,7 +4673,7 @@ function applyShadowDeltaImpl(
   }
 }
 
-function applyHostedUpdateDeltaImpl(
+function applyHostedAppDeltaImpl(
   host: Stuff,
   update: Stuff,
   op: 'host' | 'unhost'
@@ -4691,16 +4691,16 @@ function applyHostedUpdateDeltaImpl(
   cg.popCommandSource(update);
 }
 
-function collectHostedUpdateDefsImpl(
+function collectHostedAppDefsImpl(
   host: Stuff
 ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
   // `isAether` is the composition check (and narrows `host` to an
   // `AetherHost`). Transmission-time gating (attunement active) rides
   // the validators / controller / `tell` guard, mirroring how
   // augment-gated verbs surfaced-but-refused before this build.
-  if (!MixinApi.isAether(host)) return [];
+  if (!MixinApi.isAetherHost(host)) return [];
   const out: Array<{ source: Stuff; defs: CommandDefinition[] }> = [];
-  for (const u of host.getHostedUpdates()) {
+  for (const u of host.getHostedApps()) {
     const defs = collectBucketDefs(u.constructor, 'self');
     if (defs.length > 0) out.push({ source: u, defs });
   }

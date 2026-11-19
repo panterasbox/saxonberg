@@ -515,6 +515,13 @@ CommandDefinition[], seq)`. `'self'` is at index 0 and never removed;
 inventory / environment / peer entries push and pop as the world
 changes.
 
+⭐ **The stack is a record of what the giver bears** (aether-devices D1):
+`getCommandSources(bucket)` lists the sources in one bucket — for
+`environment`, every carried thing at any depth that affords a verb
+outward, kept exact on every move by the containment chokepoint. The
+augment conferral leg reads it to find a phone in a pocket without walking
+the carried tree.
+
 ```ts
 interface RecencyEntry {
   source: RecencySource;       // 'self' | Stuff

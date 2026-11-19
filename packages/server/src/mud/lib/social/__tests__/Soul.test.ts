@@ -4,8 +4,9 @@
  * Covers:
  *   - renderEmote returns per-audience bodies with correct actor/target
  *     pronouns and verb agreement.
- *   - emote() composes a Scene at act.emote with the
- *     emotive-esp modality stamp.
+ *   - emote() composes the ROOM scene at act.emote with NO modality —
+ *     the room carries emotes (aether-devices D7); a target elsewhere
+ *     gets a second, emotive-esp scene only from a tuned actor.
  *   - emoteFree() free-form prose.
  *   - Containable-wins routing (peers when containable, contents when
  *     pure-container).
@@ -25,6 +26,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from '../../stuff/Idea';
 import { Emote } from '../Emote';
+import { AetherMixin } from '../../message/Aether';
 
 class CharacterStuff extends SoulMixin(
   VocalMixin(
@@ -43,6 +45,13 @@ class Listener extends SensorMixin(ContainableMixin(NamedMixin(Idea))) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
+  }
+}
+
+/** A tuned actor: composes the gated AetherMixin; its species confers it. */
+class TunedCharacter extends AetherMixin(CharacterStuff) {
+  getSpecies(): { getInnateMixins(): readonly string[] } {
+    return { getInnateMixins: () => ['AetherMixin'] };
   }
 }
 
@@ -87,7 +96,7 @@ describe('SoulMixin.renderEmote', () => {
 });
 
 describe('SoulMixin.emote', () => {
-  it('composes a Scene at act.emote with emotive-esp modality', () => {
+  it('composes the room scene at act.emote with no modality', () => {
     const room = makeStuff(() => new Place());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
@@ -101,7 +110,7 @@ describe('SoulMixin.emote', () => {
     expect(bob.received).toHaveLength(1);
     for (const f of [alice.received[0]!, bob.received[0]!]) {
       expect(f.topic).toBe('act.emote');
-      expect(f.meta.modality).toBe('emotive-esp');
+      expect(f.meta.modality).toBeUndefined();
     }
     expect(alice.received[0]!.payload).toMatchObject({
       verb: 'wave',
@@ -123,6 +132,45 @@ describe('SoulMixin.emote', () => {
 
     expect(iffy.received).toHaveLength(1);
     expect(iffy.received[0]!.body).toMatch(/waves at you/);
+    expect(iffy.received[0]!.meta.modality).toBeUndefined();
+  });
+
+  it('reaches a target elsewhere with an emotive-esp frame when tuned', () => {
+    const room = makeStuff(() => new Place());
+    const elsewhere = makeStuff(() => new Place());
+    const alice = makeStuff(() => new TunedCharacter());
+    alice.setName('Alice');
+    ContainmentApi.move(alice, room);
+    const bob = makeStuff(() => new Listener());
+    ContainmentApi.move(bob, room);
+    const iffy = makeStuff(() => new Listener());
+    iffy.setName('Iffy');
+    ContainmentApi.move(iffy, elsewhere);
+
+    alice.emote(waveEmote(), { target: iffy });
+
+    // The room sees it, unstamped…
+    expect(bob.received).toHaveLength(1);
+    expect(bob.received[0]!.meta.modality).toBeUndefined();
+    // …and the far target gets one frame over the aether.
+    expect(iffy.received).toHaveLength(1);
+    expect(iffy.received[0]!.meta.modality).toBe('emotive-esp');
+    expect(iffy.received[0]!.body).toMatch(/waves at you/);
+  });
+
+  it('sends nothing past the room from an untuned actor (an NPC skips)', () => {
+    const room = makeStuff(() => new Place());
+    const elsewhere = makeStuff(() => new Place());
+    const alice = makeStuff(() => new CharacterStuff());
+    alice.setName('Alice');
+    ContainmentApi.move(alice, room);
+    const iffy = makeStuff(() => new Listener());
+    ContainmentApi.move(iffy, elsewhere);
+
+    alice.emote(waveEmote(), { target: iffy });
+
+    expect(alice.received).toHaveLength(1); // the room scene, to self
+    expect(iffy.received).toHaveLength(0);
   });
 });
 

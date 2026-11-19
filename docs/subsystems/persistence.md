@@ -32,6 +32,18 @@ is *not* part of that change; they remain Idea-rooted Stuff for HMR.)
 This doc covers the `Document` track and the cross-cutting machinery
 (`PersistenceManager`, around-hooks, `Collections` enum) used by both.
 
+## ⚠ A declared field with no slot of its own
+
+`captureFields` reads a declared field by name, and skipped one the host has
+no property for. `Switchable`'s `on` lives in the bistate core, so **every
+switch in the world came back in its row's state after a restore** — found by
+the aether-devices drive (2026-11-18), a phone switched off that woke up on.
+A slotless field is now read by its boolean-noun predicate, `is<Field>()`,
+and captured only when that answers a boolean. ⛔ Not `get<Field>()`: a
+Location's slotless `coords` read null through it, restored as
+`setCoords(null)`, and killed the restart. A slotless non-boolean is still
+not captured — give it a slot, or a slice of its own.
+
 ## ⛔⛔ A `Map` field must never be bare-`persistent`
 
 ⚠⚠ **Found live, 2026-10-06.** `DetailedMixin.details` is a runtime
@@ -927,7 +939,7 @@ cranial implant (Container + Slotted slices), so loadout-first would
 double-occupy the slot, while the aether-hosted apps (comms / forums / the
 credential wallet) are deliberately session-scoped and *not* in the
 snapshot, so they must re-provision every login (the loadout's own
-occupancy + hosted-update guards make the re-run idempotent; ⚠ an implant
+occupancy + hosted-app guards make the re-run idempotent; ⚠ an implant
 the record left CARRIED is re-occupied, never re-cloned — that guard
 missing cloned a second implant every boot until 2026-10-18). Two restore
 subtleties the ordering implies: `materialize` preloads the organism's

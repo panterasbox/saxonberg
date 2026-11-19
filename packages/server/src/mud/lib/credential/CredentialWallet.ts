@@ -3,7 +3,7 @@
  *
  * A keyed store of {@link Credential} records (one per {@link CredentialKind}).
  * Base-agnostic, so it composes around BOTH an incorporeal hosted
- * {@link CredentialWalletUpdate} (the born-with "wallet app") and a corporeal
+ * {@link WalletApp} (the born-with "wallet app") and a corporeal
  * card `Thing` (`PaymentCard` / `TravelCard`) — one scan (the MQL `reachable`
  * pool filtered on {@link MixinApi.isCredentialWallet}) finds the holder in
  * either base.

@@ -15,7 +15,7 @@
  *      Competence is derive-on-read, a band crossing has no event — the
  *      only band-mover is a Transcript append, so `AdvancementApi`
  *      re-invokes {@link refreshConferrals} after every append. The verbs
- *      ride the push-based affordance stack (the hosted-update pattern),
+ *      ride the push-based affordance stack (the hosted-app pattern),
  *      sourced from the `DisciplineCatalogue` so `getAffordances` resolves
  *      their `commandSource` to "the catalog / your competence."
  */
@@ -439,7 +439,7 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      * Re-evaluate this character's competence-conferred verbs and reconcile
      * the affordance stack: drop the prior conferral entry, then re-push
      * the current set (idempotent pop + conditional push, mirroring the
-     * hosted-update delta). Called by `AdvancementApi` after each Transcript
+     * hosted-app delta). Called by `AdvancementApi` after each Transcript
      * append. Loads the dictionary first (documents D11).
      */
     async refreshConferrals(): Promise<void> {

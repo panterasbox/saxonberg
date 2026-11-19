@@ -75,7 +75,17 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   reader narrows on `MixinApi.isPowered`), so
   `ClimateControlMixin` (kernel) drives off it without the kernel importing
   the pack. A host that is not Containable (a `ColdRoom` Location) is metered
-  against ITSELF (`resolveRoomPath` returns its own path).
+  against ITSELF (`resolveRoomPath` returns its own path). ⭐ **A composer
+  that moves re-resolves** (aether-devices D6): `onMoved` drops the cached
+  band and feeder, so a charger bought at the store is powered by the dorm
+  it is carried to.
+- **`Charger`** (`src/thing/Charger.ts`, row `/system/energy/thing/charger`)
+  — `GridPowered(Placing(Good))` with an `on` surface: a battery resting on
+  it charges ([aether-devices.md](./aether-devices.md)). It supplies only
+  while it sits in a place — carried, it answers 0 W and `look` says it is
+  not plugged in. Nobody is billed for charging (metered billing is the
+  deferred Tier C seam). Every Duncan Hall dorm room has one: the dorms
+  parcel is `domestic` on `terminus-main:crossing` since this build.
 - **`ElectricLight`** — `GridPowered(LightSource(Switchable(…)))`: emits only
   while on AND powered.
 - **`ColdStore`** (`/system/energy/thing/ColdStore`) + **`ColdRoom`**

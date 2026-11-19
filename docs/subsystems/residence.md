@@ -161,7 +161,7 @@ placeholder — so the edge reads honestly before it's been walked:
   from the durable parcel keyway) and free from inside (`freeFrom` the
   room). **The door checks a key, not identity**: `Exit.canTraverse` admits
   whoever **presents a matching key** — `opensFor(mover)`, a sync
-  reachable-wallet scan over the mover's implant keychain + any carried
+  reachable-wallet scan over the mover's wallet-app keychain + any carried
   physical `Key` (a master ring passes the same way) — and the latch shuts
   it behind them. No unlock step — you carry your key (or it's in your
   implant) and walk through; leaving needs no key. An empty keyway

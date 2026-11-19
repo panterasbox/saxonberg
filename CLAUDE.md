@@ -161,7 +161,8 @@ behavior. Read the relevant doc before editing in its area.
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin, Emote Document + EmoteGrammar, SoulCatalogue, three dispatch paths
   - [reactions.md](./docs/subsystems/reactions.md) — act-scoped emote aggregation, fixed-cadence flush, the `react` verb
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls, GroupRef typed strings
-  - [comms.md](./docs/subsystems/comms.md) — acoustic Vocal speech vs implant comms (dm/tell), AetherMixin host
+  - [comms.md](./docs/subsystems/comms.md) — acoustic Vocal speech vs aether comms (dm/tell), the person's `CommsMixin`
+  - [aether-devices.md](./docs/subsystems/aether-devices.md) — reaching past the room: tuners (the phone, the implant, the shade species), apps on `AetherHostMixin`, held-never-silent, the battery + charger, ownership as the lock
   - [chat.md](./docs/subsystems/chat.md) — Channel Document, three kinds, ChannelCatalogue; rides the forums Subject layer
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
@@ -309,7 +310,7 @@ behavior. Read the relevant doc before editing in its area.
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
-  - [calendar.md](./docs/subsystems/calendar.md) — the personal calendar on the aether implant: `CalendarMixin` entries, the `CalendarApp` hosted app, the `calendar` verb, medicine writing the follow-up date (`assess` never leaks it)
+  - [calendar.md](./docs/subsystems/calendar.md) — the personal calendar on the person: `CalendarMixin` entries, the `CalendarApp` hosted app, the `calendar` verb, medicine writing the follow-up date (`assess` never leaks it)
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
   - [expanse.md](./docs/subsystems/expanse.md) — a region you cross by setting a course: ⭐⭐ the GRAPH is spherical (nodes are foci + a radius relative to the expanse, bands named edges drawn from them) and the CHART is lat/lon (`origin` the bridge); the voyage held by the craft as three fields, sight by curvature, seeded traffic, the Structure/Ship split, the water tier

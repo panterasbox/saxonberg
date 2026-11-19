@@ -7,6 +7,7 @@ import { SecurityApi } from '../../../../api/security';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
+import { MixinApi } from '../../../../api/mixin';
 import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../../../lib/command/CommandGiver';
@@ -41,6 +42,7 @@ export default class ChatPostController extends ChatControllerBase {
       // Try ad-hoc handle path.
       const ad = await speaker.resolveChatHandle(channelName);
       if (ad) {
+        if (this.heldInstead(speaker, context)) return;
         // For ad-hoc channels, audience = ad.members; route directly.
         const cat = await ChatApi.catalogue();
         // Lazy-import to avoid circular: post via a synthesized
@@ -110,6 +112,20 @@ export default class ChatPostController extends ChatControllerBase {
         Mml.compose`\n'${channel.name}' shows every poster's name — posted under yours.\n`,
       );
     }
+    if (this.heldInstead(speaker, context)) return;
     await speaker.postToChannel(channel, body, { anonymous: anon });
+  }
+
+  /**
+   * ⭐ Held, never silent (aether-devices D8): a post that cannot leave
+   * now is kept by the person and goes when it can. Asked once the
+   * channel is known to exist, so a misspelled name is refused, not held.
+   */
+  private heldInstead(speaker: Stuff, context: CommandContext): boolean {
+    if (!MixinApi.isComms(speaker)) return false;
+    const refusal = speaker.sendOrHold(context.commandText);
+    if (!refusal) return false;
+    this.refuse(context, refusal);
+    return true;
   }
 }

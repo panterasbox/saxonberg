@@ -1,0 +1,8 @@
+# Wallet — the credential wallet app: one holder for every credential kind,
+# installed on the person by the default loadout. Ships an empty payment
+# record (accounts re-link at login) and a travel record (re-floored to the
+# born-with University Avenue node), from WalletApp.defaultCredentialKinds.
+# Session-durable (re-cloned each login).
+class: /platform/idea/WalletApp
+data:
+  appName: Wallet

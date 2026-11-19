@@ -99,6 +99,9 @@ export type Unit =
   // and the conversion is the fiction's). Round-trips to `J` via a
   // converter like every other SI scale here.
   | 'Pa' | 'N' | 'J' | 'kJ' | 'W'
+  // Watt-hours — a battery's stock (aether-devices D5): the unit every
+  // phone's capacity is printed in. Round-trips to `J` (1 Wh = 3600 J).
+  | 'Wh'
   // Mechanical material properties (materials-response) — real, tabulated:
   // `MPa` = indentation hardness (pressure-shaped, resistance to a point
   // load); `MJ/m³` = toughness (energy absorbed per unit volume before
@@ -220,6 +223,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   Pa: ARITHMETIC_OPS,
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,
+  Wh: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
   MPa: ARITHMETIC_OPS,
   'MJ/m³': ARITHMETIC_OPS,
@@ -437,6 +441,8 @@ function ensureDefaultRegistrations(): void {
   // the two have to round-trip or the first-law bookkeeping is a lie.
   registerConverter('kJ', 'J', (n) => n * 1000);
   registerConverter('J', 'kJ', (n) => n / 1000);
+  registerConverter('Wh', 'J', (n) => n * 3600);
+  registerConverter('J', 'Wh', (n) => n / 3600);
 
   // ---------- substrate-declared tag-scale registrations ----------
   // Registered here (rather than from a channel module) because the

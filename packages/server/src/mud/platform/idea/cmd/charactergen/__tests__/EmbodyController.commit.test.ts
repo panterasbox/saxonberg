@@ -55,6 +55,7 @@ describe('EmbodyController.commit', () => {
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
     wearGarments: ReturnType<typeof vi.fn>;
+    receiveStartingKit: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -136,6 +137,7 @@ describe('EmbodyController.commit', () => {
       // The body dresses itself by its own recipe (`Character.wearGarments`,
       // size and carrying finalize A9); the stand-in clones each garment so
       // the dressing is observable.
+      receiveStartingKit: vi.fn().mockResolvedValue(undefined),
       wearGarments: vi.fn(async (paths: readonly string[]) => {
         for (const p of paths) await StuffApi.clone(p);
       }),
