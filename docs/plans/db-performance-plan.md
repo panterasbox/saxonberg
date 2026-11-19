@@ -1237,3 +1237,7 @@ the remaining place writes are real moves (into hands, onto a shelf). The
 title and place writes themselves went from a read and a write to one
 write (370 → 196 ops). **Kept, not reverted** — reverting buys back ~200
 reads for nothing — and listed for the owner's eye.
+
+**Owner ruling, 2026-11-19: keep H4.** It cuts the title and place writes
+from a read and a write to one write; the path's per-command figure counts
+the audit-event appends no cut touches.
