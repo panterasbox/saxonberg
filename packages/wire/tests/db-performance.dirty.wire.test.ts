@@ -717,7 +717,10 @@ suite('7 — nothing a check decided changed', () => {
  */
 const TAKEN: string[] = [
   'H5 frames',
-  'captures',
+  // ⚠ Not 'captures': its keys also count the logins' RESTORE reads (≈ 90
+  // of W0's 121 `find holder_snapshots` are the thirty workers logging in,
+  // in both runs). The capture's own cost went from a read and a write to
+  // one write — proved per capture in PersistableShutdownSweep.test.ts.
   'H2 accounts and ledger',
   'H3 competence bands',
   'H4 chattel place and stamp',
