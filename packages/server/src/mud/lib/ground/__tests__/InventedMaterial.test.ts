@@ -20,6 +20,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../location/Location';
 import Floor from '../../../platform/thing/Floor';
@@ -96,7 +97,7 @@ const ROWS: Doc[] = [
 
 function installStore(): void {
   const store = ROWS.map((d, i) => ({ _id: String(i + 1), ...d }));
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (c: string, q: Record<string, unknown>) => {
       if (c !== Collections.Content) return [];
@@ -104,7 +105,7 @@ function installStore(): void {
       return store.slice();
     }),
     findById: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 describe('a floor of an invented material', () => {

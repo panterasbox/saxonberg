@@ -12,6 +12,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RenownApi } from '../../../../api/renown';
 import { EventApi } from '../../../../api/event';
@@ -86,6 +87,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
   // Stub the scheduler so boot() doesn't leave a real 60s timer running.
   vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({

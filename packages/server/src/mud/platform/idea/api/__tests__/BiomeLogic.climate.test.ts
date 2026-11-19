@@ -19,6 +19,7 @@
  */
 
 import '../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { BiomeApi } from '../../../../api/biome';
@@ -63,10 +64,10 @@ function installInMemoryStore(initial: Doc[] = []): void {
     if (typeof query.path === 'string') return store.filter((d) => d.path === query.path);
     return store.slice();
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function installRootBiome(): void {

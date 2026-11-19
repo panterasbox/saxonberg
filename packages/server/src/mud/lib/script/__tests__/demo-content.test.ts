@@ -21,6 +21,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -203,11 +204,11 @@ describe("the engine runs authored shapes paced over the bus", () => {
         return [];
       },
     );
-    vi.spyOn(PersistenceManager, "get").mockReturnValue({
+    vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());

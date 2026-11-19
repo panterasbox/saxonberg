@@ -23,6 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { AdvancementMixin } from '../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
@@ -164,7 +165,7 @@ function installStore(docs: Doc[]): void {
   const store = [...(KERNEL_CONTENT_ROWS as unknown as Doc[]), ...docs].map(
     (d, i) => ({ ...d, _id: String(i + 1) }),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => false,
     save: vi.fn(async () => '1'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
@@ -177,7 +178,7 @@ function installStore(docs: Doc[]): void {
     findById: vi.fn(
       async (_c: string, id: string) => store.find((d) => d._id === id) ?? null,
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 // A delver: Mobile (traverses + springs traps) + Sensor + BeliefStore (records

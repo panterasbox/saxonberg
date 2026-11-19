@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import Place from '../../stuff/Place';
@@ -89,11 +90,11 @@ describe('CommandContext.commandSource threading', () => {
         return [];
       }
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver()) as Giver;

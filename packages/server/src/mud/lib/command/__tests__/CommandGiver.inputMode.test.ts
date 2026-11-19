@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -166,11 +167,11 @@ describe('executeCommand per-bar input mode', () => {
         return [];
       },
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     await CommandApi.preloadAll();
 

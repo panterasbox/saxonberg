@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { chargeHot } from '../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -319,6 +320,7 @@ beforeEach(async () => {
       return id as never;
     },
   );
+  spySaveMany(pm);
 
   // The REAL authored roster — a drifted pack file fails here.
   const recipes = RECIPE_DIRS.flatMap((dir) =>

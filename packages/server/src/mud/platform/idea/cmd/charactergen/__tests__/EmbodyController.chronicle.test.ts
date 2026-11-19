@@ -11,6 +11,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EmbodyController from '../EmbodyController';
 import EmbodyConfirmController from '../EmbodyConfirmController';
@@ -81,6 +82,7 @@ describe('EmbodyController.commit → chronicle seeding', () => {
         return id;
       }
     );
+    spySaveMany(pm);
     WorldClockApi._setNowProviderForTesting(() => 1000);
 
     vi.spyOn(AppApi, 'setting').mockReturnValue('/world/lounge/idea/warren');

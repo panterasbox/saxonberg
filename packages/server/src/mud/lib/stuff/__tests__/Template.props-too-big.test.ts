@@ -5,6 +5,7 @@
  * lets it spill.
  */
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { Stuff } from '../Stuff';
 import { StuffApi } from '../../../api/stuff';
@@ -39,13 +40,13 @@ beforeEach(() => {
   installV1QuantityTagTables();
   installV1QuantityMarshallers();
   installShapes();
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => 'x'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
       return ROWS.filter((r) => typeof query.path !== 'string' || r.path === query.path);
     }),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(async (path: string) => CLASSES[path] as never);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     const row = ROWS.find((r) => r.path === path)!;

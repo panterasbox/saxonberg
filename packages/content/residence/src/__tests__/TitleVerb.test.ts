@@ -17,6 +17,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleHoldingsController from '../idea/cmd/civics/TitleHoldingsController';
@@ -148,7 +149,7 @@ function matches(doc: Doc, key: string, want: unknown): boolean {
 function installStore(): void {
   store = new Map();
   idCounter = 0;
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async (c: string, d: Doc) => {
       const arr = col(c);
       if (d._id) {
@@ -170,7 +171,7 @@ function installStore(): void {
     findById: vi.fn(async () => null),
     delete: vi.fn(async () => {}),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // The house rows the programme wakes (real clone pipeline).
   const domain = col('content');
   const PH = '/platform/idea/TemplateApplier';

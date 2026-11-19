@@ -8,6 +8,7 @@
  */
 
 import '../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
@@ -56,12 +57,12 @@ function installStore(): void {
   const rows = [
     ...(EXIT_KIND_TEST_ROWS as unknown as Array<{ path: string }>),
   ].map((r, i) => ({ ...r, _id: String(i + 1) }));
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (c: string, q: Record<string, unknown>) =>
       c !== Collections.Content ? [] : typeof q.path === 'string' ? rows.filter((r) => r.path === q.path) : rows.slice(),
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function ctx(avatar: FakeAvatar, room: Location): CommandContext {

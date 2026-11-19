@@ -9,6 +9,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../../api/consumer';
 import { RenownApi } from '../../../../api/renown';
@@ -48,6 +49,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
 });
 
 afterEach(() => {

@@ -10,6 +10,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProvenanceApi } from '../../../../api/provenance';
 import AuthoringEvent from '../../../../lib/standing/AuthoringEvent';
@@ -48,6 +49,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
 });
 

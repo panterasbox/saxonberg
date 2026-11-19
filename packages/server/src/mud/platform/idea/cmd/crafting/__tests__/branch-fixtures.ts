@@ -8,6 +8,7 @@
  */
 
 import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { vi } from 'vitest';
 import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../../../lib/fire/Burner';
@@ -337,6 +338,7 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
       return id as never;
     },
   );
+  spySaveMany(pm);
 
   registerMaterial(IRON, 'iron', ['metal', 'ferrous'], { keywords: ['iron'] });
   registerMaterial(VEG, 'root vegetable', ['food', 'vegetable', 'raw'], {

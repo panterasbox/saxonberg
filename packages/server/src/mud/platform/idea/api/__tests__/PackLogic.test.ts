@@ -12,6 +12,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spyPersistSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
@@ -80,6 +81,7 @@ function stubPersist(): void {
       return id;
     },
   );
+  spyPersistSaveMany();
   vi.spyOn(PersistApi, 'delete').mockImplementation(
     async (_col: string, id: string) => {
       const i = rows.findIndex((r) => r._id === id);

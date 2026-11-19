@@ -14,6 +14,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeRegistry from '../idea/OfficeRegistry';
 import Avatar from '../agent/PrimaryAvatar';
@@ -93,13 +94,13 @@ function installInMemoryStore(): void {
       return arr.filter((d) => keys.every((k) => d[k] === query[k]));
     },
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // TwitchProfile declares field marshallers; `find`/`findById` preload
   // them. Wire a no-op resolver so the preload doesn't throw (our stub
   // twitch_profiles docs carry no token fields, so the marshaller is

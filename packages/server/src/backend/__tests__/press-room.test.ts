@@ -21,6 +21,7 @@
  */
 
 import "../../test-bootstrap";
+import { spySaveMany } from '../../mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import express, { type Express } from "express";
 import request from "supertest";
@@ -83,6 +84,7 @@ function installStore(): void {
       return id;
     },
   );
+  spySaveMany(pm);
 }
 
 function publisher(

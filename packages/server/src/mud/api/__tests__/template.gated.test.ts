@@ -13,6 +13,7 @@
  */
 
 import '../../../test-bootstrap';
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TemplateApi } from '../template';
 import { AccessApi } from '../access';
@@ -93,6 +94,7 @@ beforeEach(() => {
     saved.push(String(doc.path));
     return 'id';
   });
+  spySaveMany(pm);
 });
 
 afterEach(() => {

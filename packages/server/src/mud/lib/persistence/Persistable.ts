@@ -111,10 +111,11 @@ export interface Persistable {
   /**
    * Does this host want a capture as the process ends?
    *
-   * ⭐ The knowledge belongs here, not to the bootstrapper. An Avatar
-   * says no: it captures at logout on its own seam, and a shutdown sweep
-   * would only race that. A host with no persistence key says no — it
-   * never established one, so there is nothing to write.
+   * ⭐ The knowledge belongs here, not to the bootstrapper. A host with
+   * no persistence key says no — it never established one, so there is
+   * nothing to write. Every other host says yes, a connected body
+   * included: at shutdown nothing awaits a logout, so a body the sweep
+   * skipped came back from its last periodic save (db-performance D9).
    *
    * A PREDICATE, not a registry. The set of hosts wanting a shutdown
    * capture is derivable from the hosts themselves, so nothing caches
@@ -276,10 +277,15 @@ export function PersistableMixin<
     }
 
     capturesAtShutdown(): boolean {
-      if (this._persistenceKey === null) return false; // never established
-      // An Avatar captures at logout, on its own seam; a shutdown sweep
-      // would only race it.
-      return !MixinApi.isHasInteractive(this as unknown as Stuff);
+      // Every established host — a connected body included
+      // (db-performance D9). The exclusion this replaced said an Avatar
+      // "captures at logout, on its own seam", but at shutdown nothing
+      // awaits a logout: the sockets close and the process exits, so a
+      // connected player came back from their last periodic save —
+      // elsewhere, without what they had been handed since (the W0 drive:
+      // thirty of thirty). A logout capture beside the sweep's is ordered
+      // by the per-record write queue; each writes a whole snapshot.
+      return this._persistenceKey !== null;
     }
 
     isPersistenceKeyExplicit(): boolean {

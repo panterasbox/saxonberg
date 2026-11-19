@@ -16,6 +16,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ShipRegister, { SHIP_ENTRY_KIND, type ShipEntry } from '../ShipRegister';
 import Ship from '../Ship';
@@ -74,13 +75,13 @@ function installStore(): void {
       }),
     ),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(async (c: string, id: string) => col(c).find((d) => d._id === id) ?? null),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,

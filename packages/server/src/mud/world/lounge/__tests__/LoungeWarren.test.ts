@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
@@ -75,10 +76,10 @@ function installLoungeStore(): Doc[] {
       return store.slice();
     },
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   return store;
 }
 

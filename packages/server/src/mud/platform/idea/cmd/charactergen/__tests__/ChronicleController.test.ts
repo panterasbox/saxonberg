@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ChronicleController from '../ChronicleController';
 import { MessageApi } from '../../../../../api/message';
@@ -61,6 +62,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   captureBody();
 });
 

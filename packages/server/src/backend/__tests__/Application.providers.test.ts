@@ -10,6 +10,7 @@
  */
 
 import "../../test-bootstrap";
+import { spySaveMany } from '../../mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { PersistenceManager } from '../PersistenceManager';
@@ -194,6 +195,7 @@ describe('Application provider spine', () => {
       const pm = PersistenceManager.get();
       vi.spyOn(pm, 'find').mockResolvedValue([]);
       vi.spyOn(pm, 'save').mockResolvedValue('gp-1');
+      spySaveMany(pm);
       vi.spyOn(User.prototype, 'save').mockImplementation(async function (
         this: User
       ) {

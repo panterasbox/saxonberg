@@ -17,6 +17,7 @@
  */
 
 import "../../test-bootstrap";
+import { spySaveMany } from '../../mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
@@ -394,6 +395,7 @@ describe('Application', () => {
         saves.push({ collection, doc });
         return `inserted-${collection}`;
       });
+      spySaveMany(pm);
       return {
         finds,
         saves,

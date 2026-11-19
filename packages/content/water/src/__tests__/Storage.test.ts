@@ -24,6 +24,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -154,6 +155,7 @@ function installWorld(): void {
       return String(copy._id);
     },
   );
+  spyPersistSaveMany();
 }
 
 function installRootBiome(): void {

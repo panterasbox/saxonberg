@@ -9,6 +9,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
@@ -64,6 +65,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(
     async (c: string, query: Record<string, unknown>) =>
       [...col(c).values()].filter((d) =>

@@ -7,6 +7,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../Board';
 import Entry from '../Entry';
@@ -36,6 +37,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(
     async (c: string, query: Record<string, unknown>) =>
       [...col(c).values()].filter((d) =>

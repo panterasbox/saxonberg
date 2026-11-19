@@ -7,6 +7,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import TreasurySetController from "../TreasurySetController";
 import ReserveSetController from "../ReserveSetController";
@@ -33,6 +34,7 @@ beforeEach(async () => {
   // (controller-liquidity D9), so the write is not mocked.
   const pm = PersistenceManager.get();
   vi.spyOn(pm, "save").mockResolvedValue("inserted-id" as never);
+  spySaveMany(pm);
   vi.spyOn(pm, "find").mockResolvedValue([
     { _id: "r", values: { "banking.salesTaxRate": "0.08", "banking.withdrawalDailyCap": "500" } },
   ] as never);

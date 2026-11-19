@@ -15,6 +15,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ScriptApi } from "../../../api/script";
 import { StoredDocument } from "../../document/StoredDocument";
@@ -96,13 +97,13 @@ beforeEach(() => {
     }
     return (doc._id as string) ?? "id";
   });
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   // Default: path resolves to no zone → the slice-walk can(write) gate.
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);

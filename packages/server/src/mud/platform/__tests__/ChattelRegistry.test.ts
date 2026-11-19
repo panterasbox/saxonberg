@@ -26,6 +26,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../idea/ChattelRegistry";
 import Good from "../../lib/stuff/Good";
@@ -129,13 +130,13 @@ function installStore(): void {
       );
     },
   );
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // Thing composes WetMixin's marshalled Quantity gauge — register the
   // v1 quantity marshallers so the round-trip's restore can resolve it.
   installV1QuantityMarshallers();

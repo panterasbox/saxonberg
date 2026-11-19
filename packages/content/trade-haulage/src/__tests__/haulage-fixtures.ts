@@ -4,6 +4,7 @@
  */
 
 import { vi } from 'vitest';
+import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
@@ -59,6 +60,7 @@ export function installStore(): void {
       return id;
     },
   );
+  spyPersistSaveMany();
   // These suites are not about authorization; the ambient gate is
   // declared rather than assumed.
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);

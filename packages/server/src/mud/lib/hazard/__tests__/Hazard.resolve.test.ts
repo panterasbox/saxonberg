@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import Trap from '../../../platform/thing/Trap';
@@ -190,6 +191,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   vi.spyOn(pm, 'save').mockResolvedValue('id-0' as never);
+  spySaveMany(pm);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
@@ -460,6 +462,7 @@ describe('HazardMixin — player-placed accountability (the trap producer)', () 
         return _id as never;
       },
     );
+    spySaveMany(pm);
     vi.spyOn(pm, 'find').mockImplementation(
       async (_col: string, query: Record<string, unknown>) =>
         store.filter((d) =>

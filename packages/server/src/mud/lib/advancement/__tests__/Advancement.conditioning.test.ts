@@ -7,6 +7,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AdvancementMixin } from "../Advancement";
 import { Creature } from "../../creature/Creature";
@@ -53,6 +54,7 @@ function fakeMongo(): void {
       return id;
     },
   );
+  spySaveMany(pm);
 }
 
 async function warmCatalogue(): Promise<void> {

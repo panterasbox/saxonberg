@@ -15,6 +15,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessApi } from '../access';
 import AccessRegistry from '../../platform/idea/AccessRegistry';
@@ -73,10 +74,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     return store.slice();
   });
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return store;
 }

@@ -8,6 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RenownStanding, { COMPACT_WIDE } from '../RenownStanding';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
@@ -34,6 +35,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
 });
 
 afterEach(() => {

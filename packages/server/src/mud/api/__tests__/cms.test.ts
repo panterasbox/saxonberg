@@ -15,6 +15,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import {
   describe,
   it,
@@ -109,10 +110,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     }
   );
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return store;
 }

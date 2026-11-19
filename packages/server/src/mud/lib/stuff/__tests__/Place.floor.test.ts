@@ -17,6 +17,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -80,7 +81,7 @@ function installStore(rows: Doc[]): void {
     _id: String(i + 1),
     ...d,
   }));
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (c: string, q: Record<string, unknown>) => {
       if (c !== Collections.Content) return [];
@@ -88,7 +89,7 @@ function installStore(rows: Doc[]): void {
       return store.slice();
     }),
     findById: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 let seq = 0;

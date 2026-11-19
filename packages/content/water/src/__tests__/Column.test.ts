@@ -16,6 +16,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ColumnWarren from '../idea/ColumnWarren';
@@ -107,9 +108,9 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save, find, findById, delete: del, isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(() => undefined, async () => undefined);
 }

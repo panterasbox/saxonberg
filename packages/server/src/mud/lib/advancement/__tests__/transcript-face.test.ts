@@ -12,6 +12,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rememberDisciplines } from "./discipline-fixtures";
 import type { ActSignature } from "../ActSignature";
@@ -56,6 +57,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
 });
 
@@ -227,6 +229,7 @@ describe("Competence derive-on-read", () => {
     });
     const sizeAfterWrite = store.size;
     const saveSpy = vi.spyOn(PersistenceManager.get(), "save");
+    spySaveMany(PersistenceManager.get());
     await owner.competenceBandFor("darts");
     await owner.competenceBands();
     await owner.competenceBandFor("darts");

@@ -5,6 +5,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ParticipationStanding, { PARTICIPATION_WIDE } from '../ParticipationStanding';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
@@ -31,6 +32,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
 });
 
 afterEach(() => {

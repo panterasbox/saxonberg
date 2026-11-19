@@ -22,6 +22,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SlaughterController from '../idea/cmd/ranching/SlaughterController';
 import HerdRegistry, { type HerdRecord } from '../idea/HerdRegistry';
@@ -110,7 +111,7 @@ function installStore(): void {
       }),
     );
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(
@@ -119,7 +120,7 @@ function installStore(): void {
     ),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(
     () => undefined,
     async () => undefined,

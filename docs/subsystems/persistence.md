@@ -848,9 +848,30 @@ search ([mql.md](./mql.md); it is what `lint:world-scan` points a
 bespoke `getAllObjects()` loop at) — and each answers
 `capturesAtShutdown()` for itself. That predicate holds the exclusions,
 because who wants a shutdown capture is this mixin's knowledge, not the
-bootstrapper's: a host with no persistence key never established one, and
-an **Avatar** says no because it captures at logout on its own seam and
-the sweep would only race it.
+bootstrapper's: a host with no persistence key never established one, so
+it says no; **every other host says yes, a connected body included**.
+
+⚠⚠ Until db-performance W4 (2026-11) an Avatar said no — "it captures at
+logout on its own seam, and the sweep would only race it". But at
+shutdown nothing awaits a logout: the sockets close and the process
+exits, so a connected player came back from their last periodic save.
+The drive stopped a world with thirty players connected and all thirty
+came back **elsewhere, without what they had been handed since**. A logout
+capture beside the sweep's is ordered by the per-record write queue; each
+writes a whole snapshot.
+
+⭐ **A capture is ONE keyed write, and the sweep is bounded** (W4). A
+capture prepares its record (key, synchronous snapshot, the estate flush
+of goods titled to others) and writes it as one `saveMany` upsert on
+`{scope, owner}` — where it was a find then a save, two round trips and
+not atomic (the per-record queue exists because two first captures both
+inserted and died on the unique index; the upsert cannot). The shutdown
+sweep waits for queued writes, prepares hosts six at a time (dependents
+join the queue) and writes twenty-five records to a batch as they are
+ready — so a process killed at its grace has kept every batch already
+written — and returns `ShutdownCaptureReport { captured, failed, ms }`,
+logged as `shutdown captured <n> persistable host(s) in <ms> ms (<f>
+failed)`, the line an operator (and the db-performance drive) reads.
 
 ⚠ A `PersistableRegistry` briefly sat here, with hosts enrolling on
 `setPersistenceKey` and withdrawing on destruct. It was deleted: a third

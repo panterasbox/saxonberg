@@ -95,15 +95,15 @@ describe('capturesAtShutdown — the shutdown capture asks, it does not remember
     expect(shutdownHosts()).toContain(counter as never);
   });
 
-  it('a connection endpoint says no — it captures at logout on its own seam', () => {
+  it('⭐ a connection endpoint says YES — at shutdown nothing awaits its logout (db-performance D9)', () => {
     seq += 1;
     const persona = makeStuffAtPath(
       () => new Persona(),
       `/fx/agent/persona-${seq}`,
     ) as unknown as Persona;
     persona.setPersistenceKey('someone');
-    expect(persona.capturesAtShutdown()).toBe(false);
-    expect(shutdownHosts()).toHaveLength(0);
+    expect(persona.capturesAtShutdown()).toBe(true);
+    expect(shutdownHosts()).toContain(persona as never);
   });
 
   // The registry needed an explicit withdraw on destruct AND an

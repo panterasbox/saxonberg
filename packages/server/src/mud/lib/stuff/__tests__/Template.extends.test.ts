@@ -7,6 +7,7 @@
  * chain). Every test below is one or the other.
  */
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Template } from '../Template';
 import { LeafTemplate } from '../LeafTemplate';
@@ -45,11 +46,11 @@ function install(docs: Doc[]): { store: Doc[]; save: ReturnType<typeof vi.fn> } 
     }
     return store.slice();
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(async () => null),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ZoneApi, 'isFolderClass').mockResolvedValue(false);
   vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(
     class Fake {} as never,

@@ -17,6 +17,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../../api/consumer';
 import { ProducerApi } from '../../../../api/producer';
@@ -126,6 +127,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
   vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({
     id: 'test-handle',

@@ -19,6 +19,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { DispositionedMixin } from "../../trait/Dispositioned";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -62,6 +63,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 500);
 });
 

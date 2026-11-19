@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { Idea } from "../../stuff/Idea";
@@ -54,6 +55,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 1000);
 });
 
