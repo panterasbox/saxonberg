@@ -99,6 +99,10 @@ beforeEach(async () => {
       return id;
     }
   );
+  vi.spyOn(pm, 'saveMany').mockImplementation(async (_col: string, writes) => {
+    for (const w of writes) store.set(`id-${idCounter++}`, { ...w.doc });
+    return writes.length;
+  });
   WorldClockApi._setNowProviderForTesting(() => 4242);
   vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({
     id: 'test-handle',
@@ -222,7 +226,9 @@ describe('the scheduled recompute runs one pass at a time (ceramics drive, run 3
     const logReads: string[] = [];
     const realFind = pm.find.bind(pm);
     vi.spyOn(pm, 'find').mockImplementation((async (c: string, q: Record<string, unknown>) => {
-      if (c === 'participation_events') {
+      // A pass's read (the whole log, or the changed subjects) — not an
+      // append's {subject, bucket} dedup.
+      if (c === 'participation_events' && !('bucket' in q)) {
         logReads.push(c);
         await held;
       }
@@ -236,6 +242,14 @@ describe('the scheduled recompute runs one pass at a time (ceramics drive, run 3
     expect(logReads).toHaveLength(1);
 
     release();
+    await flush();
+    // Nothing changed since: a fire reads nothing (db-performance W3).
+    fire!();
+    await flush();
+    expect(logReads).toHaveLength(1);
+    // A person acts: the next fire reads the log again.
+    const giver = await mint(PRIMARY, '/platform/agent/Avatar/p9');
+    fireDispatch(giver.stuffId, 'cmd-9');
     await flush();
     fire!();
     await flush();

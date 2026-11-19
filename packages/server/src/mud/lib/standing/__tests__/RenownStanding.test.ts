@@ -63,8 +63,28 @@ describe('RenownStanding', () => {
 
     await RenownStanding.warm();
     const cache = RenownStanding.cached();
-    expect(cache.get(RenownStanding.key('/p1', COMPACT_WIDE))).toBe(5);
-    expect(cache.get(RenownStanding.key('/p1', 'managed:guild'))).toBe(-2);
+    // A row with no three sums (written before they were kept) reads flat.
+    expect(cache.get(RenownStanding.key('/p1', COMPACT_WIDE))).toEqual({ value: 5 });
+    expect(cache.get(RenownStanding.key('/p1', 'managed:guild'))).toEqual({ value: -2 });
     expect(cache.get(RenownStanding.key('/p1', 'managed:none'))).toBeUndefined();
+  });
+
+  it('a row with its three sums warms as a point carrying its game-time instant', async () => {
+    const a = new RenownStanding();
+    a.subject = '/p2';
+    a.value = 1;
+    a.recomputedAt = 700;
+    a.esteem = 2;
+    a.notoriety = -1;
+    a.reception = 0.5;
+    await a.save();
+    await RenownStanding.warm();
+    expect(RenownStanding.cached().get(RenownStanding.key('/p2', COMPACT_WIDE))).toEqual({
+      value: 1,
+      at: 700,
+      esteem: 2,
+      notoriety: -1,
+      reception: 0.5,
+    });
   });
 });

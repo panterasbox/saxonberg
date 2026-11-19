@@ -192,7 +192,25 @@ The polity sets **declarative parameters in a fixed engine algorithm**
   Per-**emote** valence is *not* central config — it lives on the emote.
 
 Re-legislating any of these re-scores standing on the next recompute
-without touching the log (the raw signal is retained).
+without touching the log (the raw signal is retained) — a change to any
+of them, or to an emote's valence, makes the next pass a full one.
+
+### ⭐ The pass scores who changed; decay is read (db-performance, 2026-11)
+
+The 60 s pass re-scores only the subjects whose events changed since the
+last one (all of them on the first pass after a start, or on a changed
+value function), writes their rows as ONE keyed `saveMany` and puts them
+in the read index; nothing changed → no round trip (participation.md has
+the full shape). Because renown's figure is not one exponential, each row
+stores the **three sums** it is built from, decayed to the pass's
+game-time instant: `esteem` (positive reactions, esteem half-life),
+`notoriety` (negative, notoriety half-life) and `reception` (the
+reception weight before its log). A read carries each forward by its own
+half-life and recombines — `(esteem·dₑ + notoriety·dₙ + receptionValence ×
+ln(1 + reception·dₑ)) × qualityWeight` — which equals a fresh pass at the
+read's instant (a decayed sum is the sum of the decayed terms), proved to
+1e-9 in `RenownLogic.passes.test.ts`. A row written before the sums were
+kept reads its flat `value` until the first full pass rewrites it.
 
 ## Scope — derive, don't track
 

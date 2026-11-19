@@ -100,6 +100,31 @@ and "present and contributing *now*" is real now. So:
 only. The recompute *cadence* rides real-time `ScheduleApi.recurring`, as
 renown's does.
 
+### ⭐ The pass scores who changed; decay is read (db-performance, 2026-11)
+
+Until db-performance W3 the 60 s pass read the whole event log and found
+and saved every subject who had ever acted — in a world that had seen 200
+players, 3 642 database ops in three idle minutes. Now:
+
+- **a pass re-scores only the subjects whose rows changed** since the last
+  one (a module-private dirty set, marked by every append AFTER its write).
+  The first pass after a start or a hot reload is full — a fresh module
+  holds "everything" — so there is no cursor to persist and no margin to
+  get wrong; so is the first pass after the value function changes (a
+  fingerprint of the half-life). Nothing changed → **no round trip**. The
+  rows are written as ONE `saveMany` keyed on `{subject, scope}` and put
+  straight into the read index (no re-warm). A failed pass gives its
+  subjects back. `recompute({ full: true })` re-scores everyone.
+- **decay is applied when a standing is READ**: the index holds the figure
+  and the real-time instant the pass computed it at, and
+  `participationOf` carries it forward with one exponential — exactly
+  what a pass at the read's instant would store, to rounding, and fresher
+  than a figure up to 60 s stale. A subject nobody touches needs no pass
+  for its standing to fall. (`ConsumerLogic.passes.test.ts` proves the
+  equality and the bands.)
+
+The producer stock (influence.md) runs the same pass, keyed on the author.
+
 ## The three-stock contract (symmetry at the output)
 
 The consumer stock is the first of three influence stocks (consumer /

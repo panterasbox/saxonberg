@@ -57,6 +57,30 @@ const ConsumerBootCallers = SecurityPolicies.AnyOf(
  */
 const CONSUMER_RECOMPUTE_MS = 60_000;
 
+/**
+ * ⭐ The subjects whose ledger rows changed since the last pass
+ * (db-performance D4). `null` means EVERYTHING — what a fresh module holds,
+ * so the first pass after a start or a hot reload is a full one and
+ * correct by construction: there is no cursor to persist and no margin to
+ * get wrong. Every append that writes a row marks its subject AFTER the
+ * write; a pass takes the set before its first await.
+ */
+let dirty: Set<string> | null = null;
+/** What the last pass scored with (D6): a change forces a full pass. */
+let lastFingerprint: string | null = null;
+/** Rows per `saveMany` (the pass chunks its batch). */
+const STANDING_WRITE_CHUNK = 500;
+
+/** Mark `subject` for the next pass (a no-op while a full pass is owed). */
+function markDirty(subject: string): void {
+  dirty?.add(subject);
+}
+
+/** What scoring reads from settings — participation's figure is one decay. */
+function fingerprint(): string {
+  return String(decayHalfLifeS());
+}
+
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
   return PersistApi.isConnected();
@@ -149,7 +173,9 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
-  // AFTER the write, never before.
+  // AFTER the write, never before: a pass must not score a ledger that has
+  // not been written yet.
+  markDirty(ev.subject);
   SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.subject });
 }
 
@@ -186,65 +212,81 @@ function scoreEvents(
   return total;
 }
 
-/** Upsert the materialized standing row (find-or-insert by {subject, '*'}). */
-async function upsertStanding(
-  subject: string,
-  value: number,
-  nowS: number,
-  realNow: number
-): Promise<void> {
-  const [existing] = await ParticipationStanding.find({
-    subject,
-    scope: PARTICIPATION_WIDE,
-  });
-  const row = existing ?? new ParticipationStanding();
-  row.subject = subject;
-  row.scope = PARTICIPATION_WIDE;
-  row.value = value;
-  row.recomputedAt = nowS;
-  row.recomputedRealAt = realNow;
-  await row.save();
+/**
+ * ⭐ The pass (db-performance D4): re-score the subjects whose rows changed
+ * since the last one — all of them on the first pass after a start, when
+ * the value function changed, or when `full` is asked — and write their
+ * standings in ONE `saveMany` (chunked), keyed on `{subject, scope}`, then
+ * put each into the read index. **An idle world's pass makes no round
+ * trip at all**: nothing changed, nothing is read, nothing written. Decay
+ * between passes is the READ's (`participationOfImpl`), so a subject
+ * nobody touches needs no pass for its standing to fall (D5). A pass that
+ * fails puts its subjects back for the next.
+ */
+async function recomputeImpl(opts: { full?: boolean } = {}): Promise<void> {
+  if (!active()) return;
+  const fp = fingerprint();
+  if (opts.full || fp !== lastFingerprint) dirty = null;
+  const taken = dirty;
+  dirty = new Set();
+  if (taken !== null && taken.size === 0) return;
+  try {
+    const halfLifeS = decayHalfLifeS();
+    const nowS = WorldClockApi.getNow().rawValue();
+    const realNow = Date.now();
+
+    const events =
+      taken === null
+        ? await ParticipationEvent.find({})
+        : await ParticipationEvent.find({ subject: { $in: [...taken] } });
+    const bySubject = new Map<string, ParticipationEvent[]>();
+    for (const ev of events) {
+      const list = bySubject.get(ev.subject);
+      if (list) list.push(ev);
+      else bySubject.set(ev.subject, [ev]);
+    }
+
+    const rows: ParticipationStanding[] = [];
+    for (const [subject, list] of bySubject) {
+      const row = new ParticipationStanding();
+      row.subject = subject;
+      row.scope = PARTICIPATION_WIDE;
+      row.value = scoreEvents(list, realNow, halfLifeS);
+      row.recomputedAt = nowS;
+      row.recomputedRealAt = realNow;
+      rows.push(row);
+    }
+    const writes = await Promise.all(rows.map((r) => r.toBatchWrite({ key: ['subject', 'scope'] })));
+    for (let i = 0; i < writes.length; i += STANDING_WRITE_CHUNK) {
+      await PersistApi.saveMany(
+        ParticipationStanding.collectionName,
+        writes.slice(i, i + STANDING_WRITE_CHUNK),
+      );
+    }
+    for (const row of rows) row.remember();
+    lastFingerprint = fp;
+  } catch (err) {
+    // Put the work back: a full pass stays owed; a dirty one re-marks.
+    if (taken === null) dirty = null;
+    else for (const sub of taken) markDirty(sub);
+    throw err;
+  }
 }
 
 /**
- * The batch recompute: re-score every subject's participation from the raw
- * bucket log into the materialized aggregate. Reads ONLY the participation
- * log + AppSettings. Compact-wide only — no scope partition.
+ * Sync read off the warmed standing index, decayed to NOW (D5): the stored
+ * figure was computed at its row's instant, and one exponential carries
+ * it forward — exactly what a pass at this instant would store, to
+ * floating-point rounding. Neutral 0 for a missing subject; a point with
+ * no instant reads flat.
  */
-async function recomputeImpl(): Promise<void> {
-  if (!active()) return;
-  const halfLifeS = decayHalfLifeS();
-  const nowS = WorldClockApi.getNow().rawValue();
-  const realNow = Date.now();
-
-  const all = await ParticipationEvent.find({});
-  const bySubject = new Map<string, ParticipationEvent[]>();
-  for (const ev of all) {
-    const list = bySubject.get(ev.subject);
-    if (list) list.push(ev);
-    else bySubject.set(ev.subject, [ev]);
-  }
-
-  for (const [subject, events] of bySubject) {
-    await upsertStanding(
-      subject,
-      scoreEvents(events, realNow, halfLifeS),
-      nowS,
-      realNow
-    );
-  }
-
-  // Refresh the read cache from the rebuilt rows.
-  await ParticipationStanding.warm();
-}
-
-/** Sync read off the warmed standing cache; neutral 0 for a missing subject. */
 function participationOfImpl(subjectId: string): number {
-  return (
-    ParticipationStanding.cached().get(
-      ParticipationStanding.key(subjectId, PARTICIPATION_WIDE)
-    ) ?? 0
+  const p = ParticipationStanding.cached().get(
+    ParticipationStanding.key(subjectId, PARTICIPATION_WIDE)
   );
+  if (!p) return 0;
+  if (p.at === undefined) return p.value;
+  return p.value * Decay.byHalfLife(Math.max(0, (Date.now() - p.at) / 1000), decayHalfLifeS());
 }
 
 /**
@@ -347,8 +389,8 @@ export class ConsumerLogic extends ApiLogic {
 
   /**
    * Self-register the real-time recompute schedule (idempotent). Each fire
-   * re-scores all standings off the log. Cancellable via the retained
-   * `ScheduleHandle`.
+   * re-scores the subjects that changed (all of them on the first fire).
+   * Cancellable via the retained `ScheduleHandle`.
    */
   @CallSecurity(ConsumerBootCallers)
   public installRecomputeSchedule(): void {
@@ -371,8 +413,8 @@ export class ConsumerLogic extends ApiLogic {
 
   /** See {@link ConsumerApi.recompute}. */
   @CallSecurity(ConsumerApiCallers)
-  public async recompute(): Promise<void> {
-    return recomputeImpl();
+  public async recompute(opts?: { full?: boolean }): Promise<void> {
+    return recomputeImpl(opts);
   }
 
   /** See {@link ConsumerApi.participationOf}. */

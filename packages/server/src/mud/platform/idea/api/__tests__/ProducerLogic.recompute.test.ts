@@ -67,6 +67,16 @@ beforeEach(async () => {
       return id;
     }
   );
+  // The pass writes its standings as one keyed batch (db-performance W3).
+  vi.spyOn(pm, 'saveMany').mockImplementation(async (c: string, writes) => {
+    for (const w of writes) {
+      const key = w.key ?? [];
+      const hit = [...col(c).values()].find((d) => key.length > 0 && key.every((k) => d[k] === w.doc[k]));
+      const id = (hit?._id as string | undefined) ?? `id-${idCounter++}`;
+      col(c).set(id, { ...(hit ?? {}), ...w.doc, _id: id });
+    }
+    return writes.length;
+  });
   WorldClockApi._setNowProviderForTesting(() => 4242);
   ProducerStanding._resetForTesting();
   await seedAppSettings({
@@ -98,20 +108,20 @@ describe('ProducerLogic.recompute', () => {
   it('materializes a scalar producerOf returns', async () => {
     await appendRecentBuckets(A, '/platform/agent/Avatar/p', 3);
     expect(ProducerApi.producerOf(A)).toBe(0); // not yet recomputed
-    await ProducerApi.recompute();
+    await ProducerApi.recompute({ full: true });
     expect(ProducerApi.producerOf(A)).toBeCloseTo(3, 5);
   });
 
   it('is rebuildable: drop the aggregate + replay → identical standing', async () => {
     await appendRecentBuckets(A, '/platform/agent/Avatar/p', 4);
-    await ProducerApi.recompute();
+    await ProducerApi.recompute({ full: true });
     const before = ProducerApi.producerOf(A);
 
     col(Collections.Producer).clear();
     ProducerStanding._resetForTesting();
     expect(ProducerApi.producerOf(A)).toBe(0);
 
-    await ProducerApi.recompute(); // replay the log
+    await ProducerApi.recompute({ full: true }); // replay the log
     expect(ProducerApi.producerOf(A)).toBeCloseTo(before, 9);
   });
 
@@ -122,7 +132,7 @@ describe('ProducerLogic.recompute', () => {
       weight: 3,
       realAt: Date.now(),
     });
-    await ProducerApi.recompute();
+    await ProducerApi.recompute({ full: true });
     expect(ProducerApi.producerOf(A)).toBeCloseTo(3, 5);
   });
 
@@ -136,7 +146,7 @@ describe('ProducerLogic.recompute', () => {
     });
     const old = Date.now() - 14 * 86_400_000; // 14 days ago, half-life 7 days
     await ProducerApi.append({ author: A, actor: '/platform/agent/Avatar/p', realAt: old });
-    await ProducerApi.recompute();
+    await ProducerApi.recompute({ full: true });
     const v = ProducerApi.producerOf(A);
     expect(v).toBeGreaterThan(0);
     expect(v).toBeLessThan(0.5);

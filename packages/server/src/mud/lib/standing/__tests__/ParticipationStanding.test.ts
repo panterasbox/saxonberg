@@ -52,6 +52,7 @@ describe('ParticipationStanding', () => {
     a.subject = '/p1';
     a.value = 3.5;
     a.recomputedAt = 100;
+    a.recomputedRealAt = 1_700_000_000_000;
     await a.save();
 
     await ParticipationStanding.warm();
@@ -59,6 +60,6 @@ describe('ParticipationStanding', () => {
       ParticipationStanding.cached().get(
         ParticipationStanding.key('/p1', PARTICIPATION_WIDE)
       )
-    ).toBe(3.5);
+    ).toEqual({ value: 3.5, at: 1_700_000_000_000 });
   });
 });
