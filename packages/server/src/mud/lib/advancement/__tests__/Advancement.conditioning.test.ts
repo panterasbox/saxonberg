@@ -9,6 +9,7 @@
 import "../../../../test-bootstrap";
 import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DerivedStandingCache } from "../../standing/DerivedStandingCache";
 import { AdvancementMixin } from "../Advancement";
 import { Creature } from "../../creature/Creature";
 import { CommandGiverMixin } from "../../command/CommandGiver";
@@ -79,6 +80,8 @@ describe("conditioning — the band is a threshold over a body stock", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();
+    // The transcript fold is cached per owner (db-performance H3).
+    DerivedStandingCache._clearAllForTesting();
   });
 
   const person = (): Person => {
@@ -106,6 +109,24 @@ describe("conditioning — the band is a threshold over a body stock", () => {
     const bands = await p.competenceBands();
     expect(bands.map((b) => b.discipline)).toEqual(["blades", "wind"]);
     expect(bands.find((b) => b.discipline === "wind")?.band).toBe("novice");
+  });
+
+  it("⭐ the fold is read from the ledger once; a credited deed is in the next read (db-performance H3)", async () => {
+    const p = person();
+    await p.creditDeed({ discipline: "blades", difficulty: "hard", outcome: "success" });
+    const reads = vi.mocked(PersistenceManager.get().find).mock.calls.length;
+    const first = await p.competenceBands();
+    const again = await p.competenceBands();
+    expect(again).toEqual(first);
+    expect(vi.mocked(PersistenceManager.get().find).mock.calls.length).toBe(reads);
+    // Before H3 every read was a ledger read; the deed's write refreshed the fold.
+    for (let i = 0; i < 6; i++) {
+      await p.creditDeed({ discipline: "blades", difficulty: "hard", outcome: "success" });
+    }
+    const after = await p.competenceBands();
+    expect(after.find((b) => b.discipline === "blades")?.band).not.toBe(
+      first.find((b) => b.discipline === "blades")?.band,
+    );
   });
 
   it("a fresh body lists nothing — the floor is implicit, for a stock as for the fold", async () => {
