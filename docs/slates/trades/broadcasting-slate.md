@@ -168,6 +168,11 @@ broadcaster's choice (the engine measures, the subject values); renown still der
 
 ### Outlets: venues own their screens **[DECIDED — lens 7]**
 
+> ⭐ **2026-11-18 — one screen for both sides of the page**: an on-page relay (a place's perception, live, in prose)
+> and an off-page stream (video mode for the viewer) arrive at the same screen, each saying where it came from —
+> [display-manifestation-slate](../client/display-manifestation-slate.md) § *The page boundary*; the stream itself
+> reconsidered in [broadcast-ready-slate](../platform/broadcast-ready-slate.md) § *The page boundary*.
+
 A screen belongs to whoever holds its place: Dave's Bar decides what its screen shows, as a real bar picks
 the game. **Broadcasters** make programs, **venues** choose what is on their screens (their pen over their
 displays), **sponsors** underwrite. On a public building — Saxonberg's windows — what a screen shows is

@@ -15,7 +15,9 @@
 > Kick on the show, alerts in the lower third, pop-out across
 > connections, the deep-link page) · the owner's rehearsal items · the
 > crawl's in-world news (press, chronicle — only welcomes ride it today)
-> · the `saxonberg.gg` domain · the rotation rules the owner may tilt
+> · the `saxonberg.gg` domain · the rotation rules the owner may tilt · ⭐ (2026-11-18, § *The page boundary*)
+> the stream split to the person · *stream* for the off-page machinery and *broadcast* for the trade · the comms
+> `broadcast` verb as a granted tool · redaction as the boundary control
 > **Size:** a tail here — each seam's own slate carries its build
 
 **Captured 2026-10-17.** The founder wants a weekly stream of a couple
@@ -206,6 +208,40 @@ streamer's own login. Kick is `stream channel kick <slug>` (§ Left).*
 
 - Alerts arrive per platform (giving-slate reads them); the overlay
   shows them in one style with the platform glyph.
+
+## ⭐⭐⭐ The page boundary — what the stream assumed, reconsidered (2026-11-18) **[DECIDED in shape — the owner]**
+
+The owner: *"This makes me rethink some of what we've slated and even already built for livestreaming, because it
+assumes all livestreaming content in the game is what we're now calling off-page … there's also livestreaming that's
+on-page to consider, and we have to keep those two things distinct. What we've built right now makes a lot of
+assumptions we probably need to reconsider."* (*Off-page* and *on-page*:
+[photography-slate](../trades/photography-slate.md) § 9; the screen side:
+[display-manifestation-slate](../client/display-manifestation-slate.md) § *The page boundary*.)
+
+**The owner's stream is not purely off-page**: his face and voice are, but most of what is on screen is **the game
+rendered outward** — the on-page → off-page crossing, which is why redaction exists.
+
+1. ⭐ **The stream belongs to the person, not the body** **[DECIDED — lens 7]** — `BroadcastMixin` sits on each
+   Avatar, so channels, tokens, phase and agenda follow a *character*; but a Twitch channel is a person's, and
+   switching characters mid-stream is still the same stream. **Split it**: the person's stream (channels, tokens,
+   phase, agenda) is **account-level** off-page production — accountability is the person's, as conduct follows the
+   account; the body answers only **which character is on screen**. A *character* broadcasting in the world is the
+   on-page case, where state on the body makes sense.
+2. ⭐ **"Broadcast" means three things; it should mean one** **[DECIDED — lens 2]** — the livestream's
+   `BroadcastMixin`/`BroadcastFeed` (the off-page overlay), the comms `broadcast` verb (one-to-many to every online
+   player), and broadcasting the trade ([broadcasting-slate](../trades/broadcasting-slate.md)). **The off-page
+   machinery takes the name *stream***; *broadcast* means the in-world trade.
+3. ⭐ **Reaching every online player at once is a granted tool, not a free verb** **[DECIDED — lens 7]** — the comms
+   `broadcast` verb does it today; reaching everyone's attention at once is a power, so it belongs to a seat granted
+   it (the Compact's gazette, an operator's announcement), not to anyone who types it.
+4. ⭐ **Redaction is the boundary control for on-page → off-page** **[DECIDED — lens 7]** — its job is protecting other
+   players' private content when the game is shown to a real-world audience; **every future outward path**
+   (screenshots, clips, a spectator mode) passes through the same control.
+5. **The agenda and segments may be generic broadcasting** — they measure a streamer's craft (broadcasting-slate § 7:
+   agendas kept) and an on-page station's schedule wants the same shape.
+
+**A build**, since these change shipped code: the account-level split, the rename, the announcement tool, and the
+on-page relay source on the display side.
 
 ## Open questions
 
