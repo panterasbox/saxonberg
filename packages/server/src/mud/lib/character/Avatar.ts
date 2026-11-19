@@ -605,7 +605,7 @@ export default abstract class Avatar extends AvatarBase {
    * Avatar is the right home. A future persistence/autosave mixin would
    * pull this entry up to that mixin and Avatar would compose it.
    *
-   * ⚠ `wiki.spoilerAppetite` sits here for a MECHANICAL reason, not a
+   * ⚠ `spoiler.appetite` sits here for a MECHANICAL reason, not a
    * conceptual one: the schema walk is over the host's prototype chain,
    * and the wiki adds no mixin (D7 withdrew `DocumentedMixin`), so
    * there is no other layer on an Avatar to hang it from. It is a
@@ -626,16 +626,19 @@ export default abstract class Avatar extends AvatarBase {
         "next login).",
     },
     {
-      key: "wiki.spoilerAppetite",
+      key: "spoiler.appetite",
       type: SettingTypes.Number,
       default: 0,
+      // ⭐ The client collapses spoilers in tooltips by it (tooltips D5).
+      client: true,
       description:
-        "How much revealed content you want shown outright when " +
-        "reading the wiki (0 = only what is open; 3 = everything you " +
-        "are entitled to). Content ABOVE this but within your reach " +
-        "still arrives — collapsed, so you choose. Content beyond " +
-        "your reach is never sent at all, and this setting cannot " +
-        "change that.",
+        "How much revealed content you want shown outright — in the " +
+        "wiki and in every tooltip (0 = only what is open; 3 = " +
+        "everything you are entitled to). A thing's path is a level-2 " +
+        "spoiler. Content ABOVE this but within your reach still " +
+        "arrives — collapsed, one click to open. Content beyond your " +
+        "reach is never sent at all, and this setting cannot change " +
+        "that.",
       validator: (value: unknown) =>
         typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 3
           ? true
@@ -1141,26 +1144,6 @@ export default abstract class Avatar extends AvatarBase {
         muteChannels:
           ShellApi.resolveSetting<boolean>(this, "social.react.muteChannels") ??
           false,
-      },
-      /*
-       * ⭐ BOTH answers, resolved through the per-form-factor rung. The
-       * server cannot know a viewport, so it ships what each width
-       * would resolve to and the client picks — the `cockpit.shelf`
-       * split, restated for a setting rather than a list.
-       */
-      resultDisplay: {
-        desktop:
-          ShellApi.resolveSetting<ResultDisplay>(
-            this,
-            "shell.result",
-            "desktop",
-          ) ?? "card",
-        mobile:
-          ShellApi.resolveSetting<ResultDisplay>(
-            this,
-            "shell.result",
-            "mobile",
-          ) ?? "card",
       },
     };
     return payload;

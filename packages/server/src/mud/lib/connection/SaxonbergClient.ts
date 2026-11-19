@@ -952,6 +952,12 @@ export function SaxonbergClientMixin<
     public snapshotClientState(): Record<string, unknown> {
       const self = this as unknown as ClientHost;
       const out = super.snapshotClientState();
+      // ⭐ Every setting declared `client: true` (tooltips D5) — the
+      // spoiler appetite, where results show — so the first render has it.
+      const host = this as unknown as StuffRef;
+      if (MixinApi.isEnvironment(host)) {
+        Object.assign(out, host.clientMirroredSettings());
+      }
       const mode = self.getCockpitMode();
       out['cockpit.mode'] = mode;
       out['cockpit.arrangements'] = {

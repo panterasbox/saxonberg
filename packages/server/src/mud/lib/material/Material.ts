@@ -251,7 +251,7 @@ export default class Material extends SingletonMixin(
    *
    * Level **1** specifically, which is the reader rung: hidden by
    * default, one click to open, plain for a reader who set
-   * `wiki.spoilerAppetite` higher. It is a **default about
+   * `spoiler.appetite` higher. It is a **default about
    * presentation, not a lock** — a player who wants the numbers has
    * them immediately, and only a guest (who cannot persist the
    * preference) is refused outright.

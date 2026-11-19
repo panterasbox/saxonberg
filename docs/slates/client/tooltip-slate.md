@@ -120,7 +120,7 @@ Every concept the build needs, and what already does it (survey
 | hover → command preview | `store/index.ts` `ghostPreview` (one reader, guarded) | coexist — untouched |
 | touch | `useLongPress.ts` (450 ms, pointer-type branch) · `CommandSheet.tsx` (tap confirms) · `Terminal.tsx` row long press | reuse `useLongPress`; route a link/chip long press to the tooltip sheet |
 | link click | `MmlRenderer.tsx` `commandFor()` (`look`/`go`), `data-stuff-id` · `ItemChips` / `SegmentItem` | reuse — the tooltip's thing link runs the same command |
-| spoiler | `MmlRenderer.tsx` `Spoiler` (local click) · `CharGenStage` `SpoilerDetails` · `wiki.spoilerAppetite` (Avatar, server-only) | generalize into the one block; the appetite reaches the client |
+| spoiler | `MmlRenderer.tsx` `Spoiler` (local click) · `CharGenStage` `SpoilerDetails` · `spoiler.appetite` (Avatar, server-only) | generalize into the one block; the appetite reaches the client |
 | icons | `ui/icons/iconMap.ts` (11 Lucide) · `Icon.tsx` (label → aria + SVG `<title>`) · `KindMark.tsx` | reuse; the SVG `<title>` gives way to the tooltip, the label stays the accessible name |
 | images | `mediaUrl()` (`client/src/config.ts`), `illustrationShape` | reuse |
 | pin → card | the card surface's one birth path: a command pushes (`look`, `help`, `wiki`) | reuse — pin runs the command |

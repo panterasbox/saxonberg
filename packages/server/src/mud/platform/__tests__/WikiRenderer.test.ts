@@ -73,7 +73,7 @@ function pinCeiling(ceiling: 0 | 1 | 2 | 3): void {
   vi.spyOn(AccessApi, 'can').mockResolvedValue(ceiling >= 1);
 }
 
-/** Pin the reader's declared appetite (the `wiki.spoilerAppetite` setting). */
+/** Pin the reader's declared appetite (the `spoiler.appetite` setting). */
 function pinAppetite(appetite: number): void {
   vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(
     appetite as unknown as never,

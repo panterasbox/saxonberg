@@ -640,7 +640,16 @@ lint family green. Stage files by name.
 - **Acceptance:** tests; `lint:gates` accepts the new `FromModule`.
 - **Commit:** `feat(wiki,help): W3 — a gated excerpt and one topic resolution for the glossary`
 
-### W4 — Server: the appetite reaches the client (D5)
+### W4 — Server: the appetite reaches the client (D5) ✅
+> **Done.** The mirror lives on `Environment` (it owns settings):
+> `clientMirroredSettings()` + a private push after every set / unset of a
+> `client: true` entry. Resolved locally (`<key>.<factor>` own value → the
+> base) rather than through `ShellApi`, to keep `lib/shell` out of an import
+> cycle with `ShellLogic`. `SaxonbergClient.snapshotClientState` merges the
+> mirror behind `MixinApi.isEnvironment` (a `typeof … === 'function'` probe
+> tripped `lint:duck-typing`). The rename swept code, subsystem docs and live
+> slates; retired plans keep the old key as history.
+
 - Rename the setting (`Avatar.ts`, `WikiRenderer.ts` `APPETITE_SETTING`, the
   comment in `lib/material/Material.ts`, tests, and **grep
   `spoilerAppetite` across `packages/` and `docs/`** — B4).

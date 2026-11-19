@@ -90,7 +90,7 @@ const LIMIT_KEYS = {
 } as const;
 
 /** The reader-preference setting declared on `Avatar` (D-9). */
-const APPETITE_SETTING = 'wiki.spoilerAppetite';
+const APPETITE_SETTING = 'spoiler.appetite';
 /** The encyclopedia's namespace root — the zone whose owners read at 3. */
 const WIKI_ROOT = '/wiki';
 
@@ -271,7 +271,7 @@ export default class WikiRenderer extends Idea {
    *
    * Level 1 is therefore defined as **ordinary reader content that a
    * reader may choose not to be shown**: hidden by default for a
-   * reader whose `wiki.spoilerAppetite` is 0, one click to open,
+   * reader whose `spoiler.appetite` is 0, one click to open,
    * plain for a reader who asked for everything. Levels 2 and 3 keep
    * meaning what they meant, and remain authority-gated.
    *
@@ -822,7 +822,7 @@ export default class WikiRenderer extends Idea {
   /**
    * Resolve the current reader's two numbers. The acting principal
    * comes from the execution context; the appetite from the
-   * per-invocation override, else their `wiki.spoilerAppetite` setting,
+   * per-invocation override, else their `spoiler.appetite` setting,
    * else 0.
    *
    * Appetite is **clamped to the ceiling**. Not for safety — the gate

@@ -137,7 +137,7 @@ deferred](../../subsystems/wiki.md).*
 ## The spoiler model — two axes
 
 *Shipped → [wiki.md](../../subsystems/wiki.md) § The reveal model — two
-axes, one gate (capability DELETES, appetite TAGS; `wiki.spoilerAppetite`),
+axes, one gate (capability DELETES, appetite TAGS; `spoiler.appetite`),
 § The capability ladder (wizard · owner · editor-or-player · guest — no
 `teacher` group), § What reveal does NOT answer (reader identity, never
 progress). Still open:*

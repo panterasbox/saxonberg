@@ -1512,18 +1512,12 @@ export const useStore = create<StoreState>((set, get) => ({
       feed,
       feedOrder: orderFeed(feed),
       /*
-       * ⭐ `shell.result` seeds into clientState rather than into a
-       * field of its own, because the WRITE path pushes it there: a
-       * client-state change from `SettingsSetController` is how the
-       * setting takes effect without a reconnect. Two homes for one
-       * answer would drift the first time only one of them was written.
+       * ⭐ Every setting the server declares `client: true` (`shell.result`,
+       * `spoiler.appetite`) arrives IN the client-state snapshot, and the
+       * write path pushes it there too (tooltips D5) — one home, so the
+       * first render and a later `settings set` cannot disagree.
        */
-      clientState: {
-        ...(payload.clientState ?? {}),
-        ...(payload.resultDisplay
-          ? { "shell.result": payload.resultDisplay }
-          : {}),
-      },
+      clientState: { ...(payload.clientState ?? {}) },
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),

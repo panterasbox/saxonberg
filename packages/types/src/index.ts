@@ -4290,21 +4290,6 @@ export interface ConnectionEstablishedPayload {
     muteChannels: boolean;
   };
   /**
-   * ⭐ **Where a structured command result appears — BOTH answers, so
-   * the client can pick.**
-   *
-   * `shell.result` is one setting with an optional per-form-factor
-   * override, resolved server-side into the two values it can take.
-   * The server ships both because **it cannot know a viewport**: a
-   * `cockpit.formFactor` key would be a fake fact. Two stored
-   * preferences assert nothing about which is in force — the server
-   * owns what is SHOWN, the client (which genuinely knows its own
-   * width) picks which applies. Same split as `cockpit.shelf`.
-   *
-   * Optional on the wire; the client falls back to `card` when absent.
-   */
-  resultDisplay?: Record<FormFactor, ResultDisplay>;
-  /**
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its
    * feed card from (consumed as a `snapshot`, exactly as `topicCatalogue`

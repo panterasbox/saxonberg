@@ -178,7 +178,7 @@ circumstance shape), **quest/progress** state (the earned condition).
    reveal-condition that plugs into the percept revelation-condition
    family.*
 3. *Resolved by the wiki build: neither global nor per-category but a
-   **graduated 0–3 appetite scalar** — `wiki.spoilerAppetite`, a setting on
+   **graduated 0–3 appetite scalar** — `spoiler.appetite`, a setting on
    the Avatar, overridable per reading with `wiki … --spoiler` →
    [wiki.md](../../subsystems/wiki.md) § The reveal model — two axes, one
    gate, § Why an ordinary player sits at 1. Per-category guards remain
