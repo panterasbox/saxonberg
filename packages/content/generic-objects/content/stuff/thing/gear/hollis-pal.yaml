@@ -13,7 +13,10 @@ data:
     A palm-sized slab of toughened glass in a rubbery grey shell, the
     Hollis lion stamped small on the back. The screen wakes when you
     turn it toward you.
-  _materialPath: /stuff/idea/material/glass/glass
+  # Rubber, not glass: the shell is what meets the floor. The starter phone
+  # is somebody's only tuner, and a glass one broke on the first drop
+  # (aether-devices drive, step 15) — nobody is stranded by dropping it.
+  _materialPath: /stuff/idea/material/organic/rubber
   mass: 0.18
   dimensions: { width: 0.07, depth: 0.01, height: 0.145 }
   slotClaims:

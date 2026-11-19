@@ -506,8 +506,12 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     noticeTuning(): void {
-      this.scheduleFlushIfMovable();
-      this.noteAetherWord();
+      // After the act that told us: a device is told mid-move, before the
+      // move core has put it in its bearer's sources or its hand.
+      ScheduleApi.schedule(0, () => {
+        this.scheduleFlushIfMovable();
+        this.noteAetherWord();
+      });
     }
 
     /** Is anything held, and can some of it move now? Then flush once, after this frame. */

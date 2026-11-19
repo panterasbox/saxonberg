@@ -113,6 +113,14 @@ export function GridPoweredMixin<TBase extends MixinConstructor<Stuff>>(
           const power = ParcelApi.powerOf(roomPath);
           this._powerBand = power.band;
           this._powerNodeRef = power.feeder !== '' ? power.feeder : null;
+        } else {
+          // No premises under it NOW (between places — a room's reset
+          // re-seating it): read off-grid, but do not latch it — the next
+          // read, once it has landed, resolves the meter it stands under
+          // (aether-devices drive: a dorm charger stuck dark after a reset).
+          this._powerBand = 'off-grid';
+          this._powerNodeRef = null;
+          this._resolved = false;
         }
         const cat = StuffApi.findByTemplatePath(
           GRID_CATALOGUE_PATH,

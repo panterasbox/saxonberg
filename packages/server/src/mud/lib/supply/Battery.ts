@@ -124,8 +124,13 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
     /** Runtime: who drew standby at the last settle (a new drawer is a fresh interval). */
     private _drawer: string | null = null;
 
-    /** Runtime: what it rested on at the last settle — read across a move. */
-    private _restedOn: Stuff | null = null;
+    /**
+     * Runtime: what it rested on at the last settle — read across a move.
+     * `undefined` until this instance has settled once: a battery restored
+     * from its record does not know, and must not charge an absence to
+     * nothing (D6 — restored onto a charger, it charges across it).
+     */
+    private _restedOn: Stuff | null | undefined = undefined;
 
     getCapacityWh(): number {
       return this.capacityWh;
@@ -151,13 +156,32 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
     }
 
     settleBattery(nowS: number, drawer: string | null, restingOn?: Stuff | null): void {
+      // ⛔ Never settle from limbo. A battery, or what it rests on, that is
+      // between places (a room's reset re-seating its charger, a restore
+      // standing it up) cannot say what the gap gave: the charger read
+      // off-grid with no room under it, and the settle billed two powered
+      // hours at nothing and stamped them gone (drive, step 13). Keep the
+      // stamp; the settle after it lands charges the whole gap.
+      const under = restingOn !== undefined ? restingOn : this.restingOn();
+      if (this.inLimbo(this as unknown as Stuff) || (under !== null && this.inLimbo(under))) return;
       this.writeStored(this.settled(nowS, drawer, restingOn));
       this.batteryStampS = nowS;
       this._drawer = drawer;
       this._restedOn = this.restingOn();
     }
 
+    /** Between places: a containable with no container. */
+    private inLimbo(thing: Stuff): boolean {
+      return MixinApi.isContainable(thing) && thing.getContainer() === null;
+    }
+
     settleAfterMove(nowS: number): void {
+      if (this._restedOn === undefined) {
+        // Stood up from its record (or freshly made): keep the stamp, learn
+        // what it rests on now — the next settle charges the whole interval.
+        this._restedOn = this.restingOn();
+        return;
+      }
       this.settleBattery(nowS, null, this._restedOn);
     }
 
@@ -193,12 +217,15 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
       if (from === null || !(nowS > from)) return charge;
       // Charge: from the thing it rests in or on, when that is powered.
       const under = restingOn !== undefined ? restingOn : this.restingOn();
-      if (under !== null && MixinApi.isPowered(under)) {
-        const rateW = Math.min(this.acceptW, under.availablePowerW());
-        if (rateW > 0) {
-          const poweredS = under.poweredTrajectory(from, nowS).integrate((v) => v, 2);
-          charge += (rateW * poweredS) / S_PER_H;
-        }
+      // ⚠ The gap is read off the supply's TRAJECTORY, never off what it
+      // reads at the visit (the `Powered` contract): a grid read dark for a
+      // moment at the settle billed two powered hours on a charger at zero
+      // (drive, step 13). It takes `acceptW` while supplied — what a supply
+      // could deliver in the past is not knowable, and no supply a battery
+      // rests on today offers less than a phone accepts.
+      if (under !== null && MixinApi.isPowered(under) && this.acceptW > 0) {
+        const poweredS = under.poweredTrajectory(from, nowS).integrate((v) => v, 2);
+        charge += (this.acceptW * poweredS) / S_PER_H;
       }
       // Draw: only by the same live body that drew at the stamp.
       if (drawer !== null && drawer === this._drawer && this.isRunning()) {

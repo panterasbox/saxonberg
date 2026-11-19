@@ -9,10 +9,12 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
+import { Idea } from '../../stuff/Idea';
 import { BatteryMixin } from '../Battery';
 import { ReservedMixin } from '../../reserve/Reserved';
 import { SwitchableMixin } from '../../boundary/Switchable';
 import { PoweredMixin } from '../Powered';
+import { Piecewise } from '../../Trajectory';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -27,9 +29,23 @@ class Pad extends PoweredMixin(ContainerMixin(Good)) {
   }
 }
 
+/**
+ * Where everything stands — a place, never containable itself. A battery
+ * never settles from limbo (a thing with no container), so every fixture
+ * is somewhere, as everything in the world is.
+ */
+class Place extends ContainerMixin(Idea) {}
+let place: Place | null = null;
+function standing<T extends Good>(make: () => T): T {
+  place ??= makeStuff(() => new Place());
+  const t = makeStuff(make);
+  ContainmentApi.move(t as never, place as never);
+  return t;
+}
+
 /** The Hollis row's numbers. */
 function hollis(): Cell {
-  const c = makeStuff(() => new Cell());
+  const c = standing(() => new Cell());
   c.standbyW = 0.1;
   c.useWh = 0.002;
   c.acceptW = 10;
@@ -41,7 +57,10 @@ function hollis(): Cell {
 const H = 3600;
 
 describe('BatteryMixin', () => {
-  afterEach(() => StuffApi.clearAll());
+  afterEach(() => {
+    StuffApi.clearAll();
+    place = null;
+  });
 
   it('the arithmetic: a full Hollis lasts at least four game days of standby', () => {
     const c = hollis();
@@ -89,7 +108,7 @@ describe('BatteryMixin', () => {
   it('resting on a powered pad charges across the whole absence, capped', () => {
     const c = hollis();
     c.setChargeFraction(0.1, 0); // 1.2 Wh
-    const pad = makeStuff(() => new Pad());
+    const pad = standing(() => new Pad());
     ContainmentApi.move(c, pad);
     // From nowhere-ish: the stamp is what it was set to (0).
     // Half a game hour at 10 W = 5 Wh.
@@ -101,16 +120,60 @@ describe('BatteryMixin', () => {
   it('an unpowered pad charges nothing', () => {
     const c = hollis();
     c.setChargeFraction(0.5, 0);
-    const pad = makeStuff(() => new Pad());
+    const pad = standing(() => new Pad());
     pad.watts = 0;
     ContainmentApi.move(c, pad);
     expect(c.chargeWh(5 * H)).toBe(6);
   });
 
+  it('⭐ the gap is read off the trajectory, never off the meter at the visit (drive, step 13)', () => {
+    // Supplied for the whole two hours, but reading dark at the moment of
+    // the settle (a grid not yet compiled after a jump): it still charged.
+    class DarkAtVisit extends Pad {
+      public override availablePowerW(): number {
+        return 0;
+      }
+      public override isPowered(): boolean {
+        return false;
+      }
+      public override poweredTrajectory(fromS: number, toS: number): Piecewise {
+        return new Piecewise([{ fromS, toS: Math.max(fromS, toS), startValue: 1, target: 1, tau: 0 }]);
+      }
+    }
+    const c = hollis();
+    c.setChargeFraction(0.1, 0);
+    const pad = standing(() => new DarkAtVisit());
+    ContainmentApi.move(c, pad);
+    expect(c.chargeWh(2 * H)).toBe(12);
+  });
+
+  it('⭐ never settles from limbo: a charger re-seated by a reset keeps the gap (drive, step 13)', () => {
+    // Like the grid charger: no premises under it, no supply.
+    class Charger extends Pad {
+      public override availablePowerW(): number {
+        return this.getContainer() === null ? 0 : this.watts;
+      }
+    }
+    const c = hollis();
+    c.setChargeFraction(0, 0);
+    const pad = standing(() => new Charger());
+    ContainmentApi.move(c, pad);
+    c.settleBattery(0, null);
+    // The room resets while its tenant is away: the pad is lifted out, and
+    // a read mid-reset must not bill the half hour at nothing…
+    ContainmentApi.move(pad, null as never);
+    c.settleBattery(0.5 * H, null);
+    // …so once it is set back, the settle charges the WHOLE hour (10 Wh),
+    // where a settle from limbo would have kept only the last half (5).
+    ContainmentApi.move(pad, place as never);
+    c.settleBattery(H, null);
+    expect(c.chargeWh(H)).toBeCloseTo(10, 4);
+  });
+
   it('settling across where it WAS keeps what a charger gave (lifted off)', () => {
     const c = hollis();
     c.setChargeFraction(0, 0);
-    const pad = makeStuff(() => new Pad());
+    const pad = standing(() => new Pad());
     c.settleBattery(H, null, pad); // an hour on the pad, settled as it leaves
     expect(c.chargeWh(H)).toBeCloseTo(10, 4);
   });
@@ -121,8 +184,8 @@ describe('BatteryMixin', () => {
   it('rests on its placement host: set ON a powered pad in a room, it charges; lifted off, it keeps it', () => {
     const c = hollis();
     c.setChargeFraction(0, 0);
-    const pad = makeStuff(() => new Pad());
-    const room = makeStuff(() => new Pad());
+    const pad = standing(() => new Pad());
+    const room = standing(() => new Pad());
     room.watts = 0; // the room itself supplies nothing
     ContainmentApi.move(c, room);
     const placed = vi

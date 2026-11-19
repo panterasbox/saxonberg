@@ -280,15 +280,18 @@ suite('aether devices', () => {
     expect(await heard(A, /hey are you there/, 800)).not.toMatch(/hey are you there/);
   });
 
-  it('7 · ready it: the held line goes; what waited arrives under "While you were away"', async () => {
+  it('7 · take the pack off: the held line goes; what waited arrives under "While you were away"', async () => {
     B.clearCaptures();
-    // Hands full (coin in one, the rucksack in the other): set it down first.
+    // Packed is a pack ON THE BACK (carrying D15): in hand, what is in it is
+    // within reach, so taking it off is the act that un-packs the phone —
+    // and the flush rides the scheduler just after it (D8), so poll.
     await say(A, 'remove rucksack');
-    await say(A, 'drop rucksack');
-    const readied = squash(`${await say(A, 'get phone from rucksack', 2_000)} ${framesText(A)}`);
-    expect(readied).toMatch(/While you were away/);
+    expect(await heard(A, /While you were away/, 6_000)).toMatch(/While you were away/);
     expect(await heard(A, /hey are you there/)).toMatch(/hey are you there/);
     expect(await heard(B, /from the bottom of the bag/)).toMatch(/from the bottom of the bag/);
+    // Hands full (coin in one, the rucksack in the other): set it down to take the phone out.
+    await say(A, 'drop rucksack');
+    await say(A, 'get phone from rucksack');
     await say(A, 'get rucksack');
     await say(A, 'wear rucksack');
   });
@@ -375,8 +378,10 @@ suite('aether devices', () => {
 
   it('13 · charging while logged out', async () => {
     await stage(`#${await phoneId(A)}`, 'setChargeFraction', 0.1);
-    await say(A, 'put phone on charger');
+    expect(await say(A, 'put phone on charger')).toMatch(/charger/i);
     A.close();
+    // While A is away the dorm room resets and re-seats its charger: the
+    // charge across the gap must survive that (found by this step).
     await advanceWorldClock('2 hours');
     A = await Session.open(handleA);
     await say(A, 'get phone');
@@ -389,25 +394,26 @@ suite('aether devices', () => {
     B.close();
     A.close();
     await restartWorld();
-    A = await Session.open(handleA);
+    // B first: A's held line re-runs at A's enter, and must find B there.
     B = await Session.open(handleB);
+    A = await Session.open(handleA);
     expect(await examine(A, 'phone')).toMatch(/Hollis Pal/i);
     B.clearCaptures();
-    await say(A, 'switch phone on');
-    await say(A, 'look');
-    expect(await heard(B, /held through a restart/)).toMatch(/held through a restart/);
+    const back = `${await say(A, 'switch phone on', 2_000)} ${framesText(A)}`;
+    expect(await heard(B, /held through a restart/), back).toMatch(/held through a restart/);
     expect(chargeOf(await examine(A, 'phone'))).toBeGreaterThan(90);
   }, 900_000);
 
   it('15 · theft is a brick: B cannot use it, cannot pass it on, cannot sell it', async () => {
-    // In the lounge, where no stock phone stands to confuse `get phone`.
-    await reopenA({ where: '/world/lounge/location/lounge' });
+    // In the hall lobby — one shared room (each lounge is a copy of its own).
+    await reopenA({ where: HALL_LOBBY });
     B.close();
-    B = await Session.open(handleB, { startLocation: '/world/lounge/location/lounge' });
+    B = await Session.open(handleB, { startLocation: HALL_LOBBY });
     // B carries a phone of their own: A's is named by its id throughout.
     const id = await phoneId(A);
-    await say(A, 'drop phone');
-    await say(B, `get #${id}`);
+    console.log('THEFT id', id, '|', await examine(A, `#${id}`));
+    console.log('15 drop:', await say(A, `drop #${id}`), '| B look:', (await say(B, 'look')).slice(0, 600));
+    console.log('15 get:', await say(B, `get #${id}`));
     expect(await examine(B, `#${id}`)).toMatch(/not yours/);
     expect(await say(B, `title transfer #${id} to ${nameA}`)).toMatch(/not yours to hand on/);
     await say(B, `give #${id} to ${nameA}`);
@@ -431,9 +437,12 @@ suite('aether devices', () => {
     const prompt = B.awaitPrompt(30_000);
     const offer = A.cmd(`title transfer aevex to ${nameB}`);
     const p = (await prompt) as unknown as { promptId: string };
-    B.answerPrompt(p.promptId, true);
-    await offer;
-    expect(await hears(A, 1_500)).toMatch(/'s now/);
+    console.log('15b prompt', JSON.stringify(p).slice(0, 600));
+    B.answerPrompt(p.promptId, 'yes');
+    const off = await offer;
+    const aHeard = `${squash(await off.said())} ${await hears(A, 1_500)} ${framesText(A)}`;
+    console.log('15b A', JSON.stringify(off.notes).slice(0, 300), aHeard.slice(0, 600), '| B', framesText(B).slice(0, 400));
+    expect(aHeard).toMatch(/'s now/);
     await say(A, `give aevex to ${nameB}`);
     expect(await examine(B, 'aevex')).toMatch(/It is yours\./);
   });
