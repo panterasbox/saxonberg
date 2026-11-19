@@ -251,6 +251,9 @@ want to touch the network's reliability. Precision belongs to ad-hoc casting
 
 ### Open
 
+0. ⭐ **The headquarters is in Saxonberg** (2026-11-18,
+   [saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8a) — the network's window, whichever
+   way open 1 goes.
 1. **What becomes of the Authority:** the public carrier that keeps walk-first, or a standards body
    above the carriers.
 2. **Who runs the lounge's routes:** the operator's own carrier (the lounge is the operator's brand),

@@ -21,6 +21,10 @@
 > membership without weight, masters-vs-workers as charter content, the living mark against the
 > permanent degree, the guild keeping the canon, and **authors' conflict of interest**: a lever
 > is governance, never worldcrafting.
+> ⭐ **2026-11-18** (§ *The guild as an institution*, at the end): a guild is a committee with grants
+> and the guild-specific ones make it a guild; jurisdiction by membership; fair procedure for power
+> over a livelihood; the university feeds the guild — degrees, journeyman entry, masters as the
+> authoring road, the guild as the frontier.
 > **Size:** a build
 
 > This slate is the institution-level guild design. It **supersedes and
@@ -1491,3 +1495,149 @@ list of knobs that pass from the founder to the polity.
 4. **Majority self-dealing** — recusal for voters.
 5. **NPC examiners conferring rank** (§ *NPCs in a guild*).
 6. **The mark's revocation appeal**, and **a guild's founding purse**.
+
+## ⭐⭐⭐ Designed 2026-11-18 — the guild as an institution, and the university that feeds it
+
+Talked through with the owner after the governance design
+([separation-of-powers-slate](./separation-of-powers-slate.md)), out of his framing: *"guilds are
+the interesting one because they're basically just there for the players to make whatever they want
+out of them, however they think they should be organizing. Most of our notes predict guilds organize
+around certain economic indicators, but who's to really say. Because what makes the guild is the
+institutional controls we offer the players, and that's what this whole conversation has been about,
+just at a different level."*
+
+### A guild is a committee with grants
+
+The *ground zero* section already says guild governance rides the Office substrate so a guild
+secretary has used the Compact's machinery. The governance design makes it literal: **a guild is a
+committee with grants** (separation-of-powers § 7l), and its holdings are paths.
+
+| primitive | at guild scale |
+|---|---|
+| committee and grants | the guild — its hall (a parcel), its board, its channel, its treasury, **its charter as a law subtree** at its own path |
+| sovereignty of an extent | all three branches over what it holds; its own constitution — masters and workers is charter content (§ *The Bartenders' Guild*) |
+| `bill` and the continuous floor | members amend their charter with the same machinery, scoped to the guild's path; ⭐ **the counting rule is a typed clause in the charter** (one member one vote, masters only, by rank) — the conviction engine reads another weight; the three chambers are the *Compact's* rule |
+| the closed toolkit | the charter grants its officers their tools — admit, examine, confer rank, expel, post to the board, spend, issue hall keys |
+| the court | a guild tribunal — *private courts are their own fiction* — with appeal to the Compact |
+| local jurisdiction | its hall and channel are its jurisdiction; it staffs its own moderators ([moderation-slate](./moderation-slate.md) §§ 23–24) |
+| the record | every act chained, privately visible ([record-integrity-slate](../platform/record-integrity-slate.md)) |
+| the bounty board | the guild board is the same `job` board |
+
+### ⭐⭐⭐ The generic institution, and what makes it a guild **[DECIDED — lenses 1, 2]**
+
+Players may found **any institution** with the generic toolkit — a club, a church, a mutual aid
+society, a union, a newspaper, a company. **What makes one a guild is holding the guild-specific
+grants**: a claim on a region of the Discipline map (the master rule), the chartered training budget,
+issuing credentials as an examiner, and the interior (the keyway tiers). So **the vocation theory —
+discipline × livelihood — becomes the definition of one kind of grant, never a prediction of how
+players will organize**; players who organize around something else found another kind of institution
+with the same toolkit. **A club is an institution that claims nothing.** One system learned at every
+scale is what makes a guild teach the Compact (lens 1).
+
+⚠ **For the plan:** this slate's `Guild` Idea and `guild:` GroupProvider may largely collapse into the
+committee machinery — an engineering reconciliation for the build.
+
+### Two things genuinely new
+
+**Jurisdiction by membership, not territory** **[DECIDED in shape]**. Everything else is territorial;
+a guild also holds jurisdiction **over its members, by consent** — joining is accepting the oath. A
+smith in Terminus is under Terminus's law where she stands and under her charter for what she does in
+the guild's name. ⭐ **A guild's sanctions reach only membership and its own holdings** **[DECIDED —
+lens 7]** — expel, demote, revoke its credential, bar from its hall; never a member's body or property
+outside its holdings. That settles the conflict of laws: **for acts in Terminus, Terminus's law governs
+the act; the guild answers only by membership.** **Exit is always available** — Tier A, a manifesto
+floor; leaving ends the jurisdiction except for what was done while a member.
+
+**Fair procedure — a middle tier** **[DECIDED — lenses 1, 7]**. A guild is private, so it gets
+deference; but one that controls access to a livelihood holds power over people's work. Real law has
+the doctrine: *Pinsker v. Pacific Coast Society of Orthodontists* (California, 1969) — a private
+association controlling access to a profession owes **fair procedure** before excluding someone.
+
+| holder | owes |
+|---|---|
+| ordinary private (a club, your parcel) | nothing — the right to exclude |
+| ⭐ **power over a livelihood** | **fair procedure**: notice, a hearing, and an appeal to the Compact on whether the *procedure* was fair, never the merits |
+| public | full due process |
+
+⭐ **Who owes it is computed, not judged** (lens 1): an institution owes fair procedure when **a seat
+somewhere requires its credential or membership, or it holds an exclusive discipline claim** — facts the
+engine already knows. Corpos, which employ people, meet this tier too.
+
+### The rest of the lens pass
+
+- **Expression** — players found anything with no code; the charter chooses the counting rule, the
+  officers' tools and the court.
+- **Immersion** — halls, oaths, marks and tribunals stay in the fiction; the wish fulfillment
+  (mysteries, calls, recognition) survives, because the interior is among the guild-specific grants.
+- **Participation** — churches, mutual aid, and **unions** organizing labor inside corpos (strikes are
+  content). The known failure is the cartel, how historical guilds ended; the guards are open canon,
+  *nothing load-bearing depends on a guild*, the master rule, and fair procedure.
+- **Values** — oligarchy of masters or one member one vote is the players' question, answered in the
+  charter.
+- **Continuity** — a dissolved guild's open cases and records pass to its parent (moderation § 23);
+  ⭐ **credentials survive the guild that issued them** **[DECIDED — lens 5]**: a dated attestation is a
+  fact about the past, and the chained record still verifies it.
+- **Economy** — ⭐ **founding costs follow the grants claimed, never the label** **[DECIDED — lens 6]**:
+  a club claims nothing and is free; a hall costs rent, a claim costs masters. Guild rank is never
+  Compact standing; no NPC pays dues.
+
+### ⭐⭐⭐ The university feeds the guild **[DECIDED in shape — the owner]**
+
+*"The university is sort of a feed into the guild system. Graduating and joining a guild is the natural
+next step."*
+
+| | university | guild |
+|---|---|---|
+| teaches | **laws** — why things work (the [tech tree](./tech-tree-slate.md)'s nodes) | **practice** — how to do the work (Disciplines) |
+| proves it by | examination | witnessed deeds and rank exams |
+| gives | credentials: dated attestations of understanding | rank, recognition, the interior, a livelihood |
+| answers | *do you understand cooling?* | *can you keep a cellar?* |
+
+History agrees: *universitas* meant a guild — medieval universities were guilds of masters and
+scholars — and the professions keep the two stages (medicine's residency, law's bar, engineering's
+supervised years before the license).
+
+**The pipeline:**
+
+1. **Enroll and study** a field's laws; earn credentials.
+2. ⭐ **Graduate.** A **degree is a named bundle of credentials** — a program (*natural philosophy,
+   metallurgy concentration*) — a presentation like any credential.
+3. ⭐ **Enter a guild higher up.** The charter's entry floor may read a degree as the floor for
+   **journeyman**: the graduate skips apprenticeship's theory years and still practices. Without one, you
+   start as an apprentice and learn the theory in the guild, slower. Both roads stay open (*the course is
+   never the only path*).
+4. **Practice and rise** — witnessed deeds, rank exams, mastery.
+5. **Masters close the loop:** they **teach back** (applied courses, labs — the teaching duty at senior
+   rank), and ⭐ **they author**: masters are the tech tree's **peer sign-off road** for authoring in
+   their region (tech-tree § 8). A master who also holds the university's credential understands *and*
+   does — the full author.
+
+**Recruiting** happens on campus as a career fair — the guilds come to the students. Not a venue, so the
+campus still hosts no trade venue.
+
+### Where the frontier moves
+
+Research belongs to a lab, a guild or a firm, and the university teaches what they found (tech-tree
+§ 9). Guilds make it concrete:
+
+- **New content in a region is made by its masters**, who hold authoring rights there — new recipes,
+  designs and processes in metallurgy come out of the smiths. The authors' conflict-of-interest rule
+  (§ *Authors' conflict of interest*) still binds: changing what the guild *gets* is governance, never
+  worldcrafting.
+- **New to taught:** a master authors it → it enters the world → if it carries a new rule, the
+  legislature codifies it → the university teaches it. **The guild is the frontier; the university is
+  the canon.**
+- ⚠ **Mysteries are spoilers, not secrets.** The code and the content are public; a guild's mystery is
+  hidden by default, one click away, never prevented (*paths are spoilers*). So a guild's real assets
+  are what no page copies — the teaching, practice under a master's eye, recognition, the livelihood.
+  Real guilds lasted on apprenticeship far more than on secrets.
+
+### Open
+
+1. **Schism under the committee model** — a breakaway bloc forms its own committee and takes the claims
+   its masters hold; does the parent's charter get any say?
+2. **The `Guild` Idea against the committee machinery** — the plan's reconciliation.
+3. **A degree's meaning** — set by each guild's entry floor, or the same to every guild?
+4. **Masters and authoring** — does a master need the university's credential too, or does mastery alone
+   grant authoring rights in the region?
+5. **Mysteries as spoilers** — acceptable, or does a guild need something genuinely private?
