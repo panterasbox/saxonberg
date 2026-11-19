@@ -8,7 +8,9 @@
 > ([race.md](../../subsystems/race.md) § Material); seats any person or program can hold
 > ([employment.md](../../subsystems/employment.md)); work as power × time
 > ([exertion.md](../../subsystems/exertion.md)).
-> **Left:** the Future rung's three mechanics, each the extension of a shipped one (§§ 2–4) · the
+> **Left:** ⭐ **before launch** (the owner, 2026-11-18 — the campus's Future zone runs on day one,
+> [eternal-university-slate](../world/eternal-university-slate.md) § 2026-11-18) · the Future rung's three
+> mechanics, each the extension of a shipped one (§§ 2–4) · the
 > triangle's numbers — each root's downside made real in its math (§ 1a) · the pair techs (§ 1a) · who
 > owns a design (§ 3) · the automaton's story — governance and economy (§ 4) · what magic may borrow
 > from this rung (§ 5) · ⭐ the rung's first content
