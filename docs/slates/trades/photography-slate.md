@@ -12,7 +12,8 @@
 > *competence resolves detail, never access* ([instrumentation.md](../../subsystems/instrumentation.md)).
 > **Left:** the `photograph` verb and the camera as a tool row · the frozen perception snapshot and how a print
 > stores it · exposure (light × time, motion lost) · recognition at viewing · the negative and the print ·
-> digital metadata · private extents' camera rules · the photographer's vocation
+> digital metadata · private extents' camera rules · the photographer's vocation · ⭐ (§ 9) **off-page** — the
+> term for real-world creative work and its artists; Disciplines name in-world crafts only
 > **Size:** a build
 
 ## 0. The line it sits on **[DECIDED — the owner's rule, read]**
@@ -148,3 +149,84 @@ sharpest point.
   [belief.md](../../subsystems/belief.md) — what a camera can see and who is recognized
 - [journalism-slate](../society/journalism-slate.md) — photojournalism, and the recording instrument
 - [broadcasting-slate](./broadcasting-slate.md) — television and the recorded program, the harder media
+
+## 9. ⭐⭐⭐ "Photographer," and off-page work **[DECIDED — the owner; lens pass]**
+
+The owner: *"One thing is how to handle the ambiguity when we say 'photographer' in the game. Do we mean the
+fictional kind or the real-life kind, because they both exist and are two different disciplines … or are they?
+Is a real-life photographer actually a fictional photographer automatically, because they can show deeds that
+prove their ability? My gut says no, because they're not really the same skill — one's gameplay and one's using
+actual cameras. But then there's even more reason why we need to disambiguate them. Maybe even coin a new term
+for 'real-life media producer' in the game's jargon that we can use in code and content."*
+
+### Not the same skill, but bridged **[DECIDED — lens 1]**
+
+- **Understanding transfers.** In-world photography runs on real physics, so a real photographer already
+  understands it and **can pass the in-world photography exam on day one** — the tech tree's understanding
+  layer, however it was learned ([assessment-slate](../society/assessment-slate.md): one student model, two
+  kinds of evidence).
+- **Deeds do not.** In-world competence is evidenced in the world — framing a scene, timing an exposure in a
+  dark room. A real photograph proves real skill, but **the game cannot count it as an in-world deed, because the
+  game never judges art.**
+- So: **real expertise earns the credential by exam; deeds come only from play.** Not automatic — the owner's
+  gut — but a real bridge, which a real photographer will likely cross faster than anyone.
+
+### Three kinds of people
+
+| who | what they do | how the game knows them |
+|---|---|---|
+| **a tradesperson in the fiction** | a character practicing photography in the world | the **Discipline** — deeds in the world, and exams |
+| **an author** | someone who writes the world's content — rows, places, code | the authoring record; the tech tree's author credentials |
+| ⭐ **an off-page artist** | a person whose real work enters the game — a musician streaming, a painter uploading, a photographer, a streamer | **audience reception**, never a judgment of the work; Disciplines only for the staging around it |
+
+### ⭐⭐⭐ The term: off-page **[DECIDED — lens 2]**
+
+From the owner's own doctrine — *"performance is explicitly not on the page … the performance happens off the
+page"* ([performance-slate](../world/performance-slate.md) § 0). In a text game **the page is the game's own
+medium**:
+
+- **off-page work** — real-world creative work brought into the game: a real photo, a real performance, a
+  stream;
+- **an off-page artist** — the person who made it;
+- **on-page** — anything the game itself renders, so **an in-world photograph is on-page**.
+
+Short, from the doctrine, plain in content (*"an off-page photograph hangs in the gallery"*), usable as a code
+flag (`offPage`), and it says the important thing on its face: **off-page work is the artist's, and the game
+never touches its content.**
+
+### What it does to the word
+
+- **In the game, "photographer" always means the in-world trade** — a Discipline holder. A real photographer is
+  **an off-page photographer**, and their work off-page work.
+- ⭐ **Disciplines name in-world crafts only** **[DECIDED — lens 1]** — no Discipline exists for off-page art,
+  because the engine cannot measure it. **An off-page artist's standing comes from audience reception and
+  credentials**, and the game measures **the staging around** their work as a Discipline — a streamer's craft
+  measured by agendas kept ([broadcasting-slate](./broadcasting-slate.md) § 7) is exactly this.
+
+### The rest of the lens pass
+
+- **Expression** — off-page artists grow in-game through the staging around their work; their art stays theirs.
+- **3a Immersion** — off-page work appears in the fiction framed (a photograph on a gallery wall, a performer on
+  a stage), and in prose is just *"a photograph"*; ⭐ **off-page work carries the out-of-fiction mark in the
+  interface** **[DECIDED — lens 3a]**, the flag streams carry — a viewer can always tell it is a real person's
+  real work. **3b Participation** — real artists join on their own terms, and may also take up the in-world
+  trade: two roads, both open.
+- **Values** — what counts as good off-page art is never the engine's call; the audience decides.
+- **Continuity** — off-page work persists as media, independent of any Discipline.
+- **Economy** — off-page artists earn through tips, patrons and the audience; in-world photographers through
+  their trade. ⭐ **Off-page work earns standing only if it is original** **[DECIDED — lenses 6, 7]** — the
+  existing rights rule: labor standing is for original work only, and the platform never rewards uploading
+  someone else's.
+- **Governance** — the engine never judges art (*the engine measures, people value*); **authorship is attested
+  by whoever brings the work in and challenged through notice-and-takedown**; a false claim of authorship is a
+  conduct matter; what may be shown publicly is the visual-arts slate's open moderation question.
+
+| question | answer | lens |
+|---|---|---|
+| real vs in-world photographer | not the same; real expertise earns the credential by exam, deeds only from play | 1 |
+| the term | **off-page** — off-page work, off-page artists; on-page is what the game renders | 2 |
+| "photographer" in the game | always the in-world trade; a real one is an off-page photographer | 2 |
+| Disciplines | in-world crafts only; off-page artists gain Disciplines only for the staging around their work | 1 |
+| in the interface | off-page work carries the out-of-fiction mark | 3a |
+| standing | only for original off-page work | 6, 7 |
+| authorship | attested by whoever brings it in; challenged by notice-and-takedown | 7 |
