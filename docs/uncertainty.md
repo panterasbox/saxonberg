@@ -211,6 +211,10 @@ than settled ones:
   arithmetic. That is coherent, and the insurance slate already leans
   into "the inverted information business," but it means shipping
   actuarial science with the actuary removed.
+  *(2026-11-19: absence — players' real lives — is genuine variance
+  the game does not manufacture, and insurance is the strongest
+  argument for the seeded channel; see
+  [insurance-slate § Designed 2026-11-19](./slates/society/insurance-slate.md).)*
 
 **The open decision** is therefore not *"may we have randomness"* but
 *"do we want one variance-bearing channel, and does it sit at world
