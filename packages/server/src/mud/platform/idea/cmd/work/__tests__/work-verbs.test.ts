@@ -21,7 +21,7 @@ import JobAbandonController from "../JobAbandonController";
 import JobFulfillController from "../JobFulfillController";
 import { PersonaMixin } from "../../../../../lib/character/Persona";
 import JobBoard from "../../../../thing/JobBoard";
-import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
+import WalletApp from "../../../WalletApp";
 import { Currency, BankingApi, Money } from "../../../../../api/banking";
 import { ContractApi } from "../../../../../api/contract";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
@@ -515,7 +515,7 @@ describe("work verbs", () => {
     const persona = (PersonaMixin as unknown as (b: new () => object) => { commandContributions: { self: string[] } })(class {});
     expect(persona.commandContributions.self).toContain("platform/cmd/work/job.yaml");
     expect(JobBoard.commandContributions.peers).not.toContain("platform/cmd/work/job.yaml");
-    expect(CredentialWalletUpdate.commandContributions.self).not.toContain(
+    expect(WalletApp.commandContributions.self).not.toContain(
       "platform/cmd/work/fulfill.yaml",
     );
     // ⭐ The board is what `job.yaml`'s `board` arg DEFAULTS to — the

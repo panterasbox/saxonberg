@@ -729,7 +729,8 @@ export class TestHooks {
 
   /**
    * ⭐ Dress the test character as `embody` dresses a real one — the
-   * first aspiration's outfit from `char-gen.yaml`, worn. A naked body
+   * first aspiration's outfit from `char-gen.yaml`, worn, and the
+   * starting kit (a bound phone in a pocket) handed over. A naked body
    * spends food on cold at room temperature (`ThermalRegulation`'s
    * cold branch), starves in ~4.5 game hours and then loses its core
    * temperature: the fishing drive's angler collapsed at the seventh
@@ -753,5 +754,11 @@ export class TestHooks {
     // decides WHICH outfit a test character gets; putting it on is the
     // mudlib's.
     await avatar.wearGarments(outfit);
+    // ⭐ …and handed the starting kit, as `embody` hands a real one
+    // (aether-devices D11): a test character with no phone could not
+    // `dm` — the free implant is a guest's now.
+    if (avatar instanceof PrimaryAvatar) {
+      await avatar.receiveStartingKit(EmbodyController.loadConfig().startingKit ?? []);
+    }
   }
 }

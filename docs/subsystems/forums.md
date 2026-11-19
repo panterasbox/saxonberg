@@ -496,12 +496,12 @@ consumer** of the `mature` event, edit **notifications** + an inbox, and
 the rich plural-lens **explorer** (guided tours, question-lenses, diffs,
 spatial renders).
 
-## The aether capability — a born-with `ForumsUpdate`
+## The aether capability — a born-with `ForumsApp`
 
-Forums ride the existing aether implant as a **hosted update**, exactly
+Forums ride the existing aether implant as a **app**, exactly
 like DMs — **no separate physical implant**.
-`ForumsUpdate` (`lib/forum/ForumsUpdate.ts`) is
-`ForumsMixin(AetherHostedMixin(Idea))`, the sibling of `CommsUpdate`.
+`ForumsApp` (`platform/idea/ForumsApp.ts`, row `/platform/idea/app/forums`)
+is `ForumsMixin(App)` — an app installed on the person.
 `ForumsMixin` (`lib/forum/Forums.ts`) is the capability gate + verb
 contributor + operator resolver: it confers read + post, contributes
 `commandContributions.self = ['social/forum.yaml']`, resolves its
@@ -511,10 +511,10 @@ including the one documented `AetherHosted` cast naming the orthogonal
 co-composition.
 
 It is **born-with**: `Avatar.installDefaultLoadout` clones a
-`ForumsUpdate` and `hostUpdate`s it onto the Avatar's aether, alongside
+`ForumsApp` and `hostApp`s it onto the Avatar's aether, alongside
 the comms + travel-credential updates. The `forum` verbs surface on the
-host's recency stack via the hosted-update self-seeding
-(`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`); the
+host's recency stack via the hosted-app self-seeding
+(`CommandApi.collectHostedAppDefs` + `applyHostedAppDelta`); the
 controller reaches the holder's update via the `commandSource` that
 afforded the verb, else the MQL `reachable` pool filtered on
 `MixinApi.isForums` (the `DmController` fallback).
@@ -636,7 +636,7 @@ as curated/open subjects.
 | `Subject` | `lib/forum/Subject.ts` | Linking-spine Document (`forum_subjects`) |
 | `Board` / `Entry` / `Vote` | `lib/forum/` | Forum Documents (`forum_boards`/`_entries`/`_votes`) |
 | `ForumEvent` + `ForumEventFired` | `lib/forum/ForumEvent.ts` | Append-only log row (`forum_events`) + its transient bus twin |
-| `ForumsMixin` / `ForumsUpdate` | `lib/forum/Forums.ts` / `ForumsUpdate.ts` | The capability mixin + the born-with hosted aether update |
+| `ForumsMixin` / `ForumsApp` | `lib/forum/Forums.ts` / `ForumsApp.ts` | The capability mixin + the born-with hosted aether update |
 | `SubjectSubscriberMixin` | `lib/forum/SubjectSubscriber.ts` | Per-Avatar typed subscription store |
 | `SubjectCatalogue` | `obj/SubjectCatalogue.ts` | Subject runtime view + subscription store + group bookkeeping |
 | `ForumSubscriptionRegistry` | `obj/ForumSubscriptionRegistry.ts` | The document-change observer |
@@ -912,8 +912,8 @@ imports `SubjectApi`.
 - [grouping.md](./grouping.md) — the `GroupApi` facade every subject binds
   read-only for audience/roles.
 - [comms.md](./comms.md) + [augmentation.md](./augmentation.md) — the
-  aether host ⊕ hosted-update relation `ForumsUpdate` rides (the
-  `CommsUpdate` precedent; the MQL `reachable` seed's host-descent).
+  aether host ⊕ hosted-app relation `ForumsApp` rides (the
+  app precedent; the MQL `reachable` seed's host-descent).
 - [chronicle.md](./chronicle.md) — the append-only ledger precedent (dumb
   store / smart consumers, silent append) the `forum_events` log follows.
 - [mql-subscription.md](./mql-subscription.md) — the *sibling observer*

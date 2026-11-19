@@ -1,7 +1,7 @@
 # Credential
 
 The unified credential substrate: **one holder, many credentials-as-data.**
-Where the engine once grew a new mixin (plus an aether-hosted update and a
+Where the engine once grew a new mixin (plus an aether-app and a
 physical card) for every credential concept — `PaymentCredentialMixin`,
 `TravelCredentialMixin` — a new credential **kind** is now a new *record*
 held in one `CredentialWalletMixin`. The wallet is a dumb store; the records
@@ -77,20 +77,20 @@ reflection). It knows its `kind` and serializes itself to a plain
   `addKey`/`addMaster`/`removeKey`/`authorize(keyway, technology)` — it opens a
   lock iff it holds a matching entry, or a master for that technology (a
   brass key can't turn a keycard reader). The **same record** whether it lives
-  in the implant keychain (the born-with wallet) or on a physical `Key` Thing
+  in the wallet app's keychain (on the person) or on a physical `Key` Thing
   (`lib/lock/Key`, a card carrying one entry). **Bearer, not credentialed:**
   possession *is* access — a lock is revoked by **re-keying** (a fresh keyway,
   so the old entry silently stops matching), not a per-key ledger. The lock/key
   substrate lives in `lib/lock/` (`Lock` value-object + `LockType` +
   the `Lock` value class — the OO sweep's home for the key surface); its first consumer is the dorm door — see
   [residence.md](./residence.md). **Durability:** the physical `Key` persists
-  with its holder (carried inventory rides the spine); the implant keychain is
+  with its holder (carried inventory rides the spine); the wallet app's keychain is
   session-durable in v1 (the physical key is the cross-restart form).
 
 ## The holder — `CredentialWalletMixin` (`lib/credential/CredentialWallet.ts`)
 
 A keyed store of records (`Map<CredentialKind, Credential>`), base-agnostic so
-it composes around both an incorporeal hosted update and a corporeal card.
+it composes around both an incorporeal app and a corporeal card.
 Surface (`CredentialWallet` interface): `getCredential(kind)` /
 `ensureCredential(kind)` (mints if absent) / `hasCredential(kind)` /
 `getCredentials()`. The typed `getCredential<K>` returns the concrete record
@@ -108,9 +108,9 @@ for the kind (`CredentialByKind` map).
 
 ## The three holders
 
-- **`CredentialWalletUpdate`** (`lib/credential/CredentialWalletUpdate.ts`,
+- **`WalletApp`** (`lib/credential/WalletApp.ts`,
   `CredentialWalletMixin(AetherHostedMixin(Idea))`) — the **born-with wallet
-  app**, the single hosted update replacing the per-credential
+  app**, the single app replacing the per-credential
   `PaymentImplantUpdate` + `TravelCredentialUpdate` twins. Injected once into
   an attunement host by `Avatar.installDefaultLoadout` (alongside comms +
   forums). `defaultCredentialKinds = ['payment', 'travel']`. Affords the
@@ -228,7 +228,7 @@ lib/credential/
 ├── Credential.ts            CredentialKind vocab + Credential base
 │                            + PaymentCredential / TravelCredential records
 ├── CredentialWallet.ts      CredentialWalletMixin (the holder) + interface
-├── CredentialWalletUpdate.ts  the born-with hosted wallet app
+├── WalletApp.ts  the born-with hosted wallet app
 └── __tests__/Credential.test.ts, CredentialWallet.test.ts
 
 lib/banking/PaymentCard.ts          CredentialWalletMixin(Good), payment
@@ -237,7 +237,7 @@ domain/common/tpa/TravelCard.ts     CredentialWalletMixin(Good), travel
 
 Registry: `Mixins.CredentialWallet` (`lib/mixin.ts`),
 `MixinApi.isCredentialWallet` (`api/mixin.ts`),
-`TemplatePaths.credentialWalletUpdate` (`lib/paths.ts`).
+`TemplatePaths.walletApp` (`lib/paths.ts`).
 
 ## Cross-references
 

@@ -1,0 +1,6 @@
+# A line past the room with no tuner (aether-devices D8): held, and the fix named.
+facts:
+  kept: text?
+  cap: text?
+says: "You have nothing that reaches past this room. A phone does — the general store sells one.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

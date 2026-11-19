@@ -38,6 +38,11 @@ help: |
   someone else, who must accept. Both are refused unless you hold the
   ground, and the refusal is the authority's, not the verb's.
 
+  The same form hands on the title to a good you carry: `title transfer
+  phone to bob` — Bob must accept, and the phone runs for him from then
+  on (hand it over with `give`). A bound title — the phone you were
+  issued when you arrived — never moves.
+
   ⭐ A ship's title is sixty-four shares in her register, so her shares
   change hands the same way: `title transfer 16 shares of gull from alice
   for 40` buys them, `title transfer 8 shares of gull to bob` gives them.
@@ -47,6 +52,8 @@ examples:
     note: What ground do I hold?
   - cmd: title list
     note: The lots on offer (at the Registry)
+  - cmd: title transfer phone to bob
+    note: Hand on the title to a phone you bought
   - cmd: title buy lot 2
     note: Buy it — the money moves and the row is written
 validators:
@@ -140,7 +147,7 @@ subcommands:
         note: Take it dark — the people inside are moved out first
   transfer:
     controller: /platform/idea/cmd/civics/TitleTransferController
-    description: "Transfer a parcel's title, or a ship's shares, to another player (with their consent)"
+    description: "Transfer a parcel's title, a good's, or a ship's shares, to another player (with their consent)"
     help: |
       Hand the title to a parcel you own to another player. Name the parcel by
       its path, then `to` and the player. Because a title carries liability, the
@@ -163,6 +170,11 @@ subcommands:
       moves. To GIVE shares you hold, `title transfer 16 shares of gull to
       bob` — Bob must accept. Only a holder's shares can change hands, and
       the register shows every owner (`read register` at the harbor office).
+
+      ⭐ **A good you carry.** Name it instead of a path — `title transfer
+      phone to bob`. Bob must accept. Only the title moves; hand the good
+      over with `give`. A stack carries no title, and a bound title (the
+      phone you were issued on arrival) never moves.
     examples:
       - cmd: title transfer /world/lounge to alice
         note: Offer the lounge title to Alice (she must accept)
@@ -170,6 +182,8 @@ subcommands:
         note: Buy 16 of the Gull's shares from Alice for 40 — her yes moves the money and the shares together
       - cmd: title transfer 8 shares of gull to bob
         note: Give 8 of your shares in the Gull to Bob (he must accept)
+      - cmd: title transfer phone to bob
+        note: Hand on a phone you bought (Bob must accept)
     args:
       # ⭐ Greedy: a parcel is a path, but shares are a PHRASE (`16 shares of
       # the gull`) — the prepositions below are what it stops at.

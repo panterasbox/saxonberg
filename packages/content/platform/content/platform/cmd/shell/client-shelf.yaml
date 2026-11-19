@@ -16,8 +16,8 @@ help: |
     client-shelf unpin <row>   take one off
     client-shelf first <row>   move it to the front
 
-  Rows: play, renown, skill, body, make, coin, status, time, online,
-  docket.
+  Rows: aether, play, renown, skill, body, make, coin, status, time,
+  online, docket.
 
   The shelf has an order, and `first` is how you change it. On a narrow
   screen only the head of the shelf rides the bar — the rest is one
@@ -59,7 +59,7 @@ subcommands:
       - name: row
         type: enum
         required: true
-        values: &shelfRows [play, renown, skill, body, make, coin, status, time, online, docket]
+        values: &shelfRows [aether, play, renown, skill, body, make, coin, status, time, online, docket]
   unpin:
     controller: /platform/idea/cmd/shell/ClientShelfUnpinController
     description: "Take one off"

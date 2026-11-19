@@ -2,7 +2,7 @@
  * MQL `reachable` seed — the generalized "everything reachable from the
  * giver" pool (api/mql/scope-walk.ts `candidatesForReachable`), which
  * absorbed the old `ContainmentApi.findReachable` walk. Asserts the reach
- * legs (self + own hosted updates + slot occupants (+ their hosted) +
+ * legs (self + own apps + slot occupants (+ their hosted) +
  * carried inventory (+ carried hosts' hosted) + location) and the
  * ON-PERSON-FIRST emission order — a `.find` over a multi-match pool
  * returns the on-person match, not the floor's.
@@ -114,15 +114,16 @@ describe('MQL reachable seed — corporeal legs', () => {
 // ─── Three-base capability model: self + host-descent legs ──────────
 
 import { AetherMixin } from '../../lib/message/Aether';
+import { AetherHostMixin } from '../../lib/augmentation/AetherHost';
 import { AetherHostedMixin } from '../../lib/augmentation/AetherHosted';
 
 // An attuned actor: hosts updates (AetherMixin) + carries inventory.
-class AttunedActor extends AetherMixin(
+class AttunedActor extends AetherHostMixin(AetherMixin(
   ContainerMixin(ContainableMixin(Idea)),
-) {}
+)) {}
 // A carried attuned Thing (the future radio): a host you carry.
-class CarriedRadio extends AetherMixin(ContainableMixin(Idea)) {}
-// An incorporeal hosted update.
+class CarriedRadio extends AetherHostMixin(AetherMixin(ContainableMixin(Idea))) {}
+// An incorporeal app.
 class HostedUpdate extends AetherHostedMixin(Idea) {}
 
 describe('MQL person seed — bearer semantics (no location leg)', () => {
@@ -170,7 +171,7 @@ describe('MQL reachable seed — self + host-descent legs', () => {
 
   it('host-descent (self): an update hosted on the actor is found', () => {
     const update = makeStuff(() => new HostedUpdate());
-    actor.hostUpdate(update);
+    actor.hostApp(update);
     expect(findIn(reachableFrom(actor), update.stuffId)).toBe(update);
   });
 
@@ -178,18 +179,18 @@ describe('MQL reachable seed — self + host-descent legs', () => {
     const radio = makeStuff(() => new CarriedRadio());
     ContainmentApi.move(radio, actor);
     const update = makeStuff(() => new HostedUpdate());
-    radio.hostUpdate(update);
+    radio.hostApp(update);
     expect(findIn(reachableFrom(actor), update.stuffId)).toBe(update);
   });
 
-  it('order: a self-hosted update wins over a carried match', () => {
+  it('order: a self-app wins over a carried match', () => {
     const update = makeStuff(() => new HostedUpdate());
-    actor.hostUpdate(update);
+    actor.hostApp(update);
     const carried = makeStuff(() => new HostedUpdate());
     // Park a second matchable update on a carried radio.
     const radio = makeStuff(() => new CarriedRadio());
     ContainmentApi.move(radio, actor);
-    radio.hostUpdate(carried);
+    radio.hostApp(carried);
 
     expect(
       findIn(reachableFrom(actor), update.stuffId, carried.stuffId),

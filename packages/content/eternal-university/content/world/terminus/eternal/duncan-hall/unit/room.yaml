@@ -56,6 +56,9 @@ data:
     # at the general store. Either way the room gets lit, and neither is
     # a special case in the lamp.
     - /system/arcana/thing/mana-lamp
+    # ⭐ A phone charger (aether-devices D12): the dorms are on the grid, so
+    # `put phone on charger` fills it — and keeps filling while you sleep.
+    - /system/energy/thing/charger
     - /platform/thing/sandbox/wardrobe
     - /world/terminus/eternal/duncan-hall/thing/bed
     - /world/terminus/eternal/duncan-hall/thing/desk

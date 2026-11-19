@@ -891,13 +891,11 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
          * that never shifts its foot again. The fail-closed-and-silent
          * class, arriving through a mixin nobody thought about.
          *
-         * ⭐ And the fallback is the MORE honest render, not a
-         * consolation. `Soul.emoteFree` sends on `emotive-esp`
-         * (`Soul.ts:302`), so today a horse shifting its weight is an
-         * ESP frame that an implantless bystander drops on the floor. A
-         * deed peers can SEE is what a horse actually does, and it is
+         * ⭐ And the fallback is the honest render, not a consolation:
+         * a deed peers can SEE is what a horse actually does, and it is
          * the exact shape the pet brains already use
-         * (`follows.ts:64-67`).
+         * (`follows.ts:64-67`). (A `Soul`'s room emote carries no
+         * modality either since aether-devices D7 — the room carries it.)
          */
         emoteFree: (text, target) => {
           if (MixinApi.isSoul(host)) {

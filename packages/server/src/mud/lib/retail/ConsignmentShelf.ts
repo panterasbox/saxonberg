@@ -42,7 +42,7 @@ import { AccessApi } from "../../api/access";
 
 /** Why `consignBy` refused — each a gate of the shelf's, in order. */
 export type ConsignRefusal =
-  | ActRefusal<"worn" | "unsplittable" | "not-owner" | "no-account" | "turned">
+  | ActRefusal<"worn" | "unsplittable" | "not-owner" | "bound" | "no-account" | "turned">
   | ActRefusal<"over-cap", { cap: number }>;
 
 /** What `consignBy` did: the lot listed, what stayed in hand, the basis. */
@@ -244,6 +244,9 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       // lot of one can) — the split comes LAST, after every gate.
       const stack = MixinApi.isStackable(item) ? item : null;
       if (stack && !stack.canSplit(1)) return { ok: false, reason: "unsplittable" };
+      // ⭐ A bound title never moves (aether-devices D10): refused here,
+      // before anything is listed, never discovered at the sale.
+      if (MixinApi.isChattel(item) && item.isTitleBound()) return { ok: false, reason: "bound" };
 
       const house = await this.actingHouseOf(actor);
       const principal: Stuff = house ?? actor;

@@ -11,12 +11,17 @@ help: |
   thread: an ad-hoc channel is spun up under the hood so the whole
   cohort can keep talking. Use `reply` to answer your last inbound
   DM without retyping names.
+
+  A `dm` needs something that reaches past the room — a phone in your
+  hand or ready, switched on, with Messages installed. When it can't go,
+  it is held, never lost: you're told why and how to fix it, and it
+  goes the moment you can send. Messages to you that couldn't arrive
+  wait the same way, under "While you were away…".
 examples:
   - cmd: dm alice bob the plan is set
     note: Message several people; they share an ad-hoc thread
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresVerbalESP
 args:
   - name: target
     type: objects

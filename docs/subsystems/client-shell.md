@@ -742,7 +742,7 @@ plain-word relabel (#77) went back with the top bar (B42).
 A shelf showing nine confident numbers would be lying about six of them,
 so the six say what they are instead.
 
-⭐ **But the default shelf pins only the rows that are wired** (three, then four when `BODY` started answering). An
+⭐ **But the default shelf pins only the rows that are wired** (three, then four when `BODY` started answering, then five with `AETHER`). An
 earlier cut defaulted to all nine, reasoning that the shelf being mostly
 hatched *is* the convention working and should be visible on first
 login. That mistook a principle for a product: a new player's first
@@ -760,6 +760,7 @@ answering.
 
 | Row | State | Default-pinned | Category |
 |---|---|---|---|
+| `AETHER` | **live** | ✅ | `aetherState` — whether you can reach past the room, as a WORD: `tuned 80%` (a phone, its charge in tens), `tuned`, `packed`, `off`, `dead`, `not yours`, `no Messages`, `no tuner`; poked when the word changes (aether-devices D13). ⚠ Not `PHONE` — that word is this client's name for its mobile layout. See [aether-devices.md](./aether-devices.md) |
 | `PLAY` | **live** | ✅ | `playStanding` |
 | `RENOWN` | **live** | ✅ | `renown` |
 | `SKILL` | **live** | ✅ | `practisingCompetence` |

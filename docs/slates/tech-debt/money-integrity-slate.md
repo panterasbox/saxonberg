@@ -203,6 +203,7 @@ The mechanism is verified; the callers are not. Paths that could reach a
 
 | path | the question |
 |---|---|
+| ⚠ **the starting kit** (added 2026-11-18) | Every new character is minted clothes, a satchel and — from the aether-devices build — a **phone** that is not cheap to replace. *Make throwaway characters and sell their kit* is a value leak. The owner: *"I'm just worried about phones leaking into the economy … or anything for that matter."* Guests are covered (a forced implant cannot be sold); new characters are not. |
 | `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
 | ~~`onCreate` under **hot reload**~~ | ✅ **TRACED 2026-09-24 — SAFE.** `clone` is the only HMR-aware site; `reload` never touches a live instance. See below. |
 | ~~`standUpKeyed` → `restoreOrSeed`~~ | ✅ **TRACED 2026-09-24 — SAFE, and they are not one path.** See below. |

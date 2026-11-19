@@ -19,8 +19,9 @@ import RegisterController from "../idea/cmd/movement/RegisterController";
 import { FastTravelMixin } from "../lib/FastTravel";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
-import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
+import WalletApp from "@saxonberg/server/mud/platform/idea/WalletApp";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
+import { AetherHostMixin } from "@saxonberg/server/mud/lib/augmentation/AetherHost";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
 import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGiver";
@@ -51,11 +52,11 @@ const NODE = "/system/tpa/thing/test-gate";
 class Node extends FastTravelMixin(NamedMixin(Good)) {
   static _mixinName = "Node";
 }
-class Traveller extends AetherMixin(
+class Traveller extends AetherHostMixin(AetherMixin(
   SensorMixin(
     CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Agent)))),
   ),
-) {
+)) {
   static _mixinName = "Traveller";
 }
 
@@ -81,15 +82,15 @@ function makeTraveller(): Traveller {
     a.setName("alice");
     return a;
   });
-  const wallet = makeStuff(() => new CredentialWalletUpdate());
-  (t as unknown as { hostUpdate(u: Stuff): void }).hostUpdate(wallet);
+  const wallet = makeStuff(() => new WalletApp());
+  (t as unknown as { hostApp(u: Stuff): void }).hostApp(wallet);
   return t;
 }
 
 function travelCredential(t: Stuff): CredentialWallet {
-  const w = MixinApi.isAether(t)
+  const w = MixinApi.isAetherHost(t)
     ? (t
-        .getHostedUpdates()
+        .getHostedApps()
         .find(
           (s): s is Stuff & AetherHosted & CredentialWallet =>
             MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),

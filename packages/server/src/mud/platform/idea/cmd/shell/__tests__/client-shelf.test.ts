@@ -153,9 +153,10 @@ describe('the client-shelf controllers', () => {
   it('⭐ starts with only the wired rows pinned', () => {
     expect(shelf()).toEqual([...DEFAULT_SHELF]);
     // `body` joined the default when it started answering (nutrition-
-    // and-fitness): the four WIRED rows, never the whole catalogue.
-    expect(shelf()).toEqual(['play', 'renown', 'skill', 'body']);
-    expect(SHELF_ROW_IDS).toHaveLength(10);
+    // and-fitness), `aether` when IT did (aether-devices): the five WIRED
+    // rows, never the whole catalogue.
+    expect(shelf()).toEqual(['play', 'renown', 'skill', 'body', 'aether']);
+    expect(SHELF_ROW_IDS).toHaveLength(11);
   });
 
   /*
@@ -228,9 +229,9 @@ describe('the client-shelf controllers', () => {
   describe('first', () => {
     it('moves a pinned row to the front, keeping the rest in order', async () => {
       // `skill` is default-pinned third of the four.
-      expect(shelf()).toEqual(['play', 'renown', 'skill', 'body']);
+      expect(shelf()).toEqual(['play', 'renown', 'skill', 'body', 'aether']);
       const ctx = await run({ action: 'first', row: 'skill' });
-      expect(shelf()).toEqual(['skill', 'play', 'renown', 'body']);
+      expect(shelf()).toEqual(['skill', 'play', 'renown', 'body', 'aether']);
       expect(pushSpy).toHaveBeenCalledWith(SHELF_KEY, expect.any(Array));
       expect(ctx.getStatus()).toBe('ok');
     });
@@ -244,7 +245,7 @@ describe('the client-shelf controllers', () => {
       expect(shelf()).not.toContain('coin');
       await run({ action: 'first', row: 'coin' });
       expect(shelf()[0]).toBe('coin');
-      expect(shelf()).toEqual(['coin', 'play', 'renown', 'skill', 'body']);
+      expect(shelf()).toEqual(['coin', 'play', 'renown', 'skill', 'body', 'aether']);
     });
 
     it('on a row already first is a no-op that does not duplicate it', async () => {

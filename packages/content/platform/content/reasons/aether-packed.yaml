@@ -1,0 +1,6 @@
+# The phone is packed — on the back, out of reach (aether-devices D8).
+facts:
+  kept: text?
+  cap: text?
+says: "Your phone is in your pack — ready it to send.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

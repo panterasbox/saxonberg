@@ -22,10 +22,10 @@ import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BehavedMixin } from '../Behaved';
-import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import { ExecutionContextApi } from '../../../api/execution-context';
-import { TestHarnessApi } from '../../../api/test-harness';
 import { ProxyApi } from '../../../api/proxy';
+import { TestHarnessApi } from '../../../api/test-harness';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
 
 const PROBE = '/lib/behavior/__tests__/fixtures/probe';
 const GUARDED = '/lib/behavior/__tests__/fixtures/probe-guarded';
@@ -340,6 +340,50 @@ describe('slot contention (requiresFree yields while a slot is occupied)', () =>
     SchedulerApi.cancel(occupier, 'cancelled');
     await vi.advanceTimersByTimeAsync(3000);
     expect(guardedFires()).toBeGreaterThan(before); // resumed
+  });
+});
+
+describe('witness dispatch (emote) — the room carries emotes', () => {
+  // ⭐ aether-devices D7. Every emote used to be stamped `emotive-esp`, so
+  // an NPC's sensor dropped the frame at `filterMessage` and no `emote`
+  // witness (Remy's `reacts`) ever fired. The room scene carries no
+  // modality now: an NPC with no aether sense perceives it.
+  it('fires an emote-triggered brain on a player emote in the room', async () => {
+    const { SoulMixin } = await import('../../social/Soul');
+    const { VocalMixin } = await import('../../message/Vocal');
+    const { CommandGiverMixin } = await import('../../command/CommandGiver');
+    const { NamedMixin } = await import('../../description/Named');
+    const { ExecutionContextApi } = await import('../../../api/execution-context');
+    const { buildAllModalities } = await import(
+      '../../perception/modalities/__tests__/test-helpers'
+    );
+    // The modality roster must be standing, or an unknown organ key lets
+    // every stamped frame through and this test could never fail.
+    buildAllModalities();
+    class Emoter extends SoulMixin(
+      VocalMixin(CommandGiverMixin(SensorMixin(ContainableMixin(NamedMixin(Idea))))),
+    ) {}
+
+    const room = makeStuff(() => new TestRoom());
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    ContainmentApi.move(npc as never, room as never);
+    npc.behaviors = [{ brain: PROBE, trigger: 'emote' }];
+    await npc.onCreate();
+
+    const actor = makeStuff(() => new Emoter());
+    actor.setName('Ana');
+    ContainmentApi.move(actor as never, room as never);
+
+    // The act registry keys a reactable act by its command — stand one up.
+    vi.spyOn(ExecutionContextApi, 'getCurrentCommandContext').mockReturnValue({
+      commandId: 'cmd-emote-1',
+    } as never);
+    actor.emoteFree('waves at the room');
+
+    await vi.waitFor(() => {
+      const hit = fires().find((f) => f.source === 'witness');
+      expect(hit?.subject).toBe((actor as unknown as { stuffId: string }).stuffId);
+    });
   });
 });
 

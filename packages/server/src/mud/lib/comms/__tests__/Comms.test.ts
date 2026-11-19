@@ -1,23 +1,26 @@
 /**
- * CommsMixin — comms-as-update. A CommsUpdate hosted on an attuned
- * actor transmits on behalf of its operator (the host): the
- * `speech.comms` scene is built from the host with the `verbal-esp`
- * modality, and cohort state lands on the update.
+ * CommsMixin — comms on the person (aether-devices D2). The person sends
+ * as themselves: the `speech.comms` scene is built from the person with
+ * the `verbal-esp` modality, and cohort state lands on the people. Whether
+ * a message can leave is `sendOrHold`: a host that tunes them, with
+ * Messages installed on it.
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
-import { AetherMixin, type AetherHost } from '../../message/Aether';
+import { AetherMixin } from '../../message/Aether';
+import { AetherHostMixin, type AetherHost } from '../../augmentation/AetherHost';
 import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { SlottedMixin } from '../../slot/Slotted';
 import Good from '../../stuff/Good';
 import AetherImplant from '../../../platform/thing/AetherImplant';
-import CommsUpdate from '../../../platform/idea/CommsUpdate';
+import App from '../../../platform/idea/App';
+import { CommsMixin, type Comms } from '../Comms';
 import { InactiveCapabilityError } from '../../security/RequiresActive';
 import {
   makeStuff,
@@ -30,9 +33,9 @@ import type { FieldMeta } from '../../mixin';
 
 // An attuned, embodied actor: Slotted (carries the implant) + Aether
 // (the host) + Sensor (hears its own self frame) + Named + Organism.
-class AttunedActor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
-) {
+class AttunedActor extends CommsMixin(SlottedMixin(
+  AetherHostMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good))))),
+)) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
@@ -49,7 +52,10 @@ function withPath<T extends Stuff>(obj: T, path: string): T {
 }
 
 let bodyPlanSeq = 0;
-function makeAttuned(name: string): AttunedActor & AetherHost {
+function makeAttuned(
+  name: string,
+  opts: { implant?: boolean } = {},
+): AttunedActor & AetherHost & Comms {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-comms-test-${bodyPlanSeq}`,
@@ -70,57 +76,97 @@ function makeAttuned(name: string): AttunedActor & AetherHost {
   };
   actor.setSpecies(species);
   actor.setName(name);
-  const implant = makeStuff(() => new AetherImplant());
-  (actor as unknown as AttunedActor).occupy(implant, 'cranial');
-  return actor as unknown as AttunedActor & AetherHost;
+  if (opts.implant !== false) {
+    const implant = makeStuff(() => new AetherImplant());
+    (actor as unknown as AttunedActor).occupy(implant, 'cranial');
+  }
+  return actor as unknown as AttunedActor & AetherHost & Comms;
 }
 
-describe('CommsMixin (comms-as-update)', () => {
+/** The implant seated in `actor`'s cranial slot. */
+function implantOf(actor: AttunedActor): AetherImplant {
+  return [...actor.getOccupants('cranial')][0] as unknown as AetherImplant;
+}
+
+/** Stub the row clone so `installApp` stands up a stamped app. */
+function stubAppClone(): void {
+  vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) =>
+    withPath(makeStuff(() => new App()), path)) as never);
+}
+
+describe('CommsMixin (on the person)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     buildAllModalities();
+    stubAppClone();
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     StuffApi.clearAll();
   });
 
-  it('tell sends from the host, with verbal-esp; cohort lands on the updates', () => {
+  it('tell sends as the person, with verbal-esp; cohort lands on the people', () => {
     const alice = makeAttuned('Alice');
     const bob = makeAttuned('Bob');
-    const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
-    const bobComms = makeStuff(() => new CommsUpdate());
-    bob.hostUpdate(bobComms);
 
-    aliceComms.tell(bob as unknown as Stuff, 'hello there');
+    alice.tell(bob as unknown as Stuff, 'hello there');
 
-    // Alice (the operator) hears her own self frame, tagged dm.
     const selfFrame = (alice as unknown as AttunedActor).received.find(
       (f) => f.topic === 'speech.comms',
     );
     expect(selfFrame).toBeDefined();
-
-    // Bob receives the target frame.
     const bobFrame = (bob as unknown as AttunedActor).received.find(
       (f) => f.topic === 'speech.comms',
     );
     expect(bobFrame).toBeDefined();
+    expect(bobFrame!.meta.modality).toBe('verbal-esp');
 
     // ⭐ Both frames carry the server's privacy stamp (broadcast-ready D8)
     // — what a streamer's client redacts on air.
     expect(selfFrame!.tags).toContain('privacy:private');
     expect(bobFrame!.tags).toContain('privacy:private');
 
-    // Cohort: outbound on Alice's update, inbound on Bob's update.
-    expect(aliceComms.getLastOutboundCohort()).toEqual([bob]);
-    expect(bobComms.getLastInboundCohort()).toEqual([alice]);
+    expect(alice.getLastOutboundCohort()).toEqual([bob]);
+    expect(bob.getLastInboundCohort()).toEqual([alice]);
   });
 
-  it('an unhosted comms update cannot transmit (no operator)', () => {
-    const orphan = makeStuff(() => new CommsUpdate());
+  it('an untuned person cannot transmit (tell throws — controllers ask first)', () => {
+    const alice = makeAttuned('Alice', { implant: false });
     const bob = makeAttuned('Bob');
-    expect(() => orphan.tell(bob as unknown as Stuff, 'hi')).toThrow(
+    expect(() => alice.tell(bob as unknown as Stuff, 'hi')).toThrow(
       InactiveCapabilityError,
     );
+  });
+
+  it('sendOrHold: nothing that tunes → none, naming the phone', () => {
+    const alice = makeAttuned('Alice', { implant: false });
+    const r = alice.sendOrHold('dm bob hi');
+    expect(r?.reason).toBe('aether-none');
+  });
+
+  it('sendOrHold: a tuner without Messages → no-messages, naming apps install', () => {
+    const alice = makeAttuned('Alice');
+    const r = alice.sendOrHold('dm bob hi');
+    expect(r?.reason).toBe('aether-no-messages');
+  });
+
+  it('sendOrHold: Messages on the tuner → go; uninstall → refused; reinstall → go', async () => {
+    const alice = makeAttuned('Alice');
+    const implant = implantOf(alice as unknown as AttunedActor);
+    await implant.installApp(App.MESSAGES_PATH);
+    expect(alice.sendOrHold('dm bob hi')).toBeNull();
+    expect(implant.uninstallApp('messages')).toBe(true);
+    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('aether-no-messages');
+    await implant.installApp(App.MESSAGES_PATH);
+    expect(alice.sendOrHold('dm bob hi')).toBeNull();
+  });
+
+  it('sendOrHold: a person tuned by nature (species) is their own host', async () => {
+    const alice = makeAttuned('Alice', { implant: false });
+    (alice as unknown as { getSpecies(): Species }).getSpecies().setInnateMixins(['AetherMixin']);
+    expect(alice.isOwnAetherHost()).toBe(true);
+    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('aether-no-messages');
+    await alice.installApp(App.MESSAGES_PATH);
+    expect(alice.sendOrHold('dm bob hi')).toBeNull();
   });
 });

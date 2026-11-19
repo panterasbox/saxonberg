@@ -375,3 +375,13 @@ describe('EmbodyController step model', () => {
     expect(frames.at(-1)!.error?.message).toMatch(/letters/i);
   });
 });
+
+describe('EmbodyController.loadConfig — the starting kit (aether-devices D11)', () => {
+  // ⚠ The loader copies its keys by name; `startingKit` was left out once
+  // and every new player arrived with no phone (the drive's first run).
+  it('carries the starting kit: a bound Hollis Pal, into a pocket', async () => {
+    const { default: EmbodyController } = await import('../EmbodyController');
+    const kit = EmbodyController.loadConfig().startingKit ?? [];
+    expect(kit).toContainEqual({ item: '/stuff/thing/gear/hollis-pal', bound: true, into: 'pocket' });
+  });
+});

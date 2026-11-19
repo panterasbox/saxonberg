@@ -489,5 +489,5 @@ export const SHELF_SUBSCRIPTION: {
   // `bodyState` joined when the body learned what working is
   // (nutrition-and-fitness W8): breath · hunger · thirst · the build, as
   // words, poked on a band crossing.
-  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence', 'bodyState'],
+  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence', 'bodyState', 'aetherState'],
 };

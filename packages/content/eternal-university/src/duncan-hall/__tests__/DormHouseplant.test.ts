@@ -239,6 +239,12 @@ function seedDomain(): void {
     '/system/arcana/thing/mana-lamp',
     `${CONTENT}arcana/content/system/arcana/thing/mana-lamp.yaml`,
   );
+  // The dorm's phone charger (aether-devices D12) — the energy pack's row
+  // and class, seated by `props:` beside the lamp.
+  addSeed(
+    '/system/energy/thing/charger',
+    `${CONTENT}energy/content/system/energy/thing/charger.yaml`,
+  );
   addSeed(
     '/stuff/idea/material/bulk/water',
     `${CONTENT}base-library/content/stuff/idea/material/bulk/water.yaml`,
@@ -301,6 +307,7 @@ function installStore(): void {
   // dorm's own wall lamp) resolves — the same registration a pack test
   // makes for a sibling pack.
   ModuleApi.registerPackSource(`${PACKS}arcana/src`, '/system/arcana');
+  ModuleApi.registerPackSource(`${PACKS}energy/src`, '/system/energy');
   seedDomain();
   // The materials the seeded rows cite — loaded with each row in a world
   // (constituents, load-on-use W8); this store ships no material rows, so

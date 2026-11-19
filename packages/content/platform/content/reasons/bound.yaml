@@ -1,0 +1,5 @@
+# A bound title never changes hands (aether-devices D10): the starter phone.
+facts:
+  target: thing
+says: "{{ target | item | cap }} is bound to you — nobody else can own it."
+topic: act.deed
