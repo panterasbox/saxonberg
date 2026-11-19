@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs, runCommand } from './helpers';
+import { openWorldAs, runCommand, tipText } from './helpers';
 
 /**
  * ⭐⭐ **The navigation-server build's browser walk** — what a person sees.
@@ -38,7 +38,7 @@ test.describe('navigation server — the navigator reads the subscription', () =
       // command you ran — not magic.
       const mark = page.getByTestId('change-mark-nav:ways');
       await expect(mark).toBeVisible({ timeout: 10_000 });
-      await expect(mark).toHaveAttribute('title', /^Changed by: /);
+      expect(await tipText(page, mark)).toMatch(/Changed by: /);
       await mark.click();
       await expect(page.getByTestId('change-why-nav:ways')).toContainText(/show in scrollback/);
 

@@ -31,15 +31,14 @@ test('preview equals send, verbatim, through the server', async ({
 
     // `look` reliably produces a room description carrying clickable
     // identity tags — the affordance kind the AC names.
-    const affordance = page.locator('[title^="Click to send: "]').first();
+    const affordance = page.locator('[data-tip-link][data-stuff-id]').first();
     await sendUntil(page, 'look', affordance);
 
-    // ⭐ Ground truth for what a click WILL send, read off the
-    // affordance itself rather than reconstructed by the test.
-    const title = (await affordance.getAttribute('title')) ?? '';
-    const expected = title
-      .replace(/^Click to send: /, '')
-      .replace(/ · shift-click to copy$/, '');
+    // ⭐ Ground truth for what a click WILL send, read off the affordance's
+    // own tooltip (its boxed command — tooltips W8), not reconstructed.
+    await affordance.hover();
+    const expected = (await page.getByTestId('tooltip').last().getByTestId('doc-command').innerText()).trim();
+    await page.mouse.move(0, 0);
     expect(expected.length, 'no command on the affordance').toBeGreaterThan(0);
 
     // 1. HOVER → the status bar shows it, verbatim.

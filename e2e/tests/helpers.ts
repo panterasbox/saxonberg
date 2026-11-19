@@ -375,3 +375,19 @@ export async function openWorldAsFounder(
  * over, because a helper that hid it would hide it from the next reader
  * too.
  */
+
+/**
+ * ⭐ What an element's tooltip says (tooltips W8). Native `title` hover
+ * text is gone from the client; this hovers the element, waits out the
+ * open dwell, and reads the tooltip the player sees. The pointer is moved
+ * away afterwards so the next hover starts clean.
+ */
+export async function tipText(page: Page, target: import('@playwright/test').Locator): Promise<string> {
+  await target.hover();
+  const tip = page.getByTestId('tooltip').last();
+  await expect(tip).toBeVisible({ timeout: 5_000 });
+  const text = await tip.innerText();
+  await page.mouse.move(0, 0);
+  await expect(page.getByTestId('tooltip')).toHaveCount(0, { timeout: 5_000 });
+  return text;
+}

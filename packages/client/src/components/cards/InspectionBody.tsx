@@ -32,7 +32,7 @@ import type { CardState } from "../../store/cardFeedSlice";
 import { tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
-import { helpSummary, thingTip } from "../../services/tooltipSource";
+import { helpSummary, helpTip, thingTip } from "../../services/tooltipSource";
 import { commandDoc, controlDoc, thingDoc, type ThingRecord } from "../doc/docs";
 import { Tip } from "../tooltip/Tip";
 import { FactRows, SpoilerBlock } from "../doc/blocks";
@@ -242,7 +242,14 @@ function Gutter({
       {sources.map((src) => (
         <Tip
           key={`${src.kind}:${src.name}`}
-          tip={controlDoc(`said by ${sourceLabel(src)}`, undefined, "click — what it is and what it confers")}
+          // ⭐ A mixin's stripe is that interface's HELP TERM: its summary,
+          // and "see also" terms that nest (tooltips W8 — the only place a
+          // help term is anchored in the world today).
+          tip={
+            src.kind === "mixin"
+              ? helpTip(`mixin.${src.name}`)
+              : controlDoc(`said by ${sourceLabel(src)}`, undefined, "click — what it is and what it confers")
+          }
         >
           <Stripe
             type="button"
