@@ -248,6 +248,25 @@ a per-candidate stack capture once took 96.5% of server CPU.
 then the audit rail, which can SAMPLE ActsAs refusals as its first producer,
 then the ungated+sealed set.
 
+## Reuse ledger for the plan (2026-11-18, the actor-claim build)
+
+Every concept the first build needs, and what already does it. Surveyed
+against master after the failure-model and navigation-server merges.
+
+| concept | already doing it | reuse or generalize |
+|---|---|---|
+| who is acting | `ExecutionContextApi.getActingAuthor` (one unforced consistent giver; REST's `tagActingAuthor`) | generalize: a forced command on the giver ITSELF is that giver; read the continuation's `causingAuthor` (today only `getCausingAuthor` does) |
+| a gate that asks the engine, not an argument | `AppLogic.setSetting` (Tier C), `DiagnosticLogic.rawTail`, `WikiRegistry.mayEdit` | the pattern, made a policy (`ActsAs(n)`) |
+| comparing a claimed person | the identity-path rule (raw stamp, never `getIdentityPath()`) — call-security.md | reuse |
+| the protective gates | controller-liquidity Appendix D (`git show b70896f76^:docs/plans/controller-liquidity-plan.md`, ~l.2978) and the survey table in the requirements | reuse: the census roster |
+| a refusal, worded | `Refusal` + a `reason` row; `CommandController.refuse(context, answer)` | reuse: one new row (*can't act for*) |
+| telling the code's keeper | the content-error routing (diagnostic `channel` → title holder of the path) | generalize: the controller's / script's path |
+| asking a person | `PromptApi` confirm on the body's own Interactive (the Realtor already does it informally) | reuse |
+| driving a body | `CommandGiver.forceCommand` / `executeCommand` — ungated | the gate sits here |
+| a verb's own declarations | the command view (`async:`, `defaultAliases:`, `testOnly:`) | generalize: one new view key for compellability |
+| a census that only falls | `check-reconcile-chains.ts` shape, `ratchet()` in `pack-roots.ts` | reuse |
+| the system as an actor | none — the residency tick, boot and world schedules run with no principal | genuinely new: one named principal |
+
 ## Future gate primitives to design (not yet built)
 
 1. **`FromTemplateMethod`** — ✅ *shipped by the world-scan build
