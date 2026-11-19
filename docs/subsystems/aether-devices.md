@@ -118,7 +118,13 @@ an act:
 - **use** — `useWh` per message sent or read through it.
 
 A battery restored from nowhere keeps its stamp; one lifted off a charger
-settles across where it was.
+settles across where it was. ⭐ The gap is read off the supply's
+**trajectory** at `acceptW`, never off what the meter reads at the visit (the
+`Powered` contract), and a battery **never settles from limbo** — it, or what
+it rests on, with no container (a room's reset re-seating its charger): it
+keeps its stamp and the settle after it lands charges the whole gap. Both were
+found by the drive, a phone on a dorm charger that gained nothing while its
+owner was away.
 
 The **charger** (`/system/energy/thing/Charger`, row
 `/system/energy/thing/charger`) is `GridPowered` plus an `on` surface; it

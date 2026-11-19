@@ -1358,4 +1358,77 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**Blocking drive:** `packages/wire/tests/aether-devices.dirty.wire.test.ts`,
+21 steps (instant, short and staged; one restart). **Run 17, 2026-11-18:
+21/21 green** on a freshly dropped database (world up in 472 s).
+**Soak drive:** `packages/wire/tests/aether-devices.soak.dirty.wire.test.ts`
+(*a session's battery*, span) — the soak lane's, after merge.
+
+It took seventeen runs. The first went 2/20; every red after that was either
+a product defect (fixed in the commit named) or a drive that asserted the
+wrong thing (corrected, and said so). Nothing was noted and left.
+
+**Defects the drive found** — none of them visible to the suite:
+
+| # | what a player met | cause | fix |
+|---|---|---|---|
+| 1 | a new character had no phone | `loadConfig` dropped `startingKit` | `b8b0fb71d` |
+| 2 | a test-login character had no phone | the harness dressed but did not hand the kit | `b8b0fb71d` (`TestHooks.#dress`) |
+| 3 | the phone was born dead, with no apps | authored row fields were never applied — not declared persistent | `5af233244` |
+| 4 | the phone born dead (again) | the battery stood up at zero before its capacity was applied | `d9aafbddb` |
+| 5 | `apps` mis-listed | an `instanceof App` read on a proxied app | `d9aafbddb` (`appName` on the hosted mixin) |
+| 6 | the dorm charger was dark | Duncan Hall's building parcel was not on the grid | `51a10917a` |
+| 7 | a phone on a charger never charged | `put X on charger` leaves X in the ROOM with the charger as its placement host; the battery read only its container | `8b90a7dfb` |
+| 8 | …still never charged | the move core fires `onMoved` before it stamps the placement | `e9f0c8f89` (settle in `placementChanged`) |
+| 9 | a held line did not go when the phone was picked up | the flush rode the next frame, and the act said nothing | `e9f0c8f89` (`noticeTuning`, D8) |
+| 10 | …and still not, mid-move | the device told its bearer before the move had finished | `07760516f` (told after the act) |
+| 11 | a phone switched off came back ON after a restart, and the line held behind it went at login | `captureFields` skipped `Switchable`'s slotless `on` — **every switch in the world** came back in its row's state | `07760516f` (a slotless boolean noun read by `is<Field>()`) |
+| 12 | a phone left on the dorm charger while its owner was away gained nothing | the empty room resets and re-seats its charger; read mid-reset it had no premises, `GridPowered` latched off-grid, and the battery billed the gap at zero and stamped it gone | `07760516f` (never settle from limbo; no latch on a null premises; the gap off the trajectory, never the meter at the visit) |
+| 13 | dropping the starter phone broke it | the Hollis row was glass | `07760516f` (rubber shell — somebody's only tuner) |
+
+⚠ #11 is pre-existing kernel behavior with reach far beyond this build: every
+switchable lamp, fan and pump restored in its row's state. A first cut that
+also read `get<Field>()` captured a Location's slotless `coords` as null and
+killed the restart (run 15) — the narrowing is recorded at the site.
+
+**Where the drive itself was wrong:**
+
+- step 7 asserted the flush on `get phone from rucksack`. It happens on
+  `remove rucksack`: packed is a pack ON THE BACK (carrying D15), and a bag
+  in hand is within reach. The step is now *take the pack off* — the
+  requirements' *"ready it"*, by the act that actually un-packs it;
+- step 14 opened A before B, so A's held line re-ran at A's `enter` with B
+  not yet there; B opens first;
+- step 15 met in the lounge — each lounge is a copy of its own; it meets in
+  Duncan Hall's lobby;
+- step 15b answered a prompt with a choice object; answers are strings;
+- two runs (11, 12) failed at `embody` on a cold world, then never again with
+  `WIRE_FRAME_TIMEOUT=90000` — the first embody after a ~9-minute boot is
+  slow, not wrong (the probe embodied cleanly at 16 s).
+
+**Browser walk (B3):** `e2e/tests/aether-devices-walk.spec.ts`, run once,
+2026-11-18 — **green** (25 s): the phone's card (*battery reads*, *runs
+Messages*, *bound to you*), the default-pinned AETHER row reading *tuned* then
+*off* then *tuned*, `apps`, a `dm` refused with its fix (*switch it on*) and
+held, the held line going as typed on `switch phone on` and arriving in a second
+player's transcript, and a dropped starter phone that does not break. It found
+one thing the wire drive could not: an unknown `dm` recipient answers
+*"`dm` needs at least 1, and that is 0."* — the binder's generic arity line, not
+this build's; in the MR as a finding.
+
+**Light (R5):** step 18 looks at the dorm room by day and sees its charger.
+⚠ At night the dorm is pitch dark — an empty mana-lamp bay that predates this
+build (in the MR, not fixed here).
+
+**Reachability, per capability:** `apps` (verb · afforded by the host through
+`environment` · rows under `/platform/idea/app/` · loaded by `installApp` ·
+no arg gate), `title transfer` (civics verb · ownership · the chattel
+registry · the good itself · `requires` names `ChattelMixin`, which every
+good composes), the charger (`put … on` · placing host · row in the energy
+pack · `props:` of the dorm room · none) — each walked by a step above.
+
+**Checkpoints proved red:** steps 7, 11–15 and 16 each failed against a real
+defect before their fix; the four new unit tests (switch round-trip, the
+trajectory gap, limbo, the drop's material by the drive) were watched red with
+their fix reverted.
+
