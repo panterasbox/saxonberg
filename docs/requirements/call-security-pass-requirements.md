@@ -157,10 +157,18 @@ pack — gets a diagnostic in `errors`. Nothing else changes in the world.
   declare itself **compellable with consent**. Nothing is compellable
   without consent in this build (fleeing is the body's own act today).
 - **Never**, by rule, whatever a verb says: speech, conferral, group or
-  committee membership, title, and money leaving the body.
+  committee membership, and **giving away** — title transferred out, money
+  paid or tipped away. (Owner ruling, 2026-11-18: a purchase at a counter,
+  which spends money and gains title, may ask consent; giving title or
+  money away never can.)
 - **Consent is asked of the compelled body's own player**, at the moment,
-  naming who asks and what (*"The realtor would have you buy plot 4 for 120
-  zorkmids. Let them?"*). Yes runs it as them, through their own verbs and
+  naming who asks and the command that would run (*"The realtor would have
+  you run `title buy lot 4`. Let them?"*) — the engine's words, never the
+  asker's, which could lie about what runs; the asker states the price in
+  the fiction first.
+- The gate covers the **command path**: a body made to run a command. Code
+  that holds a body and calls its methods directly is the slate's
+  *possession is capability*, a non-goal here. Yes runs it as them, through their own verbs and
   gates; no refuses it. A body nobody can ask — an offline player, an NPC —
   cannot consent, so it is refused. A player's code therefore can never make
   an NPC act.
@@ -205,7 +213,8 @@ actor; it lives under its author's home, so its keeper is its author.
 
 1. **(player)** Ryn names her own pet `name kitten Bramble` → *"Bramble."* —
    the honest path still works.
-2. **(staged)** Sol adopts a replacement `name` controller that passes Ryn as
+2. **(staged)** Sol, given title over the `name` view for this step, points
+   it at a replacement controller (kept under Sol's home) that passes Ryn as
    the actor, and types `name kitten Biscuit` → refused, *"You can't act for
    Ryn."*; the kitten is still Bramble; Sol's `errors` names the controller.
 3. **(staged)** A wizard's `eval` calls the pump-house door's unlock naming
@@ -219,9 +228,10 @@ actor; it lives under its author's home, so its keeper is its author.
    bar's `house appoint $player` through Dave's dialogue run as the NPC.
 6. **(staged)** A timed step that checks title at completion (a bore on
    titled ground) completes for the player who started it.
-7. **(player)** At the Realtor, ask to buy a plot → the gate's own question,
-   *"The realtor would have you buy … Let them?"*; yes → the plot is bought,
-   by you, through your own `title buy`.
+7. **(player)** At the Realtor, ask to buy a plot → the realtor names the
+   price, then the gate's own question, *"The realtor would have you run
+   `title buy …`. Let them?"*; yes → the plot is bought, by you, through your
+   own `title buy`.
 8. **(player)** The same, answered no → nothing is bought; the realtor is
    told you declined.
 9. **(staged)** Sol's code makes Dave run `house appoint Sol` → refused;
@@ -247,7 +257,8 @@ None.
   step or a sweep.
 - No body runs a command because another body's code asked, unless the verb
   is compellable with consent and its own player said yes at the moment.
-- Speech, conferral, membership, title and money out are never compellable.
+- Speech, conferral, membership, and giving title or money away are never
+  compellable as commands.
 - A wizard's `eval` can act only as the wizard.
 - The blood bank refuses an issue with no issuer.
 - The count of protective gates that do not check the actor is published
