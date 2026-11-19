@@ -24,7 +24,7 @@ this rides**), [retail.md](../../subsystems/retail.md),
 [chattel.md](../../subsystems/chattel.md),
 [sanitation-slate](../trades/sanitation-slate.md) (impound → auction → salvage;
 the second-hand market), [freight-slate](../trades/freight-slate.md) (the
-business chain this completes), [press-slate](./press-slate.md) (the
+business chain this completes), [journalism-slate](./journalism-slate.md) (the
 catalogue as a publication).
 
 ## What an auction is *for*

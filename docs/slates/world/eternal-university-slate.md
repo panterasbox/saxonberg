@@ -16,7 +16,9 @@
 > pattern as campus content ·
 > the campus terminals (arrival + the lobby) · Duncan Hall's amenities, the
 > elevator, the vacancy purge + roommate pairing · the campus-grounds biome
-> leaf · the prose discipline over the EC mood-board
+> leaf · the prose discipline over the EC mood-board · ⭐ (2026-11-18, at the end) the campus as the
+> ladder — a zone per rung around the College of Magic at the hub, one home per subject, every node a
+> home on day one, the academic layer across the zones
 > **Size:** a build
 
 Working slate for **Eternal University** — the campus new players walk
@@ -511,3 +513,106 @@ This slate boils down to:
 
 The education-vertical lessons, the upperclass housing tier, the fuller
 campus, and the richer onboarding beats wait for later waves.
+
+---
+
+## ⭐⭐⭐ 2026-11-18 — the campus as the ladder, magic at the hub
+
+Talked through with the owner, out of the [tech-tree-slate](../society/tech-tree-slate.md)
+(*the university teaches the whole tree; every node has a bench where it runs*) and the campus
+covenant that admits every rung and magic. The owner: *"I used to think about it in terms of a
+standard campus … a school. But now I'm starting to think the fact that Terminus is industrial but the
+campus is anything goes plus magic on the technology ladder, it's almost more like a Hogwarts or a
+Disneyland than a traditional school. The future epoch is Tomorrowland … but I don't want to lose the
+traditional academia theme either."*
+
+### How the design got here — three rejections worth keeping
+
+- **A land per rung with every subject in every land** — seven farms for seven rungs. The owner: *"it
+  doesn't quite work unless the school is really, really big, and it's supposed to be situated inside
+  the city."*
+- **A walk-through of the ladder and corpo pavilions instead** — loses the whimsy; *"the carousel …
+  has more of a museum feel than a theme park feel. I'd even just call it a museum"* → the
+  [museum-slate](./museum-slate.md). Pavilions *"like stalls at a con … pretty bland."*
+- ⛔ **The campus laid out as a map of the realm** — *"it means we have to design the entire realm before
+  we can design the campus. That's exactly the opposite of the order we want to go in."* **The campus
+  comes first, and the realm is designed against it, never the reverse.**
+
+### ⭐⭐⭐ Zones by rung, each subject with one home **[DECIDED in shape — the owner]**
+
+The hub and spokes: **a zone per rung around the College of Magic at the hub**, the duplication fixed —
+**each subject has exactly one home, in the zone of its signature rung**, the rung where it is most
+itself:
+
+| zone | its signature homes |
+|---|---|
+| **Muscle** | fire, the forge and the bloomery, foraging |
+| **Draft** | the teaching farm and its plow team — the campus farm that already shipped |
+| **Wheel** | the mill |
+| **Engine** | the engine house and its pump |
+| **Electric** | the generator, the electrical lab |
+| **Signal** | electronics, the radio station |
+| **Future** | fusion, the fabricator, the automaton — the owner's Tomorrowland |
+| ⭐ **the hub** | **the College of Magic** — the castle at the center of the Quad. Magic is a flag on every rung, not a rung, so it belongs where every spoke meets: it borrows from all of them |
+
+- **One farm, one mill, one forge.** Teaching a subject at another rung (tractor farming, hand-milling)
+  happens in **the general labs** — holodeck rooms that manifest any setting (the sandbox: what is made in
+  a circle dies with it, so *the university only teaches* is a property of the room). **[OPEN — whether a
+  circle holds a whole class with its instructor.]**
+- **The walk from the forge to the farm to the mill to the engine house is a few minutes, and climbs the
+  ladder** — the whimsy, and the introduction to the tech tree, with nothing duplicated.
+- **Themed by what does the work, never by culture** (*no band is a culture* —
+  [content-declaration-slate](../platform/content-declaration-slate.md) § 3.0): the Wheel zone is water
+  and wind turning shafts, not a fake medieval village. The north star holds (*legible forms, strange
+  finish*), and its *impossible juxtaposition* now happens on its own — a waterwheel beside a fusion
+  torus.
+- **It needs nothing from the realm** — the ladder is ours. A place, when built, declares its rung; the
+  campus never changes for it. The realm preview is a museum ([museum-slate](./museum-slate.md)).
+
+### ⭐⭐ Every node has a home on day one **[DECIDED — the owner's concern]**
+
+*"My main concern is that we can represent the entire tech tree from day one."*
+
+| kind of node | its home |
+|---|---|
+| **tied to a rung** (the waterwheel, the steam engine, the radio) | a bench in that rung's zone, beside its signature facility |
+| **not tied to a rung** (cooling, optics, Beer–Lambert) | the general labs, manifested when taught |
+| **the game's own rules and civics** (contract, the Compact, the record) | the academic halls — lecture rooms, the law school's moot court |
+| **magic** (the arcane laws) | the hub |
+
+Physically, **the campus shows the whole ladder** — seven zones and the hub, walkable on day one; **every
+node** gets its bench in a lab when taught, so nothing is built per node. ⭐ **The Future rung's mechanics
+land before launch** (the owner: *"we're gonna figure out sci-fi shit before we launch, don't worry about
+that"* — [future-tech-slate](../trades/future-tech-slate.md)), so the Future zone runs on day one like the
+rest.
+
+### The academic layer, across the zones
+
+The zones are the *what*; academia is the *who* and the *how*, crossing every zone:
+
+- **Residential colleges** (Oxford and Cambridge) as the houses — you belong to one wherever you study;
+  Duncan Hall is where it starts; **a house cup**, the prosocial competition of the corpos slate.
+- **Ceremonies** — matriculation on enrolling; **commencement**, where degrees are conferred and guilds
+  recruit ([guild-slate](../society/guild-slate.md) § *The university feeds the guild*).
+- **The viva**; **the library and archive** (the canon — the guilds are the frontier); **the journal**.
+- ⭐ **A student government** — a small Compact on the same machinery, the first place someone uses bills
+  and seats (the guild slate's *ground zero*).
+- **The student paper** — the fourth estate's junior edition.
+- ⭐ **Secret societies** (the Skull and Bones tradition) — where the corpos' hidden hands recruit
+  ([corpos-slate](../society/corpos-slate.md) § 2026-11-18). **[LEAN]**
+- **Sports** — varsity, rivalries, the drill ground.
+
+### Honest to the mandate
+
+- **The university only teaches**: every facility is an exhibit or a lab, never a working trade — the
+  fusion demo powers nothing you can buy; the mill grinds no flour for market.
+- **Exhibits can be games** — the lounge machine's embedded web games ([lounge-slate](./lounge-slate.md))
+  as a format for teaching one node.
+- **Every exhibit explains itself** — the physics receipt, banded by what you know
+  ([tech-tree-slate](../society/tech-tree-slate.md) § 6d).
+
+### Open
+
+1. **A circle that holds a class** — the holodeck lab's one technical check.
+2. **Secret societies as the corpos' recruiting ground** — confirm.
+3. **Which subjects have a physical home** beyond the signature list — the rest live in the general labs.

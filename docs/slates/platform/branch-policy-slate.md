@@ -150,7 +150,7 @@ doctrine already holds code-trust as the one axis nothing opens.
 - **`readers` is the obvious sibling** — noted, **not built**,
   because nothing needs it yet.
 - **Sealing is a different mechanism.** The
-  [press slate](../society/press-slate.md)'s *seal-don't-hide* is
+  [press slate](../society/journalism-slate.md)'s *seal-don't-hide* is
   **per-document** (existence public, content withheld); this is
   **per-branch**. Do not conflate them.
 
