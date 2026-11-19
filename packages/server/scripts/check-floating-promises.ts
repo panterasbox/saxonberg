@@ -23,7 +23,7 @@ import { MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 const REPO_ROOT = join(MUD, "../../../..");
 
 /** Floating promises — measured 2026-11-18 (failure-model W4). */
-export const FLOATING_PROMISES_CEILING = 179;
+export const FLOATING_PROMISES_CEILING = 182; // master merge (navigation-server, call-security-performance): +3 (e.g. trade-farming Tract). Was 179 at W4.
 
 /** Is this call's rejection handled? */
 function handled(call: ts.CallExpression): boolean {

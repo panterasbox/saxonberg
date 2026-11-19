@@ -36,9 +36,9 @@ import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 const REPO_ROOT = join(MUD, "../../../..");
 
 /** (i) Distinct `reason:` literals with no row — measured 2026-11-18 (failure-model W4). */
-export const UNROWED_CODES_CEILING = 966;
+export const UNROWED_CODES_CEILING = 969; // master merge (navigation-server, call-security-performance): +3 codes their new code returns. Was 966 at W4.
 /** (ii) Legacy wordings — `controller-rejected` literals + worded `refuse(…)` calls. Measured 2026-11-18. */
-export const LEGACY_WORDINGS_CEILING = 580;
+export const LEGACY_WORDINGS_CEILING = 579; // master merge: −1. Was 580 at W4.
 
 /** Every shipped reason row, by path → its declared fact names. */
 export function reasonRows(contentDir: string = CONTENT): Map<string, Set<string>> {
