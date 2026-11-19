@@ -745,7 +745,7 @@ lint family green. Stage files by name.
   the walk in W8).
 - **Commit:** `refactor(client): W7 — no native hover text; the title ratchet closes at the three iframes`
 
-### W8 — Drive, docs, MR
+### W8 — Drive, docs, MR ✅ (MR !633)
 - `packages/wire/tests/tooltips.wire.test.ts` and
   `e2e/tests/tooltips-walk.spec.ts` (§ Test & gate strategy); make each
   checkpoint fail once on purpose (B2).
@@ -942,4 +942,62 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**2026-11-19, fresh world** (worktree DB dropped; owned world on
+`WIRE_PORT=2013`, `WIRE_BOOT_TIMEOUT` raised, because a cold boot on the
+loaded box outran the default 420 s). Full suite at code-complete: **all 56
+packages pass** (55 min). Lint family: 115/116; the one failure
+(`lint:act-nulls`, `HelpApi.resolveTopic`) was fixed with `@nothing` and
+re-checked at 172/172.
+
+**Wire drive — `tooltips.dirty.wire.test.ts`: 5/5.**
+- (a) lit, reachable: `kind: agent`, `path {…PrimaryAvatar, spoiler 2}`, no `dark`.
+- (b) the Delve, dark: `dark: true`; the record is only `displayName: "someone"`
+  and `kind`. `look` in the same dark: *"It is pitch dark. You can make out
+  nothing of the place at all."* — the tooltip says no more than the look.
+- (c) `#id` of someone in another place: `[]`.
+- (d) the excerpt: at appetite 0, *The lead says <spoiler level="1">…</spoiler>
+  and .*; at appetite 1, the level-1 text is open; the level-3 span is absent
+  both times, and is absent from `wiki <page>` too; a missing page → `null`.
+- (g) `settings set spoiler.appetite 2` → one client-state `replace` delta.
+
+**Browser walk — `tooltips-walk.spec.ts`: 5/5** (all 10 player steps). It
+found **five defects no unit test could see**, each fixed and re-walked:
+1. **A tooltip was placed while it said "…"** and never again, so near the
+   bottom of the screen it opened squeezed to 137 px. It is now placed once
+   more when its document arrives, measured uncapped (`useFloat`
+   `contentKey`), with `top-start` as the first fallback.
+2. **A locked tooltip stuck open forever** when its anchor re-rendered away:
+   no "left" event fires from a detached element. The layer now watches the
+   pointer while a stack is open, and closes the stack when its anchor
+   leaves the page.
+3. **Pin ran an ambiguous `look line`** and asked *which target?* instead of
+   opening the card. A thing's pin is now `look #<id>`; the click still runs
+   the word a player would type.
+4. **A red wiki link (`wiki create X`) was read as a term** and said
+   *Nothing in the wiki for that*. `termOf` now knows the two verbs'
+   subcommands; a `wiki <act>` link is a command.
+5. **Nothing in the world emitted a `help` link**, so a help term had no
+   anchor. An interface's gutter stripe is now its help term (found while
+   writing the walk — the reachability link *affordance*).
+
+Also seen: a description that only repeated the name with its article was
+shown twice; `thingDoc` drops it.
+
+**Existing walks that read native titles**
+- boundary (pump-house door), navigation-server (both) and status-bar (all
+  three): **pass**. They now read the tooltip by **focus**, because the card
+  feed moves under a resting pointer. That is pre-existing feed behavior:
+  it pulls toward its newest card.
+- boundary's *hut window* step fails on **night**: `look here` → *pitch
+  dark*. Its assertion is `look` text, untouched by this build;
+  time-of-day, not tooltips.
+
+**Findings for the owner (not this build's):**
+- The shipped material wiki pages link by TITLE (`[[Mineral]]`), but the
+  wiki resolves by handle (`material-kind-mineral`). So nearly every link
+  in them renders as a red *create this page* link.
+- A player's tooltip path is `/platform/agent/PrimaryAvatar` for every
+  player: honest (a template path, never the identity path), but identical
+  for all of them.
+
+**Soak drive:** none — nothing waits on the clock.

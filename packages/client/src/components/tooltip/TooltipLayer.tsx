@@ -221,7 +221,8 @@ function FloatingTip({
   onPin: (command: string) => void;
 }): React.ReactElement {
   const lockTips = useStore((s) => s.lockTips);
-  const float = useFloat(entry.anchor);
+  // Placed when it opens AND once more when its document arrives.
+  const float = useFloat(entry.anchor, { contentKey: entry.doc !== null });
   // Dwell locks it, so the pointer can travel into it.
   React.useEffect(() => {
     if (entry.locked) return;
@@ -315,11 +316,29 @@ export function TooltipLayer({ onCommandClick, onCommandPreview }: TooltipLayerP
       if (st.tipStack[0]?.anchor.contains(e.target as Node | null)) return;
       st.closeAllTips();
     };
+    // ⭐ The layer watches the pointer itself while a stack is open (found
+    // by the walk): an anchor re-rendered away fires no "left", so a locked
+    // stack would otherwise stay open forever. Outside every tooltip and the
+    // root anchor → the grace runs; an anchor gone from the page → closed.
+    const onMove = (e: Event) => {
+      const st = useStore.getState();
+      const root = st.tipStack[0];
+      if (!root) return;
+      if (!root.anchor.isConnected) {
+        st.closeAllTips();
+        return;
+      }
+      if (root.touch) return;
+      if (insideTip(e.target) || root.anchor.contains(e.target as Node | null)) cancelTipGrace();
+      else if (st.tipStack.some((t) => t.locked)) scheduleTipGrace();
+    };
     window.addEventListener("keydown", onKey, true);
     window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("pointermove", onMove, true);
     return () => {
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("pointermove", onMove, true);
     };
   }, [open]);
 

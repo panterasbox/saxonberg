@@ -31,6 +31,12 @@ export interface FloatOptions {
   onDismiss?: () => void;
   /** The tallest it may grow before scrolling (px). */
   maxHeight?: number;
+  /**
+   * Changes when the content arrives (a resolving tooltip opens on "…").
+   * Placement is computed once for the content the float actually shows —
+   * never again after that, so a locked tooltip stays where it opened.
+   */
+  contentKey?: unknown;
 }
 
 export interface Float {
@@ -41,19 +47,22 @@ export interface Float {
 }
 
 export function useFloat(anchor: Element | null, opts: FloatOptions = {}): Float {
-  const { placement = "bottom-start", onDismiss, maxHeight = 420 } = opts;
+  const { placement = "bottom-start", onDismiss, maxHeight = 420, contentKey } = opts;
   const [floating, setFloating] = React.useState<HTMLElement | null>(null);
   const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
 
   React.useLayoutEffect(() => {
     if (!anchor || !floating) return;
+    // Measure the content at its natural height — a cap left by the last
+    // placement would hide the overflow `flip` exists to see.
+    floating.style.maxHeight = "";
     let cancelled = false;
     void computePosition(anchor, floating, {
       strategy: "fixed",
       placement,
       middleware: [
         offset(6),
-        flip({ padding: 8 }),
+        flip({ padding: 8, fallbackPlacements: ["top-start", "right-start", "left-start"] }),
         shift({ padding: 8 }),
         size({
           padding: 8,
@@ -68,7 +77,7 @@ export function useFloat(anchor: Element | null, opts: FloatOptions = {}): Float
     return () => {
       cancelled = true;
     };
-  }, [anchor, floating, placement, maxHeight]);
+  }, [anchor, floating, placement, maxHeight, contentKey]);
 
   const dismiss = React.useRef(onDismiss);
   dismiss.current = onDismiss;

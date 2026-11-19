@@ -104,5 +104,11 @@ describe("termOf — what a term is", () => {
     expect(termOf("wiki main:oak")).toEqual({ kind: "wiki", ref: "main:oak" });
     expect(termOf("look lamp")).toBeNull();
     expect(termOf("helper")).toBeNull();
+    // ⭐ A red link (a page not written yet) runs `wiki create` — a command,
+    // not a term (found by the walk).
+    expect(termOf("wiki create Mineral")).toBeNull();
+    expect(termOf("wiki read main:oak")).toEqual({ kind: "wiki", ref: "main:oak" });
+    expect(termOf("help verb look")).toEqual({ kind: "help", word: "look" });
+    expect(termOf("help search oak")).toBeNull();
   });
 });

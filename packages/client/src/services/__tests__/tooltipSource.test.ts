@@ -31,7 +31,9 @@ describe("thingTip", () => {
     expect(q).toHaveBeenCalledTimes(1);
     expect(q.mock.calls[0]![0]).toBe("#t1");
     expect(a.header?.name).toBe("a lamp");
-    expect(b.pin).toBe("look lamp");
+    expect(b.command).toBe("look lamp");
+    // The pin names THIS thing — a keyword can be ambiguous.
+    expect(b.pin).toBe("look #t1");
   });
 
   it("moving clears it — the next hover asks again", async () => {

@@ -97,7 +97,10 @@ export function thingDoc(
     },
   };
   if (opts.dark) doc.miss = "Too dark to make out.";
-  if (rec.shortDescription && rec.shortDescription !== rec.displayName) {
+  // A description that only repeats the name (with or without its article)
+  // says nothing twice.
+  const bare = (t: string): string => t.trim().toLowerCase().replace(/^(a|an|the)\s+/, "");
+  if (rec.shortDescription && bare(rec.shortDescription) !== bare(rec.displayName ?? "")) {
     doc.prose = rec.shortDescription;
   }
   if (rec.illustration) {
@@ -136,15 +139,35 @@ export function helpDoc(topic: HelpTopic, word: string): TooltipDoc {
 }
 
 /**
- * ⭐ Which links are TERMS — a link whose command opens a help or wiki
- * card (tooltips D7). That is the whole classification, and it is why a
- * new topic or page needs no code to have a tooltip.
+ * The `wiki` and `help` subcommands that do something OTHER than show a
+ * page — a link running one is a command, not a term. (`wiki create X` is
+ * the red link to a page that does not exist yet; found by the walk.)
+ * Mirrors the two verbs' views; `read` / `verb` / `api` name a page or
+ * topic and stay terms.
+ */
+const WIKI_ACTS = new Set([
+  "create", "edit", "history", "diff", "rollback", "move", "delete", "undelete",
+  "purge", "protect", "preview", "links", "wanted", "orphans", "dangling", "list", "spoiler",
+]);
+const HELP_ACTS = new Set(["search"]);
+
+/**
+ * ⭐ Which links are TERMS — a link whose command shows a help topic or a
+ * wiki page (tooltips D7). That is the whole classification, and it is why
+ * a new topic or page needs no code to have a tooltip.
  */
 export function termOf(command: string): { kind: "help"; word: string } | { kind: "wiki"; ref: string } | null {
-  const m = /^(help|wiki)\s+(.+)$/.exec(command.trim());
+  const m = /^(help|wiki)\s+(\S+)(?:\s+(.+))?$/.exec(command.trim());
   if (!m) return null;
-  const rest = m[2]!.trim();
-  return m[1] === "help" ? { kind: "help", word: rest } : { kind: "wiki", ref: rest };
+  const [, verb, first, rest] = m as unknown as [string, "help" | "wiki", string, string | undefined];
+  if (verb === "wiki") {
+    if (first === "read") return rest ? { kind: "wiki", ref: rest.trim() } : null;
+    if (WIKI_ACTS.has(first)) return null;
+    return { kind: "wiki", ref: rest ? `${first} ${rest}`.trim() : first };
+  }
+  if (HELP_ACTS.has(first)) return null;
+  if ((first === "verb" || first === "api") && rest) return { kind: "help", word: rest.trim() };
+  return { kind: "help", word: rest ? `${first} ${rest}`.trim() : first };
 }
 
 /**

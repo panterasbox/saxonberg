@@ -36,9 +36,12 @@ test('preview equals send, verbatim, through the server', async ({
 
     // ⭐ Ground truth for what a click WILL send, read off the affordance's
     // own tooltip (its boxed command — tooltips W8), not reconstructed.
-    await affordance.hover();
-    const expected = (await page.getByTestId('tooltip').last().getByTestId('doc-command').innerText()).trim();
-    await page.mouse.move(0, 0);
+    await affordance.focus();
+    const tip = page.getByTestId('tooltip').last();
+    await expect(tip.getByTestId('doc-command')).toBeVisible({ timeout: 10_000 });
+    const expected = (await tip.getByTestId('doc-command').innerText()).trim();
+    await page.keyboard.press('Escape');
+    await affordance.blur();
     expect(expected.length, 'no command on the affordance').toBeGreaterThan(0);
 
     // 1. HOVER → the status bar shows it, verbatim.

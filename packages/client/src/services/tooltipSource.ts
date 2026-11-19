@@ -88,9 +88,13 @@ export function thingTip(stuffId: string, command?: string): TipSpec {
           });
         things.set(stuffId, { at: now, value });
       }
-      // The command is the anchor's, not the thing's — added per open.
+      // The click is the anchor's own command (what a player would type);
+      // the PIN opens THIS thing's card, by id — a keyword can name two
+      // things and turn a pin into "which target?" (found by the walk).
       return value.then((doc) =>
-        doc.miss === CANT_SEE || !command ? doc : { ...doc, command, pin: command },
+        doc.miss === CANT_SEE
+          ? doc
+          : { ...doc, ...(command ? { command } : {}), pin: `look #${stuffId}` },
       );
     },
   };

@@ -14,6 +14,13 @@ import { openWorldAs, runCommand, tipText } from './helpers';
 const BANK = '/world/terminus/wharfside/bank';
 const SQUARE = '/world/terminus/market/square';
 
+/** Bring a target to the middle of its scroller — never under a sticky bar. */
+async function center(target: Locator): Promise<void> {
+  // Park the pointer first, so nothing slides under it while scrolling.
+  await target.page().mouse.move(0, 0);
+  await target.evaluate((e) => e.scrollIntoView({ block: 'center' }));
+}
+
 /** The tooltip on top of the stack. */
 const topTip = (page: Page): Locator => page.getByTestId('tooltip').last();
 
@@ -46,11 +53,16 @@ test.describe('tooltips — one tooltip for the whole client', () => {
 
       // 2 · A thing link: its tooltip names it; the status bar still
       // previews the command; a click opens its card, as before.
+      // The transcript scrolls as other people's lines arrive, so a hover
+      // can land as the line moves; it is retried until a tooltip opens.
       const link = thingLink(page).last();
-      await link.hover();
       const tip = topTip(page);
-      await expect(tip).toBeVisible({ timeout: 5_000 });
-      await expect(tip.getByTestId('doc-name')).not.toHaveText('');
+      await expect(async () => {
+        await center(link);
+        await link.hover();
+        await expect(tip).toBeVisible({ timeout: 2_000 });
+      }).toPass({ timeout: 30_000 });
+      await expect(tip.getByTestId('doc-name')).not.toHaveText('', { timeout: 10_000 });
       const command = (await tip.getByTestId('doc-command').innerText()).trim();
       expect(command).toMatch(/^look /);
       await expect(page.getByTestId('ghost-line')).toContainText(command);
@@ -66,15 +78,14 @@ test.describe('tooltips — one tooltip for the whole client', () => {
       await expect(tip.getByTestId('doc-spoiler')).toHaveAttribute('data-open', 'true');
       await expect(tip.getByTestId('doc-spoiler')).toContainText('/');
 
-      // 8 · Pin runs the card's command: a card opens and the command is
-      // in the scrollback.
-      const cardsBefore = await page.getByTestId('inspection-body').count();
+      // 8 · Pin runs the card's command — `look #<id>`, THIS thing, never an
+      // ambiguous word — and its card opens, with no "which target?".
+      const name = (await tip.getByTestId('doc-name').innerText()).trim();
       await tip.getByTestId('tip-pin').click();
       await expect(page.getByTestId('tooltip')).toHaveCount(0);
-      await expect
-        .poll(async () => page.getByTestId('inspection-body').count(), { timeout: 20_000 })
-        .toBeGreaterThanOrEqual(Math.max(1, cardsBefore));
-      await expect(page.getByTestId('terminal')).toContainText(command, { timeout: 10_000 });
+      await expect(page.locator('body')).not.toContainText('which target?', { timeout: 5_000 });
+      await expect(page.getByText(name, { exact: false }).first()).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId('terminal')).toContainText(/look #/, { timeout: 10_000 });
 
       // A control's tooltip has no pin.
       await pin.hover();
@@ -85,8 +96,11 @@ test.describe('tooltips — one tooltip for the whole client', () => {
       // 6 · At appetite 2 a path arrives open.
       await runCommand(page, 'settings set spoiler.appetite 2');
       await lookUntilLinks(page);
-      await thingLink(page).last().hover();
-      await expect(topTip(page).getByTestId('doc-spoiler')).toHaveAttribute('data-open', 'true', { timeout: 10_000 });
+      await expect(async () => {
+        await center(thingLink(page).last());
+        await thingLink(page).last().hover();
+        await expect(topTip(page).getByTestId('doc-spoiler')).toHaveAttribute('data-open', 'true', { timeout: 3_000 });
+      }).toPass({ timeout: 30_000 });
       await page.mouse.move(0, 0);
     } finally {
       await close();
@@ -110,7 +124,7 @@ test.describe('tooltips — one tooltip for the whole client', () => {
       const stale = thingLink(page).first();
       await runCommand(page, 'north');
       await expect(page.getByTestId('terminal')).toContainText(/square/i, { timeout: 20_000 });
-      await stale.scrollIntoViewIfNeeded();
+      await center(stale);
       expect(await tipText(page, stale)).toMatch(/can't see that now/i);
     } finally {
       await close();
@@ -118,40 +132,50 @@ test.describe('tooltips — one tooltip for the whole client', () => {
     }
   });
 
-  test('4–5 · terms nest: a wiki term inside a wiki term; Shift locks; Esc walks back', async ({ browser }) => {
+  test('4–5 · terms nest (help); a red wiki link is a command, not a term', async ({ browser }) => {
     test.setTimeout(240_000);
-    const { page, close } = await openWorldAs(browser, 'tipwiki', { startLocation: SQUARE });
+    const { page, close } = await openWorldAs(browser, 'tipterms', { startLocation: SQUARE });
     try {
-      // A shipped page whose opening section links other pages.
-      await runCommand(page, 'wiki material-kind-gas');
-      const term = page.locator('[data-tip-link]', { hasText: 'Mineral' }).first();
-      await expect(term).toBeVisible({ timeout: 30_000 });
-      await term.hover();
-      const parent = topTip(page);
-      await expect(parent).toBeVisible({ timeout: 10_000 });
-      await expect(parent).toContainText(/Mineral/);
-      await expect(parent).toContainText(/wiki page/);
+      // 4 · An interface's stripe in a `look` card's gutter is its help
+      // term; its "see also" terms nest.
+      await runCommand(page, 'look');
+      const stripes = page.locator('[data-testid="segment-stripe"][data-stripe-kind="solid"]');
+      await expect(stripes.first()).toBeVisible({ timeout: 30_000 });
+      let parent: Locator | null = null;
+      const n = await stripes.count();
+      for (let i = 0; i < n && parent === null; i++) {
+        const stripe = stripes.nth(i);
+        await center(stripe);
+        await stripe.hover();
+        const tip = topTip(page);
+        await expect(tip).toBeVisible({ timeout: 10_000 });
+        await expect(tip.getByTestId('tip-loading')).toHaveCount(0, { timeout: 10_000 });
+        if ((await tip.locator('[data-tip-link]').count()) > 0) parent = tip;
+        else await page.mouse.move(0, 0);
+      }
+      expect(parent, 'an interface whose help topic has related terms').not.toBeNull();
+      await expect(parent!).toContainText(/help/);
       await page.keyboard.press('Shift');
-      await expect(parent).toHaveAttribute('data-locked', 'true');
-
-      // A term inside the tooltip opens a child, with a breadcrumb.
-      const inner = parent.locator('[data-tip-link]').first();
-      await expect(inner).toBeVisible({ timeout: 10_000 });
+      await expect(parent!).toHaveAttribute('data-locked', 'true');
+      const inner = parent!.locator('[data-tip-link]').first();
       await inner.hover();
       await expect(page.getByTestId('tooltip')).toHaveCount(2, { timeout: 10_000 });
       await page.keyboard.press('Shift');
-      await expect(page.getByTestId('tip-crumbs')).toContainText(/Mineral/);
-
+      await expect(page.getByTestId('tip-crumbs')).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(page.getByTestId('tooltip')).toHaveCount(1);
       await page.keyboard.press('Escape');
       await expect(page.getByTestId('tooltip')).toHaveCount(0);
 
-      // A help term: an interface's stripe in a `look` card's gutter.
-      await runCommand(page, 'look');
-      const stripe = page.locator('[data-testid="segment-stripe"][data-stripe-kind="solid"]').first();
-      await expect(stripe).toBeVisible({ timeout: 30_000 });
-      expect(await tipText(page, stripe)).toMatch(/help|No help for that/);
+      // 5 · A red wiki link (a page not written yet) runs `wiki create`: its
+      // tooltip is that command, never a "nothing in the wiki" term.
+      await runCommand(page, 'wiki material-kind-gas');
+      const red = page.locator('[data-tip-link]', { hasText: 'Mineral' }).first();
+      await expect(red).toBeVisible({ timeout: 30_000 });
+      await center(red);
+      const said = await tipText(page, red);
+      expect(said).toMatch(/wiki create/);
+      expect(said).not.toMatch(/Nothing in the wiki/);
     } finally {
       await close();
     }
