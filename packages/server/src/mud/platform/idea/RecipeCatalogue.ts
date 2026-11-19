@@ -21,7 +21,8 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { Recipe } from '../../lib/craft/Recipe';
 import { DocumentApi } from '../../api/document';
-import { DocumentNotResidentError, type VetoResult } from '../../lib/errors';
+import { ContentError, DocumentNotResidentError, type VetoResult } from '../../lib/errors';
+import { CommandApi } from '../../api/command';
 import type { CarvePlan, CarveRefusal, CarveRequest } from '../../lib/craft/Carvable';
 import { CraftingApi } from '../../api/crafting';
 import { MixinApi } from '../../api/mixin';
@@ -69,16 +70,31 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
 
   /** Document path → word. */
   private byPath: Map<string, string> = new Map();
+  /**
+   * ⭐ The rows forced past the installer that do not read (failure-model
+   * D6), by word and by path — so a player who names one meets a content
+   * error, worded, and its keeper is told, instead of the recipe silently
+   * not existing.
+   */
+  private broken: Map<string, ContentError> = new Map();
+
+  /** The content error a broken row named by `ref` (word or path) carries, thrown. */
+  private refuseBroken(ref: string): void {
+    const err = this.broken.get(ref.startsWith('/') ? ref : ref.toLowerCase());
+    if (err) throw err;
+  }
 
   /** Resolve a recipe by its word (its path's leaf), or null. */
   public getRecipe(recipeId: string): Recipe | null {
     this.ensureCache();
+    this.refuseBroken(recipeId);
     return this.cache!.get(recipeId) ?? null;
   }
 
   /** Resolve a recipe by its document path (an authored citation), or null. */
   public getRecipeAt(path: string): Recipe | null {
     this.ensureCache();
+    this.refuseBroken(path);
     const word = this.byPath.get(path);
     return word ? (this.cache!.get(word) ?? null) : null;
   }
@@ -88,6 +104,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     this.ensureCache();
     // An authored citation names the recipe's path.
     if (keyword.startsWith('/')) return this.getRecipeAt(keyword);
+    this.refuseBroken(keyword);
     const id = this.byKeyword.get(keyword.toLowerCase());
     if (id) return this.cache!.get(id) ?? null;
     // Fallback: scan (covers keywords added after warm).
@@ -221,18 +238,29 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     this.byKeyword = new Map();
     this.byOutput = new Map();
     this.byPath = new Map();
+    this.broken = new Map();
   }
 
   /** (Re)build the cache + keyword index from `documents {kind: recipe}`. */
   public async warm(): Promise<void> {
     const docs = await DocumentApi.listOfKind('recipe');
     const recipes: Recipe[] = [];
+    const broken = new Map<string, ContentError>();
     for (const doc of docs) {
       try {
         recipes.push(Recipe.fromDocument(doc));
       } catch (err) {
-        // A malformed row never takes the catalogue down: skip it loudly.
-        console.warn(`RecipeCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
+        // A malformed row never takes the catalogue down. ⭐ A CONTENT
+        // error is remembered (a player who names it is told) and its
+        // keeper is told now; anything else is skipped loudly.
+        if (err instanceof ContentError) {
+          const path = doc.getPath();
+          broken.set(path, err);
+          broken.set(path.slice(path.lastIndexOf('/') + 1).toLowerCase(), err);
+          await CommandApi.reportFailure(err, null, path);
+        } else {
+          console.warn(`RecipeCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
+        }
       }
     }
     const cache = new Map<string, Recipe>();
@@ -258,6 +286,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       if (out && (prior === undefined || id < prior)) byOutput.set(out, id);
     }
     this.cache = cache;
+    this.broken = broken;
     this.byKeyword = byKeyword;
     this.byOutput = byOutput;
     this.byPath = byPath;

@@ -50,7 +50,7 @@ nothing here restates them.
 | [amendment-library-slate](./amendment-library-slate.md) | kernel/module split; governance choices as legos |
 | [zoning-slate](./zoning-slate.md) | **industrial is defined by what LEAVES** — the externality test this generalizes |
 | [enforcement-slate](./enforcement-slate.md) · [policing-slate](./policing-slate.md) | the evidence firewall; testimony as claims not queries; crime social, alignment intrinsic |
-| [press-slate](./press-slate.md) | the three layers; **events, never significance** |
+| [journalism-slate](./journalism-slate.md) | the three layers; **events, never significance** |
 | [parcel.md](../../subsystems/parcel.md) | title stored outside content (the governing security invariant); `ownerOf`; the coverage trie; `landUse`/`area`; `subdivide`/`transfer` |
 | [access.md](../../subsystems/access.md) | `can`/`canMutateZone`; the code-trust lockdown; **committee = the title-holding group** |
 | [civics.md](../../subsystems/civics.md) · [governance.md](../../subsystems/governance.md) | Locality-declared jurisdiction; the Office substrate; seats-as-positions |

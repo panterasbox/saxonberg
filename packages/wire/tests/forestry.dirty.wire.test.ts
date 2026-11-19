@@ -335,7 +335,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(chronicle).toMatch(/Planted an oak sapling in the oak clearing\./);
     // Fifteen game years is stated, not promised: a seedling is not a tree.
     const early = await f.cmd('fell sapling');
-    expectNote(early, 'controller-rejected', { reason: 'not-yet-a-tree' });
+    expectNote(early, 'refused', { reason: '/trade/forestry/reasons/not-yet-a-tree' });
   }, 120_000);
 
   it('12. ⭐⭐ run it out: fell until the clearing refuses in words about the wood; the prose is byte-identical; the ride is untouched', async () => {
@@ -344,7 +344,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
       await act(f, 'fell oak with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
     }
     const refused = await f.cmd('fell oak with axe');
-    expectNote(refused, 'controller-rejected', { reason: 'stand-empty' });
+    expectNote(refused, 'refused', { reason: '/trade/forestry/reasons/stand-empty' });
     expect(await refused.said()).toMatch(/nothing left here that is worth the axe/i);
     // The ash still stands — the stands are per SPECIES…
     let said = await f.prose('look');
@@ -355,8 +355,8 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
       const before = (await f.query('here:i:[keyword.bole]')).length;
       await act(f, 'fell ash with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
     }
-    expectNote(await f.cmd('fell ash'), 'controller-rejected', { reason: 'stand-empty' });
-    expectNote(await f.cmd('fell'), 'controller-rejected', { reason: 'stand-empty' });
+    expectNote(await f.cmd('fell ash'), 'refused', { reason: '/trade/forestry/reasons/stand-empty' });
+    expectNote(await f.cmd('fell'), 'refused', { reason: '/trade/forestry/reasons/stand-empty' });
     said = await f.prose('look');
     expect(said).toMatch(/Nothing stands here that is worth the axe — stumps, brash, and the saplings somebody planted\./);
     expect(said).toMatch(/An oak sapling, planted by/);

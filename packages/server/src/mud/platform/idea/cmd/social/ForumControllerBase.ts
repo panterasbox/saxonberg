@@ -25,7 +25,7 @@ import { PlayerApi } from '../../../../api/player';
 import type { Forums } from '../../../../lib/forum/Forums';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Subject from '../../../../lib/forum/Subject';
-import { BoardRefusal } from '../../../../lib/forum/Board';
+import { Refusal } from '../../../../lib/errors';
 
 export interface ForumModel extends CommandModel {
   board?: string;
@@ -107,17 +107,17 @@ export abstract class ForumControllerBase extends CommandController<ForumModel> 
     return { board, subject };
   }
   /**
-   * Word a forum write that threw: a {@link BoardRefusal} keeps its own
-   * reason (the gate is the forum logic's — controller-liquidity D9);
-   * anything else is `fallback`.
+   * Word a forum write that threw: a {@link Refusal} is passed on, its
+   * reason row words it (the gate is the forum logic's — controller-
+   * liquidity D9; failure-model D11); anything else is `fallback`.
    */
   protected failFrom(
     context: CommandContext,
     err: unknown,
     fallback: string,
   ): void {
-    const reason = err instanceof BoardRefusal ? err.reason : fallback;
-    return this.fail(context, (err as Error).message, reason);
+    if (err instanceof Refusal) return this.refuse(context, err);
+    return this.fail(context, (err as Error).message, fallback);
   }
 
   protected fail(context: CommandContext, detail: string, reason: string): void {

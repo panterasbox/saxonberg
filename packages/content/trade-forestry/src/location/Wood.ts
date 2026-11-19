@@ -139,15 +139,15 @@ export default class Wood extends WoodBase {
     axe: Stuff,
     word: string,
   ): Promise<FellPlan | FellRefusal> {
-    if (!this.fellsWith(axe)) return { ok: false, reason: 'wrong-tool' };
+    if (!this.fellsWith(axe)) return { ok: false, reason: '/trade/forestry/reasons/wrong-tool', facts: { tool: axe } };
     const w = word.trim();
     const sp = w ? this.speciesNamed(w) : this.thickestSpecies();
     if (!sp) {
       return w
-        ? { ok: false, reason: 'no-such-species', facts: { word: w } }
-        : { ok: false, reason: 'stand-empty', facts: { name: null } };
+        ? { ok: false, reason: '/trade/forestry/reasons/no-such-species', facts: { word: w } }
+        : { ok: false, reason: '/trade/forestry/reasons/stand-empty', facts: {} };
     }
-    if (this.standingNow(sp) < 1) return { ok: false, reason: 'stand-empty', facts: { name: sp.name } };
+    if (this.standingNow(sp) < 1) return { ok: false, reason: '/trade/forestry/reasons/stand-empty', facts: { name: sp.name } };
     const self = this as unknown as Stuff & Container;
     return {
       ok: true,
@@ -160,7 +160,7 @@ export default class Wood extends WoodBase {
         if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
         const nowS = WorldClockApi.getNow().rawValue();
         if (!this.cut(sp.speciesPath, nowS, actor.getIdentityPath() ?? '')) {
-          return { ok: false, reason: 'stand-empty', facts: { name: null } };
+          return { ok: false, reason: '/trade/forestry/reasons/stand-empty', facts: {} };
         }
         // ⭐ The endurance is spent HERE, when the tree comes down (C12).
         Wood.spendOn(actor, FELL_COST);

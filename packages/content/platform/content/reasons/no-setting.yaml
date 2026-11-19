@@ -1,0 +1,4 @@
+# A setting was named for something that is only open or shut.
+facts:
+  target: thing
+says: "There is nothing between open and shut on {{ target | item }}."

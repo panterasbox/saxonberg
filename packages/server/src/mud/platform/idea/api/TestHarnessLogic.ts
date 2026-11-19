@@ -11,6 +11,9 @@ import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
+import { DocumentApi } from '../../../api/document';
+import { CraftingApi } from '../../../api/crafting';
+import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
 import { AddressApi } from '../../../api/address';
@@ -361,6 +364,21 @@ export class TestHarnessLogic extends ApiLogic {
     const name = thing.getPresentation();
     await StuffApi.destruct(thing);
     return { removed: name };
+  }
+
+  /** See {@link TestHarnessApi.forceDocument}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<{ path: string; kind: string }> {
+    const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+    doc.path = path;
+    doc.kind = kind;
+    doc.data = data;
+    await doc.save();
+    DocumentApi.catalogueFor(kind)?.forget([path]);
+    // ⚠ Recipes are read through a warmed dictionary with no per-path
+    // forget: re-warm it, as a recipe go-live would.
+    if (kind === 'recipe') await CraftingApi.recipes().warm();
+    return { path, kind };
   }
 
   /** A resident character by name — what the staging verbs act on. */

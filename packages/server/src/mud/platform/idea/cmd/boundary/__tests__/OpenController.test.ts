@@ -107,10 +107,18 @@ async function openCmd(
   avatar: FakeAvatar,
   location: Place,
   raw: string
-): Promise<void> {
+): Promise<ReturnType<typeof makeContext>> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
   const target = buildMqlOneResult(avatar as unknown as Stuff, raw, 'inventory, here');
-  return controller.execute(makeModel({ target } as ModelData), ctx);
+  await controller.execute(makeModel({ target } as ModelData), ctx);
+  return ctx;
+}
+
+/** The `refused` note a context carries — the controller passes the answer on and says nothing. */
+function refusedOf(ctx: ReturnType<typeof makeContext>): { reason: string; facts: Record<string, unknown> } | undefined {
+  return ctx.getNotes().find((n) => n.kind === 'refused') as
+    | { reason: string; facts: Record<string, unknown> }
+    | undefined;
 }
 
 async function closeCmd(
@@ -205,15 +213,13 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(moverFrames[0]!.body).toContain('You open');
   });
 
-  it('already-open door returns a friendly error', async () => {
+  it('already-open door is refused `already-open`, worded by its row', async () => {
     door.open();
     const open = makeStuff(() => new OpenController());
     avatar.received.length = 0;
-    await openCmd(open, avatar, locA, 'oak');
-    const bodies = avatar.received
-      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
-      .map((f) => (f as { body?: string }).body ?? '');
-    expect(bodies.some((b) => /already open/i.test(b))).toBe(true);
+    const ctx = await openCmd(open, avatar, locA, 'oak');
+    expect(refusedOf(ctx)).toMatchObject({ reason: 'already-open', facts: { target: { stuffId: door.stuffId } } });
+    expect(avatar.received).toHaveLength(0);
   });
 
   it('no sealable matching the name: clear error', async () => {
@@ -286,17 +292,12 @@ describe('OpenController / CloseController / doors integration', () => {
     expect(door.isOpen()).toBe(false);
   });
 
-  const bodiesOf = (): string[] =>
-    avatar.received
-      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
-      .map((f) => (f as { body?: string }).body ?? '');
-
   it('⭐ a LOCKED door does not open (water-supply D12) — unlock it first', async () => {
     door.setLocked(true);
     avatar.received.length = 0;
-    await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
+    const ctx = await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
     expect(door.isOpen()).toBe(false);
-    expect(bodiesOf().some((b) => /locked/i.test(b))).toBe(true);
+    expect(refusedOf(ctx)).toMatchObject({ reason: 'locked', facts: { target: { stuffId: door.stuffId } } });
     door.setLocked(false);
     await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
     expect(door.isOpen()).toBe(true);
@@ -311,7 +312,7 @@ describe('OpenController / CloseController / doors integration', () => {
       ctx,
     );
     expect(door.isOpen()).toBe(false);
-    expect(bodiesOf().some((b) => /open or shut/i.test(b))).toBe(true);
+    expect(refusedOf(ctx)?.reason).toBe('no-setting');
   });
 
   it('⭐ a throttled gate opens BY AN AMOUNT, and its record says who set it', async () => {

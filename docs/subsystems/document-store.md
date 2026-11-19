@@ -46,6 +46,7 @@ concepts have no value class):
 | `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
 | `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
 | `shape` | `shapes` | `lib/spatial/Shape.ts` | a thing's `shape:` — a bare word is `/platform/shapes/<word>`, a path any pack's ([size.md](./size.md)); ⚠ not the potter's `form` | — |
+| `reason` | `reasons` | `lib/command/Reason.ts` | a refusal's code — a bare word is `/platform/reasons/<word>`, a path any pack's; its `facts` and Liquid `says` word it at emit ([response-envelope.md](./response-envelope.md)); ⚠ not `standby-reason` | — |
 | `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
 | `cleanser` | `cleansers` | `lib/cleanliness/Cleanser.ts` | a material's `cleanser:` path ([cleanliness.md](./cleanliness.md)) | — |
 | `fabric` | `fabrics` | `FabricSpec` in `lib/material/Construction.ts` | a garment's `constructionForm:` path (kernel forms stay words — [textiles.md](./textiles.md)) | — |
@@ -579,6 +580,16 @@ at the chokepoint and then `CommandApi.reload(path)` puts it live — the
 CMS edits `look.yaml`'s help and `help look` changes without a restart.
 The installer writes through `PersistApi`, bootstrap-exempt like
 templates.
+
+### ⭐ Every save runs the installer's validator (failure-model, 2026-11)
+
+`DocumentApi.save` runs the same per-kind validator the installer runs
+(`PackApi.validateDocument`, over `PackLogic`'s one table), after the title
+gate: a row a pack could not ship is not stored by a save either. A
+failure is refused to the author as `invalid-document { path, why }`. A
+kind with no validator is stored as parsed. The title refusal is a
+`Refusal` too — `document-access-denied { path }` (its `message` keeps the
+gate's sentence for a REST caller).
 
 ### Provenance
 

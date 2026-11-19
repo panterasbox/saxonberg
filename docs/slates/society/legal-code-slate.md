@@ -408,7 +408,7 @@ which is the job.
 
 ### It is also what makes sealing honest
 
-The [press slate](./press-slate.md)'s **seal-don't-hide** says
+The [press slate](./journalism-slate.md)'s **seal-don't-hide** says
 existence is public while content is withheld — and **the docket is
 where the existence lives.** A sealed proceeding appears as an entry
 with its content withheld, so you *know it happened*. That is the

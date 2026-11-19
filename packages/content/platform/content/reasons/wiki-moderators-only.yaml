@@ -1,0 +1,3 @@
+facts:
+  namespace: text
+says: "Only the moderators of '{{ namespace }}' may do that."

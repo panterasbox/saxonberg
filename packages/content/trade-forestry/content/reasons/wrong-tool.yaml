@@ -1,0 +1,5 @@
+# The bound tool does not fell: a billhook takes a stool, not an oak.
+facts:
+  tool: thing
+says: "That is {{ tool | item }}. It will take a stool off at the ankle, and it will not take an oak."
+topic: act.deed

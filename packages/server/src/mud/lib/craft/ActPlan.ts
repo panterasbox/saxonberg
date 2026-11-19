@@ -24,12 +24,17 @@
  *    refuse rather than ask: that was the Harvest lesson (the ground wrote
  *    *"Which field? Name one: …"* and no controller could make it ask).
  *
- * ⭐ Each protocol file declares its own CLOSED reason union and facts
- * types, and a consuming controller words them in an exhaustive `switch`
- * with a `never` arm — so the compiler is the census of every refusal a
- * kernel verb can say. ⚠ The union is closed in the protocol file even for
- * a pack host's reasons: a kernel verb's words are the kernel controller's,
- * so a new reason is a kernel edit (or the pack ships its own controller).
+ * ⭐ Each protocol file declares its own CLOSED union of the kernel reason
+ * codes it answers, so the compiler still lists every refusal a kernel verb
+ * can return. ⭐⭐ **A refusal's words are its reason's row**
+ * (failure-model D3, D11): every code is a `reason` document
+ * (`/platform/reasons/<code>`, any pack's `<root>/reasons/<code>`), and a
+ * migrated controller passes the answer on —
+ * `if (!answer.ok) return this.refuse(context, answer);` — with no wording
+ * `switch` at all. The census of *every reason has words* moved from the
+ * compiler to `lint:reason-rows`. A protocol whose host may be a pack's may
+ * add an open arm, `ActRefusal<ReasonPath, RefusalFacts>` (`lib/errors.ts`),
+ * so the pack names its own reason by its row's path.
  *
  * Every planner may also answer `null` — it has nothing to say about this
  * act — and the controller asks the next candidate, or words a refusal from
@@ -41,8 +46,8 @@ import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot } from '../activity/Engaged';
 
 /**
- * A refused act: the machine reason (the `controller-rejected` note's
- * reason, too) and the facts the controller's words need.
+ * A refused act: the reason's code (its row's address — the `refused`
+ * note's reason, too) and the facts its row's sentence words.
  */
 export type ActRefusal<R extends string = string, X = undefined> = {
   ok: false;

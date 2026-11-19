@@ -31,7 +31,7 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Placing } from '../../../../lib/spatial/Placing';
-import type { Sealable, OpenFacts, OpenRefusal } from '../../../../lib/spatial/Sealable';
+import type { Sealable, OpenFacts } from '../../../../lib/spatial/Sealable';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -102,17 +102,15 @@ export default class OpenController extends CommandController<OpenModel> {
 
     // ⭐ The thing decides (`Sealable.openPlanFor`, controller-liquidity
     // W7c): whether it opens for this person (a locked door does not), and
-    // — a throttled gate — by how much. The controller words the answer.
+    // — a throttled gate — by how much. A refusal is passed on: its reason
+    // row words it (failure-model D11).
     const setting = (model.setting ?? '').trim();
     const answer = sealable.openPlanFor(commandGiver, setting === '' ? null : setting);
-    if (!answer.ok) {
-      return this.refuse(context, 'act.deed', OpenController.refusal(answer, answer.facts?.why ?? null), answer.reason);
-    }
+    if (!answer.ok) return this.refuse(context, answer);
     // ⭐ In a fight, opening a thing is a guarded beat (D-W10-5): the
     // unfasten on you, a reach in the room. Outside one it lands now.
     await this.guarded(commandGiver, OpenController.seconds(commandGiver, sealable as unknown as Stuff), () => this.engagePlan(context, answer, {
       beginSelf: () => Mml.compose``,
-      onRefused: (r) => Mml.compose`${OpenController.refusal(r, null)}`,
       onDone: (f) => OpenController.done(commandGiver, f),
     }));
   }
@@ -129,24 +127,6 @@ export default class OpenController extends CommandController<OpenModel> {
       self: Mml.compose`You open ${Mml.thing(f.thing)}.`,
       peers: Mml.compose`${Mml.actor(giver)} opens ${Mml.thing(f.thing)}.`,
     };
-  }
-
-  /** Why it did not open, in words (`why` — the thing's own refusal, when it gave one). */
-  protected static refusal(r: OpenRefusal, why: string | null): string {
-    switch (r.reason) {
-      case 'cannot-open':
-        return why ?? "It won't open.";
-      case 'already-open':
-        return 'It is already open.';
-      case 'no-setting':
-        return 'It is open or shut — there is nothing between.';
-      case 'bad-setting':
-        return 'How far? A quarter, half, three quarters or full.';
-      default: {
-        const unworded: never = r;
-        throw new Error(`OpenController: no words for ${String(unworded)}`);
-      }
-    }
   }
 
   /** `open "breast pocket"`: the chamber unbuttons itself if it can — the host decides (D-W10-12). */

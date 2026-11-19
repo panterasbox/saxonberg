@@ -188,6 +188,21 @@ or the CMS panel). Store-is-truth, push-is-courtesy. The **giver** on the
 command path is served by the existing `controller-error` note, not by
 this push.
 
+### ⭐ A content error goes to the row's title holder (failure-model, 2026-11)
+
+A `ContentError` (a recipe naming a band that is not one, forced past the
+installer) is recorded with `channel: 'content-error'` and `path` = the ROW.
+Its `author` is left null — the reader is not whoever last edited it — and
+the push goes to whoever holds **title** over the row's path
+(`ParcelApi.ownerOf` → a player, a group's online members, an
+organization's committee). `list` already shows a row only to a holder of
+an extent over its path, so the maintainer reads it in `errors` and an
+unrelated wizard does not: no new gate, no `isWizard`. The player who met
+it reads only the `content-error` row's sentence. Runtime rows from
+`CommandApi.reportFailure` (a bug at a guarded root) carry the exception's
+message and stack — the one place they live, since the player is never
+shown them.
+
 ## Gating
 
 Server-authoritative on the **context-derived** actor

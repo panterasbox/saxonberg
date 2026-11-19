@@ -10,8 +10,8 @@ import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
 import { EventApi } from '../../../api/event';
 import { AppApi } from '../../../api/app';
+import { Refusal } from '../../../lib/errors';
 import Board, {
-  BoardRefusal,
   type BoardOrganizer,
 } from '../../../lib/forum/Board';
 import Entry, { type EntryRelation } from '../../../lib/forum/Entry';
@@ -287,10 +287,7 @@ export class ForumsLogic extends ApiLogic {
       entry.getAuthor() !== authorIdOf(actor) &&
       (!subject || subject.getOwner() !== authorIdOf(actor))
     ) {
-      throw new BoardRefusal(
-        'not-author',
-        'Only the author or board owner may edit.',
-      );
+      throw new Refusal('not-entry-author');
     }
     // Edit-in-place on the Entry; the prior body is captured into the
     // append-only `'entry-edited'` event so the trail is lossless (the
@@ -577,11 +574,11 @@ async function subjectOfBoard(boardId: string): Promise<Subject | null> {
 async function refuseUnlessAudience(actor: Stuff, boardId: string): Promise<void> {
   const subject = await subjectOfBoard(boardId);
   if (!subject) {
-    throw new BoardRefusal('no-subject', 'That board answers to nobody.');
+    throw new Refusal('board-unowned');
   }
   const subjects = await SubjectApi.catalogue();
   if (!(await subjects.isAudienceMember(actor, subject))) {
-    throw new BoardRefusal('not-member', 'You are not in this board’s audience.');
+    throw new Refusal('not-board-member');
   }
 }
 

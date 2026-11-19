@@ -36,7 +36,7 @@ three-base capability model — the architecture this all rides),
 [slot.md](../../subsystems/slot.md) (slot claims per body plan),
 [race.md](../../subsystems/race.md) (species anatomy),
 [advancement.md](../../subsystems/advancement.md) (competence),
-[press-slate](../society/press-slate.md) (the recording instrument, the
+[journalism-slate](../society/journalism-slate.md) (the recording instrument, the
 certification hook), [crafting.md](../../subsystems/crafting.md)
 (Grade, Durable).
 

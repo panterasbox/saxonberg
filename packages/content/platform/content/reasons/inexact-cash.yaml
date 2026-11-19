@@ -1,0 +1,3 @@
+facts:
+  amount: text
+says: "You can't make {{ amount }} exactly in coin."

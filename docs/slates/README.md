@@ -49,7 +49,7 @@ README lists every slate in it by status, with size and what is left.
 
 | folder | what is in it | unbuilt | partial | done? | no block |
 |---|---|---|---|---|---|
-| [tech-debt/](./tech-debt/README.md) | refactors, sweeps, census-and-ratchet gates, performance, test tooling | 18 | 30 | 1 | 0 |
+| [tech-debt/](./tech-debt/README.md) | refactors, sweeps, census-and-ratchet gates, performance, test tooling | 15 | 33 | 1 | 0 |
 | [engine/](./engine/README.md) | the world's systems: bodies, senses, combat, movement, physics, NPCs, the command language | 50 | 69 | 2 | 3 |
 | [trades/](./trades/README.md) | industries and their supply chains: what is made, from what, by whom | 26 | 57 | 4 | 0 |
 | [society/](./society/README.md) | governance, law, money, institutions, education, faith, standing | 39 | 32 | 0 | 0 |

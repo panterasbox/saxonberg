@@ -19,6 +19,7 @@
 
 import { Block } from "./Block";
 import type { Stuff } from "../stuff/Stuff";
+import type { Refusal } from "../errors";
 
 /** A resolved set of objects — the plural `( )` / MQL result shape. */
 export type StuffList = Stuff[];
@@ -36,6 +37,11 @@ export type ScriptValue =
   | Stuff
   | StuffList
   | Block
+  /**
+   * ⭐ A refusal — `$why` inside a `try`'s handler (failure-model D5).
+   * Truthy; `$why.reason` is its code and `$why.<fact>` each fact.
+   */
+  | Refusal
   | undefined;
 
 /**
@@ -57,6 +63,7 @@ export class ScriptValues {
    *  - string → non-empty.
    *  - `StuffList` → **non-empty** (the MQL-emptiness-is-falsiness rule).
    *  - `Block` → true (a block is a value).
+   *  - a `Refusal` → true.
    *  - any other object → a single `Stuff`, which is always truthy.
    *
    * Order matters: arrays and `Block` are tested before the catch-all
