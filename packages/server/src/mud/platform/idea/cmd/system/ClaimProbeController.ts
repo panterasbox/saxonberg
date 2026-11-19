@@ -4,7 +4,7 @@
  * is a tool the build owes).
  *
  * It takes the `name` view's model and names the target while CLAIMING the
- * actor is somebody else present — the first other person in the room. A
+ * actor is whoever holds the thing (its owner's hands, not the giver's). A
  * replaced controller is exactly how such a lie would reach a protective
  * method in play: `takeName` must refuse it (`not-acting-for`), and the
  * view's titleholder must read the `call-security` diagnostic naming this
@@ -30,12 +30,11 @@ export default class ClaimProbeController extends CommandController<ClaimProbeMo
     const giver = context.commandGiver as Stuff;
     const target = model.target?.stuff;
     if (!target || !MixinApi.isNamed(target)) return;
-    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const other = room && MixinApi.isContainer(room)
-      ? [...room.getContents()].find((c) => c !== giver && MixinApi.isCommandGiver(c)) ?? null
-      : null;
-    // The lie: the actor named is somebody else standing here.
-    const answer = await target.takeName((model.animalName ?? '').trim(), (other ?? giver) as Stuff);
+    // The lie: the actor named is whoever holds the thing — its owner's
+    // hands, not the giver's.
+    const holder = MixinApi.isContainable(target) ? target.getContainer() : null;
+    const claimed = holder && MixinApi.isCommandGiver(holder) ? holder : giver;
+    const answer = await target.takeName((model.animalName ?? '').trim(), claimed as Stuff);
     if (!answer.ok) this.refuse(context, answer);
   }
 }
