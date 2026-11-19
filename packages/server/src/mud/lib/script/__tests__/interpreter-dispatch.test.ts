@@ -37,7 +37,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ["platform/cmd/system/ping.yaml"],
+    self: ["platform/cmd/system/ping.yaml", "platform/cmd/shell/do.yaml"],
     environment: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
@@ -55,6 +55,12 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     CommandApi.clearCache();
     const find = vi.fn(
       async (collection: string, query: Record<string, unknown>) => {
+        if (
+          collection === Collections.Content &&
+          query.path === "/platform/idea/cmd/shell/DoController"
+        ) {
+          return [{ path: "/platform/idea/cmd/shell/DoController", class: "/platform/idea/cmd/shell/DoController", data: {} }];
+        }
         if (
           collection === Collections.Content &&
           query.path === "/platform/idea/cmd/system/PingController"
@@ -110,21 +116,33 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     expect(env.outcome.status).toBe("ok");
   });
 
-  it("notes an unknown verb but continues dispatching valid ones", async () => {
+  it("⭐ an unknown verb stops the script there, and the stop is said (failure-model D5)", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
     await giver.executeCommand("frobnicate; ping");
 
-    // Only the real verb reached resolve; the unknown one was noted.
+    // The script stopped at the unknown verb: `ping` never ran.
     const verbs = resolveModel.mock.calls.map(
       (c) => c[1].command.getPrimaryVerb(),
     );
-    expect(verbs).toEqual(["ping"]);
+    expect(verbs).toEqual([]);
 
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     const rejected = env.outcome.notes.filter(
       (n) => n.kind === "command-rejected",
     );
     expect(rejected.length).toBeGreaterThan(0);
+  });
+
+  it("⭐ `do <script>` reports where its script stopped (failure-model D5)", async () => {
+    await giver.executeCommand("def fmx { frobnicate; ping }");
+    giver.envelopes.length = 0;
+    const resolveModel = vi.spyOn(CommandApi, "resolveModel");
+    await giver.executeCommand("do fmx");
+    const verbs = resolveModel.mock.calls.map((c) => c[1].command.getPrimaryVerb());
+    expect(verbs).toEqual(["do"]);
+    const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
+    expect(env.outcome.status).toBe("declined");
+    expect(env.outcome.notes.some((n) => n.kind === "command-rejected")).toBe(true);
   });
 });

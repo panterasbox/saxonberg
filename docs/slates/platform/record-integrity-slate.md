@@ -40,7 +40,7 @@ constitution makes it non-optional. (Same reason
 Related: [cooperative-slate § tamper-evidence by
 construction](../society/cooperative-slate.md) (the design-level treatment this
 build-level slate serves), [legal-code-slate](../society/legal-code-slate.md),
-[press-slate](../society/press-slate.md),
+[journalism-slate](../society/journalism-slate.md),
 [git-workflow.md](../../subsystems/git-workflow.md),
 [influence.md](../../subsystems/influence.md).
 

@@ -858,27 +858,16 @@ unified comms**.
 
 ### ⭐⭐ Reach is broadcast — real radio, never the aether **[DECIDED — lenses 1, 3a]**
 
-The aether's founding postulate is that it is everywhere, which is why a DM always works; a channel that
-fades at the city limits *because of the aether* would betray it. **Reach comes from the transmitter**:
-
-- **a station** is a thing in the world — a transmitter with a power and a frequency; **a listener needs
-  a receiver** (a radio set, or the phone, already a tuner);
-- **signal falls off by the inverse square law**, plus attenuation by terrain and buildings; near the
-  edge, static. Rooms have coordinates and the world a real radius;
-- **one-to-many, not chat** — a call-in show is the station taking a phone call on air;
-- **epoch content** — broadcast radio is the Electric rung; a covenant may forbid it;
-- **within one world** — radio does not cross dimensions; the aether does.
-- ⭐ **Spectrum is a commons, so it needs law**: two stations on one frequency jam each other. A polity
-  allocating bands is a **Tier C** consumer — a typed clause per assignment, a license tool (granting or
-  revoking one judges a person: notice and appeal), enforcement against pirates. How to allocate —
-  licenses, auctions (Coase, 1959), open bands — is the polity's.
-- **Designed now, built when Electric-rung content needs it** (lens 6 — the demand is not there yet).
+The aether is everywhere by its postulate, so a channel that fades at the city limits *because of the
+aether* would betray it: **reach comes from the transmitter**, by real radio physics. ⭐ **Moved 2026-11-18
+to the [broadcasting-slate](../trades/broadcasting-slate.md)** — stations, receivers, propagation, spectrum
+law, and broadcasting as a trade.
 
 ### ⭐⭐⭐ The Saxonberg paper runs the public square **[DECIDED — the owner]**
 
 *"The 'public' channels probably should be all operated by the press in Saxonberg, whoever turns out to
 run that on behalf of the population. It's its own estate … set up the stage and let someone perform."*
-([saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8a.)
+([saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8a; designed in the [journalism-slate](./journalism-slate.md) § *the Saxonberg Post*.)
 
 - **Laid out like a newspaper; every section is a Subject**, with its chat and its board — a starting
   layout for the content session: front page and news (read-only, its releases) · politics · business

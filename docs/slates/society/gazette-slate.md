@@ -6,12 +6,12 @@
 > build (publisher = organization, authority = position) →
 > [press.md](../../subsystems/press.md)
 > **Left:** locality-scoped gazettes as shipped content (Wave 2, the
-> press industry, is worked in press-slate, not here; the docket and
+> press industry, is worked in journalism-slate, not here; the docket and
 > the events-not-significance rule are tracked solely there too —
-> see [press-slate](./press-slate.md) § *The structural threat*)
-> **Size:** a tail, riding press-slate's build (Wave 0 and Wave 1's
+> see [journalism-slate](./journalism-slate.md) § *The structural threat*)
+> **Size:** a tail, riding journalism-slate's build (Wave 0 and Wave 1's
 > shippable substrate are both done; the only remaining item of
-> gazette's own is a small content-seeding task on substrate press-slate
+> gazette's own is a small content-seeding task on substrate journalism-slate
 > already designs)
 
 **Captured 2026-08-02**, in preparation for the video series and the
@@ -24,7 +24,7 @@ look like news — it is **publisher #1**, and building it as such is what
 stops the small thing from foreclosing the large one.
 
 Related: [press.md](../../subsystems/press.md) (**shipped — what
-exists today**), [press-slate](./press-slate.md) (**the industry design;
+exists today**), [journalism-slate](./journalism-slate.md) (**the industry design;
 Wave 2 is already worked there — do not re-derive it**),
 [civics.md](../../subsystems/civics.md) (Locality-declared jurisdiction,
 seats-as-positions), [governance.md](../../subsystems/governance.md) (the
@@ -49,12 +49,12 @@ two-way deliberation lives), [legal-code-slate](./legal-code-slate.md)
 > than built) and § *`PublisherMixin`* (`realm` derives from the
 > publisher now, not typed per-release).
 
-## ⭐⭐⭐⭐ And press-slate already protects the vocation
+## ⭐⭐⭐⭐ And journalism-slate already protects the vocation
 
 The events-not-significance rule, the three-layer record/docket/ticker
 split, and the "the state publishes to a PLACE, a publisher pushes to
 PEOPLE" argument that follows from it all now live in one place —
-[press-slate](./press-slate.md) § *The structural threat: an
+[journalism-slate](./journalism-slate.md) § *The structural threat: an
 auto-generated ticker* (including the subsection absorbed from this
 slate during the cluster-merge pass). Nothing left to say here that
 isn't said there.
@@ -92,18 +92,18 @@ isn't said there.
 **What Wave 1 asked for and is still NOT built**, deliberately:
 
 - The events-not-significance rule and the docket are tracked in
-  [press-slate](./press-slate.md) § *The structural threat* now, not
+  [journalism-slate](./journalism-slate.md) § *The structural threat* now, not
   here (moved during the cluster-merge pass — both were the same open
   item this slate was carrying redundantly).
 - Locality-scoped gazettes as shipped content. This one is gazette's
-  own — press-slate designs the vocation generally, not per-locality
+  own — journalism-slate designs the vocation generally, not per-locality
   state press.
 
 ---
 
 # Wave 2 — the press
 
-Already designed in full in [press-slate](./press-slate.md) — subscription,
+Already designed in full in [journalism-slate](./journalism-slate.md) — subscription,
 the inline stance action, the three source paths, and the recording
 instrument all live there; nothing to re-derive here. ⚠ **It is a
 genuinely large build and must not be sized off Wave 1's momentum.**
@@ -120,7 +120,7 @@ genuinely large build and must not be sized off Wave 1's momentum.**
 2. Resolved: its own endpoint (`GET /api/press/releases`), not a flag on
    the archive — [press.md](../../subsystems/press.md) § *The anonymous
    press room*.
-3. Moved to [press-slate](./press-slate.md) § *Open questions*, item 8
+3. Moved to [journalism-slate](./journalism-slate.md) § *Open questions*, item 8
    (the docket-new-surface-vs-projection question) during the
    cluster-merge pass.
 4. Resolved: a seat-holder (position-holder) publishes; there is no

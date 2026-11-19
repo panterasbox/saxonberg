@@ -23,7 +23,7 @@ import { PlayerApi } from '../player';
 import { EventApi } from '../event';
 import { AppApi } from '../app';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
-import { BoardRefusal } from '../../lib/forum/Board';
+import { Refusal } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
   SubjectSubscriberMixin,
@@ -117,7 +117,7 @@ async function refusal(p: Promise<unknown>): Promise<string> {
   try {
     await p;
   } catch (err) {
-    return err instanceof BoardRefusal ? err.reason : `other: ${(err as Error).message}`;
+    return err instanceof Refusal ? err.reason : `other: ${(err as Error).message}`;
   }
   return 'admitted';
 }
@@ -125,13 +125,13 @@ async function refusal(p: Promise<unknown>): Promise<string> {
 describe('the board gates are the forum logic\'s (D9)', () => {
   it('refuses a non-member post, reply, claim and vote; admits a member', async () => {
     const { creator, outsider, board } = await gatedBoard();
-    expect(await refusal(outsider.postThread(board, 'T', 'body'))).toBe('not-member');
+    expect(await refusal(outsider.postThread(board, 'T', 'body'))).toBe('not-board-member');
     const thread = await creator.postThread(board, 'T', 'body');
-    expect(await refusal(outsider.replyToEntry(thread, 'me too'))).toBe('not-member');
+    expect(await refusal(outsider.replyToEntry(thread, 'me too'))).toBe('not-board-member');
     expect(await refusal(outsider.attachClaim(thread, 'supports', 'yes'))).toBe(
-      'not-member',
+      'not-board-member',
     );
-    expect(await refusal(outsider.castVote(thread, 'up'))).toBe('not-member');
+    expect(await refusal(outsider.castVote(thread, 'up'))).toBe('not-board-member');
     expect(thread.getScore()).toBe(1); // the author's own seed, nothing else
     expect(await refusal(creator.replyToEntry(thread, 'bump'))).toBe('admitted');
   });
@@ -139,7 +139,7 @@ describe('the board gates are the forum logic\'s (D9)', () => {
   it('refuses an edit by neither the author nor the board owner', async () => {
     const { creator, outsider, board } = await gatedBoard();
     const thread = await creator.postThread(board, 'T', 'body');
-    expect(await refusal(outsider.editEntryBody(thread, 'defaced'))).toBe('not-author');
+    expect(await refusal(outsider.editEntryBody(thread, 'defaced'))).toBe('not-entry-author');
     expect(thread.getBody()).not.toContain('defaced');
     expect(await refusal(creator.editEntryBody(thread, 'fixed'))).toBe('admitted');
   });
@@ -149,6 +149,6 @@ describe('the board gates are the forum logic\'s (D9)', () => {
     const thread = await creator.postThread(board, 'T', 'body');
     board.subject = 'gone';
     await board.save();
-    expect(await refusal(creator.replyToEntry(thread, 'hello?'))).toBe('no-subject');
+    expect(await refusal(creator.replyToEntry(thread, 'hello?'))).toBe('board-unowned');
   });
 });

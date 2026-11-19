@@ -49,6 +49,8 @@ export {
   pinWeather,
   unpinWeather,
   stage,
+  failDatastore,
+  forceDocument,
   stageShip,
   restartWorld,
   stopWorldWithin,

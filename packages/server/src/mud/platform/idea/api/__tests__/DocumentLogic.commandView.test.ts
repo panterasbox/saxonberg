@@ -103,7 +103,7 @@ describe('command-view saves', () => {
 
   it('another kind never consults the wizard axis or reload', async () => {
     const wiz = vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await runAs(() => DocumentApi.save('/emotes/grin', 'emote', { verb: 'grin' }));
+    await runAs(() => DocumentApi.save('/emotes/grin', 'msh', { source: 'say hi' }));
     expect(wiz).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
   });

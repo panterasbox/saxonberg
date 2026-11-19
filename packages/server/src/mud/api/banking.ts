@@ -47,7 +47,7 @@ import type {
   RemittanceSplit,
   SettlementReceipt,
 } from "../lib/banking/Charge";
-import { SettleRefused, type SettleRefusalReason } from "../lib/banking/Charge";
+import { type SettleRefusalReason } from "../lib/banking/Charge";
 import type AccountBalance from "../lib/banking/AccountBalance";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Stackable } from "../lib/stuff/Stackable";
@@ -60,7 +60,7 @@ import { SecurityApi } from './security';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 
-export { Money, Account, Currency, SettleRefused };
+export { Money, Account, Currency };
 export type { PerpetualReconcile, ReserveDashboard, PriceIndex, SettleRefusalReason };
 export type {
   CurrencyTag,

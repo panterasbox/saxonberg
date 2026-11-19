@@ -325,6 +325,46 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ Stage an outage (failure-model D8): the next N record reads or
+    // writes fail as a lost connection would.
+    app.post('/auth/test-datastore-fail', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const calls = (req.body as { calls?: unknown } | undefined)?.calls ?? 1;
+      if (typeof calls !== 'number' || !Number.isInteger(calls) || calls < 0) {
+        res.status(400).json({ error: 'calls must be a whole number' });
+        return;
+      }
+      try {
+        res.json(TestHooks.failDatastore(calls));
+      } catch (err) {
+        console.error('TestAuthRoutes: test-datastore-fail failed:', err);
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      }
+    });
+
+    // ⭐ Force a bad row past its validator (failure-model D6) — what the
+    // drive needs to see a content error reach the player and its keeper.
+    app.post('/auth/test-force-document', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { path?: unknown; kind?: unknown; data?: unknown } | undefined;
+      if (typeof body?.path !== 'string' || typeof body.kind !== 'string' || typeof body.data !== 'object' || body.data === null) {
+        res.status(400).json({ error: 'test-force-document wants {path, kind, data: {}}' });
+        return;
+      }
+      TestHooks.forceDocument(body.path, body.kind, body.data as Record<string, unknown>)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-force-document failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ A test character arrives as a newcomer does — the Arrival Note's
     // coin in hand (a walk's real cash, where `reserve override` is only
     // ledger money the till rightly refuses to pay out).

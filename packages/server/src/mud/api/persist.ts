@@ -40,6 +40,8 @@ import type {
   PersistStats,
 } from '../../backend/PersistenceManager';
 import { SecurityApi } from './security';
+import { TestOnly } from '../lib/security/decorators';
+import { Unavailable } from '../lib/errors';
 
 export type { BatchWrite, FindOptions, PersistStats };
 
@@ -99,6 +101,16 @@ function encryptionKey(): Buffer {
   cachedKey = key;
   return key;
 }
+
+/** The Mongo driver's errors that mean the records cannot be reached. */
+const OUTAGE_ERRORS: ReadonlySet<string> = new Set([
+  'MongoNetworkError',
+  'MongoNetworkTimeoutError',
+  'MongoServerSelectionError',
+  'MongoNotConnectedError',
+  'MongoPoolClearedError',
+  'MongoTopologyClosedError',
+]);
 
 export class PersistApi {
   /**
@@ -175,6 +187,48 @@ export class PersistApi {
     }
   }
 
+  /** Staged outages left (`failNext`) — a test world's seam, never the game's. */
+  static #stagedOutages = 0;
+
+  /**
+   * ⭐ Make the next `calls` reads or writes through this door fail as an
+   * outage would (failure-model D8) — what a test world stages to see the
+   * `unavailable` refusal end to end.
+   */
+  @TestOnly('Nothing in the game takes the records offline.')
+  static failNext(calls = 1): void {
+    PersistApi.#stagedOutages = Math.max(0, Math.trunc(calls));
+  }
+
+  /**
+   * ⭐⭐ Every read and write goes through here (failure-model D8): a lost
+   * connection to the records is converted to {@link Unavailable} — *not
+   * now, try again*, a refusal the player is told and a script may handle
+   * — with the driver's error as its cause. Nothing else is converted: a
+   * write conflict or a bad query stays a bug.
+   */
+  static async #reach<T>(run: () => Promise<T>): Promise<T> {
+    if (PersistApi.#stagedOutages > 0) {
+      PersistApi.#stagedOutages--;
+      throw new Unavailable('the records', { cause: new Error('a staged outage (PersistApi.failNext)') });
+    }
+    try {
+      return await run();
+    } catch (err) {
+      if (PersistApi.#isOutage(err)) {
+        throw new Unavailable('the records', { cause: err, message: err instanceof Error ? err.message : String(err) });
+      }
+      throw err;
+    }
+  }
+
+  /** The driver's connectivity failures, by name — and the manager's own "not connected". */
+  static #isOutage(err: unknown): boolean {
+    if (!(err instanceof Error)) return false;
+    if (OUTAGE_ERRORS.has(err.name)) return true;
+    return err.message.startsWith('PersistenceManager: Not connected');
+  }
+
   /** Whether the Mongo connection is live (the no-op-when-offline guard). */
   static isConnected(): boolean {
     return PersistenceManager.get().isConnected();
@@ -207,12 +261,12 @@ export class PersistApi {
     query: Record<string, unknown>,
     options?: FindOptions
   ): Promise<Record<string, unknown>[]> {
-    return PersistenceManager.get().find(collection, query, options);
+    return PersistApi.#reach(() => PersistenceManager.get().find(collection, query, options));
   }
 
   /** The distinct values of `field` across `collection`. */
   static async distinct(collection: string, field: string): Promise<unknown[]> {
-    return PersistenceManager.get().distinct(collection, field);
+    return PersistApi.#reach(() => PersistenceManager.get().distinct(collection, field));
   }
 
   /** One document by Mongo `_id`, or `null`. */
@@ -220,7 +274,7 @@ export class PersistApi {
     collection: string,
     id: string
   ): Promise<Record<string, unknown> | null> {
-    return PersistenceManager.get().findById(collection, id);
+    return PersistApi.#reach(() => PersistenceManager.get().findById(collection, id));
   }
 
   /** Upsert `doc` into `collection`; returns its id. */
@@ -228,7 +282,7 @@ export class PersistApi {
     collection: string,
     doc: Record<string, unknown>
   ): Promise<string> {
-    return PersistenceManager.get().save(collection, doc);
+    return PersistApi.#reach(() => PersistenceManager.get().save(collection, doc));
   }
 
   /**
@@ -249,7 +303,7 @@ export class PersistApi {
 
   /** Delete the document with `id` from `collection`. */
   static async delete(collection: string, id: string): Promise<void> {
-    return PersistenceManager.get().delete(collection, id);
+    return PersistApi.#reach(() => PersistenceManager.get().delete(collection, id));
   }
 
   /**
@@ -261,7 +315,7 @@ export class PersistApi {
     collection: string,
     filter: Record<string, unknown>
   ): Promise<number> {
-    return PersistenceManager.get().deleteMany(collection, filter);
+    return PersistApi.#reach(() => PersistenceManager.get().deleteMany(collection, filter));
   }
 }
 

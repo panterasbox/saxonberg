@@ -6,7 +6,7 @@
  * holding title over `/expression` (content-packs wave 3, D2b). The gate is
  * the document store's own (`DocumentLogic.gateMutation` →
  * `AccessApi.canAtPath`), met by every caller of the catalogue's writes; a
- * mutating subcommand words its {@link DocumentRefusal} through
+ * mutating subcommand words its document-access-denied `Refusal` through
  * {@link SoulControllerBase.refusedByCommittee} so the refusal is diegetic
  * rather than a thrown error (controller-liquidity W8 — the controller's
  * pre-check of the same title is gone).
@@ -20,7 +20,7 @@ import type {
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { SoulApi } from '../../../../api/soul';
-import { DocumentRefusal } from '../../../../lib/document/StoredDocument';
+import { Refusal } from '../../../../lib/errors';
 
 export interface SoulModel extends CommandModel {
   verb?: string;
@@ -36,7 +36,7 @@ export abstract class SoulControllerBase extends CommandController<SoulModel> {
    * false for any other error, which the caller words itself.
    */
   protected refusedByCommittee(context: CommandContext, err: unknown): boolean {
-    if (!(err instanceof DocumentRefusal)) return false;
+    if (!(err instanceof Refusal) || err.reason !== 'document-access-denied') return false;
     this.fail(
       context,
       'The soul committee holds the emote catalogue; this is its work.',

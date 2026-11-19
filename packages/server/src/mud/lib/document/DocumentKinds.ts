@@ -232,6 +232,16 @@ export const DOCUMENT_KINDS = {
    */
   shape: { kind: 'shape', catalogue: '/platform/idea/ShapeCatalogue', contentDir: 'shapes', ext: 'yaml', onVanish: 'delete' },
   /**
+   * A **reason** — why an act was refused: the facts it carries and the
+   * sentence that words them (`lib/command/Reason.ts`, failure-model D1). A
+   * refusal names its reason by code — a bare word is the platform's
+   * (`locked` → `/platform/reasons/locked`), a path any pack's — and a
+   * script handles one by the same code (`try … on locked`). Loaded on use,
+   * by path; no typed word (a reason is namespaced by its root). ⚠ Not
+   * `standby-reason` (a streamer's away label).
+   */
+  reason: { kind: 'reason', catalogue: '/platform/idea/ReasonCatalogue', contentDir: 'reasons', ext: 'yaml', onVanish: 'delete' },
+  /**
    * A **topic** — one key of the message vocabulary (`combat.hit`): its
    * label, description and the six attention facets (`platform/idea/TopicCatalogue.ts`).
    * Named by code; its dotted key is its path's leaf. Roots are closed —

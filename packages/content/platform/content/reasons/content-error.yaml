@@ -1,0 +1,7 @@
+# ⚠ A content row is wrong (a recipe naming a band that is not one). The
+# row's maintainer is told; no script may handle it.
+facts:
+  what: text
+says: "Something is wrong with {{ what }}. Whoever keeps it has been told."
+topic: shell.error
+catchable: false

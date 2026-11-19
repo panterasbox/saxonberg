@@ -383,6 +383,23 @@ function _guardPath(target: unknown): string | null {
 }
 
 /**
+ * ⭐ Report a caught guard error through `CommandApi.reportFailure`
+ * (failure-model D9) — a refusal worded to the causing author, a defect
+ * worded `went-wrong` and recorded. A dynamic import, for the load cycle
+ * {@link _recordGuardError} names; if the report itself fails, the error is
+ * still recorded.
+ */
+async function _reportGuardFailure(target: unknown, method: string, err: unknown): Promise<void> {
+  try {
+    const { CommandApi } = await import('./command');
+    await CommandApi.reportFailure(err, null, _guardPath(target) ?? method);
+  } catch {
+    // @quiet the report itself failed — the error is still recorded.
+    await _recordGuardError(target, method, err);
+  }
+}
+
+/**
  * Record a caught guard error as a runtime diagnostic. Uses a **dynamic**
  * import of `DiagnosticApi` — a static import would form a load cycle
  * (`execution-context` is bootstrap-special and `DiagnosticApi` pulls the
@@ -1047,8 +1064,15 @@ export class ExecutionContextApi {
         () => Promise.resolve(fn()) as Promise<T>
       );
     } catch (err) {
-      await _recordGuardError(target, method, err);
-      if (policy === 'rethrow') throw err;
+      // `rethrow` (REST) maps its own status: it only records.
+      if (policy === 'rethrow') {
+        await _recordGuardError(target, method, err);
+        throw err;
+      }
+      // ⭐ Otherwise the work's failure is OWNED (failure-model D9): the one
+      // routine classifies it and tells whoever caused the work — inside
+      // this root again, so the line keeps its causing command and author.
+      await _als.run(_linkFrame(root, null), () => _reportGuardFailure(target, method, err));
       return undefined;
     }
   }

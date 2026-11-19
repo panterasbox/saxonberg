@@ -463,6 +463,22 @@ export class TestHooks {
     );
   }
 
+  /** TEST-ONLY: stage an outage — the next `calls` record reads/writes fail (failure-model D8). */
+  public static failDatastore(calls: number): { failing: number } {
+    TestHooks.#assertTestMode('failDatastore');
+    return TestHarnessApi.failDatastore(calls);
+  }
+
+  /** TEST-ONLY: write a document past its validator (failure-model D6). */
+  public static async forceDocument(
+    path: string,
+    kind: string,
+    data: Record<string, unknown>,
+  ): Promise<{ path: string; kind: string }> {
+    TestHooks.#assertTestMode('forceDocument');
+    return ExecutionContextApi.runRoot(TestHooks, 'forceDocument', () => TestHarnessApi.forceDocument(path, kind, data));
+  }
+
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');

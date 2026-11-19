@@ -126,7 +126,12 @@ const one = (stuff: Stuff | null, raw: string): MqlOneResult => ({ stuff, raw })
 function model(target?: MqlOneResult, axe?: MqlOneResult): FellModel {
   return { target, axe } as ModelData as unknown as FellModel;
 }
-const reasons = (c: CommandContext): string[] => c.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
+/** The reasons noted — a pack reason by its leaf (`/trade/forestry/reasons/wrong-tool` → `wrong-tool`). */
+const reasons = (c: CommandContext): string[] =>
+  c.getNotes().map((n) => ((n as { reason?: string }).reason ?? '').replace('/trade/forestry/reasons/', ''));
+/** The `refused` note's facts — the row words them; the controller says nothing. */
+const refusedFacts = (c: CommandContext): Record<string, unknown> | undefined =>
+  (c.getNotes().find((n) => n.kind === 'refused') as { facts?: Record<string, unknown> } | undefined)?.facts;
 const settle = async (): Promise<void> => {
   for (let i = 0; i < 20; i += 1) await new Promise((r) => setTimeout(r, 0));
 };
@@ -240,7 +245,10 @@ describe('fell', () => {
       const c = ctx(giver, room);
       await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(hook, 'billhook')), c);
       expect(reasons(c)).toContain('wrong-tool');
-      expect(JSON.stringify(giver.received)).toMatch(/will not take an oak/);
+      expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({
+        reason: '/trade/forestry/reasons/wrong-tool',
+      });
+      expect(refusedFacts(c)).toMatchObject({ tool: { stuffId: hook.stuffId } });
     });
 
     it('no-stand: a room with no stand', async () => {
@@ -270,7 +278,7 @@ describe('fell', () => {
       const c = ctx(giver, room);
       await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), c);
       expect(reasons(c)).toContain('stand-empty');
-      expect(JSON.stringify(giver.received)).toMatch(/nothing left here that is worth the axe/);
+      expect(refusedFacts(c)).toMatchObject({ name: expect.any(String) });
     });
   });
 

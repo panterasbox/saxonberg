@@ -1,0 +1,4 @@
+# Its lock holds against this person — a locked door, a padlocked gate.
+facts:
+  target: thing
+says: "The lock holds — {{ target | item }} won't open."

@@ -49,7 +49,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('DocumentApi.save — the title gate', () => {
   it('admits when canAtPath says so, with write-document at the path', async () => {
     const can = vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
-    await runAs(() => DocumentApi.save('/emotes/grin', 'emote', { verb: 'grin' }));
+    await runAs(() => DocumentApi.save('/emotes/grin', 'msh', { source: 'say hi' }));
     expect(can).toHaveBeenCalledWith(actor, 'write-document', '/emotes/grin');
     expect(rows).toHaveLength(1);
   });

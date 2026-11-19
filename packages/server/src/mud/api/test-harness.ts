@@ -12,6 +12,7 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { PersistApi } from './persist';
 import { ExecutionContextApi } from './execution-context';
 import { TestOnly } from '../lib/security/decorators';
 import {
@@ -219,6 +220,27 @@ export class TestHarnessApi {
   @TestOnly('In a test world, remove a thing with `testharness vanish #<id>`.')
   public static removeThing(stuffId: string): Promise<{ removed: string }> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId));
+  }
+
+  /**
+   * ⭐ Stage an outage (failure-model D8): the next `calls` reads or writes
+   * of the records fail as a lost connection would, so a verb meets the
+   * `unavailable` refusal end to end.
+   */
+  @TestOnly('In a test world, stage an outage with the wire harness\u2019s failDatastore() (POST /auth/test-datastore-fail).')
+  public static failDatastore(calls = 1): { failing: number } {
+    PersistApi.failNext(calls);
+    return { failing: calls };
+  }
+
+  /**
+   * ⭐ Write a document PAST its validator (failure-model D6) — the staged
+   * twin of a bad row forced through, so the drive sees a content error
+   * meet a player. Forgets the kind's resident copy so the next read sees it.
+   */
+  @TestOnly('In a test world, force a bad row with the wire harness\u2019s forceDocument() (POST /auth/test-force-document).')
+  public static forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<{ path: string; kind: string }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'forceDocument', () => logic().forceDocument(path, kind, data));
   }
 
   /** The pin on the Locality covering `scope`, if any. */

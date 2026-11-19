@@ -30,7 +30,7 @@ describe('verb@source in a script', () => {
   let sources: (Stuff | undefined)[];
   const dispatch: DispatchFn = async (_c, _m, _p, source) => {
     sources.push(source);
-    return { getNotes: () => [] } as unknown as CommandContext;
+    return { getNotes: () => [], getStatus: () => 'ok', getRefusal: () => null } as unknown as CommandContext;
   };
 
   beforeEach(async () => {
@@ -73,7 +73,9 @@ args:
   it('⭐⭐ a NAME matching several fails closed and names its input', async () => {
     const result = await run('windish@flower');
     expect(sources).toEqual([]);
-    expect(result.notes).toContainEqual({
+    // The script stops there; the line's notes ride with the stop (failure-model D5).
+    expect(result.stopped?.refusal?.reason).toBe('needs-input');
+    expect(result.stopped?.notes).toContainEqual({
       kind: 'command-rejected',
       reason: 'needs-input',
       detail: "windish needs a choice of source ('flower' could be any of 2) when run from a script",
@@ -83,6 +85,6 @@ args:
   it('a scope naming nothing → source-not-found', async () => {
     const result = await run('windish@teapot');
     expect(sources).toEqual([]);
-    expect(result.notes.some((n) => (n as { reason?: string }).reason === 'source-not-found')).toBe(true);
+    expect(result.stopped?.notes.some((n) => (n as { reason?: string }).reason === 'source-not-found')).toBe(true);
   });
 });

@@ -395,7 +395,7 @@ failure the rule exists to prevent.
 
 The newsroom roster belongs to a **different organization that does not
 exist yet** — the vocation in
-[press-slate](../slates/society/press-slate.md), the one that makes
+[journalism-slate](../slates/society/journalism-slate.md), the one that makes
 transparency actual rather than declared. Its shape when it lands:
 
 ```
@@ -427,7 +427,7 @@ publishes without being a news outlet at all.
   a provenance row keyed on the document path.)
 - **Not MQL-queryable** — a platform feed, not in-world Stuff.
 - **No subscription, push, byline, credibility track record or paywall** —
-  that is the press build ([press-slate](../slates/society/press-slate.md)).
+  that is the press build ([journalism-slate](../slates/society/journalism-slate.md)).
 - **No permalinks, `og:` tags, RSS or email**, and no panterasbox.com
   consumer — the surface is the start screen.
 

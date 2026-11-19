@@ -1,0 +1,4 @@
+facts:
+  detail: text?
+says: "Couldn't make sense of that{% if detail %}: {{ detail }}{% endif %}."
+topic: shell.error

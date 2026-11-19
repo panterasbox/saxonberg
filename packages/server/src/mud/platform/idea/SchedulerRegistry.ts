@@ -328,6 +328,7 @@ export default class SchedulerRegistry extends Idea {
     if (!this.engagementsById.has(engagement.engagementId)) return;
     this.clearTimersAndSubs(engagement.engagementId);
     this.deregister(engagement);
+    engagement.endedBy = 'completed';
     const cls = this.activityRegistry.get(engagement.type);
     const hasComplete =
       typeof (cls?.prototype as Partial<DurativeActivity> | undefined)
@@ -533,9 +534,11 @@ export default class SchedulerRegistry extends Idea {
 
   private runOnCompleteInPlace(e: DurativeActivity): void {
     this.emitExertion(e, 1);
+    e.endedBy = 'completed';
     try {
       this.dispatchOnComplete(e);
     } catch (err) {
+      e.endedBy = 'thrown';
       console.error(
         `SchedulerApi: onComplete threw for sub-100ms engagement ` +
           `'${e.engagementId}' (type '${e.type}'); aborting with 'thrown'`,
@@ -564,6 +567,7 @@ export default class SchedulerRegistry extends Idea {
     if (!this.engagementsById.has(e.engagementId)) return;
     this.clearTimersAndSubs(e.engagementId);
     this.deregister(e);
+    e.endedBy = reason;
     // A step you were barged out of still cost you the part you did.
     if (
       isDurativeActivity(e) &&
@@ -584,9 +588,11 @@ export default class SchedulerRegistry extends Idea {
   }
 
   private safeInvokeComplete(e: DurativeActivity): void {
+    e.endedBy = 'completed';
     try {
       this.dispatchOnComplete(e);
     } catch (err) {
+      e.endedBy = 'thrown';
       console.error(
         `SchedulerApi: onComplete threw for engagement ` +
           `'${e.engagementId}' (type '${e.type}'); aborting with 'thrown'`,
@@ -618,7 +624,17 @@ export default class SchedulerRegistry extends Idea {
       this.dispatchOnAbort(e, 'thrown');
       return;
     }
-    (cls.prototype as DurativeActivity).onComplete.call(e);
+    const out: unknown = (cls.prototype as DurativeActivity).onComplete.call(e);
+    // ⭐ A completion that returns a promise has no root to catch its
+    // rejection (the silent-write census's B103): it is reported here,
+    // never left unhandled (failure-model D9).
+    if (out instanceof Promise) {
+      out.then(undefined, (err: unknown) => {
+        void import('../../api/command')
+          .then(({ CommandApi }) => CommandApi.reportFailure(err, null, `engagement ${e.type}`))
+          .catch((reportErr: unknown) => console.error('SchedulerApi: could not report a failed completion', reportErr));
+      });
+    }
   }
 
   private dispatchOnAbort(e: Engagement, reason: AbortReason): void {

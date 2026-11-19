@@ -62,6 +62,7 @@ import { WikiRevision, type RevisionKind } from '../../lib/wiki/WikiRevision';
 import { Sections } from '../../lib/wiki/Section';
 import { SourceDiff } from '../../lib/wiki/SourceDiff';
 import type WikiRenderer from './WikiRenderer';
+import { Refusal } from '../../lib/errors';
 
 /**
  * One revision as a reader may see it ({@link WikiRegistry.historyFor}):
@@ -137,14 +138,6 @@ export interface PageLookup {
   page: WikiPage;
   /** True when the name matched an alias rather than the current slug. */
   viaAlias: boolean;
-}
-
-/** Thrown by a mutator the acting principal is not authorized for. */
-export class WikiDenied extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'WikiDenied';
-  }
 }
 
 /**
@@ -550,7 +543,7 @@ export default class WikiRegistry extends WikiRegistryBase {
       input.namespace ?? DEFAULT_NAMESPACE,
     );
     const slug = WikiPage.normalizeName(input.slug);
-    if (!slug) throw new WikiDenied('a page needs a name');
+    if (!slug) throw new Refusal('wiki-unnamed', {}, { message: 'a page needs a name' });
     if (!input.asInstaller) await this.assertMayEditNamespace(namespace);
     await this.assertNameFree(namespace, slug);
 
@@ -634,8 +627,10 @@ export default class WikiRegistry extends WikiRegistryBase {
       // (criterion 35).
       const replaced = Sections.replace(prior, opts.section, body);
       if (replaced === null) {
-        throw new WikiDenied(
-          `no section '${opts.section}' in '${page.getHandle()}'`,
+        throw new Refusal(
+          'wiki-no-section',
+          { section: opts.section, page: page.getHandle() },
+          { message: `no section '${opts.section}' in '${page.getHandle()}'` },
         );
       }
       next = replaced;
@@ -680,7 +675,7 @@ export default class WikiRegistry extends WikiRegistryBase {
   ): Promise<WikiPage> {
     await this.assertMayEdit(page);
     const target = await WikiRevision.findRev(page._id ?? '', toRev);
-    if (!target) throw new WikiDenied(`no revision ${toRev} of this page`);
+    if (!target) throw new Refusal('wiki-no-revision', { rev: String(toRev) }, { message: `no revision ${toRev} of this page` });
     page.body = target.getBody();
     page.rev += 1;
     page.updatedBy = this.actorKey();
@@ -704,7 +699,7 @@ export default class WikiRegistry extends WikiRegistryBase {
   public async movePage(page: WikiPage, newSlug: string): Promise<WikiPage> {
     await this.assertMayEdit(page);
     const slug = WikiPage.normalizeName(newSlug);
-    if (!slug) throw new WikiDenied('a page needs a name');
+    if (!slug) throw new Refusal('wiki-unnamed', {}, { message: 'a page needs a name' });
     if (slug === page.getSlug()) return page;
     await this.assertNameFree(page.getNamespace(), slug, page._id);
     const old = page.getSlug();
@@ -898,19 +893,21 @@ export default class WikiRegistry extends WikiRegistryBase {
 
   private async assertMayEdit(page: WikiPage): Promise<void> {
     const refusal = await this.refusalToEdit(page);
-    if (refusal !== null) throw new WikiDenied(refusal);
+    if (refusal !== null) throw new Refusal('wiki-may-not-edit', { why: refusal }, { message: refusal });
   }
 
   private async assertMayEditNamespace(namespace: string): Promise<void> {
     const refusal = await this.refusalToCreate(namespace);
-    if (refusal !== null) throw new WikiDenied(refusal);
+    if (refusal !== null) throw new Refusal('wiki-may-not-edit', { why: refusal }, { message: refusal });
   }
 
   private async assertMayModerate(namespace: string): Promise<void> {
     if (await this.mayModerate(namespace)) return;
-    if (this.actingGuest()) throw new WikiDenied(GUEST_REFUSAL);
-    throw new WikiDenied(
-      `only moderators of '${namespace}' may do that`,
+    if (this.actingGuest()) throw new Refusal('wiki-guest', {}, { message: GUEST_REFUSAL });
+    throw new Refusal(
+      'wiki-moderators-only',
+      { namespace },
+      { message: `only moderators of '${namespace}' may do that` },
     );
   }
 
@@ -928,9 +925,19 @@ export default class WikiRegistry extends WikiRegistryBase {
     });
     if (!hit) return;
     if (exceptId && hit.page._id === exceptId) return;
-    throw new WikiDenied(
-      `'${name}' is held by '${hit.page.getTitle()}' (${hit.page.getHandle()})` +
-        (hit.viaAlias ? ' as an alias' : ''),
+    throw new Refusal(
+      'wiki-name-held',
+      {
+        name,
+        holder: hit.page.getTitle(),
+        handle: hit.page.getHandle(),
+        how: hit.viaAlias ? 'as an alias' : 'as its name',
+      },
+      {
+        message:
+          `'${name}' is held by '${hit.page.getTitle()}' (${hit.page.getHandle()})` +
+          (hit.viaAlias ? ' as an alias' : ''),
+      },
     );
   }
 

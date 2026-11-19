@@ -23,6 +23,10 @@ help: |
   it still needs what it needs. Nothing is learned or skipped by running
   it this way.
 
+  A script stops at the first line that is refused and says why; a
+  `try … on <reason> { … }` inside it handles a refusal instead (see
+  `help script`).
+
   To run a few statements without naming them, use `script`.
 validators:
   - /lib/command/validators/requiresAnimate

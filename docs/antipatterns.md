@@ -83,6 +83,47 @@ adding one back is a regression, not a new feature.
 tier** is mandatory *for an Api that should exist* (§ Collapsing the Api ↔
 Logic Split). This section is about whether it should exist at all.
 
+## Wording a Refusal in the Controller — or Throwing a Bespoke Refusal Class
+
+The object decides a refusal and its facts; the reason's ROW words it; the
+controller does neither (failure-model, 2026-11 —
+[response-envelope.md § `refused`](./subsystems/response-envelope.md)).
+
+### BAD
+
+```typescript
+const answer = door.unlock(giver);
+if (!answer.ok) {
+  const line = answer.reason === 'no-key'
+    ? Mml.compose`You have no key that fits ${Mml.thing(door)}.`
+    : Mml.compose`It is already unlocked.`;
+  MessageApi.scene(giver).topic('act.deed').toSelf(line).send();
+  context.note({ kind: 'controller-rejected', reason: answer.reason });
+  return;
+}
+// …or, deep in a subsystem:
+class SettleRefused extends Error { constructor(public reason: string, msg: string) { … } }
+```
+
+The sentence lives in one controller (a second verb, a script, an NPC
+re-words it or says nothing); a script cannot handle it by name; a bespoke
+thrown class is caught by exactly one controller and shown as an
+exception everywhere else.
+
+### GOOD
+
+```typescript
+// the object answers { ok: false, reason: 'no-key', facts: { target: this } }
+if (!answer.ok) return this.refuse(context, answer);
+// …and deep in a subsystem, the one thrown family:
+throw new Refusal('insufficient-coin', { amount: charge.amount.render() });
+```
+
+with the words in `<pack root>/reasons/no-key.yaml` (`facts:` + a Liquid
+`says:`). A thrown `Refusal` and a returned one read the same to the
+player, a script (`try … on no-key`) and the client. `lint:reason-rows`
+counts the legacy wordings down and refuses a literal code with no row.
+
 ## `ApiOnly` as a Substitute for a Real Security Contract
 
 **ANTIPATTERN**: Gating a privileged object mutator `ApiOnly` (any

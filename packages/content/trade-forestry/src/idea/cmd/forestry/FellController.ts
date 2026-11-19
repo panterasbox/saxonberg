@@ -52,7 +52,6 @@ import {
   type Fellable,
   type FellBegin,
   type FellDone,
-  type FellRefusal,
 } from '../../../lib/Fellable';
 import Bole from '../../../thing/Bole';
 
@@ -99,7 +98,7 @@ export default class FellController extends CommandController<FellModel> {
       // `fell oak` binds an oak LOG off the floor (the binder matches
       // materials), and the player meant the tree.
       const known = stand && word ? await stand.fellPlanFor(giver, axe, word) : null;
-      if (!known || (!known.ok && known.reason === 'no-such-species')) {
+      if (!known || (!known.ok && known.reason === '/trade/forestry/reasons/no-such-species')) {
         // ⭐ A felled trunk is CUT now (D14) — the refusal says the new word.
         this.decline(
           context,
@@ -120,10 +119,9 @@ export default class FellController extends CommandController<FellModel> {
     }
 
     const plan = await tree.fellPlanFor(giver, axe, word);
-    if (!plan.ok) {
-      this.decline(context, plan.reason, FellController.refusalWords(plan, axe, named));
-      return;
-    }
+    // ⭐ A refusal is passed on: this pack's reason rows word it
+    // (failure-model D11), and a script handles it by the row's path.
+    if (!plan.ok) return this.refuse(context, plan);
     await this.engagePlan(context, plan, {
       beginSelf: (f: FellBegin) =>
         f.planted
@@ -133,31 +131,8 @@ export default class FellController extends CommandController<FellModel> {
         f.planted
           ? Mml.compose`${Mml.actor(giver)} sets to ${f.name} with an axe.`
           : Mml.compose`${Mml.actor(giver)} sets to ${GrammarApi.articleFor(f.name)} ${f.name} with an axe.`,
-      onRefused: (r: FellRefusal) => FellController.refusalWords(r, axe, named),
       onDone: (f: FellDone) => FellController.doneWords(giver, f),
     });
-  }
-
-  /** ⭐ Every reason a tree refuses the axe, in this verb's words. */
-  protected static refusalWords(r: FellRefusal, axe: Stuff, named: Stuff | null): Composed {
-    switch (r.reason) {
-      case 'wrong-tool':
-        return Mml.compose`That is ${Mml.thing(axe)}. It will take a stool off at the ankle, and it will not take an oak.`;
-      case 'no-such-species':
-        return Mml.compose`Nothing called '${r.facts.word}' stands here.`;
-      case 'stand-empty':
-        return r.facts.name
-          ? Mml.compose`There is nothing left here that is worth the axe — the ${r.facts.name} is stumps and brash.`
-          : Mml.compose`There is nothing left here that is worth the axe.`;
-      case 'not-yet-a-tree':
-        return named
-          ? Mml.compose`${Mml.thing(named)} is not yet a tree. Leave it.`
-          : Mml.compose`It is not yet a tree. Leave it.`;
-      default: {
-        const never: never = r;
-        return never;
-      }
-    }
   }
 
   /** What the feller and the room read when the tree comes down. */
