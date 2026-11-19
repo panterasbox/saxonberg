@@ -54,7 +54,7 @@ re-implemented on a second channel.
 | `packages/server/src/mud/lib/events/GenericEvent.ts` | Escape-hatch class-shaped event |
 | `packages/server/src/mud/lib/description/Perceptible.ts` | `primaryKeyword` field + `getPrimaryKeyword` / `setPrimaryKeyword`; `primaryKeyword` descriptor on `PerceptibleMixin.subscribableFields` |
 | `packages/server/src/mud/lib/spatial/Container.ts` | `contents` descriptor + `FieldChangedEvent { field: 'contents' }` fires on `addContainable` / `removeContainable` |
-| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires on `setContainer` — the signal `locationDependent` subscriptions wake on |
+| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires on `setContainer` — what a query-bound subscription's holder entry wakes on when you walk (and where-you-are's `container` row) |
 | `packages/server/src/mud/lib/command/Focused.ts` | `focus` descriptor + `FieldChangedEvent { field: 'focus' }` fires on `setFocus` / `clearFocus` |
 | `packages/types/src/index.ts` | Inbound + outbound wire types (`MqlSubscribeMessage`, `MqlQueryMessage`, `Mql*Envelope`, `StuffRefRecord`, `WireDetailEntry`, `MaterialSummary`, `StuffDetailFocusRecord`, `Change`) |
 

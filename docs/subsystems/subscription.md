@@ -58,8 +58,9 @@ interface SubscriptionChange { op: 'add' | 'replace' | 'update' | 'remove'; key:
   `fireFieldChange`, `projectFields`, `projectAspect`), the MQL source's
   one-shot `handleQuery`, and the sandbox reap (`cancelAllForScope`).
   ⚠ There was a second, `MqlSubscriptionApi`, with its own logic
-  singleton and two bespoke pokes (`notifyDurableSubject`,
-  `refreshForInteractive`); it was folded in at review (MR !595) — a
+  singleton and bespoke pokes (`notifyDurableSubject`,
+  `refreshForInteractive`, and crowded-rooms' `notifyBelief`); it was
+  folded in at review (MR !595) — a
   source is a source, and it does not get a facade of its own.
 - **Finding a source.** A standing instance at the path is asked whether it
   is a source; otherwise the row's CLASS is read (`StuffApi.classForRef` —

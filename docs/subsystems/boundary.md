@@ -1183,5 +1183,7 @@ varies from way to way is on a way: a fight is a fact about YOU
 break away from makes every way refuse, in `disengage`'s own words —
 see antipatterns.md § *A fact about one thing, stamped onto everything it
 touches*. The mode words its own refusals (`LocomotionMode.refusals`),
-never the controller. `Exit.wayChanged()` (on open, lock, a gangway) tells
-whoever stands at the way.
+never the controller. A way's state FIRES (`open`/`locked` on its door,
+`gangwayLocked` on a berth exit), and whoever stands at the way hears it
+through where-you-are's wake table (`WHEREABOUTS_WAKES`, subscription.md) —
+the hand-placed `Exit.wayChanged()` poke retired at review.

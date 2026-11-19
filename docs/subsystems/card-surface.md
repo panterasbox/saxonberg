@@ -1385,8 +1385,9 @@ interface MqlQueryErrorEnvelope {
 - Holder and cardinality checks mirror `handleSubscribe` so a
   client's error-handling code can branch by `reason` uniformly
   across subscribes and queries.
-- `focusDependent` / `locationDependent` are not carried on the
-  query shape (no subscription state to wake).
+- `focusDependent` / `locationDependent` are gone from every wire shape
+  (navigation-server, at its merge of crowded-rooms): a query-bound
+  subscription's holder entry does their job.
 
 `Application.processUserMessage` routes inbound `'mql-query'`
 messages through `handleQuery` — same shape as the existing
