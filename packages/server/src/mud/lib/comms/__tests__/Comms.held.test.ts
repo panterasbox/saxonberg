@@ -126,14 +126,13 @@ describe('held, never silent', () => {
   it('each refusal names its fix and says the line is held', async () => {
     const ana = makePerson('Ana');
     const none = ana.sendOrHold('dm bob hi');
-    expect(none).toMatchObject({ reason: 'none', held: true });
-    expect(none!.line).toMatch(/A phone does.*Held — it goes when you can send\./);
+    // The row `aether-none` words the fix and the hold (failure-model D11).
+    expect(none).toMatchObject({ ok: false, reason: 'aether-none', why: 'none', held: true, facts: { kept: 'yes' } });
 
     const implant = await seatImplant(ana, false);
     void implant;
     const noApp = ana.sendOrHold('dm bob again');
-    expect(noApp?.reason).toBe('no-messages');
-    expect(noApp!.line).toMatch(/apps install messages/);
+    expect(noApp?.reason).toBe('aether-no-messages');
     expect(ana.heldOutbound).toEqual(['dm bob hi', 'dm bob again']);
   });
 
@@ -154,7 +153,7 @@ describe('held, never silent', () => {
     for (let i = 0; i < 50; i++) ana.sendOrHold(`dm bob ${i}`);
     const r = ana.sendOrHold('dm bob overflow');
     expect(r?.held).toBe(false);
-    expect(r?.line).toMatch(/was not kept/);
+    expect(r?.facts).toEqual({ cap: '50' });
     expect(ana.heldOutbound).toHaveLength(50);
   });
 

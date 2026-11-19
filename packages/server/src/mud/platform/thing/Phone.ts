@@ -158,7 +158,11 @@ export default class Phone extends PhoneBase {
     if (bearer !== null && MixinApi.isComms(bearer)) bearer.noticeTuning();
   }
 
-  /** The tuning rule (D1). */
+  /**
+   * The tuning rule (D1).
+   *
+   * @nothing a phone that tunes its bearer has nothing to refuse.
+   */
   private decideRefusal(bearer: Stuff | null, at: number): AugmentRefusal | null {
     if (bearer === null || !MixinApi.isCarrying(bearer)) return 'not-borne';
     if (!this.isOn()) return 'off';

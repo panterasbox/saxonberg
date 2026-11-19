@@ -56,6 +56,7 @@ export function AugmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       return [];
     }
 
+    /** @nothing an augment with no conditions of its own always confers. */
     conferralRefusal(): AugmentRefusal | null {
       return null;
     }

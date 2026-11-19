@@ -1343,15 +1343,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               ) {
                 const refusal = speaker.sendOrHold(outer.commandText);
                 if (refusal) {
-                  MessageApi.scene(speaker)
-                    .topic('act.emote')
-                    .toSelf(Mml.fromMarkup(`\n${refusal.line}\n`))
-                    .send();
-                  outer.note({
-                    kind: 'controller-rejected',
-                    reason: `aether-${refusal.reason}`,
-                    detail: refusal.line,
-                  });
+                  // The reason's row words it (failure-model D11).
+                  outer.refuse(refusal);
                   return outer;
                 }
               }

@@ -125,7 +125,7 @@ export default class ChatPostController extends ChatControllerBase {
     if (!MixinApi.isComms(speaker)) return false;
     const refusal = speaker.sendOrHold(context.commandText);
     if (!refusal) return false;
-    this.fail(context, refusal.line, `aether-${refusal.reason}`);
+    this.refuse(context, refusal);
     return true;
   }
 }

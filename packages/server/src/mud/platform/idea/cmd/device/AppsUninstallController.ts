@@ -16,12 +16,7 @@ export default class AppsUninstallController extends AppsControllerBase {
       .find((p) => p.slice(p.lastIndexOf('/') + 1) === key);
     const name = path ? this.nameOf(device, path) : key;
     if (!device.uninstallApp(key)) {
-      this.say(
-        context,
-        `${this.deviceName(device)} has no '${key}' installed.`,
-        'not-installed',
-      );
-      return;
+      return this.refuse(context, { ok: false, reason: 'not-installed', facts: { device, app: key } });
     }
     this.say(context, `You uninstall ${name} from ${this.deviceName(device)}.`);
   }

@@ -1,0 +1,6 @@
+# The phone is switched off (aether-devices D8).
+facts:
+  kept: text?
+  cap: text?
+says: "Your phone is off — `switch phone on`.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

@@ -42,9 +42,7 @@ export default class ReplyController extends CommandController<ReplyModel> {
     }
     const comms = speaker;
     const refusal = comms.sendOrHold(context.commandText);
-    if (refusal) {
-      return this.fail(context, refusal.line, `aether-${refusal.reason}`);
-    }
+    if (refusal) return this.refuse(context, refusal);
     const inbound = comms.getLastInboundCohort();
     if (!inbound || inbound.length === 0) {
       return this.fail(

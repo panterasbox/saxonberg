@@ -38,7 +38,7 @@ export abstract class AppsControllerBase extends CommandController<AppsModel> {
     ) {
       return candidate;
     }
-    this.say(context, 'You carry nothing that runs apps.', 'no-device');
+    this.refuse(context, { ok: false, reason: 'no-device', facts: {} });
     return null;
   }
 
@@ -48,15 +48,12 @@ export abstract class AppsControllerBase extends CommandController<AppsModel> {
     return running ? running.getAppName() : path.slice(path.lastIndexOf('/') + 1);
   }
 
-  /** Say a line to the actor; a refusal also notes why. */
-  protected say(context: CommandContext, line: string, refusal?: string): void {
+  /** Say a line to the actor (a refusal is passed on; its row words it). */
+  protected say(context: CommandContext, line: string): void {
     MessageApi.scene(context.commandGiver)
       .topic('act.deed')
       .toSelf(Mml.fromMarkup(`\n${line}\n`))
       .send();
-    if (refusal) {
-      context.note({ kind: 'controller-rejected', reason: refusal, detail: line });
-    }
   }
 
   /** `the phone`, `the aether implant` — how the device is named in a line. */

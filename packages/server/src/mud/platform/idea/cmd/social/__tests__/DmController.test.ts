@@ -149,7 +149,7 @@ describe('DmController', () => {
     const bob = await withMessages('Bob');
     const ctx = await dm(alice, bob);
     expect(heard(bob)).toBe(true);
-    expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(false);
+    expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected' || n.kind === 'refused')).toBe(false);
   });
 
   it('refuses naming the fix when Messages is uninstalled; reinstall sends', async () => {
@@ -161,14 +161,10 @@ describe('DmController', () => {
     expect(heard(bob)).toBe(false);
     expect(
       ctx.getNotes().some(
-        (n) => n.kind === 'controller-rejected' && n.reason === 'aether-no-messages',
+        (n) => n.kind === 'refused' && n.reason === 'aether-no-messages',
       ),
     ).toBe(true);
-    expect(
-      (alice as unknown as Actor).received.some((f) =>
-        (f.body ?? '').toString().includes('apps install messages'),
-      ),
-    ).toBe(true);
+    // The words are the `aether-no-messages` row's, said at emit (D11).
 
     await implantOf(alice).installApp(App.MESSAGES_PATH);
     await dm(alice, bob);
@@ -181,7 +177,7 @@ describe('DmController', () => {
     const ctx = await dm(alice, bob);
     expect(heard(bob)).toBe(false);
     expect(
-      ctx.getNotes().some((n) => n.kind === 'controller-rejected' && n.reason === 'aether-none'),
+      ctx.getNotes().some((n) => n.kind === 'refused' && n.reason === 'aether-none'),
     ).toBe(true);
   });
 

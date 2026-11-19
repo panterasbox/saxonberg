@@ -1,0 +1,6 @@
+# The phone's battery is empty (aether-devices D8).
+facts:
+  kept: text?
+  cap: text?
+says: "Your phone is dead — charge it.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

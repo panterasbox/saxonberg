@@ -16,12 +16,11 @@ export default class AppsInstallController extends AppsControllerBase {
       const offered = result.offered.length
         ? `It offers: ${result.offered.join(', ')}.`
         : 'It offers nothing else.';
-      this.say(
-        context,
-        `${this.deviceName(device)} has no app called '${key}'. ${offered}`,
-        'unknown-app',
-      );
-      return;
+      return this.refuse(context, {
+        ok: false,
+        reason: 'unknown-app',
+        facts: { device, app: key, offered },
+      });
     }
     const name = this.nameOf(device, result.app.getTemplatePath() ?? key);
     this.say(

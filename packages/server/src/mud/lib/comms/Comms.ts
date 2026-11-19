@@ -92,7 +92,7 @@ export interface Comms {
 
   /**
    * Can a message leave this person right now? `null` means go; otherwise
-   * the refusal, with the words and the fix. The one question the send
+   * the refusal — its row words the fix and whether the line was kept. The one question the send
    * controllers ask (D8). `commandText` is the line the player ran.
    */
   sendOrHold(commandText: string): AetherRefusal | null;
@@ -160,10 +160,18 @@ export type AetherRefusalReason =
 /** Why a frame over the aether waits: a send reason, or the eyes (D9). */
 export type ReceptionRefusalReason = AetherRefusalReason | "cannot-see";
 
-/** A refusal: the reason, the line that names the fix, and whether it was kept. */
+/**
+ * A refusal to send (failure-model D11): `aether-<why>`, whose row words the
+ * fix and whether the line was kept — pass it on with `context.refuse`.
+ */
 export interface AetherRefusal {
-  reason: AetherRefusalReason;
-  line: string;
+  ok: false;
+  /** `aether-<why>` — the reason row's code. */
+  reason: `aether-${AetherRefusalReason}`;
+  /** Why, in the person's own vocabulary. */
+  why: AetherRefusalReason;
+  /** `kept`: held to run when it can go; `cap`: not kept, past the cap. */
+  facts: { kept?: string; cap?: string };
   /** Was the command kept to run when it can go? (`false` past the cap.) */
   held: boolean;
 }
@@ -183,7 +191,11 @@ const FIXABILITY: readonly AetherRefusalReason[] = ["off", "packed", "dead", "no
 /** The key Messages is installed under (its row's last segment). */
 const MESSAGES = "messages";
 
-/** The line each refusal says — each names its fix (D8). */
+/**
+ * The one-line fix each reason names (D8), for `cannotSendLine` — the
+ * unheld verbs' validator (`forum`, `broadcast`), which can only return a
+ * string. A held send is worded by its `aether-<why>` reason row.
+ */
 const REFUSAL_LINES: Record<AetherRefusalReason, string> = {
   none:
     "You have nothing that reaches past this room. A phone does — the general store sells one.",
@@ -403,19 +415,16 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this._notedAetherWord = word;
     }
 
+    /** @nothing a line that can go now is not held — the send proceeds. */
     sendOrHold(commandText: string): AetherRefusal | null {
-      const reason = this.sendRefusal();
-      if (reason === null) return null;
-      const fix = REFUSAL_LINES[reason];
+      const why = this.sendRefusal();
+      if (why === null) return null;
+      const reason = `aether-${why}` as const;
       if (this.heldOutbound.length >= HELD_OUTBOUND_CAP) {
-        return {
-          reason,
-          line: `${fix} You are already holding ${HELD_OUTBOUND_CAP} — this one was not kept.`,
-          held: false,
-        };
+        return { ok: false, reason, why, facts: { cap: String(HELD_OUTBOUND_CAP) }, held: false };
       }
       this.heldOutbound.push(commandText);
-      return { reason, line: `${fix} Held — it goes when you can send.`, held: true };
+      return { ok: false, reason, why, facts: { kept: "yes" }, held: true };
     }
 
     cannotSendLine(): string | null {

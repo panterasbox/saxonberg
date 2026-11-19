@@ -50,18 +50,7 @@ export default class DmController extends CommandController<DmModel> {
     }
     const comms = speaker;
     const refusal = comms.sendOrHold(context.commandText);
-    if (refusal) {
-      MessageApi.scene(speaker)
-        .topic('speech.comms')
-        .toSelf(Mml.fromMarkup(`\n${refusal.line}\n`))
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: `aether-${refusal.reason}`,
-        detail: refusal.line,
-      });
-      return;
-    }
+    if (refusal) return this.refuse(context, refusal);
 
     const targets = model.target.stuff;
     if (targets.length === 0) {

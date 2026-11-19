@@ -115,14 +115,17 @@ describe('apps', () => {
     await implant.uninstallApp('messages');
     const c = ctx(person, implant);
     await makeStuff(() => new AppsInstallController()).execute({ app: 'chess' } as never, c);
-    expect(said(person)).toMatch(/no app called 'chess'.*offers: messages/s);
-    expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
+    // Refused with the reason `unknown-app`; its row words the line at emit.
+    const refused = c.getNotes().find((n) => n.kind === 'refused');
+    expect(refused).toMatchObject({ reason: 'unknown-app' });
+    expect(JSON.stringify(refused)).toMatch(/chess/);
+    expect(JSON.stringify(refused)).toMatch(/offers: messages/);
   });
 
   it('a non-device source (a person host) has nothing to act on', () => {
     const c = ctx(person, person);
     makeStuff(() => new AppsListController()).execute({} as never, c);
-    expect(said(person)).toMatch(/nothing that runs apps/);
+    expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'no-device' });
   });
 
   it('`on <device>` picks the named device', () => {

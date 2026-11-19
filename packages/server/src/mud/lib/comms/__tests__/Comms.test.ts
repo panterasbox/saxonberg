@@ -141,15 +141,13 @@ describe('CommsMixin (on the person)', () => {
   it('sendOrHold: nothing that tunes → none, naming the phone', () => {
     const alice = makeAttuned('Alice', { implant: false });
     const r = alice.sendOrHold('dm bob hi');
-    expect(r?.reason).toBe('none');
-    expect(r?.line).toMatch(/A phone does/);
+    expect(r?.reason).toBe('aether-none');
   });
 
   it('sendOrHold: a tuner without Messages → no-messages, naming apps install', () => {
     const alice = makeAttuned('Alice');
     const r = alice.sendOrHold('dm bob hi');
-    expect(r?.reason).toBe('no-messages');
-    expect(r?.line).toMatch(/apps install messages/);
+    expect(r?.reason).toBe('aether-no-messages');
   });
 
   it('sendOrHold: Messages on the tuner → go; uninstall → refused; reinstall → go', async () => {
@@ -158,7 +156,7 @@ describe('CommsMixin (on the person)', () => {
     await implant.installApp(App.MESSAGES_PATH);
     expect(alice.sendOrHold('dm bob hi')).toBeNull();
     expect(implant.uninstallApp('messages')).toBe(true);
-    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('no-messages');
+    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('aether-no-messages');
     await implant.installApp(App.MESSAGES_PATH);
     expect(alice.sendOrHold('dm bob hi')).toBeNull();
   });
@@ -167,7 +165,7 @@ describe('CommsMixin (on the person)', () => {
     const alice = makeAttuned('Alice', { implant: false });
     (alice as unknown as { getSpecies(): Species }).getSpecies().setInnateMixins(['AetherMixin']);
     expect(alice.isOwnAetherHost()).toBe(true);
-    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('no-messages');
+    expect(alice.sendOrHold('dm bob hi')?.reason).toBe('aether-no-messages');
     await alice.installApp(App.MESSAGES_PATH);
     expect(alice.sendOrHold('dm bob hi')).toBeNull();
   });
