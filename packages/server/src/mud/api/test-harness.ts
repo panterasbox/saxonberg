@@ -25,6 +25,7 @@ import {
   type GravityReport,
   type AfflictReport,
   type SpeciesReport,
+  type StandingHistoryReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
@@ -39,6 +40,7 @@ export type {
   GravityReport,
   AfflictReport,
   SpeciesReport,
+  StandingHistoryReport,
 };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
@@ -197,6 +199,19 @@ export class TestHarnessApi {
   public static setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'setSpecies', () =>
       logic().setSpecies(handle, speciesPath),
+    );
+  }
+
+  /**
+   * ⭐ A long-lived world in one call: `count` past players with a week of
+   * participation, renown and producer history, appended through the three
+   * ledgers (db-performance drive 2 — what an idle world's scoring costs
+   * when hundreds have played). Idempotent per subject.
+   */
+  @TestOnly('In a test world, stage past players with `testharness standing-history <count>`.')
+  public static stageStandingHistory(count: number): Promise<StandingHistoryReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'stageStandingHistory', () =>
+      logic().stageStandingHistory(count),
     );
   }
 

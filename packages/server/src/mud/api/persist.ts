@@ -34,10 +34,13 @@
 
 import * as crypto from 'crypto';
 import { PersistenceManager } from '../../backend/PersistenceManager';
-import type { FindOptions } from '../../backend/PersistenceManager';
+import type {
+  FindOptions,
+  PersistStats,
+} from '../../backend/PersistenceManager';
 import { SecurityApi } from './security';
 
-export type { FindOptions };
+export type { FindOptions, PersistStats };
 
 /**
  * Stored shape for an encrypted string field. A structured object (not a
@@ -184,6 +187,17 @@ export class PersistApi {
    */
   static whenQuiet(quietMs = 500, timeoutMs = 300_000): Promise<boolean> {
     return PersistenceManager.get().whenQuiet(quietMs, timeoutMs);
+  }
+
+  /**
+   * The database's numbers: the pool (in use, waiting, how often a
+   * request waited and for how long), round trips, and op counts and time
+   * per `<op> <collection>` — cumulative since boot except the two
+   * right-now pool figures. `/stats` serves it as `db`; see
+   * `PersistenceManager.stats()`.
+   */
+  static dbStats(): PersistStats {
+    return PersistenceManager.get().stats();
   }
 
   /** Documents in `collection` matching `query`, optionally sorted/limited. */

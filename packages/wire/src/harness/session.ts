@@ -416,6 +416,19 @@ export class Session {
     return { session: s, playerId };
   }
 
+  /**
+   * The roster's character entries as the world sent them (a roster-parked
+   * session from {@link openAtRoster}) — `playStanding`, `lastLocation`,
+   * `binomial`… The db-performance drive reads the play band here.
+   */
+  rosterCharacters(): Array<Record<string, unknown>> {
+    for (const frame of this.identity) {
+      const chars = (frame.payload as { characters?: Array<Record<string, unknown>> })?.characters;
+      if (chars?.length) return chars;
+    }
+    return [];
+  }
+
   /** Hand a roster-parked session off into the world. */
   async play(playerId: string): Promise<void> {
     await this.enterWorld(playerId);

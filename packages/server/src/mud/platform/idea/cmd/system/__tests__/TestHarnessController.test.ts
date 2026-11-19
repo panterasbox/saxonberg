@@ -21,6 +21,7 @@ import TestHarnessGravityController from '../TestHarnessGravityController';
 import TestHarnessAfflictController from '../TestHarnessAfflictController';
 import TestHarnessSpeciesController from '../TestHarnessSpeciesController';
 import TestHarnessRemoveController from '../TestHarnessRemoveController';
+import TestHarnessStandingHistoryController from '../TestHarnessStandingHistoryController';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { CommandApi } from '../../../../../api/command';
@@ -80,6 +81,7 @@ describe('testharness controllers', () => {
     afflict: TestHarnessAfflictController,
     species: TestHarnessSpeciesController,
     vanish: TestHarnessRemoveController,
+    'standing-history': TestHarnessStandingHistoryController,
   } as const;
   const run = (m: Record<string, unknown>) => {
     const Ctrl = BY_WORD[m.subcommand as keyof typeof BY_WORD];
@@ -238,6 +240,30 @@ describe('testharness controllers', () => {
     });
   });
 
+  describe('standing-history (db-performance drive 2)', () => {
+    it('`standing-history 200` forwards the count and reports what it staged', async () => {
+      const st = vi
+        .spyOn(TestHarnessApi, 'stageStandingHistory')
+        .mockResolvedValue({ subjects: 200, rows: 1400 });
+      await run({ subcommand: 'standing-history', op: '200' });
+      expect(st).toHaveBeenCalledWith(200);
+      expect(said.join('\n')).toMatch(/200 past players have standing history \(1400 rows/);
+    });
+
+    it('with no count, the usage; a bad count is the logic\'s refusal in its own words', async () => {
+      const st = vi
+        .spyOn(TestHarnessApi, 'stageStandingHistory')
+        .mockRejectedValue(new Error('testharness standing-history: a count is a whole number from 1 to 5000 (got NaN)'));
+      await run({ subcommand: 'standing-history' });
+      expect(rejected()?.reason).toBe('test-usage');
+      expect(st).not.toHaveBeenCalled();
+      note.mockClear();
+      await run({ subcommand: 'standing-history', op: 'lots' });
+      expect(rejected()?.reason).toBe('test-refused');
+      expect(rejected()?.detail).toMatch(/whole number/);
+    });
+  });
+
   describe('the shipped view routes each form to its controller', () => {
     const view = (() => {
       const path = fileURLToPath(
@@ -282,6 +308,12 @@ describe('testharness controllers', () => {
       const sp = bind('testharness species Mara /s/gnomus');
       expect(sp.controller).toBe(`${P}TestHarnessSpeciesController`);
       expect(sp.model).toMatchObject({ op: 'Mara', value: '/s/gnomus' });
+    });
+
+    it('standing-history', () => {
+      const h = bind('testharness standing-history 200');
+      expect(h.controller).toBe(`${P}TestHarnessStandingHistoryController`);
+      expect(h.model).toMatchObject({ op: '200' });
     });
 
     it('ship', () => {

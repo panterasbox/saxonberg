@@ -50,6 +50,11 @@ help: |
   `testharness species <name> <species path>` stages a resident character
   as a body of another species, its mass re-seeded from it.
 
+  `testharness standing-history <count>` stages that many past players —
+  nobody's body — each with a week of participation, renown and producer
+  history, appended through the three ledgers; run it twice and nothing
+  doubles.
+
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
 examples:
@@ -148,6 +153,13 @@ subcommands:
         type: string
         required: false
       - name: value
+        type: string
+        required: false
+  standing-history:
+    controller: /platform/idea/cmd/system/TestHarnessStandingHistoryController
+    description: "Stage past players with a week of participation, renown and producer history: `standing-history <count>`"
+    args:
+      - name: op
         type: string
         required: false
   vanish:

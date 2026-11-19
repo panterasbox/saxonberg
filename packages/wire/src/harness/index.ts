@@ -51,5 +51,8 @@ export {
   stage,
   stageShip,
   restartWorld,
+  stopWorldWithin,
+  lastShutdownReport,
+  stageStandingHistory,
 } from './world';
-export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';
+export type { ShipStagePlace, ShipStageSpec, ShipStageResult, ShutdownReport, TimedStop } from './world';

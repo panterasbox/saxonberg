@@ -36,6 +36,7 @@ import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
 import { StuffApi } from '../mud/api/stuff';
 import { ExecutionContextApi } from '../mud/api/execution-context';
+import { PersistApi } from '../mud/api/persist';
 
 /**
  * Server - Main application server.
@@ -228,6 +229,11 @@ export class Server {
         // Writes a walk made while holding the world still (crowded-rooms
         // D9); 0 is the only healthy reading.
         walkWrites: ExecutionContextApi.walkWriteCount(),
+        // ⭐ The database (db-performance D10): the pool — in use and
+        // waiting now, how many requests waited and for how long — round
+        // trips, and op counts and time per `<op> <collection>`.
+        // Cumulative like `cpu`; take two reads and subtract.
+        db: PersistApi.dbStats(),
       });
     });
 

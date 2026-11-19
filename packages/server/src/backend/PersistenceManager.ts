@@ -96,6 +96,32 @@ function _qrec(op: string, coll: string, keys: string, t0: number): void {
   _qstats.set(key, row);
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// The always-on op counters (db-performance, D10).
+//
+// Every PersistenceManager op counts here — calls and wall time, in total
+// and per `<op> <collection>` — whatever the trace switch says. Two clock
+// reads and a map write per op: cheap enough to leave on, and honest
+// enough to rank the hot paths (the per-caller trace above needs a stack
+// per op, which distorts what it times). Read through `stats()`, which
+// `/stats` serves as `db`. Cumulative since boot; a reader subtracts two
+// reads, as with `/stats`' `cpu` and `loop`.
+// ─────────────────────────────────────────────────────────────────────
+const _ostats = new Map<string, _QRow>();
+const _otot: _QRow = { n: 0, ms: 0 };
+
+function _orec(op: string, coll: string, keys: string, t0: number, n = 1): void {
+  const ms = performance.now() - t0;
+  _otot.n += n;
+  _otot.ms += ms;
+  const k = `${op} ${coll}`;
+  const row = _ostats.get(k) ?? { n: 0, ms: 0 };
+  row.n += n;
+  row.ms += ms;
+  _ostats.set(k, row);
+  if (_qtraceOn) _qrec(op, coll, keys, t0);
+}
+
 function _qdump(label: string): void {
   const rows = [..._qstats.entries()].sort((a, b) => b[1].ms - a[1].ms);
   const totN = rows.reduce((a, r) => a + r[1].n, 0);
@@ -325,6 +351,22 @@ interface HookManifest {
   hooks: HookManifestEntry[];
 }
 
+/** The database's numbers (`PersistenceManager.stats()`; `/stats` → `db`). */
+export interface PersistStats {
+  pool: {
+    max: number;
+    inUse: number;
+    waiting: number;
+    waited: number;
+    waitMs: number;
+    peakWaiting: number;
+  };
+  roundTrips: number;
+  ops: { n: number; ms: number };
+  byOp: Record<string, { n: number; ms: number }>;
+  callers?: Array<{ key: string; n: number; ms: number }>;
+}
+
 /**
  * PersistenceManager - Singleton for MongoDB operations.
  */
@@ -467,14 +509,33 @@ export class PersistenceManager {
       console.info('PersistenceManager: Connecting to MongoDB...');
 
       this.client = new MongoClient(uri, {
-        maxPoolSize: 10,
+        maxPoolSize: PersistenceManager.POOL_MAX,
         minPoolSize: 2,
       });
       // ⭐ Operations in flight — waiting for a connection or holding one —
-      // from the pool's own events: what `whenQuiet` waits on.
-      this.client.on('connectionCheckOutStarted', () => { this.#inFlight++; });
-      this.client.on('connectionCheckOutFailed', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
-      this.client.on('connectionCheckedIn', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
+      // from the pool's own events: what `whenQuiet` waits on. The same
+      // events feed `stats()`'s pool figures (db-performance, D10).
+      const pool = this.#pool;
+      this.client.on('connectionCheckOutStarted', () => {
+        this.#inFlight++;
+        pool.started++;
+        if (pool.checkedOut - pool.checkedIn >= PersistenceManager.POOL_MAX)
+          pool.waited++;
+        const waiting = pool.started - pool.checkedOut - pool.failed;
+        if (waiting > pool.peakWaiting) pool.peakWaiting = waiting;
+      });
+      this.client.on('connectionCheckedOut', (ev: { durationMS?: number }) => {
+        pool.checkedOut++;
+        pool.waitMs += ev.durationMS ?? 0;
+      });
+      this.client.on('connectionCheckOutFailed', () => {
+        this.#inFlight = Math.max(0, this.#inFlight - 1);
+        pool.failed++;
+      });
+      this.client.on('connectionCheckedIn', () => {
+        this.#inFlight = Math.max(0, this.#inFlight - 1);
+        pool.checkedIn++;
+      });
 
       await this.client.connect();
 
@@ -498,6 +559,60 @@ export class PersistenceManager {
 
   /** Operations waiting for, or holding, a pool connection right now. */
   #inFlight = 0;
+
+  /** The connection pool's size — every worktree shares one cluster limit. */
+  private static readonly POOL_MAX = 10;
+
+  /** Cumulative pool events since connect (db-performance, D10). */
+  #pool = {
+    started: 0,
+    checkedOut: 0,
+    checkedIn: 0,
+    failed: 0,
+    /** Check-outs that started with every connection already in use. */
+    waited: 0,
+    /** Σ the check-out events' `durationMS`: time spent getting a connection. */
+    waitMs: 0,
+    peakWaiting: 0,
+  };
+
+  /**
+   * ⭐ The database's own numbers — what `/stats` serves as `db`.
+   *
+   * Everything is cumulative since boot except `pool.inUse` and
+   * `pool.waiting`, which are now; a reader subtracts two reads for a rate.
+   * `roundTrips` counts connection check-outs — one per wire command,
+   * cursor `getMore`s included — so it is the figure the host's latency
+   * multiplies. `ops`/`byOp` count PersistenceManager calls and their wall
+   * time (a cached `content` read is not one). `callers` — the query
+   * trace's per-caller table, top 60 by time — is present only when
+   * `SAXONBERG_QUERY_TRACE=1`, because it costs a stack per op.
+   */
+  public stats(): PersistStats {
+    const p = this.#pool;
+    const byOp: Record<string, { n: number; ms: number }> = {};
+    for (const [k, v] of _ostats) byOp[k] = { n: v.n, ms: Math.round(v.ms) };
+    const out: PersistStats = {
+      pool: {
+        max: PersistenceManager.POOL_MAX,
+        inUse: Math.max(0, p.checkedOut - p.checkedIn),
+        waiting: Math.max(0, p.started - p.checkedOut - p.failed),
+        waited: p.waited,
+        waitMs: Math.round(p.waitMs),
+        peakWaiting: p.peakWaiting,
+      },
+      roundTrips: p.checkedOut,
+      ops: { n: _otot.n, ms: Math.round(_otot.ms) },
+      byOp,
+    };
+    if (_qtraceOn) {
+      out.callers = [..._qstats.entries()]
+        .sort((a, b) => b[1].ms - a[1].ms)
+        .slice(0, 60)
+        .map(([key, v]) => ({ key, n: v.n, ms: Math.round(v.ms) }));
+    }
+    return out;
+  }
 
   /**
    * ⭐ Resolve when the database has had nothing in flight for `quietMs` —
@@ -623,10 +738,9 @@ export class PersistenceManager {
     collectionName: string,
     document: Record<string, unknown>
   ): Promise<string> {
-    if (!_qtraceOn) return this.dispatchSave(collectionName, document);
     const _t0 = performance.now();
     const out = await this.dispatchSave(collectionName, document);
-    _qrec('save', collectionName, '', _t0);
+    _orec('save', collectionName, '', _t0);
     return out;
   }
 
@@ -635,11 +749,11 @@ export class PersistenceManager {
    * blueprint catalogue's class enumeration). Read-only.
    */
   public async distinct(collectionName: string, field: string): Promise<unknown[]> {
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
     const out = (await this.getCollection(collectionName).distinct(
       field
     )) as unknown[];
-    if (_qtraceOn) _qrec('distinct', collectionName, field, _t0);
+    _orec('distinct', collectionName, field, _t0);
     return out;
   }
 
@@ -655,7 +769,7 @@ export class PersistenceManager {
     id: string
   ): Promise<Record<string, unknown> | null> {
     const collection = this.getCollection(collectionName);
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
 
     try {
       const objectId = new ObjectId(id);
@@ -663,7 +777,7 @@ export class PersistenceManager {
         _id: objectId,
       });
       const doc = await collection.findOne(filter);
-      if (_qtraceOn) _qrec('findById', collectionName, '_id', _t0);
+      _orec('findById', collectionName, '_id', _t0);
 
       if (doc) {
         // Convert _id to string for consistency
@@ -704,7 +818,7 @@ export class PersistenceManager {
     }
 
     const collection = this.getCollection(collectionName);
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
 
     try {
       const filtered = this.composeScopeReadFilter(collectionName, query);
@@ -713,8 +827,7 @@ export class PersistenceManager {
       if (options?.skip != null) cursor = cursor.skip(options.skip);
       if (options?.limit != null) cursor = cursor.limit(options.limit);
       const docs = await cursor.toArray();
-      if (_qtraceOn)
-        _qrec('find', collectionName, Object.keys(query).join(','), _t0);
+      _orec('find', collectionName, Object.keys(query).join(','), _t0);
 
       // Convert _id to string for each document
       return docs.map((doc) => ({
@@ -784,8 +897,10 @@ export class PersistenceManager {
     const slot = `${collectionName}:delete`;
     return this.withSlot(slot, collectionName, 'delete', async () => {
       const collection = this.getCollection(collectionName);
+      const _t0 = performance.now();
       try {
         const result = await collection.deleteMany(effectiveFilter);
+        _orec('deleteMany', collectionName, Object.keys(filter).join(','), _t0);
         // A bulk filter names no ids to evict — drop the cache whole and
         // let the next reader repopulate it.
         if (collectionName === Collections.Content) this.dropContentCache();
@@ -810,7 +925,9 @@ export class PersistenceManager {
    * @param id - MongoDB _id (string or ObjectId)
    */
   public async delete(collectionName: string, id: string): Promise<void> {
-    return this.dispatchDelete(collectionName, id);
+    const _t0 = performance.now();
+    await this.dispatchDelete(collectionName, id);
+    _orec('delete', collectionName, '_id', _t0);
   }
 
   /**
@@ -1217,9 +1334,11 @@ export class PersistenceManager {
     this.contentPending = [];
     const generation = this.contentGeneration;
     this.contentPreload = (async () => {
+      const _t0 = performance.now();
       const docs = await this.getCollection(Collections.Content)
         .find({})
         .toArray();
+      _orec('find', Collections.Content, '', _t0);
       // A bulk delete landed while this query was in flight: the rows it
       // removed are still in this snapshot. Discard it — the next reader
       // preloads again against the collection as it now stands.
