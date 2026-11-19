@@ -193,6 +193,16 @@ describe('ConsumerLogic keys participation on the person', () => {
     await flush();
     expect(await ConsumerApi.eventsFor('/world/lounge/agent/bartender')).toHaveLength(1);
   });
+
+  it('⭐ a giver with no identity at all — a login screen — earns nothing (D3)', async () => {
+    await bootConsumer();
+    const login = await mint(null);
+    fireDispatch(login.stuffId, 'cmd-l');
+    await flush();
+    expect(await ConsumerApi.eventsFor(login.stuffId)).toHaveLength(0);
+    // Nothing in the ledger (the store also holds the seeded settings row).
+    expect([...store.values()].filter((d) => 'bucket' in d)).toHaveLength(0);
+  });
 });
 
 describe('the scheduled recompute runs one pass at a time (ceramics drive, run 32)', () => {

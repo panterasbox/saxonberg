@@ -73,12 +73,16 @@ function active(): boolean {
  * lineage key was every player at once, and nobody any reader asks about
  * (db-performance W1, D1). The identity is the key renown already used, so
  * the consumer product (`renownOf × participationOf`) multiplies two
- * figures about one person, and a shade continues its person. Falls back
- * to the raw id when nothing resolves. (Mirrors `RenownLogic.durableKey`;
- * the substrate shares no code.)
+ * figures about one person, and a shade continues its person.
+ *
+ * ⭐ `null` when the giver has no identity — a login screen (D3). Its raw
+ * `stuffId` would be a subject no reader can ever ask about, minted once
+ * per connection and re-scored forever; a read that finds no person is a
+ * skip, not a fallback. (Renown keeps its raw-id fallback: its subjects
+ * come from acts between bodies.)
  */
-function durableKey(stuffId: string): string {
-  return StuffApi.findById(stuffId)?.getIdentityPath() ?? stuffId;
+function durableKey(stuffId: string): string | null {
+  return StuffApi.findById(stuffId)?.getIdentityPath() ?? null;
 }
 
 /** Read a numeric AppSetting with a pre-boot/tests fallback. */
@@ -151,9 +155,12 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
 
 /** Map a captured dispatch into a participation signal and append it. */
 async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
+  // The live giver id keys storage on the person (D1); no person, no
+  // signal (D3).
+  const subject = durableKey(p.subjectId);
+  if (subject === null) return;
   await appendImpl({
-    // The live giver id keys storage on the person (D1).
-    subject: durableKey(p.subjectId),
+    subject,
     kind: 'command',
     at: p.at,
     realAt: p.realAt,
