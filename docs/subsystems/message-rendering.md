@@ -898,43 +898,21 @@ Every mutation:
 3. `host.pushClientStateUpdate('style.overlay', next)` — push the
    authoritative value to connected Interactives.
 
-### `client-state-update` push wire
+### The push: a change on the client-state subscription
 
-Persistence + push are decoupled. The push half rides a new outbound
-message:
-
-```typescript
-interface ClientStateUpdateMessage {
-  type: 'client-state-update';
-  payload: { key: string; value: unknown };
-}
-```
+Persistence + push are decoupled. The push half is a change on the
+session's **client-state subscription** — the one subscription protocol
+(`docs/subsystems/subscription.md`, navigation-server W1). The server
+opens it silently at session entry (`SESSION_SUBSCRIPTIONS.clientState`,
+source `ClientStateSource`); its snapshot rides
+`connection-established.clientState`, so the first render has the
+player's settings, and `pushClientStateUpdate(key, value)` pokes the
+source, which sends `{ op: 'replace', key, fields: value }` as a
+`subscription-delta` to every session of the body.
 
 Parallel to the existing `client-state-write` inbound (client →
-server) — but flipped direction (server → client). The server mutates
-out-of-band; the client receives the authoritative value and
-re-renders without waiting on the reconnect snapshot.
-
-`HasInteractiveMixin.pushClientStateUpdate(key, value)` walks every
-connected `Interactive` and calls a strategy-injected push function.
-The injection pattern breaks an ESM load-time cycle:
-
-- `Application.initialize` calls
-  `setClientStateUpdatePush((interactive, key, value) =>
-  this.sendClientStateUpdateToInteractive(interactive, key, value))`.
-- `HasInteractiveMixin` stashes the function in a module-scoped slot
-  and calls it from `pushClientStateUpdate`.
-
-Direct import would create `Application → Avatar/Login →
-HasInteractive → Application` — `Login` consumes `HasInteractiveMixin`
-at module-eval time and breaks load. The setter pattern defers
-resolution until after both modules finish loading.
-
-On the client (`services/websocket.ts`), inbound messages whose
-`type === 'client-state-update'` (no `frameId`) are dispatched
-directly to `useStore.getState().setLocalClientState(key, value)`.
-Bypasses the Sensor pipeline — this is wire-substrate plumbing, not
-narrative.
+server), which stays a REQUEST. (The old a change on the client-state subscription message
+and its boot-time DI seam are retired.)
 
 ## Acceptance shape (Wave 1)
 
@@ -966,7 +944,7 @@ sweep distilled them to:
   truth for topic descriptors after `MessageApi.Topics` retirement).
 - [connection.md](./connection.md) — `HasInteractiveMixin`,
   `_clientState` storage, welcome-payload snapshot,
-  `client-state-update` outbound push.
+  a change on the client-state subscription outbound push.
 - [card-surface.md](./card-surface.md) — consumes
   `MmlRenderer.commandFor` and the stuff registry the markdown
   parser's `mudref:` links resolve against.

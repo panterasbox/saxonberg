@@ -5,7 +5,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { projectFocus } from '../mql-subscription';
+import { projectFocus } from '../subscription';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';

@@ -2224,13 +2224,13 @@ new FieldChangedEvent({ target: this.stuffId, field, oldValue, newValue });
 ```
 
 For setter sites that follow the "noop-check + capture + assign + fire"
-pattern, use the `MqlSubscriptionApi.fireFieldChange` helper instead
+pattern, use the `SubscriptionApi.fireFieldChange` helper instead
 of the long form:
 
 ```ts
 // CORRECT — one-line setter
 setName(value: string): void {
-  this.name = MqlSubscriptionApi.fireFieldChange(
+  this.name = SubscriptionApi.fireFieldChange(
     this, 'name', this.name, value,
   );
 }
@@ -2446,7 +2446,65 @@ content; only the controller knows. The `default:` branch above
 is for *typos*, and the framework owns that.
 
 
+## A refresh nobody can name — the hand-placed poke
+
+A screen that keeps itself current must answer two questions a player can
+check: **what makes it change** and **what changed it this time.** A
+hand-placed poke answers neither. *"Refresh the panes"* written after every
+command, after a move, in a door's setter and in a ship's voyage is a list
+that exists nowhere, so nobody can say why a pane changed (or did not), and
+"after every command" recomputes for `say`.
+
+**The rule.** A live surface wakes from the FIELDS its reads showed, fired
+at their setters (`SubscriptionApi.fireFieldChange`) — the same event a live
+card wakes on — through ONE declared table of whose field wakes what and
+why (`WHEREABOUTS_WAKES`). Only what no field and no command carries (the
+clock, a place moving under you) is an explicit poke, and the table names
+those too. **And every push names its cause** (`causes`: the command ids
+the transcript's lines carry), so the client ties a change to a line.
+
+**The tell:** a `refresh…()` call placed after an action rather than a
+fire inside the state change. The navigation-server build found one such
+poke hiding a bug: `Boundary.setOpen` told the ways, but `open door` never
+calls `setOpen` — only the after-every-command poke made it look right.
+
+## An Api per implementer of a protocol
+
+When several things implement one protocol — six subscription sources,
+seven modalities, the locomotion modes — there is **one Api for the
+protocol**, and each implementer is a singleton behind it. A facade per
+implementer (`MqlSubscriptionApi` beside `SubscriptionApi`, `SmellApi`
+beside `PerceptionApi`) makes a second way in for the same act, and its
+bespoke verbs are the protocol's verb wearing a disguise:
+`MqlSubscriptionApi.notifyDurableSubject(s)`, `notifyBelief(viewer,
+subject)` and `refreshForInteractive(i)` were all *"your answer may have
+changed"*, which is `poke(source,
+holder, hint)` with a hint in the source's own words.
+
+**The test:** take the implementer-specific verb and ask what it means
+in the protocol's vocabulary. If it means an existing verb with a
+different argument, it is that verb, and the hint carries the
+difference. What is genuinely one implementer's own (the MQL source's
+one-shot `query`) can ride the protocol's Api as one more static, or be
+the singleton's own method — never a second facade.
+
+```ts
+// WRONG — a second Api for one source
+MqlSubscriptionApi.notifyDurableSubject(subject);
+// RIGHT — the protocol's verb, the source's own words in the hint
+SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject });
+```
+
+Found at review of the navigation-server build (MR !595), which built
+the one protocol and left the MQL source's facade standing beside it — and
+a sibling build, meanwhile, added a third bespoke poke to that facade
+(`notifyBelief`), which is how a second Api grows: it is where the next
+person looks.
+
 ## Don't add a per-sense Api — modalities are singletons
+
+*(The sensory case of [An Api per implementer of a
+protocol](#an-api-per-implementer-of-a-protocol).)*
 
 Adding `SmellApi`, `SoundApi`, or any per-modality static class is
 the wrong shape. Modalities are templated `Idea` singletons
@@ -6677,6 +6735,60 @@ each its own controller (`dry <thing> with <cloth>` vs `dry <thing> on
 <rack>`); (5) only then a new word (`spud`, `paste`). The protocol answers
 facts and a reason; the controller words them. `lint:multi-act` counts what
 is left (controller-liquidity D13; [command-spec.md](./subsystems/command-spec.md)).
+
+## A fact about one thing, stamped onto everything it touches
+
+A value belongs on the host it **varies with**. Put it on a host it does
+not vary with, and it is copied onto every instance of that host —
+identical on all of them — while the thing it is really about holds
+nothing.
+
+**The test: hold everything else fixed and vary the host.** If the value
+never changes, it is not the host's. Find what DOES change it; that is its
+home.
+
+The navigation-server build shipped one and the owner caught it in review.
+Each way's verdict carried `flee: true` — *"leaving by this way is fleeing
+a fight."* But a fight is a fact about the VIEWER: if you are fighting,
+every way out of the room said `flee`, and if you are not, none did. The
+marker never varied by way. *"Why is this a property of the exit? I just
+don't understand what state is being modelled here."*
+
+### BAD (a viewer fact copied onto every way)
+
+```ts
+// on each way's verdict
+take: { ok: true, flee: true }   // the same on every exit of the room
+```
+
+### GOOD (the fact on its own host, said once)
+
+```ts
+// on the body — the `you` section
+you.fighting = { foes: 2, breakaway: null };   // Combatant.leavingTheFight()
+```
+
+### ⭐ A computed verdict may repeat a truth; it may not BE the fact
+
+A way's verdict is a relation, computed now — *what would happen if you
+tried this way*. When something about you makes EVERY way refuse (a fight
+you cannot break away from, a posture you cannot walk from, a load too
+heavy to carry), each verdict honestly says so, in the words trying gives:
+trying any way does fail. What must not happen is the CAUSE living only
+there. It lives once on its own host — `you.fighting.breakaway`,
+`you.posture`, `you.bars` (`LocomotionApi.bodyRefusals`) — and the
+verdicts are computed from the same read, so they can never disagree.
+
+The distinction to hold: a marker on an *ok* answer (`flee`) carries a
+fact; a refusal on a *no* answer reports a consequence.
+
+### Its relatives
+
+- [review-questions P2](./review-questions.md) — an honest default that
+  answers "no" on most hosts (every pool answering *no current*). The same
+  root: a field on a host most of whose members do not mean it.
+- [Object identity where you mean person identity](#object-identity-where-you-mean-person-identity)
+  — keying on the body's row when the fact is the person's.
 
 ## A read the room makes for everyone that changes the world
 

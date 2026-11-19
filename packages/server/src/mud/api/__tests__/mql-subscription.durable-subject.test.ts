@@ -19,7 +19,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -32,6 +32,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const SUBJECT = '/platform/agent/Avatar/tester';
 
@@ -61,9 +62,7 @@ async function subscribedInteractive(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
   );
   interactive.transferTo(avatar);
-  MqlSubscriptionApi.handleSubscribe({
-    interactive,
-    subscriptionId: 's1',
+  interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
     query: 'me',
     cardinality: 'one',
     // The standing figures — the fields that carry a durableKey.
@@ -77,15 +76,15 @@ describe('durable-subject witness', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('⭐ a poke on the durable subject re-resolves the subscription', async () => {
     await subscribedInteractive(SUBJECT);
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
+    await SubscriptionApi._drainScheduledForTesting();
 
     // THE assertion the original wiring would have failed.
     expect(
@@ -99,8 +98,8 @@ describe('durable-subject witness', () => {
     await subscribedInteractive(SUBJECT);
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
-    MqlSubscriptionApi.notifyDurableSubject('/platform/agent/Avatar/somebody-else');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: '/platform/agent/Avatar/somebody-else' });
+    await SubscriptionApi._drainScheduledForTesting();
 
     // The index matches the exact key, so one player's renown append
     // does not wake every other player's standing card.
@@ -112,11 +111,11 @@ describe('durable-subject witness', () => {
     await subscribedInteractive(SUBJECT);
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
     expect(spy).not.toHaveBeenCalled(); // setImmediate hasn't run
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     expect(spy).toHaveBeenCalledTimes(1);
     spy.mockRestore();
@@ -129,8 +128,8 @@ describe('durable-subject witness', () => {
     await subscribedInteractive(null);
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
+    await SubscriptionApi._drainScheduledForTesting();
 
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
@@ -138,14 +137,52 @@ describe('durable-subject witness', () => {
 
   it('a torn-down subscription stops receiving pokes', async () => {
     const interactive = await subscribedInteractive(SUBJECT);
-    interactive.cancelMqlSubscription('s1');
+    interactive.cancelSubscription('s1');
     const spy = vi.spyOn(MqlApi, 'resolveMany');
 
-    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: SUBJECT });
+    await SubscriptionApi._drainScheduledForTesting();
 
     // The synthetic kind has no bus listener to release, so teardown
     // has to remove the index entry itself — this catches that.
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+/**
+ * ⭐ The other poke the MQL source answers: the body behind a session
+ * changed (the sandbox crossing moves a socket between bodies). Once its
+ * own `refreshForInteractive` method; now the session pokes the source
+ * with the body it drives, like every other producer.
+ */
+describe('a holder poke — the body behind the session changed', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
+  });
+
+  it('⭐ the session\'s refresh re-resolves its subscriptions for the body it drives', async () => {
+    const interactive = await subscribedInteractive(SUBJECT);
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
+
+    interactive.refreshMqlSubscriptions();
+    await SubscriptionApi._drainScheduledForTesting();
+
+    expect(spy, 'the holder poke did not reach the subscription').toHaveBeenCalledTimes(1);
+    spy.mockRestore();
+  });
+
+  it('a poke for ANOTHER body leaves this session alone', async () => {
+    await subscribedInteractive(SUBJECT);
+    const stranger = makeStuff(() => new Avatar());
+    const spy = vi.spyOn(MqlApi, 'resolveMany');
+
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, stranger, undefined);
+    await SubscriptionApi._drainScheduledForTesting();
+
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

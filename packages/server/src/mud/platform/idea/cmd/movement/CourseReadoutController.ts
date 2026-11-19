@@ -17,6 +17,9 @@ export default class CourseReadoutController extends CourseControllerBase {
     const giver = context.commandGiver;
     const craft = await this.craftOf(giver);
     if (craft === null) return this.smallBoat(context, '');
+    // ⭐ The reckoning is the helm's reading (navigation-server D10): a
+    // passenger standing at her wheel is told what the steer tells them.
+    if (!this.mayHelm(context, craft, giver)) return;
     if (craft.getLine() !== null) return this.onRiver(context, craft);
     const frame = await craft.liveFrame();
     const expanse = frame instanceof Expanse ? frame : null;
@@ -65,6 +68,8 @@ export default class CourseReadoutController extends CourseControllerBase {
     if (reckoned) {
       const bracket = plot ? plot.statedBracket(nm, band) : 'exactly';
       lines.push(`Your position, by reckoning: ${reckoned.toString()} — ${bracket}.`);
+      // ⭐ A reckoning given is a reckoning learned (navigation-server D2).
+      if (MixinApi.isPerceiver(giver)) giver.learnReckoning(craft, bracket);
     }
     if (nm >= 1) {
       lines.push('A sight, a sounding or a landmark would tighten it.');

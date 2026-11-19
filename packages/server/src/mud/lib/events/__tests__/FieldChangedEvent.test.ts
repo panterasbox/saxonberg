@@ -1,6 +1,6 @@
 /**
  * FieldChangedEvent DTO sanity — KIND + payload shape. The
- * `fireFieldChange` helper lives on `MqlSubscriptionApi`; its tests
+ * `fireFieldChange` helper lives on `SubscriptionApi`; its tests
  * live in `api/__tests__/mql-subscription.fireFieldChange.test.ts`.
  */
 

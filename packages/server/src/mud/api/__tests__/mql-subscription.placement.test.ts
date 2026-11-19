@@ -14,10 +14,10 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   REF_FIELDS,
   DETAIL_FIELDS,
-} from '../mql-subscription';
+} from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -69,7 +69,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('a container child carries holds: true; a leaf child carries neither', async () => {
@@ -79,12 +79,12 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     ContainmentApi.move(chest, location);
     ContainmentApi.move(apple, location);
 
-    const chestRef = MqlSubscriptionApi.projectFields(
+    const chestRef = SubscriptionApi.projectFields(
       chest,
       REF_FIELDS,
       avatar as unknown as Stuff & Sensor,
     );
-    const appleRef = MqlSubscriptionApi.projectFields(
+    const appleRef = SubscriptionApi.projectFields(
       apple,
       REF_FIELDS,
       avatar as unknown as Stuff & Sensor,
@@ -105,7 +105,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     // `on` the lid — Chest offers `on` by default.
     ContainmentApi.move(apple, chest, Placements.ON);
 
-    const appleRef = MqlSubscriptionApi.projectFields(
+    const appleRef = SubscriptionApi.projectFields(
       apple,
       REF_FIELDS,
       avatar as unknown as Stuff & Sensor,
@@ -120,7 +120,7 @@ describe('MQL subscription — Rung 1 placement/holds projection', () => {
     ContainmentApi.move(chest, location);
     ContainmentApi.move(apple, chest, Placements.ON);
 
-    const chestDetail = MqlSubscriptionApi.projectFields(
+    const chestDetail = SubscriptionApi.projectFields(
       chest,
       DETAIL_FIELDS,
       avatar as unknown as Stuff & Sensor,

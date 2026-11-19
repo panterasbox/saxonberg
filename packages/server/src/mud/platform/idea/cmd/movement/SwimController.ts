@@ -5,8 +5,6 @@
 
 import { LocomotionControllerBase, type LocomotionModel } from './LocomotionControllerBase';
 import type { CommandContext } from '../../../../api/command';
-import type { LocomotionMode } from '../../LocomotionMode';
-import type { TraversalGuard } from '../../../../lib/boundary/Exit';
 import type { CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { WaterEntryRefusal } from '../../../../lib/location/Shore';
@@ -59,19 +57,5 @@ export default class SwimController extends LocomotionControllerBase {
         throw new Error(`SwimController: no words for ${String(unworded)}`);
       }
     }
-  }
-
-  protected override composeRejection(
-    guard: TraversalGuard,
-    mode: LocomotionMode,
-    model: LocomotionModel,
-  ): string {
-    if (guard.gate === 'enablement') {
-      return "You can't swim that way.";
-    }
-    if (guard.gate === 'capability') {
-      return "This water's too rough for you.";
-    }
-    return super.composeRejection(guard, mode, model);
   }
 }

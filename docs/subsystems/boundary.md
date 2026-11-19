@@ -1166,3 +1166,24 @@ it describes.
 
 See [location-graph.md](./location-graph.md) and
 [parcel.md](./parcel.md).
+
+## A way's verdict and its facts (navigation-server, 2026-11)
+
+`Exit.wayFor(viewer)` is this way as the viewer would take it now: the
+`WayRecord`, the way's and its boundary's facts by composition (descriptors
+with `aspect: 'way'` — `Boundary`'s `state`/`opening`/`swingsShut`,
+`Lockable`'s `locked`/`keyHeld`, `Door`'s `freeHere`), and `take` — the
+cascade `go` runs (`LocomotionApi.canTraverseExit`), asked with
+`{ probe: true }`. A probe materializes nothing (no ship stood up, no patch
+minted, no house provisioned) and leaves a fight engaged; it answers *no* in
+trying's own words (with `works`: the lower mode and command, the pack, the
+dismount), *yes*, or *yes as far as you know* (`unseen`). ⭐ Only what
+varies from way to way is on a way: a fight is a fact about YOU
+(`you.fighting`, `Combatant.leavingTheFight()`), and only a fight you cannot
+break away from makes every way refuse, in `disengage`'s own words —
+see antipatterns.md § *A fact about one thing, stamped onto everything it
+touches*. The mode words its own refusals (`LocomotionMode.refusals`),
+never the controller. A way's state FIRES (`open`/`locked` on its door,
+`gangwayLocked` on a berth exit), and whoever stands at the way hears it
+through where-you-are's wake table (`WHEREABOUTS_WAKES`, subscription.md) —
+the hand-placed `Exit.wayChanged()` poke retired at review.

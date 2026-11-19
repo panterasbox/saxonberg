@@ -2,7 +2,7 @@
  * useStylesheet — bridge the Zustand store's `clientState` snapshot
  * to a resolved `Stylesheet`. Subscribes to overlay changes so the
  * cockpit re-renders when the `style` verb mutates the overlay (via
- * the `client-state-update` push wire).
+ * the client-state subscription).
  *
  * Single source of truth: `clientState['style.overlay']`. The
  * stylesheet picks a theme by reading `overlay.theme` and composes

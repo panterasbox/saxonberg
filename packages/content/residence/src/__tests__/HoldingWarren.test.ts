@@ -426,6 +426,10 @@ describe('the residential programme (D16)', () => {
     const zone = hall.getZone()!;
     expect(zone.getTemplatePath()).toBe('/world/prog-test/house');
     expect(zone.getIdentityPath()).toBe(LOT1);
+    // ⭐ navigation-server D2 on zone instancing: a map claim names the COPY's
+    // zone — house A and house B are two places on a map, never the row's one.
+    const subject = (hall as unknown as { mapSubject(): { at: { zone?: string } } | null }).mapSubject();
+    expect(subject?.at.zone).toBe(LOT1);
     expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(36);
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     for (const leaf of ['bedroom', 'porch', 'shed']) {

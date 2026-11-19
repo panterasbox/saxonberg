@@ -260,3 +260,104 @@ describe('⭐ charted and told — each with a writer (maritime D9)', () => {
     expect(saved?.claims.map((c) => c.toldBy)).toEqual(['/test/pilot/a', '/test/pilot/b']);
   });
 });
+
+describe('⭐ what a claim knows (navigation-server D2, D4)', () => {
+  it('a way seen shut, then locked, is TWO claims; seeing it shut again bumps the first', async () => {
+    const edge = { kind: 'edge' as const, dir: 'north', toLabel: '/test/map/zone/yard' };
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'shut' })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'locked', lastSeen: 200 })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ ...edge, state: 'shut', lastSeen: 300 })]);
+    const states = saved!.claims.map((c) => [c.state, c.lastSeen]);
+    expect(states).toEqual([
+      ['shut', 300],
+      ['locked', 200],
+    ]);
+  });
+
+  it('a position fills a held claim that had none, and is never rewritten', async () => {
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim()]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ at: { zone: '/test/z', x: 1, y: 2, z: 0 }, lastSeen: 200 })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ at: { zone: '/test/z', x: 9, y: 9, z: 9 }, lastSeen: 300 })]);
+    expect(saved!.claims).toHaveLength(1);
+    expect(saved!.claims[0]!.at).toEqual({ zone: '/test/z', x: 1, y: 2, z: 0 });
+    expect(saved!.claims[0]!.lastSeen).toBe(300);
+  });
+
+  it('two charts are two sources; the helm\'s reckoning sits beside a passenger\'s sea', async () => {
+    const sea = { place: '/test/sea', label: '/test/sea' };
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [
+      claim({ ...sea, channel: 'charted', via: '/test/chart/old' }),
+      claim({ ...sea, channel: 'charted', via: '/test/chart/new' }),
+      claim({ ...sea, at: { zone: '/test/sea' } }),
+      claim({ ...sea, at: { zone: '/test/sea', geo: { latDeg: 50, lonDeg: -4 }, reckoned: true, errorNm: 2 } }),
+    ]);
+    expect(saved!.claims).toHaveLength(4);
+  });
+
+  it('⭐ the copy is told exactly what a write grew or bumped, keyed, paths tagged', async () => {
+    const { SubscriptionApi } = await import('../../../../api/subscription');
+    const poke = vi.spyOn(SubscriptionApi, 'poke');
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ label: '/test/map/zone/hall' })]);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ label: '/test/map/zone/hall' })]); // nothing new
+    expect(poke).toHaveBeenCalledTimes(1);
+    const hint = poke.mock.calls[0]![2] as { ownerKey: string; locality: string; claims: { key: string; place: unknown; label: unknown }[] };
+    expect(hint.ownerKey).toBe(VIEWER);
+    expect(hint.locality).toBe(LOCALITY);
+    expect(hint.claims).toHaveLength(1);
+    expect(hint.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
+    expect(hint.claims[0]!.label).toEqual({ path: '/test/map/zone/hall', spoiler: 1 });
+    expect(typeof hint.claims[0]!.key).toBe('string');
+  });
+});
+
+describe('⭐ the copy reads through the Api (the drive found the self-call)', () => {
+  it('readMapCopy answers the documents, each claim keyed and tagged', async () => {
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim()]);
+    const copy = await NavigationApi.readMapCopy(VIEWER, '');
+    expect(copy.documents).toHaveLength(1);
+    expect(copy.documents[0]!.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
+  });
+});
+
+describe('⭐⭐ concurrent writes to one map document lose nothing (the drive found it)', () => {
+  it('three writes at once — a look, the walked edge, the walked place — all land', async () => {
+    // A slow store: every read and save yields, so unserialized writes
+    // would read the same document and the last save would win.
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 5));
+    vi.spyOn(DocumentApi, 'readMaps').mockImplementation((async () => {
+      await tick();
+      return saved ? [{ path: `/home/mapper/map/${LOCALITY}`, data: JSON.parse(JSON.stringify(saved)) }] : [];
+    }) as never);
+    const saves = vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
+      await tick();
+      saved = data as unknown as MapDocument;
+    }) as never);
+    await Promise.all([
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'seen' })]),
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ kind: 'edge', dir: 'north', toLabel: '/test/x' })]),
+      NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'walked' })]),
+    ]);
+    expect(saved!.claims.map((c) => `${c.kind}:${c.channel}`).sort()).toEqual(['edge:seen', 'place:seen', 'place:walked']);
+    // ⭐ One beat, one save (navigation-server review): not three round-trips.
+    expect(saves).toHaveBeenCalledTimes(1);
+  });
+
+  it('a claim arriving while a save is in flight is the NEXT save, and lands too', async () => {
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 5));
+    vi.spyOn(DocumentApi, 'readMaps').mockImplementation((async () => {
+      await tick();
+      return saved ? [{ path: `/home/mapper/map/${LOCALITY}`, data: JSON.parse(JSON.stringify(saved)) }] : [];
+    }) as never);
+    let late: Promise<void> | null = null;
+    const saves = vi.spyOn(DocumentApi, 'saveMap').mockImplementation((async (_o: string, _l: string, data: Record<string, unknown>) => {
+      // The first save is in flight when the walked claim arrives.
+      late ??= NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'walked' })]);
+      await tick();
+      saved = data as unknown as MapDocument;
+    }) as never);
+    await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim({ channel: 'seen' })]);
+    await late;
+    expect(saves).toHaveBeenCalledTimes(2);
+    expect(saved!.claims.map((c) => `${c.kind}:${c.channel}`).sort()).toEqual(['place:seen', 'place:walked']);
+  });
+});

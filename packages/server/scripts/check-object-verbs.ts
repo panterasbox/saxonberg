@@ -157,7 +157,7 @@ const EXEMPT_APIS = new Set<string>([
   "TemplateApi",
   // the field-projection seam + wire handlers (the Interactive tier
   // moved in F5)
-  "MqlSubscriptionApi",
+  "SubscriptionApi",
   // the surviving session tier (G1): openSession/join/advance/merge/
   // sessionFor are the SESSION lifecycle (CombatSession is a lib value
   // class, not Stuff — mandate (b)); standingTermsOf/arenaMaxBandFor

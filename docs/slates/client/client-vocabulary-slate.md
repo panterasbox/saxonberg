@@ -56,7 +56,7 @@ player cannot know whether `clo` is a number or a sentence.
 
 ### The home exists and has no such facet
 
-`SubscribableFieldDescriptor` (`api/mql-subscription.ts`) is already a
+`SubscribableFieldDescriptor` (`api/subscription.ts`) is already a
 **per-field declaration, static on the mixin that owns the field**, on
 the projection path:
 

@@ -339,7 +339,7 @@ only.
 ## The standing witness
 
 After each append is persisted, the ledger calls
-**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+**`SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })`** — a direct method
 call on the one consumer that cares.
 
 Every standing here derives on read, which works fine for a verb (you

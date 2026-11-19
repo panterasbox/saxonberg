@@ -5,7 +5,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -13,6 +13,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -43,43 +44,41 @@ interface AnyEnvelope {
     key: string;
     fields?: Record<string, unknown>;
   }>;
-  result?: unknown[];
+  snapshot?: unknown[];
 }
 
 function captureEnvelopes(avatar: Avatar): AnyEnvelope[] {
   const collected: AnyEnvelope[] = [];
-  vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+  vi.spyOn(Interactive.prototype, 'sendEnvelope').mockImplementation((tpl) => {
     collected.push(tpl as unknown as AnyEnvelope);
   });
   return collected;
 }
 
-describe('MqlSubscriptionApi — diff', () => {
+describe('SubscriptionApi — diff', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('single-cardinality field change produces op: update with diffed fields', async () => {
     const { interactive, avatar } = await setup();
     const envelopes = captureEnvelopes(avatar);
 
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
-    expect(envelopes.find((e) => e.type === 'mql-subscription-result')).toBeDefined();
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
+    expect(envelopes.find((e) => e.type === 'subscription-result')).toBeDefined();
 
     envelopes.length = 0;
     avatar.setName('Bob');
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
-    const delta = envelopes.find((e) => e.type === 'mql-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
     expect(delta!.changes).toHaveLength(1);
     expect(delta!.changes![0]).toMatchObject({
@@ -93,18 +92,16 @@ describe('MqlSubscriptionApi — diff', () => {
     const { interactive, avatar } = await setup();
     const envelopes = captureEnvelopes(avatar);
 
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
     envelopes.length = 0;
     // setName('Alice') noop-skips at the FieldChangedEvent layer
     // because Object.is(old, new). Verifies no spurious delta.
     avatar.setName('Alice');
-    await MqlSubscriptionApi._drainScheduledForTesting();
-    expect(envelopes.filter((e) => e.type === 'mql-subscription-delta')).toEqual([]);
+    await SubscriptionApi._drainScheduledForTesting();
+    expect(envelopes.filter((e) => e.type === 'subscription-delta')).toEqual([]);
   });
 });

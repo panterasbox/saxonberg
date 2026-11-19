@@ -18,7 +18,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -29,6 +29,7 @@ import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Place from '../../lib/stuff/Place';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -64,7 +65,7 @@ async function setup(): Promise<{
   interactive.transferTo(avatar);
 
   const envelopes: CapturedEnvelope[] = [];
-  vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+  vi.spyOn(Interactive.prototype, 'sendEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as CapturedEnvelope);
   });
   return { interactive, avatar, location, envelopes };
@@ -82,12 +83,12 @@ async function makeBrassThermometer(short: string): Promise<Good> {
   });
 }
 
-describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
+describe('SubscriptionApi — contents projection (Wave 1)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('projects contents on a Container host with three Visible children', async () => {
@@ -101,21 +102,18 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     ContainmentApi.move(t3, location);
 
     envelopes.length = 0;
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-contents',
-      query: 'here',
-      cardinality: 'one',
-      fields: 'detail',
-    });
+    interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
+    query: 'here',
+    cardinality: 'one',
+    fields: 'detail',
+  });
 
     const initial = envelopes.find(
-      (e) => e.type === 'mql-subscription-result',
+      (e) => e.type === 'subscription-result',
     );
     expect(initial).toBeDefined();
-    const rec = (initial as unknown as {
-      result: Array<{ contents?: Array<Record<string, unknown>> }>;
-    }).result[0]!;
+    const rec = (initial as unknown as { snapshot: Array<{ contents?: Array<Record<string, unknown>> }>;
+    }).snapshot[0]!;
     expect(rec.contents).toBeDefined();
     expect(rec.contents).toHaveLength(3);
 
@@ -131,22 +129,20 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     const t1 = await makeBrassThermometer('a brass thermometer');
     ContainmentApi.move(t1, location);
 
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-contents',
-      query: 'here',
-      cardinality: 'one',
-      fields: 'detail',
-    });
+    interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
+    query: 'here',
+    cardinality: 'one',
+    fields: 'detail',
+  });
     envelopes.length = 0;
 
     // Add a second Thing.
     const t2 = await makeBrassThermometer('an iron lantern');
     ContainmentApi.move(t2, location);
 
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
-    const delta = envelopes.find((e) => e.type === 'mql-subscription-delta');
+    const delta = envelopes.find((e) => e.type === 'subscription-delta');
     expect(delta).toBeDefined();
     type DeltaShape = {
       changes: Array<{
@@ -172,23 +168,20 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
 
     // Project directly to assert the filter is per-viewer.
     const envelopes: CapturedEnvelope[] = [];
-    vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+    vi.spyOn(Interactive.prototype, 'sendEnvelope').mockImplementation((tpl) => {
       envelopes.push(tpl as unknown as CapturedEnvelope);
     });
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-contents',
-      query: 'here',
-      cardinality: 'one',
-      fields: 'detail',
-    });
+    interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
+    query: 'here',
+    cardinality: 'one',
+    fields: 'detail',
+  });
 
     const initial = envelopes.find(
-      (e) => e.type === 'mql-subscription-result',
+      (e) => e.type === 'subscription-result',
     );
-    const rec = (initial as unknown as {
-      result: Array<{ contents?: Array<{ stuffId: string }> }>;
-    }).result[0]!;
+    const rec = (initial as unknown as { snapshot: Array<{ contents?: Array<{ stuffId: string }> }>;
+    }).snapshot[0]!;
     const ids = (rec.contents ?? []).map((c) => c.stuffId);
     // Only t1 — avatar is filtered out (it's the viewer / self).
     expect(ids).toContain(t1.stuffId);
@@ -200,15 +193,15 @@ describe('MqlSubscriptionApi — contents projection (Wave 1)', () => {
     // no `contents` key. Use `projectFields` directly against an Idea
     // instance (Avatar / Place both compose ContainerMixin).
     await bootRegistry();
-    const { MqlSubscriptionApi, DETAIL_FIELDS } = await import(
-      '../mql-subscription'
+    const { SubscriptionApi, DETAIL_FIELDS } = await import(
+      '../subscription'
     );
     const { Idea } = await import('../../lib/stuff/Idea');
     const plain = await StuffApi.create(() => new Idea());
-    const rec = MqlSubscriptionApi.projectFields(
+    const rec = SubscriptionApi.projectFields(
       plain,
       DETAIL_FIELDS,
-      plain as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2],
+      plain as unknown as Parameters<typeof SubscriptionApi.projectFields>[2],
     );
     expect(rec.contents).toBeUndefined();
     expect('contents' in rec).toBe(false);

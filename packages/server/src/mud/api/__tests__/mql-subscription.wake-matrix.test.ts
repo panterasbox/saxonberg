@@ -19,8 +19,9 @@
  * resolve-and-project).
  */
 import '../../../test-bootstrap';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi, REF_FIELDS, DETAIL_FIELDS } from '../mql-subscription';
+import { SubscriptionApi, REF_FIELDS, DETAIL_FIELDS } from '../subscription';
 import { MqlApi } from '../mql';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -36,6 +37,15 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { Placements } from '../../lib/spatial/Placement';
 import { NamedMixin } from '../../lib/description/Named';
+
+/** Open an MQL subscription on the protocol (the old `handleSubscribe` shape). */
+function openMql(
+  req: { interactive: Interactive; subscriptionId: string; silent?: boolean } & Record<string, unknown>,
+): void {
+  const { interactive, subscriptionId, silent, ...params } = req;
+  void interactive.subscribe(subscriptionId, SUBSCRIPTION_SOURCES.mql, params, { silent: silent === true });
+}
+
 
 class Thing extends NamedMixin(Good) {
   static _mixinName = 'WakeMatrixThing';
@@ -86,7 +96,7 @@ async function wakes(
   mutate: () => void | Promise<void>,
 ): Promise<number> {
   const id = `s${Math.random().toString(36).slice(2)}`;
-  MqlSubscriptionApi.handleSubscribe({
+  openMql({
     interactive,
     subscriptionId: id,
     query: req.query ?? '',
@@ -95,13 +105,13 @@ async function wakes(
     ...(req.subjectId !== undefined ? { subjectId: req.subjectId } : {}),
     silent: true,
   });
-  await MqlSubscriptionApi._drainScheduledForTesting();
-  const spy = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+  await SubscriptionApi._drainScheduledForTesting();
+  const spy = vi.spyOn(SubscriptionApi, 'collectProjections');
   await mutate();
-  await MqlSubscriptionApi._drainScheduledForTesting();
+  await SubscriptionApi._drainScheduledForTesting();
   const n = spy.mock.calls.length;
   spy.mockRestore();
-  interactive.cancelMqlSubscription(id);
+  interactive.cancelSubscription(id);
   return n;
 }
 
@@ -134,6 +144,7 @@ const RESIDUAL: Record<string, string> = {
   worn: 'Attired; fires `occupants` on the wearer — a creature fixture',
   exits: 'Exitable; no fire site (census: no mutation site)',
   placed: 'the host’s own field — covered by the desk case below',
+  present: 'a PLACE’s field (who is here) — covered by "a live place card says who is here" below',
 };
 
 /** The fields a REF row of the thing depends on — what a place card shows of it. */
@@ -144,7 +155,7 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     await bootRegistry();
   });
 
@@ -240,14 +251,14 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
     for (let i = 0; i < 30; i++) viewers.push((await viewerIn(place, `P${i}`, `crowd-${i}`)).interactive);
     for (const [i, interactive] of viewers.entries()) {
       for (const [id, subjectId] of [[`room-${i}`, place.stuffId], [`barrel-${i}`, barrel.stuffId]] as const) {
-        MqlSubscriptionApi.handleSubscribe({
+        openMql({
           interactive, subscriptionId: id, query: '', cardinality: 'one',
           fields: [...DETAIL_FIELDS], subjectId, silent: true,
         });
       }
     }
-    await MqlSubscriptionApi._drainScheduledForTesting();
-    const spy = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+    await SubscriptionApi._drainScheduledForTesting();
+    const spy = vi.spyOn(SubscriptionApi, 'collectProjections');
     await good(() => new Thing(), 'newcomer', place);
     // The drain is time-sliced (it gives the loop back every 20 ms), so
     // wait for it to settle, then make sure nothing more arrives.
@@ -270,17 +281,17 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
       const { interactive } = await viewerIn(place, 'Alice', `memo-${Math.random()}`);
       const things: Thing[] = [];
       for (let i = 0; i < 30; i++) things.push(await good(() => new Thing(), `thing${i}`, place));
-      MqlSubscriptionApi.handleSubscribe({
+      openMql({
         interactive, subscriptionId: 'room', query: '', cardinality: 'one',
         fields: [...DETAIL_FIELDS], subjectId: place.stuffId, silent: true,
       });
-      await MqlSubscriptionApi._drainScheduledForTesting();
+      await SubscriptionApi._drainScheduledForTesting();
       return { place, interactive, things };
     }
     async function rowsComputedBy(mutate: () => unknown): Promise<number> {
       const spy = vi.spyOn(Stuff.prototype, 'describeFor');
       await mutate();
-      await MqlSubscriptionApi._drainScheduledForTesting();
+      await SubscriptionApi._drainScheduledForTesting();
       const n = spy.mock.calls.length;
       spy.mockRestore();
       return n;
@@ -302,13 +313,13 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
       const viewers: Interactive[] = [];
       for (let i = 0; i < 30; i++) viewers.push((await viewerIn(place, `V${i}`, `w8-${i}`)).interactive);
       for (const [i, interactive] of viewers.entries()) {
-        MqlSubscriptionApi.handleSubscribe({
+        openMql({
           interactive, subscriptionId: `room-${i}`, query: '', cardinality: 'one',
           fields: [...DETAIL_FIELDS], subjectId: place.stuffId, silent: true,
         });
       }
-      await MqlSubscriptionApi._drainScheduledForTesting();
-      const projections = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+      await SubscriptionApi._drainScheduledForTesting();
+      const projections = vi.spyOn(SubscriptionApi, 'collectProjections');
       const resolves = vi.spyOn(MqlApi, 'resolveMany');
       await good(() => new Thing(), 'newcomer', place);
       await expect.poll(() => projections.mock.calls.length, { timeout: 10_000, interval: 50 }).toBe(30);
@@ -329,32 +340,36 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
     it('a paused subscription has no index entries, is never re-resolved and emits nothing across fifty mutations', async () => {
       const place = await StuffApi.create(() => new Place());
       const { avatar, interactive } = await viewerIn(place, 'Alice', 'pause');
+      void avatar;
+      // ⭐ The protocol sends through the SESSION (one wire), never the body.
       const sent: Array<{ type: string }> = [];
-      vi.mocked(avatar.onEnvelope).mockImplementation((t) => {
-        sent.push(t as unknown as { type: string });
+      vi.spyOn(interactive, 'sendEnvelope').mockImplementation((t: unknown) => {
+        sent.push(t as { type: string });
       });
       const box = await good(() => new Box(), 'box', place);
-      MqlSubscriptionApi.handleSubscribe({
+      openMql({
         interactive, subscriptionId: 'card', query: '', cardinality: 'one',
         fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true,
       });
       interactive.pauseSubscription('card');
-      expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(), 'no entries').toBe(0);
-      const spy = vi.spyOn(MqlSubscriptionApi, 'collectProjections');
+      expect(SubscriptionApi._getDependencyIndexEntryCountForTesting(), 'no entries').toBe(0);
+      const spy = vi.spyOn(SubscriptionApi, 'collectProjections');
       for (let i = 0; i < 50; i++) box.setName(`box${i}`);
-      await MqlSubscriptionApi._drainScheduledForTesting();
+      await SubscriptionApi._drainScheduledForTesting();
       expect(spy, 'never re-resolved').not.toHaveBeenCalled();
-      expect(sent.filter((e) => e.type.startsWith('mql-subscription'))).toEqual([]);
+      expect(sent.filter((e) => e.type.startsWith('subscription'))).toEqual([]);
 
       interactive.resumeSubscription('card');
-      const results = sent.filter((e) => e.type === 'mql-subscription-result') as unknown as Array<{
+      const results = sent.filter((e) => e.type === 'subscription-result') as unknown as Array<{
         subscriptionId: string;
-        result: Array<{ displayName?: string }>;
+        rev: number;
+        snapshot: Array<{ displayName?: string }>;
       }>;
       expect(results, 'exactly one result on resume').toHaveLength(1);
       expect(results[0]!.subscriptionId).toBe('card');
-      expect(results[0]!.result[0]?.displayName).toBe('box49');
-      expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(), 'entries back').toBeGreaterThan(0);
+      expect(results[0]!.rev, 'a reset').toBe(0);
+      expect(results[0]!.snapshot[0]?.displayName).toBe('box49');
+      expect(SubscriptionApi._getDependencyIndexEntryCountForTesting(), 'entries back').toBeGreaterThan(0);
       // …and it wakes again.
       expect(await wakes(interactive, { subjectId: box.stuffId, fields: DETAIL_FIELDS }, () => box.setName('again'))).toBeGreaterThan(0);
       spy.mockRestore();
@@ -365,11 +380,11 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
       const { interactive } = await viewerIn(place, 'Alice', 'pause2');
       const box = await good(() => new Box(), 'box', place);
       const sub = { interactive, subscriptionId: 'c', query: '', cardinality: 'one' as const, fields: [...DETAIL_FIELDS], subjectId: box.stuffId, silent: true as const };
-      MqlSubscriptionApi.handleSubscribe(sub);
+      openMql(sub);
       interactive.pauseSubscription('c');
       expect(interactive.isSubscriptionPaused('c')).toBe(true);
-      interactive.cancelMqlSubscription('c');
-      MqlSubscriptionApi.handleSubscribe(sub);
+      interactive.cancelSubscription('c');
+      openMql(sub);
       expect(interactive.isSubscriptionPaused('c'), 'a reopened id starts shown').toBe(false);
       expect(() => interactive.pauseSubscription('nope')).not.toThrow();
       expect(() => interactive.resumeSubscription('nope')).not.toThrow();
@@ -377,3 +392,44 @@ describe('⭐⭐ the wake matrix (crowded-rooms D1/D2)', () => {
   });
 });
 
+
+/**
+ * ⭐⭐ A live place card's "Here" is LIVE (navigation-server review): the
+ * look's prose froze it at the look, so an arrival reached the card as a
+ * delta and never showed. `present` is the same people rule as `look`'s
+ * (`Place.peopleHereFor`), projected as a field.
+ */
+describe('⭐⭐ a live place card says who is here (navigation-server review)', () => {
+  it('someone walking in joins `present`; walking out leaves it; the look agrees on the chip', async () => {
+    const place = await StuffApi.create(() => new Place());
+    const elsewhere = await StuffApi.create(() => new Place());
+    const { avatar, interactive } = await viewerIn(place, 'Alice', 'here');
+    void avatar;
+    const sent: Array<{ type: string; changes?: Array<{ fields?: { present?: Array<{ label: string }> } }> }> = [];
+    vi.spyOn(interactive, 'sendEnvelope').mockImplementation((t: unknown) => {
+      sent.push(t as never);
+    });
+    const bob = await StuffApi.create(() => new Avatar());
+    bob.setName('Bob');
+    ContainmentApi.move(bob, elsewhere);
+    const snap = interactive.subscribe('room', SUBSCRIPTION_SOURCES.mql, {
+      query: '', cardinality: 'one', fields: [...DETAIL_FIELDS], subjectId: place.stuffId,
+    }, { silent: true }) as Array<{ present?: Array<{ label: string }> }>;
+    expect(snap[0]?.present ?? []).toEqual([]);
+
+    ContainmentApi.move(bob, place);
+    await SubscriptionApi._drainScheduledForTesting();
+    const presentNow = (): string[] => {
+      const deltas = sent.filter((e) => e.type === 'subscription-delta');
+      const last = deltas.at(-1)?.changes?.find((c) => c.fields?.present !== undefined);
+      return (last?.fields?.present ?? []).map((p) => p.label);
+    };
+    expect(presentNow()).toEqual([bob.describeFor(avatar)]);
+    // The same chip `look` would show for this viewer — one rule.
+    expect(place.peopleHereFor(avatar)).toEqual([bob.presenceChipFor(avatar)]);
+
+    ContainmentApi.move(bob, elsewhere);
+    await SubscriptionApi._drainScheduledForTesting();
+    expect(presentNow()).toEqual([]);
+  });
+});

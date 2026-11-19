@@ -42,6 +42,7 @@ import { Idea } from '../stuff/Idea';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
+import type { NavWay, WayTake, WayWorks } from '@saxonberg/types';
 import type { NounPhrase } from '../description/NounPhrase';
 import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
@@ -61,6 +62,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
+import { SubscriptionApi } from '../../api/subscription';
 import { GrammarApi } from '../../api/grammar';
 import { ParcelApi } from '../../api/parcel';
 import { NavigationApi } from '../../api/navigation';
@@ -159,6 +161,23 @@ export interface TraversalGuard {
    * can tell it afterwards (`Enablement.afterEnabledTraverse`, cordage D11).
    */
   host?: Stuff & Enablement;
+  /**
+   * ⭐ On an ok guard asked as a probe: *as far as you know* — the far side
+   * is not standing, so what only it can say was not asked.
+   */
+  unseen?: true;
+  /** ⭐ On a refusal: what would let you through, as data (D8). */
+  works?: WayWorks;
+}
+
+/**
+ * ⭐ How a crossing is asked (navigation-server D8). `probe` asks every gate
+ * `go` runs WITHOUT moving and WITHOUT materializing anything: no ship is
+ * stood up, no patch minted, no house provisioned, no fight left. A way
+ * whose far side cannot be settled without that says `unseen`.
+ */
+export interface TraverseOptions {
+  probe?: boolean;
 }
 
 /**
@@ -463,6 +482,70 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       };
     }
     return out;
+  }
+
+  /**
+   * ⭐⭐ This way as `viewer` would take it NOW (navigation-server D8, D9):
+   * the {@link wayRecord}, the far side's name when it stands, the way's
+   * and its boundary's facts by composition (`aspect: 'way'`), and `take`
+   * — the very cascade `go` runs, asked as a probe, so it never disagrees
+   * with trying. Three honest forms: *no* in trying's words (and what
+   * would work), *yes*, or *yes, as far as you know* (`unseen`). Only what
+   * differs from way to way is here; what is true of you whichever way you
+   * leave (a fight) is the `you` section's. Nothing is materialized.
+   */
+  public async wayFor(viewer: Stuff & Containable): Promise<NavWay> {
+    const record = this.wayRecord();
+    const far = this.peekDestination() as Stuff | null;
+    const facts: Record<string, string | number | boolean> = MixinApi.isSensor(viewer)
+      ? { ...SubscriptionApi.projectAspect(this as unknown as Stuff, 'way', viewer) }
+      : {};
+    const boundary = this.getBoundary();
+    if (boundary && MixinApi.isSensor(viewer)) {
+      Object.assign(facts, SubscriptionApi.projectAspect(boundary, 'way', viewer));
+    }
+    const way: NavWay = {
+      ...record,
+      ...(far ? { destination: far.getPresentation() } : {}),
+      ...(this.isOneWay() ? { oneWay: true } : {}),
+      ...(this.isMuffled() ? { muffled: true } : {}),
+      ...(Object.keys(facts).length > 0 ? { facts } : {}),
+    };
+    way.take = await this.takeFor(viewer, far);
+    return way;
+  }
+
+  /** The verdict half of {@link wayFor}. */
+  private async takeFor(viewer: Stuff & Containable, far: Stuff | null): Promise<WayTake> {
+    const mode = await LocomotionApi.loadMode(LocomotionApi.defaultModeFor(viewer));
+    const guard = await LocomotionApi.canTraverseExit(viewer, this, mode, this.direction, { probe: true });
+    if (!guard.ok) {
+      return {
+        ok: false,
+        gate: guard.gate ?? 'blocked',
+        reason: guard.reason ?? "You can't go that way.",
+        ...(guard.works ? { works: guard.works } : {}),
+      };
+    }
+    // ⭐ A fight you cannot break away from refuses every way, in the words
+    // trying gives (`disengage` reads the same). That you are fighting at
+    // all — and what leaving costs — is a fact about YOU, shown once in the
+    // `you` section, never copied onto each way (review, 2026-11-17).
+    if (MixinApi.isCombatant(viewer)) {
+      const breakaway = viewer.leavingTheFight()?.breakaway ?? null;
+      if (breakaway !== null) return { ok: false, gate: 'breakaway', reason: breakaway };
+    }
+    // ⭐ The place veto `go` asks (water's: you cannot walk out of a pool you
+    // are swimming in) is asked here too, through its own predicate. When
+    // the far side does not stand, the verdict says so rather than claiming
+    // a yes it cannot keep.
+    const unseen = guard.unseen === true || far === null;
+    const src = this.source;
+    if (src && MixinApi.isWaterPlace(src) && MixinApi.isMobile(viewer)) {
+      const out = src.canExit(viewer, this);
+      if (!out.ok) return { ok: false, gate: 'veto', reason: out.reason ?? "You can't leave." };
+    }
+    return { ok: true, ...(unseen ? { unseen: true as const } : {}) };
   }
 
   /**
@@ -1030,6 +1113,26 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * to the mover (`second`), or about it to somebody leading it (`third`:
    * *its canvas panniers won't go through*).
    */
+  /**
+   * ⭐ What would let you through, as DATA, made where the words are
+   * (navigation-server D8): the lower mode and the command, the pack to
+   * take off, the mount to leave.
+   */
+  private clearanceWorks(refusal: ClearanceRefusal): WayWorks | null {
+    const { facts } = refusal;
+    if (refusal.reason !== 'too-big-for-way') return null;
+    const works: WayWorks = {};
+    if (facts.dismount === true) works.dismount = true;
+    if (facts.pack !== undefined) {
+      works.remove = { stuffId: facts.pack.stuffId, name: facts.pack.presentationPhrase().bare() };
+    }
+    if (facts.lower !== undefined) {
+      works.mode = facts.lower;
+      works.command = `${facts.lower} ${this.direction}`;
+    }
+    return Object.keys(works).length > 0 ? works : null;
+  }
+
   private clearanceWords(refusal: ClearanceRefusal, person: 'second' | 'third' = 'second'): string {
     const { facts } = refusal;
     const way = this.direction;
@@ -1471,11 +1574,17 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * far side is too. Never a way out of the water — a basin's wall stays
    * a climb, because the quay above it is dry.
    */
-  protected async floodedFor(mover: Stuff & Containable, modeName: string): Promise<boolean> {
+  protected async floodedFor(
+    mover: Stuff & Containable,
+    modeName: string,
+    opts?: TraverseOptions,
+  ): Promise<boolean> {
     if (LocomotionApi.modeOf(modeName)?.getMedium() !== 'water') return false;
     const here = mover.getContainer();
     if (here === null || !MixinApi.isWaterPlace(here) || here.stateNow() !== 'swimming') return false;
     let far: Stuff | null = this.peekDestination();
+    // ⭐ A probe never materializes the far side (D8).
+    if (far === null && opts?.probe) return false;
     if (far === null) {
       try {
         far = await this.resolveDestination();
@@ -1624,6 +1733,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   public async canTraverse(
     mover: Stuff & Containable,
     mode?: string,
+    opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     if (this.blocked) {
       return {
@@ -1685,7 +1795,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         };
       }
     }
-    if (mode != null && !this.allowsMode(mode) && !(await this.floodedFor(mover, mode))) {
+    if (mode != null && !this.allowsMode(mode) && !(await this.floodedFor(mover, mode, opts))) {
       // ⭐ Name the way that works (found by the underwater browser walk:
       // the card's `up` out of the river sends `go up`, which said only
       // "You can't walk that way" beside steps you have to climb).
@@ -1708,6 +1818,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         gate: 'clearance',
         ...(mode != null ? { mode } : {}),
         reason: this.clearanceWords(tight),
+        ...(this.clearanceWorks(tight) ? { works: this.clearanceWorks(tight)! } : {}),
         context: {
           refusal: tight.reason,
           // The same refusal told ABOUT the mover — a leader hears it (D18).

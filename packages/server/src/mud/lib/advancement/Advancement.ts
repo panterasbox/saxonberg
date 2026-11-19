@@ -25,7 +25,7 @@ import type { MixinConstructor } from "../mixin";
 import type { CommandGiver } from "../command/CommandGiver";
 import type { CommandDefinition } from "../command/CommandDefinition";
 import type { CommandContributions } from "../../api/command";
-import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
+import type { SubscribableFieldDescriptor } from "../../api/subscription";
 import { CommandApi } from "../../api/command";
 import { StuffApi } from "../../api/stuff";
 import { DocumentNotResidentError } from "../errors";
@@ -42,8 +42,9 @@ import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
 import { MixinApi } from "../../api/mixin";
 import { DerivedStandingCache } from "../standing/DerivedStandingCache";
-import { MqlSubscriptionApi } from "../../api/mql-subscription";
+import { SubscriptionApi } from "../../api/subscription";
 import { Final, Unshadowable } from "../security/decorators";
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /** Act-level context shared by every sub-check row of one act. */
 export interface RecordOptions {
@@ -264,7 +265,7 @@ const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
     const bands = await bandsForImpl(owner, { stocks: false });
     return bands[0] ?? null;
   },
-  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
+  (subject) => SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })
 );
 
 /**
@@ -283,7 +284,7 @@ const digestCache = new DerivedStandingCache<DisciplineBand[]>(
     if (!owner) return [];
     return bandsForImpl(owner);
   },
-  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
+  (subject) => SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })
 );
 
 /** Public shape provided by AdvancementMixin. */

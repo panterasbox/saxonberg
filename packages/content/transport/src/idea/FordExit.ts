@@ -44,7 +44,7 @@ import type { LineFrame, LinePositionRecord } from '@saxonberg/server/mud/lib/ex
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 
 /** A wading body is over its head past this share of its height. */
 const HEAD_SHARE = 0.85;
@@ -136,7 +136,7 @@ export default class FordExit extends Exit {
   /** Refused only where the water is over your head: then it is a swim. */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     const water = await this.waterNow().catch(() => null);
     if (water !== null && this.verdictFor(mover, water) === 'over-head') {
@@ -146,7 +146,7 @@ export default class FordExit extends Exit {
         reason: 'The ford is over your head at this water. Across here it would be a swim.',
       };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   /**

@@ -15,7 +15,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { MQL_PREDICATES } from '../predicates';
-import { REF_FIELDS, DETAIL_FIELDS } from '../../mql-subscription';
+import { REF_FIELDS, DETAIL_FIELDS } from '../../subscription';
 import { ParcelApi } from '../../parcel';
 import { ChattelMixin } from '../../../lib/chattel/Chattel';
 import type { ChattelOwner } from '../../../lib/chattel/ChattelRecord';

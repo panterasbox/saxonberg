@@ -42,8 +42,8 @@ import type {
   DispatchResponseEnvelope,
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
-  MqlSubscriptionResultEnvelope,
-  MqlSubscriptionErrorEnvelope,
+  SubscriptionResultEnvelope,
+  SubscriptionErrorEnvelope,
   AffordanceResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
@@ -74,8 +74,8 @@ const SETTLE_CAP_MS = Number(process.env.WIRE_SETTLE_CAP ?? 4_000);
 
 /** Whichever answer a `subscribe()` got first. */
 export type SubscribeOutcome =
-  | MqlSubscriptionResultEnvelope
-  | MqlSubscriptionErrorEnvelope;
+  | SubscriptionResultEnvelope
+  | SubscriptionErrorEnvelope;
 
 export type QueryRecord =
   | StuffRefRecord
@@ -286,7 +286,7 @@ export class Session {
   /**
    * Every non-message envelope since the last `cmd()` (a ring of
    * {@link CAPTURE_RING}) — `card-opened`, `card-touched`,
-   * `client-state-update`… The assertion surface for what the client is
+   * client-state change… The assertion surface for what the client is
    * told beyond prose (client-surface W0).
    */
   private readonly envelopes: CapturedEnvelope[] = [];
@@ -552,9 +552,24 @@ export class Session {
   }
 
   /** Route one socket message into the channel that is waiting for it. */
+  /**
+   * ⭐ Every frame this session receives, raw, BEFORE any per-command
+   * capture is cleared — the seam a standing observer (`NavClient`) is fed
+   * through. Returns the unregister.
+   */
+  observe(fn: (frame: Record<string, unknown>, bytes: number) => void): () => void {
+    this.observers.add(fn);
+    return () => this.observers.delete(fn);
+  }
+  private readonly observers = new Set<(frame: Record<string, unknown>, bytes: number) => void>();
+
   private receive(raw: string): void {
     this.lastFrameAt = Date.now();
     for (const frame of splitFrames(raw)) {
+      if (this.observers.size > 0) {
+        const bytes = Buffer.byteLength(JSON.stringify(frame));
+        for (const fn of this.observers) fn(frame as Record<string, unknown>, bytes);
+      }
       const type = typeof frame.type === 'string' ? frame.type : null;
       if (type === 'dispatch-response') {
         // ⚠ A FORCED command's envelope is not the answer to anything
@@ -593,8 +608,8 @@ export class Session {
         continue;
       }
       if (
-        type === 'mql-subscription-error' ||
-        type === 'mql-subscription-result'
+        type === 'subscription-error' ||
+        type === 'subscription-result'
       ) {
         const id =
           typeof frame.subscriptionId === 'string' ? frame.subscriptionId : '';
@@ -719,6 +734,11 @@ export class Session {
   /** Every captured message frame on `topic` since the last `cmd()`. */
   framesOf(topic: string): CapturedFrame[] {
     return this.rawFrames.filter((f) => f.topic === topic);
+  }
+
+  /** Every captured message frame since the last `cmd()`, any topic. */
+  allFrames(): CapturedFrame[] {
+    return this.rawFrames.slice();
   }
 
   /** Drop every captured envelope and frame. `cmd()` does this itself. */
@@ -946,28 +966,27 @@ export class Session {
   }
 
   /**
-   * Open a STANDING query and return whichever answer the server gives
-   * first — the result envelope, or the refusal.
+   * ⭐ Open a subscription to `source` (a template path —
+   * `SUBSCRIPTION_SOURCES`) with `params`, on the one subscription wire
+   * (navigation-server D1), and return whichever answer the server gives
+   * first — the snapshot, or the refusal.
    *
    * ⚠ It resolves rather than throwing on a refusal, because for some
-   * queries the refusal IS the expected outcome and a thrown error would
-   * make the two indistinguishable from "the socket went quiet". The
-   * caller asserts on `type`.
+   * subscriptions the refusal IS the expected outcome and a thrown error
+   * would make the two indistinguishable from "the socket went quiet".
+   * The caller asserts on `type`.
    *
    * The subscription is left registered when it succeeds; a wire file
    * that opens one is a `.dirty.` file by that alone.
    */
-  async subscribe(
-    query: string,
-    opts: { cardinality?: 'one' | 'many'; fields?: string[] } = {}
-  ): Promise<SubscribeOutcome> {
+  async subscribe(source: string, params?: unknown): Promise<SubscribeOutcome> {
     const subscriptionId = `wire-sub-${++this.queryCounter}-${Date.now().toString(36)}`;
     return new Promise<SubscribeOutcome>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pendingSubscriptions.delete(subscriptionId);
         reject(
           new Error(
-            `wire: no mql-subscribe answer for '${query}' within ` +
+            `wire: no answer to subscribe '${source}' within ` +
               `${FRAME_TIMEOUT_MS}ms`
           )
         );
@@ -975,13 +994,12 @@ export class Session {
       this.pendingSubscriptions.set(subscriptionId, { resolve, timer });
       this.ws.send(
         JSON.stringify({
-          type: 'mql-subscribe',
+          type: 'subscribe',
           payload: {
-            type: 'mql-subscribe',
+            type: 'subscribe',
             subscriptionId,
-            query,
-            cardinality: opts.cardinality ?? 'many',
-            ...(opts.fields ? { fields: opts.fields } : {}),
+            source,
+            ...(params !== undefined ? { params } : {}),
           },
         })
       );
@@ -1125,12 +1143,12 @@ export class Session {
    * card's `instanceId`.
    */
   pauseSubscription(subscriptionId: string): void {
-    this.ws.send(JSON.stringify({ type: 'mql-subscription-pause', payload: { subscriptionId } }));
+    this.ws.send(JSON.stringify({ type: 'subscription-pause', payload: { subscriptionId } }));
   }
 
-  /** …and on screen again: the server answers one fresh `mql-subscription-result`. */
+  /** …and on screen again: the server answers one fresh `subscription-result`. */
   resumeSubscription(subscriptionId: string): void {
-    this.ws.send(JSON.stringify({ type: 'mql-subscription-resume', payload: { subscriptionId } }));
+    this.ws.send(JSON.stringify({ type: 'subscription-resume', payload: { subscriptionId } }));
   }
 
   /** Still connected — `close()` has not been called and the socket is open. */

@@ -22,7 +22,7 @@ import { Mml } from '../../../api/mml';
 import { ContainmentApi } from '../../../api/containment';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
@@ -169,7 +169,7 @@ describe('DisplayMixin — a display drives itself', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
     const reg = await StuffApi.create(() => new EventRegistry());
     stampTemplatePathForTest(reg, '/platform/idea/EventRegistry');

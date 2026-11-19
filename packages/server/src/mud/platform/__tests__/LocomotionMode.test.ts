@@ -50,6 +50,7 @@ describe('LocomotionMode', () => {
       'enablementMixin',
       'medium',
       'hands',
+      'refusals',
     ];
 
     it('declares exactly the expected fields (class shape)', () => {

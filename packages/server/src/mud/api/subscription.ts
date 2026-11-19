@@ -1,29 +1,31 @@
 /**
- * MqlSubscriptionApi — thin facade over the MQL subscription substrate,
- * plus the stateless projection helpers consumed by the substrate.
+ * SubscriptionApi — THE subscription Api (navigation-server D1). One
+ * protocol for every state push, and one facade for it:
  *
- * The registry-backed orchestration + registry resolution live in the
- * hot-reloadable {@link MqlSubscriptionLogic} singleton at
- * `/platform/idea/api/mql-subscription`, reached synchronously via
- * `StuffApi.singletonSync`; the Logic resolves the
- * `MqlSubscriptionRegistry` singleton (at `/platform/idea/MqlSubscriptionRegistry`)
- * where all subscription state (per-Interactive registry, meta-bus
- * dependency index, listener refcount table, dirty queue) actually
- * lives. `dest /platform/idea/api/mql-subscription` reloads the Logic; the
- * Registry's state is unaffected.
+ * - **a body's poke** ({@link SubscriptionApi.poke}) — tell a source that
+ *   a holder's answer may have changed. Every producer speaks it: the
+ *   body's walk to where-you-are, a ledger's write to the MQL source
+ *   (`{ durableSubject }`), a claim to the map copy.
+ * - **the subscribable-field substrate** — the descriptors a mixin
+ *   declares (`SubscribableFieldDescriptor`), `fireFieldChange` at a
+ *   setter, `projectFields` / `projectAspect` at a read. Any source
+ *   projects through them; the MQL source is the first.
+ * - **the one-shot query** (`handleQuery`) the MQL source answers, and
+ *   the sandbox reap (`cancelAllForScope`).
  *
- * The Registry's public methods carry a gate that admits this module
- * AND the logic singleton (`FromTemplate('/platform/idea/api/mql-subscription')`),
- * so this Api remains the only legitimate path to mutate or query that
- * state.
+ * A session's own subscriptions are verbs on the session —
+ * `interactive.subscribe`, `cancelSubscription`, `cancelAllSubscriptions`,
+ * `hasSubscription`. The client's `subscribe` names a source by template
+ * path; the {@link SubscriptionRegistry} loads it on use, checks it
+ * composes `SubscriptionSourceMixin`, stamps `rev`, and sends
+ * `subscription-result` / `-delta` / `-error`. No source builds an
+ * envelope.
  *
- * The stateless projection helpers (`fireFieldChange`, `projectFields`,
- * and the module-level `SubscribableFieldDescriptor` shape,
- * `collectSubscribableFields`, `projectFocus`, `REF_FIELDS` /
- * `DETAIL_FIELDS`, `resolveFieldSet` free functions) stay on this
- * module — they're pure projection primitives consumed by both Api
- * callers and the Registry's internal dispatch pipeline, with no state
- * to host on a Stuff, so they don't move into the Logic.
+ * Everything with state forwards to the HMR-able {@link SubscriptionLogic}
+ * at `/platform/idea/api/subscription`. Read-only by construction: nothing
+ * here writes anything a client asks it to (`backend/inbound/README.md`).
+ *
+ * See `docs/subsystems/subscription.md`.
  */
 
 import type {
@@ -31,6 +33,7 @@ import type {
   StuffDetailRecord,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
+  MqlSubscriptionParams,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -46,15 +49,15 @@ import {
   FieldChangedEvent,
   type FieldChangedPayload,
 } from '../lib/events/FieldChangedEvent';
-import { MqlSubscriptionLogic } from '../platform/idea/api/MqlSubscriptionLogic';
+import { SubscriptionLogic } from '../platform/idea/api/SubscriptionLogic';
 import { fileURLToPath } from 'url';
 import { ExecutionContextApi } from './execution-context';
 
 // DI seam: re-exported so `MqlSubscriptionRegistry` registers its class
 // through this facade rather than importing the logic singleton directly
 // (the no-import-from-*Logic rule). The load-time mechanism lives in
-// `MqlSubscriptionLogic`; this is a pure pass-through re-export.
-export { registerMqlSubscriptionRegistryClass } from '../platform/idea/api/MqlSubscriptionLogic';
+// `SubscriptionLogic`; this is a pure pass-through re-export.
+export { registerMqlSubscriptionRegistryClass } from '../platform/idea/api/SubscriptionLogic';
 
 /** Declaration-shaped keep for the wire-error vocabulary import above —
  * the reason strings ride envelopes typed in `@saxonberg/types`; this
@@ -71,6 +74,13 @@ export interface ChangeSource {
 
 export interface SubscribableFieldDescriptor {
   name: string;
+  /**
+   * ⭐ `'way'`: this field is also a FACT of a way it stands in
+   * (navigation-server D9) — a boundary's state, its bolt, whether your
+   * key fits — projected into the ways section by composition, so a pack's
+   * boundary mixin appears with no kernel edit.
+   */
+  aspect?: 'way';
   read?: (stuff: Stuff, viewer: Stuff & Sensor) => unknown;
   perDetailRead?: (
     stuff: Stuff,
@@ -89,8 +99,9 @@ export interface SubscribableFieldDescriptor {
    * indexed under `null` and never fired at all.
    *
    * So a descriptor whose value comes from a durable-keyed ledger
-   * returns that key here, and its producer calls
-   * {@link MqlSubscriptionApi.notifyDurableSubject} after the write.
+   * returns that key here, and its producer pokes the MQL source with it
+   * after the write: `SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null,
+   * { durableSubject })`.
    * **No event, no bus, no broadcast** — a direct poke from the one
    * producer to the one consumer, matched exactly on the subject that
    * actually changed.
@@ -103,7 +114,7 @@ export interface SubscribableFieldDescriptor {
 
 /**
  * What a live subscription's projection is told while it runs (crowded-rooms
- * D1, D3) — see `MqlSubscriptionApi.collectProjections`. `enter` may return
+ * D1, D3) — see `SubscriptionApi.collectProjections`. `enter` may return
  * a memoized record (a row none of whose reads has fired since), which
  * `projectFields` returns as is; otherwise the row is projected and `leave`
  * is told what it came to. `read` is a descriptor's own resolve's record.
@@ -162,9 +173,11 @@ export const DETAIL_FIELDS: FieldSet = [
   'placed',
   'placement',
   'holds',
+  // ⭐ Who is here, live — a place's "Here" line (navigation-server review).
+  'present',
 ];
 
-// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through SubscriptionApi
 export function resolveFieldSet(
   spec: FieldSet | FieldAlias | undefined,
 ): FieldSet {
@@ -176,7 +189,7 @@ export function resolveFieldSet(
 
 /* ──────────────────── Prototype-chain walk ──────────────────── */
 
-// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through SubscriptionApi
 export function collectSubscribableFields(
   stuff: Stuff,
 ): ReadonlyMap<string, SubscribableFieldDescriptor> {
@@ -194,7 +207,7 @@ export function collectSubscribableFields(
 
 /* ─────────────────── Focused-detail projection ──────────────── */
 
-// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through MqlSubscriptionApi
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); production callers go through SubscriptionApi
 export function projectFocus(
   stuff: Stuff,
   detailKey: string,
@@ -224,15 +237,13 @@ export type SubscriptionRecord =
   | (StuffDetailRecord & Record<string, unknown>)
   | (StuffDetailFocusRecord & Record<string, unknown>);
 
-export interface SubscribeRequest {
-  interactive: Interactive;
-  subscriptionId: string;
-  query?: string;
-  cardinality?: SubscriptionCardinality;
+/**
+ * ⭐ What the MQL source is opened with (navigation-server D1): the wire's
+ * {@link MqlSubscriptionParams}, plus `subjectId` — which only a
+ * server-side opener (a live card) supplies.
+ */
+export interface SubscribeRequest extends Omit<MqlSubscriptionParams, 'fields'> {
   fields?: FieldSet | FieldAlias;
-  detailKey?: string;
-  focusDependent?: boolean;
-  locationDependent?: boolean;
   /**
    * ⭐⭐ **Bind this subscription to ONE Stuff, by id, instead of a
    * query.**
@@ -256,17 +267,6 @@ export interface SubscribeRequest {
    * subscriber is told it went.
    */
   subjectId?: string;
-  /**
-   * ⭐ Register and resolve, but do NOT emit the initial result
-   * envelope — return the records to the caller instead.
-   *
-   * A LIVE card owns its subscription handle (`instanceId ===
-   * subscriptionId`) and carries the first resolve on its own
-   * `card-opened`; emitting a second envelope for one open is how a card
-   * ends up briefly showing nothing while the client reconciles two
-   * shapes for the same content.
-   */
-  silent?: true;
 }
 
 export interface QueryRequest {
@@ -278,37 +278,50 @@ export interface QueryRequest {
   detailKey?: string;
 }
 
+
 /* ─────────────────────── logic resolution ─────────────────── */
 
-const LOGIC_PATH = '/platform/idea/api/mql-subscription';
+const LOGIC_PATH = '/platform/idea/api/subscription';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../platform/idea/api/MqlSubscriptionLogic', import.meta.url)
+  new URL('../platform/idea/api/SubscriptionLogic', import.meta.url)
 );
 
-/** Resolve the HMR-able MqlSubscriptionLogic singleton (sync). */
-function logic(): MqlSubscriptionLogic {
+/** Resolve the HMR-able SubscriptionLogic singleton (sync). */
+function logic(): SubscriptionLogic {
   return StuffApi.singletonSync(
     LOGIC_PATH,
     () =>
       new ((HotReloadApi.getCurrentExport(
         LOGIC_CLASS_FILE,
-        'MqlSubscriptionLogic'
-      ) as typeof MqlSubscriptionLogic | null) ?? MqlSubscriptionLogic)()
+        'SubscriptionLogic'
+      ) as typeof SubscriptionLogic | null) ?? SubscriptionLogic)()
   );
 }
 
-/* ─────────────────────── MqlSubscriptionApi ─────────────────── */
+/* ─────────────────────── SubscriptionApi ─────────────────── */
 
-export class MqlSubscriptionApi {
+export class SubscriptionApi {
   private constructor() {}
+
+  /**
+   * ⭐ A body's own poke: the source at `source` is told `holder`'s
+   * answer may have changed (`null`: everyone's). `hint` is the source's
+   * own vocabulary — the sections that may have changed (where you are),
+   * the durable subject a ledger just wrote (`{ durableSubject }`, the MQL
+   * source). A source nobody subscribed to is not standing and is not
+   * stood up to be told.
+   */
+  public static poke(source: string, holder: Stuff | null, hint?: unknown): void {
+    logic().poke(source, holder, hint);
+  }
 
   /**
    * Compress the noop-check + capture + assign + fire boilerplate at
    * every fact-mixin setter into one call.
    *
-   * Lives on `MqlSubscriptionApi` rather than next to `FieldChangedEvent`
+   * Lives on `SubscriptionApi` rather than next to `FieldChangedEvent`
    * so the substrate owns its own helpers — the event class stays a
-   * pure DTO. Stateless: `MqlSubscriptionApi.fireFieldChange` does not
+   * pure DTO. Stateless: `SubscriptionApi.fireFieldChange` does not
    * touch any Registry state.
    */
   public static fireFieldChange<T>(
@@ -349,7 +362,7 @@ export class MqlSubscriptionApi {
     // ⭐ A live subscription's projection is collecting (crowded-rooms D1,
     // D3): a nested row is a dependency like a top-level one, and a row
     // whose reads have not fired since it was last projected is reused.
-    const projector = MqlSubscriptionApi.#projector;
+    const projector = SubscriptionApi.#projector;
     if (projector !== null) {
       const hit = projector.enter(stuff, fieldNames);
       if (hit !== undefined) return hit;
@@ -381,16 +394,25 @@ export class MqlSubscriptionApi {
   }
 
   /**
-   * Register a live subscription; returns its first resolve, or `null`
-   * when the subscribe failed (the error envelope has already gone
-   * out). See {@link SubscribeRequest.silent}.
+   * ⭐ Every field `stuff` declares under `aspect` (navigation-server D9),
+   * read for `viewer` — a keyed record of words and numbers and booleans,
+   * no fixed shape. A read that answers `undefined` is absent.
    */
-  public static handleSubscribe(
-    req: SubscribeRequest,
-  ): SubscriptionRecord[] | null {
-    return logic().handleSubscribe(req);
+  public static projectAspect(
+    stuff: Stuff,
+    aspect: 'way',
+    viewer: Stuff & Sensor,
+  ): Record<string, string | number | boolean> {
+    const out: Record<string, string | number | boolean> = {};
+    for (const d of collectSubscribableFields(stuff).values()) {
+      if (d.aspect !== aspect || !d.read) continue;
+      const v = d.read(stuff, viewer);
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') out[d.name] = v;
+    }
+    return out;
   }
 
+  /** A one-shot MQL query (the `query` wire), answered once. */
   public static handleQuery(
     req: Omit<QueryRequest, 'query' | 'cardinality'> &
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>,
@@ -408,6 +430,12 @@ export class MqlSubscriptionApi {
   }
 
   /* ─── test seams ─── */
+
+  /** Every open subscription on the protocol, counted. */
+  public static _countForTesting(): number {
+    SecurityApi.assertTestOnly('_countForTesting');
+    return logic()._count();
+  }
 
   public static _getRegistrySizeForTesting(): number {
     SecurityApi.assertTestOnly('_getRegistrySizeForTesting');
@@ -429,31 +457,6 @@ export class MqlSubscriptionApi {
     logic()._clearAll();
   }
 
-  /**
-   * ⭐ **The durable-subject witness.** Re-resolve every subscription
-   * whose fields declared {@link SubscribableFieldDescriptor.durableKey}
-   * equal to `subject`.
-   *
-   * Called directly by a ledger after it persists a row — no event
-   * class, no `EventApi` fire. The bus is for genuinely global
-   * broadcast; this is one known producer poking one known consumer,
-   * which is a method call.
-   */
-  public static notifyDurableSubject(subject: string): void {
-    logic().notifyDurableSubject(subject);
-  }
-
-  /**
-   * ⭐ A viewer's belief about a subject changed (crowded-rooms D2) — they
-   * learned who someone is, their regard moved, a disguise was seen through.
-   * Re-projects that viewer's rows of that subject and nobody else's: the
-   * `notifyDurableSubject` shape with a second key kind. Called by the
-   * `BeliefStore` mutators.
-   */
-  public static notifyBelief(viewerId: string, subjectId: string): void {
-    logic().notifyBelief(viewerId, subjectId);
-  }
-
   /** The live projection's collector — see {@link collectProjections}. */
   static #projector: ProjectionCollector | null = null;
 
@@ -463,7 +466,7 @@ export class MqlSubscriptionApi {
    * to track what it read only then. An accessor: unwrapped, free.
    */
   static get collecting(): boolean {
-    return MqlSubscriptionApi.#projector !== null;
+    return SubscriptionApi.#projector !== null;
   }
 
   /**
@@ -482,12 +485,12 @@ export class MqlSubscriptionApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
       SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
     ),
   )
   public static noteRead(stuffs: readonly Stuff[], fields?: FieldSet): void {
-    const projector = MqlSubscriptionApi.#projector;
+    const projector = SubscriptionApi.#projector;
     if (projector === null) return;
     projector.read(stuffs, fields ?? null);
   }
@@ -504,12 +507,12 @@ export class MqlSubscriptionApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
       SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
     ),
   )
   public static perceivedAmong(list: readonly Stuff[], perceives: (s: Stuff) => boolean): Stuff[] {
-    const projector = MqlSubscriptionApi.#projector;
+    const projector = SubscriptionApi.#projector;
     if (projector === null) return list.filter(perceives);
     return list.filter((s) => projector.perceives(s, () => perceives(s)));
   }
@@ -525,12 +528,12 @@ export class MqlSubscriptionApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
+      SecurityPolicies.FromModule('/api/subscription#SubscriptionApi'),
       SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'),
     ),
   )
   public static sharedRead<T>(key: string, compute: () => T): T {
-    const projector = MqlSubscriptionApi.#projector;
+    const projector = SubscriptionApi.#projector;
     return projector === null ? compute() : projector.shared(key, compute);
   }
 
@@ -544,14 +547,14 @@ export class MqlSubscriptionApi {
    */
   @CallSecurity(SecurityPolicies.FromModule('/platform/idea/MqlSubscriptionRegistry'))
   public static collectProjections<T>(run: () => T, projector: ProjectionCollector): T {
-    const prev = MqlSubscriptionApi.#projector;
-    MqlSubscriptionApi.#projector = projector;
+    const prev = SubscriptionApi.#projector;
+    SubscriptionApi.#projector = projector;
     try {
       return run();
     } finally {
-      MqlSubscriptionApi.#projector = prev;
+      SubscriptionApi.#projector = prev;
     }
   }
 }
 
-SecurityApi.decorateApiClass(MqlSubscriptionApi);
+SecurityApi.decorateApiClass(SubscriptionApi);

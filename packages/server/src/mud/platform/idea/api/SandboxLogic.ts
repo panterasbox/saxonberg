@@ -18,7 +18,7 @@ import {
 } from '../../../api/execution-context';
 import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
 import { WorldClockApi } from '../../../api/worldclock';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { BankingApi } from '../../../api/banking';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
@@ -126,7 +126,7 @@ async function discardScopeImpl(scope: string): Promise<void> {
   }
   ScheduleApi.cancelAllForScope(scope);
   WorldClockApi.cancelAllForScope(scope);
-  MqlSubscriptionApi.cancelAllForScope(scope);
+  SubscriptionApi.cancelAllForScope(scope);
   BankingApi.discardScopeOverlay(scope);
 }
 

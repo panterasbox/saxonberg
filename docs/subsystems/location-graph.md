@@ -857,3 +857,18 @@ it because it force-advances the clock), and the only shipped concealed
 exit is in `/world/lounge`, which resolves no Locality and so cannot be
 mapped at all. So `searched` has a writer but no live end-to-end
 consumer yet.
+
+## What a claim knows (navigation-server, 2026-11)
+
+A claim records **where** its place is, written at perception and never
+afterwards (`at`: zone — in a copy, the copy's own minted zone (zone instancing) — cell and storey; a
+river's course and km; at sea, the sea alone, or the helm's reckoning with
+its error and bracket). The place answers (`Place.mapSubject()`): a copy's
+room is `<row>#<minted key>`, so two houses of one plan are two places;
+moving water names its river or sea, never the patch. An edge records the
+way's **state as seen** (`state`, in the growth key — *shut* then *locked*
+are two claims). A chart's claims carry `via`/`viaName`, so two charts are
+two sources. The first visit to a Locality is a claim of kind `locality`
+in that Locality's own document (name, government, kind — what it does not
+withhold, `Locality._learnable`). A dark `look` writes nothing. Your map
+reaches your client as a copy — see [subscription.md](./subscription.md).

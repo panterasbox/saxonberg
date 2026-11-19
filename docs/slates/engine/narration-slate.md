@@ -205,7 +205,7 @@ writes the framing words, which are precisely the words that would leak.**
 
 ⚠ **Build it ledger-shaped, not trait-shaped.** `AdvancementLogic`
 narrates nothing either — it only pokes
-`MqlSubscriptionApi.notifyDurableSubject` so live cards re-resolve.
+the `{ durableSubject }` poke (`SubscriptionApi.poke`) so live cards re-resolve.
 Nothing tells you you got better at anything. The two ledgers already
 share one `ActSignature` (trait.md's own *"instrument once"*), so hanging
 narration off the signature gets both in one build; hanging it off traits

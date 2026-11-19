@@ -223,8 +223,8 @@ suite('stage E — the ferry, and the sea', () => {
     expectOk(await master.cmd('go dinghy'));
     const launched = await say(master, 'launch');
     expect(launched, launched).toMatch(/into the water and she floats/);
-    const where = squash(await master.prose('locate me'));
-    expect(where, where).toMatch(/at sea, by reckoning/);
+    // `locate` retired (navigation-server W0): where the boat lies rides the
+    // where-you-are subscription (navigation-server drive), not a verb.
     expectOk(await master.cmd('recover'));
     expectOk(await master.cmd('go out'));
 

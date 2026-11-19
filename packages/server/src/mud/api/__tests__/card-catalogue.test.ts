@@ -108,8 +108,9 @@ describe('the card catalogue', () => {
       const src = CARDS[id].source;
       if (src.kind === 'payload') producers.push(src.producer);
     }
-    expect(producers.length).toBe(7);
-    expect(new Set(producers).size).toBe(7);
+    // The navigator left the payload tier (navigation-server D1): its body is a subscription.
+    expect(producers.length).toBe(6);
+    expect(new Set(producers).size).toBe(6);
   });
 
   it('exactly one row takes a subject, and it resolves behind the gate', () => {

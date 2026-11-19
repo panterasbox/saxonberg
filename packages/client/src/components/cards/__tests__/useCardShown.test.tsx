@@ -4,12 +4,12 @@
  * The client is the one source for *on screen*: a live card is shown while
  * its body is mounted, intersects the viewport and the document is visible.
  * Unseen for half a second, it tells the server to pause; seen again, it
- * resumes at once. A `mql-subscription-result` for a card's id is the
+ * resumes at once. A `subscription-result` for a card's id is the
  * resume's snapshot and replaces the card's records.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import type { Envelope, MqlSubscriptionResultEnvelope, CardOpenedEnvelope } from "@saxonberg/types";
+import type { Envelope, SubscriptionResultEnvelope, CardOpenedEnvelope } from "@saxonberg/types";
 import { useCardShown, useCardFeed } from "../useCardFeed";
 import { websocketClient } from "../../../services/websocket";
 import { useStore } from "../../../store/index";
@@ -103,13 +103,14 @@ describe("⭐⭐ the client says what is on screen (crowded-rooms D4)", () => {
       live: true, pinned: false, result: [{ stuffId: "r", displayName: "the square" }],
     } as unknown as CardOpenedEnvelope;
     handlers["card-opened"]!(open as unknown as Envelope);
-    const result: MqlSubscriptionResultEnvelope = {
-      type: "mql-subscription-result",
+    const result: SubscriptionResultEnvelope = {
+      type: "subscription-result",
       frameId: 2,
       subscriptionId: "room",
-      result: [{ stuffId: "r", displayName: "the crowded square" }],
-    } as MqlSubscriptionResultEnvelope;
-    handlers["mql-subscription-result"]!(result as unknown as Envelope);
+      rev: 0,
+      snapshot: [{ stuffId: "r", displayName: "the crowded square" }],
+    } as SubscriptionResultEnvelope;
+    handlers["subscription-result"]!(result as unknown as Envelope);
     expect(useStore.getState().cards["room"]!.records[0]!.displayName).toBe("the crowded square");
   });
 });

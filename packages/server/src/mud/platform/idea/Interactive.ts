@@ -38,6 +38,7 @@ import type {
   ArrangementCard,
   TerminalFilter,
 } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
   ChoicePromptOpts,
@@ -47,11 +48,10 @@ import type {
   TextPromptOpts,
 } from '../../api/prompt';
 import { ConnectionLogic } from './api/ConnectionLogic';
-import { MqlSubscriptionLogic } from './api/MqlSubscriptionLogic';
 import { CardLogic } from './api/CardLogic';
 import { PromptLogic } from './api/PromptLogic';
 import ReactionRegistry from './ReactionRegistry';
-import ForumSubscriptionRegistry from './ForumSubscriptionRegistry';
+import SubscriptionRegistry, { type SubscriptionOpenOptions } from './SubscriptionRegistry';
 import { Final, Unshadowable } from '../../lib/security/decorators';
 import { TemplatePaths } from '../../lib/paths';
 
@@ -70,12 +70,6 @@ function connectionLogic(): ConnectionLogic {
     () => new ConnectionLogic(),
   );
 }
-function mqlSubscriptionLogic(): MqlSubscriptionLogic {
-  return StuffApi.singletonSync(
-    '/platform/idea/api/mql-subscription',
-    () => new MqlSubscriptionLogic(),
-  );
-}
 function cardLogic(): CardLogic {
   return StuffApi.singletonSync('/platform/idea/api/card', () => new CardLogic());
 }
@@ -85,11 +79,11 @@ function promptLogic(): PromptLogic {
     () => new PromptLogic(),
   );
 }
-/** The forum-subscription registry (lazy-created in tests; manifest in prod). */
-function forumSubscriptions(): ForumSubscriptionRegistry {
-  return StuffApi.singletonSync<ForumSubscriptionRegistry>(
-    TemplatePaths.forumSubscriptionRegistry,
-    () => new ForumSubscriptionRegistry(),
+/** The one subscription table (lazy-created in tests; a row in prod). */
+function subscriptionRegistry(): SubscriptionRegistry {
+  return StuffApi.singletonSync<SubscriptionRegistry>(
+    TemplatePaths.subscriptionRegistry,
+    () => new SubscriptionRegistry(),
   );
 }
 
@@ -477,56 +471,69 @@ export default class Interactive extends Idea {
     return promptLogic().isPending(this, promptId);
   }
 
-  /* ──────────────── the MQL-subscription surface ─────────────── */
+  /* ──────────────── the subscription surface ─────────────── */
 
-  /** Cancel one live MQL subscription (the `mql-unsubscribe` wire). */
-  public cancelMqlSubscription(subscriptionId: string): void {
-    mqlSubscriptionLogic().handleUnsubscribe(this, subscriptionId);
+  /**
+   * ⭐ Open `subscriptionId` to the source at `source` (a template path)
+   * with `params` — the one subscription protocol (navigation-server D1).
+   * Answers the snapshot, or `null` when it was refused (the error is
+   * already on the wire). Synchronous when the source stands and answers
+   * synchronously (a live card's open); a promise otherwise.
+   */
+  public subscribe(
+    subscriptionId: string,
+    source: string,
+    params?: unknown,
+    opts?: SubscriptionOpenOptions,
+  ): unknown | null | Promise<unknown | null> {
+    return subscriptionRegistry().open(this, subscriptionId, source, params, opts ?? {});
+  }
+
+  /** Is `subscriptionId` open on this session? */
+  public hasSubscription(subscriptionId: string): boolean {
+    return subscriptionRegistry().has(this, subscriptionId);
+  }
+
+  /** Close one live subscription, whatever its source (the `unsubscribe` wire). */
+  public cancelSubscription(subscriptionId: string): void {
+    subscriptionRegistry().close(this, subscriptionId);
+  }
+
+  /** Close every live subscription (disconnect). */
+  public cancelAllSubscriptions(): void {
+    subscriptionRegistry().closeAll(this);
   }
 
   /**
    * ⭐ The client says this subscription is not on screen (crowded-rooms
-   * D4): nothing is computed or sent until {@link resumeSubscription}. The
-   * `mql-subscription-pause` wire. Unknown ids are a skip.
+   * D4): nothing is sent, and its source may stop computing, until
+   * {@link resumeSubscription}. The `subscription-pause` wire. Unknown ids
+   * are a skip.
    */
   public pauseSubscription(subscriptionId: string): void {
-    mqlSubscriptionLogic().handlePause(this, subscriptionId);
+    subscriptionRegistry().pause(this, subscriptionId);
   }
 
-  /** ⭐ On screen again: one fresh result, then deltas (`mql-subscription-resume`). */
+  /** ⭐ On screen again: one fresh result at `rev` 0, then deltas (`subscription-resume`). */
   public resumeSubscription(subscriptionId: string): void {
-    mqlSubscriptionLogic().handleResume(this, subscriptionId);
+    void subscriptionRegistry().resume(this, subscriptionId);
   }
 
   /** Is this subscription paused? */
   public isSubscriptionPaused(subscriptionId: string): boolean {
-    return mqlSubscriptionLogic().isPaused(this, subscriptionId);
-  }
-
-  /** Drop every live MQL subscription (disconnect). */
-  public cancelAllMqlSubscriptions(): void {
-    mqlSubscriptionLogic().cancelAllForInteractive(this);
+    return subscriptionRegistry().isPaused(this, subscriptionId);
   }
 
   /**
-   * Re-resolve every subscription this Interactive holds — the sandbox
+   * Re-resolve every MQL subscription this Interactive holds — the sandbox
    * crossing calls this after moving a socket between bodies, so the
    * client's cards re-render for the body it now drives.
    */
   public refreshMqlSubscriptions(): void {
-    mqlSubscriptionLogic().refreshForInteractive(this);
-  }
-
-  /* ─────────────── the forum-subscription surface ────────────── */
-
-  /** Cancel one live forum subscription (the `forum-unsubscribe` wire). */
-  public cancelForumSubscription(subscriptionId: string): void {
-    forumSubscriptions().handleUnsubscribe(this, subscriptionId);
-  }
-
-  /** Drop every live forum subscription (disconnect). */
-  public cancelAllForumSubscriptions(): void {
-    forumSubscriptions().cancelAllForInteractive(this);
+    // A poke with the body it now drives: the MQL source re-resolves this
+    // session's subscriptions for it.
+    const body = this.getHolder();
+    if (body !== null) subscriptionRegistry().poke(SUBSCRIPTION_SOURCES.mql, body, undefined);
   }
 
   /* ─────────────────── the reaction surface ──────────────────── */
@@ -574,9 +581,8 @@ export default class Interactive extends Idea {
    * still around.
    */
   public teardownSubstrateState(): void {
-    this.cancelAllMqlSubscriptions();
+    this.cancelAllSubscriptions();
     this.cancelAllCards();
-    this.cancelAllForumSubscriptions();
     this.cancelAllReactions();
     this.cancelPrompts('host-disconnected');
   }
@@ -586,7 +592,7 @@ export default class Interactive extends Idea {
     // ⚠ This call was MISSING, and the three Interactive-keyed
     // registries rely on it.
     //
-    // `MqlSubscriptionRegistry`, `ForumSubscriptionRegistry` and
+    // `SubscriptionRegistry` (and the MQL and forum sources behind it) and
     // `ReactionRegistry` are all keyed by a live `Interactive`. They are
     // indexes, not references — they do not own their keys, and
     // `Interactive` must not grow a back-ref to them — so no `lifetime`

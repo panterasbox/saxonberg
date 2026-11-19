@@ -47,7 +47,7 @@ asked for a shape.
 ## The wire: it rides the existing projection
 
 `illustration` is one entry in `DETAIL_FIELDS`
-(`api/mql-subscription.ts`); `VisibleMixin` contributes the
+(`api/subscription.ts`); `VisibleMixin` contributes the
 `SubscribableFieldDescriptor` exactly as the descriptions do, and it
 lands on `StuffDetailRecord.illustration` (`@saxonberg/types`). The wire
 carries the **key**, same as it carries `longDescription` prose.

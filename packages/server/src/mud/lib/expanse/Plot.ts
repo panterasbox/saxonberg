@@ -6,7 +6,7 @@
  * `Voyaging`); the RECKONED position is this: the last fix, carried
  * forward along the courses steered at the speed logged, knowing nothing
  * of the set. The two diverge exactly as far as the water moved you, and
- * `locate` reports this one, labelled as a reckoning, never the other.
+ * `course` at the helm reports this one, labelled as a reckoning, never the other.
  *
  * Its uncertainty grows while under way (`expanse.reckoningGrowthNmPerHour`)
  * and a fix collapses it: a sight of a landmark, a sounding, a sun sight

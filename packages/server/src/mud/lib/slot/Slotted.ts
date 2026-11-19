@@ -40,10 +40,10 @@ import { PlacementOffers } from '../spatial/PlacementOffers';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   REF_FIELDS,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { Impression, type ImpressionClause } from './Impression';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
@@ -826,7 +826,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      * count (`fireFieldChange` suppresses an `Object.is` no-op).
      */
     private fireOccupancyChange(): void {
-      MqlSubscriptionApi.fireFieldChange(
+      SubscriptionApi.fireFieldChange(
         this as unknown as Stuff,
         'occupants',
         null,

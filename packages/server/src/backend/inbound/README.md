@@ -28,9 +28,26 @@ natural seam — collapse the per-op handlers into one
 `handle<Substrate>` that switches on the envelope discriminator.
 Touch one file; don't ripple the change anywhere else.
 
+## ⭐⭐ Every state push is a SUBSCRIPTION — one wire for all of them
+
+*(owner, 2026-11-17, navigation-server D1 — supersedes the rule above
+for subscriptions.)* State the client keeps a copy of — a live query,
+a forum board, your map, where you are, your settings, the press
+ticker — rides ONE pair of messages: `subscribe` (naming a **source**
+by its template path, with `params`) and `unsubscribe`, answered by
+`subscription-result` (snapshot, `rev` 0), `subscription-delta`
+(`rev + 1`) and `subscription-error`. A new kind of state is a new
+SOURCE (a class composing `SubscriptionSourceMixin` and a row), never a
+new message type and never an edit here. See `subscription.ts` and
+`docs/subsystems/subscription.md`.
+
+Events stay events: a dispatch outcome, a prompt, an engagement's
+progress or a card being born happen once and have no copy to repair.
+
 ## When NOT to add a new message type
 
 - **Don't** add a generic `data-write` / `key-value-set` channel
+  (the subscription wire is READ-only; this rule stands)
   that routes by key. Each substrate has its own validation +
   auth shape; a generic channel loses all that. Per the existing
   `client-state-write` decision and the

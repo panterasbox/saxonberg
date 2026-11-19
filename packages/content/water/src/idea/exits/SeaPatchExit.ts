@@ -14,7 +14,7 @@
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -67,15 +67,18 @@ export default class SeaPatchExit extends DeferredDestinationExit {
     return dest;
   }
 
-  public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {
+  public override async canTraverse(mover: Stuff & Containable, mode?: string, opts?: TraverseOptions): Promise<TraversalGuard> {
     const refusal = await (await this.warren()).refusalFor(this);
     if (refusal !== null) return { ok: false, gate: 'blocked', reason: refusal };
+    // ⭐ A probe stops here (navigation-server D8): working the far side
+    // out would mint it. Nothing the water refuses — as far as you know.
+    if (opts?.probe) return { ok: true, unseen: true };
     try {
       await this.resolveDestination();
     } catch (err) {
       return { ok: false, gate: 'blocked', reason: err instanceof Error ? err.message : 'There is no way there now.' };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   /** The far side as last worked out; never throws (as a reach way). */

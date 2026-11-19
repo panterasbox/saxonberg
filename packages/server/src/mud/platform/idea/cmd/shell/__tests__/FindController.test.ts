@@ -32,7 +32,7 @@ import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
 import Location from '../../../../../lib/location/Location';
 import { ContainmentApi } from '../../../../../api/containment';
-import { MqlSubscriptionApi } from '../../../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../../../api/subscription';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
@@ -185,13 +185,13 @@ describe('FindController', () => {
   });
 
   it('does not install subscription state (snapshot semantics)', async () => {
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const before = SubscriptionApi._getRegistrySizeForTesting();
     const apple = namedThing('apple');
     await controller.execute(
       makeModel({ query: queryField([apple], 'apple') } as ModelData),
       makeContext(giver, location, 'apple')
     );
-    const after = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const after = SubscriptionApi._getRegistrySizeForTesting();
     expect(after).toBe(before);
   });
 

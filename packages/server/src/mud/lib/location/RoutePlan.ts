@@ -96,6 +96,8 @@ export interface RoutePlan {
   legs: readonly RouteLeg[];
   cost: RouteCost;
   assumptions: readonly RouteAssumption[];
+  /** ⭐ The least certain leg's index, or -1 when every leg is sure (navigation-server D5). */
+  leastCertain: number;
 }
 
 /**

@@ -18,7 +18,7 @@
  */
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
-import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
+import { type TraversalGuard, type TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -59,9 +59,9 @@ export default class FloorStairExit extends DeferredDestinationExit {
    */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
-    const base = await super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode, opts);
     if (!base.ok) return base;
     const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren && !warren.floorReachable(this.targetFloor)) {

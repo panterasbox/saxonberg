@@ -37,6 +37,18 @@ import type { MagicSuppression } from '../magic/Suppression';
  */
 export abstract class SpatialZone extends Zone {
   /**
+   * ⭐ This zone as a frame, for the zone section (navigation-server D7):
+   * what kind of frame, its cell where it has one, and a label — never its
+   * extent or levels (what you are standing in, not a map of it).
+   *
+   * @hook A grid adds its cell, a sphere, a chart and moving water say so.
+   *   Default: a frame by its name.
+   */
+  public frameFacts(): { kind?: 'grid' | 'sphere' | 'chart' | 'water'; cellSizeM?: number; label: string } {
+    return { label: this.getPresentation() };
+  }
+
+  /**
    * The region fields the spawn sweep reads, all three off the ordinary
    * `lookupField` walk so a parent region's declaration covers its
    * descendants and a child can narrow it.

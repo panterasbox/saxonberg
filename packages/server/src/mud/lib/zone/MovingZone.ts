@@ -50,6 +50,11 @@ export function MovingZoneMixin<TBase extends MixinConstructor<SpatialZone & Loc
     /** The one place this zone is the zone of (runtime; minted together). */
     private _place: (Place & Positioned) | null = null;
 
+    /** ⭐ Moving water: the frame is the water itself (navigation-server D7). */
+    public frameFacts(): { kind: 'water'; label: string } {
+      return { kind: 'water', label: (this as unknown as SpatialZone).getPresentation() };
+    }
+
     /**
      * Take the place this zone was minted for — through the zone's own
      * `addLocation`, so the place is stamped by its zone and by nothing
