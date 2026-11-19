@@ -511,7 +511,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // validator accepts anything carried, the controller drops only what is
     // in hand — fresh-world run, 2026-11-18). Take it out first, then put it
     // down: refused, it would stay in the pocket unseen.
-    await act(p, 'get seed from breast pocket');
+    await act(p, 'get seed from "breast pocket"');
     await doing(p, 'drop seed');
     // ⭐ The bench is three fields: the cut names one (field population R2).
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {

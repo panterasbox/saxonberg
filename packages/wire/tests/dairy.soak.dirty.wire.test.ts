@@ -417,7 +417,7 @@ suite('6–9. the co-op creamery: the cream rises, the skim comes off, the butte
     // the drive lifts from here on wants the other. The thermometer goes
     // where the game's own refusal says to put it — it reads from an open
     // pocket.
-    await doing(k, 'put thermometer in breast pocket');
+    await doing(k, 'put thermometer in "breast pocket"');
     await doing(k, 'get jug');
     await doing(k, 'pour me:i:pail into jug --amount 1L');
     await doing(k, 'drop jug');
