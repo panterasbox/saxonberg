@@ -1,14 +1,15 @@
 # Call security performance — the investigation, and what it found
 
-> **Status: PARTIAL** — the five gate optimizations (50 µs → 2.1 µs) and
-> the boot work shipped →
+> **Status: PARTIAL** — two passes shipped: the gate (50 µs → 2.1 µs,
+> 2026-08-30) and the reads (call-security-performance, MR !610,
+> 2026-11-18: the layer's crowd cost halved, the read trap's chain walk
+> cached, one store read per dispatch, the spy passthrough closed) →
 > [call-security.md](../../subsystems/call-security.md) ·
 > [persistence.md](../../subsystems/persistence.md)
-> **Left:** `findDescriptor` accessor-ness caching · the static-Api apply
-> thunk · hoisting the viewer-invariant checks out of `describeCore` ·
-> `pushDirect`'s second `describeCore` entry · three small libations-
-> drive loose ends (§8, arguably belongs on libations-slate rather than
-> here — see the compaction ledger)
+> **Left:** ⭐ the structural lever (reads inside an admitted method body —
+> the owner's question) · eval passes `ApiOnly` · wire worlds inherit
+> `NODE_ENV=test` · `PathTrie.#walk` + `MixinApi.hasMixin` for the
+> registry's owner · the per-walk viewer check
 > **Size:** a tail
 
 *2026-08-30, from the libations live drive (MR !206). The founder's
@@ -35,7 +36,7 @@ call per object costs N gate dispatches"), and what was NOT traded away
 guard) are all in
 [call-security.md § What a gated call costs](../../subsystems/call-security.md#what-a-gated-call-costs)
 — code-verified: `claimFramePush` / `_frameMutatorAllowlist`
-(`lib/security/execution-context.ts`), `ShadowApi._gateEntries()`,
+(`api/execution-context.ts`), `ShadowApi._gateEntries()`,
 `resolveCallPolicy`'s generation-stamped cache, `FrameNode`'s linked
 list — all present exactly as described. Not reproduced in the doc: the
 per-step intermediate arc (7300 → 4500 → 3500 → 3150 ns as each of the
@@ -60,94 +61,74 @@ persistence.md — see Handoff in the compaction ledger.
 
 ---
 
-## 7. Left on the table
+## 7. The second pass — SHIPPED, graduated to call-security.md
 
-- **`findDescriptor`** walks the prototype chain and allocates a
-  descriptor per level, on every property access. ~55 ns of the
-  remaining 2.1 µs. The safe form caches only *accessor-ness* per
-  prototype (a method does not become a getter under HMR) and skips the
-  walk entirely for the common case. Not done: the reward no longer
-  justifies touching the get trap.
-- **The static-Api wrapper's apply thunk** — one closure per static Api
-  call, off the dispatch path but everywhere else.
-- **Recognition, and the walk around it.** Salvaged from the retired
-  `gate-cost-slate`, which measured the MQL scope walk before the gate
-  was fixed and named two candidates the pass above never took:
-  - **Hoist the viewer-invariant checks out of `describeCore`.**
-    `isSensor(viewer)` / `isPerception(viewer)` are the same for all ~35
-    candidates in one walk and are re-asked per candidate.
-  - **`pushDirect` calls `describe` AND `perceivedKeywords`**, and for an
-    ORGANISM the latter re-enters `describeCore` a second time
-    (`RecognitionLogic:390`).
-  - Caching recognition per (viewer, target) per resolve was considered
-    and is **low value**: each candidate is visited once per resolve, so
-    the win is smaller than it looks.
+The call-security-performance build (MR !610, 2026-11-18) took the rows
+this section used to list: the accessor answer cached per prototype (the
+walk was the world's largest single line, though the bench had priced it
+at ~55 ns), an own property read once, one store read per dispatch, the
+static wrapper's policy memo, recognition worked out once per keyword read
+(`pushDirect` no longer existed; the double describe was
+`perceivedKeywords`' own), and the spy passthrough closed outside a test
+run. Numbers and the lesson — *a bench of one call cannot rank a world of
+reads* — are in
+[call-security.md § What a gated call costs](../../subsystems/call-security.md#what-a-gated-call-costs).
+The static wrapper's apply thunk was measured as not worth a trailing
+argument pair, and Node's `--experimental-async-context-frame` as no gain
+(worse at depth 200).
+
+**What it did not reach: idle.** The empty world idles at 0.244 cores
+against crowded-rooms' 0.15 target, and the layer is 0.054 of that — the
+layer could vanish and the world would still idle near 0.19. The idle
+world's remaining cost is the cast's labor at content's cadence, garbage
+collection, the worker thread and the Mongo driver. **The next idle build
+is not a call-security build.**
+
+## 7½. Left
+
+- ⭐⭐ **The structural lever: reads inside a method body.** After the
+  second pass the trap's own `get` is the largest line in the world
+  profile (18.9% of a crowd's busy time). Most trap reads are `this.x`
+  from a method the gate has ALREADY admitted, because a method runs with
+  `this === proxy`. Whether a body's own field reads need the trap at all
+  is a question about what the shadow and self-call guarantees are for —
+  the owner's, not a measurement's. It is the only item seen that could
+  move the layer by a factor rather than by points.
+- ⚠ **A wizard's `eval` passes every `ApiOnly` gate**, `destroy()`
+  included: eval code runs under the `ScriptLogic` frame
+  (`EvalScript → ScriptApi.runSandboxed → ScriptLogic → <target>`), which
+  `ApiOnly` admits because logic singletons are the Api tier. That is
+  eval's standing reach; whether it should be is a sandbox question
+  (sandbox.md), found by the drive's step 5a.
+- ⚠ **Every wire world runs with `NODE_ENV=test`**, inherited from the
+  vitest process that spawns it (the runner scrubs `VITEST`, not
+  `NODE_ENV`, and dotenv never overrides an inherited value; the worktree
+  `.env` says `development`). One consequence:
+  `ReactionRegistry.ensureTimer` returns early, so **the reaction flush has
+  never armed in a wire world**. The fix belongs to the wire runner
+  (`packages/wire/src/runner/boot.ts`'s `serverEnv`), with a check of
+  every `NODE_ENV === 'test'` reader.
+- **`PathTrie.#walk` and `MixinApi.hasMixin`** — 2.5% and 4.2% of the
+  crowd's busy time after the pass, outside this layer (non-goals). One
+  `MixinApi.isX(host)` is three static-wrapper dispatches (`isX` →
+  `hasMixin` → `ShadowApi.getAllShadows`). For the build that owns the
+  registry.
+- **A per-walk viewer check.** `isSensor(viewer)` / `isPerception(viewer)`
+  now run once per candidate (was twice), but they cannot be hoisted to
+  once per walk without the registry's own answer: `hasMixin` consults
+  shadows, and a shadow can confer `Sensor` between calls.
+- Caching recognition per (viewer, target) per resolve stays **low
+  value**: each candidate is visited once per resolve.
 
 ---
 
-## 8. The overnight drive (2026-08-31) — what the fixed gate made reachable
+## 8. The overnight drive — moved to libations-slate
 
-The performance work was never the point; it was what made the world
-drivable. With a dispatch at 2.1 µs and the economy funded, the whole
-libations acceptance surface came within reach in one session.
-
-**Checklist items verified live, on a world dropped and rebuilt from
-nothing:** 1 (fresh boot), 2 (the back loop — Mara restocking with no
-player: `cogs -309, wages -68, subsidy 20000`), 3 (the keeper loop, no
-wizard), 4 (the tablet in a stranger's hands: the sheet shows, the wallet
-refuses), 5 (**a drink**), 6 (the glass pool), 8 (packs + lints).
-
-⭐ **The drink, end to end, scripted from an empty world:** a player
-hired by Dave through his dialogue tree, `wallet use house`, eleven
-purchases at the cash-and-carry stamped to the bar, carried back,
-shelved, ice poured into the bin — then:
-
-```
-order gin & tonic  -> a highball glass is set down in front of you.
-look highball      -> "A tall straight-sided glass. It is on the rocks,
-                      fizzing, with a lime. It looks fair: honestly made,
-                      if unremarkable. Made by Remy. It holds a gin and
-                      tonic, fizzing over ice.  In it: a lime."
-feel highball      -> "A highball glass feels cool."
-```
-
-Garnish, carbonation, ice, grade, crafted provenance, temperature — the
-plan's own acceptance line ("a G&T colder than the rail — `feel`") in
-one read.
-
-### The bugs the drive found, in the order they mattered
-
-1. **Nothing funded the world.** Money supply 0; every venue drifting
-   negative on wages; `buy` refused. → `banking.openingCapital`.
-2. **The supply aggregate raced itself** — nine businesses opening at
-   once wrote six `bank_supply` rows. Exposed, not caused, by (1).
-3. **A disambiguated pick anchored focus on the WORD**, so every later
-   command re-asked and the session went silent. → `#<stuffId>`.
-4. **`feel` and `taste` had never run.** Both verbs, both validators,
-   both modality singletons ship — and no body plan granted touch or
-   taste. A verb gated on a capability nothing confers fails closed and
-   quietly forever.
-5. **Six keyword collisions in one room**, and the substring rule
-   underneath them (`kw.includes(query)` — a keyword claims every word
-   inside it).
-
-### ⚠ Still open
-
-- Item 7: **the card arm is verified** — the clean two-socket test I
-  should have run first. The keeper drives the tablet RESTING in the
-  room; both sockets receive `card-opened stock/"house stock"`, and the
-  bystander gets only the card, never the keeper's prose. *The display
-  you can see shows X.*
-  ⚠ My earlier "the bystander never got it" was two mistakes at once: a
-  dead WebSocket, and a tablet in someone's POCKET (which correctly
-  shows nobody — `sees()` needs to perceive the screen). The video arm
-  stays undrivable: no row ships one, by ruling.
-- Dilution over a game-hour, the mojito's `muddled` marker, and the
-  bitters 1 mL debit: not yet driven.
-- `put ice in bin` answers "an ice bin isn't a place". Correct — the bin
-  is Bulkable and the verb is `pour ice into bin`, which is what the
-  restocks brain does — but the message helps nobody, and the plan's own
-  checklist says `put … in bin`.
+The libations drive record and its three loose ends (dilution over a game
+hour, the mojito's `muddled` marker, the bitters debit, `put ice in bin`'s
+message) moved to
+[libations-slate § The overnight drive](../trades/libations-slate.md) on
+2026-11-18. They were the bar's, not the gate's.
 
 ## Cross-references
 
@@ -159,13 +140,12 @@ one read.
 [testing.md](../../testing.md) ·
 *(supersedes the retired `gate-cost-slate` — its surface is salvaged above)*
 
-## Second measurement — crowded-rooms (2026-11-17)
+## The measurements (2026-11-17 and -18)
 
-Profiles of a Terminus world (busy box, shares only): in the idle window,
-the crowd of thirty and the last five logins alike, **~60% of SELF time**
-sits in the call-security / proxy machinery — `findDescriptor`, the proxy
-`get`, policy resolution, `_pushFrame`. It is the floor under every class
-crowded-rooms cut; after that build the empty world idles at 0.17 of a core,
-and what remains is the cast's own acts at content's cadence running on this
-tax (the owner accepted 0.17 against the 0.15 target rather than pull either
-lever).
+The world profile is the instrument (`scripts/profile-layer.ts` over a
+`WIRE_CPU_PROF` profile of `call-security-performance.dirty.wire.test.ts`
+on the quiet box). In a thirty-body crowd the layer was 54.8% of busy
+(40.6 s) before the second pass and 45.2% (20.3 s) after, over the same
+acts; `say` p95 75 → 53 ms, freeze samples over 100 ms 33/195 → 3/162.
+The committed baseline beside the wire file is master's code at
+`e0af07435`; a later build re-records it with `CSP_RECORD=1`.

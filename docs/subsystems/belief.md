@@ -112,6 +112,14 @@ Algorithm (per target):
    `concise` is what makes ambient act lines read "a crossing guard says
    …", not the whole life story.
 
+   ⭐ The recognition behind a form — every perception gate and every
+   recall — is worked out **once** and the forms are rendered from it
+   (`RecognitionLogic`'s `recognitionOf` → `renderForm`). So
+   `perceivedKeywords`, which wants `concise` and `distinguishing` for
+   every candidate a walk visits, runs the sight gate once, not twice
+   (call-security-performance, 2026-11). It lives for one call: a shadow
+   can confer a sense between calls, so nothing is remembered across them.
+
    ⭐⭐ **They were separate METHODS until 2026-09-10**, and that shape
    was doing real damage: the only way to reach the richer two was to
    resolve a name eagerly for one known viewer, so a surface had to give

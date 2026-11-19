@@ -2,7 +2,7 @@
  * ProxyApi — generic Stuff-instance Proxy infrastructure.
  *
  * Owns the get-trap mechanics: descriptor lookup, wrapper caching,
- * mock-spy passthrough, the `RAW_TARGET` introspection seam. Doesn't
+ * mock-spy passthrough (in a test run only), the `RAW_TARGET` introspection seam. Doesn't
  * know anything about security policies, shadows, or destroyed-object
  * guards — those concerns live in `SecurityApi` (see
  * `mud/api/security.ts`), which registers a `#`-private interceptor
@@ -66,6 +66,15 @@ export type Interceptor = (
  * `obj[ProxyApi.RAW_TARGET]` returns the underlying target without
  * going through any interceptor.
  */
+/**
+ * One cached accessor: the prototype that declares it and its getter (the
+ * trap needs the function itself, to call it with `this === proxy`).
+ */
+interface AccessorEntry {
+  readonly holder: object;
+  readonly get: () => unknown;
+}
+
 const RAW_TARGET = Symbol.for('saxonberg.proxy.rawTarget');
 
 /**
@@ -115,6 +124,29 @@ export class ProxyApi {
   static #interceptors: Interceptor[] = [];
 
   /**
+   * ⭐ What the read trap asks of every read that is not an own property:
+   * *is this name a GETTER somewhere up the prototype chain?* (A getter
+   * must run through the pipeline; anything else is read live.) The
+   * answer is a fact about the prototype chain, fixed when the class is
+   * defined, so it is cached per prototype object (call-security-
+   * performance D1): `null` for "no accessor" (a method, a prototype data
+   * property, or nothing at all), else the holder and its getter.
+   *
+   * Keyed weakly on the prototype OBJECT, so a hot reload — which
+   * evaluates a NEW class object and leaves old instances on the old
+   * prototype — is a new key by construction, and both answer for
+   * themselves. No generation stamp: nothing writes an accessor onto a
+   * prototype after its class is defined (a test that wants one builds a
+   * new class). A cached accessor is confirmed against its holder on every
+   * use, so a getter spied, replaced or removed there is never served
+   * stale.
+   *
+   * It replaced a walk of the whole chain on every read — the largest
+   * single line of the world's busy time (14.7%, 2026-11-17).
+   */
+  static #accessorCache = new WeakMap<object, Map<string | symbol, AccessorEntry | null>>();
+
+  /**
    * Append `interceptor` to the pipeline. Interceptors run in the
    * order they were registered; the first registered runs outermost.
    *
@@ -159,6 +191,19 @@ export class ProxyApi {
     // `api/stuff.ts` hold both and do the lookup.
     const weak = weakFields ?? null;
 
+    // The accessor answers for this instance's prototype, hoisted for the
+    // same reason. Re-checked per read (`getPrototypeOf` is cheap): an
+    // instance re-parented after wrap reads its new chain's answers.
+    const wrapProto = Object.getPrototypeOf(stuff) as object | null;
+    const wrapAccessors = ProxyApi.#accessorsOf(wrapProto);
+
+    // ⛔ The spy passthrough is a TEST-RUNNER affordance: outside a process
+    // running vitest a function carrying `_isMockFunction` is wrapped and
+    // gated like any method (owner ruling 2026-11-18). Read once per
+    // wrap — the environment does not change within a process — so in
+    // production the flag is never even read.
+    const spyPassthrough = SecurityApi.isTestRunner();
+
     const handler: ProxyHandler<T> = {
       get(target, prop, receiver) {
         if (prop === RAW_TARGET) return target;
@@ -166,17 +211,28 @@ export class ProxyApi {
           return Reflect.get(target, prop, receiver);
         }
 
-        // Look at the descriptor BEFORE calling Reflect.get — getters
-        // would fire eagerly and we'd lose the chance to dispatch
-        // them through the pipeline.
-        const descriptor = findDescriptor(target, prop);
+        // Is it a getter? Asked BEFORE `Reflect.get`, which would fire a
+        // getter eagerly and lose the chance to dispatch it through the
+        // pipeline. An own property first, live, exactly as before (a
+        // field, a lazily assigned slot, an instance-level replacement, an
+        // own accessor); then the prototype chain's cached answer.
+        let getter: (() => unknown) | undefined;
+        const own = Object.getOwnPropertyDescriptor(target, prop);
+        if (own !== undefined) {
+          getter = own.get;
+        } else {
+          const proto = Object.getPrototypeOf(target) as object | null;
+          const accessors = proto === wrapProto ? wrapAccessors : ProxyApi.#accessorsOf(proto);
+          getter = accessors === null ? undefined : ProxyApi.#getterOf(accessors, proto!, prop);
+        }
 
         // Getter: run the pipeline immediately. The "raw" operation
         // is invoking the getter with `this === receiver` (the
         // proxy) so any nested access from inside the getter body
         // goes back through the proxy.
-        if (descriptor?.get) {
+        if (getter !== undefined) {
           const methodName = typeof prop === 'symbol' ? prop.toString() : prop;
+          const get = getter;
           return ProxyApi.#runPipeline(
             {
               target: target as Stuff,
@@ -185,11 +241,15 @@ export class ProxyApi {
               args: [],
               isGetter: true,
             },
-            () => descriptor.get!.call(receiver)
+            () => get.call(receiver)
           );
         }
 
-        const value = Reflect.get(target, prop, receiver);
+        // An own property's value is the descriptor already in hand (an own
+        // data property's `value` IS what `Reflect.get` would return; an
+        // own setter-only accessor reads `undefined` either way). Only an
+        // inherited name pays the second lookup.
+        const value = own !== undefined ? own.value : Reflect.get(target, prop, receiver);
 
         // R2.3 self-heal. A slot declared `ref: 'instance'` that holds a
         // destroyed Stuff reads as `null`, and the slot is cleared so
@@ -227,8 +287,10 @@ export class ProxyApi {
         // breaks `toHaveBeenCalled` assertions because the test
         // sees the wrapper instead of the spy. A method that was
         // deliberately swapped for a spy is the test's intentional
-        // escape hatch; let it through unmediated.
-        if ((value as { _isMockFunction?: boolean })._isMockFunction) {
+        // escape hatch; let it through unmediated — IN A TEST RUN only.
+        // Anywhere else the marker is just a property anyone can set, and
+        // honoring it handed out an ungated method.
+        if (spyPassthrough && (value as { _isMockFunction?: boolean })._isMockFunction) {
           return value;
         }
 
@@ -278,6 +340,55 @@ export class ProxyApi {
     ProxyApi.#interceptors = [];
   }
 
+  /** The per-prototype accessor answers; `null` for a null prototype. */
+  static #accessorsOf(
+    proto: object | null
+  ): Map<string | symbol, AccessorEntry | null> | null {
+    if (proto === null) return null;
+    let map = ProxyApi.#accessorCache.get(proto);
+    if (map === undefined) {
+      map = new Map();
+      ProxyApi.#accessorCache.set(proto, map);
+    }
+    return map;
+  }
+
+  /**
+   * The getter `prop` resolves to on the chain from `proto`, or
+   * `undefined` — from the cache, confirmed against its holder (one
+   * descriptor read), else by walking the chain once and caching.
+   */
+  static #getterOf(
+    accessors: Map<string | symbol, AccessorEntry | null>,
+    proto: object,
+    prop: string | symbol
+  ): (() => unknown) | undefined {
+    const hit = accessors.get(prop);
+    if (hit === null) return undefined;
+    if (hit !== undefined && Object.getOwnPropertyDescriptor(hit.holder, prop)?.get === hit.get) {
+      return hit.get;
+    }
+    const entry = ProxyApi.#accessorOn(proto, prop);
+    accessors.set(prop, entry);
+    return entry?.get;
+  }
+
+  /**
+   * Walk the chain from `proto` to the first descriptor for `prop`: an
+   * accessor with a getter is an entry, anything else (a method, a data
+   * property, a setter-only accessor, nothing) is `null` — the answer a
+   * walk of the whole chain gave on every read before the cache.
+   */
+  static #accessorOn(proto: object, prop: string | symbol): AccessorEntry | null {
+    let cur: object | null = proto;
+    while (cur !== null && cur !== Object.prototype) {
+      const d = Object.getOwnPropertyDescriptor(cur, prop);
+      if (d !== undefined) return d.get ? { holder: cur, get: d.get } : null;
+      cur = Object.getPrototypeOf(cur) as object | null;
+    }
+    return null;
+  }
+
   /**
    * Run the interceptor pipeline. Invokes interceptors in
    * registration order; each calls `next()` to delegate. At the
@@ -307,24 +418,6 @@ export class ProxyApi {
     };
     return next();
   }
-}
-
-/**
- * Walk an object's prototype chain returning the first descriptor
- * found for `prop`, or `undefined`. Used by the get-trap to detect
- * getters before `Reflect.get` would fire them.
- */
-function findDescriptor(
-  obj: object,
-  prop: string | symbol
-): PropertyDescriptor | undefined {
-  let cur: object | null = obj;
-  while (cur && cur !== Object.prototype) {
-    const d = Object.getOwnPropertyDescriptor(cur, prop);
-    if (d) return d;
-    cur = Object.getPrototypeOf(cur);
-  }
-  return undefined;
 }
 
 // Like ExecutionContextApi, ModuleApi, and SecurityApi, ProxyApi

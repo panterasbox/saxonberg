@@ -1070,6 +1070,19 @@ profiles on a busy box are for SHARES, never times.
    harness and its server (`foreignMeter`: `/proc/stat` busy, less the
    server's `/stats.cpu` and the harness's own). Over half a core marks
    the phase **inconclusive**, which fails under that name; re-run it.
+   ⚠ Five live agent sessions plus the VS Code server are ~0.7 cores on
+   their own with every sibling holding — a fresh boot's own tail reads as
+   load too (the precheck in `call-security-performance.dirty` waits up to
+   five minutes for it to settle).
+
+⭐ **What the server SPENT its CPU on is a profile, not a timing**, and a
+profile is honest on a busy box: `WIRE_CPU_PROF=<dir>` profiles the world,
+and `packages/server/scripts/profile-layer.ts <file> --from <s> --to <s>`
+reads the call-security layer's self time over an uptime window (the crowd
+record's `marks`). `call-security-performance.dirty.wire.test.ts` is the
+second quiet-box file: its gates are relative to a committed baseline
+(`CSP_RECORD=1` writes it), and its refusal and hot-reload steps run on
+every MR.
 
 Without `WIRE_QUIET=1` every step reports itself skipped, by name. `crowd.
 dirty` keeps the greeting count on every MR; `crowd.soak` keeps its generous

@@ -1,0 +1,24 @@
+{
+  "_comment": "Written by CSP_RECORD=1 on master’s code (W0) on a quiet box; compared on every other quiet run.",
+  "measured": {
+    "idleCores": 0.2887430288602465,
+    "marks": {
+      "idleFrom": 400.91252256,
+      "idleTo": 1001.01697074,
+      "loginsStart": 1001.03955597,
+      "lastFiveLoginsStart": 1042.79307021,
+      "loginsEnd": 1052.06199246,
+      "walksEnd": 1070.34667506,
+      "quietEnd": 1108.35474966,
+      "speechEnd": 1114.37718885,
+      "duringEnd": 1149.59817432
+    },
+    "intoFullP95": 2726.600759999943,
+    "sayOneP95": 75,
+    "sayRoundP95": 96,
+    "loginP95": 2170,
+    "freezeOver100": 33,
+    "freezeSamples": 195,
+    "restartP95": 1542.3627600000473
+  }
+}

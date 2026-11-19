@@ -93,7 +93,6 @@ export interface CallFrame {
   caller: unknown | null;
   target: unknown | null;
   method: string;
-  timestamp: number;
   kind?: FrameKind;
   metadata?: Record<string, unknown>;
 }
@@ -150,12 +149,15 @@ export interface RunRootOpts {
  * sandbox boundary reads frame-0's metadata on every single dispatch and
  * that read must stay O(1).
  */
-interface FrameNode {
+export interface FrameToken {
   readonly frame: CallFrame;
-  readonly parent: FrameNode | null;
+  readonly parent: FrameToken | null;
   /** Frame 0. Self on a root node. */
-  readonly root: FrameNode;
+  readonly root: FrameToken;
 }
+
+/** The node's name inside this file; {@link FrameToken} outside it. */
+type FrameNode = FrameToken;
 
 /** ALS-backed storage — the innermost frame; walk `parent` for the rest. */
 const _als = new AsyncLocalStorage<FrameNode>();
@@ -207,7 +209,14 @@ export type FramePush = <T>(
   target: unknown | null,
   method: string,
   opts: RunFrameOpts | undefined,
-  fn: () => T
+  fn: () => T,
+  /**
+   * The node the holder read with {@link ExecutionContextApi._dispatchContext}
+   * in the same synchronous turn (`null`: no stack), so the push does not
+   * read the store a second time. Omitted: the push reads it — which is
+   * what an async continuation must do.
+   */
+  parent?: FrameToken | null
 ) => T;
 
 /**
@@ -221,17 +230,18 @@ function _pushFrame<T>(
   target: unknown | null,
   method: string,
   opts: RunFrameOpts | undefined,
-  fn: () => T
+  fn: () => T,
+  parent?: FrameNode | null
 ): T {
   const frame: CallFrame = {
     caller,
     target,
     method,
-    timestamp: Date.now(),
     kind: opts?.kind,
     metadata: opts?.metadata,
   };
-  return _als.run(_linkFrame(frame, _als.getStore() ?? null), fn);
+  const under = parent === undefined ? (_als.getStore() ?? null) : parent;
+  return _als.run(_linkFrame(frame, under), fn);
 }
 
 /* ────────────────── Caller authorisation ──────────────────
@@ -743,23 +753,22 @@ export class ExecutionContextApi {
   }
 
   /**
-   * Both boundary fields in ONE store access — the security gate's
-   * per-dispatch read (zero-circle worlds pay one `getStore()` + one
-   * metadata load, exactly what the lone scope read cost). @internal
+   * The current frame node, or `null` with no stack — the ONE store read a
+   * dispatch makes (call-security-performance, 2026-11). The security gate
+   * reads the caller (`frame.target`) and the sandbox boundary's two
+   * fields (`root.frame.metadata.circleScope` / `.jurisdictionBound`, an
+   * O(1) read since `root` rides every node) off it, and hands it back to
+   * the claimed push as `parent`, so a dispatch reads the
+   * AsyncLocalStorage once instead of three times. The static Api wrapper
+   * does the same.
+   *
+   * It confers nothing `getCallStack()` does not already show: the token
+   * is the node that call materializes frames from. @internal
    */
-  public static _boundaryContext(): {
-    scope: string | null;
-    bound: string | null;
-  } {
-    const node = _als.getStore();
-    if (!node) return { scope: null, bound: null };
-    const md = node.root.frame.metadata;
-    if (!md) return { scope: null, bound: null };
-    return {
-      scope: (md.circleScope as string | undefined) ?? null,
-      bound: (md.jurisdictionBound as string | undefined) ?? null,
-    };
+  public static _dispatchContext(): FrameToken | null {
+    return _als.getStore() ?? null;
   }
+
 
   /**
    * Establish the circle scope on the **current root frame** — the
@@ -991,7 +1000,6 @@ export class ExecutionContextApi {
       caller: null,
       target,
       method,
-      timestamp: Date.now(),
       kind: FrameKind.Root,
       metadata: _scopeMetadata(opts),
     };
@@ -1030,7 +1038,6 @@ export class ExecutionContextApi {
       caller: null,
       target,
       method,
-      timestamp: Date.now(),
       kind: FrameKind.Root,
       metadata: _scopeMetadata(opts),
     };

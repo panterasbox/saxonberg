@@ -113,6 +113,50 @@ describe('@CallSecurity on static methods', () => {
   });
 });
 
+/**
+ * The static wrapper remembers its resolved policy and re-resolves only
+ * when the policy generation moves (call-security-performance W4, D5). A
+ * memo that outlived a policy write would be a stale ALLOW — so the write
+ * after the first call is the case that matters.
+ */
+describe('the static wrapper\'s policy memo', () => {
+  it('a policy registered AFTER a static has been called takes effect on the next call', () => {
+    class LateApi {
+      static ping(): string {
+        return 'pong';
+      }
+    }
+    SecurityApi.decorateApiClass(LateApi);
+    expect(LateApi.ping()).toBe('pong');
+    expect(LateApi.ping()).toBe('pong');
+    SecurityApi._setMethodPolicy(LateApi, 'ping', SecurityPolicies.SelfOnly);
+    expect(() => LateApi.ping()).toThrow(SecurityError);
+  });
+
+  it('a denied static still throws the same message', () => {
+    class DeniedApi {
+      @CallSecurity(SecurityPolicies.SelfOnly)
+      static doIt(): string {
+        return 'ok';
+      }
+    }
+    expect(() => DeniedApi.doIt()).toThrow('Policy SelfOnly denied DeniedApi.doIt()');
+    expect(() => DeniedApi.doIt()).toThrow('Policy SelfOnly denied DeniedApi.doIt()');
+  });
+
+  it('a policy loosened after a denial is honored too', () => {
+    class LooseApi {
+      @CallSecurity(SecurityPolicies.SelfOnly)
+      static doIt(): string {
+        return 'ok';
+      }
+    }
+    expect(() => LooseApi.doIt()).toThrow(SecurityError);
+    SecurityApi._setMethodPolicy(LooseApi, 'doIt', SecurityPolicies.Public);
+    expect(LooseApi.doIt()).toBe('ok');
+  });
+});
+
 describe('SecurityApi.resolveStaticCallPolicy', () => {
   it('returns Public when nothing is decorated', () => {
     class Plain {
