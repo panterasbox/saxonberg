@@ -223,6 +223,8 @@ export class HelpApi {
    * shows can never be two different topics. A verb CATEGORY is not a
    * topic and stays the verb's own fallthrough. An exact topic id
    * (`mixin.Tangible`) also resolves, so a link that names one works.
+   *
+   * @nothing no topic answers that word — the tooltip says so; nothing refused.
    */
   static resolveTopic(word: string, viewer: HelpViewer = FLOOR): HelpTopic | null {
     const w = word.trim();

@@ -45,6 +45,7 @@ import type {
   SubscriptionResultEnvelope,
   SubscriptionErrorEnvelope,
   AffordanceResultEnvelope,
+  WikiExcerptResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -315,6 +316,7 @@ export class Session {
     string,
     Pending<AffordanceResultEnvelope>
   >();
+  private readonly pendingExcerpts = new Map<string, Pending<WikiExcerptResultEnvelope>>();
   private readonly activity: ActivityUpdateEnvelope[] = [];
   private readonly activityWaiters: (() => void)[] = [];
   private readonly prompts: PromptEnvelope[] = [];
@@ -627,6 +629,15 @@ export class Session {
         p.resolve(frame as unknown as SubscribeOutcome);
         continue;
       }
+      if (type === 'wiki-excerpt-result') {
+        const id = String((frame as { requestId?: unknown }).requestId ?? '');
+        const p = this.pendingExcerpts.get(id);
+        if (!p) continue;
+        this.pendingExcerpts.delete(id);
+        clearTimeout(p.timer);
+        p.resolve(frame as unknown as WikiExcerptResultEnvelope);
+        continue;
+      }
       if (type === 'affordance-result' || type === 'affordance-error') {
         const id = typeof (frame as { requestId?: unknown }).requestId === 'string' ? (frame as unknown as { requestId: string }).requestId : '';
         const p = this.pendingAffordances.get(id);
@@ -911,6 +922,21 @@ export class Session {
       detailKey?: string;
     } = {}
   ): Promise<QueryRecord[]> {
+    return (await this.queryEnvelope(query, opts)).result;
+  }
+
+  /**
+   * The whole one-shot answer — the records AND what is said once beside
+   * them (`dark`: the viewer's place is too dark to see by; tooltips D3).
+   */
+  async queryEnvelope(
+    query: string,
+    opts: {
+      cardinality?: 'one' | 'many';
+      fields?: string[] | 'ref' | 'detail';
+      detailKey?: string;
+    } = {}
+  ): Promise<MqlQueryResultEnvelope> {
     const queryId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
     const envelope = await new Promise<MqlQueryResultEnvelope>(
       (resolve, reject) => {
@@ -939,7 +965,24 @@ export class Session {
         );
       }
     );
-    return envelope.result;
+    return envelope;
+  }
+
+  /**
+   * ⭐ A wiki page's opening section as a tooltip document, through the
+   * wiki's own gate for this character (`wiki-excerpt`, tooltips D4).
+   * `doc: null` is one answer for no page and nothing you may read.
+   */
+  async wikiExcerpt(ref: string): Promise<WikiExcerptResultEnvelope> {
+    const requestId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<WikiExcerptResultEnvelope>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingExcerpts.delete(requestId);
+        reject(new Error(`wire: no wiki-excerpt-result for '${ref}' within ${FRAME_TIMEOUT_MS}ms`));
+      }, FRAME_TIMEOUT_MS);
+      this.pendingExcerpts.set(requestId, { resolve, reject, timer });
+      this.ws.send(JSON.stringify({ type: 'wiki-excerpt', payload: { type: 'wiki-excerpt', requestId, ref } }));
+    });
   }
 
   /**
