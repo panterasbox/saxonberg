@@ -172,16 +172,42 @@ inside opens a child; the stack shows a breadcrumb; **Esc closes one
 level**; a click outside closes them all. It is placed so it never covers
 what it describes.
 
+### Tooltips and cards — two containers, one content
+
+The owner: *"they're different things right? we might be tempted to unify
+them but I don't think we should."* **Share what they say, never how they
+live.**
+
+| | a card | a tooltip |
+|---|---|---|
+| born from | a command — something ran | pointing |
+| lives | in the feed; pinned = its whole lifetime | while you point or hold it locked |
+| changes | live while attended; every change names its cause | a snapshot taken when it opens; reopen to refresh |
+| is | a record of something that happened | a preview of something you could open |
+
+- **No card controls on a tooltip.** It is never pinned in place, docked or
+  minimized: a tooltip that stays and stays live is a card nothing ran —
+  the magic the navigation-server review removed.
+- **One content.** A tooltip and a card about the same thing show the same
+  header, the same fact rows and the same spoiler block, built from the
+  same blocks: the tooltip is the card's first lines.
+
 ### Pin
 
-Pinning a tooltip runs the command that opens the card it previews — `look`
-for a thing, `help` for a help term, `wiki` for a wiki term. A tooltip
-never mints a card any other way (a card is born from a command).
+Pinning a tooltip **runs the command that opens the card it previews** —
+`look` for a thing, `help` for a help term, `wiki` for a wiki term — so
+keeping a tooltip makes a card the legible way, with a line in the
+scrollback. A tooltip never mints a card any other way. **Where no command
+opens a card for it, there is no pin** — and that absence is a finding, not
+a gap to paper over: the player has no legible way to ask for that thing,
+and the fix is a command (the navigation build meets this first: a place
+on your map you are not standing in has no `look`).
 
 ### Live things
 
 Hovering a thing asks the server to describe it **as you perceive it
-now**, at tooltip size, and caches the answer briefly per thing so hovering
+now**, at tooltip size — a snapshot taken when the tooltip opens, never
+updated under you (hover again for a fresh one) — and caches the answer briefly per thing so hovering
 up and down the scrollback is cheap. A thing you can no longer perceive
 says so (*"You can't see that now."*) — honest, never the stale line. A
 thing in a pitch-dark room tells you nothing sight would have told you.
@@ -277,7 +303,9 @@ light step is 7.
    link to a thing there from earlier: its tooltip tells nothing sight
    would. Hover a thing that has left: *"You can't see that now."*
 8. *(instant · player)* Pin a tooltip: the card it previews opens (a
-   thing's inspection card; a help term's help card).
+   thing's inspection card; a help term's help card) and the command shows
+   in the scrollback; the card's header and facts match the tooltip's. A
+   control's tooltip has no pin.
 9. *(instant · player)* Tab to a link with the keyboard: its tooltip opens;
    Esc closes it.
 10. *(instant · player)* Phone width, touch: tap a link — the command sheet,
@@ -299,7 +327,11 @@ None — nothing in this build waits on the clock.
 - Every identity link and chip in the terminal, cards and navigator has a
   tooltip whose click does what the click did before.
 - A tooltip nests, locks, shows a breadcrumb, closes one level on Esc, and
-  pins into the card it previews.
+  pins by running the command for the card it previews; a tooltip with no
+  such command has no pin, and none can be docked or minimized.
+- A tooltip never changes while open.
+- A thing's tooltip and its card show the same header, facts and spoiler
+  block.
 - A new help topic or wiki page, with no code, gives its term a tooltip.
 - A live thing's tooltip never says more than the viewer perceives now.
 - A wiki-sourced tooltip shows exactly what reading the page would, at the
