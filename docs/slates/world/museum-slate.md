@@ -11,7 +11,8 @@
 > layer ([location-graph.md](../../subsystems/location-graph.md)).
 > **Left:** ⭐ the foundation (§ 0 — a museum is the world's knowledge given a floor plan) · ⭐ the exhibit
 > document, exhibit kinds, the shell with warren galleries, travelling exhibitions (§ 0a) · generated room
-> prose · the curator's seat and its pen · the technology museum · the
+> prose · the curator's seat and its pen · ⭐ the sketch of museums and their homes (§ 3a) — campus, a Terminus
+> museum district, Saxonberg's monuments, the lounge, guild halls · the technology museum · the
 > realm museum · re-reading every gathered museum (§ 1) against § 0
 > **Size:** a design pass, then content per museum
 
@@ -275,6 +276,63 @@ A museum of the realm's **published places**, each with its rung, its trades and
 from live data** — so it fills as the content builds add places and never needs the realm designed first.
 ⚠ **Only what is public** (paths are spoilers): undiscovered places are fogged, one click to reveal, never
 prevented.
+
+## 3a. ⭐⭐ A sketch — the museums we might want, and where they live **[SKETCH — the owner, 2026-11-18]**
+
+The owner: *"Maybe the tech museum goes on campus, but Terminus city itself could have a whole museum
+district like some major cities do. And of course Saxonberg as the seat of government is going to have its
+own museums and monuments representing the Compact's collective judgment … I actually want to draft the
+possibilities into the slate so we have an idea of where this is headed."* A draft of the possibilities,
+not a roster: each entry names the region of knowledge it lays out (§ 0) and whose speech it is.
+
+### On campus — the university's museums (they teach, and only teach)
+
+| museum | lays out | notes |
+|---|---|---|
+| **the technology museum** | the ladder, Muscle to Future, a room per rung | the walk-through (§ 3); beside the campus zones by rung ([eternal-university-slate](./eternal-university-slate.md) § 2026-11-18) |
+| **the natural history museum** | species and the bestiary; materials, minerals, the ground | specimens and samples; Oxford's University Museum of Natural History and the Pitt Rivers as references. ⚠ The Rejection warning holds: never a shortcut past what the world makes you earn |
+| **the arcane collection** | the arcane laws, the grid, spellbooks | at the hub, in the College of Magic |
+| **the botanic garden and herbarium** | living plants | the campus grounds' greenhouse as its first room |
+| **the observatory and planetarium** | the sky, its bodies, the constellations and their myths | the [orbit-slate](./orbit-slate.md)'s *myths through the museum*; the sky's names come from its peoples ([place-names-slate](./place-names-slate.md)) |
+
+### Terminus — a museum district
+
+Major cities gather museums in one quarter: Berlin's Museum Island, London's Exhibition Road (the V&A, the
+Science Museum, the Natural History Museum side by side), the Smithsonian on the National Mall. Terminus is
+industrial and the realm's front door, so its district is civic, commercial and corporate at once.
+
+| museum | lays out | whose speech |
+|---|---|---|
+| **the city museum** | Terminus's own history — and the Eternal City beneath it (the EotL homage) | the city's — government speech |
+| **the museum of antiquities** | the lore, through finds ([stratigraphy-and-finds-slate](./stratigraphy-and-finds-slate.md)'s *lore as evidence*); the drafts' Terminus Museum reframed by § 0 | public |
+| **the museum of industry** | the realm's trades and their chains — ore to ingot to tool, fleece to cloth | public or endowed; Chicago's Museum of Science and Industry as the reference — an industrial city's natural museum |
+| **the art museum — the salon** | what players make: glass, ceramics, painting, textiles, the recipes slate's exhibition and judgment ([recipes-slate](../trades/recipes-slate.md) § 6) | juried; curated |
+| **the corpo heritage museums** | each corpo's brand, history and ethos — the *World of Coca-Cola* kind | each corpo's — private speech, sponsor plain; where the corpos' prestige competition is seen ([corpos-slate](../society/corpos-slate.md)) |
+| **the maritime museum** | ships, harbors, the sea trades | by the wharf |
+| **the realm museum** | the realm's published places, from live data (§ 3) | the city's front door is its natural home — a visitor center for the realm; ⚠ public places only |
+| **a children's museum** | interactives first | the gentlest door into every system — a newcomer's museum |
+
+### Saxonberg — the Compact's collective judgment
+
+The seat of government's museums and monuments are **government speech** (§ 0): the polity chooses their
+story, on the record, and **authoring them is the polity's, never ours** — Saxonberg's doctrine
+([saxonberg-city-slate](./saxonberg-city-slate.md) § 1a). We ship the frames; the polity fills them.
+
+| museum | lays out | notes |
+|---|---|---|
+| **monuments and memorials** | what the polity chooses to honor | ⭐ **the empty plinth in the Square** is the first exhibit: it says who decides |
+| **the hall of founding documents** | the manifesto, the constitution, the received law, the first enactments | in or beside the Archive; the US National Archives' rotunda (the Charters of Freedom) as the reference; every document verifiable against the record |
+| **the museum of the Compact** | the polity's own political history — its bills, its fights, its rulings | ⚠ the history wars live here: labels are the polity's, contested on the argument map, every version kept |
+| **the TPA museum** | the network's story | in the TPA headquarters ([saxonberg-city-slate](./saxonberg-city-slate.md) § 8a) — an institution's, not the polity's |
+| ⭐ **the embassies' galleries** | other realms' exhibitions | embassy row: **travelling exhibitions between servers** — the federation's cultural exchange, mounted in each embassy's gallery slot (§ 0a) |
+
+### Elsewhere
+
+| museum | where | notes |
+|---|---|---|
+| **the platform's own story** | the lounge, the operator's own space | the making of the platform and **the credit to End of the Line and its authors** ([place-names-slate](./place-names-slate.md) — *credit it openly*) |
+| ⭐ **a guild's masterpieces** | each guild hall | historically **the masterpiece was the work a journeyman submitted to become a master** — so a guild's gallery is its masters' masterpieces, a living record of its rank ([guild-slate](../society/guild-slate.md)) |
+| **private galleries** | players' parcels | collectors and curators; admission optional; the curator as a vocation |
 
 ## 4. Open
 
