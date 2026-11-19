@@ -755,6 +755,7 @@ async function captureAtShutdownImpl(): Promise<ShutdownCaptureReport> {
           await PersistApi.saveMany(PersistedRecord.collectionName, rows);
           captured += batch.length;
         } catch (err) {
+          // @quiet the report counts it (`failed`) and the line names the records.
           failed += batch.length;
           console.error(
             `PersistableLogic.captureAtShutdown: a batch of ${batch.length} record(s) failed ` +

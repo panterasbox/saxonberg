@@ -250,13 +250,11 @@ describe('testharness controllers', () => {
       expect(said.join('\n')).toMatch(/200 past players have standing history \(1400 rows/);
     });
 
-    it('with no count, the usage; a bad count is the logic\'s refusal in its own words', async () => {
-      const st = vi
-        .spyOn(TestHarnessApi, 'stageStandingHistory')
+    it('a missing or bad count is the logic\'s refusal, in its own words', async () => {
+      vi.spyOn(TestHarnessApi, 'stageStandingHistory')
         .mockRejectedValue(new Error('testharness standing-history: a count is a whole number from 1 to 5000 (got NaN)'));
       await run({ subcommand: 'standing-history' });
-      expect(rejected()?.reason).toBe('test-usage');
-      expect(st).not.toHaveBeenCalled();
+      expect(rejected()?.reason).toBe('test-refused');
       note.mockClear();
       await run({ subcommand: 'standing-history', op: 'lots' });
       expect(rejected()?.reason).toBe('test-refused');

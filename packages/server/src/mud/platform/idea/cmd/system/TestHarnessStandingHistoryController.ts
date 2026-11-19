@@ -9,21 +9,15 @@ import type { CommandContext } from '../../../../api/command';
 import { TestHarnessApi } from '../../../../api/test-harness';
 import {
   TestHarnessControllerBase,
-  TOPIC,
   type TestHarnessModel,
 } from './TestHarnessControllerBase';
 
 export default class TestHarnessStandingHistoryController extends TestHarnessControllerBase {
   async execute(model: TestHarnessModel, context: CommandContext): Promise<void> {
     return this.staged(context, async () => {
-      if (!model.op) {
-        return this.refuse(
-          context,
-          TOPIC,
-          'testharness standing-history <count> — e.g. `testharness standing-history 200`.',
-          'test-usage',
-        );
-      }
+      // No count, or not a number: the logic refuses it in its own words
+      // ("a count is a whole number from 1 to 5000"), which `staged`
+      // carries back — the verb decides nothing (lint:reason-rows).
       const r = await TestHarnessApi.stageStandingHistory(Number(model.op));
       TestHarnessControllerBase.say(
         context,
