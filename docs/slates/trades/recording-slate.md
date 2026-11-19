@@ -18,7 +18,8 @@
 > digital metadata · private extents' camera rules · the photographer's vocation · ⭐ (§ 9) **off-page** — the
 > term for real-world creative work and its artists; Disciplines name in-world crafts only · ⭐ (§ 10) one
 > recording model across every medium, devices as rows · (§ 11) sound — fidelity as signal against noise, voice
-> recognition, pressings, splices · (§ 12) the jukebox — a shared *now playing*, each player on their own service
+> recognition, pressings, splices · (§ 12) the jukebox — a shared *now playing*, each player on their own service ·
+> (§ 13) motion pictures — shot size as optics, silent film with intertitles, stocks as rows, nitrate, credit
 > **Size:** a build
 
 ## 0. The line it sits on **[DECIDED — the owner's rule, read]**
@@ -450,6 +451,108 @@ sense of a group experience. To me that's the important part of the jukebox, not
 
 1. **The lawyer's confirmation** on public performance.
 2. **Spotify's approval**, timed before launch.
+
+## 13. ⭐⭐⭐ Motion pictures **[DECIDED in shape — lens pass]**
+
+### What an on-page film is
+
+**A timed sequence of what a camera saw — and, later, heard**: who entered the frame, what they did, what changed,
+in order. Players acting before the camera perform on-page art, recordable (§ 10). Playback replays it in a
+theater's house as prose, in time: *"On the screen, a man in a gray coat crosses the square. He stops at the
+fountain. A woman runs to him."*
+
+### The camera's physics
+
+- ⭐ **Shot size is real optics** **[DECIDED — lens 1]** — a camera frames part of a place: a **wide shot** takes in the
+  room in broad strokes; **a close-up takes in one person in fine detail** — a longer lens resolves smaller things, so
+  a close-up shows the scar or the tremor a wide shot cannot. Shot size is a real choice about what the audience may
+  see.
+- ⭐ **Film speed is real** **[DECIDED — lens 1]** — early stock was slow, which is why Edison's *Black Maria* (1893),
+  the first studio, turned on a turntable to follow the sun through an opening in its roof; shoot a dim room and the
+  film is dark (§ 4's exposure rules).
+- ⭐ **Silent before sound** **[DECIDED — lenses 1, 5]** — a silent camera records sight only, so **dialogue exists only
+  as intertitles**, written cards the editor inserts: in a silent film, speech is whatever the editor chose to print —
+  a fine constraint for a text world. **Sound film arrives on the Electric rung** (*The Jazz Singer*, 1927).
+- **Black and white before color** — on monochrome stock the gray coat stays gray and the red scarf turns a darker
+  gray; the color model exists ([glass.md](../../subsystems/glass.md), [light.md](../../subsystems/light.md)), so a
+  film's stock decides whether color survives.
+
+### Editing is where films are made
+
+Multiple shots cut together — the wide, the close-up, her face. **Editing sets the pace**: a ten-minute scene of
+waiting becomes ninety seconds once the dead time is cut — doubly the craft in text, where unedited footage is a log.
+Cutting makes meaning (Kuleshov; Eisenstein's montage). Editing is on-page authorship, credited.
+
+### The film as a thing
+
+- **Prints struck from a negative** — the printing curve: a large cost up front, cheap copies after.
+- **Prints wear** — scratches and splices accumulate with each showing (the durability model).
+- ⭐ **Nitrate burns and decays** **[DECIDED — lenses 5, 1]** — early stock was cellulose nitrate, highly flammable and
+  burning even without air: projection booths caught fire, and some of the early twentieth century's deadliest fires
+  were in cinemas — the fire model is real physics ([fire.md](../../subsystems/fire.md)), so a nitrate print near an
+  arc lamp is a real hazard, and **safety film** (acetate, the 1950s) a real later technology. Nitrate is also
+  chemically unstable and breaks down over years: by the Library of Congress's estimate about **75% of American silent
+  feature films are lost**, many to decay and fire. **Preserving film is an archive's craft**
+  ([museum-slate](../world/museum-slate.md)).
+- **A reel runs about eleven minutes** — long films need several, and a projectionist to change them over.
+
+### The cinema
+
+A projector needs strong light — **limelight** first (the Engine rung: oxygen and hydrogen burned against a block of
+lime), then the **arc lamp** (Electric); the room must be dark (real light physics, as the stage). **Two catalogs**
+(§ 10): on-page films shot in the world, playing as prose, and off-page public-domain classics in video mode for viewers
+who choose it ([display-manifestation-slate](../client/display-manifestation-slate.md) § *The page boundary*). Around the
+film: a box office, newsreels (journalism on film), double features, an organist accompanying silent films (an
+off-page live performer).
+
+### The industry
+
+**The projectionist** runs the reels, minds the lamp, keeps nitrate from burning. **Studios, distributors and
+exhibitors** — real distribution ran through *film exchanges* renting prints to cinemas, so prints are logistics.
+Censorship is real history — the Hays Code governed Hollywood from 1934 to 1968.
+
+### Lens pass
+
+1. **Pedagogy** — optics (focal length, resolution), film speed, the frame rate that makes motion of stills, editing
+   theory (Kuleshov, Eisenstein's montage), film history (the *Black Maria*, intertitles, *The Jazz Singer*,
+   Technicolor), nitrate chemistry, the *Paramount* case; **shot size as optics, film speed, silent before sound**.
+2. **Expression** — players make films with no code: actors perform, a camera records, an editor cuts, a cinema
+   screens; ⭐ **film stocks are rows** **[DECIDED — lens 2]** — speed, whether they hold color, whether they burn
+   (nitrate) or not (acetate); cameras and lenses rows too; intertitles authored text.
+3. **3a Immersion** — prose in a dark house; off-page classics in video mode, marked; projector, light and dark room
+   real physics. ⚠ **Pacing** — a long film in prose can overwhelm; mostly the editor's craft (cut the dead time), with
+   playback following the edited timing. **3b Participation** — a player film industry: studios, stars (renown),
+   premieres, the Post's critics, festivals, cinemas as venues.
+4. **Values** — censorship is the polity's; what a cinema shows the venue's; ratings whoever chooses to issue them.
+5. **Continuity** — record, edit, project: the same commands from hand-cranked camera to digital; **nitrate decays as
+   well as burns, and preservation is archive craft**.
+6. **Economy** — studios, distribution (prints rented, logistics), exhibitors, projectionists, the box office; prints
+   wear, a real consumable; supply from players (films need actors), demand from everyone.
+7. **Governance** — ⭐ **performers are credited authors of the on-page work they perform in** **[DECIDED — lenses 7, 6]**:
+   an actor's performance is on-page art, so a film carries their credit and it counts as original work for labor
+   standing — a shared work, director, editor and actors credited ([provenance.md](../../subsystems/provenance.md)).
+   ⭐ **The *Paramount* case is a ready consumer for Compact law** **[DECIDED — lens 7]** — in 1948 the US Supreme Court
+   forced the big studios to sell their cinema chains, because owning production, distribution and theaters together
+   shut out competitors; **a corpo owning studios and the cinemas showing their films** is that case
+   ([corpos-slate](../society/corpos-slate.md) — antitrust at the Compact's level). Censorship goes on the record like
+   every law.
+
+| question | answer | lens |
+|---|---|---|
+| what a film is | a timed sequence of what a camera saw (and later heard), played back as prose | the owner |
+| shot size | real optics — close-ups resolve detail | 1 |
+| light | film speed is real; dim sets film dark | 1 |
+| silent and sound | silent first, dialogue as intertitles; sound on the Electric rung | 1, 5 |
+| stocks, cameras, lenses | rows — speed, color, flammability | 2 |
+| nitrate | burns and decays; preservation is archive craft | 5, 1 |
+| credit | performers are credited authors of the work they perform in | 7, 6 |
+| antitrust | studio-owned cinema chains as a case for Compact law | 7 |
+| catalogs | on-page films as prose; off-page classics in video mode | 3a |
+
+### Open
+
+1. **Playback pacing** — edited timing only, or may viewers change the speed?
+2. **Nitrate in the fire model** — for whenever cinemas are built.
 
 ## Cross-references
 
