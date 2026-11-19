@@ -282,11 +282,15 @@ suite('aether devices', () => {
 
   it('7 · ready it: the held line goes; what waited arrives under "While you were away"', async () => {
     B.clearCaptures();
+    // Hands full (coin in one, the rucksack in the other): set it down first.
     await say(A, 'remove rucksack');
+    await say(A, 'drop rucksack');
     const readied = squash(`${await say(A, 'get phone from rucksack', 2_000)} ${framesText(A)}`);
     expect(readied).toMatch(/While you were away/);
     expect(await heard(A, /hey are you there/)).toMatch(/hey are you there/);
     expect(await heard(B, /from the bottom of the bag/)).toMatch(/from the bottom of the bag/);
+    await say(A, 'get rucksack');
+    await say(A, 'wear rucksack');
   });
 
   it('8 · local emotes need no phone (packed)', async () => {
@@ -295,7 +299,9 @@ suite('aether devices', () => {
     await say(A, 'smile');
     expect(await heard(B, /smiles/i)).toMatch(new RegExp(`${nameA} smiles`, 'i'));
     await say(A, 'remove rucksack');
+    await say(A, 'drop rucksack');
     expect(await say(A, 'get phone from rucksack')).toMatch(/phone/i);
+    await say(A, 'get rucksack');
     await say(A, 'wear rucksack');
   });
 
@@ -406,14 +412,16 @@ suite('aether devices', () => {
     expect(await say(B, `title transfer #${id} to ${nameA}`)).toMatch(/not yours to hand on/);
     await say(B, `give #${id} to ${nameA}`);
     expect(await examine(A, 'phone')).toMatch(/bound to you/);
-    await reopenA({ where: STORE });
-    B.close();
-    B = await Session.open(handleB, { startLocation: STORE });
   });
 
   it('15a · buy one: an Aevex and a charger; the new phone is A\'s and tunes A', async () => {
-    expect(await say(A, 'buy aevex meridian phone')).not.toMatch(/can't afford|cannot afford|refus|bare/i);
-    expect(await say(A, 'buy phone charger')).not.toMatch(/can't afford|cannot afford|refus|bare/i);
+    await reopenA({ where: STORE });
+    B.close();
+    B = await Session.open(handleB, { startLocation: STORE });
+    const bought = await say(A, 'buy "aevex meridian phone"');
+    console.log('BUY:', bought, '| WALLET:', await say(A, 'wallet'));
+    expect(bought).toMatch(/You buy|bought/i);
+    expect(await say(A, 'buy "phone charger"')).toMatch(/You buy|bought/i);
     const look = await examine(A, 'aevex');
     expect(look, look).toMatch(/It is yours\./);
     expect(look).toMatch(/Aevex/);

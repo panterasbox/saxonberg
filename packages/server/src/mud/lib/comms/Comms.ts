@@ -133,6 +133,14 @@ export interface Comms {
   aetherWord(): string;
 
   /**
+   * Something that tunes this person just changed (a phone readied,
+   * switched on, set down, charged): flush what is held if it can now move,
+   * and refresh the status word. Told by the device on its own acts (D8 —
+   * the act says something; never a timer).
+   */
+  noticeTuning(): void;
+
+  /**
    * Is this body its own aether host — tuned by its nature (a shade, a
    * born-attuned species: the gated sense active with no device
    * conferring it)? Derived from the gating, never declared.
@@ -495,6 +503,11 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           await me.executeCommand(line);
         }
       }
+    }
+
+    noticeTuning(): void {
+      this.scheduleFlushIfMovable();
+      this.noteAetherWord();
     }
 
     /** Is anything held, and can some of it move now? Then flush once, after this frame. */

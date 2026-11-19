@@ -122,6 +122,7 @@ export default class Phone extends PhoneBase {
     this.settleBattery(at, bearer !== null && this.isOn() ? bearer.stuffId : null);
     super.setOn(value);
     this._refusalMemo = null;
+    this.tellBearer();
   }
 
   public onMoved(
@@ -137,6 +138,24 @@ export default class Phone extends PhoneBase {
     // phone restored onto a charger charges across the whole absence.
     if (from !== null) this.settleAfterMove(Math.floor(WorldClockApi.getNow().value));
     this._refusalMemo = null;
+    this.tellBearer();
+  }
+
+  /**
+   * The placement pair is stamped AFTER `onMoved` (the move core runs first),
+   * so the phone settles here too: the interval before is charged to what
+   * it rested on, then it remembers the charger it was just set on.
+   */
+  public override placementChanged(was: string, now: string): void {
+    super.placementChanged(was, now);
+    this.settleAfterMove(Math.floor(WorldClockApi.getNow().value));
+    this._refusalMemo = null;
+  }
+
+  /** Tell whoever bears this phone that what tunes them changed (D8). */
+  private tellBearer(): void {
+    const bearer = this.getBearer();
+    if (bearer !== null && MixinApi.isComms(bearer)) bearer.noticeTuning();
   }
 
   /** The tuning rule (D1). */
