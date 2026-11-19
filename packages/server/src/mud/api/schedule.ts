@@ -63,6 +63,9 @@ function _indexHandle(scope: string | null, handle: InternalHandle): void {
 function _registrationScope(): string | null {
   const scope = ExecutionContextApi.getCircleScope();
   if (scope !== null) return scope;
+  // ⭐ System work is omni by definition — boot, a named sweep — whether or
+  // not a root is planted around it (call-security pass D3).
+  if (ExecutionContextApi.actingSystem() !== null) return '*';
   return ExecutionContextApi.getCallStack().length === 0 ? '*' : null;
 }
 

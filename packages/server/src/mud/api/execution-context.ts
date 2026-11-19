@@ -776,9 +776,10 @@ export class ExecutionContextApi {
    * ⭐ Run `fn` as the named SYSTEM — engine work nobody in the world asked
    * for (boot, a residency sweep, a maintenance tick). At a protective
    * check the system is admitted for any claim, and the frame says so. With
-   * no stack at all (boot) it plants an omni-scoped root, which is what
-   * work with no execution context already was (`ScheduleApi`'s
-   * registration scope). Framework only — the frame-mutator allowlist.
+   * no stack at all (boot) it plants a root carrying NO circle scope — what
+   * boot read before it had a root; `ScheduleApi` gives the work the system
+   * arms its omni registration scope itself. Framework only — the
+   * frame-mutator allowlist.
    */
   public static runAsSystem<T>(name: string, fn: () => T): T {
     _assertFrameMutatorAllowed('runAsSystem');
@@ -789,7 +790,11 @@ export class ExecutionContextApi {
         target: null,
         method: `system:${name}`,
         kind: FrameKind.Root,
-        metadata: { circleScope: OMNI_SCOPE, actingSystem: name },
+        // ⚠ No circleScope: boot read none before it had a root, and an
+        // omni-scoped root reads as QUARANTINED to the world clock's restore
+        // (the drive found boot dying on it). ScheduleApi gives the work the
+        // system arms its omni registration scope itself.
+        metadata: { actingSystem: name },
       };
       return _als.run(_linkFrame(root, null), fn);
     }

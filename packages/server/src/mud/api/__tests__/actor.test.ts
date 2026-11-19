@@ -115,9 +115,9 @@ describe('getActor — who is acting', () => {
     expect(system).toBe('boot');
   });
 
-  it('runAsSystem at an empty stack plants an omni-scoped root (boot keeps its scope)', () => {
+  it('runAsSystem at an empty stack plants a root with NO circle scope (the clock would read * as quarantined)', () => {
     ExecutionContextApi.runAsSystem('boot', () => {
-      expect(ExecutionContextApi.getCircleScope()).toBe('*');
+      expect(ExecutionContextApi.getCircleScope()).toBeNull();
     });
   });
 

@@ -590,6 +590,14 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   the suite still passing with the gate in: a brain, a timer or a sweep that
   lost its actor would refuse loudly there.
 
+- **B20 (drive) — boot died: an omni-scoped system root reads as
+  quarantined.** `runAsSystem` at an empty stack planted `circleScope: '*'`
+  (B4), and `WorldClockApi.restore` refuses any circle scope — the owned
+  world never reached `listen`. No unit test boots a world; the drive's first
+  boot found it. The system root now carries no circle scope (what boot read
+  before it had a root), and `ScheduleApi`'s registration scope treats
+  system work as omni explicitly.
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |
