@@ -773,7 +773,7 @@ before sending, or to hand the in-flight context to the replacement.
   carries the worded sentence, never the exception text; scripts stop at a
   refusal and `try … on` handles one. The plan (build decisions B1–B15, the
   drive record) and the requirements are retired —
-  `git show e2eac3e28:docs/plans/failure-model-plan.md`.
+  `git show 77721deb5:docs/plans/failure-model-plan.md` (its final state, with the drive record).
 
 The slate (requirements), build plan, and per-controller audit
 manifest were deleted once the build shipped — their load-bearing
