@@ -127,6 +127,11 @@ describe("conditioning — the band is a threshold over a body stock", () => {
     expect(after.find((b) => b.discipline === "blades")?.band).not.toBe(
       first.find((b) => b.discipline === "blades")?.band,
     );
+    // The per-discipline read is the fold's band, read from the cache.
+    const r0 = vi.mocked(PersistenceManager.get().find).mock.calls.length;
+    expect(await p.competenceBandFor("blades")).toBe(after.find((b) => b.discipline === "blades")?.band);
+    expect(await p.competenceBandFor("cooking")).toBe("untrained");
+    expect(vi.mocked(PersistenceManager.get().find).mock.calls.length).toBe(r0);
   });
 
   it("a fresh body lists nothing — the floor is implicit, for a stock as for the fold", async () => {

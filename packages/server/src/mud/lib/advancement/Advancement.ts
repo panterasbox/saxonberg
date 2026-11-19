@@ -596,6 +596,17 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       if (!transcriptActive()) return CompetenceBand.FLOOR;
       const ownerId = ownerKeyOf(this as unknown as Stuff);
       if (!ownerId) return CompetenceBand.FLOOR;
+      // ⭐ The fold's band for this Discipline — the same `bandOf` over the
+      // same rows — read from the owner's cached fold (db-performance H3;
+      // the drive found this per-discipline read was the hot one, not
+      // `bandsFor`). A circle asks the ledger (its own stamped rows).
+      if (ExecutionContextApi.getCircleScope() === null) {
+        if (!foldCache.has(ownerId)) await foldCache.refresh(ownerId);
+        const fold = foldCache.get(ownerId);
+        if (fold) {
+          return this.suppressed(fold.find((b) => b.discipline === discipline)?.band ?? CompetenceBand.FLOOR);
+        }
+      }
       const entries = await TranscriptEntry.find({
         owner: ownerId,
         discipline,
