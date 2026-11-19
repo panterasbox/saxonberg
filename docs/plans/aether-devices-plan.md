@@ -1080,6 +1080,17 @@ the person's comms finds its app there; before W3 nothing has changed.
 
 ### W10 — `look`, the status bar, the drive, the docs (D13, D14, D15)
 
+> **Build note.** W3–W10 landed as one commit (58acf3923): build-1 held the
+> box for a quiet-box baseline while they were written. The `look` lines
+> live on `Phone` and `BatteryMixin` (the apps line on the host mixin would
+> have needed duck typing to read an app's name). The test-login character
+> now receives the starting kit too (`TestHooks.#dress`), or no drive could
+> `dm`. Gates: `controller-functions` 63 → 62 and `controller-resolution`
+> 76 → 75 re-pinned; `controller-mutations` 137 → 138 and `data-ideas`
+> 12 → 13 are STATED rises (caller audits in the headers; `App` is the MR's
+> first item). The Vionne phone row was dropped (nothing reached it).
+> MR !615 opened at code-complete; `lint:family` 111/111.
+
 - `markupAugmenters` on `AetherHostMixin` (the apps), `BatteryMixin` (the
   charge) and `Phone` (on, off, whose); `aetherState` on the `self` card
   and its poke from `CommsMixin`.

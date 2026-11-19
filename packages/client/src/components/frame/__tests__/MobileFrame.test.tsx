@@ -212,6 +212,7 @@ describe('MobileFrame', () => {
         grid.querySelectorAll('[data-figure-state]'),
       ).map((g) => (g.getAttribute('aria-label') ?? '').split(':')[0]!.trim());
       expect(labels).toEqual([
+        'AETHER',
         'PLAY',
         'RENOWN',
         'SKILL',

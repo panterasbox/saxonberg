@@ -17,6 +17,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
 import Location from '../../../lib/location/Location';
 import Phone from '../Phone';
+import { WorldClockApi } from '../../../api/worldclock';
 import App from '../../idea/App';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { AnyConstructor } from '../../../api/mixin';
@@ -100,6 +101,9 @@ describe('Phone', () => {
     ContainmentApi.move(p, bag);
     expect(tuned(me)).toBe(true);
     ContainmentApi.move(bag, room); // set the satchel down, phone inside
+    // The phone's answer is memoized for one game second (D1's hot path);
+    // the bag moved, not the phone, so the next second reads it fresh.
+    WorldClockApi.advance('1 second');
     expect(tuned(me)).toBe(false);
     expect(p.conferralRefusal()).toBe('not-borne');
   });
