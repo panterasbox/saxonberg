@@ -245,7 +245,8 @@ interfere with that — just set up the stage and let someone perform."* Gossip 
 the meta, not about Terminus, so it needs a holder whose beat is the whole platform: **a national paper
 at the capital**, private and independent of all three branches. **The operator holds it at launch**,
 under the paper's own name, until it is handed off. The full design of the public channels and launch
-moderation is [moderation-slate](../society/moderation-slate.md) § 24.
+moderation is [moderation-slate](../society/moderation-slate.md) § 24; the Post itself — its pen, its charter,
+its roster — is the [journalism-slate](../society/journalism-slate.md) § *the Saxonberg Post*.
 
 ## 8b. ⭐⭐⭐ The windows, updated — and every office shows its pen (2026-11-18) **[DECIDED in shape]**
 

@@ -764,7 +764,7 @@ and deserves a bang.
 
 ### ⚠ Auto-generated headlines would make the press redundant
 
-The [press slate](./press-slate.md)'s thesis is that *"anyone can
+The [press slate](./journalism-slate.md)'s thesis is that *"anyone can
 check"* becomes *"nobody does"* without a press. **If the ticker
 auto-reports every crossing, the omniscient feed makes the vocation
 pointless before it ships.** Three layers, and the top one is already a
