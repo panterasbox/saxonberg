@@ -611,7 +611,7 @@ Every node command is prefixed `NODE_OPTIONS= VSCODE_INSPECTOR_OPTIONS=`.
 by name; push at every wave's commit. Branch first:
 `git switch -c build/db-performance` from this branch.
 
-### W0 — the instrument, the staging tool, the drive, the baseline
+### W0 — the instrument, the staging tool, the drive, the baseline ✅ (cc3178a87 + the baseline commit)
 
 **Goal:** every later wave is compared with a number. Nothing in this wave
 changes what the world does. **Decisions:** D10, D13, D14, S2, S7.
@@ -1083,3 +1083,48 @@ Read first, in this order:
 ## Drive record
 
 *(appended at build time, not at plan time)*
+
+### W0 baseline — 2026-11-18, W0's code, `DBP_RECORD=1 DBP_WORK=1` (counts; box NOT quiet: load ~11, foreign 3.4 cores)
+
+The box could not be quieted (two sibling worlds booting), so this run is
+**counts only** — honest anywhere. The timed figures (paid / `look` / `say`
+p95) wait for a quiet-box run; until one is recorded, `noWorse` has nothing
+to compare against and skips. `DBP_WORK=1` was added to the drive for this:
+steps 3 and 6 for their counts without the quiet precheck (build decision).
+
+| step | W0 reading |
+|---|---|
+| 5 | ten `say`s → 98 round trips; since boot the pool had already queued 51 check-outs (peak 60 waiting, 119 s waiting) |
+| 2a | idle 180 s, 200 past players, nobody logged in → **3 642 scoring ops** (≈ 600 `find`+`save` per service per pass: a find and a save per subject per minute) — FALLS, as designed |
+| 2b | one player, three lines → 2 451 scoring ops; their participation by person **0**, `standing` "not yet shown up" — FALLS |
+| 4 | A and B both 0 alive; A 0 as a shade — FALLS (B2 proof: the checkpoint fails on the defect). The roster check HOLDS only trivially (both read `dormant`) |
+| 4 | three commands at the roster → 6 participation ledger ops (a login screen earns) — FALLS |
+| 7b | consign ok · another player's reclaim `not-owner` · the consignor's reclaim ok |
+| 3 | 330 commands, 10 559 round trips; **pool waited 1 119 (peak 856, 2 176 s waiting)** — FALLS |
+| 6 | stop with the thirty connected: exited in **23.5 s**, not killed, 131 hosts captured — but **all 30 came back elsewhere and without the rag handed since their last periodic save**: the connected bodies were not captured. **D9 is confirmed; it lands in W4.** |
+
+Two drive defects found and fixed after the run: 7a named a payee nobody
+could see (now `bank withdraw 100000`, the chokepoint's refusal), and 7c
+compared ambient prose (a shiver) — now the `competence` block alone. Their
+decisions are recorded after W4, before W5 (W1–W4 touch neither).
+
+**The hot-path ranking (D11), ops per command in step 3's working phase:**
+
+| rank | path | ops / command | taken? |
+|---|---|---|---|
+| 1 | H5 frames (`save player_frames` 4 179) | 12.66 | W2, unconditional |
+| 2 | H2 accounts and ledger | 2.25 | W5 |
+| 3 | H3 competence bands | 1.49 | W5 |
+| 4 | H4 chattel place and stamp | 1.36 | W5 |
+| 5 | H1 taps dedup | 1.29 | W5 |
+| — | captures (`find`+`save holder_snapshots`) | 0.46 | W4 (the capture write) |
+| — | the three scoring passes (`find`/`save` participation, renown, producer: ≈ 2 320 ops) | 7.0 | W3 |
+| new | `find authoring_events` 392, `find documents` 358 / `save documents` 179 | 1.19 / 1.63 | not in the table; their callers need the traced run — W5 looks at them (P1 line there) |
+
+⚠ The 5% floor: the phase's total is ~32 ops a command, so 5% is 1.6 and
+H3/H4/H1 would fall under it — but ~7 of those 32 are the scoring passes W3
+removes. **Decided:** the floor is taken against the phase's ops less the
+scoring passes (~25 a command → 1.25), so H1–H4 all qualify. (Lens 2/plan
+D11's intent: rank what a player's act costs, not what the minute timer
+costs.)
+

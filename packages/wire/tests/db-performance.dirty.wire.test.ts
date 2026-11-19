@@ -57,6 +57,12 @@ declareFile({
 const QUIET = process.env.WIRE_QUIET === '1';
 const RECORD = process.env.DBP_RECORD === '1';
 const TRACE = process.env.DBP_TRACE === '1';
+/**
+ * Steps 3 and 6 for their COUNTS on a box that is not quiet: round trips,
+ * pool waits, what came back after the stop. The timed figures are taken
+ * (and compared) only with WIRE_QUIET=1.
+ */
+const WORK = QUIET || process.env.DBP_WORK === '1';
 
 const LOUNGE = '/world/lounge';
 const BAR = '/world/lounge/location/bar';
@@ -182,10 +188,10 @@ function claim(name: string, ok: boolean, why: string): void {
   if (!RECORD) expect(ok, `${name}: ${why}`).toBe(true);
 }
 
-/** "No worse": within the box's 10% noise bound of the baseline. */
+/** "No worse": within the box's 10% noise bound of the baseline (quiet box only). */
 function noWorse(name: keyof Measured, now: number): void {
   const was = baseline?.measured[name];
-  if (RECORD || typeof was !== 'number') return;
+  if (RECORD || !QUIET || typeof was !== 'number') return;
   expect.soft(now, `${String(name)}: ${Math.round(now)} vs baseline ${Math.round(was)} (+10%)`).toBeLessThanOrEqual(
     was * 1.1
   );
@@ -211,6 +217,17 @@ function decided(name: string, value: string): void {
 /** Every recorded line, and the JSON when recording. Called once, last. */
 function writeRecord(): void {
   if (RECORD) {
+    // A run records what it measured and keeps the rest: the timed figures
+    // come from a quiet-box run, the counts from any run.
+    const merged: Measured = { ...(baseline?.measured ?? {}) };
+    for (const [k, v] of Object.entries(measured) as [keyof Measured, unknown][]) {
+      if (v === undefined) continue;
+      if (typeof v === 'object' && v !== null && !Array.isArray(v) && typeof merged[k] === 'object' && merged[k] !== null) {
+        (merged as Record<string, unknown>)[k] = { ...(merged[k] as object), ...(v as object) };
+      } else {
+        (merged as Record<string, unknown>)[k] = v;
+      }
+    }
     writeFileSync(
       BASELINE_PATH,
       `${JSON.stringify(
@@ -218,7 +235,7 @@ function writeRecord(): void {
           _comment:
             'Written by DBP_RECORD=1 on W0’s code (master’s behavior plus the instrument) — compared on every other run. ' +
             'Timed figures only from a quiet-box run (WIRE_QUIET=1).',
-          measured,
+          measured: merged,
         },
         null,
         2
@@ -432,6 +449,12 @@ suite('4 — each person’s own standing, across death', () => {
 
 // ── step 7: nothing a check decided changed ──────────────────────────────
 
+/** `competence`'s own block — the ambient lines a body hears around it (a shiver) are not it. */
+function competenceBlock(prose: string): string {
+  const i = prose.indexOf('Competence');
+  return i < 0 ? prose.trim() : prose.slice(i).trim();
+}
+
 let checker: Session;
 let competenceBefore = '';
 
@@ -445,7 +468,9 @@ suite('7 — nothing a check decided changed', () => {
       committees: [LOUNGE, TERMINUS],
     });
     await checker.cmd('bank open');
-    const r = await checker.cmd('pay founder 100000');
+    // A draw past the balance: the banking chokepoint's refusal (W5 caches
+    // the account reads in front of it; the decision must not move).
+    const r = await checker.cmd('bank withdraw 100000');
     const reason = r.notes.find((n) => n.kind === 'controller-rejected') as { reason?: string } | undefined;
     decided('payment refused', `${r.status} ${reason?.reason ?? '-'} ${(await r.said()).slice(0, 240)}`);
   }, 180_000);
@@ -473,8 +498,8 @@ suite('7 — nothing a check decided changed', () => {
   }, 240_000);
 
   it('7c — competence bands read the same twice for an unchanged transcript', async () => {
-    const one = await checker.prose('competence');
-    const two = await checker.prose('competence');
+    const one = competenceBlock(await checker.prose('competence'));
+    const two = competenceBlock(await checker.prose('competence'));
     expect(two).toBe(one);
     competenceBefore = one;
     decided('competence', one.slice(0, 400));
@@ -483,16 +508,17 @@ suite('7 — nothing a check decided changed', () => {
 
 // ── steps 3 and 6: the quiet box ─────────────────────────────────────────
 
-(QUIET ? suite : suite.skip)(
-  QUIET
-    ? 'the timed steps (quiet box)'
-    : 'the timed steps — SKIPPED: set WIRE_QUIET=1 on a quiet box (docs/testing.md)',
+(WORK ? suite : suite.skip)(
+  WORK
+    ? `steps 3 and 6 (${QUIET ? 'quiet box: timed' : 'DBP_WORK: counts only'})`
+    : 'steps 3 and 6 — SKIPPED: set WIRE_QUIET=1 on a quiet box (docs/testing.md), or DBP_WORK=1 for counts',
   () => {
     let thirty: CrowdRecord | null = null;
     const workers: Session[] = [];
     const before = new Map<string, { place: string; holds: string; band: string }>();
 
     it('precheck: the box is quiet', async () => {
+      if (!QUIET) return;
       let refusal = quietBoxRefusal(listenerPid());
       for (let waited = 0; refusal !== null && waited < 300_000; waited += 15_000) {
         await sleep(15_000);
@@ -575,15 +601,20 @@ suite('7 — nothing a check decided changed', () => {
           measured.workPathPerCmd = Object.fromEntries(
             Object.entries(PATHS).map(([name, re]) => [name, sumWhere(ops, re) / Math.max(1, commands)])
           );
-          measured.paidP95 = p95(paid);
-          measured.lookP95 = p95(looks);
+          if (QUIET) {
+            measured.paidP95 = p95(paid);
+            measured.lookP95 = p95(looks);
+          }
+          say(`3: paid p95 ${Math.round(p95(paid))} ms · look p95 ${Math.round(p95(looks))} ms${QUIET ? '' : ' (not quiet: not recorded)'}`);
         },
       });
       const r = thirty;
-      measured.sayOneP95 = r.sayOne.p95;
-      measured.sayRoundP95 = r.sayRound.p95;
-      measured.box = r.box;
-      measured.foreignCores = r.foreignCores;
+      if (QUIET) {
+        measured.sayOneP95 = r.sayOne.p95;
+        measured.sayRoundP95 = r.sayRound.p95;
+        measured.box = r.box;
+        measured.foreignCores = r.foreignCores;
+      }
       say(
         `3: ${measured.workCommands} commands, ${measured.workRoundTrips} round trips; pool waited ` +
           `${measured.poolWaited} (${measured.poolWaitMs} ms; peak ${measured.poolPeakWaiting}); paid p95 ` +
@@ -593,7 +624,7 @@ suite('7 — nothing a check decided changed', () => {
       say(`3: per command by path ${JSON.stringify(measured.workPathPerCmd)}`);
       const top = Object.entries(measured.workOps ?? {}).sort((x, y) => y[1] - x[1]).slice(0, 25);
       say(`3: top ops ${JSON.stringify(top)}`);
-      expect(r.foreignCores ?? 0, 'inconclusive: foreign CPU').toBeLessThanOrEqual(0.5);
+      if (QUIET) expect(r.foreignCores ?? 0, 'inconclusive: foreign CPU').toBeLessThanOrEqual(0.5);
       claim('3 no command waits for a connection', (measured.poolWaited ?? 1) === 0, `${measured.poolWaited} waited`);
       noWorse('paidP95', measured.paidP95 ?? 0);
       noWorse('sayOneP95', r.sayOne.p95);
@@ -656,7 +687,7 @@ suite('7 — nothing a check decided changed', () => {
       // 7c again, across the restart.
       const c = await Session.open(checker.handle, {});
       try {
-        const after = await c.prose('competence');
+        const after = competenceBlock(await c.prose('competence'));
         expect(after, '7c competence reads the same after the restart').toBe(competenceBefore);
       } finally {
         c.close();
