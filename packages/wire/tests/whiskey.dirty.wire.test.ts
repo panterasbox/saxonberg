@@ -342,7 +342,7 @@ async function millGristInPortions(): Promise<void> {
   for (let i = 0; i < MALT_PORTIONS; i++) {
     if (i > 0) await rest('1 hour');
     expectOk(
-      await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L} L`),
+      await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L}L`),
     );
     let milling = await say(k, `mill #${hopper} at quern`);
     if (refusedFor(milling) === 'too-tired') {
@@ -518,7 +518,8 @@ suite('⭐⭐ 2. the still holds a charge', () => {
     // CLOSED and the verb answered "you can't pour anything into the
     // still" — for every player, for the life of the pack.
     const poured = await say(k, `pour vat into ${await stillRef(k)}`);
-    const reason = refusedFor(poured);
+    // `null` is not refused — the pass (an object to `toMatch`, which threw).
+    const reason = refusedFor(poured) ?? '';
     expect(
       reason,
       'the still has no bulk slot: `pour` fails at the binder, which no ' +
@@ -616,8 +617,8 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
     // identical. A message at a boundary would turn a judgement into a
     // prompt, and the whole design rests on the player noticing rather
     // than being told.
-    const first = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2 L`);
-    const second = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2 L`);
+    const first = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2L`);
+    const second = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2L`);
     const kinds = (r: CommandResult) =>
       (r.notes as Array<{ kind?: string }>).map((n) => n.kind).sort();
     expect(kinds(second)).toEqual(kinds(first));

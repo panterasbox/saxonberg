@@ -296,7 +296,7 @@ async function millGristInPortions(): Promise<void> {
   for (let i = 0; i < MALT_PORTIONS; i++) {
     if (i > 0) await rest('1 hour');
     expectOk(
-      await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L} L`),
+      await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L}L`),
     );
     let milling = await say(k, `mill #${hopper} at quern`);
     if (refusedFor(milling) === 'too-tired') {
