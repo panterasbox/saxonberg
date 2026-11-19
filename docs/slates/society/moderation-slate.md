@@ -19,7 +19,9 @@
 > always public, the audience an advisory jury).
 > **Left:** everything in § 19 (the go-live list) · the raid dial's shape · what the mod queue shows ·
 > channel domains · mod tiers · rehabilitation's own conversation · the re-entry ladder (§ 9, general)
-> · Kick's moderation events (unverified). [prison-slate](./prison-slate.md) — whose guardrail this
+> · Kick's moderation events (unverified) · ⭐ (2026-11-18, § 23) local jurisdiction — a document per
+> information space carrying its house rules, the discoverability line, reach-bounded sentences, the
+> lowest common holder, the reserved list, the conduct judge's workspace. [prison-slate](./prison-slate.md) — whose guardrail this
 > slate **reverses** (§ 16) — was rewritten alongside it.
 > **Size:** a build — its go-live wave is small
 
@@ -561,6 +563,10 @@ accounts (a sanction on an external id suffices first).
   the appeal and the entrenchment tier named. Today it is a Competence band and nothing else.
 - **Rehabilitation** — its own conversation ([prison-slate](./prison-slate.md) § 12). The prison
   conversation itself is done (prison-slate, rewritten 11-07).
+- ⭐ (2026-11-18, § 23) **The reserved list** — written (the test, the list, three layers); left:
+  may the Compact remove items from its own layer, or only add them?
+- **Local court service and Compact standing** — only for rulings that survive appeal? (§ 23)
+- **The one-to-one DM's default jurisdiction** — the narrowest extent covering both parties (§ 23).
 
 ## 21. Reuse ledger (review question R2)
 
@@ -600,6 +606,308 @@ conduct code.
 6. **Economy** — goods in hock return to the market by auction, never vanish.
 7. **Governance** — every judgment names its criterion (the cited rule; investment), its appeal (the
    operator, then the court), and its tier (§ 18); franchise only by adjudication (§ 16d).
+
+## 23. ⭐⭐⭐ The conduct track meets the courts — and jurisdiction is local (2026-11-18)
+
+Talked through with the owner, out of the person docket
+([separation-of-powers-slate](./separation-of-powers-slate.md) § 7o), whose conduct track had to meet
+this slate.
+
+### What the person docket got wrong
+
+- **Evidence.** § 7o said conduct cases *"may use everything, the engine's logs included."* Too strong.
+  Harm to a person requires **delivery**, and § 13 already holds the rule: a report attaches only what
+  the reporter was delivered, and filing it is consent to disclose. **Conduct evidence is what was
+  delivered to someone, disclosed by them, plus the platform's logs of the accused's acts against the
+  platform** (cheating, exploits, botting), where no person's consent is needed — **never undelivered
+  speech, never a private conversation nobody reported.** *Everything* would have made the conduct
+  track a surveillance system.
+- **The fiction.** § 7o said conduct cases *"never appear in the fiction."* Half right, given § 16's
+  reversal: **the case** is out of fiction (heard on the stream, naming the character or handle, never
+  the real person); **the remedy** may be in it (prison is a place); **the record** never feeds it
+  (§ 12, A15).
+
+### Where they already agree
+
+| question | person docket | this slate |
+|---|---|---|
+| interim vs final | an interim rule per tool | **holds** (executive) vs **sentences** (judicial) — § 14a |
+| the jury | lay, by lot | court day — the operator as judge, the audience an advisory jury, binding sortition once due process is ratified: the same design at another dial setting |
+| standing | never a penalty | changes only by arithmetic; disenfranchisement possible as a *sentence* — a right taken, not a measure falsified (§ 16d) |
+| records | conduct follows the account | the network ban; the public log names seats, never offenders (§ 12) |
+
+### What this slate does better — spread to the whole person docket
+
+- ⭐ **Holds expire everywhere** — every person-judging tool's interim rule carries an expiry, the
+  in-fiction ones included (§ 14a's habeas rule), rather than an unruled case escalating.
+- ⭐ **Nothing an appeal cannot fully undo happens before judgment** (§ 16d's guard) — the test for the
+  whole person docket, not only the franchise.
+
+### Remedy by investment, within a closed list
+
+The person docket's sentences are a closed list in law; this slate's remedy is chosen by investment
+(§ 16a). They compose: **the list bounds what is possible; investment chooses within it**, with
+standing, wealth and office excluded by name, and the stated reason on the record.
+
+### Griefing — the same events on both tracks
+
+Mugging a character is fiction; mugging the same player's character every time they log in, after
+they asked you to stop, is harassment of the person behind it. **An in-fiction case and a conduct case
+may run on the same events** — the first on what someone could know, the second on the delivered
+record and **the pattern** (offender × target, § 1a: judged by a person, never classified). The clerk
+may route a case to conduct; **the routing is appealable.**
+
+### The conduct judge's workspace
+
+The case card (separation-of-powers § 7m) is built for code. A conduct case shows: **the delivered
+lines in order, each marked with who disclosed it** · the offender × target pattern · the prior record
+· the investment evidence that chooses the remedy (character age, play, probation kept) — standing,
+wealth and office excluded by name.
+
+### ⭐⭐⭐ Jurisdiction follows the extent where the harm landed **[DECIDED — the owner]**
+
+The owner: *"There's certainly conduct whose misalignment reaches across boundaries and is just
+globally bad. But most everything a player can do in this game has a limited reach — that's by design.
+So most moderation can be thought of in terms of its locality. The city of Terminus is an obvious
+extent that has its own interests when it comes to the adjudication of its laws. But so does a guild
+over its assets. Or even an interest with no physical assets at all, just an information domain, like
+whoever owns the gossip channel or Twitch chat or any other 'jurisdiction' within our information
+space."*
+
+| extent | held by | its interest |
+|---|---|---|
+| the city of Terminus | its committee | its laws, its streets |
+| a guild | the guild | its assets, its hall, its members' conduct in its name |
+| the gossip channel | its owner | its tone, its house rules |
+| a Twitch chat | the streamer's committee | its audience |
+| a private parcel | the owner | their home |
+
+- **Each moderates — and, if it chooses, judges — what lands inside it** (§ 3's tree, now carrying
+  courts as well as holds).
+- ⭐ **What it may impose is bounded by its reach.** The gossip channel's strongest sentence is a ban
+  from the gossip channel; Terminus may jail in Terminus; only the root may network-ban. § 3's *a
+  sanction never reaches past its issuer's extent*, applied to sentences.
+- **Appeal goes up the tree** to the next court that covers it, and ultimately the Compact.
+- ⛔ **Retracted:** *conduct sentences belong only to the Compact's court* (proposed in the
+  conversation, never written down).
+
+### Globally bad conduct — two ways
+
+1. ⭐ **Harm that spreads goes to the lowest common holder** **[DECIDED — lens 1]** — the narrowest
+   extent covering every place it landed: two channels under one realm go to the realm; two realms go
+   to the Compact. Computed, so anyone can predict the venue. *One level higher* would be arbitrary;
+   spreading raises **the sentence** (a pattern is graver than an act), not the venue.
+2. **A reserved list always goes to the root**, wherever it lands — *the reserved list* below: the
+   test, the matters, and three layers of entrenchment.
+
+**Local rules add to the conduct code (§ 15), never subtract** **[DECIDED — lens 7, Tier A]**: a
+channel may forbid swearing; it may not permit doxxing.
+
+### ⭐⭐ Paths for every jurisdiction — and discoverability **[DECIDED — lens 2]**
+
+The owner: *"This is where your idea that everything gets a path extent actually might pay dividends.
+Giving everything some kind of representation in the content or document trees gives everything a
+path, which might make things a little more discoverable."*
+
+- **The moderation tree and the committee tree become one tree.** § 3's nesting (channel ⊂ realm;
+  place ⊂ parcel ⊂ locality) is path prefixes; escalation is the longest-prefix lookup read upward —
+  the machinery access already runs ([separation-of-powers-slate](./separation-of-powers-slate.md)
+  § 7l).
+- **The lowest common holder is the longest shared prefix** of the paths where harm landed.
+- ⚠ **Information spaces need representation.** Chat channels today are stored by name in their own
+  collection, with no path. **Each channel, forum board, Twitch chat or other external space gets a
+  document at a path** that stands for it and holds its house rules — a new kind of space needs no
+  code. External spaces especially: a Twitch chat has no existence in our world until something stands
+  for it.
+- ⭐ **The discoverability line.** Every place and channel card answers *who moderates here · the rules
+  here · where appeals go*: *moderated by the Gossip committee · house rules · appeals: Terminus → the
+  Compact*. `committee show` answers it anywhere. Out-of-fiction UI, like the record's ✓; a place in
+  the fiction may also show its in-world authority (*the Terminus Watch keeps order here*) as content.
+- **DMs stay as § 11 decided.** A one-to-one DM has no holder, so it is moderated only by report and
+  falls to **the narrowest extent covering both parties**, usually the realm **[LEAN]**; a group DM is
+  held by everyone in it.
+
+### ⭐⭐⭐ The reserved list — what always goes to the root **[DECIDED in shape — the owner]**
+
+**The test, so the list does not just grow: a matter is reserved when no local court can be trusted with
+it.** Four ways that happens:
+
+1. **The harm escapes the game** — it lands on a real person outside the world, where no boundary in the
+   game contains it.
+2. **The law requires central handling** — whoever hosts the server has duties no community can waive.
+3. **It attacks the machinery** — it harms every extent at once by corrupting what they all stand on.
+4. **The local court is the accused** — an extent cannot judge its own holders acting in that role.
+
+**The list, by reason**
+
+| reason | matters |
+|---|---|
+| **escapes the game** | credible threats of real-world violence · doxxing · stalking or harassment that follows a person off the platform · swatting and any attempt to send real authorities at someone · sextortion and coercion · real-money fraud (phishing for logins, payment scams, selling what does not exist) · impersonating a real person |
+| **the law requires it** | sexual content involving minors, and grooming (a US host must report to NCMEC — no local discretion) · credible terrorism or mass-violence content · children under the host's minimum age (an account matter; COPPA in the US) · legal process: takedown notices, subpoenas, data-protection requests |
+| **attacks the machinery** | ⭐ tampering with the record ([record-integrity-slate](../platform/record-integrity-slate.md)) · ⭐ fake accounts used to manipulate the Compact — alts voting, seconding or holding standing, corrupting every chamber's tally at once · hacking, and exploiting bugs in ways that damage the world for everyone (duplicating money, crashing the world) · botting and automation at scale · evading a root-level ban |
+
+⭐ **"The local court is the accused" is a jurisdiction rule, not an item:** **a case goes to the lowest
+holder that does not include the accused among its holders.** A gossip-channel moderator abusing their
+seat goes to the realm, not the gossip channel; a Terminus official goes to the level above Terminus. It
+reaches the root only when the accused holds power all the way up — the PM, the operator.
+
+⭐ **Not every reserved matter is an offense.** **Self-harm and suicide risk** reach the root **as care,
+not as a case**: the person is routed to resources quickly and privately, and nothing goes on a record
+or before a court. The list is of *matters* the root handles, and some are not accusations.
+
+**Three layers, entrenched differently**
+
+| layer | examples | who may change it |
+|---|---|---|
+| **the host's floor** | reporting content involving minors, legal process, age rules | **nobody in the game** — the law of wherever the server runs; the host is a separate actor with its own floor |
+| **the machinery** | record tampering, fake-account manipulation, root-ban evasion, exploits | **Tier A** — it protects the system every other rule depends on |
+| **the Compact's list** | threats, doxxing, off-platform stalking, fraud, impersonation | **the Compact**, at its highest amendment bar; it may add — whether it may remove is **[OPEN — the owner]** |
+
+**Speed: some cannot wait for court day.** For a reserved matter: **an immediate hold** by the operator or
+the root's seat — the strongest needed to stop the harm, logged; **referral outward** where the law
+requires it, to real authorities; **the case afterward**, the hold still subject to expiry and appeal.
+
+### Lens pass
+
+1. **Pedagogy** — federalism, **subsidiarity** (decide at the lowest competent level), jurisdiction,
+   venue, conflict of laws; the discoverability line teaches civics by being there. **Lens 1 chose the
+   lowest common holder.**
+2. **Expression** — any holder writes house rules over the floor, no code. **Lens 2 chose a document
+   per information space.**
+3. **3a Immersion** — local courts in or out of fiction by the flag; the discoverability line is
+   out-of-fiction UI; the record never feeds the fiction. **3b Participation** — communities moderate in
+   their own culture over a minimal floor (*soft limits — code never legislates culture*). Forum
+   shopping is caught by the lowest common holder and the offender-keyed record; a hostile court is
+   answered by appeal upward.
+4. **Values** — the reserved list is the clearest values question here, and whether the Compact may
+   remove items or only add them.
+5. **Continuity** — ⭐ **a dissolved extent's open cases and records pass to its parent** **[DECIDED —
+   lens 5]**: deleting a channel mid-case makes nothing disappear.
+6. **Economy** — local courts cost their own extent. ⚠ Whether local court service earns Compact
+   standing: lean, **only for rulings that survive the appeal window** — the clause's durability rule —
+   or an extent could run a busy court to mint standing for its members.
+7. **Governance** — jurisdiction is computed from where harm landed; ⭐ **a sentence beyond the
+   extent's reach cannot be entered, enforced by code** **[DECIDED — lens 7]**; add-only local rules are
+   Tier A; the lowest common holder's moderators already see the whole pattern within their extent;
+   automation still only flags upward.
+
+| question | answer | lens |
+|---|---|---|
+| conduct evidence | what was delivered, disclosed by report, plus logs of acts against the platform | owner (reconciliation) |
+| holds | expire everywhere | owner (reconciliation) |
+| before judgment | nothing an appeal cannot fully undo | owner (reconciliation) |
+| griefing | both tracks on the same events; routing appealable | owner (reconciliation) |
+| harm that spreads | the lowest common holder; spreading raises the sentence | 1 |
+| information spaces | a document per space, at a path, holding its house rules | 2 |
+| local courts | in or out of fiction by the flag | 3a |
+| a dissolved extent | its open cases and records pass to its parent | 5 |
+| a sentence beyond reach | cannot be entered; code-enforced | 7 |
+| local rules | add to the floor, never subtract; Tier A | 7 |
+
+## 24. ⭐⭐⭐ The public channels, and launch moderation (2026-11-18)
+
+Talked through with the owner after § 23.
+
+### Is there a gossip channel? No.
+
+*Gossip* appears only as an example in `chat`'s help text. What shipped is three standing channels —
+Help, Global and Chat — minted by the platform pack and owned by `pack:platform`. **Global and Chat are
+retired** — the owner: *"I dunno what the global and chat channels even were, so nothing replaces them;
+they're just gone"* (archived, as the pack reconcile does: rows and history kept, invisible).
+
+### ⭐⭐⭐ The Compact owns only public forums **[DECIDED — lens 7]**
+
+Public duties, private protections ([separation-of-powers-slate](./separation-of-powers-slate.md) § 7l),
+applied to channels: **a channel the Compact owns is a public forum** — open records, due process, and
+**no discrimination by viewpoint** (the US public-forum doctrine: a government space may regulate *how*
+people speak, not *what they believe*). A privately held channel may curate. A gossip channel *wants*
+to be curated — its character is its tone — so run by the government it would be state media, or a forum
+unable to keep its tone.
+
+| the Compact's | why |
+|---|---|
+| **Help** | a service — *nobody is ever stranded* is the Compact's promise |
+| **the gazette** | its own announcements: enactments, notices, rulings (the Federal Register) |
+| **the floor, and a Subject per bill on the floor** | deliberation — public forums by nature; a bill's Subject is archived when the bill is enacted or lapses |
+
+⭐ **The Compact's channels are moderated content-neutrally** — *time, place and manner* (no flooding, no
+spam, stay on topic), **never viewpoint**; holds under the conduct code still apply.
+
+### One audience, one channel **[DECIDED — the owner]**
+
+*"Every venue is its own channel — the `say` command. That's how you chat in a room. Why open up a
+separate channel … don't give people two channels for the same thing."*
+
+| audience | its channel | held by |
+|---|---|---|
+| **a room** | `say` — no separate channel | — |
+| **an area bigger than a room** (a campus, a city node) | an **area channel** for whoever is present in the extent | the extent's committee |
+| **a group** (guild, party, club) | the group's channel | the group |
+| **the whole platform** | only what something platform-wide holds | the Compact, or an institution at Saxonberg |
+
+The owner: *"we don't have 'global' anything except maybe the TPA. We just have the Compact, and
+Saxonberg, the seat of government."* Channels are cheap and searchable; realistically they come from
+**how a parcel holder carves its zones**, so chat reflects administration, and **locality nodes that want
+unified comms**.
+
+- **An area channel is administration, not physics** — membership derived on read from presence, as
+  residency is: **one more provider behind the group facade** (*"our group facade would carry it fine
+  probably"*). In the fiction it is **the town's aether node**, admitting whoever is within its bounds
+  — the node's *policy*, not its range ([aether-devices-slate](../engine/aether-devices-slate.md)).
+  Each is a document at the extent's path (§ 23).
+
+### ⭐⭐ Reach is broadcast — real radio, never the aether **[DECIDED — lenses 1, 3a]**
+
+The aether's founding postulate is that it is everywhere, which is why a DM always works; a channel that
+fades at the city limits *because of the aether* would betray it. **Reach comes from the transmitter**:
+
+- **a station** is a thing in the world — a transmitter with a power and a frequency; **a listener needs
+  a receiver** (a radio set, or the phone, already a tuner);
+- **signal falls off by the inverse square law**, plus attenuation by terrain and buildings; near the
+  edge, static. Rooms have coordinates and the world a real radius;
+- **one-to-many, not chat** — a call-in show is the station taking a phone call on air;
+- **epoch content** — broadcast radio is the Electric rung; a covenant may forbid it;
+- **within one world** — radio does not cross dimensions; the aether does.
+- ⭐ **Spectrum is a commons, so it needs law**: two stations on one frequency jam each other. A polity
+  allocating bands is a **Tier C** consumer — a typed clause per assignment, a license tool (granting or
+  revoking one judges a person: notice and appeal), enforcement against pirates. How to allocate —
+  licenses, auctions (Coase, 1959), open bands — is the polity's.
+- **Designed now, built when Electric-rung content needs it** (lens 6 — the demand is not there yet).
+
+### ⭐⭐⭐ The Saxonberg paper runs the public square **[DECIDED — the owner]**
+
+*"The 'public' channels probably should be all operated by the press in Saxonberg, whoever turns out to
+run that on behalf of the population. It's its own estate … set up the stage and let someone perform."*
+([saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8a.)
+
+- **Laid out like a newspaper; every section is a Subject**, with its chat and its board — a starting
+  layout for the content session: front page and news (read-only, its releases) · politics · business
+  and markets · culture · society (the gossip page proper — the meta) · letters and opinion ·
+  classifieds (fronting the `job` board, never duplicating it) · obituaries (characters die).
+- **Its politics section is not a duplicate of the bill Subjects**: commentary and deliberation are
+  different activities. The bill card links the paper's coverage; the paper links the bill.
+- **Its moderators are positions on its staff** carrying the grant (§ 4); its house rules a published
+  document at its path; its actions in the public log by seat (§ 12).
+- ⭐ **A private holder of the main square is the Twitter problem**, answered without touching the press:
+  the Compact's floor stays a content-neutral public forum; **no monopoly is granted** — anyone may found
+  another paper; the conduct floor and the reserved list apply everywhere.
+
+### ⭐⭐ Launch moderation — three teams, one shape **[DECIDED — the owner]**
+
+| team | moderates | its rules |
+|---|---|---|
+| **the Saxonberg press** | the paper's sections | its house rules — curation, an editor's discretion |
+| **the Compact** | Help, the gazette, the floor, the bill Subjects | content-neutral — time, place and manner |
+| **the show** | the stream's chat, in game and on Twitch and YouTube | the show's house rules |
+
+- ⭐ **The show's team is not a different kind of thing** — the owner: *"maybe I shouldn't be treating
+  them as any different."* The stream is an information space like any other: a document at a path,
+  held by the show's committee, moderated by its seats. Reaching into Twitch and YouTube controls is
+  **tools those seats are granted** — external operations get paths too.
+- **The same people may sit on more than one team at launch; each act is taken from one seat** and logged
+  under it. Moderating the floor, a paper editor acts as the Compact's moderator, content-neutral; the
+  public log naming seats makes it checkable. As the population grows, the teams separate.
+- **Guilds and parcel committees staff their own.**
 
 ## Cross-references
 
