@@ -1189,3 +1189,24 @@ not scaling with past players; 2b counts the passes, not the acts).
 Still owed: the drive's steps 3, 6, 7b–c on a box with memory for a
 world, D12 (the pool) decided from step 3, the browser walk, the MR.
 
+
+### Full quiet-box drive, 2026-11-19 (after W5 + the master merge; pool 10)
+
+Box quiet (foreign 0.31 cores). Every claim held but one:
+
+| step | reading | W0 |
+|---|---|---|
+| 2a | idle 180 s: 2 scoring ops, 0 standing writes — HOLDS | 3 642 |
+| 2b | 6 pass ops of 12 (the rest the player's own appends) — HOLDS; reads own participation 1.0 | 2 451 |
+| 3 | 330 commands, **2 418 round trips**; `say` p95 48 ms · paid p95 1 021 ms · look p95 2 568 ms; **pool waited 396 (peak 807) — FALLS** | 10 559 round trips; waited 1 119 |
+| 3 per path | H1 0.21 · H2 0.13 · H5 0.19 · H6 0 — halved; **H3 1.34, H4 0.82 — did not**; captures 0.36 (mixed with login restores) | 1.29 · 2.25 · 12.66 · 1.19 · 1.49 · 1.36 · 0.46 |
+| 4 | all four claims HOLD | all fell |
+| 6 | **stop 1.7 s**, 178 captured in 1 240 ms, 0 failed; 30 of 30 back in place, holding what they held, same band — HOLDS | 23.5 s; 30 of 30 elsewhere, missing goods |
+| 7 | decisions recorded | — |
+
+What it found, and what was done (no stop):
+- **H3** — the hot read was `competenceBandFor(discipline)`, a ledger read of its own; it now reads the cached fold (ad122c285).
+- **H4** — custody walks re-placed goods where they already stood; the registry skips an identical place write (e03386ef6). The 78 `chattel_events` appends are the audit log, never part of the cut.
+- **captures** — not asserted by count: its keys also count login restores (≈ 90 of W0's 121 reads). Per capture: read + write → one write.
+- **D12** — 396 waits with every cut in: the pool goes to **16** (9011015ee); the re-run decides whether 24 is needed. Four worktrees × 16 stays far inside the cluster's connection limit.
+- No timed W0 baseline exists (the W0 box was loaded), so `noWorse` had nothing to compare; `say` p95 48 ms against call-security-performance's 53 ms on the same box is the nearest reference.
