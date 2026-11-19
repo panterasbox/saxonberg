@@ -3,7 +3,9 @@
 **Status:** slated 2026-11-14, from the navigation-pane conversation; the
 first design is on the owner's design canvas (private) and accepted as a
 starting point (*"this looks good to me to start with — at least we have
-something real now"*). **Size:** a build — cross-cutting, ahead of the
+something real now"*). **Requirements drafted 2026-11-18**
+([tooltips-requirements](../../requirements/tooltips-requirements.md)) —
+every open question below is answered there. **Size:** a build — cross-cutting, ahead of the
 navigation build, which is its first big consumer.
 
 ## The ask **[DECIDED — the owner]**
@@ -83,7 +85,7 @@ renders what it has at once and fills C fields as they arrive; a D field
 is simply absent until its server item lands — never a placeholder that
 guesses.
 
-## Open
+## Open — answered in the requirements (2026-11-18)
 
 1. **The lock gesture** — dwell time, the key (Shift? middle-click?), and
    whether a locked tooltip follows the pointer at all.
@@ -101,6 +103,28 @@ guesses.
    describe queries.
 7. **Spoiler and reveal** — a nested term pulled from the wiki must obey
    the reveal gate exactly as the wiki does.
+
+## Reuse ledger for the plan
+
+Every concept the build needs, and what already does it (survey
+2026-11-18). Each row is one the plan must account for.
+
+| concept | what does it today | reuse or generalize |
+|---|---|---|
+| hover timer + dismissal | `GutterStripe.tsx` (`hoveringTip`, `hoverTimerRef`, click-outside) · `TabStrip.tsx` `ConfirmPopover` | generalize into the one component; both become consumers |
+| positioning / collision / portal | nothing — no floating-ui, radix or tippy in `packages/client` | genuinely new: the plan decides build vs. add a library |
+| glossary fetch + cache | `InspectionBody.tsx` `useSummary()` — `GET /api/help/topic?id=…`, module-level `Map` cache | generalize into the glossary source |
+| help topics | `GET /api/help/index\|topic\|search`; `HelpTopic.summary`, `spoiler`; one filter point `applyFilter` (`mud/api/help.ts`) | reuse as-is |
+| wiki excerpt | `WikiRenderer` + `lib/wiki/render.ts` (ceiling deletes, appetite tags); reached only by the `wiki` verb | reuse the renderer; the excerpt path must go through it — no second ungated reader |
+| live describe | one-shot `mql-query` (`MqlQueryMessage`, `backend/inbound/mql.ts`), `DETAIL_FIELDS` perception-filtered; the client never sends it | reuse; the client's first sender + a per-thing cache |
+| hover → command preview | `store/index.ts` `ghostPreview` (one reader, guarded) | coexist — untouched |
+| touch | `useLongPress.ts` (450 ms, pointer-type branch) · `CommandSheet.tsx` (tap confirms) · `Terminal.tsx` row long press | reuse `useLongPress`; route a link/chip long press to the tooltip sheet |
+| link click | `MmlRenderer.tsx` `commandFor()` (`look`/`go`), `data-stuff-id` · `ItemChips` / `SegmentItem` | reuse — the tooltip's thing link runs the same command |
+| spoiler | `MmlRenderer.tsx` `Spoiler` (local click) · `CharGenStage` `SpoilerDetails` · `wiki.spoilerAppetite` (Avatar, server-only) | generalize into the one block; the appetite reaches the client |
+| icons | `ui/icons/iconMap.ts` (11 Lucide) · `Icon.tsx` (label → aria + SVG `<title>`) · `KindMark.tsx` | reuse; the SVG `<title>` gives way to the tooltip, the label stays the accessible name |
+| images | `mediaUrl()` (`client/src/config.ts`), `illustrationShape` | reuse |
+| pin → card | the card surface's one birth path: a command pushes (`look`, `help`, `wiki`) | reuse — pin runs the command |
+| native hover strings | ~40 `title=` sites (cards, TabStrip, CommandBar, PromptStrip, ReactionBar, CharGenStage, NavigatorBody, StreamControls, FilterDrawer, MmlRenderer…) | retire — every one becomes a tooltip |
 
 ## Cross-references
 
