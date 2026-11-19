@@ -16,23 +16,27 @@ player's participation in two. Seeding slate:
 
 ## What already exists
 
-Surveyed on master `8b169a9a7`, 2026-11-18. The slate was written 2026-11-08
-and is wrong about one thing:
+Surveyed on master `8b169a9a7`, 2026-11-18 (the slate dates from
+2026-11-08; its § 1 holds — a first draft of this doc "corrected" it
+wrongly, and the plan's survey caught that):
 
-- ⚠ **The participation key is mostly right.** A player's main body already
-  answers to a per-player path, the same one their identity uses, so the
-  slate's *"every player collapses into one subject"* is no longer true.
-  What remains: when a player dies and acts as a **shade**, the shade's
-  participation is filed under a different subject from the living
-  player's, so standing splits across death. Renown already keys on the
-  person. One login-time read and one cross-stock product still read the
-  participation side by the body's lineage. Both subsystem docs still say
+- ⚠⚠ **Participation treats every player as one person.** Every player's
+  body comes from one shared row, so keyed on the body's lineage, all
+  players' participation is ONE subject (and all shades another). Every
+  reader that asks by the person (`standing`, the profile, the dashboard)
+  therefore reads none of it; only the login roster reads the shared
+  figure. Renown already keys on the person. Both subsystem docs still say
   the stored key is the lineage path.
-- **The two scoring services** (participation and renown) each run a pass
-  every 60 s that reads their whole event history, then re-scores every
-  person who has ever had an event, one find and one save at a time. The
-  reads players see are already derived from warmed values; it is the
-  recurring pass that costs.
+- ⚠ **The producer stock has the same defect on the ACTOR**: every player
+  counts as one actor, so its rule that you cannot credit yourself never
+  fires.
+- ⚠ **A login screen earns participation** under a fresh random id per
+  connection — a subject that is never removed and is re-scored forever.
+- **The three scoring services** (participation, renown, producer) each run
+  a pass every 60 s that reads their whole event history, then re-scores
+  every subject that has ever had an event, one find and one save at a
+  time. The reads players see are already derived from warmed values; it
+  is the recurring pass that costs.
 - **The pool** is 10 connections. A query trace (`SAXONBERG_QUERY_TRACE=1`)
   prints counts and time in the database per caller; `/stats` reports
   CPU and the event loop but nothing about the database.
@@ -50,23 +54,27 @@ and is wrong about one thing:
   runner's log pipe. None edits the database layer, the scoring services,
   the shutdown save or the frame record.
 
-**Therefore what is genuinely new here is:** nothing a player sees. A
-participation key that follows the person, scoring work proportional to
+**Therefore what is genuinely new here is:** nothing a player sees beyond
+their own standing reading as their own. Participation and producer keys
+that follow the person, scoring work proportional to
 the people who did something, fewer and batched round trips on the hot
 paths the measurement ranks, a shutdown that saves everything inside its
 grace, and the database's own numbers on `/stats`.
 
 ## Goals
 
-- ⭐ **A player's participation is one standing across all their bodies.**
-  The participation a player earns living and the participation they earn
-  as a shade are the same standing, read the same everywhere.
-  **The existing rows are kept** — a player's main-body rows are already
-  correctly keyed (owner's earlier "start fresh" ruling was premised on the
-  collapse the survey disproved; shade-era rows stay where they are and
-  decay).
+- ⭐ **Each player's participation is their own, and one standing across
+  all their bodies.** Two players' participation are two standings; what a
+  player earns living and as a shade is one. **Participation starts fresh**
+  (owner ruling, 2026-11-18): the shared subject's rows are left where they
+  are and decay; each player accrues their own from here.
+- **The producer stock credits per person,** and a player crediting
+  themselves no longer counts (owner ruling, 2026-11-18: in this build, as
+  its own removable change).
+- **A login screen earns nothing** (owner ruling, 2026-11-18): only a body
+  a person plays is a subject.
 - **Scoring costs what happened, not who ever played.** With nobody
-  acting, the scoring services make no database round trips beyond a
+  acting, the three scoring services make no database round trips beyond a
   constant; when a player acts, only that player is re-scored. A world that
   has seen hundreds of players idles no busier than a new one.
 - **No command waits for a database connection** in the thirty-player
@@ -104,8 +112,9 @@ grace, and the database's own numbers on `/stats`.
 - **Changing what standing measures** (decay, weights, the renown × engagement
   product). → nowhere, deliberately: this build changes when the arithmetic
   runs, never its answer.
-- **Re-deriving shade-era participation rows** into the person's standing.
-  → nowhere, deliberately: no migrations; they decay.
+- **Re-deriving the shared subject's participation rows** into each
+  person's standing. → nowhere, deliberately: no migrations, and a shared
+  row cannot be split back into people; they decay.
 
 ## Placement
 
@@ -153,11 +162,13 @@ preflight use are not raised by this build.
 **Why:** raising a grace hides the serial save; a world killed at any grace
 should have lost nothing it could have saved in time.
 
-### Shade-era participation
+### The shared participation rows
 
-**Answer:** kept as it is; not merged into the living standing.
-**Why:** no migrations; participation decays in real time, so the split
-heals on its own. The fix stops new splits.
+**Answer:** participation starts fresh — the shared subject's rows stay and
+decay; nobody inherits them.
+**Why:** no migrations, and a row filed under "every player" cannot be
+assigned to one; participation decays in real time, so nothing durable is
+lost.
 
 ## Lens pass
 
@@ -174,8 +185,8 @@ heals on its own. The fix stops new splits.
 6. **Economy:** the host's bill: round trips are the database tier's
    cost, and the live box is the cost model's one box.
 7. **Governance:** standing feeds influence, which judges a person's
-   weight in the polity; this build makes that judgment read the right
-   person after death. The criterion is unchanged.
+   weight in the polity; today it reads one figure for everyone. This build
+   makes it read the person. The criterion is unchanged.
 
 ## The drive
 
@@ -202,10 +213,13 @@ deliberately. No new place, so no light step. The restart is step 6.
    connection; the paid acts' p95, `say` and `look` are no worse than step 1;
    each hot path this build took makes at most half its baseline round
    trips per act.
-4. **One standing across death** (`instant`, `staged`). A player with
-   participation dies and, as a shade, acts. Their standing read through
-   `standing` and their profile is one continuous participation, not two;
-   the login-time band reads the same person.
+4. **Each person's own standing, across death** (`instant`, `staged`). Two
+   players act; each reads their own participation through `standing` and
+   their profile, and they differ. One of them dies and, as a shade, acts:
+   their standing is one continuous participation, not two; the login
+   roster's band reads that person, not everyone. A player using what
+   they made themselves earns no producer credit for it; another player
+   using it does. A login screen earns nothing.
 5. **The operator's view** (`instant`, `staged`). `/stats` shows connections
    in use and waiting, round trips per second and time waiting on the
    database, and they move when the crowd acts.
@@ -225,9 +239,11 @@ None. Nothing here moves with the game clock.
 
 ## Acceptance criteria
 
-- A player who dies and acts as a shade has one participation standing, read
-  the same by every reader; their earlier standing is intact.
-- With nobody acting, the scoring services' database traffic is a constant,
+- Each player's participation is their own, read the same by every reader,
+  and continues unbroken when they die and act as a shade.
+- Producer credit goes to the person who made the thing, never for using
+  your own; a login screen earns no participation.
+- With nobody acting, the three scoring services' database traffic is a constant,
   whatever the number of past players.
 - Thirty players working, banking and consigning on the hosted database
   never wait for a database connection, and see paid acts, `say` and

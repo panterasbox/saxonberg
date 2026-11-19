@@ -5,8 +5,7 @@
 > branch and from master, same scenario, same box.
 > **Left:** in requirements 2026-11-18 →
 > [db-performance-requirements.md](../../requirements/db-performance-requirements.md):
-> participation keyed on the person across bodies (§ 1, narrower than
-> written) · scoring that costs what happened (§ 2) · the pool, measured
+> participation and the producer actor keyed on the person (§ 1) · scoring that costs what happened (§ 2) · the pool, measured
 > (§ 3) · the ranked hot callers (§ 4) · the serial shutdown save (§ 5) ·
 > the database's numbers on `/stats`. Out: cold boot and the 4 GB heap
 > (→ test-world-lifecycle) · the scale envelope (§ 7, its own build)
@@ -36,16 +35,12 @@ wanna know that too."*
 
 ## 1. ⚠⚠⚠ Participation and renown key a person on lineage
 
-> ⚠ **Corrected 2026-11-18 (db-performance requirements survey).** Renown
-> keys on the person (`getIdentityPath`) since this was written. And a
-> player's MAIN body already has a per-player template path equal to its
-> identity path (`/platform/agent/Avatar/<playerId>`), so participation
-> does **not** collapse every player into one subject on master. What
-> remains: a **shade** (`/platform/agent/ShadeAvatar/<playerId>`) files
-> participation under its own subject, so standing splits across death;
-> `Login.ts` reads the band by lineage; `standingOfImpl` multiplies
-> identity-keyed renown by lineage-keyed participation. The paragraphs
-> below are the 11-08 finding as written.
+> ⚠ **Re-verified 2026-11-18 (db-performance plan):** still true. Every
+> player body is cloned from the `PrimaryAvatar` row, so the instance
+> `getTemplatePath()` is shared; `Avatar.getTemplatePath(pid)` is a STATIC
+> that builds the identity string (a first requirements draft misread it
+> and "corrected" this section wrongly). Renown is fixed; participation,
+> the `Login` roster read, and the producer stock's ACTOR are not.
 
 `RenownLogic.durableKey` and its copy in `ConsumerLogic` (the comment says
 *"the substrate shares no code"*) both return
@@ -166,8 +161,8 @@ Written at /requirements. Every row is one the plan must account for.
 
 | concept the build needs | what already does it | reuse / generalize |
 |---|---|---|
-| the person's durable key | `Stuff.getIdentityPath()` (renown, employment, profile, standing, advancement's `ownerKeyOf` all use it) | **reuse** — participation's `durableKey`, `Login`'s band read and the standing product move onto it |
-| scoring only what changed | the scoring services' recurring pass (`ConsumerLogic`, `RenownLogic`, 60 s, whole-history `find({})`) · derive-on-read caches already serve every read | **generalize** — the pass re-scores the subjects with events since the last pass; no new scheduler |
+| the person's durable key | `Stuff.getIdentityPath()` (renown, employment, profile, standing, advancement's `ownerKeyOf` all use it) | **reuse** — participation's `durableKey`, `Login`'s band read, the standing product and the producer event's actor move onto it |
+| scoring only what changed | the three scoring services' recurring pass (`ConsumerLogic`, `RenownLogic`, `ProducerLogic`, 60 s, whole-history `find({})`) · derive-on-read caches already serve every read | **generalize** — the pass re-scores the subjects with events since the last pass; no new scheduler |
 | batched writes | nothing: no `bulkWrite` anywhere in server src; `PersistApi.save` per row | **genuinely new** as a capability of the persistence layer — searched `bulkWrite`, `insertMany`, `saveMany` in packages/server/src and every pack `src/` |
 | the database's numbers | `PersistenceManager`'s pool checkout counter (`whenQuiet`) · `SAXONBERG_QUERY_TRACE` per-caller counts and time · `/stats` (connections, objects, cpu, loop) | **generalize** — `/stats` gains the pool and round-trip fields from the counters that exist |
 | a read cache for hot callers | `DerivedStandingCache` (advancement's practising/digest) · `AccountBalance.cachedBalance` · the resident `content` cache | **reuse** the pattern per caller the measurement ranks; no new cache type |
