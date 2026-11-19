@@ -37,6 +37,7 @@ import type {
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
+import type { SenseChannel } from '../lib/description/Perceiver';
 import type Interactive from '../platform/idea/Interactive';
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
@@ -81,6 +82,14 @@ export interface SubscribableFieldDescriptor {
    * boundary mixin appears with no kernel edit.
    */
   aspect?: 'way';
+  /**
+   * ⭐ The sense that tells this field (tooltips D3). A one-shot describe
+   * drops a `'vision'` field when the viewer's place is too dark to see by,
+   * and says so once on the envelope (`dark`). Undeclared = told by no
+   * particular sense = never dropped. Declared by the mixin that owns the
+   * field (`Visible`), never inferred from its name.
+   */
+  sense?: SenseChannel;
   read?: (stuff: Stuff, viewer: Stuff & Sensor) => unknown;
   perDetailRead?: (
     stuff: Stuff,
@@ -173,6 +182,9 @@ export const DETAIL_FIELDS: FieldSet = [
   'placed',
   'placement',
   'holds',
+  // ⭐ What it is, really — the template path, always a spoiler (tooltips
+  // D6), so a card's head and a tooltip's show the same block.
+  'path',
   // ⭐ Who is here, live — a place's "Here" line (navigation-server review).
   'present',
 ];

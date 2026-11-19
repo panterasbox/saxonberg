@@ -376,7 +376,7 @@ describe('assumptions — what believing the plan requires', () => {
     };
     expect(note.to).toBe('the far bank');
     expect(note.plans[0]!.legs.map((l) => l.dir)).toEqual(['north']);
-    expect(note.plans[0]!.legs[0]!.from).toEqual({ path: SQUARE, spoiler: 1 });
+    expect(note.plans[0]!.legs[0]!.from).toEqual({ path: SQUARE, spoiler: 2 });
     expect(note.plans[0]!.leastCertain).toBe(0);
     for (const a of note.plans[0]!.assumptions) expect(out.text).toContain(a.text);
     expectNoPaths(out.text);

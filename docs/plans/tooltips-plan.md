@@ -580,7 +580,21 @@ lint family green. Stage files by name.
 - **Acceptance:** drive step 1 by hand; ceiling lowered by the sites removed.
 - **Commit:** `feat(tooltips): W1 — one tooltip component; card controls and the gutter are its first consumers`
 
-### W2 — Server: an honest describe (D3, D6)
+### W2 — Server: an honest describe (D3, D6) ✅
+> **Done.** Grounding was half-wrong about `displayName`: the one-shot did
+> NOT go through `projectFields`, so it sent the real name in the dark. The
+> one-shot now names the subject with `describeFor(viewer)` — but ONLY the
+> one-shot (`projectStuffInto(…, { dark })`); live subscriptions keep their
+> viewer-blind read, because switching them moved their deltas and is a
+> card-surface question, not this build's (left for the sweep's note). Reach
+> is enforced in `handleQuery` by intersecting with `reachable` resolved for
+> the viewer. `path` got a wake-matrix residual (static). `TaggedPath` →
+> level 2 at the type, both producers, `Perceiver`'s zone id, and four test
+> expectations. The `look`-in-the-dark record moves to the drive (W8): it
+> needs a standing world. Seen once: `NavigationSources`' posture test
+> failed in a 21-file concurrent run and passed alone and on rerun — timing,
+> not this wave.
+
 - `Stuff.stuffKind()`; `CardRegistry.subjectKindOf` deleted, its callers use
   the method. Root descriptors `kind`, `path` (`path` marked `sense:
   'vision'`).

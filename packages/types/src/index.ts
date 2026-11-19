@@ -1346,13 +1346,15 @@ export interface WayRecord {
 
 /**
  * ⭐ A path on the wire, among the spoiler levels (navigation-server D6):
- * level 1, the lowest non-open one — appetite, one click, never a
- * capability. Every identity or template path the navigation sources send
- * is one of these; a Locality ADDRESS is not a path and travels bare.
+ * level **2** (tooltips requirements — was 1) — appetite, one click, never a
+ * capability. The appetite defaults to 0, so a path arrives collapsed until
+ * a reader raises theirs to 2. Every identity or template path the
+ * navigation sources and a thing's `path` field send is one of these; a
+ * Locality ADDRESS is not a path and travels bare.
  */
 export interface TaggedPath {
   path: string;
-  spoiler: 1;
+  spoiler: 2;
 }
 
 /** What kind of Locality, by address depth: 1 realm, 2 settlement, 3+ district. */
