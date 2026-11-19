@@ -26,10 +26,10 @@ import { Mml } from "../../api/mml";
 import type { CommandContributions } from "../../api/command";
 import { ScheduleApi } from "../../api/schedule";
 import { WorldClockApi } from "../../api/worldclock";
-import { MqlSubscriptionApi, type SubscribableFieldDescriptor } from "../../api/mql-subscription";
+import { SubscriptionApi, type SubscribableFieldDescriptor } from "../../api/subscription";
 import { PerceptionApi } from "../../api/perception";
 import type { FieldMeta } from "../mixin";
-import type { MessageFrame } from "@saxonberg/types";
+import { SUBSCRIPTION_SOURCES, type MessageFrame } from "@saxonberg/types";
 import { InactiveCapabilityError } from "../security/RequiresActive";
 import { MixinApi } from "../../api/mixin";
 import type { AetherHost } from "../augmentation/AetherHost";
@@ -398,7 +398,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const word = this.aetherWord();
       if (this._notedAetherWord !== null && word !== this._notedAetherWord) {
         const subject = (this as unknown as Stuff).getIdentityPath();
-        if (subject) MqlSubscriptionApi.notifyDurableSubject(subject);
+        if (subject) SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject });
       }
       this._notedAetherWord = word;
     }
