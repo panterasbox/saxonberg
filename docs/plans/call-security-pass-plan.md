@@ -613,6 +613,12 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   drive's method); a session's commands load at login, so the lie is told by
   someone who arrives after the re-point.
 
+- **B23 (drive) — the consent question named a stranger.** It read
+  *"Ricky would have you run …"* to a buyer he had never introduced himself
+  to — `getPresentation()` is not recognition-aware. It now asks
+  `asker.describeFor(giver)`: *"a land agent in a good coat gone slightly
+  shiny would have you run `title buy lot-4`. Let them?"*. The drive asserts it.
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |
@@ -938,4 +944,34 @@ unless named:
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/call-security-pass.dirty.wire.test.ts`, its own world on
+WIRE_PORT 2019, fresh database, 2026-11-19. **7/7 green** on the final run
+(16 runs in all). What the runs found, in order: boot died on an omni-scoped
+system root (B20); the keeper's diagnostic named `AccessLogic` (B21); the
+Realtor's lines reached nobody (B22); the consent question named a stranger
+(B23). Drive-side lessons: a stranger talks to `agent`, not `ricky`; work by
+daylight; fund the buyer; the lie is told after the re-point; a confirm is
+answered `'yes'`/`'no'` (a boolean answer ends the dialogue silently — the
+loop's defensive catch); end each conversation, or the next buyer finds him
+busy.
+
+```
+1  name #jug Mother                              → ok · You give a jug its name: Mother.
+2  (name → ClaimProbe) name #jug Mal's           → declined · You can't act for <Ryn>.
+   sol: errors → [error] call-security /platform/idea/cmd/system/ClaimProbeController —
+        ClayVessel.takeName: <Mal> claimed to act for <Ryn>
+3  eval door.unlock(<Ryn>)                        → error: refused: not-acting-for · door still locked
+4  unlock out (inside the pump house)             → ok · You unlock something.
+7  talk to agent → buy a lot → lot-4              → prompt-confirm "a land agent in a good coat gone
+   slightly shiny would have you run `title buy lot-4`. Let them?" → yes →
+   "The registrar writes the row … lot-4 in Hinkley Hills is yours." · title → You hold: lot-4
+8  … → lot-5 → no                                  → "No hurry. The ground isn't going anywhere." · nothing bought
+9  eval <Ryn2>.forceCommand('say hello')          → error: refused: not-compellable · nothing said, no prompt
+```
+
+B2 (each checkpoint can fail): step 7's first assertion was too weak and
+passed on "You hold no ground" — tightened to the lot by name; step 2 failed
+while the shipped controller answered (no lie told) and passed once the lie
+reached `takeName`; step 9 (`never`) and step 7 (`consent`) are each other's
+twin — one prompts, one refuses with no prompt. Steps 5, 6, 10, 11: unit tests
+(see W6).

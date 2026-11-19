@@ -965,7 +965,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let yes = false;
       try {
         yes = await interactive.promptConfirm(
-          `${asker.getPresentation()} would have you run \`${lineText}\`. Let them?`,
+          // ⭐ As THIS body knows the asker (recognition-aware) — the realtor
+          // is "a land agent" to someone he has not introduced himself to;
+          // the drive found the name leaking through the presentation.
+          `${asker.describeFor(giver)} would have you run \`${lineText}\`. Let them?`,
           'no',
         );
       } catch {
