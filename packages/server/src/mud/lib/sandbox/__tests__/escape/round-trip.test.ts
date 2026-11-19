@@ -107,7 +107,16 @@ function installFakeStore(pm: PersistenceManager): Map<string, FakeRow[]> {
       updateOne: async () => ({}),
       // A batched write (db-performance `saveMany`), in memory: inserts,
       // and keyed upserts merged into the matching row.
-      bulkWrite: async (ops: Array<Record<string, any>>) => {
+      bulkWrite: async (
+        ops: Array<{
+          insertOne?: { document: FakeRow };
+          updateOne?: {
+            filter: Record<string, unknown>;
+            update: { $set?: FakeRow; $setOnInsert?: FakeRow };
+            upsert?: boolean;
+          };
+        }>,
+      ) => {
         let inserted = 0;
         let touched = 0;
         for (const op of ops) {
@@ -116,6 +125,7 @@ function installFakeStore(pm: PersistenceManager): Map<string, FakeRow[]> {
             inserted++;
             continue;
           }
+          if (!op.updateOne) continue;
           const { filter, update, upsert } = op.updateOne;
           const hit = rowsFor(name).find((r) => matches(r, filter));
           if (hit) Object.assign(hit, update.$set);
