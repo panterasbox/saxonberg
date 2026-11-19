@@ -293,6 +293,10 @@ says *"work produces goods and a body; a gym produces only the body."*
   outcome neither party controls is `contract.md`'s clauses over
   verifiable conditions, with escrow. ⛔ It goes wrong the moment a house
   takes a cut.
+  ⚠ *Corrected 2026-11-19 by [gambling-slate](../society/gambling-slate.md):*
+  the cut is the price of matching and pricing; what goes wrong is a
+  house that sets odds on dice it controls, which A6 already forbids.
+  The pari-mutuel pool is the honest house.
 - ⭐⭐ **The campus is the historically right home.** Organised sport came
   *out of* universities — football, rowing and athletics were codified
   there — and a university is exactly where rules get **written down.**
