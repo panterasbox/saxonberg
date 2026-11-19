@@ -37,7 +37,11 @@ requires:
     # the pack's own claim) and the dorms wing the leased units subdivide under.
     # Under the realm root (economic bootstrap D5): the campus sits inside
     # the city, so its parcels' parent is the realm's committee.
-    - { extent: /world/terminus/eternal/duncan-hall,       parentParcel: /world/terminus, holder: { group: duncan-hall } }
+    # ⭐ The BUILDING is on the grid too (aether-devices drive): a leased unit's
+    # copy lives under `duncan-hall/unit/…`, which this parcel covers — not
+    # `dorms` — and its power is read up the parent chain, so the feeder has
+    # to be here for a unit's charger to light.
+    - { extent: /world/terminus/eternal/duncan-hall,       parentParcel: /world/terminus, holder: { group: duncan-hall }, powerBand: domestic, feeder: terminus-main:crossing }
     # ⭐ The dorms are on the grid (aether-devices, the owner's ruling): the
     # University Avenue node, domestic band — a phone charger in every room.
     # The mana lamp stays.
