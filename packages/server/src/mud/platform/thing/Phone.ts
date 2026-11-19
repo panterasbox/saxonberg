@@ -44,7 +44,6 @@ import { WorldClockApi } from '../../api/worldclock';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { MarkupAugmenter } from '../../api/mml';
-import App from '../idea/App';
 
 // Wieldable: a hand takes a phone (a biped's hands accept `WieldableMixin`).
 const PhoneBase = BatteryMixin(
@@ -173,9 +172,7 @@ function phoneLineAugmenter(
   if (!host.isOn()) {
     lines.push('It is switched off — its screen is dark.');
   } else {
-    const apps = host
-      .getHostedApps()
-      .map((a) => (a instanceof App ? a.getAppName() : (a.getTemplatePath() ?? '').split('/').pop()));
+    const apps = host.getHostedApps().map((a) => a.getAppName());
     lines.push(apps.length > 0 ? `It runs ${apps.join(', ')}.` : 'It runs no apps.');
   }
   const owner = host.stampedOwner();

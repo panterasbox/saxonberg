@@ -200,6 +200,10 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
 
     private writeStored(wh: number): void {
       const cap = this.capacityWh;
+      // ⚠ No capacity yet means no battery yet: the template phase may run
+      // another setter (`on`, which settles) before `capacityWh`, and an
+      // empty reserve written then would leave a new phone born dead.
+      if (!(cap > 0)) return;
       this.reserved().setReserve(
         new Reserve(
           BATTERY,

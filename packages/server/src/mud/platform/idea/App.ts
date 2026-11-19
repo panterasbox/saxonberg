@@ -26,13 +26,4 @@ export default class App extends AetherHostedMixin(Idea) {
   /** The Messages row — the app the person's comms looks for. */
   static readonly MESSAGES_PATH = TemplatePaths.messagesApp;
 
-  /** Authored: the name a player reads (`Messages`). */
-  appName = "";
-
-  /** The name a player reads; the row's key when none was authored. */
-  getAppName(): string {
-    if (this.appName) return this.appName;
-    const path = this.getTemplatePath() ?? "";
-    return path.slice(path.lastIndexOf("/") + 1);
-  }
 }

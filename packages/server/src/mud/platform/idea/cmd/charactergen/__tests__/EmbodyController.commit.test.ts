@@ -55,6 +55,7 @@ describe('EmbodyController.commit', () => {
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
     wearGarments: ReturnType<typeof vi.fn>;
+    receiveStartingKit: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;

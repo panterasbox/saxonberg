@@ -17,7 +17,6 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { AetherHost } from '../../../../lib/augmentation/AetherHost';
-import App from '../../App';
 
 export interface AppsModel extends CommandModel {
   app?: string;
@@ -46,8 +45,7 @@ export abstract class AppsControllerBase extends CommandController<AppsModel> {
   /** The name a player reads for the app at `path` on `host`. */
   protected nameOf(host: Stuff & AetherHost, path: string): string {
     const running = host.getHostedApps().find((a) => a.getTemplatePath() === path);
-    if (running instanceof App) return running.getAppName();
-    return path.slice(path.lastIndexOf('/') + 1);
+    return running ? running.getAppName() : path.slice(path.lastIndexOf('/') + 1);
   }
 
   /** Say a line to the actor; a refusal also notes why. */

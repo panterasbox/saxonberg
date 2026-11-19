@@ -45,8 +45,10 @@ export interface AetherHosted {
    * chokepoint being the sole legitimate mutator — never from a gate.
    */
   setHost(host: (Stuff & AetherHost) | null): void;
-  /** Is this update currently hosted? */
+  /** Is this app currently hosted? */
   isAetherHosted(): boolean;
+  /** The name a player reads (`Messages`); the row's key when none is authored. */
+  getAppName(): string;
 }
 
 export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
@@ -72,6 +74,15 @@ export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
 
     isAetherHosted(): boolean {
       return this._host !== null;
+    }
+
+    /** Authored: the name a player reads. */
+    appName = "";
+
+    getAppName(): string {
+      if (this.appName) return this.appName;
+      const path = (this as unknown as Stuff).getTemplatePath() ?? "";
+      return path.slice(path.lastIndexOf("/") + 1);
     }
 
     /**
