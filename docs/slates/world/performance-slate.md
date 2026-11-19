@@ -20,7 +20,7 @@
 > word · the composition Discipline's craft checks · royalties
 > **Size:** a build (client-led)
 
-> ⭐ **Term, 2026-11-18** ([photography-slate](../trades/photography-slate.md) § 9): real-world creative work
+> ⭐ **Term, 2026-11-18** ([recording-slate](../trades/recording-slate.md) § 9): real-world creative work
 > brought into the game is **off-page work**, its maker an **off-page artist**; what the game renders is
 > **on-page**. Disciplines name in-world crafts only — the game measures the staging around off-page work,
 > never the work.
