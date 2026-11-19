@@ -119,6 +119,9 @@ const PATHS: Record<string, RegExp> = {
   'H4 chattel place and stamp': /^(find|save|saveMany) (chattel|chattel_events)$/,
   'H5 frames': /^(save|saveMany) player_frames$/,
   'captures': /^(find|save|saveMany) holder_snapshots$/,
+  // Found by W0, not in the plan's table: the producer tap's
+  // "who authored this place" on every command (P1 line in the plan).
+  'H6 authorship read': /^find authoring_events$/,
 };
 
 function p95(xs: number[]): number {
@@ -696,8 +699,19 @@ suite('7 — nothing a check decided changed', () => {
   }
 );
 
-/** The hot paths W5 took (plan D11) — filled in as each cut lands. */
-const TAKEN: string[] = [];
+/**
+ * The hot paths this build took (plan D11): the frame drain (W2), the
+ * capture write (W4), and W5's four cuts in W0's rank order.
+ */
+const TAKEN: string[] = [
+  'H5 frames',
+  'captures',
+  'H2 accounts and ledger',
+  'H3 competence bands',
+  'H4 chattel place and stamp',
+  'H1 taps dedup',
+  'H6 authorship read',
+];
 
 suite('record', () => {
   it('prints the record (and writes the baseline when recording)', () => {

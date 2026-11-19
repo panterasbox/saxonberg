@@ -1,5 +1,5 @@
 {
-  "_comment": "Written by DBP_RECORD=1 on W0’s code (master’s behavior plus the instrument) — compared on every other run. Timed figures only from a quiet-box run (WIRE_QUIET=1). Step 7a/7c decisions were re-recorded after W4 (W1–W4 touch neither banking refusals nor competence), before W5's cuts in front of them.",
+  "_comment": "Written by DBP_RECORD=1 on W0’s code (master’s behavior plus the instrument) — compared on every other run. Timed figures only from a quiet-box run (WIRE_QUIET=1). Step 7a/7c decisions were re-recorded after W4 (W1–W4 touch neither banking refusals nor competence), before W5's cuts in front of them. 'H6 authorship read' was derived after the run from the recorded workOps (find authoring_events / workCommands).",
   "measured": {
     "claims": {
       "2a idle scoring is constant": false,
@@ -99,7 +99,8 @@
       "H3 competence bands": 1.490909090909091,
       "H4 chattel place and stamp": 1.3636363636363635,
       "H5 frames": 12.663636363636364,
-      "captures": 0.46060606060606063
+      "captures": 0.46060606060606063,
+      "H6 authorship read": 1.187878787878788
     },
     "stop": {
       "exitedMs": 23500,
