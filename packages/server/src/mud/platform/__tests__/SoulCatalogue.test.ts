@@ -13,7 +13,8 @@ import SoulCatalogue from '../idea/SoulCatalogue';
 import { SoulApi } from '../../api/soul';
 import { DocumentApi } from '../../api/document';
 import { StuffApi } from '../../api/stuff';
-import { DocumentRefusal, StoredDocument } from '../../lib/document/StoredDocument';
+import { StoredDocument } from '../../lib/document/StoredDocument';
+import { Refusal } from '../../lib/errors';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 function doc(path: string, data: Record<string, unknown>): StoredDocument {
@@ -137,7 +138,7 @@ describe('SoulCatalogue (documents-backed)', () => {
   });
 
   it('a REFUSED write leaves the live catalogue as it was (write first, then the cache)', async () => {
-    const refused = new DocumentRefusal('access-denied', "you don't have permission to write that document");
+    const refused = new Refusal('document-access-denied', { path: '/x' }, { message: "you don't have permission to write that document" });
     save.mockRejectedValue(refused);
     del.mockRejectedValue(refused);
     await expect(SoulApi.edit('greet', { searchTerms: ['yo'] })).rejects.toBe(refused);

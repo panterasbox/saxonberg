@@ -61,7 +61,7 @@ describe('⭐ the lock is the gate', () => {
     const g = gate();
     g.setLocked(true);
     const stranger = makeStuff(() => new Good());
-    expect(g.canOpen(stranger)).toEqual({ ok: false, reason: "It's padlocked shut." });
+    expect(g.canOpen(stranger)).toEqual({ ok: false, reason: 'locked', facts: { target: g } });
     vi.spyOn(g, 'opensFor').mockReturnValue(true);
     expect(g.canOpen(stranger).ok).toBe(true);
   });

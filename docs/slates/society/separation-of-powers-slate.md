@@ -1125,6 +1125,99 @@ Every notice card carries an **appeal** action: `case file` with the notice atta
 | pending cases | interim rule per tool; an unruled case escalates | 7 |
 | standing | never a penalty; abuse of a seat can cost the seat | 7 |
 
+## 7p. ⭐⭐⭐ Where power actually lives — the pen and scarce value — and the clone policy **[DECIDED in shape — the owner]**
+
+### The pen
+
+The owner: *"Something you really need to understand about power in this game, which you keep missing,
+is that all power in a digital domain is derived by write access — write access to the code, the
+content, and the data. Any office of the mayor or otherwise that you create and fill, be it with
+players or NPCs, exists only as a proxy to the real person with power, which is the person who holds
+the pen. That doesn't mean we need to give every office write authority, but some we do, and the ones
+we don't need to reflect the actual power structure of the game."*
+
+- ⭐⭐⭐ **An office is a proxy; the power is the pen.** Some offices *carry* a pen because they hold grants
+  (§ 7l). The rest exist to represent, persuade or perform, and **must say so**.
+- **NPC officials are proxies of their authors.** An NPC writes nothing; its "decisions" are the policy
+  whoever holds the pen authored.
+- **The pens, deepest first:** code (wizards only, forever — code is reality) · content (extent holders) ·
+  data (the per-collection operations and the DBA seat).
+- ⭐ **Every office shows its pen** **[DECIDED — lens 1]** — its grants (paths and operations), its purse
+  (which budget line or account), and **who holds the title behind it** if it holds nothing; an office
+  with no grants says so in plain words. The discoverability line every space carries (moderation-slate
+  § 23 — who moderates here, where appeals go) gains a third line: **who holds the pen here.** Derived
+  from grants, out-of-fiction UI ([saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8b shows it
+  building by building).
+
+### Scarce value — the second kind of power
+
+The owner: *"You can also accrue power through the acquisition of any de facto or de jure scarce
+resources. This means zorkmids. It also means the ability to just clone up any commodities or anything
+else you want into the game, which is just a stand-in for value, because zorkmids are actually tightly
+controlled in this regard. This isn't exactly the same kind of power as the pen, but it's not nothing in
+our system."*
+
+- **Zorkmids are tightly controlled** — only the reserve and the treasury mint, by rule; *no authored
+  field may create money* ([institutions-slate](./institutions-slate.md)).
+- **Cloning a commodity is minting value with the pen** — where the two kinds of power meet, so it is
+  accounted.
+
+### ⭐⭐⭐ The clone policy
+
+The owner: *"Hopefully most of it only occurs in sandboxed environments, but people troubleshooting live
+content may need to clone stuff — that's just part of the job. Or the courts may want to clone things as
+restitution … even if you lock it down, people may find other ways to artificially get stuff into the
+game, and at least with clone it's deliberate."*
+
+**Locking clone down pushes people to worse routes** — `eval`, raw database writes, exploits. **The honest
+door should be the easiest one**, so nobody wants the others (the toolkit's principle, § 7f). Every clone
+is an act under the procedure law (§ 6):
+
+| what is cloned | where | authority | review |
+|---|---|---|---|
+| anything | **your sandbox circle** | none | none — contained; it dies with the circle |
+| scenery, fixtures, test props — anything without market value | live, **in your extent** | title to the extent (class 4) | on challenge |
+| **a good with market value** | live | ⭐ **must cite one**: a **court order** (restitution, citing the case) · a **compliance fix** (restoring what a bug destroyed, class 2) · a **directive** · an **allowance** — a fixed, targeted, logged budget of value an office may mint at its discretion (event prizes, a troubleshooter's spare stock), the discretionary-standing principle (§ 7h) | a **goods faucet**, always recorded |
+
+- ⭐ **A value clone without a cited authority refuses** **[DECIDED — lens 7]** — a wall on the executive,
+  like a merge without a class.
+- **What counts as value is computed** **[DECIDED — lens 1]**: a good has value if the engine has seen it
+  trade. A lamppost does not; a crate of copper does.
+- ⭐ **Every value clone is a goods faucet on the record** **[DECIDED — lens 6]** — who, under what
+  authority, what template, how many, its value at current market prices: the faucet map
+  ([tech-tree-slate](./tech-tree-slate.md) § 6b's `@faucet`), public, naming seats — *goods faucets, never
+  money faucets* made checkable.
+- **Allowances for value clones lapse unspent** **[DECIDED — lens 6]** — no office stockpiles minting power.
+- ⭐ **Every cloned good carries its mint stamp** **[DECIDED — lens 7]** — its durable ownership identity
+  records *minted by clone, by this seat, under this authority*. An unauthorized clone is **traceable
+  wherever it went, and seizable** — seizure a tool with notice and appeal, so a good-faith buyer gets a
+  hearing. The stamp is meta provenance, never in-fiction knowledge: a character cannot tell its copper
+  came from a clone.
+- ⭐⭐ **Clone never creates money** **[DECIDED — lens 7]** — a coin template refuses clone everywhere but the
+  reserve's own minting tool. ⚠ **Open today:** the clone pipeline is on the money gate's allow-list
+  (banking.md: *a template authored with `quantity: 1000000` clones into a fortune*), so the wall does not
+  exist yet. It belongs on the reserved list's machinery layer (moderation-slate § 23) and **closes before
+  launch** ([money-integrity-slate](../tech-debt/money-integrity-slate.md) § A).
+- **The other routes stay what they are:** `eval` and raw database writes are logged as acting outside a
+  tool; duplicating through a bug is an attack on the machinery, on the reserved list. **Clone is the one
+  door both easy and legitimate.**
+- **A polity may limit value clones in its extent by law** — a covenant.
+
+### Lens pass
+
+1. **Pedagogy** — every office showing its pen makes the real power structure derivable, the lesson the
+   owner named for Saxonberg; the faucet map teaches where value comes from; value is computed.
+2. **Expression** — testing and troubleshooting stay free (sandbox, scenery); value clones have legitimate
+   routes, so nobody reaches for `eval` to do their job; plaques derive from grants.
+3. **3a Immersion** — the pen plaque is out-of-fiction UI; the mint stamp never feeds the fiction.
+   **3b Participation** — a real mayoral election, if the office carries the pen; the paper reporting the
+   faucet map; a polity limiting clones by covenant.
+4. **Values** — allowance sizes and holders; how much pen a capital's mayor carries (home rule).
+5. **Continuity** — the mint stamp travels through every trade; plaques read live grants.
+6. **Economy** — every value clone a recorded goods faucet; allowances lapse.
+7. **Governance** — a value clone cites its authority or refuses; unauthorized clones are traceable and
+   seizable with notice and appeal; clone never creates money, and the coin gap closes before launch.
+
 ## 8. Lens pass
 
 1. **Pedagogy** — the government is legible as a system a student can derive: three outputs, one
@@ -1189,6 +1282,8 @@ Every notice card carries an **appeal** action: `case file` with the notice atta
 27. **Counsel for someone who cannot pay** — appointed and paid by the court? (§ 7o)
 28. **Who prosecutes on a private parcel** — the owner, or the extent's prosecutor? (§ 7o)
 29. **How the conduct track meets the moderation and prison slates** (§ 7o).
+30. **Allowances for value clones** — their sizes and which offices hold one (§ 7p).
+31. **The coin gap** — closing clone's path to money before launch (§ 7p).
 
 ## Cross-references
 

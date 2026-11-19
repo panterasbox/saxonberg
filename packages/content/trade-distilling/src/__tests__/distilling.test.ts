@@ -492,6 +492,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
               ],
               cost: { minutes: 4, legs: 1, conditional: 0, unmeasured: 0 },
               assumptions: [],
+              leastCertain: -1,
             },
           ],
         };

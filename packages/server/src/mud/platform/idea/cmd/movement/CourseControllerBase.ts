@@ -70,6 +70,16 @@ export abstract class CourseControllerBase extends CommandController<CourseModel
     return s && MixinApi.isPositioned(s) && MixinApi.isVoyaging(s) && s.getLine() !== null ? s : null;
   }
 
+  /**
+   * ⭐ Only her master takes the helm: her charterer, or
+   * whoever holds her company's `master` seat. `true` when `giver` may.
+   */
+  protected mayHelm(context: CommandContext, craft: Craft, giver: Stuff): boolean {
+    if (craft.mayBeSteeredBy(giver)) return true;
+    this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
+    return false;
+  }
+
   protected tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(Mml.fromMarkup(text)).send();
   }

@@ -17,8 +17,9 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { Whereabouts, WhereaboutsExit } from "@saxonberg/types";
+import type { Whereabouts, WhereaboutsExit } from "../../store/navSlice";
 import { tokens } from "../ui";
+import { ChangeMark } from "./ChangeMark";
 
 interface NavigatorBodyProps {
   where: Whereabouts;
@@ -163,6 +164,7 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
 
   return (
     <Root data-testid="navigator">
+      <ChangeMark surface="nav:localities">
       <Crumbs aria-label="where you are" data-testid="nav-crumbs">
         {crumbs.map((l) => (
           <React.Fragment key={l.address}>
@@ -178,7 +180,9 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
         ) : null}
         <Here>{hereName}</Here>
       </Crumbs>
+      </ChangeMark>
 
+      <ChangeMark surface="nav:ways">
       <div>
         <Label>Ways out</Label>
         <Rose data-testid="nav-rose">
@@ -211,7 +215,9 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
         ) : null}
         {where.exits.length === 0 ? <Unknown>No way out that you can see.</Unknown> : null}
       </div>
+      </ChangeMark>
 
+      <ChangeMark surface="nav:place">
       <div data-testid="nav-conditions">
         <Label>Outside</Label>
         <Fact>
@@ -220,6 +226,7 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
           {daylight ? ` — ${daylight}` : null}
         </Fact>
       </div>
+      </ChangeMark>
 
       <div data-testid="nav-jurisdiction">
         <Label>Whose ground</Label>

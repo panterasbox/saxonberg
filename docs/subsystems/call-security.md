@@ -287,6 +287,39 @@ Two passthrough escape hatches:
   `#templatePath`). Access goes through `getZone()` /
   `getTemplatePath()`, not bracket reads off the proxy.
 
+### Is it a getter? — the accessor cache
+
+Before it reads a name, the trap must know whether the name is a
+**getter** (which runs through the pipeline, gated, with `this === proxy`)
+or anything else (read live with `Reflect.get`). It answers in two steps
+(call-security-performance, 2026-11):
+
+1. **An own property, live** — `getOwnPropertyDescriptor(target, prop)`:
+   a field, a lazily assigned slot, an instance-level replacement
+   (`obj.m = vi.fn()`) or an own accessor is exact on every read.
+2. **Otherwise the prototype chain's answer, cached per prototype
+   object** (`ProxyApi.#accessorCache`, a `WeakMap<proto, Map<prop,
+   {holder, get} | null>>`). `null` means *no accessor on the chain* — a
+   method, a prototype data property, or nothing — and the value is still
+   read live, so a `vi.spyOn(X.prototype, 'm')` is seen at once. A cached
+   getter is confirmed against its holder (one descriptor read) before it
+   runs, so a getter spied, replaced or removed there is recomputed, never
+   served stale.
+
+Keyed on the prototype OBJECT, the cache is right across a hot reload by
+construction: a reload evaluates a new class object (a new key) and old
+instances keep the old prototype (the old key). There is no generation
+stamp, because nothing writes an accessor onto a prototype after its class
+is defined. ⚠ **That is the one assumption:** a name that is absent or a
+method on an existing prototype object does not later become a getter *on
+that same object*. A test that needs a class whose method is a getter
+builds a new class.
+
+It replaced a walk of the whole prototype chain on every read that was not
+an own property — 12–15% of the running world's busy time on its own (the
+2026-11-17 and 2026-11-18 profiles), because mixin-built chains are deep
+and every `this.x` inside a method body is a trap read.
+
 ### Wrapper cache
 
 The handler maintains a per-target `WeakMap<Function, Function>` so
@@ -307,6 +340,16 @@ the interceptor pipeline breaks `toHaveBeenCalled` because the test
 sees the wrapper, not the spy. The handler short-circuits when the
 property's value carries that flag — a method swapped for a spy is the
 test's intentional escape hatch.
+
+⛔ **Only in a test run** (call-security-performance, 2026-11-18, owner
+ruling). Outside a process running a test runner
+(`SecurityApi.isTestRunner()`: `VITEST`) the flag is not
+read and the function is wrapped and gated like any method — before, the
+marker was a property anyone could set on a function they placed on a
+Stuff, and it bought an ungated method in production. A world the suite
+booted (`SAXONBERG_TEST_WORLD=1`) is a test *environment* but runs no
+test runner, so it is refused there too; the wire drive's step 5e proves
+it. The answer is read once per `ProxyApi.wrap`.
 
 ### `Interceptor` and `InterceptionContext`
 
@@ -1998,16 +2041,54 @@ common operation. Measured under **`tsx`, the production runtime**
 (`deployment.md` — the server runs from TypeScript source, not a
 compiled build), with `packages/server/scripts/bench-gate.ts`:
 
-| | ns/call | vs a raw call |
+| | ns | vs a raw call |
 |---|---|---|
 | the method, unwrapped | 5 | 1x |
-| **gated method call** | **2 140** | **424x** |
-| *(before the 2026-08-30 pass)* | *50 700* | *2 000x* |
+| **gated method call** | **~810–1 020** | **~160x** |
+| *(2026-08-30 pass)* | *2 140* | *424x* |
+| *(before it)* | *50 700* | *2 000x* |
+| a read of a method declared deep in the chain | ~260 | |
+| a read of a name nothing declares | ~255 | |
+| a prototype getter read (gated) | ~430 | |
+| an own-field read | ~95 | |
+| a decorated static Api call | ~80 | |
 
 Flat in world size, **flat in call depth**, and not a first-touch cost —
 a constant, paid per dispatch.
 
-### How it got from 50 µs to 2.1
+⭐⭐ **A bench of one call cannot rank a world of reads.** The 2026-08-30
+pass parked the read trap's chain walk as "~55 ns of 2.1 µs, not worth
+touching", from this bench. A profile of the running world put that walk
+first (12–15% of all busy time): every `this.x` inside a method body is a
+trap read, mixin chains are deep, and the world does far more reads than
+calls. So the number that decides this layer's work is the WORLD's:
+`scripts/profile-layer.ts` over a `WIRE_CPU_PROF` profile of the crowd
+drive (`docs/testing.md § The quiet box`). In a thirty-body crowd the
+layer went from 54.8% of busy (40.6 s) to 45.2% (20.3 s) over the same
+acts (call-security-performance, 2026-11-18).
+
+### How it got from 2.1 µs to under 1, and the reads to a third
+
+The call-security-performance build (2026-11, plan retired at its sweep):
+
+1. **The accessor answer is cached per prototype** — see *Is it a
+   getter?* above. A read of an inherited method went from ~820 to ~260 ns.
+2. **An own property is read once** — its value is the descriptor
+   already read to ask whether it is a getter.
+3. **One store read per dispatch.** The gate read the AsyncLocalStorage
+   store three times (boundary, caller, push) and the static wrapper
+   twice; each now reads it once (`ExecutionContextApi._dispatchContext`)
+   and hands the node to the claimed push as `parent`. `CallFrame` lost a
+   `timestamp` nothing read.
+4. **The static wrapper remembers its policy**, re-resolved when the
+   policy generation moves.
+5. **Recognition is worked out once per keyword read** (belief.md).
+
+⚠ The async-context runtime flag (`--experimental-async-context-frame`,
+Node 22) was measured and **not** adopted: no gain on the call, and worse
+at depth 200 (1 438 vs 932 ns).
+
+### How it got from 50 µs to 2.1 (2026-08-30)
 
 Five changes, none of them the thing the first profile pointed at. The
 full investigation, with the numbers at each step, is

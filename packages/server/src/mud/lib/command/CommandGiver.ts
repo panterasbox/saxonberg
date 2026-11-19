@@ -61,6 +61,7 @@ import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
 import { Final, Unshadowable } from '../security/decorators';
+import { Refusal } from '../errors';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
@@ -70,7 +71,7 @@ import { ScriptApi } from '../../api/script';
 import { CommandDispatchedEvent } from '../events/CommandDispatchedEvent';
 import type { Sensor } from '../message/Sensor';
 import type Interactive from '../../platform/idea/Interactive';
-import type { LogLevel, Note } from '@saxonberg/types';
+import type { LogLevel, Note, RefusedNote } from '@saxonberg/types';
 
 /**
  * Map a framework-emitted failure note to its player-facing prose,
@@ -105,15 +106,13 @@ function proseForFrameworkNote(note: Note): string | Mml | null {
         const link = Mml.link(`mudcmd:${encodeURIComponent(note.suggestion)}`, note.suggestion);
         return Mml.compose`Too many words — quote a name with a space in it: ${link}`;
       }
+      // ⭐ Worded from their rows by the emit sweep (failure-model D4).
+      if (ROWED_REJECTIONS.has(note.reason)) return null;
       // `reason` is enum; pair with `detail` when present.
       const tail = note.detail ? `: ${note.detail}` : '';
       switch (note.reason) {
         case 'unknown-verb':
           return `I don't understand '${note.detail ?? '?'}'.`;
-        case 'parse-failed':
-          return `Couldn't parse the command${tail}.`;
-        case 'bind-failed':
-          return `Couldn't bind that command${tail}.`;
         case 'shape-fall-through':
           return `That doesn't match any known command shape${tail}.`;
         case 'missing-subcommand':
@@ -122,7 +121,6 @@ function proseForFrameworkNote(note: Note): string | Mml | null {
         // already the sentence.
         case 'source-not-found':
         case 'source-affords-nothing':
-        case 'needs-input':
           return note.detail ? `${capitalize(note.detail)}.` : `Command rejected.`;
         default:
           return `Command rejected${tail}.`;
@@ -155,11 +153,79 @@ function proseForFrameworkNote(note: Note): string | Mml | null {
     case 'validator-failed':
       // The validator's return string IS the player-facing prose.
       return note.detail;
+    // ⭐ The detail is the defect's worded sentence (`CommandApi.
+    // reportFailure`) — never the exception's own text.
     case 'controller-error':
-      return `Something went wrong in ${note.controller}: ${note.detail}`;
+      return note.detail;
     default:
       return null;
   }
+}
+
+/**
+ * ⭐ Word one `refused` note from its row and say it to the giver. With
+ * `at` (a script stopped at that line), the line is the `script-stopped`
+ * row's, carrying the refusal's own sentence as its `why`. A code no row
+ * ships says `went-wrong` and records a diagnostic.
+ */
+async function sayRefusal(giver: Stuff & Sensor, ctx: CommandContext, note: RefusedNote): Promise<void> {
+  let line: Mml;
+  let topic = 'shell.error';
+  try {
+    const worded = await CommandApi.wordReason(note.reason, note.facts);
+    if (worded !== null) {
+      line = worded.line;
+      topic = worded.topic;
+    } else {
+      void DiagnosticApi.record({
+        path: ctx.command?.resolvedController ?? null,
+        message: `refusal '${note.reason}' has no reason row`,
+        stack: null,
+      }).catch(() => undefined);
+      line = (await CommandApi.wordReason('went-wrong', {}))?.line ?? Mml.compose`Something went wrong.`;
+    }
+    if (note.at !== undefined) {
+      const stopped = await CommandApi.wordReason('script-stopped', { line: note.at, why: line });
+      if (stopped !== null) {
+        line = stopped.line;
+        topic = stopped.topic;
+      }
+    }
+  } catch (err: unknown) {
+    // @quiet the rows could not be read (the store is down): say the
+    // plainest thing, and let the developer see why in the log.
+    console.error('[dispatch] could not word a refusal', note.reason, err);
+    line = Mml.compose`That didn't work.`;
+  }
+  MessageApi.scene(giver).topic(topic).toSelf(line).send();
+}
+
+/**
+ * The dispatcher's rejections that have reason rows (failure-model D4): a
+ * script's `on parse-failed` handles them as it handles any refusal. The
+ * other six stay on the legacy arms above.
+ */
+const ROWED_REJECTIONS: ReadonlySet<string> = new Set(['needs-input', 'parse-failed', 'bind-failed']);
+
+/**
+ * Word a rowed `command-rejected` note (D4) and say it; a `suggestion` on
+ * it is appended as the line to tap.
+ */
+async function sayRejection(giver: Stuff & Sensor, note: Extract<Note, { kind: 'command-rejected' }>): Promise<void> {
+  let line: Mml;
+  try {
+    const worded = await CommandApi.wordReason(note.reason, note.detail ? { detail: note.detail } : {});
+    line = worded?.line ?? Mml.compose`That didn't work${note.detail ? `: ${note.detail}` : ''}.`;
+  } catch (err: unknown) {
+    // @quiet the row could not be read: the plain line is said instead.
+    console.error('[dispatch] could not word a rejection', note.reason, err);
+    line = Mml.compose`That didn't work${note.detail ? `: ${note.detail}` : ''}.`;
+  }
+  if (note.suggestion) {
+    const link = Mml.link(`mudcmd:${encodeURIComponent(note.suggestion)}`, note.suggestion);
+    line = Mml.compose`${line} Did you mean ${link}?`;
+  }
+  MessageApi.scene(giver).topic('shell.error').toSelf(line).send();
 }
 
 /** Upper-case the first character of a sentence. */
@@ -229,9 +295,6 @@ const detachedContexts = new WeakSet<CommandContext>();
  */
 const ASKED = new WeakSet<CommandContext>();
 
-/** A malformed leading `--async` on a script line — noted, then unwound. */
-class ScriptLineRefused extends Error {}
-
 /** Frame `target` marker for a detached async command body. */
 const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
 
@@ -243,40 +306,34 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * command the detached body calls this in its `finally` so the one
  * (late) envelope carries the body's accumulated notes + final status.
  */
-/**
- * Author-diagnostics: record a controller throw (store row + author push).
- * `controllerPath` is the already-resolved `/`-rooted controller template
- * path (see `CommandDefinition.resolvedController` /
- * `controllerForSubcommand`). Fire-and-forget and fully swallowing — a
- * controller-error note is already the giver's surface, and diagnostics
- * capture must never break dispatch or leak an unhandled rejection (e.g. a
- * disconnected store).
- */
-function recordControllerThrow(
-  controllerPath: string | undefined,
-  error: unknown
-): void {
-  const message = error instanceof Error ? error.message : String(error);
-  void DiagnosticApi.record({
-    path: controllerPath ?? null,
-    message: `${controllerPath ?? '?'}: ${message}`,
-    stack: error instanceof Error ? (error.stack ?? null) : null,
-  }).catch(() => {
-    // diagnostics never breaks dispatch
-  });
-}
-
-function emitDispatchResponse(ctx: CommandContext): void {
+async function emitDispatchResponse(ctx: CommandContext): Promise<void> {
   const giverAsStuff = ctx.commandGiver as unknown as Stuff;
-  // Framework-failure prose sweep: dispatcher / validator / MQL notes
-  // get an auto-rendered `shell.error` scene so the player
-  // sees WHY without the client rendering envelopes. Controller-side
-  // notes are skipped (controllers fire their own scenes).
+  // ⭐⭐ One pass, in note order (failure-model D4): a `refused` note — and
+  // the three rowed dispatcher rejections — is worded HERE from its reason's
+  // row (the controller handed over the code and the facts and said
+  // nothing); any other framework note by the dispatcher's own prose. Note
+  // order is the order things happened, so a defect's sentence comes before
+  // the line saying where a script stopped. Controller-side notes are
+  // skipped (controllers fire their own scenes).
   if (MixinApi.isSensor(giverAsStuff)) {
+    const sensor = giverAsStuff as Stuff & Sensor;
     for (const note of ctx.getNotes()) {
+      if (note.kind === 'refused') {
+        await sayRefusal(sensor, ctx, note);
+        continue;
+      }
+      if (
+        note.kind === 'command-rejected' &&
+        ROWED_REJECTIONS.has(note.reason) &&
+        // the quote hint keeps its own sentence (controller-liquidity D3)
+        !(note.reason === 'bind-failed' && note.suggestion)
+      ) {
+        await sayRejection(sensor, note);
+        continue;
+      }
       const prose = proseForFrameworkNote(note);
       if (prose === null) continue;
-      MessageApi.scene(giverAsStuff as Stuff & Sensor)
+      MessageApi.scene(sensor)
         .topic('shell.error')
         .toSelf(prose instanceof Mml ? prose : Mml.compose`${prose}`)
         .send();
@@ -478,7 +535,8 @@ export interface CommandGiver {
     command: CommandDefinition,
     model: CommandModel,
     prep?: Record<string, string>,
-    source?: Stuff
+    source?: Stuff,
+    line?: string
   ): Promise<CommandContext>;
 }
 
@@ -926,6 +984,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             kind: 'command-rejected',
             reason: 'parse-failed',
             detail: parseResult.error,
+            ...(parseResult.suggestion !== undefined ? { suggestion: parseResult.suggestion } : {}),
           });
           this._emitInputEcho({
             rawText: commandText,
@@ -1040,12 +1099,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               head.word = next.value;
               head.args = head.args.slice(1);
             } else {
-              outer.note({
-                kind: 'command-rejected',
-                reason: 'parse-failed',
-                detail: `${head.word} must lead a command word`,
-              });
-              throw new ScriptLineRefused();
+              throw new Refusal('parse-failed', { detail: `${head.word} must lead a command word` });
             }
             if (detach) {
               detachedContexts.add(outer);
@@ -1053,13 +1107,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
                 try {
                   await ScriptApi.runAst(script);
                 } catch (error: unknown) {
-                  outer.note({
-                    kind: 'controller-error',
-                    controller: 'script',
-                    detail: error instanceof Error ? error.message : String(error),
-                  });
+                  await CommandApi.reportFailure(error, outer, 'script');
                 } finally {
-                  emitDispatchResponse(outer);
+                  await emitDispatchResponse(outer);
                 }
               });
             } else {
@@ -1081,9 +1131,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // a cancelled-shape note and let the dispatch-response
         // envelope ride the standard outcome flow. The originating
         // command never executes.
-        if (error instanceof ScriptLineRefused) {
-          // Already noted on `outer`; nothing more to say.
-        } else if (error instanceof PromptCancelledError) {
+        if (error instanceof PromptCancelledError) {
           claimingCtx.note({
             kind: 'controller-rejected',
             reason: error.reason === 'host-disconnected'
@@ -1092,19 +1140,16 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             detail: `prompt ${error.reason}`,
           });
         } else {
-          const detail =
-            error instanceof Error ? error.message : String(error);
           // The throw can originate inside a controller's execute(),
           // inside resolveAndValidate, or anywhere else. Attribute to
-          // whichever context is currently flowing through the chain.
-          const controllerPath = outer.command?.resolvedController;
-          claimingCtx.note({
-            kind: 'controller-error',
-            controller: controllerPath ?? '?',
-            detail,
-          });
-          // The note above is the giver's surface; this is the developer's.
-          recordControllerThrow(controllerPath, error);
+          // whichever context is currently flowing through the chain;
+          // the one routine classifies it (a refusal, a content error, a
+          // bug) and words it — never with the exception's own text.
+          await CommandApi.reportFailure(
+            error,
+            claimingCtx,
+            outer.command?.resolvedController ?? null,
+          );
         }
       }
 
@@ -1115,7 +1160,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // firing the single (late) envelope once the body completes, so we
       // fire nothing here at accept-time.
       if (!detachedContexts.has(claimingCtx)) {
-        emitDispatchResponse(claimingCtx);
+        await emitDispatchResponse(claimingCtx);
         // The caller's own read of the outcome (pblive's control socket
         // echoes ✓/⚠, broadcast-ready D11) — the same status the
         // envelope carries.
@@ -1823,17 +1868,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             );
             await controller.execute(model, context);
           } catch (error: unknown) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            context.note({
-              kind: 'controller-error',
-              controller: controllerPath,
-              detail: message,
-            });
-            recordControllerThrow(controllerPath, error);
+            await CommandApi.reportFailure(error, context, controllerPath);
           } finally {
             if (controller) controller.releaseAfterDispatch();
-            emitDispatchResponse(context);
+            await emitDispatchResponse(context);
           }
         });
         return;
@@ -1844,13 +1882,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         controller = await StuffApi.clone<CommandController>(controllerPath);
         await controller.execute(model, context);
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        context.note({
-          kind: 'controller-error',
-          controller: controllerPath,
-          detail: message,
-        });
-        recordControllerThrow(controllerPath, error);
+        await CommandApi.reportFailure(error, context, controllerPath);
       } finally {
         if (controller) controller.releaseAfterDispatch();
       }
@@ -1875,7 +1907,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       command: CommandDefinition,
       model: CommandModel,
       prep: Record<string, string> = {},
-      source?: Stuff
+      source?: Stuff,
+      line = ''
     ): Promise<CommandContext> {
       const giver = this as unknown as Stuff & CommandGiver;
       const location = MixinApi.isContainable(giver)
@@ -1884,7 +1917,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const ctx = CommandApi.createCommandContext({
         commandGiver: giver,
         location,
-        commandText: '',
+        // The script line, so a stop can name it (failure-model D5).
+        commandText: line,
+        scriptLine: line,
         executionId: SecurityApi.uuid(),
         commandId: SecurityApi.uuid(),
         verb: command.getPrimaryVerb(),

@@ -90,7 +90,7 @@ no `<detail>` keyword wrapping in a person's long.
 
 | surface | form | file |
 |---|---|---|
-| `look <x>` header, act lines, card `displayName` | `concise` | `LookController.ts:584`; `api/mql-subscription.ts:330-334` |
+| `look <x>` header, act lines, card `displayName` | `concise` | `LookController.ts:584`; `api/subscription.ts:330-334` |
 | room survey roll-call | `presence` (+ status) | `LookController.ts:356-364`; `platform/idea/api/SocialLogic.ts:524-526` |
 | targeting keywords, disambiguation | `distinguishing` (+ first worn Wearable in **slot order**, + decay) | `platform/idea/api/RecognitionLogic.ts:293-338,541-562` |
 | profile header | `concise` (recognized → formal name surface) | `platform/idea/api/ProfileLogic.ts:148-155,197-215` |
@@ -104,7 +104,7 @@ presentation to everybody alike.
 
 ### 0.6 The subject card wire (`lib/connection/Cards.ts:217-229` → `fields:'detail'`)
 
-`DETAIL_FIELDS` (`api/mql-subscription.ts:120-138`) projected by
+`DETAIL_FIELDS` (`api/subscription.ts:120-138`) projected by
 `projectFields` (:314-338; `displayName` replaced by `describeFor(viewer)`):
 
 | field | descriptor | on an agent |

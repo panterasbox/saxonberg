@@ -52,6 +52,7 @@ import type {
   ArrangementCard,
   TerminalFilter,
 } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
@@ -74,9 +75,9 @@ import { MqlApi } from '../../api/mql';
 import { ChatApi } from '../../api/chat';
 import { PerceptionApi } from '../../api/perception';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   resolveFieldSet,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 
 /**
  * Admits the Api facade, the `CardLogic` singleton — by template path
@@ -107,7 +108,7 @@ export interface CardState {
   /**
    * Server-minted. **IS the MQL subscription id when the card is live**,
    * which is what lets a live card's deltas keep riding
-   * `mql-subscription-delta` with no join table.
+   * `subscription-delta` with no join table.
    */
   instanceId: string;
   cardId: CardId;
@@ -1234,18 +1235,25 @@ export default class CardRegistry extends CardRegistryBase {
      * asker on every wake, so a room card on `here` follows you out of
      * the room and silently becomes a different room's card.
      */
-    const initial = MqlSubscriptionApi.handleSubscribe({
-      interactive: state.interactive,
-      subscriptionId: state.instanceId,
-      query: def.source.query,
-      cardinality: def.source.cardinality,
-      fields: def.source.fields,
-      ...(def.source.needsSubject === true && state.subjectId
-        ? { subjectId: state.subjectId }
-        : {}),
-      silent: true,
-    });
-    if (initial === null) return false;
+    // ⭐ The card's instanceId IS the subscription id, on the one
+    // protocol (navigation-server D1): the snapshot rides `card-opened`
+    // (silent), its changes ride `subscription-delta`.
+    const opened = state.interactive.subscribe(state.instanceId,
+      SUBSCRIPTION_SOURCES.mql,
+      {
+        query: def.source.query,
+        cardinality: def.source.cardinality,
+        fields: def.source.fields,
+        ...(def.source.needsSubject === true && state.subjectId
+          ? { subjectId: state.subjectId }
+          : {}),
+      },
+      { silent: true },
+    );
+    // The MQL source stands and answers synchronously; a promise here
+    // means it did not stand, which a live card cannot wait on.
+    if (opened === null || !Array.isArray(opened)) return false;
+    const initial = opened as CardRecord[];
     state.live = true;
     delete state.takenAt;
     state.records = initial as CardRecord[];
@@ -1281,7 +1289,7 @@ export default class CardRegistry extends CardRegistryBase {
       holder.onEnvelope(template);
       return;
     }
-    state.interactive.cancelMqlSubscription(state.instanceId);
+    state.interactive.cancelSubscription(state.instanceId);
     state.live = false;
     state.takenAt = Date.now();
     if (!holder) return;
@@ -1305,10 +1313,10 @@ export default class CardRegistry extends CardRegistryBase {
     const holder = this.viewerOf(state.interactive);
     // ⭐ A rebind is a cancel-and-reopen under the same id; a card the client
     // has paused (minimized, scrolled away) STAYS paused — the open answers
-    // its snapshot on `card-touched` below and is closed again at once
+    // its snapshot on `card-touched` below and is paused again at once
     // (crowded-rooms D5). A card's close forgets the pause.
     const wasPaused = state.live && state.interactive.isSubscriptionPaused(state.instanceId);
-    if (state.live) state.interactive.cancelMqlSubscription(state.instanceId);
+    if (state.live) state.interactive.cancelSubscription(state.instanceId);
     state.live = false;
     if (opts.subjectId) state.subjectId = opts.subjectId;
     if (opts.prose && holder) state.prose = opts.prose.toString(holder);
@@ -1524,7 +1532,7 @@ export default class CardRegistry extends CardRegistryBase {
     }
     state.records = stuffList.map(
       (s) =>
-        MqlSubscriptionApi.projectFields(
+        SubscriptionApi.projectFields(
           s,
           fields,
           viewer,
@@ -1546,7 +1554,7 @@ export default class CardRegistry extends CardRegistryBase {
   private teardown(state: CardState): void {
     // ⚠ Only a card that holds a subscription has one to give up.
     if (!state.live) return;
-    state.interactive.cancelMqlSubscription(state.instanceId);
+    state.interactive.cancelSubscription(state.instanceId);
   }
 
   /**

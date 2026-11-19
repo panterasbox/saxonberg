@@ -405,7 +405,7 @@ The arc writes itself and every piece of it is already modelled:
 1. a freight corpo consolidates routes (a **mark** + approval);
 2. **rate discrimination** — charging the small rancher more than the
    big one — is visible in `PricedOffer` and reportable by
-   [the press](../society/press-slate.md) reading the record;
+   [the press](../society/journalism-slate.md) reading the record;
 3. a **bill** is tabled; conviction accumulates; the **countdown** is
    watchable;
 4. the corpo **lobbies** — as a caucus publishing a platform, with

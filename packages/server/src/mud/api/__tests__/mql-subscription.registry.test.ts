@@ -6,8 +6,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
-import { MqlSubscriptionLogic } from '../../platform/idea/api/MqlSubscriptionLogic';
+import { SubscriptionApi } from '../subscription';
+import { SubscriptionLogic } from '../../platform/idea/api/SubscriptionLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
@@ -16,6 +16,7 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -40,119 +41,105 @@ async function makeAvatarInteractive(): Promise<{
   return { interactive, avatar };
 }
 
-describe('MqlSubscriptionApi — registry surface', () => {
+describe('SubscriptionApi — registry surface', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('handleSubscribe with a "me" query registers state', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     avatar.setName('Alice');
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-      fields: 'ref',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+    fields: 'ref',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 
   it('duplicate subscriptionId is rejected with no second registration', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
   });
 
   it('handleUnsubscribe drops the subscription and silently no-ops on unknown ids', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    interactive.cancelMqlSubscription('s-nope');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    interactive.cancelMqlSubscription('s1');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    interactive.cancelSubscription('s-nope');
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+    interactive.cancelSubscription('s1');
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
 
   it('cancelAllForInteractive removes every subscription for that interactive', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's1',
-      query: 'me',
-      cardinality: 'one',
-    });
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's2',
-      query: 'me',
-      cardinality: 'one',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
-    interactive.cancelAllMqlSubscriptions();
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
+    interactive.subscribe('s1', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    interactive.subscribe('s2', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'one',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(2);
+    interactive.cancelAllSubscriptions();
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    expect(SubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
 
   it('detailKey with cardinality: many is rejected without registering', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    MqlSubscriptionApi.handleSubscribe({
-      interactive,
-      subscriptionId: 's-bad',
-      query: 'me',
-      cardinality: 'many',
-      detailKey: 'foo',
-    });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+    interactive.subscribe('s-bad', SUBSCRIPTION_SOURCES.mql, {
+    query: 'me',
+    cardinality: 'many',
+    detailKey: 'foo',
+  });
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 });
 
-describe('MqlSubscriptionLogic singleton encapsulation', () => {
+describe('SubscriptionLogic singleton encapsulation', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/mql-subscription once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/subscription once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
-    MqlSubscriptionApi._getRegistrySizeForTesting();
-    const logic = StuffApi.findByTemplatePath('/platform/idea/api/mql-subscription');
+    SubscriptionApi._getRegistrySizeForTesting();
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/subscription');
     expect(logic).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
-  it('denies a direct logic-method call from a non-MqlSubscriptionApi caller', () => {
-    MqlSubscriptionApi._getRegistrySizeForTesting();
-    const logic = StuffApi.findByTemplatePath<MqlSubscriptionLogic>(
-      '/platform/idea/api/mql-subscription'
+  it('denies a direct logic-method call from a non-SubscriptionApi caller', () => {
+    SubscriptionApi._getRegistrySizeForTesting();
+    const logic = StuffApi.findByTemplatePath<SubscriptionLogic>(
+      '/platform/idea/api/subscription'
     );
     expect(logic).toBeDefined();
-    // The test module is not `mud/api/mql-subscription#MqlSubscriptionApi`,
+    // The test module is not `mud/api/subscription#SubscriptionApi`,
     // so the FromModule gate on the logic's own methods denies the call.
     expect(() => logic!._getRegistrySize()).toThrow(SecurityError);
   });

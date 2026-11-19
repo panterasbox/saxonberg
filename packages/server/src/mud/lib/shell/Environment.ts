@@ -37,6 +37,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
 import type { CommandContributions } from '../../api/command';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * Supported value types for a schema entry. `struct` / `list` are
@@ -495,6 +496,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       const lifetime = entry.lifetime ?? 'persistent';
+      const was = this.getOwnSetting<T>(key);
       // ⚠ Stored under the key as WRITTEN, suffix included: the whole
       // point of the override is that it sits beside the base value
       // rather than replacing it.
@@ -504,6 +506,8 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       } else {
         this.sessionStore[key] = value;
       }
+      // ⭐ Fires: a screen showing a setting (your pace) re-reads it.
+      SubscriptionApi.fireFieldChange(this, 'settings', was, value);
     }
 
     @Unshadowable
@@ -520,11 +524,13 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       const lifetime = entry.lifetime ?? 'persistent';
+      const was = this.getOwnSetting<unknown>(key);
       if (lifetime === 'persistent') {
         if (this.persistentStore) delete this.persistentStore[key];
       } else {
         delete this.sessionStore[key];
       }
+      SubscriptionApi.fireFieldChange(this, 'settings', was, undefined);
     }
 
     listSettings(): SettingsSnapshotEntry[] {

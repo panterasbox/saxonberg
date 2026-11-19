@@ -540,7 +540,7 @@ track record says; both move the world **by being believed.**
 
 > **The ratings agency is the press with different subject matter.**
 
-So [press-slate](./press-slate.md)'s machinery — credibility derived
+So [journalism-slate](./journalism-slate.md)'s machinery — credibility derived
 from the record, the publisher, the catalogue-as-publication —
 **applies unchanged. No new reputation mechanic needed.**
 

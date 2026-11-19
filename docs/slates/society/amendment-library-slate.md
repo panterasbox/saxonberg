@@ -234,7 +234,7 @@ property · term limits · judiciary knobs · representation.
 
 | Amdt | Module | Note |
 |---|---|---|
-| **1** | **press freedom** | the big one — see [press-slate](./press-slate.md) |
+| **1** | **press freedom** | the big one — see [journalism-slate](./journalism-slate.md) |
 | **1** | **religion: establishment** | may a locality fund/require a faith from its treasury? |
 | **1** | **religion: free exercise** | may it *ban* a practice? The hard case already exists: sentient sacrifice is designed as evil — the exact shape of a real free-exercise conflict, made safe by fictional pantheons |
 | **1** | **assembly** | may a committee bar gatherings on public land, given venues are property? |
@@ -261,7 +261,7 @@ property · term limits · judiciary knobs · representation.
 
 | — | Module | Note |
 |---|---|---|
-| **1A-adjacent** | **classification / transparency** | who may seal official records, for how long, under what review — and the FOIA path (request → refusal → appeal). *Seal, don't hide*: existence public, content withheld ([press-slate](./press-slate.md)) |
+| **1A-adjacent** | **classification / transparency** | who may seal official records, for how long, under what review — and the FOIA path (request → refusal → appeal). *Seal, don't hide*: existence public, content withheld ([journalism-slate](./journalism-slate.md)) |
 | **1A-adjacent** | **private association** | any group's private comms as a *right*, symmetric — distinct from state classification, which is a *power*. Required so in-game politics stays in-game rather than migrating to Discord |
 | **conflict** | **source protection ⊗ confrontation** | a catalog-level *conflict* entry, not a module: the press module's privilege and the confrontation clause's right genuinely oppose |
 

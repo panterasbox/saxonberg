@@ -17,11 +17,14 @@ import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { StuffApi } from "../../../api/stuff";
 import EvalScript from "../EvalScript";
 import { Interpreter } from "../../../lib/script/Interpreter";
+import { Refusal } from "../../../lib/errors";
 import type {
   ResourceLimits,
   DispatchFn,
   ScriptDef,
+  DriveResult,
 } from "../../../lib/script/Interpreter";
+import type { CommandContext } from "../../../api/command";
 import type { Coroutine } from "../../../lib/script/Coroutine";
 import type { ScriptAbortReason } from "../../../lib/script/AbortReason";
 import type { CompiledSandbox } from "../../../api/script";
@@ -221,7 +224,7 @@ function makeReschedule(): () => Promise<void> {
 
 /** The bound-tail dispatch primitive for `actor` (re-resolved each run). */
 function dispatchFor(actor: Stuff & CommandGiver): DispatchFn {
-  return (command, model, prep, source) => actor._dispatchBound(command, model, prep, source);
+  return (command, model, prep, source, line) => actor._dispatchBound(command, model, prep, source, line);
 }
 
 /** The actor's home script path: `/home/<key>/scripts/<name>`. */
@@ -267,6 +270,7 @@ async function startAndDetach(
   interpreter: Interpreter,
   ast: Script,
   scope: Scope,
+  context?: CommandContext,
 ): Promise<void> {
   const co = interpreter.startCoroutine(
     ast,
@@ -276,26 +280,81 @@ async function startAndDetach(
   );
   registerCoroutine(actor, co);
 
-  void co.whenSettled().then((result) => {
-    deregisterCoroutine(actor, co);
-    if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
-      MessageApi.scene(actor as Stuff & Sensor)
-        .topic("shell.error")
-        .toSelf(
-          Mml.compose`The script stopped (${result.aborted}${
-            result.detail ? `: ${result.detail}` : ""
-          }).`,
-        )
-        .send();
-    }
-  });
-
   await co.whenFirstYield();
-  const ctx = ExecutionContextApi.getCurrentCommandContext();
+  // ⭐ The verb that started the script hands over ITS context (`do`,
+  // `script`): the frame carries the dispatcher's outer context, and a
+  // stop noted there would ride no envelope at all.
+  const ctx = context ?? ExecutionContextApi.getCurrentCommandContext();
   for (const note of interpreter.getNotes()) ctx?.note(note);
+  // ⭐ Settled before it ever detached: the stop is reported on this
+  // command's envelope. Otherwise it is reported late, when it settles.
+  const state = co.getState();
+  if (state === "done" || state === "cancelled") {
+    const result = await co.whenSettled();
+    deregisterCoroutine(actor, co);
+    await reportStop(actor, result, ctx ?? null);
+    return;
+  }
+  void co.whenSettled().then(async (result) => {
+    deregisterCoroutine(actor, co);
+    await reportStop(actor, result, null);
+  });
 }
 
-async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
+/**
+ * ⭐⭐ **Say once where a script stopped and why** (failure-model D5).
+ *
+ *  - A refusal whose reason has a row: nothing else has spoken, so the
+ *    command notes ONE `refused` — the refusal's own code and facts, with
+ *    `at` — and the emit sweep words it through `script-stopped`. Late (the
+ *    script had detached), the same line goes to the player at once.
+ *  - A refusal with no row (an unmigrated controller, which already said
+ *    its own line), or a defect: its notes ride as before, and one bare
+ *    `script-stopped` line is added.
+ *  - Any other abort (a resource limit, a cancel): said as before.
+ */
+async function reportStop(
+  actor: Stuff & CommandGiver,
+  result: DriveResult,
+  ctx: CommandContext | null,
+): Promise<void> {
+  if (result.aborted === undefined) return;
+  const stopped = result.stopped;
+  if (stopped === undefined) {
+    if (!MixinApi.isSensor(actor)) return;
+    MessageApi.scene(actor as Stuff & Sensor)
+      .topic("shell.error")
+      .toSelf(
+        Mml.compose`The script stopped (${result.aborted}${
+          result.detail ? `: ${result.detail}` : ""
+        }).`,
+      )
+      .send();
+    return;
+  }
+  const refusal = stopped.refusal;
+  if (refusal !== null && (await CommandApi.reasons().find(refusal.reason)) !== null) {
+    if (ctx !== null) ctx.refuse(refusal);
+    else await CommandApi.reportFailure(refusal);
+    return;
+  }
+  // In the frame: the stop rides AFTER the line's own notes (a defect's
+  // sentence first, then where the script stopped), worded at emit.
+  if (ctx !== null) {
+    for (const note of stopped.notes) ctx.note(note);
+    ctx.refuse({ reason: "script-stopped", facts: { line: stopped.line } });
+    return;
+  }
+  if (!MixinApi.isSensor(actor)) return;
+  const worded = await CommandApi.wordReason("script-stopped", { line: stopped.line }).catch(() => null);
+  const topic = worded?.topic ?? "shell.error";
+  MessageApi.scene(actor as Stuff & Sensor)
+    .topic(topic)
+    .toSelf(worded?.line ?? Mml.compose`The script stopped at ${stopped.line}.`)
+    .send();
+}
+
+async function runAstImpl(ast: Script, authorPath?: string, context?: CommandContext): Promise<void> {
   const actor = currentActor();
   if (actor === null) return; // no actor in context — nothing to run as
   const interpreter = new Interpreter(
@@ -303,7 +362,7 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
     resolveLimits(authorPath),
     sessionDefsFor(actor),
   );
-  await startAndDetach(actor, interpreter, ast, new Scope());
+  await startAndDetach(actor, interpreter, ast, new Scope(), context);
 }
 
 /**
@@ -313,7 +372,7 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
  * runs the body — paced by the same coroutine as any script. Returns
  * `false` when no such script is defined (the caller declines).
  */
-async function invokeImpl(name: string, args: string[]): Promise<boolean> {
+async function invokeImpl(name: string, args: string[], context?: CommandContext): Promise<boolean> {
   // The acting author (transport-agnostic), so a script loaded by path
   // (`invokeByPath`, also author-keyed) and the session-`def` it
   // registered resolve under the same actor — the same giver in a
@@ -328,7 +387,7 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   const interpreter = new Interpreter(actor, resolveLimits(), defs);
   const callScope = def.scope.child();
   def.params.forEach((param, i) => callScope.define(param, args[i]));
-  await startAndDetach(actor, interpreter, def.body, callScope);
+  await startAndDetach(actor, interpreter, def.body, callScope, context);
   return true;
 }
 
@@ -361,7 +420,7 @@ function parsedToScript(parsed: ParsedCommand): Script {
   return { kind: "script", statements: [{ kind: "pipeline", commands: [command] }] };
 }
 
-/** Parse stored source text into a `Script` AST (or null on error). */
+/** Parse stored source text into a `Script` AST; a parse error throws a `parse-failed` refusal. */
 async function parseSourceToScript(
   source: string,
   actor: Stuff & CommandGiver,
@@ -375,7 +434,9 @@ async function parseSourceToScript(
   });
   if (result.script !== undefined) return result.script.ast;
   if (result.parsed !== undefined) return parsedToScript(result.parsed);
-  return null; // parse error → unresolvable
+  // ⭐ A stored script that does not parse is REFUSED with its error, never
+  // silently "not found" (failure-model D5).
+  throw new Refusal("parse-failed", { detail: result.error ?? "the script does not parse" });
 }
 
 /** The source text of the script stored at `path`, or null. */
@@ -427,7 +488,7 @@ async function invokeByPathImpl(path: string): Promise<boolean> {
   return true;
 }
 
-async function runImpl(text: string): Promise<void> {
+async function runImpl(text: string, context?: CommandContext): Promise<void> {
   const actor = currentActor();
   if (actor === null) return;
   const parser = await CommandApi.resolveParser("script");
@@ -438,7 +499,7 @@ async function runImpl(text: string): Promise<void> {
     available: actor.getAvailableCommands(),
   });
   if (result.script !== undefined) {
-    await runAstImpl(result.script.ast);
+    await runAstImpl(result.script.ast, undefined, context);
     return;
   }
   if (result.error !== undefined) throw new Error(result.error);
@@ -502,8 +563,8 @@ export class ScriptLogic extends ApiLogic {
 
   /** See {@link ScriptApi.run}. */
   @CallSecurity(ScriptApiCallers)
-  public async run(text: string): Promise<void> {
-    return runImpl(text);
+  public async run(text: string, context?: CommandContext): Promise<void> {
+    return runImpl(text, context);
   }
 
   /** See {@link ScriptApi.cancelAll}. */
@@ -514,8 +575,8 @@ export class ScriptLogic extends ApiLogic {
 
   /** See {@link ScriptApi.invoke}. */
   @CallSecurity(ScriptApiCallers)
-  public async invoke(name: string, args: string[]): Promise<boolean> {
-    return invokeImpl(name, args);
+  public async invoke(name: string, args: string[], context?: CommandContext): Promise<boolean> {
+    return invokeImpl(name, args, context);
   }
 
   /** See {@link ScriptApi.saveScript}. */

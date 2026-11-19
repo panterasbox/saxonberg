@@ -335,8 +335,7 @@ sense.
 │   one with a row and a class and no platform file changes.
 │   └── weigh                    WeighController
 ├── search.      ← search/match results
-│   ├── find      FindController
-│   └── locate    LocateController
+│   └── find      FindController
 └── inventory    Get/Drop/Put/…Controller (the list is `query --ledger`)
 ```
 
@@ -351,8 +350,8 @@ Each sub-family has its own axis:
 - **measurement** is verb-leafed (per-instrument). Each instrument
   reads a different physical quantity; the leaves are fine-grained
   so per-instrument styling/filtering works.
-- **search** is verb-leafed. find / locate are different scopes of
-  search (local vs world-scope).
+- **search** is verb-leafed. `find` searches a scope; where you are rides the where-you-are
+  subscription (navigation-server), not a verb.
 
 Wildcards aggregate: `sense.survey.*` matches all
 deliberate first-person perception; `sense.ambient.*`

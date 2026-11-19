@@ -168,7 +168,7 @@ const say = (line: string): void => {
           const t0 = performance.now();
           await walker.cmd('go southwest');
           const caught6 = await watcher
-            .awaitEnvelope<{ subscriptionId: string }>('mql-subscription-delta', (e) => e.subscriptionId === hereId, 2_000)
+            .awaitEnvelope<{ subscriptionId: string }>('subscription-delta', (e) => e.subscriptionId === hereId, 2_000)
             .then(() => true, () => false);
           say(`6: on-screen card ${caught6 ? `caught up in ${Math.round(performance.now() - t0)} ms` : 'did NOT catch up within 2 s'}`);
           expect.soft(caught6, '6: an on-screen card shows a change within 2 s').toBe(true);
@@ -184,14 +184,14 @@ const say = (line: string): void => {
           }
           await new Promise((r) => setTimeout(r, 1_000));
           const leaked = watcher
-            .envelopesOf<{ subscriptionId?: string }>('mql-subscription-delta')
-            .concat(watcher.envelopesOf<{ subscriptionId?: string }>('mql-subscription-result'))
+            .envelopesOf<{ subscriptionId?: string }>('subscription-delta')
+            .concat(watcher.envelopesOf<{ subscriptionId?: string }>('subscription-result'))
             .filter((e) => e.subscriptionId === hereId);
           expect.soft(leaked, '7: a hidden card receives nothing').toEqual([]);
           const t1 = performance.now();
           watcher.resumeSubscription(hereId);
           const caught7 = await watcher
-            .awaitEnvelope<{ subscriptionId: string }>('mql-subscription-result', (e) => e.subscriptionId === hereId, 2_000)
+            .awaitEnvelope<{ subscriptionId: string }>('subscription-result', (e) => e.subscriptionId === hereId, 2_000)
             .then(() => true, () => false);
           say(`7: hidden card received ${leaked.length} envelopes; ${caught7 ? `caught up ${Math.round(performance.now() - t1)} ms after shown` : 'did NOT catch up within 2 s of being shown'}`);
           expect.soft(caught7, '7: a hidden card is current within 2 s of being shown').toBe(true);

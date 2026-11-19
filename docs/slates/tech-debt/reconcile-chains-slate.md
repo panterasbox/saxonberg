@@ -1,97 +1,80 @@
 # Reconcile chains slate — when a rate reads a rate
 
-> **Status: UNBUILT** — the doctrine is
-> [uncertainty.md § The second abstraction law](../../uncertainty.md); this
-> is the work it implies. ⚠ **Three shipped gauges integrate a long
-> horizon against a single end-of-interval sample of a driver that moved**,
-> and one of them (`Contaminable`) is silent by design, so the error
-> surfaces as a player being poisoned by food that read as fine.
-> **Left:** `restamp` on `Freshness` · `Contaminable` · `Maturing` (store
-> the driver at last reconcile, integrate along `Decay.toward` as
-> `ThermalDose` does) · the **step problem** — `Coolbox` and any
-> supply-driven host store *when supply last changed and to what*, so the
-> trajectory is closed-form · `Growing`'s start-rectangle reviewed · the
-> **chain declaration** (`Freshness` reads `Moisture` reads ambient) ·
-> a **census lint** over *gauges whose rate reads another
-> reconcile-on-read quantity* · the `Moisture` relaxation checked
-> **Size:** a build
+> **Status: PARTIAL** — the doctrine is
+> [uncertainty.md § The second abstraction law](../../uncertainty.md); the
+> temperature half shipped with the cold-storage build (2026-10-01): the
+> trajectory primitive, every temperature gauge integrating it, the stepped
+> grid, and `lint:reconcile-chains` at ceiling 0 — see
+> [thermal.md § The trajectory contract](../../subsystems/thermal.md). What
+> remains is everything that is **not** temperature.
+> **Left:** trajectories for the non-temperature drivers (light-strike ·
+> pests · `a_w`) · **declared drivers** + the lint reading the declaration ·
+> the ring's **reboot** and **horizon** seams
+> **Size:** a tail
 
 **Captured 2026-09-30**, from a question about what happens to food in a
-fridge when the power goes out. It turned out to be general, to have three
-shipped instances, and to be an **A3 problem** rather than a physics one:
-*derive, don't track* promises the answer does not depend on when you
-look, and a sampled driver breaks exactly that promise.
+fridge when the power goes out. It is an **A3 problem** rather than a
+physics one: *derive, don't track* promises the answer does not depend on
+when you look, and a sampled driver breaks exactly that promise.
 
-Related: [uncertainty.md](../../uncertainty.md) (the law, the four answers,
-the audit table) · [spoilage.md](../../subsystems/spoilage.md) ·
+Related: [uncertainty.md](../../uncertainty.md) (the law, the answers, the
+audit table) · [spoilage.md](../../subsystems/spoilage.md) ·
 [thermal.md](../../subsystems/thermal.md) ·
-[maturation.md](../../subsystems/maturation.md) ·
-[husbandry.md](../../subsystems/husbandry.md) ·
 [measurement.md](../../measurement.md) (A3, A16) ·
 [lint-family.md](../../lint-family.md) (census-then-ratchet)
 
-✅ **The four subsystem docs carry the finding as of 2026-09-30** —
-`spoilage` (both gauges sample, and the chain is two deep), `thermal` (the
-step problem and the one-field cure), `maturation` (the longest horizon),
-`husbandry` (`Growing`'s start-rectangle, and read the intent first).
+*Compacted 2026-11-18.* Cut as shipped: the three ⛔ temperature gauges
+(`Freshness`, `Contaminable`, `Maturing` fold over `temperatureTrajectory`;
+uncertainty.md § The audit) · the step problem (`TrajectoryLog` ring +
+the grid remembering its cuts; thermal.md § The trajectory contract,
+energy.md) · Q1 `Growing` (answer 3 by design; the audit) · Q3 `Moisture`
+(the exposed arm walks air segments; the enclosed arm is `@samples`) ·
+Q4 (the `@samples` TSDoc marker is the justification, the reviewer judges
+it) · Q5 (the ratchet is 0).
 
-## The three ⛔ gauges, and why each is a different urgency
+## 1. Drivers that are not temperature are still end samples
 
-| gauge | horizon | what breaks |
+The trajectory primitive (`Piecewise` / `TrajectoryLog`) is
+driver-agnostic, but only temperature publishes one. Three rates are
+still billed over the whole gap at the value read on the day you look:
+
+| driver | gauge | stated limit |
 |---|---|---|
-| **`Contaminable`** | days–weeks | ⚠⚠ **First, because it is silent.** Its whole design is a population no sense reports; an under-count is undetectable until somebody is ill, and the player has no way to have known |
-| **`Maturing`** | **weeks–months** | The longest horizon in the tree. A cellar that warmed for a day reconciles a three-month batch at whatever the thermometer says on the day you visit — and grade/mark/strain all ride the outcome |
-| **`Freshness`** | days–weeks | The worked case. Also the one with **two** sampled drivers (temperature *and* `a_w`) |
+| **light** (`lux` × blue transmittance) | light-strike on `Freshness` | spoilage.md: *"a bottle carried from sun to cellar is aged at the cellar's light for the whole stretch… the trajectory integration is a follow-on"* |
+| **pests** (room debris) | `Freshness` growth | spoilage.md § Cleanliness: *"sampled once per reconcile beside light-strike"* |
+| **`a_w`** (the holder's water state) | `Freshness`, `Contaminable` | spoilage.md: *"stays an end sample (justified — no stepped state for an enclosed slot's humidity)"* — ⚠ a lid opened, or a loaf moved from a crock to the counter, is a step |
 
-⭐ **`ThermalDose` is the exemplar to copy**, in the same subsystem, with
-its reasoning already written: *"it integrates, it does not sample… stores
-the temperature at its last reconcile and runs Simpson along
-`Decay.toward` between the two samples."*
+⚠ Daylight is a pure function of time (answer 1, the celestial field);
+what steps is **being carried**, a lamp, a shutter. The publisher is the
+holder's scope, the same shape `AtmosphericMixin` already serves for air
+temperature.
 
-## ⭐⭐ The step problem is the interesting half
+## 2. ⭐⭐ Declared drivers — a gate, not a grep
 
-Restamping fixes a driver that moved **smoothly**. It does not fix one
-that **stepped**, and the motivating case is a step: two endpoint samples
-of 4 °C are equally consistent with *nothing happened* and with *six hours
-at 21 °C*.
+`lint:reconcile-chains` finds samplers by three token names
+(`getTemperature(` · `hostTemperatureK` · `getOwnTemperatureK`). A new
+gauge whose rate reads light, humidity, air or another reconcile-on-read
+quantity passes it unseen, and the chain `Freshness → Moisture → ambient
+humidity` still exists only as a call. A gauge that **declares** the
+drivers it reads gives the lint a roster to check — each declared driver
+is either read as a trajectory or carries `@samples` — and makes the
+chain inspectable.
 
-> **Store the step, not the history.** A `Coolbox` (or any supply-driven
-> host) that records **when its supply last changed and to what** has a
-> closed-form temperature at any `t` — which converts it from a stateful
-> driver into a **pure function of time**, the category that never had this
-> problem. One field, not a ledger.
+## 3. The ring's two seams
 
-⚠ **Scope check before building:** how many hosts actually have a stepped
-driver? Supply-fed thermal hosts (coolbox, furnace, any metered appliance)
-are the obvious set, and it may be the whole set — in which case this rides
-the energy/grid work rather than standing alone.
-
-## Open questions
-
-1. ⭐⭐ **Does `Growing`'s start-rectangle need fixing, or is it right?** It
-   restamps `_lastAmbientK` and then rates from the **stored** value —
-   `ThermalDose` says a rectangle from the start *"reads zero"*, but
-   growth is a `min`-of-four limiting factor and the start value may be the
-   conservative choice on purpose. **Read the intent before changing it.**
-2. ⭐⭐ **Should a gauge DECLARE its drivers?** Today the dependency
-   `Freshness → Moisture → ambient humidity` exists only as a call. A
-   declared driver list is what a census lint would read, and it is the
-   difference between a gate and a grep.
-3. ⚠ **Does `Moisture` relax correctly over a long gap**, and does it
-   need restamping too? It is a driver of two ⛔ gauges, so its error
-   propagates into both.
-4. **Is the τ-ratio justification checkable, or only assertable?**
-   `Staling`'s is convincing prose. A lint can see *that* a gauge samples;
-   it cannot see whether the ratio warrants it. ⭐ *Leans: the lint requires
-   a justification comment and the reviewer judges it* — the shape
-   `@hook`'s human-placed marker already uses.
-5. ⚠ **What is the ratchet's number?** *Count of gauges that sample a
-   driver without a stated justification* is the honest census: 3 today,
-   ceiling 3, may fall and never rise.
+- **Reboot.** The ring is runtime state; a reboot re-seeds a flat segment
+  (thermal.md). The game clock pauses across downtime, so the loss is only
+  the relaxation that was *in flight* at shutdown — a fridge mid-warm-up
+  reads flat after the restart. Persist the ring with its publisher, or
+  state the limit.
+- **Horizon.** 24 breakpoints. A publisher stepped more often than that
+  between a dependent's reads truncates the dependent's window (thermal.md
+  already warns of it for a long re-stoked burn). Decide: a larger ring,
+  a coalescing ring, or a stated limit.
 
 ## ⚠ Not in scope
 
-**Making every gauge integrate.** Answer 3 is legitimate and `Staling`
-proves it — a fast driver under a slow process is exactly a rectangle. The
-build is about the ones that **cannot** justify it, and about making the
-justification visible where it exists.
+**Making every gauge integrate.** Sampling is legitimate where the τ ratio
+warrants it (`Staling`, the enclosed `Moisture` arm) — the work is the
+gauges that **cannot** justify it, and making the justification visible
+where it exists.

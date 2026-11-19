@@ -22,7 +22,7 @@
  * `plot` is the navigator's reckoning (`Plot`): the last fix carried
  * along the courses steered, knowing nothing of the set. It diverges from
  * the truth exactly as far as the water moved you, and it is what
- * `locate` and `course` report. Fixes collapse it.
+ * `course` at the helm reports. Fixes collapse it.
  *
  * ## ⭐⭐ One craft, either frame (river review, W7)
  *
@@ -40,6 +40,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Lie } from '@saxonberg/types';
 import type { Container } from '../spatial/Container';
 import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
@@ -127,6 +128,8 @@ export interface Voyaging {
   answerBerthRoll(landingPath: string): Promise<void>;
   /** ⭐ May `who` take her helm — lay or end her course? A boat answers anyone. */
   mayBeSteeredBy(who: Stuff): boolean;
+  /** ⭐ Where she lies — on a river's line or at sea; a ship adds her berth. */
+  lies(): Promise<Lie>;
   /** The navigator's reckoning, as a value (the chart's). */
   getPlot(): Plot | null;
   /** The reckoned position now (the chart's). */
@@ -476,6 +479,25 @@ export function VoyagingMixin<
     mayBeSteeredBy(who: Stuff): boolean {
       void who;
       return true;
+    }
+
+    /**
+     * ⭐ Where she lies (navigation-server D10): on a river, its name and
+     * how far above the mouth; else at sea. Names only — what a body
+     * aboard can see.
+     * @hook A ship that is made fast answers her berth first. Default:
+     *   the frame she is on.
+     */
+    async lies(): Promise<Lie> {
+      const self = this as unknown as Stuff & Positioned;
+      const ship = self.getPresentation();
+      const at = self.getLinePosition();
+      if (self.getLine() !== null && at !== null) {
+        const frame = await self.liveFrame().catch(() => null);
+        const river = frame !== null ? (frame as unknown as Stuff).getPresentation() : 'the river';
+        return { at: 'river', ship, river, km: Math.round(at.km * 10) / 10 };
+      }
+      return { at: 'sea', ship };
     }
 
     /**

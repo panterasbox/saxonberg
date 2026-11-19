@@ -81,6 +81,7 @@ import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
+import type { SubscriptionSource } from '../lib/subscription/SubscriptionSource';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
@@ -1436,6 +1437,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Scryable);
   }
 
+  public static isSubscriptionSource(obj: Stuff): obj is Stuff & SubscriptionSource {
+    return this.hasMixin(obj, Mixins.SubscriptionSource);
+  }
+
   public static isSingleton(obj: Stuff): obj is Stuff & Singleton {
     return this.hasMixin(obj, Mixins.Singleton);
   }
@@ -2770,11 +2775,11 @@ export class MixinApi {
    * arrays declared at each level. Mirrors the shape of
    * {@link getAllPersistentFields}. Order is parent-first → child-
    * last; later entries on the same name win in the caller's
-   * downstream merge (`collectSubscribableFields` in mql-subscription.ts).
+   * downstream merge (`collectSubscribableFields` in subscription.ts).
    *
-   * `SubscribableFieldDescriptor` is defined in `mql-subscription.ts`;
+   * `SubscribableFieldDescriptor` is defined in `subscription.ts`;
    * we use a structural local type here to avoid a runtime import
-   * cycle (mixin.ts is below mql-subscription.ts in the layering).
+   * cycle (mixin.ts is below subscription.ts in the layering).
    */
   public static getAllSubscribableFields(
     constructor: AnyConstructor,

@@ -258,7 +258,7 @@ Smaller patterns from the same town:
   books (store, lodging, fund) never compared, and a publican holding every
   tab who settles things in his own room.
 - **The press detects ledger crime**: a buyer's move is legal on its face
-  ([press-slate](../society/press-slate.md),
+  ([journalism-slate](../society/journalism-slate.md),
   [policing-slate](../society/policing-slate.md)).
 - **A miners' institute** on a wage check-off is school, insurance and
   assembly in one room, and shows **who mutual aid excludes**.

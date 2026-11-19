@@ -50,7 +50,11 @@ import { MixinApi } from '../../api/mixin';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { MapClaim, MapChannel } from './MapClaim';
+import type { MapClaim, MapChannel, MapClaimPosition } from './MapClaim';
+import type Place from '../stuff/Place';
+import type { Voyaging } from '../expanse/Voyaging';
+import { Expanse } from '../expanse/Expanse';
+import { GovernmentApi } from '../../api/government';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
 
@@ -68,6 +72,12 @@ export interface Cartographer {
   ): void;
   /** Write down the stops a public board just gave up. */
   recordTimetableRead(stops: readonly PublishedStop[]): void;
+  /**
+   * ⭐ Write down the reckoning just taken at a helm — where `craft` is BY
+   * RECKONING, with its error and the reader's bracket; never the truth
+   * (navigation-server D2).
+   */
+  recordReckoning(craft: Stuff & Voyaging, bracket: string): void;
 }
 
 export function CartographerMixin<TBase extends MixinConstructor>(
@@ -121,6 +131,18 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     public recordTimetableRead(stops: readonly PublishedStop[]): void {
       void this.recordTimetable(stops);
     }
+
+    /** See {@link Cartographer.recordReckoning}. */
+    public recordReckoning(craft: Stuff & Voyaging, bracket: string): void {
+      void this.writeReckoning(craft, bracket);
+    }
+
+    /**
+     * Runtime: the covering Locality chain last recorded — a Locality
+     * claim is written on ENTRY, not on every look (one compare per
+     * perception, a write only when the chain changes).
+     */
+    private _localityChain = '';
 
     /**
      * @hook See {@link Mobile.onTraversed} — the edge you actually
@@ -203,15 +225,24 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         // handle writes NO CLAIM — a lounge satellite is a fresh clone
         // per landing, so an honest map of it is nothing rather than a
         // stale entry for a room that no longer exists.
-        const place = location.getDurableHandle();
-        if (!place) return;
-        const locality = await this.localityAddressOf(location);
-        if (!locality) return;
+        // ⭐ The place says what a claim about it names and where it is
+        // (navigation-server D2) — a copy's room by its minted key, moving
+        // water by its river or sea; `null` writes nothing.
+        const subject = this.subjectOf(location);
+        if (!subject) return;
+        const place = subject.place;
+        const locality = await this.claimLocalityOf(location, subject);
+        if (!locality) {
+          // Aboard a ship at sea her rooms file nowhere — the sea does.
+          await this.recordSea(location, how);
+          return;
+        }
         const now = NavigationApi.mapNow();
         const claims: MapClaim[] = [
           {
             kind: 'place',
             place,
+            ...(Object.keys(subject.at).length > 0 ? { at: subject.at } : {}),
             label: location.getTemplatePath() ?? undefined,
             name: location.getPresentation(),
             // ⭐ What it answered to. See `MapClaim.keywords`: the
@@ -248,6 +279,9 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // (the river drive: a route over the ferry, planned from a
             // SEEN claim, never said "not always passable").
             ...(exit.isConditional() ? { conditional: true } : {}),
+            // ⭐ As seen (navigation-server D4): *shut* then *locked* are
+            // two claims; the latest `lastSeen` is what you last knew.
+            state: exit.wayRecord().state,
             channel: how,
             firstSeen: now,
             lastSeen: now,
@@ -255,6 +289,8 @@ export function CartographerMixin<TBase extends MixinConstructor>(
           });
         }
         await NavigationApi.recordPlace(viewerKey, locality, claims);
+        // The first visit to a Locality, after the place itself.
+        await this.recordLocalities(location);
       } catch (err) {
         // A map is a convenience; never fail a `look` for it — but say so:
         // a map that silently stopped being written cost two sibling drives
@@ -280,6 +316,8 @@ export function CartographerMixin<TBase extends MixinConstructor>(
           // arrival room still answers for its own path, which is what a
           // singleton place's handle is.
           const place = room?.getDurableHandle() ?? stop.arrivalRoomPath;
+          // ⭐ Where it is, when the arrival room is standing to say so.
+          const at = room?.isPlace() ? (room as unknown as Place).mapSubject()?.at : undefined;
           const locality = room
             ? await this.localityAddressOf(room)
             : await this.localityAddressOfPath(stop.arrivalRoomPath);
@@ -290,6 +328,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
               place,
               label: stop.arrivalRoomPath,
               name: stop.label,
+              ...(at && Object.keys(at).length > 0 ? { at } : {}),
               channel: 'published',
               firstSeen: now,
               lastSeen: now,
@@ -297,8 +336,10 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             },
           ]);
         }
-      } catch {
-        // Reading a board must not fail because a map would not save.
+      } catch (err) {
+        // Reading a board must not fail because a map would not save — but
+        // say so (refuse/skip/throw), as `recordPerceived` does.
+        console.warn('[cartographer] timetable not written:', err);
       }
     }
 
@@ -354,13 +395,173 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // costs in LEGS, which is what a pedestrian is answered in
             // anyway.
             ...(via.isConditional() ? { conditional: true } : {}),
+            state: via.wayRecord().state,
             firstSeen: now,
             lastSeen: now,
             recordedBy: viewerKey,
           },
         ]);
-      } catch {
-        // Never fail a traverse for a map.
+        await this.recordArrival(viewerKey, now);
+      } catch (err) {
+        // Never fail a traverse for a map — but say so.
+        console.warn('[cartographer] traversal not written:', err);
+      }
+    }
+
+    /**
+     * ⭐ The room you walked INTO is `walked` (navigation-server D2): beside
+     * the walked edge, a place claim for where the mover now stands.
+     */
+    private async recordArrival(viewerKey: string, now: number): Promise<void> {
+      const self = this as unknown as Stuff;
+      const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!here) return;
+      const subject = this.subjectOf(here);
+      if (!subject) return;
+      const locality = await this.claimLocalityOf(here, subject);
+      if (!locality) return;
+      await NavigationApi.recordPlace(viewerKey, locality, [
+        {
+          kind: 'place',
+          place: subject.place,
+          ...(Object.keys(subject.at).length > 0 ? { at: subject.at } : {}),
+          label: here.getTemplatePath() ?? undefined,
+          name: here.getPresentation(),
+          keywords: this.keywordsOf(here),
+          group: this.groupingAddressOf(here),
+          channel: 'walked',
+          firstSeen: now,
+          lastSeen: now,
+          recordedBy: viewerKey,
+        },
+      ]);
+    }
+
+    /**
+     * What a claim about `location` names: a place's own answer
+     * (`Place.mapSubject`); anything else that holds you (a vessel, a
+     * container stood in) by its durable handle, with no position.
+     */
+    private subjectOf(location: Stuff): { place: string; at: MapClaimPosition } | null {
+      if (location.isPlace()) return (location as unknown as Place).mapSubject();
+      const handle = location.getDurableHandle();
+      return handle ? { place: handle, at: {} } : null;
+    }
+
+    /**
+     * Where a claim about `location` is filed: moving water on a chart
+     * files where a chart of that sea does (`Expanse.mapLocality`); every
+     * other place under its finest covering Locality.
+     */
+    private async claimLocalityOf(
+      location: Stuff,
+      subject: { place: string; at: MapClaimPosition },
+    ): Promise<string> {
+      if (subject.at.zone === subject.place && subject.at.line === undefined) {
+        const sea = await StuffApi.singleton<Stuff>(subject.place).catch(() => null);
+        if (sea instanceof Expanse) return sea.mapLocality();
+      }
+      return this.localityAddressOf(location);
+    }
+
+    /**
+     * ⭐ First visit to a Locality (navigation-server D3): when the covering
+     * chain of where you stand differs from the one last recorded, each
+     * Locality in it is written into ITS OWN document — its name, and what
+     * it does not withhold: whose it is and what kind.
+     */
+    private async recordLocalities(location: Stuff): Promise<void> {
+      const resolution = await AddressApi.resolveFor(location as unknown as Stuff & Container).catch(() => null);
+      const address = resolution?.address ?? '';
+      if (!address) return;
+      const chain = AddressApi.coverageChainOf(address);
+      const key = chain.map((l) => l.getAddress()).join('>');
+      if (key === this._localityChain) return;
+      this._localityChain = key;
+      const viewerKey = this.mapOwnerKey();
+      const now = NavigationApi.mapNow();
+      for (const l of chain) {
+        const at = l.getAddress();
+        if (!at || l.getName().length === 0) continue;
+        const learnable = l.getLearnable();
+        const govKey = learnable.includes('government') ? l.getGovernmentKey() : null;
+        const gov = govKey ? GovernmentApi.getGovernment(govKey) : null;
+        await NavigationApi.recordPlace(viewerKey, at, [
+          {
+            kind: 'locality',
+            place: at,
+            name: l.getName(),
+            ...(gov ? { government: { key: gov.key, name: gov.name } } : {}),
+            ...(learnable.includes('kind') ? { localityKind: l.getKind() } : {}),
+            channel: 'walked',
+            firstSeen: now,
+            lastSeen: now,
+            recordedBy: viewerKey,
+          },
+        ]);
+      }
+    }
+
+    /**
+     * ⭐ Aboard a craft at sea, a passenger's map records the SEA alone —
+     * no position (navigation-server D2). Filed where a chart of it files.
+     */
+    private async recordSea(location: Stuff, how: MapChannel): Promise<void> {
+      if (!location.isPlace()) return;
+      const craft = await (location as unknown as Place).craftHere();
+      const seaPath = craft ? craft.getExpanse() : null;
+      if (!seaPath) return;
+      const sea = await StuffApi.singleton<Stuff>(seaPath).catch(() => null);
+      if (!(sea instanceof Expanse)) return;
+      const viewerKey = this.mapOwnerKey();
+      const now = NavigationApi.mapNow();
+      await NavigationApi.recordPlace(viewerKey, sea.mapLocality(), [
+        {
+          kind: 'place',
+          place: seaPath,
+          label: seaPath,
+          name: sea.getPresentation(),
+          at: { zone: seaPath },
+          channel: how,
+          firstSeen: now,
+          lastSeen: now,
+          recordedBy: viewerKey,
+        },
+      ]);
+    }
+
+    /** See {@link Cartographer.recordReckoning}. */
+    private async writeReckoning(craft: Stuff & Voyaging, bracket: string): Promise<void> {
+      try {
+        if (!this.keepsMaps()) return;
+        const viewerKey = this.mapOwnerKey();
+        const reckoned = craft.reckonedNow();
+        const seaPath = MixinApi.isPositioned(craft) ? craft.getExpanse() : null;
+        if (!viewerKey || !reckoned || !seaPath) return;
+        const sea = await StuffApi.singleton<Stuff>(seaPath).catch(() => null);
+        if (!(sea instanceof Expanse)) return;
+        const now = NavigationApi.mapNow();
+        await NavigationApi.recordPlace(viewerKey, sea.mapLocality(), [
+          {
+            kind: 'place',
+            place: seaPath,
+            label: seaPath,
+            name: sea.getPresentation(),
+            at: {
+              zone: seaPath,
+              geo: { latDeg: reckoned.latDeg, lonDeg: reckoned.lonDeg },
+              reckoned: true,
+              errorNm: Math.round(craft.reckoningUncertaintyNm() * 10) / 10,
+              bracket,
+            },
+            channel: 'seen',
+            firstSeen: now,
+            lastSeen: now,
+            recordedBy: viewerKey,
+          },
+        ]);
+      } catch (err) {
+        console.warn('[cartographer] reckoning not written:', err);
       }
     }
 

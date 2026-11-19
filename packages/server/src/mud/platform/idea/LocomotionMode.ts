@@ -222,7 +222,26 @@ export class LocomotionMode extends SingletonMixin(Idea) {
     enablementMixin: { persistent: true },
     medium: { persistent: true },
     hands: { persistent: true },
+    refusals: { persistent: true },
   };
+
+  /**
+   * ⭐ How this mode words its own refusals, by gate (navigation-server
+   * D8): *"You're not mounted."*, *"There's nothing to climb {dir}."* The
+   * model words what the model decided, so a way's verdict and trying it
+   * say the same sentence; a gate the mode does not word keeps the gate's.
+   */
+  protected refusals: Record<string, string> = {};
+
+  public setRefusals(value: Record<string, string> | null): void {
+    this.refusals = value && typeof value === 'object' ? { ...value } : {};
+  }
+
+  /** This mode's words for `gate`, with `{dir}` the way; `null` when it has none. */
+  public refusalFor(gate: string, direction: string): string | null {
+    const words = this.refusals[gate];
+    return typeof words === 'string' ? words.replace(/\{dir\}/g, direction) : null;
+  }
 
   public getName(): string {
     return this.name;

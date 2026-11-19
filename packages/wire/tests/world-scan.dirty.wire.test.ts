@@ -30,6 +30,7 @@ import {
   expectNote,
   describe as describeResult,
 } from '../src/harness';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 /**
  * ⚠ **Why `.dirty.`** — the seat-handoff step moves the Prime Minister's
@@ -112,8 +113,8 @@ suite('the door', () => {
     await expect(player.query('world:[mixin.DoorMixin]')).rejects.toThrow(
       /permission|mql-query rejected/i,
     );
-    const sub = await player.subscribe('world:[mixin.DoorMixin]');
-    expect(sub.type).toBe('mql-subscription-error');
+    const sub = await player.subscribe(SUBSCRIPTION_SOURCES.mql, { query: 'world:[mixin.DoorMixin]', cardinality: 'many' });
+    expect(sub.type).toBe('subscription-error');
     expect((sub as { reason?: string }).reason).toBe('permission');
   });
 
@@ -147,8 +148,8 @@ suite('the door', () => {
   });
 
   it('5. …but not a standing one, seat or no seat', async () => {
-    const sub = await founder.subscribe('world:[mixin.DoorMixin]');
-    expect(sub.type).toBe('mql-subscription-error');
+    const sub = await founder.subscribe(SUBSCRIPTION_SOURCES.mql, { query: 'world:[mixin.DoorMixin]', cardinality: 'many' });
+    expect(sub.type).toBe('subscription-error');
     expect((sub as { reason?: string }).reason).toBe('permission');
   });
 });

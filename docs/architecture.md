@@ -428,11 +428,13 @@ set. Two kinds are recognized:
   white-box unit test can exercise an internal stage. Today:
   `api/prompt.ts#buildPromptContext`,
   `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
-  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `api/subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
+  fills at boot. Today: none (`setClientStateUpdatePush` retired with the
+  one subscription protocol, navigation-server W1 — the push is a poke on
+  the client-state source).
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
@@ -618,7 +620,7 @@ warm-up, and no class ever readies its Api's data. See
 [call-security.md](./subsystems/call-security.md).
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `PromptApi`,
+`ContainmentApi`, `MqlApi`, `SubscriptionApi`, `PromptApi`,
 `MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
@@ -648,13 +650,17 @@ column's card feed — one birth path gated on a command view's
 `opens_card:`, one relevance-window sweep, and the subscription handle a
 live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
-`MqlSubscriptionApi` is the second wire channel alongside prose /
-dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
-messages route through `Application.processUserMessage` to the
-substrate, which projects an MQL query's result + re-projects on
-relevant state changes. Outbound envelopes ride the same
-`MessageApi.sendEnvelope` path the dispatch-response framework uses.
-See `docs/subsystems/mql-subscription.md`.
+**The subscription protocol** is the second wire channel alongside prose /
+dispatch-response, and the ONE wire for every state push (navigation-server,
+2026-11). Inbound `subscribe` / `unsubscribe` name a SOURCE by template path;
+`SubscriptionRegistry` (the session verbs on `Interactive`, `SubscriptionApi.poke`)
+holds the per-session table, `rev` and the three emits; a source is a
+singleton composing `SubscriptionSourceMixin` (`lib/subscription/`) — the MQL
+and forum registries, `ClientStateSource`, `PressFeedSource`, `MapCopySource`,
+`WhereaboutsSource`. ⭐ **One Api for all of it, `SubscriptionApi`** (over
+`SubscriptionLogic`): every producer pokes through it, and it carries the
+subscribable-field projection and the MQL source's one-shot query — a
+source never gets a facade of its own. See `docs/subsystems/subscription.md`.
 
 `PromptApi` is the third wire-side substrate. Server callers
 `await` an interactive prompt (`choice` / `confirm` / `text` /
@@ -1445,6 +1451,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/husbandry/` | `BondedMixin` | ⭐ **an animal somebody could come to care about** (pets build): the bond as `regard/100 × handling` (never a new number; regard never decays, handling does — *difficult, not feral*), `wouldComply` / `wouldEat` / `offerRung` / `feelsSafeToEatAmong` as deterministic thresholds over measured state with closed outcomes, home + the trail (memory, not navigation), the ask (`askingOf`), and **the five verbs' affordance** as a static (`commandContributions.peers`). Narrows to `BeliefStore` and `Handling` as siblings rather than demanding them. See [pets.md](./subsystems/pets.md). |
 | `lib/husbandry/` | `FeederMixin` | a vessel an animal eats from — `feederKind` (`bowl` / `trough` / `hopper`), `offerings()`, `lastFilledBy`; the species' `feedingStyle` says which kinds it will use. Composed on `platform/thing/Feeder`. |
 | `lib/husbandry/` | `OfferEngagement` *(a `DurativeActivity`, not a mixin)* | the `approach` rung of an offer: the offerer's `hands` for `APPROACH_MS`; at completion the animal decides on the world as it is then. The `SearchActivity` shape. |
+| `lib/errors.ts` | `Refusal` · `Unavailable` · `ContentError` (classes, not mixins) | ⭐⭐ **the one thrown failure family** (failure-model, 2026-11): a `Refusal` is *the act was refused* — a reason code (its row's address) and facts — and words, notes and handles exactly like a returned `{ ok: false, reason, facts }`; `Unavailable` is *try again* (a `Refusal`, also recorded); `ContentError` is *a content row is wrong* (never catchable; the row's title holder is told). Anything else thrown is a bug. Every guarded root hands what it caught to `CommandApi.reportFailure`. See [response-envelope.md](./subsystems/response-envelope.md). |
+| `lib/command/` | `Reason` (value class) | **one reason an act can be refused** — a `reason` document (`<pack root>/reasons/<code>.yaml`: `facts` + a Liquid `says`) served by `ReasonCatalogue` (`/platform/idea/ReasonCatalogue`, reached as `CommandApi.reasons()`); a bare code is the platform's, a path any pack's. Worded at emit; a script handles it by code (`try … on <reason>`). |
 | `lib/document/` | `DocumentCatalogue<T>` (base class, not a mixin) | ⭐ **the singleton that serves one document kind** — an `Idea` that `ensure`s / `need`s / `peek`s / `forget`s the value objects its kind's documents parse into, resident by construction (a per-path citing setter returns the load, or the Api's `static needs` stands the kind at boot; a cold sync read throws `DocumentNotResidentError`). One per family at `/platform/idea/<X>Catalogue`, reached through its domain Api (`CraftingApi.joints()`, `ContainmentApi.placements()`, `PerceptionApi.aromas()` …), never a lib static; `DocumentKinds` names each kind's `catalogue:` and `DocumentApi.catalogueFor(kind)` finds it for the go-live. See [document-store.md](./subsystems/document-store.md). |
 | `lib/document/` | `RegistrarMixin` | **a body that keeps a book about somebody else** — declares `registerPrefix` / `registerOwner` / `registerKind`, and `DocumentApi.saveToRegister` derives all three. The generic shape behind *you file; you do not hold the pen*; replaced a pinned `saveHerd` that hardcoded a pack's namespace in the kernel. ⭐ Safe by an invariant rather than an allowlist: **the owner must be a prefix of the register's own template path**, so a register keeps its own book and nobody else's. See [document-store.md](./subsystems/document-store.md). |
 | `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/trade/farming/thing/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |

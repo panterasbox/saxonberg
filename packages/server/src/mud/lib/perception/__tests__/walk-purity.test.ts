@@ -29,7 +29,7 @@ import { PercolatingMixin } from '../../material/Percolating';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -220,7 +220,7 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
     const things = { hoop, pan, warm, loaf } as Record<string, Stuff>;
     const before = snapshot(things);
     const bodyBefore = persistentSnapshot(person);
-    const fires = vi.spyOn(MqlSubscriptionApi, 'fireFieldChange');
+    const fires = vi.spyOn(SubscriptionApi, 'fireFieldChange');
     const clones = vi.spyOn(StuffApi, 'clone');
     const moves = vi.spyOn(ContainmentApi, 'move');
     const destructs = vi.spyOn(StuffApi, 'destruct');
@@ -244,10 +244,10 @@ describe('⭐⭐ the room’s reading never writes (crowded-rooms D9)', () => {
     const thing = makeStuff(() => new Good());
     const release = ExecutionContextApi.holdWorldStill('a test walk');
     try {
-      expect(() => MqlSubscriptionApi.fireFieldChange(thing, 'name', 'a', 'b')).toThrow(WalkWriteError);
+      expect(() => SubscriptionApi.fireFieldChange(thing, 'name', 'a', 'b')).toThrow(WalkWriteError);
     } finally {
       release();
     }
-    expect(() => MqlSubscriptionApi.fireFieldChange(thing, 'name', 'a', 'b')).not.toThrow();
+    expect(() => SubscriptionApi.fireFieldChange(thing, 'name', 'a', 'b')).not.toThrow();
   });
 });

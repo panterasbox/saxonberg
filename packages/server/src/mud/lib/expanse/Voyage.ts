@@ -160,6 +160,11 @@ export class Voyage implements SustainedEngagement {
     this.lastBeatS = nowS;
 
     const aboard = await craft.aboard();
+    // ⭐ She moved: whoever is aboard may stand in a new Locality and under a
+    // different sky (navigation-server D7) — told on their next beat.
+    for (const who of aboard) {
+      if (MixinApi.isSaxonbergClient(who)) who.refreshNavigation(['localities', 'zone', 'place']);
+    }
     const tell = (text: string, topic = 'sense.surroundings'): void => {
       for (const who of aboard) {
         if (!MixinApi.isSensor(who)) continue;

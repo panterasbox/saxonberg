@@ -46,7 +46,7 @@ Kinetic: per-change `senses`; Soilable: marks→vision, odour→smell). Empty re
 - `TasteController` is bare (channel `taste`).
 - `sense <thing>` (SenseController.ts 247–285): header + `getMarkupLong(actor,{filter: full physical sensorium})` + Placing lines. No Owned-by, no container lines, no card. Effectively `look` minus the `──` lines.
 
-### 0.4 Inspection card wire record (S/api/mql-subscription.ts 106–138, 314–341)
+### 0.4 Inspection card wire record (S/api/subscription.ts 106–138, 314–341)
 `DETAIL_FIELDS = displayName, quantity, primaryKeyword, shortDescription, longDescription, illustration, details,
 bulkMaterial, mass, contents, worn, exits, placed, placement, holds`. Projected only if some mixin declares the
 descriptor; `undefined` omitted, **`null` kept**. `displayName` is overridden to `describeFor(viewer)` (335).

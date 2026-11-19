@@ -54,9 +54,9 @@ export default class Standard extends StandardBase {
     axe: Stuff,
     _word: string,
   ): Promise<FellPlan | FellRefusal> {
-    if (!this.fellsWith(axe)) return { ok: false, reason: 'wrong-tool' };
+    if (!this.fellsWith(axe)) return { ok: false, reason: '/trade/forestry/reasons/wrong-tool', facts: { tool: axe } };
     const stage = this.getGrowthStage();
-    if (stage === 'seedling') return { ok: false, reason: 'not-yet-a-tree' };
+    if (stage === 'seedling') return { ok: false, reason: '/trade/forestry/reasons/not-yet-a-tree', facts: { tree: this } };
     const mature = stage === 'mature';
     const name = this.getPresentation();
     return {

@@ -28,8 +28,9 @@ import { CreditRouting } from '../../../lib/standing/CreditRouting';
 // runtime-only / safe.
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ConsumerLogic } from './ConsumerLogic';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { Decay } from '../../../lib/Decay';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const ProducerApiCallers = SecurityPolicies.FromModule('/api/producer#ProducerApi'
 );
@@ -129,7 +130,7 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
   await ev.save();
   // AFTER the write, never before. The AUTHOR is the subject whose
   // standing moved; the actor merely generated the engagement.
-  MqlSubscriptionApi.notifyDurableSubject(ev.author);
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.author });
 }
 
 /**

@@ -369,6 +369,8 @@ export const Mixins = {
   /** ⭐ The stream a played body is running (broadcast-ready D1, D17). */
   Broadcast: 'BroadcastMixin',
   SaxonbergClient: 'SaxonbergClientMixin',
+  /** ⭐ A source behind the one subscription protocol (navigation-server D1). */
+  SubscriptionSource: 'SubscriptionSourceMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',

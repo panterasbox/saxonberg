@@ -26,7 +26,7 @@ import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit'
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import { Lock } from '../../lib/lock/Lock';
 import Ship from './Ship';
-import type { TraversalGuard } from '../../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -163,13 +163,13 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   /** ⭐ The far side is read HERE, at the moment of asking (the lookup is cached after the first). */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string,
+    mode?: string, opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     await this.warm();
     if (this.landing() === null) {
       return { ok: false, gate: 'blocked', reason: 'There is nothing to step onto.' };
     }
-    return super.canTraverse(mover, mode);
+    return super.canTraverse(mover, mode, opts);
   }
 
   public override async resolveDestination(): Promise<Stuff & Container> {

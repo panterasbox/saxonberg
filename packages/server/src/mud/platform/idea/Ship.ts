@@ -45,6 +45,7 @@ import type { FieldMeta } from '../../lib/mixin';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Lie } from '@saxonberg/types';
 import type { HullNow } from '../../lib/expanse/Voyaging';
 import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
@@ -88,6 +89,7 @@ import {
   type Maintainable,
   type MaintainAnswer,
 } from '../../lib/structure/Maintainable';
+import { SubscriptionApi } from '../../api/subscription';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -1638,6 +1640,16 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     return this.moored ? this.berth : null;
   }
 
+  /** ⭐ Made fast at a landing, its name; else where her frame has her (navigation-server D10). */
+  public override async lies(): Promise<Lie> {
+    const berth = this.getBerth();
+    if (berth === null) return super.lies();
+    const landing = StuffApi.findByIdentityPath<Stuff>(berth).find((s) => !s.isDestroyed()) ?? null;
+    return landing !== null
+      ? { at: 'berth', ship: this.getName(), landing: landing.getPresentation() }
+      : { at: 'berth', ship: this.getName() };
+  }
+
   public override isMoored(): boolean {
     return this.moored && this.berth !== null;
   }
@@ -1645,9 +1657,15 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   public isGangwayLocked(): boolean { return this.gangwayLocked; }
   /** The bolt thrown or drawn — kept, and told to her way aboard (it answers for her while she sleeps). */
   public setGangwayLocked(v: boolean): void {
+    const was = this.gangwayLocked;
     this.gangwayLocked = v === true;
     const exit = this.berthExit;
-    if (exit !== null && !exit.isDestroyed()) exit.configureBerth(this as unknown as Stuff & Berthed);
+    if (exit !== null && !exit.isDestroyed()) {
+      exit.configureBerth(this as unknown as Stuff & Berthed);
+      // ⭐ Her gangway is a way people see: it fires on the WAY (her berth
+      // exit), which every screen showing that way watches.
+      SubscriptionApi.fireFieldChange(exit, 'gangwayLocked', was, this.gangwayLocked);
+    }
     this.persistMooring();
   }
   public getGangwayKeyway(): string { return this.gangwayKeyway; }

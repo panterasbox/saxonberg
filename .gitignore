@@ -55,6 +55,7 @@ docs/compact/manifesto/exports/
 
 # The typecheck wire drive writes and removes this probe; a crashed run may leave it.
 packages/server/src/mud/platform/thing/WireTypecheckProbe.ts
+packages/server/src/mud/platform/thing/WireCspProbe.ts
 
 # The worktree's build phase (build | suite | review) — read by tools/hooks.
 /.build-phase

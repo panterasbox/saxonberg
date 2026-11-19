@@ -163,7 +163,7 @@ time, how their body is doing. Three surfaces, all words:
 - **The poke** — `ExertingMixin.noteBodyState()` runs after every
   `exert` and after every metabolism reconcile (`Metabolic.
   onMetabolismReconciled`, a `@hook` terminal the mixin overrides) and
-  `notifyDurableSubject`s the self card **only when a band has turned
+  pokes the self card (`{ durableSubject }`) **only when a band has turned
   over** — never every slice. The row changes when the word changes.
 - **The cue** — on a breath crossing, one line on `self.body` in the
   register that topic already speaks (*"You're sweating."*): going down,

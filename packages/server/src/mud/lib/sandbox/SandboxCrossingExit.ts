@@ -21,7 +21,7 @@
  * placement): an unlinked, unowned door opens onto whoever enters.
  */
 
-import Exit, { type TraversalGuard } from '../boundary/Exit';
+import Exit, { type TraversalGuard, type TraverseOptions } from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import { SandboxApi } from '../../api/sandbox';
@@ -85,9 +85,9 @@ export default class SandboxCrossingExit extends Exit {
    */
   public override async canTraverse(
     mover: Stuff & Containable,
-    mode?: string
+    mode?: string, opts?: TraverseOptions
   ): Promise<TraversalGuard> {
-    const base = await super.canTraverse(mover, mode);
+    const base = await super.canTraverse(mover, mode, opts);
     if (!base.ok) return base;
     if (this.crossingDirection === 'return') return { ok: true };
     if (!PlayerApi.isAvatarStuff(mover)) {

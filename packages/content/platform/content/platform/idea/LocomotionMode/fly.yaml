@@ -14,3 +14,8 @@ data:
   conveyanceMixin: null
   enablementMixin: FlyableMixin
   medium: air
+  # ⭐ This mode's own words for a gate (navigation-server D8): the way's
+  # verdict and trying it print the same sentence.
+  refusals:
+    enablement: "There's no room to fly here."
+    capability: "The wind's too strong for you to fly."

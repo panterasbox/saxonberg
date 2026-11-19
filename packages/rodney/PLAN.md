@@ -75,7 +75,7 @@ Two directions over saxonberg's existing WebSocket:
 - **WS auth**: session middleware on upgrade → `userId` from `session.passport.user.id`; 401 otherwise (`services/websocket/WebSocketService.ts`).
 - **Test-login bypass** is gated by `AUTH_MODE==='test'` (+ boot-abort if `NODE_ENV=production`). Correctly **dead in prod** — so the broadcast principal must be a **separate, prod-enabled** path, not this.
 - **No service/bot identity exists yet.**
-- **Subscriptions**: `mql-subscribe` → `mql-subscription-result` (snapshot) → `mql-subscription-delta`. All read-only/query-only. **No REST** for game state (and none needed — snapshot+deltas covers it).
+- **Subscriptions**: `subscribe` (a source by template path — the MQL source for a standing query) → `subscription-result` (snapshot, `rev` 0) → `subscription-delta` (`rev + 1`). All read-only/query-only. **No REST** for game state (and none needed — snapshot+deltas covers it).
 - **Chat frames carry a structured `payload`** (`channelId`, `speaker.displayName`, `text`) *and* an MML `body`. → For chat display we render off `payload`; **no MML renderer needed initially.**
 - **MML**: `parseMml.ts` is zero-import (copy verbatim); `MmlRenderer.tsx` only entangles `useStore` (stuff lookup) + `FACE_STACKS`. Extractable to a shared package with a small refactor — **deferred** until prose-rich overlays.
 - **`@saxonberg/types`** is a single-file, `private` workspace package.

@@ -29,7 +29,8 @@
  *   - `baseGradeBand` — optional floor band.
  */
 
-import { Grade } from './Grade';
+import { Grade, GRADE_BANDS } from './Grade';
+import { ContentError } from '../errors';
 import { SoilSpecs, type SoilSpec } from '../cleanliness/SoilSpec';
 import { DIFFICULTIES } from '../advancement/ActSignature';
 import {
@@ -470,6 +471,18 @@ export class Recipe {
     r.outputTemplate = data.outputTemplate;
     r.outputMaterial = str(data.outputMaterial);
     r.baseGradeBand = str(data.baseGradeBand);
+    // ⭐ A band that is not a band is a CONTENT error (failure-model D6):
+    // refused here — at install and at a save — rather than thrown as a
+    // RangeError on a player's first craft.
+    if (r.baseGradeBand !== '' && !Grade.isBand(r.baseGradeBand)) {
+      throw new ContentError(path, 'baseGradeBand', `'${r.baseGradeBand}' is not a grade band (${GRADE_BANDS.join(', ')})`);
+    }
+    (data.inputSlots as Array<{ minGrade?: unknown }>).forEach((slot, i) => {
+      const min = slot?.minGrade;
+      if (min !== undefined && min !== '' && !(typeof min === 'string' && Grade.isBand(min))) {
+        throw new ContentError(path, `inputSlots[${i}].minGrade`, `'${String(min)}' is not a grade band (${GRADE_BANDS.join(', ')})`);
+      }
+    });
     r.requiresHeatK = num(data.requiresHeatK);
     r.holdS = num(data.holdS);
     r.maxHeatK = num(data.maxHeatK);

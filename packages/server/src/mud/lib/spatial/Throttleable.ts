@@ -142,13 +142,13 @@ export function ThrottleableMixin<TBase extends NestingConstructor<Stuff & Seala
     public override openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
       if (setting === null) return super.openPlanFor(by, setting);
       const may = this.canOpen(by);
-      if (!may.ok) return { ok: false, reason: 'cannot-open', facts: { why: may.reason ?? null } };
+      if (!may.ok) return may;
       const thing = this as unknown as Stuff;
       return {
         ok: true, durationMs: 0, effortW: 0, facts: { kind: 'set', thing, shut: false, words: '' },
         onComplete: () => {
           const worked = this.workOpening(setting, by);
-          if (worked === null) return { ok: false, reason: 'bad-setting' };
+          if (worked === null) return { ok: false, reason: 'bad-setting', facts: { target: thing } };
           const facts: OpenFacts = { kind: 'set', thing, shut: worked.shut, words: worked.words };
           return { ok: true, facts };
         },

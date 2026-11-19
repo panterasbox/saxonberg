@@ -114,9 +114,9 @@ import { GrammarApi } from '../../api/grammar';
 import type { Perceptible } from './Perceptible';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 
 /**
@@ -275,7 +275,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getName(): string { return this.name; }
     setName(value: string): void {
-      this.name = MqlSubscriptionApi.fireFieldChange(
+      this.name = SubscriptionApi.fireFieldChange(
         this,
         'name',
         this.name,

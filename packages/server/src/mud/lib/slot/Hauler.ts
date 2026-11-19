@@ -30,6 +30,7 @@ import type { Haulable } from './Haulable';
 import type { VetoResult } from '../errors';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * ⭐ Every reason a hitch refuses — `HitchController` words each
@@ -109,7 +110,7 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
     public hitch(cart: Stuff & Haulable): void {
       // Drop any existing cart first (one hauler pulls one cart in v1).
       this.unhitch(this as unknown as Stuff);
-      this._hauling = cart;
+      this._hauling = SubscriptionApi.fireFieldChange(this, 'hauling', this._hauling, cart);
       cart.setHauledBy(this as unknown as Stuff & Hauler);
     }
 
@@ -152,7 +153,7 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!cart) return { ok: true };
       const veto = cart.canUnhitch(this as unknown as Stuff, by);
       if (!veto.ok) return veto;
-      this._hauling = null;
+      this._hauling = SubscriptionApi.fireFieldChange(this, 'hauling', this._hauling, null);
       cart.setHauledBy(null);
       return { ok: true };
     }

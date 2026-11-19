@@ -1,0 +1,7 @@
+# A script stopped at a line — and, when the line was refused for a reason
+# with a row, why. `why` is that reason's own sentence.
+facts:
+  line: text
+  why: text?
+says: "The script stopped at `{{ line }}`{% if why %}: {{ why }}{% else %}.{% endif %}"
+topic: shell.error

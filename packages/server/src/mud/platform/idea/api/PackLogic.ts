@@ -194,6 +194,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   formation: (d, p) => void PartyApi.formations().parse(d, p),
   placement: (d, p) => void ContainmentApi.placements().parse(d, p),
   shape: (d, p) => void ContainmentApi.shapes().parse(d, p),
+  reason: (d, p) => void CommandApi.reasons().parse(d, p),
   topic: (d) => {
     if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');
   },
@@ -4002,6 +4003,12 @@ export class PackLogic extends ApiLogic {
       read.filter((rp) => results.get(rp.pack.manifest.id)?.failure === null),
     );
     return packs.map((p) => results.get(p.manifest.id)!);
+  }
+
+  /** See {@link PackApi.validateDocument}. */
+  @CallSecurity(PackApiCallers)
+  public validateDocument(kind: string, data: Record<string, unknown>, path: string): void {
+    DOCUMENT_VALIDATORS[kind]?.(data, path);
   }
 
   /** See {@link PackApi.registerSources}. */

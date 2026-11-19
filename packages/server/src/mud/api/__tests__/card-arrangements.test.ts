@@ -37,7 +37,7 @@ import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { makeHarness } from './card-harness';
 
 describe('the shipped arrangements', () => {
@@ -45,7 +45,7 @@ describe('the shipped arrangements', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 

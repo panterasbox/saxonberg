@@ -84,6 +84,8 @@
  */
 
 /** How a player came to know something about a place. */
+import type { LocalityKind, WayState } from '@saxonberg/types';
+
 export const MAP_CHANNELS = [
   'walked',
   'seen',
@@ -96,7 +98,31 @@ export const MAP_CHANNELS = [
 export type MapChannel = (typeof MAP_CHANNELS)[number];
 
 /** What a claim is about: a place, a way out of one, or a band of water. */
-export type MapClaimKind = 'place' | 'edge' | 'band';
+export type MapClaimKind = 'place' | 'edge' | 'band' | 'locality';
+
+/**
+ * ⭐ Where a claim's place is, written when it was perceived and never
+ * afterwards (navigation-server D2) — the place's own answer
+ * (`Place.mapSubject()`): its zone (a copy's frame identity), its cell, a
+ * river's line, or a reckoning at sea (never the true position).
+ */
+export interface MapClaimPosition {
+  /** The zone's path — or a copy's frame identity. */
+  zone?: string;
+  x?: number;
+  y?: number;
+  z?: number;
+  /** The storey, on a grid. */
+  level?: number;
+  /** On a river's line: which course, and how far above the mouth (0.1 km). */
+  line?: { course: string; km: number };
+  /** At sea, by somebody's reckoning. */
+  geo?: { latDeg: number; lonDeg: number };
+  reckoned?: true;
+  errorNm?: number;
+  /** The stated bracket, in the reader's words. */
+  bracket?: string;
+}
 
 export interface MapClaim {
   kind: MapClaimKind;
@@ -195,6 +221,16 @@ export interface MapClaim {
    */
   toldBy?: string;
   /** Game-second of the first observation of this exact claim. */
+  /** Where the place is (navigation-server D2). Not in the growth key; filled once, never rewritten. */
+  at?: MapClaimPosition;
+  /** For an edge: the way's state as seen (navigation-server D4). In the growth key. */
+  state?: WayState;
+  /** For a charted claim: the chart it came from, and its name. In the growth key. */
+  via?: string;
+  viaName?: string;
+  /** For a Locality claim: whose it is, and what kind (navigation-server D3). */
+  government?: { key: string; name: string };
+  localityKind?: LocalityKind;
   firstSeen: number;
   /** Game-second of the most recent one. Bumped, never replaced. */
   lastSeen: number;

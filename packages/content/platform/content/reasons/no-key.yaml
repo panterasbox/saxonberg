@@ -1,0 +1,4 @@
+# The act would go through, but the person holds no key that fits.
+facts:
+  target: thing
+says: "You have no key that fits {{ target | item }}."

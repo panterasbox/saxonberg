@@ -161,7 +161,6 @@ world.                          # in-fiction
     look
     inventory
     scry
-    locate
   narration.
     movement                    # walking-style depart/arrive
     teleport                    # sudden, magical in/out
@@ -1280,7 +1279,7 @@ the speaker from the act registry (`ReactionApi.actInfo`). See
   including the chat/messaging tags + emphasis subset, the markdown
   pipeline, `AetherMixin`, client-side renderer, stylesheet engine,
   themes, per-message-type templates, the `style` verb, and the
-  `client-state-update` push wire
+  a change on the client-state subscription push wire
 - [topics.md](./topics.md) — the `topic` documents (authored topic
   descriptors; the source of truth after the `MessageApi.Topics`
   constant tree retirement)

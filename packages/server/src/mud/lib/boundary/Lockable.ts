@@ -63,9 +63,11 @@
  */
 
 import { Lock, type LockType } from '../lock/Lock';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
+import { SubscriptionApi } from '../../api/subscription';
 
 /**
  * Why a `lock`/`unlock` act was refused. ⭐ The ORDER is the method's
@@ -76,7 +78,7 @@ import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 export type LockRefusalReason = 'already-locked' | 'already-unlocked' | 'no-key';
 
 /** The answer to `lock(by)` / `unlock(by)`. */
-export type LockAnswer = ActOutcome | ActRefusal<LockRefusalReason>;
+export type LockAnswer = ActOutcome | ActRefusal<LockRefusalReason, { target: Stuff }>;
 
 /**
  * Public shape added by LockableMixin. `isLocked()` / `setLocked()` is
@@ -103,6 +105,16 @@ export interface Lockable {
 export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LockableMixin extends Base {
     static _mixinName: string = 'LockableMixin';
+
+    /** ⭐ A way's facts (navigation-server D9): the bolt, and whether YOUR key fits. */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      { name: 'locked', aspect: 'way', read: (stuff) => (stuff as unknown as Lockable).isLocked() },
+      {
+        name: 'keyHeld',
+        aspect: 'way',
+        read: (stuff, viewer) => (stuff as unknown as Lockable).opensFor(viewer),
+      },
+    ];
 
     static fieldMeta: FieldMeta = {
       locked: { persistent: true, authorable: true },
@@ -167,7 +179,7 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
           `Lockable.locked must be a boolean, got ${typeof value}`,
         );
       }
-      this._locked = value;
+      this._locked = SubscriptionApi.fireFieldChange(this, 'locked', this._locked, value);
     }
 
     /**
@@ -178,16 +190,18 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (`no-key` — asked only once the act would otherwise go through).
      */
     lock(by: Stuff): LockAnswer {
-      if (this.isLocked()) return { ok: false, reason: 'already-locked' };
-      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      const target = this as unknown as Stuff;
+      if (this.isLocked()) return { ok: false, reason: 'already-locked', facts: { target } };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };
       this.setLocked(true);
       return { ok: true, facts: undefined };
     }
 
     /** Withdraw the bolt, as `by`. The same order as {@link lock}. */
     unlock(by: Stuff): LockAnswer {
-      if (!this.isLocked()) return { ok: false, reason: 'already-unlocked' };
-      if (!this.opensFor(by)) return { ok: false, reason: 'no-key' };
+      const target = this as unknown as Stuff;
+      if (!this.isLocked()) return { ok: false, reason: 'already-unlocked', facts: { target } };
+      if (!this.opensFor(by)) return { ok: false, reason: 'no-key', facts: { target } };
       this.setLocked(false);
       return { ok: true, facts: undefined };
     }

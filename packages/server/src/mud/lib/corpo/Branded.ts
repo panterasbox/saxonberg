@@ -35,7 +35,7 @@ import { CorpoApi } from "../../api/corpo";
 import { GovernmentApi } from "../../api/government";
 import { StuffApi } from "../../api/stuff";
 import type { Stuff } from "../stuff/Stuff";
-import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
+import type { SubscribableFieldDescriptor } from "../../api/subscription";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { BrandDescriptor } from "../../platform/idea/corpo/Brand";
 import type { CorpoDescriptor } from "../../platform/idea/corpo/Corpo";

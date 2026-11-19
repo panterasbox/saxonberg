@@ -39,7 +39,7 @@ import type { Vitals, ConditionBand } from '../vitals/Vitals';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import { NEUTRAL_DENSITY_KG_M3 } from './Buoyant';
 import { SIZE_DEFAULTS } from '../spatial/Dimensions';
 

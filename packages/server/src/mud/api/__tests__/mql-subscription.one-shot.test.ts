@@ -1,7 +1,7 @@
 /**
  * Wave 4 (inspection-card build): `mql-query` one-shot channel.
  *
- * `MqlSubscriptionApi.handleQuery(req)` reuses ONLY the substrate's
+ * `SubscriptionApi.handleQuery(req)` reuses ONLY the substrate's
  * parse + resolve + project pipeline — no registry insertion, no
  * dependency-index entries, no listener installation. Emits one
  * `MqlQueryResultEnvelope` (success) or one `MqlQueryErrorEnvelope`
@@ -22,7 +22,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -78,17 +78,17 @@ async function setup(): Promise<{
   return { interactive, avatar, location, envelopes };
 }
 
-describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
+describe('SubscriptionApi — one-shot query (Wave 4)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('cardinality: one ships an mql-query-result envelope with one record', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q1',
       query: 'me',
@@ -106,29 +106,29 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('does NOT insert subscription state (registry size unchanged)', async () => {
     const { interactive } = await setup();
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
-    MqlSubscriptionApi.handleQuery({
+    const before = SubscriptionApi._getRegistrySizeForTesting();
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-noreg',
       query: 'me',
       cardinality: 'one',
       fields: 'ref',
     });
-    const after = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const after = SubscriptionApi._getRegistrySizeForTesting();
     expect(after).toBe(before);
   });
 
   it('does NOT install dependency-index entries', async () => {
     const { interactive } = await setup();
-    const before = MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
-    MqlSubscriptionApi.handleQuery({
+    const before = SubscriptionApi._getDependencyIndexEntryCountForTesting();
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-no-deps',
       query: 'me',
       cardinality: 'one',
       fields: 'detail',
     });
-    const after = MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
+    const after = SubscriptionApi._getDependencyIndexEntryCountForTesting();
     expect(after).toBe(before);
   });
 
@@ -147,7 +147,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
       ContainmentApi.move(t, location);
     }
     envelopes.length = 0;
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-many',
       query: 'thing',
@@ -163,7 +163,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('parse error → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-bad',
       query: ':::',
@@ -190,7 +190,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('missing query without kind → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-missing',
       cardinality: 'one',
@@ -202,7 +202,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('detailKey with cardinality: many → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-bad-detail',
       query: 'me',
@@ -224,7 +224,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     // envelope; it logs via console.warn instead. Spy on it so the
     // test still observes the failure path.
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-noholder',
       query: 'me',

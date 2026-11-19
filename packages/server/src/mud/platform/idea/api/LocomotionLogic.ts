@@ -9,7 +9,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Mobile } from '../../../lib/spatial/Mobile';
 import type Exit from '../../../lib/boundary/Exit';
-import type { TraversalGuard } from '../../../lib/boundary/Exit';
+import type { TraversalGuard, TraverseOptions } from '../../../lib/boundary/Exit';
 import { LocomotionMode } from '../LocomotionMode';
 import type { Enablement } from '../../../lib/locomotion/Enablement';
 import { StuffApi } from '../../../api/stuff';
@@ -229,6 +229,47 @@ export class LocomotionLogic extends ApiLogic {
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
+    opts?: TraverseOptions,
+  ): Promise<TraversalGuard> {
+    // ⭐ The model words every refusal (navigation-server D8): the mode's own
+    // words for a gate, else the gate's — so the way's verdict and trying it
+    // print the same sentence, and the controller only prints it.
+    const guard = await this.cascade(actor, exit, mode, direction, opts);
+    if (guard.ok || guard.gate === undefined) return guard;
+    const own = mode.refusalFor(guard.gate, direction);
+    return own !== null ? { ...guard, reason: own } : guard;
+  }
+
+  /** See {@link LocomotionApi.bodyRefusals}. */
+  @CallSecurity(LocomotionApiCallers)
+  public bodyRefusals(actor: Stuff, mode: LocomotionMode): string[] {
+    const refusals: TraversalGuard[] = [];
+    if (!this.bodyPlanAllows(actor, mode)) {
+      refusals.push({ ok: false, gate: 'bodyPlan', reason: `Your body can't ${mode.getName()}.` });
+    }
+    if (!this.postureAllows(actor, mode)) {
+      refusals.push({ ok: false, gate: 'posture', reason: `You can't ${mode.getName()} from this posture.` });
+    }
+    for (const g of [this.handsGate(actor, mode), this.awkwardGate(actor, mode)]) {
+      if (g !== null) refusals.push(g);
+    }
+    // On land the load refuses every way; in water only the way up (that one
+    // is the way's, and stays on its verdict).
+    if (mode.getMedium() !== 'water' && MixinApi.isLoadBearing(actor)
+      && actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
+      refusals.push({ ok: false, gate: 'encumbrance', reason: `You're carrying too much to ${mode.getName()}.` });
+    }
+    // The same words `canTraverseExit` gives: the mode's own, else the gate's.
+    return refusals.map((g) => mode.refusalFor(g.gate ?? '', '') ?? g.reason ?? '').filter((r) => r.length > 0);
+  }
+
+  /** The gates `go` runs, in order — see {@link canTraverseExit}. */
+  private async cascade(
+    actor: Stuff & Containable,
+    exit: Exit,
+    mode: LocomotionMode,
+    direction: string,
+    opts?: TraverseOptions,
   ): Promise<TraversalGuard> {
     if (!this.bodyPlanAllows(actor, mode)) {
       return {
@@ -250,8 +291,26 @@ export class LocomotionLogic extends ApiLogic {
     if (hands !== null) return hands;
     const awkward = this.awkwardGate(actor, mode);
     if (awkward !== null) return awkward;
-    const exitGuard = await exit.canTraverse(actor, mode.getName());
+    const exitGuard = await exit.canTraverse(actor, mode.getName(), opts);
     if (!exitGuard.ok) return exitGuard;
+    // ⭐ A held lead brings its animal (size and carrying D18) — and the
+    // animal's own refusal stops you: the panniers that will not fit the
+    // door keep the leader on this side too. In the cascade (navigation-
+    // server D8), so a probe and a crossing refuse alike, in the same words.
+    if (MixinApi.isCarrying(actor)) {
+      for (const animal of actor.ledAnimals()) {
+        if (!MixinApi.isContainable(animal)) continue;
+        const theirs = await exit.canTraverse(animal, this.defaultModeFor(animal), opts);
+        if (!theirs.ok) {
+          return {
+            ...theirs,
+            reason: `${GrammarApi.cap(animal.getPresentation())} won't follow you: ${
+              typeof theirs.context?.['about'] === 'string' ? theirs.context['about'] : (theirs.reason ?? 'it balks.')
+            }`,
+          };
+        }
+      }
+    }
     const deep = this.overYourHead(actor, exit, mode);
     if (deep !== null) return deep;
     let enablement = this.checkEnablement(actor, mode, direction);
@@ -261,7 +320,7 @@ export class LocomotionLogic extends ApiLogic {
     // counts, never its contents: a ladder at the foot of a shaft does
     // not make the top climbable.
     if (!enablement.ok && enablement.gate === 'enablement') {
-      const far = await this.farSideEnablement(actor, exit, mode, direction);
+      const far = await this.farSideEnablement(actor, exit, mode, direction, opts);
       if (far !== null) enablement = far;
     }
     if (!enablement.ok) return enablement;
@@ -393,14 +452,21 @@ export class LocomotionLogic extends ApiLogic {
     exit: Exit,
     mode: LocomotionMode,
     direction: string,
+    opts?: TraverseOptions,
   ): Promise<TraversalGuard | null> {
     const mixinName = mode.getEnablementMixin();
     if (!mixinName || mode.getPassthrough()) return null;
-    let dest: Stuff;
-    try {
-      dest = await exit.resolveDestination();
-    } catch {
-      return null;
+    let dest: Stuff | null;
+    if (opts?.probe) {
+      // ⭐ A probe asks only a far side that stands (navigation-server D8).
+      dest = exit.peekDestination();
+      if (dest === null) return null;
+    } else {
+      try {
+        dest = await exit.resolveDestination();
+      } catch {
+        return null;
+      }
     }
     const host = asEnablement(dest, mixinName);
     if (!host || !host.canEngageAxis(direction)) return null;

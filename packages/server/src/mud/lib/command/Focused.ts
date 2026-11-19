@@ -52,9 +52,9 @@ import { PronounMemory } from '../../api/mql';
 import type { CommandContributions } from '../../api/command';
 import type { SyntheticVarEntry } from '../../api/shell';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 
 /**
  * Public shape provided by FocusedMixin.
@@ -114,9 +114,8 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * `me.focus` subscription resolves an MQL query against the
      * giver's focus fragment and projects the *targets*, not the
      * fragment string itself. The descriptor still exists because
-     * subscriptions flagged `focusDependent` (Wave 3's canonical-kind
-     * machinery) install a holder-level dependency entry on this
-     * same key, and a descriptor whose `read` returns a string is
+     * every query-bound subscription installs a holder-level dependency
+     * entry (crowded-rooms D1) that this key's fire wakes, and a descriptor whose `read` returns a string is
      * the cleanest way to keep the substrate's prototype-chain walk
      * uniform.
      */
@@ -152,7 +151,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     setFocus(fragment: string): void {
       const trimmed = fragment.trim();
       const next = trimmed.length > 0 ? trimmed : 'here';
-      this._focus = MqlSubscriptionApi.fireFieldChange(
+      this._focus = SubscriptionApi.fireFieldChange(
         this,
         'focus',
         this._focus,
@@ -161,7 +160,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     }
 
     clearFocus(): void {
-      this._focus = MqlSubscriptionApi.fireFieldChange(
+      this._focus = SubscriptionApi.fireFieldChange(
         this,
         'focus',
         this._focus,

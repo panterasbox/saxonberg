@@ -618,9 +618,12 @@ describe("CombatLogic — melee (sides + join)", () => {
     const fleer = makeFighter(room1, { weaponForm: "bladed" });
     const session1 = open(attacker, fleer, lethal, true);
     expect(CombatApi.sessionFor(fleer)).toBe(session1);
+    // ⭐ The read says what leaving would cost, before anything is done.
+    expect((fleer as unknown as Stuff & Combatant).leavingTheFight()).toEqual({ foes: 1, breakaway: null });
     const broke = (fleer as unknown as Stuff & Combatant).disengage();
     expect(broke.ok).toBe(true);
     expect(CombatApi.sessionFor(fleer)).toBeUndefined();
+    expect((fleer as unknown as Stuff & Combatant).leavingTheFight()).toBeNull();
 
     // 2-on-1 → the focus-fire pin vetoes the break.
     const room2 = makeStuff(() => new TestRoom());
@@ -630,8 +633,14 @@ describe("CombatLogic — melee (sides + join)", () => {
     seedParty(a1, a2);
     const session2 = open(a1, pinned, lethal, true);
     CombatApi.join(a2 as never, pinned as never, session2.getTerms());
+    // ⭐ The read and the act refuse in the same words (navigation-server
+    // review): the `you` section and every way say what `go` would.
+    const leaving = (pinned as unknown as Stuff & Combatant).leavingTheFight();
+    expect(leaving?.foes).toBe(2);
+    expect(leaving?.breakaway).toBeTruthy();
     const blocked = (pinned as unknown as Stuff & Combatant).disengage();
     expect(blocked.ok).toBe(false);
+    expect(blocked.message).toBe(leaving?.breakaway);
     expect(CombatApi.sessionFor(pinned)).toBe(session2); // still stuck in it
   });
 });

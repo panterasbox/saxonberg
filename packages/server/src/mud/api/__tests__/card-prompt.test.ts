@@ -24,7 +24,7 @@ import { PromptApi } from '../prompt';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { CARDS } from '../../lib/connection/Cards';
 import { makeHarness, type Harness } from './card-harness';
 
@@ -40,7 +40,7 @@ describe('a prompt card holds until it is answered', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     PromptApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
@@ -164,7 +164,7 @@ describe('a prompt belongs to the bar that asked (client-surface D6, #97)', () =
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     PromptApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });

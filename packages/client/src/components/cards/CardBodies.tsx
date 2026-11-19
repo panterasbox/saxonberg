@@ -36,6 +36,7 @@
  */
 
 import { NavigatorBody } from "./NavigatorBody";
+import { whereaboutsOf } from "../../store/navSlice";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import { StreamControls } from "./StreamControls";
 import { useOnAir } from "../../lib/stream/onAir";
@@ -1155,8 +1156,29 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
       />
     );
   }
+  // ⭐ The navigator carries no payload (navigation-server D1): its body is
+  // the where-you-are subscription every session already holds.
+  if (card.cardId === 'map') {
+    return (
+      <NavigatorCardBody
+        onSendCommand={props.onSendCommand}
+        {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
+      />
+    );
+  }
   if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
+}
+
+/** The navigator, from the store: where you are, or that it is not known yet. */
+function NavigatorCardBody(props: {
+  onSendCommand: (command: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  const sections = useStore((s) => s.navSections);
+  const where = React.useMemo(() => whereaboutsOf(sections), [sections]);
+  if (!where) return <Prose data-testid="card-navigator-waiting">Where you are is not known yet.</Prose>;
+  return <NavigatorBody where={where} {...props} />;
 }
 
 /**
@@ -1281,14 +1303,6 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
-    case 'navigation':
-      return (
-        <NavigatorBody
-          where={payload.where}
-          onSendCommand={onSendCommand}
-          {...(onCommandPreview ? { onCommandPreview } : {})}
-        />
-      );
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
     case 'terminal':

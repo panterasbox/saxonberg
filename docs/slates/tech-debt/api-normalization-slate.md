@@ -6,8 +6,8 @@
 > `Object.freeze({})`; `array.ts` / `path-pattern.ts` present;
 > `SchedulerApi` unrenamed; `AttendantApi`'s surface is still exactly
 > `sweepNowForTesting` + `disconnectForTesting`; the five standing Apis
-> still sit over one `lib/standing/`; `api/mql-subscription.ts` (395 l.)
-> still outweighs `MqlSubscriptionLogic.ts` (186 l.).
+> still sit over one `lib/standing/`; `api/subscription.ts` (395 l.)
+> still outweighs `SubscriptionLogic.ts` (186 l.).
 > **Left:** ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in
 > the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`,
 > `worldclock`) plus 19 Apis with no singleton at all; mechanical, no

@@ -128,7 +128,7 @@ describe('LockController / UnlockController', () => {
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
       'the refusal names the missing key, not the mechanism',
@@ -158,7 +158,7 @@ describe('LockController / UnlockController', () => {
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
     ).toBe(true);
@@ -192,7 +192,7 @@ describe('LockController / UnlockController', () => {
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
     ).toBe(true);

@@ -31,8 +31,9 @@ import type { CommandDispatchedPayload } from '../../../lib/events/CommandDispat
 // so the ConsumerLogic ↔ ProducerLogic import cycle is runtime-only / safe.
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ProducerLogic } from './ProducerLogic';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { Decay } from '../../../lib/Decay';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule('/api/consumer#ConsumerApi'
 );
@@ -140,7 +141,7 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
   ev.realAt = realAt;
   await ev.save();
   // AFTER the write, never before.
-  MqlSubscriptionApi.notifyDurableSubject(ev.subject);
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.subject });
 }
 
 /** Map a captured dispatch into a participation signal and append it. */

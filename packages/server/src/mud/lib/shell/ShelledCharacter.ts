@@ -9,7 +9,7 @@
  * (`FocusedMixin`), filesystem/template navigation
  * (`WorkspaceMixin`), authoring verbs (`AuthorMixin`).
  *
- * Note: `scry` and `locate` (perception verbs at a distance) live
+ * Note: `scry` (a perception verb at a distance) lives
  * on `PerceiverMixin` in `lib/description/`, not here. They're a
  * Character-tier capability, not a shell-tier one — every Character
  * (Avatar and future NPCs) gets them. Shell-tier mixins are the

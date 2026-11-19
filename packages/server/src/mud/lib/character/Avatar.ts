@@ -74,13 +74,14 @@ import type {
   ResultDisplay,
   RoutingRule,
 } from "@saxonberg/types";
-import { DEFAULT_ROUTING } from "@saxonberg/types";
+import { DEFAULT_ROUTING, SESSION_SUBSCRIPTIONS, SUBSCRIPTION_SOURCES } from "@saxonberg/types";
+import type { ReleaseRow } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
 import type Interactive from "../../platform/idea/Interactive";
 import { TemplatePathPrefixes } from "../paths";
 import { EstateMixin } from "../chattel/Estate";
 import type { FieldMeta } from "../mixin";
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import { InfluenceApi } from '../../api/influence';
 import { RenownApi } from '../../api/renown';
 
@@ -489,7 +490,7 @@ export default abstract class Avatar extends AvatarBase {
    *
    * `durableKey` is the seam that closes it, and it is a **direct poke
    * from the ledger, not a broadcast** — one known producer, one known
-   * consumer. See {@link MqlSubscriptionApi.notifyDurableSubject}.
+   * consumer: `SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject })`.
    */
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {
@@ -1087,6 +1088,25 @@ export default abstract class Avatar extends AvatarBase {
      * mudlib code from claiming to be somebody.
      */
     const frameBackfill = await RecordApi.backfill(this);
+    /*
+     * ⭐ Your settings and the press ticker are SUBSCRIPTIONS
+     * (navigation-server D1), opened here by the server, silently, as a
+     * live card's is: their snapshots ride this payload so the first render
+     * has them, and their changes ride `subscription-delta` under the
+     * session ids. A reconnect is a new session entry, so a new snapshot.
+     */
+    const clientState =
+      ((await this.openSessionSubscription(
+        interactive,
+        SESSION_SUBSCRIPTIONS.clientState,
+        SUBSCRIPTION_SOURCES.clientState,
+      )) as Record<string, unknown> | null) ?? this.snapshotClientState();
+    const releaseWindow =
+      ((await this.openSessionSubscription(
+        interactive,
+        SESSION_SUBSCRIPTIONS.pressFeed,
+        SUBSCRIPTION_SOURCES.pressFeed,
+      )) as ReleaseRow[] | null) ?? PressApi.recent().map((b) => PressApi.toRow(b));
     const payload: ConnectionEstablishedPayload = {
       userId: interactive.getUserId() ?? "",
       socketId: interactive.getSocketId(),
@@ -1111,12 +1131,12 @@ export default abstract class Avatar extends AvatarBase {
       // is reactable and was never offered.
       reactableTopics: [...ReactionApi.REACTABLE_TOPICS],
       // The live news-ticker window (pins-first, recency-ordered, already
-      // retract/expiry-filtered + length-capped by the PressBoard). The
-      // client seeds its feed card from this as a `snapshot`, exactly as it
-      // caches `topicCatalogue`; live deltas ride `publication.press`.
-      releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
+      // retract/expiry-filtered + length-capped by the PressBoard) — the
+      // press-feed subscription's snapshot; its changes ride
+      // `subscription-delta`.
+      releaseWindow,
       ...(frameBackfill.length > 0 ? { frameBackfill } : {}),
-      clientState: this.snapshotClientState(),
+      clientState,
       reactionPrefs: {
         intensity:
           ShellApi.resolveSetting<"off" | "subtle" | "normal" | "vivid">(
@@ -1176,6 +1196,24 @@ export default abstract class Avatar extends AvatarBase {
   /**
    * Open the active mode's arrangement for a freshly-attached session.
    */
+  /**
+   * Open (afresh) one of the subscriptions every played session holds,
+   * silently; its snapshot, or `null` when the source could not answer
+   * (a world with no row for it — the caller reads directly).
+   */
+  private async openSessionSubscription(
+    interactive: Interactive,
+    id: string,
+    source: string,
+  ): Promise<unknown> {
+    interactive.cancelSubscription(id);
+    try {
+      return await interactive.subscribe(id, source, undefined, { silent: true });
+    } catch {
+      return null;
+    }
+  }
+
   private openArrangementGuarded(interactive: Interactive): void {
     /*
      * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a

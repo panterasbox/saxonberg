@@ -8,7 +8,7 @@
  * `inspect` subscription that was *"the SIGNAL, not the card"* has no
  * successor, because there is nothing left for a signal to do.
  *
- * ⚠ **It cannot open one even by mistake.** `MqlSubscribeMessage`
+ * ⚠ **It cannot open one even by mistake.** `MqlSubscriptionParams`
  * carries no field that would name a card — only `chrome: 'self'`, the
  * widget shelf's subscription, which is not a card. That is acceptance
  * criterion 1 enforced by the protocol rather than by a grep.
@@ -25,14 +25,15 @@
 import { useEffect } from "react";
 import type React from "react";
 import type {
-  MqlSubscriptionResultEnvelope,
+  SubscriptionResultEnvelope,
   CardClosedEnvelope,
   CardOpenedEnvelope,
   CardPinnedEnvelope,
   CardArrangedEnvelope,
   CardTouchedEnvelope,
   Envelope,
-  MqlSubscriptionDeltaEnvelope,
+  Change,
+  SubscriptionDeltaEnvelope,
   CardId,
   StuffDetailRecord,
 } from "@saxonberg/types";
@@ -76,7 +77,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
  */
 function applyChanges(
   previous: readonly CardRecord[],
-  changes: MqlSubscriptionDeltaEnvelope["changes"],
+  changes: readonly Change[],
 ): CardRecord[] {
   const next = previous.slice();
   for (const change of changes) {
@@ -203,21 +204,23 @@ export function useCardFeed(): void {
      * card's records are replaced.
      */
     const handleResult = (envelope: Envelope): void => {
-      const env = envelope as MqlSubscriptionResultEnvelope;
+      const env = envelope as SubscriptionResultEnvelope;
       const store = useStore.getState();
       if (!store.cards[env.subscriptionId]) return;
-      store.setCardRecords(env.subscriptionId, (env.result ?? []) as CardRecord[]);
+      store.setCardRecords(env.subscriptionId, (env.snapshot ?? []) as CardRecord[]);
     };
 
     const handleDelta = (envelope: Envelope): void => {
-      const env = envelope as MqlSubscriptionDeltaEnvelope;
+      const env = envelope as SubscriptionDeltaEnvelope<Change["fields"]>;
       const store = useStore.getState();
       const card = store.cards[env.subscriptionId];
       if (!card) return;
       store.setCardRecords(
         env.subscriptionId,
-        applyChanges(card.records, env.changes),
+        applyChanges(card.records, env.changes as Change[]),
       );
+      // ⭐ The card remembers which command changed it (navigation-server review).
+      store.noteSurfaceChange(`card:${env.subscriptionId}`, env.causes);
     };
 
     websocketClient.onEnvelope("card-opened", handleOpened);
@@ -225,8 +228,8 @@ export function useCardFeed(): void {
     websocketClient.onEnvelope("card-closed", handleClosed);
     websocketClient.onEnvelope("card-pinned", handlePinned);
     websocketClient.onEnvelope("card-arranged", handleArranged);
-    websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
-    websocketClient.onEnvelope("mql-subscription-result", handleResult);
+    websocketClient.onEnvelope("subscription-delta", handleDelta);
+    websocketClient.onEnvelope("subscription-result", handleResult);
 
     return () => {
       websocketClient.offEnvelope("card-opened", handleOpened);
@@ -234,8 +237,8 @@ export function useCardFeed(): void {
       websocketClient.offEnvelope("card-closed", handleClosed);
       websocketClient.offEnvelope("card-pinned", handlePinned);
       websocketClient.offEnvelope("card-arranged", handleArranged);
-      websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
-      websocketClient.offEnvelope("mql-subscription-result", handleResult);
+      websocketClient.offEnvelope("subscription-delta", handleDelta);
+      websocketClient.offEnvelope("subscription-result", handleResult);
     };
   }, []);
 }

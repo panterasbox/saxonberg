@@ -17,7 +17,7 @@
 import '../../../test-bootstrap';
 import { carry } from '../../lib/slot/__tests__/carrying-fixture';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { MqlSubscriptionApi, DETAIL_FIELDS } from '../mql-subscription';
+import { SubscriptionApi, DETAIL_FIELDS } from '../subscription';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PerceptionApi } from '../perception';
@@ -93,7 +93,7 @@ function putOn(avatar: Avatar, shirt: TestGarment): void {
 }
 
 function project(host: Stuff, viewer: Stuff): Record<string, unknown> {
-  return MqlSubscriptionApi.projectFields(
+  return SubscriptionApi.projectFields(
     host,
     DETAIL_FIELDS,
     viewer as Stuff & Sensor,

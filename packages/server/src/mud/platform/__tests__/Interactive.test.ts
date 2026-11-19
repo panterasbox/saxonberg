@@ -196,12 +196,9 @@ describe('Interactive', () => {
       );
     });
 
-    it('cancels MQL + forum subscriptions, reactions, then prompts', () => {
-      const mql = vi
-        .spyOn(interactive, 'cancelAllMqlSubscriptions')
-        .mockImplementation(() => {});
-      const forum = vi
-        .spyOn(interactive, 'cancelAllForumSubscriptions')
+    it('cancels every subscription, reactions, then prompts', () => {
+      const subs = vi
+        .spyOn(interactive, 'cancelAllSubscriptions')
         .mockImplementation(() => {});
       const reaction = vi
         .spyOn(interactive, 'cancelAllReactions')
@@ -214,20 +211,18 @@ describe('Interactive', () => {
 
       // Each cancellation receives this Interactive (the proxy identity
       // used as the subscription/registry key).
-      expect(mql).toHaveBeenCalledTimes(1);
-      expect(forum).toHaveBeenCalledTimes(1);
+      expect(subs).toHaveBeenCalledTimes(1);
       expect(reaction).toHaveBeenCalledTimes(1);
       expect(prompt).toHaveBeenCalledWith('host-disconnected');
 
       // Prompts reject last so a controller's catch can react while the
       // Interactive is still live.
-      const order = [mql, forum, reaction, prompt].map(
+      const order = [subs, reaction, prompt].map(
         (s) => s.mock.invocationCallOrder[0]!,
       );
       expect(order).toEqual([...order].sort((a, b) => a - b));
 
-      mql.mockRestore();
-      forum.mockRestore();
+      subs.mockRestore();
       reaction.mockRestore();
       prompt.mockRestore();
     });

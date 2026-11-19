@@ -37,7 +37,7 @@
 import { Idea } from "../../lib/stuff/Idea";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { VetoResult } from "../../lib/errors";
-import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
+import type { SubscribableFieldDescriptor } from "../../api/subscription";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { PartyRecord } from "../../lib/party/PartyRecord";

@@ -74,7 +74,7 @@ because *a static card that looked live would be a lie*, and a refresh
 button on a live card is a bandage over a wake that does not fire —
 **and, worse, it is how nobody finds out**. A `here` card was immortal
 through eleven passing tests because every one of them called
-`refreshForInteractive` by hand.
+the refresh by hand.
 
 ⭐⭐ **Liveness is per card: a card you PLACED, PINNED, or that fills a
 ROLE holds a subscription; a card that just flows through the feed is a
@@ -351,8 +351,8 @@ tests failed.
 ⚠ `subject` is therefore a live row (the stock sheet is the other), and
 it is the one that earns it: it is the card the player is looking at,
 which is the whole basis on which liveness is granted. **`who` ships static** for a reason that has
-not changed — the dependency vocabulary is `focusDependent` /
-`locationDependent` / the `durableKey` poke channel, and **nothing wakes
+not changed — the dependency vocabulary is the holder entry, the fields a
+row reads and the `durableKey` poke, and **nothing wakes
 on connect or disconnect**. A live `who` would resolve once and then be
 permanently wrong while looking exactly like it worked.
 
@@ -427,8 +427,8 @@ that could disagree. A live card is shown while its body is mounted (not in
 the tray, not displaced by a `medium`/`full` card, not filtered out by a
 view), intersects the viewport, and the document is visible
 (`useCardShown` in `useCardFeed.ts`). Unseen for 500 ms the client sends
-`mql-subscription-pause`; the moment it is seen again,
-`mql-subscription-resume` — no delay is ever added to anything on screen.
+`subscription-pause`; the moment it is seen again,
+`subscription-resume` — no delay is ever added to anything on screen.
 
 Paused, the server drops the subscription's dependencies and memo and keeps
 the id (`Interactive.pauseSubscription`): nothing is computed or sent.
@@ -446,6 +446,43 @@ shown and nothing is replayed.
 (`subscription-pause` / `-resume` on its `SubscriptionRegistry`) had not
 merged when it shipped; that build's W1 migration carries these two message
 types and the paused set across.
+
+## ⭐⭐ A card that changed says what changed it (navigation-server review)
+
+The card idea began as *every card is bound to the command that produces
+or refreshes it* — and the reason that mattered is that everyone knows
+what it means for a command to run, and has tools for finding out more.
+Birth kept it (a command pushes a card); a LIVE card's later changes lost
+it, and a card that changes on its own is magic. So the binding came back
+as the cause rather than the trigger: every `subscription-delta` names the
+command(s) whose work produced it (`causes` — the same id that command's
+lines in scrollback carry; see subscription.md), and the client shows it
+(`client/src/components/cards/ChangeMark.tsx`, over the change slice):
+
+- the card glows briefly when it changes, and a small mark stays for a
+  few seconds — nothing permanent;
+- hover the mark: *changed by: <the line>* — the act's own line first;
+  tap it: the line and **show in scrollback**;
+- a command with no line that reached you: *you didn't see what changed
+  this* (a door unlocked from the other side) — honest, and the perception
+  gate comes free, because the line exists only if you perceived it;
+- no command at all: *time passed* (the clock).
+
+The where-you-are panes (the navigator's crumbs, ways and outside) carry
+the same mark, per section.
+
+⭐⭐ **A live place card's "Here" is live data** (navigation-server review).
+A room card's text is the look's segments — its prose, frozen at the look —
+so an arrival reached a live card as a delta and never SHOWED: the card
+looked live and was not. The place now projects `present` (in
+`DETAIL_FIELDS`): who is here for the viewer, by the same rule as `look`'s
+"Here" (a place's loose contents, organisms, never the viewer, perceived),
+each person's chip from the person's own `presenceChipFor` (name, status,
+seat) — `look` reads the same method, so the two cannot disagree. The card
+rebuilds "Here" from it (`liveHere` in `InspectionBody`) where the look's
+line sat; a STATIC card keeps the look's line, which says when it was
+taken. ⚠ "You also see" is still the look's: the things in a room rarely
+come and go, and a live list of them is the next step if they do.
 
 ## ⭐⭐ Subject-bound subscriptions
 
@@ -551,7 +588,7 @@ and is closed by making the card **own** the handle:
 zero orphans after closing, sweeping, rearranging and disconnecting.
 
 ⭐ It is also what lets a live card's updates keep riding
-`mql-subscription-delta` — no new envelope, no join table.
+`subscription-delta` — no new envelope, no join table.
 
 ## The tiers
 
@@ -904,7 +941,7 @@ was never built because the server cannot know a viewport, so it would
 be a fake fact. Two stored *preferences* assert nothing about which is
 in force: the server ships both resolved answers on
 `ConnectionEstablishedPayload.resultDisplay` (re-pushed as
-`client-state-update` on every write, so the setting takes effect
+a change on the client-state subscription on every write, so the setting takes effect
 without a reconnect) and the client — which genuinely knows its own
 width — picks. Same split as `cockpit.shelf`.
 
@@ -985,7 +1022,7 @@ are strictly independent (a stale invalid stored value is
 silently shadowed by the derived-pool head).
 
 **Set-fires-field-change**: real changes route through
-`MqlSubscriptionApi.fireFieldChange(this, 'primaryKeyword', ...)`
+`SubscriptionApi.fireFieldChange(this, 'primaryKeyword', ...)`
 so subscriptions on `'primaryKeyword'` (any ref record on a
 Perceptible host) wake.
 
@@ -1297,7 +1334,7 @@ template path in parens — `brass thermometer (/platform/thing/Thermometer)`.
 Non-admins see display name only.
 
 **Discovery.** Contributed to `PerceiverMixin.commandContributions.self`
-alongside `look`, `scry`, `locate` — `find` is the
+alongside `look`, `scry` — `find` is the
 enumeration counterpart to `focus`, both surfaced on the
 perceiver's verb set.
 
@@ -1339,7 +1376,7 @@ interface MqlQueryErrorEnvelope {
 }
 ```
 
-`MqlSubscriptionApi.handleQuery(req: QueryRequest)`:
+`SubscriptionApi.handleQuery(req: QueryRequest)`:
 
 - Reuses ONLY the parse + resolve + project pipeline.
 - NO registration in `#registry`, NO dependency-index entries,
@@ -1348,12 +1385,13 @@ interface MqlQueryErrorEnvelope {
 - Holder and cardinality checks mirror `handleSubscribe` so a
   client's error-handling code can branch by `reason` uniformly
   across subscribes and queries.
-- `focusDependent` / `locationDependent` are not carried on the
-  query shape (no subscription state to wake).
+- `focusDependent` / `locationDependent` are gone from every wire shape
+  (navigation-server, at its merge of crowded-rooms): a query-bound
+  subscription's holder entry does their job.
 
 `Application.processUserMessage` routes inbound `'mql-query'`
 messages through `handleQuery` — same shape as the existing
-`'mql-subscribe'` route. Server-side programmatic one-shot
+`'subscribe'` route. Server-side programmatic one-shot
 reads call `MqlApi.resolveOne` / `resolveMany` + `projectFields`
 directly; this surface is the wire-facing channel.
 
@@ -1432,8 +1470,8 @@ interface StuffRegistrySlice {
 ```
 
 **Populated** by every subscription consumer the client owns.
-When the wire client receives an `mql-subscription-result` or
-`mql-subscription-delta` envelope, it walks every record and
+When the wire client receives an `subscription-result` or
+`subscription-delta` envelope, it walks every record and
 calls `useStore.getState().upsertStuffMetadata([...records])`
 before dispatching to widget handlers. Nested ref-shape fields
 (currently just `contents`; future `equipped`, `inventory`,
@@ -1791,7 +1829,7 @@ them here so future debugging knows the substrate's choices
 weren't always the obvious ones:
 
 - **Canonical-kind registry retired.** The build initially
-  shipped a server-side `MqlSubscriptionApi.registerKind` /
+  shipped a server-side `SubscriptionApi.registerKind` /
   `CanonicalKindSpec` registry that let clients subscribe by
   name (`'me.focus'`). The registry was a pure server-side
   macro over the wire — same bytes, alias-only — so it was

@@ -42,6 +42,7 @@ import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 import { PopOutPortal, usePopOut } from "./PopOut";
 import { useCardShown } from "./useCardFeed";
+import { ChangeMark } from "./ChangeMark";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
@@ -485,7 +486,10 @@ export function Card({
             </PopOutPortal>
           </>
         ) : (
-          <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+          // ⭐ A live card that changed says what changed it (navigation-server review).
+          <ChangeMark surface={`card:${card.instanceId}`}>
+            <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+          </ChangeMark>
         )}
       </Body>
       {cut && overflowing && !faded ? (

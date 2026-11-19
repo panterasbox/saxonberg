@@ -162,6 +162,8 @@ export interface ColumnSpec {
 
 /** Public shape added by WaterPlaceMixin. */
 export interface WaterPlace {
+  /** ⭐ A body in the water leaves by swimming — the place's veto on a way out. */
+  canExit(mover: Stuff & Mobile & Containable, via: Exit): VetoResult;
   getWater(): WaterSpec | null;
   setWater(value: WaterSpec | null): void;
   /** The `waters` key this place's own water is registered under. */

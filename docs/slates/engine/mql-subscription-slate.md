@@ -96,7 +96,7 @@ channel because they're reads.
 
 Shipped → [mql-subscription.md](../../subsystems/mql-subscription.md) (both
 additions landed: the field-set is a separate `fields` parameter, not
-a grammar clause; `MqlSubscriptionApi` + `MqlSubscriptionRegistry` own
+a grammar clause; `SubscriptionApi` + `MqlSubscriptionRegistry` own
 the lifecycle).
 
 ---
@@ -356,7 +356,7 @@ with explicit storage + intrinsic default only.
 ### The composition walk + dependency derivation
 
 Shipped → `MixinApi.getAllSubscribableFields` +
-`MqlSubscriptionApi.projectFields` +
+`SubscriptionApi.projectFields` +
 `MqlSubscriptionRegistry.deriveAndInstallDependencies`
 ([mql-subscription.md § Descriptor mechanism, § Meta-bus dependency index](../../subsystems/mql-subscription.md)).
 
@@ -1185,17 +1185,14 @@ The cockpit, inspection-card and prompt-stack rewrites happened;
 
 ## From crowded-rooms (2026-11-18, MR !598) — what it left here
 
-- **Pausing more than cards.** The pause protocol (`mql-subscription-pause` /
-  `-resume`, `Interactive.pauseSubscription`) pauses ANY subscription;
-  crowded-rooms wired only cards. The widget shelf, a forum board and the
-  map's copy are the next consumers. When navigation-server's D1 lands, the
-  two messages move to its `subscription-pause`/`-resume` (agreed with
-  build-2).
+- **Pausing more than cards.** The pause protocol (`subscription-pause` /
+  `-resume`, `Interactive.pauseSubscription`) is the one protocol's since
+  navigation-server merged crowded-rooms, and pauses ANY subscription of
+  any source (a source with no pause of its own is reopened afresh on
+  resume); crowded-rooms wired only cards. The widget shelf, a forum board
+  and the map's copy are the next consumers.
 - **Light is not a wake.** Daylight is continuous and fires nothing, so a
   card does not re-gate on light alone; its next wake does. The perception
   memo per child (`perceivedAmong`) has the same residual.
-- **`focusDependent` / `locationDependent`** are accepted and inert (a holder
-  dependency subsumes them); removing them from the wire type is
-  navigation-server's `params` change.
 - **The first projection** (a card opening, a login) is one unit of N rows —
   see crowded-rooms-slate § The next ceiling.

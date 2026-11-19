@@ -14,7 +14,7 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { MessageApi } from '../message';
 import { MixinApi } from '../mixin';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { ChatApi } from '../chat';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
@@ -24,7 +24,7 @@ beforeEach(() => {
   StuffApi.clearAll();
   ShadowApi._clearAllForTesting();
   EventApi._clearAllForTesting();
-  MqlSubscriptionApi._clearAllForTesting();
+  SubscriptionApi._clearAllForTesting();
   CardApi._clearAllForTesting();
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
