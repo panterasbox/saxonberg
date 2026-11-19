@@ -132,6 +132,11 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       // 2.5) takes them with it.
       _hostedApps: { ref: 'instance', lifetime: 'owned' },
       installedApps: { persistent: true },
+      // ⚠ Authored fields must be declared to be APPLIED: the template
+      // phase writes only declared persistent fields (the drive found
+      // every authored host field silently unset).
+      offersApps: { persistent: true },
+      manifestsAs: { persistent: true },
     };
 
     private _hostedApps: (Stuff & AetherHosted)[] = [];

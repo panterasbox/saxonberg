@@ -28,7 +28,7 @@
  * hard-constraint 2).
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { AetherHost } from "./AetherHost";
 
@@ -56,6 +56,11 @@ export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class AetherHostedMixin extends Base implements AetherHosted {
     static _mixinName = "AetherHostedMixin";
+
+    /** `appName` is authored on the app's row — declared so it is applied. */
+    static fieldMeta: FieldMeta = {
+      appName: { persistent: true },
+    };
 
     /**
      * Runtime live-ref back to the host. NOT persisted (no entry in

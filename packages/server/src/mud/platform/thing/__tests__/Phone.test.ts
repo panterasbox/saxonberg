@@ -161,4 +161,19 @@ describe('Phone', () => {
     p.setOn(true);
     expect(p.conferralRefusal()).toBeNull();
   });
+
+  // ⚠ The template phase applies ONLY declared persistent fields; the drive
+  // found every authored phone field silently unset (a phone born dead,
+  // Messages unnamed, the lock off). Pin the row's fields as applied.
+  it('every field a phone row authors is one the template phase applies', () => {
+    const fields = MixinApi.getAllPersistentFields(Phone as unknown as AnyConstructor);
+    for (const f of [
+      'on', 'brand', 'installedApps', 'offersApps', 'manifestsAs', 'ownerLocked',
+      'capacityWh', 'standbyW', 'useWh', 'acceptW', 'slotClaims',
+    ]) {
+      expect(fields, f).toContain(f);
+    }
+    const appFields = MixinApi.getAllPersistentFields(App as unknown as AnyConstructor);
+    expect(appFields).toContain('appName');
+  });
 });

@@ -44,6 +44,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { MarkupAugmenter } from '../../api/mml';
+import type { FieldMeta } from '../../lib/mixin';
 
 // Wieldable: a hand takes a phone (a biped's hands accept `WieldableMixin`).
 const PhoneBase = BatteryMixin(
@@ -59,6 +60,11 @@ const CONFERS: readonly string[] = ['AetherMixin'];
 
 export default class Phone extends PhoneBase {
   static markupAugmenters: MarkupAugmenter[] = [phoneLineAugmenter];
+
+  /** `ownerLocked` is authored on the row — declared so it is applied. */
+  static fieldMeta: FieldMeta = {
+    ownerLocked: { persistent: true },
+  };
 
   /**
    * Authored: this phone runs only for its title-holder (aether-devices

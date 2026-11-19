@@ -96,6 +96,11 @@ export function BatteryMixin<TBase extends MixinConstructor<Stuff & Reserved>>(B
 
     static fieldMeta: FieldMeta = {
       batteryStampS: { persistent: true },
+      // Authored on the row — declared so the template phase applies them.
+      capacityWh: { persistent: true },
+      standbyW: { persistent: true },
+      useWh: { persistent: true },
+      acceptW: { persistent: true },
     };
 
     /** Authored: stored energy when full, Wh. */
