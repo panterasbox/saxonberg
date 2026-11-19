@@ -1,18 +1,16 @@
 # Aether devices slate — the field, the tuners, and the screens
 
-> **Status: UNBUILT** — opened 2026-11-02 out of the lock design (lock-slate § 7) as *instruments
-> driven by mind*; ⭐ **re-founded 2026-11-18** in a design conversation with the owner on aether
-> connectivity, screens and the implant. Shipped and still right: the aether transport (`dm`/`tell`,
-> chat channels, remote emotes — [comms.md](../../subsystems/comms.md),
-> [chat.md](../../subsystems/chat.md)); attunement as a state of the **person**, with comms, forums,
-> the wallet and the calendar hosted on the person ([augmentation.md](../../subsystems/augmentation.md));
-> born-attuned species; screens and their by-mind ladder ([display.md](../../subsystems/display.md)).
-> **Left:** `help ask` and the social promise (§ 1) · the phone as the starting tuner and the free implant retired (§ 5) · a carried tuner
-> confers attunement (§ 5) · local emotes carried by the room, so NPCs emote and perceive (§ 3) ·
-> one kind of app (§ 6) · the screen cleanup (§ 6) · calls designed, not built (§ 7) · a power
-> state on tuners, so a covenant's *power it down* is real (§ 9) · the town's node (§ 9) · the
-> original question: instruments driven by mind (§ 10)
-> **Size:** a build (§§ 3, 5, 6, 9)
+> **Status: PARTLY BUILT** — the aether-devices build (MR !615, 2026-11-19) shipped §§ 3, 5, 6's
+> one kind of app, and § 9's power state: the room carries emotes so NPCs perceive them; the phone
+> is the starting tuner and the free implant is a guest's; a carried tuner confers attunement and
+> says why not; apps are one kind (`App` rows, `apps` verb); held, never silent; the battery and the
+> charger; ownership as the lock; every shade the shade species. Reference:
+> [aether-devices.md](../../subsystems/aether-devices.md).
+> **Left:** `help ask` and the social promise (§ 1 → guarantees-of-play-slate, customer service) ·
+> the screen cleanup (§ 6 → display-manifestation-slate) · calls designed, not built (§ 7) · the
+> *power it down* law and the town's node (§ 9 → the epoch build, content-declaration-slate § 3.0) ·
+> the original question: instruments driven by mind (§ 10)
+> **Size:** design (§§ 7, 10); the rest rides other slates
 
 ## 0. The asks
 
@@ -241,7 +239,7 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 
 ### Decided for the first build (2026-11-18, the requirements conversation)
 
-→ [aether-devices-requirements](../../requirements/aether-devices-requirements.md).
+→ built; see [aether-devices.md](../../subsystems/aether-devices.md) (the requirements and plan retired at the sweep, 2026-11-19).
 
 - **The battery is in the first build** (the owner). It lasts a full play session of ordinary use,
   drains on the game clock only while your body is online, and charges with `put phone on charger`

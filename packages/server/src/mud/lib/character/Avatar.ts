@@ -1743,6 +1743,12 @@ export default abstract class Avatar extends AvatarBase {
       await super.executeCommand(...args);
     } finally {
       this.commandsInFlight -= 1;
+      // ⭐ The act says something (aether-devices D8): an act can change
+      // what tunes this person without moving the device — taking a pack
+      // off puts the phone in it within reach — so after every act the
+      // person checks whether what they hold can now go. Nothing held,
+      // nothing scheduled (`scheduleFlushIfMovable` returns at once).
+      this.noticeTuning();
     }
   }
 

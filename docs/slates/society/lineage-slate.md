@@ -131,7 +131,7 @@ household's trade, chronicle prologue claims, a starting kit, and **two
 live relationships**.
 
 ⭐ **Your phone's brand comes from your family** (the owner, 2026-11-18, from the
-[aether-devices](../../requirements/aether-devices-requirements.md) requirements): *"depending on your
+aether-devices requirements, retired; see [aether-devices.md](../../subsystems/aether-devices.md)): *"depending on your
 lineage you may start with one brand of phone or another — that's good content."* Until lineage
 ships, every new player gets the same default (a Hollis budget phone).
 

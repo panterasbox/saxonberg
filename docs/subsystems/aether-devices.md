@@ -180,3 +180,17 @@ starting brand (lineage-slate).
   wear; blindness as a condition (meets `receptionRefusal` unchanged).
 - The lounge charger and arcana's `ManaCharger`, once owned goods survive a
   non-persistent room's eviction.
+
+## History
+
+- **The aether-devices build** (`build/aether-devices`, MR !615, 2026-11-18/19) — waves W1–W10
+  as above. Its blocking drive (`packages/wire/tests/aether-devices.dirty.wire.test.ts`, 21 steps)
+  took seventeen runs and found thirteen defects no unit test could, among them: authored row
+  fields never applied (not declared persistent); a phone that rests on its charger as a
+  **placement host**, not a container; the move core stamping the placement after `onMoved`; a
+  room's reset re-seating its charger mid-gap (→ never settle from limbo, the gap off the
+  trajectory); **every `Switchable` restored in its row's state** (a kernel capture fix, see
+  [persistence.md](./persistence.md)); and a glass starter phone that broke when dropped (both
+  phones are rubber). The record was the retired plan's § Drive record — `git log
+  b8b0fb71d^..07760516f` has each fix. The browser walk is `e2e/tests/aether-devices-walk.spec.ts`;
+  the soak drive `packages/wire/tests/aether-devices.soak.dirty.wire.test.ts`.

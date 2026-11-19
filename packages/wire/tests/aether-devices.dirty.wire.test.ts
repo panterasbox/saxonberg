@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **Aether devices — the blocking drive** (the aether-devices build;
- * requirements `docs/requirements/aether-devices-requirements.md` § The
- * drive, steps 1–18), against the real socket.
+ * the retired requirements' § The drive, steps 1–18; the build's record is
+ * `docs/subsystems/aether-devices.md` § History), against the real socket.
  *
  * The drive in one sentence: *a new player arrives with a bound phone in a
  * pocket and can `dm` at once; Messages is an app; a packed, switched-off
