@@ -147,9 +147,17 @@ export function termOf(command: string): { kind: "help"; word: string } | { kind
   return m[1] === "help" ? { kind: "help", word: rest } : { kind: "wiki", ref: rest };
 }
 
-/** A way out's tooltip — where it goes is the navigation build's to add. */
-export function wayDoc(dir: string, command: string): TooltipDoc {
-  return { header: { name: dir, kindWord: "way out" }, command };
+/**
+ * A way out's tooltip: its direction, and — where the client holds them —
+ * where it leads and what it goes through. More (cost, what you know of
+ * the far side) is the navigation build's to add.
+ */
+export function wayDoc(dir: string, command: string, known: { to?: string; through?: string } = {}): TooltipDoc {
+  const facts = [
+    ...(known.to ? [{ label: "to", value: known.to, source: "client" as const }] : []),
+    ...(known.through ? [{ label: "through", value: known.through, source: "client" as const }] : []),
+  ];
+  return { header: { name: dir, kindWord: "way out" }, ...(facts.length ? { facts } : {}), command };
 }
 
 /** A described detail of a thing (`look <key>`). */

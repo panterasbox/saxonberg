@@ -35,6 +35,8 @@ import { tokens } from "../ui";
 import { Card } from "./Card";
 import { CardBody } from "./CardBodies";
 import type { CardState } from "../../store/cardFeedSlice";
+import { Tip } from "../tooltip/Tip";
+import { controlDoc } from "../doc/docs";
 
 const Chips = styled.div`
   display: flex;
@@ -118,14 +120,14 @@ export function PinnedChipRow({
           ? `"${card.key.replace(/(["\\])/g, "\\$1")}"`
           : card.key;
         return (
-          <Chip
-            key={card.instanceId}
-            aria-label={`client-card unpin ${ref}`}
-            title={`Click to send: client-card unpin ${ref}`}
-            onClick={() => onSendCommand(`client-card unpin ${ref}`)}
-          >
-            ⚲ {name}
-          </Chip>
+          <Tip key={card.instanceId} tip={controlDoc("Unpin", `client-card unpin ${ref}`)}>
+            <Chip
+              aria-label={`client-card unpin ${ref}`}
+              onClick={() => onSendCommand(`client-card unpin ${ref}`)}
+            >
+              ⚲ {name}
+            </Chip>
+          </Tip>
         );
       })}
     </Chips>

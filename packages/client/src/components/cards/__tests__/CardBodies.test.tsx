@@ -82,7 +82,9 @@ describe("ways out", () => {
       />,
     );
     const chip = screen.getByText("south");
-    expect(chip.getAttribute("title")).toBe("Click to send: go south");
+    // ⭐ The preview is the status bar's and the tooltip's (tooltips W6) —
+    // never native hover text.
+    expect(chip.getAttribute("title")).toBeNull();
     fireEvent.click(chip);
     expect(sent).toEqual(["go south"]);
   });
@@ -208,8 +210,8 @@ describe("⚠ density", () => {
     const south = screen.getByText("south");
     expect(south.tagName).toBe("BUTTON");
     expect(getComputedStyle(south).minHeight).not.toBe("44px");
-    // Still a real command, still previewed.
-    expect(south.getAttribute("title")).toBe("Click to send: go south");
+    // Still a real command; its preview is the tooltip's, not native text.
+    expect(south.getAttribute("title")).toBeNull();
   });
 });
 

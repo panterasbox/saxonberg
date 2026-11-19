@@ -137,6 +137,12 @@ function StackBar({
   const closeFrom = useStore((s) => s.closeTipsFrom);
   const showCrumbs = entry.depth > 0 && (entry.locked || sheet);
   const pin = entry.doc?.pin;
+  // ⭐ On a phone the long press that opens a thing's tooltip is the press
+  // that used to open its radial, so the sheet keeps the radial one tap
+  // away (tooltips W6). A desktop has right-click for it.
+  const radialFor = sheet && entry.key.startsWith("thing:") && entry.doc && !entry.doc.miss
+    ? entry.key.slice("thing:".length)
+    : null;
   if (!showCrumbs && !pin && !sheet) return null;
   return (
     <Bar data-testid="tip-bar">
@@ -161,6 +167,19 @@ function StackBar({
         </span>
       ) : null}
       <span style={{ flex: 1 }} />
+      {radialFor ? (
+        <BarButton
+          type="button"
+          data-testid="tip-actions"
+          onClick={() => {
+            const name = entry.doc?.header?.name ?? "";
+            useStore.getState().closeAllTips();
+            useStore.getState().openRadial({ stuffId: radialFor, displayName: name });
+          }}
+        >
+          actions
+        </BarButton>
+      ) : null}
       {pin ? (
         <BarButton type="button" data-testid="tip-pin" onClick={() => onPin(pin)}>
           <Icon name="card.pin" label="pin" decorative size={12} />

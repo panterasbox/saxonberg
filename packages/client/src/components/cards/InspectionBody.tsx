@@ -32,8 +32,9 @@ import type { CardState } from "../../store/cardFeedSlice";
 import { tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
-import { helpSummary } from "../../services/tooltipSource";
-import { thingDoc, type ThingRecord } from "../doc/docs";
+import { helpSummary, thingTip } from "../../services/tooltipSource";
+import { commandDoc, controlDoc, thingDoc, type ThingRecord } from "../doc/docs";
+import { Tip } from "../tooltip/Tip";
 import { FactRows, SpoilerBlock } from "../doc/blocks";
 import { MmlRenderer } from "../MmlRenderer";
 import { colorForTopic } from "../GutterStripe";
@@ -239,18 +240,21 @@ function Gutter({
   return (
     <GutterCell>
       {sources.map((src) => (
-        <Stripe
+        <Tip
           key={`${src.kind}:${src.name}`}
-          type="button"
-          data-testid="segment-stripe"
-          data-stripe-kind={src.kind === "mixin" ? "solid" : "dotted"}
-          data-source={sourceLabel(src)}
-          aria-label={`said by ${sourceLabel(src)}`}
-          title={sourceLabel(src)}
-          $color={colorForTopic(src.name)}
-          $solid={src.kind === "mixin"}
-          onClick={() => onOpen(open === src ? null : src)}
-        />
+          tip={controlDoc(`said by ${sourceLabel(src)}`, undefined, "click — what it is and what it confers")}
+        >
+          <Stripe
+            type="button"
+            data-testid="segment-stripe"
+            data-stripe-kind={src.kind === "mixin" ? "solid" : "dotted"}
+            data-source={sourceLabel(src)}
+            aria-label={`said by ${sourceLabel(src)}`}
+            $color={colorForTopic(src.name)}
+            $solid={src.kind === "mixin"}
+            onClick={() => onOpen(open === src ? null : src)}
+          />
+        </Tip>
       ))}
     </GutterCell>
   );
@@ -274,8 +278,8 @@ function ItemChips({
   const chip = (item: SegmentItem, member = false): React.ReactElement => {
     const cmd = lookCommand(item.stuffId, member ? undefined : item.keyword, mode);
     return (
+      <Tip key={item.stuffId} tip={thingTip(item.stuffId, cmd)}>
       <ItemChip
-        key={item.stuffId}
         type="button"
         data-stuff-id={item.stuffId}
         data-testid="segment-chip"
@@ -286,6 +290,7 @@ function ItemChips({
       >
         {item.label}
       </ItemChip>
+      </Tip>
     );
   };
   return (
@@ -537,17 +542,17 @@ export function InspectionBody({
               // ⭐ The server's own command (#91) — see `clickTarget.ts`.
               const send = actionCommand(v, stuffId, mode);
               return (
-                <ItemChip
-                  key={v.verb}
-                  type="button"
-                  aria-label={send}
-                  title={`Click to send: ${send}`}
-                  onClick={() => onSendCommand(send)}
-                  onMouseEnter={() => onCommandPreview?.(send)}
-                  onMouseLeave={() => onCommandPreview?.(null)}
-                >
-                  {v.verb}
-                </ItemChip>
+                <Tip key={v.verb} tip={commandDoc(send)}>
+                  <ItemChip
+                    type="button"
+                    aria-label={send}
+                    onClick={() => onSendCommand(send)}
+                    onMouseEnter={() => onCommandPreview?.(send)}
+                    onMouseLeave={() => onCommandPreview?.(null)}
+                  >
+                    {v.verb}
+                  </ItemChip>
+                </Tip>
               );
             })}
           </ChipRow>
@@ -568,7 +573,7 @@ export function InspectionBody({
           {quietOpen ? (
             <div>
               {quiet.map((m) => (
-                <QuietChip key={m} title={m}>
+                <QuietChip key={m}>
                   {m}
                 </QuietChip>
               ))}

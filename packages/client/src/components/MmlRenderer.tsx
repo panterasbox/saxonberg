@@ -270,6 +270,25 @@ function copyCommand(cmd: string): void {
  * command un-moded (preview equals send). Centralized so both clickable
  * sites share the gesture model.
  */
+/**
+ * ⭐ A link is reachable by keyboard without a tab stop each (tooltips D8):
+ * `role="link"`, focusable by script (the scrollback's arrow keys move
+ * among them — one tab stop for the whole transcript), and Enter runs it.
+ * Focus opens its tooltip (`useTip`).
+ */
+function linkKeys(cmd: string, onCommandClick: (command: string) => void) {
+  return {
+    role: 'link',
+    tabIndex: -1,
+    'data-tip-link': '',
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      onCommandClick(cmd);
+    },
+  } as const;
+}
+
 function handleAffordanceClick(
   e: React.MouseEvent,
   cmd: string,
@@ -646,6 +665,7 @@ function renderNode(
             }}
             onMouseEnter={() => ctx.onCommandPreview(cmd)}
             onMouseLeave={() => ctx.onCommandPreview(null)}
+            {...linkKeys(cmd, ctx.onCommandClick)}
           >
             {children}
           </ClickableSpan>
@@ -679,6 +699,7 @@ function renderNode(
         }}
         onMouseEnter={() => ctx.onCommandPreview(cmd)}
         onMouseLeave={() => ctx.onCommandPreview(null)}
+        {...linkKeys(cmd, ctx.onCommandClick)}
       >
         {children}
       </ClickableSpan>

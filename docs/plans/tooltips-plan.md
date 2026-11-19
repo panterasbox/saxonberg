@@ -699,7 +699,19 @@ lint family green. Stage files by name.
 - **Acceptance:** drive steps 4, 5, 6, 8 by hand against a dev world.
 - **Commit:** `feat(tooltips): W5 — live things, help and wiki terms, the one spoiler block, pin`
 
-### W6 — Client: every identity link and chip; keyboard; touch (D8)
+### W6 — Client: every identity link and chip; keyboard; touch (D8) ✅
+> **Done.** ⚠ **A gesture collision the plan missed:** `EntityName`'s long
+> press opened the affordance RADIAL. Decided (requirements win: one gesture,
+> one meaning — a long press on a link or chip opens its tooltip): a TOUCH
+> long press opens the tooltip sheet, and the sheet of a thing carries an
+> **actions** button that opens the radial; a mouse hold and right-click
+> still open the radial on a desktop. Roving focus is on the transcript
+> (one tab stop; ↑/↓/Home/End; tabbing in lands on the newest link); card
+> chips stay `<button>`s — each is already a real tab stop, and roving a
+> chip row is a nicety, not the requirement. Ways carry `to` / `through`
+> facts where the navigator holds them; a crumb its address; *you* your
+> cell. Ratchet 94 → 74.
+
 - `MmlRenderer` link and identity spans (a small component so the hook can
   run; focusable); `InspectionBody` `ItemChips`; `CardBodies` chips and
   rows; `NavigatorBody` ways (`wayDoc`) and addresses; `ui/EntityName`;
