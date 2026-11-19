@@ -34,7 +34,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const srcDir = resolve(here, '..');
 
 /** The ratchet. Lower it as sites are retrofitted; never raise it. */
-const CEILING = 104;
+const CEILING = 97;
 
 const PATTERNS: RegExp[] = [
   /\btitle=/g,

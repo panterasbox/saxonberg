@@ -533,7 +533,13 @@ of the doc entirely.
 Each wave ends at one commit, `pnpm test:near` + the client vitest + the
 lint family green. Stage files by name.
 
-### W0 — Census, types, library
+### W0 — Census, types, library ✅
+> **Done (5e674a846).** floating-ui 2.1.9 (MIT, 61 KB unpacked). The census
+> measured **104** once the three `<iframe title>` are recognized by their
+> element and never counted, so the ratchet's floor is **0**, not 3.
+> `TooltipDoc` gained `miss?: string` — the line said *instead of* content
+> (*You can't see that now.*), so a miss is a document, not a special case.
+
 - Add `@floating-ui/react-dom` (exact pin) to `packages/client/package.json`.
 - `T/`: `TooltipDoc` family (D2); `WikiExcerptMessage` /
   `WikiExcerptResultEnvelope`; `MqlQueryResultEnvelope.dark?: true`;
@@ -546,7 +552,18 @@ lint family green. Stage files by name.
   is added (try it); client and server typecheck.
 - **Commit:** `feat(tooltips): W0 — the document type, the positioner, the native-title census`
 
-### W1 — The component, proven on card controls (D2, D8, D9)
+### W1 — The component, proven on card controls (D2, D8, D9) ✅
+> **Done.** Added beside the planned modules: **`tooltip/Tip.tsx`** — `<Tip
+> tip={doc}>child</Tip>` clones the child with `useTip`'s handlers merged
+> over its own; it is what makes 104 sites a one-line change each (part of
+> N7, not a new concept). The layer is mounted ONCE in `App.tsx` around
+> whichever screen the connection phase picks (the start screen and
+> character select have hover text too), not per frame. `useTip` already
+> carries the long-press path (W6 wires the sites); the sheet draws when the
+> stack's root was opened by touch. Unit-test lesson: React effects flush
+> at the end of `act`, so a test must advance the open dwell and the lock
+> dwell in two steps. Ceiling 104 → 97.
+
 - `components/doc/blocks.tsx`, `components/doc/docs.ts` (`controlDoc`,
   `frameDoc`), `components/tooltip/{TooltipLayer,useFloat,useTip}.ts(x)`,
   `store/tooltipSlice.ts`; mount `TooltipLayer` once (desktop frame and

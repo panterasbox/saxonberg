@@ -11,6 +11,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useFloat } from './tooltip/useFloat';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
@@ -142,9 +144,6 @@ const GearButton = styled.button`
 `;
 
 const ConfirmPopover = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
   background: ${tokens.color.surface};
   border: 1px solid ${tokens.color.borderEmphasis};
   border-radius: ${tokens.radius.md};
@@ -153,7 +152,7 @@ const ConfirmPopover = styled.div`
   gap: ${tokens.space.sm};
   font-size: ${tokens.font.small};
   color: ${tokens.color.fg};
-  z-index: 10;
+  z-index: 80;
   white-space: nowrap;
 `;
 
@@ -229,7 +228,13 @@ export function TabStrip({
   const [pendingNew, setPendingNew] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  // The delete button the confirmation hangs from; the one positioner
+  // places it and closes it on a press outside (tooltips W1).
+  const [confirmAnchor, setConfirmAnchor] = useState<HTMLElement | null>(null);
+  const confirmFloat = useFloat(confirmDelete !== null ? confirmAnchor : null, {
+    placement: 'bottom-end',
+    onDismiss: () => setConfirmDelete(null),
+  });
 
   useEffect(() => {
     if (editingName !== null || pendingNew !== null) {
@@ -238,18 +243,6 @@ export function TabStrip({
     }
   }, [editingName, pendingNew]);
 
-  // Click-outside dismisses the confirm popover.
-  useEffect(() => {
-    if (confirmDelete === null) return;
-    const onClick = (e: MouseEvent) => {
-      if (popoverRef.current && popoverRef.current.contains(e.target as Node)) {
-        return;
-      }
-      setConfirmDelete(null);
-    };
-    window.addEventListener('mousedown', onClick);
-    return () => window.removeEventListener('mousedown', onClick);
-  }, [confirmDelete]);
 
   function startCreate() {
     setPendingNew('');
@@ -490,6 +483,7 @@ export function TabStrip({
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
+                      setConfirmAnchor(e.currentTarget);
                       setConfirmDelete(tab.name);
                     }}
                     aria-label="Delete"
@@ -500,9 +494,10 @@ export function TabStrip({
                 )}
               </Controls>
             )}
-            {confirmDelete === tab.name && (
+            {confirmDelete === tab.name && confirmAnchor && createPortal(
               <ConfirmPopover
-                ref={popoverRef}
+                ref={confirmFloat.ref}
+                style={confirmFloat.style}
                 data-testid="tab-delete-confirm"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -522,7 +517,8 @@ export function TabStrip({
                 >
                   Cancel
                 </ConfirmButton>
-              </ConfirmPopover>
+              </ConfirmPopover>,
+              confirmAnchor.ownerDocument.body,
             )}
           </Tab>
         );

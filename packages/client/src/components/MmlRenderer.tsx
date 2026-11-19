@@ -108,6 +108,12 @@ interface MmlRendererProps {
    * treatment.
    */
   viewerStuffId?: string;
+  /**
+   * ⭐ Rendering inside a document (a tooltip's prose). Links draw the
+   * tooltip grammar — a term dotted, a thing underlined, a command boxed —
+   * which the scrollback does not (tooltips D8).
+   */
+  inDoc?: boolean;
 }
 
 /**
@@ -441,6 +447,8 @@ interface RenderCtx {
    * the chat templates' inline text flow is unaffected.
    */
   listDepth?: number;
+  /** Inside a tooltip's prose — see {@link MmlRendererProps.inDoc}. */
+  inDoc?: boolean;
 }
 
 function renderNode(
@@ -636,6 +644,7 @@ export function MmlRenderer({
   onCommandClick,
   onCommandPreview,
   viewerStuffId,
+  inDoc,
 }: MmlRendererProps) {
   const tree = React.useMemo(() => parseMml(text), [text]);
 
@@ -645,6 +654,7 @@ export function MmlRenderer({
         onCommandClick,
         onCommandPreview,
         viewerStuffId,
+        ...(inDoc ? { inDoc } : {}),
       })}
     </>
   );

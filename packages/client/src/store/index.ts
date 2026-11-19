@@ -53,6 +53,7 @@ import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
 import { createNavSlice, type NavSlice } from "./navSlice";
 import { createChangeSlice, type ChangeSlice } from "./changeSlice";
+import { createTooltipSlice, type TooltipSlice } from "./tooltipSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -333,6 +334,7 @@ interface StoreState
     CardFeedSlice,
     NavSlice,
     ChangeSlice,
+    TooltipSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -1145,6 +1147,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // ⭐ What last changed each live surface, and which command did it.
   ...createChangeSlice(set as Parameters<typeof createChangeSlice>[0]),
+
+  // ⭐ The open tooltip stack — a snapshot per entry, never a card.
+  ...createTooltipSlice(set as Parameters<typeof createTooltipSlice>[0]),
 
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the
