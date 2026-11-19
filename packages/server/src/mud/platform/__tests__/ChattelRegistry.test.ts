@@ -233,6 +233,18 @@ describe("chattel possession core", () => {
     expect(rows[0]!.owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
   });
 
+  it("⭐ a good placed where it already stands is not written again (db-performance H4)", async () => {
+    const torch = makeTorch();
+    await torch.stampChattel(makeOwner("alice"));
+    const many = vi.spyOn(PersistApi, "saveMany");
+    await torch.setChattelPlace("/world/a");
+    await torch.setChattelPlace("/world/a");
+    await torch.setChattelPlace("/world/b");
+    expect(many.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(2);
+    const [row] = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
+    expect(row!.place).toBe("/world/b");
+  });
+
   /**
    * ⭐ The size-and-carrying drive (run 12, step 21's second restart): the
    * steading mule's restore re-minted its tack INTO it, and "the hands it

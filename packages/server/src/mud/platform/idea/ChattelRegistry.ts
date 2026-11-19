@@ -57,6 +57,14 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** The current-state title index, keyed on the durable per-instance id. */
   private index = new Map<string, ChattelOwner>();
 
+  /**
+   * ⭐ The place (and pin) last written per good (db-performance H4): a
+   * custody walk re-places a good where it already stands often enough to
+   * be most of the chattel writes in the drive; an identical place is not
+   * written again. Instance state: a reload starts empty and writes once.
+   */
+  private placed = new Map<string, string>();
+
   public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
@@ -96,6 +104,8 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     pin: ChattelPin | null = null,
   ): Promise<void> {
     if (!this.index.has(chattelId)) return;
+    const said = JSON.stringify([place, pin]);
+    if (this.placed.get(chattelId) === said) return;
     // ⭐ One partial keyed write (db-performance H4) — it was a find and a
     // save. `insert: false`: a row that is not there is not made (the find
     // used to return early), and only the place and the pin are written.
@@ -106,6 +116,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     await PersistApi.saveMany(ChattelRecord.collectionName, [
       await record.toBatchWrite({ key: ['chattelId'], fields: ['place', 'pin'], insert: false }),
     ]);
+    this.placed.set(chattelId, said);
   }
 
   /**
@@ -166,6 +177,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     await ChattelRecord.deleteByChattelId(chattelId);
     await this.appendEvent("released", chattelId, prior, null);
     this.index.delete(chattelId);
+    this.placed.delete(chattelId);
   }
 
   /** Rebuild the in-memory index from the `chattel` collection (boot / reload). */
@@ -215,6 +227,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
 
   private async rebuildIndex(): Promise<void> {
     this.index.clear();
+    this.placed.clear();
     for (const record of await ChattelRecord.findAll()) {
       const id = record.getChattelId();
       const owner = record.getOwner();
