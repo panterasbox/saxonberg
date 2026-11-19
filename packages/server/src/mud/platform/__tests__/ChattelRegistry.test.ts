@@ -44,6 +44,8 @@ import TemplateApplier from "../idea/TemplateApplier";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
 import { Document } from "../../lib/persistence/Document";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
+import { ChattelRecord } from "../../lib/chattel/ChattelRecord";
+import { PersistApi } from "../../api/persist";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -217,6 +219,18 @@ describe("chattel possession core", () => {
     expect(events.map((e) => e.event)).toEqual(["mint", "transfer"]);
     expect(events[1]?.from).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
     expect(events[1]?.to).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
+  });
+
+  it("⭐ a stamp and a transfer write the title in one keyed write — no read of the row (db-performance H4)", async () => {
+    const torch = makeTorch();
+    // The production read path (the test's fake builds its saveMany on its own find).
+    const find = vi.spyOn(PersistApi, "find");
+    await torch.stampChattel(makeOwner("alice"));
+    await torch.transferChattel(makeOwner("bob"));
+    expect(find.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(0);
+    const rows = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
   });
 
   /**

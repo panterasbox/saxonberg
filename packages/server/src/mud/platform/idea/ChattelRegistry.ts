@@ -22,6 +22,7 @@ import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { SecurityApi } from "../../api/security";
+import { PersistApi } from "../../api/persist";
 import {
   ChattelRecord,
   type ChattelOwner,
@@ -95,11 +96,16 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     pin: ChattelPin | null = null,
   ): Promise<void> {
     if (!this.index.has(chattelId)) return;
-    const record = await ChattelRecord.findByChattelId(chattelId);
-    if (!record) return;
+    // ⭐ One partial keyed write (db-performance H4) — it was a find and a
+    // save. `insert: false`: a row that is not there is not made (the find
+    // used to return early), and only the place and the pin are written.
+    const record = new ChattelRecord();
+    record.chattelId = chattelId;
     record.place = place;
     record.pin = pin;
-    await record.save();
+    await PersistApi.saveMany(ChattelRecord.collectionName, [
+      await record.toBatchWrite({ key: ['chattelId'], fields: ['place', 'pin'], insert: false }),
+    ]);
   }
 
   /**
@@ -171,13 +177,19 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   // --- ungated privates (intra-singleton self-calls resolve to the
   // Registry, which is outside the ChattelApi allowlist) ---
 
+  /**
+   * Title the row — one keyed write of the owner and the time (db-performance
+   * H4; it was a find then a save). The write names its fields, so a field
+   * the stamp gains is one more name in the list.
+   */
   private async upsert(chattelId: string, owner: ChattelOwner): Promise<void> {
-    const record =
-      (await ChattelRecord.findByChattelId(chattelId)) ?? new ChattelRecord();
+    const record = new ChattelRecord();
     record.chattelId = chattelId;
     record.owner = owner;
     record.titledAt = Date.now();
-    await record.save();
+    await PersistApi.saveMany(ChattelRecord.collectionName, [
+      await record.toBatchWrite({ key: ['chattelId'], fields: ['owner', 'titledAt'] }),
+    ]);
   }
 
   private async appendEvent(
