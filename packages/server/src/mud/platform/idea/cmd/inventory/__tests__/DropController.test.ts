@@ -58,6 +58,10 @@ class Sword extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'Sword';
 }
 
+class Pouch extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
+  static _mixinName = 'Pouch';
+}
+
 const COIN_PATH = '/obj/item/Coin';
 
 function stubCoinClone() {
@@ -131,6 +135,35 @@ describe('DropController — bareword path (no quantity)', () => {
       makeContext(giver, loc)
     );
     expect(sword.getContainer()).toBe(loc);
+  });
+
+  // ⚠ (#150) The validator binds anything CARRIED at any depth; the
+  // controller filtered on direct contents, so a thing in a pocket bound,
+  // was skipped, and the drop said "Nothing dropped." with no reason.
+  it('drops a thing carried in a pocket, not only one in hand', async () => {
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const pouch = makeStuff(() => {
+      const p = new Pouch();
+      p.setName('pouch');
+      return p;
+    });
+    ContainmentApi.move(pouch, giver);
+    const sword = makeStuff(() => {
+      const s = new Sword();
+      s.setName('sword');
+      return s;
+    });
+    ContainmentApi.move(sword, pouch);
+
+    const controller = makeStuff(() => new DropController());
+    const ctx = makeContext(giver, loc);
+    await controller.execute(makeModel(makeResult([sword], 'sword')), ctx);
+    expect(sword.getContainer()).toBe(loc);
+    expect(ctx.getNotes()).not.toContainEqual(
+      expect.objectContaining({ reason: 'nothing-dropped' }),
+    );
   });
 
   it('reports failure when nothing matches the raw query', async () => {
