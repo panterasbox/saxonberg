@@ -53,7 +53,7 @@ tiers). Also rides [civics.md](../../subsystems/civics.md)
 [belief.md](../../subsystems/belief.md),
 [accountability.md](../../subsystems/accountability.md),
 [chattel.md](../../subsystems/chattel.md) (why property crime is
-real), [press-slate](./press-slate.md) (the other detector).
+real), [journalism-slate](./journalism-slate.md) (the other detector).
 
 ---
 

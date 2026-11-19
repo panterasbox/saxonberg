@@ -1,6 +1,6 @@
 # Slate-compaction ledger — batch `press`
 
-Agent scope: `docs/slates/society/press-slate.md`,
+Agent scope: `docs/slates/society/journalism-slate.md`,
 `docs/slates/society/gazette-slate.md`. Insertable doc:
 `docs/subsystems/press.md` only. Graduations belonging elsewhere go to
 Handoff, never written into another doc.
@@ -50,7 +50,7 @@ Verified against code, not against the slates' own markers:
 
 ---
 
-## docs/slates/society/press-slate.md — 510 → 457 lines · Status PARTIAL → PARTIAL
+## docs/slates/society/journalism-slate.md — 510 → 457 lines · Status PARTIAL → PARTIAL
 
 ### Cut (SHIPPED · DOCUMENTED)
 - `## ⭐ A newspaper is an ORGANIZATION that trades and publishes` (41
@@ -132,7 +132,7 @@ Verified against code, not against the slates' own markers:
 
 ### Uncertain — kept
 - The PULL→PUSH record/docket/ticker table appears near-verbatim in
-  both `press-slate.md` and `gazette-slate.md`. Kept in both per the
+  both `journalism-slate.md` and `gazette-slate.md`. Kept in both per the
   pilot's "two slates say the same open thing" rule; a future cluster
   pass should merge them into one doctrine home (likely `press.md`'s
   intro, once the docket ships and there's a real § to hang it on).
@@ -207,7 +207,7 @@ Verified against code, not against the slates' own markers:
   decision).
 
 ### Kept (UNBUILT)
-- `## ⭐⭐⭐⭐ And press-slate already protects the vocation` (full
+- `## ⭐⭐⭐⭐ And journalism-slate already protects the vocation` (full
   section, including `### And the docket being PULL is by design`) —
   the record/docket/ticker table's docket row is still "missing — the
   gap" (confirmed: no docket code anywhere); kept as the slate's core
@@ -219,14 +219,14 @@ Verified against code, not against the slates' own markers:
   pack).
 - `# Wave 2 — the press`'s remaining bullets: subscription, the
   stance action, the three source paths + recording instrument — none
-  found in code; this wave is explicitly press-slate's to size, kept
+  found in code; this wave is explicitly journalism-slate's to size, kept
   as a pointer-only stub here.
 - Open question 3 (docket: new surface or projection?) — fully open,
   the docket doesn't exist yet.
 
 ### Uncertain — kept
 - The record/docket/ticker three-layer table duplicates
-  `press-slate.md`'s `### PULL → PUSH` table near-verbatim — see the
+  `journalism-slate.md`'s `### PULL → PUSH` table near-verbatim — see the
   matching Uncertain note in that slate's ledger entry above. Same
   disposition: kept in both, flagged for a future merge.
 
@@ -237,7 +237,7 @@ Verified against code, not against the slates' own markers:
 ### Status block
 - Left (unchanged by this pass — the body already matched it): the
   docket · the events-not-significance rule enforced structurally ·
-  locality-scoped gazettes as shipped content · Wave 2 (press-slate's).
+  locality-scoped gazettes as shipped content · Wave 2 (journalism-slate's).
 - Status: PARTIAL → PARTIAL (Wave 0 fully shipped, Wave 1 fully struck/
   shipped except its two named bullets — the remaining PARTIAL is
   entirely "the docket + Wave 2", both substantial).

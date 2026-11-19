@@ -14,7 +14,7 @@
 > **Size:** a build (content-led; `trade-printing` and the Gazette)
 > **Neighbors:** [paper-and-printing-slate](./paper-and-printing-slate.md)
 > (the medium — its § 5 printing, § 6 demand, § 7 licensing are this
-> slate's inputs) · [press-slate](../society/press-slate.md) (journalism and
+> slate's inputs) · [journalism-slate](../society/journalism-slate.md) (journalism and
 > publishing, which reach everyone for free and are NOT printing) ·
 > [paper.md](../../subsystems/paper.md) (what shipped)
 

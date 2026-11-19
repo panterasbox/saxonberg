@@ -1,4 +1,4 @@
-# Press slate — the vocation that makes transparency actual
+# Journalism slate — the vocation that makes transparency actual
 
 > **Status: PARTIAL** — the publishing substrate shipped: `PublisherMixin`
 > over `OrganizationMixin`, appointing-authority-appoints/position-
@@ -12,8 +12,15 @@
 > credibility track record and whether a correction repairs standing ·
 > the paywall · classification/sealing + the FOIA loop (needs the
 > docket) · source protection + leak traceability · the recording
-> instrument · the journalism Discipline · the pedagogy pass
+> instrument · the journalism Discipline · the pedagogy pass · ⭐ (2026-11-18, at the end) the vocabulary —
+> journalism, printing, broadcasting, publishing, the fourth estate · the Saxonberg Post — its pen, its
+> charter, its roster, its paper edition
 > **Size:** a build
+
+> ⭐ **Renamed 2026-11-18 from the press slate** (the owner: *"we should stop calling it 'the press' and start
+> calling it 'journalism', at least as a trade, so as not to confuse with printing"*). The shipped
+> [press.md](../../subsystems/press.md) keeps its name until a deliberate rename sweep; its subject is
+> *publishing* (§ *Vocabulary*, at the end).
 
 **Captured 2026-07-31**, out of the amendment-roster walk
 ([amendment-library-slate](./amendment-library-slate.md), the 1A
@@ -483,3 +490,109 @@ journalism competence, and what does it sharpen (reading the record
 faster? sensing a shaky source?) rather than multiply. **Do not
 design these here** — the session that does it deserves the same
 depth the gun pedagogy got.
+
+---
+
+## ⭐⭐⭐ 2026-11-18 — the vocabulary, and the Saxonberg Post
+
+Talked through with the owner after the public-channels design
+([moderation-slate](./moderation-slate.md) § 24) and the Saxonberg slate's § 8a.
+
+### Vocabulary **[DECIDED — the owner]**
+
+| word | names | kind |
+|---|---|---|
+| **journalism** | the craft — finding out, verifying, writing up, standing behind it | a **trade** (a vocation, a Discipline); medium-agnostic |
+| **printing** | copying thing-texts onto paper | a **trade** — `trade-printing` ([printing-slate](../trades/printing-slate.md)) |
+| **broadcasting** | transmitting one-to-many by radio: running a station, programming, going on air | a **trade**, new with radio ([broadcasting-slate](../trades/broadcasting-slate.md)) |
+| **publishing** | pushing to subscribers through the aether — posts, feeds, the ticker | **platform substrate**, not a trade: anyone may publish, as anyone may post — what shipped [press.md](../../subsystems/press.md) does |
+| **the fourth estate** | the institutions journalists build — the Saxonberg Post | an **institution**, not a trade |
+
+**Journalism is the craft; printing, broadcasting and publishing are its media.**
+
+### Not a monopoly **[DECIDED — the owner]**
+
+*"They're not the only ones that could do it. Private broadcasters that are more editorialized or
+opinionated … they may decide the Saxonberg Post gossip channel is totally lame and maybe some random
+player's public chatline becomes the de facto gossip channel instead. I'm totally fine with that."* The
+Post's sections are **its** Subjects; rival publishers, opinionated broadcasters and players' own channels
+compete on equal footing. *One audience, one channel* (moderation § 24) forbids us duplicating our own
+channels, never a rival.
+
+### ⭐⭐⭐ The Saxonberg Post — the business staffed by real players first **[DECIDED in shape — the owner]**
+
+*"If there's any business I want to staff with real players, this is the one I want first. I can run the
+other three estates myself, but this one I need a community to do right."*
+
+**Its pens** (*power is the pen* — [separation-of-powers-slate](./separation-of-powers-slate.md) § 7p;
+press.md: *ownership and the newsroom are two different questions*, *the appointing authority appoints,
+the position publishes*):
+
+| pen | what it is | who holds it |
+|---|---|---|
+| **the appointing authority** | who fills every seat | ⭐ **the real power** — whoever holds it owns the Post, whatever the masthead says |
+| **publishing** | write access to its feed | positions that publish — the editors, and reporters through them |
+| **moderation** | the grant over its Subjects | section editors and moderators |
+| **the purse** | its account — subscriptions, advertising, patrons | the publisher's seat, the business side |
+
+**No code pen** — content all the way down.
+
+### ⭐⭐⭐ Who holds the appointing authority **[LEAN]**
+
+If the operator held it, the person running the other three branches would appoint the press — state media
+with extra steps. **The operator founds the Post and gives the appointing authority away:**
+
+| model | how it works | the guarantee |
+|---|---|---|
+| **a trust** | *The Guardian*'s Scott Trust — a trust owns the paper, its only purpose editorial independence, and appoints the editor | nobody can buy it or lean on it |
+| **a staff cooperative** | journalists elect their editor; *Le Monde*'s journalists' society long held a veto over its owners | the newsroom governs itself |
+| **a reader-owned mutual** | subscribers are members and elect the board | the audience owns it |
+
+**Lean: a charter guaranteeing independence (the trust's purpose), the editor chosen by the newsroom** —
+the corpo seats' conviction tally ([corpos-slate](./corpos-slate.md) § 2026-11-18) with the staff as its
+constituency. **The operator's only act is founding it**; after that the operator holds nothing there, and
+its plaque in Saxonberg says so ([saxonberg-city-slate](../world/saxonberg-city-slate.md) § 8b).
+
+### NPCs and players
+
+NPCs cannot choose, so **every judgment is a player's** — choosing stories, writing, editing, moderating,
+correcting. That is press.md's cold start: **no NPC outlet, no synthetic floor**. The Post ships with its
+building and open seats and publishes nothing until people do. **NPCs hold only mechanical seats** — the
+front desk that takes tips, the newsstand, the printer's devil at the press, the newsboys.
+
+| seat | holds |
+|---|---|
+| **publisher** | the purse and the business side — never editorial decisions |
+| **editor-in-chief** | the editorial pen, chosen by the newsroom |
+| **section editors** | publishing and moderation for their section's Subject |
+| **reporters** | drafts their editor releases; bylines |
+| **columnists** | bylined opinion, marked as opinion |
+| ⭐ **the public editor** | corrections and the credibility record — trust is a track record, so someone owns it |
+| **moderators** | the moderation grant over its Subjects — the launch team (moderation § 24) |
+| **stringers** | freelance tips and pieces, paid per piece — the bounty pattern |
+
+### The paper edition — what printing is for
+
+Copying text is worth nothing here (the [printing-slate](../trades/printing-slate.md) premise): the Post's
+main medium is **publishing over the aether**, pushed free to subscribers. A paper edition is worth printing
+only for what paper adds:
+
+- **it is a thing** — held, carried, passed hand to hand, burnt;
+- ⭐ **it is frozen as of a day** — *the Post said this on the 4th* is evidence; only paper can be quoted
+  against the present;
+- **it bears marks of its making** — the printer's device, misprints; it can be forged;
+- ⭐ **it reaches where the aether does not** — in a Wheel-covenant town whose tuners are powered down by law,
+  **the paper edition is how the news arrives**, by newsboys at a carrier's pace: the press meets the epoch
+  covenants ([content-declaration-slate](../platform/content-declaration-slate.md) § 3).
+
+So **the Post contracts the printing trade** (or someday owns a press), and printing stays its own trade — a
+jobbing printer prints handbills, posters and the Post's edition alike. Distribution is logistics; licensing
+the press is the polity's law; the clandestine press is the anonymous press room on paper.
+
+### Open
+
+1. **The Post's appointing authority** — confirm the independence charter and the newsroom electing its
+   editor.
+2. **The Post's revenue at launch** — an operator endowment (as the university's), subscriptions, or
+   advertising once corpos sponsor it.
+3. **The paper edition** as the way into covenant towns, printed under contract.
