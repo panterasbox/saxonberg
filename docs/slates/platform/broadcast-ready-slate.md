@@ -215,7 +215,7 @@ The owner: *"This makes me rethink some of what we've slated and even already bu
 assumes all livestreaming content in the game is what we're now calling off-page … there's also livestreaming that's
 on-page to consider, and we have to keep those two things distinct. What we've built right now makes a lot of
 assumptions we probably need to reconsider."* (*Off-page* and *on-page*:
-[photography-slate](../trades/photography-slate.md) § 9; the screen side:
+[recording-slate](../trades/recording-slate.md) § 9; the screen side:
 [display-manifestation-slate](../client/display-manifestation-slate.md) § *The page boundary*.)
 
 **The owner's stream is not purely off-page**: his face and voice are, but most of what is on screen is **the game

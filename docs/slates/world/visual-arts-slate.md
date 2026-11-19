@@ -22,7 +22,7 @@
 > commission, the dealer, the patron
 > **Size:** a build (client-led, on the performance slate's pattern)
 
-> ⭐ **Term, 2026-11-18** ([photography-slate](../trades/photography-slate.md) § 9): real-world creative work
+> ⭐ **Term, 2026-11-18** ([recording-slate](../trades/recording-slate.md) § 9): real-world creative work
 > brought into the game is **off-page work**, its maker an **off-page artist**; what the game renders is
 > **on-page**. Disciplines name in-world crafts only — the game measures the staging around off-page work,
 > never the work.

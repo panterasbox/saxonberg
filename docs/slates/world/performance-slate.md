@@ -17,10 +17,12 @@
 > (sections, markers, layers, a cue sheet over a closed situation vocabulary) ·
 > authorship by title down the zone tree · seams graceful by default, seamless by
 > a voluntary house sound · diegetic music beats the score · the listener's last
-> word · the composition Discipline's craft checks · royalties
+> word · the composition Discipline's craft checks · royalties · ⭐ (2026-11-18, § 8) theater — on-page
+> performance: the stage and the house, roles through disguise, the cue sheet as a script, stage positions as
+> placement rows, line accuracy and cue timing measured, playwrights paid per performance
 > **Size:** a build (client-led)
 
-> ⭐ **Term, 2026-11-18** ([photography-slate](../trades/photography-slate.md) § 9): real-world creative work
+> ⭐ **Term, 2026-11-18** ([recording-slate](../trades/recording-slate.md) § 9): real-world creative work
 > brought into the game is **off-page work**, its maker an **off-page artist**; what the game renders is
 > **on-page**. Disciplines name in-world crafts only — the game measures the staging around off-page work,
 > never the work.
@@ -208,3 +210,106 @@ routing.
 4. **Where scores attach** — a zone field, a place field, both.
 5. **Personal scores** — whether a character theme is a document the player owns
    and carries between realms.
+
+## 8. ⭐⭐⭐ Theater — on-page performance (2026-11-18) **[DECIDED in shape — lens pass]**
+
+This slate's §§ 0–7 are the **off-page** performance: a real performer streamed into a fictional venue, the game
+supplying everything around it. **Theater by players in text is on-page art** — made in the game's own medium, so the
+game may record it ([recording-slate](../trades/recording-slate.md) § 10) — and it is the art form a text world does
+best: a play is people saying and doing things in front of other people.
+
+### The stage and the house
+
+- **Two places: the stage, and the house that can see it.** What actors say and do on stage reaches the audience; the
+  stage is presented with the performer foregrounded and the audience murmuring (§ 1).
+- **Theater manners are acoustics** — the audience whispers to a neighbor; a heckler's shout carries to the stage and
+  everyone; how a house handles it is its house rules.
+- **Seats are a real resource** — a house holds so many, and a full room is already handled.
+
+### Actors and roles **[DECIDED — lens 3a]**
+
+- **An actor plays a role**, distinct from their character; **costume and makeup work through disguise**, already
+  perceptual, so the audience perceives the role — *Hamlet*, not Bob ([belief.md](../../subsystems/belief.md)).
+- ⭐ **Recognition makes it fun** — someone who knows Bob may recognize him under the costume, as in life; **the
+  playbill names the cast** for everyone else.
+- ⭐ **Stage positions** — upstage, downstage, stage left and right — **join the placement vocabulary as rows**
+  **[DECIDED — lens 2]** (it is row-extensible, [spatial.md](../../subsystems/spatial.md)), so blocking is real.
+
+### The production runs on systems that exist
+
+| part | what carries it |
+|---|---|
+| **the script** | a document; actors see their lines and cues on a card |
+| **the prompter** | feeds an actor a missed line privately |
+| ⭐ **the stage manager's cue sheet** | **a script in the scripting sense** **[DECIDED — lens 2]** — players already define and run scripts ([scripting.md](../../subsystems/scripting.md)), so *"Cue 14: lights dim, thunder"* is a defined sequence the stage manager triggers: theater automation is scripting |
+| **lighting** | real light physics — spotlights, a follow spot, the blackout; lighting design a real craft |
+| **sets** | props and fixtures; scene changes are stagehands moving things |
+| ⭐ **the fly system** | ropes and counterweights lifting scenery into the loft — cordage already models where a rope's ends are tied ([cordage.md](../../subsystems/cordage.md)) |
+| **sound effects** | a thunder sheet, a wind machine — real objects making sounds |
+| **stage combat** | choreographed fighting that never harms (below) |
+
+### Craft, measured honestly **[DECIDED — lens 1]**
+
+- **Scripted theater has a measurable technical craft**: whether an actor delivered the scripted line, whether a cue
+  landed on time — comparing what was said to the script is plain text, deterministic and fair.
+- ⛔ **The art is never judged** — line accuracy and cue timing, yes; whether the performance moved anyone, never; the
+  audience decides through reception (§ 3).
+- **Improv has no script to measure against**, and that is fine — the most text-native form, judged purely by its
+  audience.
+- **Rehearsals are practice deeds.**
+
+### Stage combat never harms **[DECIDED — lens 7]**
+
+Combat already carries a **terms** primitive — lethality, stop condition, consent ([combat.md](../../subsystems/combat.md)),
+non-lethal a real setting. **Stage combat is consented terms that inflict nothing** — choreographed, never real.
+⚠ **To check at the build**: whether non-lethal terms already inflict no wounds at all, or a *staged* level must be
+added.
+
+### The economy
+
+- **Theater companies are institutions** — the generic toolkit ([guild-slate](../society/guild-slate.md) § *The guild
+  as an institution*).
+- **Theaters are venues** — a box office, **paper tickets** (bearer paper, as the TPA's ticket), playbills (printing),
+  reviews (the Post — [journalism-slate](../society/journalism-slate.md)), patrons, festivals.
+- ⭐ **Playwrights are paid per performance when their plays are licensed** **[DECIDED — lens 6]** — how real performance
+  rights work: a theater pays royalties each time it stages a living playwright's work. A player's original play is
+  licensed to other companies, credited, paid per staging; **public-domain plays are free** (Shakespeare, the Greeks,
+  Molière, Chekhov).
+- **Theater pulls on the trades** — sets (crafts), rigging (rope), costumes (textiles), playbills (printing).
+- **Productions may be filmed** — on-page, so recordable; **performers are credited authors** of what they perform
+  ([recording-slate](../trades/recording-slate.md) § 13).
+
+### Lens pass
+
+1. **Pedagogy** — dramaturgy; stagecraft (lighting physics, rigging mechanics); the acoustics of a house (Epidaurus
+   carries a whisper to the back rows); theater history from the Greeks through the Elizabethans; the Licensing Act of
+   1737; how performance rights work. **Line accuracy and cue timing are the measurable craft.**
+2. **Expression** — a production needs no code; **the cue sheet is a script**; **stage positions as placement rows**.
+3. **3a Immersion** — **actors play roles through disguise, the playbill naming the cast**; theater manners as
+   acoustics; the stage presented with the performer foregrounded. **3b Participation** — companies, actors, directors,
+   stage managers, critics, festivals; improv nights with the audience calling suggestions — Dave's Bar an obvious early
+   venue.
+4. **Values** — what to stage is the company's; censorship the polity's; audience conduct the house's.
+5. **Continuity** — every rung on the same stage; only the lighting changes (daylight, candles, gaslight, limelight,
+   electric); a filmed production persists.
+6. **Economy** — **playwrights paid per performance when licensed**, public domain free; commissions to the trades;
+   tickets, patrons, festivals.
+7. **Governance** — **stage combat never harms**; the conduct code applies to what is performed and to the audience
+   under house rules; royalty disputes are civil cases; performers credited authors. Licensing and censorship are real
+   history — England's Lord Chamberlain licensed every play from 1737 to 1968 — and a polity's choice.
+
+| question | answer | lens |
+|---|---|---|
+| the stage | a stage and a house that sees it; theater manners as acoustics | 3a |
+| roles | actors play roles through disguise; the playbill names the cast | 3a |
+| cues | the cue sheet is a script, run with existing scripting | 2 |
+| blocking | stage positions as placement rows | 2 |
+| craft | line accuracy and cue timing measured; the art never judged | 1 |
+| royalties | playwrights paid per performance when licensed; public domain free | 6 |
+| stage combat | consented terms that inflict nothing | 7 |
+| epochs | every rung; only the lighting changes | 5 |
+
+### Open
+
+1. **Non-lethal terms** — do they already inflict no wounds, or does a *staged* level need adding?
+2. **The prompter** — a private card feeding the actor a missed line?

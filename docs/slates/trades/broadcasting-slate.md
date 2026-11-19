@@ -11,7 +11,8 @@
 > business · spectrum law as Tier C · the radio-engineering hardware · ⭐ (§ 7) the two carriers — the aether
 > for real streamed media at launch, physical for in-fiction reach · one trade across the ladder, crier to
 > stream · craft measured by agendas kept · venues owning their screens · (§ 8) the town crier — a job over
-> existing verbs, promulgation as a polity's choice
+> existing verbs, promulgation as a polity's choice · (§ 9) television — reach by horizon geometry, public-interest
+> license conditions never on the press, opt-in ratings
 > **Size:** a build
 
 ## 0. Why reach comes from the transmitter **[DECIDED — lenses 1, 3a]**
@@ -211,7 +212,7 @@ the stream (moderation § 14a), is broadcast content: the judiciary on air.
 ### Open
 
 1. ~~**The crier**~~ — designed in § 8.
-2. **Television** — designed now as broadcast to screens, or left for the Signal rung's content?
+2. ~~**Television**~~ — designed in § 9.
 
 ## 8. ⭐⭐ The town crier **[DECIDED in shape]**
 
@@ -286,3 +287,100 @@ time spent shouting.
 
 1. **Promulgation off by default** — a clause a polity opts into?
 2. **Crier protection** — a default law, or each polity's own?
+
+## 9. ⭐⭐⭐ Television **[DECIDED in shape — lens pass]**
+
+Television is mostly built from pieces already designed — broadcasting's carrier, the on-page relay
+([display-manifestation-slate](../client/display-manifestation-slate.md) § *The page boundary*), the recording model
+([recording-slate](./recording-slate.md)). The question is what it adds that the aether's streams and the cinema do not.
+
+### What only television gives
+
+1. **It is local** — a station reaches the screens within its signal, not everywhere: Terminus TV is Terminus's.
+2. **It is scheduled** — a lineup, a time slot, *what's on tonight*.
+3. **It has channels** — a dial with a few stations, because spectrum is scarce.
+4. **It is in the home** — a set in the living room, watched together; and on the bar's wall for the big game.
+5. **It is paid for by commercials** — the thirty-second spot.
+
+### ⭐⭐ Reach is horizon geometry **[DECIDED — lens 1]**
+
+Television signals travel roughly in line of sight, so **a station's reach ends at the horizon**, set by its antenna's
+height. The geography build made the world **a third of Earth's radius**, so the horizon is nearer and a tower reaches
+less far than on Earth — a consequence nobody authors: put the antenna on a hill and the station covers more of the
+realm. The light model again (§ 7), at television's frequencies. **A station is a row** — transmitter power,
+frequency, antenna height **[DECIDED — lens 2]**.
+
+### What is on — programming in a text world
+
+| program | here |
+|---|---|
+| **news** | anchors (players) at a desk; live on-page relays from reporters in the field |
+| ⭐ **game shows** | the most text-native format there is — quizzes, with an obvious link to the university's quiz bowl |
+| **serial drama** | player actors in a soap opera, recorded or live |
+| ⭐ **sports** | live relays of in-world sports — the drill ground, races, varsity — with players as commentators |
+| **weather** | from the real weather field |
+| **the Assembly** | the floor, live — the C-SPAN idea |
+| **films** | the cinema catalog, broadcast ([recording-slate](./recording-slate.md) § 13) |
+| **an off-page stream** | a station may carry one locally; viewers in range get video mode, marked |
+
+**Networks** link stations in different towns to share programs; **before videotape, programs traveled on film** — a
+kinescope was a film shot off a television screen and shipped to distant stations — so here recorded programs travel
+as goods: logistics.
+
+### ⭐⭐⭐ Spectrum scarcity brings public obligations — and the press is different **[DECIDED — lens 7]**
+
+- **Broadcasters use scarce public spectrum**, so in the US they could be held to public-interest obligations: the
+  **Fairness Doctrine** (1949–1987) required licensees to air contrasting views on controversial issues, and the Supreme
+  Court upheld it in ***Red Lion v. FCC*** (1969) *because* spectrum is scarce.
+- **Newspapers use no scarce public resource**, so the same Court struck down a right-of-reply law for them in ***Miami
+  Herald v. Tornillo*** (1974).
+- So: **a television or radio license may carry public-interest conditions the polity sets — fairness, equal time for
+  candidates, children's programming, each a typed clause — and the Saxonberg Post never can**
+  ([journalism-slate](../society/journalism-slate.md)). Whether to impose them is a real choice; the scarcity is real, a
+  world's spectrum finite.
+
+### Ratings — with consent **[DECIDED — lens 7]**
+
+Real television ratings came from Nielsen's **panels of households that agreed to be measured**. Each broadcaster sees
+its own audience (§ 7); **a ratings service measures across stations only from viewers who opt into its panel** —
+consent-based measurement, as it really worked (*the engine measures, the subject values*). Ratings sell advertising, so
+a ratings service is a real business.
+
+### Epoch and timing **[DECIDED — lens 6]**
+
+Mechanical television (spinning disks, the 1920s) was Electric-rung; electronic television is Signal; covenants apply.
+**Like radio, it waits for demand**: it needs on-page programs worth watching, which need the on-page relay first. Its
+first real audiences are **sports in bars and the Assembly in public places**.
+
+### Lens pass
+
+1. **Pedagogy** — the radio horizon (a formula over the planet's radius and the antenna's height); spectrum scarcity;
+   two Supreme Court cases pointing opposite ways for opposite reasons; **sampling** in a ratings panel; mechanical
+   against electronic television; the kinescope. **Reach is horizon geometry.**
+2. **Expression** — programs are performances, relays and recordings, all on-page, no code; **a station is a row**.
+3. **3a Immersion** — sets in homes and on bar walls; Signal-rung, so covenants apply; programs as prose by glance and
+   watch; carried off-page streams marked. **3b Participation** — anchors, game-show hosts and contestants,
+   sportscasters, soap stars, local news crews; the Assembly televised.
+4. **Values** — public-interest obligations; advertising standards (the US banned cigarette advertising on television
+   and radio in 1971); what each station airs.
+5. **Continuity** — mechanical, electronic, digital, one command (watch it on a screen); distribution from kinescope to
+   videotape to digital.
+6. **Economy** — stations, networks, commercials sold to sponsors (corpos the obvious buyers), syndication, the ratings
+   business; **waits for demand**, bar sports and the Assembly first.
+7. **Governance** — **license conditions the polity's option, never imposed on the press**; **cross-station ratings
+   only from opt-in panels**; spectrum law the polity's; licenses tools with notice and appeal.
+
+| question | answer | lens |
+|---|---|---|
+| reach | horizon geometry — world radius and antenna height | 1 |
+| stations | rows — power, frequency, antenna height | 2 |
+| programs | on-page performances, relays and recordings; game shows and sports first | 2, 3b |
+| rung | Signal; covenants apply | 3a |
+| timing | waits for demand — bar sports and the Assembly first | 6 |
+| public interest | license conditions the polity's option; never on the press | 7 |
+| ratings | across stations only from opt-in panels; each broadcaster sees its own | 7 |
+
+### Open
+
+1. **The Fairness Doctrine off by default** — a clause a polity adopts?
+2. **Network relays** — shipped recordings first, live links later?
