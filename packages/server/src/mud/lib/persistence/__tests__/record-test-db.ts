@@ -145,6 +145,39 @@ export function installRecordTestDb(): RecordTestDb {
     return id;
   });
 
+  // `saveMany` (db-performance D7): the three write forms, in memory —
+  // keyed update-or-insert (or a miss that writes nothing with
+  // `insert: false`), by `_id`, or an insert.
+  vi.spyOn(pm, 'saveMany').mockImplementation(async (collection, writes) => {
+    const b = bucket(collection);
+    let n = 0;
+    for (const w of writes) {
+      const doc = { ...w.doc };
+      if (w.key && w.key.length > 0) {
+        const hit = b.find((r) => w.key!.every((k) => r[k] === doc[k]));
+        if (hit) {
+          const { _id: _ignored, createdAt: _c, ...rest } = doc;
+          Object.assign(hit, rest);
+          n++;
+        } else if (w.insert !== false) {
+          delete doc._id;
+          b.push({ ...doc, _id: `id-${nextId++}` });
+          n++;
+        }
+      } else if (doc._id) {
+        const idx = b.findIndex((r) => r._id === doc._id);
+        if (idx >= 0) {
+          b[idx] = { ...b[idx], ...doc };
+          n++;
+        }
+      } else {
+        b.push({ ...doc, _id: `id-${nextId++}` });
+        n++;
+      }
+    }
+    return n;
+  });
+
   vi.spyOn(pm, 'findById').mockImplementation(
     async (collection, id) => bucket(collection).find((r) => r._id === id) ?? null,
   );

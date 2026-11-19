@@ -1613,3 +1613,30 @@ born-with seed; only its *liveness* is transient. Proven in
 `PersistentLocale` keeps a place's floor, fire and fixtures
 across a restart through `AdornableMixin`'s fixture slice;
 `captureHostOf` walks fixture → host. See [cleanliness.md](./cleanliness.md).
+
+## `saveMany` — many rows in one round trip (db-performance, 2026-11)
+
+`PersistApi.saveMany(collection, writes)` writes a batch of rows of one
+collection as ONE unordered `bulkWrite`. Each `BatchWrite` picks its form
+by its own fields: **keyed** (`key: ['subject', 'scope']` — update the row
+whose key fields match, inserting when none does; `insert: false` makes it
+a partial update that writes nothing on a miss; `createdAt` only on
+insert), **by `_id`**, or an **insert**. A `Document` makes its write with
+`toBatchWrite({ key?, fields?, insert? })` — what `save()` prepares,
+returned instead of sent (`fields` keeps only those and the key).
+
+It obeys `save`'s rules and refuses where it cannot:
+
+- ⚠ a collection with an around-save hook is **refused** with
+  `BatchOnHookedCollectionError` before anything is sent — a hook may
+  rewrite or veto a document, and a batch that skipped it silently would be
+  the defect (`content` is the one hooked collection);
+- the sandbox policy is one sentence for both (`writePolicy`): a `stamp`
+  collection also confines a keyed filter to the circle, `shadow`/`skip`
+  writes nothing;
+- it runs inside the `(collection, save)` slot, so re-entry throws.
+
+**The wrong tool** for a row whose `_id` the caller needs back (it returns
+a count) and for a hooked collection. Its consumers: the frame drain
+(record-layer.md), the three scoring passes (participation.md,
+renown.md), and the capture write (below).

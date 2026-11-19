@@ -23,6 +23,7 @@ import {
   Db,
   Collection,
   ObjectId,
+  type AnyBulkWriteOperation,
   type IndexSpecification,
   type CreateIndexesOptions,
 } from 'mongodb';
@@ -349,6 +350,39 @@ interface HookManifestEntry {
 
 interface HookManifest {
   hooks: HookManifestEntry[];
+}
+
+/**
+ * One write in a {@link PersistenceManager.saveMany} batch (db-performance
+ * D7). Three forms, chosen by the write's own fields:
+ *   - **`key`** — an update of the one row whose `key` fields equal the
+ *     doc's, `$set`ting the rest; inserted when none matches unless
+ *     `insert: false`. `createdAt` is written only on insert.
+ *   - **`_id`** (no `key`) — an update of that row, as `save` does.
+ *   - **neither** — an insert.
+ */
+export interface BatchWrite {
+  doc: Record<string, unknown>;
+  /** Field names forming the row's key. Omitted: by `_id`, else an insert. */
+  key?: readonly string[];
+  /** With `key`: insert when no row matches (default true). */
+  insert?: boolean;
+}
+
+/**
+ * Thrown by `saveMany` on a collection with a registered around-save hook,
+ * before anything is sent. A hook may rewrite or veto a document; a batch
+ * that skipped it silently would be the defect, so a hooked collection is
+ * written one `save` at a time.
+ */
+export class BatchOnHookedCollectionError extends Error {
+  constructor(public readonly collection: string) {
+    super(
+      `PersistenceManager.saveMany: '${collection}' has an around-save hook — ` +
+        'a batch would skip it. Write it with save().'
+    );
+    this.name = 'BatchOnHookedCollectionError';
+  }
 }
 
 /** The database's numbers (`PersistenceManager.stats()`; `/stats` → `db`). */
@@ -745,6 +779,85 @@ export class PersistenceManager {
   }
 
   /**
+   * ⭐ Write many rows of one collection in ONE round trip
+   * (`bulkWrite`, unordered) — db-performance D7. Each {@link BatchWrite}
+   * picks its own form: keyed (update-or-insert by the named fields, or a
+   * partial update with `insert: false`), by `_id`, or an insert. Returns
+   * the rows written or matched. The caller chunks; one call is one
+   * `bulkWrite`.
+   *
+   * What it shares with `save`, and what it refuses:
+   *   - ⚠ a collection with an around-save hook is REFUSED with
+   *     {@link BatchOnHookedCollectionError} before anything is sent;
+   *   - the sandbox policy is the same sentence ({@link writePolicy}): a
+   *     `stamp` collection also confines each keyed filter to the circle;
+   *     a `shadow`/`skip` collection writes nothing and returns 0;
+   *   - it runs inside the `(collection, save)` slot, so re-entry throws;
+   *   - the resident `content` cache is dropped whole after it, as
+   *     `deleteMany` does (unreachable while `content` is hooked).
+   *
+   * ⚠ The wrong tool for a row whose `_id` the caller needs back (it
+   * returns a count) and for a hooked collection — both are `save`'s.
+   */
+  public async saveMany(
+    collectionName: string,
+    writes: readonly BatchWrite[]
+  ): Promise<number> {
+    if (writes.length === 0) return 0;
+    if ((this.saveHooks.get(`${collectionName}:save`) ?? []).length > 0) {
+      throw new BatchOnHookedCollectionError(collectionName);
+    }
+    const policy = this.writePolicy(collectionName, 'saveMany');
+    if (policy.skip) return 0;
+    const ops = writes.map((w) => PersistenceManager.batchOp(w, policy.mark, policy.confine));
+    const slot = `${collectionName}:save`;
+    return this.withSlot(slot, collectionName, 'save', async () => {
+      const _t0 = performance.now();
+      try {
+        const res = await this.getCollection(collectionName).bulkWrite(ops, {
+          ordered: false,
+        });
+        _orec('saveMany', collectionName, writes[0]?.key?.join(',') ?? '', _t0);
+        if (this.contentCacheEngaged(collectionName)) this.dropContentCache();
+        return (res.insertedCount ?? 0) + (res.matchedCount ?? 0) + (res.upsertedCount ?? 0);
+      } catch (error) {
+        console.error(
+          `PersistenceManager: Error batch-writing ${writes.length} row(s) to ${collectionName}:`,
+          error
+        );
+        throw error;
+      }
+    });
+  }
+
+  /** One `bulkWrite` operation for a {@link BatchWrite} (see `saveMany`). */
+  private static batchOp(
+    w: BatchWrite,
+    mark: string | null,
+    confine: string | null
+  ): AnyBulkWriteOperation {
+    const doc: Record<string, unknown> = { ...w.doc };
+    if (mark !== null) doc.circleScope = mark;
+    if (w.key && w.key.length > 0) {
+      const filter: Record<string, unknown> = {};
+      for (const k of w.key) filter[k] = doc[k];
+      if (confine !== null) filter.circleScope = confine;
+      const createdAt = doc.createdAt;
+      delete doc._id;
+      delete doc.createdAt;
+      const update: Record<string, unknown> = { $set: doc };
+      if (createdAt !== undefined) update.$setOnInsert = { createdAt };
+      return { updateOne: { filter, update, upsert: w.insert !== false } };
+    }
+    if (doc._id != null) {
+      const id = typeof doc._id === 'string' ? new ObjectId(doc._id) : (doc._id as ObjectId);
+      delete doc._id;
+      return { updateOne: { filter: { _id: id }, update: { $set: doc } } };
+    }
+    return { insertOne: { document: doc } };
+  }
+
+  /**
    * The distinct values of `field` across `collectionName` (the
    * blueprint catalogue's class enumeration). Read-only.
    */
@@ -1099,48 +1212,17 @@ export class PersistenceManager {
     // Sandbox policy seam: one resolver call; `null` (the overwhelmingly
     // common case) falls straight through to today's path with no
     // allocation and no policy lookup.
-    const scope = this.scopeResolver();
-    if (scope !== null) {
-      const policy =
-        COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
-      if (policy) {
-        switch (policy.verb) {
-          case 'refuse':
-            throw new SandboxWriteRefusedError(collectionName, scope, 'save');
-          case 'stamp':
-            document.circleScope = scope;
-            break;
-          case 'pass':
-            if (policy.mark) document.circleScope = scope;
-            break;
-          case 'shadow':
-            // skip-and-rebuild: the terminal cache write is a documented
-            // no-op from circle context — readers derive live from their
-            // event ledgers instead. The returned id is a local receipt,
-            // never a durable identifier.
-            if (policy.mode === 'skip') {
-              return document._id != null
-                ? String(document._id)
-                : new ObjectId().toString();
-            }
-            throw new SandboxOverlayUnimplementedError(
-              collectionName,
-              scope,
-              'save'
-            );
-        }
-      }
-      // An unknown collection name (not in the enum) written from circle
-      // context fails closed — the totality guarantee has no row to
-      // consult, and silence would be an escape hatch.
-      if (!policy) {
-        throw new SandboxWriteRefusedError(
-          collectionName,
-          scope,
-          'save (unclassified collection)'
-        );
-      }
+    const policy = this.writePolicy(collectionName, 'save');
+    if (policy.skip) {
+      // skip-and-rebuild: the terminal cache write is a documented no-op
+      // from circle context — readers derive live from their event ledgers
+      // instead. The returned id is a local receipt, never a durable
+      // identifier.
+      return document._id != null
+        ? String(document._id)
+        : new ObjectId().toString();
     }
+    if (policy.mark !== null) document.circleScope = policy.mark;
     const slot = `${collectionName}:save`;
     return this.withSlot(slot, collectionName, 'save', async () => {
       const hooks = this.saveHooks.get(slot) ?? [];
@@ -1154,6 +1236,46 @@ export class PersistenceManager {
       }
       return next(document);
     });
+  }
+
+  /**
+   * ⭐ The sandbox policy for a WRITE from the current context — the one
+   * sentence `save` and `saveMany` both obey (db-performance D7). Field and
+   * system contexts (`scope === null`, the overwhelmingly common case)
+   * write as they are. From a circle: `refuse` throws; `stamp` marks every
+   * doc with the circle AND confines a keyed write's filter to it; `pass`
+   * with `mark` marks; `shadow`/`skip` writes nothing; an unclassified
+   * collection fails closed — the totality guarantee has no row to
+   * consult, and silence would be an escape hatch.
+   */
+  private writePolicy(
+    collectionName: string,
+    op: string
+  ):
+    | { skip: true }
+    | { skip: false; mark: string | null; confine: string | null } {
+    const scope = this.scopeResolver();
+    if (scope === null) return { skip: false, mark: null, confine: null };
+    const policy =
+      COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
+    if (!policy) {
+      throw new SandboxWriteRefusedError(
+        collectionName,
+        scope,
+        `${op} (unclassified collection)`
+      );
+    }
+    switch (policy.verb) {
+      case 'refuse':
+        throw new SandboxWriteRefusedError(collectionName, scope, op);
+      case 'stamp':
+        return { skip: false, mark: scope, confine: scope };
+      case 'pass':
+        return { skip: false, mark: policy.mark ? scope : null, confine: null };
+      case 'shadow':
+        if (policy.mode === 'skip') return { skip: true };
+        throw new SandboxOverlayUnimplementedError(collectionName, scope, op);
+    }
   }
 
   /**
