@@ -1,6 +1,6 @@
 # Tooltips — requirements
 
-**Status:** DRAFT 2026-11-18 — the owner: *"retrofit everything, take your
+**Status:** AGREED 2026-11-18 — the owner: *"retrofit everything, take your
 leans, write it up."*
 
 **Kind:** client (with a small server part)
