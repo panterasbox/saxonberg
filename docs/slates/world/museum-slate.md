@@ -9,8 +9,9 @@
 > ([chattel.md](../../subsystems/chattel.md)), the record ([record-integrity-slate](../platform/record-integrity-slate.md)),
 > displays reading live data ([display.md](../../subsystems/display.md)), the location graph's public
 > layer ([location-graph.md](../../subsystems/location-graph.md)).
-> **Left:** ⭐ the foundation (§ 0 — a museum is the world's knowledge given a floor plan) · what an
-> exhibit is as content · generated halls · the curator's seat and its pen · the technology museum · the
+> **Left:** ⭐ the foundation (§ 0 — a museum is the world's knowledge given a floor plan) · ⭐ the exhibit
+> document, exhibit kinds, the shell with warren galleries, travelling exhibitions (§ 0a) · generated room
+> prose · the curator's seat and its pen · the technology museum · the
 > realm museum · re-reading every gathered museum (§ 1) against § 0
 > **Size:** a design pass, then content per museum
 
@@ -119,6 +120,116 @@ species, but that is an index, not a museum; a museum says *these, in this order
 7. **Governance** — **public museums are government speech**; private speech and disclosed sponsorship;
    labels contestable on the argument map.
 
+## 0a. ⭐⭐⭐ What an exhibit is, and how a museum is built (2026-11-18) **[DECIDED in shape — the owner]**
+
+### An exhibit is three parts
+
+An exhibit must **point at a piece of knowledge** by stable id, **show it working on the real engine**,
+**carry a label**, and **sit in an arrangement**. The arrangement is the museum's places; the rest is:
+
+| part | what it is | what it rides |
+|---|---|---|
+| **the subject** | a stable id — *the cooling law*, *the red deer*, *copper* | the knowledge catalogs that exist |
+| **the demonstration** | real things placed in the room — a rig, a living animal, a sample, a display | ordinary place content: props, fixtures, cast |
+| **the label** | a signed document — author, date, text | a document at a path under the museum; the authorship ledger records who wrote it |
+
+⭐ **An exhibit is a document** **[DECIDED — lens 2]** — subject, label, placement spec; one kind for every
+exhibit, so a curator authors exhibits in one place, as data. A kernel change: the document kinds are a
+closed list ([document-store.md](../../subsystems/document-store.md)).
+
+### ⭐⭐ Exhibit kinds — how each kind of knowledge is shown **[DECIDED — lens 1]**
+
+| exhibit kind | shows | e.g. |
+|---|---|---|
+| **specimen** | a living organism, kept | a red deer in an enclosure, a hive under glass |
+| **demonstration** | a rig running a law | a pot cooling on a hearth, a waterwheel turning a shaft |
+| **sample** | a material or a good | copper ore beside smelted copper beside a finished pot |
+| **window** | live data, Saxonberg-style | the realm's places, today's weather, a market |
+| **panel** | text and image | lore, history, a myth |
+| **reconstruction** | a built scene, commissioned | a diorama, a reconstructed mill room |
+| **interactive** | something the visitor does | try the hand quern, take one pick at a lock |
+
+- **Exhibit kinds are rows**, so a pack may add one.
+- **Each kind of knowledge has a default exhibit kind** — species → specimen, law → demonstration,
+  material → sample, place → window, lore → panel — so **a generated hall is predictable**; a curator may
+  pick any kind, or commission a reconstruction.
+
+### The real engine has two consequences
+
+- ⭐ **Exhibits have real running costs** **[DECIDED — lens 6]** — a working steam engine burns coal; a living
+  specimen eats. The museum buys fuel and feed: real demand, honest operating costs. **A museum that cannot
+  pay has a cold exhibit**, and the world shows it — as a guild that cannot pay rent goes visibly dark.
+- ⭐ **Exhibits never leak value** **[DECIDED — lenses 6, 7]** — demonstration objects are **fixtures**: fixed
+  in place, unable to change hands; what cannot trade has no market value, so placing it is no goods faucet
+  ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7p) — a wall, enforced by code.
+  **Interactives run in a small sandbox circle** — the flour ground at the quern stays in the exhibit — with
+  an in-world threshold (*step onto the exhibit floor*), as the sandbox's wardrobe door.
+
+### ⭐⭐⭐ The museum: a singleton shell with warren galleries **[DECIDED — lens 2]**
+
+The owner: *"Is a museum a bunch of singleton places hand-crafted and statically arranged? Or is it a warren
+pulling its layout from some other more abstract document? Both have pros and cons. The warren makes it easy
+to have travelling exhibits between museums."*
+
+| | singleton places | a warren built from a plan document |
+|---|---|---|
+| **feel** | bespoke rooms, rich prose, character | rooms composed from their exhibits; prose generated |
+| **curating** | rearranging means authoring places | rearranging means **editing a document** |
+| **generated halls** | awkward | trivial — a generator writes the plan |
+| **travelling exhibitions** | needs moving fixtures between places | natural — an exhibition is a document mounted anywhere |
+| **addresses and the map** | stable | ⚠ re-minted rooms can confuse the map |
+
+**Real museums are both** — a fixed building and permanent collection, and galleries that take rotating
+exhibitions. So:
+
+- **The museum is a singleton shell**, hand-crafted — entrance, atrium, signature rooms, stable addresses:
+  its character.
+- **Its galleries are warren wings driven by plan documents** — the **FloorplanWarren** shape ships already
+  (ships use it; [holding.md](../../subsystems/holding.md)) — permanent galleries the curator rearranges by
+  editing, and **gallery slots** that take a mounted exhibition.
+- **A generated hall is a gallery whose plan the generator writes** instead of a curator.
+- ⭐ **Gallery slots keep stable addresses; their contents change** **[DECIDED — lens 5]** — the player's map
+  knows *the east gallery* without promising what is in it, as people know real museums.
+
+### ⭐⭐ Travelling exhibitions — documents, exclusive only by license **[DECIDED in shape]**
+
+- **An exhibition is a document**: exhibits (each keyed to its subject by stable id), its own gallery plan,
+  its labels, and what it needs (space, fixtures).
+- **Mounting** builds its rooms in a host museum's slot for a term; fixtures are created at mount and removed
+  at the end.
+- ⚠ **In an information space an exhibition is not physically scarce** — a document may be mounted in ten
+  museums at once. **Exclusivity is by agreement**: its author licenses runs (*one museum at a time, for a
+  fee*), and **the license is what is scarce** — honest about what is valuable, the curated argument:
+  authored, attributed, licensed. A strong exhibition earns loan fees from every museum that books it —
+  curation's real economy, and information economics taught (Shapiro and Varian, *Information Rules*:
+  copies are free, rights are scarce).
+
+### Continuity and the pen
+
+- ⭐ **An exhibit whose subject is retired stays, labeled as history** **[DECIDED — lens 5]** — a species gone
+  from the world, a repealed law: a history exhibit, never a vanishing (repealed law taught as history).
+- ⭐ **The curator's pen is write access to the gallery plans** — a curator's seat holds a grant over the
+  museum's galleries; the shell is the museum's committee's (*power is the pen*,
+  [separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7p).
+- **License disputes are civil cases**; public museums' exhibitions are government speech (§ 0).
+
+### Lens pass
+
+1. **Pedagogy** — exhibit kinds derivable; the plan is the argument, readable; travelling exhibitions teach
+   information economics; **lens 1 chose a default exhibit kind per kind of knowledge**.
+2. **Expression** — curators edit plans, no code; generated halls need nobody; the shell and reconstructions
+   are the bespoke case; **lens 2 chose the shell-and-galleries split and one exhibit document kind**.
+3. **3a Immersion** — ⚠ **generated rooms must read as places, not lists** — the hardest craft problem here;
+   the shell carries character, the galleries contents; interactives get an in-world threshold.
+   **3b Participation** — curators booking and licensing exhibitions, competing for visitors; players
+   authoring exhibitions as works.
+4. **Values** — license terms are the author's; what to show is the curator's, and the polity's for public
+   museums.
+5. **Continuity** — **stable slot addresses; retired subjects become history**; stable ids survive rewrites.
+6. **Economy** — **real running costs**; licensing fees, admission, commissions; nothing leaks value.
+7. **Governance** — the curator's pen is the gallery plans; fixtures that cannot trade are a wall; license
+   disputes are civil cases.
+
 ## 1. The museums already in the slates
 
 | museum | where | what it does |
@@ -167,8 +278,11 @@ prevented.
 
 ## 4. Open
 
-0. ⭐ **What an exhibit is as content** — its own document kind, or a recipe over existing rows (§ 0).
-0. **Where generated halls live** — a feature of any museum, or a museum of their own (§ 0).
+0. ~~**What an exhibit is as content**~~ — **a document** (§ 0a). ~~**Where generated halls live**~~ — **a
+   gallery whose plan the generator writes** (§ 0a).
+0. **Generated room prose** — how a gallery composed from exhibits reads as a place (§ 0a).
+0. **Default license terms** for an exhibition — open, or exclusive runs (§ 0a).
+0. **The exhibit document's schema** — for the plan (§ 0a).
 1. **A re-reading of every gathered museum** (§ 1) against § 0 — the provenance and forgery museums in
    particular.
 2. **The technology museum's site.**
