@@ -1139,9 +1139,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // via `EventApi.restrictSubscribe` (it fires on private commands too —
       // inventory / settings / whisper / dm / char-gen — so an open-subscribe
       // broadcast would be a snooping side-channel). Emit stays open; only
-      // the blessed consumers may listen. The optional location/actor
-      // templatePaths feed the producer faucet's credit routing; the consumer
-      // tap ignores them. See docs/subsystems/participation.md.
+      // the blessed consumers may listen. The optional location templatePath
+      // and actor identity feed the producer faucet's credit routing; the
+      // consumer tap ignores them. See docs/subsystems/participation.md.
       if (args.verb !== undefined && args.originInteractiveId !== undefined) {
         EventApi.fire(
           new CommandDispatchedEvent({
@@ -1151,7 +1151,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             realAt: Date.now(),
             locationTemplatePath:
               args.location?.getTemplatePath() ?? undefined,
-            actorTemplatePath: giverAsStuff.getTemplatePath() ?? undefined,
+            // The person, never the lineage: every player body is cloned
+            // from one row, so a lineage actor is every player at once.
+            actorIdentityPath: giverAsStuff.getIdentityPath() ?? undefined,
           })
         );
       }

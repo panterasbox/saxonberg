@@ -140,13 +140,13 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
  * author UNLESS it is the engaging player (`author !== actor` — the **A≠P**
  * exclusion: engaging your own released content earns you nothing). The
  * `{author, actor, bucket}` dedup lives in {@link appendImpl}. Skipped when
- * the signal carries no location / actor templatePath (an incorporeal or
- * un-templated giver).
+ * the signal carries no location templatePath or actor identity (an
+ * incorporeal giver, or one with no identity).
  */
 async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> {
   if (!active()) return;
   const location = p.locationTemplatePath;
-  const actor = p.actorTemplatePath;
+  const actor = p.actorIdentityPath;
   if (!location || !actor) return;
   const shares = await CreditRouting.resolve(location);
   for (const share of shares) {
