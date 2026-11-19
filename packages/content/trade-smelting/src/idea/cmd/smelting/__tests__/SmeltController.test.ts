@@ -53,6 +53,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const MALACHITE = '/stuff/idea/material/mineral/malachite';
 const GOETHITE = '/stuff/idea/material/mineral/goethite';
@@ -171,10 +172,10 @@ async function smelt(): Promise<ReturnType<typeof makeContext>> {
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     // `smelt.yaml` binds the furnace; a controller test skips the binder.
-    await makeStuff(() => new SmeltController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new SmeltController()).execute(
       { furnace: { stuff: furnace, raw: 'furnace' } } as never,
       context,
-    );
+    ));
   });
   return context;
 }

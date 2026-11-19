@@ -36,6 +36,7 @@ import {
 } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { rememberFabric } from "@saxonberg/server/mud/lib/material/__tests__/fabrics";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 const LINEN = "/stuff/idea/material/textile/linen";
 const WOOL = "/stuff/idea/material/textile/wool";
@@ -108,19 +109,13 @@ afterEach(() => {
 
 async function spin(target: Stuff, count = 10): Promise<void> {
   const c = makeStuff(() => new SpinController());
-  await c.execute(
-    { stock: ref(target, "fleece"), count } as never,
-    makeContext(actor as unknown as Stuff, room as unknown as Stuff, "spin"),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute({ stock: ref(target, "fleece"), count } as never, ctx$)))(makeContext(actor as unknown as Stuff, room as unknown as Stuff, "spin"));
   await completeStep(TextileWork.SPIN_BASE_MS * 2);
 }
 
 async function weave(target: Stuff): Promise<void> {
   const c = makeStuff(() => new WeaveController());
-  await c.execute(
-    { yarn: ref(target, "yarn") } as never,
-    makeContext(actor as unknown as Stuff, room as unknown as Stuff, "weave"),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute({ yarn: ref(target, "yarn") } as never, ctx$)))(makeContext(actor as unknown as Stuff, room as unknown as Stuff, "weave"));
   await completeStep(TextileWork.WEAVE_BASE_MS * 2);
 }
 

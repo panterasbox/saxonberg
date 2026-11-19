@@ -91,6 +91,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const GROVE = '/trade/farming/location/test-grove';
 const STALL = '/test/farm/market/stalls';
@@ -333,35 +334,23 @@ describe('the farms beat — tend, pick, sell, home', () => {
         if (verb === 'water') {
           const target = reach(rest.join(' '));
           await asPrincipal(who, () =>
-            makeStuff(() => new WaterController()).execute(
-              // ⚠ `source` is BOUND BY THE VIEW (`water.yaml`, defaulting
-              // through `person:[mixin.BulkableMixin or class.WaterHose]`) — the same standing
-              // warning `consign`'s shelf carries below.
-              {
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute({
                 target: { stuff: target, raw: rest.join(' ') },
                 source: { stuff: [can], raw: '' },
-              } as never,
-              ctx(who, here, null, text),
-            ),
+              } as never, ctx$)))(ctx(who, here, null, text)),
           );
           return;
         }
         if (verb === 'harvest') {
           const target = reach(rest.join(' '));
           await asPrincipal(who, () =>
-            makeStuff(() => new HarvestController()).execute(
-              { target: { stuff: target, raw: rest.join(' ') } } as never,
-              ctx(who, here, null, text),
-            ),
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({ target: { stuff: target, raw: rest.join(' ') } } as never, ctx$)))(ctx(who, here, null, text)),
           );
           return;
         }
         if (verb === 'wallet') {
           await asPrincipal(who, () =>
-            makeStuff(() => new WalletUseController()).execute(
-              { subcommand: 'use', corpo: 'house' } as never,
-              ctx(who, here, null, text),
-            ),
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, ctx$)))(ctx(who, here, null, text)),
           );
           return;
         }
@@ -369,16 +358,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           const kw = rest[0]!;
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
-            makeStuff(() => new ShelfConsignController()).execute(
-              // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared it
-              // (`retail/consign.yaml` § shelf, defaulting through MQL).
-              // A hand-built model skips the binder, so the test has to
-              // carry what the view would have put there — the standing
-              // warning in the lib-statics slate, hit by a BRAIN suite
-              // this time rather than a controller one.
-              { thing: bindHeld(who, kw), ask, shelf: { stuff: stall, raw: 'stall' } },
-              ctx(who, here, stall, text),
-            ),
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: bindHeld(who, kw), ask, shelf: { stuff: stall, raw: 'stall' } }, ctx$)))(ctx(who, here, stall, text)),
           );
           return;
         }

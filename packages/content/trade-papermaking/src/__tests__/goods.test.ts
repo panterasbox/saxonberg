@@ -29,6 +29,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class PasteGiver extends SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))) {
   static _mixinName = 'PaperGoodsTestGiver';
@@ -170,20 +171,17 @@ describe('⭐ `paste` is its own word; `fit` names it (controller-liquidity W7c)
     const label = makeStuff(() => new Sheet());
     label.setMarkText('quince');
     const none = ctxFor('paste');
-    await makeStuff(() => new PasteController()).execute(
+    await TestHarnessApi.actAs(none.commandGiver, () => makeStuff(() => new PasteController()).execute(
       { sheet: { stuff: label, raw: 'label' }, whole: { stuff: jar, raw: 'jar' } } as never,
       none,
-    );
+    ));
     expect(none.getNotes()).toContainEqual(expect.objectContaining({ reason: 'no-glue' }));
     expect(label.isDestroyed()).toBe(false);
-    await makeStuff(() => new PasteController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PasteController()).execute({
         sheet: { stuff: label, raw: 'label' },
         whole: { stuff: jar, raw: 'jar' },
         pot: { stuff: gluePot(), raw: 'pot' },
-      } as never,
-      ctxFor('paste'),
-    );
+      } as never, ctx$)))(ctxFor('paste'));
     expect(jar.getCoats('outside')[0]?.marks).toBe('quince');
   });
 
@@ -191,10 +189,10 @@ describe('⭐ `paste` is its own word; `fit` names it (controller-liquidity W7c)
     const jar = makeStuff(() => new Good());
     const label = makeStuff(() => new Sheet());
     const ctx = ctxFor('fit');
-    await makeStuff(() => new FitController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new FitController()).execute(
       { thing: { stuff: label, raw: 'label' }, whole: { stuff: jar, raw: 'jar' } } as never,
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(expect.objectContaining({ reason: 'use-paste' }));
     expect(label.isDestroyed()).toBe(false);
   });

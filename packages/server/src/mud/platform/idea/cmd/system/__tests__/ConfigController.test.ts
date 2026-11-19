@@ -30,6 +30,7 @@ import { Idea } from "../../../../../lib/stuff/Idea";
 import { CommandApi } from "../../../../../api/command";
 import { CommandLineApi } from "../../../../../api/command-line";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 function stubPM() {
   let findResult: Record<string, unknown>[] = [];
@@ -100,7 +101,7 @@ describe("config controllers", () => {
       : model.value === undefined
         ? makeStuff(() => new ConfigShowController())
         : makeStuff(() => new ConfigSetController());
-    return ctrl.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   }
 
   it("lists every known key with its current value", async () => {

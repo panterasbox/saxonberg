@@ -31,6 +31,7 @@ import { CommandApi, type CommandContext, type CommandModel } from '../../../../
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Lifter extends CommandGiverMixin(MobileMixin(SensorMixin(EngagedMixin(Creature)))) {
   received: unknown[] = [];
@@ -99,7 +100,7 @@ describe('LiftController — the load you choose', () => {
 
   const lift = async (load: number, device: MqlManyResult | undefined = many(bar)) => {
     const ctx = ctxFor(lifter, room);
-    await makeStuff(() => new LiftController()).execute({ load, device } as CommandModel, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new LiftController()).execute({ load, device } as CommandModel, ctx));
     return ctx;
   };
 

@@ -133,10 +133,16 @@ function requiredActor(call: ts.CallExpression): string | null {
   const callee = call.expression;
   if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== "requireActor") return null;
   if (!ts.isIdentifier(callee.expression) || callee.expression.text !== "AccessApi") return null;
-  let a = call.arguments[0];
-  // `requireActor(reader ?? null)` — an optional actor, normalized.
-  if (a && ts.isBinaryExpression(a) && a.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) a = a.left;
-  return a && ts.isIdentifier(a) ? a.text : null;
+  let a: ts.Expression | undefined = call.arguments[0];
+  // `requireActor(reader ?? null)`, `requireActor(c.actor as Stuff)` — the
+  // parameter the checked actor is drawn from.
+  for (;;) {
+    if (!a) return null;
+    if (ts.isBinaryExpression(a) && a.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) a = a.left;
+    else if (ts.isAsExpression(a) || ts.isParenthesizedExpression(a) || ts.isNonNullExpression(a) || ts.isPropertyAccessExpression(a)) a = a.expression;
+    else break;
+  }
+  return ts.isIdentifier(a) ? a.text : null;
 }
 
 /** The name a same-file call is addressed to: `f(…)`, `this.f(…)`, `X.f(…)`. */

@@ -47,6 +47,7 @@ import type { CommandGiver } from '../../../../../lib/command/CommandGiver';
 import type { Focused } from '../../../../../lib/command/Focused';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const ReceivingGiverBase = OrganismMixin(
   ContainerMixin(
@@ -156,7 +157,7 @@ describe('SmellController', () => {
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell nothing');
     const target: MqlOneResult = { stuff: null, raw: 'mystery-thing' };
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'empty-result', field: 'target' }),
     );
@@ -173,7 +174,7 @@ describe('SmellController', () => {
     const target: MqlOneResult = { stuff: fakeStuff, raw: 'fake' };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell fake');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'controller-rejected',
@@ -193,7 +194,7 @@ describe('SmellController', () => {
     };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell leather');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     expect(ctx.getNotes()).not.toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected' }),
     );
@@ -212,7 +213,7 @@ describe('SmellController', () => {
     };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell book');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'controller-rejected',
@@ -230,7 +231,7 @@ describe('SmellController', () => {
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell here');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     const lastFrame = fix.giver.received.at(-1);
     expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).toContain("don't perceive");
@@ -246,7 +247,7 @@ describe('SmellController', () => {
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell here');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     const lastFrame = fix.giver.received.at(-1);
     expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).not.toContain('A wide stone plaza.');
@@ -260,7 +261,7 @@ describe('SmellController', () => {
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell here');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     const lastFrame = fix.giver.received.at(-1);
     expect(lastFrame?.body).toContain('Plain prose, no sense tags.');
   });

@@ -54,6 +54,7 @@ import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installBankingHarness, teardownBankingHarness } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 const STALL_SEED = MarketStalls.STALL_SEED;
 const STALL_BUSINESS_SEED = MarketStalls.STALL_BUSINESS_SEED;
 const MARKET_BUSINESS = '/world/terminus/market/business';
@@ -132,7 +133,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
 
 async function stall(giver: TestGiver, subcommand: 'rent' | 'give-up'): Promise<CommandContext> {
   const c = ctx(giver, square, stalls, `stall ${subcommand}`);
-  await asOwner(giver, () => makeStuff(() => (subcommand === 'give-up' ? new StallGiveUpController() : new StallRentController())).execute({ subcommand, square: { stuff: stalls } } as never, c));
+  await asOwner(giver, () => TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => (subcommand === 'give-up' ? new StallGiveUpController() : new StallRentController())).execute({ subcommand, square: { stuff: stalls } } as never, c)));
   return c;
 }
 
@@ -319,10 +320,10 @@ describe('a player shop is a rented market stall', () => {
     await asOwner(grower, () => torch.stampChattel(grower));
     const consigned = ctx(grower, square, counter, 'shelf consign torch');
     await asOwner(grower, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
+      TestHarnessApi.actAs(consigned.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: 'torch' }, ask: '8', shelf: { stuff: counter as never, raw: 'stall' } },
         consigned,
-      ),
+      )),
     );
     expect(rejections(consigned)).toEqual([]);
     expect(counter.listingFor(torch.getChattelId())?.basis).toBe('terms');
@@ -331,10 +332,10 @@ describe('a player shop is a rented market stall', () => {
     // Alice, the keeper, sets her own ask.
     const priced = ctx(alice, square, counter, 'house price torch 12');
     await asOwner(alice, () =>
-      makeStuff(() => new HousePriceController()).execute(
+      TestHarnessApi.actAs(priced.commandGiver, () => makeStuff(() => new HousePriceController()).execute(
         { subcommand: 'price', thing: { stuff: torch as never, raw: 'torch' }, ask: '12' } as never,
         priced,
-      ),
+      )),
     );
     expect(rejections(priced)).toEqual([]);
     expect(counter.priceFor(TORCH)).toBe(12);

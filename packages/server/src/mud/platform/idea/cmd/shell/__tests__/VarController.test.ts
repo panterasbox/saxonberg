@@ -47,6 +47,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
   class FeatureMixin extends Base {
@@ -103,37 +104,25 @@ describe('Var controllers', () => {
     const bySub = { list: VarListController, set: VarSetController, unset: VarUnsetController } as const;
     controller = {
       execute: (model, ctx) =>
-        makeStuff(
+        TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(
           () => new bySub[(model.subcommand ?? 'list') as keyof typeof bySub](),
-        ).execute(model, ctx),
+        ).execute(model, ctx)),
     };
   });
 
   describe('list', () => {
     it('reports no vars when empty', () => {
-      controller.execute(
-        makeModel({}, 'list'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({}, 'list'), ctx$)))(makeContext(host, location));
     });
 
     it('lists ad-hoc vars', () => {
-      controller.execute(
-        makeModel({ name: 'a', value: 'one' }, 'set'),
-        makeContext(host, location),
-      );
-      controller.execute(
-        makeModel({ name: 'b', value: 'two' }, 'set'),
-        makeContext(host, location),
-      );
-      controller.execute(
-        makeModel({}, 'list'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'a', value: 'one' }, 'set'), ctx$)))(makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'b', value: 'two' }, 'set'), ctx$)))(makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({}, 'list'), ctx$)))(makeContext(host, location));
     });
 
     it('treats no subcommand as list', () => {
-      controller.execute(makeModel(), makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(), ctx$)))(makeContext(host, location));
     });
 
     it('omits declared keys from listVars', () => {
@@ -142,44 +131,26 @@ describe('Var controllers', () => {
       // declared key would have been rejected — this test guards the
       // listVars side, not the setVar side.)
       host.setSetting<string>('feature.declared', 'override', host);
-      controller.execute(
-        makeModel({ name: 'plain', value: 'val' }, 'set'),
-        makeContext(host, location),
-      );
-      controller.execute(
-        makeModel({}, 'list'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'plain', value: 'val' }, 'set'), ctx$)))(makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({}, 'list'), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('set', () => {
     it('writes an ad-hoc var to the session store', () => {
-      controller.execute(
-        makeModel({ name: 'greeting', value: 'hello' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'greeting', value: 'hello' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.sessionStore.greeting).toBe('hello');
     });
 
     it('rejects a declared-key write (D3 back-door close)', () => {
-      controller.execute(
-        makeModel({ name: 'feature.declared', value: 'sneak' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'feature.declared', value: 'sneak' }, 'set'), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('unset', () => {
     it('clears an existing var', () => {
-      controller.execute(
-        makeModel({ name: 'tmp', value: 'gone' }, 'set'),
-        makeContext(host, location),
-      );
-      controller.execute(
-        makeModel({ name: 'tmp' }, 'unset'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'tmp', value: 'gone' }, 'set'), ctx$)))(makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ name: 'tmp' }, 'unset'), ctx$)))(makeContext(host, location));
       expect(host.sessionStore.tmp).toBeUndefined();
     });
   });

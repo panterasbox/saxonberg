@@ -250,7 +250,7 @@ const CONTENT_ERROR = 'content-error';
  * D7: a protective method refused a lying claim, and the code that lied is
  * at `path`). One routing set, never a branch per channel.
  */
-const TITLE_ROUTED: ReadonlySet<string> = new Set([CONTENT_ERROR, 'call-security']);
+const TITLE_ROUTED: ReadonlySet<string> = new Set([CONTENT_ERROR, 'call-security', 'force']);
 
 /**
  * Who holds title over `path` and is online: a player, a group's members,

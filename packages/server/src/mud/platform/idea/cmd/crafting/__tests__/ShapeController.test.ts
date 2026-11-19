@@ -16,6 +16,7 @@ import type { FormableClass, FormingHand } from '../../../../../lib/craft/Formin
 import type { CommandContext } from '../../../../../api/command';
 import { TestActor, standUpBranchHarness, makeContext } from './branch-fixtures';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Pipe extends FormingMixin(Good) {
   public seen: ShapeRequest | null = null;
@@ -73,7 +74,7 @@ afterEach(() => vi.restoreAllMocks());
 async function shape(model: Record<string, unknown>): Promise<CommandContext> {
   const ctx = makeContext(actor, room, 'shape');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
-    await makeStuff(() => new ShapeController()).execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ShapeController()).execute(model as never, ctx));
   });
   return ctx;
 }

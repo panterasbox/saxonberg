@@ -1354,6 +1354,25 @@ a login `embody`). Otherwise it is **compelled**, and:
 4. yes → the command runs as an ordinary command of the body: its
    validators, its money, its gates.
 
+**The gate is the only door on the command path** (review, 2026-11-19).
+`CommandGiverMixin._runChain` and `_executeOne` are `SelfOnly` — only the
+giver's own `executeCommand` reaches them — and every
+`CommandController.execute` carries `SecurityPolicies.CommandGiverOf(1)`: a
+controller runs only for the giver its context names, called by that giver
+(the dispatcher; a detached async body is rooted AT the giver). Building a
+context that names another body and running its controller was the side door.
+⚠ A body's verb METHODS called directly (its speech) are still the slate's
+deferred re-gating.
+
+**The keeper drives a body nobody plays.** Whoever holds title over an NPC's
+or an animal's ROW authored its mind, and may make it run anything — no
+consent, no never-list. Owning an animal as chattel is title to a thing, not
+its will: the owner does not drive it, and when its keeper does, a `force`
+diagnostic lands at the owner's home (`/home/<id>`, read in `errors`); every
+drive is also recorded at the body's row. Anyone else is refused
+(`cannot-consent`). The verb is **`force <who> <command>`** (afforded with
+the author verbs); it decides nothing of its own — the gate does.
+
 Every refusal is **thrown to the compelling code**. Speech, conferral,
 membership, and giving title or money away are never compellable —
 `lint:compellable` holds the never-list by controller category, both keys

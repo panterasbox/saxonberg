@@ -30,6 +30,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 type Loose = Record<string, unknown>;
 
@@ -127,10 +128,10 @@ async function run(
       model.subcommand === "residency"
         ? GovernmentResidencyController
         : GovernmentListController;
-    return makeStuff(() => new Ctrl()).execute(
+    return TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new Ctrl()).execute(
       model as never,
       context
-    );
+    ));
   });
 }
 

@@ -28,6 +28,7 @@ import {
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -109,10 +110,7 @@ describe('GiveController', () => {
     ContainmentApi.move(apple, giver);
 
     const controller = makeStuff(() => new GiveController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(alice, 'alice', 'to')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(alice, 'alice', 'to')), ctx$)))(makeContext(giver, loc));
 
     expect(apple.getContainer()).toBe(alice);
   });
@@ -135,10 +133,7 @@ describe('GiveController', () => {
     ContainmentApi.move(apple, giver);
 
     const controller = makeStuff(() => new GiveController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(alice, 'alice')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(alice, 'alice')), ctx$)))(makeContext(giver, loc));
 
     expect(apple.getContainer()).toBe(alice);
   });
@@ -156,10 +151,10 @@ describe('GiveController', () => {
 
     const controller = makeStuff(() => new GiveController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(null, 'turnips'), one(alice, 'alice', 'to')),
       ctx,
-    );
+    ));
 
     const notes = ctx.getNotes();
     expect(
@@ -184,10 +179,10 @@ describe('GiveController', () => {
 
     const controller = makeStuff(() => new GiveController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(null, 'phantom', 'to')),
       ctx,
-    );
+    ));
 
     const notes = ctx.getNotes();
     expect(

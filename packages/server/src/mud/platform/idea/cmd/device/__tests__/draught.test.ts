@@ -45,6 +45,7 @@ import {
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Burner } from '../../../../../lib/fire/Burner';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -81,14 +82,14 @@ describe('the draught', () => {
 
   async function setDraught(setting: string): Promise<CommandContext> {
     const c = ctx('draught');
-    await makeStuff(() => new DraughtSetController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DraughtSetController()).execute(
       // ⭐ The setting is an enum slot on the set shapes (W7b). A bare
       // word after `draught` once bound to the fire and never arrived —
       // three drive runs found it; the read shape now needs `at <fire>`
       // (asserted through the real views below).
       { fire: one(forge, 'forge'), setting } as CommandModel,
       c,
-    );
+    ));
     return c;
   }
 
@@ -167,10 +168,10 @@ describe('the draught', () => {
     await setDraught('banked');
     avatar.received.length = 0;
     const c = ctx('draught');
-    await makeStuff(() => new DraughtReadController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new DraughtReadController()).execute(
       { fire: one(forge, 'forge') } as CommandModel,
       c,
-    );
+    ));
     expect(c.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       false,
     );
@@ -185,10 +186,10 @@ describe('the draught', () => {
   describe('cover — banking', () => {
     async function cover(): Promise<CommandContext> {
       const c = ctx('cover');
-      await makeStuff(() => new CoverController()).execute(
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CoverController()).execute(
         { fire: one(forge, 'forge') } as CommandModel,
         c,
-      );
+      ));
       return c;
     }
 

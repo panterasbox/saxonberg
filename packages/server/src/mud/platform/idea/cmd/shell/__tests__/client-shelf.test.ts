@@ -41,6 +41,7 @@ import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { SHELF_ROW_IDS, DEFAULT_SHELF } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SHELF_KEY = 'cockpit.shelf';
 
@@ -120,7 +121,7 @@ describe('the client-shelf controllers', () => {
     const Ctor = SHELF[(model.action ?? 'list') as keyof typeof SHELF];
     const controller = makeStuff(() => new Ctor());
     const ctx = makeContext(actor, location);
-    await controller.execute(model as never, ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(model as never, ctx$)))(ctx as never);
     return ctx;
   }
 

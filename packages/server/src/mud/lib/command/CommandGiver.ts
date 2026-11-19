@@ -57,10 +57,13 @@ import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
 import { StuffApi } from '../../api/stuff';
 import { DiagnosticApi } from '../../api/diagnostics';
+import { PlayerApi } from '../../api/player';
+import { AccessApi } from '../../api/access';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
-import { Final, Unshadowable } from '../security/decorators';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Refusal } from '../errors';
 import { ExecutionContextApi, FrameKind, OMNI_SCOPE } from '../../api/execution-context';
 import { ProxyApi } from '../../api/proxy';
@@ -296,8 +299,6 @@ const detachedContexts = new WeakSet<CommandContext>();
  */
 const ASKED = new WeakSet<CommandContext>();
 
-/** Frame `target` marker for a detached async command body. */
-const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
 
 /**
  * Assemble + fire the single dispatch-response envelope for a completed
@@ -422,7 +423,10 @@ function runDetachedBody(
   ctx: CommandContext,
   fn: () => Promise<void>
 ): void {
-  void ExecutionContextApi.runRoot(ASYNC_BODY_TARGET, 'executeAsyncBody', () => {
+  // ⭐ Rooted AT the giver (call-security pass): the detached body's
+  // controller is the giver's own, exactly as on the synchronous path, and
+  // `CommandController.execute` admits only the giver its context names.
+  void ExecutionContextApi.runRoot(ctx.commandGiver, 'executeAsyncBody', () => {
     ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
     ExecutionContextApi.updateCurrentFrameMetadata({
       commandContext: ctx,
@@ -545,6 +549,28 @@ export interface CommandGiver {
 async function resolveActorParser(actor: Stuff): Promise<Parser> {
   const spec = ShellApi.resolveSetting<string>(actor, 'shell.parser') ?? 'script';
   return CommandApi.resolveParser(spec);
+}
+
+/**
+ * ⭐ The record of a keeper driving a body: a `force` diagnostic at the
+ * body's row (its keepers read it in `errors`), and — when somebody else
+ * owns the body as chattel (a pet, a beast) — one at the owner's home, so
+ * the owner is told who made their animal do what.
+ */
+async function recordDrive(body: Stuff, compeller: Compeller, line: string): Promise<void> {
+  const what = `${compeller.name} made ${body.getIdentityPath() ?? body.getTemplatePath() ?? 'a body'} run \`${line}\``;
+  const rows: Array<{ path: string | null }> = [{ path: body.getTemplatePath() }];
+  if (MixinApi.isChattel(body)) {
+    const owner = await body.chattelOwner().catch(() => null);
+    if (owner?.kind === 'player') {
+      const id = owner.templatePath.slice(owner.templatePath.lastIndexOf('/') + 1);
+      const actorPath = (compeller.actor as Stuff | null)?.getIdentityPath() ?? null;
+      if (owner.templatePath !== actorPath) rows.push({ path: `/home/${id}` });
+    }
+  }
+  for (const { path } of rows) {
+    await DiagnosticApi.record({ path, channel: 'force', severity: 'info', message: what }).catch(() => undefined);
+  }
 }
 
 /** Who compelled a command, as the gate reads it (call-security pass D8). */
@@ -916,7 +942,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * before any validator, binder or controller has run. Code with nobody
      * acting, or sandboxed code (`eval`, a circle), never compels (D14).
      */
-    async _askCompelled(commandText: string, compeller: Compeller): Promise<Interactive> {
+    @CallSecurity(SecurityPolicies.SelfOnly)
+    async _askCompelled(commandText: string, compeller: Compeller): Promise<Interactive | undefined> {
+      // The compeller is the gate's own read of who is acting; proven here,
+      // so the method answers for nobody else (and only the giver calls it).
+      AccessApi.requireActor(compeller.actor as Stuff | null);
       const giver = this as unknown as Stuff & CommandGiver;
       const refuse = (reason: string, why: string): never => {
         void DiagnosticApi.record({
@@ -929,6 +959,19 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       };
       if (compeller.actor === null) return refuse('not-compellable', 'compelled with nobody acting');
       if (compeller.sandboxed) return refuse('not-compellable', 'compelled from sandboxed code');
+      // ⭐⭐ The KEEPER drives a body nobody plays (owner ruling 2026-11-19):
+      // whoever holds title over an NPC's or an animal's ROW authored its
+      // mind, and may make it do anything — no consent to ask, no never-list
+      // (a player's body is never theirs to drive). Ownership of a pet is
+      // title to a THING, not its will: the owner does not drive it, and is
+      // told when its keeper does. Every drive is recorded.
+      if (!PlayerApi.isAvatarStuff(giver)) {
+        const row = giver.getTemplatePath();
+        const keeper = row !== null && (await AccessApi.canAtPath(compeller.actor as Stuff, 'write-template', row));
+        if (!keeper) return refuse('cannot-consent', `drove a body whose row it does not keep`);
+        await recordDrive(giver, compeller, commandText);
+        return undefined;
+      }
       const parser = await resolveActorParser(giver);
       const parsed = await parser.parse(commandText, {
         commandGiver: giver,
@@ -1379,6 +1422,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * that need "I might handle this depending on state" use
      * dynamic contributions on the recency stack.
      */
+    /** ⭐ The giver's own dispatch only (call-security pass): a side door around the compulsion gate otherwise. */
+    @CallSecurity(SecurityPolicies.SelfOnly)
     async _runChain(
       parsed: ReturnType<typeof CommandLineApi.parsePipeline>['commands'][0],
       outer: CommandContext,
@@ -1920,6 +1965,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * controller (subcommand omitted, no verb-level fallback) returns
      * a player-facing failure rather than throwing.
      */
+    /** ⭐ The giver's own dispatch only (call-security pass): a side door around the compulsion gate otherwise. */
+    @CallSecurity(SecurityPolicies.SelfOnly)
     async _executeOne(
       command: CommandDefinition,
       model: CommandModel,

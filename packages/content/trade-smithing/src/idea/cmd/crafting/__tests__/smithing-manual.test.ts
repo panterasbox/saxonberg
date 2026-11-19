@@ -54,6 +54,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 let seq = 0;
 let harness: BranchHarness;
@@ -90,10 +91,10 @@ describe('the by-hand smithing path', () => {
     // No fire → diegetic decline, nothing latched.
     const cold = makeContext(actor, room, 'heat ingot');
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
+      TestHarnessApi.actAs(cold.commandGiver, () => makeStuff(() => new HeatController()).execute(
         { target: ref(ingot, 'ingot') } as never,
         cold,
-      ),
+      )),
     );
     expect(
       cold.getNotes().some((n) => n.kind === 'controller-rejected'),
@@ -103,10 +104,7 @@ describe('the by-hand smithing path', () => {
     // A lit, bellowsed forge → the step latches 2080 K at completion.
     ContainmentApi.move(makeLitForge(true), room);
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(ingot, 'ingot') } as never,
-        makeContext(actor, room, 'heat ingot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(ingot, 'ingot') } as never, ctx$)))(makeContext(actor, room, 'heat ingot')),
     );
     expect(ingot.getHeatedToK()).toBe(0); // not at dispatch —
     await completeStep(4000);
@@ -118,20 +116,17 @@ describe('the by-hand smithing path', () => {
     ContainmentApi.move(ingot, room);
     ContainmentApi.move(makeLitForge(true), room);
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(ingot, 'ingot') } as never,
-        makeContext(actor, room, 'heat ingot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(ingot, 'ingot') } as never, ctx$)))(makeContext(actor, room, 'heat ingot')),
     );
     await completeStep(4000);
 
     // No hammer/anvil → decline.
     const bare = makeContext(actor, room, 'hammer ingot');
     await executeAs(actor, () =>
-      makeStuff(() => new HammerController()).execute(
+      TestHarnessApi.actAs(bare.commandGiver, () => makeStuff(() => new HammerController()).execute(
         { target: ref(ingot, 'ingot') } as never,
         bare,
-      ),
+      )),
     );
     expect(
       bare.getNotes().some((n) => n.kind === 'controller-rejected'),
@@ -145,14 +140,11 @@ describe('the by-hand smithing path', () => {
     ContainmentApi.move(anvil, room);
     for (let i = 0; i < 2; i++) {
       await executeAs(actor, () =>
-        makeStuff(() => new HammerController()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HammerController()).execute({
             target: ref(ingot, 'ingot'),
             striker: many(striker),
             anvil: many(anvil),
-          } as never,
-          makeContext(actor, room, 'hammer ingot'),
-        ),
+          } as never, ctx$)))(makeContext(actor, room, 'hammer ingot')),
       );
       await completeStep(5000);
     }
@@ -177,14 +169,11 @@ describe('the by-hand smithing path', () => {
       [QuenchController, 2500],
     ] as const) {
       await executeAs(actor, () =>
-        makeStuff(() => new Ctor()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new Ctor()).execute({
             target: ref(ingot, 'ingot'),
             striker: many(striker),
             anvil: many(anvil),
-          } as never,
-          makeContext(actor, room, 'step'),
-        ),
+          } as never, ctx$)))(makeContext(actor, room, 'step')),
       );
       await completeStep(ms);
     }
@@ -216,14 +205,11 @@ describe('the by-hand smithing path', () => {
       [QuenchController, 2500],
     ] as const) {
       await executeAs(actor, () =>
-        makeStuff(() => new Ctor()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new Ctor()).execute({
             target: ref(ingot, 'ingot'),
             striker: many(striker),
             anvil: many(anvil),
-          } as never,
-          makeContext(actor, room, 'step'),
-        ),
+          } as never, ctx$)))(makeContext(actor, room, 'step')),
       );
       await completeStep(ms);
     }
@@ -280,14 +266,11 @@ describe('the by-hand smithing path', () => {
       [QuenchController, 2500],
     ] as const) {
       await executeAs(actor, () =>
-        makeStuff(() => new Ctor()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new Ctor()).execute({
             target: ref(hot, 'ingot'),
             striker: many(striker),
             anvil: many(anvil),
-          } as never,
-          makeContext(actor, room, 'step'),
-        ),
+          } as never, ctx$)))(makeContext(actor, room, 'step')),
       );
       await completeStep(ms);
     }
@@ -314,14 +297,11 @@ describe('the by-hand smithing path', () => {
       [QuenchController, 2500],
     ] as const) {
       await executeAs(actor, () =>
-        makeStuff(() => new Ctor()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new Ctor()).execute({
             target: ref(cool, 'ingot'),
             striker: many(striker2),
             anvil: many(anvil2),
-          } as never,
-          makeContext(actor, room2, 'step'),
-        ),
+          } as never, ctx$)))(makeContext(actor, room2, 'step')),
       );
       await completeStep(ms);
     }
@@ -337,10 +317,7 @@ describe('the by-hand smithing path', () => {
     ContainmentApi.move(ingot, room);
     ContainmentApi.move(makeLitForge(true), room);
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(ingot, 'ingot') } as never,
-        makeContext(actor, room, 'heat ingot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(ingot, 'ingot') } as never, ctx$)))(makeContext(actor, room, 'heat ingot')),
     );
     // Barge in before the heat completes: nothing latches.
     SchedulerApi.cancelAll(actor);

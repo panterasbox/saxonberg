@@ -32,6 +32,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -89,10 +90,7 @@ describe('CockpitModeController', () => {
   ): Promise<CommandContext> {
     const controller = makeStuff(() => new CockpitModeController());
     const ctx = makeContext(actor, location);
-    await controller.execute(
-      makeModel(name === undefined ? {} : { name, arrangement }),
-      ctx as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel(name === undefined ? {} : { name, arrangement }), ctx$)))(ctx as never);
     return ctx;
   }
 

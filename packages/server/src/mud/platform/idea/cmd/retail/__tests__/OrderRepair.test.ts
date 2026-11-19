@@ -30,6 +30,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestCharacter extends Character {}
 
@@ -83,16 +84,13 @@ function ctx(giver: Stuff, answer: boolean | null): CommandContext {
 }
 
 async function order(t: Tariff, giver: Stuff, answer: boolean | null): Promise<void> {
-  await makeStuff(() => new OrderController()).execute(
-    {
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OrderController()).execute({
       counter: { stuff: [t], raw: '' },
       menu: undefined,
       cocktail: 'repair',
       subject: { stuff: pick, raw: 'pick' } as MqlOneResult,
       brand: undefined,
-    } as never,
-    ctx(giver, answer),
-  );
+    } as never, ctx$)))(ctx(giver, answer));
 }
 
 let pick: Stuff;
@@ -255,14 +253,14 @@ describe('⭐ the board decides (controllers-are-io D11)', () => {
     } as DiagnoseOutcome);
     vi.spyOn(CraftingApi, 'repair').mockResolvedValue({ ok: true, mended: [] } as never);
     vi.spyOn(t, 'collectMinor').mockResolvedValue({ paid: false, note: null });
-    await makeStuff(() => new OrderController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new OrderController()).execute(
       {
         counter: { stuff: [other, t], raw: '' },
         cocktail: 'repair',
         subject: { stuff: pick, raw: 'pick' } as MqlOneResult,
       } as never,
       context,
-    );
+    ));
     expect(notes.map((n) => n.reason)).not.toContain('needs-input-choice');
     expect(lines.join(' ')).toMatch(/looks it over/);
   });

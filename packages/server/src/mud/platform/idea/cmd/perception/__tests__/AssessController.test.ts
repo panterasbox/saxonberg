@@ -31,6 +31,7 @@ import { AppApi } from '../../../../../api/app';
 import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let captured: string;
 function captureBody(): void {
@@ -95,7 +96,7 @@ describe('AssessController — self vs other fidelity', () => {
     const me = makeStuff(() => new Creature());
     stampTemplatePathForTest(me, '/platform/agent/Avatar/self');
     me.afflict(footWound());
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('severity');
     expect(captured.toLowerCase()).toContain('bleeding');
   });
@@ -106,10 +107,7 @@ describe('AssessController — self vs other fidelity', () => {
     const them = makeStuff(() => new Creature());
     stampTemplatePathForTest(them, '/platform/agent/Avatar/patient');
     them.afflict(footWound());
-    await makeStuff(() => new AssessController()).execute(
-      targetArg(them),
-      ctxFor(me, null)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute(targetArg(them), ctx$)))(ctxFor(me, null));
     expect(captured).not.toContain('severity'); // untrained → gated
     expect(captured.toLowerCase()).toContain('bleeding'); // qualitative gist
   });
@@ -120,7 +118,7 @@ describe('AssessController — self vs other fidelity', () => {
     // rendered "You looks hurt". Self reads use the second-person phrase.
     const me = makeStuff(() => new Creature());
     stampTemplatePathForTest(me, '/platform/agent/Avatar/self');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     // (the subject "You" carries <strong> markup, so it isn't adjacent to
     // the verb in the raw string — assert on the phrase + absence of "looks")
     expect(captured).toContain('look unhurt');
@@ -134,7 +132,7 @@ describe('AssessController — dressed vs open readout', () => {
     stampTemplatePathForTest(me, '/platform/agent/Avatar/patient2');
 
     me.afflict(footWound(true)); // dressed
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     const dressedReadout = captured.toLowerCase();
     expect(dressedReadout).toContain('controlled');
     expect(dressedReadout).not.toContain('bleeding laceration');
@@ -143,7 +141,7 @@ describe('AssessController — dressed vs open readout', () => {
     const w = me.getConditions()[0] as Trauma;
     w.dressed = false;
     w.bleeding = true;
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured.toLowerCase()).toContain('bleeding');
   });
 });
@@ -174,7 +172,7 @@ describe('AssessController — the affliction readout', () => {
       elapsed: 0,
     });
 
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured.toLowerCase()).toContain('recovering');
     // Still reports the wound line honestly — an affliction is not a wound.
     expect(captured).toContain('No visible wounds.');
@@ -194,10 +192,7 @@ describe('AssessController — the affliction readout', () => {
       elapsed: 0,
     });
 
-    await makeStuff(() => new AssessController()).execute(
-      targetArg(them),
-      ctxFor(me, null)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute(targetArg(them), ctx$)))(ctxFor(me, null));
     expect(captured.toLowerCase()).toContain('unsteady');
     expect(captured.toLowerCase()).not.toContain('recovering');
   });
@@ -214,7 +209,7 @@ describe('AssessController — the affliction readout', () => {
       elapsed: 0,
     });
     await expect(
-      makeStuff(() => new AssessController()).execute({}, ctxFor(me, null)),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null)),
     ).rejects.toThrow(/condition '\/platform\/idea\/Condition\/mortality\/recovering' was read but is not resident/);
   });
 });
@@ -231,7 +226,7 @@ describe('AssessController — the weight in words (nutrition-and-fitness W3)', 
 
   it('self sees the band in words, and no digits anywhere in it', async () => {
     const me = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('You are heavily overweight.');
     expect(captured).not.toMatch(/\d/);
   });
@@ -240,14 +235,14 @@ describe('AssessController — the weight in words (nutrition-and-fitness W3)', 
     const me = makeStuff(() => new Creature());
     stampTemplatePathForTest(me, '/platform/agent/Avatar/looker');
     const them = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy2');
-    await makeStuff(() => new AssessController()).execute(targetArg(them), ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute(targetArg(them), ctx$)))(ctxFor(me, null));
     expect(captured).not.toContain('overweight');
     expect(captured).not.toContain('healthy weight');
   });
 
   it('a healthy frame reads healthy', async () => {
     const me = bodyOf(1.75, 70, '/platform/agent/Avatar/fine');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('of a healthy weight');
   });
 });
@@ -305,7 +300,7 @@ describe('AssessController — an interior wound (D10)', () => {
     // than a competent stranger does.
     const me = anatomical('self-interior');
     me.afflict(liverWound());
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('Something is wrong inside');
     // ⚠ The WOUND is unnamed; the PART is still listed, because knowing
     // you have a liver is not a diagnosis. What must not appear is what
@@ -318,10 +313,7 @@ describe('AssessController — an interior wound (D10)', () => {
     const me = anatomical('viewer-interior');
     const them = anatomical('patient-interior');
     them.afflict(liverWound());
-    await makeStuff(() => new AssessController()).execute(
-      targetArg(them),
-      ctxFor(me, null),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute(targetArg(them), ctx$)))(ctxFor(me, null));
     expect(captured).not.toContain('liver');
     // …and it does not lie by claiming they are unwounded.
     expect(captured).toContain('cannot read');
@@ -331,7 +323,7 @@ describe('AssessController — an interior wound (D10)', () => {
 describe('AssessController — the anatomy block (D12)', () => {
   it('lists parts with their function band', async () => {
     const me = anatomical('self-anatomy');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('Your body:');
     expect(captured).toContain('arm left hand');
     expect(captured).toContain('full');
@@ -341,7 +333,7 @@ describe('AssessController — the anatomy block (D12)', () => {
     // "left hand — lost" reads as an injury; the hand is not there.
     const me = anatomical('self-missing');
     me.severPart('body.arm.left.hand');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('arm left hand — gone');
   });
 
@@ -352,7 +344,7 @@ describe('AssessController — the anatomy block (D12)', () => {
     // stays gated is the BAND: `liver — failing` is exactly the
     // diagnosis D10 says you cannot make about yourself.
     const me = anatomical('self-organs');
-    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute({}, ctx$)))(ctxFor(me, null));
     expect(captured).toContain('torso liver');
     expect(captured).not.toContain('torso liver — ');
   });
@@ -360,10 +352,7 @@ describe('AssessController — the anatomy block (D12)', () => {
   it('⚠ an untrained reader is not shown the INTERIOR parts', async () => {
     const me = anatomical('viewer-anatomy');
     const them = anatomical('patient-anatomy');
-    await makeStuff(() => new AssessController()).execute(
-      targetArg(them),
-      ctxFor(me, null),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AssessController()).execute(targetArg(them), ctx$)))(ctxFor(me, null));
     expect(captured).toContain('Their body:');
     expect(captured).not.toContain('liver');
   });

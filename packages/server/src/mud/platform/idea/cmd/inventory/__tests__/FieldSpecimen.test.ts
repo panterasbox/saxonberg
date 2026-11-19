@@ -59,6 +59,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))),
@@ -314,7 +315,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
       subject: one(named, 'wheat'),
       part: patch ? one(patch, patch.getName(), 'at') : undefined,
     } as ModelData as unknown as SampleModel;
-    await makeStuff(() => new SampleController()).execute(model, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new SampleController()).execute(model, ctx));
     return ctx;
   }
 
@@ -401,7 +402,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
       text,
       part: patch ? one(patch, patch.getName(), 'at') : undefined,
     } as ModelData as unknown as LabelModel;
-    await makeStuff(() => new LabelController()).execute(model, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new LabelController()).execute(model, ctx));
     return ctx;
   }
 
@@ -448,21 +449,18 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     const jar = makeStuffAtPath(() => newPlant(), freshPath('/trade/farming/thing/plant/_jar'));
     ContainmentApi.move(jar, giver);
     const ctx = makeContext(giver, field, 'label');
-    await makeStuff(() => new LabelController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new LabelController()).execute(
       {
         target: one(jar, 'jar'),
         text: 'meet',
         part: one(null, 'noon', 'at'),
       } as ModelData as unknown as LabelModel,
       ctx,
-    );
+    ));
     expect(jar.getLabel()).toBe('');
     expect(ctx.getNotes()).toContainEqual(expect.objectContaining({ kind: 'empty-result', field: 'part' }));
     // Quoted, the phrase is the label.
-    await makeStuff(() => new LabelController()).execute(
-      { target: one(jar, 'jar'), text: 'meet at noon' } as ModelData as unknown as LabelModel,
-      makeContext(giver, field, 'label'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LabelController()).execute({ target: one(jar, 'jar'), text: 'meet at noon' } as ModelData as unknown as LabelModel, ctx$)))(makeContext(giver, field, 'label'));
     expect(jar.getLabel()).toBe('meet at noon');
     expect(labeled(field)).toHaveLength(0);
   });
@@ -471,13 +469,10 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
   async function waterIt(giver: TestGiver, field: TestField, target: Stuff): Promise<void> {
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
-    await makeStuff(() => new WaterController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute({
         target: one(target, 'trial'),
         source: { stuff: [can], raw: '' } as unknown as MqlManyResult,
-      } as ModelData as unknown as WaterModel,
-      makeContext(giver, field, 'water'),
-    );
+      } as ModelData as unknown as WaterModel, ctx$)))(makeContext(giver, field, 'water'));
     ContainmentApi.move(can, field);
   }
 
@@ -534,10 +529,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     }, freshPath('/stuff/thing/vessel/_specimen-sack'));
     ContainmentApi.move(sack, giver);
     type FeedModel = Parameters<FeedController['execute']>[0];
-    await makeStuff(() => new FeedController()).execute(
-      { target: one(trial!, 'trial'), source: one(sack, 'sack') } as ModelData as unknown as FeedModel,
-      makeContext(giver, field, 'feed'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new FeedController()).execute({ target: one(trial!, 'trial'), source: one(sack, 'sack') } as ModelData as unknown as FeedModel, ctx$)))(makeContext(giver, field, 'feed'));
     expect(trial!.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(100, 6);
     expect(top.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(60, 6);
     // 40 points at 10 a litre — 4 L out of the sack, the rest kept.

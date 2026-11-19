@@ -27,6 +27,7 @@ import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -105,7 +106,7 @@ describe('AffordancesController', () => {
       command: undefined as unknown as CommandDefinition,
       commandSource: commandSource as unknown as Giver,
     });
-    ctrl.execute({} as CommandModel, ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({} as CommandModel, ctx));
   }
 
   it('emits on shell.control', () => {

@@ -47,6 +47,7 @@ import {
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -139,10 +140,10 @@ describe('StokeController', () => {
 
   async function stoke(fuel: Stuff, burner: Stuff): Promise<CommandContext> {
     const c = ctx();
-    await makeStuff(() => new StokeController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new StokeController()).execute(
       { fuel: one(fuel, 'fuel'), burner: one(burner, 'forge') } as CommandModel,
       c,
-    );
+    ));
     return c;
   }
 
@@ -289,10 +290,10 @@ describe('StokeController', () => {
     );
     const igniteOnce = async (): Promise<boolean> => {
       const c = ctx('light');
-      await makeStuff(() => new LightController()).execute(
+      await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new LightController()).execute(
         { target: one(forge, 'forge') } as CommandModel,
         c,
-      );
+      ));
       return forge.isLit();
     };
     expect(await igniteOnce()).toBe(true);

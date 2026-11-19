@@ -27,6 +27,7 @@ import { PerceptibleMixin } from '../../description/Perceptible';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class Thing extends ContainableMixin(VisibleMixin(PerceptibleMixin(Idea))) {}
 
@@ -77,7 +78,7 @@ describe('the binder compares keyword tiers across scope tries', () => {
       verb: '',
       command: undefined as never,
     });
-    await g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer);
+    await TestHarnessApi.actAs(g, () => g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer));
     const m = models[models.length - 1];
     return (m?.target as MqlOneResult | undefined)?.stuff ?? null;
   };

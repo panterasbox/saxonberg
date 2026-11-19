@@ -46,6 +46,7 @@ import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 beforeEach(() => {
   standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
@@ -161,7 +162,7 @@ function context(body: Wearer, location: Place): CommandContext {
 async function equipVia(
   ...args: Parameters<WearController['execute']>
 ): Promise<void> {
-  await makeStuff(() => new WearController()).execute(...args);
+  await TestHarnessApi.actAs(args[1].commandGiver, () => makeStuff(() => new WearController()).execute(...args));
   await settle();
 }
 
@@ -176,7 +177,7 @@ async function equipLikeDispatch(
   ...args: Parameters<WearController['execute']>
 ): Promise<void> {
   const controller = makeStuff(() => new WearController());
-  await controller.execute(...args);
+  await TestHarnessApi.actAs(args[1].commandGiver, () => controller.execute(...args));
   await StuffApi.destruct(controller);
   await settle();
 }
@@ -395,13 +396,13 @@ describe('the outfit verb — getting dressed is one command', () => {
   ): Promise<ReturnType<typeof context>> {
     const ctx = context(body, location);
     const sub = (model as { subcommand?: string }).subcommand;
-    await makeStuff(() =>
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() =>
       sub === 'list'
         ? new OutfitListController()
         : sub === 'save'
           ? new OutfitSaveController()
           : new OutfitWearController(),
-    ).execute(model as never, ctx);
+    ).execute(model as never, ctx));
     await settle();
     return ctx;
   }

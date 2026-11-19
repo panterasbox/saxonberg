@@ -28,6 +28,8 @@ import {
   type CommandModel,
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
+import { SecurityApi } from '../../api/security';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { CombatApi } from '../../api/combat';
 import { MessageApi } from '../../api/message';
@@ -73,6 +75,19 @@ export abstract class CommandController<
    * holds the count and the never-list.
    */
   static compellable = false;
+
+  /**
+   * ⭐ `execute` runs only for the giver whose own dispatch called it
+   * (`SecurityPolicies.CommandGiverOf(1)`, call-security pass): building a
+   * context that names another body and running its controller is the side
+   * door around the compulsion gate, and it is closed. The decorator's own
+   * record, made here because `execute` is abstract (a decorator cannot sit
+   * on it) and every override inherits the policy — the resolver walks the
+   * prototype chain.
+   */
+  static {
+    SecurityApi._setMethodPolicy(CommandController, 'execute', SecurityPolicies.CommandGiverOf(1));
+  }
 
   /**
    * Execute the command with a resolved CommandModel.

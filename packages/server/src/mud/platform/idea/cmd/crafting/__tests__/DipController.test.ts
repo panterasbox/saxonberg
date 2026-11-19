@@ -25,6 +25,7 @@ import {
   completeStep,
 } from './branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const GLAZE = '/stuff/idea/material/_test/dip-glaze';
 const WATER = '/stuff/idea/material/_test/dip-water';
@@ -67,14 +68,14 @@ async function dip(target: Stuff | null, baths: Stuff[], face?: string): Promise
   const context = makeContext(actor, room, 'dip');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await makeStuff(() => new DipController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new DipController()).execute(
       {
         ...(target ? { target: { stuff: target, raw: 'crock' } } : {}),
         bath: { stuff: baths, raw: 'bucket' },
         ...(face ? { face } : {}),
       } as never,
       context,
-    );
+    ));
   });
   return context;
 }

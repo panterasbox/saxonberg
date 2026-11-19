@@ -46,6 +46,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { Placements } from '../../../../../lib/spatial/Placement';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -200,10 +201,7 @@ describe('PutController — in/on dispatch', () => {
     ContainmentApi.move(chest, loc);
 
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(item, 'apple'), one(chest, 'chest', 'in')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(item, 'apple'), one(chest, 'chest', 'in')), ctx$)))(makeContext(giver, loc));
 
     expect(item.getContainer()).toBe(chest);
     expect((item.getPlacement()?.host ?? null)).toBeNull();
@@ -247,10 +245,10 @@ describe('PutController — in/on dispatch', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(bees, 'nucleus'), one(hive, 'hive', 'in')),
       ctx,
-    );
+    ));
 
     expect(bees.getContainer()).toBe(hive);
   });
@@ -273,10 +271,7 @@ describe('PutController — in/on dispatch', () => {
     ContainmentApi.move(table, loc);
 
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(item, 'apple'), one(table, 'table', 'on')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(item, 'apple'), one(table, 'table', 'on')), ctx$)))(makeContext(giver, loc));
 
     expect(item.getContainer()).toBe(loc);
     expect((item.getPlacement()?.host ?? null)).toBe(table);
@@ -301,10 +296,10 @@ describe('PutController — in/on dispatch', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(item, 'apple'), one(chest, 'chest', 'on')),
       ctx,
-    );
+    ));
 
     expect(item.getContainer()).toBe(giver); // unchanged
     const notes = ctx.getNotes();
@@ -336,10 +331,10 @@ describe('PutController — in/on dispatch', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(item, 'apple'), one(table, 'table', 'in')),
       ctx,
-    );
+    ));
 
     expect(item.getContainer()).toBe(giver); // unchanged
     const notes = ctx.getNotes();
@@ -370,10 +365,7 @@ describe('PutController — in/on dispatch', () => {
     ContainmentApi.move(chest, loc);
 
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(item, 'apple'), one(chest, 'chest')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(item, 'apple'), one(chest, 'chest')), ctx$)))(makeContext(giver, loc));
 
     expect(item.getContainer()).toBe(chest);
   });
@@ -396,10 +388,7 @@ describe('PutController — in/on dispatch', () => {
     ContainmentApi.move(table, loc);
 
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(item, 'apple'), one(table, 'table')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(item, 'apple'), one(table, 'table')), ctx$)))(makeContext(giver, loc));
 
     expect((item.getPlacement()?.host ?? null)).toBe(table);
   });
@@ -423,10 +412,10 @@ describe('PutController — in/on dispatch', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(item, 'apple'), one(desk, 'desk')),
       ctx,
-    );
+    ));
 
     expect(item.getContainer()).toBe(giver); // unchanged
     const notes = ctx.getNotes();
@@ -458,10 +447,10 @@ describe('PutController — in/on dispatch', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(item, 'apple'), one(slick, 'slick', 'on')),
       ctx,
-    );
+    ));
 
     expect(item.getContainer()).toBe(giver); // unchanged
     const notes = ctx.getNotes();
@@ -504,10 +493,7 @@ describe('PutController — in/on dispatch', () => {
     // realism, just drive place() via the controller's "on" path.
     ContainmentApi.move(apple, giver);
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(tableB, 'tableB', 'on')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(tableB, 'tableB', 'on')), ctx$)))(makeContext(giver, loc));
     expect(apple.getContainer()).toBe(loc);
     expect((apple.getPlacement()?.host ?? null)).toBe(tableB);
   });
@@ -540,10 +526,7 @@ describe('PutController — in/on dispatch', () => {
     expect((apple.getPlacement()?.host ?? null)).toBeNull();
     // Now put it in the chest.
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(chest, 'chest', 'in')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(chest, 'chest', 'in')), ctx$)))(makeContext(giver, loc));
     expect(apple.getContainer()).toBe(chest);
     expect((apple.getPlacement()?.host ?? null)).toBeNull();
   });
@@ -592,10 +575,10 @@ describe('PutController — put over N placements', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(hook, 'hook', 'on')),
       ctx,
-    );
+    ));
 
     // The player typed `on`; the world hung it FROM.
     expect(apple.getPlacement()?.name).toBe(Placements.FROM);
@@ -619,10 +602,10 @@ describe('PutController — put over N placements', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(hook, 'hook', 'into')),
       ctx,
-    );
+    ));
     const note = ctx
       .getNotes()
       .find((n) => n.kind === 'controller-rejected') as
@@ -646,10 +629,10 @@ describe('PutController — put over N placements', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(chest, 'chest', 'in')),
       ctx,
-    );
+    ));
     const notes = ctx.getNotes();
     const rejected = notes.find((n) => n.kind === 'controller-rejected') as
       | { reason?: string }
@@ -669,10 +652,10 @@ describe('PutController — put over N placements', () => {
     // wall with a sign on it.
     chest.setOpen(true);
     const ctx2 = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(chest, 'chest', 'in')),
       ctx2,
-    );
+    ));
     expect(apple.getContainer()).toBe(chest);
   });
 
@@ -723,10 +706,10 @@ describe('PutController — put over N placements', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(compartment, 'compartment', 'in')),
       ctx,
-    );
+    ));
     expect(
       (ctx.getNotes().find((n) => n.kind === 'controller-rejected') as
         | { reason?: string }
@@ -735,10 +718,7 @@ describe('PutController — put over N placements', () => {
 
     compartment.setOpen(true);
     expect(compartment.canPlace(apple, Placements.IN)).toEqual({ ok: true });
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(compartment, 'compartment', 'in')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(compartment, 'compartment', 'in')), ctx$)))(makeContext(giver, loc));
     expect(apple.getPlacement()?.name).toBe(Placements.IN);
   });
 
@@ -756,10 +736,7 @@ describe('PutController — put over N placements', () => {
 
     expect(box.canPlace(apple, Placements.FROM)).toEqual({ ok: true });
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(box, 'box', 'from')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(box, 'box', 'from')), ctx$)))(makeContext(giver, loc));
     expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
@@ -776,10 +753,10 @@ describe('PutController — put over N placements', () => {
 
     const controller = makeStuff(() => new PutController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(one(apple, 'apple'), one(rack, 'rack')),
       ctx,
-    );
+    ));
     const note = ctx
       .getNotes()
       .find((n) => n.kind === 'controller-rejected') as
@@ -791,10 +768,7 @@ describe('PutController — put over N placements', () => {
 
     // …and a typed PRIMARY resolves it, which is what the prompt asked
     // the player for.
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(rack, 'rack', 'from')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(rack, 'rack', 'from')), ctx$)))(makeContext(giver, loc));
     expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 
@@ -811,10 +785,7 @@ describe('PutController — put over N placements', () => {
     ContainmentApi.move(peg, loc);
 
     const controller = makeStuff(() => new PutController());
-    await controller.execute(
-      makeModel(one(apple, 'apple'), one(peg, 'peg', 'from')),
-      makeContext(giver, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(one(apple, 'apple'), one(peg, 'peg', 'from')), ctx$)))(makeContext(giver, loc));
     expect(apple.getPlacement()?.name).toBe(Placements.FROM);
   });
 });
@@ -852,7 +823,7 @@ describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub`
 
     const controller = makeStuff(() => new PutController());
     const item: MqlOneResult = { stuff: stack, raw: '2 coins', quantity: { value: { kind: 'count', n: 2 }, mode: 'lenient' } };
-    await controller.execute(makeModel(item, one(chest, 'chest', 'in')), makeContext(giver, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(item, one(chest, 'chest', 'in')), ctx$)))(makeContext(giver, loc));
 
     expect(stack.getQuantity()).toBe(3);
     expect(stack.getContainer()).toBe(giver);

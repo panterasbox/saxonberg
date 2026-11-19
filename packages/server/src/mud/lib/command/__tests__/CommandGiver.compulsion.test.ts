@@ -19,6 +19,10 @@ import { MixinApi } from '../../../api/mixin';
 import { ProxyApi } from '../../../api/proxy';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { Refusal } from '../../errors';
+import { PlayerApi } from '../../../api/player';
+import { AccessApi } from '../../../api/access';
+import { CommandApi as CommandApiForCtx } from '../../../api/command';
+import { SecurityError } from '../../security/errors';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-world';
@@ -26,7 +30,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
 
 class NeverCtl extends CommandController {
-  async execute(): Promise<void> {}
+  async execute(_model?: unknown, _context?: unknown): Promise<void> {}
 }
 class AgreeingCtl extends CommandController {
   static override compellable = true;
@@ -46,6 +50,7 @@ describe('the compulsion gate', () => {
   let asker: Stuff;
   let ran: string[];
   let prompt: ReturnType<typeof vi.fn>;
+  let isPlayer: { mockReturnValue(v: never): unknown };
 
   beforeEach(async () => {
     world = makeWorld();
@@ -94,6 +99,9 @@ args:
     vi.spyOn(StuffApi, 'destruct').mockResolvedValue(undefined as never);
     vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
     prompt = vi.fn().mockResolvedValue(true);
+    // The giver is a PLAYER's body unless a test says otherwise (the keeper
+    // rule below is for bodies nobody plays).
+    isPlayer = vi.spyOn(PlayerApi, 'isAvatarStuff').mockImplementation(((x: unknown) => x === giver) as never);
     vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((x: unknown) => x === giver) as never);
     (ProxyApi.unwrap(giver) as unknown as { getInteractives(): Set<unknown> }).getInteractives = () =>
       new Set([{ promptConfirm: prompt, touchInput: () => undefined }]);
@@ -190,6 +198,70 @@ args:
   it("an executeCommand call (not forceCommand) from another body's code is gated too", async () => {
     await expect(TestHarnessApi.actAs(asker, () => giver.executeCommand('chatter hello'))).rejects.toMatchObject({
       reason: 'not-compellable',
+    });
+  });
+
+  describe('⭐ the keeper drives a body nobody plays (force)', () => {
+    beforeEach(() => {
+      isPlayer.mockReturnValue(false as never);
+      vi.spyOn(giver, 'getTemplatePath').mockReturnValue('/world/test/agent/dave');
+    });
+
+    it("its keeper (title over its row) drives it — a never-verb, no prompt — and it is recorded", async () => {
+      const can = vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+      await compel('chatter you suck');
+      expect(ran).toEqual(['chatter']);
+      expect(prompt).not.toHaveBeenCalled();
+      expect(can).toHaveBeenCalledWith(asker, 'write-template', '/world/test/agent/dave');
+      expect(DiagnosticApi.record).toHaveBeenCalledWith(
+        expect.objectContaining({ channel: 'force', path: '/world/test/agent/dave' }),
+      );
+    });
+
+    it("an animal someone OWNS: its keeper still drives it, and the owner is told who did what", async () => {
+      vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+      vi.spyOn(MixinApi, 'isChattel').mockImplementation(((x: unknown) => x === giver) as never);
+      (ProxyApi.unwrap(giver) as unknown as { chattelOwner(): Promise<unknown> }).chattelOwner = async () => ({
+        kind: 'player',
+        templatePath: '/platform/agent/Avatar/ownerid',
+      });
+      await compel('chatter mew');
+      expect(DiagnosticApi.record).toHaveBeenCalledWith(
+        expect.objectContaining({ channel: 'force', path: '/home/ownerid', message: expect.stringContaining('run `chatter mew`') }),
+      );
+    });
+
+    it('anyone else is refused — owning it, standing near it, nothing', async () => {
+      vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
+      await expect(compel('chatter you suck')).rejects.toMatchObject({ reason: 'cannot-consent' });
+      expect(ran).toEqual([]);
+    });
+  });
+
+  describe('⭐ the side doors around the gate are shut', () => {
+    it("another body's code cannot call the giver's _executeOne or _runChain", async () => {
+      const g = giver as unknown as { _executeOne(...a: unknown[]): Promise<void> };
+      await expect(
+        TestHarnessApi.actAs(asker, async () => g._executeOne({} as never, {} as never, {} as never)),
+      ).rejects.toBeInstanceOf(SecurityError);
+    });
+
+    it("a controller cannot be run with a context naming another body", async () => {
+      const ctx = CommandApiForCtx.createCommandContext({
+        commandGiver: giver as never,
+        location: null,
+        commandText: 'chatter hi',
+        executionId: 't',
+        commandId: 't',
+        verb: 'chatter',
+        command: undefined as never,
+      });
+      const ctl = makeStuff(() => new NeverCtl());
+      await expect(TestHarnessApi.actAs(asker, async () => ctl.execute({} as never, ctx))).rejects.toBeInstanceOf(
+        SecurityError,
+      );
+      // The body's own dispatch may.
+      await expect(TestHarnessApi.actAs(giver, async () => ctl.execute({} as never, ctx))).resolves.toBeUndefined();
     });
   });
 });

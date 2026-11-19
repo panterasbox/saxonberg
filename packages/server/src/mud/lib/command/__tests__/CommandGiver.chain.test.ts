@@ -23,6 +23,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { makeWorld, type MqlWorld } from '../../../api/__tests__/fixtures/mql-world';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 /** A kettle: no `SealableMixin`, so the narrow view refuses it. */
 class TestKettle extends ContainableMixin(
@@ -73,7 +74,7 @@ describe('two views of one verb', () => {
       verb: 'pourish',
       command: views[0]!,
     });
-    return giver._runChain(parsed, outer);
+    return TestHarnessApi.actAs(giver, () => giver._runChain(parsed, outer));
   };
 
   beforeEach(() => {
@@ -165,7 +166,7 @@ args:
       verb: 'peerish',
       command: views[0]!,
     });
-    return giver._runChain(parsed, outer);
+    return TestHarnessApi.actAs(giver, () => giver._runChain(parsed, outer));
   };
 
   beforeEach(() => {

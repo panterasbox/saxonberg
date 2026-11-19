@@ -31,6 +31,7 @@ import {
 } from './branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import { MarkedMixin } from '../../../../../lib/description/Marked';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Pot extends GreenwareMixin(MarkedMixin(MoistureMixin(ThermalMixin(CraftedMixin(Good))))) {
   static _mixinName = 'CarveImpressTestPot';
@@ -64,7 +65,7 @@ async function run(
   const ctx = makeContext(actor, room, text);
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return ctx;
 }

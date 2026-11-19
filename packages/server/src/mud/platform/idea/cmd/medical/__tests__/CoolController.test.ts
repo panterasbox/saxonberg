@@ -21,6 +21,7 @@ import type { MqlManyResult } from '../../../../../api/mql';
 import { MixinApi } from '../../../../../api/mixin';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Trauma } from '../../../Condition';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let note: ReturnType<typeof vi.fn>;
 
@@ -102,10 +103,7 @@ afterEach(() => {
 describe('CoolController', () => {
   it('⭐⭐ cooling a burn treats it — it reads as cooled', async () => {
     const { me, burn } = burned();
-    await makeStuff(() => new CoolController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CoolController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(burn.dressed).toBe(true);
     expect(burn.careQuality).toBeGreaterThan(0);
   });
@@ -115,10 +113,7 @@ describe('CoolController', () => {
     const me = makeStuff(() => new Creature());
     ContainmentApi.move(me, room);
     me.afflict({ kind: 'trauma', type: 'burn', site: 'body.arm.left', severity: 2 });
-    await makeStuff(() => new CoolController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CoolController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-water' }),
     );
@@ -136,10 +131,7 @@ describe('CoolController', () => {
       severity: 1,
       bleeding: true,
     });
-    await makeStuff(() => new CoolController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CoolController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-cool' }),
     );

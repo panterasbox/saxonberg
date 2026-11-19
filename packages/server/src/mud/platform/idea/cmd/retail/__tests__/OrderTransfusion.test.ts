@@ -39,6 +39,7 @@ import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../../lib/spatial/Containable';
 import type { Container } from '../../../../../lib/spatial/Container';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestWindow extends DonationBankMixin(Tariff) {
   static override _mixinName = 'TestWindow';
@@ -139,15 +140,12 @@ describe('order transfusion — the body-time cost', () => {
       return { ok: true, status: 'started', note: { kind: 'activity-updated' } } as never;
     });
 
-    await makeStuff(() => new OrderController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OrderController()).execute({
         counter: { stuff: [win], raw: '' },
         menu: undefined,
         cocktail: 'transfusion',
         brand: undefined,
-      } as never,
-      ctxFor(giver),
-    );
+      } as never, ctx$)))(ctxFor(giver));
 
     // A durative step was started for the honest duration…
     expect(start).toHaveBeenCalledTimes(1);

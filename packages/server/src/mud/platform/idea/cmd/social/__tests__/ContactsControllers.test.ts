@@ -15,6 +15,7 @@ import { MessageApi } from "../../../../../api/message";
 import { Template } from "../../../../../lib/stuff/Template";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext } from "../../../../../api/command";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 type Entry = { kind: "avatar"; playerId: string } | { kind: "npc"; templatePath: string };
 
@@ -65,38 +66,38 @@ describe("contacts controllers (C73 — names from the identity substrate)", () 
   afterEach(() => vi.restoreAllMocks());
 
   it("remove matches an offline player by their stored name", async () => {
-    await makeStuff(() => new ContactsRemoveController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
       { target: "bram", label: "friends" } as never,
       ctx,
-    );
+    ));
     expect(removed).toEqual(["p-bram"]);
   });
 
   it("remove matches an online player by their presentation, and an NPC by its row's name", async () => {
-    await makeStuff(() => new ContactsRemoveController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
       { target: "Aria", label: "friends" } as never,
       ctx,
-    );
-    await makeStuff(() => new ContactsRemoveController()).execute(
+    ));
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
       { target: "katie", label: "friends" } as never,
       ctx,
-    );
+    ));
     expect(removed).toEqual(["p-aria", "/stuff/agent/katie"]);
   });
 
   it("remove still takes the raw id", async () => {
-    await makeStuff(() => new ContactsRemoveController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
       { target: "p-bram", label: "friends" } as never,
       ctx,
-    );
+    ));
     expect(removed).toEqual(["p-bram"]);
   });
 
   it("show prints names, never player ids", async () => {
-    await makeStuff(() => new ContactsShowController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsShowController()).execute(
       { label: "friends" } as never,
       ctx,
-    );
+    ));
     const text = said.join("\n");
     expect(text).toContain("Aria");
     expect(text).toContain("Bram");

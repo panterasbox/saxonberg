@@ -31,6 +31,7 @@ import { BankingApi, Money } from '../../../../../api/banking';
 import { ContractApi } from '../../../../../api/contract';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SAPIENS =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
@@ -192,7 +193,7 @@ describe('EmbodyController.commit', () => {
   });
 
   function confirm(): Promise<void> {
-    return ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx));
   }
 
   it('mints the identity path with the picks as the clone overlay (no row)', async () => {

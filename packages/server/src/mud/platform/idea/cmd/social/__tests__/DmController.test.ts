@@ -36,6 +36,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { MessageFrame } from '@saxonberg/types';
 import type { MqlManyResult } from '../../../../../api/mql';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Actor extends SlottedMixin(
   AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
@@ -127,7 +128,7 @@ describe('DmController', () => {
 
     const controller = makeStuff(() => new DmController());
     const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(dmModel(bob as unknown as Stuff) as never, ctx));
 
     expect(
       (bob as unknown as Actor).received.some(
@@ -145,7 +146,7 @@ describe('DmController', () => {
     // commandSource is the speaker (not a comms update); the reachable
     // pool holds no comms update on the attuned-but-update-less actor.
     const ctx = context(alice as unknown as Stuff, alice as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(dmModel(bob as unknown as Stuff) as never, ctx));
 
     expect(ctx.getNotes().some((n) => n.kind === 'mixin-missing')).toBe(true);
     expect(
@@ -163,7 +164,7 @@ describe('DmController', () => {
 
     const controller = makeStuff(() => new DmController());
     const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(dmModel(bob as unknown as Stuff) as never, ctx));
 
     expect(
       (bob as unknown as Actor).received.some(

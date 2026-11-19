@@ -65,6 +65,7 @@ import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 import { forgetProfiles, rememberProfile } from '../../maturation/__tests__/profiles';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 // The profile and schedule documents outlive a test (load-on-use W4).
 afterEach(() => forgetProfiles());
@@ -320,10 +321,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         }
         if (text === 'wallet use house') {
           await asPrincipal(who, () =>
-            makeStuff(() => new WalletUseController()).execute(
-              { subcommand: 'use', corpo: 'house' } as never,
-              ctx(who, here, null, text),
-            ),
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, ctx$)))(ctx(who, here, null, text)),
           );
           return;
         }
@@ -332,13 +330,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
           const kw = rest[0]!;
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
-            makeStuff(() => new ShelfConsignController()).execute(
-              // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared
-              // it; a hand-built model skips the binder and must carry
-              // what the view would have put there.
-              { thing: bindHeld(who, kw), ask, shelf: { stuff: shelf, raw: 'shelf' } },
-              ctx(who, here, shelf, text),
-            ),
+            ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: bindHeld(who, kw), ask, shelf: { stuff: shelf, raw: 'shelf' } }, ctx$)))(ctx(who, here, shelf, text)),
           );
           return;
         }

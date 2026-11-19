@@ -36,6 +36,7 @@ import {
   makeStuffAtPath,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
@@ -170,10 +171,7 @@ describe("spoiled food poisons — the whole reach", () => {
   it("a FRESH ration poisons nobody", async () => {
     const item = ration(293);
     ContainmentApi.move(item as never, loc as never);
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item as unknown as Stuff, "ration") } as never,
-      ctxFor(eater, loc, "eat"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item as unknown as Stuff, "ration") } as never, ctx$)))(ctxFor(eater, loc, "eat"));
     expect(eater.digestionPools.ptomaine ?? 0).toBe(0);
     expect(eater.digestionPools.carb ?? 0).toBeGreaterThan(0);
   });
@@ -186,10 +184,7 @@ describe("spoiled food poisons — the whole reach", () => {
     setNow(4 * DAY); // ⚠ far past any absence guard: it rots the whole time
     expect(item.getFreshnessBand()).toBe("rotten");
 
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item as unknown as Stuff, "ration") } as never,
-      ctxFor(eater, loc, "eat"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item as unknown as Stuff, "ration") } as never, ctx$)))(ctxFor(eater, loc, "eat"));
 
     // The dose is in the un-absorbed pool, not yet in the burden.
     expect(eater.digestionPools.ptomaine ?? 0).toBeGreaterThan(0);
@@ -209,17 +204,11 @@ describe("spoiled food poisons — the whole reach", () => {
     item.getMicrobialLoad();
     setNow(4 * DAY);
 
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item as unknown as Stuff, "ration") } as never,
-      ctxFor(eater, loc, "eat"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item as unknown as Stuff, "ration") } as never, ctx$)))(ctxFor(eater, loc, "eat"));
     const dosed = eater.digestionPools.ptomaine ?? 0;
     expect(dosed).toBeGreaterThan(0);
 
-    await makeStuff(() => new VomitController()).execute(
-      {} as never,
-      ctxFor(eater, loc, "vomit"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new VomitController()).execute({} as never, ctx$)))(ctxFor(eater, loc, "vomit"));
     expect(eater.digestionPools.ptomaine ?? 0).toBe(0);
 
     // …and with the pool gone, the burden never builds.
@@ -234,10 +223,7 @@ describe("spoiled food poisons — the whole reach", () => {
     setNow(4 * DAY);
     expect(item.getFreshnessBand()).toBe("fresh");
 
-    await makeStuff(() => new EatController()).execute(
-      { target: one(item as unknown as Stuff, "ration") } as never,
-      ctxFor(eater, loc, "eat"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(item as unknown as Stuff, "ration") } as never, ctx$)))(ctxFor(eater, loc, "eat"));
     expect(eater.digestionPools.ptomaine ?? 0).toBe(0);
   });
 });

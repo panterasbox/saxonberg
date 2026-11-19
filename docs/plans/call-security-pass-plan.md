@@ -627,6 +627,27 @@ wraps the direct calls it breaks and replaces the four `asGiver` copies.
   returns the consenting Interactive and the command reports to it. Unit test
   + a walk step (an unfunded buyer is told).
 
+- **B25 (review) — the side doors are shut.** The owner asked how tight the
+  gate was: `_runChain`/`_executeOne` were ungated public methods, and
+  `CommandController.execute` took any context — a home-made
+  `forceCommand` was a few lines. Now `SelfOnly` on the two, and
+  `SecurityPolicies.CommandGiverOf(1)` on `execute`, registered with
+  `SecurityApi._setMethodPolicy` in a static block (the method is abstract;
+  overrides inherit the policy by the prototype walk). The detached async body
+  is rooted at the giver, not a marker object. Tests that run controllers
+  directly state their giver (`actAs`).
+- **B26 (review, owner ruling) — the keeper drives a body nobody plays.**
+  Title over the body's ROW (`AccessApi.canAtPath(actor, 'write-template',
+  row)`) admits a compelled command with no consent and no never-list; not a
+  player's body (`PlayerApi.isAvatarStuff`), ever. A pet's OWNER does not
+  drive it (lens pass in the conversation: 1 decided it — the pet's lesson is
+  earning cooperation; 3b — a puppet pet is a second body), and is told: a
+  `force` diagnostic at `/home/<owner>`; every drive recorded at the row.
+  `force` joins the title-routed channels.
+- **B27 (review) — `force <who> <command>`.** A thin controller over the
+  body's own `forceCommand`; the gate decides. Afforded with the author verbs
+  (`AuthorMixin.commandContributions`).
+
 ## ⭐⭐ Host placement
 
 | item | host | what it claims about the rest |

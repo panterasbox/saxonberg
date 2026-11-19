@@ -19,6 +19,7 @@ import { ChatApi } from '../chat';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { CardPayload } from '@saxonberg/types';
+import { TestHarnessApi } from '../test-harness';
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -55,7 +56,7 @@ const payloadOf = (h: Harness, instanceId: string): TerminalPayload => {
 
 function run(h: Harness, model: Record<string, unknown>) {
   const ctx = makeContext(h, { commandText: 'cockpit terminal', verbs: ['cockpit'] });
-  makeStuff(() => new CockpitTerminalController()).execute(model as never, ctx);
+  TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new CockpitTerminalController()).execute(model as never, ctx));
   return ctx.getNotes();
 }
 

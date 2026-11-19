@@ -30,6 +30,7 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../../Condition';
 import type { Trauma } from '../../../Condition';
 import { makeBody } from '../../../../../lib/slot/__tests__/carrying-fixture';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let captured: string;
 let note: ReturnType<typeof vi.fn>;
@@ -194,10 +195,7 @@ describe('RinseController', () => {
     const burn = causticOn(me, 1);
     // The view always binds `water` (it has a default); a dry room just
     // resolves it to nothing, and the controller reads no water there.
-    await makeStuff(() => new RinseController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-water' }),
     );
@@ -215,10 +213,7 @@ describe('RinseController', () => {
     const jug = waterJug();
     ContainmentApi.move(jug, me);
     const burn = causticOn(me, 1);
-    await makeStuff(() => new RinseController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(burn.agentActive).toBe(false);
   });
 
@@ -226,10 +221,7 @@ describe('RinseController', () => {
     const me = atWater();
     const a = causticOn(me, 1);
     const b = causticOn(me, 2);
-    await makeStuff(() => new RinseController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(a.agentActive).toBe(false);
     expect(b.agentActive).toBe(false);
     expect(captured).toContain('stopped getting worse');
@@ -240,10 +232,7 @@ describe('RinseController', () => {
     const them = makeStuff(() => new Creature());
     ContainmentApi.move(them, me.getContainer()!);
     const burn = causticOn(them, 1);
-    await makeStuff(() => new RinseController()).execute(
-      { ...patientArg(them), water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ ...patientArg(them), water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(burn.agentActive).toBe(false);
   });
 
@@ -256,10 +245,7 @@ describe('RinseController', () => {
       severity: 1,
       bleeding: true,
     });
-    await makeStuff(() => new RinseController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-rinse' }),
     );
@@ -271,10 +257,7 @@ describe('RinseController', () => {
     const me = atWater();
     const burn = causticOn(me, 1);
     TRAUMA_BEHAVIOR.caustic.resolve(me, burn);
-    await makeStuff(() => new RinseController()).execute(
-      { water: reachableWater(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RinseController()).execute({ water: reachableWater(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-rinse' }),
     );
