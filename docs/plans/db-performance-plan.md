@@ -880,7 +880,17 @@ record what it was — do not raise a grace.
 
 **Commit:** `perf(persistence): a capture is one keyed write; the shutdown sweep batches, reports, and includes the connected`
 
-### W5 — the ranked hot paths
+### W5 — the ranked hot paths ✅ code (019db4848 H2 · e1be1ae4c H3 · 129a05fdf H4 · b2f493668 H1 · 9f13e7ddb H6)
+
+> **Build note.** All four planned cuts plus **H6** (found by W0, not in
+> the table: the producer tap's `authorOf` on every command, 1.19 ops a
+> command — a memo on ProvenanceLogic, the H1 pattern). H2 adds no lib
+> static: the existing balance index carries each row's meta, maintained
+> by `AccountBalance.save`. H3/H6 bypass their cache inside a sandbox
+> circle (a circle reads its own stamped rows). H1's memo is on the logic
+> singleton (instance state), not module scope — a module map outlived
+> test store resets. ⚠ The per-cut "halves in the drive" check is still
+> owed: the measurement run was killed by memory pressure before step 3.
 
 **Goal:** each path taken costs at most half its baseline round trips per
 act. **Decision:** D11 — one commit per cut, in W0's order, each
@@ -1161,4 +1171,21 @@ removes. **Decided:** the floor is taken against the phase's ops less the
 scoring passes (~25 a command → 1.25), so H1–H4 all qualify. (Lens 2/plan
 D11's intent: rank what a player's act costs, not what the minute timer
 costs.)
+
+### After W5 — traced run, 2026-11-19 (counts; KILLED at step 7 by the box's memory pressure)
+
+| step | after W5 | W0 |
+|---|---|---|
+| 5 | ten `say`s → 39 round trips | 98 |
+| 2a | idle 180 s → **2** scoring ops, 0 standing writes | 3 642 |
+| 2b | one player acting → 16 scoring ops, of which 6 are the player's own appends | 2 451 |
+| 4 | A 6.0 / B 2.0; A as a shade 13.0; roster = standing (`nascent`); a login screen 0 ledger ops — **all HOLD** | all fell |
+| 7a | `withdraw-refused` "Your balance is under # zorkmids" | (recorded fresh — the W0 line was a drive defect) |
+
+Steps 3 and 6 (the working crowd, the pool, the per-path halving, the
+stop with thirty connected) **did not run**. The 2a/2b claims were
+corrected to the requirement's words (passes write nothing; a constant,
+not scaling with past players; 2b counts the passes, not the acts).
+Still owed: the drive's steps 3, 6, 7b–c on a box with memory for a
+world, D12 (the pool) decided from step 3, the browser walk, the MR.
 
