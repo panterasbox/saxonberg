@@ -70,7 +70,7 @@ might declare conditions the way a lock does rather than keep a second list.
 ## ⭐⭐⭐ The page boundary — one screen, on-page and off-page (2026-11-18) **[DECIDED in shape — the owner]**
 
 Talked through with the owner out of the recording thread
-([photography-slate](../trades/photography-slate.md) — *off-page* work is real-world creative work brought into
+([recording-slate](../trades/recording-slate.md) — *off-page* work is real-world creative work brought into
 the game, *on-page* is what the game renders) and broadcasting ([broadcasting-slate](../trades/broadcasting-slate.md)).
 The owner: *"The interesting thing is we want a single screen that can be used for off-page or on-page video,
 and both are explained and justified despite coming from different sources."*
@@ -95,7 +95,7 @@ on-page are two kinds of signal arriving at the same screen, never two kinds of 
   real camera; the aether reaching everywhere is the in-fiction reason it arrives at all, and **the screen marks
   it out of fiction**. The fiction never pretends one is the other.
 - ⭐ **A new source kind: the on-page relay** — a place's perception relayed live, in prose, to a screen elsewhere:
-  the recording model ([photography-slate](../trades/photography-slate.md)) played back with no delay, carried by
+  the recording model ([recording-slate](../trades/recording-slate.md)) played back with no delay, carried by
   the aether node anywhere it is allowed, a television station (Signal), or radio for sound only (Electric).
 - **A venue programs its screen** with the command that exists — `watch … on <screen>`; a bar showing the Assembly
   floor live is civic life (the C-SPAN idea). **Whether the Compact's floor is televised is the polity's choice.**
