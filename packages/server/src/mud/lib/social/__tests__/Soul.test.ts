@@ -48,10 +48,10 @@ class Listener extends SensorMixin(ContainableMixin(NamedMixin(Idea))) {
   }
 }
 
-/** A tuned actor: composes the gated AetherMixin and confers it innately. */
+/** A tuned actor: composes the gated AetherMixin; its species confers it. */
 class TunedCharacter extends AetherMixin(CharacterStuff) {
-  getConferredMixinNames(): readonly string[] {
-    return ['AetherMixin'];
+  getSpecies(): { getInnateMixins(): readonly string[] } {
+    return { getInnateMixins: () => ['AetherMixin'] };
   }
 }
 

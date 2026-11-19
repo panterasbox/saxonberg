@@ -97,8 +97,7 @@ active set = {
   m | hasMixin(stuff, m) AND (
     NOT m._augmentGated  OR
     exists augment the body BEARS with m._mixinName in augment.confers()  OR
-    m._mixinName in stuff.getSpecies().innateMixins  OR
-    m._mixinName in stuff.getConferredMixinNames()
+    m._mixinName in stuff.getSpecies().innateMixins
   )
 }
 ```
@@ -124,25 +123,22 @@ owner's — and says why not in **`conferralRefusal()`** (`not-borne`,
 memoizes its answer per game second — this leg runs for every
 modality-stamped frame.
 
-**A third leg: per-HOST intrinsic conferral.** A host that answers
-`getConferredMixinNames()` names mixins it carries by its own nature —
-neither by species nor by implant. `collectAugmentConferralNames`
-(`api/mixin.ts`) reads it by the same structural soft-lookup as the slot
-and species legs, no import.
+⭐⭐ **Two legs, one mechanism — and a shade is a species.** There used to
+be a third, per-HOST leg (`getConferredMixinNames()`), kept for one
+consumer: the shade, which carried the dead person's species and so could
+not take the sense from it. The owner ruled (aether-devices, 2026-11-18)
+that you lose your body when you die and **every shade is one species**
+(`/stuff/idea/species/shade`, `AetherMixin` innate) — so the shade is tuned
+by the species leg like any born-attuned species, and the per-host leg is
+retired. "Tuned by nature" is derived, never declared:
+`CommsMixin.isOwnAetherHost()` is *the sense is active and no borne device
+confers it*.
 
-⭐ **`Avatar.getConferredMixinNames()` answers from `isBornTuned()`** — the
-body's own word for "tuned by nature": `ShadeAvatar` answers `true` (attuned
-with no implant and no slot occupancy), a born-attuned species answers from
-its `innateMixins`. `Species.innateMixins` cannot be a shade's home: it is
-species-level reference data shared by every member and never mutated at
-runtime.
-
-⚠ **Employment used to be a fourth contributor here and is not.** An
-on-shift `Position`'s `confers` list surfaced through
-`EmployedMixin.getConferredMixinNames` — a JOB going through the implant
-mechanism. The trades-and-labor build deleted that implementation (the
-seam itself stays, for the shade); a seat's grants are data on the seat.
-See [employment.md](./employment.md) § Capability grant.
+⚠ **Employment used to contribute here too and does not.** An on-shift
+`Position`'s `confers` list rode the retired per-host leg — a JOB going
+through the implant mechanism. The trades-and-labor build deleted it; a
+seat's grants are data on the seat. See [employment.md](./employment.md)
+§ Capability grant.
 
 For un-gated mixins the behavior is identical to today's
 `hasMixin`. For gated ones the predicate reflects the
@@ -511,6 +507,6 @@ update an **app** (`CommsUpdate` → the Messages row on `App`,
 `ForumsUpdate`/`CredentialWalletUpdate`/`CalendarUpdate` →
 `ForumsApp`/`WalletApp`/`CalendarApp`, rows under `/platform/idea/app/`),
 widened the acquired leg to carried augments, gave `AugmentMixin`
-`conferralRefusal()`, replaced the shade's conferral method with
-`Avatar.isBornTuned()`, and retired the free implant for everyone but
+`conferralRefusal()`, made every shade the shade species (retiring the per-host conferral leg),
+and retired the free implant for everyone but
 guests. See [aether-devices.md](./aether-devices.md).

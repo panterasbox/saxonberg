@@ -53,16 +53,6 @@ class Actor extends CommsMixin(SlottedMixin(
   }
 }
 
-/** A body tuned by its nature (the shade's shape): its own host. */
-class BornTuned extends Actor {
-  override isBornTuned(): boolean {
-    return true;
-  }
-  getConferredMixinNames(): string[] {
-    return ['AetherMixin'];
-  }
-}
-
 function withPath<T extends Stuff>(obj: T, path: string): T {
   stampTemplatePathForTest(obj, path);
   return obj;
@@ -196,8 +186,9 @@ describe('DmController', () => {
   });
 
   it('a born-tuned person sends from their own host', async () => {
-    const alice = makeStuff(() => new BornTuned()) as unknown as Actor & AetherHost & Comms;
-    alice.setName('Alice');
+    // Tuned by nature: the species carries the sense (the shade's shape).
+    const alice = makeActor('Alice', false);
+    (alice as unknown as { getSpecies(): Species }).getSpecies().setInnateMixins(['AetherMixin']);
     await alice.installApp(App.MESSAGES_PATH);
     const bob = await withMessages('Bob');
     await dm(alice, bob);

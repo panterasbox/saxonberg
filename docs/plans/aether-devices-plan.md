@@ -433,6 +433,22 @@ mixin's file and call the class by its row), and `lint:mixin-names` must
 stay green. Grep `packages/` for every old class name and row path before
 the commit (B4).
 
+### D2b — Every shade is the shade species; `isBornTuned` is dropped (the owner, 2026-11-18, in review)
+
+**Choice.** The owner: *"I thought the whole idea was generic mixin gating
+… don't shades just get attunement from their species? Every ghost is the
+same species — you lose your body when you die."* A shade no longer keeps
+the dead person's species: `ConditionLogic.mintShadeFrom` overlays
+`/stuff/idea/species/shade` (extends the human row; `AetherMixin` innate;
+`undead` only). So the shade is tuned by the species leg like any
+born-attuned species, and the per-host `getConferredMixinNames` leg — whose
+last consumer was the shade — is **retired** (`lint:duck-typing` fell
+471 → 470). `isBornTuned()` is gone; "tuned by nature" is DERIVED:
+`CommsMixin.isOwnAetherHost()` — the sense is active and no borne device
+confers it. `aetherHostNow` asks the devices first, then the body.
+Re-embodying restores the body of record, so the shade's species never
+reaches the living body.
+
 ### D3 — `apps`
 
 One view, `platform/cmd/device/apps.yaml`, `verbs: [apps]`, category

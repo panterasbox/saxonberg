@@ -54,7 +54,7 @@ An augment can say **why it is not working** — `conferralRefusal()`:
 | **phone** (`platform/thing/Phone.ts`) | every new player — the starting kit, a bound Hollis Pal in a pocket; sold at the general store |
 | **implant** | guests only (a guest's phone would leak into the economy); always on, no battery |
 | **headset** | the implant worn; sold at the general store |
-| **by nature** | a shade, a born-attuned species — `isBornTuned()`; their own host |
+| **by nature** | a shade (every shade is the shade species, `AetherMixin` innate) or a born-attuned species; their own host — derived (`isOwnAetherHost()`: the sense active and no borne device conferring it), never declared |
 
 A circle body gets no tuner: the holodeck forces no decision on its user.
 

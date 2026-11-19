@@ -980,9 +980,6 @@ async function mintCorpseFrom(
 async function mintShadeFrom(
   avatar: PlayerBody,
 ): Promise<Stuff | null> {
-  const species = MixinApi.isOrganism(avatar as unknown as Stuff)
-    ? (avatar as unknown as { getSpecies(): { getTemplatePath(): string | null } | null }).getSpecies()
-    : null;
   // ⭐ Clone the row with the minted-identity channel, exactly as an
   // Avatar is minted. What the constructor used to take — the player id
   // and the species — rides `dataOverlay`, which hydration Phase 1
@@ -1000,9 +997,11 @@ async function mintShadeFrom(
       asIdentityPath: `/platform/agent/ShadeAvatar/${avatar.getPlayerId()}`,
       dataOverlay: {
         playerId: avatar.getPlayerId(),
-        ...(species?.getTemplatePath()
-          ? { _speciesPath: species.getTemplatePath() }
-          : {}),
+        // ⭐ Every shade is one species (aether-devices, the owner's ruling):
+        // you lose your body when you die. Tuned to the aether by its
+        // nature — the species' innate `AetherMixin` — like any born-attuned
+        // species, so a shade needs no device and no exception.
+        _speciesPath: TemplatePaths.shadeSpecies,
       },
     },
   );

@@ -9,8 +9,8 @@
  *
  * **What the person's comms asks before a message goes** (aether-devices
  * D2, D8): `sendOrHold` — is there a host that would carry it right now
- * (`aetherHostNow`: a born-tuned body is its own; otherwise the first
- * augment it bears that confers the aether sense and hosts apps), and does
+ * (`aetherHostNow`: the first augment it bears that confers the aether
+ * sense and hosts apps; else the body itself when tuned by nature), and does
  * that host have **Messages** installed? Messages is an app
  * (`/platform/idea/app/messages`) that does nothing by itself: it is what
  * this mixin looks for. Controllers ask and render; none decides.
@@ -133,12 +133,11 @@ export interface Comms {
   aetherWord(): string;
 
   /**
-   * Is this body tuned by its own nature — a shade, a born-attuned
-   * species — rather than by a device? Such a body is its own host.
-   * @hook Default `false`; `Avatar` answers from its species, `ShadeAvatar`
-   *   answers `true`.
+   * Is this body its own aether host — tuned by its nature (a shade, a
+   * born-attuned species: the gated sense active with no device
+   * conferring it)? Derived from the gating, never declared.
    */
-  isBornTuned(): boolean;
+  isOwnAetherHost(): boolean;
 }
 
 /** Why a message cannot leave (or arrive) right now. */
@@ -361,8 +360,13 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this.spendOnHost();
     }
 
-    isBornTuned(): boolean {
-      return false;
+    isOwnAetherHost(): boolean {
+      const me = this as unknown as Stuff;
+      if (!MixinApi.isAetherHost(me) || !MixinApi.isActive(me, "AetherMixin")) return false;
+      // Tuned, and no borne device is what tunes it: tuned by nature.
+      return !this.borneAugments().some(
+        (a) => a.conferralRefusal() === null && a.confers().includes("AetherMixin"),
+      );
     }
 
     aetherWord(): string {
@@ -452,7 +456,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /**
      * A message sent or read through a host with a battery spends `useWh`
-     * of it (D5). A host without one (an implant, a born-tuned body)
+     * of it (D5). A host without one (an implant, a body tuned by nature)
      * spends nothing.
      */
     private spendOnHost(): void {
@@ -519,17 +523,17 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * The host whose Messages would carry a message right now (D2): a
-     * born-tuned body is its own; otherwise the first augment this body
-     * bears that nothing stops (`conferralRefusal() === null`), that
-     * confers the aether sense and that hosts apps. None → the most
-     * fixable reason among the devices it bears, or `none`.
+     * The host whose Messages would carry a message right now (D2): the
+     * first augment this body bears that nothing stops
+     * (`conferralRefusal() === null`), that confers the aether sense and
+     * that hosts apps; else the body itself when it is tuned by nature.
+     * None → the most fixable reason among the devices it bears, or
+     * `none`.
      */
     private aetherHostNow():
       | { ok: true; host: Stuff & AetherHost }
       | { ok: false; reason: AetherRefusalReason } {
       const me = this as unknown as Stuff;
-      if (this.isBornTuned() && MixinApi.isAetherHost(me)) return { ok: true, host: me };
       let best: AetherRefusalReason | null = null;
       for (const augment of this.borneAugments()) {
         if (!MixinApi.isAetherHost(augment)) continue;
@@ -540,6 +544,10 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         if (why === "not-borne") continue;
         if (best === null || FIXABILITY.indexOf(why) < FIXABILITY.indexOf(best)) best = why;
+      }
+      // No device tunes it: is the body tuned by its own nature?
+      if (MixinApi.isAetherHost(me) && MixinApi.isActive(me, "AetherMixin")) {
+        return { ok: true, host: me };
       }
       return { ok: false, reason: best ?? "none" };
     }

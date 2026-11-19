@@ -1329,29 +1329,9 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   /**
-   * ⭐ The per-host conferral seam (`MixinApi.collectAugmentConferralNames`
-   * reads it structurally): a body tuned by its own nature confers the
-   * aether sense on itself, with no device (aether-devices D1). Only a
-   * shade and a born-attuned species answer yes.
-   */
-  public getConferredMixinNames(): string[] {
-    return this.isBornTuned() ? ["AetherMixin"] : [];
-  }
-
-  /**
-   * Tuned by nature — a species born attuned to the aether — rather than
-   * by a device (aether-devices D2). Such a body is its own host: Messages
-   * is installed on the person. `ShadeAvatar` answers `true` outright.
-   */
-  public override isBornTuned(): boolean {
-    const species = this.getSpecies();
-    return species?.getInnateMixins().includes("AetherMixin") ?? false;
-  }
-
-  /**
    * Install the default loadout — the guest's implant, then the person's
    * own apps (forums, the wallet, the calendar; Messages too when the
-   * person is born tuned). Called from `onCreate`, and again after a
+   * person is tuned by nature). Called from `onCreate`, and again after a
    * returning player's materialize.
    *
    * Attunement (aether-devices D11): a GUEST is seated an `AetherImplant`
@@ -1422,9 +1402,9 @@ export default abstract class Avatar extends AvatarBase {
 
       // Install the default apps through the one way software gets onto a
       // host (aether-devices D2). Messages goes on the person only when the
-      // person is their own host (born tuned); everyone else finds it on
-      // the device that tunes them.
-      if (this.isBornTuned()) await this.installApp(App.MESSAGES_PATH);
+      // person is their own host — tuned by nature (a shade, a born-attuned
+      // species); everyone else finds it on the device that tunes them.
+      if (this.isOwnAetherHost()) await this.installApp(App.MESSAGES_PATH);
       await this.installApp(ForumsApp.TEMPLATE_PATH);
       // One wallet app holds every credential kind (payment + travel),
       // replacing the per-credential implant twins. Its seed ships an empty

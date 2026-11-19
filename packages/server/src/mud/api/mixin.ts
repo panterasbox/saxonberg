@@ -3108,7 +3108,9 @@ export class MixinApi {
  *     — slot occupants via `getAllOccupants`, carried ones via the
  *     recency stack's `environment` sources (aether-devices D1);
  *   - **innate**: the actor's species (`Species.innateMixins`), reached
- *     via the structural `getSpecies()` surface.
+ *     via the structural `getSpecies()` surface. A shade is tuned this way
+ *     too — every shade is the shade species (aether-devices); the per-body
+ *     `getConferredMixinNames` leg it once needed is retired.
  *
  * Used by `getActiveMixins` to resolve gated mixins' activation state.
  * A non-Slotted host simply contributes no augment names; a host with
@@ -3191,31 +3193,6 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
       innate = undefined;
     }
     if (innate) for (const name of innate) out.add(name);
-  }
-  // ⭐ Per-HOST intrinsic conferral: a host that answers
-  // `getConferredMixinNames()` names mixins it carries by its own nature
-  // rather than by species or by implant. The one consumer is `ShadeAvatar`,
-  // which is attuned with no implant and no slot — species `innateMixins`
-  // would be the obvious home but is shared reference data a shade cannot
-  // write without corrupting the species. Same structural soft-lookup, no
-  // import.
-  //
-  // ⚠ Employment used to contribute here too (an on-shift Position's
-  // `confers` list), which put a JOB through the implant mechanism. That
-  // fold is gone: augment gating is for physical implants and innate
-  // gifts, and what a seat lets you do is now data on the seat
-  // (`Position.fulfills`, `Position.purchases`) read off the shift.
-  const conferring = stuff as unknown as {
-    getConferredMixinNames?: () => readonly string[];
-  };
-  if (typeof conferring.getConferredMixinNames === 'function') {
-    let names: readonly string[] | undefined;
-    try {
-      names = conferring.getConferredMixinNames();
-    } catch {
-      names = undefined;
-    }
-    if (names) for (const name of names) out.add(name);
   }
   return out;
 }

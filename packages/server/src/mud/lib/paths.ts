@@ -105,6 +105,8 @@ export const TemplatePaths = {
   folderZone: "/platform/idea/FolderZone",
   rootBiome: "/stuff/idea/biome/universe",
   aetherImplant: "/stuff/thing/AetherImplant",
+  // The one species every shade is (aether-devices): tuned by nature.
+  shadeSpecies: "/stuff/idea/species/shade",
 
   // Apps (aether hosting relation) — incorporeal Ideas a host installs by
   // row path (`installApp`); the key is the last segment.

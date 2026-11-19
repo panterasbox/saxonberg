@@ -70,7 +70,7 @@ self-echo frame, the mention resolver and the speaker name are the
 person's own.
 
 Before anything goes, the person asks `sendOrHold(commandText)`: is there
-a host that tunes them right now (`aetherHostNow` — born tuned, or the
+a host that tunes them right now (`aetherHostNow` — tuned by nature, or the
 first augment they bear that nothing stops), and does it run **Messages**
 (`/platform/idea/app/messages`)? If not, the typed line is held and the
 refusal names the fix; it re-runs when it can. A frame arriving over the

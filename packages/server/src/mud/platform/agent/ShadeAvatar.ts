@@ -81,17 +81,6 @@ export default class ShadeAvatar extends IncorporealMixin(Avatar) {
   }
 
   /**
-   * ⭐ A shade is tuned by its nature — no implant, no device; its own
-   * host (aether-devices D2). `Avatar.getConferredMixinNames` reads this,
-   * so the shade needs no conferral method of its own (the one it had
-   * retired in W5). `Species.innateMixins` is not the home: it is shared
-   * reference data a shade cannot write without corrupting the species.
-   */
-  public override isBornTuned(): boolean {
-    return true;
-  }
-
-  /**
    * The shell fork carries the deceased's `alive` lifecycle across; force
    * it back. Without this a shade would read as a living body and the
    * survival drivers would start running on it again.

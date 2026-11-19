@@ -163,9 +163,10 @@ describe('CommsMixin (on the person)', () => {
     expect(alice.sendOrHold('dm bob hi')).toBeNull();
   });
 
-  it('sendOrHold: a born-tuned person is their own host', async () => {
+  it('sendOrHold: a person tuned by nature (species) is their own host', async () => {
     const alice = makeAttuned('Alice', { implant: false });
-    vi.spyOn(alice, 'isBornTuned').mockReturnValue(true);
+    (alice as unknown as { getSpecies(): Species }).getSpecies().setInnateMixins(['AetherMixin']);
+    expect(alice.isOwnAetherHost()).toBe(true);
     expect(alice.sendOrHold('dm bob hi')?.reason).toBe('no-messages');
     await alice.installApp(App.MESSAGES_PATH);
     expect(alice.sendOrHold('dm bob hi')).toBeNull();
