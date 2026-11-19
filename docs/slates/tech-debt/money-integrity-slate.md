@@ -134,7 +134,7 @@ that finding 3 failed.
 
 | Surface | The question |
 |---|---|
-| `StuffApi.clone('/stuff/thing/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? |
+| `StuffApi.clone('/stuff/thing/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? ⭐ **Answered 2026-11-18: yes** — *clone never creates money*: a coin template refuses clone everywhere but the reserve's own minting tool; the gap is open today (banking.md: a template with `quantity: 1000000` clones into a fortune) and closes before launch, on the reserved list's machinery layer ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7p). |
 | The `clone` verb's `--into` / quantity opts | Can an author clone a coin stack with an arbitrary quantity? |
 | **Crafting yields** | Can a `Recipe`'s `outputTemplate` be `/stuff/thing/Coin`? Recipes are data in the `recipes` collection. If yes, **a recipe is a mint.** |
 | **Content packs** | `PackApi` reconcile installs authored templates. Can a pack ship a coin-yielding recipe or a pre-stocked container? |
