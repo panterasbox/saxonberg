@@ -1210,3 +1210,30 @@ What it found, and what was done (no stop):
 - **captures** — not asserted by count: its keys also count login restores (≈ 90 of W0's 121 reads). Per capture: read + write → one write.
 - **D12** — 396 waits with every cut in: the pool goes to **16** (9011015ee); the re-run decides whether 24 is needed. Four worktrees × 16 stays far inside the cluster's connection limit.
 - No timed W0 baseline exists (the W0 box was loaded), so `noWorse` had nothing to compare; `say` p95 48 ms against call-security-performance's 53 ms on the same box is the nearest reference.
+
+### Re-runs for D12 and the H3/H4 fixes, 2026-11-19 (quiet box, foreign ≈ 0.3 cores)
+
+| pool | step-3 round trips | waited (peak, since boot) | paid p95 · look p95 · say p95 | H3 / H4 per command | stop |
+|---|---|---|---|---|---|
+| 10 (first run) | 2 418 | 396 (807) | 1 021 · 2 568 · 48 ms | 1.34 / 0.82 | 1.7 s, 178, 0 failed |
+| 16 | 1 882 | 196 (777) | 1 402 · 1 984 · 52 ms | **0.003** / 0.82 | 2.2 s |
+| **24 (kept)** | **1 860** | **21** (735) | 1 284 · 1 965 · 51 ms | 0.003 / 0.84 | 1.8 s, 178, 0 failed |
+
+Every other claim HOLDS in all three runs (2a, 2b, 4 ×4, 6 ×5, 7).
+
+**What stays unmet, stated plainly.** *"No command waits for a connection"*
+falls by 21 check-outs at the plan's ceiling of 24. What remains is ~5.6
+round trips a command (1 860 / 330) against a ~100 ms hosted database,
+with thirty bodies acting in the same instant. The plan forbids going past
+24 in this build; this is the measurement the requirements' *closer
+database* non-goal (→ deployment.md) was waiting for. The next per-act cuts
+are named by the top ops: `find documents` 366 / `save documents` 184 and
+`find/save beliefs` 154/124 (callers unnamed — a traced run), then the
+chattel events.
+
+**H4, by the letter, did not halve** (1.36 → 0.84 a command): its path
+counts the `chattel_events` audit appends (76), which no cut touches, and
+the remaining place writes are real moves (into hands, onto a shelf). The
+title and place writes themselves went from a read and a write to one
+write (370 → 196 ops). **Kept, not reverted** — reverting buys back ~200
+reads for nothing — and listed for the owner's eye.
