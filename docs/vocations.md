@@ -197,7 +197,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
 | medic | **next build** (mortality) | Discipline | patients |
-| journalist | designed ([press](./slates/society/press-slate.md)) | credibility | readers / patrons |
+| journalist | designed ([press](./slates/society/journalism-slate.md)) | credibility | readers / patrons |
 | **appraiser** | **GAP** | **certified instrument** | fee per assay |
 | navigator / cartographer | designed | maps + competence | travellers |
 | guard / escort | designed | combat | caravans |

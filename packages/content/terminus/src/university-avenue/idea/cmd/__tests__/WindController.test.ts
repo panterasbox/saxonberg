@@ -34,6 +34,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -102,10 +103,7 @@ describe('WindController', () => {
     const w = drainedWatch();
     expect(w.mainspringRemaining()).toBe(0);
 
-    await makeStuff(() => new WindController()).execute(
-      { target: one(w, 'watch') } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WindController()).execute({ target: one(w, 'watch') } as CommandModel, ctx$)))(ctxFor(avatar, room));
 
     expect(w.mainspringRemaining()).toBe(600);
     expect(avatar.received.length).toBeGreaterThan(0);
@@ -114,10 +112,10 @@ describe('WindController', () => {
   it('rejects a non-mechanical target', async () => {
     const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new WindController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new WindController()).execute(
       { target: one(rock, 'rock') } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);
@@ -125,10 +123,10 @@ describe('WindController', () => {
 
   it('rejects a missing target', async () => {
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new WindController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new WindController()).execute(
       {} as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

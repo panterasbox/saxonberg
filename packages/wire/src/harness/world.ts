@@ -29,6 +29,8 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
+import { spawnSync } from 'child_process';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../runner/boot';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { allFiles, currentFile } from './registry';
@@ -500,6 +502,24 @@ export async function stage(path: string, method: string, ...args: unknown[]): P
   return out.result ?? null;
 }
 
+/**
+ * ⭐ Stage an outage (failure-model D8): the next `calls` record reads or
+ * writes fail as a lost connection would. Only in a world this run owns.
+ */
+export async function failDatastore(calls = 1): Promise<void> {
+  const res = await postTestRoute('/auth/test-datastore-fail', { calls });
+  if (!res.ok) throw new Error(`failDatastore(${calls}) failed (${res.status}): ${await res.text()}`);
+}
+
+/**
+ * ⭐ Write a document past its validator (failure-model D6) — a bad row
+ * forced through, the staged twin a content error needs.
+ */
+export async function forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<void> {
+  const res = await postTestRoute('/auth/test-force-document', { path, kind, data });
+  if (!res.ok) throw new Error(`forceDocument('${path}') failed (${res.status}): ${await res.text()}`);
+}
+
 /* ──────────────────────── a ship ──────────────────────── */
 
 /** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
@@ -551,4 +571,129 @@ export async function stageShip(handle: string, spec: ShipStageSpec): Promise<Sh
     throw new Error(`stageShip('${handle}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
   }
   return out as ShipStageResult;
+}
+
+/**
+ * ⭐ Restart the owned world: stop whatever listens on the wire port, reap
+ * it, and boot it again — then point the harness at the new one. Every
+ * persisted thing must be read back afterwards (review question R4).
+ * Lifted from the drives that each carried a copy.
+ */
+export async function restartWorld(): Promise<void> {
+  const listener = Number(
+    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
+  );
+  if (listener > 0) {
+    process.kill(listener, 'SIGTERM');
+    const deadline = Date.now() + 180_000;
+    for (;;) {
+      try {
+        process.kill(listener, 0);
+      } catch {
+        break;
+      }
+      if (Date.now() > deadline) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  await stopOwnedWorld();
+  const serverDir = join(REPO_ROOT, 'packages', 'server');
+  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
+    cwd: serverDir,
+    stdio: 'ignore',
+  });
+  process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+}
+
+/* ──────────────────────── a timed stop ──────────────────────── */
+
+/** What the world's own shutdown said, parsed from its log. */
+export interface ShutdownReport {
+  captured: number;
+  failed: number | null;
+  ms: number | null;
+}
+
+/** How a stop with a grace went. */
+export interface TimedStop {
+  /** Wall ms from SIGTERM to the process gone. */
+  exitedMs: number;
+  /** True when the grace ran out and the process was SIGKILLed. */
+  killed: boolean;
+  /** The `shutdown captured …` line, or `null` when the world never wrote it. */
+  report: ShutdownReport | null;
+}
+
+/**
+ * ⭐ Stop the owned world as an operator with a deadline would (db-performance
+ * drive step 6): SIGTERM the listener, wait for it to exit, and SIGKILL
+ * **that PID** when `graceMs` runs out. Returns how long it took, whether
+ * it was killed, and the shutdown's own report from the log — the save a
+ * world makes when it stops is what this measures. The world is left
+ * stopped; boot it again with {@link restartWorld} (which finds nothing
+ * listening and only boots). `restartWorld`'s own wait and the runner's
+ * 15 s are not this.
+ */
+export async function stopWorldWithin(graceMs: number): Promise<TimedStop> {
+  const pid = Number(
+    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
+  );
+  if (!(pid > 0)) throw new Error(`stopWorldWithin: nothing listens on ${WIRE_PORT}`);
+  const alive = (): boolean => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const t0 = Date.now();
+  process.kill(pid, 'SIGTERM');
+  let killed = false;
+  while (alive()) {
+    if (Date.now() - t0 >= graceMs) {
+      process.kill(pid, 'SIGKILL');
+      killed = true;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  const exitedMs = Date.now() - t0;
+  // Let the log pipe flush, then reap the runner's bookkeeping.
+  await new Promise((r) => setTimeout(r, 500));
+  await stopOwnedWorld();
+  return { exitedMs, killed, report: lastShutdownReport() };
+}
+
+/** The last `shutdown captured …` line in the world's log, parsed. */
+export function lastShutdownReport(): ShutdownReport | null {
+  if (!existsSync(WIRE_LOG)) return null;
+  const all = [
+    ...readFileSync(WIRE_LOG, 'utf8').matchAll(
+      /shutdown captured (\d+) persistable host\(s\)(?: in (\d+) ms)?(?: \((\d+) failed\))?/g,
+    ),
+  ];
+  const m = all[all.length - 1];
+  if (!m) return null;
+  return {
+    captured: Number(m[1]),
+    ms: m[2] !== undefined ? Number(m[2]) : null,
+    failed: m[3] !== undefined ? Number(m[3]) : null,
+  };
+}
+
+/* ──────────────────────── a long-lived world ──────────────────────── */
+
+/**
+ * ⭐ Stage `count` past players — nobody's body — with a week of
+ * participation, renown and producer history (`testharness
+ * standing-history`, as `founder`, who must be a test-world session).
+ * Idempotent. Returns how many subjects the world reports.
+ */
+export async function stageStandingHistory(founder: Session, count: number): Promise<number> {
+  const r = await founder.cmd(`testharness standing-history ${count}`);
+  const said = await r.said();
+  const m = /(\d+) past players have standing history/.exec(said);
+  if (!m) throw new Error(`stageStandingHistory: ${JSON.stringify(said.slice(0, 400))}`);
+  return Number(m[1]);
 }

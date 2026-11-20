@@ -1,0 +1,3 @@
+facts:
+  target: thing
+says: "You find {{ target | item }} already locked."

@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rememberDisciplines } from "../../../../../lib/advancement/__tests__/discipline-fixtures";
 import CompetenceController from "../CompetenceController";
@@ -26,6 +27,7 @@ import {
   makeStuffAtPath,
 } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -65,6 +67,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });
@@ -97,7 +100,7 @@ describe("CompetenceController render", () => {
     });
 
     const ctrl = makeStuff(() => new CompetenceController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain("mixology");
@@ -109,7 +112,7 @@ describe("CompetenceController render", () => {
   it("renders an empty-state line when there is no evidence", async () => {
     const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/comp-empty");
     const ctrl = makeStuff(() => new CompetenceController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain("not yet practiced");

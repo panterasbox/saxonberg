@@ -24,11 +24,21 @@ prompt ([prompt.md](./prompt.md)), and activity
 ```
 talk to <npc>  →  TalkController
                     → narrow target to a Behaved host
-                    → find its `engage`-triggered BehaviorSpec
-                    → resolveExportSync(spec.brain, 'brain')
-                    → brain.open({ player, npc, config, interactive })
-                          → new DialogueConversation(...)  (the live state machine)
+                    → npc.converse(player, interactive)        ⭐ AS THE NPC
+                        → find its `engage`-triggered BehaviorSpec
+                        → resolveExportSync(spec.brain, 'brain')
+                        → runAsSelf → brain.open({ player, npc, config, interactive })
+                              → new DialogueConversation(...)  (the live state machine)
 ```
+
+⭐ **The NPC opens its own conversation** (call-security pass D10):
+`BehavedMixin.converse` runs the brain's `open` under `runAsSelf`, so the
+conversation's loop — launched from inside — is a continuation of the
+NPC, and every `dispatch` it makes is the NPC's own act. Before, the
+controller opened it from the player's `talk`, and the loop ran as the
+player. A conversation constructed by anyone else runs as that someone,
+and a `dispatch` from it is somebody else's code driving the NPC — the
+compulsion gate refuses it.
 
 The controller does **not** walk the tree — it hands off to the brain's
 `open` and returns. The brain stays the only code that knows the tree

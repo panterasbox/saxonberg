@@ -21,7 +21,7 @@ block, never this file. Back to [all slates](../README.md).
 | [notification](./notification-slate.md) | build | UNBUILT | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [text-to-speech](./text-to-speech-slate.md) | tail | UNBUILT | a ▶ on authored prose only (card prose sections, prose terminal frames) · browser speech first · cached cloud voices later · sentence highlight, one voice at a time, settings |
 
-## Partial — substrate shipped, the remainder below (9)
+## Partial — substrate shipped, the remainder below (10)
 
 | slate | size | status | left |
 |---|---|---|---|
@@ -31,14 +31,14 @@ block, never this file. Back to [all slates](../README.md).
 | [client-cockpit](./client-cockpit-slate.md) | wave | PARTIAL | the `study` and `classroom` modes + their diegetic `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule; this is the *Educational* row of client-shell-slate's use-case matrix, tracked only here since the cluster pass) · the content surface (video + transcript payloads, diegetic triggers, completion events) · the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still inert by design … |
 | [client-shell](./client-shell-slate.md) | wave | PARTIAL | search as a frame primitive (Q3 — the CLI half shipped as `recall`; help is not yet a scope) · the public read-only surface (metrics · overlays · public docs) + a read-only session … |
 | [console-filtering](./console-filtering-slate.md) | wave | PARTIAL | transcript search · sender filter · family mute (collapse a topic family to a count badge) · author/admin frames toggle … |
-| [display-manifestation](./display-manifestation-slate.md) | wave | PARTIAL | driver policy off the closed `pairing` enum and onto `AccessApi.can` · the network / channel / guide addressing layer · multiple simultaneous sources per screen · one shared wire shape for display projection (video push / card push / prose-read stay three mechanisms) |
+| [display-manifestation](./display-manifestation-slate.md) | wave | PARTIAL | driver policy off the closed `pairing` enum and onto `AccessApi.can` · the network / channel / guide addressing layer · multiple simultaneous sources per screen · one shared wire shape for display projection (video push / card push / prose-read stay three mechanisms) … |
 | [message-rendering](./message-rendering-slate.md) | tail | PARTIAL | the rest of the bounded layout vocabulary — `<box>`, `<rule>`, `<indent>`, `<columns>`/`<col>`, the `align` attribute — and the authoring-freedom gate (system/content free, a player in chat gated) that none of them have; the richer **channel-admin-authored** stylesheet (custom semantic tags + a constrained presentational palette, as channel config) and its distribution to clients — distinct from the reader-side per-channel color that already shipped; the generic-class MML hook those custom tags would need. |
 | [onboarding](./onboarding-slate.md) | build | PARTIAL | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) + the onboarding-progress flags and their subscription · scoped personal authoring (the dorm customization on-ramp) · the wayfinding signs … |
+| [tooltip](./tooltip-slate.md) | tail | PARTIAL | map glyph tooltips, breakdowns, action buttons and one block per mixin (the navigation build) · facts from the knowledge model · player words for the interface help a gutter stripe shows · live cards gated by light and reach (spoiler-slate) … |
 
-## ⚠ No readable status block — fix the block (3)
+## ⚠ No readable status block — fix the block (2)
 
 | slate | size | status | left |
 |---|---|---|---|
 | [atlas](./atlas-slate.md) | ? | ? | — |
 | [client-knowledge-model](./client-knowledge-model-slate.md) | ? | ? | — |
-| [tooltip](./tooltip-slate.md) | ? | ? | — |

@@ -9,9 +9,12 @@ help: |
 
   Pass `--one` to send only to the person who messaged you, even
   when the original was a group DM.
+
+  Like `dm`, a reply that can't go yet is held and sent when it can.
+  ⚠ Who you last heard from is not kept across a restart: a reply held
+  through one finds nobody to answer and says so.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresVerbalESP
 options:
   one:
     short: o

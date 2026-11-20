@@ -1,22 +1,24 @@
 /**
  * PressLogic Phase 3 — the inline news-ticker frame fan-out.
  *
- * Covers the presence-PUBLIC `publication.press` fan that fires inline at
- * the tail of the mutators (NO event tap — the trigger originates inside the
- * logic):
+ * Covers the presence-PUBLIC press-ticker fan that fires inline at the
+ * tail of the mutators (NO event tap — the trigger originates inside the
+ * logic), delivered as changes on every session's press-feed subscription
+ * (navigation-server D1):
  *   - `publish` fans an `upsert` frame (carrying the projected row) to every
  *     online viewer;
  *   - `retract` fans a `remove` frame (carrying only the releaseId);
- *   - a linkdead viewer and a destroyed viewer are skipped, and a healthy
- *     viewer later in the scan still receives — one bad recipient never
- *     aborts the fan.
+ *   - a viewer with no session and one whose session closed hear nothing,
+ *     and a healthy viewer still receives.
  *
- * Viewers are in-memory Sensor hosts (so `scene.toSelf` delivers); Mongo is
+ * Viewers are in-memory Sensor hosts, each with a real session subscribed
+ * to the press feed (its envelopes captured); Mongo is
  * faked with an in-memory collection (the Phase-1 harness); `PlayerApi`'s
  * roster is stubbed to the in-test avatar list.
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PressApi } from '../../../../api/press';
 import { Release } from '../../../../lib/press/Release';
@@ -32,8 +34,11 @@ import { PlayerApi } from '../../../../api/player';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
-import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
-import type { ReleaseFeedFrame, MessageFrame } from '@saxonberg/types';
+import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import type { ReleaseFeedFrame, ReleaseRow, SubscriptionDeltaEnvelope } from '@saxonberg/types';
+import { SESSION_SUBSCRIPTIONS, SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import Interactive from '../../Interactive';
+import PressFeedSource from '../../PressFeedSource';
 
 /** The acting author (the giver) whose templatePath is stamped onto rows. */
 class TestAuthor extends Idea {
@@ -41,29 +46,27 @@ class TestAuthor extends Idea {
 }
 
 /**
- * An Avatar-shaped viewer: a Sensor (so `scene(viewer).toSelf` delivers)
- * capturing the `publication.press` frames it receives. `connected`
- * stands in for `HasInteractiveMixin.isConnected()` — the fan scans online
- * viewers only, so a linkdead viewer (`connected = false`) is skipped.
+ * An Avatar-shaped viewer: a Sensor capturing the press-feed changes
+ * its session receives (`withSession = false`: linkdead, no session).
  */
 class Viewer extends SensorMixin(Idea) {
   public received: ReleaseFeedFrame[] = [];
-  public connected = true;
+  public session: Interactive | null = null;
   constructor(private pid: string) {
     super();
   }
   getPlayerId(): string {
     return this.pid;
   }
-  isConnected(): boolean {
-    return this.connected;
-  }
-  protected override handleMessage(frame: unknown): void {
-    const f = frame as MessageFrame;
-    if (f.topic === 'publication.press') {
-      this.received.push(f.payload as ReleaseFeedFrame);
-    }
-  }
+}
+
+/** Translate a press-feed delta back to the frames the assertions read. */
+function framesOf(env: SubscriptionDeltaEnvelope): ReleaseFeedFrame[] {
+  return env.changes.map((c) =>
+    c.op === 'remove'
+      ? { kind: 'release', action: 'remove', releaseId: c.key }
+      : { kind: 'release', action: 'upsert', row: c.fields as ReleaseRow },
+  );
 }
 
 let store: Map<string, Record<string, unknown>>;
@@ -88,9 +91,22 @@ async function publishAs<T>(
   }) as Promise<T>;
 }
 
-function makeViewer(pid: string): Viewer {
+function makeViewer(pid: string, withSession = true): Viewer {
   const v = makeStuffAtPath(() => new Viewer(pid), `/platform/agent/Avatar/${pid}`);
   avatars.push(v);
+  if (!withSession) return v;
+  const session = makeStuff(
+    () => new Interactive(`sock-${pid}`, 'sess', { _id: pid } as never),
+  ) as unknown as Interactive;
+  vi.spyOn(session, 'getHolder').mockReturnValue(v as never);
+  vi.spyOn(session, 'sendEnvelope').mockImplementation((tpl: unknown) => {
+    const env = tpl as SubscriptionDeltaEnvelope;
+    if (env.type === 'subscription-delta') v.received.push(...framesOf(env));
+  });
+  session.subscribe(SESSION_SUBSCRIPTIONS.pressFeed, SUBSCRIPTION_SOURCES.pressFeed, undefined, {
+    silent: true,
+  });
+  v.session = session;
   return v;
 }
 
@@ -120,11 +136,13 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(PlayerApi, 'getAllAvatars').mockImplementation(
     () => avatars as never
   );
   // A warm (empty) board so publish's upsert + recent resolve.
   void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
+  void makeStuffAtPath(() => new PressFeedSource(), SUBSCRIPTION_SOURCES.pressFeed);
   const org = makeStuffAtPath(() => new OrganizationEntity(), PUBLISHER);
   org.feedPath = FEED;
   org.positions = [
@@ -239,12 +257,11 @@ describe('PressLogic fan-out (inline, presence-public)', () => {
     expect(frame.releaseId).toBe(b.getReleaseId());
   });
 
-  it('skips linkdead + destroyed viewers without aborting the scan', async () => {
-    const linkdead = makeViewer('dead');
-    linkdead.connected = false; // no live Interactive to push to
+  it('a viewer with no session, or whose session closed, hears nothing', async () => {
+    const linkdead = makeViewer('dead', false); // no live session to push to
 
     const doomed = makeViewer('doomed');
-    await StuffApi.destruct(doomed); // isDestroyed() → true, still in roster
+    doomed.session!.teardownSubstrateState(); // its session went away
 
     const healthy = makeViewer('healthy'); // later in the scan order
 

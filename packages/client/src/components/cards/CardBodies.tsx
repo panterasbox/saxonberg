@@ -36,6 +36,7 @@
  */
 
 import { NavigatorBody } from "./NavigatorBody";
+import { whereaboutsOf } from "../../store/navSlice";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import { StreamControls } from "./StreamControls";
 import { useOnAir } from "../../lib/stream/onAir";
@@ -66,6 +67,11 @@ import { CmsExplorer } from "../cms/CmsExplorer";
 import { CmsEditor } from "../cms/CmsEditor";
 import { CmsGitPanel } from "../cms/CmsGitPanel";
 import { StudioPanel } from "../cms/studio/StudioPanel";
+import { Tip } from "../tooltip/Tip";
+import { commandDoc, controlDoc, wayDoc } from "../doc/docs";
+
+/** The mark on a row that holds more. */
+const HOLDS_MORE = controlDoc("Holds more — click to look inside");
 
 /* ─── shared pieces ─── */
 
@@ -362,6 +368,7 @@ const PLUMBING: ReadonlySet<string> = new Set([
  * every doc call it `Propertied` — and the reference art's chips carry
  * no suffix either.
  */
+
 export function chipLabel(mixin: string): string {
   return mixin.endsWith("Mixin") ? mixin.slice(0, -"Mixin".length) : mixin;
 }
@@ -581,16 +588,16 @@ function ActionRow({
           // ⭐ The server's own command (#91) — see `clickTarget.ts`.
           const send = actionCommand(v, stuffId, mode);
           return (
-            <InlineLink
-              key={v.verb}
-              title={`Click to send: ${send}`}
-              aria-label={send}
-              onClick={() => onSendCommand(send)}
-              onMouseEnter={() => onCommandPreview?.(send)}
-              onMouseLeave={() => onCommandPreview?.(null)}
-            >
-              {v.verb}
-            </InlineLink>
+            <Tip key={v.verb} tip={commandDoc(send)}>
+              <InlineLink
+                aria-label={send}
+                onClick={() => onSendCommand(send)}
+                onMouseEnter={() => onCommandPreview?.(send)}
+                onMouseLeave={() => onCommandPreview?.(null)}
+              >
+                {v.verb}
+              </InlineLink>
+            </Tip>
           );
         })}
       </Chips>
@@ -810,18 +817,19 @@ function WaysOut({
                 it sends* — the preview is the contract, not the label,
                 and the transcript has always done this.
               */}
-              <InlineLink
-                title={`Click to send: ${command}`}
-                onClick={() => onSendCommand(command)}
-                onMouseEnter={() => preview(command)}
-                onMouseLeave={() => preview(null)}
-              >
-                {exit.direction}
-                {/* ⭐ The way's state, from the one wire shape (boundary
-                    build): `north (locked)`, `west (window)`; an open way
-                    says nothing. */}
-                {exit.state && exit.state !== "open" ? ` (${exit.state})` : ""}
-              </InlineLink>
+              <Tip tip={wayDoc(exit.direction, command)}>
+                <InlineLink
+                  onClick={() => onSendCommand(command)}
+                  onMouseEnter={() => preview(command)}
+                  onMouseLeave={() => preview(null)}
+                >
+                  {exit.direction}
+                  {/* ⭐ The way's state, from the one wire shape (boundary
+                      build): `north (locked)`, `west (window)`; an open way
+                      says nothing. */}
+                  {exit.state && exit.state !== "open" ? ` (${exit.state})` : ""}
+                </InlineLink>
+              </Tip>
             </React.Fragment>
           );
         })}
@@ -873,7 +881,6 @@ function HereList({
               <EntityName
                 stuffId={row.stuffId}
                 label={row.displayName}
-                title={`Click to send: ${command}`}
                 command={command}
                 onPreview={preview}
                 onClick={() => onSendCommand(command)}
@@ -883,7 +890,7 @@ function HereList({
                 <PlacementAffix>· {placementPhrase(row.placement)}</PlacementAffix>
               )}
               {row.holds && (
-                <HoldsMark title="holds more — click to look inside">▸</HoldsMark>
+                <Tip tip={HOLDS_MORE}><HoldsMark>▸</HoldsMark></Tip>
               )}
             </div>
           );
@@ -933,15 +940,14 @@ function PlacedList({
                     <EntityName
                       stuffId={row.stuffId}
                       label={row.displayName}
-                      title={`Click to send: ${command}`}
                       command={command}
                       onPreview={preview}
                       onClick={() => onSendCommand(command)}
                     />
                     {row.holds && (
-                      <HoldsMark title="holds more — click to look inside">
+                      <Tip tip={HOLDS_MORE}><HoldsMark>
                         ▸
-                      </HoldsMark>
+                      </HoldsMark></Tip>
                     )}
                   </div>
                 );
@@ -992,7 +998,6 @@ function WornList({
               <EntityName
                 stuffId={row.stuffId}
                 label={row.displayName}
-                title={`Click to send: ${command}`}
                 command={command}
                 onPreview={preview}
                 onClick={() => onSendCommand(command)}
@@ -1067,13 +1072,14 @@ function DetailTrail({
   if (path.length === 0) return null;
   return (
     <Trail aria-label="detail breadcrumbs" data-testid="detail-trail">
-      <InlineLink
-        data-testid="detail-trail-root"
-        title={`Back to ${rootName}`}
-        onClick={() => onPopTo(0)}
-      >
-        {rootName}
-      </InlineLink>
+      <Tip tip={controlDoc(`Back to ${rootName}`)}>
+        <InlineLink
+          data-testid="detail-trail-root"
+          onClick={() => onPopTo(0)}
+        >
+          {rootName}
+        </InlineLink>
+      </Tip>
       {path.map((key, i) => {
         const isTail = i === path.length - 1;
         return (
@@ -1082,12 +1088,13 @@ function DetailTrail({
             {isTail ? (
               <TrailTail>{key}</TrailTail>
             ) : (
-              <InlineLink
-                title={`Back to ${key}`}
-                onClick={() => onPopTo(i + 1)}
-              >
-                {key}
-              </InlineLink>
+              <Tip tip={controlDoc(`Back to ${key}`)}>
+                <InlineLink
+                  onClick={() => onPopTo(i + 1)}
+                >
+                  {key}
+                </InlineLink>
+              </Tip>
             )}
           </React.Fragment>
         );
@@ -1155,8 +1162,29 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
       />
     );
   }
+  // ⭐ The navigator carries no payload (navigation-server D1): its body is
+  // the where-you-are subscription every session already holds.
+  if (card.cardId === 'map') {
+    return (
+      <NavigatorCardBody
+        onSendCommand={props.onSendCommand}
+        {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
+      />
+    );
+  }
   if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
+}
+
+/** The navigator, from the store: where you are, or that it is not known yet. */
+function NavigatorCardBody(props: {
+  onSendCommand: (command: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  const sections = useStore((s) => s.navSections);
+  const where = React.useMemo(() => whereaboutsOf(sections), [sections]);
+  if (!where) return <Prose data-testid="card-navigator-waiting">Where you are is not known yet.</Prose>;
+  return <NavigatorBody where={where} {...props} />;
 }
 
 /**
@@ -1281,14 +1309,6 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
-    case 'navigation':
-      return (
-        <NavigatorBody
-          where={payload.where}
-          onSendCommand={onSendCommand}
-          {...(onCommandPreview ? { onCommandPreview } : {})}
-        />
-      );
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
     case 'terminal':
@@ -1709,27 +1729,27 @@ function RosterBody({
       {rows.map((row) => {
         const command = `profile ${row.header}`;
         return (
-          <RosterRowButton
-            key={row.handle}
-            $recognized={row.recognized}
-            data-handle={row.handle}
-            title={`Click to send: ${command}`}
-            onClick={() => onSendCommand(command)}
-            onMouseEnter={
-              onCommandPreview ? () => onCommandPreview(command) : undefined
-            }
-            onMouseLeave={
-              onCommandPreview ? () => onCommandPreview(null) : undefined
-            }
-          >
-            <RosterHeader $recognized={row.recognized}>
-              {row.header}
-            </RosterHeader>
-            {row.status && (
-              <StatusBadge $status={row.status}>{row.status}</StatusBadge>
-            )}
-            {row.country && <RosterCountry>— {row.country}</RosterCountry>}
-          </RosterRowButton>
+          <Tip key={row.handle} tip={commandDoc(command)}>
+            <RosterRowButton
+              $recognized={row.recognized}
+              data-handle={row.handle}
+              onClick={() => onSendCommand(command)}
+              onMouseEnter={
+                onCommandPreview ? () => onCommandPreview(command) : undefined
+              }
+              onMouseLeave={
+                onCommandPreview ? () => onCommandPreview(null) : undefined
+              }
+            >
+              <RosterHeader $recognized={row.recognized}>
+                {row.header}
+              </RosterHeader>
+              {row.status && (
+                <StatusBadge $status={row.status}>{row.status}</StatusBadge>
+              )}
+              {row.country && <RosterCountry>— {row.country}</RosterCountry>}
+            </RosterRowButton>
+          </Tip>
         );
       })}
     </div>
@@ -1904,16 +1924,16 @@ function WikiPageBody({
               ? `wiki edit ${page.handle} --section ${sec.anchor}`
               : `wiki ${page.handle}`;
             return (
-              <OutlineRow
-                key={sec.anchor}
-                $level={sec.level}
-                title={`Click to send: ${command}`}
-                onClick={() => onSendCommand(command)}
-                onMouseEnter={() => onCommandPreview?.(command)}
-                onMouseLeave={() => onCommandPreview?.(null)}
-              >
-                {sec.title}
-              </OutlineRow>
+              <Tip key={sec.anchor} tip={commandDoc(command)}>
+                <OutlineRow
+                  $level={sec.level}
+                  onClick={() => onSendCommand(command)}
+                  onMouseEnter={() => onCommandPreview?.(command)}
+                  onMouseLeave={() => onCommandPreview?.(null)}
+                >
+                  {sec.title}
+                </OutlineRow>
+              </Tip>
             );
           })}
         </>

@@ -12,6 +12,7 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { PersistApi } from './persist';
 import { ExecutionContextApi } from './execution-context';
 import { TestOnly } from '../lib/security/decorators';
 import {
@@ -25,6 +26,7 @@ import {
   type GravityReport,
   type AfflictReport,
   type SpeciesReport,
+  type StandingHistoryReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
@@ -39,6 +41,7 @@ export type {
   GravityReport,
   AfflictReport,
   SpeciesReport,
+  StandingHistoryReport,
 };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
@@ -146,7 +149,24 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, stage state with the wire harness\u2019s stage() (POST /auth/test-stage).')
   public static stage(path: string, method: string, args: readonly unknown[] = []): Promise<StageReport> {
-    return logic().stage(path, method, args);
+    // Staging is the SYSTEM acting (call-security pass D3): it may set a
+    // state on anybody's behalf, and every check it meets says so.
+    return ExecutionContextApi.runAsSystem('test-stage', () => logic().stage(path, method, args));
+  }
+
+  /**
+   * ⭐ Run `fn` as `person` acting (call-security pass D15) — the honest
+   * actor a unit test of a protective method needs, stated rather than
+   * assumed. A root targeting `person`, tagged as its acting author, so
+   * `ExecutionContextApi.getActor()` (and the author) answer `person`.
+   * Replaces the hand-copied `asGiver` helpers.
+   */
+  @TestOnly('Tests state who acts with TestHarnessApi.actAs; in play, the actor is whoever typed the command.')
+  public static actAs<T>(person: unknown, fn: () => T): T {
+    return ExecutionContextApi.runRoot(person, 'actAs', () => {
+      ExecutionContextApi.tagActingAuthor(person);
+      return fn();
+    });
   }
 
   /**
@@ -200,10 +220,44 @@ export class TestHarnessApi {
     );
   }
 
+  /**
+   * ⭐ A long-lived world in one call: `count` past players with a week of
+   * participation, renown and producer history, appended through the three
+   * ledgers (db-performance drive 2 — what an idle world's scoring costs
+   * when hundreds have played). Idempotent per subject.
+   */
+  @TestOnly('In a test world, stage past players with `testharness standing-history <count>`.')
+  public static stageStandingHistory(count: number): Promise<StandingHistoryReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'stageStandingHistory', () =>
+      logic().stageStandingHistory(count),
+    );
+  }
+
   /** ⭐ Take a thing out of the world by id, wherever it is (a wizard's reach into a shut pack). */
   @TestOnly('In a test world, remove a thing with `testharness vanish #<id>`.')
   public static removeThing(stuffId: string): Promise<{ removed: string }> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId));
+  }
+
+  /**
+   * ⭐ Stage an outage (failure-model D8): the next `calls` reads or writes
+   * of the records fail as a lost connection would, so a verb meets the
+   * `unavailable` refusal end to end.
+   */
+  @TestOnly('In a test world, stage an outage with the wire harness\u2019s failDatastore() (POST /auth/test-datastore-fail).')
+  public static failDatastore(calls = 1): { failing: number } {
+    PersistApi.failNext(calls);
+    return { failing: calls };
+  }
+
+  /**
+   * ⭐ Write a document PAST its validator (failure-model D6) — the staged
+   * twin of a bad row forced through, so the drive sees a content error
+   * meet a player. Forgets the kind's resident copy so the next read sees it.
+   */
+  @TestOnly('In a test world, force a bad row with the wire harness\u2019s forceDocument() (POST /auth/test-force-document).')
+  public static forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<{ path: string; kind: string }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'forceDocument', () => logic().forceDocument(path, kind, data));
   }
 
   /** The pin on the Locality covering `scope`, if any. */

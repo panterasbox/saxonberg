@@ -38,10 +38,12 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
 import type { Aether } from '../lib/message/Aether';
 import type { AetherHosted } from '../lib/augmentation/AetherHosted';
+import type { AetherHost } from '../lib/augmentation/AetherHost';
+import type { Battery } from '../lib/supply/Battery';
 import type { Comms } from '../lib/comms/Comms';
 import type { Forums } from '../lib/forum/Forums';
 import type { CalendarKeeping } from '../lib/calendar/Calendar';
-import type { CalendarApp } from '../lib/calendar/CalendarApp';
+import type { CalendarAppSurface } from '../lib/calendar/CalendarApp';
 import type { Prescription } from '../lib/vitals/Prescription';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
@@ -79,6 +81,7 @@ import type { SaxonbergClient } from '../lib/connection/SaxonbergClient';
 import type { Environment } from '../lib/shell/Environment';
 import type { Alias } from '../lib/shell/Alias';
 import type { Singleton } from '../lib/stuff/Singleton';
+import type { SubscriptionSource } from '../lib/subscription/SubscriptionSource';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
@@ -1183,6 +1186,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Aether);
   }
 
+  /** Does `obj` run on stored electrical energy (aether-devices D5)? */
+  public static isBattery(obj: Stuff): obj is Stuff & Battery {
+    return this.hasMixin(obj, Mixins.Battery);
+  }
+
+  /** Does `obj` host aether software (apps)? Composition, not tuning. */
+  public static isAetherHost(obj: Stuff): obj is Stuff & AetherHost {
+    return this.hasMixin(obj, Mixins.AetherHost);
+  }
+
   public static isAetherHosted(obj: Stuff): obj is Stuff & AetherHosted {
     return this.hasMixin(obj, Mixins.AetherHosted);
   }
@@ -1199,7 +1212,7 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Calendar);
   }
 
-  public static isCalendarApp(obj: Stuff): obj is Stuff & CalendarApp {
+  public static isCalendarApp(obj: Stuff): obj is Stuff & CalendarAppSurface {
     return this.hasMixin(obj, Mixins.CalendarApp);
   }
 
@@ -1422,6 +1435,10 @@ export class MixinApi {
 
   public static isScryable(obj: Stuff): obj is Stuff & Scryable {
     return this.hasMixin(obj, Mixins.Scryable);
+  }
+
+  public static isSubscriptionSource(obj: Stuff): obj is Stuff & SubscriptionSource {
+    return this.hasMixin(obj, Mixins.SubscriptionSource);
   }
 
   public static isSingleton(obj: Stuff): obj is Stuff & Singleton {
@@ -2758,11 +2775,11 @@ export class MixinApi {
    * arrays declared at each level. Mirrors the shape of
    * {@link getAllPersistentFields}. Order is parent-first → child-
    * last; later entries on the same name win in the caller's
-   * downstream merge (`collectSubscribableFields` in mql-subscription.ts).
+   * downstream merge (`collectSubscribableFields` in subscription.ts).
    *
-   * `SubscribableFieldDescriptor` is defined in `mql-subscription.ts`;
+   * `SubscribableFieldDescriptor` is defined in `subscription.ts`;
    * we use a structural local type here to avoid a runtime import
-   * cycle (mixin.ts is below mql-subscription.ts in the layering).
+   * cycle (mixin.ts is below subscription.ts in the layering).
    */
   public static getAllSubscribableFields(
     constructor: AnyConstructor,
@@ -3092,10 +3109,13 @@ export class MixinApi {
 /**
  * Collect every gated-mixin name *conferred* onto `stuff`, from BOTH
  * conferral sources — the innate⊕acquired union:
- *   - **acquired**: installed slot augments (`AugmentMixin.confers()`),
- *     walked via the SlottedMixin `getAllOccupants` surface;
+ *   - **acquired**: every augment the body bears (`AugmentMixin.confers()`)
+ *     — slot occupants via `getAllOccupants`, carried ones via the
+ *     recency stack's `environment` sources (aether-devices D1);
  *   - **innate**: the actor's species (`Species.innateMixins`), reached
- *     via the structural `getSpecies()` surface.
+ *     via the structural `getSpecies()` surface. A shade is tuned this way
+ *     too — every shade is the shade species (aether-devices); the per-body
+ *     `getConferredMixinNames` leg it once needed is retired.
  *
  * Used by `getActiveMixins` to resolve gated mixins' activation state.
  * A non-Slotted host simply contributes no augment names; a host with
@@ -3104,11 +3124,31 @@ export class MixinApi {
  */
 function collectAugmentConferralNames(stuff: Stuff): Set<string> {
   const out = new Set<string>();
+  // ⭐ The acquired leg: every augment the body BEARS (aether-devices D1)
+  // — slot occupants (a seated implant, a phone in a hand) and carried
+  // ones (a phone in a pocket). One loop, each augment asked once; the
+  // device decides in `confers()` (a phone answers from where it is).
+  const asked = new Set<string>();
+  const askAugment = (occupant: Stuff): void => {
+    if (asked.has(occupant.stuffId)) return;
+    asked.add(occupant.stuffId);
+    if (!MixinApi.hasMixin(occupant, 'AugmentMixin' as MixinName)) return;
+    const augment = occupant as unknown as {
+      confers?: () => readonly string[];
+    };
+    if (typeof augment.confers !== 'function') return;
+    let names: readonly string[];
+    try {
+      names = augment.confers();
+    } catch {
+      return;
+    }
+    for (const name of names) out.add(name);
+  };
   // `getAllOccupants` is the SlottedMixin surface — returns a
-  // Map<slotName, ReadonlySet<occupant>>. Non-Slotted hosts have no
-  // augments; return the empty set. Structural-shape lookup avoids
-  // importing SlotApi at module load (would re-enter this module via
-  // its decorator-decoration chain).
+  // Map<slotName, ReadonlySet<occupant>>. Structural-shape lookup avoids
+  // importing SlotApi at module load (would re-enter this module via its
+  // decorator-decoration chain).
   const slotted = stuff as unknown as {
     getAllOccupants?: () => ReadonlyMap<string, ReadonlySet<Stuff>>;
   };
@@ -3122,24 +3162,24 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
     }
     if (occupantsByslot) {
       for (const occupantSet of occupantsByslot.values()) {
-        for (const occupant of occupantSet) {
-          if (!MixinApi.hasMixin(occupant, 'AugmentMixin' as MixinName)) {
-            continue;
-          }
-          const augment = occupant as unknown as {
-            confers?: () => readonly string[];
-          };
-          if (typeof augment.confers !== 'function') continue;
-          let names: readonly string[];
-          try {
-            names = augment.confers();
-          } catch {
-            continue;
-          }
-          for (const name of names) out.add(name);
-        }
+        for (const occupant of occupantSet) askAugment(occupant);
       }
     }
+  }
+  // Carried augments: a carried thing's `environment` verbs reach its
+  // carrier at any depth and are kept exact on every move by the
+  // containment chokepoint, so the body's recency stack is the record of
+  // what it bears — an array scan, no walk of the carried tree. ⚠ A carried
+  // augment with no `environment` verb is invisible here; every device
+  // today is an aether host and affords `apps`.
+  if (MixinApi.isCommandGiver(stuff)) {
+    let carried: readonly Stuff[] = [];
+    try {
+      carried = stuff.getCommandSources('environment');
+    } catch {
+      carried = [];
+    }
+    for (const c of carried) askAugment(c);
   }
   // Intrinsic (innate) conferral: union the actor's species
   // `innateMixins`, the mirror of `AugmentMixin.confers()`. Reached by
@@ -3158,31 +3198,6 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
       innate = undefined;
     }
     if (innate) for (const name of innate) out.add(name);
-  }
-  // ⭐ Per-HOST intrinsic conferral: a host that answers
-  // `getConferredMixinNames()` names mixins it carries by its own nature
-  // rather than by species or by implant. The one consumer is `ShadeAvatar`,
-  // which is attuned with no implant and no slot — species `innateMixins`
-  // would be the obvious home but is shared reference data a shade cannot
-  // write without corrupting the species. Same structural soft-lookup, no
-  // import.
-  //
-  // ⚠ Employment used to contribute here too (an on-shift Position's
-  // `confers` list), which put a JOB through the implant mechanism. That
-  // fold is gone: augment gating is for physical implants and innate
-  // gifts, and what a seat lets you do is now data on the seat
-  // (`Position.fulfills`, `Position.purchases`) read off the shift.
-  const conferring = stuff as unknown as {
-    getConferredMixinNames?: () => readonly string[];
-  };
-  if (typeof conferring.getConferredMixinNames === 'function') {
-    let names: readonly string[] | undefined;
-    try {
-      names = conferring.getConferredMixinNames();
-    } catch {
-      names = undefined;
-    }
-    if (names) for (const name of names) out.add(name);
   }
   return out;
 }

@@ -29,6 +29,7 @@ import Prescription from '../../../../thing/Prescription';
 import { stampTemplatePathForTest } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeBody } from '../../../../../lib/slot/__tests__/carrying-fixture';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /**
  * A body that carries (hands on a plan). ⚠ Since size and carrying W8 a
@@ -122,30 +123,21 @@ describe('DoseController', () => {
   it('⭐⭐ crashes the venom burden the vial counters', async () => {
     const { me } = poisoned(4);
     const before = me.toxinBurdens.venom ?? 0;
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(me.toxinBurdens.venom ?? 0).toBeLessThan(before);
   });
 
   it('spends a dose from the vial', async () => {
     const { me, v } = poisoned(4);
     const before = v.getInteriorAmount().rawValue();
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(v.getInteriorAmount().rawValue()).toBeLessThan(before);
   });
 
   it('⚠ leaves a toxin the remedy does NOT counter alone', async () => {
     const { me } = poisoned(0); // no venom
     me.introduceToxin('alcohol', 3);
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     // The vial counters venom, of which there is none — alcohol is untouched.
     expect(me.toxinBurdens.alcohol).toBe(3);
     expect(note).toHaveBeenCalledWith(
@@ -160,10 +152,7 @@ describe('DoseController', () => {
     const empty = vial(0.02); // non-empty, but under the 0.05 L dose
     ContainmentApi.move(empty, me);
     me.introduceToxin('venom', 4);
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'empty-vial' }),
     );
@@ -175,10 +164,7 @@ describe('DoseController', () => {
     const me = carrier();
     ContainmentApi.move(me, room);
     me.introduceToxin('venom', 4);
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-remedy' }),
     );
@@ -233,10 +219,7 @@ describe('DoseController — the active branch', () => {
       activeVial('/stuff/idea/material/_test/willow-tea', 'analgesia', 2),
       me,
     );
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(me.toxinBurdens.analgesia ?? 0).toBeGreaterThan(0);
   });
 
@@ -249,10 +232,7 @@ describe('DoseController — the active branch', () => {
       activeVial('/stuff/idea/material/_test/grey-draught', 'anaesthesia', 4),
       me,
     );
-    await makeStuff(() => new DoseController()).execute(
-      { with: firstOf(reachable(me)), prescription: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({ with: firstOf(reachable(me)), prescription: reachable(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-licensed' }),
     );
@@ -281,14 +261,11 @@ describe('DoseController — the active branch', () => {
     });
     ContainmentApi.move(slip, nurse);
 
-    await makeStuff(() => new DoseController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({
         patient: { stuff: patient } as never,
         with: firstOf(reachable(nurse)),
         prescription: reachable(nurse),
-      },
-      ctxFor(nurse),
-    );
+      }, ctx$)))(ctxFor(nurse));
     expect(patient.toxinBurdens.anaesthesia ?? 0).toBeGreaterThan(0);
     expect(slip.getDosesLeft()).toBe(0);
   });
@@ -315,14 +292,11 @@ describe('DoseController — the active branch', () => {
     });
     ContainmentApi.move(slip, nurse);
 
-    await makeStuff(() => new DoseController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DoseController()).execute({
         patient: { stuff: patient } as never,
         with: firstOf(reachable(nurse)),
         prescription: reachable(nurse),
-      },
-      ctxFor(nurse),
-    );
+      }, ctx$)))(ctxFor(nurse));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'wrong-patient' }),
     );

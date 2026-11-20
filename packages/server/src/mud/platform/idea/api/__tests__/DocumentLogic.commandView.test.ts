@@ -7,6 +7,7 @@
  */
 
 import '../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../../../../api/document';
 import { AccessApi } from '../../../../api/access';
@@ -40,7 +41,7 @@ function runAs<T>(fn: () => T | Promise<T>): Promise<T> {
 
 beforeEach(() => {
   rows = [{ _id: '1', path: PATH, owner: '/platform', kind: 'command-view', data: LOOK }];
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     find: vi.fn(async (col: string, q: Record<string, unknown>) =>
       col === 'documents' ? rows.filter((d) => Object.entries(q).every(([k, v]) => d[k] === v)) : [],
@@ -53,7 +54,7 @@ beforeEach(() => {
     }),
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
   vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined as never);
   reload = vi.spyOn(CommandApi, 'reload').mockResolvedValue(true) as never;
@@ -102,7 +103,7 @@ describe('command-view saves', () => {
 
   it('another kind never consults the wizard axis or reload', async () => {
     const wiz = vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await runAs(() => DocumentApi.save('/emotes/grin', 'emote', { verb: 'grin' }));
+    await runAs(() => DocumentApi.save('/emotes/grin', 'msh', { source: 'say hi' }));
     expect(wiz).not.toHaveBeenCalled();
     expect(reload).not.toHaveBeenCalled();
   });

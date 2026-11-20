@@ -110,13 +110,14 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { NameTakingMixin } from './NameTaking';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
+import { AccessApi } from '../../api/access';
 import { GrammarApi } from '../../api/grammar';
 import type { Perceptible } from './Perceptible';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
 
 /**
@@ -275,7 +276,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getName(): string { return this.name; }
     setName(value: string): void {
-      this.name = MqlSubscriptionApi.fireFieldChange(
+      this.name = SubscriptionApi.fireFieldChange(
         this,
         'name',
         this.name,
@@ -288,6 +289,9 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * that keeps it is captured.
      */
     async takeName(name: string, by: Stuff): Promise<NameRefusal | NameTaken> {
+      // ⭐ `by` must be who is acting (call-security pass D5) — before any
+      // other refusal, so a liar learns nothing about the thing.
+      AccessApi.requireActor(by);
       const wanted = name.trim();
       if (!(this as unknown as Named).canBeNamedBy(by.getIdentityPath() ?? '', by)) {
         return { ok: false, reason: 'not-nameable' };

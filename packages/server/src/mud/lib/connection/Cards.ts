@@ -44,7 +44,7 @@
  */
 
 import type { CardId } from '@saxonberg/types';
-import type { FieldAlias, FieldSet } from '../../api/mql-subscription';
+import type { FieldAlias, FieldSet } from '../../api/subscription';
 
 /**
  * Where a card's content comes from.
@@ -114,8 +114,7 @@ export type CardPayloadKind =
   | 'wikiPage'
   | 'helpTopic'
   | 'survey'
-  | 'terminal'
-  | 'navigation';
+  | 'terminal';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -231,8 +230,8 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
 
   /**
    * ⚠ **Static, and that is a decision rather than a shortcut.** The
-   * dependency vocabulary is `focusDependent`, `locationDependent` and
-   * the `durableKey` poke channel — **nothing wakes on connect or
+   * dependency vocabulary is the holder entry every query-bound
+   * subscription installs, the fields it reads, and the `durableKey` poke — **nothing wakes on connect or
    * disconnect**. A live `who` would resolve once and then be
    * permanently wrong while looking exactly like it worked, which is the
    * immortal-card shape. Building a presence wake means every login
@@ -424,16 +423,16 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * navigation card; wave-1 stub with no map yet). Navigation, not
    * inspection: the room you look at is an ordinary subject card.
    *
-   * Born by `map` (the slate's command) with `NavigationApi.whereaboutsFor`
-   * as its payload, or by the explore arrangement into the docked slot.
-   * ⭐ The docked slot is chrome (owner, 2026-11-08): there it is filled
-   * and kept current IN PLACE after every move (`refreshNavigator` →
-   * `touchCard`), with no command run and nothing printed. Typing `map`
+   * Born by `map` (the slate's command), or by the explore arrangement
+   * into the docked slot. ⭐ It carries NO payload (navigation-server D1):
+   * its body reads the where-you-are subscription every session already
+   * holds, so it is current after every move, a door and your own
+   * commands with no command run and nothing printed. Typing `map`
    * anywhere still reads your map out in the transcript.
    */
   map: {
     label: 'where you are',
-    source: { kind: 'payload', producer: 'navigation' },
+    source: { kind: 'client' },
     pinnedByDefault: true,
     live: false,
     command: 'map',
@@ -490,5 +489,5 @@ export const SHELF_SUBSCRIPTION: {
   // `bodyState` joined when the body learned what working is
   // (nutrition-and-fitness W8): breath · hunger · thirst · the build, as
   // words, poked on a band crossing.
-  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence', 'bodyState'],
+  fields: ['playStanding', 'makeStanding', 'renown', 'practisingCompetence', 'bodyState', 'aetherState'],
 };

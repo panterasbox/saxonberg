@@ -11,6 +11,9 @@ import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
+import { DocumentApi } from '../../../api/document';
+import { CraftingApi } from '../../../api/crafting';
+import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { StuffApi } from '../../../api/stuff';
 import { ExpanseApi } from '../../../api/expanse';
 import { AddressApi } from '../../../api/address';
@@ -19,6 +22,9 @@ import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { GovernmentApi } from '../../../api/government';
 import { PlayerApi } from '../../../api/player';
+import { ConsumerApi } from '../../../api/consumer';
+import { RenownApi } from '../../../api/renown';
+import { ProducerApi } from '../../../api/producer';
 import { Quantity } from '../../../lib/quantity';
 import { PersistedRecord } from '../../../lib/persistence/PersistedRecord';
 import type { ContentEntry, MixinSlice } from '../../../lib/persistence/PersistenceSlice';
@@ -159,6 +165,20 @@ export interface AfflictReport {
   readonly consciousness: string;
 }
 
+/** What `testharness standing-history` did (db-performance drive 2). */
+export interface StandingHistoryReport {
+  /** Past players with history after the stage. */
+  readonly subjects: number;
+  /** Event rows the stage asked the three ledgers to append. */
+  readonly rows: number;
+}
+
+/** The identity prefix the staged past players share. */
+const PAST_PLAYER_PREFIX = '/platform/agent/Avatar/dbp-past-';
+/** How many subjects are staged at once (the pool, less headroom). */
+const STAGE_HISTORY_CONCURRENCY = 8;
+const DAY_MS = 86_400_000;
+
 /** What `testharness species` did (size and carrying drive 7). */
 export interface SpeciesReport {
   readonly character: string;
@@ -288,6 +308,57 @@ export class TestHarnessLogic extends ApiLogic {
   }
 
   /**
+   * See {@link TestHarnessApi.stageStandingHistory}. For each of `count`
+   * past players (`/platform/agent/Avatar/dbp-past-<i>`, nobody's body),
+   * append through the three ledgers' own doors: three participation
+   * buckets, three renown receptions and one producer credit, spread over
+   * the past week. Idempotent: participation and producer dedup their
+   * bucket, and a subject that already has its three receptions gets no
+   * more. Touches no standing row — the scoring passes fold what it wrote.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async stageStandingHistory(count: number): Promise<StandingHistoryReport> {
+    if (!(Number.isInteger(count) && count > 0 && count <= 5000)) {
+      throw new Error(`testharness standing-history: a count is a whole number from 1 to 5000 (got ${count})`);
+    }
+    const now = Date.now();
+    const gameNow = WorldClockApi.getNow().rawValue();
+    let rows = 0;
+    const one = async (i: number): Promise<void> => {
+      const subject = `${PAST_PLAYER_PREFIX}${i}`;
+      for (let d = 1; d <= 3; d++) {
+        const realAt = now - d * 2 * DAY_MS - i * 1000;
+        await ConsumerApi.append({ subject, kind: 'command', realAt, at: gameNow - d * 2 * 86_400 });
+        rows++;
+      }
+      const have = (await RenownApi.eventsFor(subject)).filter((e) => e.kind === 'reception').length;
+      for (let d = have + 1; d <= 3; d++) {
+        await RenownApi.append({
+          subject,
+          source: `${PAST_PLAYER_PREFIX}${(i + 1) % count}`,
+          kind: 'reception',
+          at: gameNow - d * 2 * 86_400,
+          realAt: now - d * 2 * DAY_MS,
+        });
+        rows++;
+      }
+      await ProducerApi.append({
+        author: subject,
+        actor: `${PAST_PLAYER_PREFIX}${(i + 1) % count}`,
+        realAt: now - 3 * DAY_MS - i * 1000,
+        at: gameNow - 3 * 86_400,
+      });
+      rows++;
+    };
+    let next = 0;
+    const worker = async (): Promise<void> => {
+      while (next < count) await one(next++);
+    };
+    await Promise.all(Array.from({ length: Math.min(STAGE_HISTORY_CONCURRENCY, count) }, worker));
+    return { subjects: count, rows };
+  }
+
+  /**
    * See {@link TestHarnessApi.afflict}. A condition with a toxin behind it
    * (anaesthesia) is DOSED — its stage is a live read of the burden, so an
    * affliction record alone would be read back to nothing — to its top
@@ -363,6 +434,21 @@ export class TestHarnessLogic extends ApiLogic {
     return { removed: name };
   }
 
+  /** See {@link TestHarnessApi.forceDocument}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<{ path: string; kind: string }> {
+    const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+    doc.path = path;
+    doc.kind = kind;
+    doc.data = data;
+    await doc.save();
+    DocumentApi.catalogueFor(kind)?.forget([path]);
+    // ⚠ Recipes are read through a warmed dictionary with no per-path
+    // forget: re-warm it, as a recipe go-live would.
+    if (kind === 'recipe') await CraftingApi.recipes().warm();
+    return { path, kind };
+  }
+
   /** A resident character by name — what the staging verbs act on. */
   private residentCharacter(handle: string, verb: string): Stuff {
     const avatar = PlayerApi.findAvatarByName(handle);
@@ -383,8 +469,13 @@ export class TestHarnessLogic extends ApiLogic {
           `stage calls set*/add*/pond/invalidateCache only`,
       );
     }
-    // `singleton` is the get-or-create: the live instance when one stands.
-    const target = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    // `#<stuffId>` names ONE live instance (aether-devices: a phone in a
+    // pocket is one of many of its kind, so a path cannot address it);
+    // otherwise `singleton` is the get-or-create — the live instance when
+    // one stands.
+    const target = path.startsWith('#')
+      ? (StuffApi.findById(path.slice(1)) ?? null)
+      : await StuffApi.singleton<Stuff>(path).catch(() => null);
     if (target === null || target.isDestroyed()) {
       throw new Error(`testharness stage: nothing loads at '${path}'`);
     }

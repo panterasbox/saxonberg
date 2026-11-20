@@ -13,7 +13,7 @@
  *
  * > **A second client implements the connection set and the
  * > client-state mechanism — the `Interactive` frames and the
- * > `client-state-write` / `client-state-update` / welcome-snapshot
+ * > `client-state-write` / client-state change / welcome-snapshot
  * > trio — and nothing about modes, arrangements, cards-per-mode or
  * > shelves, which are one client's vocabulary declared on one mixin.**
  *
@@ -37,6 +37,9 @@ import type Interactive from '../../platform/idea/Interactive';
 import type { Stuff as StuffRef } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
+import { SubscriptionApi } from '../../api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import type { NavSectionName } from '@saxonberg/types';
 import type { HasInteractive } from './HasInteractive';
 import type { ClientState, ClientStateSchemaEntry } from './ClientState';
 import {
@@ -135,15 +138,12 @@ export interface SaxonbergClient extends ClientState {
   refreshDisplays(): void;
 
   /**
-   * ⭐ After a move (and right after an arrangement opens it), bring the
-   * NAVIGATOR along: every session of this body with the `map` card up
-   * gets its "where you are" body refreshed IN PLACE — no command runs,
-   * nothing is echoed, nothing is printed (owner, 2026-11-08: the docked
-   * slot is chrome, like the top bar, and updates implicitly; it is the
-   * SLOT that is implicit — `map` typed anywhere still reads your map out
-   * in the transcript). A session without one gets nothing.
+   * ⭐ What I perceive may have changed — `names` the sections (all, when
+   * omitted): the where-you-are source recomputes them on its next beat
+   * and sends each session only what differs (navigation-server D7). A
+   * body nobody subscribed for pokes into nothing.
    */
-  refreshNavigator(): void;
+  refreshNavigation(names?: readonly NavSectionName[]): void;
 
   /**
    * The active cockpit mode, legacy-migration aware. Prefer this over
@@ -690,26 +690,10 @@ export function SaxonbergClientMixin<
       environment: [],
     };
 
-    public refreshNavigator(): void {
-      const self = this as unknown as StuffRef & ClientHost;
-      const sessions = [...self.getInteractives()].flatMap((interactive) => {
-        const card = interactive.listCards().find((c) => c.cardId === 'map');
-        return card ? [{ interactive, key: card.key }] : [];
+    public refreshNavigation(names?: readonly NavSectionName[]): void {
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.whereabouts, this as unknown as StuffRef, {
+        ...(names ? { names } : {}),
       });
-      if (sessions.length === 0 || !MixinApi.isPerceiver(self)) return;
-      void self
-        .whereabouts()
-        .then((where) => {
-          if (!where) return;
-          for (const { interactive, key } of sessions) {
-            interactive.touchCard(key, { payload: { kind: 'navigation', where } });
-          }
-        })
-        .catch((err: unknown) => {
-          // ⚠ Loud, not swallowed: a silent catch here once hid a broken
-          // navigator for a whole drive.
-          console.warn(`refreshNavigator: ${(err as Error).message}`);
-        });
     }
 
     public refreshDisplays(): void {
@@ -968,6 +952,12 @@ export function SaxonbergClientMixin<
     public snapshotClientState(): Record<string, unknown> {
       const self = this as unknown as ClientHost;
       const out = super.snapshotClientState();
+      // ⭐ Every setting declared `client: true` (tooltips D5) — the
+      // spoiler appetite, where results show — so the first render has it.
+      const host = this as unknown as StuffRef;
+      if (MixinApi.isEnvironment(host)) {
+        Object.assign(out, host.clientMirroredSettings());
+      }
       const mode = self.getCockpitMode();
       out['cockpit.mode'] = mode;
       out['cockpit.arrangements'] = {
@@ -992,8 +982,6 @@ export function SaxonbergClientMixin<
         self.arrangementCards(mode, self.getCockpitArrangement(mode)),
         MODE_PRIMARY_FILTER[mode],
       );
-      // An arrangement opens the navigator with no body; fill it now.
-      self.refreshNavigator();
     }
   };
 }

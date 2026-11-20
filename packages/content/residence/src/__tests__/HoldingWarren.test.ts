@@ -10,6 +10,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
@@ -50,6 +51,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 type MemberStuff = Stuff & Container;
 
@@ -261,13 +263,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -426,6 +428,10 @@ describe('the residential programme (D16)', () => {
     const zone = hall.getZone()!;
     expect(zone.getTemplatePath()).toBe('/world/prog-test/house');
     expect(zone.getIdentityPath()).toBe(LOT1);
+    // ⭐ navigation-server D2 on zone instancing: a map claim names the COPY's
+    // zone — house A and house B are two places on a map, never the row's one.
+    const subject = (hall as unknown as { mapSubject(): { at: { zone?: string } } | null }).mapSubject();
+    expect(subject?.at.zone).toBe(LOT1);
     expect((hall as unknown as PersistentLocation).getSizeScale()).toBe(36);
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     for (const leaf of ['bedroom', 'porch', 'shed']) {
@@ -695,13 +701,13 @@ describe('the maintenance act (D4/D5)', () => {
       const t = i as { hasCapability?(c: string): boolean };
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       {
         ...(kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }),
         ...(target === undefined ? {} : { target: { stuff: target, raw: 'target' } }),
       } as CommandModel,
       ctx,
-    );
+    ));
     return ctx;
   }
 

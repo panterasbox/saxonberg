@@ -40,6 +40,7 @@ import {
   teardownBankingHarness,
 } from '../../../../../lib/banking/__tests__/banking-test-harness';
 import { Currency } from "../../../../../lib/banking/Currency";
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const PATRON = '/platform/agent/Avatar/patron';
 const MARA = '/world/lounge/agent/mara';
@@ -179,10 +180,7 @@ describe('tips — the tip jar', () => {
     const supplyBefore = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
 
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '5' } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '5' } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
 
     expect(coinIn(jar)).toBe(5);
@@ -198,18 +196,12 @@ describe('tips — the tip jar', () => {
     giveCoin(patron, 100);
     // A tip lands in the jar first.
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '7' } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '7' } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
     expect(coinIn(jar)).toBe(7);
 
     await asGiver(bartender, () =>
-      makeStuff(() => new CollectController()).execute(
-        {} as never,
-        makeContext(bartender, loc, 'collect'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CollectController()).execute({} as never, ctx$)))(makeContext(bartender, loc, 'collect')),
     );
 
     expect(coinIn(jar)).toBe(0);
@@ -220,16 +212,13 @@ describe('tips — the tip jar', () => {
     const { loc, patron, jar } = scene();
     giveCoin(patron, 20);
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '4' } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '4' } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
 
     // The patron is not an active maker → collect is refused, jar untouched.
     const ctx = makeContext(patron, loc, 'collect');
     await asGiver(patron, () =>
-      makeStuff(() => new CollectController()).execute({} as never, ctx),
+      TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new CollectController()).execute({} as never, ctx)),
     );
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
@@ -244,27 +233,24 @@ describe('tips — the tip jar', () => {
     const { bartender, jar } = scene();
     giveCoin(jar, 6);
     bartender.onShiftAt = '/test/house/smithy';
-    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'not-on-shift' });
+    expect(TestHarnessApi.actAs(bartender, () => jar.collectBy(bartender))).toEqual({ ok: false, reason: 'not-on-shift' });
     expect(coinIn(jar)).toBe(6);
     bartender.onShiftAt = '/test/house/bar';
-    expect(jar.collectBy(bartender)).toEqual({ ok: true, facts: { took: 6 } });
+    expect(TestHarnessApi.actAs(bartender, () => jar.collectBy(bartender))).toEqual({ ok: true, facts: { took: 6 } });
   });
 
   it('⭐ a jar no house keeps is nobody\'s to empty (fail closed)', async () => {
     const { bartender, jar } = scene();
     vi.mocked(EmploymentApi.operatorsAt).mockReturnValue([]);
     expect(jar.houseOf()).toBeNull();
-    expect(jar.collectBy(bartender)).toEqual({ ok: false, reason: 'no-house' });
+    expect(TestHarnessApi.actAs(bartender, () => jar.collectBy(bartender))).toEqual({ ok: false, reason: 'no-house' });
   });
 
   it('the jar is a container that shows what it holds', async () => {
     const { loc, patron, jar } = scene();
     giveCoin(patron, 10);
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '3' } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '3' } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
     const contents = [...(jar as Stuff & Container).getContents()];
     expect(contents.some((c) => c instanceof Coin)).toBe(true);
@@ -282,10 +268,7 @@ describe('tips — the tip jar', () => {
     await BankingApi.mint(patronAcct, Money.of(50, BankingApi.compactCurrency()), "harness");
 
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '9', eft: true } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '9', eft: true } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
 
     const maraAcct = await BankingApi.primaryAccountIdOf(MARA);
@@ -303,10 +286,7 @@ describe('tips — the tip jar', () => {
     giveCoin(patron, 2);
 
     await asGiver(patron, () =>
-      makeStuff(() => new TipController()).execute(
-        { amount: '7' } as never,
-        makeContext(patron, loc, 'tip'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new TipController()).execute({ amount: '7' } as never, ctx$)))(makeContext(patron, loc, 'tip')),
     );
 
     expect(coinIn(jar)).toBe(0);

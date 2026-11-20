@@ -20,7 +20,7 @@ import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
 import Locale from '../../platform/location/Locale';
@@ -48,7 +48,7 @@ describe('static and live are different KINDS of answer', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 
@@ -136,9 +136,9 @@ describe('static and live are different KINDS of answer', () => {
     const lamp = await StuffApi.create(() => new Thing());
     lamp.setShortDescription('brass lamp');
     ContainmentApi.move(lamp, lounge);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
-    const deltas = h.ofType('mql-subscription-delta');
+    const deltas = h.ofType('subscription-delta');
     expect(deltas.some((d) => d.subscriptionId === instanceId)).toBe(true);
     void yard;
   });
@@ -170,11 +170,11 @@ describe('static and live are different KINDS of answer', () => {
     expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
 
     ContainmentApi.move(h.avatar, yard);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     // It may WAKE (the lounge's contents changed — you left it), but it
     // must still be answering about the lounge.
     for (const d of h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .filter((x) => x.subscriptionId === instanceId)) {
       for (const c of d.changes as { op: string; key: string; fields?: Record<string, unknown> }[]) {
         const idx = records.findIndex((r) => r.stuffId === c.key);
@@ -224,10 +224,10 @@ describe('static and live are different KINDS of answer', () => {
     const lamp = await StuffApi.create(() => new Thing());
     lamp.setShortDescription('brass lamp');
     ContainmentApi.move(lamp, lounge);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     const delta = h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .find((d) => d.subscriptionId === instanceId)!;
     const changes = delta.changes as {
       op: string;
@@ -282,7 +282,7 @@ describe('static and live are different KINDS of answer', () => {
 
     h.interactive.pushCard('subject', { subjectId: lounge.stuffId });
     ContainmentApi.move(h.avatar, yard);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
 
     /*
      * ⚠ Live cards STACK now, so a repeat `look` never touches one. The
@@ -314,17 +314,17 @@ describe('static and live are different KINDS of answer', () => {
     const room = await makeRoom('lounge');
     ContainmentApi.move(h.avatar, room);
 
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const before = SubscriptionApi._getRegistrySizeForTesting();
     const instanceId = h.interactive.pushCard('subject', { subjectId: room.stuffId });
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
 
     h.interactive.closeCard(instanceId!, 'dismissed');
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(before);
   });
 
   it('a static card registers NO subscription at all', async () => {
     const h = await makeHarness();
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const before = SubscriptionApi._getRegistrySizeForTesting();
     CardApi.open(
       makeContext(h, {
         commandText: 'who',
@@ -333,6 +333,6 @@ describe('static and live are different KINDS of answer', () => {
       }),
       'who',
     );
-    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before);
+    expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(before);
   });
 });

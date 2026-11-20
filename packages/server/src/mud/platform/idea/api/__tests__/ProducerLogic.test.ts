@@ -11,6 +11,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducerApi } from '../../../../api/producer';
 import { AppSettings } from '../../../../lib/config/AppSettings';
@@ -46,6 +47,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
   await seedAppSettings({ 'producer.bucketSeconds': '600' });
 });

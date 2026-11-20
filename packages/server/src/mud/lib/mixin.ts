@@ -317,6 +317,8 @@ export const Mixins = {
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
   Aether: 'AetherMixin',
+  AetherHost: 'AetherHostMixin',
+  Battery: 'BatteryMixin',
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
@@ -367,6 +369,8 @@ export const Mixins = {
   /** ⭐ The stream a played body is running (broadcast-ready D1, D17). */
   Broadcast: 'BroadcastMixin',
   SaxonbergClient: 'SaxonbergClientMixin',
+  /** ⭐ A source behind the one subscription protocol (navigation-server D1). */
+  SubscriptionSource: 'SubscriptionSourceMixin',
   Environment: 'EnvironmentMixin',
   Alias: 'AliasMixin',
   Singleton: 'SingletonMixin',
@@ -1085,6 +1089,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   WayIndexMixin: "{} doesn't know the ways",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
+  AetherHostMixin: "{} runs no apps",
   FoldableMixin: "{} doesn't fold",
   TearableMixin: "{} won't tear",
   HazardMixin: "{} isn't a trap",

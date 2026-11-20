@@ -1,0 +1,19 @@
+# The shade — what everyone is between dying and re-embodying (aether-
+# devices, the owner's ruling 2026-11-18): you lose your body when you die,
+# and every ghost is the same species. A person's SHAPE, borrowed from the
+# human row it extends, with none of the life: undead only.
+#
+# ⭐ A shade is tuned to the aether by its nature — `AetherMixin` among its
+# innate mixins, the same gating every born-attuned species uses — so a
+# shade needs no phone to call for help, and no body-by-body exception.
+# Not a char-gen pick: `char-gen.yaml` lists the species a player chooses.
+extends: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+class: /platform/idea/species/Species
+data:
+  binomial: Umbra
+  commonNames: ["shade", "ghost", "spirit"]
+  innateMixins: ["AetherMixin"]
+  lifecycleStates: ["undead"]
+  longDescription: >-
+    A grey, unsteady likeness of a person, thin as breath on glass — the
+    shape of somebody who has not yet found their way back.

@@ -1,18 +1,17 @@
 /**
- * requiresVerbalESP — verb-level precondition. Rejects `tell` (and
- * future addressed-ESP verbs) when the giver's sensorium has no
- * verbal-ESP modality.
+ * requiresVerbalESP — verb-level precondition for the aether verbs that
+ * are NOT held (`forum`, `broadcast`): rejects when the giver's sensorium
+ * has no verbal-ESP modality, in the person's own words (the fix — a
+ * phone, ready it, switch it on).
  *
- * Pairs with the method-level `@RequiresActive('AetherMixin')`
- * decorator on `AetherMixin.tell`: the verb validator is the polite
- * early-catch (clean refusal string at dispatch time); the decorator
- * is the runtime backstop for any non-verb caller. Both check the
- * same gate (augment-conferred AetherMixin → ESP modalities in
- * sensorium) from different angles.
+ * ⚠ Not on `dm`, `reply` or `chat` since aether-devices W4: those ask the
+ * person's `sendOrHold`, which HOLDS the line and sends it later. A
+ * validator would refuse before the hold could happen.
  */
 
 import type { CommandValidator } from '../../../api/command';
 import { PerceptionApi } from '../../../api/perception';
+import { MixinApi } from '../../../api/mixin';
 // (anatomy + modalities preloaded via PerceptionApi.preloadForSenseGate)
 
 // Split declaration: the annotated body const gives the arrow its
@@ -24,7 +23,12 @@ const body: CommandValidator = (context) => {
   const giver = context.commandGiver;
   const modality = PerceptionApi.modalityByName('verbal-esp');
   if (PerceptionApi.canPerceive(giver, modality)) return undefined;
-  return 'You have no way to send a thought.';
+  // ⭐ The person says why, and the fix (aether-devices D8) — the same
+  // line a held `dm` says. Anything that is not a person has no comms.
+  return (
+    (MixinApi.isComms(giver) ? giver.cannotSendLine() : null) ??
+    'You have no way to send a thought.'
+  );
 };
 const preload: NonNullable<CommandValidator['preload']> =
   (ctx) => PerceptionApi.preloadForSenseGate(ctx.commandGiver);

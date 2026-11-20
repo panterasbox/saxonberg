@@ -388,6 +388,56 @@ script passing up front what a prompt would have asked (`--body`, a
 `yes`), which also makes a script reproducible. Reopen only on a real
 content need.
 
+### ⭐⭐ A script stops at a refusal — and `try … on` handles one (failure-model, 2026-11)
+
+After every dispatched line the coroutine reads the line's status: `ok` and
+`partial` go on; **`declined` is a refusal** — the context's own
+(`getRefusal()`) when a migrated controller handed one over, else one made
+from the first declining note — and **`error` is a defect** (a bug, a
+content error). A line the binder refuses (`parse-failed`, `unknown-verb`,
+`bind-failed`, `needs-input`, `shape-fall-through`) is a refusal by the same
+rule. The refusal is thrown back into the generator at that line's yield,
+so the script stops there — unless a `try` handles it:
+
+```
+try { open north } on locked { unlock $why.target; open north }
+try { fell oak } on locked, /trade/forestry/reasons/wrong-tool { say no } on * { say hm }
+```
+
+- The first clause naming the reason runs; `on *` names any refusal. The
+  handler's value is the `try`'s; a refusal inside a handler propagates.
+- Inside a handler `$why` is the `Refusal` (a `ScriptValue`, truthy):
+  `$why.reason` is its canonical code, `$why.<fact>` each fact — the one
+  dotted read `Scope.get` knows. No general member access.
+- A single thing renders into a command argument as `#<stuffId>`, so
+  `unlock $why.target` binds THAT door through the ordinary binder (its
+  perception gate and the verb's gates still apply).
+- ⛔ **Never catchable**, not even by `on *`: a defect (`ScriptHalted`), a
+  resource limit, an engaged step that ended `thrown`, and the two defect
+  rows (`went-wrong`, `content-error` — `catchable: false`).
+- **At parse**, the script parser walks every `try` and refuses a malformed
+  one, an `on` naming a reason no row ships (with the line corrected to the
+  nearest code in that directory as a `suggestion` to tap), and a defect's
+  reason. A stored script that does not parse is refused with its error,
+  never silently *not found*.
+- **An engaged step** (`fell`) is awaited; the scheduler stamps how it ended
+  (`Engagement.endedBy`). An abort other than `thrown` wakes the script with
+  `interrupted` (`$why.abort` is the abort reason); a refusal the step's
+  completion returned is thrown the same way — and said only by the stop
+  line: a command a script dispatched carries `CommandContext.scriptLine`, and
+  the late path words a refusal at once only for a typed command. A script the player `stop`s is
+  cancelled — no handler runs. ⚠ The wake fires at the step's EXPECTED end
+  (and re-checks), not at the interruption — a deferred seam.
+- **The stop is said once** (`ScriptLogic.reportStop`): a refusal with a row
+  becomes one `refused` note with `at`, worded through the `script-stopped`
+  row (*"The script stopped at `open north`: The lock holds — …"*); a refusal
+  with no row (an unmigrated controller, which spoke its own line) or a
+  defect keeps its notes and adds one bare `script-stopped` line. A handled
+  refusal is not noted and not said.
+
+`try` is the eighth intrinsic builtin: both blocks must stay unevaluated
+until the body refuses, which the bus cannot give a verb.
+
 The script binder shares the dispatcher's matcher
 (`CommandGiver.matchAffordances`), so `verb@source` binds in a script
 exactly as typed: one source → that source's views; a plural scope →

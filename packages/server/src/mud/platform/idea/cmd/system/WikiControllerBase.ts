@@ -29,7 +29,8 @@ import { CardApi } from '../../../../api/card';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
 import { TemplatePaths } from '../../../../lib/paths';
-import WikiRegistry, { SNIPPET_NAMESPACE, WikiConflict, WikiDenied } from '../../WikiRegistry';
+import WikiRegistry, { SNIPPET_NAMESPACE, WikiConflict } from '../../WikiRegistry';
+import { Refusal } from '../../../../lib/errors';
 import WikiRenderer from '../../WikiRenderer';
 import { WikiPage, type SubjectKind, type WikiSubject } from '../../../../lib/wiki/WikiPage';
 import { SpoilerLevels, type SpoilerLevel } from '../../../../lib/wiki/render';
@@ -77,20 +78,18 @@ const SUBJECT_KINDS: readonly SubjectKind[] = ['template', 'mixin', 'command'];
 
 export abstract class WikiControllerBase extends CommandController<WikiModel> {
   /**
-   * Run the subcommand, surfacing `WikiDenied` / `WikiConflict` as named
-   * rejections.
+   * Run the subcommand, passing a wiki `Refusal` on (its reason row words
+   * it) and surfacing a `WikiConflict` as a named rejection.
    */
   async execute(model: WikiModel, context: CommandContext): Promise<void> {
     try {
       return await this.run(model, context);
     } catch (err) {
-      // `WikiDenied` and `WikiConflict` are the substrate's two
-      // expected refusals — an authorization failure and a lost-update
-      // guard. Both are the player's business, so they surface as
-      // named rejections rather than as an error status.
-      if (err instanceof WikiDenied) {
-        return this.fail(context, err.message, 'wiki-denied');
-      }
+      // A refusal and `WikiConflict` are the substrate's expected
+      // answers — an authorization failure and a lost-update guard. Both
+      // are the player's business: the refusal is worded from its row
+      // (failure-model D11), the conflict as a named rejection.
+      if (err instanceof Refusal) return this.refuse(context, err);
       if (err instanceof WikiConflict) {
         return this.fail(
           context,
@@ -150,37 +149,14 @@ export abstract class WikiControllerBase extends CommandController<WikiModel> {
     page: WikiPage,
     model: WikiModel,
   ): Promise<string> {
+    // ⭐ The render setup lives on the registry (tooltips D4) — one setup
+    // for the verb and the tooltip excerpt.
     const registry = await this.registry();
-    const renderer = await StuffApi.singleton<WikiRenderer>(
-      TemplatePaths.wikiRenderer,
-    );
-    const zone = await registry.zoneFor(page.getNamespace());
     const appetite =
       model.spoiler !== undefined
         ? (SpoilerLevels.parse(model.spoiler) as SpoilerLevel)
         : undefined;
-    const result = await renderer.render(body, {
-      pageId: page._id ?? '',
-      spoilerDefault: page.getSpoilerLevel(),
-      ...(zone ? { namespaceZone: zone } : {}),
-      ...(appetite !== undefined ? { appetite } : {}),
-      resolveLink: async (ref) => {
-        const target = await registry.resolve(ref);
-        return target
-          ? { handle: target.page.getHandle(), title: target.page.getTitle() }
-          : null;
-      },
-      // A snippet IS a page (S1) — it resolves through the same
-      // lookup as everything else, just pinned to its namespace, so
-      // it inherits revisions, history, rollback and protection with
-      // no second store and no second editing path.
-      resolveSnippet: async (name) => {
-        const { name: leaf } = WikiPage.parseRef(name, SNIPPET_NAMESPACE);
-        const hit = await registry.resolve(`${SNIPPET_NAMESPACE}:${leaf}`);
-        return hit ? hit.page.getBody() : null;
-      },
-    });
-    return result.body;
+    return registry.renderFor(page, { body, ...(appetite !== undefined ? { appetite } : {}) });
   }
 
   /**

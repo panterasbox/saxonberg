@@ -1,0 +1,4 @@
+# Nothing left standing worth the axe — of the species, when one was named.
+facts:
+  name: text?
+says: "There is nothing left here that is worth the axe{% if name %} — the {{ name }} is stumps and brash{% endif %}."

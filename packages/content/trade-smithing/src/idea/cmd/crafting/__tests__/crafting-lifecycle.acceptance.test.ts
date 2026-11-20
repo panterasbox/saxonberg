@@ -47,6 +47,7 @@ import {
   makeTool,
 } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 async function executeAs(
   who: Stuff,
@@ -112,10 +113,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     // 1. Cold forge → a diegetic decline, not a throw.
     const cold = makeContext(smith, room, 'forge knife');
     await executeAs(smith, () =>
-      makeStuff(() => new ForgeController()).execute(
+      TestHarnessApi.actAs(cold.commandGiver, () => makeStuff(() => new ForgeController()).execute(
         { item: 'knife' } as never,
         cold,
-      ),
+      )),
     );
     expect(rejected(cold)).toBe(true);
 
@@ -124,10 +125,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     ContainmentApi.move(makeLitForge(true), room);
     const hot = makeContext(smith, room, 'forge knife');
     await executeAs(smith, () =>
-      makeStuff(() => new ForgeController()).execute(
+      TestHarnessApi.actAs(hot.commandGiver, () => makeStuff(() => new ForgeController()).execute(
         { item: 'knife' } as never,
         hot,
-      ),
+      )),
     );
     expect(rejected(hot)).toBe(false);
     const knife = smith
@@ -162,10 +163,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     ContainmentApi.move(stone, smith);
     const sharpenCtx = makeContext(smith, room, 'sharpen knife');
     await executeAs(smith, () =>
-      makeStuff(() => new SharpenController()).execute(
+      TestHarnessApi.actAs(sharpenCtx.commandGiver, () => makeStuff(() => new SharpenController()).execute(
         { blade: ref(knife, 'knife'), stone: ref(stone, 'stone') } as never,
         sharpenCtx,
-      ),
+      )),
     );
     expect(rejected(sharpenCtx)).toBe(false);
     await completeStep(12000);
@@ -183,10 +184,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     ContainmentApi.move(scrap, room);
     const repairCtx = makeContext(smith, room, 'repair knife');
     await executeAs(smith, () =>
-      makeStuff(() => new RepairController()).execute(
+      TestHarnessApi.actAs(repairCtx.commandGiver, () => makeStuff(() => new RepairController()).execute(
         { item: ref(knife, 'knife'), kit: many(anvil) } as never,
         repairCtx,
-      ),
+      )),
     );
     expect(rejected(repairCtx)).toBe(false);
     await completeStep(6000); // repair is an engaged act (REPAIR_MS)
@@ -198,10 +199,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     vi.spyOn(smith, 'competenceBandFor').mockResolvedValue('competent');
     const again = makeContext(smith, room, 'repair knife');
     await executeAs(smith, () =>
-      makeStuff(() => new RepairController()).execute(
+      TestHarnessApi.actAs(again.commandGiver, () => makeStuff(() => new RepairController()).execute(
         { item: ref(knife, 'knife'), kit: many(anvil) } as never,
         again,
-      ),
+      )),
     );
     await completeStep(6000);
     expect(knife.getCondition()).toBe(1); // sound again
@@ -210,10 +211,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     // entropy sink closes the loop.
     const salvageCtx = makeContext(smith, room, 'salvage knife');
     await executeAs(smith, () =>
-      makeStuff(() => new SalvageController()).execute(
+      TestHarnessApi.actAs(salvageCtx.commandGiver, () => makeStuff(() => new SalvageController()).execute(
         { item: ref(knife, 'knife') } as never,
         salvageCtx,
-      ),
+      )),
     );
     expect(rejected(salvageCtx)).toBe(false);
     expect(knife.isDestroyed()).toBe(true);

@@ -50,6 +50,7 @@ import {
   makeStuffAtPath,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
@@ -172,10 +173,7 @@ describe("eating with cutlery (AC11a)", () => {
 
   async function eat(target: Stuff): Promise<void> {
     const self = eater as unknown as Stuff;
-    await makeStuff(() => new EatController()).execute(
-      { target: one(target, "apple"), with: cutleryReachableBy(self, loc) } as never,
-      ctxFor(self, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(target, "apple"), with: cutleryReachableBy(self, loc) } as never, ctx$)))(ctxFor(self, loc));
   }
 
   it("⭐ with a spoon on the table: the act succeeds and the scene says so", async () => {
@@ -319,10 +317,7 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
     // can't eat a bowl". A cooked meal is a blend inside a claimed dish,
     // so the vessel IS what `eat` resolves to.
     const dish = servedDish(loc2);
-    await makeStuff(() => new EatController()).execute(
-      { target: one(dish as unknown as Stuff, 'stew') } as never,
-      ctxFor(eater2 as unknown as Stuff, loc2),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({ target: one(dish as unknown as Stuff, 'stew') } as never, ctx$)))(ctxFor(eater2 as unknown as Stuff, loc2));
     expect(eater2.solidVolume).toBeGreaterThan(0);
     expect((eater2.digestionPools.carb ?? 0)).toBeGreaterThan(0);
     expect(dish.isDestroyed()).toBe(false);
@@ -332,13 +327,10 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
   it('and cutlery narrates on this arm too', async () => {
     utensil('spoon', loc2);
     const self2 = eater2 as unknown as Stuff;
-    await makeStuff(() => new EatController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EatController()).execute({
         target: one(servedDish(loc2) as unknown as Stuff, 'stew'),
         with: cutleryReachableBy(self2, loc2),
-      } as never,
-      ctxFor(self2, loc2),
-    );
+      } as never, ctx$)))(ctxFor(self2, loc2));
     expect(self!).toContain('with a spoon');
   });
 });

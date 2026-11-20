@@ -52,6 +52,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(
@@ -272,7 +273,7 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new PlantController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx));
 
     const grown = pot.getOccupant(PLANT_SLOT);
     expect(grown).toBeInstanceOf(Plant);
@@ -293,7 +294,7 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new PlantController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx));
 
     expect(pot.getOccupant(PLANT_SLOT)).toBeNull();
     expect(seed.isDestroyed()).toBe(false);
@@ -312,7 +313,7 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new PlantController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx));
 
     expect(pot.getOccupant(PLANT_SLOT)).toBe(sitting);
     expect(seed.isDestroyed()).toBe(false);
@@ -332,20 +333,20 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new PlantController());
     const ctx1 = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx1.commandGiver, () => ctrl.execute(
       plantModel(one(seed, 'seed'), one(notAPot, 'bucket', 'in')),
       ctx1,
-    );
+    ));
     expect(noteReasons(ctx1)).toContain('not-a-pot');
     expect(seed.isDestroyed()).toBe(false);
 
     const pot = makePot(0.5);
     ContainmentApi.move(pot, room);
     const ctx2 = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => ctrl.execute(
       plantModel(one(notAPot, 'bucket'), one(pot, 'pot', 'in')),
       ctx2,
-    );
+    ));
     expect(noteReasons(ctx2)).toContain('not-a-seed');
     expect(pot.getOccupant(PLANT_SLOT)).toBeNull();
   });
@@ -372,7 +373,7 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new RepotController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(repotModel(one(p, 'lily'), one(large, 'pot', 'into')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(repotModel(one(p, 'lily'), one(large, 'pot', 'into')), ctx));
 
     expect(large.getOccupant(PLANT_SLOT)).toBe(p);
     expect(small.getOccupant(PLANT_SLOT)).toBeNull();
@@ -415,10 +416,10 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new RepotController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
       repotModel(one(p, 'lily'), one(thimble, 'pot', 'into')),
       ctx,
-    );
+    ));
 
     expect(thimble.getOccupant(PLANT_SLOT)).toBeNull();
     expect(large.getOccupant(PLANT_SLOT)).toBe(p); // untouched
@@ -442,10 +443,7 @@ describe('plant / repot', () => {
       return p;
     }) as unknown as typeof StuffApi.clone);
 
-    await makeStuff(() => new PlantController()).execute(
-      plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.discipline).toBe('silviculture');
     expect(deeds[0]!.difficulty).toBe('trivial');
@@ -459,10 +457,7 @@ describe('plant / repot', () => {
     ContainmentApi.move(seed, giver);
 
     // `plant` — the entry act, trivially graded and so self-limiting.
-    await makeStuff(() => new PlantController()).execute(
-      plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute(plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.discipline).toBe('horticulture');
     expect(deeds[0]!.difficulty).toBe('trivial');
@@ -471,10 +466,7 @@ describe('plant / repot', () => {
     const grown = pot.getOccupant(PLANT_SLOT) as Plant;
     const second = makePot(3);
     ContainmentApi.move(second, room);
-    await makeStuff(() => new RepotController()).execute(
-      repotModel(one(grown, 'lily'), one(second, 'pot', 'into')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RepotController()).execute(repotModel(one(grown, 'lily'), one(second, 'pot', 'into')), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(2);
     expect(deeds[1]!.discipline).toBe('horticulture');
     expect(deeds[1]!.difficulty).toBe('trivial'); // still a seedling
@@ -487,10 +479,7 @@ describe('plant / repot', () => {
     expect(grown.getGrowthStage()).toBe('mature');
     const third = makePot(3);
     ContainmentApi.move(third, room);
-    await makeStuff(() => new RepotController()).execute(
-      repotModel(one(grown, 'lily'), one(third, 'pot', 'into')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RepotController()).execute(repotModel(one(grown, 'lily'), one(third, 'pot', 'into')), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(3);
     expect(deeds[2]!.difficulty).toBe('hard');
   });
@@ -503,10 +492,7 @@ describe('plant / repot', () => {
     const seed = makeSeed();
     ContainmentApi.move(seed, giver);
 
-    await makeStuff(() => new PlantController()).execute(
-      plantModel(one(seed, 'seed'), one(dry, 'pot', 'in')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute(plantModel(one(seed, 'seed'), one(dry, 'pot', 'in')), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(0);
   });
 
@@ -521,7 +507,7 @@ describe('plant / repot', () => {
 
     const ctrl = makeStuff(() => new RepotController());
     const ctx1 = makeContext(giver, room);
-    await ctrl.execute(repotModel(one(p, 'lily'), one(dry, 'pot', 'into')), ctx1);
+    await TestHarnessApi.actAs(ctx1.commandGiver, () => ctrl.execute(repotModel(one(p, 'lily'), one(dry, 'pot', 'into')), ctx1));
     expect(noteReasons(ctx1)).toContain('no-soil');
     expect(large.getOccupant(PLANT_SLOT)).toBe(p);
 
@@ -532,10 +518,10 @@ describe('plant / repot', () => {
     });
     ContainmentApi.move(rock, room);
     const ctx2 = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => ctrl.execute(
       repotModel(one(rock, 'rock'), one(large, 'pot', 'into')),
       ctx2,
-    );
+    ));
     expect(noteReasons(ctx2)).toContain('not-a-plant');
   });
 });

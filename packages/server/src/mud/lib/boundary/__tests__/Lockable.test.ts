@@ -20,6 +20,7 @@ import {
   makeStuffAtPath,
   seedKernelContentStore,
 } from '../../security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class TestLockable extends LockableMixin(Idea) {}
 
@@ -47,15 +48,15 @@ describe('LockableMixin', () => {
     const holder = makeStuff(() => new TestMover());
     holder.ensureCredential('key').addKey('front', 'pin-tumbler');
     // Unlocked: unlocking says so to anybody — a character can see it.
-    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'already-unlocked' });
+    expect(TestHarnessApi.actAs(stranger, () => s.unlock(stranger))).toEqual({ ok: false, reason: 'already-unlocked', facts: { target: s } });
     // The secret is asked only once the act would go through.
-    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'no-key' });
+    expect(TestHarnessApi.actAs(stranger, () => s.lock(stranger))).toEqual({ ok: false, reason: 'no-key', facts: { target: s } });
     expect(s.isLocked()).toBe(false);
-    expect(s.lock(holder).ok).toBe(true);
+    expect(TestHarnessApi.actAs(holder, () => s.lock(holder)).ok).toBe(true);
     expect(s.isLocked()).toBe(true);
-    expect(s.lock(stranger)).toEqual({ ok: false, reason: 'already-locked' });
-    expect(s.unlock(stranger)).toEqual({ ok: false, reason: 'no-key' });
-    expect(s.unlock(holder).ok).toBe(true);
+    expect(TestHarnessApi.actAs(stranger, () => s.lock(stranger))).toEqual({ ok: false, reason: 'already-locked', facts: { target: s } });
+    expect(TestHarnessApi.actAs(stranger, () => s.unlock(stranger))).toEqual({ ok: false, reason: 'no-key', facts: { target: s } });
+    expect(TestHarnessApi.actAs(holder, () => s.unlock(holder)).ok).toBe(true);
     expect(s.isLocked()).toBe(false);
   });
 

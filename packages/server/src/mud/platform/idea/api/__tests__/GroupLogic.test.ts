@@ -7,6 +7,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import GroupRegistry from "../../GroupRegistry";
 import { GroupApi } from "../../../../api/group";
@@ -27,7 +28,7 @@ let store: Doc[];
 function installStore(): void {
   store = [];
   let seq = 0;
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async (_c: string, doc: Doc) => {
       const id = doc._id ?? `g-${++seq}`;
       const i = store.findIndex((d) => d._id === id);
@@ -40,7 +41,7 @@ function installStore(): void {
     ),
     findById: vi.fn(async (_c: string, id: string) => store.find((d) => d._id === id) ?? null),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 async function boot(): Promise<GroupRegistry> {

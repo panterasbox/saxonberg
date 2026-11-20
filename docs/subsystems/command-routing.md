@@ -515,6 +515,13 @@ CommandDefinition[], seq)`. `'self'` is at index 0 and never removed;
 inventory / environment / peer entries push and pop as the world
 changes.
 
+⭐ **The stack is a record of what the giver bears** (aether-devices D1):
+`getCommandSources(bucket)` lists the sources in one bucket — for
+`environment`, every carried thing at any depth that affords a verb
+outward, kept exact on every move by the containment chokepoint. The
+augment conferral leg reads it to find a phone in a pocket without walking
+the carried tree.
+
 ```ts
 interface RecencyEntry {
   source: RecencySource;       // 'self' | Stuff
@@ -732,6 +739,19 @@ but does not parse or trust it. **Substrate exists, not yet wired to
 an inbound message type** — `backend/inbound/command.ts` handles only
 the free-text `{ text }` shape today; no inbound handler reaches
 `assembleFromStructured`.
+
+### ⭐ Stage 1½ — the compulsion gate
+
+Before `executeCommand` tags its frame, it asks whether this command is the
+giver's own act (its player's line, its brain, a continuation it started,
+the system, or the giver's own code below its `forceCommand`). If it is
+not — another body's code is asking — the gate parses the line itself
+(the body's parser, then the body's aliases), requires every view that
+claims it to say `compellable: consent` with a controller class that
+agrees, asks the body's own Interactive, and only then lets the ordinary
+pipeline run. Every refusal (`not-compellable`, `cannot-consent`,
+`compel-declined`) is thrown to the compelling code; no validator, binder
+or controller has run. See [call-security.md § Compulsion](./call-security.md).
 
 ## Stage 2 — Parsing
 

@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { EmoteCatalogueEntry } from "@saxonberg/types";
 import { useStore } from "../../../store";
+import { tipOf } from "../../tooltip/__tests__/tipOf";
 import { EmotePicker } from "../EmotePicker";
 
 const CATALOGUE: EmoteCatalogueEntry[] = [
@@ -190,7 +191,9 @@ describe("the command line", () => {
     const send = screen.getByText("send ⏎") as HTMLButtonElement;
     // The control branches on the same fact its title describes.
     expect(send.disabled).toBe(true);
-    expect(send.title).toContain("at");
+    // The reason rides the tooltip — on a wrapper, since a disabled
+    // button gets no pointer events (tooltips W7).
+    expect(tipOf(send.closest("[data-tip-wrap]")!)?.text).toContain("at");
 
     fireEvent.change(document.querySelector('[data-slot="at"]')!, {
       target: { value: "bob" },

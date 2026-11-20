@@ -38,6 +38,7 @@ import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__te
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Principal extends Idea {}
 
@@ -64,7 +65,7 @@ async function run(
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
@@ -334,10 +335,17 @@ describe('⭐ history is gated too (9, 67, 68)', () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     const page = (await registry.resolve('oak'))?.page;
     // A direct call (no controller) acting as the ordinary reader, naming
-    // the moderator: the gate takes the LOWER ceiling.
+    // the moderator: ⭐ refused outright now (call-security pass D5) — the
+    // lower-ceiling rule stays beneath it as the second wall.
+    await expect(
+      ExecutionContextApi.runRoot(null, 'direct', async () => {
+        ExecutionContextApi.tagActingAuthor(giver);
+        return registry.historyFor(moderator, page!._id ?? '');
+      }),
+    ).rejects.toMatchObject({ reason: 'not-acting-for' });
     const views = await ExecutionContextApi.runRoot(null, 'direct', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      return registry.historyFor(moderator, page!._id ?? '');
+      return registry.historyFor(giver, page!._id ?? '');
     });
     expect(views.map((v) => v.body).join(' ')).not.toContain('secret');
     expect(views.find((v) => v.rev === 2)?.visibleChange).toBe(false);

@@ -1,0 +1,7 @@
+# Code tried to make a body run a command the body's own player never
+# agreed could be asked of them (call-security pass D8): speech, conferral,
+# membership, giving title or money away — or anything from code with
+# nobody acting, or sandboxed code. The code's keeper reads a diagnostic.
+facts:
+  who: thing
+says: "Nobody can make {{ who | item }} do that."

@@ -14,6 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -36,6 +37,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -109,11 +111,11 @@ function mockPmForPing(): void {
       return [];
     }
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(),
     find,
     findById: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 const asEnv = (e: EnvelopeTemplate): Omit<DispatchResponseEnvelope, 'frameId'> =>
@@ -154,7 +156,7 @@ describe('async command dispatch', () => {
       }
     );
 
-    await giver.executeCommand('ping --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping --async'));
     await settle(); // give the detached clone+execute a chance to start
 
     // executeCommand resolved though the body has NOT completed and no
@@ -186,7 +188,7 @@ describe('async command dispatch', () => {
     );
 
     let resolved = false;
-    const p = giver.executeCommand('ping').then(() => {
+    const p = TestHarnessApi.actAs(giver, () => giver.executeCommand('ping')).then(() => {
       resolved = true;
     });
     await tick();
@@ -211,7 +213,7 @@ describe('async command dispatch', () => {
           await gate.promise;
         });
       let resolved = false;
-      const p = giver.executeCommand(cmd).then(() => {
+      const p = TestHarnessApi.actAs(giver, () => giver.executeCommand(cmd)).then(() => {
         resolved = true;
       });
       await tick();
@@ -242,7 +244,7 @@ describe('async command dispatch', () => {
       }
     );
 
-    await giver.executeCommand('ping --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping --async'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     expect(giver.envelopes).toHaveLength(1);
@@ -263,7 +265,7 @@ describe('async command dispatch', () => {
       }
     );
 
-    await giver.executeCommand('ping --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping --async'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     expect(record).toHaveBeenCalledTimes(1);
@@ -279,7 +281,7 @@ describe('async command dispatch', () => {
       }
     );
 
-    await giver.executeCommand('ping --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping --async'));
     await settleUntil(() => giver.envelopes.length > 0);
 
     expect(giver.envelopes).toHaveLength(1);
@@ -296,7 +298,7 @@ describe('async command dispatch', () => {
       }
     );
 
-    await giver.executeCommand('ping --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping --async'));
     // Body still parked — but the input echo already landed.
     const echo = giver.received.find((f) =>
       f.topic.startsWith('shell.diagnostic')
@@ -309,7 +311,7 @@ describe('async command dispatch', () => {
   });
 
   it('a pre-execute failure (unknown verb) never detaches — one synchronous envelope', async () => {
-    await giver.executeCommand('nope --async');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('nope --async'));
     // Synchronous: the envelope is already present with no tick.
     expect(giver.envelopes).toHaveLength(1);
     const env = asEnv(giver.envelopes[0]!);
@@ -352,12 +354,12 @@ describe('sync is per-giver, not global', () => {
     );
 
     let aDone = false;
-    const pA = giverA.executeCommand('ping').then(() => {
+    const pA = TestHarnessApi.actAs(giverA, () => giverA.executeCommand('ping')).then(() => {
       aDone = true;
     });
 
     // B's chain is independent — it completes while A is parked.
-    await giverB.executeCommand('ping');
+    await TestHarnessApi.actAs(giverB, () => giverB.executeCommand('ping'));
     expect(giverB.envelopes).toHaveLength(1);
     expect(aDone).toBe(false);
 
@@ -405,11 +407,11 @@ describe('the script verb inherits the async override', () => {
         return [];
       }
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new ScriptGiver());
     ContainmentApi.move(giver, location);
@@ -431,7 +433,7 @@ describe('the script verb inherits the async override', () => {
     });
 
     let resolved = false;
-    const p = giver.executeCommand('script look at the sword').then(() => {
+    const p = TestHarnessApi.actAs(giver, () => giver.executeCommand('script look at the sword')).then(() => {
       resolved = true;
     });
     await tick();
@@ -452,7 +454,7 @@ describe('the script verb inherits the async override', () => {
       await gate.promise;
     });
 
-    await giver.executeCommand('script --async look at the sword');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('script --async look at the sword'));
     await settleUntil(() => runs.length > 0);
 
     // Prompt freed though the script run is parked; the body received

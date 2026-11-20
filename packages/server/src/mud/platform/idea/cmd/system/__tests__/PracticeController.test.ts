@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rememberDisciplines } from "../../../../../lib/advancement/__tests__/discipline-fixtures";
 import PracticeController from "../PracticeController";
@@ -29,6 +30,7 @@ import type { CommandContext, CommandModel } from "../../../../../api/command";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -70,6 +72,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });
@@ -98,10 +101,7 @@ describe("PracticeController", () => {
   it("records a deed and echoes the resulting band", async () => {
     const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac");
     const ctrl = makeStuff(() => new PracticeController());
-    await ctrl.execute(
-      { discipline: "mixology", difficulty: "hard", outcome: "critical" } as PracticeArgs,
-      ctxFor(actor)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ discipline: "mixology", difficulty: "hard", outcome: "critical" } as PracticeArgs, ctx$)))(ctxFor(actor));
 
     const rows = await actor.transcriptEntries("mixology");
     expect(rows).toHaveLength(1);
@@ -113,7 +113,7 @@ describe("PracticeController", () => {
   it("defaults difficulty to standard and outcome to success", async () => {
     const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-default");
     const ctrl = makeStuff(() => new PracticeController());
-    await ctrl.execute({ discipline: "darts" } as PracticeArgs, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ discipline: "darts" } as PracticeArgs, ctx$)))(ctxFor(actor));
 
     const [row] = await actor.transcriptEntries("darts");
     expect(row!.difficulty).toBe("standard");
@@ -123,10 +123,7 @@ describe("PracticeController", () => {
   it("rejects a bad difficulty without writing a row", async () => {
     const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-bad");
     const ctrl = makeStuff(() => new PracticeController());
-    await ctrl.execute(
-      { discipline: "mixology", difficulty: "ludicrous" } as PracticeArgs,
-      ctxFor(actor)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ discipline: "mixology", difficulty: "ludicrous" } as PracticeArgs, ctx$)))(ctxFor(actor));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected" })
@@ -137,7 +134,7 @@ describe("PracticeController", () => {
   it("rejects a missing discipline", async () => {
     const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-none");
     const ctrl = makeStuff(() => new PracticeController());
-    await ctrl.execute({} as PracticeArgs, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as PracticeArgs, ctx$)))(ctxFor(actor));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected" })
@@ -148,7 +145,7 @@ describe("PracticeController", () => {
   it("C84: a body with no Transcript is REFUSED, never a silent no-op", async () => {
     const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-none-advancing");
     const ctrl = makeStuff(() => new PracticeController());
-    await ctrl.execute({ discipline: "darts" } as PracticeArgs, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ discipline: "darts" } as PracticeArgs, ctx$)))(ctxFor(actor));
 
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "not-advancing" })

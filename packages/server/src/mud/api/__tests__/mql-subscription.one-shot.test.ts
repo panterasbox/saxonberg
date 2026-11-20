@@ -1,7 +1,7 @@
 /**
  * Wave 4 (inspection-card build): `mql-query` one-shot channel.
  *
- * `MqlSubscriptionApi.handleQuery(req)` reuses ONLY the substrate's
+ * `SubscriptionApi.handleQuery(req)` reuses ONLY the substrate's
  * parse + resolve + project pipeline — no registry insertion, no
  * dependency-index entries, no listener installation. Emits one
  * `MqlQueryResultEnvelope` (success) or one `MqlQueryErrorEnvelope`
@@ -22,7 +22,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MqlSubscriptionApi } from '../mql-subscription';
+import { SubscriptionApi } from '../subscription';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -33,6 +33,7 @@ import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Place from '../../lib/stuff/Place';
+import { PerceptionApi } from '../perception';
 // The legacy `_MqlAdminFlag` test seam was retired with
 // `api/mql/permissions.ts`. Tests that exercised the gate now
 // carried a permission snapshot (retired — resolving is never a permission); the
@@ -78,17 +79,17 @@ async function setup(): Promise<{
   return { interactive, avatar, location, envelopes };
 }
 
-describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
+describe('SubscriptionApi — one-shot query (Wave 4)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
   });
 
   it('cardinality: one ships an mql-query-result envelope with one record', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q1',
       query: 'me',
@@ -101,34 +102,37 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     const records = (result as unknown as { result: Array<{ displayName: string }> })
       .result;
     expect(records).toHaveLength(1);
-    expect(records[0]!.displayName).toBe('Alice');
+    // ⭐ The name as the viewer perceives it — the same `describeFor` live
+    // projections and the prose use (tooltips W2); this test world is unlit.
+    const holder = interactive.getHolder() as Avatar;
+    expect(records[0]!.displayName).toBe(holder.describeFor(holder));
   });
 
   it('does NOT insert subscription state (registry size unchanged)', async () => {
     const { interactive } = await setup();
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
-    MqlSubscriptionApi.handleQuery({
+    const before = SubscriptionApi._getRegistrySizeForTesting();
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-noreg',
       query: 'me',
       cardinality: 'one',
       fields: 'ref',
     });
-    const after = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const after = SubscriptionApi._getRegistrySizeForTesting();
     expect(after).toBe(before);
   });
 
   it('does NOT install dependency-index entries', async () => {
     const { interactive } = await setup();
-    const before = MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
-    MqlSubscriptionApi.handleQuery({
+    const before = SubscriptionApi._getDependencyIndexEntryCountForTesting();
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-no-deps',
       query: 'me',
       cardinality: 'one',
       fields: 'detail',
     });
-    const after = MqlSubscriptionApi._getDependencyIndexEntryCountForTesting();
+    const after = SubscriptionApi._getDependencyIndexEntryCountForTesting();
     expect(after).toBe(before);
   });
 
@@ -147,7 +151,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
       ContainmentApi.move(t, location);
     }
     envelopes.length = 0;
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-many',
       query: 'thing',
@@ -163,7 +167,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('parse error → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-bad',
       query: ':::',
@@ -190,7 +194,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('missing query without kind → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-missing',
       cardinality: 'one',
@@ -202,7 +206,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
 
   it('detailKey with cardinality: many → mql-query-error with reason: parse', async () => {
     const { interactive, envelopes } = await setup();
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-bad-detail',
       query: 'me',
@@ -224,7 +228,7 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     // envelope; it logs via console.warn instead. Spy on it so the
     // test still observes the failure path.
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    MqlSubscriptionApi.handleQuery({
+    SubscriptionApi.handleQuery({
       interactive,
       queryId: 'q-noholder',
       query: 'me',
@@ -234,5 +238,70 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
     expect(calls).toContain('q-noholder');
     expect(calls).toContain('permission');
     warnSpy.mockRestore();
+  });
+  // ── tooltips W2: an honest describe ────────────────────────────────────
+
+  async function lamp(where: Place): Promise<Good> {
+    const t = await StuffApi.create(() => {
+      const g = new Good();
+      g.setShortDescription('a brass lamp');
+      g.setKeywords(['lamp']);
+      return g;
+    });
+    Stuff._stampTemplatePath(t, '/stuff/thing/lamp');
+    ContainmentApi.move(t, where);
+    return t;
+  }
+
+  const TOOLTIP_FIELDS = ['displayName', 'kind', 'quantity', 'shortDescription', 'path'];
+
+  it('a reachable thing in the light: every asked field, kind and path included', async () => {
+    const { interactive, location, envelopes } = await setup();
+    const t = await lamp(location);
+    envelopes.length = 0;
+    SubscriptionApi.handleQuery({
+      interactive, queryId: 'q-lit', query: `#${t.stuffId}`, cardinality: 'one', fields: TOOLTIP_FIELDS,
+    });
+    const env = envelopes.find((e) => e.type === 'mql-query-result') as unknown as {
+      result: Array<Record<string, unknown>>; dark?: true;
+    };
+    expect(env.dark).toBeUndefined();
+    expect(env.result[0]).toMatchObject({
+      kind: 'thing',
+      shortDescription: 'a brass lamp',
+      path: { path: '/stuff/thing/lamp', spoiler: 2 },
+    });
+  });
+
+  it('⭐ reach is the server\'s: a bare #id for a thing in another place describes nothing', async () => {
+    const { interactive, envelopes } = await setup();
+    const elsewhere = await StuffApi.create(() => new Place());
+    const t = await lamp(elsewhere);
+    envelopes.length = 0;
+    SubscriptionApi.handleQuery({
+      interactive, queryId: 'q-far', query: `#${t.stuffId}`, cardinality: 'one', fields: 'detail',
+    });
+    const env = envelopes.find((e) => e.type === 'mql-query-result') as unknown as { result: unknown[] };
+    expect(env.result).toEqual([]);
+  });
+
+  it('too dark: sight fields dropped, the envelope says dark, the name is what you perceive', async () => {
+    const { interactive, location, envelopes } = await setup();
+    const t = await lamp(location);
+    const spy = vi.spyOn(PerceptionApi, 'lightBandFor').mockReturnValue({ band: 'dark' as never, dark: true });
+    envelopes.length = 0;
+    SubscriptionApi.handleQuery({
+      interactive, queryId: 'q-dark', query: `#${t.stuffId}`, cardinality: 'one', fields: TOOLTIP_FIELDS,
+    });
+    spy.mockRestore();
+    const env = envelopes.find((e) => e.type === 'mql-query-result') as unknown as {
+      result: Array<Record<string, unknown>>; dark?: true;
+    };
+    expect(env.dark).toBe(true);
+    const rec = env.result[0]!;
+    expect(rec.kind).toBe('thing');
+    expect(rec).not.toHaveProperty('shortDescription');
+    expect(rec).not.toHaveProperty('path');
+    expect(rec.displayName).toBe(t.describeFor(interactive.getHolder() as never));
   });
 });

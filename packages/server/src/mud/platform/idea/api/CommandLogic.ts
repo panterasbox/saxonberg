@@ -6,7 +6,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { NON_TEMPLATE_DIRS } from '../../../lib/paths';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
-import type { Stuff } from '../../../lib/stuff/Stuff';
+import { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { CommandGiver } from '../../../lib/command/CommandGiver';
@@ -39,6 +39,7 @@ import type {
   Note,
   Status,
   AffordanceEntry,
+  RefusalFactWire,
 } from '@saxonberg/types';
 import {
   MqlApi,
@@ -104,6 +105,11 @@ import type { OnFilteredPolicy } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
+import { StuffApi } from '../../../api/stuff';
+import { DiagnosticApi } from '../../../api/diagnostics';
+import { Mml } from '../../../api/mml';
+import { ContentError, Refusal, Unavailable, type RefusalFacts } from '../../../lib/errors';
+import ReasonCatalogue from '../ReasonCatalogue';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/command#CommandApi'),
@@ -242,6 +248,8 @@ function autoEscalationFor(kind: Note['kind']): Status | undefined {
       return 'declined';
     case 'controller-rejected':
       return 'declined';
+    case 'refused':
+      return 'declined';
     case 'mixin-missing':
       return 'declined';
     case 'locomotion-gate-failed':
@@ -290,10 +298,12 @@ class CommandContextImpl implements CommandContext {
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
   public filterPolicy?: OnFilteredPolicy;
+  public scriptLine?: string;
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
   private _statusExplicit = false;
+  private _refusal: Refusal | null = null;
 
   constructor(args: CreateCommandContextArgs) {
     this.commandGiver = args.commandGiver;
@@ -310,6 +320,7 @@ class CommandContextImpl implements CommandContext {
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
     if (args.barId !== undefined) this.barId = args.barId;
     if (args.filterPolicy !== undefined) this.filterPolicy = args.filterPolicy;
+    if (args.scriptLine !== undefined) this.scriptLine = args.scriptLine;
   }
 
   requireInteractive(what: string): Interactive | null {
@@ -346,7 +357,68 @@ class CommandContextImpl implements CommandContext {
   getStatus(): Status {
     return this._status;
   }
+
+  refuse(refusal: Refusal | { ok?: false; reason: string; facts?: unknown; at?: string }): void {
+    const live =
+      refusal instanceof Refusal
+        ? refusal
+        : new Refusal(
+            refusal.reason,
+            (refusal.facts ?? {}) as RefusalFacts,
+            refusal.at !== undefined ? { at: refusal.at } : undefined,
+          );
+    // The first refusal is the one that stopped the command.
+    this._refusal ??= live;
+    this.note({
+      kind: 'refused',
+      reason: reasonCatalogue().codeOf(live.reason),
+      facts: wireOf(live.facts),
+      ...(live.at !== undefined ? { at: live.at } : {}),
+    });
+  }
+
+  getRefusal(): Refusal | null {
+    return this._refusal;
+  }
 }
+
+/** The reasons catalogue singleton — the one reached as `CommandApi.reasons()`. */
+function reasonCatalogue(): ReasonCatalogue {
+  return StuffApi.singletonSync('/platform/idea/ReasonCatalogue', () => new ReasonCatalogue());
+}
+
+/**
+ * A refusal's facts as the envelope carries them: a thing as its
+ * reference, a list of things as references, a number as itself, and
+ * anything else as text.
+ */
+function wireOf(facts: Readonly<Record<string, unknown>>): Record<string, RefusalFactWire> {
+  const out: Record<string, RefusalFactWire> = {};
+  for (const [name, value] of Object.entries(facts)) {
+    if (value === undefined || value === null) continue;
+    if (value instanceof Stuff) out[name] = MessageApi.refOf(value);
+    else if (Array.isArray(value) && value.every((v) => v instanceof Stuff)) {
+      out[name] = (value as Stuff[]).map((v) => MessageApi.refOf(v));
+    } else if (typeof value === 'number') out[name] = value;
+    else out[name] = value instanceof Mml ? plainOf(value) : String(value);
+  }
+  return out;
+}
+
+/** A worded line as plain text — what a note's `detail` carries. */
+function plainOf(line: Mml): string {
+  return line
+    .toString()
+    .replace(/<[^>]+>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+/** What is said when even the row that words a failure cannot be read. */
+const LAST_RESORT = 'Something went wrong.';
 
 /**
  * CommandLogic — the hot-reloadable logic singleton behind
@@ -888,22 +960,22 @@ export class CommandLogic extends ApiLogic {
     applyShadowDeltaImpl(host, shadow, op);
   }
 
-  /** See {@link CommandApi.applyHostedUpdateDelta}. */
+  /** See {@link CommandApi.applyHostedAppDelta}. */
   @CallSecurity(CommandApiCallers)
-  public applyHostedUpdateDelta(
+  public applyHostedAppDelta(
     host: Stuff,
     update: Stuff,
     op: 'host' | 'unhost'
   ): void {
-    applyHostedUpdateDeltaImpl(host, update, op);
+    applyHostedAppDeltaImpl(host, update, op);
   }
 
-  /** See {@link CommandApi.collectHostedUpdateDefs}. */
+  /** See {@link CommandApi.collectHostedAppDefs}. */
   @CallSecurity(CommandApiCallers)
-  public collectHostedUpdateDefs(
+  public collectHostedAppDefs(
     host: Stuff
   ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
-    return collectHostedUpdateDefsImpl(host);
+    return collectHostedAppDefsImpl(host);
   }
 
   /** See {@link CommandApi.createCommandContext}. */
@@ -912,6 +984,106 @@ export class CommandLogic extends ApiLogic {
     args: CreateCommandContextArgs,
   ): CommandContext {
     return new CommandContextImpl(args);
+  }
+
+  /** See {@link CommandApi.reasons}. */
+  @CallSecurity(CommandApiCallers)
+  public reasons(): ReasonCatalogue {
+    return reasonCatalogue();
+  }
+
+  /**
+   * ⭐ The line a reason's row says for these facts, or `null` when no row
+   * ships it — the emit sweep's wording, and the failure report's.
+   */
+  @CallSecurity(CommandApiCallers)
+  public async wordReason(code: string, facts: Readonly<Record<string, unknown>>): Promise<{ line: Mml; topic: string } | null> {
+    const reason = await reasonCatalogue().find(code);
+    if (reason === null) return null;
+    const misfit = reason.mismatch(facts);
+    if (misfit !== null) {
+      void DiagnosticApi.record({
+        path: reason.getPath(),
+        message: `refusal '${code}' does not fit its row: ${misfit}`,
+        stack: new Error('refusal facts').stack ?? null,
+      }).catch(() => undefined);
+    }
+    return { line: reason.say(facts), topic: reason.getTopic() };
+  }
+
+  /** See {@link CommandApi.reportFailure}. */
+  @CallSecurity(CommandApiCallers)
+  public async reportFailure(
+    error: unknown,
+    context?: CommandContext | null,
+    where?: string | null,
+  ): Promise<void> {
+    const record = (path: string | null, message: string, channel?: string): void => {
+      void DiagnosticApi.record({
+        path,
+        message,
+        stack: error instanceof Error ? (error.stack ?? null) : null,
+        ...(channel !== undefined ? { channel } : {}),
+      }).catch(() => undefined);
+    };
+    if (error instanceof Refusal) {
+      if (error instanceof Unavailable) {
+        record(where ?? null, `${where ?? '?'}: unavailable — ${String(error.facts.what ?? '')}: ${String((error.cause as Error | undefined)?.message ?? '')}`);
+      }
+      if (context) {
+        context.refuse(error);
+        return;
+      }
+      let worded = await this.wordReason(error.reason, error.facts).catch(() => null);
+      // A script that stopped after it detached: the stop names its line.
+      if (error.at !== undefined) {
+        const stopped = await this.wordReason('script-stopped', {
+          line: error.at,
+          ...(worded ? { why: worded.line } : {}),
+        }).catch(() => null);
+        worded = stopped ?? worded;
+      }
+      this.sayLate(worded?.line ?? Mml.compose`${LAST_RESORT}`, worded?.topic ?? 'shell.error');
+      return;
+    }
+    let line: string;
+    if (error instanceof ContentError) {
+      record(error.row, error.message, 'content-error');
+      line = await this.sentence('content-error', { what: error.what });
+    } else {
+      const message = error instanceof Error ? error.message : String(error);
+      record(where ?? null, `${where ?? '?'}: ${message}`);
+      line = await this.sentence('went-wrong', {});
+    }
+    if (context) {
+      context.note({ kind: 'controller-error', controller: where ?? '?', detail: line });
+    } else {
+      this.sayLate(Mml.compose`${line}`, 'shell.error');
+    }
+  }
+
+  /**
+   * ⭐ The late path (failure-model D9): no envelope to ride, so the line
+   * goes at once to whoever caused the work — the causing author the
+   * guarded root carries — composed inside that root, so the frame keeps
+   * its `causingCommandId`. Nobody to tell (an NPC's own tick): nothing
+   * is said, and the diagnostic, when there is one, is already recorded.
+   */
+  private sayLate(line: Mml, topic: string): void {
+    const author = ExecutionContextApi.getCausingAuthor();
+    if (!(author instanceof Stuff) || !MixinApi.isSensor(author) || author.isDestroyed()) return;
+    MessageApi.scene(author).topic(topic).toSelf(line).send();
+  }
+
+  /** A defect's row, as plain text — never the exception's own words. */
+  private async sentence(code: string, facts: Record<string, unknown>): Promise<string> {
+    try {
+      const worded = await this.wordReason(code, facts);
+      return worded ? plainOf(worded.line) : LAST_RESORT;
+    } catch {
+      // @quiet the row could not be read — the plainest sentence instead.
+      return LAST_RESORT;
+    }
   }
 
   /** See {@link CommandApi.resolveParser}. */
@@ -4501,7 +4673,7 @@ function applyShadowDeltaImpl(
   }
 }
 
-function applyHostedUpdateDeltaImpl(
+function applyHostedAppDeltaImpl(
   host: Stuff,
   update: Stuff,
   op: 'host' | 'unhost'
@@ -4519,16 +4691,16 @@ function applyHostedUpdateDeltaImpl(
   cg.popCommandSource(update);
 }
 
-function collectHostedUpdateDefsImpl(
+function collectHostedAppDefsImpl(
   host: Stuff
 ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
   // `isAether` is the composition check (and narrows `host` to an
   // `AetherHost`). Transmission-time gating (attunement active) rides
   // the validators / controller / `tell` guard, mirroring how
   // augment-gated verbs surfaced-but-refused before this build.
-  if (!MixinApi.isAether(host)) return [];
+  if (!MixinApi.isAetherHost(host)) return [];
   const out: Array<{ source: Stuff; defs: CommandDefinition[] }> = [];
-  for (const u of host.getHostedUpdates()) {
+  for (const u of host.getHostedApps()) {
     const defs = collectBucketDefs(u.constructor, 'self');
     if (defs.length > 0) out.push({ source: u, defs });
   }

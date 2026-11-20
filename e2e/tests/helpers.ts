@@ -375,3 +375,28 @@ export async function openWorldAsFounder(
  * over, because a helper that hid it would hide it from the next reader
  * too.
  */
+
+/**
+ * ⭐ What an element's tooltip says (tooltips W8). Native `title` hover
+ * text is gone from the client; this reads the tooltip the player sees.
+ *
+ * It opens the tooltip by FOCUS, not hover: focus opens exactly that
+ * element's tooltip, at once, wherever the pointer is — a hover lands on
+ * whatever is under the pointer, and the card column moves (the feed pulls
+ * toward its newest card), so a hover-based read races the layout. The
+ * hover path itself is walked in `tooltips-walk.spec.ts`.
+ */
+export async function tipText(page: Page, target: import('@playwright/test').Locator): Promise<string> {
+  await page.mouse.move(0, 0);
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('tooltip')).toHaveCount(0, { timeout: 5_000 });
+  await target.focus();
+  const tip = page.getByTestId('tooltip').last();
+  await expect(tip).toBeVisible({ timeout: 5_000 });
+  // A live describe opens on "…" and fills when its answer lands.
+  await expect(tip.getByTestId('tip-loading')).toHaveCount(0, { timeout: 10_000 });
+  const text = await tip.innerText();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('tooltip')).toHaveCount(0, { timeout: 5_000 });
+  return text;
+}

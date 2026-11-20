@@ -33,7 +33,7 @@ therapeutic window, the care economy**),
 [mining-slate](./mining-slate.md) (mineral inputs),
 [insurance-slate](../society/insurance-slate.md) (actuarial thinking, spoilage
 risk), [freight-slate](./freight-slate.md) (perishable + valuable cargo),
-[press-slate](../society/press-slate.md) (who investigates the claim),
+[journalism-slate](../society/journalism-slate.md) (who investigates the claim),
 [inquiry-slate](../society/inquiry-slate.md) (publishing the evidence),
 [corpo.md](../../subsystems/corpo.md) (**brands — their best use case**),
 [provenance.md](../../subsystems/provenance.md) (**batches**),
@@ -80,7 +80,7 @@ The only defence against a credence good is **evidence at scale.**
 and the append-only records make it **computable in-world** rather than
 asserted. It joins the actuarial thread ([insurance](../society/insurance-slate.md)),
 the publishing thread ([inquiry](../society/inquiry-slate.md)) and the
-investigative thread ([press](../society/press-slate.md)), **all pointed at the
+investigative thread ([press](../society/journalism-slate.md)), **all pointed at the
 same problem from different sides.**
 
 ---

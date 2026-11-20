@@ -1,7 +1,7 @@
 # Crowded rooms
 
 > **Status: PARTIAL** — the crowded-rooms build (MR !598, 2026-11-18) shipped `say` under 250 ms at thirty (p95 110 ms), the room's own reading never writing, exact subscription dispatch with a row memo, hidden cards pausing, an idle world at 0.17 of a core (accepted by the owner against 0.15), and the restart → [mql-subscription.md](../../subsystems/mql-subscription.md), [perception.md](../../subsystems/perception.md), [card-surface.md](../../subsystems/card-surface.md), [mould.md](../../subsystems/mould.md), [behavior.md](../../subsystems/behavior.md)
-> **Left:** **a login or an arrival into a full room** — login p95 2.28 s (target 2 s), logins into a full square p95 3.45 s, 19 freeze samples over 100 ms during the arrivals, a mould's looks 2.3× alone (all accepted as recorded misses, owner 2026-11-18) · the call-security tax under everything · the re-used-world `getContainerChain` defect · a clock on `tools/soak`
+> **Left:** **a login or an arrival into a full room** — login p95 2.28 s (target 2 s), logins into a full square p95 3.45 s, 19 freeze samples over 100 ms during the arrivals, a mould's looks 2.3× alone (all accepted as recorded misses, owner 2026-11-18) · the call-security tax under everything (halved in the crowd by MR !610; idle is now the cast, not the gate) · the re-used-world `getContainerChain` defect · a clock on `tools/soak`
 > **Size:** a build
 
 ## ⭐ The next ceiling — a body arriving in a full room (after crowded-rooms, 2026-11-18)
@@ -29,6 +29,15 @@ cannot help — it is new to every card), every card on the place re-resolved
 (31 × ~2 ms after W8, then the drain's 2× rest), and the newcomer's own first
 `here` card — one unit of N rows. The mould's looks miss because they share
 those frames.
+
+**After call-security-performance (MR !610, 2026-11-18)** — its quiet-box
+drive reported this ceiling before and after, not gated (its own
+`call-security-performance.dirty.wire.test.ts`, same harness, thirty at
+the avenue block then the square): thirty log in p95 **2 170 → 2 221 ms**
+(unmoved), five into the full square p95 **2 727 → 2 399 ms**, freeze
+samples over 100 ms **33/195 → 3/162**. The call-security layer is now
+45% of a crowd's busy time (was 55%), so a login's cost is mostly the
+shape below, not the gate. Idle 0.244 cores, of which the gate is 0.054.
 
 **Where to start** (none profiled yet — the next build's W0): profile one
 login into thirty (`WIRE_CPU_PROF`, the crowd record's uptime marks slice

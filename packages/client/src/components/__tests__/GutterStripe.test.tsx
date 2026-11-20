@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
 import { GutterStripe, colorForTopic } from "../GutterStripe";
+import { TooltipLayer } from "../tooltip/TooltipLayer";
 
 function resetState(): void {
   useStore.setState({
@@ -29,6 +30,7 @@ function resetState(): void {
       ],
     ]),
     frames: [],
+    tipStack: [],
   });
 }
 
@@ -63,14 +65,19 @@ describe("GutterStripe", () => {
     expect(style).toMatch(/background:\s*(hsl|rgb)/);
   });
 
-  it("hover (>250ms) reveals a tooltip with label + raw path + description", () => {
-    render(<GutterStripe topic="speech.vocal" timestamp={1000} />);
+  it("hover reveals the frame's tooltip: label + raw topic + description", () => {
+    render(
+      <>
+        <GutterStripe topic="speech.vocal" timestamp={1000} />
+        <TooltipLayer onCommandClick={() => {}} onCommandPreview={() => {}} />
+      </>,
+    );
     const stripe = screen.getByTestId("gutter-stripe");
     fireEvent.mouseEnter(stripe);
     act(() => {
       vi.advanceTimersByTime(300);
     });
-    const tip = screen.getByTestId("gutter-tooltip");
+    const tip = screen.getByTestId("tooltip");
     expect(tip.textContent).toContain("Say");
     expect(tip.textContent).toContain("speech.vocal");
     expect(tip.textContent).toContain("Speak aloud.");

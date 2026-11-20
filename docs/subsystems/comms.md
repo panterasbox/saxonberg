@@ -34,7 +34,7 @@ they are *not* the same medium.
 | gated by | sound reach, hearing, language | attribution only; no sensory gate |
 | reach | physical space (distance, walls) | membership / addressing (distance-free) |
 | privacy | public, overhearable | private, addressed |
-| carrier mixin | `VocalMixin` | `CommsMixin` (a hosted update on `AetherMixin` attunement) |
+| carrier mixin | `VocalMixin` | `CommsMixin` (an app on `AetherMixin` attunement) |
 
 Acoustic is local, atmospheric, overhearable, and (eventually)
 language-bound; implant is distance-free, private, and "magic." The
@@ -44,85 +44,71 @@ without Vocal (post-vocal-loss with an implant). See
 [messaging.md § VocalMixin / AetherMixin](./messaging.md) for the
 capability split and the Containable-wins audience rule both share.
 
-Diegetically the implant is **cybernetic in mechanism, ESP in
-phenomenology** — a neural interface delivering coherent thoughts
-willed into existence, bypassing the sense organs. The same Aether
-substrate carries DMs, chat channels, and the remote perception of
-emotes. The baseline AetherImplant is universal and always-on for
-players (see [augmentation.md](./augmentation.md)), which is why
-`dm` / chat are zero-friction.
+Diegetically a tuner lets you read and write the aether field — a
+**phone** read off its screen (every player's, from the starting kit), an
+**implant** known straight to the mind (a guest's, or a headset worn). The
+same Aether substrate carries DMs, chat channels, and the remote perception
+of emotes. A local emote needs no tuner: the room carries it. Which tuner,
+when it works, apps, the battery and held messages:
+[aether-devices.md](./aether-devices.md).
 
-⚠ **"Universal" means every Avatar, not every character.** The baseline
-`AetherImplant` is granted only by `Avatar`'s default loadout; no NPC row
-ships one and `NPC`/`Character` compose no Aether. So an NPC without an
-authored implant neither receives nor sends implant comms — `dm` cannot
-reach a remote NPC, and remote emotes pass it by (see
-[emotes.md](./emotes.md)). The comms slate's *universal always-on*
-commitment and its remote-NPC scenarios are unbuilt on that side, and
-⛔ **will stay so**: distance comms are player-to-player only — you talk
-to an NPC with `say`, in person (the owner, 2026-11-18;
-[aether-devices-slate](../slates/engine/aether-devices-slate.md) § 2).
+⚠ **Every Avatar, never any NPC.** `CommsMixin` is composed on `Avatar`
+only; no NPC composes it or any tuner, so `dm` cannot reach an NPC and a
+remote emote passes it by — ⛔ **and that is final**: distance comms are
+player-to-player only — you talk to an NPC with `say`, in person (the
+owner, 2026-11-18; [aether-devices-slate](../slates/engine/aether-devices-slate.md)
+§ 2). An NPC does perceive every emote made in its room.
 
-### Comms is a hosted update; `AetherMixin` is the host
+### Comms is the person's; Messages is the app it looks for
 
-Transmission is no longer carried by `AetherMixin`. **Attunement**
-(`AetherMixin`) = perceive the aether (the `verbal-esp` / `emotive-esp`
-modalities reception-gating rides) + *host* capability updates. The
-**comms capability** is `CommsMixin`, composed on a hosted update
-`CommsUpdate` (`CommsMixin(AetherHostedMixin(Idea))` —
-`lib/comms/Comms.ts` + `CommsUpdate.ts`) that plugs into an attunement
-host. `tell` sends *on behalf of its host (the operator)*: it resolves
-the operator via `getHost()` and routes the self-echo frame, the mention
-resolver, and the emitted speaker name through the host (a comms update
-is not itself a `Sensor` and has no name). The host/update hosting
-relation, the three-base capability model, and the reachability scan
-that finds the update live in [augmentation.md](./augmentation.md).
+Three mixins, three facts (aether-devices D2): `AetherMixin` = *can
+perceive the aether when tuned* (the `verbal-esp` / `emotive-esp`
+modalities reception-gating rides); `AetherHostMixin` = *hosts apps*;
+`CommsMixin` = *this person talks at a distance, and things wait for them*
+— composed on the person (`Avatar`). `tell` sends **as the person**: the
+self-echo frame, the mention resolver and the speaker name are the
+person's own.
 
-Net: **attunement = perceive + host; the comms update = transmit.** A
-recipient who is attuned but lacks the comms update still *receives*
-dms (the reception gate passes), they just can't *send*. The future
-radio is the corporeal twin: an attuned `Thing` that **hosts** a comms
-update (not a `Thing` that composes `CommsMixin`).
+Before anything goes, the person asks `sendOrHold(commandText)`: is there
+a host that tunes them right now (`aetherHostNow` — tuned by nature, or the
+first augment they bear that nothing stops), and does it run **Messages**
+(`/platform/idea/app/messages`)? If not, the typed line is held and the
+refusal names the fix; it re-runs when it can. A frame arriving over the
+aether that cannot be taken now is held the same way. See
+[aether-devices.md § Held, never silent](./aether-devices.md).
 
 ## The verb surface
 
 Six verbs ship across the two transports. Three acoustic (gated by
-`VocalMixin`), one implant directed-message (gated by `AetherMixin`),
-plus the two Aether pronoun/broadcast verbs that ride alongside.
+`VocalMixin`), one aether directed-message (asked of the person's
+`sendOrHold`), plus the two aether pronoun/broadcast verbs that ride
+alongside.
 
 | Verb | YAML | Controller | Transport | Mixin method |
 |---|---|---|---|---|
 | `say` (`'`) | `cmd/say.yaml` | `SayController` | acoustic | `VocalMixin.say` |
 | `whisper` | `cmd/whisper.yaml` | `WhisperController` | acoustic | `VocalMixin.whisper` |
 | `shout` | `cmd/shout.yaml` | `ShoutController` | acoustic | `VocalMixin.shout` |
-| `dm` | `cmd/dm.yaml` | `DmController` | implant | `CommsMixin.tell` (on the hosted update) |
-| `reply` | `cmd/reply.yaml` | `ReplyController` | implant | cohort replay of `CommsMixin.tell` |
-| `broadcast` | `cmd/broadcast.yaml` | `BroadcastController` | implant | composes its own Scene from the host |
+| `dm` | `cmd/dm.yaml` | `DmController` | aether | `CommsMixin.tell` (the person's) |
+| `reply` | `cmd/reply.yaml` | `ReplyController` | aether | cohort replay of `CommsMixin.tell` |
+| `broadcast` | `cmd/broadcast.yaml` | `BroadcastController` | aether | composes its own Scene |
 
 The acoustic verbs are contributed via
 `VocalMixin.commandContributions.self`
-(`['say.yaml', 'whisper.yaml', 'shout.yaml']`); the implant verbs via
+(`['say.yaml', 'whisper.yaml', 'shout.yaml']`); the aether verbs via
 `CommsMixin.commandContributions.self`
-(`['dm.yaml', 'reply.yaml', 'broadcast.yaml', 'chat.yaml']`) — note these
-moved off `AetherMixin` when comms became a hosted update. They reach the
-host's command-source walk through the **hosted-update self-seeding**
-(`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`), with
-the comms update as `commandSource` (exactly one source — see the
-[augmentation.md](./augmentation.md) contribution-walk generalization).
-The `chat.yaml` contribution is the channel surface — its substrate
-lives in [chat](./chat.md), not here.
+(`['dm.yaml', 'reply.yaml', 'broadcast.yaml', 'chat.yaml']`) — the
+person's own `self` bucket, since comms lives on the person. The
+`chat.yaml` contribution is the channel surface — its substrate lives in
+[chat](./chat.md), not here.
 
 Each controller is a thin shell. The acoustic ones narrow on
 `MixinApi.isVocal` and report `mixin-missing` + "You cannot speak." The
-`dm` / `reply` controllers resolve the operator's hosted comms update —
-preferring `context.commandSource` (the update that afforded the verb),
-else the MQL `reachable` pool filtered on `isComms` — then invoke
-`tell` on it; if no comms update is found (attuned but update-less) they
-fire the `mixin-missing` "no way to send a thought" refusal. **This
-absent-comms gate lives in the controller, not the validator**:
-`requiresVerbalESP` is the attunement early-catch (perceive), but
-attunement alone doesn't guarantee a comms update (transmit) — see
-*Reception gating* below.
+`dm` / `reply` controllers (and a `chat` post) ask the person's
+`sendOrHold` and render a refusal (`aether-<reason>`) or call `tell`. No
+validator stands in front of them: `requiresVerbalESP` would refuse
+before the hold could happen, so it stays only on `forum` and
+`broadcast`, where it says the person's own fix.
 
 ### Acoustic — say / whisper / shout
 
@@ -161,14 +147,12 @@ haunted room — addresses its own contents). See
 
 `dm` is the directed-message verb (its `tell` alias was deleted by controllers-are-io's one view, one word). `dm.yaml` takes a
 `type: objects` target with `cardinality: { min: 1, max: 10 }` at
-`scope: online`, plus a greedy `message`. It carries the
-`requiresVerbalESP` validator so an unattuned host is turned away
-before dispatch. `DmController` resolves the hosted comms update and
+`scope: online`, plus a greedy `message`. `DmController` asks the
+person's `sendOrHold` (held + a refusal naming the fix, or go) and
 delegates to `CommsMixin.tell`, which stamps `meta.modality:
-'verbal-esp'` and fires `speech.comms` *from the operator*.
+'verbal-esp'` and fires `speech.comms` *from the person*.
 
-Three cardinality cases inside the controller (`comms` = the resolved
-hosted comms update):
+Three cardinality cases inside the controller (`comms` = the person):
 
 1. **Single target** → `comms.tell(target, message)` — the classic
    1:1 rendering ("X → Y: msg" to self, "X → you: msg" to target).
@@ -183,16 +167,13 @@ hosted comms update):
    channel with membership / subscription / moderation.
 
 DM **cohort state** (`getLastInboundCohort` / `getLastOutboundCohort`)
-lives on the **comms update** (`CommsMixin`), stamped automatically by
-`tell` — runtime-only, never persisted, dies with the host. On send,
-`tell` records the recipient's inbound cohort on the *recipient's own*
-comms update (found via the recipient's own MQL `reachable` pool,
-null-guarded — an attuned
-recipient with no comms update receives the dm but has nowhere to record
-a cohort, which is fine: they can't reply anyway). `reply` / `dm .`
-read the cohort off the operator's comms update for reply-all. The `dm
-<ad-hoc-handle> ...` post-to-known-channel shape is **not** in v1;
-posting to an ad-hoc cohort goes through `chat <handle> ...`.
+lives on the **person** (`CommsMixin`), stamped automatically by `tell` —
+runtime-only, never persisted (so a `reply` held across a restart finds
+nobody and says so). On send, `tell` records the recipient's inbound
+cohort on the recipient (`MixinApi.isComms(t)` — a person composes it).
+`reply` / `dm .` read the cohort for reply-all. The `dm <ad-hoc-handle>
+...` post-to-known-channel shape is **not** in v1; posting to an ad-hoc
+cohort goes through `chat <handle> ...`.
 
 ## `meta.acousticDb` stamping
 
@@ -266,15 +247,11 @@ delivery chokepoint:
   `causingCommandId` auto-attribution. Comms supplies the verb prose
   and the topic/modality/meta stamps; the composer does the rest.
 - **Reception gating** — the `'hearing'` vs `'verbal-esp'` modality
-  stamp routes through `SensorMixin.filterMessage`, the same
-  reception gate that drops implant frames for unattuned
-  recipients. Acoustic frames additionally feed the senses
-  substrate's reach walk via `acousticDb`. Note the
-  **attunement-vs-comms split**: reception rides attunement (the
-  `verbal-esp` sensorium gate, residual `AetherMixin`), so it stays
-  green for any attuned actor; the *transmit* gate (do you have a comms
-  update) is enforced in the `dm`/`reply` controllers, not the
-  validator.
+  stamp routes through `SensorMixin.filterMessage`. For a person the
+  aether frames meet the HOLD first (`Avatar.filterMessage` →
+  `CommsMixin.holdIfUnreachable`): what cannot be taken now waits under
+  *"While you were away…"* rather than dropping. Acoustic frames
+  additionally feed the senses substrate's reach walk via `acousticDb`.
 
 The **channel half** of the comms design — named, persistent,
 membered chat channels — shipped under [chat](./chat.md), not here.
@@ -292,7 +269,10 @@ directed path, and the `dm` implant primitive. The
 [comms slate](../slates/engine/comms-slate.md) retains the rest of the
 design space. Designed but **not yet built**:
 
-- ⭐⭐⭐ **Carriers other than the implant** — the ESP channel's modality
+- ⭐⭐⭐ **Carriers other than the implant** — ✅ the first is BUILT: the
+  **phone**, a portable device conferred by carrying
+  ([aether-devices.md](./aether-devices.md)). The rest of the ladder below
+  is still design. The ESP channel's modality
   (`verbal-esp`) never changes; only the **coupling** does, and any
   carrier reaches any other. Three sources, not one: the implant, an
   intrinsic species trait, and a **portable device**, conferred the way

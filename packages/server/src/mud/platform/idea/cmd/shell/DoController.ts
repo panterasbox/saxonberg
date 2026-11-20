@@ -29,7 +29,7 @@ export default class DoController extends CommandController<DoModel> {
   async execute(model: DoModel, context: CommandContext): Promise<void> {
     const name = (model.name ?? '').trim();
     const args = model.arg ? [model.arg] : [];
-    const invoked = name !== '' && (await ScriptApi.invoke(name, args));
+    const invoked = name !== '' && (await ScriptApi.invoke(name, args, context));
     if (!invoked) {
       MessageApi.scene(context.commandGiver)
         .topic('shell.result')

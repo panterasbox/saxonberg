@@ -1,4 +1,5 @@
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { EXIT_KIND_TEST_ROWS } from '../../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Template } from '../Template';
@@ -42,10 +43,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     return store.find((d) => d._id === id) ?? null;
   });
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     find,
     findById,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return store;
 }

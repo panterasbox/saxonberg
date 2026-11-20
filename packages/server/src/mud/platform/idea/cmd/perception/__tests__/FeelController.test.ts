@@ -39,6 +39,7 @@ import { ContainmentApi } from '../../../../../api/containment';
 import Good from '../../../../../lib/stuff/Good';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class ThermalMug extends ThermalMixin(Good) {
   static _mixinName = 'ThermalMugFeel';
@@ -139,7 +140,7 @@ describe('FeelController', () => {
       via: { detailPath: ['workbench'] },
     };
     const c = makeStuff(() => new FeelController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('rough oak');
@@ -159,7 +160,7 @@ describe('FeelController', () => {
     );
     const target: MqlOneResult = { stuff: mug as unknown as Stuff, raw: 'mug' };
     const c = makeStuff(() => new FeelController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toMatch(/feels (warm|hot)/);
@@ -173,7 +174,7 @@ describe('FeelController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new FeelController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain("don't perceive");

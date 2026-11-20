@@ -19,7 +19,10 @@
 > the windows (§ 3) · the municipal government with an NPC mayor (§ 5) · the reserved embassy row ·
 > the generic seat-of-government pack (§ 6, its own design) · the second grant (waits on the
 > stewardship cascade) · the PM's Residence (office-keyed tenure — the one novel mechanic) · § 9's open
-> list
+> list · ⭐ (2026-11-18, § 8a) the TPA headquarters · the Saxonberg paper, the fourth estate's first
+> institution, which runs the public channels · ⭐ (§ 8b) the windows updated — one Assembly hall, the
+> record in the Archive, embassies as notaries, the Help desk, the high court in the Courthouse — and
+> every office's plaque showing its pen; the mayor's seat empty until residents fill it
 > **Size:** a build
 
 **Captured 2026-08-01; rewritten 2026-11-07.** The City of Saxonberg: the **diegetic seat of the
@@ -83,7 +86,7 @@ you see a real system working, even with nobody in it.**
 
 | building | the live system it shows |
 |---|---|
-| **the three chamber halls** (Labor, Capital, Consumer) | that chamber's live proposals, argument map and tallies, on displays — a reading room on the machine's state |
+| **the three chamber halls** (Labor, Capital, Consumer) ⛔ *one Assembly hall — § 8b* | that chamber's live proposals, argument map and tallies, on displays — a reading room on the machine's state |
 | **the Central Bank** | the conservation chokepoint given a front door: the live money supply and the reserve |
 | **the Archive** | the record: the public moderation log and the conduct code ([moderation-slate](../society/moderation-slate.md) § 12, § 15), the chronicle |
 | **the Courthouse** | sortition — a panel drawn by lot (no judge's chambers: no bench to capture), and where appeals land |
@@ -129,8 +132,9 @@ optional (§ 9).
 **federal**; the town around it is the **city's**:
 
 - a municipal `Government` row, jurisdiction declared on the Locality, seats as employment positions;
-- ⭐ **an NPC mayor first** — like Terminus's Magistrate today — on the *start with NPCs, move to player
-  economies organically* rule;
+- ~~⭐ **an NPC mayor first** — like Terminus's Magistrate today — on the *start with NPCs, move to player
+  economies organically* rule;~~ ⛔ **Superseded (§ 8b):** NPCs cannot choose; the seat starts empty with
+  the city on autopilot, and residents fill it by headcount;
 - the 08-01 mechanism stands: **membership of the city's committee is set by act of congress**, and
   that committee decides how municipal seats are filled. **Interim**: the Compact's `core` committee
   holds the city (the founder-default pattern) until the first act;
@@ -205,6 +209,108 @@ One axis, D.C.-style: the chambers at one end, the executive at the other.
 Zoning: civic for the axis and the premises, residential for A Street, commercial for B Street — three
 of the closed six.
 
+## 8a. ⭐⭐ Two private institutions at the seat — the TPA headquarters and the paper **[DECIDED in shape — the owner, 2026-11-18]**
+
+A seat of government houses institutions that are not government — Washington has the Post. Two belong
+here and nowhere else, because they are the only things besides the Compact whose reach is the whole
+platform. **Preliminary; a content session follows.**
+
+### The TPA headquarters
+
+The owner: *"I think it needs its own representation in the city of Saxonberg … putting some pre-built
+content there for it will really cement what the TPA is and exists to do. I'm not saying it's Compact
+run … but the TPA headquarters doesn't belong anywhere in the game except Saxonberg."* The window (§ 3)
+onto the teleport network:
+
+- **the network control room** — a live board of every terminal across every world, its light and
+  status (the display substrate carries it);
+- **the registry** — which carrier leases which gate, where every terminal is, what each serves;
+- **the standards office** — what makes a terminal a terminal, the light scheme, safety;
+- **the clearing house** — where the network fee from every fare settles;
+- **the incident board** — outages and closures: the TPA's own **service channel**, its one
+  legitimately network-wide channel — status, not chatter;
+- **the founding charter and a small museum** — the homage to EotL's Teleport Authority and its
+  Eternal City Terminal, and where a new player learns what the network is.
+
+**Its governance is as shipped and slated, not decided here:** the Authority is a self-governing Business,
+*not the state*, whose committee's group the PM's office owns ([fasttravel.md](../../subsystems/fasttravel.md));
+whether it becomes the public carrier or a standards body above the carriers is
+[fast-travel-slate](../engine/fast-travel-slate.md) § *Carriers*, open 1. The headquarters fits either.
+
+### The Saxonberg paper — the public square
+
+The owner: *"The 'public' channels probably should be all operated by the press in Saxonberg, whoever
+turns out to run that on behalf of the population. It's its own estate. I'm not going to try and
+interfere with that — just set up the stage and let someone perform."* Gossip about the game is about
+the meta, not about Terminus, so it needs a holder whose beat is the whole platform: **a national paper
+at the capital**, private and independent of all three branches. **The operator holds it at launch**,
+under the paper's own name, until it is handed off. The full design of the public channels and launch
+moderation is [moderation-slate](../society/moderation-slate.md) § 24; the Post itself — its pen, its charter,
+its roster — is the [journalism-slate](../society/journalism-slate.md) § *the Saxonberg Post*.
+
+## 8b. ⭐⭐⭐ The windows, updated — and every office shows its pen (2026-11-18) **[DECIDED in shape]**
+
+Talked through with the owner after the governance design
+([separation-of-powers-slate](../society/separation-of-powers-slate.md)). § 3's test is unchanged; the
+governance design gives it far more to show.
+
+### The windows
+
+| building | already slated (§ 3) | what the governance design adds |
+|---|---|---|
+| ⭐ **the Assembly hall** — one, not three **[DECIDED — lens 1]** | each chamber's proposals, argument map, tallies | the continuous floor: every bill, **its three tallies over one crowd side by side**, bills seeking a second, the PM's veto window. ⚠ **Supersedes the three chamber halls**: the Compact's own course names *the three chambers are three groups of people* as the misconception to correct, and three buildings would teach it |
+| **the Central Bank** | the money supply and the reserve | an **independent institution** under a monetary rule: every mint logged with its authority — **the purse**, the second kind of power |
+| **the Archive** | the moderation log, the conduct code, the chronicle | ⭐ **the record itself**: the chain's head, the latest anchor and where it was published, `verify status` live; a break's alarm shows here first ([record-integrity-slate](../platform/record-integrity-slate.md)) — and **the one pen nobody holds**: the record only appends |
+| **the Courthouse** | sortition, where appeals land | the docket; panels drawn by lot, live; rulings attaching to clauses; ⭐ **the standing high court sits here, its reversal rate and each seat's record in the window** **[DECIDED — lens 7]** — its seats are the capture risk § 3's *no bench* feared, so they are the most visible thing in the building |
+| **the PM's Residence** | the seat and who holds it | the PM's live headcount support and any rival's — constructive no-confidence, visible — and **exactly what the office holds** and does not |
+| **embassy row** | reserved lots for other servers | ⭐ **realms witnessing each other**: each embassy holds its realm's latest checkpoint and publishes ours home — the federation's notaries, a real job |
+| **the TPA headquarters** · **the paper** | § 8a | the network's window; the public square's front page |
+| ⭐ **the Help desk** | — | the Compact's promise that nobody is ever stranded, given an address — an address, not a workplace (§ 4) |
+| ⭐ **the executive offices** — later | — | every committee's grants; **the deepest pen, code** — who holds the wizard bit, and recent merges with class and authority (law == code, visible); the directive queue with every law's codification state; the bounty board |
+| **the prison** | the load-bearing building | the Compact's facility for conduct sentences from the root; local extents keep their own lockups |
+
+- ⭐ **A window ships when its system ships** **[DECIDED — lens 6]** — the city grows from need, not
+  mandate (§ 1). At launch: the Assembly hall, the bank, the Archive, the Courthouse, the Residence, the TPA
+  headquarters, the paper, the prison, and the Help desk (Help is live day one). **The executive offices
+  wait** for directives and the bounty board.
+- **Windows derive from live data**, so they need no upkeep — a new committee appears in the registry with
+  nobody touching the building — and the whole stays editable by the Compact (§ 7).
+- **New display sources** join § 9 open 5: the record's status, headcount support, the directive queue, the
+  committee registry.
+
+### ⭐⭐⭐ Every office shows its pen **[DECIDED — the owner; lens 1]**
+
+The owner: *"All power in a digital domain is derived by write access … any office … exists only as a proxy
+to the real person with power, which is the person who holds the pen … the ones we don't [give write
+authority] need to reflect the actual power structure of the game. Maybe Saxonberg can help teach that."*
+([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7p.)
+
+**Every office's plaque shows** its **grants** (paths, operations), its **purse** (which budget line or
+account), and **who holds the title behind it** if it holds nothing — an office with no grants says so:
+*"this office holds no pen; the City's content is held by the Compact's core committee."*
+
+| window | whose pen it shows |
+|---|---|
+| the Assembly hall | the legislature holds the root — the pen over the law itself |
+| the executive offices | every committee's grants, and the deepest pen, code |
+| the Archive | the pen nobody holds — a limit on the pen, shown |
+| the Central Bank | the purse: who can mint, under which rule |
+| the PM's Residence | what the PM's office holds — appointments, the veto, the groups it owns — and what it does not |
+| the mayor's office | the municipal pen, or the name of whoever holds it |
+
+### The mayor **[DECIDED — lens 7; the pen LEAN]**
+
+⚠ **Supersedes § 5's *"an NPC mayor first"*:** NPCs cannot choose (an NPC official is a proxy of its
+author). **The seat starts empty, with the city on its authored policy as autopilot** (the corpo rule —
+[corpos-slate](../society/corpos-slate.md) § 2026-11-18); **residents fill it by headcount** — one account,
+one vote, a standing floor — through the conviction tally with instant replacement: those bound by the
+city's law choose who runs it.
+
+⭐ **The office carries the municipal pen** **[LEAN]** — the municipal committee's grants: the content of
+the city's non-federal parcels, its ordinances (its law subtree), its apportioned budget; never the
+Compact's premises. Otherwise the residents' election only decides who gives speeches. It is § 5's D.C.
+model made literal, and how much pen a capital's mayor carries is the home-rule question.
+
 ## 9. Open
 
 1. **TPA access policy** — instinct: maximally open; the capital being reachable is the point.
@@ -218,3 +324,6 @@ of the closed six.
    the shipped card sources already cover. (The plan's question.)
 6. **The seat-of-government pack** — its own design.
 7. **The café and street life** — how much filler makes it read as a capital.
+8. **Residency** (§ 8b) — may anyone become a resident, and so vote for the mayor, or is it the capital's
+   own policy, like its TPA access?
+9. **The mayor's pen** (§ 8b) — confirm the municipal committee's grants.

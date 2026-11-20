@@ -1,0 +1,4 @@
+# A throttled gate, and the setting named is not one it has.
+facts:
+  target: thing
+says: "How far should {{ target | item }} open? A quarter, half, three quarters or full."

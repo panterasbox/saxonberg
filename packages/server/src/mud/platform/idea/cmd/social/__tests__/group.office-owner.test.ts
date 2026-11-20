@@ -15,6 +15,7 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupAddController from '../GroupAddController';
 import GroupShowController from '../GroupShowController';
@@ -28,6 +29,7 @@ import Avatar from '../../../../agent/PrimaryAvatar';
 import GroupRegistry from '../../../GroupRegistry';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 type Doc = Record<string, unknown> & { _id?: string };
 let store: Doc[];
@@ -55,7 +57,7 @@ function stubPm(): void {
       }),
     ),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: async (_c: string, id: string) => store.find((d) => d._id === id) ?? null,
@@ -64,7 +66,7 @@ function stubPm(): void {
       if (i >= 0) store.splice(i, 1);
     },
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 /** The governance contract: an explicit holder, else the founder. */
@@ -96,10 +98,7 @@ function ctxFor(giver: Avatar): CommandContext {
 async function groupAdd(giver: Avatar, target: Avatar): Promise<boolean> {
   notes = [];
   const ctrl = makeStuff(() => new GroupAddController());
-  await ctrl.execute(
-    { subcommand: 'add', name: 'ops-committee', target: { stuff: target } } as unknown as CommandModel,
-    ctxFor(giver),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: 'add', name: 'ops-committee', target: { stuff: target } } as unknown as CommandModel, ctx$)))(ctxFor(giver));
   return !notes.some((n) => n.kind === 'controller-rejected');
 }
 
@@ -198,10 +197,7 @@ describe('the appointment ceremony', () => {
     });
     const anyone = makeAvatar('anyone');
     const ctrl = makeStuff(() => new GroupShowController());
-    await ctrl.execute(
-      { subcommand: 'show', name: 'ops-committee' } as unknown as CommandModel,
-      ctxFor(anyone),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: 'show', name: 'ops-committee' } as unknown as CommandModel, ctx$)))(ctxFor(anyone));
     expect(shown).toContain('the office of prime-minister (held by the founder)');
   });
 });

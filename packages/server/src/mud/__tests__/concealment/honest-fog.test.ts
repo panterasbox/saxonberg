@@ -25,7 +25,7 @@ import { PerceptionApi } from '../../api/perception';
 import {
   collectSubscribableFields,
   REF_FIELDS,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import {
   CommandApi,
   type CommandContext,
@@ -52,6 +52,7 @@ import {
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../api/test-harness';
 
 // A viewer that runs commands, keeps a belief store + perception, and
 // records the frames it receives (the Vocal-test capture idiom).
@@ -108,10 +109,7 @@ function lookContext(viewer: Viewer, room: Room): CommandContext {
 async function runLook(viewer: Viewer, room: Room): Promise<string> {
   viewer.received.length = 0;
   const controller = makeStuff(() => new LookController());
-  await controller.execute(
-    { target: { stuff: room as unknown as Stuff, raw: 'here' } } as CommandModel,
-    lookContext(viewer, room),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target: { stuff: room as unknown as Stuff, raw: 'here' } } as CommandModel, ctx$)))(lookContext(viewer, room));
   return JSON.stringify(viewer.received);
 }
 

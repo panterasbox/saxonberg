@@ -10,8 +10,8 @@ import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
 import { EventApi } from '../../../api/event';
 import { AppApi } from '../../../api/app';
+import { Refusal } from '../../../lib/errors';
 import Board, {
-  BoardRefusal,
   type BoardOrganizer,
 } from '../../../lib/forum/Board';
 import Entry, { type EntryRelation } from '../../../lib/forum/Entry';
@@ -33,6 +33,7 @@ import type {
   MakeForumOptions,
   ArgumentRelation,
 } from '../../../api/forums';
+import { AccessApi } from '../../../api/access';
 
 const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
 /** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
@@ -159,6 +160,7 @@ export class ForumsLogic extends ApiLogic {
     title: string,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, board._id!);
     const author = authorIdOf(actor);
     // On an argument board a root Entry is the prose **spine** — reputation-
@@ -193,6 +195,7 @@ export class ForumsLogic extends ApiLogic {
     parent: Entry,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, parent.board);
     if (parent.getState() === 'locked') {
       throw new Error('That thread is locked.');
@@ -235,6 +238,7 @@ export class ForumsLogic extends ApiLogic {
     relation: ArgumentRelation,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, parent.board);
     if (parent.getState() === 'locked') {
       throw new Error('That claim is locked.');
@@ -280,6 +284,7 @@ export class ForumsLogic extends ApiLogic {
     entry: Entry,
     body: string,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     // The author, or the board-subject's owner (controller-liquidity D9:
     // asked here, of the actor, not in the controller).
     const subject = await subjectOfBoard(entry.board);
@@ -287,10 +292,7 @@ export class ForumsLogic extends ApiLogic {
       entry.getAuthor() !== authorIdOf(actor) &&
       (!subject || subject.getOwner() !== authorIdOf(actor))
     ) {
-      throw new BoardRefusal(
-        'not-author',
-        'Only the author or board owner may edit.',
-      );
+      throw new Refusal('not-entry-author');
     }
     // Edit-in-place on the Entry; the prior body is captured into the
     // append-only `'entry-edited'` event so the trail is lossless (the
@@ -320,6 +322,7 @@ export class ForumsLogic extends ApiLogic {
     entry: Entry,
     direction: VoteValue,
   ): Promise<Entry> {
+    AccessApi.requireActor(actor);
     await refuseUnlessAudience(actor, entry.board);
     const board = await Board.findById(entry.board);
     if (board && board.getOrganizer() === 'ordered') {
@@ -575,13 +578,15 @@ async function subjectOfBoard(boardId: string): Promise<Subject | null> {
  * refuses.
  */
 async function refuseUnlessAudience(actor: Stuff, boardId: string): Promise<void> {
+  // who is acting must be who is named (call-security pass D5)
+  AccessApi.requireActor(actor);
   const subject = await subjectOfBoard(boardId);
   if (!subject) {
-    throw new BoardRefusal('no-subject', 'That board answers to nobody.');
+    throw new Refusal('board-unowned');
   }
   const subjects = await SubjectApi.catalogue();
   if (!(await subjects.isAudienceMember(actor, subject))) {
-    throw new BoardRefusal('not-member', 'You are not in this board’s audience.');
+    throw new Refusal('not-board-member');
   }
 }
 

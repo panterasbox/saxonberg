@@ -17,6 +17,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleHoldingsController from '../idea/cmd/civics/TitleHoldingsController';
@@ -69,6 +70,7 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** A persistable room — what a real house room clones to. */
 class TitleTestRoom extends PersistableMixin(
@@ -148,7 +150,7 @@ function matches(doc: Doc, key: string, want: unknown): boolean {
 function installStore(): void {
   store = new Map();
   idCounter = 0;
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async (c: string, d: Doc) => {
       const arr = col(c);
       if (d._id) {
@@ -170,7 +172,7 @@ function installStore(): void {
     findById: vi.fn(async () => null),
     delete: vi.fn(async () => {}),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // The house rows the programme wakes (real clone pipeline).
   const domain = col('content');
   const PH = '/platform/idea/TemplateApplier';
@@ -353,7 +355,7 @@ async function run(
   const bound = desk ? { ...m, desk: { stuff: desk } } : m;
   await withRootContext(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(giver as unknown as Stuff);
-    await ctrl.execute(bound as TitleExec, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(bound as TitleExec, ctx));
   });
   return ctx;
 }

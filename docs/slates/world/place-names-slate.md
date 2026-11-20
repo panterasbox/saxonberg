@@ -163,7 +163,7 @@ Road); Rejection → **Disaster**, or kept.
 
 ## Cross-references
 
-- [navigation-server-requirements](../../requirements/navigation-server-requirements.md) — S14, where this began
+- [navigation-server-slate](../engine/navigation-server-slate.md) — S14, where this began
 - [worlds-slate](./worlds-slate.md) — a body is a biome; the planet's physics
 - [species-slate](./species-slate.md) — how species play differently
 - [time.md](../../subsystems/time.md) — the calendar

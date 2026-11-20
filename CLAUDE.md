@@ -152,6 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, the front door + character select, anonymous-guest path, reconnect machine, the honest-state primitives
+  - [tooltips.md](./docs/subsystems/tooltips.md) — one tooltip for the whole client: a small document (header · facts · prose · spoiler), two containers one content with cards and NO pin, three sources (client · help · a gated wiki excerpt) and the server-gated one-shot describe (reach + light), `spoiler.appetite`, gestures, the no-native-title gate
   - [cockpit.md](./docs/subsystems/cockpit.md) — the `cockpit` verb + the non-diegetic `client-layout|card|shelf|style` verbs; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `client-shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
@@ -161,7 +162,8 @@ behavior. Read the relevant doc before editing in its area.
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin, Emote Document + EmoteGrammar, SoulCatalogue, three dispatch paths
   - [reactions.md](./docs/subsystems/reactions.md) — act-scoped emote aggregation, fixed-cadence flush, the `react` verb
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls, GroupRef typed strings
-  - [comms.md](./docs/subsystems/comms.md) — acoustic Vocal speech vs implant comms (dm/tell), AetherMixin host
+  - [comms.md](./docs/subsystems/comms.md) — acoustic Vocal speech vs aether comms (dm/tell), the person's `CommsMixin`
+  - [aether-devices.md](./docs/subsystems/aether-devices.md) — reaching past the room: tuners (the phone, the implant, the shade species), apps on `AetherHostMixin`, held-never-silent, the battery + charger, ownership as the lock
   - [chat.md](./docs/subsystems/chat.md) — Channel Document, three kinds, ChannelCatalogue; rides the forums Subject layer
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
@@ -188,6 +190,7 @@ behavior. Read the relevant doc before editing in its area.
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for verbs: YAML shape, controller refs as paths, domain-local commands, categories
   - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`do`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
+  - [subscription.md](./docs/subsystems/subscription.md) — the ONE wire for every state push: `subscribe` names a source by template path, `rev`-stamped deltas, `SubscriptionSourceMixin`'s six sources (MQL, forums, client state, the press ticker, your map, where you are); events stay events
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
   - [card-surface.md](./docs/subsystems/card-surface.md) — the right column as a FEED of cards, and a LOG not an index: one birth path (a command pushes; the wire cannot name a card), pinned = the whole lifetime, live = scoped to attention (newest holds the subscription), ONE inspection card laid out by `StuffKind`, subject-bound subscriptions, one sweep, `shell.result` as a filter
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
@@ -308,7 +311,7 @@ behavior. Read the relevant doc before editing in its area.
   - [address.md](./docs/subsystems/address.md) — the rooted address namespace: the Locality tier, AddressableMixin, the longest-prefix resolve walk
   - [weather.md](./docs/subsystems/weather.md) — the stateless procedural weather field, pins + climate lean, wetness, puddles, storm lightning, cloud forms
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
-  - [calendar.md](./docs/subsystems/calendar.md) — the personal calendar on the aether implant: `CalendarMixin` entries, the `CalendarApp` hosted app, the `calendar` verb, medicine writing the follow-up date (`assess` never leaks it)
+  - [calendar.md](./docs/subsystems/calendar.md) — the personal calendar on the person: `CalendarMixin` entries, the `CalendarApp` hosted app, the `calendar` verb, medicine writing the follow-up date (`assess` never leaks it)
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
   - [expanse.md](./docs/subsystems/expanse.md) — a region you cross by setting a course: ⭐⭐ the GRAPH is spherical (nodes are foci + a radius relative to the expanse, bands named edges drawn from them) and the CHART is lat/lon (`origin` the bridge); the voyage held by the craft as three fields, sight by curvature, seeded traffic, the Structure/Ship split, the water tier
@@ -1223,7 +1226,7 @@ orchestration cases:
 | `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated, re-keys `byTemplatePath`). The slot is hard-private (`#templatePath`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampTemplatePath` seam. |
 | `(stuff as { zone? }).zone = z` | `stuff.setZone(z)` (gated by `FromSpatialZone` — only `SpatialZone` subclasses may call). Slot is hard-private (`#zone`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampZone` seam. |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |
-| `return { success: false, summary: 'foo' }` from a controller | `ctx.note({ kind: 'controller-rejected', reason: 'foo-reason', detail: 'foo' })` + `MessageApi.scene(...).toSelf(...).send()` — controllers return `void`; outcome rides the dispatch-response envelope. See [response-envelope.md](./docs/subsystems/response-envelope.md). |
+| `return { success: false, summary: 'foo' }` — or a wording `switch`, or a bespoke `XRefused` class — from a controller | `if (!answer.ok) return this.refuse(context, answer);` — the object answers `{ ok: false, reason, facts }` (or throws `Refusal` from `lib/errors.ts`) and the reason's ROW (`<root>/reasons/<code>.yaml`) words it at emit; controllers return `void`. See [response-envelope.md § `refused`](./docs/subsystems/response-envelope.md). |
 | `new CommandContext({ ... })` / `createCommandContext({ ... })` | `CommandApi.createCommandContext({ ... })` — tests + dispatcher use the same factory; the constructor + accumulator state are not external surface |
 | `door.setIsOpen(true)` / `door.getIsOpen()` | `door.setOpen(true)` / `door.isOpen()` — boolean fields use the noun form on field/setter/YAML, predicate form on the getter |
 | `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |

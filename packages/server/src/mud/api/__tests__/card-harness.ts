@@ -67,6 +67,10 @@ export async function makeHarness(name = 'Alice'): Promise<Harness> {
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as CapturedEnvelope);
   });
+  // ⭐ A subscription's deltas go to its SESSION (navigation-server D1).
+  vi.spyOn(interactive, 'sendEnvelope').mockImplementation((tpl) => {
+    envelopes.push(tpl as unknown as CapturedEnvelope);
+  });
   return {
     interactive,
     avatar,

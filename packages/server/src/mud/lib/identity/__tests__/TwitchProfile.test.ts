@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as crypto from 'crypto';
 import { TwitchProfile } from '../TwitchProfile';
@@ -59,6 +60,7 @@ describe('TwitchProfile', () => {
       saves.push({ collection, doc: doc as Record<string, unknown> });
       return doc._id ? (doc._id as string) : 'tp-inserted';
     });
+    spySaveMany(pm);
   });
 
   afterEach(() => {

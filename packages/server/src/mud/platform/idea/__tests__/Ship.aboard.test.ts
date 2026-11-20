@@ -1,5 +1,5 @@
 /**
- * Aboard a ship of a KIND: `route`, `locate` and the
+ * Aboard a ship of a KIND: `route`, where she lies and the
  * weather's lean ask the ROOM which ship it is part of, never its row —
  * a smack's deck is keyed `(deck row, <serial>/deck)` and the row is every
  * smack's.
@@ -8,17 +8,18 @@
  *   one `ashore` away (her rooms are on no map — *maps never name a ship*);
  *   at sea: no road, `course` named; a sea node on HER expanse refuses as
  *   open water.
- * - `locate` from her deck: made fast alongside the landing; at sea, her
- *   reckoning.
+ * - where she lies (`lies()`, which took `locate`'s read —
+ *   navigation-server W0): made fast alongside the landing; at sea.
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
 import TemplateApplier from '../TemplateApplier';
 import RouteController from '../cmd/movement/RouteController';
-import LocateController from '../cmd/perception/LocateController';
+import CourseReadoutController from '../cmd/movement/CourseReadoutController';
 import LookController from '../cmd/perception/LookController';
 import { candidatesForHere } from '../../../api/mql/scope-walk';
 import { CardApi } from '../../../api/card';
@@ -44,6 +45,7 @@ import type { MapClaim } from '../../../lib/location/MapClaim';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 /** The warren row every authored ship names (zone-instancing D12). */
 const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
@@ -140,13 +142,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -232,7 +234,7 @@ async function run(
   vi.spyOn(context as unknown as { note(n: unknown): void }, 'note').mockImplementation((n: unknown) => {
     seen.push(n as { reason?: string });
   });
-  await controller.execute(model as never, context as never);
+  await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(model as never, ctx$)))(context as never);
   return { reason: seen.find((n) => n.reason !== undefined)?.reason ?? null, text: said.join('\n') };
 }
 
@@ -318,21 +320,30 @@ describe('aboard a ship of a kind — the room is asked, never its row', () => {
     expect(sea.text).toMatch(/no road to the Gannet/);
   });
 
-  it('⭐ locate from her deck: made fast alongside the landing; at sea, her reckoning', async () => {
+  it('⭐ where she lies: made fast alongside the landing; at sea once she casts off', async () => {
     expect(await ship.comeAlongside(LANDING)).toMatch(/made fast/);
-    const who = await standOn(deck);
-    const locate = makeStuff(() => new LocateController());
-    const moored = await run(locate, 'locate', { target: { stuff: who, raw: 'me' } }, who, deck);
-    expect(moored.reason).toBeNull();
-    expect(moored.text).toMatch(/smack deck/);
-    expect(moored.text).toMatch(/aboard the smack, made fast alongside .*landing\./);
-    expect(moored.text).not.toMatch(/by reckoning/);
+    const moored = await ship.lies();
+    expect(moored.at).toBe('berth');
+    expect(moored.at === 'berth' ? moored.landing : '').toMatch(/landing/);
+    expect(moored.ship).toMatch(/smack/);
 
     await ship.castOff();
     putToSea(ship);
-    const atSea = await run(locate, 'locate', { target: { stuff: who, raw: 'me' } }, who, deck);
-    expect(atSea.text).toMatch(/at sea, by reckoning: /);
-    expect(atSea.text).not.toMatch(/made fast/);
+    expect((await ship.lies()).at).toBe('sea');
+  });
+
+  it('⭐ the reckoning is the helm\'s: bare `course` refuses whoever may not steer her (navigation-server D10)', async () => {
+    putToSea(ship);
+    const who = await standOn(deck);
+    const readout = makeStuff(() => new CourseReadoutController());
+    vi.spyOn(ship, 'mayBeSteeredBy').mockReturnValue(false);
+    const refused = await run(readout, 'course', {}, who, deck);
+    expect(refused.reason).toBe('not-her-master');
+    expect(refused.text).not.toMatch(/by reckoning/);
+    vi.spyOn(ship, 'mayBeSteeredBy').mockReturnValue(true);
+    const given = await run(readout, 'course', {}, who, deck);
+    expect(given.reason).toBeNull();
+    expect(given.text).toMatch(/by reckoning/);
   });
 
   it('⭐ review 3: from the landing, `look <her>` binds her WAY (an exit is a candidate) and the way describes itself — never a swap to her deck', async () => {

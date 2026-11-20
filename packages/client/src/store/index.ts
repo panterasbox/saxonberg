@@ -51,6 +51,9 @@ export type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
+import { createNavSlice, type NavSlice } from "./navSlice";
+import { createChangeSlice, type ChangeSlice } from "./changeSlice";
+import { createTooltipSlice, type TooltipSlice } from "./tooltipSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -244,6 +247,12 @@ export interface Frame {
    */
   commandId?: string;
   /**
+   * ⭐ The command whose work composed this frame, even a beat later
+   * (`meta.causingCommandId`) — what a changed card or pane's `causes`
+   * name, so the change is tied to this line.
+   */
+  causingCommandId?: string;
+  /**
    * Set on a frame that is itself a reaction (`meta.inReactionTo` =
    * the act's `commandId`). Lets the client group reaction prose lines
    * onto the target message's always-on indicator with no extra wire.
@@ -323,6 +332,9 @@ interface StoreState
   extends CmsSlice,
     StudioSlice,
     CardFeedSlice,
+    NavSlice,
+    ChangeSlice,
+    TooltipSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -538,7 +550,7 @@ interface StoreState
   applyRosterRemove: (handle: string) => void;
 
   /**
-   * The release news-ticker feed (`publication.press` topic). `feed`
+   * The release news-ticker feed (the press-feed subscription). `feed`
    * maps each release's stable `releaseId` → the {@link ReleaseRow}
    * projection; `feedOrder` is the display order (pins first, then by
    * `publishedAt` desc — a STABLE tiebreaker over the already-server-
@@ -546,7 +558,7 @@ interface StoreState
    * re-sort only keeps the keyed map deterministic). The initial
    * `snapshot` rides the welcome payload (`releaseWindow` in
    * `setConnected`); live `upsert` / `remove` frames flow through
-   * `services/websocket.ts` (the `publication.press` handler).
+   * `services/websocket.ts` (the press-feed subscription handler).
    */
   feed: Record<string, ReleaseRow>;
   feedOrder: string[];
@@ -591,7 +603,7 @@ interface StoreState
 
   /**
    * Live forum records keyed by subscriptionId — fed by
-   * `forum-subscription-result` (snapshot) + `forum-subscription-delta`
+   * the forum source's `subscription-result` (snapshot) + `subscription-delta`
    * (live changes). Mirrors the MQL feed-registry pattern but for forum
    * Documents. See `store/forumActions.ts`.
    */
@@ -1129,6 +1141,16 @@ export const useStore = create<StoreState>((set, get) => ({
     get as Parameters<typeof createCardFeedSlice>[1],
   ),
 
+  // ⭐ Your map and where you are — the two navigation subscriptions.
+  // Only touches `navSections` / `mapCopy`.
+  ...createNavSlice(set as Parameters<typeof createNavSlice>[0]),
+
+  // ⭐ What last changed each live surface, and which command did it.
+  ...createChangeSlice(set as Parameters<typeof createChangeSlice>[0]),
+
+  // ⭐ The open tooltip stack — a snapshot per entry, never a card.
+  ...createTooltipSlice(set as Parameters<typeof createTooltipSlice>[0]),
+
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the
   // `affordance*` keys.
@@ -1268,7 +1290,7 @@ export const useStore = create<StoreState>((set, get) => ({
       return { roster, rosterOrder: orderRoster(roster) };
     }),
 
-  // Release news-ticker feed (publication.press). Keyed by stable
+  // Release news-ticker feed (the press-feed subscription). Keyed by stable
   // releaseId; ordering recomputed on every mutation (pins first, then
   // publishedAt desc) as a stable tiebreaker over the server's order.
   feed: {},
@@ -1490,18 +1512,12 @@ export const useStore = create<StoreState>((set, get) => ({
       feed,
       feedOrder: orderFeed(feed),
       /*
-       * ⭐ `shell.result` seeds into clientState rather than into a
-       * field of its own, because the WRITE path pushes it there: a
-       * `client-state-update` from `SettingsSetController` is how the
-       * setting takes effect without a reconnect. Two homes for one
-       * answer would drift the first time only one of them was written.
+       * ⭐ Every setting the server declares `client: true` (`shell.result`,
+       * `spoiler.appetite`) arrives IN the client-state snapshot, and the
+       * write path pushes it there too (tooltips D5) — one home, so the
+       * first render and a later `settings set` cannot disagree.
        */
-      clientState: {
-        ...(payload.clientState ?? {}),
-        ...(payload.resultDisplay
-          ? { "shell.result": payload.resultDisplay }
-          : {}),
-      },
+      clientState: { ...(payload.clientState ?? {}) },
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),

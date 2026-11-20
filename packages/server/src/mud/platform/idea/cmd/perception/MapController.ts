@@ -16,7 +16,7 @@
  * ⭐ `map` with no locality also opens the NAVIGATOR — the `map` card,
  * where you are at zone level (map slate's zone navigation card, wave-1
  * stub; client-surface, 2026-11-01). Its body is
- * `NavigationApi.whereaboutsFor`, and the index frame rides as `carded`
+ * the where-you-are subscription, and the index frame rides as `carded`
  * so a card-display client shows the card instead. A named locality is
  * still the MML rendering of your map of it.
  */
@@ -90,12 +90,12 @@ export default class MapController extends CommandController<MapModel> {
       .replace(/^\/+|\/+$/g, '');
   }
 
-  /** Open (or refresh) the navigator card; its instance id, or null. */
+  /**
+   * Open (or bring forward) the navigator card; its instance id, or null.
+   * It carries no payload: its body is the where-you-are subscription.
+   */
   private async openNavigator(context: CommandContext): Promise<string | null> {
-    const giver = context.commandGiver;
-    const where = MixinApi.isPerceiver(giver) ? await giver.whereabouts() : null;
-    if (!where) return null;
-    return CardApi.open(context, 'map', { payload: { kind: 'navigation', where } });
+    return CardApi.open(context, 'map');
   }
 
   /** The localities this player holds a map of. */
@@ -155,6 +155,9 @@ export default class MapController extends CommandController<MapModel> {
           bands.push(claim);
           continue;
         }
+        // A first-visit Locality claim is about the region, not a place in
+        // it (navigation-server D3): the copy carries it; this list does not.
+        if (claim.kind === 'locality') continue;
         const view = places.get(claim.place) ?? {
           place: claim.place,
           name: '',

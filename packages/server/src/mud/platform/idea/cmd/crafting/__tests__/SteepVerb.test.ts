@@ -53,6 +53,7 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -143,13 +144,13 @@ async function steepStart(
     command: stubCommand,
   });
   const ctrl = makeStuff(() => new SteepController());
-  await ctrl.execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
     {
       solute: solute === null ? undefined : ref(solute),
       vessel: vessel === null ? undefined : ref(vessel),
     } as never,
     ctx,
-  );
+  ));
   return ctx;
 }
 

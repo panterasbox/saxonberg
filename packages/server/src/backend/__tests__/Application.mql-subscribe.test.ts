@@ -1,14 +1,15 @@
 /**
- * Wave 5: Application.processUserMessage routes mql-subscribe /
- * mql-unsubscribe; handleUserDisconnect calls
- * MqlSubscriptionApi.cancelAllForInteractive before tearing down
- * the Interactive.
+ * Application.processUserMessage routes the one subscription wire
+ * (`subscribe` / `unsubscribe`, navigation-server D1) and `mql-query`;
+ * handleUserDisconnect tears substrate state down before removing the
+ * Interactive.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
+import { SubscriptionApi } from '../../mud/api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/platform/idea/Interactive';
 
@@ -47,36 +48,28 @@ describe('Application — MQL subscription routes', () => {
     ConnectionManager.get();
   });
 
-  it('mql-subscribe route reaches MqlSubscriptionApi.handleSubscribe', () => {
+  it('the subscribe route reaches interactive.subscribe with the source and params', () => {
     const interactive = makeFakeInteractive('sock-1');
+    const spy = vi.fn(() => null);
+    (interactive as never as Record<string, unknown>).subscribe = spy;
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => null);
+    const params = { query: '$focus', cardinality: 'many', fields: 'detail' };
     app.processUserMessage('sock-1', {
-      type: 'mql-subscribe',
+      type: 'subscribe',
       payload: {
-        type: 'mql-subscribe',
+        type: 'subscribe',
         subscriptionId: 's1',
-        query: 'me',
-        cardinality: 'one',
+        source: SUBSCRIPTION_SOURCES.mql,
+        params,
       },
     });
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interactive,
-        subscriptionId: 's1',
-        query: 'me',
-        cardinality: 'one',
-      }),
-    );
-    spy.mockRestore();
+    expect(spy).toHaveBeenCalledWith('s1', SUBSCRIPTION_SOURCES.mql, params);
   });
 
-  it('⭐ mql-subscription-pause / -resume routes reach the session verbs (crowded-rooms D5)', () => {
+  it('⭐ subscription-pause / -resume routes reach the session verbs (crowded-rooms D5)', () => {
     const interactive = makeFakeInteractive('sock-1');
     const pause = vi.fn();
     const resume = vi.fn();
@@ -84,89 +77,53 @@ describe('Application — MQL subscription routes', () => {
     (interactive as never as Record<string, unknown>).resumeSubscription = resume;
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(interactive);
     app.processUserMessage('sock-1', {
-      type: 'mql-subscription-pause',
-      payload: { type: 'mql-subscription-pause', subscriptionId: 'card-1' },
+      type: 'subscription-pause',
+      payload: { type: 'subscription-pause', subscriptionId: 'card-1' },
     });
     app.processUserMessage('sock-1', {
-      type: 'mql-subscription-resume',
-      payload: { type: 'mql-subscription-resume', subscriptionId: 'card-1' },
+      type: 'subscription-resume',
+      payload: { type: 'subscription-resume', subscriptionId: 'card-1' },
     });
     expect(pause).toHaveBeenCalledWith('card-1');
     expect(resume).toHaveBeenCalledWith('card-1');
   });
 
-  it('mql-unsubscribe route reaches interactive.cancelMqlSubscription', () => {
+  it('the unsubscribe route reaches interactive.cancelSubscription', () => {
     const interactive = makeFakeInteractive('sock-1');
     const spy = vi.fn();
-    (interactive as never as Record<string, unknown>).cancelMqlSubscription =
-      spy;
+    (interactive as never as Record<string, unknown>).cancelSubscription = spy;
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
     app.processUserMessage('sock-1', {
-      type: 'mql-unsubscribe',
-      payload: { type: 'mql-unsubscribe', subscriptionId: 's1' },
+      type: 'unsubscribe',
+      payload: { type: 'unsubscribe', subscriptionId: 's1' },
     });
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith('s1');
-    spy.mockRestore();
   });
 
-  it('malformed mql-subscribe payload silently drops', () => {
+  it('a subscribe with no id silently drops', () => {
     const interactive = makeFakeInteractive('sock-1');
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => null);
+    const spy = vi.fn(() => null);
+    (interactive as never as Record<string, unknown>).subscribe = spy;
     app.processUserMessage('sock-1', {
-      type: 'mql-subscribe',
-      payload: { subscriptionId: 's1' }, // missing query + cardinality
+      type: 'subscribe',
+      payload: { source: SUBSCRIPTION_SOURCES.mql },
     });
     expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
   });
 
-  it('mql-subscribe forwards dependency flags to the substrate', () => {
+  it('mql-query route reaches SubscriptionApi.handleQuery', () => {
     const interactive = makeFakeInteractive('sock-1');
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
     const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => null);
-    app.processUserMessage('sock-1', {
-      type: 'mql-subscribe',
-      payload: {
-        type: 'mql-subscribe',
-        subscriptionId: 's1',
-        query: '$focus',
-        cardinality: 'many',
-        fields: 'detail',
-        focusDependent: true,
-      },
-    });
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interactive,
-        subscriptionId: 's1',
-        query: '$focus',
-        cardinality: 'many',
-        focusDependent: true,
-      }),
-    );
-    spy.mockRestore();
-  });
-
-  it('mql-query route reaches MqlSubscriptionApi.handleQuery', () => {
-    const interactive = makeFakeInteractive('sock-1');
-    vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
-      interactive,
-    );
-    const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .spyOn(SubscriptionApi, 'handleQuery')
       .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',
@@ -195,7 +152,7 @@ describe('Application — MQL subscription routes', () => {
       interactive,
     );
     const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleQuery')
+      .spyOn(SubscriptionApi, 'handleQuery')
       .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',

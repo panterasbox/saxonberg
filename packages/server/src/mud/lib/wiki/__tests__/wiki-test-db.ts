@@ -15,6 +15,7 @@
  */
 
 import { vi } from 'vitest';
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 
 /** The handle a suite uses to seed or inspect the store directly. */
@@ -94,6 +95,7 @@ export function installWikiTestDb(): WikiTestDb {
     b.push({ ...doc, _id: id });
     return id;
   });
+  spySaveMany(pm);
 
   vi.spyOn(pm, 'findById').mockImplementation(async (collection, id) => {
     return bucket(collection).find((r) => r._id === id) ?? null;

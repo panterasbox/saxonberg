@@ -145,6 +145,22 @@ function fnvUnit(input: string): number {
 }
 
 export abstract class Expanse extends SingletonMixin(SpatialZone) implements Frame {
+  /**
+   * ⭐ The map a claim about this sea files under: its address, else the
+   * last segment of its path (navigation-server D2). One rule for a chart
+   * of it, a passenger's sea claim and the navigator's reckoning.
+   */
+  public override frameFacts(): { kind: 'chart'; label: string } {
+    return { kind: 'chart', label: this.getPresentation() };
+  }
+
+  public mapLocality(): string {
+    const address = this.getAddress();
+    if (address) return address;
+    const path = this.getTemplatePath() ?? '';
+    return path.split('/').pop() ?? path;
+  }
+
   static fieldMeta: FieldMeta = {
     origin: { persistent: true, authorable: true },
     prevailingDeg: { persistent: true, authorable: true },

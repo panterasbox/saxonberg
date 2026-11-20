@@ -1,4 +1,5 @@
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TemplateApi, TemplateError } from '../template';
 import { TemplateLogic } from '../../platform/idea/api/TemplateLogic';
@@ -66,11 +67,11 @@ function installInMemoryStore(): {
     return store.find((d) => d._id === id) ?? null;
   });
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return { store, save, find, findById };
 }

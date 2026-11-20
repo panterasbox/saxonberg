@@ -1,0 +1,5 @@
+# Not now — something the act needs cannot be reached. Try again.
+facts:
+  what: text
+says: "{{ what | cap }} can't be reached just now — try again in a moment."
+topic: shell.error

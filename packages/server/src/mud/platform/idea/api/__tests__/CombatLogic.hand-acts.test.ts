@@ -30,6 +30,7 @@ import Location from '../../../../lib/location/Location';
 import PutController from '../../cmd/inventory/PutController';
 import GetController from '../../cmd/inventory/GetController';
 import OpenController from '../../cmd/boundary/OpenController';
+import { TestHarnessApi } from '../../../../api/test-harness';
 
 const opened: CombatSession[] = [];
 const one = (stuff: Stuff | null, raw: string, prep?: string): MqlOneResult => ({ stuff, raw, ...(prep ? { prep } : {}) });
@@ -93,10 +94,7 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     const pouch = wornBag(me, plan, 'pouch', 'torso');
     pouch.setDimensions({ width: 0.3, depth: 0.15, height: 0.3 });
     const mug = hold(me, plan, tool('mug', 0.35, [0.09, 0.09, 0.1]));
-    await makeStuff(() => new PutController()).execute(
-      { item: one(mug, 'mug'), target: one(pouch, 'pouch', 'in') } as ModelData as never,
-      ctx(me, room, 'put'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PutController()).execute({ item: one(mug, 'mug'), target: one(pouch, 'pouch', 'in') } as ModelData as never, ctx$)))(ctx(me, room, 'put'));
     expect(state.weaponSwitch?.getRemaining()).toBe(6); // 3 s at a half-second tick
     expect(me.tierOf(mug)).toBe('hand');
     // The beat lands: the act runs.
@@ -114,10 +112,7 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     ContainmentApi.move(bag, room);
     const pistol = tool('pistol', 1, [0.03, 0.06, 0.2]);
     ContainmentApi.move(pistol, bag);
-    await makeStuff(() => new GetController()).execute(
-      { targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never,
-      ctx(me, room, 'get'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new GetController()).execute({ targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never, ctx$)))(ctx(me, room, 'get'));
     expect(state.weaponSwitch).not.toBeNull();
     expect(pistol.getContainer()).toBe(bag);
     const land = state.weaponSwitch!.getLanding()!;
@@ -139,10 +134,7 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     const pistol = tool('pistol', 1, [0.03, 0.06, 0.2]);
     ContainmentApi.move(pistol, bag);
     const get = makeStuff(() => new GetController());
-    await get.execute(
-      { targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never,
-      ctx(me, room, 'get'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => get.execute({ targets: { stuff: [pistol], raw: 'pistol' }, source: one(bag, 'backpack', 'from') } as ModelData as never, ctx$)))(ctx(me, room, 'get'));
     get.releaseAfterDispatch();
     expect(get.isDestroyed(), 'kept for its landing').toBe(false);
     expect(state.weaponSwitch).not.toBeNull();
@@ -163,10 +155,7 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     const coat = await wornGarment(me, plan, 'coat', 'torso', [{ member: '/platform/placements/in', name: 'breast pocket', mouth: { width: 0.12, height: 0.03 }, volumeM3: 0.0005, closes: true }]);
     expect(coat.isRegionOpen('breast pocket')).toBe(false);
     const open = makeStuff(() => new OpenController());
-    await open.execute(
-      { target: { stuff: coat, raw: 'breast pocket', via: { region: 'breast pocket' } } } as ModelData as never,
-      ctx(me, room, 'open'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => open.execute({ target: { stuff: coat, raw: 'breast pocket', via: { region: 'breast pocket' } } } as ModelData as never, ctx$)))(ctx(me, room, 'open'));
     open.releaseAfterDispatch();
     expect(state.weaponSwitch).not.toBeNull();
     const land = state.weaponSwitch!.getLanding()!;
@@ -247,10 +236,7 @@ describe('CombatLogic — a hand act in a fight is a guarded beat (D-W10-5)', ()
     const pouch = wornBag(me, plan, 'pouch', 'torso');
     pouch.setDimensions({ width: 0.3, depth: 0.15, height: 0.3 });
     const mug = hold(me, plan, tool('mug', 0.35, [0.09, 0.09, 0.1]));
-    await makeStuff(() => new PutController()).execute(
-      { item: one(mug, 'mug'), target: one(pouch, 'pouch', 'in') } as ModelData as never,
-      ctx(me, room, 'put'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PutController()).execute({ item: one(mug, 'mug'), target: one(pouch, 'pouch', 'in') } as ModelData as never, ctx$)))(ctx(me, room, 'put'));
     expect(mug.getContainer()).toBe(pouch);
   });
 });

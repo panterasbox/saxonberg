@@ -38,6 +38,8 @@ function topic(id: string, kind: HelpKind, spoiler: boolean): HelpTopic {
 
 const NORMAL = topic("command.look", "command", false);
 const SECRET = topic("api.SecretApi.x", "api", true);
+const CONCEPT = topic("concept.extraction", "concept" as HelpKind, false);
+const COLLECTION = topic("collection.bank_ledger", "collection" as HelpKind, false);
 
 function entry(t: HelpTopic): HelpIndexEntry {
   return {
@@ -73,6 +75,8 @@ function stubCatalogue(): HelpCatalogue {
       verb === "look" ? NORMAL : null,
     findApiTopic: (target: string) =>
       target.includes("SecretApi") ? SECRET : null,
+    findConceptTopic: (key: string) => (key === "extraction" ? CONCEPT : null),
+    findCollectionTopic: (name: string) => (name === "bank_ledger" ? COLLECTION : null),
   };
   return fake as unknown as HelpCatalogue;
 }
@@ -136,5 +140,15 @@ describe("HelpApi", () => {
     expect(HelpApi.fullTopic("x")).toBeNull();
     expect(HelpApi.search("q")).toEqual({ query: "q", groups: [] });
     expect(HelpApi.typeahead("q")).toEqual([]);
+  });
+
+  it("⭐ resolveTopic: what `help <word>` means — verb, concept, collection, api, then an exact id", () => {
+    expect(HelpApi.resolveTopic("look")).toEqual(NORMAL);
+    expect(HelpApi.resolveTopic("extraction")).toEqual(CONCEPT);
+    expect(HelpApi.resolveTopic("bank_ledger")).toEqual(COLLECTION);
+    expect(HelpApi.resolveTopic("SecretApi.x")).toEqual(SECRET);
+    expect(HelpApi.resolveTopic("command.look")).toEqual(NORMAL);
+    expect(HelpApi.resolveTopic("  ")).toBeNull();
+    expect(HelpApi.resolveTopic("nope")).toBeNull();
   });
 });

@@ -15,3 +15,8 @@ data:
   conveyanceMixin: null
   enablementMixin: SwimmableMixin
   medium: water
+  # ⭐ This mode's own words for a gate (navigation-server D8): the way's
+  # verdict and trying it print the same sentence.
+  refusals:
+    enablement: "You can't swim that way."
+    capability: "This water's too rough for you."

@@ -54,10 +54,10 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { ChattelApi } from '../../api/chattel';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   REF_FIELDS,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import type { FieldMeta } from '../mixin';
 import type { ActRefusal } from '../craft/ActPlan';
 import type { Placing } from './Placing';
@@ -975,30 +975,30 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
               {
                 commandGiver: viewer as unknown as Stuff & CommandGiver,
                 scope: 'here',
-                ...(MqlSubscriptionApi.collecting ? { trackTouched: true } : {}),
+                ...(SubscriptionApi.collecting ? { trackTouched: true } : {}),
               },
             );
-          const members = MqlSubscriptionApi.collecting
-            ? MqlSubscriptionApi.sharedRead(`contents:${host.stuffId}`, resolveMembers)
+          const members = SubscriptionApi.collecting
+            ? SubscriptionApi.sharedRead(`contents:${host.stuffId}`, resolveMembers)
             : resolveMembers();
           const named = {
             ...members,
             stuff: members.stuff.filter((c) => c.stuffId !== viewer.stuffId),
           };
           // Membership: whether a child is listed here at all.
-          if (named.touched && MqlSubscriptionApi.collecting) {
-            MqlSubscriptionApi.noteRead(named.touched, ['placement', 'container']);
+          if (named.touched && SubscriptionApi.collecting) {
+            SubscriptionApi.noteRead(named.touched, ['placement', 'container']);
           }
           // Inside a live projection each child's answer is memoized until it
           // fires (crowded-rooms W8); otherwise the plain filter.
-          const visible = MqlSubscriptionApi.collecting
-            ? MqlSubscriptionApi.perceivedAmong(named.stuff, (c) => PerceptionApi.perceives(viewer, c))
+          const visible = SubscriptionApi.collecting
+            ? SubscriptionApi.perceivedAmong(named.stuff, (c) => PerceptionApi.perceives(viewer, c))
             : PerceptionApi.perceived(viewer, named.stuff);
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.
           return host.getLooseContents(visible).map((child) =>
-            MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer),
+            SubscriptionApi.projectFields(child, REF_FIELDS, viewer),
           );
         },
       },
@@ -1049,7 +1049,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         // documentation-only here, and we want the event to fire
         // unconditionally on a real mutation rather than being
         // suppressed by an accidental no-op return path.
-        MqlSubscriptionApi.fireFieldChange(
+        SubscriptionApi.fireFieldChange(
           this,
           'contents',
           before,
@@ -1070,7 +1070,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const before = this.contents.size;
       const removed = this.contents.delete(item);
       if (removed) {
-        MqlSubscriptionApi.fireFieldChange(
+        SubscriptionApi.fireFieldChange(
           this,
           'contents',
           before,

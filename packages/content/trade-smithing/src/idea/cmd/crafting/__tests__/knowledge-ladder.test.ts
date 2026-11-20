@@ -48,6 +48,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class TestSmithNpc extends EmployedMixin(TestActor) {
   static _mixinName = 'TestSmithNpcLadder';
@@ -153,10 +154,10 @@ function standUpSmithy(): { striker: Stuff; anvil: Stuff } {
 async function tryForge(who: Stuff): Promise<CommandContext> {
   const ctx = makeContext(who, room, 'forge knife');
   await executeAs(who, () =>
-    makeStuff(() => new ForgeController()).execute(
+    TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ForgeController()).execute(
       { item: 'knife' } as never,
       ctx,
-    ),
+    )),
   );
   return ctx;
 }
@@ -226,14 +227,11 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
       [QuenchController, 2500],
     ] as const) {
       await executeAs(builder, () =>
-        makeStuff(() => new Ctor()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new Ctor()).execute({
             target: ref(workpiece, 'ingot'),
             striker: many(smithy.striker),
             anvil: many(smithy.anvil),
-          } as never,
-          makeContext(builder, room, 'step'),
-        ),
+          } as never, ctx$)))(makeContext(builder, room, 'step')),
       );
       await completeStep(ms);
     }

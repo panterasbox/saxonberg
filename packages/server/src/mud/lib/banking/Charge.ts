@@ -88,6 +88,11 @@ export interface SettlementReceipt {
  *  - `needs-payee` — cash with no receiver and no account to bridge to.
  *  - `splits-exceed` — the riders are more than the charge.
  *  - `inexact-cash` — the coin in hand cannot make the exact amount.
+ *  - `insufficient-funds` — the account cannot cover it.
+ *
+ * ⭐ Thrown as a `Refusal` (`lib/errors.ts`, failure-model D3) with these
+ * codes, each a platform reason row; this union is the list of codes the
+ * settlement throws. The root words an uncaught one from its row.
  */
 export type SettleRefusalReason =
   | "no-payer"
@@ -95,15 +100,6 @@ export type SettleRefusalReason =
   | "insufficient-coin"
   | "needs-payee"
   | "splits-exceed"
-  | "inexact-cash";
+  | "inexact-cash"
+  | "insufficient-funds";
 
-/** A settlement refused before any leg posted — its reason, and the old sentence as the message. */
-export class SettleRefused extends Error {
-  constructor(
-    public readonly reason: SettleRefusalReason,
-    message: string,
-  ) {
-    super(message);
-    this.name = "SettleRefused";
-  }
-}

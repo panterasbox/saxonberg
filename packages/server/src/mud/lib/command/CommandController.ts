@@ -22,11 +22,14 @@
  * CommandModel`) and never sees the narrower type.
  */
 
-import type {
-  CommandContext,
-  CommandModel,
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
+import { SecurityApi } from '../../api/security';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { CombatApi } from '../../api/combat';
 import { MessageApi } from '../../api/message';
@@ -45,6 +48,7 @@ import { ManualBuildStep } from '../craft/ManualBuildStep';
 import type { ActDone, ActPlan, AnyActRefusal } from '../craft/ActPlan';
 import type { ActWords } from './EngagedActController';
 import type { PartChoices, PartRefusal } from '../husbandry/Soil';
+import { Refusal, type RefusalFacts } from '../errors';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -61,6 +65,30 @@ const PLAN_TOPIC = 'act.deed';
 export abstract class CommandController<
   T extends CommandModel = CommandModel,
 > extends Idea {
+  /**
+   * ⭐ The CLASS's half of "may another body's code ask this?" (call-security
+   * pass D11). A view is content any titleholder can save, naming any
+   * controller, so a view's `compellable: consent` is honored only when the
+   * controller it names declares `static compellable = true` — written by a
+   * wizard or a pack and reviewed, never by a CMS save. `false` here: no
+   * verb can be asked of you unless its code says so. `lint:compellable`
+   * holds the count and the never-list.
+   */
+  static compellable = false;
+
+  /**
+   * ⭐ `execute` runs only for the giver whose own dispatch called it
+   * (`SecurityPolicies.CommandGiverOf(1)`, call-security pass): building a
+   * context that names another body and running its controller is the side
+   * door around the compulsion gate, and it is closed. The decorator's own
+   * record, made here because `execute` is abstract (a decorator cannot sit
+   * on it) and every override inherits the policy — the resolver walks the
+   * prototype chain.
+   */
+  static {
+    SecurityApi._setMethodPolicy(CommandController, 'execute', SecurityPolicies.CommandGiverOf(1));
+  }
+
   /**
    * Execute the command with a resolved CommandModel.
    *
@@ -193,16 +221,27 @@ export abstract class CommandController<
   protected async engagePlan<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     plan: ActPlan<B, F, X>,
-    words: ActWords<B, F, X>,
+    words: Omit<ActWords<B, F, X>, 'onRefused'> & Partial<Pick<ActWords<B, F, X>, 'onRefused'>>,
   ): Promise<void> {
     const giver = context.commandGiver;
     const turnDown = (prose: Composed, reason: string, detail = reason): void => {
       MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(prose).send();
       context.note({ kind: 'controller-rejected', reason, detail });
     };
-    const say = (out: ActDone<F, X>): void => {
+    const say = async (out: ActDone<F, X>): Promise<void> => {
       if (giver.isDestroyed()) return;
       if (!out.ok) {
+        // ⭐ No words of its own: the refusal's row words it, late — the
+        // command's envelope went when the step began.
+        if (!words.onRefused) {
+          const refusal = new Refusal(out.reason, (out.facts ?? {}) as RefusalFacts);
+          // On the context, for a script awaiting the step to meet it —
+          // and then the script's stop line says it, ONCE. Only a typed
+          // command, whose envelope went when the step began, is told now.
+          context.refuse(refusal);
+          if (context.scriptLine === undefined) await CommandApi.reportFailure(refusal);
+          return;
+        }
         MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.onRefused(out)).send();
         return;
       }
@@ -219,10 +258,11 @@ export abstract class CommandController<
       begin();
       const out = await plan.onComplete();
       if (!out.ok) {
-        turnDown(words.onRefused(out), out.reason);
+        if (words.onRefused) turnDown(words.onRefused(out), out.reason);
+        else context.refuse(out);
         return;
       }
-      say(out);
+      await say(out);
       return;
     }
     const durationS = plan.durationMs / 1000;
@@ -388,13 +428,32 @@ export abstract class CommandController<
    * version. The tree-wide migration is a census-and-ratchet job and is
    * NOT done here; this is the home it migrates to.
    */
+  protected refuse(context: CommandContext, refusal: AnyActRefusal | Refusal): void;
   protected refuse(
     context: CommandContext,
     topic: string,
     line: string,
     reason: string,
+    detail?: string,
+  ): void;
+  /**
+   * ⭐⭐ The wordless form (failure-model D11) — pass the object's answer
+   * on: `if (!answer.ok) return this.refuse(context, answer);`. The
+   * reason's row words it at emit; this controller says nothing. The worded
+   * five-argument form is the legacy one `lint:reason-rows` counts down.
+   */
+  protected refuse(
+    context: CommandContext,
+    topicOrRefusal: string | AnyActRefusal | Refusal,
+    line = '',
+    reason = '',
     detail = '',
   ): void {
+    if (typeof topicOrRefusal !== 'string') {
+      context.refuse(topicOrRefusal);
+      return;
+    }
+    const topic = topicOrRefusal;
     MessageApi.scene(context.commandGiver)
       .topic(topic)
       .toSelf(Mml.compose`${line}`)

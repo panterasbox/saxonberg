@@ -137,6 +137,7 @@ function reasonOf(r: CommandResult): string | null {
       reason &&
       (n.kind === 'command-rejected' ||
         n.kind === 'controller-rejected' ||
+        n.kind === 'refused' ||
         n.kind === 'validator-failed')
     ) {
       return reason;

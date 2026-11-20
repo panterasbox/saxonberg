@@ -40,6 +40,7 @@ import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { WorldClockState } from '../../lib/time/WorldClockState';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import {
+  type ActorClaim,
   ExecutionContextApi,
   OMNI_SCOPE,
 } from '../../api/execution-context';
@@ -114,6 +115,13 @@ interface Schedule {
   birthScope: string | null;
   /** Fire once for a backlog of missed periods (`ScheduleOpts.coalesce`). */
   coalesce: boolean;
+  /**
+   * ⭐ Who was acting when it was armed (call-security pass D2), or the
+   * system it names (`ScheduleOpts.system`) — replanted on every fire, so a
+   * clock callback acts as its starter and never as whoever moved the
+   * clock.
+   */
+  actor: ActorClaim;
 }
 
 const WorldClockRegistryBase = Idea;
@@ -626,7 +634,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
           console.error('WorldClockApi: backstop snapshot failed:', err);
         });
       },
-      { propagateAttribution: false, mode: 'fixed-delay' },
+      { propagateAttribution: false, mode: 'fixed-delay', system: 'clock' },
     );
   }
 
@@ -646,7 +654,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     this.every(
       Quantity.of(WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
       () => void WeatherApi.onBoundary(),
-      { startAt: nextBoundary, tag: 'weather:boundary' },
+      { startAt: nextBoundary, tag: 'weather:boundary', system: 'weather' },
     );
 
     // Storm lightning strikes (Wave 2). A sub-segment recurring tick fires
@@ -665,6 +673,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       {
         startAt: Quantity.of(this.getNow().rawValue() + strikeInterval, 's'),
         tag: 'weather:strike',
+        system: 'weather',
       },
     );
 
@@ -679,6 +688,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     this.every(Quantity.of(fireInterval, 's'), () => FireApi.onFireTick(), {
       startAt: Quantity.of(this.getNow().rawValue() + fireInterval, 's'),
       tag: 'fire:tick',
+      system: 'fire',
     });
 
     // ⭐⭐ Civic street lighting (the envelope build). At each sunset the
@@ -704,7 +714,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     this.every(
       Quantity.of(EARTH_LIKE.dayLengthSeconds, 's'),
       () => void AddressApi.settleStreetLighting(this.getNow().rawValue()),
-      { startAt: Quantity.of(nextSunset, 's'), tag: 'civic:lighting' },
+      { startAt: Quantity.of(nextSunset, 's'), tag: 'civic:lighting', system: 'lighting' },
     );
     // ⭐ And settle shortly AFTER boot if it is already dark: a reboot in
     // the evening must not leave the town unlit until tomorrow's sunset.
@@ -723,7 +733,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       this.after(
         Quantity.of(60, 's'),
         () => void AddressApi.settleStreetLighting(this.getNow().rawValue()),
-        { tag: 'civic:lighting:boot' },
+        { tag: 'civic:lighting:boot', system: 'lighting' },
       );
     }
   }
@@ -778,6 +788,9 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       birthScope:
         registrantScope === OMNI_SCOPE ? null : registrantScope,
       coalesce: spec.opts?.coalesce === true,
+      actor: spec.opts?.system !== undefined
+        ? { actor: null, system: spec.opts.system }
+        : ExecutionContextApi.captureActor(),
     };
     s.handle = {
       id,
@@ -936,12 +949,12 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
         ExecutionContextApi.runRoot(
           WorldClockApi,
           'fire',
-          () => s.cb(s.handle),
+          () => ExecutionContextApi.runAsCaptured(s.actor, () => s.cb(s.handle)),
           { circleScope: s.birthScope },
         );
         return;
       }
-      s.cb(s.handle);
+      ExecutionContextApi.runAsCaptured(s.actor, () => s.cb(s.handle));
     } catch (err) {
       console.error(
         `WorldClockApi: schedule '${s.id}' callback threw (continuing)`,

@@ -294,8 +294,8 @@ Water at sea exists only beside a ship that has **stopped**: a `SeaPatch`
 (positioned on the chart, its own `SeaZone`) budded where she lies, shared
 by ships stopped within hail, reaped when empty. Her boat is launched into
 it; `side` (an authored way on the deck) goes over into it; a way named for
-her goes back up; under way she is alongside nothing. `locate` in the water
-beside her reads her reckoning.
+her goes back up; under way she is alongside nothing. In the water beside
+her, where-you-are names her.
 
 ⭐ **Why the water is the sea's and not the ship's** (ships slate,
 2026-10-19): a water room that belonged to a ship would have to answer which

@@ -33,6 +33,9 @@ import type { ParsedCommand } from './command-line';
 import type { Script } from '../lib/script/ast';
 import { CommandLogic } from '../platform/idea/api/CommandLogic';
 import { SecurityApi } from './security';
+import type { Refusal } from '../lib/errors';
+import type ReasonCatalogue from '../platform/idea/ReasonCatalogue';
+import type { Mml } from './mml';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -163,6 +166,15 @@ export interface CommandContext {
   filterPolicy?: OnFilteredPolicy;
 
   /**
+   * ⭐ The script line this command is, when a script dispatched it
+   * (failure-model). A script is there to say what became of it: a refusal
+   * that arrives after the envelope went (an engaged step's completion) is
+   * left on the context for the script's stop line to word, never also said
+   * at once. Absent for a typed command.
+   */
+  scriptLine?: string;
+
+  /**
    * ⭐⭐ **The one guard every prompt seam uses.** Returns the
    * Interactive to ask, or — when nobody is there to answer (a script
    * line, an NPC) — notes `command-rejected { reason: 'needs-input',
@@ -186,6 +198,17 @@ export interface CommandContext {
   /** Read accumulator state. Returned arrays are snapshot-safe. */
   getNotes(): readonly Note[];
   getStatus(): Status;
+
+  /**
+   * ⭐⭐ **This command was refused** (failure-model D11): notes `refused`
+   * with the reason's canonical code and the facts in wire form, and keeps
+   * the live refusal for a script to read. It SENDS nothing — the emit
+   * sweep words it from its row. Takes a returned refusal
+   * (`{ ok: false, reason, facts }`) or a thrown {@link Refusal} alike.
+   */
+  refuse(refusal: Refusal | { ok?: false; reason: string; facts?: unknown; at?: string }): void;
+  /** The refusal that stopped this command, or `null` when it was not refused. */
+  getRefusal(): Refusal | null;
 }
 
 /**
@@ -217,6 +240,8 @@ export interface CreateCommandContextArgs {
   barId?: string;
   /** `--strict` / `--loose`; see {@link CommandContext.filterPolicy}. */
   filterPolicy?: OnFilteredPolicy;
+  /** The dispatching script's line; see {@link CommandContext.scriptLine}. */
+  scriptLine?: string;
 }
 
 /**
@@ -301,6 +326,13 @@ export interface ParseResult {
     ast: Script;
   };
   error?: string;
+  /**
+   * ⭐ The whole line, corrected — a parse refusal's fitted form (`try {
+   * … } on locked { … }` for a misspelled `on lockd`, failure-model D5).
+   * The dispatcher copies it onto the `parse-failed` note, and the shell
+   * offers it as a line to tap.
+   */
+  suggestion?: string;
 }
 
 /**
@@ -1221,6 +1253,9 @@ export interface ExampleDefinition {
   note?: string;
 }
 
+/** Whether another body's code may ask a body to run a verb (call-security pass D8). */
+export type Compellable = 'never' | 'consent';
+
 export interface SubcommandDefinition {
   description?: string;
   /** Multi-line authored help prose for this subcommand. */
@@ -1228,6 +1263,8 @@ export interface SubcommandDefinition {
   /** Worked invocations specific to this subcommand. */
   examples?: ExampleDefinition[];
   controller?: string;
+  /** This subcommand's own {@link CommandView.compellable}; the verb's when absent. */
+  compellable?: Compellable;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
   /**
@@ -1346,6 +1383,13 @@ export interface CommandView {
    * verb does not exist. See the `testharness` view.
    */
   testOnly?: boolean;
+  /**
+   * ⭐ May another character's code ask this body to run the verb
+   * (call-security pass D8–D11)? `never` (the default — nobody can) or
+   * `consent` (the body's own player is asked first, every time). Honored
+   * only when the controller class also declares `static compellable`.
+   */
+  compellable?: Compellable;
   /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input
@@ -1687,6 +1731,51 @@ export class CommandApi {
   }
 
   /**
+   * ⭐ The reasons — why an act can be refused (`locked`, `no-key`, any
+   * pack's `content/reasons/`), served by {@link ReasonCatalogue}. A code
+   * is its row's address: a bare word is the platform's, a path any
+   * pack's. Loaded on use, by path.
+   */
+  static reasons(): ReasonCatalogue {
+    return logic().reasons();
+  }
+
+  /**
+   * The line a reason's row says for `facts` and the topic it goes on, or
+   * `null` when no row ships the code. A misfit between the facts and the
+   * row is recorded as a diagnostic and worded with what is there.
+   */
+  static wordReason(
+    code: string,
+    facts: Readonly<Record<string, unknown>>,
+  ): Promise<{ line: Mml; topic: string } | null> {
+    return logic().wordReason(code, facts);
+  }
+
+  /**
+   * ⭐⭐ **The one routine every guarded root calls with what it caught**
+   * (failure-model D9). It classifies and delivers:
+   *
+   * | thrown | player | note | diagnostic |
+   * |---|---|---|---|
+   * | `Refusal` | its row | `refused` | none |
+   * | `Unavailable` | row `unavailable` | `refused` | recorded |
+   * | `ContentError` | row `content-error` | `controller-error` | the row's |
+   * | anything else | row `went-wrong` | `controller-error` | recorded at `where` |
+   *
+   * A player never reads an exception's own text: `controller-error`'s
+   * `detail` is the worded sentence, and the message and stack live only in
+   * the diagnostic. Never throws.
+   */
+  static reportFailure(
+    error: unknown,
+    context?: CommandContext | null,
+    where?: string | null,
+  ): Promise<void> {
+    return logic().reportFailure(error, context, where);
+  }
+
+  /**
    * Apply a bar's input-mode prefix to a raw command line — the
    * load-bearing pre-tokenize step on the command-entry hot path
    * (server-authoritative input mode, per-bar).
@@ -1728,36 +1817,36 @@ export class CommandApi {
   }
 
   /**
-   * Recency-stack delta for a hosted-update host/unhost (the aether
-   * hosting relation). A hosted update contributes its
+   * Recency-stack delta for a hosted-app host/unhost (the aether
+   * hosting relation). an app contributes its
    * `self`-bucket command definitions to its host's stack with the
    * update Stuff as the recency source, so `getAffordances()` resolves
    * `commandSource` to the update (the "verb dispatch routes through
    * the augment/update" pattern). Hosting surfaces the verbs;
    * unhosting retires them — gain/lose-post-spawn live.
    *
-   * Called by `AetherMixin.hostUpdate` / `unhostUpdate`.
+   * Called by `AetherHostMixin.hostApp` / `unhostApp`.
    */
-  static applyHostedUpdateDelta(
+  static applyHostedAppDelta(
     host: Stuff,
     update: Stuff,
     op: 'host' | 'unhost'
   ): void {
-    logic().applyHostedUpdateDelta(host, update, op);
+    logic().applyHostedAppDelta(host, update, op);
   }
 
   /**
-   * Collect each hosted update's `self`-bucket command definitions for
+   * Collect each app's `self`-bucket command definitions for
    * a host, paired with the update as the affording source. Used by
    * `CommandGiverMixin`'s self-seeding (both `onCreate` and the
    * lazy `_ensureSelfEntry` safety net) so a host that gained updates
    * outside a delta (e.g. a test that hosts then reads affordances)
    * still surfaces their verbs. Returns `[]` for a non-host.
    */
-  static collectHostedUpdateDefs(
+  static collectHostedAppDefs(
     host: Stuff
   ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
-    return logic().collectHostedUpdateDefs(host);
+    return logic().collectHostedAppDefs(host);
   }
 
   /**

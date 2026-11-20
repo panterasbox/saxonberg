@@ -55,9 +55,9 @@ import { Final, Unshadowable } from '../security/decorators';
 import { StackableLogic } from '../../platform/idea/api/StackableLogic';
 import { Appearance } from '../identification/Appearance';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 
 /** Public shape added by StackableMixin. */
 export interface Stackable {
@@ -232,7 +232,7 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
           `StackableMixin.setQuantity: quantity must be a positive integer (got ${n})`
         );
       }
-      this.quantity = MqlSubscriptionApi.fireFieldChange(
+      this.quantity = SubscriptionApi.fireFieldChange(
         this,
         'quantity',
         this.quantity,

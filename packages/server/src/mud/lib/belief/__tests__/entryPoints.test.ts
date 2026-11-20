@@ -31,6 +31,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BeliefStoreMixin, REGARD } from '../BeliefStore';
 import BeliefDocument from '../BeliefDocument';
@@ -57,6 +58,7 @@ function installStore(): void {
       ) as never,
   );
   vi.spyOn(pm, 'save').mockImplementation(async () => 'id-1');
+  spySaveMany(pm);
 }
 
 /** A stored opinion for `viewerId` about `referent`. */

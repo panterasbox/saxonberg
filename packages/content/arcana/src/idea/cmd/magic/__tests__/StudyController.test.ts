@@ -42,6 +42,7 @@ import {
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 /** Where the commons' spell rows live, and the class every one names (the catalogue warms BY CLASS). */
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
@@ -203,7 +204,7 @@ describe('StudyController — claim, never deed', () => {
 
     const reader = makeReader();
     const book = makeBook();
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     // The claim was minted…
     expect(claim).toHaveBeenCalled();
@@ -231,8 +232,8 @@ describe('StudyController — claim, never deed', () => {
 
     const reader = makeReader();
     const book = makeBook();
-    await controller().execute(model(book) as never, context(reader));
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     // Both go through noteKnown → recordChronicleOnce, which dedups on
     // {owner, key} — the ledger stays honest without the controller
@@ -254,7 +255,7 @@ describe('StudyController — claim, never deed', () => {
     const reader = makeReader();
     const book = makeBook();
     book.setComprehensionBand('competent');
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     // NOT refused — the whole point. You take it on board believing it
     // is correct.
@@ -277,7 +278,7 @@ describe('StudyController — claim, never deed', () => {
     const reader = makeReader();
     const book = makeBook();
     book.setComprehensionBand('novice');
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     expect(reader.getMemorizedSpell('/stuff/idea/magic/Spell/glowlight')!.defective).toBe(false);
     expect(reader.costMultiplierFor('/stuff/idea/magic/Spell/glowlight')).toBe(1);
@@ -307,11 +308,11 @@ describe('StudyController — claim, never deed', () => {
     const reader = makeReader();
     const book = makeBook();
     // First study from nothing — the long one.
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
     // Immediately again, still fully sharp — the savings curve makes
     // this nearly free, which is what rewards regular light maintenance
     // over cramming.
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     expect(durations).toHaveLength(2);
     expect(durations[1]).toBeLessThan(durations[0]!);
@@ -329,7 +330,7 @@ describe('StudyController — claim, never deed', () => {
 
     const reader = makeReader();
     const book = makeBook();
-    await controller().execute(model(book) as never, context(reader));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller().execute(model(book) as never, ctx$)))(context(reader));
 
     // The whole result lands at COMPLETION — an aborted study takes
     // nothing on board, exactly as an aborted cast fires nothing.
@@ -342,7 +343,7 @@ describe('StudyController — claim, never deed', () => {
     const blank = makeBook();
     blank.setTeachesSpellPath('');
     const ctx = context(reader);
-    await controller().execute(model(blank) as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(blank) as never, ctx));
     expect(reader.holdsSpell('/stuff/idea/magic/Spell/glowlight')).toBe(false);
   });
 });

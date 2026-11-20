@@ -508,6 +508,13 @@ export class PerceptionLogic extends ApiLogic {
     return isAnotherPersonImpl(viewer, target);
   }
 
+  /** See {@link PerceptionApi.lightBandFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public lightBandFor(viewer: Stuff, place: Stuff): { band: LightBand; dark: boolean } | null {
+    const band = perceivedBandImpl(viewer, place);
+    return band === null ? null : { band, dark: LIGHT_BANDS_TOO_DARK_TO_DESCRIBE.includes(band) };
+  }
+
   /** See {@link PerceptionApi.glance}. */
   @CallSecurity(PerceptionApiCallers)
   public glance(bearingDeg: number, rangeNm: number): string {
@@ -677,13 +684,13 @@ function walkAugmentedModalities(viewer: Stuff): Modality[] {
   };
   addGrants(MixinApi.getActiveMixins(viewer));
   // Hosted-update modality grants (the single generalization point —
-  // the augment-contribution walks include a host's hosted updates
+  // the augment-contribution walks include a host's apps
   // alongside its slot occupants). No update grants a modality in v1
   // (comms grants none; attunement does), so this is substrate-only —
   // it proves the symmetry without changing behavior today. `isAether`
   // narrows the viewer to an `AetherHost`, so no cast is needed.
-  if (MixinApi.isAether(viewer)) {
-    for (const u of viewer.getHostedUpdates()) {
+  if (MixinApi.isAetherHost(viewer)) {
+    for (const u of viewer.getHostedApps()) {
       addGrants(MixinApi.getActiveMixins(u));
     }
   }
@@ -1425,11 +1432,17 @@ async function observePlace(
   // ⭐⭐ The body runs the perception gate, tells whatever it keeps (a map,
   // a memory, nothing) and hands back the exits this viewer may know about
   // — the same ones the verb renders, because computing them twice is how
-  // the transcript and the map could ever disagree. In the dark: the ways
-  // out you can feel along a wall for, never the people you cannot see.
-  const exits = MixinApi.isPerceiver(viewer)
-    ? viewer.learnSurroundings(place, dark ? [] : seen)
-    : [];
+  // the transcript and the map could ever disagree. ⭐ In the dark
+  // (navigation-server D2): the ways out you can feel along a wall for are
+  // rendered, but NOTHING is learned — a dark `look` writes no claim, and
+  // never the people you cannot see.
+  const exits = dark
+    ? MixinApi.isExitable(place)
+      ? place.obviousExitsFor(viewer)
+      : []
+    : MixinApi.isPerceiver(viewer)
+      ? viewer.learnSurroundings(place, seen)
+      : [];
   // Passive hints (honest fog): the full contents + every exit (hidden
   // ones included), narrowed to the close-but-unperceived. Nothing is
   // nearly seen in a place too dark to describe.
@@ -1782,8 +1795,8 @@ function reachOf(actor: Stuff, opts?: ReachOptions): Reached[] {
   };
   // The apps an implant hosts are on the person with it.
   const pushHosted = (host: Stuff): void => {
-    if (!MixinApi.isAether(host)) return;
-    for (const u of host.getHostedUpdates()) {
+    if (!MixinApi.isAetherHost(host)) return;
+    for (const u of host.getHostedApps()) {
       if (u !== actor) push(u, 'attached');
     }
   };

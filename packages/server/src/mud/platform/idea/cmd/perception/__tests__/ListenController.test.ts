@@ -37,6 +37,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const ReceivingGiverBase = OrganismMixin(
   ContainerMixin(
@@ -137,7 +138,7 @@ describe('ListenController', () => {
     );
     const target: MqlOneResult = { stuff: fix.location, raw: 'here' };
     const c = makeStuff(() => new ListenController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('soft drip');
@@ -155,7 +156,7 @@ describe('ListenController', () => {
     };
     const c = makeStuff(() => new ListenController());
     const ctx = ctxOf(fix);
-    c.execute(modelOf(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(modelOf(target), ctx));
     expect(ctx.getNotes()).not.toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected' }),
     );

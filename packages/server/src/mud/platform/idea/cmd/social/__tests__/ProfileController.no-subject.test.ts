@@ -12,6 +12,7 @@ import Avatar from '../../../../agent/PrimaryAvatar';
 import { CommandApi, type CommandModel } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -21,10 +22,10 @@ describe('profile <a name nobody answers to>', () => {
     const compose = vi.spyOn(viewer, 'composeProfileCard');
     const controller = makeStuff(() => new ProfileController());
     const context = CommandApi.createCommandContext({ commandGiver: viewer } as never);
-    await controller.execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => controller.execute(
       { target: { stuff: null, raw: 'odile' } as unknown as MqlOneResult } as CommandModel,
       context,
-    );
+    ));
     expect(compose).not.toHaveBeenCalled();
     expect(context.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'profile-no-subject' }),

@@ -20,6 +20,7 @@ import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { DiagnosticDoc } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 interface ErrorsModel extends CommandModel {
   subcommand?: string;
@@ -99,7 +100,7 @@ describe('errors controllers', () => {
 
   // ⭐ The view's routing: each form names its own controller.
   const run = (m: ErrorsModel) =>
-    makeStuff(() => new (m.subcommand === 'raw' ? ErrorsRawController : m.subcommand === 'clear' ? ErrorsClearController : ErrorsListController)()).execute(m as never, ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new (m.subcommand === 'raw' ? ErrorsRawController : m.subcommand === 'clear' ? ErrorsClearController : ErrorsListController)()).execute(m as never, ctx));
 
   it('has no door: a nobody gets an empty list, never a refusal (what you see is what you hold)', async () => {
     await run({});

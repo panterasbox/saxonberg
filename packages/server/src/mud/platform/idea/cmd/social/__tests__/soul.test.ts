@@ -18,10 +18,11 @@ import { MessageApi } from '../../../../../api/message';
 import { AccessApi } from '../../../../../api/access';
 import { Mml } from '../../../../../api/mml';
 import { Emote } from '../../../../../lib/social/Emote';
-import { DocumentRefusal } from '../../../../../lib/document/StoredDocument';
+import { Refusal } from '../../../../../lib/errors';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CommandContext } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let captured: string;
 
@@ -73,7 +74,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('soul — one controller per subcommand', () => {
   it('soul search <term> lists what the catalogue search finds', async () => {
     const search = vi.spyOn(SoulApi, 'search').mockResolvedValue([emote('greet', ['hi'])]);
-    await makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'hi' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'hi' } as never, ctx$)))(ctx());
     expect(search).toHaveBeenCalledWith('hi');
     expect(captured).toContain("'hi' finds (1)");
     expect(captured).toContain('greet');
@@ -81,63 +82,60 @@ describe('soul — one controller per subcommand', () => {
 
   it('soul search reports an empty result honestly', async () => {
     vi.spyOn(SoulApi, 'search').mockResolvedValue([]);
-    await makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'zzz' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'zzz' } as never, ctx$)))(ctx());
     expect(captured).toContain("No emote matches 'zzz'");
   });
 
   it('soul edit <verb> template <t> sends a PARTIAL grammar — the catalogue keeps the slots (C72)', async () => {
     const edit = vi.spyOn(SoulApi, 'edit').mockResolvedValue(emote('greet'));
     const c = ctx();
-    await makeStuff(() => new SoulEditController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new SoulEditController()).execute(
       { subcommand: 'edit', verb: 'greet', field: 'template', value: '{{ actor }} beams.' } as never,
       c,
-    );
+    ));
     expect(edit).toHaveBeenCalledWith('greet', { grammar: { template: '{{ actor }} beams.' } });
   });
 
   it('soul edit <verb> searchTerms <list> patches searchTerms', async () => {
     const edit = vi.spyOn(SoulApi, 'edit').mockResolvedValue(emote('greet', ['hi', 'hello']));
-    await makeStuff(() => new SoulEditController()).execute(
-      { subcommand: 'edit', verb: 'greet', field: 'searchTerms', value: '[hi, hello]' } as never,
-      ctx(),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulEditController()).execute({ subcommand: 'edit', verb: 'greet', field: 'searchTerms', value: '[hi, hello]' } as never, ctx$)))(ctx());
     expect(edit).toHaveBeenCalledWith('greet', { searchTerms: ['hi', 'hello'] });
     expect(captured).toContain("Updated emote 'greet'");
   });
 
   it('soul edit rejects the retired aliases field', async () => {
     const c = ctx();
-    await makeStuff(() => new SoulEditController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new SoulEditController()).execute(
       { subcommand: 'edit', verb: 'greet', field: 'aliases', value: '[hi]' } as never,
       c,
-    );
+    ));
     expect(c.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'unknown-field' }));
   });
 
   it('a committee member disables and enables; a non-member is refused the mutations; anyone lists', async () => {
     const set = vi.spyOn(SoulApi, 'setDisabled').mockResolvedValue(true);
-    await makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'wave' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'wave' } as never, ctx$)))(ctx());
     expect(set).toHaveBeenCalledWith('wave', true);
     expect(captured).toContain("Disabled emote 'wave'");
-    await makeStuff(() => new SoulEnableController()).execute({ subcommand: 'enable', verb: 'wave' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulEnableController()).execute({ subcommand: 'enable', verb: 'wave' } as never, ctx$)))(ctx());
     expect(set).toHaveBeenLastCalledWith('wave', false);
 
     // ⭐ The title gate is the document store's (W8 — no controller
     // pre-check): the catalogue's write refuses, and the verb words it.
-    const refused = new DocumentRefusal('access-denied', "you don't have permission to write that document");
+    const refused = new Refusal('document-access-denied', { path: '/x' }, { message: "you don't have permission to write that document" });
     set.mockRejectedValueOnce(refused);
     const c = ctxAs('nobody');
-    await makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c));
     expect(c.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
     expect(captured).toContain('soul committee holds the emote catalogue');
     vi.spyOn(SoulApi, 'edit').mockRejectedValueOnce(refused);
     const c2 = ctxAs('nobody');
-    await makeStuff(() => new SoulEditController()).execute({ subcommand: 'edit', verb: 'nod', field: 'emoji', value: '👋' } as never, c2);
+    await TestHarnessApi.actAs(c2.commandGiver, () => makeStuff(() => new SoulEditController()).execute({ subcommand: 'edit', verb: 'nod', field: 'emoji', value: '👋' } as never, c2));
     expect(c2.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
 
     vi.spyOn(SoulApi, 'all').mockResolvedValue([emote('greet')]);
     const c3 = ctxAs('nobody');
-    await makeStuff(() => new SoulListController()).execute({ subcommand: 'list' } as never, c3);
+    await TestHarnessApi.actAs(c3.commandGiver, () => makeStuff(() => new SoulListController()).execute({ subcommand: 'list' } as never, c3));
     expect(c3.note).not.toHaveBeenCalled();
     expect(captured).toContain('Catalog (1)');
   });
@@ -146,13 +144,13 @@ describe('soul — one controller per subcommand', () => {
     const e = emote('greet', ['hi', 'hello']);
     e.disabled = true;
     vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(e);
-    await makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx$)))(ctx());
     expect(captured).toContain('(disabled)');
   });
 
   it('soul show prints the search terms', async () => {
     vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(emote('greet', ['hi', 'hello']));
-    await makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx$)))(ctx());
     expect(captured).toContain('search terms: hi, hello');
     expect(captured).not.toContain('aliases');
   });

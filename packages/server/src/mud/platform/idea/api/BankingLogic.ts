@@ -14,7 +14,7 @@ import type {
   FullReconcileResult,
   EscrowHoldResult,
 } from "../../../lib/banking/LedgerEntry";
-import AccountBalance from "../../../lib/banking/AccountBalance";
+import AccountBalance, { type AccountMeta } from "../../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../../lib/banking/SupplyAggregate";
 import { Account } from "../../../lib/banking/Account";
 import { Money } from "../../../lib/banking/Money";
@@ -31,7 +31,7 @@ import type {
   SettlementMethod,
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
-import { SettleRefused } from "../../../lib/banking/Charge";
+import { Refusal } from "../../../lib/errors";
 import { AppApi } from "../../../api/app";
 import { AddressApi } from "../../../api/address";
 // The own-Api self-import (the PressLogic precedent): a free function
@@ -150,34 +150,10 @@ const COIN_PATH = "/stuff/thing/Coin";
  * ledger row always names *someone*.
  */
 function actingActorKey(): string {
-  const principal = actingPrincipal() as {
+  const principal = ExecutionContextApi.getActor() as {
     getIdentityPath?(): string | null;
   } | null;
   return principal?.getIdentityPath?.() ?? "system";
-}
-
-/**
- * The acting principal as a Stuff (for moving coin to/from it), or null.
- *
- * The PAYER is the command frame's giver whenever the command chain has
- * one consistent giver — forced or not. A forced command still runs AS
- * its giver (a brain's hand at the counter, Dave hiring through a
- * dialogue dispatch), and the money authority it spends is the wallet
- * that giver carries, which is the whole wallet rule. Authorship
- * attribution (`getActingAuthor`) keeps failing closed on a forced
- * chain — provenance is a different question from who is paying. A
- * cross-actor cascade (A's command triggering B's) has no single giver
- * and pays as nobody, exactly as before. Outside any command frame the
- * tagged author (a REST boundary's Avatar) is the principal.
- */
-function actingPrincipal(): Stuff | null {
-  const commands = ExecutionContextApi.getCommandStack();
-  if (commands.length > 0) {
-    const givers = new Set(commands.map((c) => c.context.commandGiver));
-    if (givers.size !== 1) return null;
-    return (commands[0]!.context.commandGiver as unknown as Stuff) ?? null;
-  }
-  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
 
 /** Coin-shaped duck type — avoids importing the Coin class here. */
@@ -198,10 +174,44 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
 }
 
 
+/**
+ * ⭐ The accounts the warmed index holds that match `pick`, as fresh rows —
+ * or `null` when the index cannot answer (never warmed, or an entry it has
+ * not seen saved), and the caller asks the database (db-performance H2).
+ * Every account row is written through `AccountBalance.save`, which keeps
+ * the index's copy current, so a payroll or a deposit no longer pays a
+ * round trip to learn which accounts a person holds.
+ */
+function indexedAccounts(pick: (id: string, row: AccountMeta) => boolean): AccountBalance[] | null {
+  const index = AccountBalance.cached();
+  if (index.size === 0) return null;
+  const out: AccountBalance[] = [];
+  for (const [id, entry] of index) {
+    if (!entry.row) return null;
+    if (!pick(id, entry.row)) continue;
+    const r = new AccountBalance();
+    if (entry.row._id) r._id = entry.row._id;
+    r.accountId = id;
+    r.owner = entry.row.owner;
+    r.bank = entry.row.bank;
+    r.bankPath = entry.row.bankPath;
+    r.corpoKey = entry.row.corpoKey;
+    r.isPrimary = entry.row.isPrimary;
+    r.isActive = entry.row.isActive;
+    r.balance = entry.balance;
+    r.currency = entry.currency;
+    out.push(r);
+  }
+  return out;
+}
+
 /** Find every account owned by `ownerKey`. */
 async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
   if (!active()) return [];
-  return AccountBalance.find<AccountBalance>({ owner: ownerKey });
+  return (
+    indexedAccounts((_id, row) => row.owner === ownerKey) ??
+    AccountBalance.find<AccountBalance>({ owner: ownerKey })
+  );
 }
 
 /** The `ownerKey`'s account at the `bank` institution, or null. */
@@ -210,6 +220,8 @@ async function accountAtImpl(
   bank: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
+  const hit = indexedAccounts((_id, r) => r.owner === ownerKey && r.bank === bank);
+  if (hit) return hit[0] ?? null;
   const [row] = await AccountBalance.find<AccountBalance>({
     owner: ownerKey,
     bank,
@@ -222,6 +234,8 @@ async function accountByIdImpl(
   accountId: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
+  const hit = indexedAccounts((id) => id === accountId);
+  if (hit) return hit[0] ?? null;
   const [row] = await AccountBalance.find<AccountBalance>({ accountId });
   return row ?? null;
 }
@@ -252,7 +266,7 @@ async function openAccountImpl(
     // Re-open by an existing holder: the wallet credential is
     // session-durable, so a returning player's implant carries an
     // unlinked payment record — `bank open` doubles as the re-link.
-    autoLinkToWallet(actingPrincipal(), already.accountId);
+    autoLinkToWallet(ExecutionContextApi.getActor() as Stuff | null, already.accountId);
     return already.accountId;
   }
 
@@ -269,7 +283,7 @@ async function openAccountImpl(
   AccountBalance.putCached(row.accountId, 0, currency);
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
-  autoLinkToWallet(actingPrincipal(), row.accountId);
+  autoLinkToWallet(ExecutionContextApi.getActor() as Stuff | null, row.accountId);
   // ⭐ No opening float (economic bootstrap D9). The till used to be
   // stocked by a MINT paired with a credit to the branch — an authored
   // faucet. A till fills from deposits now, and a withdrawal past what it
@@ -1279,7 +1293,7 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
  * before it is performed (repair P1). Read-only.
  */
 function canSettleImpl(amount: Money): boolean {
-  const payer = actingPrincipal();
+  const payer = ExecutionContextApi.getActor() as Stuff | null;
   if (!payer) return false;
   const cred = reachableCredential(payer);
   const account = cred?.getActiveAccount() ?? null;
@@ -1297,8 +1311,8 @@ async function settleImpl(
   original: Charge,
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
-  const payer = actingPrincipal();
-  if (!payer) throw new SettleRefused("no-payer", "BankingLogic.settle: no acting payer");
+  const payer = ExecutionContextApi.getActor() as Stuff | null;
+  if (!payer) throw new Refusal("no-payer");
   // ⭐ The payee's creditors take their share of this inflow as rider
   // splits inside the same transaction (economic bootstrap D12).
   const { charge, repayments } = await withRepaymentSplits(original);
@@ -1319,7 +1333,7 @@ async function settleLegs(
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
-      throw new SettleRefused("cannot-hold-coin", "BankingLogic.settle: the payer can't hold coin");
+      throw new Refusal("cannot-hold-coin");
     }
     // Off-ledger handover to a physical receiver (a till, a person's hand).
     if (charge.payeeContainer) {
@@ -1329,7 +1343,7 @@ async function settleLegs(
         charge.amount.minor,
         charge.amount.currency,
       );
-      if (!ok) throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
+      if (!ok) throw new Refusal("insufficient-coin", { amount: charge.amount.render() });
       return { method: "cash" };
     }
     // No physical receiver: bank the coin instantly across the cash bridge
@@ -1338,16 +1352,16 @@ async function settleLegs(
     // the payee has no local till (a global TPA operating-budget account), so
     // a cash fare's city+TPA split still holds (D12 cash bridge).
     if (!charge.payeeAccountId) {
-      throw new SettleRefused("needs-payee", "BankingLogic.settle: cash needs a payee");
+      throw new Refusal("needs-payee");
     }
     const payerC = payer as Stuff & Container;
     if (cashOnHand(payerC) < charge.amount.minor) {
-      throw new SettleRefused("insufficient-coin", "BankingLogic.settle: not enough cash on hand");
+      throw new Refusal("insufficient-coin", { amount: charge.amount.render() });
     }
     const cashSplits = charge.splits ?? [];
     const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
     if (cashSplitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
-      throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
+      throw new Refusal("splits-exceed");
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
     // refuse before any ledger leg posts (the caller falls back to the card).
@@ -1357,10 +1371,7 @@ async function settleLegs(
       charge.amount.currency,
     );
     if (!drained) {
-      throw new SettleRefused(
-        "inexact-cash",
-        "BankingLogic.settle: can't make the exact amount in cash",
-      );
+      throw new Refusal("inexact-cash", { amount: charge.amount.render() });
     }
     const bridgeLegs: LedgerLeg[] = [];
     const bridgeMain = charge.amount.minor - cashSplitTotal;
@@ -1417,13 +1428,13 @@ async function settleLegs(
     if (frozen) throw new Error(`BankingLogic.settle: ${frozen}`);
   }
   if (balanceMinor(routingAccount) < charge.amount.minor) {
-    throw new Error("BankingLogic.settle: insufficient balance");
+    throw new Refusal("insufficient-funds", { amount: charge.amount.render() });
   }
 
   const splits = charge.splits ?? [];
   const splitTotal = splits.reduce((s, x) => s + x.amount.minor, 0);
   if (splitTotal > charge.amount.minor - salesTaxMinor(charge.taxableMinor ?? 0)) {
-    throw new SettleRefused("splits-exceed", "BankingLogic.settle: splits exceed the charge");
+    throw new Refusal("splits-exceed");
   }
   const legs: LedgerLeg[] = [];
   const mainAmount = charge.amount.minor - splitTotal;
@@ -2148,7 +2159,7 @@ async function issueCardImpl(
   capMinor: number,
   holder?: Stuff,
 ): Promise<Stuff & CredentialWallet> {
-  const principal = holder ?? actingPrincipal();
+  const principal = holder ?? (ExecutionContextApi.getActor() as Stuff | null);
   const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
   const pay = card.ensureCredential("payment");
   pay.linkAccount(accountId);
@@ -2848,7 +2859,7 @@ export class BankingLogic extends ApiLogic {
     // the ledger; per-account, never collective (a bank run is a feature);
     // over the cap → refuse and push onto the ledger (card/transfer). Scales
     // with standing (Circle → higher cap).
-    const cap = withdrawalCapFor(account, actingPrincipal());
+    const cap = withdrawalCapFor(account, ExecutionContextApi.getActor() as Stuff | null);
     if (cap > 0) {
       const already = await withdrawnTodayImpl(account.accountId);
       if (already + amount.minor > cap) {
@@ -2873,7 +2884,7 @@ export class BankingLogic extends ApiLogic {
           `in cash right now (till low)`,
       );
     }
-    const principal = actingPrincipal();
+    const principal = ExecutionContextApi.getActor() as Stuff | null;
     if (!principal || !MixinApi.isContainer(principal)) {
       throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
     }
@@ -2991,7 +3002,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
   public activeCredential(): PaymentCredential | null {
-    const actor = actingPrincipal();
+    const actor = ExecutionContextApi.getActor() as Stuff | null;
     return actor ? reachableCredential(actor) : null;
   }
 

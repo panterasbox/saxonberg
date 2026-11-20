@@ -15,6 +15,7 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** ScriptController's model type (its `ScriptModel` isn't exported). */
 type ScriptModel = Parameters<ScriptController['execute']>[0];
@@ -57,13 +58,10 @@ describe('ScriptController.execute', () => {
     const actor = makeStuff(() => new Idea());
     const ctrl = makeStuff(() => new ScriptController());
 
-    await ctrl.execute(
-      { body: 'look; say hi' } as unknown as ScriptModel,
-      ctxFor(actor)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ body: 'look; say hi' } as unknown as ScriptModel, ctx$)))(ctxFor(actor));
 
     expect(run).toHaveBeenCalledTimes(1);
-    expect(run).toHaveBeenCalledWith('look; say hi');
+    expect(run).toHaveBeenCalledWith('look; say hi', expect.anything());
   });
 
   it('trims the body before running', async () => {
@@ -71,12 +69,9 @@ describe('ScriptController.execute', () => {
     const actor = makeStuff(() => new Idea());
     const ctrl = makeStuff(() => new ScriptController());
 
-    await ctrl.execute(
-      { body: '   wait 1   ' } as unknown as ScriptModel,
-      ctxFor(actor)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ body: '   wait 1   ' } as unknown as ScriptModel, ctx$)))(ctxFor(actor));
 
-    expect(run).toHaveBeenCalledWith('wait 1');
+    expect(run).toHaveBeenCalledWith('wait 1', expect.anything());
   });
 
   it('refuses an empty body — a rejection note and no run', async () => {
@@ -85,7 +80,7 @@ describe('ScriptController.execute', () => {
     const ctrl = makeStuff(() => new ScriptController());
     const ctx = ctxFor(actor);
 
-    await ctrl.execute({ body: '   ' } as unknown as ScriptModel, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ body: '   ' } as unknown as ScriptModel, ctx));
 
     expect(run).not.toHaveBeenCalled();
     expect(ctx.note).toHaveBeenCalledWith(

@@ -20,7 +20,7 @@ import "../../../test-bootstrap";
 import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Avatar from '../agent/PrimaryAvatar';
-import { MqlSubscriptionApi, collectSubscribableFields } from '../../api/mql-subscription';
+import { SubscriptionApi, collectSubscribableFields } from '../../api/subscription';
 import { StuffApi } from '../../api/stuff';
 import { User } from '../../lib/identity/User';
 import { ShadowApi } from '../../api/shadow';
@@ -162,7 +162,7 @@ describe('Avatar standing figures — projection', () => {
       RenownStanding.key('/platform/agent/Avatar/tester', COMPACT_WIDE),
       3
     );
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       avatar as unknown as Stuff,
       ['playStanding', 'makeStanding', 'renown'],
       avatar as unknown as Stuff & Sensor
@@ -196,7 +196,7 @@ describe('Avatar standing figures — projection', () => {
    */
   it('⭐ omits a folded figure while its cache is cold — absent, not zero', () => {
     const avatar = makeAvatar('tester');
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       avatar as unknown as Stuff,
       ['practisingCompetence', 'renown'],
       avatar as unknown as Stuff & Sensor
@@ -219,7 +219,7 @@ describe('Avatar standing figures — projection', () => {
       RenownStanding.key('/platform/agent/Avatar/tester', COMPACT_WIDE),
       0
     );
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       avatar as unknown as Stuff,
       ['renown'],
       avatar as unknown as Stuff & Sensor
@@ -229,7 +229,7 @@ describe('Avatar standing figures — projection', () => {
 
   it('always carries the stuffId, whatever else resolves', () => {
     const avatar = makeAvatar('tester');
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       avatar as unknown as Stuff,
       FIGURES,
       avatar as unknown as Stuff & Sensor
@@ -243,7 +243,7 @@ describe('Avatar standing figures — projection', () => {
     // implementations of that policy and they will drift.
     const subject = makeAvatar('subject');
     const onlooker = makeAvatar('onlooker');
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       subject as unknown as Stuff,
       FIGURES,
       onlooker as unknown as Stuff & Sensor
@@ -256,7 +256,7 @@ describe('Avatar standing figures — projection', () => {
     // subject the ledgers could be keyed on. Better to answer nothing
     // than to answer for the wrong subject.
     const guest = makeStuff(() => new Avatar());
-    const out = MqlSubscriptionApi.projectFields(
+    const out = SubscriptionApi.projectFields(
       guest as unknown as Stuff,
       FIGURES,
       guest as unknown as Stuff & Sensor

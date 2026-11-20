@@ -58,6 +58,8 @@ import {
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { Seeded } from '../../../lib/Seeded';
 import { MaterialApi } from '../../../api/material';
+import { SubscriptionApi } from '../../../api/subscription';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const WeatherApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/weather#WeatherApi'),
@@ -919,6 +921,10 @@ function computeSkyRead(
  * segment), so the lazy import costs nothing on any read.
  */
 async function runBoundaryFanout(): Promise<void> {
+  // ⭐ The clock's wake (navigation-server review): the weather turned and
+  // the hour moved on, so every where-you-are's sky is read again — no
+  // command did this, and its delta names none.
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.whereabouts, null, { names: ['place'] });
   const { BiomeApi } = await import('../../../api/biome');
   const nowS = nowSecondsOrNull();
   const visited = new Set<string>();

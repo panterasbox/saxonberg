@@ -16,6 +16,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AuthoredWorking from '../AuthoredWorking';
 import MineRoom from '../MineRoom';
@@ -60,10 +61,10 @@ describe('a hand-authored working', () => {
     installV1QuantityMarshallers();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     Document.setMarshallerResolver(() => undefined, async () => undefined);
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: async () => '1', find: async () => [], findById: async () => null,
       delete: async () => undefined, isConnected: () => true,
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     const m = makeStuffAtPath(() => new Stone(), SLATE);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(90, 'MPa');
     zone = makeStuffAtPath(() => new CartesianZone(), ZONE);

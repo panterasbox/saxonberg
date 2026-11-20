@@ -731,6 +731,16 @@ export class PerceptionApi {
    * miles off*). `look horizon` and a kept watch both say it this way; a
    * bearing worth fixing by is `measure bearing`'s, never a glance's.
    */
+  /**
+   * ⭐ The light band `viewer` makes out in `place`, and whether that is too
+   * dark to describe — the band `look` renders by, read WITHOUT looking:
+   * nothing is learned and nothing taught (navigation-server D7). `null`
+   * when it cannot be read.
+   */
+  public static lightBandFor(viewer: Stuff, place: Stuff): { band: LightBand; dark: boolean } | null {
+    return logic().lightBandFor(viewer, place);
+  }
+
   public static glance(bearingDeg: number, rangeNm: number): string {
     return logic().glance(bearingDeg, rangeNm);
   }

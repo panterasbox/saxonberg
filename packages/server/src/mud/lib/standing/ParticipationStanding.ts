@@ -22,6 +22,7 @@ import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
 import type { FieldMeta } from '../mixin';
 import { WarmedIndex } from '../persistence/WarmedIndex';
+import type { StandingPoint } from './InfluenceStanding';
 
 /** The stored `scope` sentinel — participation is Compact-wide only. */
 export const PARTICIPATION_WIDE = '*';
@@ -55,7 +56,7 @@ export default class ParticipationStanding extends Document {
    * cold read is neutral rather than an error, and for why this cannot
    * live on the logic singleton.
    */
-  static #index = new WarmedIndex<number>();
+  static #index = new WarmedIndex<StandingPoint>();
 
   /** The composite cache key (pipe-joined; neither part contains a pipe). */
   static key(subject: string, scope: string): string {
@@ -71,7 +72,7 @@ export default class ParticipationStanding extends Document {
   static async warm(): Promise<void> {
     const rows = await ParticipationStanding.find({});
     ParticipationStanding.#index.replaceWith(
-      rows.map((r) => [ParticipationStanding.key(r.subject, r.scope), r.value] as const),
+      rows.map((r) => [ParticipationStanding.key(r.subject, r.scope), r.point()] as const),
     );
   }
 
@@ -80,7 +81,7 @@ export default class ParticipationStanding extends Document {
    *
    * @internal the callable door is `ConsumerApi.participationOf`.
    */
-  static cached(): ReadonlyMap<string, number> {
+  static cached(): ReadonlyMap<string, StandingPoint> {
     return ParticipationStanding.#index.entries();
   }
 
@@ -94,7 +95,29 @@ export default class ParticipationStanding extends Document {
    */
   static _putForTesting(key: string, value: number): void {
     SecurityApi.assertTestOnly('ParticipationStanding._putForTesting');
-    ParticipationStanding.#index.put(key, value);
+    // No instant: read flat, never decayed (db-performance D5).
+    ParticipationStanding.#index.put(key, { value });
+  }
+
+  /**
+   * ⭐ This row as a point of the read index: the figure and the
+   * real-time instant it was computed at, so a read decays it to now
+   * (db-performance D5). A row with no instant reads flat.
+   */
+  public point(): StandingPoint {
+    return this.recomputedRealAt > 0
+      ? { value: this.value, at: this.recomputedRealAt }
+      : { value: this.value };
+  }
+
+  /**
+   * Put this row into the read index — what a scoring pass does with each
+   * row it wrote, instead of re-reading the whole collection.
+   *
+   * @internal the scoring pass's; the callable door is `ConsumerApi.participationOf`.
+   */
+  public remember(): void {
+    ParticipationStanding.#index.put(ParticipationStanding.key(this.subject, this.scope), this.point());
   }
 
   /** Test seam — drop the index so each test warms a fresh instance. */

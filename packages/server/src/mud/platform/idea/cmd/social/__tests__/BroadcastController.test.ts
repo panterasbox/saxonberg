@@ -22,6 +22,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let delivered: string[];
 let selfLines: string[];
@@ -81,7 +82,7 @@ let online: Avatar[];
 async function run(giver: Avatar, location: Locale, model: Record<string, unknown>): Promise<void> {
   vi.spyOn(MqlApi, 'resolveMany').mockReturnValue({ stuff: online } as never);
   const ctrl = makeStuff(() => new BroadcastController());
-  await ctrl.execute({ message: 'hi', ...model } as CommandModel as never, ctx(giver, location));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ message: 'hi', ...model } as CommandModel as never, ctx$)))(ctx(giver, location));
 }
 
 beforeEach(() => {

@@ -45,6 +45,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // ⭐ The wallet is on the body because that is where `Lock.opensFor`
 // looks: a synchronous scan of the MQL `person` pool for a
@@ -118,17 +119,17 @@ describe('LockController / UnlockController', () => {
 
   it('⛔ refuses to lock a door you hold no key for', async () => {
     const ctx = ctxFor(avatar, room, 'lock');
-    await makeStuff(() => new LockController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new LockController()).execute(
       { target: one(door, 'gate') } as CommandModel,
       ctx,
-    );
+    ));
     expect(door.isLocked(), 'the bolt must not have moved').toBe(false);
     expect(
       ctx
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
       'the refusal names the missing key, not the mechanism',
@@ -138,27 +139,24 @@ describe('LockController / UnlockController', () => {
   it('locks an unlocked door when you hold its key', async () => {
     giveTheKey();
     expect(door.isLocked()).toBe(false);
-    await makeStuff(() => new LockController()).execute(
-      { target: one(door, 'gate') } as CommandModel,
-      ctxFor(avatar, room, 'lock'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LockController()).execute({ target: one(door, 'gate') } as CommandModel, ctx$)))(ctxFor(avatar, room, 'lock'));
     expect(door.isLocked()).toBe(true);
   });
 
   it('⛔ refuses to unlock a door you hold no key for', async () => {
     door.setLocked(true);
     const ctx = ctxFor(avatar, room, 'unlock');
-    await makeStuff(() => new UnlockController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new UnlockController()).execute(
       { target: one(door, 'gate') } as CommandModel,
       ctx,
-    );
+    ));
     expect(door.isLocked(), 'the bolt must still be thrown').toBe(true);
     expect(
       ctx
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
     ).toBe(true);
@@ -167,10 +165,7 @@ describe('LockController / UnlockController', () => {
   it('unlocks a locked door when you hold its key', async () => {
     giveTheKey();
     door.setLocked(true);
-    await makeStuff(() => new UnlockController()).execute(
-      { target: one(door, 'gate') } as CommandModel,
-      ctxFor(avatar, room, 'unlock'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnlockController()).execute({ target: one(door, 'gate') } as CommandModel, ctx$)))(ctxFor(avatar, room, 'unlock'));
     expect(door.isLocked()).toBe(false);
   });
 
@@ -182,17 +177,17 @@ describe('LockController / UnlockController', () => {
     door.setKeyway('');
     door.setLocked(true);
     const ctx = ctxFor(avatar, room, 'unlock');
-    await makeStuff(() => new UnlockController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new UnlockController()).execute(
       { target: one(door, 'gate') } as CommandModel,
       ctx,
-    );
+    ));
     expect(door.isLocked()).toBe(true);
     expect(
       ctx
         .getNotes()
         .some(
           (n) =>
-            n.kind === 'controller-rejected' &&
+            n.kind === 'refused' &&
             (n as { reason?: string }).reason === 'no-key',
         ),
     ).toBe(true);
@@ -201,10 +196,10 @@ describe('LockController / UnlockController', () => {
   it('rejects a non-lockable target', async () => {
     const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room, 'lock');
-    await makeStuff(() => new LockController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new LockController()).execute(
       { target: one(rock, 'rock') } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

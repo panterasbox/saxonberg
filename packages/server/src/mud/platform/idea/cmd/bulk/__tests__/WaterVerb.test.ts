@@ -56,6 +56,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(
@@ -345,7 +346,7 @@ describe('water <plant>', () => {
 
     const before = plant.getSoilMoisture();
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
 
     expect(plant.getSoilMoisture()).toBeGreaterThan(before);
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
@@ -366,7 +367,7 @@ describe('water <plant>', () => {
     ContainmentApi.move(can, giver);
     dryOut(plant, 6);
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(0, 3);
     expect(pot.getPondedL()).toBeGreaterThan(1.4);
@@ -382,7 +383,7 @@ describe('water <plant>', () => {
     const before = plant.getSoilMoisture();
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(pot, 'pot'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(pot, 'pot'), undefined, giver), ctx$)))(makeContext(giver, room));
 
     expect(plant.getSoilMoisture()).toBeGreaterThan(before);
     expect(captured).toContain(pot);
@@ -418,7 +419,7 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(pot, 'pot'), undefined, giver), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(pot, 'pot'), undefined, giver), ctx));
 
     expect(noteReasons(ctx)).toContain('nothing-planted');
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
@@ -434,7 +435,7 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx));
 
     expect(noteReasons(ctx)).toContain('already-wet');
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
@@ -453,14 +454,14 @@ describe('water <plant>', () => {
     // Not a plant.
     const ctrl = makeStuff(() => new WaterController());
     const ctx1 = makeContext(giver, room);
-    await ctrl.execute(model(one(rock, 'rock'), undefined, giver), ctx1);
+    await TestHarnessApi.actAs(ctx1.commandGiver, () => ctrl.execute(model(one(rock, 'rock'), undefined, giver), ctx1));
     expect(noteReasons(ctx1)).toContain('not-a-plant');
 
     // No source at all (nothing carried).
     dryOut(plant, 6);
     const before = plant.getSoilMoisture();
     const ctx2 = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx2);
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx2));
     expect(noteReasons(ctx2)).toContain('no-water-source');
     expect(plant.getSoilMoisture()).toBeCloseTo(before, 6);
     expect(captured).toHaveLength(0);
@@ -474,10 +475,10 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
       model(one(plant, 'lily'), one(empty, 'can', 'with')),
       ctx,
-    );
+    ));
     expect(noteReasons(ctx)).toContain('source-empty');
     expect(captured).toHaveLength(0);
   });
@@ -490,15 +491,15 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx));
 
     expect(noteReasons(ctx)).toContain('no-water-source');
     // …but naming it explicitly still works (it is reachable).
     const ctx2 = makeContext(giver, room);
-    await ctrl.execute(
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => ctrl.execute(
       model(one(plant, 'lily'), one(can, 'can', 'with')),
       ctx2,
-    );
+    ));
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
   });
 
@@ -514,7 +515,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('healthy');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.discipline).toBe('horticulture');
     expect(deeds[0]!.difficulty).toBe('easy');
@@ -531,7 +532,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('failing');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.difficulty).toBe('hard');
   });
@@ -543,7 +544,7 @@ describe('water <plant>', () => {
     plant.getVigor(); // full root zone, no elapsed time
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
     expect(deeds).toHaveLength(0);
   });
 
@@ -556,7 +557,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('dead');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx$)))(makeContext(giver, room));
 
     expect(plant.getConditionBand()).toBe('dead');
     expect(plant.getVigor()).toBe(0);
@@ -694,10 +695,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
 
-    await makeStuff(() => new WaterController()).execute(
-      model(one(crop, 'lily'), undefined, giver),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(model(one(crop, 'lily'), undefined, giver), ctx$)))(makeContext(giver, field));
 
     expect(moisture(field)).toBeCloseTo(2, 3);
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(0, 3);
@@ -714,10 +712,10 @@ describe('water <crop> [at <patch>] — on a field', () => {
     ContainmentApi.move(can, giver);
 
     const ctx = makeContext(giver, field);
-    await makeStuff(() => new WaterController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new WaterController()).execute(
       model(one(crop, 'lily'), undefined, giver),
       ctx,
-    );
+    ));
 
     expect(noteReasons(ctx)).toContain('part-unnamed');
     const said = JSON.stringify(giver.received);
@@ -738,10 +736,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
 
-    await makeStuff(() => new WaterController()).execute(
-      model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')), ctx$)))(makeContext(giver, field));
 
     expect(moisture(top)).toBeCloseTo(2, 3);
     expect(moisture(lane)).toBe(0);
@@ -764,10 +759,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
 
-    await makeStuff(() => new WaterController()).execute(
-      model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')), ctx$)))(makeContext(giver, field));
 
     expect(JSON.stringify(watcher.received)).toMatch(/waters .*lily.* at .*top end/);
   });
@@ -780,10 +772,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
     const bucket = makeCan(10, 10);
     ContainmentApi.move(bucket, giver);
 
-    await makeStuff(() => new WaterController()).execute(
-      model(one(crop, 'lily'), undefined, giver, one(big, 'the middle', 'at')),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(model(one(crop, 'lily'), undefined, giver, one(big, 'the middle', 'at')), ctx$)))(makeContext(giver, field));
 
     expect(moisture(big)).toBeCloseTo(10, 3);
     const said = JSON.stringify(giver.received);
@@ -798,10 +787,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
 
-    await makeStuff(() => new WaterController()).execute(
-      model(one(top, 'top end'), undefined, giver),
-      makeContext(giver, field),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WaterController()).execute(model(one(top, 'top end'), undefined, giver), ctx$)))(makeContext(giver, field));
 
     expect(moisture(top)).toBeCloseTo(2, 3);
     expect(moisture(lane)).toBe(0);

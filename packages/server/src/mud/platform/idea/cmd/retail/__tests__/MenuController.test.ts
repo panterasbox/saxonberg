@@ -31,6 +31,7 @@ import {
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import type { CommandContext } from "../../../../../api/command";
 import type { Stuff } from "../../../../../lib/stuff/Stuff";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 class TestRoom extends ContainerMixin(Idea) {}
 
@@ -140,7 +141,7 @@ afterEach(() => {
 describe("`menu` reads every slate the house hangs", () => {
   it("⭐⭐ a venue carrying BOTH shows both — the drive's finding", async () => {
     const { giver, peers } = slate({ tariff: true, menu: true });
-    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx$)))(ctx(giver));
     const out = said.join("\n");
     expect(out, "the services").toMatch(/The house does/);
     expect(out, "and the recipes — this is the regression").toMatch(
@@ -150,7 +151,7 @@ describe("`menu` reads every slate the house hangs", () => {
 
   it("a tariff alone shows only the services, with no blank menu heading", async () => {
     const { giver, peers } = slate({ tariff: true, menu: false });
-    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx$)))(ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/The house does/);
     expect(out).not.toMatch(/On the menu/);
@@ -158,7 +159,7 @@ describe("`menu` reads every slate the house hangs", () => {
 
   it("a menu alone shows only the recipes", async () => {
     const { giver, peers } = slate({ tariff: false, menu: true });
-    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx$)))(ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/Belt Knife/);
     expect(out).not.toMatch(/The house does/);
@@ -166,7 +167,7 @@ describe("`menu` reads every slate the house hangs", () => {
 
   it("⚠ neither is still an honest refusal, with the note", async () => {
     const { giver, peers } = slate({ tariff: false, menu: false });
-    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx$)))(ctx(giver));
     expect(said.join("\n")).toMatch(/no menu here/i);
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "empty-result" }),

@@ -147,7 +147,7 @@ describe("Interpreter — dispatch over the bus", () => {
     expect(r.dispatched).toHaveLength(3);
   });
 
-  it("notes an unknown verb and continues to the next statement", async () => {
+  it("⭐ an unknown verb is a refusal: the script STOPS there (failure-model D5)", async () => {
     const r = recorder();
     const interp = new Interpreter(fakeGiver([PING]), LIMITS);
     const result = await interp.drive(
@@ -156,8 +156,10 @@ describe("Interpreter — dispatch over the bus", () => {
       r.dispatch,
       r.reschedule,
     );
-    expect(r.dispatched.map((d) => d.verb)).toEqual(["ping"]);
-    expect(result.notes.some((n) => n.kind === "command-rejected")).toBe(true);
+    expect(r.dispatched.map((d) => d.verb)).toEqual([]);
+    expect(result.aborted).toBe("step-declined");
+    expect(result.stopped?.refusal?.reason).toBe("unknown-verb");
+    expect(result.stopped?.notes.some((n) => n.kind === "command-rejected")).toBe(true);
   });
 });
 
@@ -243,7 +245,7 @@ describe("Interpreter — the block keystone", () => {
       r.reschedule,
     );
     expect(r.dispatched).toHaveLength(0);
-    expect(result.notes.some((n) => n.kind === "command-rejected")).toBe(true);
+    expect(result.stopped?.notes.some((n) => n.kind === "command-rejected")).toBe(true);
   });
 });
 

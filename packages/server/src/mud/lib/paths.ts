@@ -53,6 +53,7 @@ export const TemplatePaths = {
   worldClockRegistry: "/platform/idea/WorldClockRegistry",
   mqlSubscriptionRegistry: "/platform/idea/MqlSubscriptionRegistry",
   forumSubscriptionRegistry: "/platform/idea/ForumSubscriptionRegistry",
+  subscriptionRegistry: "/platform/idea/SubscriptionRegistry",
   reactionRegistry: "/platform/idea/ReactionRegistry",
   /** The wiki's page/revision state + mutations (docs/subsystems/wiki.md). */
   wikiRegistry: "/platform/idea/WikiRegistry",
@@ -105,16 +106,17 @@ export const TemplatePaths = {
   folderZone: "/platform/idea/FolderZone",
   rootBiome: "/stuff/idea/biome/universe",
   aetherImplant: "/stuff/thing/AetherImplant",
+  // The one species every shade is (aether-devices): tuned by nature.
+  shadeSpecies: "/stuff/idea/species/shade",
 
-  // Hosted capability updates (aether hosting relation) — incorporeal
-  // Ideas cloned into an attunement host by the default loadout.
-  commsUpdate: "/platform/idea/CommsUpdate",
-  forumsUpdate: "/platform/idea/ForumsUpdate",
-  calendarUpdate: "/platform/idea/CalendarUpdate",
+  // Apps (aether hosting relation) — incorporeal Ideas a host installs by
+  // row path (`installApp`); the key is the last segment.
+  messagesApp: "/platform/idea/app/messages",
+  forumsApp: "/platform/idea/app/forums",
+  calendarApp: "/platform/idea/app/calendar",
   // The unified credential wallet app — one hosted holder for every
-  // credential kind (payment, travel, …), replacing the per-credential
-  // PaymentImplantUpdate + TravelCredentialUpdate twins.
-  credentialWalletUpdate: "/platform/idea/CredentialWalletUpdate",
+  // credential kind (payment, travel, …).
+  walletApp: "/platform/idea/app/wallet",
 
   // Payment card template — cloned per issue (a bearer instrument, 1:1
   // with one account); the reissue path after a report-lost freeze.

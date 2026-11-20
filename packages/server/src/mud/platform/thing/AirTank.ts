@@ -22,7 +22,7 @@ import { SlottableMixin } from '../../lib/slot/Slottable';
 import { WearableMixin } from '../../lib/slot/Wearable';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 
 const AirTankBase = WearableMixin(SlottableMixin(BulkableMixin(Good)));
 

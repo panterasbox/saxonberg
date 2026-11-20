@@ -134,7 +134,7 @@ that finding 3 failed.
 
 | Surface | The question |
 |---|---|
-| `StuffApi.clone('/stuff/thing/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? |
+| `StuffApi.clone('/stuff/thing/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? ⭐ **Answered 2026-11-18: yes** — *clone never creates money*: a coin template refuses clone everywhere but the reserve's own minting tool; the gap is open today (banking.md: a template with `quantity: 1000000` clones into a fortune) and closes before launch, on the reserved list's machinery layer ([separation-of-powers-slate](../society/separation-of-powers-slate.md) § 7p). |
 | The `clone` verb's `--into` / quantity opts | Can an author clone a coin stack with an arbitrary quantity? |
 | **Crafting yields** | Can a `Recipe`'s `outputTemplate` be `/stuff/thing/Coin`? Recipes are data in the `recipes` collection. If yes, **a recipe is a mint.** |
 | **Content packs** | `PackApi` reconcile installs authored templates. Can a pack ship a coin-yielding recipe or a pre-stocked container? |
@@ -203,6 +203,7 @@ The mechanism is verified; the callers are not. Paths that could reach a
 
 | path | the question |
 |---|---|
+| ⚠ **the starting kit** (added 2026-11-18) | Every new character is minted clothes, a satchel and — from the aether-devices build — a **phone** that is not cheap to replace. *Make throwaway characters and sell their kit* is a value leak. The owner: *"I'm just worried about phones leaking into the economy … or anything for that matter."* Guests are covered (a forced implant cannot be sold); new characters are not. |
 | `Avatar.restore()` | Public and documented as admin-only. Is it reachable by a verb? ⭐ See open question 6. |
 | ~~`onCreate` under **hot reload**~~ | ✅ **TRACED 2026-09-24 — SAFE.** `clone` is the only HMR-aware site; `reload` never touches a live instance. See below. |
 | ~~`standUpKeyed` → `restoreOrSeed`~~ | ✅ **TRACED 2026-09-24 — SAFE, and they are not one path.** See below. |

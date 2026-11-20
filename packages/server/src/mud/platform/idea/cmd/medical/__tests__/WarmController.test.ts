@@ -28,6 +28,7 @@ import type { MqlManyResult } from '../../../../../api/mql';
 import { MixinApi } from '../../../../../api/mixin';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Trauma } from '../../../Condition';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Firewood extends CombustibleMixin(
   WetMixin(ThermalMixin(ReservedMixin(Good))),
@@ -122,20 +123,14 @@ afterEach(() => {
 describe('WarmController', () => {
   it('⭐⭐ warming frostbite treats it — it reads as rewarmed', async () => {
     const { me, frost } = frostbitten();
-    await makeStuff(() => new WarmController()).execute(
-      { source: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WarmController()).execute({ source: reachable(me) }, ctx$)))(ctxFor(me));
     expect(frost.dressed).toBe(true);
     expect(frost.careQuality).toBeGreaterThan(0);
   });
 
   it('⚠ needs a BURNING fire', async () => {
     const { me } = frostbitten(false); // no fire in the room
-    await makeStuff(() => new WarmController()).execute(
-      { source: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WarmController()).execute({ source: reachable(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-fire' }),
     );
@@ -147,10 +142,7 @@ describe('WarmController', () => {
     ContainmentApi.move(me, room);
     ContainmentApi.move(burningLog(), room);
     me.afflict({ kind: 'trauma', type: 'burn', site: 'body.arm.left', severity: 2 });
-    await makeStuff(() => new WarmController()).execute(
-      { source: reachable(me) },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new WarmController()).execute({ source: reachable(me) }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-warm' }),
     );

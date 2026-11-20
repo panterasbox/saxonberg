@@ -253,3 +253,65 @@ Moved to [media-responses.md](./media-responses.md) (2026-11-10): published
 pieces that state, in someone else's voice, the problem this project
 answers, each with its exact quotes and our response. Guardrail 3 applies
 there too.
+
+---
+
+## Part 7 — For streamers (added 2026-11-18)
+
+> **Status: messaging doctrine and draft copy**, out of the broadcasting design
+> ([broadcasting-slate](./slates/trades/broadcasting-slate.md) § 7). The owner: *"I want to have a public
+> document somewhere that isn't shy about marketing our platform to the livestreamer without saying we're
+> directly competing … the stuff about them owning their own audience I actually think is a huge deal — it's
+> the sort of thing that changes markets and business models."*
+
+### 7a — The claim
+
+**A stream is one place a community gathers; it shouldn't be the only place, and it shouldn't be the place
+that owns them.** Saxonberg gives a streamer's community a world to live in — with a memory, a constitution,
+and standing that belongs to the people who earned it. Video comes from wherever the streamer already
+streams.
+
+### 7b — What to say, and how true it is
+
+| say | true today? |
+|---|---|
+| **Your stream plays on screens inside the world** — from Twitch, YouTube or Kick | ✅ built: `watch` and `tune` over the three transports; screens in the world show a stream |
+| **A viewer can look around before signing in** | ✅ built: the anonymous-guest path |
+| **Your community is yours** — members, their standing and what they built belong to them and to you, not to a video platform | ⭐ a constitutional guarantee: *anyone can always leave, walking out with their account, their standing, and everything they built* |
+| **Viewers step into the world your stream is showing** | designed: frame as *what we're building* |
+| **A community that moderates itself, with due process** — holds that expire, appeals, a public log | designed ([moderation-slate](./slates/society/moderation-slate.md)): frame as *what we're building* |
+| **Run your own world** — a big community on its own realm, federated with the rest | ambition: frame as ambition |
+| **Support that means something** — *standing, not equity* | ⚠ say only *standing, not equity*, exactly as the site does (Part 3) |
+
+### 7c — Copy blocks
+
+> **Eyebrow:** For streamers
+>
+> **Title:** Your community is yours.
+>
+> Your stream is where people find you. It doesn't have to be where they live. Saxonberg puts your stream on
+> screens inside a world your audience can walk into — and everything they build there, every bit of standing
+> they earn, belongs to them and to you. Not to a video platform.
+>
+> Stream from wherever you already stream. Twitch, YouTube, Kick — your stream plays here either way. You
+> don't move your stream. You give your audience somewhere to be.
+>
+> And if a platform ever changes its rules on you, your community doesn't go with it. Anyone can always leave
+> here with their account, their standing and everything they built — which is exactly why they'll stay.
+
+**One-liners:**
+
+- *Your stream is where they find you. This is where they live.*
+- *The video is theirs. The community is yours.*
+- *A stream ends. A world remembers.*
+
+### 7d — Guardrails for this part
+
+1. ⛔ **Never frame a video platform as a competitor**, and never disparage one. Name Twitch, YouTube and Kick
+   only as places a streamer already streams from, which the world supports. No *killer*, no *instead of*.
+2. ⭐ **Audience ownership is the headline** — it is true, checkable, and the thing that changes the business
+   model for a creator.
+3. **Claims stay checkable** (Part 5, guardrail 3): each line in 7b is built, a constitutional guarantee, or
+   framed as what we're building or as ambition.
+4. **Never imply that support buys equity or power** — *standing, not equity*; money never carries alone.
+5. **Assert, don't defend** (Part 5, guardrail 2).

@@ -25,6 +25,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Harbor from '../idea/Harbor';
 import HarborQuay from '../location/HarborQuay';
 import HarborBook from '../thing/HarborBook';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const HARBOR = '/test/port/idea/harbor';
 const BOOK = '/test/port/thing/berth-book';
@@ -395,15 +396,15 @@ describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)',
     vi.spyOn(hesper, 'aboard').mockResolvedValue([]);
     vi.spyOn(coaster, 'aboard').mockResolvedValue([]);
     river.levelM = -1.5;
-    expect(await harbor.assignBy(coaster, TOWN, by, at(9))).toMatch(/^The bar: .*2\.4 m over the bar/);
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(coaster, TOWN, by, at(9)))).toMatch(/^The bar: .*2\.4 m over the bar/);
     river.levelM = 1.5;
-    expect(await harbor.assignBy(coaster, FISH, by, at(9))).toMatch(/no room for her at .*25 m is free and she is 35 m/);
-    expect(await harbor.assignBy(hesper, TOWN, by, at(9))).toBeNull();
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(coaster, FISH, by, at(9)))).toMatch(/no room for her at .*25 m is free and she is 35 m/);
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(hesper, TOWN, by, at(9)))).toBeNull();
     expect(book.getLines(at(9)).map((r) => [r.name, r.quay])).toEqual([['the Hesper', TOWN]]);
     // 40 m left: the coaster fits the Town Quay now.
-    expect(await harbor.assignBy(coaster, TOWN, by, at(9))).toBeNull();
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(coaster, TOWN, by, at(9)))).toBeNull();
     // Off shift, nothing.
-    expect(await harbor.assignBy(hesper, FISH, keeper(false), at(9))).toMatch(/do not keep this harbor/);
+    expect(await ((off) => TestHarnessApi.actAs(off, () => harbor.assignBy(hesper, FISH, off, at(9))))(keeper(false))).toMatch(/do not keep this harbor/);
   });
 
   it('⭐ dues owed refuse a berth; a ship made fast is never moved or sent away', async () => {
@@ -411,10 +412,10 @@ describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)',
     const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
     vi.spyOn(hesper, 'aboard').mockResolvedValue([]);
     await harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
-    expect(await harbor.assignBy(hesper, FISH, by, at(10))).toMatch(/lies alongside .* already/);
-    expect(await harbor.sendToRoads(hesper, by, at(10))).toMatch(/is not sent to the roads/);
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(hesper, FISH, by, at(10)))).toMatch(/lies alongside .* already/);
+    expect(await TestHarnessApi.actAs(by, () => harbor.sendToRoads(hesper, by, at(10)))).toMatch(/is not sent to the roads/);
     await harbor.release(hesper as unknown as Stuff, at(10)); // left owing a day
-    expect(await harbor.assignBy(hesper, TOWN, by, at(11))).toMatch(/owes 8 in dues/);
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(hesper, TOWN, by, at(11)))).toMatch(/owes 8 in dues/);
   });
 
   it('⭐ the roads: a ship sent there is named by the book and can be called in again', async () => {
@@ -423,14 +424,14 @@ describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)',
     vi.spyOn(ketch, 'aboard').mockResolvedValue([]);
     river.levelM = 1.5;
     expect(await harbor.answerHail(ketch as unknown as Stuff, at(9))).toMatchObject({ kind: 'quay', quay: TOWN });
-    expect(await harbor.sendToRoads(ketch, by, at(9))).toBeNull();
+    expect(await TestHarnessApi.actAs(by, () => harbor.sendToRoads(ketch, by, at(9)))).toBeNull();
     expect(book.getLines(at(9))).toEqual([]);
     expect(book.roadsHails(at(9)).map((h) => h.name)).toEqual(['the Ketch']);
     expect(await harbor.shipNamed('ketch', at(10))).toBe(ketch);
     expect(await harbor.shipNamed('the ketch', at(10))).toBe(ketch);
     expect(await harbor.quayNamed('fish-quay')).toBe(FISH);
     expect(await harbor.isRoadsWord('the roads')).toBe(true);
-    expect(await harbor.assignBy(ketch, FISH, by, at(10))).toBeNull();
+    expect(await TestHarnessApi.actAs(by, () => harbor.assignBy(ketch, FISH, by, at(10)))).toBeNull();
     expect(book.roadsHails(at(10))).toEqual([]);
     expect(await town.admit(ketch as unknown as Stuff, at(10))).toMatch(/gave her .*not this quay/);
   });

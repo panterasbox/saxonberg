@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -30,11 +31,13 @@ import { Idea } from "../../../../../lib/stuff/Idea";
 import { CommandApi } from "../../../../../api/command";
 import { CommandLineApi } from "../../../../../api/command-line";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 function stubPM() {
   let findResult: Record<string, unknown>[] = [];
   const pm = PersistenceManager.get();
   vi.spyOn(pm, "save").mockResolvedValue("inserted-id" as never);
+  spySaveMany(pm);
   vi.spyOn(pm, "find").mockImplementation(async () => findResult);
   return { setFindResult: (d: Record<string, unknown>[]) => (findResult = d) };
 }
@@ -100,7 +103,7 @@ describe("config controllers", () => {
       : model.value === undefined
         ? makeStuff(() => new ConfigShowController())
         : makeStuff(() => new ConfigSetController());
-    return ctrl.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   }
 
   it("lists every known key with its current value", async () => {

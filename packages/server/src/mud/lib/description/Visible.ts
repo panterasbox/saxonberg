@@ -20,9 +20,9 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import type { Stuff } from '../stuff/Stuff';
 import { ILLUSTRATION_SHAPES, type IllustrationShape, type ProseSegment } from '@saxonberg/types';
 import {
@@ -41,7 +41,7 @@ import { SENSE_CHANNELS } from './Perceiver';
  *
  * Visible is pure **target shape** — it owns the description state
  * (`shortDescription` / `longDescription`) and contributes no
- * verbs. The verbs of perception (`look` / `scry` / `locate`) live
+ * verbs. The verbs of perception (`look` / `scry`) live
  * on `PerceiverMixin`'s `self` bucket; perceivers issue them, and
  * scope resolution at execution time picks any reachable Visible
  * as a target.
@@ -204,6 +204,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'shortDescription',
+        sense: 'vision',
         read: (stuff) =>
           (stuff as unknown as Visible).getShortDescription(),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -226,6 +227,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // unknown-tongue masking) plug in via the same slot. Plain
         // Visible hosts contribute nothing and the wrap is a no-op.
         name: 'longDescription',
+        sense: 'vision',
         read: (stuff, viewer) =>
           (stuff as unknown as Visible).getMarkupLong(viewer),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -237,6 +239,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // omits it. The member fallback (own ?? species) lives in Organism's
         // getIllustration override, reached here via polymorphic dispatch.
         name: 'illustration',
+        sense: 'vision',
         read: (stuff) =>
           (stuff as unknown as Visible).getIllustration() ?? undefined,
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -245,6 +248,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // The declared shape rides beside the picture so the card can
         // reserve the right box before it loads — never a crop.
         name: 'illustrationShape',
+        sense: 'vision',
         read: (stuff) => (stuff as unknown as Visible).getIllustrationShape(),
       },
     ];
@@ -274,7 +278,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setShortDescription(value: string): void {
-      this.shortDescription = MqlSubscriptionApi.fireFieldChange(
+      this.shortDescription = SubscriptionApi.fireFieldChange(
         this,
         'shortDescription',
         this.shortDescription,
@@ -299,7 +303,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
             `(expected ${REGISTERS.join(' | ')})`,
         );
       }
-      this.register = MqlSubscriptionApi.fireFieldChange(
+      this.register = SubscriptionApi.fireFieldChange(
         this,
         'register',
         this.register,
@@ -312,7 +316,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setLongDescription(value: string): void {
-      this.longDescription = MqlSubscriptionApi.fireFieldChange(
+      this.longDescription = SubscriptionApi.fireFieldChange(
         this,
         'longDescription',
         this.longDescription,
@@ -339,7 +343,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
             `(expected ${ILLUSTRATION_SHAPES.join(' | ')})`,
         );
       }
-      this.illustrationShape = MqlSubscriptionApi.fireFieldChange(
+      this.illustrationShape = SubscriptionApi.fireFieldChange(
         this,
         'illustrationShape',
         this.illustrationShape,
@@ -352,7 +356,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       // strip any leading slash so the client joins base + key cleanly.
       const key =
         value && value.trim() ? value.trim().replace(/^\/+/, '') : null;
-      this.illustration = MqlSubscriptionApi.fireFieldChange(
+      this.illustration = SubscriptionApi.fireFieldChange(
         this,
         'illustration',
         this.illustration,

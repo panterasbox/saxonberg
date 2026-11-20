@@ -34,6 +34,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { AccessApi } from '../../api/access';
 
 /**
  * ⭐ What a thing can be SEALED with — a gummed flap, a blob
@@ -63,18 +64,23 @@ const sealAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 /**
- * ⭐ Why it will not open as asked (controller-liquidity W7c) — the `open`
- * verb words each.
- *  - `cannot-open` — it refuses this person (`canOpen`); `why` is its own words.
+ * ⭐ Why it will not open as asked (controller-liquidity W7c; reasons as
+ * rows since failure-model W0) — each a platform reason row
+ * (`/platform/reasons/<code>`) that words it; the `open` verb passes the
+ * answer on and says nothing itself.
+ *  - `locked` — its lock holds against this person (`canOpen`).
  *  - `already-open` — it is open.
  *  - `no-setting` — a setting was named and it is open or shut, nothing between.
  *  - `bad-setting` — a throttled gate, and the setting named is not one.
  */
 export type OpenRefusal =
-  | ActRefusal<'cannot-open', { why: string | null }>
-  | ActRefusal<'already-open'>
-  | ActRefusal<'no-setting'>
-  | ActRefusal<'bad-setting'>;
+  | ActRefusal<'locked', { target: Stuff }>
+  | ActRefusal<'already-open', { target: Stuff }>
+  | ActRefusal<'no-setting', { target: Stuff }>
+  | ActRefusal<'bad-setting', { target: Stuff }>;
+
+/** What `canOpen` answers: yes, or its lock holds. */
+export type OpenVeto = { ok: true } | ActRefusal<'locked', { target: Stuff }>;
 
 /** What opening it came to: opened, or (a throttled gate) set to an amount. */
 export type OpenFacts =
@@ -99,10 +105,10 @@ export interface Sealable {
   /**
    * @hook May `by` open this now? (water-supply D12) The default says yes;
    * a `Door` says no while it is locked, a `Gate` while its padlock holds
-   * against somebody with no key. The `open` verb asks it first and renders
-   * the refusal it returns — the mixin decides, the controller says it.
+   * against somebody with no key. The `open` verb asks it first and passes
+   * the refusal on — the mixin decides, the reason's row says it.
    */
-  canOpen(by: Stuff): VetoResult;
+  canOpen(by: Stuff): OpenVeto;
   /**
    * ⭐ `open <it> [to <setting>]` — one act (controller-liquidity W7c): the
    * thing decides. A door opens (or is already open, or refuses this
@@ -218,17 +224,19 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** May `by` open this? A plain sealable always says yes. */
-    canOpen(_by: Stuff): VetoResult {
+    canOpen(_by: Stuff): OpenVeto {
       return { ok: true };
     }
 
     /** @hook See {@link Sealable.openPlanFor}. Open or shut — a setting is refused. */
     openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(by);
       const may = this.canOpen(by);
-      if (!may.ok) return { ok: false, reason: 'cannot-open', facts: { why: may.reason ?? null } };
-      if (setting !== null) return { ok: false, reason: 'no-setting' };
-      if (this.isOpen()) return { ok: false, reason: 'already-open' };
+      if (!may.ok) return may;
       const thing = this as unknown as Stuff;
+      if (setting !== null) return { ok: false, reason: 'no-setting', facts: { target: thing } };
+      if (this.isOpen()) return { ok: false, reason: 'already-open', facts: { target: thing } };
       const facts: OpenFacts = { kind: 'opened', thing };
       return {
         ok: true, durationMs: 0, effortW: 0, facts,

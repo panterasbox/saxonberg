@@ -49,6 +49,7 @@ import { Events } from '../../lib/events';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
+  type ActorClaim,
 } from '../../api/execution-context';
 import { HotReloadApi } from '../../api/hot-reload';
 import { MixinApi } from '../../api/mixin';
@@ -139,6 +140,12 @@ export default class SchedulerRegistry extends Idea {
    * has no author.
    */
   private causingAuthors: Map<string, unknown> = new Map();
+  /**
+   * ⭐ Who was ACTING when each engagement started (call-security pass D2)
+   * — planted beside the author. Unlike the author it is set for a forced
+   * start: an NPC's engagement completes as the NPC.
+   */
+  private causingActors: Map<string, ActorClaim> = new Map();
   private hostSubscriptions: Map<string, Subscription<unknown>> = new Map();
   private activityRegistry: Map<string, ActivityClass> = new Map();
 
@@ -328,6 +335,7 @@ export default class SchedulerRegistry extends Idea {
     if (!this.engagementsById.has(engagement.engagementId)) return;
     this.clearTimersAndSubs(engagement.engagementId);
     this.deregister(engagement);
+    engagement.endedBy = 'completed';
     const cls = this.activityRegistry.get(engagement.type);
     const hasComplete =
       typeof (cls?.prototype as Partial<DurativeActivity> | undefined)
@@ -387,6 +395,7 @@ export default class SchedulerRegistry extends Idea {
     }
     this.emissionTimers.clear();
     this.causingAuthors.clear();
+    this.causingActors.clear();
     for (const sub of this.hostSubscriptions.values()) {
       try {
         sub.unsubscribe();
@@ -410,6 +419,8 @@ export default class SchedulerRegistry extends Idea {
     const actor = e.actor;
     const author = ExecutionContextApi.getCausingAuthor();
     if (author != null) this.causingAuthors.set(e.engagementId, author);
+    const acting = ExecutionContextApi.captureActor();
+    if (acting.actor != null || acting.system != null) this.causingActors.set(e.engagementId, acting);
     // Direct participant call: `_setEngagement` is gated on THIS
     // registry (`FromTemplate('/platform/idea/SchedulerRegistry')`), so the
     // registry calls as itself — no synthetic SchedulerApi root needed.
@@ -461,7 +472,7 @@ export default class SchedulerRegistry extends Idea {
               SchedulerApi,
               'emission',
               () => {
-                this.plantAuthor(e.engagementId);
+                ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(e.engagementId));
                 this.fireEmission(e, em);
               },
               'swallow',
@@ -484,7 +495,7 @@ export default class SchedulerRegistry extends Idea {
             SchedulerApi,
             'completion',
             () => {
-              this.plantAuthor(id);
+              ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(id));
               const live = this.engagementsById.get(id);
               if (!live || !isDurativeActivity(live)) return;
               this.completeFromTimer(live);
@@ -533,9 +544,11 @@ export default class SchedulerRegistry extends Idea {
 
   private runOnCompleteInPlace(e: DurativeActivity): void {
     this.emitExertion(e, 1);
+    e.endedBy = 'completed';
     try {
       this.dispatchOnComplete(e);
     } catch (err) {
+      e.endedBy = 'thrown';
       console.error(
         `SchedulerApi: onComplete threw for sub-100ms engagement ` +
           `'${e.engagementId}' (type '${e.type}'); aborting with 'thrown'`,
@@ -564,6 +577,7 @@ export default class SchedulerRegistry extends Idea {
     if (!this.engagementsById.has(e.engagementId)) return;
     this.clearTimersAndSubs(e.engagementId);
     this.deregister(e);
+    e.endedBy = reason;
     // A step you were barged out of still cost you the part you did.
     if (
       isDurativeActivity(e) &&
@@ -584,9 +598,11 @@ export default class SchedulerRegistry extends Idea {
   }
 
   private safeInvokeComplete(e: DurativeActivity): void {
+    e.endedBy = 'completed';
     try {
       this.dispatchOnComplete(e);
     } catch (err) {
+      e.endedBy = 'thrown';
       console.error(
         `SchedulerApi: onComplete threw for engagement ` +
           `'${e.engagementId}' (type '${e.type}'); aborting with 'thrown'`,
@@ -618,7 +634,17 @@ export default class SchedulerRegistry extends Idea {
       this.dispatchOnAbort(e, 'thrown');
       return;
     }
-    (cls.prototype as DurativeActivity).onComplete.call(e);
+    const out: unknown = (cls.prototype as DurativeActivity).onComplete.call(e);
+    // ⭐ A completion that returns a promise has no root to catch its
+    // rejection (the silent-write census's B103): it is reported here,
+    // never left unhandled (failure-model D9).
+    if (out instanceof Promise) {
+      out.then(undefined, (err: unknown) => {
+        void import('../../api/command')
+          .then(({ CommandApi }) => CommandApi.reportFailure(err, null, `engagement ${e.type}`))
+          .catch((reportErr: unknown) => console.error('SchedulerApi: could not report a failed completion', reportErr));
+      });
+    }
   }
 
   private dispatchOnAbort(e: Engagement, reason: AbortReason): void {
@@ -657,14 +683,26 @@ export default class SchedulerRegistry extends Idea {
     }
   }
 
-  /** Plant the engagement's author on the root its continuation runs in. */
-  private plantAuthor(id: string): void {
+  /**
+   * What the engagement's continuation root carries: its author and ⭐ who
+   * was acting when it started (call-security pass D2). RETURNED, and planted
+   * by the caller on its own root — ⚠ a method call is a proxied frame of
+   * its own, so planting from inside one wrote the metadata onto that frame
+   * and it vanished on return (the author plant had been lost the same way).
+   */
+  private continuationMetadata(id: string): Record<string, unknown> {
+    const md: Record<string, unknown> = {};
     const author = this.causingAuthors.get(id);
-    if (author != null) ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: author });
+    if (author != null) md.causingAuthor = author;
+    const acting = this.causingActors.get(id);
+    if (acting?.system != null) md.actingSystem = acting.system;
+    else if (acting?.actor != null) md.actor = acting.actor;
+    return md;
   }
 
   private clearTimersAndSubs(id: string): void {
     this.causingAuthors.delete(id);
+    this.causingActors.delete(id);
     const timer = this.completionTimers.get(id);
     if (timer) {
       timer.cancel();

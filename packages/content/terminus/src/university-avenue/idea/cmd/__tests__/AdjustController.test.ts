@@ -32,6 +32,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -89,20 +90,17 @@ describe('AdjustController', () => {
 
   it('sets the named mechanical timepiece to the given time', async () => {
     const w = openWatchInHand();
-    await makeStuff(() => new AdjustController()).execute(
-      { target: one(w, 'watch'), time: '4:00' } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AdjustController()).execute({ target: one(w, 'watch'), time: '4:00' } as CommandModel, ctx$)))(ctxFor(avatar, room));
     expect(w.currentReading()?.format()).toBe('04:00');
   });
 
   it('rejects an unparseable time', async () => {
     const w = openWatchInHand();
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new AdjustController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new AdjustController()).execute(
       { target: one(w, 'watch'), time: 'noon' } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);
@@ -111,10 +109,10 @@ describe('AdjustController', () => {
   it('rejects a non-mechanical target', async () => {
     const rock = makeStuff(() => new (class extends VisibleMixin(Good) {})());
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new AdjustController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new AdjustController()).execute(
       { target: one(rock, 'rock'), time: '4:00' } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);
@@ -122,10 +120,10 @@ describe('AdjustController', () => {
 
   it('rejects a missing target', async () => {
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new AdjustController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new AdjustController()).execute(
       { time: '4:00' } as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

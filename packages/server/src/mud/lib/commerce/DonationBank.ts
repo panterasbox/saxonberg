@@ -34,6 +34,18 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { EmploymentApi } from "../../api/employment";
+import { AccessApi } from "../../api/access";
+import type { ActRefusal } from "../craft/ActPlan";
+
+/**
+ * What {@link DonationBank.takeUnit} answers: the moved holder, or why not —
+ * nobody issuing, an issuer who does not keep the window, an empty lot.
+ */
+export type TakeUnitAnswer =
+  | ActRefusal<"no-issuer">
+  | ActRefusal<"not-keeper", { window: Stuff }>
+  | ActRefusal<"lot-empty", { lot: string }>
+  | { ok: true; unit: Stuff };
 
 /** One lot's on-hand total: how many litres, across how many units (bags). */
 export interface LotTotal {
@@ -65,16 +77,13 @@ export interface DonationBank {
   /**
    * Hand one unit of `lotKey` to `dest` (a container — a recipient's
    * hands), recording custody. `issuer` is who issued it (for the deed).
-   * ⭐ A person issuing must keep the window ({@link keptBy} — asked here,
-   * controller-liquidity W13); a null issuer is the house's own act.
-   * Returns the moved holder, or null when the lot is empty or the issuer
-   * does not keep the window.
+   * ⭐ The issuer must be who is acting and must keep the window
+   * ({@link keptBy}); ⛔ an issue with NO issuer is refused (`no-issuer`) —
+   * it used to pass every gate (call-security pass D6). Answers the moved
+   * holder, or the refusal that says why not: `no-issuer`, `not-keeper`,
+   * `lot-empty`.
    */
-  takeUnit(
-    lotKey: string,
-    dest: Stuff,
-    issuer?: Stuff | null,
-  ): Promise<Stuff | null>;
+  takeUnit(lotKey: string, dest: Stuff, issuer: Stuff | null): Promise<TakeUnitAnswer>;
   /**
    * The oldest unit compatible with `recipient` (FIFO by freshness) — its
    * holder is returned IN the vault, drained to empty (the house
@@ -252,19 +261,19 @@ export function DonationBankMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    public async takeUnit(
-      lotKey: string,
-      dest: Stuff,
-      issuer?: Stuff | null,
-    ): Promise<Stuff | null> {
-      if (issuer && !(await this.keptBy(issuer))) return null;
+    public async takeUnit(lotKey: string, dest: Stuff, issuer: Stuff | null): Promise<TakeUnitAnswer> {
+      // ⭐ Fails CLOSED (call-security pass D6): nobody issuing is a refusal,
+      // never the house's pass; somebody issuing must be who is acting.
+      if (issuer == null) return { ok: false, reason: "no-issuer" };
+      AccessApi.requireActor(issuer);
+      if (!(await this.keptBy(issuer))) return { ok: false, reason: "not-keeper", facts: { window: this as unknown as Stuff } };
       const holder = this.holdersOfLot(lotKey)[0];
-      if (!holder) return null;
+      if (!holder) return { ok: false, reason: "lot-empty", facts: { lot: lotKey } };
       if (MixinApi.isContainable(holder) && MixinApi.isContainer(dest)) {
         ContainmentApi.move(holder, dest);
       }
-      await this.recordCustody("issue", lotKey, issuer ?? null, dest);
-      return holder;
+      await this.recordCustody("issue", lotKey, issuer, dest);
+      return { ok: true, unit: holder };
     }
 
     public async keptBy(person: Stuff): Promise<boolean> {

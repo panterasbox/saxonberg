@@ -1497,6 +1497,46 @@ dropped **passes** with a note to drop it from the pin. ⭐ The ratchet is by
 name, not by count: a count would let one key be swapped for another
 unseen.
 
+### The failure-model gates — silence, counted (2026-11-18)
+
+Five gates from the failure-model build (ceilings measured on the tree it merges into, master's navigation-server and call-security-performance included; [response-envelope.md §
+`refused`](./subsystems/response-envelope.md)). Four are censuses at
+today's count; one is clean at zero. Each reads syntax only (the TypeScript
+AST) over the kernel and every pack `src/`, tests excluded.
+
+| gate | counts | first ceiling |
+|---|---|---|
+| `lint:reason-rows` | ⛔ hard at 0: a literal `new Refusal('<code>'` with no row, or a literal fact its row does not declare · (i) distinct `reason: '<code>'` literals with no row · (ii) legacy wordings — `controller-rejected` literals plus worded `refuse(context, topic, line, reason)` calls | 0 · 969 · 579 |
+| `lint:content-refs` | across every pack at once: a recipe band that is not a band, an `outputMaterial` no pack ships, an `on <reason>` in a shipped `.msh` with no row | 0 |
+| `lint:silent-catch` | a `catch` whose block neither throws, reports (`reportFailure`, `DiagnosticApi.record`, `.refuse(`), answers a refusal, nor says `@quiet <why>` | 1022 |
+| `lint:floating-promises` | a `void <call>` whose promise has no rejection handler (`.catch`, a two-argument `.then`, `runRootGuarded`) | 182 |
+| `lint:act-nulls` | a `return null` from a function returning `…Refusal`/`…Plan`/`…Answer`/`…Outcome`/`…Choices` or `null`, or from a `resolve<X>` method outside `api/mql`, whose TSDoc does not say `@nothing <why>` | 172 |
+
+⭐ The compiler used to be the census of *every refusal has words* (an
+exhaustive wording `switch` per controller). A migrated controller has no
+switch — it passes the answer on — so `lint:reason-rows` is that census now.
+⚠ `lint:floating-promises` cannot see a promise dropped with NO `void`;
+that needs types, and a typed lint is a deferred seam.
+
+### The call-security pass gates — who is acting, counted (2026-11-19)
+
+- **`lint:actor-claims`** — a function that hands one of its parameters to
+  a permission predicate as the ACTOR (the first parameter-rooted argument;
+  the receiver of `isFulfilling`/`isOnShiftFor`) without first calling
+  `AccessApi.requireActor` on it. The vocabulary is `lint:controller-gates`'
+  `GATE_PATTERNS` (read, not copied) plus the pass's survey. Predicates
+  (`can…`/`may…`, a declared `boolean`) and brains are not counted. Opened
+  at **49**, driven to **0** in one build, held at 0; the output also
+  publishes how many protective methods check their actor. ⚠ Blind to a
+  hand-rolled comparison no predicate names — name the predicate.
+- **`lint:compellable`** — both keys of a command another body's code may
+  ask a body to run: every `compellable: consent` view names a controller
+  that declares `static compellable = true`, and every such class is named;
+  no declaring controller under `social · governance · banking · employment
+  · work · system · author · shell · stream · charactergen` (the never-list:
+  speech, conferral, membership, money given, verbs that run others); and a
+  ratchet on the declaring classes, **1** (`title buy`).
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

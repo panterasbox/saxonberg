@@ -47,6 +47,7 @@ import {
   teardownBankingHarness,
   seedRow,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 // The coat check is a composition of kernel mixins; the instanceable class
 // ships in `/trade/hospitality`. The composition line IS the fixture, and
@@ -154,10 +155,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new RackCheckController()).execute(
-        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
-        ctx(patron, loc, rack, "check"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackCheckController()).execute({ thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(patron, loc, rack, "check")),
     );
     expect(knife.getContainer()).toBe(rack); // custody → the house
     expect(await knife.chattelOwner()).toEqual({
@@ -180,10 +178,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new RackCheckController()).execute(
-        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
-        ctx(patron, loc, rack, "check"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackCheckController()).execute({ thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(patron, loc, rack, "check")),
     );
     // A second person tries to buy it off the rack. The rack composes only
     // the custody base (HeldGoodsMixin), not the sale layer, so `buy` finds
@@ -197,10 +192,10 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const c = ctx(buyer, loc, rack, "buy");
     (c as unknown as { note: unknown }).note = note;
     await asOwner(buyer, () =>
-      makeStuff(() => new BuyController()).execute(
+      TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new BuyController()).execute(
         { thing: "knife", counter: { stuff: rack as never, raw: "counter" } },
         c,
-      ),
+      )),
     );
     expect(knife.getContainer()).toBe(rack); // still checked — not sold
     expect(note).toHaveBeenCalled(); // a rejection, not a sale
@@ -213,10 +208,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new RackCheckController()).execute(
-        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
-        ctx(patron, loc, rack, "check"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackCheckController()).execute({ thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(patron, loc, rack, "check")),
     );
     // A stranger can't reclaim it (custody without title is theft).
     const stranger = makeStuffAtPath(
@@ -225,19 +217,13 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     );
     ContainmentApi.move(stranger as never, loc as never);
     await asOwner(stranger, () =>
-      makeStuff(() => new RackReclaimController()).execute(
-        { thing: "knife", rack: { stuff: rack as never, raw: "rack" } },
-        ctx(stranger, loc, rack, "rack reclaim"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackReclaimController()).execute({ thing: "knife", rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(stranger, loc, rack, "rack reclaim")),
     );
     expect(knife.getContainer()).toBe(rack); // stayed on the rack
 
     // The owner reclaims it — ownership unchanged.
     await asOwner(patron, () =>
-      makeStuff(() => new RackReclaimController()).execute(
-        { thing: "knife", rack: { stuff: rack as never, raw: "rack" } },
-        ctx(patron, loc, rack, "rack reclaim"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackReclaimController()).execute({ thing: "knife", rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(patron, loc, rack, "rack reclaim")),
     );
     expect(knife.getContainer()).toBe(patron);
     expect(await knife.chattelOwner()).toEqual({
@@ -256,10 +242,10 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const c = ctx(patron, loc, rack, "check");
     (c as unknown as { note: unknown }).note = note;
     await asOwner(patron, () =>
-      makeStuff(() => new RackCheckController()).execute(
+      TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: shield as never, raw: "shield" }, rack: { stuff: rack as never, raw: "rack" } },
         c,
-      ),
+      )),
     );
     expect(shield.getContainer()).toBe(patron); // never left the patron
     expect(note).toHaveBeenCalledWith(
@@ -276,10 +262,10 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const c = ctx(patron, loc, rack, "check");
     (c as unknown as { note: unknown }).note = note;
     await asOwner(patron, () =>
-      makeStuff(() => new RackCheckController()).execute(
+      TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: slip as never, raw: "slip" }, rack: { stuff: rack as never, raw: "rack" } },
         c,
-      ),
+      )),
     );
     expect(slip.getContainer()).toBe(patron);
     expect(note).toHaveBeenCalledWith(

@@ -35,6 +35,10 @@ function fakeInteractive(): unknown {
     getUserId: () => 'user-1',
     getSocketId: () => 'sock-1',
     getSessionId: () => 'sess-1',
+    // The session subscriptions (navigation-server D1): none here, so the
+    // payload reads directly.
+    cancelSubscription: () => {},
+    subscribe: () => null,
   };
 }
 

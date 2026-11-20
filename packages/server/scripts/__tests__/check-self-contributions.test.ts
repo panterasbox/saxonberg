@@ -67,18 +67,18 @@ describe('mixinsComposedBy — a factory\'s own chain', () => {
 describe('deadSelfDeclarations — who RECEIVES', () => {
   // The world: an avatar (a giver) composes CharacterMixin, which composes
   // ContainerMixin; a tool composes AssembledMixin and nothing that
-  // receives `self`; a shadow and a hosted update are receivers.
+  // receives `self`; a shadow and a hosted app are receivers.
   const classes = new Map([
     ['/lib/character/Avatar', '/f/Avatar.ts'],
     ['/platform/thing/AssembledTool', '/f/AssembledTool.ts'],
     ['/platform/thing/Bole', '/f/Bole.ts'],
     ['/platform/shadow/Hood', '/f/Hood.ts'],
-    ['/platform/idea/CommsUpdate', '/f/CommsUpdate.ts'],
+    ['/platform/idea/WalletApp', '/f/WalletApp.ts'],
   ]);
   const composesTable: Record<string, string[]> = {
     '/lib/character/Avatar': ['CommandGiverMixin', 'CharacterMixin'],
     '/platform/thing/AssembledTool': ['AssembledMixin'],
-    '/platform/idea/CommsUpdate': ['AetherHostedMixin', 'CommsMixin'],
+    '/platform/idea/WalletApp': ['AetherHostedMixin', 'CredentialWalletMixin'],
   };
   const q: ReceiverQuestions = {
     isReceiver: (c) =>
@@ -115,9 +115,9 @@ describe('deadSelfDeclarations — who RECEIVES', () => {
     expect(dead(decl('ContainerMixin', '/f/Container.ts', true))).toBe(false);
   });
 
-  it('a shadow and a hosted update are receivers', () => {
+  it('a shadow and a hosted app are receivers', () => {
     expect(dead(decl('Hood', '/f/Hood.ts', false))).toBe(false);
-    expect(dead(decl('CommsMixin', '/f/Comms.ts', true))).toBe(false);
+    expect(dead(decl('CredentialWalletMixin', '/f/CredentialWallet.ts', true))).toBe(false);
   });
 
   it('a non-receiver base is live when a receiver extends it', () => {

@@ -14,6 +14,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { withSaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeAssignController from '../OfficeAssignController';
 import OfficeVacateController from '../OfficeVacateController';
@@ -40,6 +41,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -99,13 +101,13 @@ function installStore(): void {
       return arr.filter((d) => keys.every((k) => d[k] === query[k]));
     },
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function makeAvatar(playerId: string): Avatar {
@@ -169,10 +171,10 @@ async function run(
         : model.subcommand === 'vacate'
           ? OfficeVacateController
           : OfficeListController;
-    return makeStuff(() => new Ctrl()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new Ctrl()).execute(
       model as never,
       ctx,
-    );
+    ));
   });
 }
 

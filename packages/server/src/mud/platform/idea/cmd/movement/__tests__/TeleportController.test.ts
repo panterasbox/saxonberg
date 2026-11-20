@@ -24,6 +24,7 @@ import { EventApi } from '../../../../../api/event';
 import { MessageApi } from '../../../../../api/message';
 import EventRegistry from '../../../EventRegistry';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let notes: Array<Record<string, unknown>>;
 
@@ -46,10 +47,7 @@ function ctx(giver: Avatar, location: Locale): CommandContext {
 /** Did the controller take the self-powered fork? (It lands the giver in the destination.) */
 async function hop(giver: Avatar, from: Locale, to: Locale): Promise<boolean> {
   const ctrl = makeStuff(() => new TeleportController());
-  await ctrl.execute(
-    { destination: { stuff: to, raw: to.getTemplatePath() ?? '' } } as CommandModel as never,
-    ctx(giver, from),
-  );
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ destination: { stuff: to, raw: to.getTemplatePath() ?? '' } } as CommandModel as never, ctx$)))(ctx(giver, from));
   return giver.getContainer() === (to as unknown);
 }
 
@@ -183,10 +181,7 @@ describe('teleport — the anchored resolver (D10, AC16/AC17)', () => {
     // …and the controller turns that into a refusal whose reason names
     // the mechanic, rather than asking which one you meant.
     const ctrl = makeStuff(() => new TeleportController());
-    await ctrl.execute(
-      { destination: { stuff: null, raw: 'room' } } as CommandModel as never,
-      ctx(actor, loungeBar),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ destination: { stuff: null, raw: 'room' } } as CommandModel as never, ctx$)))(ctx(actor, loungeBar));
     expect(
       notes.some(
         (n) =>
@@ -253,10 +248,7 @@ describe('teleport — the anchored cast lands after its controller is gone (con
       .mockResolvedValue({ ok: true, reports: ['You arrive.'] } as never);
 
     const ctrl = makeStuff(() => new TeleportController());
-    await ctrl.execute(
-      { destination: { stuff: null, raw: 'hall' } } as CommandModel as never,
-      ctx(caster, loungeBar),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ destination: { stuff: null, raw: 'hall' } } as CommandModel as never, ctx$)))(ctx(caster, loungeBar));
     expect(notes.some((n) => n.kind === 'engagement-started'), JSON.stringify(notes)).toBe(true);
     // The dispatcher's `finally`: the controller is gone before the cast lands.
     await StuffApi.destruct(ctrl);

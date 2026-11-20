@@ -1,0 +1,4 @@
+# Opened when it is already open.
+facts:
+  target: thing
+says: "You find {{ target | item }} already open."

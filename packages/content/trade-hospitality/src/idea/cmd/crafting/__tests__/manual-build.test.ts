@@ -47,6 +47,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 const GIN = "/stuff/idea/material/spirit/gin";
 const VERMOUTH = "/stuff/idea/material/spirit/vermouth";
@@ -197,10 +198,7 @@ describe("pour as an engaged activity", () => {
     ContainmentApi.move(shaker, room);
 
     const controller = makeStuff(() => new PourController());
-    await controller.execute(
-      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
-      makeContext(actor, room, "pour"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never, ctx$)))(makeContext(actor, room, "pour"));
 
     // Engaged immediately; the effect has NOT landed yet.
     expect(actor.hasEngagement("hands")).toBe(true);
@@ -230,15 +228,12 @@ describe("pour as an engaged activity", () => {
     ContainmentApi.move(shaker, room);
     const controller = makeStuff(() => new PourController());
 
-    await controller.execute(
-      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
-      makeContext(actor, room, "pour"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never, ctx$)))(makeContext(actor, room, "pour"));
     const ctx2 = makeContext(actor, room, "pour");
-    await makeStuff(() => new PourController()).execute(
+    await TestHarnessApi.actAs(ctx2.commandGiver, () => makeStuff(() => new PourController()).execute(
       { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
       ctx2,
-    );
+    ));
     expect(
       ctx2.getNotes().some((n) => n.kind === "controller-rejected"),
     ).toBe(true);
@@ -250,10 +245,7 @@ describe("pour as an engaged activity", () => {
     ContainmentApi.move(bottle, room);
     ContainmentApi.move(shaker, room);
 
-    await makeStuff(() => new PourController()).execute(
-      { source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never,
-      makeContext(actor, room, "pour"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute({ source: ref(bottle, "gin"), target: ref(shaker, "shaker") } as never, ctx$)))(makeContext(actor, room, "pour"));
     // Barge in before the pour completes.
     SchedulerApi.cancelAll(actor);
     WorldClockApi._advanceForTesting(3000);
@@ -271,14 +263,11 @@ describe("a pour is one serving (re-plan R1-D4)", () => {
     const shaker = makeStuff(() => new CocktailShaker());
     ContainmentApi.move(bottle, room);
     ContainmentApi.move(shaker, room);
-    await makeStuff(() => new PourController()).execute(
-      {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute({
         source: ref(bottle, "x"),
         target: ref(shaker, "shaker"),
         ...(amount ? { amount } : {}),
-      } as never,
-      makeContext(actor, room, "pour"),
-    );
+      } as never, ctx$)))(makeContext(actor, room, "pour"));
     WorldClockApi._advanceForTesting(3000);
     await flush();
     return shaker.getBuildVolumeL();
@@ -305,10 +294,7 @@ describe("strain as the terminal mint", () => {
 
     // Pour gin, then vermouth (two completed engaged steps).
     for (const bottle of [gin, vermouth]) {
-      await makeStuff(() => new PourController()).execute(
-        { source: ref(bottle, "x"), target: ref(shaker, "shaker") } as never,
-        makeContext(actor, room, "pour"),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute({ source: ref(bottle, "x"), target: ref(shaker, "shaker") } as never, ctx$)))(makeContext(actor, room, "pour"));
       WorldClockApi._advanceForTesting(3000);
       await flush();
     }
@@ -319,10 +305,7 @@ describe("strain as the terminal mint", () => {
     expect(shaker.getBuildVolumeL()).toBeCloseTo(0.07, 6);
 
     // Strain into the glass.
-    await makeStuff(() => new StrainController()).execute(
-      { vessel: ref(shaker, "shaker"), glass: ref(glass, "glass") } as never,
-      makeContext(actor, room, "strain"),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new StrainController()).execute({ vessel: ref(shaker, "shaker"), glass: ref(glass, "glass") } as never, ctx$)))(makeContext(actor, room, "strain"));
     WorldClockApi._advanceForTesting(2500);
     await flush();
 

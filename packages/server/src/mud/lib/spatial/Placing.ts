@@ -73,10 +73,10 @@ import { ContainmentApi } from '../../api/containment';
 import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { PerceptionApi } from '../../api/perception';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   REF_FIELDS,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { Placement } from './Placement';
 import { Placements } from './Placement';
 import type { BoundaryOpening } from '../boundary/Conduit';
@@ -331,7 +331,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
               heading: named ? member.charAt(0).toUpperCase() + member.slice(1) : row.getHeading() || 'With it',
               items: items.map(
                 (c) =>
-                  MqlSubscriptionApi.projectFields(
+                  SubscriptionApi.projectFields(
                     c,
                     REF_FIELDS,
                     viewer as Stuff & Sensor,
@@ -596,7 +596,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // its set) — the `onMoved` shape, so composition order never hides it.
       const sup = (Base.prototype as { placedChanged?: (i: Stuff & Containable) => void }).placedChanged;
       if (typeof sup === 'function') sup.call(this, item);
-      MqlSubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placed', '', item.stuffId);
+      SubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placed', '', item.stuffId);
     }
 
     canPlace(item: Stuff & Containable, name: string): VetoResult {

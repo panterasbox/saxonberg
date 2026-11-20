@@ -36,6 +36,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function makeAvatar(playerId: string): Avatar {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
@@ -83,10 +84,10 @@ async function run(
       : m.message
         ? () => new TunePostController()
         : () => new TuneFollowController();
-    return makeStuff(CONTROLLERS[m.subcommand ?? ''] ?? shape).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(CONTROLLERS[m.subcommand ?? ''] ?? shape).execute(
       model as never,
       ctx,
-    );
+    ));
   });
 }
 

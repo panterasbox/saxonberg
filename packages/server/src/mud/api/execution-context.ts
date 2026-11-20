@@ -93,7 +93,6 @@ export interface CallFrame {
   caller: unknown | null;
   target: unknown | null;
   method: string;
-  timestamp: number;
   kind?: FrameKind;
   metadata?: Record<string, unknown>;
 }
@@ -136,6 +135,16 @@ export interface RunRootOpts {
 }
 
 /**
+ * Who is acting, as a continuation carries it
+ * ({@link ExecutionContextApi.captureActor}): a person or object, or the
+ * named system — at most one of the two is set.
+ */
+export interface ActorClaim {
+  actor: unknown | null;
+  system: string | null;
+}
+
+/**
  * One link of the call stack.
  *
  * ⭐ A linked list, not an array, and that is the whole point: a push is
@@ -150,12 +159,15 @@ export interface RunRootOpts {
  * sandbox boundary reads frame-0's metadata on every single dispatch and
  * that read must stay O(1).
  */
-interface FrameNode {
+export interface FrameToken {
   readonly frame: CallFrame;
-  readonly parent: FrameNode | null;
+  readonly parent: FrameToken | null;
   /** Frame 0. Self on a root node. */
-  readonly root: FrameNode;
+  readonly root: FrameToken;
 }
+
+/** The node's name inside this file; {@link FrameToken} outside it. */
+type FrameNode = FrameToken;
 
 /** ALS-backed storage — the innermost frame; walk `parent` for the rest. */
 const _als = new AsyncLocalStorage<FrameNode>();
@@ -207,7 +219,14 @@ export type FramePush = <T>(
   target: unknown | null,
   method: string,
   opts: RunFrameOpts | undefined,
-  fn: () => T
+  fn: () => T,
+  /**
+   * The node the holder read with {@link ExecutionContextApi._dispatchContext}
+   * in the same synchronous turn (`null`: no stack), so the push does not
+   * read the store a second time. Omitted: the push reads it — which is
+   * what an async continuation must do.
+   */
+  parent?: FrameToken | null
 ) => T;
 
 /**
@@ -221,17 +240,18 @@ function _pushFrame<T>(
   target: unknown | null,
   method: string,
   opts: RunFrameOpts | undefined,
-  fn: () => T
+  fn: () => T,
+  parent?: FrameNode | null
 ): T {
   const frame: CallFrame = {
     caller,
     target,
     method,
-    timestamp: Date.now(),
     kind: opts?.kind,
     metadata: opts?.metadata,
   };
-  return _als.run(_linkFrame(frame, _als.getStore() ?? null), fn);
+  const under = parent === undefined ? (_als.getStore() ?? null) : parent;
+  return _als.run(_linkFrame(frame, under), fn);
 }
 
 /* ────────────────── Caller authorisation ──────────────────
@@ -370,6 +390,23 @@ function _guardPath(target: unknown): string | null {
     }
   }
   return null;
+}
+
+/**
+ * ⭐ Report a caught guard error through `CommandApi.reportFailure`
+ * (failure-model D9) — a refusal worded to the causing author, a defect
+ * worded `went-wrong` and recorded. A dynamic import, for the load cycle
+ * {@link _recordGuardError} names; if the report itself fails, the error is
+ * still recorded.
+ */
+async function _reportGuardFailure(target: unknown, method: string, err: unknown): Promise<void> {
+  try {
+    const { CommandApi } = await import('./command');
+    await CommandApi.reportFailure(err, null, _guardPath(target) ?? method);
+  } catch {
+    // @quiet the report itself failed — the error is still recorded.
+    await _recordGuardError(target, method, err);
+  }
 }
 
 /**
@@ -654,6 +691,173 @@ export class ExecutionContextApi {
     top.metadata.actingAuthor = principal;
   }
 
+  /* ───────────── who is ACTING (call-security pass, D1–D7) ─────────────
+   *
+   * ⭐⭐ Two questions, two reads. The AUTHOR ({@link getActingAuthor}) is
+   * whose WORK this is — a maker's mark, blame, provenance — and is null
+   * for a forced chain, because a brain's act has no author. The ACTOR is
+   * whose AUTHORITY is being exercised, and a forced NPC is acting as
+   * itself. A protective method that takes "who is doing this" as a
+   * parameter checks the parameter against {@link getActor}
+   * (`AccessApi.requireActor`) and never trusts the argument alone.
+   *
+   * The actor is read from frames the framework stamps and nothing else:
+   * the nearest frame that BEARS one, from the top —
+   *   - a Command frame → its giver (forced or not: the compulsion gate in
+   *     `CommandGiverMixin.executeCommand` already admitted the frame);
+   *   - `metadata.actingSystem` → the named system ({@link runAsSystem});
+   *   - `metadata.actor` → a continuation's starter, or an object acting
+   *     as itself ({@link runAsSelf});
+   *   - `metadata.actingAuthor` → a REST/CMS boundary's principal.
+   */
+
+  /** The nearest actor-bearing frame, or null when nobody is acting. */
+  static #actorBearer(): ActorClaim | null {
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const f = n.frame;
+      if (f.kind === FrameKind.Command) {
+        const ctx = f.metadata?.commandContext as { commandGiver?: unknown } | undefined;
+        return { actor: ctx?.commandGiver ?? f.target, system: null };
+      }
+      const md = f.metadata;
+      if (md === undefined) continue;
+      if (typeof md.actingSystem === 'string') return { actor: null, system: md.actingSystem };
+      if (md.actor != null) return { actor: md.actor, system: null };
+      if (md.actingAuthor != null) return { actor: md.actingAuthor, system: null };
+    }
+    return null;
+  }
+
+  /**
+   * ⭐⭐ **Who is acting** — the person (or object acting as itself) whose
+   * authority the current work exercises, or `null` when nobody is (no
+   * actor was ever named, or the {@link actingSystem system} is acting).
+   * Unlike {@link getActingAuthor} it is NOT null for a forced chain: an
+   * NPC's forced command is the NPC acting.
+   */
+  public static getActor(): unknown | null {
+    return ExecutionContextApi.#actorBearer()?.actor ?? null;
+  }
+
+  /**
+   * The name of the system acting (`'boot'`, `'residency'`, …) when the
+   * nearest actor-bearing frame is engine work run as the system, else
+   * `null`. When this answers, {@link getActor} is `null`.
+   */
+  public static actingSystem(): string | null {
+    return ExecutionContextApi.#actorBearer()?.system ?? null;
+  }
+
+  /**
+   * Capture who is acting now, for a continuation to carry
+   * ({@link runAsCaptured}). Both halves null when nobody is.
+   */
+  public static captureActor(): ActorClaim {
+    return ExecutionContextApi.#actorBearer() ?? { actor: null, system: null };
+  }
+
+  /**
+   * Run `fn` as the actor a continuation {@link captureActor captured}. A
+   * frame pushed over the current one, keeping its target (so no
+   * `@CallSecurity` gate sees a different caller); a no-op claim runs `fn`
+   * as is. Framework only — the frame-mutator allowlist.
+   */
+  public static runAsCaptured<T>(claim: ActorClaim, fn: () => T): T {
+    _assertFrameMutatorAllowed('runAsCaptured');
+    if (claim.actor == null && claim.system == null) return fn();
+    return ExecutionContextApi.#pushActor(
+      claim.system != null ? { actingSystem: claim.system } : { actor: claim.actor },
+      'runAsCaptured',
+      fn,
+    );
+  }
+
+  /**
+   * ⭐ Run `fn` as the named SYSTEM — engine work nobody in the world asked
+   * for (boot, a residency sweep, a maintenance tick). At a protective
+   * check the system is admitted for any claim, and the frame says so. With
+   * no stack at all (boot) it plants a root carrying NO circle scope — what
+   * boot read before it had a root; `ScheduleApi` gives the work the system
+   * arms its omni registration scope itself. Framework only — the
+   * frame-mutator allowlist.
+   */
+  public static runAsSystem<T>(name: string, fn: () => T): T {
+    _assertFrameMutatorAllowed('runAsSystem');
+    if (!name) throw new SecurityError('runAsSystem: the system must be named');
+    if (_als.getStore() == null) {
+      const root: CallFrame = {
+        caller: null,
+        target: null,
+        method: `system:${name}`,
+        kind: FrameKind.Root,
+        // ⚠ No circleScope: boot read none before it had a root, and an
+        // omni-scoped root reads as QUARANTINED to the world clock's restore
+        // (the drive found boot dying on it). ScheduleApi gives the work the
+        // system arms its omni registration scope itself.
+        metadata: { actingSystem: name },
+      };
+      return _als.run(_linkFrame(root, null), fn);
+    }
+    return ExecutionContextApi.#pushActor({ actingSystem: name }, `system:${name}`, fn);
+  }
+
+  /**
+   * ⭐ Run `fn` as the object whose method is running — an NPC's brain, a
+   * hitch unhitching itself in its own upkeep. Takes no principal: the
+   * self is the current frame's target (the proxy pushes one per method
+   * call), so an object can only ever become ITSELF. Throws outside any
+   * frame (no self to be).
+   */
+  public static runAsSelf<T>(fn: () => T): T {
+    const self = ExecutionContextApi.getCurrentTarget();
+    if (self == null || typeof self !== 'object') {
+      throw new SecurityError('runAsSelf: no object is running to act as itself');
+    }
+    return ExecutionContextApi.#pushActor({ actor: self }, 'runAsSelf', fn);
+  }
+
+  /** Push an actor-bearing frame that keeps the current frame's target. */
+  static #pushActor<T>(metadata: Record<string, unknown>, method: string, fn: () => T): T {
+    const node = _als.getStore() ?? null;
+    const target = node?.frame.target ?? null;
+    return _pushFrame(target, target, method, { metadata }, fn, node);
+  }
+
+  /**
+   * ⭐ **Whose code is running** — the content path a refusal of a lying
+   * claim is reported against (the `call-security` diagnostic, routed to
+   * the path's title holder). The innermost controller on the stack (a
+   * replaced controller is its own row); else an object acting as itself (a
+   * brain's NPC); else the innermost content path outside the engine's Api
+   * tier. `null` when nothing on the stack names a path.
+   */
+  public static getActingCodePath(): string | null {
+    // 1. A controller on the stack — the innermost one — is the code that
+    //    made the claim (a replaced controller is its own row). Read off the
+    //    frame's target: a command frame's context names only the verb's
+    //    placeholder until the claiming attempt binds.
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const path = _guardPath(n.frame.target);
+      if (path && path.includes('/idea/cmd/')) return path;
+    }
+    // 2. An object acting as itself (a brain's NPC, an object's own upkeep).
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const md = n.frame.metadata;
+      if (md?.actor != null && n.frame.method === 'runAsSelf') {
+        const path = _guardPath(md.actor);
+        if (path) return path;
+      }
+    }
+    // 3. The innermost content path that is not the engine's own Api tier
+    //    (⚠ the check itself runs in a logic singleton — the drive found the
+    //    diagnostic naming `/platform/idea/api/access` as the liar).
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const path = _guardPath(n.frame.target);
+      if (path && !path.startsWith('/platform/idea/api/')) return path;
+    }
+    return null;
+  }
+
   /**
    * Walk the call stack outermost-to-innermost and return every
    * Command frame's contextual data. The returned tuples carry the
@@ -743,23 +947,22 @@ export class ExecutionContextApi {
   }
 
   /**
-   * Both boundary fields in ONE store access — the security gate's
-   * per-dispatch read (zero-circle worlds pay one `getStore()` + one
-   * metadata load, exactly what the lone scope read cost). @internal
+   * The current frame node, or `null` with no stack — the ONE store read a
+   * dispatch makes (call-security-performance, 2026-11). The security gate
+   * reads the caller (`frame.target`) and the sandbox boundary's two
+   * fields (`root.frame.metadata.circleScope` / `.jurisdictionBound`, an
+   * O(1) read since `root` rides every node) off it, and hands it back to
+   * the claimed push as `parent`, so a dispatch reads the
+   * AsyncLocalStorage once instead of three times. The static Api wrapper
+   * does the same.
+   *
+   * It confers nothing `getCallStack()` does not already show: the token
+   * is the node that call materializes frames from. @internal
    */
-  public static _boundaryContext(): {
-    scope: string | null;
-    bound: string | null;
-  } {
-    const node = _als.getStore();
-    if (!node) return { scope: null, bound: null };
-    const md = node.root.frame.metadata;
-    if (!md) return { scope: null, bound: null };
-    return {
-      scope: (md.circleScope as string | undefined) ?? null,
-      bound: (md.jurisdictionBound as string | undefined) ?? null,
-    };
+  public static _dispatchContext(): FrameToken | null {
+    return _als.getStore() ?? null;
   }
+
 
   /**
    * Establish the circle scope on the **current root frame** — the
@@ -991,7 +1194,6 @@ export class ExecutionContextApi {
       caller: null,
       target,
       method,
-      timestamp: Date.now(),
       kind: FrameKind.Root,
       metadata: _scopeMetadata(opts),
     };
@@ -1030,7 +1232,6 @@ export class ExecutionContextApi {
       caller: null,
       target,
       method,
-      timestamp: Date.now(),
       kind: FrameKind.Root,
       metadata: _scopeMetadata(opts),
     };
@@ -1040,8 +1241,15 @@ export class ExecutionContextApi {
         () => Promise.resolve(fn()) as Promise<T>
       );
     } catch (err) {
-      await _recordGuardError(target, method, err);
-      if (policy === 'rethrow') throw err;
+      // `rethrow` (REST) maps its own status: it only records.
+      if (policy === 'rethrow') {
+        await _recordGuardError(target, method, err);
+        throw err;
+      }
+      // ⭐ Otherwise the work's failure is OWNED (failure-model D9): the one
+      // routine classifies it and tells whoever caused the work — inside
+      // this root again, so the line keeps its causing command and author.
+      await _als.run(_linkFrame(root, null), () => _reportGuardFailure(target, method, err));
       return undefined;
     }
   }

@@ -8,6 +8,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ParcelRegistry from "../idea/ParcelRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
@@ -38,7 +39,7 @@ function col(collection: string): Doc[] {
 function installStore(): void {
   store = new Map();
   idCounter = 0;
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async (collection: string, doc: Doc) => {
       const arr = col(collection);
       if (doc._id) {
@@ -63,7 +64,7 @@ function installStore(): void {
     ),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function seedParcel(extent: string, owner: ParcelOwner): void {

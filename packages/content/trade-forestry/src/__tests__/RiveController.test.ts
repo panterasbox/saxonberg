@@ -32,6 +32,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -135,7 +136,7 @@ describe('rive', () => {
     const froe = tool(['riving'], 'froe');
     ContainmentApi.move(froe, giver);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c));
     await settle();
     expect(reasons(c)).toEqual([]);
     expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS - 1);
@@ -152,7 +153,7 @@ describe('rive', () => {
 
   it('no froe bound: refused, naming the froe', async () => {
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole')), c));
     expect(reasons(c)).toContain('no-froe');
     expect(JSON.stringify(giver.received)).toMatch(/froe/);
     expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
@@ -162,7 +163,7 @@ describe('rive', () => {
     const hook = tool(['cutting'], 'billhook');
     ContainmentApi.move(hook, giver);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(hook, 'billhook')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(hook, 'billhook')), c));
     expect(reasons(c)).toContain('wrong-tool');
   });
 
@@ -171,7 +172,7 @@ describe('rive', () => {
     ContainmentApi.move(froe, giver);
     bole.setLengthsLeft(0);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c));
     expect(reasons(c)).toContain('bole-spent');
   });
 
@@ -179,7 +180,7 @@ describe('rive', () => {
     const froe = tool(['riving'], 'froe');
     ContainmentApi.move(froe, giver);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(froe, 'froe'), one(froe, 'froe')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(froe, 'froe'), one(froe, 'froe')), c));
     expect(reasons(c)).toContain('not-rivable');
   });
   // ⭐⭐ Plan D17 — whether a wood rives is the WOOD's: how straight its
@@ -190,7 +191,7 @@ describe('rive', () => {
     const froe = tool(['riving'], 'froe');
     ContainmentApi.move(froe, giver);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c));
     expect(reasons(c)).toContain('will-not-rive');
     expect(JSON.stringify(giver.received)).toMatch(/interlock/);
     expect(bole.getLengthsLeft()).toBe(BOLE_LENGTHS);
@@ -201,7 +202,7 @@ describe('rive', () => {
     const froe = tool(['riving'], 'froe');
     ContainmentApi.move(froe, giver);
     const c = ctx(giver, room);
-    await makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RiveController()).execute(model(one(bole, 'bole'), one(froe, 'froe')), c));
     await settle();
     const stack = (room as unknown as { getContents(): Stuff[] })
       .getContents()

@@ -27,6 +27,8 @@ import styled from "styled-components";
 import type { Template } from "./TemplateRegistry";
 import { renderTree } from "./renderHelpers";
 import { tokens } from "../../components/ui";
+import { Tip } from "../../components/tooltip/Tip";
+import { hoverDoc } from "../../components/doc/docs";
 
 const SERVICE_COLOR: Record<string, string> = {
   twitch: tokens.brand.twitch,
@@ -86,22 +88,20 @@ export const relayTemplate: Template = (ctx) => {
 
   return (
     <Row>
-      <Chip
+      <Tip tip={hoverDoc(`Follow ${t.service} #${t.channelHandle}`)}><Chip
         $color={color}
         onClick={() => ctx.onCommandClick(tuneCmd)}
         onMouseEnter={() => ctx.onCommandPreview(tuneCmd)}
         onMouseLeave={() => ctx.onCommandPreview(null)}
-        title={`Follow ${t.service} #${t.channelHandle}`}
       >
         {marker} #{t.channelHandle}
-      </Chip>
+      </Chip></Tip>
       <Content>
-        <Handle
+        <Tip tip={hoverDoc(t.persona !== undefined ? `MUD: ${t.persona}` : undefined)}><Handle
           $linked={t.persona !== undefined}
-          title={t.persona !== undefined ? `MUD: ${t.persona}` : undefined}
         >
           {t.speaker}
-        </Handle>
+        </Handle></Tip>
         {": "}
         {t.text}
       </Content>

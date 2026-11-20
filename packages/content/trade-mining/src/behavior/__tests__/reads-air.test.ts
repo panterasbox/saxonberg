@@ -16,6 +16,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import { brain as readsAir } from '../reads-air';
 import MineRoom from '../../location/MineRoom';
@@ -88,7 +89,7 @@ describe('the canary', () => {
     // ⭐ The engine's own rows — every exit is a clone of a kind row
     // now, and this suite wires real headings together.
     const kernel = KERNEL_CONTENT_ROWS.map((r, i) => ({ ...r, _id: String(i + 1) }));
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: async () => '1',
       find: async (c: string, q: Record<string, unknown>) =>
         c === 'content' && typeof q.path === 'string'
@@ -97,7 +98,7 @@ describe('the canary', () => {
       findById: async () => null,
       delete: async () => undefined,
       isConnected: () => true,
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     // The root universe biome — the chain a room with GOOD air falls
     // back through. Its absence is what a room with foul air never asks.
     const universe = makeStuffAtPath(() => new Biome(), '/stuff/idea/biome/universe');

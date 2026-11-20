@@ -63,6 +63,7 @@ import { EventApi } from '../../../../../api/event';
 import EventRegistry from '../../../EventRegistry';
 import { Stuff as StuffBase } from '../../../../../lib/stuff/Stuff';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const DAY = 86_400;
 const BASE = 40_000_000;
@@ -293,7 +294,7 @@ describe('the take as an act', () => {
   it('⭐ nothing standing refuses in the HOST’s words, not the verb’s', async () => {
     const { giver, room, producer } = scene();
     const ctx = makeContext(giver, room);
-    await controller().execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(one(producer, 'thing')), ctx));
     expect(noteReasons(ctx)).toContain('nothing-standing');
   });
 
@@ -305,7 +306,7 @@ describe('the take as an act', () => {
       return g;
     });
     const ctx = makeContext(giver, room);
-    await controller().execute(model(one(rock, 'rock')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(one(rock, 'rock')), ctx));
     expect(noteReasons(ctx)).toContain('no-such-tap');
   });
 
@@ -316,7 +317,7 @@ describe('the take as an act', () => {
 
     const ctx = makeContext(giver, room);
     const c = controller();
-    await c.execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(model(one(producer, 'thing')), ctx));
     // ⚠ Nothing yet — the act is engaged, not done.
     expect(giver.getContents().length).toBe(0);
     expect(noteReasons(ctx)).not.toContain('nothing-standing');
@@ -336,7 +337,7 @@ describe('the take as an act', () => {
     setNow(2 * DAY);
     const ctx = makeContext(giver, room);
     const c = controller();
-    await c.execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(model(one(producer, 'thing')), ctx));
     StuffApi.destruct(c as never);
     await settle();
     expect(deeds.map((d) => d.discipline)).toContain('basket-weaving');
@@ -350,7 +351,7 @@ describe('the take as an act', () => {
 
     const ctx = makeContext(giver, room);
     const c = controller();
-    await c.execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(model(one(producer, 'thing')), ctx));
 
     // Off to another room while the hands are busy. ⚠ Nothing in the
     // scheduler cancels the engagement, which is exactly why the act
@@ -380,7 +381,7 @@ describe('the take as an act', () => {
     ]);
     setNow(2 * DAY);
     const ctx = makeContext(giver, room);
-    await controller().execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(one(producer, 'thing')), ctx));
 
     // ⭐ The player is TOLD, and nothing is filed as their mistake.
     expect(giver.received.length).toBeGreaterThan(0);
@@ -405,7 +406,7 @@ describe('the take as an act', () => {
     ]);
     setNow(2 * DAY);
     const ctx = makeContext(giver, room);
-    await controller().execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(one(producer, 'thing')), ctx));
     expect(noteReasons(ctx)).toContain('no-vessel');
   });
 
@@ -425,7 +426,7 @@ describe('the take as an act', () => {
 
     const ctx = makeContext(giver, room);
     const c = controller();
-    await c.execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(model(one(producer, 'thing')), ctx));
     StuffApi.destruct(c as never);
     await settle();
 
@@ -469,7 +470,7 @@ describe('the take as an act', () => {
     ContainmentApi.move(plain as never, room as never);
     setNow(2 * DAY);
     const ctx = makeContext(plain as unknown as TestGiver, room);
-    await controller().execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller().execute(model(one(producer, 'thing')), ctx));
     await settle();
     expect(plain.getContents().length).toBe(1);
   });
@@ -479,7 +480,7 @@ describe('the take as an act', () => {
     setNow(2 * DAY);
     const ctx = makeContext(giver, room);
     const c = controller();
-    await c.execute(model(one(producer, 'thing')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => c.execute(model(one(producer, 'thing')), ctx));
     StuffApi.destruct(c as never);
     await settle();
 

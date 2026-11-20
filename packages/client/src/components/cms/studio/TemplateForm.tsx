@@ -24,6 +24,8 @@ import { useStore } from "../../../store/index";
 import { MonacoLazy } from "../MonacoLazy";
 import { widgetFor } from "./widgets";
 import { tokens } from "../../ui";
+import { Tip } from "../../tooltip/Tip";
+import { hoverDoc } from "../../doc/docs";
 
 const Wrap = styled.div`
   display: flex;
@@ -347,13 +349,12 @@ export const TemplateForm: React.FC<{
   return (
     <Wrap>
       <BackBar>
-        <GhostButton
+        <Tip tip={hoverDoc("Back to the blueprint detail")}><GhostButton
           type="button"
-          title="Back to the blueprint detail"
           onClick={() => selected && selectBlueprint(selected)}
         >
           ← Back to blueprint
-        </GhostButton>
+        </GhostButton></Tip>
       </BackBar>
 
       <Header>
@@ -364,42 +365,36 @@ export const TemplateForm: React.FC<{
       </Header>
 
       <Toolbar>
-        <PathInput
+        <Tip tip={hoverDoc("Where the new template lands (e.g. /obj/MyCoin)")}><PathInput
           value={template.path}
           placeholder="/obj/MyCoin"
           spellCheck={false}
           aria-label="New template path"
-          title="Where the new template lands (e.g. /obj/MyCoin)"
           onChange={(e) => setPath(e.target.value)}
-        />
-        <ModeToggle
+        /></Tip>
+        <Tip tip={hoverDoc("Edit the data as a field form")}><ModeToggle
           type="button"
           $active={!yamlMode}
-          title="Edit the data as a field form"
           onClick={() => yamlMode && toggleYaml()}
         >
           Form
-        </ModeToggle>
-        <ModeToggle
+        </ModeToggle></Tip>
+        <Tip tip={hoverDoc("Edit the same data as YAML")}><ModeToggle
           type="button"
           $active={yamlMode}
-          title="Edit the same data as YAML"
           onClick={() => !yamlMode && toggleYaml()}
         >
           YAML
-        </ModeToggle>
-        <Button
+        </ModeToggle></Tip>
+        <Tip tip={hoverDoc(pathValid
+              ? `Create template ${template.path}`
+              : "Enter an absolute target path (e.g. /obj/MyCoin)")}><Button
           type="button"
           disabled={!canSave}
-          title={
-            pathValid
-              ? `Create template ${template.path}`
-              : "Enter an absolute target path (e.g. /obj/MyCoin)"
-          }
           onClick={() => csrf && void createTemplate(csrf)}
         >
           {busy ? "Saving…" : "Save"}
-        </Button>
+        </Button></Tip>
       </Toolbar>
 
       {result && (
@@ -410,15 +405,14 @@ export const TemplateForm: React.FC<{
             <>
               <span>Committed template {result.path ?? template.path}.</span>
               {committed && onOpenInFiles && (
-                <GhostButton
+                <Tip tip={hoverDoc("Open the new template in the Files tab")}><GhostButton
                   type="button"
-                  title="Open the new template in the Files tab"
                   onClick={() =>
                     onOpenInFiles(result.path ?? template.path)
                   }
                 >
                   Open in Files →
-                </GhostButton>
+                </GhostButton></Tip>
               )}
             </>
           )}

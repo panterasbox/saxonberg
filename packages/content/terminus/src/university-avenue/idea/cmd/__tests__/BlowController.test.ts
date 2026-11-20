@@ -26,6 +26,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -74,10 +75,7 @@ describe('BlowController', () => {
     ContainmentApi.move(whistle as never, avatar as never);
     const emit = vi.spyOn(whistle, 'emit');
 
-    await makeStuff(() => new BlowController()).execute(
-      {} as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new BlowController()).execute({} as CommandModel, ctx$)))(ctxFor(avatar, room));
 
     expect(emit).toHaveBeenCalledTimes(1);
     expect(emit.mock.calls[0]?.[0]).toMatchObject({
@@ -92,20 +90,17 @@ describe('BlowController', () => {
     ContainmentApi.move(whistle as never, avatar as never);
     const emit = vi.spyOn(whistle, 'emit');
 
-    await makeStuff(() => new BlowController()).execute(
-      { target: one(whistle, 'whistle') } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new BlowController()).execute({ target: one(whistle, 'whistle') } as CommandModel, ctx$)))(ctxFor(avatar, room));
 
     expect(emit).toHaveBeenCalledTimes(1);
   });
 
   it('rejects when the actor has no whistle', async () => {
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new BlowController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BlowController()).execute(
       {} as CommandModel,
       ctx,
-    );
+    ));
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(true);

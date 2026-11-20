@@ -51,6 +51,7 @@ class Grower extends SensorMixin(
 }
 import '../../platform/idea/WorldClockRegistry';
 import { forgetProfiles, rememberProfile } from '../../lib/maturation/__tests__/profiles';
+import { TestHarnessApi } from '../../api/test-harness';
 
 // The profile and schedule documents outlive a test (load-on-use W4).
 afterEach(() => forgetProfiles());
@@ -313,13 +314,13 @@ describe("the mash's residue feeds back (P11 — the reverse B2B)", () => {
     }) as CommandContext;
     await withRootContext(null, 'brewing.test', () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      return makeStuff(() => new FeedController()).execute(
+      return TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new FeedController()).execute(
         {
           target: { stuff: bed as never, raw: 'bed' },
           source: { stuff: sack as never, raw: 'grain' },
         } as never,
         context,
-      );
+      ));
     });
     const after = bed.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue();
     expect(after).toBeGreaterThan(before);

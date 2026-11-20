@@ -1079,6 +1079,19 @@ profiles on a busy box are for SHARES, never times.
    harness and its server (`foreignMeter`: `/proc/stat` busy, less the
    server's `/stats.cpu` and the harness's own). Over half a core marks
    the phase **inconclusive**, which fails under that name; re-run it.
+   ⚠ Five live agent sessions plus the VS Code server are ~0.7 cores on
+   their own with every sibling holding — a fresh boot's own tail reads as
+   load too (the precheck in `call-security-performance.dirty` waits up to
+   five minutes for it to settle).
+
+⭐ **What the server SPENT its CPU on is a profile, not a timing**, and a
+profile is honest on a busy box: `WIRE_CPU_PROF=<dir>` profiles the world,
+and `packages/server/scripts/profile-layer.ts <file> --from <s> --to <s>`
+reads the call-security layer's self time over an uptime window (the crowd
+record's `marks`). `call-security-performance.dirty.wire.test.ts` is the
+second quiet-box file: its gates are relative to a committed baseline
+(`CSP_RECORD=1` writes it), and its refusal and hot-reload steps run on
+every MR.
 
 Without `WIRE_QUIET=1` every step reports itself skipped, by name. `crowd.
 dirty` keeps the greeting count on every MR; `crowd.soak` keeps its generous
@@ -1093,6 +1106,20 @@ a WORKER thread, so the harness's thirty sockets are not what it measures.
 `WIRE_CPU_PROF=<dir>` profiles a wire world (the flags ride `tsx`'s
 command line); a profile is written at a clean exit — stop the world with
 SIGTERM. Slice it by the server uptime the crowd record marks per phase.
+
+⭐ **`/stats.db` is the database's own numbers** (db-performance, 2026-11):
+`pool` — `inUse` and `waiting` now, and since boot `waited` (check-outs
+that started with every connection taken), `waitMs` (time spent getting
+one) and `peakWaiting`; `roundTrips` (connection check-outs — one per wire
+command, cursor `getMore`s included: the figure the host's latency
+multiplies); `ops` and `byOp` — PersistenceManager calls and their wall
+time, in total and per `<op> <collection>`. Always on: two clock reads and
+a map write per op, honest enough to rank hot paths on any box (a COUNT is
+evidence anywhere; a time only on the quiet box). `callers` — the query
+trace's per-caller table — appears only with `SAXONBERG_QUERY_TRACE=1`,
+which costs a stack per op, so a traced run's timings are not evidence.
+`db-performance.dirty` is the third quiet-box file; `DBP_WORK=1` runs its
+working and stop steps for their counts on a box that is not quiet.
 
 ⭐ **The tripwire is armed in every wire world**: the room's own reading
 (the light walk, the sound gather, the smell fold, a card's projection)
@@ -1233,6 +1260,20 @@ all four shapes have now been tried in one file:
 ⚠ The third row is the one that costs the most time, because the failure
 surfaces far away: no instrument in hand reads as *the instrument is not
 in reach*, which looks like a defect in the reading ladder.
+
+## ⭐ Tests state who acts — `TestHarnessApi.actAs` (call-security pass)
+
+A protective method checks the actor it is handed against who the engine
+says is acting (`AccessApi.requireActor`), and a command run on a body is
+gated unless that body is acting. A unit test that calls such a method, or
+a controller's `execute(model, ctx)`, with no frame at all is "nobody
+acting" and is refused. Say who acts:
+`TestHarnessApi.actAs(person, () => thing.lock(person))`;
+`TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model, ctx))`.
+There is no test-environment branch in the check. A test that spies
+`ExecutionContextApi.getActingAuthor` to set a REST principal spies
+`getActor` alike. Staging through `TestHarnessApi.stage` runs as the
+system (`test-stage`) and may set state on anybody's behalf.
 
 ## Open: test seams a drive would want
 

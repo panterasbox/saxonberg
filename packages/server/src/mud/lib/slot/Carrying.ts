@@ -172,6 +172,12 @@ export interface Carrying {
    * less the handles of a cart this body pulls (D18).
    */
   freeHands(): number;
+  /**
+   * ⭐ The animals this body leads (size and carrying D18): for each line
+   * end in its hands, the creature at the line's other end, beside it and
+   * able to move. They follow it through a way, and their refusal is its.
+   */
+  ledAnimals(): Stuff[];
   /** ⭐ How near `thing` is to the hand (D15); `elsewhere` when it is not on this body. */
   tierOf(thing: Stuff): CarryTier;
   /**
@@ -314,6 +320,27 @@ export function CarryingMixin<TBase extends MixinConstructor<Creature>>(Base: TB
     public freeHands(): number {
       const onCart = this.cartInHand()?.hands ?? 0;
       return Math.max(0, this.openHands().length - onCart);
+    }
+
+    /** See {@link Carrying.ledAnimals}. */
+    public ledAnimals(): Stuff[] {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return [];
+      const here = self.getContainer();
+      const out: Stuff[] = [];
+      for (const held of this.asBody().heldThings()) {
+        if (!MixinApi.isTetherEnd(held)) continue;
+        const far = held.tetheredTo();
+        if (far === null || far.stuffId === self.stuffId || !far.isAgent()) continue;
+        if (!MixinApi.isMobile(far) || !MixinApi.isContainable(far) || far.getContainer() !== here) continue;
+        // Led, not hauled: a body with no hands of its own, or one that wears
+        // a halter (a dog's mouth is a hand; on its collar it is still led). A
+        // person on a line's end — a diver, a climber — walks their own way.
+        if (!MixinApi.isAttired(far)) continue;
+        if (far.handSlots().length > 0 && !far.wornStack().some((w) => MixinApi.isTieable(w))) continue;
+        if (!out.includes(far)) out.push(far);
+      }
+      return out;
     }
 
     /**

@@ -35,6 +35,8 @@ import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Template } from "../../../../lib/stuff/Template";
 import Avatar from "../../../../lib/character/Avatar";
+import type PrimaryAvatar from "../../../agent/PrimaryAvatar";
+import type { StartingKitEntry } from "../../../agent/PrimaryAvatar";
 import Login from "../../Login";
 import type { CharacterDraft } from "../../Login";
 import type Species from "../../species/Species";
@@ -122,6 +124,8 @@ interface AspirationRosterEntry {
 interface CharGenConfig {
   species: SpeciesRosterEntry[];
   aspirations: AspirationRosterEntry[];
+  /** What every new character is handed after dressing (aether-devices D11). */
+  startingKit?: StartingKitEntry[];
 }
 
 // ---- Name validation (inline; real moderation deferred) -----------
@@ -710,8 +714,8 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
 
     // 2. Clone the runtime Avatar from the SHARED seed, overlaying the
     //    picks and minting the identity path (onCreate stamps +
-    //    installs the baseline implant + captures the first snapshot).
-    const avatar = await StuffApi.clone<Avatar>(
+    //    installs the default apps + captures the first snapshot; the phone comes at step 5a).
+    const avatar = await StuffApi.clone<PrimaryAvatar>(
       TemplatePaths.primaryAvatar,
       { user, playerId },
       // identity-keyed-by: own-record — this is where a person's
@@ -759,6 +763,8 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     //    (`Character.wearGarments`: by claim, else placed; a garment that
     //    will not go on costs that garment, not the character).
     if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
+    // 5a. The starting kit — a bound phone in a pocket (aether-devices D11).
+    await avatar.receiveStartingKit(cfg.startingKit ?? []);
 
     // 5b. Seed the chronicle from the chosen aspiration — the prologue
     //     (author-trusted `claim`s) plus a founding `deed`. Kept strictly
@@ -832,6 +838,10 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     EmbodyController.#config = {
       species: parsed.species ?? [],
       aspirations: parsed.aspirations ?? [],
+      // ⚠ Copied by name like the rosters: a key left out here is dropped
+      // silently (the drive's first run — every new player arrived with
+      // no phone).
+      startingKit: parsed.startingKit ?? [],
     };
     return EmbodyController.#config;
   }

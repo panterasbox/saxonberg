@@ -23,6 +23,7 @@ import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { MapCopySnapshot } from '@saxonberg/types';
 import type { CopyRoom, PlaceNode } from '../lib/location/PlaceNode';
 import type { GraphFinding } from '../lib/location/GraphInvariants';
 import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
@@ -416,6 +417,19 @@ export class NavigationApi {
    * prefix read with no join (`map terminus` is every map filed under
    * Terminus).
    */
+  /**
+   * ⭐ One viewer's maps as the client holds a copy of them
+   * (navigation-server D6): each claim with its key in its Locality
+   * document and every path tagged among the spoiler levels. The stored
+   * claims are unchanged; tagging is the wire projection.
+   */
+  public static readMapCopy(
+    viewerKey: string,
+    localityPrefix: string,
+  ): Promise<MapCopySnapshot> {
+    return logic().readMapCopy(viewerKey, localityPrefix);
+  }
+
   public static readMap(
     viewerKey: string,
     localityPrefix: string,

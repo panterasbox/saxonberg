@@ -26,7 +26,10 @@
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { PersistableLogic } from "../platform/idea/api/PersistableLogic";
+import {
+  PersistableLogic,
+  type ShutdownCaptureReport,
+} from "../platform/idea/api/PersistableLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import { ExecutionContextApi } from './execution-context';
@@ -44,6 +47,8 @@ const LOGIC_PATH = "/platform/idea/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL("../platform/idea/api/PersistableLogic", import.meta.url),
 );
+
+export type { ShutdownCaptureReport };
 
 /** Resolve the HMR-able PersistableLogic singleton (sync). */
 function logic(): PersistableLogic {
@@ -78,16 +83,16 @@ export class PersistableApi {
   }
 
   /**
-   * Capture every live host that wants a shutdown capture — the world's
-   * persistable singletons (venue rooms, stock counters), each asked for
-   * itself. Returns how many were written; a failure is logged and
-   * skipped, never fatal at process exit.
+   * Capture every live host that wants a shutdown capture, each asked for
+   * itself — prepared a few at a time and written in batches as they are
+   * ready, so a stop killed at its grace has kept every batch already
+   * written. Returns what was saved, what failed (logged and skipped,
+   * never fatal at process exit) and how long it took.
    *
    * ⭐ Asked, not remembered: who wants one is `PersistableMixin`'s
-   * knowledge, including the Avatar exclusion (it captures at logout on
-   * its own seam, and a shutdown sweep would only race that).
+   * knowledge.
    */
-  static captureAtShutdown(): Promise<number> {
+  static captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return logic().captureAtShutdown();
   }
 

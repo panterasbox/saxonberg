@@ -7,6 +7,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -49,6 +50,7 @@ import {
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CompactApi } from '@saxonberg/server/mud/api/compact';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -211,13 +213,13 @@ function installStore(): void {
     const idx = arr.findIndex((d) => d._id === id);
     if (idx >= 0) arr.splice(idx, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -322,7 +324,7 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'residence.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return controller.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model as never, ctx));
   });
 }
 

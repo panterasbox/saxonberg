@@ -33,7 +33,7 @@ let registryClass: (new () => CardRegistry) | null = null;
 /**
  * Called from `obj/CardRegistry.ts`'s registration seam so this file
  * doesn't have to value-import the Registry class (cycle avoidance —
- * the `MqlSubscriptionLogic` rationale).
+ * the `SubscriptionLogic` rationale).
  * @internal
  */
 export function registerCardRegistryClass(cls: new () => CardRegistry): void {

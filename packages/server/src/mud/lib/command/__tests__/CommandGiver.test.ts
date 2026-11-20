@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -34,6 +35,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -86,11 +88,11 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
         return [];
       }
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
@@ -103,8 +105,8 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('stamps a fresh commandId per call (visible on the input-echo frame)', async () => {
-    await giver.executeCommand('ping');
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(giver.received).toHaveLength(2);
     const id1 = giver.received[0]!.meta.commandId;
@@ -115,7 +117,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('plants commandContext + causingCommandId on the Command frame', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(giver.received).toHaveLength(1);
     const frame = giver.received[0]!;
@@ -124,7 +126,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('emits an input echo at shell.diagnostic for parseable input', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(giver.envelopes).toHaveLength(1);
     expect((giver.envelopes[0] as DispatchResponseEnvelope).outcome.status).toBe('ok');
@@ -141,7 +143,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // Two frames now: the input-echo warn AND the framework
     // auto-prose scene on `shell.error` that surfaces the
     // `command-rejected: parse-failed` note as player-readable text.
-    await giver.executeCommand('');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand(''));
 
     expect(giver.received).toHaveLength(2);
     const echo = giver.received.find(
@@ -157,12 +159,12 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('input-echo body carries the raw input text', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     expect(giver.received[0]!.body).toContain('ping');
   });
 
   it('input-echo payload has shape { kind: "issued", rawText, verb, dispatchId }', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     const payload = giver.received[0]!.payload as Record<string, unknown>;
     expect(payload).toMatchObject({
       kind: 'issued',
@@ -173,7 +175,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('emits one dispatch-response envelope per executeCommand (ok)', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
@@ -190,7 +192,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('unknown verb produces a command-rejected envelope with reason unknown-verb', async () => {
-    await giver.executeCommand('nope');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('nope'));
 
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
@@ -204,7 +206,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('parse-failed envelope carries reason parse-failed', async () => {
-    await giver.executeCommand('');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand(''));
 
     expect(giver.envelopes).toHaveLength(1);
     const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
@@ -218,7 +220,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('dispatchId on the envelope equals the input-echo payload.dispatchId', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     const echoPayload = giver.received[0]!.payload as Record<string, unknown>;
     const env = giver.envelopes[0] as Omit<DispatchResponseEnvelope, 'frameId'>;
@@ -226,7 +228,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   });
 
   it('Command frame is gone after executeCommand returns', async () => {
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     // After return, ALS context has unwound, no live frame.
     expect(ExecutionContextApi.getCurrentCommandContext()).toBeNull();
     expect(ExecutionContextApi.getCurrentCausingCommandId()).toBeNull();
@@ -235,14 +237,14 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
   it('forceCommand stamps forced=true on the frame metadata', async () => {
     // Player-typed `executeCommand('ping')` runs first as a baseline:
     // its Command frame's `forced` flag should be false.
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     // `forceCommand` is the system-fired path. The auto-look-on-
     // arrival hook in Mobile uses it; here we just verify the flag
     // round-trips by inspecting the command frame's metadata via
     // ExecutionContextApi from inside a controller body — the
     // baseline test below uses getCommandStack within a custom
     // `peek` command added on a sibling avatar.
-    await giver.forceCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.forceCommand('ping'));
     // forceCommand returns void in v1; envelope on the giver
     // is the source of outcome truth.
     expect((giver.envelopes.at(-1) as DispatchResponseEnvelope).outcome.status).toBe('ok');
@@ -253,10 +255,10 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // `run`'s, before `run`'s own — a correlator that takes "the next
     // dispatch-response" read the sense's outcome as the run's (the
     // nutrition-and-fitness drive). The stamp is what lets it tell.
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     const typed = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(typed.forced).toBeUndefined();
-    await giver.forceCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.forceCommand('ping'));
     const forced = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(forced.forced).toBe(true);
   });
@@ -280,7 +282,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
       { command: strict, source: giver as never, bucket: 'self' as never },
       { command: loose, source: giver as never, bucket: 'self' as never },
     ]);
-    await giver.executeCommand('tap hello');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('tap hello'));
     const env = giver.envelopes.at(-1) as Omit<DispatchResponseEnvelope, 'frameId'>;
     expect(env.outcome.status, JSON.stringify(env.outcome.notes)).toBe('ok');
   });
@@ -296,7 +298,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
       { command: strict, source: giver as never, bucket: 'self' as never },
       { command: strict, source: giver as never, bucket: 'self' as never },
     ]);
-    await giver.executeCommand('tap hello');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('tap hello'));
     const env = giver.envelopes.at(-1) as Omit<DispatchResponseEnvelope, 'frameId'>;
     expect(env.outcome.notes.some((n) => n.kind === 'validator-failed')).toBe(true);
   });

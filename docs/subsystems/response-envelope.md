@@ -346,7 +346,71 @@ gate names — `git grep "reason: '"` gives the inventory. New
 controllers should reuse existing reasons where the semantics
 match.
 
+### ⭐⭐ `refused` — a refusal worded by its row (failure-model, 2026-11)
+
+A migrated controller does not word its refusals at all. The object that
+refused hands back a reason and the facts (`{ ok: false, reason, facts }`,
+or a thrown `Refusal` from `lib/errors.ts` — the same thing downstream),
+and the controller passes it on in one call:
+
+```typescript
+const answer = sealable.openPlanFor(giver, setting);
+if (!answer.ok) return this.refuse(context, answer);
+```
+
+`CommandContext.refuse` notes:
+
+```typescript
+interface RefusedNote {
+  kind: 'refused';
+  reason: string;                         // canonical code
+  facts: Record<string, RefusalFactWire>; // a thing as its StuffRef
+  at?: string;                            // the script line, when a script stopped here
+}
+```
+
+and keeps the live refusal for a script (`getRefusal()`). It sends
+nothing. **The words are the reason's ROW** — a `reason` document at
+`<pack root>/reasons/<code>` (`content/reasons/locked.yaml` →
+`/platform/reasons/locked`) declaring its facts and a Liquid `says`. The
+emit sweep (`emitDispatchResponse`, async since this build) loads the row
+on use, renders it for the facts and sends the line on the row's topic,
+before the envelope. Re-wording a refusal is an edit to one row, live with
+no restart. A bare code is the platform's; a pack's code is its row's full
+path (`/trade/forestry/reasons/wrong-tool`) — the `shape:` rule.
+
+⚠ A new kind, not fields on `controller-rejected` (§ Note kind
+versioning): an unmigrated controller still sends its own line and notes
+`controller-rejected`, unchanged, and the two are told apart by kind —
+which is what `lint:reason-rows` counts down. A code no row ships is a
+defect at the refusing site: the player reads `went-wrong` and a
+diagnostic is recorded. `refused` escalates to `declined`.
+
+Three `command-rejected` reasons are worded from rows too — `needs-input`,
+`parse-failed`, `bind-failed` — with a `suggestion` appended as the line to
+tap. The other six stay on the dispatcher's own arms.
+
+
+**The call-security pass's rows** (platform pack): `not-acting-for`
+(*"You can't act for …"* — a protective act handed somebody other than who
+is acting), `not-compellable`, `cannot-consent`, `compel-declined` (another
+body's code asked a body to run a command), and the blood window's
+`no-issuer`, `not-keeper`, `lot-empty`.
 ### `controller-error` is the dispatcher's catch — controllers don't try/catch
+
+⭐ Since the failure model (2026-11), `detail` is the WORDED sentence — the
+`went-wrong` row (a bug) or the `content-error` row (a bad content row) —
+and never the exception's own text; the message and stack live only in
+the diagnostic. Every guarded root — the dispatcher's four catches, a
+script's settle, a scheduled root, an engaged completion — hands what it
+caught to ONE routine, `CommandApi.reportFailure(error, context?, where?)`,
+which classifies it: a `Refusal` → `refused` (no diagnostic); an
+`Unavailable` → `refused` with *try again* (and a diagnostic); a
+`ContentError` → `controller-error` worded `content-error`, its diagnostic
+to whoever holds title over the row; anything else → `controller-error`
+worded `went-wrong`, recorded at `where`. With no live envelope (the work
+finished after its command) the line goes at once to the causing author.
+
 
 Wear / Wield / Mount used to wrap `occupyAll` in try/catch
 and translate the thrown message into `summary`. They don't anymore.
@@ -708,6 +772,14 @@ before sending, or to hand the in-flight context to the replacement.
   `Interactive.nextFrameId` counter for its own ordering primitive
 
 ## History
+
+- **Failure model (2026-11, MR !611, `f8507426a..` the branch's sweep):**
+  the `refused` note kind and wording at emit from `reason` rows; the
+  thrown `Refusal` family and `CommandApi.reportFailure`; `controller-error`
+  carries the worded sentence, never the exception text; scripts stop at a
+  refusal and `try … on` handles one. The plan (build decisions B1–B15, the
+  drive record) and the requirements are retired —
+  `git show 77721deb5:docs/plans/failure-model-plan.md` (its final state, with the drive record).
 
 The slate (requirements), build plan, and per-controller audit
 manifest were deleted once the build shipped — their load-bearing

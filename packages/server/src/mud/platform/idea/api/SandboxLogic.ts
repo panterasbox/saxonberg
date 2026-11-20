@@ -18,7 +18,7 @@ import {
 } from '../../../api/execution-context';
 import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
 import { WorldClockApi } from '../../../api/worldclock';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { BankingApi } from '../../../api/banking';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
@@ -126,7 +126,7 @@ async function discardScopeImpl(scope: string): Promise<void> {
   }
   ScheduleApi.cancelAllForScope(scope);
   WorldClockApi.cancelAllForScope(scope);
-  MqlSubscriptionApi.cancelAllForScope(scope);
+  SubscriptionApi.cancelAllForScope(scope);
   BankingApi.discardScopeOverlay(scope);
 }
 
@@ -845,10 +845,14 @@ export class SandboxLogic extends ApiLogic {
     parcelPath: string,
     fn: () => T | Promise<T>
   ): Promise<T> {
+    // ⭐ The root is fresh, but the code running in it is still somebody's:
+    // replant who is ACTING (call-security pass D2), so `eval` acts as the
+    // wizard who typed it and can claim nobody else.
+    const acting = ExecutionContextApi.captureActor();
     return (await ExecutionContextApi.runRootGuarded(
       null,
       'sandbox.runScoped',
-      fn,
+      () => ExecutionContextApi.runAsCaptured(acting, fn),
       'rethrow',
       { circleScope: parcelPath }
     )) as T;
@@ -864,10 +868,14 @@ export class SandboxLogic extends ApiLogic {
     parcelPath: string,
     fn: () => T | Promise<T>
   ): Promise<T> {
+    // ⭐ The root is fresh, but the code running in it is still somebody's:
+    // replant who is ACTING (call-security pass D2), so `eval` acts as the
+    // wizard who typed it and can claim nobody else.
+    const acting = ExecutionContextApi.captureActor();
     return (await ExecutionContextApi.runRootGuarded(
       null,
       'sandbox.runGoverned',
-      fn,
+      () => ExecutionContextApi.runAsCaptured(acting, fn),
       'rethrow',
       { jurisdictionBound: parcelPath }
     )) as T;

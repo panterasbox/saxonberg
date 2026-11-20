@@ -5,7 +5,7 @@
  * is pure command-bus sugar: hovering an item previews the command in
  * the ghost line, clicking sends it. The server is authoritative — the
  * menu never sets anything locally; it reads `cockpit.layout` to mark
- * the active item, and the switch lands via the `client-state-update`
+ * the active item, and the switch lands via the client-state change
  * the verb pushes back.
  *
  * ⚠ Each item sends `cockpit mode <mode> <arrangement>` — ONE command,

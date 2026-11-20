@@ -57,6 +57,7 @@ import {
 } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import type { ActDone, ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 /** What a patch of the sheet has been through. */
 export type PatchKind = 'field' | 'scraped' | 'marked' | 'cut' | 'broken' | 'hole';
@@ -417,6 +418,8 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    * precedent) — the cut controller words what it came to.
    */
   private async finishCut(actor: Stuff, hole: boolean, patchId: string): Promise<ActDone<CutDone, CutRefusal>> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     if (hole) {
       await this.cutHole(actor);
       return { ok: true, facts: { kind: 'ice-hole' } };
@@ -428,6 +431,8 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** A block off a marked patch: thickness × grid², at the patch's grade. */
   public async cutBlock(actor: Stuff, patchId: string): Promise<Stuff | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const patch = this.ensureLog().find((p) => p.id === patchId);
     if (!patch) return null;
     const ice = this.iceOf(patch);
@@ -475,6 +480,8 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** The house a cutter on shift cuts for, else the cutter. */
   private cutterOwner(actor: Stuff, room: Stuff | null): Stuff {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const roomPath = room?.getTemplatePath() ?? '';
     const house = roomPath ? EmploymentApi.businessAt(roomPath) : null;
     const housePath = (house as unknown as { getOrganizationPath?(): string } | null)?.getOrganizationPath?.() ?? '';

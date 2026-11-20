@@ -39,7 +39,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
-import { collectSubscribableFields } from '../../api/mql-subscription';
+import { collectSubscribableFields } from '../../api/subscription';
 import Extra from '../agent/Extra';
 import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
 import RenownStanding, {

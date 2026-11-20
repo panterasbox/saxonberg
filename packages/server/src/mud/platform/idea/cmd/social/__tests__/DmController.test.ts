@@ -1,14 +1,15 @@
 /**
- * DmController — transmission routes through the hosted comms update.
+ * DmController — comms is the person's; Messages is the app it looks for
+ * (aether-devices D2).
  *
- * Covers the acceptance trio: dm succeeds for an attuned actor with the
- * comms update; refuses (mixin-missing) when the comms update is absent
- * though attunement is present; an unattuned recipient drops the frame
- * (reception gate unchanged).
+ * Covers: dm goes through an implant with Messages installed; refuses
+ * naming `apps install messages` when Messages is uninstalled; sends again
+ * on reinstall; a shade-like born-tuned person sends from their own host;
+ * an unattuned recipient drops the frame (reception gate unchanged).
  */
 
 import "../../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DmController from '../DmController';
 import { StuffApi } from '../../../../../api/stuff';
 import {
@@ -20,13 +21,15 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
-import { AetherMixin, type AetherHost } from '../../../../../lib/message/Aether';
+import { AetherMixin } from '../../../../../lib/message/Aether';
+import { AetherHostMixin, type AetherHost } from '../../../../../lib/augmentation/AetherHost';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SlottedMixin } from '../../../../../lib/slot/Slotted';
 import Good from '../../../../../lib/stuff/Good';
 import AetherImplant from '../../../../thing/AetherImplant';
-import CommsUpdate from '../../../CommsUpdate';
+import App from '../../../App';
+import { CommsMixin, type Comms } from '../../../../../lib/comms/Comms';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -36,10 +39,11 @@ import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { MessageFrame } from '@saxonberg/types';
 import type { MqlManyResult } from '../../../../../api/mql';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
-class Actor extends SlottedMixin(
-  AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good)))),
-) {
+class Actor extends CommsMixin(SlottedMixin(
+  AetherHostMixin(AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Good))))),
+)) {
   static fieldMeta: FieldMeta = {};
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
@@ -57,7 +61,7 @@ function withPath<T extends Stuff>(obj: T, path: string): T {
 
 let seq = 0;
 /** Build an embodied Sensor actor; `attuned` occupies the implant. */
-function makeActor(name: string, attuned: boolean): Actor & AetherHost {
+function makeActor(name: string, attuned: boolean): Actor & AetherHost & Comms {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-dm-test-${seq}`,
@@ -82,7 +86,18 @@ function makeActor(name: string, attuned: boolean): Actor & AetherHost {
     const implant = makeStuff(() => new AetherImplant());
     (actor as unknown as Actor).occupy(implant, 'cranial');
   }
-  return actor as unknown as Actor & AetherHost;
+  return actor as unknown as Actor & AetherHost & Comms;
+}
+
+function implantOf(actor: Actor): AetherImplant {
+  return [...actor.getOccupants('cranial')][0] as unknown as AetherImplant;
+}
+
+/** An attuned actor whose implant runs Messages. */
+async function withMessages(name: string): Promise<Actor & AetherHost & Comms> {
+  const a = makeActor(name, true);
+  await implantOf(a).installApp(App.MESSAGES_PATH);
+  return a;
 }
 
 function dmModel(recipient: Stuff): CommandModel {
@@ -112,69 +127,85 @@ describe('DmController', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     buildAllModalities();
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) =>
+      withPath(makeStuff(() => new App()), path)) as never);
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     StuffApi.clearAll();
   });
 
-  it('succeeds for an attuned actor with the comms update', async () => {
-    const alice = makeActor('Alice', true);
-    const bob = makeActor('Bob', true);
-    const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
-    const bobComms = makeStuff(() => new CommsUpdate());
-    bob.hostUpdate(bobComms);
-
+  async function dm(alice: Stuff, bob: Stuff): Promise<CommandContext> {
     const controller = makeStuff(() => new DmController());
-    const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
+    const ctx = context(alice, alice);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(dmModel(bob) as never, ctx));
+    return ctx;
+  }
 
-    expect(
-      (bob as unknown as Actor).received.some(
-        (f) => f.topic === 'speech.comms',
-      ),
-    ).toBe(true);
-    expect(ctx.getNotes().some((n) => n.kind === 'mixin-missing')).toBe(false);
+  const heard = (a: Stuff): boolean =>
+    (a as unknown as Actor).received.some((f) => f.topic === 'speech.comms');
+
+  it('sends through an implant with Messages installed', async () => {
+    const alice = await withMessages('Alice');
+    const bob = await withMessages('Bob');
+    const ctx = await dm(alice, bob);
+    expect(heard(bob)).toBe(true);
+    expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected' || n.kind === 'refused')).toBe(false);
   });
 
-  it('refuses (mixin-missing) when the comms update is absent though attuned', async () => {
-    const alice = makeActor('Alice', true); // attuned, but no comms update
-    const bob = makeActor('Bob', true);
+  it('refuses naming the fix when Messages is uninstalled; reinstall sends', async () => {
+    const alice = await withMessages('Alice');
+    const bob = await withMessages('Bob');
+    implantOf(alice).uninstallApp('messages');
 
-    const controller = makeStuff(() => new DmController());
-    // commandSource is the speaker (not a comms update); the reachable
-    // pool holds no comms update on the attuned-but-update-less actor.
-    const ctx = context(alice as unknown as Stuff, alice as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
-
-    expect(ctx.getNotes().some((n) => n.kind === 'mixin-missing')).toBe(true);
+    const ctx = await dm(alice, bob);
+    expect(heard(bob)).toBe(false);
     expect(
-      (alice as unknown as Actor).received.some((f) =>
-        (f.body ?? '').toString().includes('no way to send a thought'),
+      ctx.getNotes().some(
+        (n) => n.kind === 'refused' && n.reason === 'aether-no-messages',
       ),
     ).toBe(true);
+    // The words are the `aether-no-messages` row's, said at emit (D11).
+
+    await implantOf(alice).installApp(App.MESSAGES_PATH);
+    await dm(alice, bob);
+    expect(heard(bob)).toBe(true);
+  });
+
+  it('refuses naming a phone when nothing tunes the sender', async () => {
+    const alice = makeActor('Alice', false);
+    const bob = await withMessages('Bob');
+    const ctx = await dm(alice, bob);
+    expect(heard(bob)).toBe(false);
+    expect(
+      ctx.getNotes().some((n) => n.kind === 'refused' && n.reason === 'aether-none'),
+    ).toBe(true);
+  });
+
+  it('a born-tuned person sends from their own host', async () => {
+    // Tuned by nature: the species carries the sense (the shade's shape).
+    const alice = makeActor('Alice', false);
+    (alice as unknown as { getSpecies(): Species }).getSpecies().setInnateMixins(['AetherMixin']);
+    await alice.installApp(App.MESSAGES_PATH);
+    const bob = await withMessages('Bob');
+    await dm(alice, bob);
+    expect(heard(bob)).toBe(true);
+  });
+
+  it('the cohort lands on the people (reply finds it)', async () => {
+    const alice = await withMessages('Alice');
+    const bob = await withMessages('Bob');
+    await dm(alice, bob);
+    expect(bob.getLastInboundCohort()).toEqual([alice]);
+    expect(alice.getLastOutboundCohort()).toEqual([bob]);
   });
 
   it('an unattuned recipient drops the dm frame (reception gate)', async () => {
-    const alice = makeActor('Alice', true);
+    const alice = await withMessages('Alice');
     const bob = makeActor('Bob', false); // no implant → no verbal-esp
-    const aliceComms = makeStuff(() => new CommsUpdate());
-    alice.hostUpdate(aliceComms);
-
-    const controller = makeStuff(() => new DmController());
-    const ctx = context(alice as unknown as Stuff, aliceComms as unknown as Stuff);
-    await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
-
-    expect(
-      (bob as unknown as Actor).received.some(
-        (f) => f.topic === 'speech.comms',
-      ),
-    ).toBe(false);
+    await dm(alice, bob);
+    expect(heard(bob)).toBe(false);
     // The sender still hears their own echo (they are attuned).
-    expect(
-      (alice as unknown as Actor).received.some(
-        (f) => f.topic === 'speech.comms',
-      ),
-    ).toBe(true);
+    expect(heard(alice)).toBe(true);
   });
 });

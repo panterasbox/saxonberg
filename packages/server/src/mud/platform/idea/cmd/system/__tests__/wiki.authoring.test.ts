@@ -37,6 +37,7 @@ import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__te
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note, WikiEditConflictNote } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Principal extends Idea {}
 
@@ -65,7 +66,7 @@ async function run(
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
@@ -224,10 +225,10 @@ describe('⭐ compare-and-swap on rev (34)', () => {
     });
     await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      await ctrl.execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
         { subcommand: 'edit', page: 'oak', body: 'y', rev: '1' } as never,
         ctx,
-      );
+      ));
     });
     // Declined, not error: the page is fine, the edit simply did not
     // go through, and the author is expected to reapply it.

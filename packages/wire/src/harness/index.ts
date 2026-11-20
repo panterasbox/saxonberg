@@ -9,6 +9,7 @@
  */
 
 export { Session, uniqueHandle, plain, SERVER_URL } from './session';
+export { NavClient } from './nav';
 export type {
   CommandResult,
   QueryRecord,
@@ -48,6 +49,12 @@ export {
   pinWeather,
   unpinWeather,
   stage,
+  failDatastore,
+  forceDocument,
   stageShip,
+  restartWorld,
+  stopWorldWithin,
+  lastShutdownReport,
+  stageStandingHistory,
 } from './world';
-export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';
+export type { ShipStagePlace, ShipStageSpec, ShipStageResult, ShutdownReport, TimedStop } from './world';

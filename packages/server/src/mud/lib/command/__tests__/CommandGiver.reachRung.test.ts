@@ -29,6 +29,7 @@ import { PerceptibleMixin } from '../../description/Perceptible';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class Thing extends ContainableMixin(VisibleMixin(PerceptibleMixin(Idea))) {}
 class Box extends SealableMixin(
@@ -95,7 +96,7 @@ describe('the binder binds by one rule; the verb refuses after', () => {
       command: undefined as never,
     });
     models = [];
-    last = await g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer);
+    last = await TestHarnessApi.actAs(g, () => g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer));
     const m = models[models.length - 1];
     return (m?.target as MqlOneResult | undefined)?.stuff ?? null;
   };

@@ -188,6 +188,31 @@ or the CMS panel). Store-is-truth, push-is-courtesy. The **giver** on the
 command path is served by the existing `controller-error` note, not by
 this push.
 
+### ⭐ A content error goes to the row's title holder (failure-model, 2026-11)
+
+A `ContentError` (a recipe naming a band that is not one, forced past the
+installer) is recorded with `channel: 'content-error'` and `path` = the ROW.
+Its `author` is left null — the reader is not whoever last edited it — and
+the push goes to whoever holds **title** over the row's path
+(`ParcelApi.ownerOf` → a player, a group's online members, an
+organization's committee). `list` already shows a row only to a holder of
+an extent over its path, so the maintainer reads it in `errors` and an
+unrelated wizard does not: no new gate, no `isWizard`. The player who met
+it reads only the `content-error` row's sentence. Runtime rows from
+`CommandApi.reportFailure` (a bug at a guarded root) carry the exception's
+message and stack — the one place they live, since the player is never
+shown them.
+
+### ⭐ A refused claim goes to the lying code's keeper (call-security pass)
+
+`channel: 'call-security'` rides the same title route as `content-error`
+(one routing set, `TITLE_ROUTED`): `AccessApi.requireActor` refused a claim
+that was not who is acting, or the compulsion gate refused a body being
+driven, and `path` is the code that did it
+(`ExecutionContextApi.getActingCodePath()` — a replaced controller's row,
+a brain's NPC). Its title holder reads *"<act>: <actor> claimed to act for
+<claimed>"* in `errors`; the player reads only the refusal's row.
+
 ## Gating
 
 Server-authoritative on the **context-derived** actor

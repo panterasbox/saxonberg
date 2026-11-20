@@ -84,7 +84,7 @@ answer here should stand on.
 
 - `credit-slate` drive step 6 (the keeper borrows with nobody connected)
 - `livelihood-slate` (the NPC job board a new player earns from)
-- `press-slate` / `gazette-slate` (the price index at login)
+- `journalism-slate` / `gazette-slate` (the price index at login)
 - `spawn-distribution-slate`, `guild-slate` (the faucet)
 - `eager-residency-slate` (who may keep a thing loaded unobserved)
 - `npc-behavior-slate` (*"simulate what someone can see; derive the

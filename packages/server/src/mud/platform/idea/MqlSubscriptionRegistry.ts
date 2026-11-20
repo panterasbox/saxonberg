@@ -1,13 +1,13 @@
 /**
- * MqlSubscriptionRegistry — singleton Idea holding the MQL
- * subscription substrate's runtime state.
+ * MqlSubscriptionRegistry — the MQL SOURCE of the one subscription
+ * protocol: a singleton Idea holding the standing queries' runtime state.
  *
- * Lives at `/platform/idea/MqlSubscriptionRegistry`. The thin `MqlSubscriptionApi`
- * facade at `api/mql-subscription.ts` is the only legitimate caller —
- * every public method on this class carries
- * `@CallSecurity(FromModule('/api/mql-subscription#MqlSubscriptionApi'))`
- * so external code that grabs the Stuff via `StuffApi.findByTemplatePath`
- * cannot poke its state.
+ * Lives at `/platform/idea/MqlSubscriptionRegistry`
+ * (`SUBSCRIPTION_SOURCES.mql`). Its three source methods admit only the
+ * protocol's `SubscriptionRegistry`; the rest only `SubscriptionApi`'s
+ * logic singleton (`/platform/idea/api/subscription`), so external code
+ * that grabs the Stuff via `StuffApi.findByTemplatePath` cannot poke its
+ * state.
  *
  * State held here:
  *   - `registry` — per-Interactive map of subscriptionId → state.
@@ -17,7 +17,7 @@
  *     handle + refcount, so we install one listener per pair total.
  *   - `dirty` / `scheduled` — `setImmediate`-batched re-resolve queue.
  *
- * HMR-aware: reload of `api/mql-subscription.ts` invalidates only the
+ * HMR-aware: reload of `api/subscription.ts` invalidates only the
  * cached pointer in the Api; subscription state survives. Reload of
  * THIS file re-clones the Stuff (state resets, listeners would need to
  * re-register from scratch).
@@ -29,13 +29,16 @@ import type {
   StuffDetailFocusRecord,
   Change,
   MqlSubscriptionErrorReason,
-  MqlSubscriptionResultEnvelope,
-  MqlSubscriptionDeltaEnvelope,
-  MqlSubscriptionErrorEnvelope,
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
 } from '@saxonberg/types';
 import { Idea } from '../../lib/stuff/Idea';
+import {
+  SubscriptionSourceMixin,
+  type Subscription as LiveSubscription,
+  type SubscriptionRefusal,
+} from '../../lib/subscription/SubscriptionSource';
+import { SHELF_SUBSCRIPTION } from '../../lib/connection/Cards';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -51,7 +54,6 @@ import {
   OMNI_SCOPE,
 } from '../../api/execution-context';
 import { MqlApi, MqlPermissionError } from '../../api/mql';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { StuffApi } from '../../api/stuff';
 import { ScheduleApi } from '../../api/schedule';
 import { PerceptionApi } from '../../api/perception';
@@ -60,6 +62,7 @@ import { ShellApi } from '../../api/shell';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
+  SubscriptionApi,
   collectSubscribableFields,
   projectFocus,
   resolveFieldSet,
@@ -67,17 +70,19 @@ import {
   type SubscriptionCardinality,
   type SubscribeRequest,
   type QueryRequest,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
+
+/** The protocol's registry is the only caller of a source's three methods. */
+const SubscriptionSourceCallers = SecurityPolicies.FromModule('/platform/idea/SubscriptionRegistry');
 
 /**
  * See WorldClockRegistry — same gate shape, same rationale. Admits the
- * Api facade, the `MqlSubscriptionLogic` singleton (caller template path
- * `/platform/idea/api/mql-subscription`, which actually forwards every
- * registry-backed call), and internal `this.foo()` self-calls.
+ * `SubscriptionLogic` singleton (caller template path
+ * `/platform/idea/api/subscription`, which forwards every registry-backed
+ * call of `SubscriptionApi`), and internal `this.foo()` self-calls.
  */
-const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
-  SecurityPolicies.FromTemplate('/platform/idea/api/mql-subscription'),
+const SubscriptionApiCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromTemplate('/platform/idea/api/subscription'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -86,7 +91,7 @@ const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
  *
  * It reuses the whole index / refcount / teardown machinery, but
  * deliberately has **no bus listener** — nothing ever fires it through
- * `EventApi`. `notifyDurableSubject` routes into the index directly.
+ * `EventApi`. A `{ durableSubject }` poke routes into the index directly.
  */
 const DURABLE_SUBJECT_KIND = '__durable-subject';
 
@@ -139,14 +144,14 @@ function unionFilter(a: FieldFilter | undefined, b: FieldFilter): FieldFilter {
 }
 
 interface SubscriptionState {
+  /** The protocol's handle — deltas and errors go out through it. */
+  handle: LiveSubscription;
   interactive: Interactive;
   subscriptionId: string;
   query: string;
   cardinality: SubscriptionCardinality;
   fields: FieldSet;
   detailKey?: string;
-  focusDependent: boolean;
-  locationDependent: boolean;
   /**
    * ⭐ Bound to ONE Stuff by id, instead of to a query. See
    * `SubscribeRequest.subjectId`: every query form is relative and
@@ -158,12 +163,6 @@ interface SubscriptionState {
   dependencyHandles: DependencyHandle[];
   /** ⭐ Row-level dirt and the projection memo (crowded-rooms D3). */
   memo: RowMemo;
-  /**
-   * ⭐ Not on the client's screen (crowded-rooms D4/D5): no dependencies,
-   * no memo, nothing computed or sent until resumed. Dies with the state,
-   * so a cancel (a card's close) forgets it.
-   */
-  paused?: boolean;
   /**
    * Circle scope captured at registration (sandbox build): the batched
    * re-resolve re-plants this on its per-subscription root, so a
@@ -247,6 +246,7 @@ function projectStuffInto(
   fields: FieldSet,
   viewer: Stuff & Sensor,
   detailKey: string | undefined,
+  oneShot?: { dark: boolean },
 ): RecordValue {
   // ⭐ A live card's projection is the room's own reading: it holds the
   // world still (crowded-rooms D9).
@@ -260,7 +260,14 @@ function projectStuffInto(
     for (const name of fields) {
       const d = descriptors.get(name);
       if (!d || !d.read) continue;
-      const value = d.read(stuff, viewer);
+      // ⭐ Too dark to see by: what sight would have told is absent, never
+      // blanked; the envelope says `dark` once (tooltips D3).
+      if (oneShot?.dark && d.sense === 'vision') continue;
+      // A one-shot (a tooltip's describe) names the subject as THIS viewer
+      // perceives it — the same `describeFor` the prose and `projectFields`
+      // use (*something* in the dark, the believed name for a stranger).
+      const value =
+        oneShot && name === 'displayName' ? stuff.describeFor(viewer) : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;
     }
@@ -406,7 +413,7 @@ function resolveAndProject(
     };
     const topFields: readonly string[] =
       sub.detailKey !== undefined ? [`@detail:${sub.detailKey}`] : sub.fields;
-    MqlSubscriptionApi.collectProjections(
+    SubscriptionApi.collectProjections(
       () => {
         for (const stuff of stuffList) {
           const hit = enter(stuff, topFields, true);
@@ -451,7 +458,7 @@ const DRAIN_SLICE_MS = 20;
 /** How long a backlogged drain rests, as a multiple of the slice it just ran. */
 const DRAIN_REST_FACTOR = 2;
 
-export default class MqlSubscriptionRegistry extends Idea {
+export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Idea) {
   /**
    * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
    *
@@ -515,94 +522,54 @@ export default class MqlSubscriptionRegistry extends Idea {
   /* ─── public surface ─── */
 
   /**
-   * Register a live subscription and return its first resolve.
+   * ⭐ The MQL source's open (navigation-server D1): register a live
+   * subscription and answer its first resolve, or refuse in a word.
    *
-   * ⭐ **The card catalogue left this method.** A subscription used to
-   * be able to name a card, and the server described it from
-   * `Cards.ts`. Cards are now their own substrate with their own birth
-   * path, so what remains here is the plain shape: a caller-supplied
-   * query, cardinality and field set.
-   *
-   * ⚠ Returns the initial records rather than only emitting them, and
-   * skips the initial envelope entirely when `silent`. A LIVE card owns
-   * its subscription handle and carries the first resolve on its own
-   * `card-opened`; emitting a second envelope for one open is how a
-   * card ends up briefly showing nothing. Returns `null` when the
-   * subscribe failed (the error envelope has already gone out).
+   * `params` is the wire's {@link MqlSubscriptionParams}; a server-side
+   * opener (a live card) adds `subjectId`. `chrome: 'self'` is the one
+   * standing query the client opens for itself — the widget shelf — and
+   * its whole shape comes from the server's own catalogue: the client
+   * cannot name a CARD, because the params have no field that would say
+   * which.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleSubscribe(req: SubscribeRequest): RecordValue[] | null {
-    const { interactive, subscriptionId } = req;
+  @CallSecurity(SubscriptionSourceCallers)
+  public override openSubscription(
+    handle: LiveSubscription,
+    raw: unknown,
+  ): RecordValue[] | SubscriptionRefusal {
+    const req = (typeof raw === 'object' && raw !== null ? raw : {}) as SubscribeRequest;
+    const interactive = handle.interactive;
+    const subscriptionId = handle.id;
+    const refuse = (reason: MqlSubscriptionErrorReason, detail: string): SubscriptionRefusal =>
+      ({ refused: true, reason, detail });
 
-    const perInteractive = this.registry.get(interactive);
-    if (perInteractive && perInteractive.has(subscriptionId)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'duplicate subscriptionId',
-      );
-      return null;
-    }
-
-    const rawQuery = req.query;
-    const rawCardinality = req.cardinality;
-    if (typeof rawQuery !== 'string') {
-      this.emitError(interactive, subscriptionId, 'parse', 'query required');
-      return null;
-    }
+    const shelf = req.chrome === 'self' ? SHELF_SUBSCRIPTION : null;
+    const rawQuery = shelf ? shelf.query : req.query;
+    const rawCardinality = shelf ? shelf.cardinality : req.cardinality;
+    if (typeof rawQuery !== 'string') return refuse('parse', 'query required');
     if (rawCardinality !== 'one' && rawCardinality !== 'many') {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'cardinality required',
-      );
-      return null;
+      return refuse('parse', 'cardinality required');
     }
     const query = rawQuery;
     const cardinality = rawCardinality;
-    const fields = resolveFieldSet(req.fields);
-    const detailKey = req.detailKey;
-    // ⭐ Accepted and unused (crowded-rooms D1): the holder entry every
-    // query-bound subscription installs subsumes both flags. Their removal
-    // from the wire type is navigation-server's `params` to do.
-    const focusDependent = req.focusDependent === true;
-    const locationDependent = req.locationDependent === true;
+    const fields = resolveFieldSet(shelf ? shelf.fields : req.fields);
+    const detailKey = shelf ? undefined : req.detailKey;
 
     if (detailKey !== undefined && cardinality !== 'one') {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'parse',
-        'detailKey requires cardinality one',
-      );
-      return null;
+      return refuse('parse', 'detailKey requires cardinality one');
     }
 
     const holder = interactive.getHolder();
     if (!holder || !MixinApi.isCommandGiver(holder)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'permission',
-        'subscription holder must compose CommandGiver',
-      );
-      return null;
+      return refuse('permission', 'subscription holder must compose CommandGiver');
     }
     if (!MixinApi.isSensor(holder)) {
-      this.emitError(
-        interactive,
-        subscriptionId,
-        'permission',
-        'subscription holder must compose Sensor',
-      );
-      return null;
+      return refuse('permission', 'subscription holder must compose Sensor');
     }
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
-    const subjectId = req.subjectId;
+    const subjectId = shelf ? undefined : req.subjectId;
     const memo: RowMemo = { rows: new Map(), stale: new Set(), invalid: true };
     let resolved: ReturnType<typeof resolveAndProject>;
     try {
@@ -616,27 +583,20 @@ export default class MqlSubscriptionRegistry extends Idea {
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'parse';
-      this.emitError(
-        interactive,
-        subscriptionId,
-        reason,
-        err instanceof Error ? err.message : String(err),
-      );
-      return null;
+      return refuse(reason, err instanceof Error ? err.message : String(err));
     }
 
     const lastResult = resolved.rows;
 
     const registrantScope = ExecutionContextApi.getCircleScope();
     const sub: SubscriptionState = {
+      handle,
       interactive,
       subscriptionId,
       query,
       cardinality,
       fields,
       detailKey,
-      focusDependent,
-      locationDependent,
       ...(subjectId !== undefined ? { subjectId } : {}),
       lastResult,
       dependencyHandles: [],
@@ -652,20 +612,63 @@ export default class MqlSubscriptionRegistry extends Idea {
       this.registry.set(interactive, bucket);
     }
     bucket.set(subscriptionId, sub);
-
-    const result = [...lastResult.values()];
-    if (req.silent !== true) {
-      const template: Omit<MqlSubscriptionResultEnvelope, 'frameId'> = {
-        type: 'mql-subscription-result',
-        subscriptionId,
-        result,
-      };
-      viewer.onEnvelope(template);
-    }
-    return result;
+    handle.state = sub;
+    return [...lastResult.values()];
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  /**
+   * The subscriber is gone (unsubscribe, disconnect, a failed open):
+   * its dependency index entries and listeners go with it.
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override closeSubscription(handle: LiveSubscription): void {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return;
+    this.forget(sub);
+  }
+
+  /**
+   * ⭐ The MQL source mostly wakes itself — its event index marks what
+   * changed. A poke is for what no event carries:
+   *
+   * - **`{ durableSubject }`** — a ledger just wrote a row keyed on a
+   *   durable subject (`/platform/agent/Avatar/<playerId>`), which no live
+   *   `stuffId` event can name. Every subscription whose fields declared
+   *   that {@link SubscribableFieldDescriptor.durableKey} re-resolves. One
+   *   known producer poking one known consumer: a method call, never a
+   *   broadcast through `EventApi`.
+   * - **`{ belief: { viewerId, subjectId } }`** (crowded-rooms D2) — a
+   *   viewer's belief about a subject changed (they learned who someone
+   *   is, their regard moved, a disguise was seen through): that viewer's
+   *   rows of that subject re-project, and nobody else's. Poked by the
+   *   `BeliefStore` mutators.
+   * - **a holder** — the body behind a session changed (the sandbox
+   *   crossing moves a socket between bodies). That is not a dependency of
+   *   any query but a change of who it is FOR, so every subscription of a
+   *   session that now drives `holder` re-resolves (found live: the
+   *   location card still read "the wire alcove" from inside the circle).
+   */
+  @CallSecurity(SubscriptionSourceCallers)
+  public override pokeSubscriptions(holder: Stuff | null, hint?: unknown): void {
+    const said = hint as
+      | { durableSubject?: string; belief?: { viewerId: string; subjectId: string } }
+      | undefined;
+    if (said?.durableSubject !== undefined) {
+      this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject: said.durableSubject });
+      return;
+    }
+    if (said?.belief !== undefined) {
+      const { viewerId, subjectId } = said.belief;
+      this.routeFire(VIEWER_BELIEF_KIND, 'key', { key: `${viewerId}|${subjectId}` });
+      return;
+    }
+    for (const [interactive, bucket] of this.registry) {
+      if (holder !== null && interactive.getHolder() !== holder) continue;
+      for (const sub of bucket.values()) this.markDirty(sub);
+    }
+  }
+
+  @CallSecurity(SubscriptionApiCallers)
   public handleQuery(
     req: Omit<QueryRequest, 'query' | 'cardinality'> &
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>,
@@ -728,7 +731,16 @@ export default class MqlSubscriptionRegistry extends Idea {
         const ctx = { commandGiver: giver, scope: expandedQuery };
         // ⭐ What the viewer perceives, then the head ordinal (D23).
         const many = MqlApi.resolveMany(expandedQuery, ctx);
-        const seen = PerceptionApi.perceived(giver, many.stuff, many.ordinal);
+        // ⭐⭐ Reach is the SERVER's to enforce, not the query text's
+        // (tooltips D3 — perception gates are binding; MQL names, the act
+        // observes). An id names a thing anywhere in the world; a one-shot
+        // describes only what `look` could reach — its own `reachable`
+        // scope — whatever query arrived. Outside it: nothing.
+        const reach = new Set(
+          MqlApi.resolveMany('reachable', { commandGiver: giver, scope: 'reachable' }).stuff,
+        );
+        const near = many.stuff.filter((s) => reach.has(s));
+        const seen = PerceptionApi.perceived(giver, near, many.ordinal);
         stuffList = cardinality === 'one' ? seen.slice(0, 1) : seen;
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
@@ -742,12 +754,17 @@ export default class MqlSubscriptionRegistry extends Idea {
         return;
       }
 
-      const result: RecordValue[] = [];
+    const result: RecordValue[] = [];
     const release = PerceptionApi.holdLightSteady();
-      try {
+    let dark = false;
+    try {
+      // ⭐ The band `look` renders by, read WITHOUT looking (no discovery,
+      // no tracking — a hover must learn nothing): too dark, and every
+      // sight field is dropped (tooltips D3).
+      const place = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+      dark = place ? (PerceptionApi.lightBandFor(viewer, place)?.dark ?? false) : false;
       for (const stuff of stuffList) {
-        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-        result.push(rec);
+        result.push(projectStuffInto(stuff, fields, viewer, detailKey, { dark }));
       }
     } finally {
       release();
@@ -757,50 +774,36 @@ export default class MqlSubscriptionRegistry extends Idea {
       type: 'mql-query-result',
       queryId,
       result,
+      ...(dark ? { dark: true as const } : {}),
     };
     viewer.onEnvelope(template);
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string,
-  ): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    const sub = bucket.get(subscriptionId);
-    if (!sub) return;
-    this.teardownSubscription(sub);
-    bucket.delete(subscriptionId);
-    if (bucket.size === 0) this.registry.delete(interactive);
-  }
-
   /**
-   * ⭐ The client says this subscription is not on screen (crowded-rooms
-   * D4/D5): drop its dependencies and memo and keep the id — nothing is
-   * computed or sent. An id the session does not hold is a skip.
+   * ⭐ Paused (crowded-rooms D4/D5): drop its dependencies and memo — the
+   * registry already sends nothing, and this stops the COMPUTING. The id
+   * and the query stay for the resume.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handlePause(interactive: Interactive, subscriptionId: string): void {
-    const sub = this.registry.get(interactive)?.get(subscriptionId);
-    if (!sub || sub.paused === true) return;
-    sub.paused = true;
+  @CallSecurity(SubscriptionSourceCallers)
+  public override pauseSubscription(handle: LiveSubscription): void {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return;
     this.teardownSubscription(sub);
     sub.memo = { rows: new Map(), stale: new Set(), invalid: true };
   }
 
   /**
-   * ⭐ On screen again: resolve and project afresh, re-install the
-   * dependencies, and answer ONE `mql-subscription-result` — a reset the
-   * client replaces its records with. An id that is not paused is a skip.
+   * ⭐ Resumed: resolve and project afresh and re-install the dependencies;
+   * the rows are the snapshot the registry sends as a reset.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public handleResume(interactive: Interactive, subscriptionId: string): void {
-    const sub = this.registry.get(interactive)?.get(subscriptionId);
-    if (!sub || sub.paused !== true) return;
-    sub.paused = false;
-    const holder = interactive.getHolder();
-    if (!holder || !MixinApi.isCommandGiver(holder) || !MixinApi.isSensor(holder)) return;
+  @CallSecurity(SubscriptionSourceCallers)
+  public override resumeSubscription(handle: LiveSubscription): RecordValue[] | SubscriptionRefusal {
+    const sub = handle.state as SubscriptionState | undefined;
+    if (sub === undefined) return { refused: true, reason: 'closed', detail: 'nothing kept to resume' };
+    const holder = handle.interactive.getHolder();
+    if (!holder || !MixinApi.isCommandGiver(holder) || !MixinApi.isSensor(holder)) {
+      return { refused: true, reason: 'permission', detail: 'the session drives no body that perceives' };
+    }
     const viewer = holder as Stuff & Sensor;
     let resolved: ReturnType<typeof resolveAndProject>;
     try {
@@ -808,75 +811,11 @@ export default class MqlSubscriptionRegistry extends Idea {
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'resolve';
-      this.emitError(interactive, subscriptionId, reason, err instanceof Error ? err.message : String(err));
-      return;
+      return { refused: true, reason, detail: err instanceof Error ? err.message : String(err) };
     }
     sub.lastResult = resolved.rows;
     this.deriveAndInstallDependencies(sub, resolved, viewer);
-    const template: Omit<MqlSubscriptionResultEnvelope, 'frameId'> = {
-      type: 'mql-subscription-result',
-      subscriptionId,
-      result: [...resolved.rows.values()],
-    };
-    viewer.onEnvelope(template);
-  }
-
-  /** Is this subscription paused (the card rebind keeps a pause)? */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public isPaused(interactive: Interactive, subscriptionId: string): boolean {
-    return this.registry.get(interactive)?.get(subscriptionId)?.paused === true;
-  }
-
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public cancelAllForInteractive(interactive: Interactive): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    for (const sub of bucket.values()) {
-      this.teardownSubscription(sub);
-    }
-    this.registry.delete(interactive);
-  }
-
-  /**
-   * Re-resolve every subscription this Interactive holds, right now.
-   *
-   * Subscriptions re-resolve when a tracked DEPENDENCY changes — but
-   * swapping the body behind a socket isn't a dependency of any query,
-   * it's a change of who the query is *for*. After the sandbox crossing
-   * moves a socket to a wire body (or back), its cards would otherwise
-   * keep rendering the room the player already left (found live: the
-   * location card still read "the wire alcove" from inside the circle).
-   */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public refreshForInteractive(interactive: Interactive): void {
-    const bucket = this.registry.get(interactive);
-    if (!bucket) return;
-    for (const sub of bucket.values()) this.markDirty(sub);
-  }
-
-  /**
-   * ⭐ **The durable-subject witness** — see
-   * {@link MqlSubscriptionApi.notifyDurableSubject}.
-   *
-   * Routes straight into the dependency index under the synthetic
-   * {@link DURABLE_SUBJECT_KIND}. No event is constructed and nothing
-   * touches `EventApi`: this is one known producer (a standing ledger)
-   * poking one known consumer (this registry), which the codebase's
-   * rule says is a method call, not a broadcast.
-   */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public notifyDurableSubject(subject: string): void {
-    this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject });
-  }
-
-  /**
-   * {@link MqlSubscriptionApi.notifyBelief} (crowded-rooms D2): a viewer's
-   * belief about a subject changed — re-project that viewer's rows of that
-   * subject, and nobody else's.
-   */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public notifyBelief(viewerId: string, subjectId: string): void {
-    this.routeFire(VIEWER_BELIEF_KIND, 'key', { key: `${viewerId}|${subjectId}` });
+    return [...resolved.rows.values()];
   }
 
   /**
@@ -886,7 +825,7 @@ export default class MqlSubscriptionRegistry extends Idea {
    * crossing — the world-side resolve stays field-pure). Returns the
    * cancel count.
    */
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public cancelAllForScope(scope: string): number {
     let cancelled = 0;
     for (const [interactive, bucket] of [...this.registry.entries()]) {
@@ -894,6 +833,7 @@ export default class MqlSubscriptionRegistry extends Idea {
         if (sub.birthScope !== scope) continue;
         this.teardownSubscription(sub);
         bucket.delete(subscriptionId);
+        sub.handle.end();
         cancelled++;
       }
       if (bucket.size === 0) this.registry.delete(interactive);
@@ -903,14 +843,14 @@ export default class MqlSubscriptionRegistry extends Idea {
 
   /* ─── test seams ─── */
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _getRegistrySize(): number {
     let count = 0;
     for (const bucket of this.registry.values()) count += bucket.size;
     return count;
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _getDependencyIndexEntryCount(): number {
     let count = 0;
     for (const byMap of this.index.values()) {
@@ -923,7 +863,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     return count;
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public async _drainScheduled(): Promise<void> {
     await Promise.resolve();
     await Promise.resolve();
@@ -932,7 +872,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     await new Promise<void>((resolve) => setImmediate(resolve));
   }
 
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(SubscriptionApiCallers)
   public _clearAll(): void {
     for (const byMap of this.listeners.values()) {
       for (const entry of byMap.values()) {
@@ -999,7 +939,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       this.indexAdd(kind, by, value, sub, filter);
       next.push({ kind, by, value, filter });
       // The synthetic kinds have no bus behind them — they are poked
-      // directly (`notifyDurableSubject`, `notifyBelief`).
+      // directly (a `{ durableSubject }` or `{ belief }` poke).
       if (kind !== DURABLE_SUBJECT_KIND && kind !== VIEWER_BELIEF_KIND) this.ensureListener(kind, by);
     };
 
@@ -1196,7 +1136,11 @@ export default class MqlSubscriptionRegistry extends Idea {
    * (or omitted) drops the whole memo.
    */
   private markDirty(sub: SubscriptionState, staleId: string | null = null): void {
-    if (sub.paused === true) return;
+    // ⭐ Paused (crowded-rooms D4/D5): nothing computed until the resume.
+    if (sub.handle.isPaused()) return;
+    // ⭐ The fire's command is in the context HERE; the re-resolve runs on
+    // a later tick where it is not. The delta names it.
+    sub.handle.noteCause();
     if (staleId === null) sub.memo.invalid = true;
     else sub.memo.stale.add(staleId);
     this.dirty.add(sub);
@@ -1287,9 +1231,8 @@ export default class MqlSubscriptionRegistry extends Idea {
       !MixinApi.isCommandGiver(holder) ||
       !MixinApi.isSensor(holder)
     ) {
-      this.teardownSubscription(sub);
-      bucket.delete(sub.subscriptionId);
-      if (bucket.size === 0) this.registry.delete(sub.interactive);
+      this.forget(sub);
+      sub.handle.end();
       return;
     }
     const giver = holder as Stuff & CommandGiver;
@@ -1301,15 +1244,9 @@ export default class MqlSubscriptionRegistry extends Idea {
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
           err instanceof MqlPermissionError ? 'permission' : 'resolve';
-        this.emitError(
-          sub.interactive,
-          sub.subscriptionId,
-          reason,
-          err instanceof Error ? err.message : String(err),
-        );
-        this.teardownSubscription(sub);
-        bucket.delete(sub.subscriptionId);
-        if (bucket.size === 0) this.registry.delete(sub.interactive);
+        // The handle's fail sends the error and closes it — which comes
+        // back here as `closeSubscription` and forgets the state.
+        sub.handle.fail(reason, err instanceof Error ? err.message : String(err));
         return;
       }
 
@@ -1324,13 +1261,7 @@ export default class MqlSubscriptionRegistry extends Idea {
     this.deriveAndInstallDependencies(sub, resolved, viewer);
 
     if (changes.length === 0) return;
-
-    const template: Omit<MqlSubscriptionDeltaEnvelope, 'frameId'> = {
-      type: 'mql-subscription-delta',
-      subscriptionId: sub.subscriptionId,
-      changes,
-    };
-    viewer.onEnvelope(template);
+    sub.handle.push(changes);
   }
 
   private diff(
@@ -1439,26 +1370,13 @@ export default class MqlSubscriptionRegistry extends Idea {
     this.dirty.delete(sub);
   }
 
-  private emitError(
-    interactive: Interactive,
-    subscriptionId: string,
-    reason: MqlSubscriptionErrorReason,
-    detail?: string,
-  ): void {
-    const holder = interactive.getHolder();
-    const template: Omit<MqlSubscriptionErrorEnvelope, 'frameId'> = {
-      type: 'mql-subscription-error',
-      subscriptionId,
-      reason,
-      ...(detail !== undefined ? { detail } : {}),
-    };
-    if (holder && MixinApi.isSensor(holder)) {
-      (holder as Stuff & Sensor).onEnvelope(template);
-    } else {
-      console.warn(
-        `MqlSubscriptionApi: cannot deliver error envelope (no Sensor holder); ` +
-          `subscriptionId=${subscriptionId} reason=${reason}`,
-      );
+  /** Drop a subscription's state from this source's own index. */
+  private forget(sub: SubscriptionState): void {
+    this.teardownSubscription(sub);
+    const bucket = this.registry.get(sub.interactive);
+    if (bucket?.get(sub.subscriptionId) === sub) {
+      bucket.delete(sub.subscriptionId);
+      if (bucket.size === 0) this.registry.delete(sub.interactive);
     }
   }
 
@@ -1479,7 +1397,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       (holder as Stuff & Sensor).onEnvelope(template);
     } else {
       console.warn(
-        `MqlSubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
+        `SubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +
           `queryId=${queryId} reason=${reason}`,
       );
     }

@@ -1,0 +1,6 @@
+# A save refused because the document would not pass the installer's check.
+facts:
+  path: text
+  why: text
+says: "{{ path }} was not saved — {{ why }}"
+topic: shell.error

@@ -94,6 +94,7 @@ import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/reta
 import BuyController from '@saxonberg/server/mud/platform/idea/cmd/retail/BuyController';
 import SpiritBottle from '../thing/SpiritBottle';
 import Still from '../thing/Still';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /**
  * ⚠ **Stand in for the BINDER.** `consign`'s `thing` is a declared
@@ -492,6 +493,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
               ],
               cost: { minutes: 4, legs: 1, conditional: 0, unmeasured: 0 },
               assumptions: [],
+              leastCertain: -1,
             },
           ],
         };
@@ -599,7 +601,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       if (verb === 'wallet') {
         const c = ctx(giver, here, null, text);
         await asPrincipal(giver, () =>
-          makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c),
+          TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WalletUseController()).execute({ subcommand: 'use', corpo: 'house' } as never, c)),
         );
         expect(rejections(c)).toEqual([]);
         return;
@@ -608,11 +610,11 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
         const thing = rest[0]!;
         const ask = rest[rest.indexOf('--ask') + 1]!;
         const c = ctx(giver, here, counter, text);
-        await asPrincipal(giver, () => makeStuff(() => new ShelfConsignController()).execute(
+        await asPrincipal(giver, () => TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
           // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
           { thing: bindHeld(giver, thing), ask, shelf: { stuff: counter as never, raw: 'shelf' } },
           c,
-        ));
+        )));
         expect(rejections(c)).toEqual([]);
         return;
       }
@@ -788,11 +790,11 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
     const before = BankingApi.balanceOf(outfitAccount).minor;
     const c = ctx(buyer, counterRoom, counter, 'buy gin');
-    await asPrincipal(buyer, () => makeStuff(() => new BuyController()).execute(
+    await asPrincipal(buyer, () => TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new BuyController()).execute(
       // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
       { thing: 'gin', counter: { stuff: counter as never, raw: 'counter' } },
       c,
-    ));
+    )));
     expect(rejections(c)).toEqual([]);
     expect(gin.getContainer()).toBe(buyer);
     expect(await gin.chattelOwner()).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });

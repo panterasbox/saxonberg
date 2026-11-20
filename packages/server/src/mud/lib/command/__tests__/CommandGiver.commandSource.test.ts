@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import Place from '../../stuff/Place';
@@ -36,6 +37,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const TestGiverBase = CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -89,11 +91,11 @@ describe('CommandContext.commandSource threading', () => {
         return [];
       }
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver()) as Giver;
@@ -109,7 +111,7 @@ describe('CommandContext.commandSource threading', () => {
 
   it('attributes an innate verb to the giver', async () => {
     const spy = vi.spyOn(PingController.prototype, 'execute');
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;
     expect(ctx.commandSource).toBe(giver);
@@ -127,7 +129,7 @@ describe('CommandContext.commandSource threading', () => {
     );
     const spy = vi.spyOn(PingController.prototype, 'execute');
 
-    await giver.executeCommand('ping');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('ping'));
 
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;
@@ -145,7 +147,7 @@ describe('CommandContext.commandSource threading', () => {
     vi.spyOn(CommandApi, 'resolveParser').mockResolvedValue(stubParser);
     const spy = vi.spyOn(PingController.prototype, 'execute');
 
-    await giver.executeCommand('anything-the-stub-ignores');
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('anything-the-stub-ignores'));
 
     expect(spy).toHaveBeenCalledTimes(1);
     const ctx = spy.mock.calls[0]![1] as CommandContext;

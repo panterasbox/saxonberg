@@ -49,6 +49,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function FeatureMixin<TBase extends MixinConstructor>(Base: TBase) {
   class FeatureMixin extends Base {
@@ -124,146 +125,98 @@ describe('Settings controllers', () => {
     const bySub = { list: SettingsListController, get: SettingsGetController, set: SettingsSetController, unset: SettingsUnsetController, describe: SettingsDescribeController } as const;
     controller = {
       execute: (model, ctx) =>
-        makeStuff(
+        TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(
           () => new bySub[(model.subcommand ?? 'list') as keyof typeof bySub](),
-        ).execute(model, ctx),
+        ).execute(model, ctx)),
     };
   });
 
   describe('list', () => {
     it('lists declared settings grouped by source mixin', () => {
-      controller.execute(
-        makeModel({}, 'list'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({}, 'list'), ctx$)))(makeContext(host, location));
     });
 
     it('treats no subcommand as list', () => {
-      controller.execute(makeModel(), makeContext(host, location));
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('get', () => {
     it('shows the schema default when no override', () => {
-      controller.execute(
-        makeModel({ key: 'feature.greeting' }, 'get'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.greeting' }, 'get'), ctx$)))(makeContext(host, location));
     });
 
     it('shows the override after set', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
-      controller.execute(
-        makeModel({ key: 'feature.greeting' }, 'get'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.greeting' }, 'get'), ctx$)))(makeContext(host, location));
     });
 
     it('rejects an unknown key', () => {
-      controller.execute(
-        makeModel({ key: 'nope' }, 'get'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'nope' }, 'get'), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('set', () => {
     it('writes a string', () => {
-      controller.execute(
-        makeModel({ key: 'feature.greeting', value: 'howdy' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.greeting', value: 'howdy' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<string>('feature.greeting')).toBe('howdy');
     });
 
     it('strips a wrapping quote pair from a string value', () => {
-      controller.execute(
-        makeModel(
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
           { key: 'feature.greeting', value: '"hello there {{ x }}"' },
           'set',
-        ),
-        makeContext(host, location),
-      );
+        ), ctx$)))(makeContext(host, location));
       expect(host.getSetting<string>('feature.greeting')).toBe(
         'hello there {{ x }}',
       );
     });
 
     it('leaves an unquoted string (and inner quotes) untouched', () => {
-      controller.execute(
-        makeModel({ key: 'feature.greeting', value: 'say "hi"' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.greeting', value: 'say "hi"' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<string>('feature.greeting')).toBe('say "hi"');
     });
 
     it('coerces a numeric string for number-typed settings', () => {
-      controller.execute(
-        makeModel({ key: 'feature.count', value: '42' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.count', value: '42' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<number>('feature.count')).toBe(42);
     });
 
     it('reports a useful error when number coercion fails', () => {
-      controller.execute(
-        makeModel({ key: 'feature.count', value: 'abc' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.count', value: 'abc' }, 'set'), ctx$)))(makeContext(host, location));
     });
 
     it('coerces boolean shorthands', () => {
-      controller.execute(
-        makeModel({ key: 'feature.flag', value: 'yes' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.flag', value: 'yes' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<boolean>('feature.flag')).toBe(true);
-      controller.execute(
-        makeModel({ key: 'feature.flag', value: 'no' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.flag', value: 'no' }, 'set'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<boolean>('feature.flag')).toBe(false);
     });
 
     it('rejects an enum value not in the allowed set', () => {
-      controller.execute(
-        makeModel({ key: 'feature.color', value: 'mauve' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.color', value: 'mauve' }, 'set'), ctx$)))(makeContext(host, location));
     });
 
     it('rejects an unknown key', () => {
-      controller.execute(
-        makeModel({ key: 'nope', value: 'x' }, 'set'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'nope', value: 'x' }, 'set'), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('unset', () => {
     it('clears an override; default reapplies', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
-      controller.execute(
-        makeModel({ key: 'feature.greeting' }, 'unset'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.greeting' }, 'unset'), ctx$)))(makeContext(host, location));
       expect(host.getSetting<string>('feature.greeting')).toBe('hello');
     });
 
     it('rejects an unknown key', () => {
-      controller.execute(
-        makeModel({ key: 'nope' }, 'unset'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'nope' }, 'unset'), ctx$)))(makeContext(host, location));
     });
   });
 
   describe('describe', () => {
     it('returns the schema entry summary', () => {
-      controller.execute(
-        makeModel({ key: 'feature.color' }, 'describe'),
-        makeContext(host, location),
-      );
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ key: 'feature.color' }, 'describe'), ctx$)))(makeContext(host, location));
     });
   });
 

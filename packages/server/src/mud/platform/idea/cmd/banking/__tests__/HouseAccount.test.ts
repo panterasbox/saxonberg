@@ -62,6 +62,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 // The brokerage shelf is a composition of kernel mixins; the instanceable
 // class ships in `/trade/shopkeeping`, which the kernel may not import.
@@ -210,7 +211,7 @@ async function walletUse(giver: TestGiver, loc: Place, corpo: string): Promise<C
   const c = ctx(giver, loc, null, `wallet use ${corpo}`);
   const controller = makeStuff(() => new WalletUseController());
   await asOwner(giver, () =>
-    controller.execute({ subcommand: "use", corpo } as never, c),
+    TestHarnessApi.actAs(c.commandGiver, () => controller.execute({ subcommand: "use", corpo } as never, c)),
   );
   return c;
 }
@@ -220,7 +221,7 @@ async function buy(giver: TestGiver, loc: Place, stock: Stock, thing: string): P
   const controller = makeStuff(() => new BuyController());
   await asOwner(giver, () =>
     // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
-    controller.execute({ thing, counter: { stuff: stock as never, raw: "counter" } }, c),
+    TestHarnessApi.actAs(c.commandGiver, () => controller.execute({ thing, counter: { stuff: stock as never, raw: "counter" } }, c)),
   );
   return c;
 }
@@ -360,7 +361,7 @@ describe("the house account in the wallet (D6)", () => {
 
     await walletUse(mara, loc, "house");
     const q = ctx(mara, loc, null, "quit");
-    await asOwner(mara, () => makeStuff(() => new JobQuitController()).execute({}, q));
+    await asOwner(mara, () => TestHarnessApi.actAs(q.commandGiver, () => makeStuff(() => new JobQuitController()).execute({}, q)));
     expect(rejections(q)).toEqual([]);
     expect(mara.getEmployment(BAR_BIZ)?.status).toBe("quit");
     const cred = await asOwner(mara, async () => BankingApi.activeCredential());
@@ -394,11 +395,11 @@ describe("the house account in the wallet (D6)", () => {
     await walletUse(hand, loc, "house");
     const c = ctx(hand, loc, shelf, "shelf consign torch");
     await asOwner(hand, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
+      TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
         // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
         { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
         c,
-      ),
+      )),
     );
     expect(rejections(c)).toEqual([]);
     expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
@@ -408,11 +409,11 @@ describe("the house account in the wallet (D6)", () => {
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 100);
     ContainmentApi.move(pat as never, loc as never);
     const b = ctx(pat, loc, shelf, "buy torch");
-    await asOwner(pat, () => makeStuff(() => new BuyController()).execute(
+    await asOwner(pat, () => TestHarnessApi.actAs(b.commandGiver, () => makeStuff(() => new BuyController()).execute(
         // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
         { thing: "torch", counter: { stuff: shelf as never, raw: "counter" } },
         b,
-      ));
+      )));
     expect(rejections(b)).toEqual([]);
     expect(await torch.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(account).minor).toBe(17); // 20 − 15% commission
@@ -443,10 +444,7 @@ describe("the house account in the wallet (D6)", () => {
 
     await walletUse(hand, loc, "house");
     await asOwner(hand, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(hand, loc, shelf, "shelf consign torch"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(hand, loc, shelf, "shelf consign torch")),
     );
     expect(torch.getContainer()).toBe(shelf);
     expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
@@ -456,10 +454,10 @@ describe("the house account in the wallet (D6)", () => {
     ContainmentApi.move(pat as never, loc as never);
     const no = ctx(pat, loc, shelf, "shelf reclaim torch");
     await asOwner(pat, () =>
-      makeStuff(() => new ShelfReclaimController()).execute(
+      TestHarnessApi.actAs(no.commandGiver, () => makeStuff(() => new ShelfReclaimController()).execute(
         { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
         no,
-      ),
+      )),
     );
     expect(rejections(no)).toEqual(["not-owner"]);
     expect(torch.getContainer()).toBe(shelf);
@@ -467,10 +465,10 @@ describe("the house account in the wallet (D6)", () => {
     // The outfit's own hand, as the house: taken back, title unchanged.
     const ok = ctx(hand, loc, shelf, "shelf reclaim torch");
     await asOwner(hand, () =>
-      makeStuff(() => new ShelfReclaimController()).execute(
+      TestHarnessApi.actAs(ok.commandGiver, () => makeStuff(() => new ShelfReclaimController()).execute(
         { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
         ok,
-      ),
+      )),
     );
     expect(rejections(ok)).toEqual([]);
     expect(torch.getContainer()).toBe(hand);
@@ -487,7 +485,7 @@ describe("the house account in the wallet (D6)", () => {
     // giver is refused on the SEAT, on any subcommand of the house app.
     const c = ctx(pat, loc, null, "house roster");
     await asOwner(pat, () =>
-      makeStuff(() => new HouseRosterController()).execute({ subcommand: "roster" } as never, c),
+      TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new HouseRosterController()).execute({ subcommand: "roster" } as never, c)),
     );
     expect(rejections(c)).toEqual(["not-staff"]);
   });

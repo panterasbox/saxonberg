@@ -15,6 +15,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { spyPersistSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { matchesDocumentQuery } from '../../document/__tests__/document-query';
 import Material from '../../material/Material';
@@ -42,6 +43,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { Document } from '../../persistence/Document';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const ICE = '/stuff/idea/material/bulk/ice';
 const BLOCK = '/stuff/thing/ice-block';
@@ -116,6 +118,7 @@ beforeEach(() => {
     if (col === Collections.Documents) docs.set(key, { ...doc, _id: key });
     return key;
   });
+  spyPersistSaveMany();
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
@@ -188,7 +191,7 @@ describe('withdraw — the grade back, the receipt debited, the fee charged', ()
     const mira = person('mira');
     await store.deposit(carry(mira, block(4)), mira);
     await store.deposit(carry(mira, block(4)), mira);
-    const out = await store.withdraw(mira, 'ice', 1);
+    const out = await TestHarnessApi.actAs(mira, () => store.withdraw(mira, 'ice', 1));
     expect(out.ok).toBe(true);
     if (!out.ok) return;
     expect(out.goods).toHaveLength(1);
@@ -204,7 +207,7 @@ describe('withdraw — the grade back, the receipt debited, the fee charged', ()
   it('a withdrawal with no receipt is refused', async () => {
     person('keeper', 'keeper');
     const tom = person('tom');
-    expect(await store.withdraw(tom, 'ice', 1)).toMatchObject({ ok: false, reason: 'no-claim' });
+    expect(await TestHarnessApi.actAs(tom, () => store.withdraw(tom, 'ice', 1))).toMatchObject({ ok: false, reason: 'no-claim' });
   });
 
   it('⭐⭐ a shortfall is shared pro rata, and the receipt says whether it was within the allowance', async () => {
@@ -219,7 +222,7 @@ describe('withdraw — the grade back, the receipt debited, the fee charged', ()
     line.amountKg = 32;
     // Mira takes all she can: 20 × 0.8 = 16 kg = four blocks, and her
     // claim is debited by what was CLAIMED (16 / 0.8 = 20) — settled.
-    const out = await store.withdraw(mira, 'ice', 10);
+    const out = await TestHarnessApi.actAs(mira, () => store.withdraw(mira, 'ice', 10));
     expect(out.ok).toBe(true);
     if (!out.ok) return;
     expect(out.goods).toHaveLength(4);
@@ -228,7 +231,7 @@ describe('withdraw — the grade back, the receipt debited, the fee charged', ()
     expect(out.receipt.shortfallPct).toBeCloseTo(20, 6);
     expect(out.receipt.withinAllowance).toBe(false);
     // Tom is paid at the same rate.
-    const tomOut = await store.withdraw(tom, 'ice', 10);
+    const tomOut = await TestHarnessApi.actAs(tom, () => store.withdraw(tom, 'ice', 10));
     expect(tomOut.ok && tomOut.goods.length).toBe(4);
   });
 });

@@ -1,6 +1,6 @@
 /**
  * Avatar.installDefaultLoadout — attune-by-any-source + inject the
- * default hosted updates (comms + travel credential).
+ * default apps (comms + travel credential).
  *
  * Covers: an ordinary-species avatar attunes via the cranial implant
  * then hosts both updates; a born-attuned-species avatar skips the
@@ -14,16 +14,16 @@ import Avatar from "../agent/PrimaryAvatar";
 import Species from "../idea/species/Species";
 import BodyPlan from "../idea/species/BodyPlan";
 import AetherImplant from "../thing/AetherImplant";
-import CommsUpdate from "../idea/CommsUpdate";
-import CredentialWalletUpdate from "../idea/CredentialWalletUpdate";
-import ForumsUpdate from "../idea/ForumsUpdate";
+import App from "../idea/App";
+import WalletApp from "../idea/WalletApp";
+import ForumsApp from "../idea/ForumsApp";
 import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
 import { MixinApi } from "../../api/mixin";
 import { MqlApi } from "../../api/mql";
 import { BankingApi } from "../../api/banking";
 import type { CommandGiver } from "../../lib/command/CommandGiver";
-import type { AetherHost } from "../../lib/message/Aether";
+import type { AetherHost } from "../../lib/augmentation/AetherHost";
 import type { Comms } from "../../lib/comms/Comms";
 import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
 import type { Forums } from "../../lib/forum/Forums";
@@ -39,7 +39,7 @@ function withPath<T extends Stuff>(obj: T, path: string): T {
 }
 
 let seq = 0;
-function makeAvatarOfSpecies(innate: string[]): Avatar {
+function makeAvatarOfSpecies(innate: string[], opts: { guest?: boolean } = {}): Avatar {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-loadout-${seq}`,
@@ -58,6 +58,7 @@ function makeAvatarOfSpecies(innate: string[]): Avatar {
   species.setInnateMixins(innate);
   const avatar = makeStuff(() => new Avatar());
   avatar.setPlayerId(`loadout-${seq}`);
+  if (opts.guest) (avatar as unknown as { isGuest: boolean }).isGuest = true;
   (avatar as unknown as { setSpecies: (s: Species) => void }).setSpecies(
     species,
   );
@@ -70,24 +71,29 @@ function runLoadout(avatar: Avatar): Promise<void> {
   ).installDefaultLoadout();
 }
 
-function hostedUpdates(avatar: Avatar): Stuff[] {
-  return (avatar as unknown as AetherHost).getHostedUpdates() as unknown as Stuff[];
+function hostedApps(avatar: Avatar): Stuff[] {
+  return (avatar as unknown as AetherHost).getHostedApps() as unknown as Stuff[];
 }
 
-function hostedComms(avatar: Avatar): (Stuff & Comms)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & Comms =>
-    MixinApi.isComms(u),
+/** Messages instances running on the PERSON's own host. */
+function hostedMessages(avatar: Avatar): Stuff[] {
+  return hostedApps(avatar).filter(
+    (u) => u.getTemplatePath() === App.MESSAGES_PATH,
   );
 }
 
+function implantOf(avatar: Avatar): AetherImplant | null {
+  return ([...avatar.getOccupants("cranial")][0] ?? null) as AetherImplant | null;
+}
+
 function hostedCredentials(avatar: Avatar): (Stuff & CredentialWallet)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & CredentialWallet =>
+  return hostedApps(avatar).filter((u): u is Stuff & CredentialWallet =>
     MixinApi.isCredentialWallet(u),
   );
 }
 
 function hostedForums(avatar: Avatar): (Stuff & Forums)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & Forums =>
+  return hostedApps(avatar).filter((u): u is Stuff & Forums =>
     MixinApi.isForums(u),
   );
 }
@@ -99,16 +105,19 @@ describe("Avatar.installDefaultLoadout", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (async (path: string): Promise<any> => {
         if (path === AetherImplant.TEMPLATE_PATH) {
-          return makeStuff(() => new AetherImplant());
+          // The implant row installs Messages (its `installedApps`).
+          const implant = makeStuff(() => new AetherImplant());
+          await implant.installApp(App.MESSAGES_PATH);
+          return implant;
         }
-        if (path === CommsUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new CommsUpdate());
+        if (path === App.MESSAGES_PATH) {
+          return withPath(makeStuff(() => new App()), path);
         }
-        if (path === CredentialWalletUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new CredentialWalletUpdate());
+        if (path === WalletApp.TEMPLATE_PATH) {
+          return withPath(makeStuff(() => new WalletApp()), path);
         }
-        if (path === ForumsUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new ForumsUpdate());
+        if (path === ForumsApp.TEMPLATE_PATH) {
+          return withPath(makeStuff(() => new ForumsApp()), path);
         }
         throw new Error(`unexpected clone: ${path}`);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,15 +129,28 @@ describe("Avatar.installDefaultLoadout", () => {
     StuffApi.clearAll();
   });
 
-  it("ordinary species: attunes via the implant, hosts both updates", async () => {
-    const avatar = makeAvatarOfSpecies([]);
+  it("a GUEST: attuned by the implant, which runs Messages; the person runs the rest", async () => {
+    const avatar = makeAvatarOfSpecies([], { guest: true });
     await runLoadout(avatar);
 
     expect(avatar.getOccupants("cranial").size).toBe(1); // implant installed
     expect(MixinApi.isActive(avatar as unknown as Stuff, "AetherMixin")).toBe(
       true,
     );
-    expect(hostedComms(avatar)).toHaveLength(1);
+    // ⭐ Messages is on the device that tunes, not on the person (D2).
+    expect(hostedMessages(avatar)).toHaveLength(0);
+    expect(implantOf(avatar)!.hasApp("messages")).toBe(true);
+    expect(MixinApi.isComms(avatar as unknown as Stuff)).toBe(true);
+    expect(hostedCredentials(avatar)).toHaveLength(1);
+    expect(hostedForums(avatar)).toHaveLength(1);
+  });
+
+  it("⭐ a player is seated NO implant — the phone in their pocket tunes them (D11)", async () => {
+    const avatar = makeAvatarOfSpecies([]);
+    await runLoadout(avatar);
+    expect(avatar.getOccupants("cranial").size).toBe(0);
+    expect(MixinApi.isActive(avatar as unknown as Stuff, "AetherMixin")).toBe(false);
+    expect(hostedMessages(avatar)).toHaveLength(0);
     expect(hostedCredentials(avatar)).toHaveLength(1);
     expect(hostedForums(avatar)).toHaveLength(1);
   });
@@ -143,7 +165,7 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(pay.getActiveAccount()).toBe("acct-primary");
   });
 
-  it("born-attuned species: skips the implant but still hosts both updates", async () => {
+  it("born-attuned species: skips the implant; Messages runs on the person", async () => {
     const avatar = makeAvatarOfSpecies(["AetherMixin"]);
     expect(MixinApi.isActive(avatar as unknown as Stuff, "AetherMixin")).toBe(
       true,
@@ -151,7 +173,7 @@ describe("Avatar.installDefaultLoadout", () => {
     await runLoadout(avatar);
 
     expect(avatar.getOccupants("cranial").size).toBe(0); // no implant
-    expect(hostedComms(avatar)).toHaveLength(1);
+    expect(hostedMessages(avatar)).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
     expect(hostedForums(avatar)).toHaveLength(1);
   });
@@ -166,19 +188,17 @@ describe("Avatar.installDefaultLoadout", () => {
     }).stuff;
   }
 
-  it("the hosted comms update is reachable for dm dispatch", async () => {
+  it("comms is the person's — a born-tuned person can send at once", async () => {
     const avatar = makeAvatarOfSpecies(["AetherMixin"]);
     await runLoadout(avatar);
-    const comms =
-      reachableFrom(avatar).find(
-        (s): s is Stuff & Comms => MixinApi.isComms(s),
-      ) ?? null;
-    expect(comms).not.toBeNull();
+    const comms = avatar as unknown as Stuff & Comms;
+    expect(MixinApi.isComms(comms)).toBe(true);
+    expect(comms.sendOrHold("dm bob hi")).toBeNull();
   });
 
-  it("the hosted forum update is reachable for forum dispatch; absent when never loaded", async () => {
+  it("the forums app is reachable for forum dispatch; absent when never loaded", async () => {
     const avatar = makeAvatarOfSpecies(["AetherMixin"]);
-    // Before the loadout runs, no forum update is reachable.
+    // Before the loadout runs, no forums app is reachable.
     const before =
       reachableFrom(avatar).find(
         (s): s is Stuff & Forums => MixinApi.isForums(s),
@@ -193,11 +213,12 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(after).not.toBeNull();
   });
 
-  it("is idempotent on re-entry (keyed on already-hosts-comms)", async () => {
-    const avatar = makeAvatarOfSpecies([]);
+  it("is idempotent on re-entry (installApp is idempotent by path)", async () => {
+    const avatar = makeAvatarOfSpecies([], { guest: true });
     await runLoadout(avatar);
     await runLoadout(avatar);
-    expect(hostedComms(avatar)).toHaveLength(1);
+    expect(avatar.getOccupants("cranial").size).toBe(1);
+    expect(implantOf(avatar)!.getHostedApps()).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
     expect(hostedForums(avatar)).toHaveLength(1);
   });

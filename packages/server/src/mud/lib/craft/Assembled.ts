@@ -72,7 +72,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { BiomeApi } from '../../api/biome';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { SubscriptionApi } from '../../api/subscription';
 import { type JointDescriptor } from './Joint';
 import { CraftingApi } from '../../api/crafting';
 
@@ -1205,7 +1205,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       const before = seat.name ?? '';
       seat.name = value;
       // The live read (`Named.subscribableFields`) hears it as `name`.
-      MqlSubscriptionApi.fireFieldChange(this, 'name', before, value);
+      SubscriptionApi.fireFieldChange(this, 'name', before, value);
     }
 
     canBeNamedBy(handPath: string, by?: Stuff | null): boolean {

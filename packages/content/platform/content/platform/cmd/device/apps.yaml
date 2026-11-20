@@ -1,0 +1,67 @@
+# apps — the software on a device you carry (aether-devices D3). A device
+# hands this verb to whoever bears it; the host decides.
+verbs: [apps]
+category: device
+controller: /platform/idea/cmd/device/AppsListController
+description: "The apps on a device you carry — list / install / uninstall"
+help: |
+  A phone or an implant runs apps. Bare `apps` lists what is installed
+  on the device you carry and what else it offers. `apps install
+  messages` puts Messages back; `apps uninstall messages` takes it off.
+  Without Messages a device cannot carry a `dm`, a `reply` or a `chat`
+  line — it says so, and tells you how to fix it.
+
+  Carrying two devices? Name one: `apps on implant`, `apps install
+  messages on phone`. Installing and uninstalling are free and instant.
+  Your own wallet, calendar and forums are not apps on a device — `apps`
+  never lists or removes them.
+examples:
+  - cmd: apps
+    note: List what your device runs and what it offers
+  - cmd: apps install messages
+    note: Install Messages
+validators:
+  - /lib/command/validators/requiresAnimate
+# Bare `apps [on <device>]` lists; a first word that is not a subcommand
+# falls through to the list.
+fallthrough: true
+args:
+  - name: device
+    type: object
+    required: false
+    prepositionRequired: true
+    prepositions:
+      - "on"
+    scope: "person"
+    requires: AetherHostMixin
+subcommands:
+  install:
+    controller: /platform/idea/cmd/device/AppsInstallController
+    description: "Install an app the device offers"
+    args:
+      - name: app
+        type: string
+        required: true
+      - name: device
+        type: object
+        required: false
+        prepositionRequired: true
+        prepositions:
+          - "on"
+        scope: "person"
+        requires: AetherHostMixin
+  uninstall:
+    controller: /platform/idea/cmd/device/AppsUninstallController
+    description: "Uninstall an app from the device"
+    args:
+      - name: app
+        type: string
+        required: true
+      - name: device
+        type: object
+        required: false
+        prepositionRequired: true
+        prepositions:
+          - "on"
+        scope: "person"
+        requires: AetherHostMixin

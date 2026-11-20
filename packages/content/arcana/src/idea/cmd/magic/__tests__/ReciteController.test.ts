@@ -16,6 +16,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import ReadController from '@saxonberg/server/mud/platform/idea/cmd/perception/ReadController';
 import ReciteController from '../ReciteController';
 import Scroll from '../../../../thing/Scroll';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 let lines: string[];
 let notes: { kind: string; reason?: string }[];
@@ -79,10 +80,7 @@ describe('recite', () => {
     vi.spyOn(s, 'requiresMark').mockReturnValue(false);
     const consume = vi.spyOn(s, 'consume').mockResolvedValue(undefined as never);
     const giver = makeStuff(() => new Idea());
-    await makeStuff(() => new ReciteController()).execute(
-      { scroll: { stuff: s, raw: 'scroll' } } as never,
-      context(giver),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ReciteController()).execute({ scroll: { stuff: s, raw: 'scroll' } } as never, ctx$)))(context(giver));
     expect(fire).toHaveBeenCalledWith(undefined, { source: giver });
     expect(consume).toHaveBeenCalled();
     expect(lines.join(' ')).toMatch(/aloud/);
@@ -94,10 +92,7 @@ describe('recite', () => {
     const s = scroll();
     const fire = vi.spyOn(s, 'dischargeAt');
     vi.spyOn(s, 'requiresMark').mockReturnValue(true);
-    await makeStuff(() => new ReciteController()).execute(
-      { scroll: { stuff: s, raw: 'scroll' } } as never,
-      context(makeStuff(() => new Idea())),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ReciteController()).execute({ scroll: { stuff: s, raw: 'scroll' } } as never, ctx$)))(context(makeStuff(() => new Idea())));
     expect(fire).not.toHaveBeenCalled();
     expect(notes.map((n) => n.reason)).toContain('no-mark-chosen');
   });
@@ -106,10 +101,7 @@ describe('recite', () => {
     vi.spyOn(PerceptionApi, 'canMakeOutMarks').mockReturnValue(false);
     const s = scroll();
     const fire = vi.spyOn(s, 'dischargeAt');
-    await makeStuff(() => new ReciteController()).execute(
-      { scroll: { stuff: s, raw: 'scroll' } } as never,
-      context(makeStuff(() => new Idea())),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ReciteController()).execute({ scroll: { stuff: s, raw: 'scroll' } } as never, ctx$)))(context(makeStuff(() => new Idea())));
     expect(fire).not.toHaveBeenCalled();
     expect(notes.map((n) => n.reason)).toEqual(['too-dark-to-read']);
   });
@@ -119,10 +111,7 @@ describe('read', () => {
   it('⭐ never casts: it says the words and the scroll is as it was', async () => {
     const s = scroll();
     const fire = vi.spyOn(s, 'dischargeAt');
-    await makeStuff(() => new ReadController()).execute(
-      { target: { stuff: s, raw: 'scroll' } } as never,
-      context(makeStuff(() => new Idea())),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ReadController()).execute({ target: { stuff: s, raw: 'scroll' } } as never, ctx$)))(context(makeStuff(() => new Idea())));
     expect(fire).not.toHaveBeenCalled();
     expect(s.isDestroyed()).toBe(false);
     expect(lines.join(' ')).toMatch(/reads:/);

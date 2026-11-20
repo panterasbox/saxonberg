@@ -36,6 +36,7 @@ import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__te
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Principal extends Idea {}
 
@@ -65,7 +66,7 @@ async function run(
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
@@ -76,8 +77,8 @@ const CONFIRM = { promptConfirm: async () => true };
 /** The reasons on any `controller-rejected` notes emitted. */
 function reasons(notes: readonly Note[]): string[] {
   return notes
-    .filter((n): n is Extract<Note, { kind: 'controller-rejected' }> =>
-      n.kind === 'controller-rejected',
+    .filter((n): n is Extract<Note, { kind: 'controller-rejected' | 'refused' }> =>
+      n.kind === 'controller-rejected' || n.kind === 'refused',
     )
     .map((n) => n.reason);
 }
@@ -194,8 +195,10 @@ describe('create', () => {
       page: 'oak',
       body: '',
     });
-    expect(reasons(notes)).toContain('wiki-denied');
-    expect(body).toContain('Oak');
+    // The refusal is passed on; its row words it with the holder's title.
+    expect(reasons(notes)).toContain('wiki-name-held');
+    expect(notes.find((n) => n.kind === 'refused')).toMatchObject({ facts: { holder: 'Oak' } });
+    void body;
   });
 
   it('splits comma-separated tags and related', async () => {
@@ -395,7 +398,7 @@ describe('move, delete, undelete, protect', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await run({ subcommand: 'create', page: 'oak', body: '' });
     const { notes } = await run({ subcommand: 'delete', page: 'oak' });
-    expect(reasons(notes)).toContain('wiki-denied');
+    expect(reasons(notes)).toContain('wiki-moderators-only');
   });
 
   it('protect reports the EFFECTIVE level, not what was asked for', async () => {
@@ -458,7 +461,7 @@ describe('purge', () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await run({ subcommand: 'create', page: 'oak', body: '' });
     const { notes } = await run({ subcommand: 'purge', page: 'oak' }, CONFIRM);
-    expect(reasons(notes)).toContain('wiki-denied');
+    expect(reasons(notes)).toContain('wiki-moderators-only');
     expect(db.all(Collections.Wiki)).toHaveLength(1);
   });
 });
@@ -507,7 +510,7 @@ describe('the envelope contract', () => {
     });
     const result = await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      return ctrl.execute({ subcommand: 'read' } as never, ctx);
+      return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ subcommand: 'read' } as never, ctx));
     });
     expect(result).toBeUndefined();
     expect(ctx.getNotes().length).toBeGreaterThan(0);
@@ -526,7 +529,7 @@ describe('the envelope contract', () => {
     });
     await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      await ctrl.execute({ subcommand: 'read' } as never, ctx);
+      await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ subcommand: 'read' } as never, ctx));
     });
     expect(ctx.getStatus()).toBe('declined');
   });

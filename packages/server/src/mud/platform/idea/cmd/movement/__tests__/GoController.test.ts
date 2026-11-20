@@ -49,6 +49,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { buildMode } from '../../../../../lib/locomotion/__tests__/test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /**
  * Resolve a target string through MQL exactly as the dispatcher
@@ -113,7 +114,7 @@ async function goCmd(
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
   const target = resolveTarget(avatar as unknown as Stuff, raw);
-  return controller.execute(makeModel({ target } as ModelData), ctx);
+  return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel({ target } as ModelData), ctx));
 }
 
 describe('GoController', () => {
@@ -212,7 +213,7 @@ describe('GoController', () => {
   describe('guards and errors', () => {
     it('returns an error when no direction is given', async () => {
       const ctx = makeContext(avatar, locA, '');
-      await controller.execute(makeModel(), ctx);
+      await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(), ctx));
       // Post-locomotion: rejection prose is mode-templated and lands
       // through the exitMode gate. The summary field is gone — read
       // it off the actor's Scene frames + the ctx note.

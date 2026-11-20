@@ -25,6 +25,7 @@ import { PackApi } from '../../../api/pack';
 import { GroupApi } from '../../../api/group';
 import { CompactApi } from '../../../api/compact';
 import { ProvenanceApi } from '../../../api/provenance';
+import { ParcelApi } from '../../../api/parcel';
 import { EventApi, Events } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -155,7 +156,7 @@ async function recordCompile(
       path,
       author,
       versionId,
-      code: d.code ?? null,
+      code: null,
       line: d.line ?? null,
       col: d.col ?? null,
       message: d.message,
@@ -240,8 +241,44 @@ async function packRecipients(packId: string): Promise<Stuff[]> {
   return CompactApi.committeeMembersOf(m && 'organization' in m ? m.organization : EXECUTIVE);
 }
 
+/** The channel a wrong content row's diagnostic carries. */
+const CONTENT_ERROR = 'content-error';
+
+/**
+ * ⭐ The channels whose row is the code KEEPER's business, routed to
+ * whoever holds title over its path (failure-model D6; call-security pass
+ * D7: a protective method refused a lying claim, and the code that lied is
+ * at `path`). One routing set, never a branch per channel.
+ */
+const TITLE_ROUTED: ReadonlySet<string> = new Set([CONTENT_ERROR, 'call-security', 'force']);
+
+/**
+ * Who holds title over `path` and is online: a player, a group's members,
+ * an organization's committee. Untitled → nobody (the row is still listed
+ * to whoever holds an extent over it).
+ */
+async function titleRecipients(path: string): Promise<Stuff[]> {
+  const owner = await ParcelApi.ownerOf(path);
+  if (owner === null) return [];
+  if (owner.kind === 'player') {
+    const av = onlineAuthor(owner.templatePath);
+    return av ? [av] : [];
+  }
+  if (owner.kind === 'organization') return CompactApi.committeeMembersOf(owner.templatePath);
+  const ref = await ParcelApi.resolveOwnerRef(owner);
+  return ref ? GroupApi.membersOf(ref) : [];
+}
+
 /** Best-effort push — store-is-truth, push-is-courtesy. A pack channel routes to its maintainers; anything else to the author. */
 function pushToAuthor(ev: DiagnosticEvent): void {
+  // ⭐ A content error goes to whoever holds title over the row
+  // (failure-model D6) — the maintainer, never an unrelated wizard.
+  if (TITLE_ROUTED.has(ev.channel) && ev.path) {
+    void titleRecipients(ev.path)
+      .then((who) => { for (const av of who) pushTo(av, ev); })
+      .catch(() => undefined);
+    return;
+  }
   if (ev.channel.startsWith('pack.')) {
     void packRecipients(ev.channel.slice('pack.'.length))
       .then((who) => { for (const av of who) pushTo(av, ev); })
@@ -293,7 +330,8 @@ export class DiagnosticLogic extends ApiLogic {
   @CallSecurity(DiagnosticApiCallers)
   public async record(d: RuntimeDiagnostic): Promise<void> {
     if (!connected()) return;
-    const author = d.path ? await ProvenanceApi.authorOf(d.path) : null;
+    // A content error's reader is the row's title holder, not its last author.
+    const author = d.path && !TITLE_ROUTED.has(d.channel ?? '') ? await ProvenanceApi.authorOf(d.path) : null;
     const row = makeRow({
       source: 'runtime',
       severity: d.severity ?? 'error',

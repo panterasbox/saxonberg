@@ -1,6 +1,6 @@
 /**
  * Forum store slice (Wave 4) — the live record set fed by
- * `forum-subscription-result` / `-delta`, the mainView axis, and the
+ * the forum source's `subscription-result` / `-delta`, the mainView axis, and the
  * forum nav target.
  */
 

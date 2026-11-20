@@ -16,7 +16,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { EventApi } from '@saxonberg/server/mud/api/event';
 import { ShadowApi } from '@saxonberg/server/mud/api/shadow';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
-import { MqlSubscriptionApi } from '@saxonberg/server/mud/api/mql-subscription';
+import { SubscriptionApi } from '@saxonberg/server/mud/api/subscription';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { CARDS } from '@saxonberg/server/mud/lib/connection/Cards';
@@ -34,6 +34,7 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { makeHarness, makeContext } from '@saxonberg/server/mud/api/__tests__/card-harness';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const DAVE = '/platform/agent/Avatar/dave';
 
@@ -42,7 +43,7 @@ describe('the stock card', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     EventApi._clearAllForTesting();
-    MqlSubscriptionApi._clearAllForTesting();
+    SubscriptionApi._clearAllForTesting();
     CardApi._clearAllForTesting();
   });
 
@@ -90,7 +91,7 @@ describe('the stock card', () => {
     });
     await withRootContext(null, 'stock-card.test', () => {
       ExecutionContextApi.tagActingAuthor(h.avatar);
-      return makeStuff(() => new HouseStockController()).execute({ subcommand: 'stock' } as never, ctx);
+      return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HouseStockController()).execute({ subcommand: 'stock' } as never, ctx));
     });
 
     const opened = h.ofType('card-opened');
@@ -106,9 +107,9 @@ describe('the stock card', () => {
 
     // A pour: the bottle drains, nothing refreshes anything.
     bottle.debitBulk('interior', 0.25);
-    await MqlSubscriptionApi._drainScheduledForTesting();
+    await SubscriptionApi._drainScheduledForTesting();
     const delta = h
-      .ofType('mql-subscription-delta')
+      .ofType('subscription-delta')
       .find((d) => d.subscriptionId === card.instanceId);
     expect(delta).toBeDefined();
     const changes = delta!.changes as { op: string; key: string; fields?: Record<string, unknown> }[];

@@ -63,6 +63,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 // The brokerage shelf is a composition of kernel mixins; the instanceable
 // class ships in `/trade/shopkeeping`, which the kernel may not import.
@@ -203,10 +204,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     // Alice consigns the torch for 8.
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(alice, loc, shelf, "consign"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
     expect(torch.getContainer()).toBe(shelf); // custody → shop
     expect(await torch.chattelOwner()).toEqual({
@@ -222,7 +220,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const storeAcct = await makeStoreBusiness();
 
     await asOwner(bob, () =>
-      makeStuff(() => new BuyController()).execute({ thing: "torch", counter: { stuff: shelf as never, raw: "counter" } }, ctx(bob, loc, shelf, "buy")),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new BuyController()).execute({ thing: "torch", counter: { stuff: shelf as never, raw: "counter" } }, ctx$)))(ctx(bob, loc, shelf, "buy")),
     );
 
     // commission = round(8 * 0.15) = 1; remainder = 7.
@@ -264,10 +262,10 @@ describe("Consignment — sell loop over real ownership", () => {
     async function consign(who: TestGiver, loc: Place, shelf: ConsignmentShelf, item: Stuff, raw: string) {
       const c = ctx(who, loc, shelf, "consign");
       await asOwner(who, () =>
-        makeStuff(() => new ShelfConsignController()).execute(
+        TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
           { thing: { stuff: item as never, raw }, ask: "4", shelf: { stuff: shelf as never, raw: "shelf" } },
           c,
-        ),
+        )),
       );
       return c;
     }
@@ -349,10 +347,7 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(broke, () => torch.stampChattel(broke));
 
     await asOwner(broke, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(broke, loc, shelf, "consign"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(broke, loc, shelf, "consign")),
     );
     expect(torch.getContainer()).toBe(broke); // still held
     expect(shelf.activeListingCount("/platform/agent/Avatar/broke")).toBe(0);
@@ -384,10 +379,10 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => t2.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t1 as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t1 as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t2 as never, raw: "lantern" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t2 as never, raw: "lantern" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
     // Only the first listing took (cap = 1).
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
@@ -423,14 +418,11 @@ describe("Consignment — sell loop over real ownership", () => {
     // would have resolved it from.
     for (const [i, kw] of ["torch", "lantern", "whetstone"].entries()) {
       await asOwner(alice, () =>
-        makeStuff(() => new ShelfConsignController()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({
             thing: { stuff: goods[i] as never, raw: kw },
             ask: "5",
             shelf: { stuff: stall as never, raw: "shelf" },
-          },
-          ctx(alice, loc, stall, "consign"),
-        ),
+          }, ctx$)))(ctx(alice, loc, stall, "consign")),
       );
     }
     // All three took — the stall's authored 3 outranks the global 1.
@@ -458,14 +450,11 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => extra2.stampChattel(alice));
     for (const [i, kw] of ["candle", "taper"].entries()) {
       await asOwner(alice, () =>
-        makeStuff(() => new ShelfConsignController()).execute(
-          {
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({
             thing: { stuff: [extra, extra2][i] as never, raw: kw },
             ask: "5",
             shelf: { stuff: plain as never, raw: "shelf" },
-          },
-          ctx(alice, loc, plain, "consign"),
-        ),
+          }, ctx$)))(ctx(alice, loc, plain, "consign")),
       );
     }
     expect(plain.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
@@ -481,12 +470,12 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => torch.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
     expect(torch.getContainer()).toBe(shelf);
 
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfReclaimController()).execute({ thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "reclaim")),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfReclaimController()).execute({ thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "reclaim")),
     );
     expect(torch.getContainer()).toBe(alice); // custody back
     expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
@@ -529,10 +518,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const bale = ownedBale(alice, 5);
 
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(alice, loc, shelf, "consign"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
 
     // The stack stays with Alice, one short.
@@ -567,10 +553,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // new reason a merge can be refused.)
 
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(alice, loc, shelf, "consign"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(alice, loc, shelf, "consign")),
     );
     const lot = (shelf.getContents() as Stuff[]).find(
       (c) => (c.getTemplatePath() ?? "").startsWith(BALE),
@@ -611,10 +594,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const bale = ownedBale(broke as unknown as Stuff, 4);
 
     await asOwner(broke as unknown as Stuff, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
-        { thing: { stuff: bale as never, raw: "bale" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(broke, loc, shelf, "consign"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: bale as never, raw: "bale" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx$)))(ctx(broke, loc, shelf, "consign")),
     );
 
     expect(bale.getQuantity()).toBe(4);
@@ -663,10 +643,10 @@ describe("Consignment — sell loop over real ownership", () => {
     // Alice leaves the torch on the shop's terms at 8 — her PRICE.
     const consignCtx = ctx(alice, loc, counter as never, "consign");
     await asOwner(alice, () =>
-      makeStuff(() => new ShelfConsignController()).execute(
+      TestHarnessApi.actAs(consignCtx.commandGiver, () => makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: "torch" }, ask: "8", shelf: { stuff: counter as never, raw: "counter" } },
         consignCtx,
-      ),
+      )),
     );
     expect(torch.getContainer()).toBe(counter);
     expect(counter.listingFor(torch.getChattelId())?.basis).toBe("terms");
@@ -678,10 +658,7 @@ describe("Consignment — sell loop over real ownership", () => {
     ContainmentApi.move(bob as never, loc as never);
     const bobAcct = (await BankingApi.primaryAccountIdOf("/platform/agent/Avatar/bob"))!;
     await asOwner(bob, () =>
-      makeStuff(() => new BuyController()).execute(
-        { thing: "torch", counter: { stuff: counter as never, raw: "counter" } },
-        ctx(bob, loc, counter as never, "buy"),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new BuyController()).execute({ thing: "torch", counter: { stuff: counter as never, raw: "counter" } }, ctx$)))(ctx(bob, loc, counter as never, "buy")),
     );
 
     expect(torch.getContainer()).toBe(bob);

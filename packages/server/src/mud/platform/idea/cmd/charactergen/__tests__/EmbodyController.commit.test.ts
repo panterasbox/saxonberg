@@ -31,6 +31,7 @@ import { BankingApi, Money } from '../../../../../api/banking';
 import { ContractApi } from '../../../../../api/contract';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SAPIENS =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
@@ -55,6 +56,7 @@ describe('EmbodyController.commit', () => {
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
     wearGarments: ReturnType<typeof vi.fn>;
+    receiveStartingKit: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -136,6 +138,7 @@ describe('EmbodyController.commit', () => {
       // The body dresses itself by its own recipe (`Character.wearGarments`,
       // size and carrying finalize A9); the stand-in clones each garment so
       // the dressing is observable.
+      receiveStartingKit: vi.fn().mockResolvedValue(undefined),
       wearGarments: vi.fn(async (paths: readonly string[]) => {
         for (const p of paths) await StuffApi.clone(p);
       }),
@@ -192,7 +195,7 @@ describe('EmbodyController.commit', () => {
   });
 
   function confirm(): Promise<void> {
-    return ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx));
   }
 
   it('mints the identity path with the picks as the clone overlay (no row)', async () => {

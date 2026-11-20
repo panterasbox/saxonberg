@@ -24,7 +24,8 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import WikiRegistry, { WikiDenied, WikiConflict } from '../idea/WikiRegistry';
+import WikiRegistry, { WikiConflict } from '../idea/WikiRegistry';
+import { Refusal } from '../../lib/errors';
 import WikiNamespaceZone from '../idea/WikiNamespaceZone';
 import { Idea } from '../../lib/stuff/Idea';
 import { AccessApi } from '../../api/access';
@@ -170,7 +171,7 @@ describe('the page model (1, 4)', () => {
   });
 
   it('refuses a nameless page', async () => {
-    await expect(create('   ')).rejects.toBeInstanceOf(WikiDenied);
+    await expect(create('   ')).rejects.toBeInstanceOf(Refusal);
   });
 });
 
@@ -379,7 +380,7 @@ describe('revisions (8, 10, 11)', () => {
   it('rolling back to a nonexistent revision refuses', async () => {
     const page = await create('oak');
     await expect(asActor(() => raw().rollback(page, 99))).rejects.toBeInstanceOf(
-      WikiDenied,
+      Refusal,
     );
   });
 
@@ -438,7 +439,7 @@ describe('the installer as a writer (content-packs wave 2, D9)', () => {
     // A protected namespace refuses the pinned actor …
     vi.spyOn(zone, 'lookupField').mockResolvedValue('moderators' as never);
     pinAccess({ avatar: true, moderator: false });
-    await expect(create('locked')).rejects.toBeInstanceOf(WikiDenied);
+    await expect(create('locked')).rejects.toBeInstanceOf(Refusal);
     // … and the installer, submitting AS the pack, is not asked.
     const page = await raw().createPage({ slug: 'shipped', body: 'b', asInstaller: 'wiki-starter' });
     expect(page.createdBy).toBe('pack:wiki-starter');
@@ -502,7 +503,7 @@ describe('permissions (19, 20, 21)', () => {
 
   it('the open floor refuses a non-player principal', async () => {
     pinAccess({ avatar: false });
-    await expect(create('oak')).rejects.toBeInstanceOf(WikiDenied);
+    await expect(create('oak')).rejects.toBeInstanceOf(Refusal);
   });
 
   it('an `editors` namespace admits only that group, NAMING the reason (19)', async () => {
@@ -529,7 +530,7 @@ describe('permissions (19, 20, 21)', () => {
     vi.spyOn(zone, 'lookupField').mockResolvedValue(
       'moderators' as unknown as never,
     );
-    await expect(create('b')).rejects.toBeInstanceOf(WikiDenied);
+    await expect(create('b')).rejects.toBeInstanceOf(Refusal);
   });
 
   it('a per-page protection tightens but cannot loosen', async () => {
@@ -636,7 +637,7 @@ describe('permissions (19, 20, 21)', () => {
       ExecutionContextApi.runRoot(null, 'anon', () =>
         raw().createPage({ slug: 'oak' }),
       ),
-    ).rejects.toBeInstanceOf(WikiDenied);
+    ).rejects.toBeInstanceOf(Refusal);
   });
 });
 
@@ -673,7 +674,7 @@ describe('deletion (61, 62)', () => {
     pinAccess({ avatar: true, moderator: false });
     const page = await create('oak');
     await expect(asActor(() => raw().deletePage(page))).rejects.toBeInstanceOf(
-      WikiDenied,
+      Refusal,
     );
   });
 
@@ -698,7 +699,7 @@ describe('deletion (61, 62)', () => {
     pinAccess({ avatar: true, moderator: false });
     const page = await create('oak');
     await expect(asActor(() => raw().purgePage(page))).rejects.toBeInstanceOf(
-      WikiDenied,
+      Refusal,
     );
   });
 });

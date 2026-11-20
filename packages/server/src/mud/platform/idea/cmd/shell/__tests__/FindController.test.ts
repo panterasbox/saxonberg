@@ -32,7 +32,7 @@ import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
 import Location from '../../../../../lib/location/Location';
 import { ContainmentApi } from '../../../../../api/containment';
-import { MqlSubscriptionApi } from '../../../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../../../api/subscription';
 import type { MqlManyResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
@@ -45,6 +45,7 @@ import {
   type ModelData,
 } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // Standard giver — Sensor (so Scene.toSelf delivers), Focused (so
 // `getFocus()` exists for the "focus unchanged" assertion), command
@@ -135,10 +136,7 @@ describe('FindController', () => {
 
   it('renders one row carrying the display name for a single match', async () => {
     const apple = namedThing('apple');
-    await controller.execute(
-      makeModel({ query: queryField([apple], 'apple') } as ModelData),
-      makeContext(giver, location, 'apple')
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([apple], 'apple') } as ModelData), ctx$)))(makeContext(giver, location, 'apple'));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('apple');
     // `Mml.thing` emits a `<thing stuff-id="...">` tag wrapping the
@@ -151,10 +149,7 @@ describe('FindController', () => {
     const a = namedThing('apple');
     const b = namedThing('apricot');
     const c = namedThing('avocado');
-    await controller.execute(
-      makeModel({ query: queryField([a, b, c], 'a*') } as ModelData),
-      makeContext(giver, location, 'a*')
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([a, b, c], 'a*') } as ModelData), ctx$)))(makeContext(giver, location, 'a*'));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('apple');
     expect(body).toContain('apricot');
@@ -165,10 +160,7 @@ describe('FindController', () => {
   });
 
   it('renders a friendly "no matches" line on empty result', async () => {
-    await controller.execute(
-      makeModel({ query: queryField([], 'unicorn') } as ModelData),
-      makeContext(giver, location, 'unicorn')
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([], 'unicorn') } as ModelData), ctx$)))(makeContext(giver, location, 'unicorn'));
     const body = giver.received[0]?.body ?? '';
     expect(body.toLowerCase()).toContain('no matches');
     expect(body).toContain('unicorn');
@@ -177,31 +169,22 @@ describe('FindController', () => {
   it('does not change focus (load-bearing "find does not touch focus")', async () => {
     giver.setFocus('bookcase');
     const apple = namedThing('apple');
-    await controller.execute(
-      makeModel({ query: queryField([apple], 'apple') } as ModelData),
-      makeContext(giver, location, 'apple')
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([apple], 'apple') } as ModelData), ctx$)))(makeContext(giver, location, 'apple'));
     expect(giver.getFocus()).toBe('bookcase');
   });
 
   it('does not install subscription state (snapshot semantics)', async () => {
-    const before = MqlSubscriptionApi._getRegistrySizeForTesting();
+    const before = SubscriptionApi._getRegistrySizeForTesting();
     const apple = namedThing('apple');
-    await controller.execute(
-      makeModel({ query: queryField([apple], 'apple') } as ModelData),
-      makeContext(giver, location, 'apple')
-    );
-    const after = MqlSubscriptionApi._getRegistrySizeForTesting();
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([apple], 'apple') } as ModelData), ctx$)))(makeContext(giver, location, 'apple'));
+    const after = SubscriptionApi._getRegistrySizeForTesting();
     expect(after).toBe(before);
   });
 
   it('does NOT render template paths for a viewer holding nothing', async () => {
     const apple = namedThing('apple');
     Stuff._stampTemplatePath(apple, '/obj/apple');
-    await controller.execute(
-      makeModel({ query: queryField([apple], 'apple') } as ModelData),
-      makeContext(giver, location, 'apple')
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ query: queryField([apple], 'apple') } as ModelData), ctx$)))(makeContext(giver, location, 'apple'));
     const body = giver.received[0]?.body ?? '';
     expect(body).not.toContain('/obj/apple');
   });
@@ -221,10 +204,7 @@ describe('FindController', () => {
       const apple = namedThing('apple');
       Stuff._stampTemplatePath(apple, '/obj/apple');
       const adminController = makeStuff(() => new FindController());
-      await adminController.execute(
-        makeModel({ query: queryField([apple], 'apple') } as ModelData),
-        makeContext(admin, location, 'apple')
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => adminController.execute(makeModel({ query: queryField([apple], 'apple') } as ModelData), ctx$)))(makeContext(admin, location, 'apple'));
       const body = admin.received[0]?.body ?? '';
       expect(body).toContain('apple');
       expect(body).toContain('/obj/apple');
@@ -234,10 +214,7 @@ describe('FindController', () => {
       // Transient / bootstrap Stuff with no clone-pipeline stamp.
       const orphan = namedThing('orphan');
       const adminController = makeStuff(() => new FindController());
-      await adminController.execute(
-        makeModel({ query: queryField([orphan], 'orphan') } as ModelData),
-        makeContext(admin, location, 'orphan')
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => adminController.execute(makeModel({ query: queryField([orphan], 'orphan') } as ModelData), ctx$)))(makeContext(admin, location, 'orphan'));
       const body = admin.received[0]?.body ?? '';
       expect(body).toContain('orphan');
       // No bare parens (no `(...)` text from a null template path).
@@ -251,10 +228,7 @@ describe('FindController', () => {
       Stuff._stampTemplatePath(a, '/obj/apple');
       Stuff._stampTemplatePath(b, '/obj/apricot');
       const adminController = makeStuff(() => new FindController());
-      await adminController.execute(
-        makeModel({ query: queryField([a, b], 'a*') } as ModelData),
-        makeContext(admin, location, 'a*')
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => adminController.execute(makeModel({ query: queryField([a, b], 'a*') } as ModelData), ctx$)))(makeContext(admin, location, 'a*'));
       const body = admin.received[0]?.body ?? '';
       expect(body).toContain('/obj/apple');
       expect(body).toContain('/obj/apricot');

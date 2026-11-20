@@ -1,7 +1,15 @@
 # MQL subscription substrate
 
+> ⭐ **On the one subscription wire (navigation-server, 2026-11).** This
+> registry is the MQL source (`/platform/idea/MqlSubscriptionRegistry`) behind [subscription.md](./subscription.md): `subscribe` /
+> `unsubscribe`, answered by `subscription-result` (rev 0) / `-delta` (rev + 1) /
+> `-error`. Its own message types are retired; the registry keeps what a
+> subscription MEANS (its index, its diff) and the protocol keeps the id
+> table, `rev` and the emits.
+
+
 Server-side substrate routing **live MQL queries**: a client sends an
-`mql-subscribe` message naming a query + the fields it wants
+`subscribe` message naming a query + the fields it wants
 projected; the substrate registers the subscription under a
 per-Interactive id, ships the initial result, and re-projects on every
 relevant state change until the client unsubscribes or disconnects.
@@ -38,30 +46,34 @@ re-implemented on a second channel.
 
 | File | Role |
 |---|---|
-| `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi` — a thin facade over `MqlSubscriptionRegistry`; descriptor types, projection helpers, `handleQuery`, the stateless `fireFieldChange` / `projectFields` |
-| `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`) — owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Every method gates to `FromModule(MqlSubscriptionApi)`. |
+| `packages/server/src/mud/api/subscription.ts` | `SubscriptionApi` — THE subscription Api ([subscription.md](./subscription.md)): `poke`, the descriptor types and projection helpers (`fireFieldChange` / `projectFields` / `projectAspect`), `handleQuery`, `cancelAllForScope` |
+| `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`, `SUBSCRIPTION_SOURCES.mql`) — the MQL SOURCE: owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Its source methods admit only the protocol's `SubscriptionRegistry`; the rest only `SubscriptionApi`'s logic singleton. |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
 | `packages/server/src/mud/lib/events/GenericEvent.ts` | Escape-hatch class-shaped event |
 | `packages/server/src/mud/lib/description/Perceptible.ts` | `primaryKeyword` field + `getPrimaryKeyword` / `setPrimaryKeyword`; `primaryKeyword` descriptor on `PerceptibleMixin.subscribableFields` |
 | `packages/server/src/mud/lib/spatial/Container.ts` | `contents` descriptor + `FieldChangedEvent { field: 'contents' }` fires on `addContainable` / `removeContainable` |
-| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires on `setContainer` — the signal `locationDependent` subscriptions wake on |
+| `packages/server/src/mud/lib/spatial/Containable.ts` | `FieldChangedEvent { field: 'container' }` fires on `setContainer` — what a query-bound subscription's holder entry wakes on when you walk (and where-you-are's `container` row) |
 | `packages/server/src/mud/lib/command/Focused.ts` | `focus` descriptor + `FieldChangedEvent { field: 'focus' }` fires on `setFocus` / `clearFocus` |
 | `packages/types/src/index.ts` | Inbound + outbound wire types (`MqlSubscribeMessage`, `MqlQueryMessage`, `Mql*Envelope`, `StuffRefRecord`, `WireDetailEntry`, `MaterialSummary`, `StuffDetailFocusRecord`, `Change`) |
 
 ## Surface
 
-### `MqlSubscriptionApi`
+### `SubscriptionApi`
+
+The MQL source has no Api of its own — it is opened, closed and poked
+through the one protocol ([subscription.md](./subscription.md)):
 
 ```ts
-handleSubscribe(req: SubscribeRequest): void
-handleUnsubscribe(interactive: Interactive, subscriptionId: string): void
-handleQuery(req: QueryRequest): void
-cancelAllForInteractive(interactive: Interactive): void
+interactive.subscribe(id, SUBSCRIPTION_SOURCES.mql, params)   // open
+interactive.cancelSubscription(id)                              // close
+SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject })  // a ledger wrote
+interactive.refreshMqlSubscriptions()  // pokes with the body the session now drives
+SubscriptionApi.handleQuery(req)       // the one-shot `query` wire
 ```
 
-`SubscribeRequest`:
+`SubscribeRequest` (the params, as the source reads them):
 
 ```ts
 interface SubscribeRequest {
@@ -71,15 +83,11 @@ interface SubscribeRequest {
   cardinality: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;          // focus-mode opt-in (requires cardinality 'one')
-  focusDependent?: boolean;    // install holder-level `focus` field dep entry
-  locationDependent?: boolean; // install holder-level `container` field dep entry
 }
 ```
 
-`focusDependent` and `locationDependent` are independent opt-in
-flags that install extra holder-level dependency entries the
-result-set walk wouldn't naturally find — see "Holder-level
-dependency flags" below. There is no named-subscription registry;
+A relative query wakes on its holder's changes with nothing asked for —
+see "The holder entry" below. There is no named-subscription registry;
 clients send the raw spec every time, and the wire client replays
 the spec on reconnect.
 
@@ -266,16 +274,15 @@ incidental JSON. (The differ compares structurally, not by identity, so
 a freshly-built `Band` per read never produced a spurious delta; the
 normalization is about the contract, not about churn.)
 
-### Holder-level dependency flags — subsumed (crowded-rooms D1)
+### The holder entry (crowded-rooms D1)
 
-`focusDependent` and `locationDependent` are still accepted on
-`SubscribeRequest` and **do nothing**. Every query-bound subscription
+The `focusDependent` / `locationDependent` flags this replaced are gone
+from the wire (navigation-server, at its merge of crowded-rooms). Every query-bound subscription
 installs a dependency on its HOLDER, any field — every relative seed and
 every shell variable (`$focus`, `here`) answers from the asker — so a
 `setFocus` or a walk wakes it whether or not it asked. A subject-bound
 subscription watches the holder's and the subject's `container` (the two
-facts its perception gate re-reads). The flags stay in the wire type until
-navigation-server's `params` retires them.
+facts its perception gate re-reads).
 
 ### Shell-variable expansion at re-resolve time
 
@@ -287,7 +294,7 @@ resolve correctly when `setFocus` fires.
 
 ### `mql-query` one-shot channel
 
-`MqlSubscriptionApi.handleQuery` exposes a wire-facing one-shot
+`SubscriptionApi.handleQuery` exposes a wire-facing one-shot
 read that **shares the parse + resolve + project pipeline** with
 `handleSubscribe` but skips all subscription state — no
 registration, no dependency-index entries, no listener
@@ -322,8 +329,8 @@ interface MqlQueryErrorEnvelope {
 ```
 
 `Application.processUserMessage` routes inbound `'mql-query'`
-messages through `MqlSubscriptionApi.handleQuery` — same shape
-as the existing `'mql-subscribe'` route. Holder and cardinality
+messages through `SubscriptionApi.handleQuery` — same shape
+as the existing `'subscribe'` route. Holder and cardinality
 checks mirror `handleSubscribe` so a client's error-handling
 code can branch by `reason` uniformly across subscribes and
 queries.
@@ -336,6 +343,18 @@ wire-facing channel. v1 consumers of the substrate include the
 player-typed `find` rides the command bus, while the
 `mql-query` channel is reserved for future programmatic widget
 reads.
+
+⭐ **Its first client consumer is the tooltip** (tooltips W2,
+[tooltips.md](./tooltips.md)), and the channel is **gated by the server**
+for that use:
+- **Reach:** a resolved subject outside the viewer's `reachable` set (`look`'s
+  own scope) is dropped, whatever the query text. A bare `#id` names a thing
+  anywhere, but describing it is an act, and an act observes.
+- **Light:** in the dark, every field whose descriptor declares
+  `sense: 'vision'` is dropped, and the envelope says `dark: true` once.
+- **Name:** `displayName` is `describeFor(viewer)`.
+
+Live subscriptions are untouched by all three.
 
 ## Two projection layers
 
@@ -455,7 +474,7 @@ implementation here would drift from it.
 
 `practisingCompetence` reads a ledger whose Api is async
 (`actor.competenceBands()`). **Do not widen `read` to return a
-promise.** `MqlSubscriptionApi.projectFields` is
+promise.** `SubscriptionApi.projectFields` is
 sync, and `ContainerMixin`'s own `contents` descriptor calls it from
 *inside* its `read` — so a promise would make projection async
 **recursively through nested containment**, on the inspection card's hot
@@ -532,7 +551,7 @@ So a descriptor whose value comes from a durable-keyed ledger declares:
 durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
 ```
 
-and its producer calls `MqlSubscriptionApi.notifyDurableSubject(key)`
+and its producer calls `SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: key })`
 straight after persisting.
 
 **No event class, no `EventApi` fire.** The bus is for genuinely global
@@ -544,7 +563,7 @@ wakes every other player's standing card.
 Mechanically it reuses everything: the tuple is installed under a
 synthetic `DURABLE_SUBJECT_KIND` so the index, the refcount and the
 teardown path all work unchanged — the only special case is that this
-kind acquires **no bus listener**, because `notifyDurableSubject` routes
+kind acquires **no bus listener**, because a `{ durableSubject }` poke routes
 into `routeFire` directly.
 
 `durableKey` returning `undefined` (a guest, with no durable identity)
@@ -560,7 +579,7 @@ exposing `kind: string` and `payload: P` directly:
 
 | Class | KIND | Discriminator | Firing site |
 |---|---|---|---|
-| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `MqlSubscriptionApi.fireFieldChange` or inline |
+| `FieldChangedEvent` | `'stuff.fieldChanged'` | `field` (mixin-declared field name) | Fact-mixin setters via `SubscriptionApi.fireFieldChange` or inline |
 | `PropertyChangedEvent` | `'stuff.propertyChanged'` | `property` (property-bag key) | `PropertiedMixin.setProp` |
 | `ShadowChangedEvent` | `'stuff.shadowChanged'` | `cause`, `shadow` | **Declared but unfired.** Wires up with the shadow lifecycle in a later subsystem. |
 | `GenericEvent<P>` | per-instance | — | Escape hatch when no specific class fits. Has no static `KIND`; routes via string-keyed `EventApi.on(name, …)` only. |
@@ -584,11 +603,11 @@ meta-bus index discriminates by `(EventClass.KIND, attribute, value)`,
 and `FieldChangedEvent` carries `field` while `PropertyChangedEvent`
 carries `property`.
 
-### `MqlSubscriptionApi.fireFieldChange` helper
+### `SubscriptionApi.fireFieldChange` helper
 
 ```ts
 setName(value: string): void {
-  this.name = MqlSubscriptionApi.fireFieldChange(
+  this.name = SubscriptionApi.fireFieldChange(
     this, 'name', this.name, value,
   );
 }
@@ -598,7 +617,7 @@ Strict-equals (`Object.is`) compares old vs new. On equal, skip
 emission and return `oldValue`. On change, fire the event and return
 `newValue`. Setter is a single line.
 
-The helper lives on `MqlSubscriptionApi`, not on `FieldChangedEvent`,
+The helper lives on `SubscriptionApi`, not on `FieldChangedEvent`,
 so the substrate owns its own helpers and the event class stays a
 pure DTO.
 
@@ -631,12 +650,12 @@ subscription resolves and projects (one synchronous unit,
 
 | source | entry |
 |---|---|
-| a Stuff projected — top-level, or nested inside a descriptor (`MqlSubscriptionApi.projectFields` reports to `collectProjections`) | that Stuff, filter = the union of its projected fields' `dependsOnFields` |
+| a Stuff projected — top-level, or nested inside a descriptor (`SubscriptionApi.projectFields` reports to `collectProjections`) | that Stuff, filter = the union of its projected fields' `dependsOnFields` |
 | a Stuff the query's own resolve **touched** (`MqlContext.trackTouched` → `MqlMany.touched`: every candidate tested, its holder, every holder enumerated) | that Stuff, any field |
-| a Stuff a descriptor's own resolve read (`MqlSubscriptionApi.noteRead`, e.g. `Container.contents`' `#id:i` resolve) | that Stuff, the membership fields the descriptor names (`placement`, `container`) |
+| a Stuff a descriptor's own resolve read (`SubscriptionApi.noteRead`, e.g. `Container.contents`' `#id:i` resolve) | that Stuff, the membership fields the descriptor names (`placement`, `container`) |
 | the holder of a query-bound subscription | any field |
 | the holder and subject of a subject-bound one | `container` |
-| each row showing `displayName` | `('__viewer-belief', 'key', '<viewerId>|<subjectId>')`, poked by `notifyBelief` |
+| each row showing `displayName` | `('__viewer-belief', 'key', '<viewerId>|<subjectId>')`, poked by a `{ belief }` poke |
 | `durableKey`, a descriptor's `changes` | unchanged |
 
 A container fires `contents` on ITSELF on every add and remove, so a
@@ -712,7 +731,7 @@ change lists emit no envelope (silent no-op).
 `Application.handleUserDisconnect`:
 
 1. Resolves the `Interactive` from the socket id.
-2. Calls `MqlSubscriptionApi.cancelAllForInteractive(interactive)`
+2. Calls `interactive.cancelAllSubscriptions()`
    **before** `ConnectionManager.removeInteractive(socketId)`. The Api
    delegates to `MqlSubscriptionRegistry.cancelAllForInteractive`,
    which clears the Interactive's entry in the Registry's
@@ -781,7 +800,7 @@ substrate's re-projection without any descriptor changes.
 
 ## What doesn't ship at all (v1)
 
-- `mql-subscribe-update` — change a subscription's query without
+- `subscribe-update` — change a subscription's query without
   un/re-subscribing.
 - Heartbeat / explicit `'closed'` envelope.
 - Wire projection fields for `mixins[]` / `capabilities[]`.
@@ -952,7 +971,7 @@ content and reaching for a plausible default.
   per card to 1, and from 3.6 ms per card to 2.0.
 
 - **Canonical-kind registry retired during MR iteration.** Wave 1
-  shipped `MqlSubscriptionApi.registerKind(name, spec)` with a
+  shipped `SubscriptionApi.registerKind(name, spec)` with a
   `kind?: string` overlay on `MqlSubscribeMessage` /
   `MqlQueryMessage`. The mechanism was a pure server-side macro
   over the raw spec — the substrate's load-bearing machinery
@@ -1015,7 +1034,7 @@ Three seams survive the split:
   first resolve on its own `card-opened`; emitting a second envelope for
   one open is how a card ends up briefly showing nothing while the
   client reconciles two shapes for the same content.
-- **`mql-subscription-delta`** still carries a live card's updates,
+- **`subscription-delta`** still carries a live card's updates,
   because the ids are the same by construction. No new envelope, no
   join table.
 
@@ -1050,7 +1069,7 @@ first projection — a card opening, a login — is still one unit of N rows.
 ⭐ **A place's own row is cheap too** (crowded-rooms W8). A
 viewer-independent read — a place's membership, which every room card on
 it asks on one arrival — is shared across every subscription re-resolved
-at the same **fire epoch** (`MqlSubscriptionApi.sharedRead`; the epoch
+at the same **fire epoch** (`SubscriptionApi.sharedRead`; the epoch
 bumps on every field fire, and re-resolves fire nothing), so thirty room
 cards resolve it once. A descriptor's perception filter over children is
 memoized per child beside its row (`perceivedAmong`), and a re-derive

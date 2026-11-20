@@ -46,6 +46,6 @@ export default class ScriptController extends CommandController<ScriptModel> {
       });
       return;
     }
-    await ScriptApi.run(source);
+    await ScriptApi.run(source, context);
   }
 }

@@ -29,6 +29,7 @@
  */
 
 import type { MixinConstructor } from './mixin';
+import { SubscriptionApi } from '../api/subscription';
 
 /**
  * The internal state surface a consuming toggle mixin reaches on `this`.
@@ -69,7 +70,9 @@ export function BistateMixin<TBase extends MixinConstructor>(Base: TBase) {
           `${label} must be a boolean, got ${typeof value}`
         );
       }
-      this._state = value;
+      // ⭐ Fires under the noun (`open`, `on`, `folded`): a door opened by
+      // the verb or the setter, a lamp lit — every screen showing it hears.
+      this._state = SubscriptionApi.fireFieldChange(this, label.split('.').pop() ?? label, this._state, value);
     }
   };
 }

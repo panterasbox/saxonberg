@@ -283,6 +283,11 @@ GET /api/help/search?q=<q>      → HelpSearchResult       (groups by kind)
 `title`+`keywords`+`kind`; both resolve across **both** subdivisions via
 the uniform fields.
 
+⭐ `GET /api/help/topic?word=<w>` (tooltips W3) resolves through
+`HelpApi.resolveTopic`. That is the `help <word>` order (verb → concept →
+collection → api → an exact id), kept in one place, so a glossary term's
+tooltip and the page `help` shows are always the same topic.
+
 ## The `help` verb — index-backed, light grammar polish
 
 The `help` controllers (`HelpTopicController` for bare + topic, `HelpVerbController`, `HelpApiController`, `HelpSearchController`) render every form off the index through `HelpApi`, on

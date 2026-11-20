@@ -1,6 +1,6 @@
 /**
  * PerceiverMixin tests — substrate-only coverage. The verb-execution
- * paths (look / scry / locate) ride on their own controllers'
+ * paths (look / scry) ride on their own controllers'
  * test files.
  */
 
@@ -33,7 +33,7 @@ describe('PerceiverMixin', () => {
     expect(MixinApi.hasMixin(obj, Mixins.Perceiver)).toBe(true);
   });
 
-  it('contributes the perception verbs (look / scry / locate / find) to the self bucket', () => {
+  it('contributes the perception verbs (look / scry / find) to the self bucket', () => {
     // Discovery wiring sanity-check — `find.yaml` lives here next to
     // `look` because find is a snapshot-shaped perception verb, not
     // a focus-management verb. The acceptance criterion (inspection-
@@ -46,7 +46,8 @@ describe('PerceiverMixin', () => {
     }).commandContributions.self;
     expect(selfContributions).toContain('platform/cmd/perception/look.yaml');
     expect(selfContributions).toContain('platform/cmd/perception/scry.yaml');
-    expect(selfContributions).toContain('platform/cmd/perception/locate.yaml');
+    // `locate` retired (navigation-server W0).
+    expect(selfContributions).not.toContain('platform/cmd/perception/locate.yaml');
     expect(selfContributions).toContain('platform/cmd/shell/find.yaml');
   });
 

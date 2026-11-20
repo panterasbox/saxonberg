@@ -18,6 +18,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
@@ -105,7 +106,7 @@ function installStore(): void {
     arr.push({ ...doc, _id: id });
     return id;
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find: vi.fn(async (c: string, q: Record<string, unknown>) => col(c).filter((d) => matches(d, q))),
     findById: vi.fn(async (c: string, id: string) => col(c).find((d) => d._id === id) ?? null),
@@ -115,7 +116,7 @@ function installStore(): void {
       if (i >= 0) arr.splice(i, 1);
     }),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,

@@ -71,6 +71,15 @@ implementer and an Api with one concept in it are not new substrate; they
 are a method in the wrong place. *Evidence:* as R2; *"what else would
 possibly go in it?"* (cleanliness); a hook needs more than one implementer
 (!335); promote at the third consumer, never invent it.
+⭐ **And when the build GENERALIZES something, is the specific one gone?**
+A general substrate that leaves the old one's surface standing beside it is
+two of the thing, not one. *Evidence:* navigation-server !595 built the one
+subscription protocol and its `SubscriptionApi`, and left
+`MqlSubscriptionApi` (own logic singleton, bespoke pokes — and a sibling
+build added a third meanwhile) beside it —
+*"now there's multiple subscription apis. we only need one for
+everything"*. See [antipatterns.md § An Api per implementer of a
+protocol](./antipatterns.md#an-api-per-implementer-of-a-protocol).
 
 ### P2. Host placement: does every host on it *mean* it?
 The shipped test — *a guard that re-narrows the host set means the host is
@@ -82,6 +91,14 @@ build kept widening a general base"*), paint (the outside on every
 `Structure` — *"the Waponi Woo PEAK could be painted"*), ceramics (flaws on
 `Tangible`; `dip` afforded on every good), scan-sweep (`SiteMixin` on every
 location).
+
+⭐ **And its mirror: a value IDENTICAL on every host.** Hold everything
+else fixed and vary the host — if the value never changes, it is a fact
+about something else, copied onto each one. *Evidence:* navigation-server
+(`flee` on every way's verdict — a fight is the viewer's, not the way's;
+*"why is this a property of the exit?"*). See
+[antipatterns.md § A fact about one thing, stamped onto everything it
+touches](./antipatterns.md).
 
 ### P3. Refuse, skip or throw — never silent
 For every path that can fail: the world says no → a refusal; a read finds

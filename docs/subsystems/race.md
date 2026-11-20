@@ -1056,7 +1056,7 @@ Future verb-level validators (`requires-mobile`, `requires-vocal`,
 > ⭐ **`Material`'s measured properties and `Species`' combat profile carry a reveal level.** Density, hardness, the conductivities, autoignition and the heats; a species' `vitalProfile`, `facultyProfile`, `innateMixins`, `naturalAttacks` and `affordedGambits`. Identity and natural history stay open — name, tags, the chemistry anyone could look up, diet, lifespan, vision, reproduction. `spoiler: 1` with
 > `spoilerName: 0`, so a reader sees which properties exist with the
 > values collapsed — **one click, not a lock**, and a reader who set
-> `wiki.spoilerAppetite` higher never sees a collapse at all. The rule
+> `spoiler.appetite` higher never sees a collapse at all. The rule
 > the sweep settled on: *collapse what the WORLD measures, never what
 > the PLAYER operates.* Levels are declared on the field and therefore
 > apply wherever the value surfaces. See

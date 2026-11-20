@@ -53,8 +53,9 @@ function GatedTurnMixin<T extends MixinConstructor<Stuff>>(Base: T) {
 class GatedTurner extends GatedTurnMixin(Good) {}
 /** The same mixin, conferred: a thing that answers while it is buffed counts. */
 class ConferredTurner extends GatedTurnMixin(Good) {
-  public getConferredMixinNames(): readonly string[] {
-    return ['GatedTurnTestMixin'];
+  /** Conferred through the species leg (the one innate mechanism). */
+  public getSpecies(): { getInnateMixins(): readonly string[] } {
+    return { getInnateMixins: () => ['GatedTurnTestMixin'] };
   }
 }
 

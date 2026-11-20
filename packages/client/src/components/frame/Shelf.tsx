@@ -58,8 +58,9 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import type {
-  MqlSubscriptionResultEnvelope,
-  MqlSubscriptionDeltaEnvelope,
+  MqlRecord,
+  SubscriptionResultEnvelope,
+  SubscriptionDeltaEnvelope,
   Envelope,
   SelfFigureRecord,
   ShelfRowId,
@@ -118,6 +119,15 @@ export interface ShelfRow {
  * ⚠⚠ `trait` is absent and permanent — see `ShelfRowId`.
  */
 export const SHELF_CATALOGUE: readonly ShelfRow[] = [
+  {
+    id: "aether",
+    // ⚠ Not "PHONE": that word is the client's name for its mobile layout.
+    label: "AETHER",
+    desc: "whether you can reach past the room — your phone, and its charge",
+    // ⭐ Live from the aether-devices build: `aetherState` on the self
+    // card, poked when the word changes. A word, never a gauge.
+    source: "live",
+  },
   {
     id: "play",
     label: "PLAY",
@@ -201,7 +211,7 @@ export const GLANCE_ROWS = 3;
 
 /**
  * The player's shelf: server-authoritative, with the shipped default
- * standing in until the first `client-state-update` lands, filtered to
+ * standing in until the first client-state change lands, filtered to
  * known ids so a shelf saved before a row was retired cannot ask for a
  * row that is gone.
  *
@@ -324,6 +334,13 @@ export function figureFor(
         return { state: "empty", reason: "nothing being practised" };
       }
       return { state: "live", value: `${c.discipline} · ${c.band}` };
+    }
+    case "aether": {
+      const a = figures?.aetherState;
+      if (a === undefined) {
+        return { state: "empty", reason: "the aether has not been read yet" };
+      }
+      return { state: "live", value: a };
     }
     case "body": {
       const b = figures?.bodyState;
@@ -500,14 +517,14 @@ export function useSelfFigures(): void {
     const selfId = websocketClient.subscribeMql({ chrome: "self" });
 
     const handleResult = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionResultEnvelope;
+      const env = envelope as SubscriptionResultEnvelope<MqlRecord[]>;
       if (env.subscriptionId !== selfId) return;
-      const record = env.result[0] as SelfFigureRecord | undefined;
+      const record = env.snapshot[0] as SelfFigureRecord | undefined;
       useStore.getState().setShelfFigures(record ?? null);
     };
 
     const handleDelta = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionDeltaEnvelope;
+      const env = envelope as SubscriptionDeltaEnvelope<Partial<MqlRecord>>;
       if (env.subscriptionId !== selfId) return;
       /*
        * ⚠ **The single-cardinality trap — fixed at the SOURCE, and this
@@ -546,12 +563,12 @@ export function useSelfFigures(): void {
       }
     };
 
-    websocketClient.onEnvelope("mql-subscription-result", handleResult);
-    websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
+    websocketClient.onEnvelope("subscription-result", handleResult);
+    websocketClient.onEnvelope("subscription-delta", handleDelta);
 
     return () => {
-      websocketClient.offEnvelope("mql-subscription-result", handleResult);
-      websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
+      websocketClient.offEnvelope("subscription-result", handleResult);
+      websocketClient.offEnvelope("subscription-delta", handleDelta);
       websocketClient.unsubscribe(selfId);
     };
   }, []);

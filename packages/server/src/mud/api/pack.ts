@@ -416,6 +416,17 @@ export class PackApi {
     return logic().sync(packId, packRoot, packRoots);
   }
 
+  /**
+   * ⭐ Validate one document of `kind` the way the installer does — the
+   * same per-kind validator table (failure-model D6) — so a document saved
+   * at runtime (the CMS, a `write`) is refused exactly where a shipped one
+   * would be. Throws the validator's error (a `ContentError` where the
+   * validator names the field); a kind with no validator passes.
+   */
+  public static validateDocument(kind: string, data: Record<string, unknown>, path: string): void {
+    logic().validateDocument(kind, data, path);
+  }
+
   /** Read + order the shipped pack manifests (`dependsOn` honored). */
   public static async discoverPacks(): Promise<PackManifest[]> {
     return logic().discoverPacks();

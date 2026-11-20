@@ -12,6 +12,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Place from "../../stuff/Place";
 import { Idea } from "../../stuff/Idea";
@@ -28,6 +29,7 @@ import {
   Collections,
 } from "../../../../backend/PersistenceManager";
 import type { EnvelopeTemplate, DispatchResponseEnvelope } from "@saxonberg/types";
+import { TestHarnessApi } from "../../../api/test-harness";
 
 const TestGiverBase = CommandGiverMixin(
   EnvironmentMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -36,7 +38,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ["platform/cmd/system/ping.yaml"],
+    self: ["platform/cmd/system/ping.yaml", "platform/cmd/shell/do.yaml"],
     environment: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
@@ -56,6 +58,12 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
+          query.path === "/platform/idea/cmd/shell/DoController"
+        ) {
+          return [{ path: "/platform/idea/cmd/shell/DoController", class: "/platform/idea/cmd/shell/DoController", data: {} }];
+        }
+        if (
+          collection === Collections.Content &&
           query.path === "/platform/idea/cmd/system/PingController"
         ) {
           return [
@@ -69,11 +77,11 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
         return [];
       },
     );
-    vi.spyOn(PersistenceManager, "get").mockReturnValue({
+    vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
@@ -89,7 +97,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
   it("dispatches every statement of a multi-statement script over the bus", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
-    await giver.executeCommand("ping; ping; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping; ping; ping"));
 
     // Each scripted command went through the real resolve→validate→
     // execute tail (the {bound} path), once per statement.
@@ -103,27 +111,39 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
     // No separator, no block → msh fast path → the normal _runChain, not
     // the interpreter. resolveModel is still called once (the verb runs).
-    await giver.executeCommand("ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("ping"));
     expect(resolveModel).toHaveBeenCalledTimes(1);
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(env.outcome.status).toBe("ok");
   });
 
-  it("notes an unknown verb but continues dispatching valid ones", async () => {
+  it("⭐ an unknown verb stops the script there, and the stop is said (failure-model D5)", async () => {
     const resolveModel = vi.spyOn(CommandApi, "resolveModel");
 
-    await giver.executeCommand("frobnicate; ping");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("frobnicate; ping"));
 
-    // Only the real verb reached resolve; the unknown one was noted.
+    // The script stopped at the unknown verb: `ping` never ran.
     const verbs = resolveModel.mock.calls.map(
       (c) => c[1].command.getPrimaryVerb(),
     );
-    expect(verbs).toEqual(["ping"]);
+    expect(verbs).toEqual([]);
 
     const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     const rejected = env.outcome.notes.filter(
       (n) => n.kind === "command-rejected",
     );
     expect(rejected.length).toBeGreaterThan(0);
+  });
+
+  it("⭐ `do <script>` reports where its script stopped (failure-model D5)", async () => {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("def fmx { frobnicate; ping }"));
+    giver.envelopes.length = 0;
+    const resolveModel = vi.spyOn(CommandApi, "resolveModel");
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand("do fmx"));
+    const verbs = resolveModel.mock.calls.map((c) => c[1].command.getPrimaryVerb());
+    expect(verbs).toEqual(["do"]);
+    const env = giver.envelopes.at(-1) as DispatchResponseEnvelope;
+    expect(env.outcome.status).toBe("declined");
+    expect(env.outcome.notes.some((n) => n.kind === "command-rejected")).toBe(true);
   });
 });

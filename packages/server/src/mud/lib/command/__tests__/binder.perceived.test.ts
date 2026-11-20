@@ -31,6 +31,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const PLAN = '/stuff/idea/species/BodyPlan/binder-biped';
 class Knife extends WieldableMixin(SlottableMixin(Thing)) {}
@@ -99,7 +100,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
       command: undefined as never,
     });
     models = [];
-    last = await g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer);
+    last = await TestHarnessApi.actAs(g, () => g._runChain(CommandLineApi.parsePipeline(text).commands[0]!, outer));
     const m = models[models.length - 1];
     return (m?.target as MqlOneResult | undefined)?.stuff ?? null;
   };

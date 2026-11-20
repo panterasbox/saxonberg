@@ -42,6 +42,9 @@ import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 import { PopOutPortal, usePopOut } from "./PopOut";
 import { useCardShown } from "./useCardFeed";
+import { ChangeMark } from "./ChangeMark";
+import { Tip } from "../tooltip/Tip";
+import { controlDoc } from "../doc/docs";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
@@ -367,17 +370,18 @@ export function Card({
           owner's four buttons.
         */}
         {!docked && !faded && card.takenAt !== undefined && (
-          <Taken
-            type="button"
-            data-testid="card-refresh"
-            title={`Look again — ${card.key}`}
-            aria-label={card.key}
-            onClick={() => onSendCommand(card.key)}
-            onMouseEnter={() => preview(card.key)}
-            onMouseLeave={() => preview(null)}
-          >
-            <span data-testid="card-taken">{takenLabel(card.takenAt)}</span>
-          </Taken>
+          <Tip tip={controlDoc("Look again", card.key)}>
+            <Taken
+              type="button"
+              data-testid="card-refresh"
+              aria-label={card.key}
+              onClick={() => onSendCommand(card.key)}
+              onMouseEnter={() => preview(card.key)}
+              onMouseLeave={() => preview(null)}
+            >
+              <span data-testid="card-taken">{takenLabel(card.takenAt)}</span>
+            </Taken>
+          </Tip>
         )}
         {docked ? null : <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>}
         {/*
@@ -398,79 +402,85 @@ export function Card({
         {docked ? null : (
         <Controls>
           {!faded && (
-            <IconButton
-              data-testid="card-popout"
-              title={popOut.win ? "Bring it back into the page" : "Pop out into its own window"}
-              aria-label={popOut.win ? "bring back" : "pop out"}
-              onClick={() => {
-                if (popOut.win) {
-                  popOut.close();
-                  return;
-                }
-                void popOut.open().then(setPopNote);
-              }}
-            >
-              <Icon name="card.popout" label="pop out" size={14} decorative />
-            </IconButton>
+            <Tip tip={controlDoc(popOut.win ? "Bring it back into the page" : "Pop out into its own window")}>
+              <IconButton
+                data-testid="card-popout"
+                aria-label={popOut.win ? "bring back" : "pop out"}
+                onClick={() => {
+                  if (popOut.win) {
+                    popOut.close();
+                    return;
+                  }
+                  void popOut.open().then(setPopNote);
+                }}
+              >
+                <Icon name="card.popout" label="pop out" size={14} decorative />
+              </IconButton>
+            </Tip>
           )}
           {!faded && (
-            <IconButton
-              data-testid="card-grow"
-              title={size === "full" ? "As big as it gets" : `Bigger — ${grow}`}
-              aria-label={grow}
-              disabled={size === "full"}
-              onClick={() => onSendCommand(grow)}
-              onMouseEnter={() => preview(size === "full" ? null : grow)}
-              onMouseLeave={() => preview(null)}
-            >
-              <Icon name="card.bigger" label="bigger" size={14} decorative />
-            </IconButton>
+            <Tip tip={size === "full" ? controlDoc("As big as it gets") : controlDoc("Bigger", grow)}>
+              <IconButton
+                data-testid="card-grow"
+                aria-label={grow}
+                disabled={size === "full"}
+                onClick={() => onSendCommand(grow)}
+                onMouseEnter={() => preview(size === "full" ? null : grow)}
+                onMouseLeave={() => preview(null)}
+              >
+                <Icon name="card.bigger" label="bigger" size={14} decorative />
+              </IconButton>
+            </Tip>
           )}
           {!faded && card.role !== "primary" && (
-            <IconButton
-              data-testid="card-shrink"
-              title={size === "unit" || size === "line" ? `Smaller — into the tray (${shrink})` : `Smaller — ${shrink}`}
-              aria-label={shrink}
-              onClick={() => onSendCommand(shrink)}
-              onMouseEnter={() => preview(shrink)}
-              onMouseLeave={() => preview(null)}
-            >
-              <Icon name="card.smaller" label="smaller" size={14} decorative />
-            </IconButton>
+            <Tip tip={controlDoc(size === "unit" || size === "line" ? "Smaller — into the tray" : "Smaller", shrink)}>
+              <IconButton
+                data-testid="card-shrink"
+                aria-label={shrink}
+                onClick={() => onSendCommand(shrink)}
+                onMouseEnter={() => preview(shrink)}
+                onMouseLeave={() => preview(null)}
+              >
+                <Icon name="card.smaller" label="smaller" size={14} decorative />
+              </IconButton>
+            </Tip>
           )}
           {!faded && (
-            <IconButton
-              data-testid="card-pin"
-              $on={card.pinned}
-              title={card.pinned ? `Pinned — ${command}` : `Pin — ${command}`}
-              aria-label={command}
-              onClick={() => onSendCommand(command)}
-              onMouseEnter={() => preview(command)}
-              onMouseLeave={() => preview(null)}
-            >
-              <Icon name="card.pin" label="pin" size={14} decorative />
-            </IconButton>
+            <Tip tip={controlDoc(card.pinned ? "Pinned" : "Pin", command)}>
+              <IconButton
+                data-testid="card-pin"
+                $on={card.pinned}
+                aria-label={command}
+                onClick={() => onSendCommand(command)}
+                onMouseEnter={() => preview(command)}
+                onMouseLeave={() => preview(null)}
+              >
+                <Icon name="card.pin" label="pin" size={14} decorative />
+              </IconButton>
+            </Tip>
           )}
           {faded ? (
-            <IconButton
-              data-testid="card-close"
-              title="Clear it from the trail"
-              aria-label="clear"
-              onClick={() => dropCard(card.instanceId)}
-            >
-              <Icon name="card.close" label="close" size={14} decorative />
-            </IconButton>
+            <Tip tip={controlDoc("Clear it from the trail")}>
+              <IconButton
+                data-testid="card-close"
+                aria-label="clear"
+                onClick={() => dropCard(card.instanceId)}
+              >
+                <Icon name="card.close" label="close" size={14} decorative />
+              </IconButton>
+            </Tip>
           ) : card.role !== "primary" ? (
-            <IconButton
-              data-testid="card-close"
-              title={`Close — ${close}`}
-              aria-label={close}
-              onClick={() => onSendCommand(close)}
-              onMouseEnter={() => preview(close)}
-              onMouseLeave={() => preview(null)}
-            >
-              <Icon name="card.close" label="close" size={14} decorative />
-            </IconButton>
+            <Tip tip={controlDoc("Close", close)}>
+              <IconButton
+                data-testid="card-close"
+                aria-label={close}
+                onClick={() => onSendCommand(close)}
+                onMouseEnter={() => preview(close)}
+                onMouseLeave={() => preview(null)}
+              >
+                <Icon name="card.close" label="close" size={14} decorative />
+              </IconButton>
+            </Tip>
           ) : null}
         </Controls>
         )}
@@ -485,7 +495,10 @@ export function Card({
             </PopOutPortal>
           </>
         ) : (
-          <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+          // ⭐ A live card that changed says what changed it (navigation-server review).
+          <ChangeMark surface={`card:${card.instanceId}`}>
+            <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+          </ChangeMark>
         )}
       </Body>
       {cut && overflowing && !faded ? (

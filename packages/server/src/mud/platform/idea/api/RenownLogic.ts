@@ -38,8 +38,9 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { GroupRef } from '../../../lib/social/GroupProvider';
 import { PersistApi } from '../../../api/persist';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { Decay } from '../../../lib/Decay';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
 const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
 );
@@ -107,7 +108,8 @@ async function appendImpl(fields: RenownEventFields): Promise<void> {
   await ev.save();
   // AFTER the write: a consumer that recomputes must not read a
   // ledger that has not been written yet.
-  MqlSubscriptionApi.notifyDurableSubject(ev.subject);
+  markDirty(ev.subject);
+  SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.subject });
 }
 
 /**
@@ -263,6 +265,26 @@ async function appendFromReception(
   });
 }
 
+/* ───────── the pass: who changed (db-performance D4) ───────── */
+
+/**
+ * ⭐ The subjects whose ledger rows changed since the last pass — `null` =
+ * everything, what a fresh module holds, so the first pass after a start
+ * or a hot reload is full and correct by construction. Every path that
+ * writes a `RenownEvent` marks its subject AFTER the write (the append,
+ * the seed); a pass takes the set before its first await.
+ */
+let dirty: Set<string> | null = null;
+/** What the last pass scored with (D6): a change forces a full pass. */
+let lastFingerprint: string | null = null;
+/** Rows per `saveMany`. */
+const STANDING_WRITE_CHUNK = 500;
+
+/** Mark `subject` for the next pass (a no-op while a full pass is owed). */
+function markDirty(subject: string): void {
+  dirty?.add(subject);
+}
+
 /* ───────── value-function scoring (applied only at recompute) ───────── */
 
 interface ValueFunction {
@@ -279,7 +301,27 @@ interface ValueFunction {
  * (`Emote.valence`, read via {@link loadEmoteValences}); these are the
  * dials that genuinely belong in central config (decay, context, quality).
  */
+let vfMemo: { raw: string; vf: ValueFunction } | null = null;
+
 function loadValueFunction(): ValueFunction {
+  // ⭐ Memoized on the raw settings: a read decays a standing with these
+  // half-lives (D5), so the function is read per standing read, and a
+  // JSON parse per read would be the cost the cache exists to remove.
+  const raw = [
+    AppSettingKeys.renownDecayHalfLives,
+    AppSettingKeys.renownQualityWeight,
+    AppSettingKeys.renownReceptionValence,
+    AppSettingKeys.renownContextMultipliers,
+  ]
+    .map((k) => AppApi.setting(k) ?? '')
+    .join('\u0000');
+  if (vfMemo?.raw === raw) return vfMemo.vf;
+  const vf = parseValueFunction();
+  vfMemo = { raw, vf };
+  return vf;
+}
+
+function parseValueFunction(): ValueFunction {
   const json = <T>(key: string, fallback: T): T => {
     const raw = AppApi.setting(key);
     if (!raw) return fallback;
@@ -342,41 +384,64 @@ function contextOf(ev: RenownEvent, vf: ValueFunction): number {
   return context;
 }
 
+/** The three terms a renown figure is built from, at one instant (D5). */
+interface RenownSums {
+  /** Σ positive valence × decay (esteem half-life) × context. */
+  esteem: number;
+  /** Σ negative valence × decay (notoriety half-life) × context (≤ 0). */
+  notoriety: number;
+  /** Σ reception decay (esteem half-life) × context — before its log. */
+  reception: number;
+}
+
 /**
- * The whole scoring, over a scope-slice of events. Two channels combine:
+ * The sums over a scope-slice of events, decayed to `nowS`. Two channels:
  *   - **reactions** sum LINEARLY — signed emote valence × signed-decay
  *     (esteem half-life positive, notoriety negative) × context;
  *   - **receptions** (passively being heard) accumulate a decayed,
- *     context-weighted count, then enter **log-saturated**:
- *     `receptionValence × ln(1 + Σ)` — so the first public messages matter
- *     far more than the thousandth.
- * The sum is scaled by the quality weight.
+ *     context-weighted count, which {@link combine} log-saturates.
  */
 function scoreEvents(
   events: RenownEvent[],
   nowS: number,
   vf: ValueFunction,
   emoteValences: Map<string, number>
-): number {
-  let reactionTotal = 0;
-  let receptionWeight = 0;
+): RenownSums {
+  let esteem = 0;
+  let notoriety = 0;
+  let reception = 0;
   for (const ev of events) {
     if (ev.kind === 'reception') {
-      receptionWeight +=
+      reception +=
         Decay.byHalfLife(Math.max(0, nowS - ev.at), vf.esteemHalfLife) *
         contextOf(ev, vf);
       continue;
     }
     const valence = emoteValences.get(signalEmote(ev)) ?? 0;
     if (valence === 0) continue;
-    const halfLife = valence >= 0 ? vf.esteemHalfLife : vf.notorietyHalfLife;
-    reactionTotal +=
-      valence *
-      Decay.byHalfLife(Math.max(0, nowS - ev.at), halfLife) *
-      contextOf(ev, vf);
+    if (valence > 0) {
+      esteem += valence * Decay.byHalfLife(Math.max(0, nowS - ev.at), vf.esteemHalfLife) * contextOf(ev, vf);
+    } else {
+      notoriety += valence * Decay.byHalfLife(Math.max(0, nowS - ev.at), vf.notorietyHalfLife) * contextOf(ev, vf);
+    }
   }
-  const reception = vf.receptionValence * Math.log(1 + receptionWeight);
-  return (reactionTotal + reception) * vf.qualityWeight;
+  return { esteem, notoriety, reception };
+}
+
+/**
+ * ⭐ The ONE definition of the figure (D5): the sums carried forward
+ * `ageS` game-seconds — each channel decays by its own half-life, and a
+ * decayed sum is the sum of the decayed terms, so this equals scoring the
+ * events afresh at the later instant — then `receptionValence × ln(1 + Σ)`
+ * (the first public messages matter far more than the thousandth), scaled
+ * by the quality weight. The pass calls it at age 0 for the stored
+ * `value`; a read calls it at the read's age.
+ */
+function combine(sums: RenownSums, ageS: number, vf: ValueFunction): number {
+  const de = Decay.byHalfLife(Math.max(0, ageS), vf.esteemHalfLife);
+  const dn = Decay.byHalfLife(Math.max(0, ageS), vf.notorietyHalfLife);
+  const reception = vf.receptionValence * Math.log(1 + sums.reception * de);
+  return (sums.esteem * de + sums.notoriety * dn + reception) * vf.qualityWeight;
 }
 
 /**
@@ -452,7 +517,7 @@ async function seedToImpl(
   })).filter((e) => inScope(e, scope));
   const rows = [...existing];
   const reached = (): boolean =>
-    Band.fromScalar(scoreEvents(rows, nowS, vf, valences), thresholds).name ===
+    Band.fromScalar(combine(scoreEvents(rows, nowS, vf, valences), 0, vf), thresholds).name ===
     band;
   if (reached()) return 0;
 
@@ -477,6 +542,8 @@ async function seedToImpl(
   // not leave half a reputation on disk.
   if (!reached()) return 0;
   for (const ev of rows.slice(existing.length)) await ev.save();
+  // AFTER the writes: the fold re-scores this subject.
+  if (written) markDirty(subjectId);
   if (written) scheduleSeedFold();
   return written;
 }
@@ -486,85 +553,109 @@ function scopeKey(scope: RenownScope): string {
   return scope ?? COMPACT_WIDE;
 }
 
-/** Upsert one materialized standing row (find-or-insert by {subject, scope}). */
-async function upsertStanding(
-  subject: string,
-  scope: string,
-  value: number,
-  nowS: number,
-  realNow: number
-): Promise<void> {
-  const [existing] = await RenownStanding.find({ subject, scope });
-  const row = existing ?? new RenownStanding();
-  row.subject = subject;
-  row.scope = scope;
-  row.value = value;
-  row.recomputedAt = nowS;
-  row.recomputedRealAt = realNow;
-  await row.save();
+/** What scoring reads from settings and the emote catalogue (D6). */
+function fingerprint(vf: ValueFunction, valences: Map<string, number>): string {
+  return JSON.stringify([vf, [...valences.entries()].sort()]);
 }
 
 /**
- * The batch recompute: re-score every subject's standing from the raw
- * event log through the current value-function into the materialized
- * aggregate. Reads ONLY the renown log + AppSettings — never the belief
- * store. The materialized scope set per subject is derived from that
- * subject's own events: {Compact-wide} ∪ its groups ∪ its localities.
+ * ⭐ The pass (db-performance D4): re-score the subjects whose events
+ * changed since the last one — all of them on the first pass after a
+ * start, on a changed value function or emote valence, or when `full` is
+ * asked — per scope (the scope set per subject derives from its own
+ * events: {Compact-wide} ∪ its groups ∪ its localities), write their
+ * standings in ONE chunked `saveMany` keyed on `{subject, scope}`, and put
+ * each into the read index. Reads ONLY the renown log + AppSettings +
+ * the emote catalogue — never the belief store. An idle world's pass makes
+ * no round trip; decay between passes is the read's (D5). A failed pass
+ * puts its subjects back.
  */
-async function recomputeImpl(): Promise<void> {
+async function recomputeImpl(opts: { full?: boolean } = {}): Promise<void> {
   if (!active()) return;
   const vf = loadValueFunction();
   const emoteValences = await loadEmoteValences();
-  const nowS = WorldClockApi.getNow().rawValue();
-  const realNow = Date.now();
+  const fp = fingerprint(vf, emoteValences);
+  if (opts.full || fp !== lastFingerprint) dirty = null;
+  const taken = dirty;
+  dirty = new Set();
+  if (taken !== null && taken.size === 0) return;
+  try {
+    const nowS = WorldClockApi.getNow().rawValue();
+    const realNow = Date.now();
 
-  const all = await RenownEvent.find({});
-  const bySubject = new Map<string, RenownEvent[]>();
-  for (const ev of all) {
-    const list = bySubject.get(ev.subject);
-    if (list) list.push(ev);
-    else bySubject.set(ev.subject, [ev]);
-  }
-
-  for (const [subject, events] of bySubject) {
-    const scopes = new Set<RenownScope>([null]);
-    for (const ev of events) {
-      for (const g of ev.groups) scopes.add(g);
-      if (ev.locality !== null) scopes.add(ev.locality);
+    const all =
+      taken === null
+        ? await RenownEvent.find({})
+        : await RenownEvent.find({ subject: { $in: [...taken] } });
+    const bySubject = new Map<string, RenownEvent[]>();
+    for (const ev of all) {
+      const list = bySubject.get(ev.subject);
+      if (list) list.push(ev);
+      else bySubject.set(ev.subject, [ev]);
     }
-    for (const scope of scopes) {
-      const slice = events.filter((e) => inScope(e, scope));
-      await upsertStanding(
-        subject,
-        scopeKey(scope),
-        scoreEvents(slice, nowS, vf, emoteValences),
-        nowS,
-        realNow
-      );
-    }
-  }
 
-  // Refresh the read cache from the rebuilt rows.
-  await RenownStanding.warm();
+    const rows: RenownStanding[] = [];
+    for (const [subject, events] of bySubject) {
+      const scopes = new Set<RenownScope>([null]);
+      for (const ev of events) {
+        for (const g of ev.groups) scopes.add(g);
+        if (ev.locality !== null) scopes.add(ev.locality);
+      }
+      for (const scope of scopes) {
+        const sums = scoreEvents(events.filter((e) => inScope(e, scope)), nowS, vf, emoteValences);
+        const row = new RenownStanding();
+        row.subject = subject;
+        row.scope = scopeKey(scope);
+        row.value = combine(sums, 0, vf);
+        row.esteem = sums.esteem;
+        row.notoriety = sums.notoriety;
+        row.reception = sums.reception;
+        row.recomputedAt = nowS;
+        row.recomputedRealAt = realNow;
+        rows.push(row);
+      }
+    }
+    const writes = await Promise.all(rows.map((r) => r.toBatchWrite({ key: ['subject', 'scope'] })));
+    for (let i = 0; i < writes.length; i += STANDING_WRITE_CHUNK) {
+      await PersistApi.saveMany(RenownStanding.collectionName, writes.slice(i, i + STANDING_WRITE_CHUNK));
+    }
+    for (const row of rows) row.remember();
+    lastFingerprint = fp;
+  } catch (err) {
+    if (taken === null) dirty = null;
+    else for (const sub of taken) markDirty(sub);
+    throw err;
+  }
 }
 
 /**
- * Sync read off the warmed standing cache, **preserving absence**:
+ * Sync read off the warmed standing index, **preserving absence**:
  * `undefined` when the scope was never materialized, a number when it
- * was — including a materialized `0`.
+ * was — including a materialized `0`. The figure is carried forward to
+ * NOW from the pass's instant through {@link combine} (D5), so it equals
+ * what a pass at this instant would store; a point without its sums reads
+ * its flat value.
  *
  * ⭐ The distinction already exists in the cache and was being thrown
- * away one line before it left: `cached().get(...)` returns `undefined`
- * for a scope with no row, and `renownOfImpl`'s `?? 0` collapses
- * "measured and found neutral" into "never measured". Nothing here is
- * computed — the fact simply survives the return.
+ * away one line before it left: a scope with no row has no point, and
+ * `renownOfImpl`'s `?? 0` collapses "measured and found neutral" into
+ * "never measured". Nothing here is invented — the fact simply survives
+ * the return.
  */
 function measuredRenownOfImpl(
   subjectId: string,
   scope: RenownScope
 ): number | undefined {
-  return RenownStanding.cached().get(
-    RenownStanding.key(subjectId, scopeKey(scope))
+  const p = RenownStanding.cached().get(RenownStanding.key(subjectId, scopeKey(scope)));
+  if (!p) return undefined;
+  if (p.at === undefined || p.esteem === undefined || p.notoriety === undefined || p.reception === undefined) {
+    return p.value;
+  }
+  const vf = loadValueFunction();
+  return combine(
+    { esteem: p.esteem, notoriety: p.notoriety, reception: p.reception },
+    WorldClockApi.getNow().rawValue() - p.at,
+    vf,
   );
 }
 
@@ -700,8 +791,8 @@ export class RenownLogic extends ApiLogic {
 
   /** See {@link RenownApi.recompute}. */
   @CallSecurity(RenownApiCallers)
-  public async recompute(): Promise<void> {
-    return recomputeImpl();
+  public async recompute(opts?: { full?: boolean }): Promise<void> {
+    return recomputeImpl(opts);
   }
 
   /** See {@link RenownApi.seedTo}. */

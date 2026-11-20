@@ -62,8 +62,8 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { AppApi } from '../../api/app';
 import { TemplatePaths } from '../paths';
 import { WorldClockApi } from '../../api/worldclock';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import { SubscriptionApi } from '../../api/subscription';
+import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
 import type { Tangible } from '../material/Tangible';
@@ -1515,7 +1515,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // passed nothing, because that first read only opened the clock
         // (drive C, runs 38–40).
         if (!(before > 0) && amount.rawValue() > 0) this._interiorFilledAtS = bulkNowSeconds();
-        MqlSubscriptionApi.fireFieldChange(
+        SubscriptionApi.fireFieldChange(
           this,
           'bulkAmount',
           before,

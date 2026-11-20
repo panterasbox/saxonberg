@@ -114,6 +114,29 @@ const CODE_FILE_RE = /\.(ts|tsx|mts|cts|js|mjs|cjs)$/;
 
 export class AccessApi {
   /**
+   * ⭐⭐ **Is `claimed` who is acting?** (call-security pass D4.) The first
+   * statement of every protective method that takes "who is doing this"
+   * as a parameter: the parameter is checked against who the engine says
+   * is acting (`ExecutionContextApi.getActor`), compared as the same
+   * object — never by an id or path a forgery could answer.
+   *
+   * Passes when they are the same, when the named system is acting, and
+   * for a `null` claim (claiming nobody asks for the least — a method that
+   * must not accept nobody refuses it itself). Otherwise records a
+   * `call-security` diagnostic against the code that made the claim (its
+   * keeper reads it in `errors`) and throws `Refusal('not-acting-for')`,
+   * worded to the player by its row. Synchronous.
+   */
+  public static requireActor(claimed: Stuff | null): void {
+    // The protective method that asked is the frame below this static's own.
+    const stack = ExecutionContextApi.getCallStack();
+    const asker = stack[stack.length - 2];
+    const cls = (asker?.target as { constructor?: { name?: string } } | null)?.constructor?.name;
+    const act = asker ? `${cls ?? '?'}.${asker.method}` : 'requireActor';
+    logic().requireActor(claimed, act);
+  }
+
+  /**
    * Path-targeted title check: may `subject` perform `action` at `path`
    * in a path-addressed tree? Resolves the covering title through
    * `ParcelApi.ownerOf` (rung 1 a parcel, rung 2 the self-home, rung 3
@@ -201,6 +224,8 @@ export class AccessApi {
     sourceLogical: string,
     action: SourceWriteAction = 'write'
   ): Promise<string | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     if (actor === null) return 'nobody is acting';
     if (CODE_FILE_RE.test(sourceLogical) && !(await AccessApi.isWizard(actor))) {
       return `${sourceLogical} is TypeScript, and authoring code asks for the wizard axis`;

@@ -91,16 +91,31 @@ async function authorOfImpl(path: string): Promise<string | null> {
  */
 @Unshadowable
 export class ProvenanceLogic extends ApiLogic {
+  /**
+   * ⭐ Path → its author, as last read (db-performance H6). The producer
+   * tap asks who authored the place on EVERY command — one ledger read a
+   * command in the W0 drive. The answer is the earliest row, so it changes
+   * only when a path gets its first row, which this logic writes; the write
+   * drops the path's entry. Instance state: a fresh singleton starts empty.
+   */
+  private authorMemo = new Map<string, string | null>();
+
   /** See {@link ProvenanceApi.recordAuthoring}. */
   @CallSecurity(ProvenanceApiCallers)
   public async recordAuthoring(fields: AuthoringEventFields): Promise<void> {
-    return recordImpl(fields);
+    await recordImpl(fields);
+    this.authorMemo.delete(fields.path);
   }
 
   /** See {@link ProvenanceApi.authorOf}. */
   @CallSecurity(ProvenanceApiCallers)
   public async authorOf(path: string): Promise<string | null> {
-    return authorOfImpl(path);
+    // A circle reads its own marked rows beside the field's: not the memo's view.
+    if (ExecutionContextApi.getCircleScope() !== null) return authorOfImpl(path);
+    if (this.authorMemo.has(path)) return this.authorMemo.get(path) ?? null;
+    const author = await authorOfImpl(path);
+    if (active()) this.authorMemo.set(path, author);
+    return author;
   }
 
   /** See {@link ProvenanceApi.eventsFor}. */

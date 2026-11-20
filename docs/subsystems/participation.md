@@ -50,7 +50,7 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
   command cadence). Restricting the receive side to the two blessed
   consumers closes that while keeping the bus's producer-ignorant
   decoupling. The labor faucet **shares this same signal** (the event now
-  also carries optional `locationTemplatePath`/`actorTemplatePath` for credit
+  also carries optional `locationTemplatePath`/`actorIdentityPath` for credit
   routing); both taps must assert the *full pair* so an HMR re-assert never
   evicts the other — the clobber trap detailed in [influence.md](./influence.md).
 
@@ -100,6 +100,31 @@ and "present and contributing *now*" is real now. So:
 only. The recompute *cadence* rides real-time `ScheduleApi.recurring`, as
 renown's does.
 
+### ⭐ The pass scores who changed; decay is read (db-performance, 2026-11)
+
+Until db-performance W3 the 60 s pass read the whole event log and found
+and saved every subject who had ever acted — in a world that had seen 200
+players, 3 642 database ops in three idle minutes. Now:
+
+- **a pass re-scores only the subjects whose rows changed** since the last
+  one (a module-private dirty set, marked by every append AFTER its write).
+  The first pass after a start or a hot reload is full — a fresh module
+  holds "everything" — so there is no cursor to persist and no margin to
+  get wrong; so is the first pass after the value function changes (a
+  fingerprint of the half-life). Nothing changed → **no round trip**. The
+  rows are written as ONE `saveMany` keyed on `{subject, scope}` and put
+  straight into the read index (no re-warm). A failed pass gives its
+  subjects back. `recompute({ full: true })` re-scores everyone.
+- **decay is applied when a standing is READ**: the index holds the figure
+  and the real-time instant the pass computed it at, and
+  `participationOf` carries it forward with one exponential — exactly
+  what a pass at the read's instant would store, to rounding, and fresher
+  than a figure up to 60 s stale. A subject nobody touches needs no pass
+  for its standing to fall. (`ConsumerLogic.passes.test.ts` proves the
+  equality and the bands.)
+
+The producer stock (influence.md) runs the same pass, keyed on the author.
+
 ## The three-stock contract (symmetry at the output)
 
 The consumer stock is the first of three influence stocks (consumer /
@@ -147,11 +172,24 @@ name — see [influence.md](./influence.md)). The capture event is in
 "engagement") to avoid colliding with `lib/activity/`'s in-session
 `EngagedMixin` — a different concept (sustained in-session actions).
 
-Standing banks on the durable `templatePath` (`/platform/agent/Avatar/<playerId>`),
-**not** the ephemeral `stuffId` (re-minted on re-clone) — the durability
-re-key the influence build's Phase 0 landed across the whole engagement
-cluster. The `stuffId` stays a live-resolution handle; only the stored key
-is the templatePath.
+Standing banks on the giver's durable **identity path**
+(`getIdentityPath()` — `/platform/agent/Avatar/<playerId>` for a player,
+its own row for an NPC), **not** the ephemeral `stuffId` (re-minted on
+re-clone) and **not** its lineage. The `stuffId` stays a live-resolution
+handle; only the stored key is the identity.
+
+⚠⚠ **Until db-performance W1 (2026-11) the stored key was the lineage**
+(`getTemplatePath()`), and every player body is cloned from one row — so
+every player's participation was ONE subject (`/platform/agent/PrimaryAvatar`),
+every shade's another, and every reader that asks by identity (`standing`,
+the profile, the dashboard) read zero. Those rows were left where they are
+(no migration) and decay, read by nobody; each person's participation
+starts from the fix. The identity key also makes a shade continue its
+person: a living body and its shade are one standing.
+
+**A giver with no identity is skipped** (D3): a login screen's commands
+earn nothing. Its raw `stuffId` was a subject no reader could ever ask
+for, minted once per connection and re-scored forever.
 
 ## Tuning (AppSettings, no code defaults)
 
@@ -185,7 +223,7 @@ player/human-level rollup for enfranchisement; per-faucet saturation. The
 ## The standing witness
 
 After each append is persisted, the ledger calls
-**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+**`SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })`** — a direct method
 call on the one consumer that cares.
 
 Every standing here derives on read, which works fine for a verb (you

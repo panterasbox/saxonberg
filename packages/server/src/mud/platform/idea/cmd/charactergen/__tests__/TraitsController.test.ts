@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import TraitsController from "../TraitsController";
 import { MessageApi } from "../../../../../api/message";
@@ -27,6 +28,7 @@ import {
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -65,6 +67,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });
@@ -89,7 +92,7 @@ describe("TraitsController render", () => {
     await withRootContext(actor, 'imprint', () => actor.imprintDeed({ disposition: "temperance", valence: -80 }));
 
     const ctrl = makeStuff(() => new TraitsController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     const body = captured!.toString();
     expect(body).toContain("Gregarious");
@@ -105,7 +108,7 @@ describe("TraitsController render", () => {
     await withRootContext(actor, 'imprint', () => actor.imprintDeed({ disposition: "honesty", valence: 3 }));
 
     const ctrl = makeStuff(() => new TraitsController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
 
     expect(captured!.toString()).toContain("still taking shape");
   });
@@ -113,7 +116,7 @@ describe("TraitsController render", () => {
   it("renders the empty state with no evidence", async () => {
     const actor = makeStuffAtPath(() => new DispositionedIdea(), "/platform/agent/Avatar/tr-empty");
     const ctrl = makeStuff(() => new TraitsController());
-    await ctrl.execute({} as CommandModel, ctxFor(actor));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
     expect(captured!.toString()).toContain("still taking shape");
   });
 });

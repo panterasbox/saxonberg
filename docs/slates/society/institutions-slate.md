@@ -461,7 +461,9 @@ available.
 
 Each corpo is a **form**, a **charter**, a **strategy** its NPC brains
 execute, a **committee** that runs the show, and a **transition** that is
-its arc. The authored ethos lines survive intact — they were dispositions
+its arc. ⭐ **2026-11-18** ([corpos-slate](./corpos-slate.md), at the end): the strategy is the
+**autopilot** that runs while every leadership seat is empty; seats fill by the **conviction tally**,
+its constituency and weight set by the form; each corpo has a public face and a hidden hand. The authored ethos lines survive intact — they were dispositions
 all along. `rivals:` becomes disposition-only and never an outcome.
 
 | corpo | form | charter | strategy (the disposition, as a brain) | the arc |

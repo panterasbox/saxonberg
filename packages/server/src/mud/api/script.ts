@@ -16,6 +16,7 @@
  */
 
 import type { Script } from "../lib/script/ast";
+import type { CommandContext } from "./command";
 import type EvalScript from "../platform/idea/EvalScript";
 import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import { StuffApi } from "./stuff";
@@ -71,8 +72,8 @@ export class ScriptApi {
    * over {@link runAst} for programmatic / REPL callers; production
    * prompt dispatch goes through the parser → `runAst` path.
    */
-  static run(text: string): Promise<void> {
-    return logic().run(text);
+  static run(text: string, context?: CommandContext): Promise<void> {
+    return logic().run(text, context);
   }
 
   /**
@@ -83,8 +84,8 @@ export class ScriptApi {
    * (engaged steps trickle out). Resolves `true` if a script of that name
    * was found and started, `false` otherwise (the caller declines).
    */
-  static invoke(name: string, args: string[] = []): Promise<boolean> {
-    return logic().invoke(name, args);
+  static invoke(name: string, args: string[] = [], context?: CommandContext): Promise<boolean> {
+    return logic().invoke(name, args, context);
   }
 
   /**

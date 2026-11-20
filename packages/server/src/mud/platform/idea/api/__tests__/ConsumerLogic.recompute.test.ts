@@ -60,6 +60,16 @@ beforeEach(async () => {
       return id;
     }
   );
+  // The pass writes its standings as one keyed batch (db-performance W3).
+  vi.spyOn(pm, 'saveMany').mockImplementation(async (c: string, writes) => {
+    for (const w of writes) {
+      const key = w.key ?? [];
+      const hit = [...col(c).values()].find((d) => key.length > 0 && key.every((k) => d[k] === w.doc[k]));
+      const id = (hit?._id as string | undefined) ?? `id-${idCounter++}`;
+      col(c).set(id, { ...(hit ?? {}), ...w.doc, _id: id });
+    }
+    return writes.length;
+  });
   WorldClockApi._setNowProviderForTesting(() => 4242);
   ParticipationStanding._resetForTesting();
   await seedAppSettings({
@@ -89,13 +99,13 @@ describe('ConsumerLogic.recompute', () => {
   it('materializes a scalar participationOf returns', async () => {
     await appendRecentBuckets(S, 3);
     expect(ConsumerApi.participationOf(S)).toBe(0); // not yet recomputed
-    await ConsumerApi.recompute();
+    await ConsumerApi.recompute({ full: true });
     expect(ConsumerApi.participationOf(S)).toBeCloseTo(3, 5);
   });
 
   it('is rebuildable: drop the aggregate + replay → identical standing', async () => {
     await appendRecentBuckets(S, 4);
-    await ConsumerApi.recompute();
+    await ConsumerApi.recompute({ full: true });
     const before = ConsumerApi.participationOf(S);
 
     // Drop the materialized aggregate + its cache; the log survives.
@@ -103,7 +113,7 @@ describe('ConsumerLogic.recompute', () => {
     ParticipationStanding._resetForTesting();
     expect(ConsumerApi.participationOf(S)).toBe(0);
 
-    await ConsumerApi.recompute(); // replay the log
+    await ConsumerApi.recompute({ full: true }); // replay the log
     expect(ConsumerApi.participationOf(S)).toBeCloseTo(before, 9);
   });
 
@@ -120,7 +130,7 @@ describe('ConsumerLogic.recompute', () => {
     });
     const old = Date.now() - 14 * 86_400_000; // 14 days ago
     await ConsumerApi.append({ subject: S, realAt: old });
-    await ConsumerApi.recompute();
+    await ConsumerApi.recompute({ full: true });
     const v = ConsumerApi.participationOf(S);
     expect(v).toBeGreaterThan(0);
     expect(v).toBeLessThan(0.5); // decayed well below a fresh 1.0

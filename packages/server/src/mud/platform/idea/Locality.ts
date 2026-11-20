@@ -30,6 +30,7 @@
  * such hook because `BiomeApi` re-resolves on every read with no index.
  */
 
+import type { LocalityKind } from '@saxonberg/types';
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
 import { AddressApi } from '../../api/address';
@@ -286,7 +287,34 @@ export default class Locality extends Idea {
     _lightingNight: { persistent: true, runtimeState: true },
     _lightingLitStreets: { persistent: true, runtimeState: true },
     _lightingSourceLabel: { persistent: true, runtimeState: true },
+    _learnable: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ What a first visit teaches beyond the name (navigation-server D3):
+   * `government` (whose ground it is), `kind` (realm · settlement ·
+   * district). A Locality may withhold either — a secret polity, a place
+   * whose standing is not obvious — and the claim and the Localities
+   * section then omit it. Default: both.
+   */
+  protected _learnable: string[] = ['government', 'kind'];
+
+  public getLearnable(): readonly string[] {
+    return this._learnable;
+  }
+  public setLearnable(value: string[] | null): void {
+    this._learnable = Array.isArray(value) ? value.filter((v) => v === 'government' || v === 'kind') : ['government', 'kind'];
+  }
+
+  /**
+   * ⭐ What kind of Locality this is, DERIVED from its address depth: 1 a
+   * realm, 2 a settlement, 3+ a district (navigation-server D3). A grain,
+   * not a law — one constant vocabulary (`LOCALITY_KINDS`).
+   */
+  public getKind(): LocalityKind {
+    const depth = this._address.split('/').filter((x) => x.length > 0).length;
+    return depth <= 1 ? 'realm' : depth === 2 ? 'settlement' : 'district';
+  }
 
   // ---------- public lighting ----------
 

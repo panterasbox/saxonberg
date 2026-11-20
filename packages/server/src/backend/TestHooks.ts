@@ -463,6 +463,22 @@ export class TestHooks {
     );
   }
 
+  /** TEST-ONLY: stage an outage — the next `calls` record reads/writes fail (failure-model D8). */
+  public static failDatastore(calls: number): { failing: number } {
+    TestHooks.#assertTestMode('failDatastore');
+    return TestHarnessApi.failDatastore(calls);
+  }
+
+  /** TEST-ONLY: write a document past its validator (failure-model D6). */
+  public static async forceDocument(
+    path: string,
+    kind: string,
+    data: Record<string, unknown>,
+  ): Promise<{ path: string; kind: string }> {
+    TestHooks.#assertTestMode('forceDocument');
+    return ExecutionContextApi.runRoot(TestHooks, 'forceDocument', () => TestHarnessApi.forceDocument(path, kind, data));
+  }
+
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
@@ -713,7 +729,8 @@ export class TestHooks {
 
   /**
    * ⭐ Dress the test character as `embody` dresses a real one — the
-   * first aspiration's outfit from `char-gen.yaml`, worn. A naked body
+   * first aspiration's outfit from `char-gen.yaml`, worn, and the
+   * starting kit (a bound phone in a pocket) handed over. A naked body
    * spends food on cold at room temperature (`ThermalRegulation`'s
    * cold branch), starves in ~4.5 game hours and then loses its core
    * temperature: the fishing drive's angler collapsed at the seventh
@@ -737,5 +754,11 @@ export class TestHooks {
     // decides WHICH outfit a test character gets; putting it on is the
     // mudlib's.
     await avatar.wearGarments(outfit);
+    // ⭐ …and handed the starting kit, as `embody` hands a real one
+    // (aether-devices D11): a test character with no phone could not
+    // `dm` — the free implant is a guest's now.
+    if (avatar instanceof PrimaryAvatar) {
+      await avatar.receiveStartingKit(EmbodyController.loadConfig().startingKit ?? []);
+    }
   }
 }

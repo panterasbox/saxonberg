@@ -61,12 +61,15 @@ export class ConsumerApi {
   }
 
   /**
-   * Re-score every subject's participation from the raw bucket log into the
-   * materialized aggregate — the batch the recompute schedule fires (and
-   * the `participationOf` cache is refreshed from).
+   * Run a scoring pass now: re-score the subjects whose participation rows
+   * changed since the last pass (every subject on the first pass after a
+   * start, or when the value function changed) into the materialized
+   * aggregate. `{ full: true }` re-scores every subject — what a caller
+   * that wrote ledger rows directly needs. Decay between passes is applied
+   * at read, so an idle world's pass costs nothing.
    */
-  public static async recompute(): Promise<void> {
-    return logic().recompute();
+  public static async recompute(opts?: { full?: boolean }): Promise<void> {
+    return logic().recompute(opts);
   }
 
   /**

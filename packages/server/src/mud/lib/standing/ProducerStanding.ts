@@ -24,6 +24,7 @@ import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
 import type { FieldMeta } from '../mixin';
 import { WarmedIndex } from '../persistence/WarmedIndex';
+import type { StandingPoint } from './InfluenceStanding';
 
 /** The stored `scope` sentinel — producer is Compact-wide only. */
 export const PRODUCER_WIDE = '*';
@@ -57,7 +58,7 @@ export default class ProducerStanding extends Document {
    * cold read is neutral rather than an error, and for why this cannot
    * live on the logic singleton.
    */
-  static #index = new WarmedIndex<number>();
+  static #index = new WarmedIndex<StandingPoint>();
 
   /** The composite cache key (pipe-joined; neither part contains a pipe). */
   static key(subject: string, scope: string): string {
@@ -73,7 +74,7 @@ export default class ProducerStanding extends Document {
   static async warm(): Promise<void> {
     const rows = await ProducerStanding.find({});
     ProducerStanding.#index.replaceWith(
-      rows.map((r) => [ProducerStanding.key(r.subject, r.scope), r.value] as const),
+      rows.map((r) => [ProducerStanding.key(r.subject, r.scope), r.point()] as const),
     );
   }
 
@@ -82,7 +83,7 @@ export default class ProducerStanding extends Document {
    *
    * @internal the callable door is `ProducerApi.producerOf`.
    */
-  static cached(): ReadonlyMap<string, number> {
+  static cached(): ReadonlyMap<string, StandingPoint> {
     return ProducerStanding.#index.entries();
   }
 
@@ -96,7 +97,29 @@ export default class ProducerStanding extends Document {
    */
   static _putForTesting(key: string, value: number): void {
     SecurityApi.assertTestOnly('ProducerStanding._putForTesting');
-    ProducerStanding.#index.put(key, value);
+    // No instant: read flat, never decayed (db-performance D5).
+    ProducerStanding.#index.put(key, { value });
+  }
+
+  /**
+   * ⭐ This row as a point of the read index: the figure and the
+   * real-time instant it was computed at, so a read decays it to now
+   * (db-performance D5). A row with no instant reads flat.
+   */
+  public point(): StandingPoint {
+    return this.recomputedRealAt > 0
+      ? { value: this.value, at: this.recomputedRealAt }
+      : { value: this.value };
+  }
+
+  /**
+   * Put this row into the read index — what a scoring pass does with each
+   * row it wrote, instead of re-reading the whole collection.
+   *
+   * @internal the scoring pass's; the callable door is `ProducerApi.producerOf`.
+   */
+  public remember(): void {
+    ProducerStanding.#index.put(ProducerStanding.key(this.subject, this.scope), this.point());
   }
 
   /** Test seam — drop the index so each test warms a fresh instance. */

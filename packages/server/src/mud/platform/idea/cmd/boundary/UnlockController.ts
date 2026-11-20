@@ -69,22 +69,10 @@ export default class UnlockController extends CommandController<UnlockModel> {
 
     // ⭐⭐ The door decides (controller-liquidity D9): `unlock(by)` asks
     // the visible state first and the keyway second, so a replaced
-    // controller or a script meets the same order. This controller words
-    // the refusal.
+    // controller or a script meets the same order. A refusal is passed on:
+    // its reason row words it (failure-model D11).
     const answer = lockable.unlock(commandGiver);
-    if (!answer.ok) {
-      const line =
-        answer.reason === 'no-key'
-          ? Mml.compose`You have no key that fits ${Mml.thing(lockable)}.`
-          : Mml.compose`It is already unlocked.`;
-      MessageApi.scene(commandGiver).topic('act.deed').toSelf(line).send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: answer.reason,
-        detail: answer.reason === 'no-key' ? 'no key that fits' : 'already unlocked',
-      });
-      return;
-    }
+    if (!answer.ok) return this.refuse(context, answer);
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

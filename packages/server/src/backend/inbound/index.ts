@@ -36,35 +36,31 @@ export type InboundHandler = (
 
 import { handlePing } from './ping';
 import { handleCommand } from './command';
+import { handleMqlQuery } from './mql';
 import {
-  handleMqlSubscribe,
-  handleMqlUnsubscribe,
-  handleMqlSubscriptionPause,
-  handleMqlSubscriptionResume,
-  handleMqlQuery,
-} from './mql';
+  handleSubscribe,
+  handleUnsubscribe,
+  handleSubscriptionPause,
+  handleSubscriptionResume,
+} from './subscription';
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
 import { handleAffordanceResolve } from './affordance';
-import {
-  handleForumSubscribe,
-  handleForumUnsubscribe,
-} from './forumSubscription';
+import { handleWikiExcerpt } from './wiki';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
   command: handleCommand,
-  'mql-subscribe': handleMqlSubscribe,
-  'mql-unsubscribe': handleMqlUnsubscribe,
-  'mql-subscription-pause': handleMqlSubscriptionPause,
-  'mql-subscription-resume': handleMqlSubscriptionResume,
+  subscribe: handleSubscribe,
+  unsubscribe: handleUnsubscribe,
+  'subscription-pause': handleSubscriptionPause,
+  'subscription-resume': handleSubscriptionResume,
   'mql-query': handleMqlQuery,
-  'forum-subscribe': handleForumSubscribe,
-  'forum-unsubscribe': handleForumUnsubscribe,
   'prompt-response': handlePromptResponse,
   'prompt-cancel': handlePromptCancel,
   'client-state-write': handleClientStateWrite,
   'reaction-expand': handleReactionExpand,
   'affordance-resolve': handleAffordanceResolve,
+  'wiki-excerpt': handleWikiExcerpt,
 };

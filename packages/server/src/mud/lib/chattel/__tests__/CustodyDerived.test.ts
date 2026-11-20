@@ -6,6 +6,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Good from "../../stuff/Good";
@@ -63,7 +64,7 @@ function installStore(): void {
     if (!arr) store.set(c, (arr = []));
     return arr;
   };
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async (c: string, doc: Doc) => {
       const arr = col(c);
       const key = doc._id ?? String(++id);
@@ -78,7 +79,7 @@ function installStore(): void {
     findById: vi.fn(async (c: string, i: string) => col(c).find((d) => d._id === i) ?? null),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(() => undefined, async () => undefined);
 }
 

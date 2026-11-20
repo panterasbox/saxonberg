@@ -274,7 +274,7 @@ every `creditSignature`/`creditDeed` re-invokes the owner's
 the owner's `conferredVerbs` (the pure band × Catalog-conferral
 decision), resolves the yaml-paths to `CommandDefinition`s, and reconciles
 the giver's affordance stack — `popCommandSource` then a conditional
-`pushCommandSource`, mirroring the hosted-update delta. The affording
+`pushCommandSource`, mirroring the hosted-app delta. The affording
 `source` is the `DisciplineCatalogue`, so `getAffordances` attributes the
 verb to "your competence in the catalog." A read-time-dynamic
 `getAffordances` was **rejected** — it's a hot sync path and a band read
@@ -364,7 +364,7 @@ needs to observe the gate must prime the fold first.
 They are the **sync** faces of an async ledger: `bandsFor` awaits
 `transcripts`, and a `subscribableFields.read` cannot. Each rides a
 `DerivedStandingCache` whose loader does the async fold and whose
-invalidation is the ledger's own `notifyDurableSubject` poke —
+invalidation is the ledger's own `{ durableSubject }` poke —
 `undefined` means "the fold has not landed yet", which is a legitimate
 answer the descriptor passes straight through.
 
@@ -657,7 +657,7 @@ pilot is NOT this Discipline: a pilot's knowledge is `told` claims.
 ## The standing witness
 
 After each append is persisted, the ledger calls
-**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+**`SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: subject })`** — a direct method
 call on the one consumer that cares.
 
 Every standing here derives on read, which works fine for a verb (you
@@ -680,3 +680,15 @@ read a ledger missing the row it was just told about.
 - 2026-11-09 — documents path identity: the discipline dictionary left
   the boot list; it loads on a character's first band read and a cold
   read throws. See git log for the `reqs/documents-path-identity` branch.
+
+## The fold is cached per owner (db-performance, 2026-11)
+
+`bandsFor` read the whole transcript of its owner on every call. A third
+`DerivedStandingCache` (`foldCache`) now holds the fold per owner, under
+the practising and digest caches, which derive from it. The ledger has one
+writer (`buildAndSave`), which refreshes the fold before the two. ⚠ Inside
+a sandbox circle the cache is bypassed — a circle reads its own stamped
+rows beside the field's, so its view is not the cached one — and a deed
+written in a circle does not refresh the field's fold. Tests that reuse an
+owner id across a store reset clear it with
+`DerivedStandingCache._clearAllForTesting()`.

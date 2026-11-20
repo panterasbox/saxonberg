@@ -34,6 +34,7 @@ import {
 import Location from '../../../../../lib/location/Location';
 import CartesianZone from '../../../location/CartesianZone';
 import { Idea } from '../../../../../lib/stuff/Idea';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const VIEWER = '/platform/agent/Avatar/p1';
 const SQUARE = '/test/town/market/square';
@@ -125,7 +126,7 @@ function giverAt(handle: string): { giver: Stuff; location: Stuff } {
 async function run(
   args: { destination?: string; by?: string },
   handle = SQUARE,
-): Promise<{ reason: string | null; text: string }> {
+): Promise<{ reason: string | null; text: string; notes: unknown[] }> {
   const { giver, location } = giverAt(handle);
   const context = CommandApi.createCommandContext({
     commandGiver: giver,
@@ -155,10 +156,10 @@ async function run(
       seen.push(n as { reason?: string; detail?: string });
     },
   );
-  await controller.execute(args as never, context as never);
+  await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(args as never, ctx$)))(context as never);
   const rejected = seen.find((n) => n.reason !== undefined);
   const words = rejected?.reason === 'needs-input' ? [...said, rejected.detail ?? ''] : said;
-  return { reason: rejected?.reason ?? null, text: words.join('\n') };
+  return { reason: rejected?.reason ?? null, text: words.join('\n'), notes: seen };
 }
 
 beforeEach(() => {
@@ -279,6 +280,21 @@ describe('⭐⭐ a plan, named by what the places call themselves', () => {
     await run({ destination: 'the bakery' });
     expectNoIndexRead();
   });
+
+  it('⚠⚠ an edge claim LATER in the copy never renames a place with its path (drive step 7)', async () => {
+    // An edge's `toLabel` is the far side's template path: the way back
+    // from the bakery, recorded after the square's own place claim, must
+    // not turn *the market square* into `/test/town/market/square`.
+    withMap([
+      claim({ place: SQUARE, name: 'the market square' }),
+      claim({ place: BAKERY, name: 'the bakery' }),
+      claim({ kind: 'edge', place: SQUARE, dir: 'north', to: BAKERY, toLabel: BAKERY, channel: 'walked', lastSeen: 0 }),
+      claim({ kind: 'edge', place: BAKERY, dir: 'south', to: SQUARE, toLabel: SQUARE, channel: 'walked', lastSeen: 0 }),
+    ]);
+    const out = await run({ destination: 'the bakery' });
+    expect(out.text).toMatch(/north from the market square/);
+    expectNoPaths(out.text);
+  });
 });
 
 describe('⭐⭐ the cost is quoted in the currency the traveller pays (D4a)', () => {
@@ -353,6 +369,17 @@ describe('assumptions — what believing the plan requires', () => {
     ]);
     const out = await run({ destination: 'the far bank' });
     expect(out.text).toMatch(/not always passable/);
+    // ⭐ The same plan as data (navigation-server D5): the leg, the
+    // assumption in the prose's own words, and the least certain step.
+    const note = out.notes.find((n) => (n as { kind?: string }).kind === 'route-plan') as {
+      to: string;
+      plans: { legs: { dir: string; from: { path: string; spoiler: number } }[]; assumptions: { text: string }[]; leastCertain: number }[];
+    };
+    expect(note.to).toBe('the far bank');
+    expect(note.plans[0]!.legs.map((l) => l.dir)).toEqual(['north']);
+    expect(note.plans[0]!.legs[0]!.from).toEqual({ path: SQUARE, spoiler: 2 });
+    expect(note.plans[0]!.leastCertain).toBe(0);
+    for (const a of note.plans[0]!.assumptions) expect(out.text).toContain(a.text);
     expectNoPaths(out.text);
   });
 

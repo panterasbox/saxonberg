@@ -16,7 +16,7 @@ import type { VetoResult } from '../../../lib/errors';
 import type { Warren } from '../../../lib/location/Warren';
 import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentError } from '../../../api/containment';
 import type {

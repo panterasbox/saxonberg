@@ -51,9 +51,9 @@ import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import {
-  MqlSubscriptionApi,
+  SubscriptionApi,
   type SubscribableFieldDescriptor,
-} from '../../api/mql-subscription';
+} from '../../api/subscription';
 import { Placement } from './Placement';
 import type { KeptWithinStep } from '../persistence/PersistenceSlice';
 import { Placements } from './Placement';
@@ -416,14 +416,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       this.environment = container;
       // Fire a `FieldChangedEvent { field: 'container' }` so MQL
-      // subscriptions flagged `locationDependent` wake on movement
+      // subscriptions wake on movement (the holder entry, crowded-rooms D1)
       // (the inspection card's breadcrumb-root subscription is the
       // current consumer). Containability change is the load-bearing
       // signal for "the player walked to a new room" / "this item
       // entered/left an inventory" — same shape `addContainable` /
       // `removeContainable` use on the container side for the
       // `contents` projection.
-      MqlSubscriptionApi.fireFieldChange(
+      SubscriptionApi.fireFieldChange(
         this,
         'container',
         old,
@@ -621,7 +621,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     public placementChanged(was: string, now: string): void {
       const sup = (Base.prototype as { placementChanged?: (w: string, n: string) => void }).placementChanged;
       if (typeof sup === 'function') sup.call(this, was, now);
-      MqlSubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placement', was, now);
+      SubscriptionApi.fireFieldChange(this as unknown as Stuff, 'placement', was, now);
       const self = this as unknown as Stuff;
       if (MixinApi.isThermal(self)) void self.restamp();
     }

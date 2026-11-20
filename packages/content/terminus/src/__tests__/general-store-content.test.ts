@@ -59,6 +59,10 @@ const ARCANA_DIR = fileURLToPath(
 const TRANSPORT_DIR = fileURLToPath(
   new URL("../../../transport/content/system/transport/", import.meta.url),
 );
+// The phone charger (aether-devices D12) is the energy pack's row.
+const ENERGY_DIR = fileURLToPath(
+  new URL("../../../energy/content/system/energy/", import.meta.url),
+);
 const FISHING_DIR = fileURLToPath(
   new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url),
 );
@@ -139,6 +143,7 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
   { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
   { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
+  { prefix: "/system/energy/", dir: () => ENERGY_DIR },
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
@@ -355,6 +360,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/Hearth",
     "/platform/thing/Flask",
     "/platform/thing/Crate",
+    // ⭐ A phone (aether-devices D12) — a `Good` underneath, discrete,
+    // titled per instance; and the energy pack's charger, a `Good` too.
+    "/platform/thing/Phone",
+    "/system/energy/thing/Charger",
     "/platform/thing/Cutlery",
     "/platform/thing/equipment/Pack",
     // ⚠ The realm's ONLY DisguiseGarment. Until the sweep the whole

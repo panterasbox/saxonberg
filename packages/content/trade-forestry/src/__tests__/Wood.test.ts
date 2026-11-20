@@ -12,6 +12,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -119,6 +120,7 @@ describe('Wood — ⭐ StuffApi.singleton is its establishing context', () => {
       snapshots.push({ ...doc, _id });
       return _id;
     });
+    spyPersistSaveMany();
     vi.spyOn(PersistApi, 'delete').mockImplementation(async () => undefined);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'rejection' });
     makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);

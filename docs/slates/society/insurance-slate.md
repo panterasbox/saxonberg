@@ -22,6 +22,12 @@
 > the ostler + the posting stable + the return inspection · the
 > almanac-maker (celestial / weather split, predictability decays with
 > horizon)
+> **Designed 2026-11-19 (§ *What insurance covers*):** responsible ≠
+> culpable — the pen leaving the law is the court's, never insurance's ·
+> absence cover (obligations not income, paid in hours by a mutual) ·
+> claims as queries (parametric, agreed value, the mutual as default) ·
+> surety replaces escrow · title insurance rejected · gambling split to
+> [gambling-slate](./gambling-slate.md).
 > **Size:** a build
 
 **Captured 2026-07-31**, named as fire's dependency in
@@ -256,6 +262,253 @@ district is the economy telling you something you did not know.**
    later wave. Name it; do not build it.
 6. **Premium payment cadence** vs. the game clock — real-time or
    game-time? (Follow the wage precedent.)
+
+---
+
+## ⭐⭐⭐ Designed 2026-11-19 — what insurance covers, who answers for a loss, and claims as queries
+
+From a design conversation with the owner. It answers the open
+questions above where it can, and it supersedes nothing above except
+where it says so. Gambling, the same trade with the sign flipped, is
+in [gambling-slate](./gambling-slate.md).
+
+The owner, opening it: *"insurance is actually gonna be necessary in
+the game … a player who has a routine and logs in regularly will have
+no problem meeting all their economic needs but real life always
+intervenes … if your house catches fire in this game it didn't just
+happen, someone wrote the code that actually imposed a state change …
+I kind of hate the insurance business … claims only happen when things
+go wrong and the insurer and the claimant are both trying to extract
+the most and offer the least to each other. The Compact attempts to
+resolve the tension between labor and capital by bringing in the
+consumer to moderate. Maybe we can try to innovate in the same way."*
+
+### ⭐⭐⭐ Insurance and gambling are one trade — insurable interest is the line
+
+The arithmetic is the same and the buyer loses on average in both. The
+difference is which way the buyer wants variance to move:
+
+- **Insurance:** pay a small certain amount to shed a large uncertain
+  loss.
+- **Gambling:** pay a small certain amount to buy a large uncertain
+  gain.
+
+The legal line is **insurable interest**: you may insure a loss you
+would suffer anyway; betting on a loss that is not yours is a wager.
+Lloyd's coffee house wrote both, insuring ships and taking bets on the
+lives of public figures, until the Life Assurance Act of 1774 (also
+called the Gambling Act) separated them. **One trade prices risk and
+the other creates it.**
+
+### ⭐⭐⭐⭐ Who answers for the fire — responsible is not culpable
+
+Whoever wrote the code is always **responsible**, and the authorship
+record proves it. They are **culpable** only when the code departs from
+the published law. Five sources of loss:
+
+1. **Physics working as published law.** Fire spreads by the rule. In
+   this world **an act of God is an act of law**. This is the pooled
+   risk insurance exists for.
+2. **Another player's act.** A player who drops the cigarette has real
+   agency. The insurer pays the homeowner, then recovers from the
+   player (**subrogation**). Insurance sits next to justice in the
+   fiction.
+3. **Your own act.** Carelessness is covered, which is the point of
+   fire insurance. A deliberate act (arson) is excluded.
+4. **An NPC's act.** NPCs cannot choose, so an NPC's cigarette is the
+   place's **authored hazard**: case 1, *provided the extent published
+   it*. An author's teaching scenario (a fire-prevention lesson) is
+   legitimate when the district's fire risk is written into its law,
+   and prevention priced into the premium is exactly the lesson it
+   teaches. ⚠ **An unpublished hazard is a departure from law**, so
+   case 5.
+5. **The pen leaving the law** — a bug, a rollback, an author writing
+   outside their extent. ⛔ **Never insurance's job.** It is the
+   court's, and the remedy is restitution
+   ([separation-of-powers-slate](./separation-of-powers-slate.md):
+   the court checks law == code). **The Compact insures the meta**,
+   because *code is reality and law describes it* is a promise the
+   polity makes.
+
+So the owner's instinct holds: **insurance protects you from the
+fiction**, and the meta is covered too, by the court. The same code
+runs a player's avatar and an NPC; the record still tells them apart,
+because it knows whether a command came from a person at a keyboard.
+
+⚠ **The corollary for authors:** an extent's hazards are part of its
+law and must be **published** to be insurable or fair. A hazard profile
+is the rule face of the place.
+
+### ⭐⭐ What insurance exists — one shape, four axes
+
+Every policy has five parts: **peril · interest · trigger · how the
+loss is measured · the pool.** Lines differ along four axes:
+
+| Axis | Low end | High end |
+|---|---|---|
+| **Correlation** | cargo — independent, a private market works | crops, floods — one event hits everyone, so the state or reinsurance carries it |
+| **Moral hazard** (how much the insured controls the peril) | a meteor | your own absence |
+| **Verifiability** | the loss is a recorded event | it needs judgment |
+| **Fault** | the five cases above | |
+
+The menu:
+
+- **Property** (fire, flood, theft, wreck) and **crop** — above.
+- **Liability** — for the player who drops the cigarette.
+- **Funeral cover** — burial societies were historically the first
+  insurance poor people had. It exists exactly when death costs
+  something (see the forks below).
+- **Medical** — against the medic's bill.
+- **Surety bonds** — ⭐ worth having because they **replace escrow**: a
+  contractor posts a bond instead of locking up the full sum, which
+  frees capital across the contract board.
+- **Absence** — below.
+- **Political risk** — a law change inside an extent is a recorded
+  event, so it is just another trigger (fork 2).
+- ⛔ **Title insurance — the honest no.** The chain of title here is
+  perfect, so there is nothing to insure. It joins the notary.
+
+### ⭐⭐⭐ Absence insurance — real life is the one honest variance
+
+**Real life is the one source of genuine randomness this game does not
+have to manufacture**, and it is independent from player to player —
+except at Christmas, which is this line's correlated catastrophe.
+
+- ⭐⭐ **Pay obligations, never income.** While you are gone, rent,
+  upkeep and spoilage keep running; covering them is honest. Replacing
+  wages pays people to be absent — the mirror of paying zorkmids to
+  make people play, which the owner already rejected. The rule is
+  indemnity: **insurance never leaves you better off than if the loss
+  had not happened.**
+- ⛔ **Standing is never insurable.** Participation decays while you
+  are away because it measures presence, and the decay is true. **You
+  can insure your house against your absence, never your vote.**
+- ⭐⭐⭐ **The best form pays out in hours, not money:** a mutual whose
+  members tend one another's farms and stalls while someone is away —
+  a friendly society, a pool of player time. Members know each other,
+  which is how mutuals historically held moral hazard down, and it
+  makes social play as a by-product. In the fiction, logout is sleep
+  ([absent-body-slate](../engine/absent-body-slate.md)), so the society
+  covers you *"while you are abed."*
+
+### ⭐⭐⭐⭐ The third party is the record — claims are queries
+
+Claims are hateful because insurer and claimant fight **after** the
+loss, when the claimant is desperate and each side gains most by
+winning. The Compact settled labor against capital by bringing in a
+third party; here the third party is **the record**:
+
+- ⭐⭐⭐ **A claim is a query, not a negotiation.** The fire is a recorded
+  event, so the policy pays when the record shows the trigger —
+  parametric insurance with no adjuster. The only fraud left is
+  *causing* the loss, which is a crime the record can see.
+- ⭐⭐ **Agree the value at signing, not after the fire.** Agreed-value
+  policies are a real instrument; they move the one remaining argument
+  to the moment nobody is hurting.
+- ⭐⭐ **The mutual is the default.** The insured own the pool, the
+  adversary becomes your neighbors, and surplus returns to members.
+- ⚠ **The record must be diegetic.** The fire brigade's log, the
+  harbor's wreck book and the paper's shipping column are what a policy
+  reads (Lloyd's List is the model). A claim paid because the brigade
+  logged the fire keeps the fiction; one paid "because the database
+  says so" breaks it.
+
+This answers open question 4 above: there is no adjuster's call to
+appeal for a parametric policy. The appeal survives only for the
+**exclusion** (lens 7 below).
+
+### The lens pass
+
+Altitudes: **invariant** (the engine's law) · **grain** (the default
+shipped; an author or polity may change it) · **title** (whoever holds
+the place decides).
+
+1. **Pedagogy.** Probability and statistics (expected value, variance,
+   correlation), actuarial reading of the record, tort (fault,
+   subrogation), contract (interest, trigger, indemnity), moral hazard
+   and adverse selection. Derivable: loss rates come from public
+   events, and a parametric claim is derivable by construction.
+   ⚠ **Gap — pooling needs variance.** Over a deterministic hazard
+   field insurance is arbitrage ([uncertainty.md](../../uncertainty.md)
+   § *What determinism cannot teach*). Absence supplies real variance;
+   fire and crop cover teach pooling only if the one seeded variance
+   channel at world processes is approved. ⭐ **Insurance is the
+   strongest argument for that channel** — recorded, not decided
+   (the owner's fork).
+2. **Creative expression.** The ordinary case is no code: a policy is a
+   contract over conditions the record can verify, a mutual is a group
+   with a purse. The bespoke case does not break: any witnessed peril
+   is a trigger, and an underwriter may insure a racehorse or a law
+   change. Personalization is supply-chain depth — **the more events
+   the record keeps, the more kinds of policy exist.**
+3. **a Immersion** — the diegetic record (above); absence as sleep.
+   **b Participation** — the underwriter, the mutual's secretary, the
+   bonding agent, and the **caretaker** (absence paid in hours is a
+   labor market). ⚠ **The adjuster mostly dies**: parametric claims
+   remove after-the-fact assessment, and the work moves to the start of
+   the policy, where the agreed-value survey is land and building
+   surveying (an existing vocation). *Can the polity do something we
+   did not want?* Yes: **collusive arson** (a homeowner pays a friend
+   to drop the cigarette; the record shows the friend and not the
+   payment — a case for courts, press and detectives), a mutual that
+   shuts out newcomers, insurer cartels.
+4. **Values** (no derivable answer, decided anyway):
+   - **Indemnity only** — absence cover pays obligations, never wages.
+     [grain]
+   - **Standing is never insured, wagered or pledged.** [invariant]
+   - **No real money anywhere in insurance.** [invariant — already law
+     for zorkmids]
+   - **Parametric, mutual and agreed-value are the default form**;
+     conventional stock insurers may compete. [grain]
+   - **Nobody underwrites an outcome they hold the pen over.** [grain;
+     a polity law at C tier] The standing conflict rule, extended.
+   - The gauge: **a premium climbing in one district converts "is this
+     place safe?" into a number.**
+5. **Continuity.** The verbs survive every epoch; only the medium
+   changes — guild burial fund → friendly society → modern mutual;
+   coffee-house underwriter → joint-stock insurer; guild register →
+   brigade log → wire service as the record a policy reads.
+6. **Economy.** Produces risk transfer, liquidity, and money freed from
+   escrow (surety). Consumes premiums. The sink is the destruction (as
+   above); an NPC insurer's margin is a sink, a player insurer's a
+   transfer. *Was the demand there first?* **Absence: yes** — rent,
+   upkeep and spoilage already run while you are gone. **Fire and
+   theft: only once player property really burns and is stolen** (the
+   precondition above). ⚠ **Christmas is absence cover's correlated
+   catastrophe** — the absence mutual needs reinsurance or the state's
+   ladder **from day one**, not *"later"* (amends open question 5 for
+   this line).
+7. **Governance.** **The exclusion judges a person** — refusing a claim
+   because *you caused this on purpose* is an accusation. Criterion:
+   the record shows the insured's own deliberate act. Appeal: the court
+   (a small civil case). Tier: C. **Subrogation** is a civil suit.
+   ⭐ **The regulator must show its pen:** it holds the **charter
+   registry** (who may run a pool) and the **reserve rule**, which
+   anyone can read off the bank ledger (open question 2: derivable,
+   and the regulator only enforces). Revoking a charter is power over a
+   livelihood, so it carries fair procedure. **Compulsory insurance**
+   (the answer to the judgment-proof player) is a polity choice at C
+   tier, like auto insurance.
+
+### The forks, decided
+
+1. **Parametric, mutual and agreed-value as the grain default — yes.**
+   Lens 2 chose: the ordinary case is a contract with no code, and a
+   conventional insurer is the bespoke case, which stays possible.
+2. **Political-risk cover — no build.** Lens 2 chose: a law change is a
+   recorded event, so it is another trigger. Lens 7 adds the limit: the
+   conflict rule bars a bill's own voters from underwriting it.
+3. **Death's price — insurance does not set it.** Lens 6 chose:
+   insurance is a gauge, not a lever. Mortality decides what death
+   costs; funeral cover exists exactly when that cost is real. **Never
+   make death dearer to give insurance something to sell.**
+
+### Open (the owner's)
+
+- ⚠⚠ **The seeded variance channel** ([uncertainty.md](../../uncertainty.md)):
+  insurance is its best argument; the lenses cannot settle it.
+- Whether the absence mutual pays only in hours, or in hours *and*
+  zorkmids for obligations nobody can tend for you (a tax bill).
 
 ---
 
@@ -540,7 +793,7 @@ track record says; both move the world **by being believed.**
 
 > **The ratings agency is the press with different subject matter.**
 
-So [press-slate](./press-slate.md)'s machinery — credibility derived
+So [journalism-slate](./journalism-slate.md)'s machinery — credibility derived
 from the record, the publisher, the catalogue-as-publication —
 **applies unchanged. No new reputation mechanic needed.**
 

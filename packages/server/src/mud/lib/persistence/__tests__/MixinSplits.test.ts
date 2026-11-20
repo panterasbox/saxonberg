@@ -12,6 +12,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from './pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PersistableApi } from '../../../api/persistable';
 import { StuffApi } from '../../../api/stuff';
@@ -69,13 +70,13 @@ beforeEach(() => {
     snapshots.push({ ...doc, _id });
     return _id;
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
     kind: 'group',
     name: 'test',

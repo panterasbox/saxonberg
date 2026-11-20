@@ -33,13 +33,14 @@ import Waters, { WATERS_PATH } from '../../../Waters';
 import Rod from '../../../../thing/Rod';
 import Fish from '../../../../agent/Fish';
 import { FISHING_TYPE } from '../../../../lib/FishingEngagement';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Angler extends TestActor {}
 
 type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
 async function run(Controller: new () => Runnable, model: Record<string, unknown>, actor: Stuff, where: Stuff, text: string): Promise<CommandContext> {
   const ctx = makeContext(actor, where, text);
-  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx));
   return ctx;
 }
 function rejected(ctx: CommandContext): string | null {

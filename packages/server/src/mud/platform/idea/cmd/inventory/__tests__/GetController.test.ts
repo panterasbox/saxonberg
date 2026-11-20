@@ -32,6 +32,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))
@@ -128,10 +129,7 @@ describe('GetController — bareword path (no quantity)', () => {
     ContainmentApi.move(sword, rack);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(makeResult([sword], 'sword')),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(makeResult([sword], 'sword')), ctx$)))(makeContext(giver, loc));
     expect(sword.getContainer()).toBe(giver);
   });
 
@@ -164,10 +162,7 @@ describe('GetController — bareword path (no quantity)', () => {
     it('takes only what the named holder holds', async () => {
       const { loc, giver, racks, swords } = twoRacks();
       const controller = makeStuff(() => new GetController());
-      await controller.execute(
-        fromModel(makeResult(swords, 'sword'), racks[1]!),
-        makeContext(giver, loc),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(fromModel(makeResult(swords, 'sword'), racks[1]!), ctx$)))(makeContext(giver, loc));
       expect(swords[1]!.getContainer()).toBe(giver);
       expect(swords[0]!.getContainer()).toBe(racks[0]);
     });
@@ -177,10 +172,10 @@ describe('GetController — bareword path (no quantity)', () => {
       ContainmentApi.move(swords[1]!, loc);
       const controller = makeStuff(() => new GetController());
       const ctx = makeContext(giver, loc);
-      await controller.execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
         fromModel(makeResult([swords[1]!], 'sword'), racks[1]!),
         ctx,
-      );
+      ));
       expect(swords[1]!.getContainer()).toBe(loc);
       expect(ctx.getNotes()).toContainEqual(
         expect.objectContaining({ kind: 'empty-result', field: 'targets', query: 'sword' }),
@@ -191,7 +186,7 @@ describe('GetController — bareword path (no quantity)', () => {
       const { loc, giver, swords } = twoRacks();
       const controller = makeStuff(() => new GetController());
       const ctx = makeContext(giver, loc);
-      await controller.execute(fromModel(makeResult(swords, 'sword'), null, 'chest'), ctx);
+      await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(fromModel(makeResult(swords, 'sword'), null, 'chest'), ctx));
       expect(swords.every((s) => s.getContainer() !== giver)).toBe(true);
       expect(ctx.getNotes()).toContainEqual(
         expect.objectContaining({ kind: 'empty-result', field: 'source', query: 'chest' }),
@@ -220,7 +215,7 @@ describe('GetController — bareword path (no quantity)', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(makeModel(makeResult([bench], 'bench')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(makeResult([bench], 'bench')), ctx));
     expect(bench.getContainer()).toBe(loc);
     expect(
       ctx
@@ -259,7 +254,7 @@ describe('GetController — bareword path (no quantity)', () => {
     const controller = makeStuff(() => new GetController());
     const model = makeModel(makeResult([inside, loose, kiln as unknown as Stuff], 'pot'));
     (model as unknown as { source: unknown }).source = { stuff: kiln, raw: 'kiln' };
-    await controller.execute(model, makeContext(giver, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(model, ctx$)))(makeContext(giver, loc));
     expect(inside.getContainer()).toBe(giver);
     expect(loose.getContainer()).toBe(loc);
     expect(kiln.getContainer()).toBe(loc);
@@ -282,7 +277,7 @@ describe('GetController — bareword path (no quantity)', () => {
     const ctx = makeContext(giver, loc);
     const model = makeModel(makeResult([loose], 'pot'));
     (model as unknown as { source: unknown }).source = { stuff: kiln, raw: 'kiln' };
-    await controller.execute(model, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model, ctx));
     expect(loose.getContainer()).toBe(loc);
     expect(ctx.getNotes().some((n) => n.kind === 'empty-result')).toBe(true);
   });
@@ -299,10 +294,7 @@ describe('GetController — bareword path (no quantity)', () => {
     ContainmentApi.move(sword, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(makeResult([sword], 'sword')),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(makeResult([sword], 'sword')), ctx$)))(makeContext(giver, loc));
     expect(sword.getContainer()).toBe(giver);
   });
 
@@ -313,10 +305,10 @@ describe('GetController — bareword path (no quantity)', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(makeResult([], 'turnips')),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -361,15 +353,12 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(bottle, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([counter, bottle] as never, 'crowsfoot', {
           value: { kind: 'count', n: 1 },
           mode: 'lenient',
         }),
-      ),
-      makeContext(giver, loc),
-    );
+      ), ctx$)))(makeContext(giver, loc));
     expect(bottle.getContainer()).toBe(giver);
     expect(counter.getContainer()).toBe(loc);
   });
@@ -396,15 +385,12 @@ describe('GetController — quantity-bearing path', () => {
     });
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult(swords as never, 'swords', {
           value: { kind: 'count', n: 1 },
           mode: 'lenient',
         }),
-      ),
-      makeContext(giver, loc),
-    );
+      ), ctx$)))(makeContext(giver, loc));
 
     const carried = giver.getContents().filter((c) => swords.includes(c as never));
     expect(carried.length).toBe(1);
@@ -425,15 +411,12 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 5 },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     // 5 ended up in inventory; remaining 25 are still on the floor.
     expect(pile.getQuantity()).toBe(25);
   });
@@ -452,15 +435,12 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 99 },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     expect(pile.getContainer()).toBe(giver);
   });
 
@@ -479,7 +459,7 @@ describe('GetController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'count', n: 99 },
@@ -487,7 +467,7 @@ describe('GetController — quantity-bearing path', () => {
         })
       ),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'quantity-clamped-rejected',
@@ -506,7 +486,7 @@ describe('GetController — quantity-bearing path', () => {
 
     const controller = makeStuff(() => new GetController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel(
         makeResult([], 'turnips', {
           value: { kind: 'count', n: 2 },
@@ -514,7 +494,7 @@ describe('GetController — quantity-bearing path', () => {
         })
       ),
       ctx,
-    );
+    ));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'empty-result',
@@ -538,15 +518,12 @@ describe('GetController — quantity-bearing path', () => {
     ContainmentApi.move(pile, loc);
 
     const controller = makeStuff(() => new GetController());
-    await controller.execute(
-      makeModel(
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(
         makeResult([pile], 'coins', {
           value: { kind: 'all' },
           mode: 'lenient',
         })
-      ),
-      makeContext(giver, loc)
-    );
+      ), ctx$)))(makeContext(giver, loc));
     expect(pile.getContainer()).toBe(giver);
     expect(pile.getQuantity()).toBe(7);
   });

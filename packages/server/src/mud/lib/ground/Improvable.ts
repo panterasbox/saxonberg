@@ -312,7 +312,7 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
      */
     static commandContributions = {
       // `inventory`: a location's occupants hear it. (`self` is read only off
-      // a command giver, a shadow or a hosted update — lint:self-contributions.)
+      // a command giver, a shadow or an app — lint:self-contributions.)
       inventory: [
         'platform/cmd/ground/grub.yaml',
         'platform/cmd/ground/ditch.yaml',

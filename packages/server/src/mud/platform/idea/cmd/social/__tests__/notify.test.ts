@@ -29,6 +29,7 @@ import { ClientStateMixin } from "../../../../../lib/connection/ClientState";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import type { SocialRulesState } from "@saxonberg/types";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 class NotifyHost extends NotifyPolicyMixin(Idea) {
   getPlayerId(): string {
@@ -107,7 +108,7 @@ function controllerFor(model: NotifyModel): () => NotifyControllerBase {
 
 async function run(giver: NotifyHost, model: NotifyModel): Promise<void> {
   const ctrl = makeStuff(controllerFor(model));
-  await ctrl.execute(model as CommandModel, ctxFor(giver));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model as CommandModel, ctx$)))(ctxFor(giver));
 }
 
 beforeEach(() => captureBody());
@@ -208,10 +209,7 @@ describe("the notify controllers", () => {
       .mockImplementation(() => {});
 
     const ctrl = makeStuff(() => new NotifySetController());
-    await ctrl.execute(
-      { subcommand: "set", ref: "friends", color: "teal", boost: true } as CommandModel,
-      ctxFor(g),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: "set", ref: "friends", color: "teal", boost: true } as CommandModel, ctx$)))(ctxFor(g));
 
     expect(pushSpy).toHaveBeenCalledWith("social.rules", expect.any(Object));
     const [, state] = pushSpy.mock.calls.at(-1)!;

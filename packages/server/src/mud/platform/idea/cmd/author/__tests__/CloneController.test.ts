@@ -30,6 +30,7 @@ import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { AccessApi } from '../../../../../api/access';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))
@@ -136,10 +137,7 @@ describe('CloneController.execute — hydrate-first', () => {
 
     const tells = captureTells();
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/non-containable' }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/non-containable' }), ctx$)))(makeContext(giver, loc));
 
     expect(tells.length).toBe(1);
     expect(tells[0]).toMatch(/not Containable, left unplaced/);
@@ -153,10 +151,7 @@ describe('CloneController.execute — hydrate-first', () => {
 
     const tells = captureTells();
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/non-containable', count: 3 }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/non-containable', count: 3 }), ctx$)))(makeContext(giver, loc));
 
     const unplaced = tells.find((t) => /left unplaced: /.test(t));
     expect(unplaced).toBeDefined();
@@ -188,10 +183,7 @@ describe('CloneController.execute — hydrate-first', () => {
     const tells = captureTells();
     const into: MqlOneResult = { stuff: target as never, raw: 'target' };
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/child', into }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/child', into }), ctx$)))(makeContext(giver, loc));
 
     expect(child.getContainer()).toBe(target);
     expect(tells.length).toBe(1);
@@ -215,10 +207,7 @@ describe('CloneController.execute — hydrate-first', () => {
 
     captureTells();
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/thing', here: true }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/thing', here: true }), ctx$)))(makeContext(giver, loc));
 
     expect(child.getContainer()).toBe(loc);
   });
@@ -253,10 +242,7 @@ describe('CloneController.execute — hydrate-first', () => {
 
     const tells = captureTells();
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/artifact' }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/artifact' }), ctx$)))(makeContext(giver, loc));
 
     // Layer 3: hydration placed it; no additional move.
     expect(child.getContainer()).toBe(target);
@@ -281,10 +267,7 @@ describe('CloneController.execute — hydrate-first', () => {
 
     captureTells();
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/trinket' }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/trinket' }), ctx$)))(makeContext(giver, loc));
 
     expect(child.getContainer()).toBe(giver);
   });
@@ -324,10 +307,7 @@ describe('CloneController.execute — hydrate-first', () => {
     const tells = captureTells();
     const into: MqlOneResult = { stuff: override as never, raw: 'override' };
     const controller = makeStuff(() => new CloneController());
-    await controller.execute(
-      makeModel({ template: '/test/sword', into }),
-      makeContext(giver, loc)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/sword', into }), ctx$)))(makeContext(giver, loc));
 
     expect(child.getContainer()).toBe(override);
     expect(tells.length).toBe(1);
@@ -364,10 +344,7 @@ describe('CloneController.execute — hydrate-first', () => {
         return child;
       });
 
-      await makeStuff(() => new CloneController()).execute(
-        makeModel({ template: '/test/flask', here: true }),
-        makeContext(giver, loc),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new CloneController()).execute(makeModel({ template: '/test/flask', here: true }), ctx$)))(makeContext(giver, loc));
 
       expect(canAtPath).toHaveBeenCalledWith(giver, 'clone', '/test/flask');
       expect(can, 'no representative copy is consulted').not.toHaveBeenCalled();
@@ -399,10 +376,7 @@ describe('CloneController.execute — hydrate-first', () => {
       });
 
       const controller = makeStuff(() => new CloneController());
-      await controller.execute(
-        makeModel({ template: '/test/coach', here: true }),
-        makeContext(giver, loc),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/coach', here: true }), ctx$)))(makeContext(giver, loc));
 
       expect(
         canAtPath,
@@ -426,10 +400,7 @@ describe('CloneController.execute — hydrate-first', () => {
       });
 
       const controller = makeStuff(() => new CloneController());
-      await controller.execute(
-        makeModel({ template: '/test/nowhere', here: true }),
-        makeContext(giver, loc),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ template: '/test/nowhere', here: true }), ctx$)))(makeContext(giver, loc));
       expect(cloned, 'an untitled path clones nothing').toBe(false);
     });
   });

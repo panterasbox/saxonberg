@@ -90,6 +90,7 @@ import {
   type Cell,
   type MixinCtor,
 } from '@saxonberg/content-ground/src/lib/Strata';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 /**
  * A cell of the workings' grid — integer coordinates, z negative down.
@@ -971,6 +972,8 @@ export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>
     }
 
     public async hewPlanFor(actor: Stuff, tool: Stuff | null, named?: string): Promise<HewPlan | HewRefusal> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(actor);
       // ⚠⚠ The pick, asked for: a tool that is not required is a number
       // with no referent. Bare-handed and wrong-tool are different
       // refusals — the delve's NPC hewers log which one they are.
@@ -1035,6 +1038,8 @@ export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>
      * credit the Discipline.
      */
     protected async winOre(hewer: Stuff, face: Face, oreRow: string): Promise<HewDone> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(hewer);
       const room = this as unknown as Stuff & Container;
       // ⭐ Rock dust on the hewer — the pack's `dust` DirtKind row.
       if (MixinApi.isHygienic(hewer)) {
@@ -1087,6 +1092,8 @@ export function WorkingMixin<TBase extends NestingConstructor<Stuff & Container>
      * ore*) — otherwise the hewer.
      */
     protected winningOwner(hewer: Stuff): Stuff {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(hewer);
       if (this.mineWarren() === null || !MixinApi.isEmployed(hewer)) return hewer;
       const house = EmploymentApi.businessAt((this as unknown as Stuff).getTemplatePath() ?? '');
       return house && hewer.isOnShiftFor(house.getOrganizationPath()) ? house : hewer;

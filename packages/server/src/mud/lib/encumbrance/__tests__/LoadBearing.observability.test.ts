@@ -10,7 +10,7 @@ import { carry } from '../../slot/__tests__/carrying-fixture';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { SubscriptionApi } from '../../../api/subscription';
 import type { Sensor } from '../../message/Sensor';
 import type { Stuff } from '../../stuff/Stuff';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -25,7 +25,7 @@ describe('LoadBearing — observability via subscribableFields', () => {
     carry(bearer, massThing(20));
     const viewer = bearer as unknown as Stuff & Sensor;
 
-    const projection = MqlSubscriptionApi.projectFields(
+    const projection = SubscriptionApi.projectFields(
       bearer as unknown as Stuff,
       ['borneBurden', 'carryCapacity', 'loadRatio'],
       viewer,

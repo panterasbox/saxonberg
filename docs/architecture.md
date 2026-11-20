@@ -428,11 +428,13 @@ set. Two kinds are recognized:
   white-box unit test can exercise an internal stage. Today:
   `api/prompt.ts#buildPromptContext`,
   `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
-  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `api/subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
   `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
-  fills at boot. Today: `lib/connection/ClientState.ts#setClientStateUpdatePush`.
+  fills at boot. Today: none (`setClientStateUpdatePush` retired with the
+  one subscription protocol, navigation-server W1 — the push is a poke on
+  the client-state source).
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
@@ -618,7 +620,7 @@ warm-up, and no class ever readies its Api's data. See
 [call-security.md](./subsystems/call-security.md).
 
 Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
-`ContainmentApi`, `MqlApi`, `MqlSubscriptionApi`, `PromptApi`,
+`ContainmentApi`, `MqlApi`, `SubscriptionApi`, `PromptApi`,
 `MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
@@ -648,13 +650,17 @@ column's card feed — one birth path gated on a command view's
 `opens_card:`, one relevance-window sweep, and the subscription handle a
 live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
-`MqlSubscriptionApi` is the second wire channel alongside prose /
-dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
-messages route through `Application.processUserMessage` to the
-substrate, which projects an MQL query's result + re-projects on
-relevant state changes. Outbound envelopes ride the same
-`MessageApi.sendEnvelope` path the dispatch-response framework uses.
-See `docs/subsystems/mql-subscription.md`.
+**The subscription protocol** is the second wire channel alongside prose /
+dispatch-response, and the ONE wire for every state push (navigation-server,
+2026-11). Inbound `subscribe` / `unsubscribe` name a SOURCE by template path;
+`SubscriptionRegistry` (the session verbs on `Interactive`, `SubscriptionApi.poke`)
+holds the per-session table, `rev` and the three emits; a source is a
+singleton composing `SubscriptionSourceMixin` (`lib/subscription/`) — the MQL
+and forum registries, `ClientStateSource`, `PressFeedSource`, `MapCopySource`,
+`WhereaboutsSource`. ⭐ **One Api for all of it, `SubscriptionApi`** (over
+`SubscriptionLogic`): every producer pokes through it, and it carries the
+subscribable-field projection and the MQL source's one-shot query — a
+source never gets a facade of its own. See `docs/subsystems/subscription.md`.
 
 `PromptApi` is the third wire-side substrate. Server callers
 `await` an interactive prompt (`choice` / `confirm` / `text` /
@@ -1403,9 +1409,11 @@ registry) lives in `lib/mixin.ts`.
 | `lib/perception/` | `SoundSourceMixin` | "this Stuff emits sound"; `getEmittedAmplitude()` (dB `Quantity`) + `getSoundCharacter()` (string). Composed by noisy Thing templates and fixture-side Adornments. |
 | `lib/perception/` | `AudibleMixin` | the **discrete-event cross-room sound push**: `emit()` runs the `AudienceGather` fork of `SoundModality.walkAt` (reuses the walk over the place's ways + each boundary's `transmissivityInto('sound', side)` + dB attenuation + `MAX_HOPS`) to collect `(sensor, attenuated-dB)` pairs, then `Scene.toAudible` pushes one directional frame per hearer (lights the previously-inert `meta.acousticDb` seam). Same-room = zero-hop case. Whistle first driver. No new Api. See [perception.md](./subsystems/perception.md). |
 | `lib/augmentation/` | `AugmentMixin` | "this Stuff is an installable augment"; declares `confers(): readonly string[]` listing mixin names activated when installed. Wave 1 vocabulary surfaces `_augmentGated` / `_grantsModalities` on the mixins themselves. See [augmentation.md](./subsystems/augmentation.md). |
-| `lib/augmentation/` | `AetherHostedMixin` | the *update* side of the aether hosting relation: a `getHost`/`setHost` back-ref + the must-be-hosted invariant, composed around an `Idea` (the incorporeal capability base). Co-composed with a capability mixin on an update class (`CommsUpdate`, `CredentialWalletUpdate`). See [augmentation.md](./subsystems/augmentation.md). |
-| `lib/message/` | `AetherMixin` | **attunement** + the aether **host**: perceive the Aether (contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`) and host capability *update* `Idea`s (`getHostedUpdates` + sealed `hostUpdate`/`unhostUpdate` chokepoints). Augment-gated (`_augmentGated = true`); conferred by the `AetherImplant` **or** intrinsically by `Species.innateMixins`. No longer carries transmission — that moved to `CommsMixin`. See [augmentation.md](./subsystems/augmentation.md). |
-| `lib/comms/` | `CommsMixin` | the comms transmission capability (the `dm`/`reply`/`broadcast`/`chat` verb family + DM cohort state), composed on a hosted update (`CommsUpdate`). `dm` sends on behalf of its host (the operator) via `getHost()`. See [comms.md](./subsystems/comms.md). |
+| `lib/augmentation/` | `AetherHostedMixin` | the *app* side of the aether hosting relation: a `getHost`/`setHost` back-ref, the must-be-hosted invariant and `appName`, composed around an `Idea`. Composed by `App` (Messages is a row) and its kinds `ForumsApp`, `WalletApp`, `CalendarApp`. See [aether-devices.md](./subsystems/aether-devices.md). |
+| `lib/augmentation/` | `AetherHostMixin` | *this thing hosts aether software*: the live apps (sealed `hostApp`/`unhostApp`) and the persisted `installedApps` / `offersApps` / `manifestsAs`; `installApp` is the one way software gets onto a host. Affords `apps` through `environment`. Composed by `Avatar`, `Phone`, `AetherImplant`. See [aether-devices.md](./subsystems/aether-devices.md). |
+| `lib/message/` | `AetherMixin` | **attunement**: perceive the Aether (contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`). Augment-gated (`_augmentGated = true`); conferred by an augment the body bears (a seated implant, a carried phone that answers no `conferralRefusal()`) **or** by `Species.innateMixins` (the shade species). Hosting moved to `AetherHostMixin`. See [aether-devices.md](./subsystems/aether-devices.md). |
+| `lib/comms/` | `CommsMixin` | *this person talks at a distance, and things wait for them*: the `dm`/`reply`/`broadcast`/`chat` verb family, `sendOrHold` (a line that cannot go is held as typed, with a refusal that names the fix), the held inbound frames and their flush, the `aetherState` status word. Composed on `Avatar` only — never `Character`. See [aether-devices.md](./subsystems/aether-devices.md) + [comms.md](./subsystems/comms.md). |
+| `lib/supply/` | `BatteryMixin` | a battery in watt-hours on the shared `Reserve`: settles on acts, never on a timer — standby draw for a live bearer, charge from anything `Powered` it rests on (placement host, else container) read off the supply's trajectory, never from limbo. Composed by `Phone`. See [aether-devices.md](./subsystems/aether-devices.md). |
 | `lib/vitals/` | `VitalsMixin` (+ `DressingMixin`) | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams — now including the **dying clock** (`DyingRecord`, the `dying` band, `beginDying`/`stabilize`, and the reconcile arm that deliberately does NOT freeze on linkdead) and the fork-only **material slices** + gated `adoptMaterialState` that make a corpse un-reanimatable. Also hosts the **reconcile-on-read wound driver** (`reconcileConditions` on the read path, driving the harm subsystem's bleed/heal/`exsanguination` off a persisted per-trauma `tickedAt`) + `isSlotImpairedByTrauma` / `drainForLimp`. `DressingMixin` is the first-aid dressing capability (`Bandage`); the harm producer facade is `ConditionApi`/`ConditionLogic`. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md) / [harm.md](./subsystems/harm.md). |
 | `lib/cleanliness/` | `HygieneMixin` | a BODY's cleanliness (cleanliness build): hand cleanliness read off the soil at the hand sites (no clock — `washedAt` retired), `washHands` / `bathe` / `soilFrom` / `soilBodyPart`, the doff transfer, and the `immerse` rinse override. Composed by `Creature` over `Attired`. See [cleanliness.md](./subsystems/cleanliness.md). |
 | `lib/cleanliness/` | `SoilableMixin` | dirt as STATE on a thing: deposits by site × kind (each kind a `DirtKind` row loaded by path), set stains, the wash/heat process stamps the clean tiers read, `washSite` (water wets what it washes), `brushOff`, `holdAtHeat`, `liftedBy` (what lifts a dirt, off its row), `soilOdour` (dirt that smells). Composed by `Garment`, `Floor`, `Rug`, `Cloth`, `Bandage`, `CraftVessel`, `Chair`, `Lamp`, `Window` and the body. See [cleanliness.md](./subsystems/cleanliness.md). |
@@ -1445,6 +1453,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/husbandry/` | `BondedMixin` | ⭐ **an animal somebody could come to care about** (pets build): the bond as `regard/100 × handling` (never a new number; regard never decays, handling does — *difficult, not feral*), `wouldComply` / `wouldEat` / `offerRung` / `feelsSafeToEatAmong` as deterministic thresholds over measured state with closed outcomes, home + the trail (memory, not navigation), the ask (`askingOf`), and **the five verbs' affordance** as a static (`commandContributions.peers`). Narrows to `BeliefStore` and `Handling` as siblings rather than demanding them. See [pets.md](./subsystems/pets.md). |
 | `lib/husbandry/` | `FeederMixin` | a vessel an animal eats from — `feederKind` (`bowl` / `trough` / `hopper`), `offerings()`, `lastFilledBy`; the species' `feedingStyle` says which kinds it will use. Composed on `platform/thing/Feeder`. |
 | `lib/husbandry/` | `OfferEngagement` *(a `DurativeActivity`, not a mixin)* | the `approach` rung of an offer: the offerer's `hands` for `APPROACH_MS`; at completion the animal decides on the world as it is then. The `SearchActivity` shape. |
+| `lib/errors.ts` | `Refusal` · `Unavailable` · `ContentError` (classes, not mixins) | ⭐⭐ **the one thrown failure family** (failure-model, 2026-11): a `Refusal` is *the act was refused* — a reason code (its row's address) and facts — and words, notes and handles exactly like a returned `{ ok: false, reason, facts }`; `Unavailable` is *try again* (a `Refusal`, also recorded); `ContentError` is *a content row is wrong* (never catchable; the row's title holder is told). Anything else thrown is a bug. Every guarded root hands what it caught to `CommandApi.reportFailure`. See [response-envelope.md](./subsystems/response-envelope.md). |
+| `lib/command/` | `Reason` (value class) | **one reason an act can be refused** — a `reason` document (`<pack root>/reasons/<code>.yaml`: `facts` + a Liquid `says`) served by `ReasonCatalogue` (`/platform/idea/ReasonCatalogue`, reached as `CommandApi.reasons()`); a bare code is the platform's, a path any pack's. Worded at emit; a script handles it by code (`try … on <reason>`). |
 | `lib/document/` | `DocumentCatalogue<T>` (base class, not a mixin) | ⭐ **the singleton that serves one document kind** — an `Idea` that `ensure`s / `need`s / `peek`s / `forget`s the value objects its kind's documents parse into, resident by construction (a per-path citing setter returns the load, or the Api's `static needs` stands the kind at boot; a cold sync read throws `DocumentNotResidentError`). One per family at `/platform/idea/<X>Catalogue`, reached through its domain Api (`CraftingApi.joints()`, `ContainmentApi.placements()`, `PerceptionApi.aromas()` …), never a lib static; `DocumentKinds` names each kind's `catalogue:` and `DocumentApi.catalogueFor(kind)` finds it for the go-live. See [document-store.md](./subsystems/document-store.md). |
 | `lib/document/` | `RegistrarMixin` | **a body that keeps a book about somebody else** — declares `registerPrefix` / `registerOwner` / `registerKind`, and `DocumentApi.saveToRegister` derives all three. The generic shape behind *you file; you do not hold the pen*; replaced a pinned `saveHerd` that hardcoded a pack's namespace in the kernel. ⭐ Safe by an invariant rather than an allowlist: **the owner must be a prefix of the register's own template path**, so a register keeps its own book and nobody else's. See [document-store.md](./subsystems/document-store.md). |
 | `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/trade/farming/thing/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |

@@ -33,6 +33,7 @@
  * `docs/subsystems/thermal.md`.
  */
 
+import { DiagnosticApi } from "../../api/diagnostics";
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Final, Unshadowable } from '../security/decorators';
 import type { Burner } from '../fire/Burner';
@@ -2014,8 +2015,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
             ambientK = (
               await BiomeApi.resolveTemperatureFor(scope)
             ).rawValue();
-          } catch {
-            // keep the cached ambient on any resolution failure
+          } catch (err) {
+            // Keep the cached ambient — but SAY it (failure-model W4; the
+            // silent-write census's B105 item): a biome chain that cannot
+            // resolve would leave this body drifting toward a stale room
+            // forever, and nobody would know.
+            void DiagnosticApi.record({
+              path: null,
+              message: `ThermalMixin.restamp: the room's temperature did not resolve: ${err instanceof Error ? err.message : String(err)}`,
+              stack: err instanceof Error ? (err.stack ?? null) : null,
+            }).catch(() => undefined);
           }
           // ⭐ The push side reads evaporation too (the Coolbox lesson:
           // the day the two sides disagree, a wet jar is cool in one and

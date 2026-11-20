@@ -19,6 +19,10 @@ invariants:
   - >-
     REFUSE under the sandbox: a circle may not mint or transfer real
     ownership.
+  - >-
+    A row with `bound: true` never transfers (aether-devices D10) — the
+    starter phone is worthless to anyone but its first owner. The refusal
+    is `ChattelLogic.transfer`'s, the one chokepoint every transfer passes.
 sandbox: refuse
 reset: wipe
 indexes:

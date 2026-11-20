@@ -28,7 +28,7 @@
  *
  * Four of the six W6 conversion targets — `Exitable.exits`,
  * `Adornable.fixtureSlots`, `Boundary`'s anchors and
- * `Aether._hostedUpdates` — had **no destruct coverage anywhere in the
+ * `Aether._hostedApps` — had **no destruct coverage anywhere in the
  * tree** when these pins were written. For those four this file is not a
  * second opinion; it is the only oracle there is.
  *
@@ -61,6 +61,7 @@ import { ExitableMixin } from '../../boundary/Exitable';
 import { AdornableMixin } from '../../boundary/Adornable';
 import { AdornmentMixin } from '../../boundary/Adornment';
 import { AetherMixin } from '../../message/Aether';
+import { AetherHostMixin } from '../../augmentation/AetherHost';
 import { AetherHostedMixin } from '../../augmentation/AetherHosted';
 import { makeStuff,
   seedKernelContentStore,
@@ -79,7 +80,7 @@ class MemberRoom extends WarrenMemberMixin(Place) {}
 class ExitRoom extends ExitableMixin(Place) {}
 class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
-class Implant extends AetherMixin(Thing) {}
+class Implant extends AetherHostMixin(AetherMixin(Thing)) {}
 class Update extends AetherHostedMixin(Thing) {}
 
 const asStuff = (x: unknown): Stuff => x as Stuff;
@@ -301,12 +302,12 @@ describe('reference-lifetime pins', () => {
     });
   });
 
-  describe('W6 #7 — Aether._hostedUpdates is owned (cleanupOnDestruct form)', () => {
-    it('destructing the host DESTRUCTS every hosted update', () => {
+  describe('W6 #7 — Aether._hostedApps is owned (cleanupOnDestruct form)', () => {
+    it('destructing the host DESTRUCTS every app', () => {
       const host = makeStuff(() => new Implant());
       const update = makeStuff(() => new Update());
-      host.hostUpdate(update);
-      expect(host.getHostedUpdates()).toContain(update);
+      host.hostApp(update);
+      expect(host.getHostedApps()).toContain(update);
 
       StuffApi.destruct(asStuff(host));
 

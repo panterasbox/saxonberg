@@ -1,0 +1,4 @@
+# The lot asked for holds nothing just now.
+facts:
+  lot: text
+says: "The window is out of type {{ lot }}."

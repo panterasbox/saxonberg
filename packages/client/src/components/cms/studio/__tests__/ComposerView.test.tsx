@@ -15,6 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { MixinDetail, MixinPalette } from "@saxonberg/types";
 import { useStore } from "../../../../store/index";
+import { tipOf } from "../../../tooltip/__tests__/tipOf";
 import { ComposerView } from "../ComposerView";
 
 // Stub the lazy Monaco editor so mounting the source card in jsdom doesn't pull
@@ -109,18 +110,12 @@ describe("ComposerView mixin inspector card", () => {
   it("keeps the de-duplicated summary tooltip on the chips (secondary affordance)", () => {
     render(<ComposerView />);
     // The quick summary tooltip still rides each chip.
-    expect(
-      screen.getByText("StackableMixin").getAttribute("title"),
-    ).toContain(SUMMARY);
+    expect(tipOf(screen.getByText("StackableMixin"))?.text).toContain(SUMMARY);
     // A summary that opens with the mixin's own name reads once, not doubled.
     const named = screen.getByRole("button", { name: "NamedMixin" });
-    expect(named.getAttribute("title")).toBe(
-      "NamedMixin — proper-name identity",
-    );
+    expect(tipOf(named)?.text).toBe("NamedMixin — proper-name identity");
     // A summary-less chip's title is just the affordance text.
-    expect(screen.getByText("UndocMixin").getAttribute("title")).toBe(
-      "Add UndocMixin",
-    );
+    expect(tipOf(screen.getByText("UndocMixin"))?.text).toBe("Add UndocMixin");
   });
 
   it("shows the empty state before any hover", () => {

@@ -17,6 +17,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../../api/consumer';
 import { ProducerApi } from '../../../../api/producer';
@@ -27,6 +28,7 @@ import ParticipationStandings from '../../ParticipationStandings';
 import ProducerStandings from '../../ProducerStandings';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { Idea } from '../../../../lib/stuff/Idea';
 import { ZoneApi } from '../../../../api/zone';
 import { ProvenanceApi } from '../../../../api/provenance';
 import { AppSettings } from '../../../../lib/config/AppSettings';
@@ -71,17 +73,35 @@ function zoneAt(path: string): SpatialZone {
 
 const AUTHOR = '/platform/agent/Avatar/maker';
 const PLAYER = '/platform/agent/Avatar/visitor';
+const OTHER = '/platform/agent/Avatar/other';
 const LOC = '/world/gallery/room';
+
+/**
+ * Live bodies by identity: every player's body is cloned from ONE row, so
+ * each carries the shared lineage and its own minted identity — the shape
+ * that made every player one actor before db-performance W1 (D2).
+ */
+const bodies = new Map<string, string>();
+async function body(identity: string): Promise<string> {
+  const s = await StuffApi.create(() => {
+    const b = new Idea();
+    Stuff._stampTemplatePath(b, '/platform/agent/PrimaryAvatar');
+    Stuff._stampIdentityPath(b, identity);
+    return b;
+  });
+  bodies.set(identity, s.stuffId);
+  return s.stuffId;
+}
 
 function fireDispatch(over: Record<string, unknown> = {}): void {
   EventApi.fire(
     new CommandDispatchedEvent({
-      subjectId: PLAYER,
+      subjectId: bodies.get(PLAYER)!,
       commandId: 'cmd-1',
       at: 4242,
       realAt: 1_000_000,
       locationTemplatePath: LOC,
-      actorTemplatePath: PLAYER,
+      actorIdentityPath: PLAYER,
       ...over,
     })
   );
@@ -107,6 +127,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
   vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({
     id: 'test-handle',
@@ -117,6 +138,8 @@ beforeEach(async () => {
   await s.save();
   await AppSettings.warm();
   await makeRegistry();
+  bodies.clear();
+  for (const id of [AUTHOR, PLAYER, OTHER]) await body(id);
   // Default credit routing: released zone, authored by AUTHOR.
   vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
     zoneAt('/world/gallery')
@@ -181,12 +204,22 @@ describe('ProducerLogic engagement tap (shared signal)', () => {
     await bootConsumer();
     await bootProducer();
     // The engaging player IS the author.
-    fireDispatch({ actorTemplatePath: AUTHOR, subjectId: AUTHOR });
+    fireDispatch({ actorIdentityPath: AUTHOR, subjectId: bodies.get(AUTHOR) });
     await flush();
 
     expect(await ProducerApi.eventsFor(AUTHOR)).toHaveLength(0);
     // …but the author still earns consumer participation for showing up.
     expect(await ConsumerApi.eventsFor(AUTHOR)).toHaveLength(1);
+  });
+
+  it('⭐ two players engaging in one bucket are two credits — the actor is a person (D2)', async () => {
+    await bootConsumer();
+    await bootProducer();
+    fireDispatch();
+    fireDispatch({ subjectId: bodies.get(OTHER), actorIdentityPath: OTHER, commandId: 'cmd-2' });
+    await flush();
+    const prod = await ProducerApi.eventsFor(AUTHOR);
+    expect(prod.map((e) => e.actor).sort()).toEqual([OTHER, PLAYER]);
   });
 
   it('released gate: engagement in /home content earns no producer credit', async () => {
@@ -221,14 +254,14 @@ describe('ProducerLogic engagement tap (shared signal)', () => {
     // A second player, same bucket, WITHOUT the producer fields.
     EventApi.fire(
       new CommandDispatchedEvent({
-        subjectId: '/platform/agent/Avatar/other',
+        subjectId: bodies.get(OTHER)!,
         commandId: 'cmd-2',
         at: 4242,
         realAt: 1_000_000,
       })
     );
     await flush();
-    const without = await ConsumerApi.eventsFor('/platform/agent/Avatar/other');
+    const without = await ConsumerApi.eventsFor(OTHER);
 
     expect(withFields).toHaveLength(1);
     expect(without).toHaveLength(1);

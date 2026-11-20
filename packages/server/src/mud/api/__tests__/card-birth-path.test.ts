@@ -89,7 +89,7 @@ describe('a card is born on the server, or not at all', () => {
       'index.ts',
     );
     const text = readFileSync(typesFile, 'utf8');
-    const start = text.indexOf('export interface MqlSubscribeMessage');
+    const start = text.indexOf('export interface MqlSubscriptionParams');
     expect(start).toBeGreaterThan(-1);
     const end = text.indexOf('\n}', start);
     const body = text.slice(start, end);
@@ -98,7 +98,7 @@ describe('a card is born on the server, or not at all', () => {
     expect(body).toContain("chrome?: 'self'");
     // …and nothing that would name a card.
     for (const forbidden of ['card?:', 'subject?:', 'hold?:', 'holdSubject?:']) {
-      expect(body, `MqlSubscribeMessage must not carry ${forbidden}`).not.toContain(
+      expect(body, `MqlSubscriptionParams must not carry ${forbidden}`).not.toContain(
         forbidden,
       );
     }

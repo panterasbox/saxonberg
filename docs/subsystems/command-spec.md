@@ -193,6 +193,28 @@ they consume stays one source of truth across input modalities. None
 of that is built today, but with LLMs it's well within reach, and
 the spec is shaped to make it cheap when someone wants it.
 
+### ⭐⭐ A refusal is passed on, not worded (failure-model, 2026-11)
+
+The object decides a refusal and its facts; the reason's ROW words it; the
+controller does neither. A migrated controller's whole refusal path is:
+
+```typescript
+if (!answer.ok) return this.refuse(context, answer);
+```
+
+— the wordless form of `CommandController.refuse`, which takes a returned
+refusal (`{ ok: false, reason, facts }`) or a thrown `Refusal` alike and
+notes `refused`. The row is `<pack root>/reasons/<code>.yaml` (`facts:` and
+a Liquid `says:`); a bare code is the platform's, a pack names its own by
+the row's full path, so a pack adds reasons with no kernel change (forestry
+ships `/trade/forestry/reasons/wrong-tool`). A protocol file still declares
+the CLOSED union of kernel codes it answers, so the compiler lists them;
+the exhaustive wording `switch` is gone, and *every code has a row* is
+`lint:reason-rows`'s. `engagePlan`'s `onRefused` is optional for the same
+reason: absent, a refused plan or completion goes to `context.refuse`. The
+five-argument worded `refuse(context, topic, line, reason)` is the legacy
+form the ratchet counts down.
+
 ### ⭐ A verb promoted behind a protocol — `dip` (ceramics D14)
 
 When two trades turn out to perform ONE act, the collision ladder's rung 2
@@ -575,6 +597,21 @@ the dispatcher has no definition, so the verb is unknown and never in
 boot logs one line naming them. Pair it with the
 `requiresTestWorld` validator so the gate sits in the view's own data
 too.
+
+### ⭐ `compellable:` — may another body's code ask you to run it?
+
+`never` (the default, and the right answer for nearly every verb) or
+`consent`, on the verb or on one subcommand (`title buy`). Another body's
+code — a realtor, a scripted NPC — that runs a command on YOUR body is
+refused unless the verb says `consent` AND its controller class declares
+`static compellable = true`; then your own client is asked, every time,
+worded by the engine from the line: *"The realtor would have you run
+`title buy lot-7`. Let them?"*. `help` prints *"Another character may ask
+you to do this; you are always asked first."* under such a verb. ⛔ Speech,
+conferral, membership and giving title or money away are never
+compellable, whatever a view says — `lint:compellable` holds the class half
+and the never-list. Rule and refusals:
+[call-security.md § Compulsion](./call-security.md).
 
 ### A manner is an option — `wash --hard`
 

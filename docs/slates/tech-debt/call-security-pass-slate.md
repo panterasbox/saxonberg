@@ -1,22 +1,22 @@
 # The call-security pass — re-gating + the audit rail (slate)
 
-> **Status: UNBUILT** — written at the close of the Api OO sweep
-> (MR !228, 2026-09-02), which merged with a knowingly permissive gate
-> posture. Nothing here is built.
-> **Left:** ⭐ `ActsAs(n)`, the actor-claim gate (PRIORITY) · the `@Audited` permit-and-watch rail (+ the one
-> `audit_events` collection, raised deliberately) · re-gating the ~35
-> ungated-and-sealed mutators · the `FromMixin`-marker question (bless as
-> the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) ·
-> hoisting the copy-pasted self-subject `where` into
-> `SecurityPolicies.SelfSubject(argIndex)` · `FromIdentity` ·
-> pack-contributed gate participants · interface-based admission · the
-> enumerated pass over every call-security site · the acceptance shape
+> **Status: PARTIAL** — the actor claim and the compulsion gate shipped
+> (MR !635, 2026-11-19): see call-security.md § *Who is acting*, § *The
+> actor check*, § *Compulsion*. The rest is unbuilt.
+> **Left:** the `@Audited` permit-and-watch rail (+ the one `audit_events`
+> collection, raised deliberately) · re-gating the ungated-and-sealed
+> mutators, ⭐ a body's speech methods first · callback laundering (a
+> census of function-typed parameters on command-giver hosts) · objects'
+> own timers and lifecycle hooks acting as the object by default · the two
+> controller-only predicates (`mayTakeDown`, `mayDrive`) · a hand-rolled
+> permission comparison the census cannot see (`governRefusal`) · an
+> operator's authority over their extent, as themselves, inside the
+> predicates (an open question) · retiring `DocumentLogic`'s map-transport
+> bypass and moving `setSetting`/`rawTail`/`mayEdit` from the author to the
+> actor · the `FromMixin`-marker question · `FromIdentity` · pack-contributed
+> gate participants · interface-based admission · the enumerated pass over
+> every call-security site · the acceptance shape
 > **Size:** a build
-> ⭐⭐ **PRIORITY (owner, 2026-11-10): the `by` claim — `ActsAs(n)` (§ The
-> actor claim, below) goes FIRST.** Controller-liquidity (MR !561) made
-> controllers player-replaceable; a replaced controller can no longer skip
-> a protective gate, but it can still LIE to one. This pass ships before
-> players share replacement controllers with each other.
 
 > Written at the close of the Api OO sweep (MR !228, 2026-09-02), which
 > deliberately merged with a known-permissive gate posture. This slate
@@ -176,77 +176,50 @@ chain summary, commandId/causingCommandId, timestamp}` into an
   every `forceX` use → `MudlogApi`. This rail is the PERMIT side. One
   audit build should carry both (cluster pass 2026-09-21).
 
-## ⭐⭐ The actor claim — `by` is the honor system (PRIORITY, 2026-11-10)
+## The actor claim and the compulsion gate — shipped (MR !635, 2026-11-19)
 
-**The pattern.** Controller-liquidity (MR !561, D9 — call-security.md
-§ *The method asks who*) moved every gate that protects someone else onto
-the model method it protects, with the actor as an argument:
-`takeName(name, by)`, `Lockable.lock(by)`, `LettingWarren.let(..., by)`,
-`DonationBank.keptBy`, the wiki reader's ceiling, `Organization.apply`,
-`HerdRegistry.mayKeep`, `PlatBook.sell(extent, buyer, desk)`, the chat and
-forum writes, and the rest of W3's list. So no controller can SKIP the gate.
-But `by` is a claim: whoever holds a reference to the object can call
-`takeName(name, <someone else>)`, and the method believes them. *Possession
-is capability.*
+Shipped and documented in call-security.md: `ExecutionContextApi.getActor`
+beside the author, continuations that carry it, the named system,
+`runAsSelf`; `AccessApi.requireActor` on every protective act
+(`lint:actor-claims`, 49 → 0); the compulsion gate with `compellable:`
+(two keys, `lint:compellable`), consent asked of the body's own player, the
+keeper driving a body nobody plays, `force`; the command path's side doors
+shut (`SelfOnly` on the dispatcher's internals, `CommandGiverOf` on every
+controller's `execute`). It shipped as an in-body call, not the `ActsAs(n)`
+policy sketched here — call-security.md § *The actor check* says why.
 
-**Why it is urgent now.** Before liquidity, the only code calling these
-methods was the kernel's and the packs' reviewed controllers, so `by` was
-honest because the callers were. Liquidity's purpose is that a player can
-adopt a controller someone else wrote, through the CMS alternate controller.
-A malicious or careless replacement can pass `by = <the archwizard>` to read
-a hidden wiki revision, `by = <the owner>` to rename their pet or let their
-room, and so on. The owner, 2026-11-10: *"it's basically the honor system
-that 'by' is who they say it is. but we have an actual call stack we can
-inspect … you have to think about what wizards and content authors are able
-to do with their tools here."*
+## Deferred from the actor-claim build (2026-11-19)
 
-**Who can lie today.** A player typing a command: no (the controller fills
-`by` from the giver). Any code: yes. That means a controller (replaceable),
-an NPC brain, pack `src/`, and a wizard's `eval`.
-
-**What exists, and why it does not fit.** `SelfSubject(n)` and the
-participant contracts (`FromClass`/`FromMixin` + `where`) prove that an
-argument IS the calling object. Here the caller is a controller acting FOR
-a person, so the subject never calls its own method. What does fit is the
-**execution context's root principal**, the giver the command runs as. W3
-already reads it there instead of trusting an argument for `errors raw`
-(`DiagnosticLogic.rawTail`) and Tier C config (`AppLogic.setSetting`).
-
-**The primitive to add: `ActsAs(argIndex)`.** Argument *n* must be the
-acting principal. It compares by the raw identity stamp, never the
-overridable `getIdentityPath()` (the § *identity-path rule* in
-call-security.md). Who passes:
-- a player's command: the giver;
-- an NPC acting through its brain: it is its own giver (`forceCommand`);
-- a wizard's `eval`: it runs as the wizard, so it may act as itself and
-  nobody else (and stays parcel-sandboxed);
-- scheduled completions: they run under `ScheduleApi`'s `runRoot` with the
-  command's attribution. ⚠ **Verify first** that the PRINCIPAL travels with
-  the completion, not only `causingCommandId`; if it does not, this is the
-  first fix.
-
-Engine callers with no person behind them (a sweep, a boot step, the
-residency tick) need an explicit, named system-principal arm, never a
-silent pass.
-
-**Scope: the protective gates only.** Apply it to the methods that protect
-ANOTHER person, their things, their privacy, or the polity's settings:
-W3's set (roughly 30 sites; the `lint:controller-gates` header and the
-controller-liquidity plan's Appendix D list them) plus any `takeName`-shaped
-write about someone else's property. Do NOT apply it to every method taking
-an actor. A `by` used only for wording, effort or pace (how hard *you*
-work) can only fool its own caller: the "does the subject bound the spoof"
-test in call-security.md. That gives ActsAs a census and a ratchet of its
-own: count the protective `by` parameters with no `ActsAs`, drive the count
-to 0, then hold it.
-
-**Cost.** One context read per check, not a stack walk, so it is cheap.
-Keep any stack-proof variant off hot paths; `reachableAmong` exists because
-a per-candidate stack capture once took 96.5% of server CPU.
-
-**Order within the pass.** ActsAs first (it closes the liquidity hole),
-then the audit rail, which can SAMPLE ActsAs refusals as its first producer,
-then the ungated+sealed set.
+- **Callback laundering.** A body method that invokes a caller-supplied
+  function runs it under the body's frame, so that function can `runAsSelf`
+  or force the body as itself. The same weakness bounds every `SelfSubject`
+  gate. Wants a census of function-typed parameters on command-giver hosts.
+- **A body's verb methods, called directly.** The compulsion gate covers
+  the command path only; code holding a body can call its speech method.
+  The re-gating of the sealed-ungated set, speech first.
+- **Objects' own timers and lifecycle hooks** act as whoever armed them (a
+  timer armed while a player loads a place carries that player). Safe in
+  direction — a sweep claiming somebody else is refused — but an object's
+  upkeep that reaches a protective act must `runAsSelf`; nothing makes it.
+- **`mayTakeDown` / `mayDrive`** are read only by controllers; no model act
+  hosts a check. A controller-liquidity D9 gap.
+- **A hand-rolled permission comparison** (`ChannelCatalogue.governRefusal`'s
+  owner test) is invisible to `lint:actor-claims`: extract and name the
+  predicate.
+- **An operator's authority over their extent.** No bypass exists, by
+  design (*the wizard axis stays authoring code*). If extent operators
+  should lock, evict, or take down on their ground, it belongs inside each
+  predicate, the operator acting as themselves and recorded — never an
+  act-as hatch. Open: which acts.
+- **`DocumentLogic`'s map-transport bypass** (a self-forced `sense` is
+  nobody as an author) and the precedent gates `setSetting`, `rawTail`,
+  `mayEdit` still read the author; move them to the actor.
+- **A never-rule that follows what a verb DOES** rather than where its
+  controller lives (`lint:compellable` reads the category): a compelled-frame
+  check at the speech and money primitives.
+- **Elsewhere:** acting FOR another by grant → agency-slate,
+  wizard-duty-slate; compulsion magic → spellbook-slate § 8; compulsion
+  inside a sandbox circle → the sandbox's slate.
 
 ## Future gate primitives to design (not yet built)
 
