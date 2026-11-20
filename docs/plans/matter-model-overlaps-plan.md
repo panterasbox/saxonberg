@@ -1474,7 +1474,7 @@ default keeps 0.9 when lit); `ventChamberAir` on `_goOut`/`_setLit(false)`
   already assumed water left; test fixtures that boil a hand-built solution call
   `standSolvent()`.
 
-### W7 — one water for porous bodies (D19)
+### W7 — one water for porous bodies (D19) ✅ done (f2c3e8e14)
 
 - `Wet.weatherReach`, `Wet.takeRain`; `Moisture` calls the first and
   loses `exposureOf`; `WeatherLogic.wetOccupants`; the bounded soak arm.
