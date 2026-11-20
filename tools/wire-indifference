@@ -71,11 +71,14 @@ census() { (cd "$SERVER" && npx tsx scripts/wire-world-census.ts); }
 stop_kept() {
   kept="$WIRE/.wire/kept-world.json"
   [ -f "$kept" ] || return 0
-  pid=$(sed -n 's/.*"pid": *\([0-9]*\).*/\1/p' "$kept")
-  # The world's own grace: SIGTERM the group, wait for the save, never a bare kill.
-  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-    kill -TERM -- "-$pid" 2>/dev/null
-    for _ in $(seq 1 240); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+  # ⚠ SIGTERM the LISTENER — the node process that saves — never the
+  # process group: the group signal takes the pnpm/tsx wrappers down with it
+  # and the world dies before its shutdown capture (measured: 2 s, no report).
+  pid=$(lsof -ti "tcp:$WIRE_PORT" -sTCP:LISTEN | head -1)
+  if [ -n "$pid" ]; then
+    kill -TERM "$pid" 2>/dev/null
+    for _ in $(seq 1 "${WIRE_STOP_GRACE_S:-240}"); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+    grep 'shutdown captured' "$WIRE/.wire/server.log" | tail -1 | sed "s/^/$TAG:   /"
   fi
   rm -f "$kept"
 }
