@@ -187,11 +187,14 @@ suite('navigation card — the wire drive', () => {
       expect(down.take?.ok).toBe(false);
       expect(down.take && !down.take.ok ? down.take.reason : '').toMatch(/climb/);
       expect(down.take && !down.take.ok ? down.take.works : undefined).toBeUndefined();
+      // A goto is not a walk (it writes no walked claim): look, and the
+      // pit is on the map as seen.
       expectOk(await run(walker, `goto ${PIT}`, '5'));
+      expectOk(await run(walker, 'look', '5'));
       await beat();
     }
     await expect
-      .poll(() => placeClaims(walker.nav, PIT).some((c) => c.channel === 'walked'), { timeout: 15_000 })
+      .poll(() => placeClaims(walker.nav, PIT).some((c) => c.at?.level === -1), { timeout: 15_000 })
       .toBe(true);
     const levels = new Set(
       walker.nav
