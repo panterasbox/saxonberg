@@ -520,11 +520,12 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     const mode = await LocomotionApi.loadMode(LocomotionApi.defaultModeFor(viewer));
     const guard = await LocomotionApi.canTraverseExit(viewer, this, mode, this.direction, { probe: true });
     if (!guard.ok) {
+      const works = guard.works ?? (guard.gate === 'exitMode' ? await this.worksByMode(viewer) : null);
       return {
         ok: false,
         gate: guard.gate ?? 'blocked',
         reason: guard.reason ?? "You can't go that way.",
-        ...(guard.works ? { works: guard.works } : {}),
+        ...(works ? { works } : {}),
       };
     }
     // ⭐ A fight you cannot break away from refuses every way, in the words
@@ -546,6 +547,26 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       if (!out.ok) return { ok: false, gate: 'veto', reason: out.reason ?? "You can't leave." };
     }
     return { ok: true, ...(unseen ? { unseen: true as const } : {}) };
+  }
+
+  /**
+   * ⭐ When your own mode is refused, the mode this way DOES take — named
+   * as data (navigation card D18) only if trying it would get you through,
+   * here, now: the same probe `go` asks. A climb with nothing to climb by
+   * (no rope tied at the lip) is not offered as what works; the refusal's
+   * words still say *you'll have to climb*.
+   */
+  private async worksByMode(viewer: Stuff & Containable): Promise<WayWorks | null> {
+    const names = [...new Set(this.media.map((m) => EXIT_MEDIUM_VERB[m]))].filter(
+      (n): n is string => typeof n === 'string',
+    );
+    for (const name of names) {
+      const mode = LocomotionApi.modeOf(name);
+      if (!mode) continue;
+      const guard = await LocomotionApi.canTraverseExit(viewer, this, mode, this.direction, { probe: true });
+      if (guard.ok) return { mode: name, command: `${name} ${this.direction}` };
+    }
+    return null;
   }
 
   /**
@@ -1800,10 +1821,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       // the card's `up` out of the river sends `go up`, which said only
       // "You can't walk that way" beside steps you have to climb).
       const ways = [...new Set(this.media.map((m) => EXIT_MEDIUM_VERB[m]).filter(Boolean))];
-      // ⭐ …and say it as DATA too (navigation card): one way that works is
-      // a mode and a command the card's arm can offer, as the clearance
-      // refusal's lower mode is. Two or more are left to the words.
-      const only = ways.length === 1 ? ways[0]! : null;
       return {
         ok: false,
         gate: 'exitMode',
@@ -1811,7 +1828,6 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: ways.length > 0
           ? `You can't ${mode} that way — you'll have to ${ways.join(' or ')}.`
           : `You can't ${mode} that way.`,
-        ...(only !== null ? { works: { mode: only, command: `${only} ${this.direction}` } } : {}),
       };
     }
     // ⭐ The way's size against what comes through it (size and carrying

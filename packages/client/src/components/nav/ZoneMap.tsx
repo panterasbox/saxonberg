@@ -139,6 +139,25 @@ export function viewBoxFor(
   return { minX, maxX, minY, maxY };
 }
 
+/**
+ * A transparent band along a segment — the edge's hit area. ⚠ A straight
+ * north–south or east–west line has a zero-width box: a person can barely
+ * click it and a browser test reads it as not visible at all.
+ */
+function hitBand(x1: number, y1: number, x2: number, y2: number, w = 0.14): React.ReactElement {
+  const len = Math.hypot(x2 - x1, y2 - y1) || 1;
+  const nx = (-(y2 - y1) / len) * w;
+  const ny = ((x2 - x1) / len) * w;
+  return (
+    <polygon
+      points={`${x1 + nx},${y1 + ny} ${x2 + nx},${y2 + ny} ${x2 - nx},${y2 - ny} ${x1 - nx},${y1 - ny}`}
+      fill="transparent"
+      stroke="none"
+      pointerEvents="all"
+    />
+  );
+}
+
 const sx = (x: number): number => x;
 const sy = (y: number): number => -y;
 
@@ -262,6 +281,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
               <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={tokens.color.surface} strokeWidth={6} vectorEffect="non-scaling-stroke" />
             ) : null}
             <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={2} strokeDasharray={dash} vectorEffect="non-scaling-stroke" />
+            {hitBand(x1, y1, x2, y2)}
             {e.conflict ? <circle cx={(x1 + x2) / 2} cy={(y1 + y2) / 2} r={0.08} fill={tokens.color.warning} data-testid="nav-conflict" /> : null}
           </g>,
           e.id,
@@ -337,6 +357,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           doc,
           <g {...common} {...markProps(label, command, click)}>
             <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={2} strokeDasharray={dash} vectorEffect="non-scaling-stroke" />
+            {hitBand(x1, y1, x2, y2)}
             {e.shape === "leaves" ? (
               <polyline
                 data-testid="nav-leaves"
@@ -425,6 +446,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
               strokeDasharray={pi === 0 ? undefined : "4 3"}
               vectorEffect="non-scaling-stroke"
             />
+            {hitBand(sx(a.x), sy(a.y), sx(b.x), sy(b.y), 0.08)}
           </g>,
         );
         if (least) {

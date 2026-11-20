@@ -85,9 +85,10 @@ async function session(
     startLocation: start,
     // A seat over Terminus, only to clone its general store's torch (the
     // clone gate is the ROW's title; a torch carries its own fuel, a
-    // lantern clones empty) — a staged prop; every assertion below is
-    // about what the player's own acts wrote.
-    ...(opts.lamp ? { committees: ['/world/terminus'] } : {}),
+    // lantern clones empty) — a staged prop — and over the wilds, only to
+    // stage a walker into a pit whose trap has already sprung. Every
+    // assertion below is about what the player's own acts wrote.
+    ...(opts.lamp ? { committees: ['/world/terminus', '/world/newbie-wilds'] } : {}),
   });
   open.push(s);
   await s.drainProse();
@@ -171,14 +172,22 @@ suite('navigation card — the wire drive', () => {
     expectOk(await run(walker, 'north', '5'));
     await beat();
     if (walker.nav.section('place')?.at?.z !== -1) {
-      // The pit has already sprung (a kept world): search for the hidden
-      // way down, and take it.
+      // The pit has already sprung (a kept world). Search finds the way
+      // down; with no rope tied at the lip there is nothing to climb by, so
+      // the verdict says *you'll have to climb* and offers NO command (D18:
+      // `works` only when trying it would get you through). Then stage the
+      // walker into the pit.
       expectOk(await run(walker, 'search', '5'));
       await expect.poll(async () => {
         await beat();
         return walker.nav.section('ways')?.ways.some((w) => w.direction === 'down') ?? false;
       }, { timeout: 60_000, interval: 1_000 }).toBe(true);
-      expectOk(await take(walker, 'down', '5'));
+      const down = walker.nav.section('ways')!.ways.find((w) => w.direction === 'down')!;
+      record.push(`5: way down ${JSON.stringify(down.take)}`);
+      expect(down.take?.ok).toBe(false);
+      expect(down.take && !down.take.ok ? down.take.reason : '').toMatch(/climb/);
+      expect(down.take && !down.take.ok ? down.take.works : undefined).toBeUndefined();
+      expectOk(await run(walker, `goto ${PIT}`, '5'));
       await beat();
     }
     await expect

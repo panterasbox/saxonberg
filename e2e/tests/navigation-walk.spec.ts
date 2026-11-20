@@ -56,7 +56,7 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
     test.setTimeout(600_000);
     const { page, close } = await openWorldAs(browser, 'navcard', {
       startLocation: TREELINE,
-      committees: ['/world/terminus'],
+      committees: ['/world/terminus', '/world/newbie-wilds'],
       contextOptions: { viewport: { width: 2048, height: 1100 } },
     });
     try {
@@ -87,13 +87,14 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await runCommand(page, 'north');
       await expect(page.getByTestId('nav-coords')).toContainText(/y: 2/, { timeout: 30_000 });
       if (!(await page.getByTestId('nav-coords').innerText()).includes('z: -1')) {
+        // The pit has sprung (a kept world). Search finds the way down; with
+        // nothing to climb by it is not for you as you stand, and its
+        // tooltip says why — then the walker is staged into the pit.
         await runCommand(page, 'search');
         const down = page.getByTestId('nav-exit-down');
-        await expect(down).toHaveAttribute('data-state', 'mode', { timeout: 60_000 });
-        await expect(down).toHaveAttribute('data-mode', 'climb');
-        // Its tooltip says what would work.
-        expect(await tipText(page, down)).toMatch(/climb down/);
-        await runCommand(page, 'climb down');
+        await expect(down).toHaveAttribute('data-state', 'refuses', { timeout: 60_000 });
+        expect(await tipText(page, down)).toMatch(/climb/);
+        await runCommand(page, 'goto /world/newbie-wilds/delve/pit-below');
       }
       await expect(page.getByTestId('nav-coords')).toContainText(/z: -1/, { timeout: 30_000 });
       await expect(page.getByTestId('nav-levels')).toBeVisible();
