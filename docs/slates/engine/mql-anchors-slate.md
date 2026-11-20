@@ -2,9 +2,9 @@
 
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
 > conversation: *"a turning point in the broader MQL design"*).
-> **Left:** the alias table's form (proposed, not yet agreed) · what
-> `reachable` looks like · the 23 views
-> that scope to `online` · how far a player id is an address.
+> **Left:** the player-id prefix's character · `@reachable`'s shape (it
+> stays, as a built-in relation of `me`) · every view `scope:` and typed
+> seed moves to `@` · the 23 views that scope to `online`.
 > **Size:** a build.
 
 ## What MQL is (owner, 2026-11-20)
@@ -87,15 +87,21 @@ something like `online` the answer should be very legible."*
     asker** (`query me:@`, `look book:@`) — the legible answer to *what
     can I ask this for*, in the grammar itself.
 
-## Proposed, not decided
-
-- **One legible definition per reserved word** — a single table, in code
-  and in `help mql <word>`, saying what each word means (*`here` — the
-  place you are standing in: your enclosing place*; *`peers` — `here`'s
-  contents minus you, one level into open things*), with any built-in the
-  grammar cannot spell (`reachable`'s nearest-first order) named as a
-  built-in. One resolver reads it, for seeds and scopes alike — retiring
-  the duplicate.
+13. **Every seed word becomes a relation of `me`** (owner, 2026-11-20) —
+    `@here`, `@peers`, `@person`, `@inventory`, `@reachable`, `@horizon`,
+    `@it`/`@them`/`@last`. No reserved seed words: `@here` cannot collide
+    with a thing keyworded `here` (today's shadowing and the `[keyword.x]`
+    escape go). Each relation carries a one-line meaning, so `query me:@`
+    lists them all with what they mean — the legible definition the owner
+    asked for, with no separate table; seeds and scopes are one thing, so
+    one resolver. **What remains grammar:** `me` (the root), the addresses,
+    and the operators (`:i` `:I` `:e` `:E` `:exits` `:to` `:from`, the
+    predicates, `[…]`, `::`). `here` (and the like) are offered as
+    **removable default player aliases**, like `l` — the alias system,
+    not the grammar.
+14. **A player id has its own short prefix** — durable and made to be
+    shared (the who-list trackers), so a different address from `#id`, a
+    session's Stuff id. The character is open (`~abc` is the candidate).
 
 ## Consequences to plan for
 
