@@ -4,7 +4,7 @@
 > owner, iterated against a prototype. Today's start screen
 > ([client-shell.md § The front door](../../subsystems/client-shell.md)) is the starting point.
 > **Left:** everything in § 6's build list — the public `/front` read, the founder-name and show
-> settings, `acting` on the office read, the release `chamber` field and `proposal` kind,
+> settings, `acting` on the office read, the demand digest, the books (budget-slate),
 > `/compact/executive` made public, the Saxonberg Post organization with its stakeholders authority,
 > position-level appointment and appointment-mode openings, the show tile and the sign-in follow-up,
 > and the client rebuild of `StartScreen`.
