@@ -45,18 +45,20 @@ import {
   quietBoxRefusal,
   foreignMeter,
   restartWorld,
+  standIn,
+  TESTBED,
 } from '../src/harness';
 import type { CrowdRecord } from '../src/harness';
 import { WIRE_PORT } from '../src/runner/boot';
 
-export const DIRTY_REASON =
-  'thirty characters are created and stand in the market square; probe ' +
-  'things are cloned into it and destroyed; the world is restarted mid-file.';
-
+// ⭐ Stands in the scaffold's plaza (test-world-lifecycle D8). Its probe is
+// written and removed by the file, its characters are fresh, so it runs twice
+// on one world. ⚠ The baseline was recorded among Terminus's cast: a timed run
+// in the plaza is not comparable with it until it is re-recorded on a quiet
+// box (CSP_RECORD=1) — the numbers move for a reason that is not the code.
 declareFile({
-  file: 'call-security-performance.dirty.wire.test.ts',
-  packs: ['platform', 'terminus'],
-  dirtyReason: DIRTY_REASON,
+  file: 'call-security-performance.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
 
 const QUIET = process.env.WIRE_QUIET === '1';
@@ -207,7 +209,8 @@ function noWorse(name: keyof Measured, now: number): void {
 let founder: Session;
 
 /**
- * As the founder (a wizard), run an eval BODY of statements and read back
+ * As a wizard seated on the testbed committee (not `founder`: its seats are
+ * world state another drive may have moved), run an eval BODY of statements and read back
  * the value it returned inside `CSP[…]CSP` — the tag tells the answer apart
  * from whatever else the square says while the command runs.
  *
@@ -255,7 +258,7 @@ suite('steps 5 and 7 — every MR', () => {
   beforeAll(async () => {
     removeProbeFiles();
     writeFileSync(PROBE_FILE, probeSource('v1'));
-    founder = await Session.open('founder', { startLocation: CROWD_PLACE, wizard: true });
+    founder = await standIn(CROWD_PLACE, 'csp-wizard', { wizard: true, committees: [TESTBED] });
     // A kept world may hold a probe class from an earlier run: install v1.
     const r = await founder.cmd(`reload ${PROBE_CLASS}`);
     expect(await r.said()).toMatch(/reloaded .*WireCspProbe\.ts/);
@@ -314,7 +317,7 @@ suite('steps 5 and 7 — every MR', () => {
   it('7 — hot reload: a fresh clone sees all three edits; an old instance none', async () => {
     // ⚠ The edit is written to the file directly, as `typecheck.wire.test.ts`
     // does: the in-game `cp -s` asks for CODE title over
-    // `/platform/thing/`, which the founder does not hold (so the
+    // `/platform/thing/`, which the wizard does not hold (so the
     // drive writes it). The install is the in-game `reload`, which is the act
     // under test.
     writeFileSync(PROBE_FILE, probeSource('v2'));

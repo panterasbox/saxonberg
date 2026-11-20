@@ -1,5 +1,9 @@
 /**
- * ⭐ The crowd — thirty people in the square (controllers-are-io D27).
+ * ⭐ The crowd — thirty people in the plaza (controllers-are-io D27).
+ *
+ * Stands in the scaffold (test-world-lifecycle D8): the plaza's greeter, the
+ * hall's host, the approach. Every character is fresh, so a greeter's memory
+ * of the last run greets nobody twice — it runs twice on one world.
  *
  * The greeting COUNT blocks: an arriver is greeted once by each greeter, and
  * when the room stands nobody is greeted. The timing is printed here and
@@ -8,17 +12,23 @@
  */
 
 import { describe as suite, it, expect } from 'vitest';
-import { declareFile, runCrowd, CROWD_SIZE, Session, uniqueHandle, hand } from '../src/harness';
+import {
+  declareFile,
+  runCrowd,
+  CROWD_SIZE,
+  Session,
+  uniqueHandle,
+  hand,
+  standIn,
+  APPROACH,
+  PLAZA,
+  EXITS,
+  NOTEBOOK,
+} from '../src/harness';
 
-declareFile({
-  file: 'crowd.dirty.wire.test.ts',
-  packs: ['platform', 'terminus'],
-  dirtyReason:
-    'thirty characters are created and walk into the market square; each is ' +
-    'greeted and each is remembered by the greeters who saw them.',
-});
+declareFile({ file: 'crowd.wire.test.ts', packs: ['platform', 'test-fixtures'] });
 
-suite(`a crowd of ${CROWD_SIZE} in the square`, () => {
+suite(`a crowd of ${CROWD_SIZE} in the plaza`, () => {
   it('greets each arriver once, and greets nobody when nobody arrives', async () => {
     const record = await runCrowd(process.env.WIRE_CROWD_LABEL ?? 'blocking');
     for (const [speaker, most] of Object.entries(record.greetedOwnMax)) {
@@ -29,19 +39,18 @@ suite(`a crowd of ${CROWD_SIZE} in the square`, () => {
 });
 
 /**
- * ⚠ The square's greeters are hands on errands and are often out, so the crowd's
- * own count can pass having greeted nobody. This one has somebody behind a bar.
+ * ⚠ A greeter's count can pass having greeted nobody, so this one asserts the
+ * greeting is THERE: the hall's host, rostered at the door around the clock.
  */
 suite('somebody who stays put', () => {
   it('greets each of three arrivals once', async () => {
-    const BAR = '/world/lounge/location/bar';
-    const opts = { startLocation: '/world/lounge/location/lounge', wizard: true, committees: ['/world/lounge'] };
     const heard: string[] = [];
     const sessions: Session[] = [];
     for (let i = 0; i < 3; i++) {
-      const s = await Session.open(uniqueHandle(`crowd-regular${i}`), opts);
+      const s = await standIn(PLAZA, `crowd-regular${i}`);
       sessions.push(s);
-      await s.cmd(`goto ${BAR}`);
+      await s.drainProse();
+      await s.cmd(`go ${EXITS.plaza.hall}`);
       heard.push(await s.listen(6_000, { sinceDrain: true }));
     }
     for (const said of heard) {
@@ -59,29 +68,29 @@ suite('somebody who stays put', () => {
  * read from a second person standing in the room.
  */
 suite('who is still standing there', () => {
-  const ROOM = '/world/terminus/counting-houses/avenue-block';
+  const ROOM = APPROACH;
   /** Is this body standing where `witness` is? Asked by id: a stranger reads as "a human". */
   const standing = async (witness: Session, stuffId: string): Promise<boolean> =>
     (await witness.query('here:i', { fields: 'ref' })).some((r) => r.stuffId === stuffId);
 
   it('signing out takes the body and what it carried, and logging in brings both back once', async () => {
-    const witness = await Session.open(uniqueHandle('crowd-witness'), { startLocation: ROOM, wizard: true, committees: ['/world/terminus'] });
+    const witness = await Session.open(uniqueHandle('crowd-witness'), { startLocation: ROOM });
     const handle = uniqueHandle('crowd-leaver');
-    const leaver = await Session.open(handle, { startLocation: ROOM, wizard: true, committees: ['/world/terminus'] });
+    const leaver = await Session.open(handle, { startLocation: ROOM });
     await leaver.drainProse();
-    const rag = await hand(leaver, '/stuff/thing/rag');
-    expect(rag).toBeTruthy();
-    expect(await leaver.prose('inventory')).toMatch(/rag/i);
+    const notebook = await hand(leaver, NOTEBOOK);
+    expect(notebook).toBeTruthy();
+    expect(await leaver.prose('inventory')).toMatch(/notebook/i);
     const body = (await leaver.queryOne('me', 'ref'))?.stuffId ?? '';
     expect(await standing(witness, body), 'seen while playing').toBe(true);
 
     leaver.close();
     await expect.poll(() => standing(witness, body), { timeout: 20_000, interval: 1_000 }).toBe(false);
-    expect(await witness.prose('look'), 'nothing it carried fell on the floor').not.toMatch(/\brag\b/i);
+    expect(await witness.prose('look'), 'nothing it carried fell on the floor').not.toMatch(/\bnotebook\b/i);
 
     const back = await Session.open(handle);
     const carried = await back.prose('inventory');
-    expect(carried.match(/\brag\b/gi)?.length ?? 0, `the rag, once: ${carried}`).toBe(1);
+    expect(carried.match(/\bnotebook\b/gi)?.length ?? 0, `the notebook, once: ${carried}`).toBe(1);
     const returned = (await back.queryOne('me', 'ref'))?.stuffId ?? '';
     expect(returned, 'a return is a fresh body').not.toBe(body);
     expect(await standing(witness, returned), 'back where it stood').toBe(true);

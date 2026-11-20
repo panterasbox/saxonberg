@@ -642,7 +642,7 @@ export function describePurge(r: PurgeReport): string {
 
 /* ──────────────────────── stop and restart ──────────────────────── */
 
-export { stopWorldWithin, lastShutdownReport, WIRE_STOP_GRACE } from '../runner/boot';
+export { stopWorldWithin, lastShutdownReport, WIRE_STOP_GRACE, listenerPid as listenerPidOf } from '../runner/boot';
 export type { ShutdownReport, TimedStop } from '../runner/boot';
 
 /**

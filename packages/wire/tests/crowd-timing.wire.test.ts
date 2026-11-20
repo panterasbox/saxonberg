@@ -13,7 +13,6 @@
  * you cannot see · 8 a mould in the crowd · 9 thirty leave · 10 a restart ·
  * 11 one hundred, reported.
  */
-import { spawnSync } from 'child_process';
 import { describe as suite, it, expect } from 'vitest';
 import {
   declareFile,
@@ -28,18 +27,19 @@ import {
   restartWorld,
 } from '../src/harness';
 import type { CrowdRecord } from '../src/harness';
-import { WIRE_PORT } from '../src/runner/boot';
+import { APPROACH, listenerPidOf } from '../src/harness';
 
+// ⭐ Stands in the scaffold's plaza (test-world-lifecycle D8): fresh
+// characters each run, so it runs twice on one world. ⚠ Its timing bounds
+// were first measured among Terminus's cast; the plaza holds one greeter, so
+// a reading here is not comparable with a pre-migration record.
 declareFile({
-  file: 'crowd-timing.dirty.wire.test.ts',
-  packs: ['platform', 'terminus', 'trade-dairying'],
-  dirtyReason:
-    'thirty (then a hundred) characters are created and walk into the market square; ' +
-    'the greeters remember each; the world is restarted mid-file.',
+  file: 'crowd-timing.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'trade-dairying'],
 });
 
 const QUIET = process.env.WIRE_QUIET === '1';
-const STAGING = '/world/terminus/counting-houses/avenue-block';
+const STAGING = APPROACH;
 
 interface Stats {
   cpu?: { user: number; system: number };
@@ -53,11 +53,7 @@ function p95(xs: number[]): number {
   const s = [...xs].sort((a, b) => a - b);
   return s[Math.min(s.length - 1, Math.ceil(0.95 * s.length) - 1)] ?? 0;
 }
-function listenerPid(): number | null {
-  const out = spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim();
-  const pid = Number(out?.split('\n')[0] ?? '');
-  return pid > 0 ? pid : null;
-}
+const listenerPid = listenerPidOf;
 /** What the drive found, appended by each step and printed at the end. */
 const found: string[] = [];
 const say = (line: string): void => {
@@ -69,7 +65,7 @@ const say = (line: string): void => {
   QUIET ? 'the crowded-rooms timing drive (quiet box)' : 'the crowded-rooms timing drive — SKIPPED: set WIRE_QUIET=1 on a quiet box (docs/testing.md)',
   () => {
     let thirty: CrowdRecord | null = null;
-    /** The mould's looks by one player alone in the square: "empty-room time". */
+    /** The mould's looks by one player alone in the plaza: "empty-room time". */
     let emptyLookP95 = 0;
 
     /** Ten looks at and ten into a hoop dropped by `s`, each timed. */
@@ -110,7 +106,7 @@ const say = (line: string): void => {
       expect(cores).toBeLessThan(0.2);
 
       // ⭐ The baseline step 8 is measured against: the same looks, by one
-      // player alone in the square ("empty-room time", the requirement's own
+      // player alone in the plaza ("empty-room time", the requirement's own
       // words). Taken here, before anyone else logs in.
       const alone = await Session.open(uniqueHandle('timing-alone'), { startLocation: CROWD_PLACE });
       emptyLookP95 = p95(await mouldLooks(alone));
@@ -187,8 +183,8 @@ const say = (line: string): void => {
             into.push(performance.now() - t);
             s.close();
           }
-          say(`logins into the full square: p95 ${Math.round(p95(into))} ms`);
-          expect.soft(p95(into), 'logins into the full square').toBeLessThan(2_000);
+          say(`logins into the full plaza: p95 ${Math.round(p95(into))} ms`);
+          expect.soft(p95(into), 'logins into the full plaza').toBeLessThan(2_000);
         },
       });
       const r = thirty;

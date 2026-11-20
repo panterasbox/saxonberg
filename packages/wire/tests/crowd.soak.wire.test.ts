@@ -4,7 +4,7 @@
  * Not a merge gate: a round trip is honest only on an idle box, so the bound is
  * generous (a 1 s p95, no 500 ms stall) and this runs post-merge under
  * `pnpm wire:soak`. The acceptance numbers themselves (250 ms, 100 ms) are read
- * off the printed record by a person; `crowd.dirty.wire.test.ts` holds the count.
+ * off the printed record by a person; `crowd.wire.test.ts` holds the count.
  */
 
 import { describe as suite, it, expect } from 'vitest';
@@ -12,7 +12,7 @@ import { declareFile, runCrowd, CROWD_SIZE } from '../src/harness';
 
 declareFile({
   file: 'crowd.soak.wire.test.ts',
-  packs: ['platform', 'terminus'],
+  packs: ['platform', 'test-fixtures'],
 });
 
 suite(`a crowd of ${CROWD_SIZE} answers at the speed of an empty room`, () => {

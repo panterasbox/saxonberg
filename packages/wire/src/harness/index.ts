@@ -57,6 +57,7 @@ export {
   purgeLitter,
   describePurge,
   stopWorldWithin,
+  listenerPidOf,
   WIRE_STOP_GRACE,
   lastShutdownReport,
   stageStandingHistory,
