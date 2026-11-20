@@ -54,6 +54,7 @@ import { Contamination } from './Contaminable';
 import type { ActDone, ActPlan } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
 import type { KneadBegin, KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel, KneadWork } from '../craft/KneadVessel';
+import type { StirRequest } from '../craft/StirTarget';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
@@ -122,10 +123,11 @@ export interface Compounding extends KneadVessel {
    */
   kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal>;
   /**
-   * ⭐ `stir`'s plan of this vessel's compound (W19) — refused `wrong-work`
+   * ⭐ `stir`'s plan of this vessel's compound (W19; the `StirTargetMixin`
+   * protocol, matter-model-overlaps D15) — refused `wrong-work`
    * (`work: 'knead'`) when what is in it is stiff.
    */
-  stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal>;
+  stirPlanFor(req: StirRequest): Promise<CompoundPlan | CompoundRefusal>;
   /**
    * ⭐ Compound what is in the vessel into ONE product through the one
    * mint (`CraftingApi.mintFromBuild({ charge })`) — the end of a
@@ -230,8 +232,8 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       return this.workPlan(req, 'knead');
     }
 
-    /** ⭐ A runny compound, stirred (W19). */
-    public async stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal> {
+    /** ⭐ A runny compound, stirred (W19; the stir protocol, D15). */
+    public override async stirPlanFor(req: StirRequest): Promise<CompoundPlan | CompoundRefusal> {
       return this.workPlan(req, 'stir');
     }
 

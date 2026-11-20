@@ -42,19 +42,11 @@ import { PourTargetMixin, type PourAnswer, type PourRequest } from "../bulk/Pour
 import { Grade } from "./Grade";
 import type { Technique, TechniqueSpec } from "./Technique";
 import { HeatedMixin, type HeatTaken } from "../fire/Heated";
-import type { ActPlan, ActRefusal } from "./ActPlan";
+import { StirTargetMixin, type StirAnswer, type StirRequest } from "./StirTarget";
 
 /** How the build was worked — recorded by `stir` / `muddle`. */
 export type BuildMethod = Technique;
 
-/** ⭐ The one reason `stir` is refused: nothing banked yet. */
-export type StirRefusal = ActRefusal<"empty-build">;
-
-/**
- * A stir plan (controller-liquidity W18): the build worked by the method
- * the vessel names — the begin and done facts are that method.
- */
-export type StirPlan = ActPlan<{ method: BuildMethod }, { method: BuildMethod }, StirRefusal>;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
@@ -155,11 +147,12 @@ export interface Builds {
   /** How the build was worked, or null if not yet stirred/shaken. */
   getBuildMethod(): BuildMethod | null;
   /**
-   * ⭐ `stir`: the build worked by the method the VESSEL names (a shaker
-   * shakes, a mixing glass stirs), at the vessel's pace, the method
-   * recorded at the end.
+   * ⭐ `stir` (the `StirTargetMixin` protocol): the build worked by the
+   * method the VESSEL names (a shaker shakes, a mixing glass stirs), at the
+   * vessel's pace, the method recorded at the end. With nothing banked the
+   * question goes to what is beneath — the vessel's liquid, if it holds one.
    */
-  stirPlan(): StirPlan | StirRefusal;
+  stirPlanFor(req: StirRequest): Promise<StirAnswer> | StirAnswer;
   /** Summed measure of every contribution, in litres. */
   getBuildVolumeL(): number;
   /** Weakest-link grade across the banked contributions. */
@@ -220,10 +213,10 @@ function workingOf(vessel: Stuff): BuildMethod {
 
 export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) {
   // ⭐ A build is taken to the fire (`heat` — `HeatedMixin`, a protocol) and
-  // worked by its method (`stir` — this vessel's own `stirPlan`; the
-  // `AgitatedMixin` protocol retired in controller-liquidity W18: `stir`
-  // has one host).
-  return class ManualBuildMixin extends HeatedMixin(PourTargetMixin(Base)) implements Builds {
+  // worked by its method (`stir` — the `StirTargetMixin` protocol,
+  // matter-model-overlaps D15: the build answers while one is staged, and
+  // hands the question to the liquid beneath when none is).
+  return class ManualBuildMixin extends HeatedMixin(StirTargetMixin(PourTargetMixin(Base))) implements Builds {
     static _mixinName = "ManualBuildMixin";
 
     /** @hook `heat`: a build is worked in the heat, paced by the pot. */
@@ -253,20 +246,22 @@ export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) 
     /**
      * ⭐ `stir`: the build is worked by the method the VESSEL names (a
      * shaker shakes, a mixing glass stirs), at the vessel's pace, and the
-     * method is recorded on it.
+     * method is recorded on it. With no build staged this vessel is only
+     * what it holds: the question goes beneath (D15 — a cook pot of liquor
+     * is stirred as a liquid, an empty shaker has nothing to stir).
      */
-    public stirPlan(): StirPlan | StirRefusal {
+    public override stirPlanFor(req: StirRequest): Promise<StirAnswer> | StirAnswer {
       const self = this as unknown as Stuff;
-      if (this.isBuildEmpty()) return { ok: false, reason: "empty-build" };
+      if (this.isBuildEmpty()) return super.stirPlanFor(req);
       const method = workingOf(self);
       return {
         ok: true,
         durationMs: pacedMs(self, STIR_MS),
         effortW: STIR_EFFORT_W,
-        facts: { method },
+        facts: { kind: "build", method },
         onComplete: () => {
           this.setBuildMethod(method);
-          return { ok: true, facts: { method } };
+          return { ok: true, facts: { kind: "build", method } };
         },
       };
     }

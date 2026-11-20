@@ -209,6 +209,16 @@ stiff and `stir` if runny by its own `workVerb` — W19 — the
 churn → the dairying pack's `churn`); `SweepableMixin` keeps two hosts with
 ONE result shape (a floor, a chimney), and the grate is `rake`'s
 (`Burner.rakePlan`). With one host, the act is a method on that host.
+⭐ **`stir` is a protocol again — `StirTargetMixin` (matter-model-overlaps
+D15, 2026-11-20)**, and it passes the W18 test: every answer is ONE act,
+working something runny with a spoon. A build (the method the vessel
+names), a runny compound (folded into one blend) and a liquid in a holder
+(a supersaturated liquor nucleates when stirred) are composed by
+`ManualBuildMixin`, `CompoundingMixin` (through `KneadVesselMixin`, whose
+own answer is *too stiff — knead it*) and `BulkableMixin`; an empty build
+hands the question down to the liquid beneath it. The churn stays
+`churn`'s. `StirController` asks `stirPlanFor` once and never narrows by
+host; `stir.yaml`'s `vessel` arg `requires: StirTargetMixin`.
 
 **How it is presented** (D8b): the affordance resolver's `composition` is
 `{ name, kind, verbs? }[]` — a protocol carries the verbs whose views

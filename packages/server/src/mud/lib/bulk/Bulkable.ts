@@ -55,6 +55,7 @@ import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import type { Difficulty } from '../advancement/ActSignature';
 import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
+import { StirTargetMixin, type StirAnswer, type StirRequest } from '../craft/StirTarget';
 import { BulkableApi, type TransferAmount } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -607,6 +608,11 @@ export interface Bulkable {
 
 const VOLUME_MARSHALLER = QuantityMarshaller.pathFor(BULK_VOLUME_UNIT);
 
+/** A liquid stirred, game-ms — the build's stir (`ManualBuild`'s pace). */
+const STIR_LIQUID_MS = 4000;
+/** A liquid stirred, metabolic watts — light work. */
+const STIR_LIQUID_EFFORT_W = 150;
+
 function assertVolume(q: Quantity<'L'>, field: string): void {
   if (!(q instanceof Quantity) || q.unit !== BULK_VOLUME_UNIT) {
     throw new TypeError(
@@ -622,8 +628,29 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
   // Whether the composition beneath answers to words (decided once per
   // class, lazily — the factory runs at import).
   let inherits: boolean | undefined;
-  return class BulkableMixin extends PourTargetMixin(Base) {
+  return class BulkableMixin extends StirTargetMixin(PourTargetMixin(Base)) {
     static _mixinName = 'BulkableMixin';
+
+    /**
+     * ⭐ `stir` a holder (matter-model-overlaps D15): a LIQUID in the
+     * interior is stirred in the stir's time and effort, and a Thermal
+     * holder is asked whether that started anything (`noteAgitated` — a
+     * supersaturated liquor nucleates). A surface slot (a floor's puddle),
+     * an empty holder or one holding no liquid: `nothing-to-stir`.
+     */
+    public stirPlanFor(_req: StirRequest): StirAnswer {
+      const self = this as unknown as Stuff;
+      if (!this.interiorBulk || !(this._interiorAmount.rawValue() > 0) || !this.holdsLiquid()) {
+        return { ok: false, reason: 'nothing-to-stir', facts: { vessel: self } };
+      }
+      return {
+        ok: true,
+        durationMs: STIR_LIQUID_MS,
+        effortW: STIR_LIQUID_EFFORT_W,
+        facts: { kind: 'liquid' },
+        onComplete: () => ({ ok: true, facts: { kind: 'liquid', started: false } }),
+      };
+    }
 
     /**
      * ⭐ `pour` into a holder: a thin direction over `BulkableApi.transfer`,

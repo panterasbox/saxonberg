@@ -1963,6 +1963,16 @@ the feed was dropped. It folds the source payload through
   a churn is `churn`ed (the dairying pack's verb over
   `HandWorkedMixin.handWorkPlan`). The same ruling split `rake` (a grate,
   `Burner.rakePlan`) out of `sweep` — see cleanliness.md.
+- ⭐⭐ **`stir` is the protocol `StirTargetMixin` (matter-model-overlaps
+  D15).** One method, `stirPlanFor(req) → StirPlan | StirRefusal`,
+  answered by what is stirred: a build (`ManualBuildMixin` — its method;
+  with nothing banked it answers `super`, the vessel's liquid, where it
+  used to refuse `empty-build`), a compound (`CompoundingMixin`, by its
+  matter's `workVerb`), a knead vessel that compounds nothing (`wrong-work`
+  — *too stiff, knead it*), and a liquid in a holder (`BulkableMixin`,
+  which asks a Thermal holder's `noteAgitated()` whether the stir started a
+  crop — thermal.md § Crystallizing). An empty holder, a surface slot or
+  one holding no liquid: `nothing-to-stir`, the reason's row.
 - ⭐⭐ **`stir` what runs, `knead` what is stiff (owner 2026-11-10;
   controller-liquidity W19).** A compound's state routes the verb, and
   the predicate is the one that already chose a stir's two minutes or a

@@ -3,9 +3,10 @@
  * (controller-liquidity W7c, D13 rung 1): one act each, planned by the
  * THING — its time, its effort and what came of it — so the verb only
  * engages the plan and words the facts. ⭐ And the acts W18 took back out
- * of false unifications, each with one host and no protocol: `stir` (the
- * build's `stirPlan`), `churn` (`HandWorked.handWorkPlan`) and `rake`
- * (`Burner.rakePlan`).
+ * of false unifications, each with one host and no protocol: `churn`
+ * (`HandWorked.handWorkPlan`) and `rake` (`Burner.rakePlan`). `stir` is a
+ * protocol again (`StirTargetMixin`, matter-model-overlaps D15): a build, a
+ * compound and a liquid's holder each answer it.
  */
 
 import '../../../../test-bootstrap';
@@ -13,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import { ToolMixin } from '../Tool';
 import { ManualBuildMixin } from '../ManualBuild';
+import { KneadVesselMixin } from '../KneadVessel';
 import { HandWorkedMixin, type HandWorkFacts } from '../HandWorked';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
@@ -28,6 +30,8 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestBuild extends ManualBuildMixin(ToolMixin(Good)) {}
+class TestBuildPot extends ManualBuildMixin(BulkableMixin(Good)) {}
+class TestTrough extends KneadVesselMixin(ManualBuildMixin(Good)) {}
 class TestChurn extends HandWorkedMixin(BulkableMixin(Good)) {
   override workByHand(): ActOutcome<HandWorkFacts> | null {
     return { ok: true, facts: { result: 'came' } };
@@ -51,24 +55,36 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('`stir` asks the build; `churn` the hand-worked vessel (W18)', () => {
-  it('a build with nothing banked refuses `empty-build`', () => {
+describe('`stir` asks the target (D15); `churn` the hand-worked vessel (W18)', () => {
+  it('a build with nothing banked and nothing beneath has nothing to stir', async () => {
     const b = makeStuff(() => new TestBuild());
-    const plan = b.stirPlan();
-    expect(plan.ok).toBe(false);
-    expect(!plan.ok && plan.reason).toBe('empty-build');
+    expect(MixinApi.isStirTarget(b)).toBe(true);
+    const plan = await b.stirPlanFor({ actor: actor() });
+    expect(plan).toEqual({ ok: false, reason: 'nothing-to-stir', facts: { vessel: b } });
+  });
+
+  it('an empty build over a holder hands the question to the holder — empty, nothing to stir', async () => {
+    const b = makeStuff(() => new TestBuildPot());
+    const plan = await b.stirPlanFor({ actor: actor() });
+    expect(!plan.ok && plan.reason).toBe('nothing-to-stir');
+  });
+
+  it('a knead vessel answers `wrong-work` — too stiff, knead it', async () => {
+    const t = makeStuff(() => new TestTrough());
+    const plan = await t.stirPlanFor({ actor: actor() });
+    expect(plan).toEqual({ ok: false, reason: 'wrong-work', facts: { work: 'knead' } });
   });
 
   it('a build records the working its vessel names, at the vessel’s pace', async () => {
     const b = makeStuff(() => new TestBuild());
     b.addContribution({ tags: ['gin'], measureL: 0.06, gradeBand: 'fair' } as never);
-    const plan = b.stirPlan();
+    const plan = await b.stirPlanFor({ actor: actor() });
     expect(plan.ok).toBe(true);
     if (plan.ok !== true) return;
-    expect(plan.facts).toEqual({ method: 'stirred' });
+    expect(plan.facts).toEqual({ kind: 'build', method: 'stirred' });
     expect(plan.durationMs).toBe(4000);
     const done = await plan.onComplete();
-    expect(done).toEqual({ ok: true, facts: { method: 'stirred' } });
+    expect(done).toEqual({ ok: true, facts: { kind: 'build', method: 'stirred' } });
     expect(b.getBuildMethod()).toBe('stirred');
   });
 
