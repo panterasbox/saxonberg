@@ -10,6 +10,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProvenanceApi } from '../../../../api/provenance';
 import AuthoringEvent from '../../../../lib/standing/AuthoringEvent';
@@ -48,6 +49,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 4242);
 });
 
@@ -73,6 +75,17 @@ describe('ProvenanceLogic.authorOf (derivation)', () => {
     await seed(PATH, BOB, 2000);
     await seed(PATH, ALICE, 1000); // earlier wall-clock, inserted second
     expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
+  });
+
+  it('⭐ a path\'s author is read from the ledger once (db-performance H6)', async () => {
+    await seed(PATH, ALICE, 1000);
+    const pm = PersistenceManager.get();
+    const reads = () => vi.mocked(pm.find).mock.calls.filter(([c]) => c === 'authoring_events').length;
+    const before = reads();
+    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
+    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
+    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
+    expect(reads() - before).toBe(1);
   });
 
   it('returns null for an unauthored path', async () => {

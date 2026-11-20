@@ -34,12 +34,16 @@
 
 import * as crypto from 'crypto';
 import { PersistenceManager } from '../../backend/PersistenceManager';
-import type { FindOptions } from '../../backend/PersistenceManager';
+import type {
+  BatchWrite,
+  FindOptions,
+  PersistStats,
+} from '../../backend/PersistenceManager';
 import { SecurityApi } from './security';
 import { TestOnly } from '../lib/security/decorators';
 import { Unavailable } from '../lib/errors';
 
-export type { FindOptions };
+export type { BatchWrite, FindOptions, PersistStats };
 
 /**
  * Stored shape for an encrypted string field. A structured object (not a
@@ -240,6 +244,17 @@ export class PersistApi {
     return PersistenceManager.get().whenQuiet(quietMs, timeoutMs);
   }
 
+  /**
+   * The database's numbers: the pool (in use, waiting, how often a
+   * request waited and for how long), round trips, and op counts and time
+   * per `<op> <collection>` — cumulative since boot except the two
+   * right-now pool figures. `/stats` serves it as `db`; see
+   * `PersistenceManager.stats()`.
+   */
+  static dbStats(): PersistStats {
+    return PersistenceManager.get().stats();
+  }
+
   /** Documents in `collection` matching `query`, optionally sorted/limited. */
   static async find(
     collection: string,
@@ -268,6 +283,22 @@ export class PersistApi {
     doc: Record<string, unknown>
   ): Promise<string> {
     return PersistApi.#reach(() => PersistenceManager.get().save(collection, doc));
+  }
+
+  /**
+   * ⭐ Write many rows of `collection` in ONE round trip — each
+   * {@link BatchWrite} keyed (update-or-insert by named fields, or a
+   * partial update with `insert: false`), by `_id`, or an insert. Returns
+   * the rows written or matched. ⚠ Refused on a collection with an
+   * around-save hook (`BatchOnHookedCollectionError`), before anything is
+   * sent; the sandbox policy is the same as `save`'s. A `Document` makes
+   * its write with `toBatchWrite()`. See `PersistenceManager.saveMany`.
+   */
+  static async saveMany(
+    collection: string,
+    writes: readonly BatchWrite[]
+  ): Promise<number> {
+    return PersistenceManager.get().saveMany(collection, writes);
   }
 
   /** Delete the document with `id` from `collection`. */

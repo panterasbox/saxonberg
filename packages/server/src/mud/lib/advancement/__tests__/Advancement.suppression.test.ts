@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rememberDisciplines } from "./discipline-fixtures";
 import { AdvancementMixin } from "../Advancement";
@@ -58,6 +59,7 @@ function fakeMongo(): void {
       return id;
     },
   );
+  spySaveMany(pm);
 }
 
 /** The shipped `recovering` row, with the suppression it authors. */

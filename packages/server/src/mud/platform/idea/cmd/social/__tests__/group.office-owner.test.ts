@@ -15,6 +15,7 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupAddController from '../GroupAddController';
 import GroupShowController from '../GroupShowController';
@@ -56,7 +57,7 @@ function stubPm(): void {
       }),
     ),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: async (_c: string, id: string) => store.find((d) => d._id === id) ?? null,
@@ -65,7 +66,7 @@ function stubPm(): void {
       if (i >= 0) store.splice(i, 1);
     },
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 /** The governance contract: an explicit holder, else the founder. */

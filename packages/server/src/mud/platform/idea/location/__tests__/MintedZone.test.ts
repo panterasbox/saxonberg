@@ -6,6 +6,7 @@
  * holds no rooms.
  */
 import '../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { ZoneApi } from '../../../../api/zone';
@@ -40,10 +41,10 @@ function installRows(): void {
     if (typeof query.path === 'string') return store.filter((d) => d.path === query.path);
     return store.slice();
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => 'x'),
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 async function mintCopy(identity: string): Promise<MintedZone> {

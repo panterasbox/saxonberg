@@ -15,6 +15,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { spyPersistSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { matchesDocumentQuery } from '../../document/__tests__/document-query';
 import Material from '../../material/Material';
@@ -117,6 +118,7 @@ beforeEach(() => {
     if (col === Collections.Documents) docs.set(key, { ...doc, _id: key });
     return key;
   });
+  spyPersistSaveMany();
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {

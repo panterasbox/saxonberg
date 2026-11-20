@@ -39,6 +39,7 @@ import {
   type CompetenceBandName,
 } from "./CompetenceBand";
 import { WorldClockApi } from "../../api/worldclock";
+import { ExecutionContextApi } from "../../api/execution-context";
 import { PersistApi } from "../../api/persist";
 import { MixinApi } from "../../api/mixin";
 import { DerivedStandingCache } from "../standing/DerivedStandingCache";
@@ -96,6 +97,9 @@ async function buildAndSave(
   entry.tags = fields.tags ?? [];
   entry.archetype = fields.archetype ?? "";
   await entry.save();
+  // The fold first, so the two derived caches below read it fresh — but
+  // not from a circle, whose row the field's fold must not see (H3).
+  if (ExecutionContextApi.getCircleScope() === null) await foldCache.refresh(entry.owner);
   // AFTER the write, never before. One call site covers creditSignature
   // AND creditDeed (creditDeed routes through creditSignatureImpl into
   // here). The cache refresh notifies once it has folded, so the poke
@@ -217,6 +221,19 @@ async function bandsForImpl(
   if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
   if (!ownerId) return overlay([]);
+  // ⭐ The fold is cached per owner (db-performance H3): it was a
+  // transcript read on every call — every competence band, every `job
+  // apply`, every banded look. The ledger has one writer
+  // (`buildAndSave`), which refreshes it. ⚠ Not inside a sandbox circle:
+  // a circle reads its own stamped rows beside the field's, so its view
+  // is not the cached one — it asks the ledger, as before.
+  if (ExecutionContextApi.getCircleScope() !== null) return overlay(await foldTranscriptOf(ownerId));
+  if (!foldCache.has(ownerId)) await foldCache.refresh(ownerId);
+  return overlay(foldCache.has(ownerId) ? (foldCache.get(ownerId) ?? []) : await foldTranscriptOf(ownerId));
+}
+
+/** The transcript fold for one owner: one band per evidenced Discipline. */
+async function foldTranscriptOf(ownerId: string): Promise<DisciplineBand[]> {
   const entries = await TranscriptEntry.find({ owner: ownerId });
   const byDiscipline = new Map<string, TranscriptEntry[]>();
   for (const e of entries) {
@@ -224,14 +241,23 @@ async function bandsForImpl(
     bucket.push(e);
     byDiscipline.set(e.discipline, bucket);
   }
-  const folded = [...byDiscipline.entries()]
+  return [...byDiscipline.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([discipline, rows]) => ({
       discipline,
       band: Competence.bandOf(rows),
     }));
-  return overlay(folded);
 }
+
+/**
+ * ⭐ The transcript fold per owner (db-performance H3) — the third cache
+ * over this ledger, under the two below: they derive from it rather than
+ * reading the ledger themselves. Refreshed by the ledger's one writer.
+ */
+const foldCache = new DerivedStandingCache<DisciplineBand[]>(
+  (ownerId) => foldTranscriptOf(ownerId),
+  () => undefined,
+);
 
 /**
  * The verb yaml-paths the owner's current bands confer: for each
@@ -570,6 +596,17 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       if (!transcriptActive()) return CompetenceBand.FLOOR;
       const ownerId = ownerKeyOf(this as unknown as Stuff);
       if (!ownerId) return CompetenceBand.FLOOR;
+      // ⭐ The fold's band for this Discipline — the same `bandOf` over the
+      // same rows — read from the owner's cached fold (db-performance H3;
+      // the drive found this per-discipline read was the hot one, not
+      // `bandsFor`). A circle asks the ledger (its own stamped rows).
+      if (ExecutionContextApi.getCircleScope() === null) {
+        if (!foldCache.has(ownerId)) await foldCache.refresh(ownerId);
+        const fold = foldCache.get(ownerId);
+        if (fold) {
+          return this.suppressed(fold.find((b) => b.discipline === discipline)?.band ?? CompetenceBand.FLOOR);
+        }
+      }
       const entries = await TranscriptEntry.find({
         owner: ownerId,
         discipline,

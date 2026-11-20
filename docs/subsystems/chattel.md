@@ -356,3 +356,11 @@ and the title stays put.
 
 A ship is not chattel: her title is her register entry, owned by her
 company, whose holders are its cap table ([ship.md](./ship.md)).
+
+## Writes are keyed (db-performance, 2026-11)
+
+`setPlace` and the title upsert (`stamp`, `transfer`) each write ONE keyed
+`saveMany` row (on `chattelId`) where they were a find then a save. A
+place write is partial (`place`, `pin`) with `insert: false` — a row that
+is not there is not made, as the old early return did. Each write names
+its fields: a field the stamp gains is one more name in its list.

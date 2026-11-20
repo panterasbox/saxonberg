@@ -10,6 +10,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { withHands } from '../../slot/__tests__/carrying-fixture';
 import { CarryingMixin } from '../../slot/Carrying';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -112,6 +113,7 @@ beforeEach(() => {
       return id;
     },
   );
+  spySaveMany(pm);
 });
 afterEach(() => {
   vi.restoreAllMocks();

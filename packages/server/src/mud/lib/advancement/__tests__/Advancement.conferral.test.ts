@@ -9,6 +9,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Idea } from "../../stuff/Idea";
 import { CommandGiverMixin } from "../../command/CommandGiver";
@@ -105,6 +106,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   await warmCatalogue();
 });

@@ -17,6 +17,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlantController from '@saxonberg/server/mud/platform/idea/cmd/inventory/PlantController';
 import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterController';
@@ -132,13 +133,13 @@ function installStore(): void {
     if (keys.length === 0) return arr.slice();
     return arr.filter((d) => keys.every((k) => d[k] === q[k]));
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(async () => null),
     delete: vi.fn(async () => {}),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(
     () => undefined,
     async () => undefined,

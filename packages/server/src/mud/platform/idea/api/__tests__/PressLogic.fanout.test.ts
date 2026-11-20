@@ -18,6 +18,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PressApi } from '../../../../api/press';
 import { Release } from '../../../../lib/press/Release';
@@ -135,6 +136,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(PlayerApi, 'getAllAvatars').mockImplementation(
     () => avatars as never
   );

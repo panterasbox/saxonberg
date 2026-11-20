@@ -22,6 +22,29 @@ import { SecurityApi } from "../../api/security";
 import type { FieldMeta } from "../mixin";
 import { WarmedIndex } from "../persistence/WarmedIndex";
 
+/**
+ * An account row's identity and standing, as the read index holds it
+ * (db-performance H2) — everything but the balance, which the index keeps
+ * beside it, fresher than any row.
+ */
+export interface AccountMeta {
+  _id?: string;
+  owner: string;
+  bank: string;
+  bankPath: string;
+  corpoKey: string;
+  isPrimary: boolean;
+  isActive: boolean;
+}
+
+/** One entry of the account index. */
+export interface AccountEntry {
+  balance: number;
+  currency: string;
+  /** The row's meta — absent only for an entry the index has not seen saved. */
+  row?: AccountMeta;
+}
+
 export default class AccountBalance extends Document {
   static collectionName = Collections.BankAccounts;
   static fieldMeta: FieldMeta = {
@@ -96,7 +119,7 @@ export default class AccountBalance extends Document {
    * refuses is this subsystem's business. See that class for why this
    * cannot live on `BankingLogic`.
    */
-  static #index = new WarmedIndex<{ balance: number; currency: string }>();
+  static #index = new WarmedIndex<AccountEntry>();
 
   /**
    * Load all balances into the read index. Called at boot + after rebuild.
@@ -122,7 +145,7 @@ export default class AccountBalance extends Document {
         }
         return [
           r.accountId,
-          { balance: r.balance, currency: r.currency },
+          { balance: r.balance, currency: r.currency, row: r.meta() },
         ] as const;
       }),
     );
@@ -133,7 +156,7 @@ export default class AccountBalance extends Document {
    *
    * @internal the callable door is `BankingApi.balanceOf`.
    */
-  static cached(): ReadonlyMap<string, { balance: number; currency: string }> {
+  static cached(): ReadonlyMap<string, AccountEntry> {
     return AccountBalance.#index.entries();
   }
 
@@ -213,6 +236,37 @@ export default class AccountBalance extends Document {
     AccountBalance.#index.put(accountId, {
       balance,
       currency: currency ?? existing?.currency ?? "",
+      ...(existing?.row ? { row: existing.row } : {}),
+    });
+  }
+
+  /** This row's identity and standing — what the index keeps beside the balance. */
+  public meta(): AccountMeta {
+    return {
+      ...(this._id ? { _id: this._id } : {}),
+      owner: this.owner,
+      bank: this.bank,
+      bankPath: this.bankPath,
+      corpoKey: this.corpoKey,
+      isPrimary: this.isPrimary,
+      isActive: this.isActive,
+    };
+  }
+
+  /**
+   * ⭐ Save, and keep the read index's copy of this row's meta current
+   * (db-performance H2): every write of an account row passes here, so the
+   * owner → accounts read can answer from memory. The balance in the index
+   * is NOT taken from the row — a posting keeps it fresher than any row an
+   * earlier read handed out — except for a row the index has never seen.
+   */
+  public override async save(): Promise<void> {
+    await super.save();
+    const existing = AccountBalance.#index.get(this.accountId);
+    AccountBalance.#index.put(this.accountId, {
+      balance: existing?.balance ?? this.balance,
+      currency: existing?.currency || this.currency,
+      row: this.meta(),
     });
   }
 

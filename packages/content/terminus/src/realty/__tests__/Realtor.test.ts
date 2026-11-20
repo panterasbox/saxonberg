@@ -17,6 +17,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -58,7 +59,7 @@ let named: string[];
 
 function installStore(): void {
   rows = [];
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async () => "x"),
     find: vi.fn(async (collection: string, q: Record<string, unknown>) =>
       collection === "content" && "data.parentExtent" in q ? rows.slice() : [],
@@ -66,7 +67,7 @@ function installStore(): void {
     findById: vi.fn(async () => null),
     delete: vi.fn(async () => {}),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   named = [];
   vi.spyOn(Realtor.prototype, "getBooks").mockImplementation(() => named);
 }

@@ -6,6 +6,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CompactApi } from "../compact";
 import { ExecutionContextApi } from "../execution-context";
@@ -24,6 +25,7 @@ function stubPM() {
     saves.push({ collection, doc: doc as Record<string, unknown> });
     return "inserted-id";
   });
+  spySaveMany(pm);
   vi.spyOn(pm, "find").mockImplementation(async () => findResult);
   return { saves, setFindResult: (d: Record<string, unknown>[]) => (findResult = d) };
 }

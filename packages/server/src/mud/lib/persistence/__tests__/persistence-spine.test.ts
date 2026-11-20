@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from './pm-fake';
 import {
   describe,
   it,
@@ -264,13 +265,13 @@ beforeEach(() => {
     const i = snapshots.findIndex((d) => d._id === id);
     if (i >= 0) snapshots.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: del,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   // Item reconstitution → fresh base fixtures (the gated clone stand-in).
   vi.spyOn(StuffApi, "clone").mockImplementation(

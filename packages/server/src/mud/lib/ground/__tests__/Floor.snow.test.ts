@@ -5,6 +5,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { MixinApi } from '../../../api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
@@ -41,7 +42,7 @@ function installStore(): void {
     ...d,
     _id: String(i + 1),
   }));
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (c: string, q: Record<string, unknown>) =>
       c !== Collections.Content
@@ -50,7 +51,7 @@ function installStore(): void {
           ? all.filter((d) => d.path === q.path)
           : all.slice(),
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function installRootBiome(): void {

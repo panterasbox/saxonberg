@@ -12,6 +12,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { rememberDisciplines } from '../../../../../lib/advancement/__tests__/discipline-fixtures';
@@ -70,6 +71,7 @@ function fakeMongo(): void {
       return id;
     }
   );
+  spySaveMany(pm);
 }
 
 function stubScene(): void {

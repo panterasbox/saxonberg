@@ -860,9 +860,30 @@ search ([mql.md](./mql.md); it is what `lint:world-scan` points a
 bespoke `getAllObjects()` loop at) — and each answers
 `capturesAtShutdown()` for itself. That predicate holds the exclusions,
 because who wants a shutdown capture is this mixin's knowledge, not the
-bootstrapper's: a host with no persistence key never established one, and
-an **Avatar** says no because it captures at logout on its own seam and
-the sweep would only race it.
+bootstrapper's: a host with no persistence key never established one, so
+it says no; **every other host says yes, a connected body included**.
+
+⚠⚠ Until db-performance W4 (2026-11) an Avatar said no — "it captures at
+logout on its own seam, and the sweep would only race it". But at
+shutdown nothing awaits a logout: the sockets close and the process
+exits, so a connected player came back from their last periodic save.
+The drive stopped a world with thirty players connected and all thirty
+came back **elsewhere, without what they had been handed since**. A logout
+capture beside the sweep's is ordered by the per-record write queue; each
+writes a whole snapshot.
+
+⭐ **A capture is ONE keyed write, and the sweep is bounded** (W4). A
+capture prepares its record (key, synchronous snapshot, the estate flush
+of goods titled to others) and writes it as one `saveMany` upsert on
+`{scope, owner}` — where it was a find then a save, two round trips and
+not atomic (the per-record queue exists because two first captures both
+inserted and died on the unique index; the upsert cannot). The shutdown
+sweep waits for queued writes, prepares hosts six at a time (dependents
+join the queue) and writes twenty-five records to a batch as they are
+ready — so a process killed at its grace has kept every batch already
+written — and returns `ShutdownCaptureReport { captured, failed, ms }`,
+logged as `shutdown captured <n> persistable host(s) in <ms> ms (<f>
+failed)`, the line an operator (and the db-performance drive) reads.
 
 ⚠ A `PersistableRegistry` briefly sat here, with hosts enrolling on
 `setPersistenceKey` and withdrawing on destruct. It was deleted: a third
@@ -1625,3 +1646,30 @@ born-with seed; only its *liveness* is transient. Proven in
 `PersistentLocale` keeps a place's floor, fire and fixtures
 across a restart through `AdornableMixin`'s fixture slice;
 `captureHostOf` walks fixture → host. See [cleanliness.md](./cleanliness.md).
+
+## `saveMany` — many rows in one round trip (db-performance, 2026-11)
+
+`PersistApi.saveMany(collection, writes)` writes a batch of rows of one
+collection as ONE unordered `bulkWrite`. Each `BatchWrite` picks its form
+by its own fields: **keyed** (`key: ['subject', 'scope']` — update the row
+whose key fields match, inserting when none does; `insert: false` makes it
+a partial update that writes nothing on a miss; `createdAt` only on
+insert), **by `_id`**, or an **insert**. A `Document` makes its write with
+`toBatchWrite({ key?, fields?, insert? })` — what `save()` prepares,
+returned instead of sent (`fields` keeps only those and the key).
+
+It obeys `save`'s rules and refuses where it cannot:
+
+- ⚠ a collection with an around-save hook is **refused** with
+  `BatchOnHookedCollectionError` before anything is sent — a hook may
+  rewrite or veto a document, and a batch that skipped it silently would be
+  the defect (`content` is the one hooked collection);
+- the sandbox policy is one sentence for both (`writePolicy`): a `stamp`
+  collection also confines a keyed filter to the circle, `shadow`/`skip`
+  writes nothing;
+- it runs inside the `(collection, save)` slot, so re-entry throws.
+
+**The wrong tool** for a row whose `_id` the caller needs back (it returns
+a count) and for a hooked collection. Its consumers: the frame drain
+(record-layer.md), the three scoring passes (participation.md,
+renown.md), and the capture write (below).

@@ -20,6 +20,8 @@ import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
+import { PersistApi } from "../../../api/persist";
+import type { Persistable } from "../../../lib/persistence/Persistable";
 import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
 import TemplateApplier from "../TemplateApplier";
@@ -732,27 +734,75 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
  *
  * ⭐ It lives HERE rather than in the bootstrapper because the
  * registry-wide read is gated on the calling function, and a backend
- * class has no dispatched frame to be recognized by. Returns the number
- * captured; each failure is logged and skipped.
+ * class has no dispatched frame to be recognized by.
+ *
+ * ⭐ Bounded (db-performance D8): hosts are prepared six at a time (the
+ * pool, less headroom for the estate flushes a prepare makes) and written
+ * twenty-five records to a `saveMany` as they are ready, so a process
+ * killed at any moment has kept every batch already written. Returns
+ * what it saved, what failed (logged, never fatal at exit) and how long
+ * it took — the line the operator reads.
  */
-async function captureAtShutdownImpl(): Promise<number> {
-  const hosts = StuffApi.findByMixin('PersistableMixin');
-  let captured = 0;
-  for (const stuff of hosts) {
+async function captureAtShutdownImpl(): Promise<ShutdownCaptureReport> {
+  const t0 = Date.now();
+  // A capture already queued for a record finishes first: the sweep's
+  // write of that record must land after it, not beside it.
+  await Promise.allSettled([...recordWrites.values()]);
+  const queue: Stuff[] = [];
+  for (const stuff of StuffApi.findByMixin('PersistableMixin')) {
     if (!MixinApi.isPersistable(stuff)) continue;
     if (!stuff.capturesAtShutdown()) continue;
-    try {
-      await captureImpl(stuff);
-      captured += 1;
-    } catch (err) {
-      console.error(
-        `PersistableLogic.captureAtShutdown: failed for ` +
-          `${stuff.getTemplatePath() ?? stuff.stuffId}:`,
-        err,
-      );
-    }
+    queue.push(stuff);
   }
-  return captured;
+  let captured = 0;
+  let failed = 0;
+  let chunk: PreparedCapture[] = [];
+  const writes: Promise<void>[] = [];
+  /** Write what is prepared, as one batch; a kill after it has lost none of it. */
+  const flush = (): void => {
+    if (chunk.length === 0) return;
+    const batch = chunk;
+    chunk = [];
+    writes.push(
+      (async () => {
+        try {
+          const rows = await Promise.all(batch.map((c) => c.record.toBatchWrite({ key: RECORD_KEY })));
+          await PersistApi.saveMany(PersistedRecord.collectionName, rows);
+          captured += batch.length;
+        } catch (err) {
+          // @quiet the report counts it (`failed`) and the line names the records.
+          failed += batch.length;
+          console.error(
+            `PersistableLogic.captureAtShutdown: a batch of ${batch.length} record(s) failed ` +
+              `(${batch.map((c) => c.id.replace('\u0000', ' ')).slice(0, 5).join(', ')}…):`,
+            err,
+          );
+        }
+      })(),
+    );
+  };
+  const worker = async (): Promise<void> => {
+    for (let host = queue.shift(); host !== undefined; host = queue.shift()) {
+      try {
+        const prepared = await prepareCapture(host);
+        if (!prepared) continue;
+        chunk.push(prepared);
+        for (const d of prepared.dependents) if (!d.isDestroyed()) queue.push(d);
+        if (chunk.length >= SHUTDOWN_WRITE_CHUNK) flush();
+      } catch (err) {
+        failed += 1;
+        console.error(
+          `PersistableLogic.captureAtShutdown: failed for ` +
+            `${host.getTemplatePath() ?? host.stuffId}:`,
+          err,
+        );
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: SHUTDOWN_PREPARE_CONCURRENCY }, worker));
+  flush();
+  await Promise.all(writes);
+  return { captured, failed, ms: Date.now() - t0 };
 }
 
 /**
@@ -1213,10 +1263,63 @@ async function roomOwnedByInstitution(
   return null;
 }
 
+/** What the shutdown sweep saved (db-performance D8) — the line the operator reads. */
+export interface ShutdownCaptureReport {
+  /** Records written. */
+  captured: number;
+  /** Hosts whose prepare threw, and records in a batch that failed. */
+  failed: number;
+  /** Wall ms the sweep took. */
+  ms: number;
+}
+
 /* ─────────────────────────── impl entry points ──────────────────────── */
 
+/**
+ * A capture made ready to write: the record (scope, owner, state, place)
+ * and the hosts whose records follow it (db-performance D8).
+ */
+interface PreparedCapture {
+  /** The per-record queue key — `scope` NUL `owner`. */
+  id: string;
+  record: PersistedRecord;
+  dependents: (Stuff & Persistable)[];
+}
+
+/** The row's key on `holder_snapshots` (its unique index). */
+const RECORD_KEY = ['scope', 'owner'] as const;
+
+/**
+ * ⭐ One capture: prepare it, write it as ONE keyed upsert in the record's
+ * own queue, then the records it owns. (Before db-performance W4 the write
+ * was a find then a save — two round trips, and not atomic, which is why
+ * the queue exists; a keyed upsert is one round trip and atomic against
+ * the unique `{scope, owner}` index, and the queue still orders two
+ * captures of one record.)
+ */
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
-  if (optedOutOfPersistence(host)) return; // guest / opted-out host
+  const prepared = await prepareCapture(host, key);
+  if (!prepared) return;
+  const write = await prepared.record.toBatchWrite({ key: RECORD_KEY });
+  await serialRecordWrite(prepared.id, async () => {
+    await PersistApi.saveMany(PersistedRecord.collectionName, [write]);
+  });
+  // ⭐ The records this host owns follow it (tracts build D26): a tract's
+  // fields are written with the tract, each under its own key. Each goes
+  // through its own record's write queue.
+  for (const dependent of prepared.dependents) {
+    if (!dependent.isDestroyed()) await captureImpl(dependent);
+  }
+}
+
+/**
+ * Everything a capture does before its write: resolve the record's key,
+ * take the synchronous snapshot, send goods titled to others to their
+ * estates. `null` when there is nothing to write (an opted-out host, or one
+ * destructed during the awaits).
+ */
+async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCapture | null> {
+  if (optedOutOfPersistence(host)) return null; // guest / opted-out host
   const scope = host.getIdentityPath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
@@ -1235,7 +1338,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // The destruct backstop fires-and-forgets; a destruct that finished
   // during the awaits above has evacuated the host, and a snapshot of an
   // inert shell would overwrite the last good record with nothing.
-  if (host.isDestroyed()) return;
+  if (host.isDestroyed()) return null;
   skippedOwnedGoods.clear();
   // The records this host owns, read while it stands: the write below
   // awaits, and a host destructed meanwhile (a warren put to sleep) is
@@ -1278,35 +1381,29 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
       skippedOwnedGoods.clear();
     }
   }
-  // ⭐ One write at a time per record: two captures of a host
-  // that has no record yet both found none and both INSERTED, and the
-  // second died on the unique index — a ship's first commissioning capture
-  // and the fire-and-forget one her mooring kicks off at seed raced, so
-  // `buy smack` threw E11000 and the snapshot that lost was the good one.
-  // The snapshot above is taken synchronously; only find-then-save queues.
-  await serialRecordWrite(`${scope}\u0000${owner}`, async () => {
-    const rec =
-      (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
-      new PersistedRecord();
-    rec.scope = scope;
-    rec.owner = owner;
-    rec.state = state;
-    rec.place = place;
-    rec.writtenAt = Date.now();
-    await rec.save();
-  });
-  // ⭐ The records this host owns follow it (tracts build D26): a tract's
-  // fields are written with the tract, each under its own key. Each goes
-  // through its own record's write queue.
-  for (const dependent of dependents) {
-    if (!dependent.isDestroyed()) await captureImpl(dependent);
-  }
+  // The snapshot above is taken synchronously; the write is the caller's
+  // — one keyed upsert, so two captures of a host with no record yet can
+  // no longer both INSERT and die on the unique index (a ship's first
+  // commissioning capture and the one her mooring kicks off raced, and
+  // `buy smack` threw E11000).
+  const record = new PersistedRecord();
+  record.scope = scope;
+  record.owner = owner;
+  record.state = state;
+  record.place = place;
+  record.writtenAt = Date.now();
+  return { id: `${scope}\u0000${owner}`, record, dependents };
 }
+
+/** How many hosts the shutdown sweep prepares at once. */
+const SHUTDOWN_PREPARE_CONCURRENCY = 6;
+/** Records per shutdown `saveMany`. */
+const SHUTDOWN_WRITE_CHUNK = 25;
 
 /** Runtime: the in-flight record write per `(scope, owner)` — the queue {@link serialRecordWrite} keeps. */
 const recordWrites = new Map<string, Promise<void>>();
 
-/** Run `write` after any earlier write of the same record has settled (find-then-save is not atomic). */
+/** Run `write` after any earlier write of the same record has settled — two captures of one record land in order. */
 function serialRecordWrite(id: string, write: () => Promise<void>): Promise<void> {
   const prior = recordWrites.get(id) ?? Promise.resolve();
   const mine = prior.catch(() => undefined).then(write);
@@ -1710,7 +1807,7 @@ export class PersistableLogic extends ApiLogic {
 
   /** See {@link PersistableApi.captureAtShutdown}. */
   @CallSecurity(PersistableApiCallers)
-  public async captureAtShutdown(): Promise<number> {
+  public async captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return captureAtShutdownImpl();
   }
 

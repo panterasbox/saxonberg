@@ -6,6 +6,7 @@
  */
 
 import { vi } from 'vitest';
+import { spyPersistSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, dirname } from 'path';
@@ -161,6 +162,7 @@ export function stubPersist(): void {
       return id;
     },
   );
+  spyPersistSaveMany();
   vi.spyOn(PersistApi, 'delete').mockImplementation(
     async (_col: string, id: string) => {
       const i = store.rows.findIndex((r) => r._id === id);

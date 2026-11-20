@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import SearchController from '../../../platform/idea/cmd/perception/SearchController';
@@ -116,7 +117,7 @@ function installStore(): void {
   const store = [...(KERNEL_CONTENT_ROWS as unknown as typeof docs), ...docs].map(
     (d, i) => ({ ...d, _id: String(i + 1) }),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
@@ -128,7 +129,7 @@ function installStore(): void {
     findById: vi.fn(async (_c: string, id: string) =>
       store.find((d) => d._id === id) ?? null,
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function stub(verb: string): CommandDefinition {

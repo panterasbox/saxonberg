@@ -41,11 +41,14 @@ export interface CommandDispatchedPayload {
    */
   locationTemplatePath?: string;
   /**
-   * OPTIONAL — the giver's own durable `templatePath` (the engaging player's
-   * id, same space as the credited author), for the producer faucet's A≠P
-   * self-credit exclusion. Absent for an un-templated giver.
+   * OPTIONAL — the giver's identity path (the engaging PERSON, same space
+   * as the credited author), for the producer faucet's per-actor dedup and
+   * its A≠P self-credit exclusion. ⚠ Never the lineage: every player body
+   * is cloned from one row, so a lineage actor was every player at once
+   * and the exclusion never fired (db-performance W1, D2). Absent for a
+   * giver with no identity.
    */
-  actorTemplatePath?: string;
+  actorIdentityPath?: string;
 }
 
 export class CommandDispatchedEvent {

@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { rememberDisciplines } from "../../../../../lib/advancement/__tests__/discipline-fixtures";
 import PracticeController from "../PracticeController";
@@ -71,6 +72,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });

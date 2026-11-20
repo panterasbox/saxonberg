@@ -46,7 +46,10 @@ leaks rather than a bounded one.
 `RecordApi.record` is **synchronous, allocation-cheap and does no I/O**:
 it stamps a sequence number and pushes onto an in-memory buffer. A
 recurring drain (`record.frames.flushMs`, default 1s) does the Mongo
-work, one `save` per row.
+work: the whole buffer as ONE `PersistApi.saveMany` (db-performance W2 —
+it was one `save` per row, 12.7 round trips per command in the thirty-
+player drive, the single largest cost a player's act made). A failed batch
+is logged once with its row count.
 
 The cost, stated rather than hidden: **up to one flush interval is lost
 if the process dies.** That is the correct trade for scrollback — the

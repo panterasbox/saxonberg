@@ -61,12 +61,14 @@ export class ProducerApi {
   }
 
   /**
-   * Re-score every author's production from the raw attributed-engagement
-   * log into the materialized aggregate — the batch the recompute schedule
-   * fires (and the `producerOf` cache is refreshed from).
+   * Run a scoring pass now: re-score the authors whose attributed-engagement
+   * rows changed since the last pass (every author on the first pass after
+   * a start, or when the value function changed). `{ full: true }`
+   * re-scores every author — what a caller that wrote ledger rows directly
+   * needs. Decay between passes is applied at read.
    */
-  public static async recompute(): Promise<void> {
-    return logic().recompute();
+  public static async recompute(opts?: { full?: boolean }): Promise<void> {
+    return logic().recompute(opts);
   }
 
   /**

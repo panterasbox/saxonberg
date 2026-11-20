@@ -14,6 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -110,11 +111,11 @@ function mockPmForPing(): void {
       return [];
     }
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(),
     find,
     findById: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 const asEnv = (e: EnvelopeTemplate): Omit<DispatchResponseEnvelope, 'frameId'> =>
@@ -406,11 +407,11 @@ describe('the script verb inherits the async override', () => {
         return [];
       }
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     location = makeStuff(() => new Place());
     giver = makeStuff(() => new ScriptGiver());
     ContainmentApi.move(giver, location);

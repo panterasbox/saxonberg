@@ -12,9 +12,9 @@
  * eventual ballot). The three stocks are three dimensions of every member,
  * each earned independently.
  *
- * Keyed on the giver's durable `templatePath` (post the durability re-key) —
- * the same id every faucet banks under, so reads and the projection combine
- * on one key. Falls back to the `stuffId` for an un-templated actor.
+ * Keyed on the giver's identity path — the person, the same id every faucet
+ * banks under, so reads and the projection combine on one key. Falls back
+ * to the `stuffId` for an actor with no identity.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';

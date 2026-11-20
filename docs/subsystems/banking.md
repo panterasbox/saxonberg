@@ -904,3 +904,21 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
   as *"4 a 5-zorkmid pieces"*, and the new vault term double-counted the
   branch float. The lesson is the one the project already holds: **green
   tests are not a working flow.**
+
+## Reads that do not reach the database (db-performance, 2026-11)
+
+**Which accounts a person holds is answered from the warmed index.** The
+balance index (`AccountBalance`, warmed at boot with every account) keeps
+each row's meta beside its balance — owner, bank, primary, active. Every
+account row is written through `AccountBalance.save`, which keeps that copy
+current and never pushes a row's balance over the posted one (a posting
+keeps the index fresher than any row an earlier read handed out). So
+`accountsOf` / `accountAt` / `accountById` cost no round trip once warm; a
+cold or incomplete index asks the database as before. ⚠ A path that wrote
+an account row without `AccountBalance.save` would leave the index stale —
+there is none today; keep it so.
+
+The employment layer's "has this venue had its opening advance?" check
+remembers a venue account it has seen with ledger rows (a ledger is
+append-only, so once true, always true) instead of reading two ledger
+finds on every paid act.

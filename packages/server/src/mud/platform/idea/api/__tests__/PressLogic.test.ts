@@ -16,6 +16,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PressApi } from '../../../../api/press';
 import {
@@ -152,6 +153,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   // A warm (empty) board so publish's upsert + recent resolve.
   void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
   installPublisher();

@@ -6,6 +6,7 @@
  */
 
 import { vi } from "vitest";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { Collections } from '../../../../backend/PersistenceManager';
 import { readFileSync } from "fs";
@@ -92,6 +93,7 @@ export function installBankingHarness(): void {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, "delete").mockImplementation(async (c: string, id: string) => {
     col(c).delete(id);
   });

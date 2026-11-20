@@ -56,7 +56,7 @@
  * Idea-rooted Stuff (for HMR) and are reached through the injected resolver.
  */
 
-import { PersistApi, type FindOptions } from '../../api/persist';
+import { PersistApi, type BatchWrite, type FindOptions } from '../../api/persist';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 
 type Indexable = Record<string, unknown>;
@@ -260,6 +260,37 @@ export class Document {
     const doc = this.toDocument();
     const savedId = await PersistApi.save(collection, doc);
     if (!this._id) this._id = savedId;
+  }
+
+  /**
+   * ⭐ This row as one write of a `PersistApi.saveMany` batch — what
+   * {@link save} does before its write (stamp `updatedAt`, preload the
+   * marshallers, `toDocument()`), returned instead of sent. With `key`,
+   * the write updates the row whose `key` fields match (inserting when
+   * none does, unless `insert: false`); with `fields`, only those fields
+   * and the key are written — a partial update. Without `key`, the row's
+   * own `_id` addresses it, as `save` would.
+   *
+   * ⚠ A batch insert returns no id: a caller that needs this row's `_id`
+   * afterwards uses `save`.
+   */
+  public async toBatchWrite(opts: {
+    key?: readonly string[];
+    fields?: readonly string[];
+    insert?: boolean;
+  } = {}): Promise<BatchWrite> {
+    this.updatedAt = new Date();
+    await this.preloadFieldMarshallers();
+    let doc = this.toDocument();
+    if (opts.fields) {
+      const keep = new Set<string>([...opts.fields, ...(opts.key ?? []), 'updatedAt']);
+      doc = Object.fromEntries(Object.entries(doc).filter(([k]) => keep.has(k)));
+    }
+    return {
+      doc,
+      ...(opts.key ? { key: opts.key } : {}),
+      ...(opts.insert !== undefined ? { insert: opts.insert } : {}),
+    };
   }
 
   /**

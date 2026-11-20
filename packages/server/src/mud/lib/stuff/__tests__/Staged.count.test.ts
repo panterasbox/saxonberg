@@ -12,6 +12,7 @@
  * a repeat with no identity is an entry no child row can ever address.
  */
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Stuff } from '../Stuff';
 import { Idea } from '../Idea';
@@ -35,7 +36,7 @@ type Doc = Record<string, unknown> & {
 
 function installInMemoryStore(initial: Doc[] = []): void {
   const store: Doc[] = initial.map((d, i) => ({ ...d, _id: String(i + 1) }));
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => 'x'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
@@ -44,7 +45,7 @@ function installInMemoryStore(initial: Doc[] = []): void {
       }
       return store.slice();
     }),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 const PlainBase = ContainableMixin(ContainerMixin(Idea));

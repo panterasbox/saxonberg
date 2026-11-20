@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -36,6 +37,7 @@ function stubPM() {
   let findResult: Record<string, unknown>[] = [];
   const pm = PersistenceManager.get();
   vi.spyOn(pm, "save").mockResolvedValue("inserted-id" as never);
+  spySaveMany(pm);
   vi.spyOn(pm, "find").mockImplementation(async () => findResult);
   return { setFindResult: (d: Record<string, unknown>[]) => (findResult = d) };
 }

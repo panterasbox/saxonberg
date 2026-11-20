@@ -12,6 +12,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { writeFileSync, mkdtempSync, rmSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
@@ -366,11 +367,11 @@ describe('HotReloadApi', () => {
       );
       const save = vi.fn();
       const findById = vi.fn();
-      vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+      vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
         save,
         find,
         findById,
-      } as unknown as PersistenceManager);
+      }) as unknown as PersistenceManager);
     }
 
     afterEach(() => {

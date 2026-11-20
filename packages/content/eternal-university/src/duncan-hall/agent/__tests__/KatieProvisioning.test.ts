@@ -11,6 +11,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -99,13 +100,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function seedDormsParcel(): void {

@@ -14,6 +14,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ParcelRegistry from "../idea/ParcelRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
@@ -92,13 +93,13 @@ function installStore(): void {
       );
     },
   );
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
 }
 

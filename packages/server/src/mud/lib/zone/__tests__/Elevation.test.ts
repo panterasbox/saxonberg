@@ -22,6 +22,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ZoneApi } from '../../../api/zone';
@@ -72,10 +73,10 @@ function installInMemoryStore(initial: Doc[] = []): void {
       return store.slice();
     },
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 /** The universe biome, holding the sea-level pressure REFERENCE. */

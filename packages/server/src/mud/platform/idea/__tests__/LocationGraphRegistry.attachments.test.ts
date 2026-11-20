@@ -6,6 +6,7 @@
  * searched at read time.
  */
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { NavigationApi } from '../../../api/navigation';
@@ -68,13 +69,13 @@ beforeEach(() => {
     findById(c: string, id: string): Promise<unknown>;
     delete(c: string, id: string): Promise<void>;
   };
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     save: async (c: string, d: Record<string, unknown>) => (c === 'location_graph' ? 'id' : real.save(c, d)),
     find: async (c: string, q: Record<string, unknown>, o?: unknown) => (c === 'location_graph' ? [] : real.find(c, q, o)),
     findById: async (c: string, id: string) => real.findById(c, id),
     delete: async (c: string, id: string) => (c === 'location_graph' ? undefined : real.delete(c, id)),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ParcelApi, 'coveringParcelOfSync').mockReturnValue(null);
   makeStuffAtPath(() => new LocationGraphRegistry(), '/platform/idea/LocationGraphRegistry');
 });

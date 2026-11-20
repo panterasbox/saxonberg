@@ -10,6 +10,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AssessController from '../AssessController';
 import { Creature } from '../../../../../lib/creature/Creature';
@@ -54,6 +55,7 @@ function fakeMongo(): void {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   vi.spyOn(pm, 'save').mockResolvedValue('id-0' as never);
+  spySaveMany(pm);
 }
 
 function ctxFor(actor: unknown, location: unknown): CommandContext {

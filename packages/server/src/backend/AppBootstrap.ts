@@ -319,7 +319,9 @@ export class AppBootstrap {
     // objects did not already hold — and the loop re-derived every one of
     // them on read anyway (`isPersistable`, a null key, `isDestroyed`),
     // which is the tell that a cache is buying nothing.
-    const captured = await PersistableApi.captureAtShutdown();
-    console.info(`AppBootstrap: shutdown captured ${captured} persistable host(s)`);
+    const r = await PersistableApi.captureAtShutdown();
+    console.info(
+      `AppBootstrap: shutdown captured ${r.captured} persistable host(s) in ${r.ms} ms (${r.failed} failed)`,
+    );
   }
 }

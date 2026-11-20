@@ -16,6 +16,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EstateMixin } from '../Estate';
 import { PersistableMixin } from '../../persistence/Persistable';
@@ -66,13 +67,13 @@ describe('⭐ the estate holds its own succession state', () => {
       snapshots.push({ ...doc, _id });
       return _id;
     });
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       isConnected: () => true,
       save,
       find,
       findById: vi.fn(),
       delete: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
       kind: 'group',
       name: 'lounge',

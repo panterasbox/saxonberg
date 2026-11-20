@@ -1098,6 +1098,20 @@ a WORKER thread, so the harness's thirty sockets are not what it measures.
 command line); a profile is written at a clean exit — stop the world with
 SIGTERM. Slice it by the server uptime the crowd record marks per phase.
 
+⭐ **`/stats.db` is the database's own numbers** (db-performance, 2026-11):
+`pool` — `inUse` and `waiting` now, and since boot `waited` (check-outs
+that started with every connection taken), `waitMs` (time spent getting
+one) and `peakWaiting`; `roundTrips` (connection check-outs — one per wire
+command, cursor `getMore`s included: the figure the host's latency
+multiplies); `ops` and `byOp` — PersistenceManager calls and their wall
+time, in total and per `<op> <collection>`. Always on: two clock reads and
+a map write per op, honest enough to rank hot paths on any box (a COUNT is
+evidence anywhere; a time only on the quiet box). `callers` — the query
+trace's per-caller table — appears only with `SAXONBERG_QUERY_TRACE=1`,
+which costs a stack per op, so a traced run's timings are not evidence.
+`db-performance.dirty` is the third quiet-box file; `DBP_WORK=1` runs its
+working and stop steps for their counts on a box that is not quiet.
+
 ⭐ **The tripwire is armed in every wire world**: the room's own reading
 (the light walk, the sound gather, the smell fold, a card's projection)
 holds the world still, and a write inside it THROWS in a test world

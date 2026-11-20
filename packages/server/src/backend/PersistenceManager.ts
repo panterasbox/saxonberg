@@ -23,6 +23,7 @@ import {
   Db,
   Collection,
   ObjectId,
+  type AnyBulkWriteOperation,
   type IndexSpecification,
   type CreateIndexesOptions,
 } from 'mongodb';
@@ -94,6 +95,32 @@ function _qrec(op: string, coll: string, keys: string, t0: number): void {
   row.n += 1;
   row.ms += performance.now() - t0;
   _qstats.set(key, row);
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// The always-on op counters (db-performance, D10).
+//
+// Every PersistenceManager op counts here — calls and wall time, in total
+// and per `<op> <collection>` — whatever the trace switch says. Two clock
+// reads and a map write per op: cheap enough to leave on, and honest
+// enough to rank the hot paths (the per-caller trace above needs a stack
+// per op, which distorts what it times). Read through `stats()`, which
+// `/stats` serves as `db`. Cumulative since boot; a reader subtracts two
+// reads, as with `/stats`' `cpu` and `loop`.
+// ─────────────────────────────────────────────────────────────────────
+const _ostats = new Map<string, _QRow>();
+const _otot: _QRow = { n: 0, ms: 0 };
+
+function _orec(op: string, coll: string, keys: string, t0: number, n = 1): void {
+  const ms = performance.now() - t0;
+  _otot.n += n;
+  _otot.ms += ms;
+  const k = `${op} ${coll}`;
+  const row = _ostats.get(k) ?? { n: 0, ms: 0 };
+  row.n += n;
+  row.ms += ms;
+  _ostats.set(k, row);
+  if (_qtraceOn) _qrec(op, coll, keys, t0);
 }
 
 function _qdump(label: string): void {
@@ -326,6 +353,55 @@ interface HookManifest {
 }
 
 /**
+ * One write in a {@link PersistenceManager.saveMany} batch (db-performance
+ * D7). Three forms, chosen by the write's own fields:
+ *   - **`key`** — an update of the one row whose `key` fields equal the
+ *     doc's, `$set`ting the rest; inserted when none matches unless
+ *     `insert: false`. `createdAt` is written only on insert.
+ *   - **`_id`** (no `key`) — an update of that row, as `save` does.
+ *   - **neither** — an insert.
+ */
+export interface BatchWrite {
+  doc: Record<string, unknown>;
+  /** Field names forming the row's key. Omitted: by `_id`, else an insert. */
+  key?: readonly string[];
+  /** With `key`: insert when no row matches (default true). */
+  insert?: boolean;
+}
+
+/**
+ * Thrown by `saveMany` on a collection with a registered around-save hook,
+ * before anything is sent. A hook may rewrite or veto a document; a batch
+ * that skipped it silently would be the defect, so a hooked collection is
+ * written one `save` at a time.
+ */
+export class BatchOnHookedCollectionError extends Error {
+  constructor(public readonly collection: string) {
+    super(
+      `PersistenceManager.saveMany: '${collection}' has an around-save hook — ` +
+        'a batch would skip it. Write it with save().'
+    );
+    this.name = 'BatchOnHookedCollectionError';
+  }
+}
+
+/** The database's numbers (`PersistenceManager.stats()`; `/stats` → `db`). */
+export interface PersistStats {
+  pool: {
+    max: number;
+    inUse: number;
+    waiting: number;
+    waited: number;
+    waitMs: number;
+    peakWaiting: number;
+  };
+  roundTrips: number;
+  ops: { n: number; ms: number };
+  byOp: Record<string, { n: number; ms: number }>;
+  callers?: Array<{ key: string; n: number; ms: number }>;
+}
+
+/**
  * PersistenceManager - Singleton for MongoDB operations.
  */
 export class PersistenceManager {
@@ -467,14 +543,33 @@ export class PersistenceManager {
       console.info('PersistenceManager: Connecting to MongoDB...');
 
       this.client = new MongoClient(uri, {
-        maxPoolSize: 10,
+        maxPoolSize: PersistenceManager.POOL_MAX,
         minPoolSize: 2,
       });
       // ⭐ Operations in flight — waiting for a connection or holding one —
-      // from the pool's own events: what `whenQuiet` waits on.
-      this.client.on('connectionCheckOutStarted', () => { this.#inFlight++; });
-      this.client.on('connectionCheckOutFailed', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
-      this.client.on('connectionCheckedIn', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
+      // from the pool's own events: what `whenQuiet` waits on. The same
+      // events feed `stats()`'s pool figures (db-performance, D10).
+      const pool = this.#pool;
+      this.client.on('connectionCheckOutStarted', () => {
+        this.#inFlight++;
+        pool.started++;
+        if (pool.checkedOut - pool.checkedIn >= PersistenceManager.POOL_MAX)
+          pool.waited++;
+        const waiting = pool.started - pool.checkedOut - pool.failed;
+        if (waiting > pool.peakWaiting) pool.peakWaiting = waiting;
+      });
+      this.client.on('connectionCheckedOut', (ev: { durationMS?: number }) => {
+        pool.checkedOut++;
+        pool.waitMs += ev.durationMS ?? 0;
+      });
+      this.client.on('connectionCheckOutFailed', () => {
+        this.#inFlight = Math.max(0, this.#inFlight - 1);
+        pool.failed++;
+      });
+      this.client.on('connectionCheckedIn', () => {
+        this.#inFlight = Math.max(0, this.#inFlight - 1);
+        pool.checkedIn++;
+      });
 
       await this.client.connect();
 
@@ -498,6 +593,65 @@ export class PersistenceManager {
 
   /** Operations waiting for, or holding, a pool connection right now. */
   #inFlight = 0;
+
+  /**
+   * The connection pool's size — every worktree shares one cluster limit.
+   * ⭐ 24 by measurement (db-performance D12): with the build's round-trip
+   * cuts in, thirty players working still queued 396 check-outs at 10 and
+   * 196 at 16. Raised only after the cuts, and never past 24 in this build.
+   */
+  private static readonly POOL_MAX = 24;
+
+  /** Cumulative pool events since connect (db-performance, D10). */
+  #pool = {
+    started: 0,
+    checkedOut: 0,
+    checkedIn: 0,
+    failed: 0,
+    /** Check-outs that started with every connection already in use. */
+    waited: 0,
+    /** Σ the check-out events' `durationMS`: time spent getting a connection. */
+    waitMs: 0,
+    peakWaiting: 0,
+  };
+
+  /**
+   * ⭐ The database's own numbers — what `/stats` serves as `db`.
+   *
+   * Everything is cumulative since boot except `pool.inUse` and
+   * `pool.waiting`, which are now; a reader subtracts two reads for a rate.
+   * `roundTrips` counts connection check-outs — one per wire command,
+   * cursor `getMore`s included — so it is the figure the host's latency
+   * multiplies. `ops`/`byOp` count PersistenceManager calls and their wall
+   * time (a cached `content` read is not one). `callers` — the query
+   * trace's per-caller table, top 60 by time — is present only when
+   * `SAXONBERG_QUERY_TRACE=1`, because it costs a stack per op.
+   */
+  public stats(): PersistStats {
+    const p = this.#pool;
+    const byOp: Record<string, { n: number; ms: number }> = {};
+    for (const [k, v] of _ostats) byOp[k] = { n: v.n, ms: Math.round(v.ms) };
+    const out: PersistStats = {
+      pool: {
+        max: PersistenceManager.POOL_MAX,
+        inUse: Math.max(0, p.checkedOut - p.checkedIn),
+        waiting: Math.max(0, p.started - p.checkedOut - p.failed),
+        waited: p.waited,
+        waitMs: Math.round(p.waitMs),
+        peakWaiting: p.peakWaiting,
+      },
+      roundTrips: p.checkedOut,
+      ops: { n: _otot.n, ms: Math.round(_otot.ms) },
+      byOp,
+    };
+    if (_qtraceOn) {
+      out.callers = [..._qstats.entries()]
+        .sort((a, b) => b[1].ms - a[1].ms)
+        .slice(0, 60)
+        .map(([key, v]) => ({ key, n: v.n, ms: Math.round(v.ms) }));
+    }
+    return out;
+  }
 
   /**
    * ⭐ Resolve when the database has had nothing in flight for `quietMs` —
@@ -623,11 +777,89 @@ export class PersistenceManager {
     collectionName: string,
     document: Record<string, unknown>
   ): Promise<string> {
-    if (!_qtraceOn) return this.dispatchSave(collectionName, document);
     const _t0 = performance.now();
     const out = await this.dispatchSave(collectionName, document);
-    _qrec('save', collectionName, '', _t0);
+    _orec('save', collectionName, '', _t0);
     return out;
+  }
+
+  /**
+   * ⭐ Write many rows of one collection in ONE round trip
+   * (`bulkWrite`, unordered) — db-performance D7. Each {@link BatchWrite}
+   * picks its own form: keyed (update-or-insert by the named fields, or a
+   * partial update with `insert: false`), by `_id`, or an insert. Returns
+   * the rows written or matched. The caller chunks; one call is one
+   * `bulkWrite`.
+   *
+   * What it shares with `save`, and what it refuses:
+   *   - ⚠ a collection with an around-save hook is REFUSED with
+   *     {@link BatchOnHookedCollectionError} before anything is sent;
+   *   - the sandbox policy is the same sentence ({@link writePolicy}): a
+   *     `stamp` collection also confines each keyed filter to the circle;
+   *     a `shadow`/`skip` collection writes nothing and returns 0;
+   *   - it runs inside the `(collection, save)` slot, so re-entry throws;
+   *   - the resident `content` cache is dropped whole after it, as
+   *     `deleteMany` does (unreachable while `content` is hooked).
+   *
+   * ⚠ The wrong tool for a row whose `_id` the caller needs back (it
+   * returns a count) and for a hooked collection — both are `save`'s.
+   */
+  public async saveMany(
+    collectionName: string,
+    writes: readonly BatchWrite[]
+  ): Promise<number> {
+    if (writes.length === 0) return 0;
+    if ((this.saveHooks.get(`${collectionName}:save`) ?? []).length > 0) {
+      throw new BatchOnHookedCollectionError(collectionName);
+    }
+    const policy = this.writePolicy(collectionName, 'saveMany');
+    if (policy.skip) return 0;
+    const ops = writes.map((w) => PersistenceManager.batchOp(w, policy.mark, policy.confine));
+    const slot = `${collectionName}:save`;
+    return this.withSlot(slot, collectionName, 'save', async () => {
+      const _t0 = performance.now();
+      try {
+        const res = await this.getCollection(collectionName).bulkWrite(ops, {
+          ordered: false,
+        });
+        _orec('saveMany', collectionName, writes[0]?.key?.join(',') ?? '', _t0);
+        if (this.contentCacheEngaged(collectionName)) this.dropContentCache();
+        return (res.insertedCount ?? 0) + (res.matchedCount ?? 0) + (res.upsertedCount ?? 0);
+      } catch (error) {
+        console.error(
+          `PersistenceManager: Error batch-writing ${writes.length} row(s) to ${collectionName}:`,
+          error
+        );
+        throw error;
+      }
+    });
+  }
+
+  /** One `bulkWrite` operation for a {@link BatchWrite} (see `saveMany`). */
+  private static batchOp(
+    w: BatchWrite,
+    mark: string | null,
+    confine: string | null
+  ): AnyBulkWriteOperation {
+    const doc: Record<string, unknown> = { ...w.doc };
+    if (mark !== null) doc.circleScope = mark;
+    if (w.key && w.key.length > 0) {
+      const filter: Record<string, unknown> = {};
+      for (const k of w.key) filter[k] = doc[k];
+      if (confine !== null) filter.circleScope = confine;
+      const createdAt = doc.createdAt;
+      delete doc._id;
+      delete doc.createdAt;
+      const update: Record<string, unknown> = { $set: doc };
+      if (createdAt !== undefined) update.$setOnInsert = { createdAt };
+      return { updateOne: { filter, update, upsert: w.insert !== false } };
+    }
+    if (doc._id != null) {
+      const id = typeof doc._id === 'string' ? new ObjectId(doc._id) : (doc._id as ObjectId);
+      delete doc._id;
+      return { updateOne: { filter: { _id: id }, update: { $set: doc } } };
+    }
+    return { insertOne: { document: doc } };
   }
 
   /**
@@ -635,11 +867,11 @@ export class PersistenceManager {
    * blueprint catalogue's class enumeration). Read-only.
    */
   public async distinct(collectionName: string, field: string): Promise<unknown[]> {
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
     const out = (await this.getCollection(collectionName).distinct(
       field
     )) as unknown[];
-    if (_qtraceOn) _qrec('distinct', collectionName, field, _t0);
+    _orec('distinct', collectionName, field, _t0);
     return out;
   }
 
@@ -655,7 +887,7 @@ export class PersistenceManager {
     id: string
   ): Promise<Record<string, unknown> | null> {
     const collection = this.getCollection(collectionName);
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
 
     try {
       const objectId = new ObjectId(id);
@@ -663,7 +895,7 @@ export class PersistenceManager {
         _id: objectId,
       });
       const doc = await collection.findOne(filter);
-      if (_qtraceOn) _qrec('findById', collectionName, '_id', _t0);
+      _orec('findById', collectionName, '_id', _t0);
 
       if (doc) {
         // Convert _id to string for consistency
@@ -704,7 +936,7 @@ export class PersistenceManager {
     }
 
     const collection = this.getCollection(collectionName);
-    const _t0 = _qtraceOn ? performance.now() : 0;
+    const _t0 = performance.now();
 
     try {
       const filtered = this.composeScopeReadFilter(collectionName, query);
@@ -713,8 +945,7 @@ export class PersistenceManager {
       if (options?.skip != null) cursor = cursor.skip(options.skip);
       if (options?.limit != null) cursor = cursor.limit(options.limit);
       const docs = await cursor.toArray();
-      if (_qtraceOn)
-        _qrec('find', collectionName, Object.keys(query).join(','), _t0);
+      _orec('find', collectionName, Object.keys(query).join(','), _t0);
 
       // Convert _id to string for each document
       return docs.map((doc) => ({
@@ -784,8 +1015,10 @@ export class PersistenceManager {
     const slot = `${collectionName}:delete`;
     return this.withSlot(slot, collectionName, 'delete', async () => {
       const collection = this.getCollection(collectionName);
+      const _t0 = performance.now();
       try {
         const result = await collection.deleteMany(effectiveFilter);
+        _orec('deleteMany', collectionName, Object.keys(filter).join(','), _t0);
         // A bulk filter names no ids to evict — drop the cache whole and
         // let the next reader repopulate it.
         if (collectionName === Collections.Content) this.dropContentCache();
@@ -810,7 +1043,9 @@ export class PersistenceManager {
    * @param id - MongoDB _id (string or ObjectId)
    */
   public async delete(collectionName: string, id: string): Promise<void> {
-    return this.dispatchDelete(collectionName, id);
+    const _t0 = performance.now();
+    await this.dispatchDelete(collectionName, id);
+    _orec('delete', collectionName, '_id', _t0);
   }
 
   /**
@@ -982,48 +1217,17 @@ export class PersistenceManager {
     // Sandbox policy seam: one resolver call; `null` (the overwhelmingly
     // common case) falls straight through to today's path with no
     // allocation and no policy lookup.
-    const scope = this.scopeResolver();
-    if (scope !== null) {
-      const policy =
-        COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
-      if (policy) {
-        switch (policy.verb) {
-          case 'refuse':
-            throw new SandboxWriteRefusedError(collectionName, scope, 'save');
-          case 'stamp':
-            document.circleScope = scope;
-            break;
-          case 'pass':
-            if (policy.mark) document.circleScope = scope;
-            break;
-          case 'shadow':
-            // skip-and-rebuild: the terminal cache write is a documented
-            // no-op from circle context — readers derive live from their
-            // event ledgers instead. The returned id is a local receipt,
-            // never a durable identifier.
-            if (policy.mode === 'skip') {
-              return document._id != null
-                ? String(document._id)
-                : new ObjectId().toString();
-            }
-            throw new SandboxOverlayUnimplementedError(
-              collectionName,
-              scope,
-              'save'
-            );
-        }
-      }
-      // An unknown collection name (not in the enum) written from circle
-      // context fails closed — the totality guarantee has no row to
-      // consult, and silence would be an escape hatch.
-      if (!policy) {
-        throw new SandboxWriteRefusedError(
-          collectionName,
-          scope,
-          'save (unclassified collection)'
-        );
-      }
+    const policy = this.writePolicy(collectionName, 'save');
+    if (policy.skip) {
+      // skip-and-rebuild: the terminal cache write is a documented no-op
+      // from circle context — readers derive live from their event ledgers
+      // instead. The returned id is a local receipt, never a durable
+      // identifier.
+      return document._id != null
+        ? String(document._id)
+        : new ObjectId().toString();
     }
+    if (policy.mark !== null) document.circleScope = policy.mark;
     const slot = `${collectionName}:save`;
     return this.withSlot(slot, collectionName, 'save', async () => {
       const hooks = this.saveHooks.get(slot) ?? [];
@@ -1037,6 +1241,46 @@ export class PersistenceManager {
       }
       return next(document);
     });
+  }
+
+  /**
+   * ⭐ The sandbox policy for a WRITE from the current context — the one
+   * sentence `save` and `saveMany` both obey (db-performance D7). Field and
+   * system contexts (`scope === null`, the overwhelmingly common case)
+   * write as they are. From a circle: `refuse` throws; `stamp` marks every
+   * doc with the circle AND confines a keyed write's filter to it; `pass`
+   * with `mark` marks; `shadow`/`skip` writes nothing; an unclassified
+   * collection fails closed — the totality guarantee has no row to
+   * consult, and silence would be an escape hatch.
+   */
+  private writePolicy(
+    collectionName: string,
+    op: string
+  ):
+    | { skip: true }
+    | { skip: false; mark: string | null; confine: string | null } {
+    const scope = this.scopeResolver();
+    if (scope === null) return { skip: false, mark: null, confine: null };
+    const policy =
+      COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
+    if (!policy) {
+      throw new SandboxWriteRefusedError(
+        collectionName,
+        scope,
+        `${op} (unclassified collection)`
+      );
+    }
+    switch (policy.verb) {
+      case 'refuse':
+        throw new SandboxWriteRefusedError(collectionName, scope, op);
+      case 'stamp':
+        return { skip: false, mark: scope, confine: scope };
+      case 'pass':
+        return { skip: false, mark: policy.mark ? scope : null, confine: null };
+      case 'shadow':
+        if (policy.mode === 'skip') return { skip: true };
+        throw new SandboxOverlayUnimplementedError(collectionName, scope, op);
+    }
   }
 
   /**
@@ -1217,9 +1461,11 @@ export class PersistenceManager {
     this.contentPending = [];
     const generation = this.contentGeneration;
     this.contentPreload = (async () => {
+      const _t0 = performance.now();
       const docs = await this.getCollection(Collections.Content)
         .find({})
         .toArray();
+      _orec('find', Collections.Content, '', _t0);
       // A bulk delete landed while this query was in flight: the rows it
       // removed are still in this snapshot. Discard it — the next reader
       // preloads again against the collection as it now stands.

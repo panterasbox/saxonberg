@@ -1187,6 +1187,15 @@ function tipRecipientForImpl(patron: Stuff): Stuff | null {
 }
 
 /**
+ * ⭐ Venue accounts known to have ledger rows (db-performance H2). Having
+ * had a row is monotonic — a ledger is append-only — so once an account
+ * is seen with one, the opening-advance check never reads its ledger
+ * again; it was two finds on every paid act. Module state: a reload or a
+ * restart starts empty and reads once per account.
+ */
+const hasLedgerRows = new Set<string>();
+
+/**
  * The one resolution seam for a Business's operating account: custody is
  * the business's **authored** `banksAt` — where a business banks is a fact
  * about the business (a term of its arrangement), never a call-site
@@ -1217,7 +1226,10 @@ async function operatingAccountOfImpl(
     '',
     BankingApi.compactCurrency(),
   );
-  if ((await BankingApi.entriesFor(account)).length === 0) {
+  if (!hasLedgerRows.has(account) && (await BankingApi.entriesFor(account)).length > 0) {
+    hasLedgerRows.add(account);
+  }
+  if (!hasLedgerRows.has(account)) {
     const advanced = await ContractApi.openingAdvance(business.getAccountPath());
     if (!advanced.ok && advanced.reason !== 'already-advanced' && advanced.reason !== 'no-facility') {
       console.warn(

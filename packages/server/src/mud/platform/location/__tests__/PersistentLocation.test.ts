@@ -9,6 +9,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -97,7 +98,7 @@ describe("PersistentLocation", () => {
     // A `domain` row per fixture — `applyProps` resolves each spec
     // through `Template.findByPath` before cloning it.
     const rows = paths.map((path) => ({ _id: path, path, class: "/platform/thing/Thing" }));
-    vi.spyOn(PersistenceManager, "get").mockReturnValue({
+    vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
       find: vi.fn(async (_c: string, q: Record<string, unknown>) =>
         rows.filter((r) => r.path === q.path),
       ),
@@ -105,7 +106,7 @@ describe("PersistentLocation", () => {
       findById: vi.fn(async () => null),
       delete: vi.fn(async () => undefined),
       isConnected: () => true,
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     const room = makeStuffAtPath(() => new PersistentLocation(), ROOM_PATH);
     const cloned: string[] = [];

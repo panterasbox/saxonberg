@@ -6,6 +6,7 @@
  */
 
 import '../../../../../test-bootstrap';
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../../../../api/document';
 import { AccessApi } from '../../../../api/access';
@@ -28,7 +29,7 @@ function runAs<T>(fn: () => T | Promise<T>): Promise<T> {
 
 beforeEach(() => {
   rows = [];
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     find: vi.fn(async (col: string, q: Record<string, unknown>) =>
       col === 'documents' ? rows.filter((d) => Object.entries(q).every(([k, v]) => d[k] === v)) : [],
@@ -39,7 +40,7 @@ beforeEach(() => {
     }),
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined as never);
   actor = makeStuffAtPath(() => new Idea(), '/home/test') as unknown as Stuff;
 });

@@ -6,6 +6,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AccessRegistry from "../idea/AccessRegistry";
 import GroupRegistry from "../idea/GroupRegistry";
@@ -24,7 +25,7 @@ type Doc = Record<string, unknown> & { _id?: string };
 function installInMemoryStore(): void {
   const store: Doc[] = [];
   let seq = 0;
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async (_c: string, doc: Doc) => {
       const id = doc._id ?? `id-${++seq}`;
       const i = store.findIndex((d) => d._id === id);
@@ -37,7 +38,7 @@ function installInMemoryStore(): void {
     ),
     findById: vi.fn(async (_c: string, id: string) => store.find((d) => d._id === id) ?? null),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 async function bootRegistry(): Promise<AccessRegistry> {

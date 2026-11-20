@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import TraitsController from "../TraitsController";
 import { MessageApi } from "../../../../../api/message";
@@ -66,6 +67,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });

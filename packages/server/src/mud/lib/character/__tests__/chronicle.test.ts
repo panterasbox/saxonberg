@@ -14,6 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { PersonaMixin } from '../Persona';
@@ -55,6 +56,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'delete').mockImplementation(async (_col: string, id: string) => {
     store.delete(id);
   });
