@@ -16,6 +16,7 @@
 > [mql.md § Match-quality scoring](../../subsystems/mql.md), § exits are candidates,
 > [perception.md § The room listing is one query](../../subsystems/perception.md). Still open below:
 > § 3 row 9's slow path and the implicit tract candidate (§ 5 row 3).
+> **In requirements (2026-11-20):** the matcher half → [listing-resolution](../../requirements/listing-resolution-requirements.md) (§ 6 is its ledger). The `look` half waits for a look design conversation after the client work, with [carded-prose](../client/carded-prose-slate.md).
 > **Left:** `look` renders what MQL bound and nothing else — the class-specific appends moved onto
 > their objects behind an async augmenter pass (§ 2 rows 5, 11, 13, 14, 17, 20, 24–27) · a
 > `defaulted` fact on a bound result (which retires `buy`'s raw-text sniff; § 1 row 3) · ⭐ one
@@ -241,3 +242,31 @@ for exits and directions only (`Exit.getKeywords`: authored ∪ direction ∪ sh
 recognition tokens and the bare name) and one synthesizes a CANDIDATE (3). Each has a conforming home
 on the object's own `getKeywords()` — a derived override, named where it lives — which is the same
 shape exits now have. Rows 5–7 dissolve under § 4's decision.
+
+---
+
+## 6. Reuse ledger for the plan — the matcher half (2026-11-20)
+
+Seeds [listing-resolution-requirements](../../requirements/listing-resolution-requirements.md).
+The census was retaken this cycle (HEAD `ace3d9b0a`): **~71 entity-set matchers, ~14 exact-key
+lookups, ~10 `.raw` re-reads, nineteen word rules** — the 11 of § 1 were a sample. Every row
+below is one the plan must account for.
+
+| concept the build needs | what already does it | reuse / generalize / new |
+|---|---|---|
+| scoring a word against names + keywords | `scoreCandidate` / `scoreCandidates` (`api/mql/scope-walk.ts`), the keyword tiers, the whole-phrase cut, `startsAWord` | **reuse** — entries are scored by it unchanged |
+| plurals | `scope-walk.ts` ~238: every keyword also answers as `GrammarApi.pluralize(stuff, k)` | **generalize** — the same derivation for an entry (no `Stuff` to pluralize against today) |
+| articles, ordinals, quantity prefixes, quoted literals | `desugar.ts`, `GrammarApi.ARTICLES`, `resolveLiteralSeed` | **reuse** |
+| the prompt on a tie | the binder's `onExcess: prompt`, `PromptApi` | **reuse** — entries prompt like candidates |
+| a thing saying what words it answers to | `Perceptible.getKeywords()`, `NamedMixin.getKeywords` (§ 5's rule) | **generalize** — an entry is `{ name, keywords, key }`; the listing protocol is § 1's `Listing.entriesFor(viewer)` |
+| scoping an arg to "the object the verb addresses" | view `scope:` lists, `$focus`, `default:` with `[class.X]` (charter/berth/rent find their book that way) | **generalize** — a `listed` scope that walks a bound object's listing (§ 1 ⭐) |
+| catalogues that already index by word | `RecipeCatalogue.findByKeyword`, `ChannelCatalogue.resolveByName`, `SubjectCatalogue.resolveByTitle`, `SoulCatalogue.resolve`, `SpellCatalogue.getSpellNamed`, `ReadingCatalogue.key`, `DocumentCatalogue.byWord`, `HelpCatalogue.find*`, `AddressRegistry.findByName` | **generalize** — each becomes a listing; their exact-lowercase compares retire |
+| a person by name | `PlayerLogic.findAvatarByName`, presentation's handle chain (`presentation.md`) | **reuse** the handle forms as an entry's name + keywords |
+| organizations by name | `EmploymentLogic.findOrganizationImpl` / `needleOf` / `namesItself`, `RecordControllerBase.resolveSubject` | **retire** into a listing |
+| the matchers themselves | Harbor `quayNamed`/`isRoadsWord`/`shipNamed`; HullBook, CharterBook, Hailable, ExpanseNode `answersTo`; `namesRiver`; `landingNamed`; ShipRegister `entryNamed`; LaneCatalogue `placeNamed`; Boat `paddleBy` (vocab — out); HaulOut `loadNamed`; Line `personWithinReach`; Stock `lineForWord`/`pricedKeyFor`/`resolveBuy`; HeldGoods `resolveHeld`; Store `matchesGood`; Tariff/Order first-token; `resolveBrandKey`; Fit `namesLine`/`wholeFor`; `partInReachFor`; `FormGrammar.parse` (form words; the `holding N unit` tail stays grammar); Billet `rivePlan`; Butcherable `for <cut>`; Stand `speciesNamed`; Rope `makeKnot`; PatternStock `metalNamed`; Working `faceNamed`/`sampleFace`; GradeReading; OpenWorking `faceOf`/`matchesBand`; ClaimsRegister `surfaceWorkingFor`; IceSheet `patchByWord` (synonyms → the patch's keywords); HerdRegistry `named`; ranching `pickField`; PlatBook `extentFor`; CallController + Archetype `answersTo`; Group `memberByName`; ContactsRemove; PartyLogic formation/role/crew; Wardrobe `normalize`; AetherHost `installByKey`/`uninstallApp`; DocumentLogic `callUpImpl` (a name, not a search); Vitals `treatNamed`; RouteController `candidates`/`inGroup`/`pick`; Teleport `resolveAnchored` + FastTravel `resolveRouteByKeyword`; GetController (from a person); MapController; CockpitTerminal `filterFor` | **retire** — each becomes a listing (or, where its entries are reachable Stuff, an ordinary MQL scope) |
+| exact-key lookups (§ G of the census) | `Office.byKey`, org-path compares in clock/job/house, position keys, `OperateController`, `PrescribeController`, `WalletUseController`, `Group.find`, `NotifyControllerBase.normalizeRef`, `LaneCatalogue.laneOf` | **retire** into listings named by name + keywords |
+| `.raw` re-reads on bound object args | Buy (`counter.raw`), Carve, Fit, Shape, Fell, Teleport, Get, WorkedAct/Dig, Sample, Cut | **retire** — the bound result says what it needs (`defaulted`, § 1 row 3) or the arg becomes a listed one |
+| durations | `RentController.daysOf`, `FireController.parseHoldS`, `StreamApi.parseDuration`; `quantities.md`'s time units | **generalize** — one duration arg type over the Quantity substrate; the three parsers retire |
+| the census gate | `lint:controller-resolution` (counts self-resolution only), the `lint:*` family's census-then-ratchet | **generalize** — a census of hand-rolled matchers (the § *The ratchet* sketch), ceiling today's count, driven to 0 |
+| searches | `HelpCatalogue.search`/`typeaheadMatch`, `WhoController --country` | **untouched** — a search is not a name |
+| fixed vocabularies (on/off, up/down, draught, posture, directions, dip faces) | the controllers' word sets; `type: enum` args | **out** — a setting, not an entry |
