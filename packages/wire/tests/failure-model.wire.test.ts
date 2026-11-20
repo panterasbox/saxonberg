@@ -6,6 +6,14 @@
  * The blocking drive of the failure-model build (requirements § The drive,
  * twelve steps). Every step is `instant` or `staged`; there is no soak
  * drive. Steps a player cannot reach by playing say how they are staged.
+ *
+ * Stands in the scaffold (test-world-lifecycle D8): the cellar door off the
+ * testbed shop (locked, free from the cellar side — the pump-house door was
+ * the exemplar), the bank's teller as the one who would take the coin. The
+ * door is staged before each use and put back after. Steps 10 and 11 fell an
+ * oak stand, which is content: they are in `failure-model-content.dirty`.
+ * Every character is fresh and the bad recipe lives under its own keeper's
+ * home, so the file runs twice on one world.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -15,45 +23,33 @@ import {
   uniqueHandle,
   plain,
   stage,
-  hand,
-  advanceWorldClock,
   failDatastore,
   forceDocument,
+  standIn,
+  BANK,
+  SHOP,
+  CELLAR,
+  CELLAR_DOOR,
+  EXITS,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
-export const DIRTY_REASON =
-  'unlocks and relocks the shipped pump-house door, fells oak in the Hanging ' +
-  'Wood (a stand only the increment refills), and writes a broken recipe ' +
-  'under a test character’s home';
-
 declareFile({
-  file: 'failure-model.dirty.wire.test.ts',
-  packs: [
-    'world-seed',
-    'terminus',
-    'rejection',
-    'generic-objects',
-    'base-library',
-    'trade-forestry',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'failure-model.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'generic-objects'],
 });
 
-const BANK = '/world/terminus/wharfside/bank';
-const PUMP_HOUSE = '/world/terminus/wharfside/pumphouse/location/house';
-const PUMP_DOOR = '/world/terminus/wharfside/thing/pump-house-door';
-const RIDE = '/world/terminus/rejection/hanging-wood/ride';
-const BILLHOOK = '/trade/forestry/thing/billhook';
-const AXE = '/trade/forestry/thing/felling-axe';
+/** The cellar door's words: `down` from the shop, `up` from the cellar. */
+const DOWN = EXITS.shop.cellar;
+const UP = EXITS.cellar.shop;
 
 const record: string[] = [];
 const open: Session[] = [];
 
 const squash = (t: string): string => plain(t).replace(/\s+/g, ' ').trim();
 
-async function session(handle: string, start: string, opts: Record<string, unknown> = {}): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: start, ...opts });
+async function session(prefix: string, start: string, opts: Record<string, unknown> = {}): Promise<Session> {
+  const s = await standIn(start, prefix, opts);
   open.push(s);
   await s.drainProse();
   return s;
@@ -74,28 +70,28 @@ function refusedOf(r: CommandResult): { reason: string; facts: Record<string, un
 }
 
 afterAll(async () => {
-  // Leave the pump-house door as shipped: shut and locked.
-  await stage(PUMP_DOOR, 'setOpen', false).catch(() => undefined);
-  await stage(PUMP_DOOR, 'setLocked', true).catch(() => undefined);
+  // Leave the cellar door as authored: shut and locked.
+  await stage(CELLAR_DOOR, 'setOpen', false).catch(() => undefined);
+  await stage(CELLAR_DOOR, 'setLocked', true).catch(() => undefined);
   for (const s of open) s.close();
   console.log(`\n── failure-model drive record ──\n${record.join('\n')}\n`);
 });
 
 suite('⭐⭐ the failure model — refusals worded by their rows', () => {
-  let bank: Session;
+  let shop: Session;
   let inside: Session;
 
   beforeAll(async () => {
-    await stage(PUMP_DOOR, 'setOpen', false);
-    await stage(PUMP_DOOR, 'setLocked', true);
-    bank = await session(uniqueHandle('fmbank'), BANK);
-    inside = await session(uniqueHandle('fmhouse'), PUMP_HOUSE);
+    await stage(CELLAR_DOOR, 'setOpen', false);
+    await stage(CELLAR_DOOR, 'setLocked', true);
+    shop = await session('fmshop', SHOP);
+    inside = await session('fmcellar', CELLAR);
   }, 180_000);
 
   it('1. [instant · player] `open` at a locked door is worded by the `locked` row; the envelope carries the code and the door', async () => {
-    const { r, w } = await say(bank, 'open pumphouse');
+    const { r, w } = await say(shop, `open ${DOWN}`);
     expect(r.status).toBe('declined');
-    expect(w).toMatch(/The lock holds — the pump-house door won't open\./);
+    expect(w).toMatch(/The lock holds — the cellar door won't open\./);
     const note = refusedOf(r);
     expect(note?.reason).toBe('locked');
     expect((note?.facts.target as { stuffId?: string } | undefined)?.stuffId).toEqual(expect.any(String));
@@ -104,39 +100,41 @@ suite('⭐⭐ the failure model — refusals worded by their rows', () => {
   });
 
   it('2. [instant · player] a script stops at its first refusal, says so once, and the next line never runs', async () => {
-    await say(bank, 'def fmfetch { open pumphouse; go pumphouse }');
-    const { r, w } = await say(bank, 'do fmfetch');
-    expect(w).toMatch(/The script stopped at `?open pumphouse`?: The lock holds — the pump-house door won't open\./);
+    await say(shop, `def fmfetch { open ${DOWN}; go ${DOWN} }`);
+    const { r, w } = await say(shop, 'do fmfetch');
+    expect(w).toMatch(new RegExp(`The script stopped at \`?open ${DOWN}\`?: The lock holds — the cellar door won't open\\.`));
     expect(w.match(/The lock holds/g)).toHaveLength(1);
-    expect(refusedOf(r)).toMatchObject({ reason: 'locked', at: 'open pumphouse' });
-    // `go pumphouse` never ran: still at the bank.
-    expect(squash(await bank.prose('look here'))).toMatch(/bank/i);
+    expect(refusedOf(r)).toMatchObject({ reason: 'locked', at: `open ${DOWN}` });
+    // `go down` never ran: still in the shop.
+    expect(squash(await shop.prose('look here'))).toMatch(/testbed shop/i);
   });
 
   it('3. [instant · player] `try … on locked` unlocks the very door the refusal named, opens it, and goes through', async () => {
-    // Inside is the free side: the thumb-turn needs no key.
-    await say(inside, 'def fmfetch2 { try { open out } on locked { unlock $why.target; open out }; go out }');
+    // The cellar is the free side: the thumb-turn needs no key.
+    await say(inside, `def fmfetch2 { try { open ${UP} } on locked { unlock $why.target; open ${UP} }; go ${UP} }`);
     const { w } = await say(inside, 'do fmfetch2');
     expect(w).not.toMatch(/script stopped/i);
-    expect(squash(await inside.prose('look here'))).toMatch(/bank/i);
+    expect(squash(await inside.prose('look here'))).toMatch(/testbed shop/i);
   });
 
   it('4. [instant · player] the same handler without a key stops at `unlock`, worded from `no-key`', async () => {
-    await stage(PUMP_DOOR, 'setOpen', false);
-    await stage(PUMP_DOOR, 'setLocked', true);
-    await say(bank, 'def fmfetch3 { try { open pumphouse } on locked { unlock $why.target; open pumphouse }; go pumphouse }');
-    const { r, w } = await say(bank, 'do fmfetch3');
-    expect(w).toMatch(/The script stopped at `?unlock \$why\.target`?: You have no key that fits the pump-house door ?\./);
+    await stage(CELLAR_DOOR, 'setOpen', false);
+    await stage(CELLAR_DOOR, 'setLocked', true);
+    await say(shop, `def fmfetch3 { try { open ${DOWN} } on locked { unlock $why.target; open ${DOWN} }; go ${DOWN} }`);
+    const { r, w } = await say(shop, 'do fmfetch3');
+    expect(w).toMatch(/The script stopped at `?unlock \$why\.target`?: You have no key that fits the cellar door ?\./);
     expect(refusedOf(r)?.reason).toBe('no-key');
   });
 
   it('5. [instant · player] a misspelled reason is refused at parse, with the corrected line to tap', async () => {
-    const { r, w } = await say(bank, 'def fmbad { try { open pumphouse } on lockd { say no } }');
-    expect(w).toMatch(/there is no reason 'lockd' — the nearest is 'locked'\. Did you mean def fmbad \{ try \{ open pumphouse \} on locked \{ say no \} \} ?\?/);
+    const { r, w } = await say(shop, `def fmbad { try { open ${DOWN} } on lockd { say no } }`);
+    expect(w).toMatch(
+      new RegExp(`there is no reason 'lockd' — the nearest is 'locked'\\. Did you mean def fmbad \\{ try \\{ open ${DOWN} \\} on locked \\{ say no \\} \\} ?\\?`),
+    );
     const note = (r.notes as Array<{ kind: string; reason?: string; suggestion?: string }>).find(
       (n) => n.kind === 'command-rejected' && n.reason === 'parse-failed',
     );
-    expect(note?.suggestion).toBe('def fmbad { try { open pumphouse } on locked { say no } }');
+    expect(note?.suggestion).toBe(`def fmbad { try { open ${DOWN} } on locked { say no } }`);
   });
 });
 
@@ -144,12 +142,12 @@ suite('⭐ a refusal thrown deep in the bank', () => {
   let payer: Session;
 
   beforeAll(async () => {
-    payer = await session(uniqueHandle('fmpayer'), BANK);
+    payer = await session('fmpayer', BANK);
   }, 180_000);
 
   it('6. [instant · player] a payment the purse cannot cover is worded from its row — no exception text', async () => {
-    // The fisher who works the bank takes coin in hand; the purse is short.
-    const { r, w } = await say(payer, 'pay fisher 100000 --cash');
+    // The teller at the bank counter takes coin in hand; the purse is short.
+    const { r, w } = await say(payer, 'pay teller 100000 --cash');
     expect(r.status).toBe('declined');
     expect(w).toMatch(/You haven't the coin for|You can't make .* exactly in coin/);
     expect(w).not.toMatch(/BankingLogic|settle:|Error/);
@@ -157,44 +155,14 @@ suite('⭐ a refusal thrown deep in the bank', () => {
   });
 
   it('7. [instant · player] `on *` catches the thrown refusal like any other', async () => {
-    const { w } = await say(payer, 'try { pay fisher 100000 --cash } on * { say Short today. }');
+    const { w } = await say(payer, 'try { pay teller 100000 --cash } on * { say Short today. }');
     expect(w).toMatch(/Short today/);
     expect(w).not.toMatch(/script stopped/i);
   });
 });
 
-suite('⭐ a pack reason, and an interrupted step', () => {
-  let f: Session;
-
-  beforeAll(async () => {
-    f = await session(uniqueHandle('fmforest'), RIDE);
-    await hand(f, BILLHOOK);
-    await hand(f, AXE);
-  }, 180_000);
-
-  it('10. [instant · player] forestry’s own reason is handled by its path, with no kernel change', async () => {
-    const plainRefusal = await say(f, 'fell oak with billhook');
-    expect(plainRefusal.w).toMatch(/It will take a stool off at the ankle, and it will not take an oak\./);
-    expect(refusedOf(plainRefusal.r)?.reason).toBe('/trade/forestry/reasons/wrong-tool');
-    const { w } = await say(f, 'try { fell oak with billhook } on /trade/forestry/reasons/wrong-tool { say Wrong tool. }');
-    expect(w).toMatch(/Wrong tool/);
-  });
-
-  it('11. [staged · player] `on interrupted` runs when the step is cut short', async () => {
-    await say(f, 'try { fell oak with axe } on interrupted { say Later. }');
-    // Staged: the player cancels the felling alone (not the script).
-    await say(f, 'cancel manual-build-step');
-    await f.drainProse();
-    // ⚠ The script wakes at the step's expected end (a deferred seam).
-    await advanceWorldClock('1 minute');
-    let heard = '';
-    for (let i = 0; i < 10 && !/Later/.test(heard); i++) {
-      heard += squash(await f.listen(1500, { sinceDrain: true }));
-    }
-    record.push(`${f.handle}: after cancel → ${heard.slice(0, 200)}`);
-    expect(heard).toMatch(/Later/);
-  });
-});
+// Steps 10 and 11 (a pack reason, an interrupted felling) stand in an oak
+// stand: `failure-model-content.dirty.wire.test.ts`.
 
 suite('⭐ a content error, and an outage', () => {
   let keeper: Session;
@@ -208,7 +176,7 @@ suite('⭐ a content error, and an outage', () => {
     open.push(keeper);
     await keeper.play(keeperId);
     await keeper.drainProse();
-    wizard = await session(uniqueHandle('fmwizard'), BANK, { wizard: true });
+    wizard = await session('fmwizard', BANK, { wizard: true });
   }, 180_000);
 
   const recipe = (): string => `/home/${keeperId}/recipes/fm-drive-knife`;

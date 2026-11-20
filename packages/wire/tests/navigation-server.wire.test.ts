@@ -10,6 +10,13 @@
  * here are named in the slate.
  *
  * Paces: every step `instant` except 17 (a restart, `short`). No soak drive.
+ *
+ * Stands in the scaffold (test-world-lifecycle D8): the walk is bank →
+ * plaza, the locked way is the cellar door (staged locked first), the low
+ * door is the works', the building is the testbed building, the dark is the
+ * cellar. Every character is fresh, so the file runs twice on one world.
+ * Steps 1, 10 and 15g stand aboard a ship and before a horizon of landmarks,
+ * which are content: `navigation-server-content.dirty.wire.test.ts`.
  */
 
 import { describe as suite, it, expect, afterAll } from 'vitest';
@@ -22,40 +29,24 @@ import {
   expectOk,
   isOwnedTestWorld,
   restartWorld,
+  stage,
+  BANK,
+  PLAZA,
+  APPROACH,
+  YARD,
+  SHOP,
+  CELLAR,
+  PASSAGE,
+  CELLAR_DOOR,
+  EXITS,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 import type { WireClaim, NavWay } from '@saxonberg/types';
 
-export const DIRTY_REASON =
-  'mints fresh characters whose maps it writes, walks them through the ' +
-  'Sunken Delve, stoops through the steading\'s low door, and restarts the world';
-
 declareFile({
-  file: 'navigation-server.dirty.wire.test.ts',
-  packs: [
-    'world-seed',
-    'terminus',
-    'eternal-university',
-    'newbie-wilds',
-    'residence',
-    'transport',
-    'water',
-    'generic-objects',
-    'base-library',
-    'ground',
-    'trade-chandlery',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'navigation-server.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
-
-const TREELINE = '/world/newbie-wilds/crossroads/treeline';
-const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
-const YARD = '/world/newbie-wilds/steading/yard';
-const BANK = '/world/terminus/wharfside/bank';
-const DECK = '/world/terminus/hesper/deck';
-const SQUARE = '/world/terminus/market/square';
-const BROW = '/world/terminus/estuary/headland/brow';
-const CHANDLERY_FLOOR = '/world/terminus/wharfside/chandlery/location/floor';
 
 const record: string[] = [];
 const open: Session[] = [];
@@ -68,6 +59,7 @@ afterAll(() => {
 const squash = (t: string): string => plain(t).replace(/\s+/g, ' ').trim();
 
 async function session(handle: string, start: string): Promise<{ s: Session; nav: NavClient }> {
+  // `handle` is already unique (`uniqueHandle`): step 18 reopens the walker.
   const s = await Session.open(handle, { startLocation: start });
   open.push(s);
   await s.drainProse();
@@ -99,30 +91,19 @@ suite('navigation-server — the blocking drive', () => {
   let walker: { s: Session; nav: NavClient };
   const walkerHandle = uniqueHandle('nav-walker');
 
-  it('1 · `locate` is not a verb; a passenger at the Hesper\'s helm is refused the reckoning', async () => {
-    const { s } = await session(uniqueHandle('nav-passenger'), DECK);
-    const loc = await s.cmd('locate me');
-    expect(loc.status).not.toBe('ok');
-    const course = await s.cmd('course');
-    const w = await words(course);
-    record.push(`1: course as a passenger → ${w.slice(0, 120)}`);
-    expect(w).toMatch(/Only her master takes the helm/);
-  }, 120_000);
-
-  // ⚠ The Delve is unlit (pitch black by day) and covered by no Locality,
-  // so a walk there writes nothing — step 14 drives it for exactly that.
-  // Steps 2–8 walk lit, addressed Terminus instead (recorded in the plan).
-  it('2 · walk from the bank to the market square: the copy holds the square, walked, with its zone, cell and level', async () => {
+  // Step 1 (`locate`; the passenger at a ship's helm) is content.
+  // Steps 2–8 walk the lit, addressed testbed; step 14 drives the dark cellar.
+  it('2 · walk from the bank to the plaza: the copy holds the plaza, walked, with its zone, cell and level', async () => {
     walker = await session(walkerHandle, BANK);
-    expectOk(await walker.s.cmd('north'));
+    expectOk(await walker.s.cmd(`go ${EXITS.bank.plaza}`));
     await beat();
     // The arrival's `walked` claim is written after the walked edge — it
     // reaches the copy on its own beat.
     await expect
-      .poll(() => placeClaims(walker.nav, SQUARE).some((c) => c.channel === 'walked'), { timeout: 15_000 })
+      .poll(() => placeClaims(walker.nav, PLAZA).some((c) => c.channel === 'walked'), { timeout: 15_000 })
       .toBe(true);
-    const sq = placeClaims(walker.nav, SQUARE);
-    record.push(`2: square claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
+    const sq = placeClaims(walker.nav, PLAZA);
+    record.push(`2: plaza claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
     expect(sq.some((c) => c.channel === 'walked')).toBe(true);
     const at = sq.find((c) => c.at)?.at;
     expect(at?.zone?.spoiler).toBe(1);
@@ -133,8 +114,8 @@ suite('navigation-server — the blocking drive', () => {
   it('3 · `look`: the ways seen arrive with their state; the zone section is kind, cell and a label — no extent; every path tagged', async () => {
     expectOk(await walker.s.cmd('look'));
     await beat();
-    const edges = walker.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === SQUARE);
-    record.push(`3: edges from the square ${edges.map((e) => `${e.dir}:${e.channel}:${e.state}`).join(', ')}`);
+    const edges = walker.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === PLAZA);
+    record.push(`3: edges from the plaza ${edges.map((e) => `${e.dir}:${e.channel}:${e.state}`).join(', ')}`);
     expect(edges.length).toBeGreaterThan(0);
     expect(edges.every((e) => e.state !== undefined)).toBe(true);
     const zone = walker.nav.section('zone');
@@ -147,31 +128,34 @@ suite('navigation-server — the blocking drive', () => {
   it('5 · a second character who has not been there receives nothing of it', async () => {
     const other = await session(uniqueHandle('nav-other'), BANK);
     record.push(`5: the other's copy ${other.nav.copy.size} claims`);
-    expect(other.nav.claims((c) => typeof c.place !== 'string' && c.place.path === SQUARE)).toHaveLength(0);
+    expect(other.nav.claims((c) => typeof c.place !== 'string' && c.place.path === PLAZA)).toHaveLength(0);
   }, 120_000);
 
   it('6 · a locked door: the way says locked, and trying it refuses in those words', async () => {
-    const { s, nav } = await session(uniqueHandle('nav-door'), BANK);
+    await stage(CELLAR_DOOR, 'setOpen', false);
+    await stage(CELLAR_DOOR, 'setLocked', true);
+    const { s, nav } = await session(uniqueHandle('nav-door'), SHOP);
     await beat();
-    const way = wayNamed(nav, 'pumphouse');
-    record.push(`6: pumphouse way ${JSON.stringify(way?.take)} facts ${JSON.stringify(way?.facts)}`);
+    const way = wayNamed(nav, EXITS.shop.cellar);
+    record.push(`6: cellar way ${JSON.stringify(way?.take)} facts ${JSON.stringify(way?.facts)}`);
     expect(way?.state).toBe('locked');
     expect(way?.take?.ok).toBe(false);
-    const tried = await s.cmd('go pumphouse');
+    const tried = await s.cmd(`go ${EXITS.shop.cellar}`);
     expect(tried.status).not.toBe('ok');
     const w = await words(tried);
     expect(way?.take && !way.take.ok ? w : '').toContain(way?.take && !way.take.ok ? way.take.reason : '∅');
   }, 120_000);
 
-  it('6a · the low door: the way says stoop, `go east` refuses in exactly those words, `stoop east` goes through', async () => {
-    const { s, nav } = await session(uniqueHandle('nav-stoop'), YARD);
+  it('6a · the low door: the way says stoop, `go south` refuses in exactly those words, `stoop south` goes through', async () => {
+    const LOW = EXITS.approach.works;
+    const { s, nav } = await session(uniqueHandle('nav-stoop'), APPROACH);
     await beat();
-    const way = wayNamed(nav, 'east');
+    const way = wayNamed(nav, LOW);
     record.push(`6a: low door ${JSON.stringify(way?.take)}`);
     expect(way?.take?.ok).toBe(false);
     const take = way?.take && !way.take.ok ? way.take : null;
-    expect(take?.works?.command).toMatch(/east$/);
-    const tried = await s.cmd('go east');
+    expect(take?.works?.command).toMatch(new RegExp(`${LOW}$`));
+    const tried = await s.cmd(`go ${LOW}`);
     expect(tried.status).not.toBe('ok');
     expect(await words(tried)).toContain(take!.reason);
     const mark = nav.mark();
@@ -209,42 +193,43 @@ suite('navigation-server — the blocking drive', () => {
     expect(visits.every((c) => typeof c.place === 'string')).toBe(true);
   }, 120_000);
 
-  it('10 · aboard the Hesper: the last crumb is the ship, where she lies, the jurisdiction', async () => {
-    const { s, nav } = await session(uniqueHandle('nav-aboard'), DECK);
-    await beat();
-    const loc = nav.section('localities');
-    const gov = await words(await s.cmd('government'));
-    record.push(`10: aboard ${JSON.stringify({ ship: loc?.ship, outer: loc?.outer, jurisdiction: loc?.jurisdiction })} · government says ${gov.slice(0, 120)}`);
-    expect(loc?.ship?.name).toBeTruthy();
-    expect(loc?.outer?.at).toBeDefined();
-    if (loc && loc.jurisdiction.length > 0) expect(gov).toContain(loc.jurisdiction[0]!.name);
-  }, 120_000);
-
+  // Step 10 (aboard a ship: her name, where she lies) is content.
   it('12 · inside a building: its name, height, landmark, title', async () => {
-    const { nav } = await session(uniqueHandle('nav-hall'), CHANDLERY_FLOOR);
+    // The testbed building stands over the bank, the hall and the shop.
+    const { nav } = await session(uniqueHandle('nav-hall'), BANK);
     await beat();
     const b = nav.section('building');
     record.push(`12: building ${JSON.stringify(b)}`);
     expect(b?.name).toBeTruthy();
   }, 120_000);
 
-  it('14 · the place section; in the unlit Delve a `look` writes nothing (Light)', async () => {
+  it('14 · the place section; in the unlit cellar a `look` writes nothing (Light)', async () => {
     const place = walker.nav.section('place');
-    record.push(`14: place (square) ${JSON.stringify(place)}`);
+    record.push(`14: place (plaza) ${JSON.stringify(place)}`);
     expect(place?.light).toBeDefined();
-    const caver = await session(uniqueHandle('nav-caver'), TREELINE);
-    // The Delve's mouth is lit; its first corridor is not.
-    expectOk(await caver.s.cmd('north'));
-    expectOk(await caver.s.cmd('north'));
+    // The cellar is dark only while its door is shut (an open way passes light).
+    await stage(CELLAR_DOOR, 'setOpen', false);
+    await stage(CELLAR_DOOR, 'setLocked', true);
+    // The passage and the cellar are both unlit: walk from one into the other.
+    const caver = await session(uniqueHandle('nav-caver'), PASSAGE);
+    expectOk(await caver.s.cmd(`go ${EXITS.passage.cellar}`));
     await beat();
     const dark = caver.nav.section('place');
-    record.push(`14: place (Delve) ${JSON.stringify(dark)}`);
+    record.push(`14: place (cellar) ${JSON.stringify(dark)}`);
     expect(dark?.dark).toBe(true);
+    // ⚠ The cellar lies inside the testbed Locality (the Delve lay in none), so
+    // the walk's own claims may land on their own beat: wait for the copy to
+    // stand still before counting it.
+    for (let last = -1, i = 0; i < 20 && caver.nav.copy.size !== last; i++) {
+      last = caver.nav.copy.size;
+      await new Promise((r) => setTimeout(r, 500));
+      await beat();
+    }
     const before = caver.nav.copy.size;
     await caver.s.cmd('look');
     await beat();
     expect(caver.nav.copy.size).toBe(before);
-    expect(placeClaims(caver.nav, CORRIDOR_1).filter((c) => c.channel === 'seen')).toHaveLength(0);
+    expect(placeClaims(caver.nav, CELLAR).filter((c) => c.channel === 'seen')).toHaveLength(0);
   }, 120_000);
 
   it('15 · the you section: pace, posture, hands', async () => {
@@ -254,30 +239,12 @@ suite('navigation-server — the blocking drive', () => {
     expect(you?.posture).toBeTruthy();
   }, 120_000);
 
-  it('15g · (geography\'s step 15) the horizon section says what `query horizon` says, and no frame carries a bearing in degrees', async () => {
-    const { s, nav } = await session(uniqueHandle('nav-brow'), BROW);
-    await beat();
-    // ⭐ The section is the horizon AS READ ON ARRIVAL — the place's first
-    // read at a session's open. It once took the brow's unread weather as
-    // clear and named the light on Gannet Rock through fog; the verb, read
-    // after the weather was known, did not.
-    const horizon = nav.section('horizon');
-    const said = plain(await s.prose('query horizon'));
-    record.push(`15g: horizon ${JSON.stringify(horizon?.things.slice(0, 4))} · query horizon: ${said.slice(0, 200)}`);
-    expect((horizon?.things.length ?? 0) > 0).toBe(true);
-    for (const t of horizon!.things) {
-      if (t.glance?.closeBy) expect(said).toMatch(/close by/i);
-      else if (t.glance?.point) expect(said).toContain(t.glance.point);
-    }
-    // ⛔ Precision is `measure bearing`'s skill: no envelope carries one.
-    for (const e of nav.log) expect(JSON.stringify(e.frame)).not.toContain('bearingDeg');
-  }, 120_000);
-
+  // Step 15g (the horizon of landmarks off a headland) is content.
   it('16 · a move sends only the sections that changed; sizes recorded', async () => {
     const snap = walker.nav.log.filter((e) => e.sub === 'where' && e.type === 'subscription-result')[0]!.bytes;
     const map = walker.nav.log.filter((e) => e.sub === 'map' && e.type === 'subscription-result')[0]!.bytes;
     const mark = walker.nav.mark();
-    expectOk(await walker.s.cmd('south'));
+    expectOk(await walker.s.cmd(`go ${EXITS.plaza.approach}`));
     await beat();
     const sent = walker.nav.sentSince(mark);
     const moveBytes = walker.nav.bytesSince(mark, 'where');
@@ -291,7 +258,7 @@ suite('navigation-server — the blocking drive', () => {
   }, 120_000);
 
   it('18 · a second session of the same character: the same copy, and a move in one reaches the other', async () => {
-    const second = await session(walkerHandle, TREELINE).catch((err: Error) => {
+    const second = await session(walkerHandle, YARD).catch((err: Error) => {
       record.push(`18: a second session could not open: ${err.message}`);
       return null;
     });
@@ -320,7 +287,7 @@ suite('navigation-server — the blocking drive', () => {
     await beat();
     const before = [...walker.nav.copy.keys()].sort();
     await restartWorld();
-    const back = await session(walkerHandle, TREELINE);
+    const back = await session(walkerHandle, YARD);
     const after = [...back.nav.copy.keys()].sort();
     record.push(`17: copy before ${before.length}, after ${after.length}; missing ${JSON.stringify(before.filter((k) => !after.includes(k)))}`);
     for (const k of before) expect(after).toContain(k);

@@ -1,5 +1,12 @@
 /**
- * Placement — ⭐⭐ **where inside its container a thing sits**, driven.
+ * Placement — ⭐⭐ **where inside its container a thing sits**, driven —
+ * the CONTENT half (test-world-lifecycle D8).
+ *
+ * Blocks B, C and D, moved here unchanged when the file was split: they
+ * stand in the Hearthworks cookhouse (its icebox, its ice, its meat hook,
+ * its pantry and the cooking archetype), which the scaffold does not have.
+ * Block A (a surface with things placed on it) is in
+ * `placement.wire.test.ts`. Build 2's to move.
  *
  * The requirements doc's drive script, run over the wire. Five blocks:
  *
@@ -64,7 +71,7 @@ export const DIRTY_REASON =
   'melts away; neither is produced again';
 
 declareFile({
-  file: 'placement.dirty.wire.test.ts',
+  file: 'placement-content.dirty.wire.test.ts',
   packs: [
     'trade-cooking',
     'hearthworks',
@@ -73,16 +80,6 @@ declareFile({
   ],
   dirtyReason: DIRTY_REASON,
 });
-
-/**
- * ⚠⚠ **A LOCALITY room, not the trade's template.** Dave's Bar as a
- * place you can walk into is the lounge's `/world/lounge/location/bar`;
- * `/trade/hospitality/location/bar` is the VENUE TEMPLATE a locality
- * clones and stands nowhere. The first run of this file pointed at the
- * template and got *"It is pitch dark"* — a room with no world around
- * it. Trade is the mechanism; a locality is the expression.
- */
-const BAR = '/world/lounge/location/bar';
 
 /**
  * ⭐⭐ **The cookhouse is where the cold lives, and that is a finding.**
@@ -97,62 +94,20 @@ const BAR = '/world/lounge/location/bar';
  */
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 
-let drinker: Session;
 let cook: Session;
 
 beforeAll(async () => {
-  drinker = await Session.open(uniqueHandle('place-bar'), {
-    startLocation: BAR,
-  });
   cook = await Session.open(uniqueHandle('place-cook'), {
     startLocation: COOKHOUSE,
   });
 }, 180_000);
 
 afterAll(() => {
-  drinker?.close();
   cook?.close();
 });
 
-// ───────────────────────── A — the rename ─────────────────────────
-
-suite('A — nothing that worked has stopped working', () => {
-  it('1. the bar lists its furniture and NOT the tools resting on it', async () => {
-    const said = await drinker.prose('look');
-    expect(said.length, 'look must answer at all').toBeGreaterThan(0);
-    expect(said).toMatch(/bar|back-bar|stool|rail/i);
-    // ⭐ The regression the whole rename risks. Eight props stay out of
-    // the room listing because they are PLACED on the back-bar and the
-    // well; if `getLooseContents` stopped filtering, they all appear.
-    expect(said, 'the shaker is on the well, not loose in the room').not.toMatch(
-      /shaker/i,
-    );
-    expect(said).not.toMatch(/muddler/i);
-    expect(said).not.toMatch(/strainer/i);
-  }, 120_000);
-
-  it('2. `look back-bar` shows what is ON it, under a heading that says so', async () => {
-    const said = await drinker.prose('look back-bar');
-    expect(said).toMatch(/On it:/i);
-  }, 60_000);
-
-  it('3. put something down on the bar and pick it up again', async () => {
-    const held = await drinker.cmd('get shaker');
-    if (held.status !== 'ok') {
-      // Whatever is to hand — the claim is about the verb, not the prop.
-      expectOk(await drinker.cmd('get muddler'));
-    }
-    // ⚠ `back-bar`, not `bar`: the bar counter is a staffed point and no
-    // surface, so `bar` binds the only container that answers to it —
-    // Mara, *tending bar* (finalize: refused, `wrong-preposition`).
-    const put = await drinker.cmd('put shaker on back-bar');
-    expectOk(put);
-    expect(await put.said(), 'the prose reads as it always did').toMatch(
-      / on /i,
-    );
-    expectOk(await drinker.cmd('get shaker'));
-  }, 120_000);
-});
+// Block A (nothing that worked has stopped working — a surface and what is
+// on it) stands in the scaffold: `placement.wire.test.ts`.
 
 // ─────────────────── B — somewhere cold, at last ───────────────────
 
