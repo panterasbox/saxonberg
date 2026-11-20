@@ -1,6 +1,6 @@
 # Navigation card — requirements
 
-**Status:** FOR THE OWNER'S READ 2026-11-20 (reopened 2026-11-10; rewritten after the
+**Status:** AGREED 2026-11-20 (reopened 2026-11-10; rewritten after the
 navigation-server, zone-instancing and tooltips builds merged).
 
 **Kind:** client
