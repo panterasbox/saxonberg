@@ -142,11 +142,22 @@ Nobody is put on or taken off a list when they connect. **A directory reads a fe
   phone registers with its network. **Presence belongs to the exchange, not to any paper**; the
   exchange publishes who is registered, with the player id, because connection data is public. A
   directory's **present** source is a subscription to that feed, open to every publisher.
-- **Presence means connected** [LEAN — fork 9], with the aether's reach as a separate column (*"out of
-  reach — cannot receive messages"*). Otherwise walking into a town whose aether is off by covenant
-  takes you off `who` — a way to vanish, against *there is no appear offline*. The exchange knows
-  every implant, even one it cannot currently talk to. ⚠ The **paper edition** prints listings as of
-  a day and never presence; where the aether is off, you know who is around by being there.
+- ⭐ **Public presence means within the aether's reach** **[DECIDED — the owner, reversing the lean
+  for connected]**: walking into an aether-dark place — a town whose aether is off by covenant —
+  takes you off the public floor. *"I think that's fine, it's good for immersion."* ⚠ The **paper
+  edition** prints listings as of a day and never presence; where the aether is off, you know who is
+  around by being there.
+- ⭐⭐ **But nobody hides from moderation** **[DECIDED — the owner]**: *"mods need to be able to see
+  everyone all the time so we don't want any of this to let people hide or escape accountability."*
+  Two views of one fact:
+  - **the public floor** is the fiction — the exchange's register, gated by the aether's reach;
+  - **the moderators' view** is the meta — **the connection record itself, complete, never gated by
+    the aether or by status.** It is a **read grant on the seat** (*power is the pen*), held by
+    seated moderators (moderation-slate § 24's teams); what a moderator may do about a person
+    still follows jurisdiction (moderation § 23). **[LEAN]** A moderator's lookup of one person goes
+    on the moderation log, which already names seats — the watchers are watched too.
+  - Leaving the floor never leaves the **record**: acts are still written, the court still reaches
+    you, and provenance still cites what you did.
 - **Commands:** presence needs none. A player's controls are their status and their profile.
 
 ### Machine, NPC, or person — one rule
@@ -354,7 +365,7 @@ communities."*
 |---|---|
 | **code** (a wall) | facts only from published fields; hidden = gone everywhere; names on every published list; the mirror; no real-life-trait vocabulary; provenance recorded |
 | **the publisher** | its own published standards across its own directories |
-| **moderation, by jurisdiction** | a published list lives in its publisher's tree, so moderation goes there first (moderation § 23's information domain); appeal to the Compact always |
+| **moderation, by jurisdiction** | a published list lives in its publisher's tree, so moderation goes there first (moderation § 23's information domain); appeal to the Compact always. Moderators see **everyone connected**, aether-dark or not (§ 3a) |
 | **the court** | defamation of a character; press-law disputes |
 | **reputation** | ⭐ how the "single female" bait is rebuffed — the people on it see it, reply beside their entries, hide fields so it empties, react to its curator in public; rival lists compete it out of attention |
 
@@ -506,7 +517,8 @@ can trust, and above it a market of lists people care about getting onto.
 7. **Where the newcomer flow teaches the profile** (lean: set a line and see it on `who` in the
    newcomer flow; the rest found).
 8. **An *open to talk* status on the floor**, or the lounge named as the ice-breaker (§ 10a).
-9. **Presence = connected**, with the aether's reach a separate column (§ 3a).
+9. ~~Presence = connected~~ — **decided**: public presence follows the aether's reach; the
+   moderators' view is complete (§ 3a). Open: whether a moderator's lookup of one person is logged.
 10. **Players in a city directory only by publishing their residence** (§ 3b).
 11. **Every locality with content gets a paper and a city directory by default**, or only those that
     author one.
