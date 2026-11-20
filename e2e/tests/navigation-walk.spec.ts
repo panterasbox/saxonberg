@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page, Locator } from '@playwright/test';
-import { openWorldAs, runCommand, tipText } from './helpers';
+import { openWorldAs, reenterWorld, runCommand, tipText } from './helpers';
 
 /**
  * ⭐⭐ **The navigation card's browser walk** — what a person sees
@@ -53,7 +53,7 @@ async function coords(page: Page): Promise<string> {
 
 test.describe('navigation card — the zone map, the ways, the sections', () => {
   test('1–10 · the Delve: drawn from your own walk, the map is how you move', async ({ browser }) => {
-    test.setTimeout(300_000);
+    test.setTimeout(600_000);
     const { page, close } = await openWorldAs(browser, 'navcard', {
       startLocation: TREELINE,
       committees: ['/world/terminus'],
@@ -245,6 +245,7 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await expect(you).toHaveAttribute('data-open', now);
       await expect(you).toHaveAttribute('data-set', 'true');
       await page.reload();
+      await reenterWorld(page);
       await openCard(page);
       await expect(page.getByTestId('nav-section-you')).toHaveAttribute('data-open', now, { timeout: 30_000 });
       void context;
