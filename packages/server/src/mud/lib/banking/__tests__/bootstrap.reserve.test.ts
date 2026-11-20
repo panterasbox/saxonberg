@@ -217,6 +217,51 @@ describe("the override (D9)", () => {
   });
 });
 
+describe("the retirement — the override's inverse (test-world-lifecycle D10)", () => {
+  beforeEach(() => installBankingHarness());
+  afterEach(() => teardownBankingHarness());
+
+  it("drains on the record with a reason: the balance and the supply fall by the amount, one ledger row", async () => {
+    const currency = BankingApi.compactCurrency();
+    await BankingApi.override("acct-x", zm(50), "staging");
+    const before = BankingApi.moneySupply(currency).minor;
+    const rowsBefore = (await BankingApi.entriesFor("acct-x")).length;
+    await BankingApi.retire("acct-x", zm(20), "a test run's mint, returned");
+    expect(BankingApi.balanceOf("acct-x").minor).toBe(30);
+    expect(BankingApi.moneySupply(currency).minor).toBe(before - 20);
+    const rows = await BankingApi.entriesFor("acct-x");
+    expect(rows.length).toBe(rowsBefore + 1);
+    const row = rows.find((r) => r.kind === "drain");
+    expect(row?.category).toBe("retire");
+    expect(row?.memo).toBe("a test run's mint, returned");
+    const d = await BankingApi.reserveDashboard(currency);
+    expect(d.retiredOnRecord).toBe(20);
+    expect(d.overridesOutstanding).toBe(50);
+  });
+
+  it("⛔ refuses more than the account holds, and posts nothing", async () => {
+    await BankingApi.override("acct-x", zm(5), "staging");
+    const supply = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
+    const rows = (await BankingApi.entriesFor("acct-x")).length;
+    await expect(BankingApi.retire("acct-x", zm(6), "too much")).rejects.toMatchObject({
+      name: "Refusal",
+      reason: "retire-over-balance",
+    });
+    expect(BankingApi.balanceOf("acct-x").minor).toBe(5);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(supply);
+    expect((await BankingApi.entriesFor("acct-x")).length).toBe(rows);
+  });
+
+  it("refuses an account that holds nothing, and an empty reason", async () => {
+    await expect(BankingApi.retire("acct-nobody", zm(1), "why")).rejects.toMatchObject({
+      reason: "retire-over-balance",
+    });
+    await BankingApi.override("acct-x", zm(5), "staging");
+    await expect(BankingApi.retire("acct-x", zm(1), "  ")).rejects.toThrow(/reason/);
+    await expect(BankingApi.retire("acct-x", zm(0), "nothing")).rejects.toMatchObject({ reason: "reserve-bad-amount" });
+  });
+});
+
 describe("the price index (D20)", () => {
   beforeEach(() => installBankingHarness());
   afterEach(() => teardownBankingHarness());

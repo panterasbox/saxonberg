@@ -848,7 +848,7 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
 > banking-side summary.
 
 - **Four real → real leg kinds** — `advance`, `repayment`, `appropriation`,
-  `escheat` — and the categories `window · perpetual · override · advance ·
+  `escheat` — and the categories `window · perpetual · override · retire · advance ·
   repayment · interest · terms · appropriation · escheat · unclaimed ·
   recovery · arrival · opening`. A `mint` is now ONLY the two rules'
   (`reconcilePerpetual`, `windowAdvance`), the recorded `override`, and the
@@ -879,9 +879,24 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
   charge's payer refuse when the account's owner is dormant or its house
   closed — never at the chokepoint, so an estate's own legs still move.
 - The **reserve** verb: `reserve` (the dashboard — two lanes, the three
-  numbers, the default rate, the index), `reserve supply`, `reserve set
-  <reserve.*>`, `reserve override <n> to <who> "<why>"`. `reserve mint` no
-  longer exists. The **treasury** verb: `treasury` (the book), `treasury
+  numbers, the default rate, the index, overrides and retirements on the
+  record), `reserve supply`, `reserve set <reserve.*>`, `reserve override
+  <n> to <who> "<why>"`, `reserve retire <n> from <who> "<why>"`. `reserve
+  mint` no longer exists.
+- ⭐ **The reserve's recorded sink — `reserve retire`** (test-world-lifecycle
+  D10, owner ruling 2026-11-20). The override's exact inverse: one `drain`
+  leg, the account → ISSUANCE, category `retire`, memo the Governor's
+  reason, actor the officer from context (`BankingApi.retire`). The supply
+  falls by the amount; the dashboard prints `retired on the record` beside
+  the overrides; the holder is told when present, and the statement carries
+  the row either way. ⛔ **Never partial**: an amount the account cannot cover
+  is a `retire-over-balance` refusal and nothing posts. Before it existed the
+  reserve could only mint by hand, so a supply inflated by mistake (or by a
+  test run) had no correction on the record. Governance (lens 7): it judges a
+  person's account — the criterion is the Governor's stated reason, the
+  appeal goes through the Governor's office, and it is tier B (the code fixes
+  who may do it; the polity cannot widen it). The wire suite's purge is its
+  first caller. The **treasury** verb: `treasury` (the book), `treasury
   appropriate <n> to <house>`.
 - `Terms.loanRatePerGameYear` + `Terms.repaymentShare`: a bank that lends
   posts its rate beside its fees; `BankCounter.lends()`.
