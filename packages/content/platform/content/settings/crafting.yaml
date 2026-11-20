@@ -51,9 +51,6 @@ settings:
   - key: wood.seasonedThreshold
     value: "0.8"
 
-  - key: maturing.impartsSpentPerFill
-    value: "0.34"
-
   - key: crafting.refireHeatK
     value: "573"
 

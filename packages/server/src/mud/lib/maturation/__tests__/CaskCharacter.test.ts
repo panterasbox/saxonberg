@@ -1,16 +1,17 @@
 /**
- * ⭐⭐⭐ **The cask matters** — `imparts`, `productAtFraction`, and the age
- * statement.
+ * ⭐⭐⭐ **The cask matters** — the wall's give, `productAtFraction`, the age
+ * statement, and the wall's memory.
  *
- * Three decisions under test, and each one answers a question the
- * predecessor build could not:
+ * The decisions under test:
  *
- *   1. **`imparts` is on the VESSEL**, written by the clock. Two casks
- *      of the same wood holding the same spirit yield two different
- *      whiskies, and a second cask is a ROW. (Not the profile: it keys
- *      on the liquid, so two profiles would be two rows claiming one
- *      tag. Not the wood material: a charred first-fill and a plain
- *      third-fill are both oak.)
+ *   1. ⭐ **What a cask gives is its WALL's** (matter-model-overlaps D11,
+ *      re-baselined from the vessel's `imparts`): the giving layer — a
+ *      char coat inside, else the oak body — gives its material's
+ *      `imparts` toward full over `faces.wallGiveDays` of contact, spent a
+ *      third a fill after the first. Two casks of the same wood holding the
+ *      same spirit still yield two different whiskies: one has a coat.
+ *      Here the give days are pinned to the test profile's ten-day length,
+ *      as the shipped dial is to the whiskey profile's ninety.
  *   2. **`productAtFraction` makes *when to bottle* a decision.** There
  *      is drawable product before the batch finishes, graded by how far
  *      along it is — so impatience costs quality, and the Lounge's sour
@@ -19,12 +20,17 @@
  *      average, because that is what an age statement means.
  *
  * ⚠ The idempotence test is the one that would catch the real bug: the
- * write is reconcile-on-read, so without the `impartedFraction` marker
- * the oak would climb every time anybody looked at the cask.
+ * write is reconcile-on-read, so a give that is not path-independent would
+ * climb every time anybody looked at the cask.
+ *
+ *   4. ⭐⭐ **An absorbent wall remembers** (D11): it learns a share of what
+ *      the contents give a nose — their own smells included — gives it
+ *      back to the next fill, loses what it gives, and a wash spends it.
+ *      A pitch coat seals both sources; a lead glaze still leaches.
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
@@ -45,6 +51,22 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
 import { rememberProfile } from './profiles';
+import Wood from '../../../platform/idea/material/Wood';
+import Water from '../../../platform/idea/material/Water';
+import Acid from '../../../platform/idea/material/Acid';
+import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
+import { PerceptionApi } from '../../../api/perception';
+import { AppApi } from '../../../api/app';
+import { MixinApi } from '../../../api/mixin';
+import TemplateApplier from '../../../platform/idea/TemplateApplier';
+import type { AnyConstructor } from '../../../api/mixin';
+import { ProxyApi } from '../../../api/proxy';
+
+const OAK = '/base-library/aromas/oak';
+const VANILLA = '/base-library/aromas/vanilla';
+const CHAR = '/base-library/aromas/char';
+const SMOKE = '/base-library/aromas/smoke';
+const WHISKY_NOSE = '/base-library/aromas/testwhisky';
 
 const SPIRIT = '/stuff/idea/material/_test/cask-spirit';
 const WHISKY = '/stuff/idea/material/_test/cask-whisky';
@@ -83,16 +105,49 @@ function profile(p = 1): void {
   }, '/stuff/idea/maturation/_test/cask-test');
 }
 
-/** A cask. `imparts` is what this barrel gives its contents. */
-function cask(imparts: { type: string; amount: number }[] = []): Vat {
+let woodSeq = 0;
+/** A wood whose wall gives `imparts`; `absorbent` makes it remember. */
+function wood(imparts: { type: string; amount: number }[], tags: string[] = ['wood']): Wood {
+  woodSeq += 1;
+  return makeStuffAtPath(() => {
+    const m = new Wood();
+    m.setName(`test-wood-${woodSeq}`);
+    m.setTags(tags);
+    m.setDensity(Quantity.of(750, 'kg/m³'));
+    m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
+    void m.setImparts(imparts);
+    return m;
+  }, `/stuff/idea/material/_test/wood-${woodSeq}`);
+}
+
+/**
+ * A cask. `imparts` is what its oak body gives its contents; `coat`, a
+ * material laid set on its inside face (a char, a pitch, a glaze).
+ */
+function cask(
+  imparts: { type: string; amount: number }[] = [],
+  opts: { tags?: string[]; coat?: { getTemplatePath(): string | null } } = {},
+): Vat {
   const v = makeStuff(() => new Vat());
   (v as unknown as { interiorBulk: boolean }).interiorBulk = true;
   v.setInteriorCapacity(Quantity.of(25, 'L'));
   v.lastAmbientK = 290;
   v.stampedTemperatureK = 290;
   v.setOpen(true);
-  v.imparts = imparts;
+  if (imparts.length > 0 || opts.tags) v.setMaterial(wood(imparts, opts.tags));
+  if (opts.coat) {
+    void v.setCoats({ inside: [{ material: opts.coat.getTemplatePath()!, thicknessM: 0.002, state: 'set' }] });
+  }
   return v;
+}
+
+/** The char a cooper's fire lays: vanilla and char, a little oak. */
+function charCoat(amounts: { type: string; amount: number }[] = [
+  { type: VANILLA, amount: 40 },
+  { type: CHAR, amount: 120 },
+  { type: OAK, amount: 15 },
+]): Wood {
+  return wood(amounts, ['wood', 'char']);
 }
 
 function pail(band: string, litres: number): Pail {
@@ -139,6 +194,21 @@ function aromaOf(v: unknown, type: string): number {
 
 beforeEach(() => {
   installV1QuantityMarshallers();
+  for (const [path, threshold] of [
+    [OAK, 0.07],
+    [VANILLA, 0.1],
+    [CHAR, 0.3],
+    [SMOKE, 0.01],
+    [WHISKY_NOSE, 0.1],
+  ] as const) {
+    PerceptionApi.aromas().remember(path, { threshold }, null);
+  }
+  // ⭐ The wall gives over the test profile's own ten days, as the shipped
+  // `faces.wallGiveDays` is the whiskey profile's ninety.
+  const setting = AppApi.setting.bind(AppApi);
+  vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
+    key === 'faces.wallGiveDays' ? '10' : setting(key),
+  );
   // ⚠⚠ Without the registry Stuff the cask's clock reads `null` —
   // *nothing is happening* — and every assertion below passes
   // vacuously against an idle batch.
@@ -154,14 +224,14 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   StuffApi.clearAll();
 });
 
-describe('⭐⭐ imparts — the cask writes its character', () => {
-  it('a cask authoring NOTHING leaves the payload untouched', () => {
-    // ⭐ The host-placement claim, proved: every Vat composes this, and
-    // for a row that authors none it is vacuous. No guard re-narrows the
-    // host set because none is needed.
+describe('⭐⭐ the wall gives — the cask writes its character (D11)', () => {
+  it('a cask whose wall gives NOTHING leaves the payload untouched', () => {
+    // ⭐ The host-placement claim, proved: every Faced vessel can answer,
+    // and for a wall whose material imparts nothing it is vacuous.
     profile();
     const v = cask();
     fill(pail('fine', 25), v, 20);
@@ -169,76 +239,72 @@ describe('⭐⭐ imparts — the cask writes its character', () => {
     expect(slotOf(v).getPayload()?.dissolvedAromatics).toBeUndefined();
   });
 
-  it('writes its figures into the contents as the batch converts', () => {
+  it('gives its figures into the contents over the contact time', () => {
     profile();
-    const v = cask([{ type: 'oak', amount: 25 }]);
+    const v = cask([{ type: OAK, amount: 25 }]);
     fill(pail('fine', 25), v, 20);
-    // Half the batch at 0.1/day is five game-days.
+    // Five of the ten give days: about half.
     age(v, 5);
-    const half = aromaOf(v, 'oak');
-    expect(half).toBeGreaterThan(0);
-    expect(half).toBeLessThan(25);
+    const half = aromaOf(v, OAK);
+    expect(half).toBeGreaterThan(10);
+    expect(half).toBeLessThan(15);
     age(v, 6);
-    expect(aromaOf(v, 'oak')).toBeCloseTo(25, 4);
+    expect(aromaOf(v, OAK)).toBeCloseTo(25, 4);
   });
 
   it('⚠ is IDEMPOTENT across repeated reads — the reconcile-on-read trap', () => {
-    // Without the `impartedFraction` marker the oak would climb every
-    // time anybody so much as looked at the cask, and nothing would say
-    // so: a `look` would make the whisky woodier.
+    // A give that compounded per read would climb every time anybody so
+    // much as looked at the cask, and nothing would say so: a `look` would
+    // make the whisky woodier. The give is linear and capped.
     profile();
-    const v = cask([{ type: 'oak', amount: 25 }]);
+    const v = cask([{ type: OAK, amount: 25 }]);
     fill(pail('fine', 25), v, 20);
     age(v, 12);
-    const settled = aromaOf(v, 'oak');
+    const settled = aromaOf(v, OAK);
     for (let i = 0; i < 20; i++) v.getMaturationPhase();
-    expect(aromaOf(v, 'oak')).toBeCloseTo(settled, 9);
+    expect(aromaOf(v, OAK)).toBeCloseTo(settled, 9);
   });
 
   it('⭐⭐ two casks of the SAME WOOD make two different whiskies', () => {
-    // The argument for `imparts` living on the vessel. Both are oak;
-    // what differs is this barrel's own history.
+    // Both bodies are the same oak; the charred one has a char coat
+    // inside, and the coat is the giving layer.
     profile();
-    const plain = cask([
-      { type: 'oak', amount: 25 },
-      { type: 'vanilla', amount: 3 },
-    ]);
-    const charred = cask([
-      { type: 'vanilla', amount: 40 },
-      { type: 'char', amount: 120 },
-      { type: 'oak', amount: 15 },
-    ]);
+    const oak = [
+      { type: OAK, amount: 25 },
+      { type: VANILLA, amount: 3 },
+    ];
+    const plain = cask(oak);
+    const charred = cask(oak, { coat: charCoat() });
     fill(pail('fine', 25), plain, 20);
     fill(pail('fine', 25), charred, 20);
     age(plain, 12);
     age(charred, 12);
-    expect(aromaOf(plain, 'oak')).toBeGreaterThan(aromaOf(charred, 'oak'));
-    expect(aromaOf(charred, 'vanilla')).toBeGreaterThan(
-      aromaOf(plain, 'vanilla'),
-    );
-    expect(aromaOf(charred, 'char')).toBeGreaterThan(0);
-    expect(aromaOf(plain, 'char')).toBe(0);
+    expect(aromaOf(plain, OAK)).toBeCloseTo(25, 4);
+    expect(aromaOf(charred, OAK)).toBeCloseTo(15, 4);
+    expect(aromaOf(charred, VANILLA)).toBeGreaterThan(aromaOf(plain, VANILLA));
+    expect(aromaOf(charred, CHAR)).toBeCloseTo(120, 4);
+    expect(aromaOf(plain, CHAR)).toBe(0);
   });
 
   it('adds to what the spirit already carried, never replacing it', () => {
     // A peated spirit in a charred cask is both things. Nothing the cask
     // does erases what the still gave up.
     profile();
-    const v = cask([{ type: 'char', amount: 120 }]);
+    const v = cask([{ type: CHAR, amount: 120 }]);
     const p = pail('fine', 25);
     slotOf(p).setPayload({
       ...(slotOf(p).getPayload() ?? {}),
-      dissolvedAromatics: [{ type: 'smoke', amount: 75 }],
+      dissolvedAromatics: [{ type: SMOKE, amount: 75 }],
     });
     fill(p, v, 20);
     age(v, 12);
-    expect(aromaOf(v, 'smoke')).toBeCloseTo(75, 4);
-    expect(aromaOf(v, 'char')).toBeCloseTo(120, 4);
+    expect(aromaOf(v, SMOKE)).toBeCloseTo(75, 4);
+    expect(aromaOf(v, CHAR)).toBeCloseTo(120, 4);
   });
 
   it('starts over for a new batch — a refilled cask does not double up', () => {
     profile();
-    const v = cask([{ type: 'oak', amount: 25 }]);
+    const v = cask([{ type: OAK, amount: 25 }]);
     fill(pail('fine', 25), v, 20);
     age(v, 12);
     // Empty it and refill: a fresh batch, a fresh extraction.
@@ -247,9 +313,9 @@ describe('⭐⭐ imparts — the cask writes its character', () => {
     fill(pail('fine', 25), v, 20);
     age(v, 12);
     // A fresh extraction, not a doubled one — at the second fill's
-    // strength, because a cask spends a third of its character per fill
-    // (assembly D9; the refill used to give the whole of it again).
-    expect(aromaOf(v, 'oak')).toBeCloseTo(25 * 0.66, 4);
+    // strength, because a wall spends a third of its give per fill after
+    // the first (`faces.wallSpentPerFill`).
+    expect(aromaOf(v, OAK)).toBeCloseTo(25 * 0.66, 4);
   });
 });
 
@@ -349,47 +415,227 @@ describe('⭐⭐ the age statement', () => {
   });
 });
 
-describe('⭐⭐ the cask SPENDS its character fill by fill, and a re-fire restores it (assembly D9)', () => {
+describe('⭐⭐ the wall SPENDS its give fill by fill, and a re-fire restores it (D11)', () => {
   /** Empty the cask into a waiting pail — the batch is done with. */
   function rack(v: Vat): void {
     const sink = pail('fine', 0);
     BulkableApi.transfer(slotOf(v), slotOf(sink), { kind: 'all', mode: 'strict' } as never);
   }
-  function oneFill(v: Vat): number {
+  function oneFill(v: Vat, type = OAK): number {
     fill(pail('fine', 25), v, 20);
     age(v, 12);
-    const got = aromaOf(v, 'oak');
+    const got = aromaOf(v, type);
     rack(v);
     return got;
   }
 
   it('the first fill gives all of it; each after gives a third less; the fourth nothing', () => {
     profile();
-    const v = cask([{ type: 'oak', amount: 30 }]);
+    const v = cask([{ type: OAK, amount: 30 }]);
     const first = oneFill(v);
     const second = oneFill(v);
     const third = oneFill(v);
     const fourth = oneFill(v);
     expect(first).toBeCloseTo(30, 3);
     expect(second).toBeCloseTo(30 * 0.66, 3);
-    expect(third).toBeLessThan(second);
+    expect(third).toBeCloseTo(30 * 0.32, 3);
     expect(fourth).toBeCloseTo(0, 6);
-    expect(v.getFillCount()).toBe(4);
-    expect(v.isSpent()).toBe(true);
+    expect(v.wallGiveLeft('inside')).toBe(0);
+    // ⭐ …and a look says so — the line the retired maturation augmenter
+    // printed, read off the wall's spent now.
+    fill(pail('fine', 25), v, 5);
+    v.setLongDescription('A cask.');
+    expect(v.getMarkupLong(v as never, {})).toMatch(/given its contents everything it had/);
   });
 
-  it('⭐ a re-fire restores it — and a plain cask comes back CHARRED', () => {
+  it('⭐ a fill is counted by the TRANSFER into an empty wall — a top-up is not a fill', () => {
     profile();
-    const v = cask([{ type: 'oak', amount: 30 }]);
-    v.charredImparts = [{ type: 'char', amount: 100 }];
+    const v = cask([{ type: OAK, amount: 30 }]);
+    expect(v.wallGiveLeft('inside')).toBe(1);
+    fill(pail('fine', 25), v, 10);
+    expect(v.wallGiveLeft('inside')).toBe(1); // the first is free
+    fill(pail('fine', 25), v, 10); // a top-up
+    expect(v.wallGiveLeft('inside')).toBe(1);
+    rack(v);
+    fill(pail('fine', 25), v, 10);
+    expect(v.wallGiveLeft('inside')).toBeCloseTo(0.66, 9);
+  });
+
+  it('a coat keeps its own spent; the body under it is untouched', () => {
+    profile();
+    const v = cask([{ type: OAK, amount: 30 }], { coat: charCoat() });
+    oneFill(v, CHAR);
+    oneFill(v, CHAR);
+    expect(v.getCoats('inside')[0]?.spent).toBeCloseTo(0.34, 9);
+    expect(v.wallSpent.inside).toBeUndefined();
+  });
+
+  it('⭐ a re-fire restores it — and a plain cask comes back CHARRED', async () => {
+    profile();
+    const v = cask([{ type: OAK, amount: 30 }]);
+    const char = charCoat([{ type: CHAR, amount: 100 }]);
     for (let i = 0; i < 4; i++) oneFill(v);
-    expect(v.isSpent()).toBe(true);
-    v.refire();
-    expect(v.getCharLevel()).toBe(1);
-    expect(v.isSpent()).toBe(false);
+    expect(v.wallGiveLeft('inside')).toBe(0);
+    // `refireFace` is the cooper's — gated to CraftingLogic's repair rung,
+    // whose own gate and bill read are the repair tests'. The raw target
+    // stands in for the rung (the documented test seam).
+    const raw = (v as unknown as Record<symbol, Vat>)[ProxyApi.RAW_TARGET]!;
+    raw.refireFace('inside', char.getTemplatePath()!);
+    expect(v.wallGiveLeft('inside')).toBe(1);
+    expect(v.getCoats('inside')[0]?.material).toBe(char.getTemplatePath());
     fill(pail('fine', 25), v, 20);
     age(v, 12);
-    expect(aromaOf(v, 'char')).toBeCloseTo(100, 3);
-    expect(aromaOf(v, 'oak')).toBe(0);
+    expect(aromaOf(v, CHAR)).toBeCloseTo(100, 3);
+    expect(aromaOf(v, OAK)).toBe(0);
+  });
+});
+
+describe('⭐⭐ an absorbent wall REMEMBERS — learn, give back, run out, wash (D11)', () => {
+  let seq = 0;
+  /** A liquid; `nose` is its own smell, OU/kg (as mg/L: × the aroma's threshold). */
+  async function liquid(nose = 0): Promise<Water> {
+    seq += 1;
+    const m = makeStuffAtPath(() => {
+      const w = new Water();
+      w.setName(`test-liquid-${seq}`);
+      w.setTags(['liquid']);
+      w.setDensity(Quantity.of(1000, 'kg/m³'));
+      return w;
+    }, `/stuff/idea/material/_test/liquid-${seq}`);
+    if (nose > 0) await m.setSmells([{ aroma: WHISKY_NOSE, strength: nose }]);
+    return m;
+  }
+  /** Fill `v` empty with `litres` of `m`. */
+  function pour(v: Vat, m: Water, litres = 20): void {
+    const p = makeStuff(() => new Pail());
+    (p as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    p.setInteriorCapacity(Quantity.of(50, 'L'));
+    p.setBulkMaterial('interior', m);
+    p.setInteriorAmount(Quantity.of(litres, 'L'));
+    fill(p, v, litres);
+  }
+  function empty(v: Vat): void {
+    const sink = pail('fine', 0);
+    BulkableApi.transfer(slotOf(v), slotOf(sink), { kind: 'all', mode: 'strict' } as never);
+  }
+  function kept(v: Vat): number {
+    return v.absorbedAromas('inside').find((a) => a.type === WHISKY_NOSE)?.amount ?? 0;
+  }
+  function memoryCask(): Vat {
+    return cask([], { tags: ['wood', 'absorbent'] });
+  }
+
+  it('learns a share of what the contents give a nose — their own smell included', async () => {
+    const v = memoryCask();
+    // 50 OU/kg × 0.1 mg/L per OU = 5 mg/L; the wall keeps a tenth.
+    pour(v, await liquid(50));
+    age(v, 2);
+    expect(kept(v)).toBeCloseTo(0.5, 6);
+  });
+
+  it('⭐ gives it back to the next fill — water in a whiskey cask tastes of whiskey — and LOSES what it gives', async () => {
+    const v = memoryCask();
+    pour(v, await liquid(50));
+    age(v, 2);
+    empty(v);
+    const water = await liquid();
+    pour(v, water);
+    age(v, 5);
+    // The wall and the water meet halfway.
+    expect(aromaOf(v, WHISKY_NOSE)).toBeCloseTo(0.25, 3);
+    expect(kept(v)).toBeCloseTo(0.25, 3);
+  });
+
+  it('runs out — each fill of water takes half of what is left', async () => {
+    const v = memoryCask();
+    pour(v, await liquid(50));
+    age(v, 2);
+    const water = await liquid();
+    const got: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      empty(v);
+      pour(v, water);
+      age(v, 5);
+      got.push(aromaOf(v, WHISKY_NOSE));
+    }
+    expect(got[0]).toBeCloseTo(0.25, 3);
+    expect(got[1]).toBeCloseTo(0.125, 3);
+    expect(got[2]).toBeCloseTo(0.0625, 3);
+  });
+
+  it('⭐ a wash halves it (`faces.washClears`), and never touches the wall\'s own give', async () => {
+    const v = cask([{ type: OAK, amount: 30 }], { tags: ['wood', 'absorbent'] });
+    pour(v, await liquid(50));
+    age(v, 2);
+    empty(v);
+    const before = kept(v);
+    const spentBefore = v.wallSpent.inside;
+    v.washSite({ waterK: 340, hardnessDgh: 0, cleansers: [], effort: 3 });
+    expect(kept(v)).toBeCloseTo(before / 2, 9);
+    expect(v.wallSpent.inside).toBe(spentBefore);
+  });
+
+  it('⭐ a pitch coat seals the wall — neither the oak nor its memory reaches the ale', async () => {
+    const pitch = makeStuffAtPath(() => {
+      const m = new PigmentPaint();
+      m.setName('test-pitch');
+      m.setTags(['waterproofing']);
+      return m;
+    }, '/stuff/idea/material/_test/pitch');
+    const v = cask([{ type: OAK, amount: 30 }], { tags: ['wood', 'absorbent'], coat: pitch });
+    expect(v.isSealed('inside')).toBe(true);
+    pour(v, await liquid(50));
+    age(v, 12);
+    expect(aromaOf(v, OAK)).toBe(0);
+    expect(v.absorbedAromas('inside')).toEqual([]);
+    expect(v.wallGiveLeft('inside')).toBeNull();
+  });
+
+  it('⭐ the leach still runs under a sealed glaze — the coat\'s own', () => {
+    const glaze = makeStuffAtPath(() => {
+      const m = new PigmentPaint();
+      m.setName('test-lead-glaze');
+      m.setTags(['glaze']);
+      m.setLeaches([{ toxin: 'lead', mgPerLPerDay: 4 }]);
+      return m;
+    }, '/stuff/idea/material/_test/lead-glaze');
+    const vinegar = makeStuffAtPath(() => {
+      const m = new Acid();
+      m.setName('test-vinegar');
+      m.setTags(['liquid']);
+      m.setPh(2.4);
+      return m;
+    }, '/stuff/idea/material/_test/vinegar');
+    const v = cask([{ type: OAK, amount: 30 }], { tags: ['wood', 'absorbent'], coat: glaze });
+    pour(v, vinegar as unknown as Water);
+    age(v, 7);
+    const lead = slotOf(v).getPayload()?.dissolvedToxins?.find((t) => t.type === 'lead')?.amount ?? 0;
+    expect(lead).toBeGreaterThan(20);
+    expect(aromaOf(v, OAK)).toBe(0);
+  });
+
+  it('⭐ restores what it remembers and what it has spent — absorbed, wallSpent, a coat\'s spent', async () => {
+    const v = cask([{ type: OAK, amount: 30 }], { tags: ['wood', 'absorbent'], coat: charCoat() });
+    pour(v, await liquid(50));
+    age(v, 2);
+    empty(v);
+    pour(v, await liquid(50));
+    age(v, 1);
+    v.wallSpent = { inside: 0.34 };
+    const faced = MixinApi.getPersistenceContributors(Vat as unknown as AnyConstructor).find(
+      (c) => c.key === 'FacedMixin',
+    );
+    if (!faced?.captureSlice) throw new Error('FacedMixin contributes no slice');
+    const slice = JSON.parse(JSON.stringify(faced.captureSlice(v, {} as never))) as {
+      fields: Record<string, unknown>;
+    };
+    expect(Object.keys(slice.fields)).toEqual(expect.arrayContaining(['absorbed', 'wallSpent', 'coats']));
+    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
+    const applier = await StuffApi.singleton<TemplateApplier>(TemplateApplier.templatePath);
+    const fresh = cask();
+    await applier.apply(fresh, slice.fields, { mode: 'restore' });
+    expect(fresh.absorbedAromas('inside')).toEqual(v.absorbedAromas('inside'));
+    expect(fresh.wallSpent).toEqual({ inside: 0.34 });
+    expect(fresh.getCoats('inside')[0]?.spent).toBeCloseTo(0.34, 9);
   });
 });

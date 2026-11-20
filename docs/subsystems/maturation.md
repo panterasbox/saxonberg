@@ -139,58 +139,34 @@ to idle, and the mixin's own product/turn/lees swaps re-key so they
 never read as fills. A same-material top-up continues the batch (the
 payload rule).
 
-## ⭐⭐⭐ `imparts` — what the VESSEL gives, written by the clock
+## ⭐⭐⭐ `imparts` — what the VESSEL gives (it is the WALL's now)
 
-A maturing vessel may author `imparts: [{type, amount}]` — aroma
-compounds (`metabolism.md`'s closed vocabulary), mg/L **at full
-conversion** — and the reconcile writes the newly-earned share into the
-interior payload's `dissolvedAromatics` each pass. `impartedFraction`
-marks how much has landed.
+⚠ **Moved (matter-model-overlaps D11).** What a cask gives its contents is
+no longer maturation's: it is the wall's one exchange,
+[`FacedMixin.exchangeWith`](./faces.md#-the-walls-exchange--one-model-two-sources),
+and the figures are the wall MATERIAL's `imparts` (`ExtractionMixin`). Oak's
+row gives oak 25 and vanilla 3 mg/L at full give; a charred cask is the same
+oak cask with a set coat of `charred-oak` on its inside face, whose own
+`imparts` are vanilla 40, char 120, oak 15. Two casks of one wood still make
+two whiskies — one has a coat — and a third is a row.
 
-```yaml
-# the plain whiskey cask                # the charred one, same wood
-imparts:                                imparts:
-  - { type: oak, amount: 25 }             - { type: vanilla, amount: 40 }
-  - { type: vanilla, amount: 3 }          - { type: char, amount: 120 }
-                                          - { type: oak, amount: 15 }
-```
+What changed for maturation:
 
-⭐ **This is what makes a cask a decision.** Two barrels of the same wood
-holding the same spirit for the same time yield two different whiskies,
-and a third is a ROW.
-
-**Why the vessel and not the profile.** A profile keys on the LIQUID
-(`inputCategory`), so an oak cask and a charred cask would be two
-profiles claiming the tag `new-make` — and `forMaterial` resolves a
-double match by taking the lowest key, *silently*. A `vesselCategory`
-requirement on the profile instead enumerates (liquids × vessels) rows.
-
-**Why not the wood Material.** A charred first-fill cask and a plain
-third-fill cask are **both oak**. The difference is this barrel's own
-state and history, which is a fact about the vessel.
-
-⚠ What composing it claims: *a maturing vessel may give its contents a
-character over the course of a batch.* True of every vat — an oak
-fermenter does exactly this — and vacuous when a row authors none, so **no
-guard anywhere re-narrows the host set.**
-
-⚠ One known coarseness, recorded rather than modelled: the figure is
-per litre regardless of **fill level** (a small fill in a big cask ought
-to extract harder).
-
-⭐ `imparts` **depletes** (since the coopering build — assembly D9): every
-fill after the first spends `maturing.impartsSpentPerFill` (a third) of
-what the vessel has to give, recorded in `impartsSpent`, so a third fill
-gives little and a fourth nothing (`isSpent()`). `effectiveImparts`
-scales the authored figure by what is left. A cooper's `refire()` restores
-it and chars the inside, after which the vessel gives its
-`charredImparts`. See [assembly.md](./assembly.md) § Coopering and the
-cask.
-
-⚠ **Idempotence is the trap, not the arithmetic.** The write is
-reconcile-on-read, so without the `impartedFraction` marker the oak would
-climb every time anybody so much as *looked* at the cask — a `look` would
-make the whisky woodier, and nothing would say so.
+- The give runs on the WALL's clock, not the batch's: it reaches full over
+  `faces.wallGiveDays` (90 — the whiskey-aging profile's length, so a first
+  fill at maturity reads as it did) of contact, whatever the liquid and
+  whether or not a batch is converting. Water in an oak cask tastes of oak.
+- `imparts`, `charredImparts`, `impartsSpent`, `fillCount`,
+  `fillsSinceRefire`, `charLevel`, `impartedFraction`, `applyImparts`,
+  `effectiveImparts`, `refire` and `isSpent` are gone from `MaturingMixin`,
+  and the setting `maturing.impartsSpentPerFill` with them. Spending is the
+  wall's (`faces.wallSpentPerFill`, counted by the transfer into an empty
+  vessel), re-firing is `repair`'s rung calling `Faced.refireFace` with the
+  coat the cask's bill names, and `look`'s *"less left to give"* line is
+  `coatAugmenter`'s. See [assembly.md](./assembly.md) § Coopering and the
+  cask.
+- Oak is `absorbent`: the cask remembers what it held and gives it to the
+  next fill — a batch that follows whiskey carries some of it.
 
 ## ⭐⭐ `productAtFraction` — *when to bottle* as a decision
 

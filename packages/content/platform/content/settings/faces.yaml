@@ -26,6 +26,24 @@ settings:
   - key: faces.aromaRetained
     value: "0.1"
 
+  # ⭐ A wall gives its own material's `imparts` (oak's oak and vanilla, a
+  # char coat's vanilla and char) toward full over this many game-days of
+  # contact — the shipped whiskey cask's ninety, so a first fill at maturity
+  # reads as it did when the cask carried the figures (matter-model-overlaps
+  # D11).
+  - key: faces.wallGiveDays
+    value: "90"
+
+  # Each fill after the first spends a third of what the wall has to give:
+  # a third fill gives little and a fourth nothing, until a re-fire.
+  - key: faces.wallSpentPerFill
+    value: "0.34"
+
+  # A wash clears at most half of what a wall has soaked up — the memory
+  # fades by washes, it does not vanish at one.
+  - key: faces.washClears
+    value: "0.5"
+
   # ⭐ A porous body set on or in a vessel runs its water THROUGH into it —
   # the ceramic filter — at this many liters an hour per liter held, per
   # unit of porosity: a filter candle of porous stoneware (≈ 0.12) passes

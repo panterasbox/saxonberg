@@ -81,6 +81,13 @@ the draft. A **vell** comes only off a young head (`ButcheryYield.maxAgeDays`)
 
 ⭐ **A second creamery is rows.** Nothing here names a venue.
 
+⭐ **The crock remembers** (matter-model-overlaps D11). The starter crock is
+terracotta — porous past holding water bare — so it learns a tenth of what
+it held (the cream's own smell among it) and gives that back to the next
+milk, losing what it gives; `wash crock` spends up to half of it a wash. A
+glazed crock seals and remembers nothing. It is the wall's one exchange
+([faces.md](./faces.md)), the same one an oak cask runs.
+
 ## Discipline
 
 `dairying` (ISCED 0721), a specialization of `fermenting`. Credited by the

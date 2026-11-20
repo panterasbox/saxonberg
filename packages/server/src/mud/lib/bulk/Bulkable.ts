@@ -55,7 +55,6 @@ import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import type { Difficulty } from '../advancement/ActSignature';
 import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
-import { WaterChemistry } from '../supply/WaterChemistry';
 import { BulkableApi, type TransferAmount } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -1468,14 +1467,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * matter-model-overlaps D4, D9), integrated on read since the payload's
      * `faceCheckedS`:
      *
-     *  - **the leach** — the inside face's outermost material `leaches`
-     *    a toxin at `mg/L/day × the contents' acidity`, into the
-     *    payload's `dissolvedToxins` (metabolism's own field: drinking it
-     *    doses the drinker with no new code). Nothing looks, smells or
-     *    tastes of it.
-     *  - **the memory** — a porous inside face keeps a share of a fill's
-     *    aromas and gives them to the next (the crock that remembers the
-     *    pickles); a glaze or a stoneware body keeps nothing.
+     *  - ⭐⭐ **the wall's exchange** — ONE call, `Faced.exchangeWith`
+     *    (matter-model-overlaps D11): the leach of the inside's outermost
+     *    material, the wall's own `imparts` (oak gives oak), and what an
+     *    absorbent wall has learned from what it held. The slot keeps the
+     *    clock and the payload; the wall decides what passes.
      *  - ⭐⭐ **the leak** — the ONE loss ({@link leakLPerHour}): through the
      *    pores (onto its own outside first — the weeping jar's film, whose
      *    evaporation cools it — or, when something under it takes what comes
@@ -1485,7 +1481,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      *    is losing liquid arms ONE game-clock wake for the moment it runs
      *    out or what it drips into brims ({@link armLeak}).
      *
-     * The leach and the memory are a FACED vessel's; the leak is any
+     * The exchange is a FACED vessel's; the leak is any
      * vessel's. Inert for a vessel that holds nothing; at most once a
      * game-minute.
      */
@@ -1513,23 +1509,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         if (nowS === null || nowS - checkedS < 60) return;
       }
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
-      // pot of water carries no payload because of this.
-      const insideFace = faced ? self.outermost('inside') : null;
-      // ⭐ The contents' own pH when they carry one — a water's, off its
-      // source (water-supply D8) — else the material row's.
-      const payloadPh = this.interiorPayload?.pH;
-      const leaches =
-        faced &&
-        MixinApi.hasAcidity(material) &&
-        material.acidAttack(payloadPh) > 0 &&
-        insideFace !== null &&
-        MixinApi.hasExtraction(insideFace) &&
-        insideFace.getLeaches().length > 0;
-      const porousInside = faced && !self.holdsWater('inside');
-      const remembers =
-        porousInside &&
-        ((this.interiorPayload?.dissolvedAromatics?.length ?? 0) > 0 ||
-          self.absorbedAromas('inside').length > 0);
+      // pot of water carries no payload because of this. The wall says
+      // whether it has anything to give or take.
+      const walled =
+        faced && self.wallExchanges({ material, litres, payload: this.interiorPayload ?? null });
       // ⭐ What comes through the wall is what the pores let through
       // (`Material.filteredTo`), whichever way it goes.
       const liquid = material.hasTag('liquid');
@@ -1553,13 +1536,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           .some((s) => s.affordance === 'interior' && (s.isEmpty() || s.getMaterialPath() === arriving));
       const poreShare = liquid ? this.poreSharePerHour(below) : 0;
       const leaking = liquid && this.leakRates(litres, poreShare).total > 0;
-      if (!leaches && !leaking && !remembers) {
+      if (!walled && !leaking) {
         if (this.leakWakeAtS !== 0) this.setLeakWakeAtS(0);
         return;
       }
       const nowS = bulkNowSeconds();
       if (nowS === null) return;
-      const payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
+      let payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
       const last = payload.faceCheckedS ?? this._interiorFilledAtS ?? undefined;
       if (last === undefined) {
         payload.faceCheckedS = nowS;
@@ -1576,55 +1559,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       }
       this._faceExchanging = true;
       try {
-        const days = dt / 86_400;
-        // The leach.
-        const inside = faced ? self.outermost('inside') : null;
-        // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
-        // vitriol far more, milk next to nothing, seawater none.
-        // ⭐⭐ …and a water's SOFTNESS (water-supply D8): hard water scales a
-        // lead pipe shut and soft water does not, so a soft acid supply
-        // through lead is the poisoning and a hard one is not. A payload
-        // that carries no hardness is not a supply's water (vinegar in a
-        // glazed jar) and the factor is 1 — the shipped glaze law unchanged.
-        const dgh = payload.hardnessDgh;
-        const softness =
-          typeof dgh === 'number' && Number.isFinite(dgh)
-            ? new WaterChemistry(7, dgh, 0).softness()
-            : 1;
-        const attack = (MixinApi.hasAcidity(material) ? material.acidAttack(payload.pH) : 0) * softness;
-        if (inside !== null && MixinApi.hasExtraction(inside) && attack > 0) {
-          const toxins = [...(payload.dissolvedToxins ?? [])];
-          for (const leach of inside.getLeaches()) {
-            const mg = leach.mgPerLPerDay * attack * days;
-            if (!(mg > 0)) continue;
-            const at = toxins.findIndex((t) => t.type === leach.toxin);
-            if (at >= 0) toxins[at] = { ...toxins[at]!, amount: toxins[at]!.amount + mg };
-            else toxins.push({ type: leach.toxin, amount: mg } as never);
-          }
-          if (toxins.length > 0) payload.dissolvedToxins = toxins;
-        }
-        // The memory.
-        if (porousInside) {
-          const kept = self.absorbedAromas('inside');
-          const fill = [...(payload.dissolvedAromatics ?? [])];
-          const retained = bulkDial(AppSettingKeys.facesAromaRetained, 0.1);
-          const next: Record<string, number> = {};
-          for (const k of kept) next[k.type] = k.amount;
-          for (const a of fill) {
-            next[a.type] = Math.max(next[a.type] ?? 0, a.amount * retained);
-          }
-          const share = Math.min(1, days);
-          for (const k of kept) {
-            const at = fill.findIndex((a) => a.type === k.type);
-            const have = at >= 0 ? fill[at]!.amount : 0;
-            if (have >= k.amount) continue;
-            const amount = have + (k.amount - have) * share;
-            if (at >= 0) fill[at] = { ...fill[at]!, amount };
-            else fill.push({ ...k, amount });
-          }
-          if (fill.length > 0) payload.dissolvedAromatics = fill;
-          self.setAbsorbedAromas('inside', Object.entries(next).map(([type, amount]) => ({ type, amount })) as never);
-        }
+        // ⭐⭐ The wall's one exchange (D11): it returns the new payload.
+        if (walled) payload = self.exchangeWith({ material, litres, payload }, dt);
         // ⭐⭐ The leak (D9): `min(held, the leak integrated over dt)`.
         let left = litres;
         let seepL = 0;

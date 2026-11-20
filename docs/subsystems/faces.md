@@ -136,7 +136,56 @@ losing liquid arms ONE game-clock wake (`leakWakeAtS`, persisted and
 re-armed by its setter) at the computable moment it runs out
 (`flaws.leak.dregsL`, 0.05 L) or the vessel under it brims.
 
-## ⭐⭐ The lead leach — the inside face gives to the contents (M7)
+## ⭐⭐ The wall's exchange — one model, two sources (M7; matter-model-overlaps D11)
+
+What a vessel's inside wall does to what it holds is ONE call,
+`Faced.exchangeWith({ material, litres, payload }, dtS)`, which returns the
+contents' new payload. `BulkableMixin.reconcileFaceExchange` keeps only the
+clock (on an interior slot's read, at most once a game-minute, stamped
+`faceCheckedS` on the payload), the call and the writes — plus the leak,
+which is the slot's ([bulk.md](./bulk.md)). It first asks
+`wallExchanges(contents)`, so a wall with nothing to give or take writes
+nothing: a glazed pot of water carries no payload.
+
+Inside the exchange, in order:
+
+1. **The leach** — always, below. The inside's OUTERMOST material (a coat,
+   else the body) leaches by the contents' acid, sealed or not: a lead glaze
+   is a seal that poisons.
+2. ⭐ **A sealed inside stops the rest** (`isSealed('inside')` — a set
+   glaze, a pitch). A pitched ale cask gives its ale nothing.
+3. **The wall's own material.** The GIVING LAYER is the inside's top coat
+   when there is an unsealed one, else the body. It gives its material's
+   `imparts` (`ExtractionMixin`, mg/L at full give) × `1 − spent`, toward
+   that target, linearly over `faces.wallGiveDays` (90) of contact — linear
+   and capped, so a read every minute and a read a month apart land the
+   same. Only a liquid takes it (extraction wants a solvent). `spent` is per
+   layer: `wallSpent[face]` for the body, `CoatLayer.spent` for a coat.
+   `noteFill(face)` — called by `BulkableLogic.transfer` on a transfer into
+   an EMPTY interior, the fill DECLARED by the act — writes `0` on a layer's
+   first fill and adds `faces.wallSpentPerFill` (0.34) on each after, so a
+   fourth fill gives nothing. `wallGiveLeft(face)` is `1 − spent` (`null`
+   when the layer gives nothing), and `look` words it: *"has less left to
+   give"* at half, *"has given its contents everything it had"* at none.
+4. **What the wall has absorbed** — the crock that remembers the pickles, the
+   cask that makes water taste of whiskey. A body tagged `absorbent` (oak),
+   or porous past holding water bare (terracotta), unsealed, first GIVES
+   BACK toward what it holds — counting the held material's own smell as
+   already there — and LOSES what it gives (the two meet halfway, at a
+   game-day's rate), then LEARNS `faces.aromaRetained` (a tenth) of what the
+   contents give a nose: their dissolved aromatics AND the held material's
+   own `smells`, converted at each aroma's threshold (`strength × threshold`
+   = mg/L). A tight stoneware body and a glaze keep nothing. A wash spends
+   it (`washAbsorbed`, below); it never touches `wallSpent`.
+
+**The re-fire** (`refireFace(face, coatPath)`, gated to `CraftingLogic`):
+the face is shaved back to clean wood — its coats, its spent and what it had
+soaked up go — and a fresh SET coat of `coatPath` is laid. The path is the
+kind's bill's `refire:` (the cooper's char, `charred-oak`); there is no
+settings path and no kernel default. A plain cask re-fired comes back a
+charred one.
+
+### The lead leach
 
 A material may `leach` into what is held against it: `leaches:
 [{toxin, mgPerLPerDay}]`, the rate against VINEGAR (pH 2.4, the acid a
@@ -161,10 +210,8 @@ water (7, unauthored) 0 — which is why lead glaze was trusted for so long.
 it from knowledge, from an assay, or from the sickness. It is the honest shape
 of lead glaze, and of the vinegar crock that poisoned a household.
 
-⚠ Not maturation's `imparts`: that is aroma on a batch clock, and the crocks
-the drive fills are `CraftVessel`s with no batch (plan D7). **Casks** (a
-charred inside face) and **pitch-lined amphorae** are the special case,
-recorded in [maturation.md](./maturation.md) for later and not migrated.
+⚠ A crock of milk in Hearts Delight's creamery and a cask in Crowsfoot
+run the same exchange: what differs is the wall's material and its coats.
 
 ## The weeping jar (M8)
 
@@ -246,8 +293,10 @@ glaze or a tight body.
   goods: a coat on a cart or a sign is a coat on its outside face, weathering
   by decomposition's exposure clock. Buildings take paint through
   construction's layers.
-- **Casks and lined vessels**: maturation's char layer, pitch and tin linings
-  are inside-face coats; recorded, not migrated.
+- **Casks and lined vessels** — ✅ migrated (matter-model-overlaps W4): a
+  charred cask is a cask with a `charred-oak` coat inside, an ale cask one
+  with a pitch coat (which seals). A tin lining would be a coat row the same
+  way; none ships.
 - **Wet clothes and sweat** reading `evaporativeDepressionK`: exertion and
   textiles' deferred lists.
 

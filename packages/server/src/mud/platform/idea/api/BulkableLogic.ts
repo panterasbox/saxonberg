@@ -565,6 +565,13 @@ export class BulkableLogic extends ApiLogic {
         // grades them itself.
         const landed = withoutWallClock(fromPayload);
         if (landed) to.setPayload(landed);
+        // ⭐ …and a fill into an EMPTY interior is DECLARED here, by the act
+        // (D2): the wall it lands against counts the fill — its first is
+        // free, each after spends what it has to give (D11). Never inferred
+        // from a missing stamp.
+        if (to.affordance === 'interior' && toHolder !== null && MixinApi.isFaced(toHolder)) {
+          toHolder.noteFill('inside');
+        }
       }
       // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
       // a vessel's temperature first reconciles it up to now at the heat it

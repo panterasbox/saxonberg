@@ -132,7 +132,13 @@ own `Burner.rakePlan`, which ends in `rakeGrate`; W7c's third `Sweepable`
 host and its three-way union result are gone.
 
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
-is the vessel service wash). A `WashSpec` is the water's heat and
+is the vessel service wash). ⭐ Washing a whole VESSEL also spends what its
+wall has soaked up (matter-model-overlaps D11): `Faced.washAbsorbed(share)`,
+the share by the wash's own heat, effort and a cleanser (`0.35 × fT ×
+fEffort`, ×1.3 with a cleanser), capped at `faces.washClears` (½) a wash; the
+wall's own give (`wallSpent`) is never touched. `Vat` composes `Soilable`,
+so `wash <cask>` binds — a cask that held whiskey, washed, makes water carry
+less of it. A `WashSpec` is the water's heat and
 hardness, zero or more cleansers, and the effort (`wash --hard` is 3 with a brush, 1.5 by hand; the old
 `scrub` verb is gone, controllers-are-io D8). Per kind:
 what a cleanser's action answers to comes off, scaled by heat, effort and

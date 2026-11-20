@@ -48,6 +48,12 @@
  *   - `ExtractionMixin.imparts` — **1 (name 0)**, the level the retired
  *     `MaturingMixin.imparts` carried: *that oak gives a spirit something* is
  *     open; the figures are the cooper's and the distiller's.
+ *   - `FacedMixin.wallSpent` — level 0: how much of its own give a wall
+ *     has spent, per instance; `look` words it (*"less left to give"*).
+ *   - `MaturingMixin.imparts` · `charredImparts` · `impartsSpent` ·
+ *     `fillCount` · `fillsSinceRefire` · `charLevel` · `impartedFraction`
+ *     LEAVE the surface — the cask's character is its wall's now. A
+ *     removal, so no spoiler question to answer.
 
  * **Size and carrying W10 (2026-11-14).**
  *   - `PlacingMixin.shutRegions` — level 0: which buttoned chambers are

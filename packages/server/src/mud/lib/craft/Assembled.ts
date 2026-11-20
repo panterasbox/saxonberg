@@ -128,6 +128,13 @@ export interface BillJoint {
 export interface Bill {
   parts: BillPart[];
   joints?: BillJoint[];
+  /**
+   * ⭐ The coat the maker's RE-FIRE lays inside — a material path (the
+   * cooper's char on a cask). `repair`'s re-fire rung reads it when the
+   * inside wall has given everything (matter-model-overlaps D11); a kind
+   * that names none is not re-fired.
+   */
+  refire?: string;
 }
 
 // ------------------------------------------------------- the parts record
@@ -681,7 +688,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.bill = null;
         return undefined;
       }
-      const v = value as { parts?: unknown; joints?: unknown };
+      const v = value as { parts?: unknown; joints?: unknown; refire?: unknown };
       if (!Array.isArray(v.parts) || !v.parts.every(isBillPart)) {
         throw new Error(
           `AssembledMixin.setBill: a bill needs 'parts', each ` +
@@ -696,14 +703,20 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
             ...(j.fastener ? { fastener: String(j.fastener) } : {}),
           }))
         : [];
+      if (v.refire !== undefined && (typeof v.refire !== 'string' || v.refire === '')) {
+        throw new Error("AssembledMixin.setBill: 'refire' names the material path a re-fire lays");
+      }
+      const refire = typeof v.refire === 'string' ? v.refire : undefined;
       this.bill = {
         parts: (v.parts as BillPart[]).map((p) => ({ ...p })),
         joints,
+        ...(refire !== undefined ? { refire } : {}),
       };
-      // The joints load with the kind: the applier awaits this.
-      return joints.length > 0
-        ? Promise.all(joints.map((j) => CraftingApi.joints().ensure(j.method))).then(() => undefined)
-        : undefined;
+      // The joints — and the re-fire's coat — load with the kind: the
+      // applier awaits this.
+      const loads: Promise<unknown>[] = joints.map((j) => CraftingApi.joints().ensure(j.method));
+      if (refire !== undefined) loads.push(MaterialApi.materials().ensure(refire));
+      return loads.length > 0 ? Promise.all(loads).then(() => undefined) : undefined;
     }
 
     /**
@@ -726,6 +739,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       return {
         parts: this.bill.parts.map((p) => ({ ...p })),
         joints: (this.bill.joints ?? []).map((j) => ({ ...j, members: [...j.members] })),
+        ...(this.bill.refire !== undefined ? { refire: this.bill.refire } : {}),
       };
     }
 

@@ -24,7 +24,7 @@ import { MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 const REPO_ROOT = join(MUD, "../../../..");
 
 /** Silent catches — measured 2026-11-18 (failure-model W4). */
-export const SILENT_CATCH_CEILING = 1020; // matter-model-overlaps W3: −2, re-pinned — the leak's cold-cache reads say why they are quiet and Boat's own setting reader went with her boat dials. master merge (navigation-server, call-security-performance): +6 — catches their new code adds (e.g. water FisheryRegistry). failure-model drive: −1, RecipeCatalogue.warm reports a broken row. Was 1017 at W4.
+export const SILENT_CATCH_CEILING = 1019; // matter-model-overlaps W4: −1, re-pinned — Maturing's own setting reader went with the per-fill spend. W3: −2, re-pinned — the leak's cold-cache reads say why they are quiet and Boat's own setting reader went with her boat dials. master merge (navigation-server, call-security-performance): +6 — catches their new code adds (e.g. water FisheryRegistry). failure-model drive: −1, RecipeCatalogue.warm reports a broken row. Was 1017 at W4.
 
 /** What makes a catch block speak. */
 const SPEAKS = [

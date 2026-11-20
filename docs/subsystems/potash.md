@@ -35,6 +35,14 @@ founding requirement (2026-10-18) and it is why the ash row lives in
 | calcine | `put cake in kiln`, `fire kiln` | the black salts' own `calcine` heat transition (ceramics M1 — no recipe); the same cake comes out, made of pearl ash, its potash concentrated | `ThermalMixin` heat-work |
 | sell | `sell "pearl ash"` | buying lines at the glasshouse board and the chandlery counter | `Stock.buyFrom` |
 
+⭐ **Oak gives oak to a lye in an oak hopper** (matter-model-overlaps D11,
+named here because it is meant). The hopper is an oak `Vat`, and every oak
+wall gives a liquid it holds oak's own `imparts` (oak 25, vanilla 3 mg/L at
+full give over `faces.wallGiveDays`) — so a lye left in the hopper for a
+fortnight carries a clear oak note, which `smell hopper` finds. Oak is
+`absorbent`, too: the hopper remembers its lye. Nothing about the alkali
+changes; the potash drive pins the note.
+
 **Why the pit is its own `Firebox`, and why there is no `burn`.** The
 slate designed the heap as the charcoal clamp run at the open draught, with
 `burn` an alias of `char`. It shipped as `AshPit extends Firebox` instead:

@@ -4286,16 +4286,24 @@ async function mendAssembly(
     });
   }
 
-  // (3) ⭐⭐ A SPENT character (assembly D6, D9, AC 23): a cask that has
-  // given everything is shaved back to clean wood and charred — a fire hot
-  // enough to char, a shaving tool, and the hand of the trade that made
-  // it, read off the vessel's own joints.
-  if (MixinApi.isMaturing(item) && item.isSpent() && stillFailed.size === 0) {
+  // (3) ⭐⭐ A SPENT wall (assembly D6, D9; matter-model-overlaps D11): a
+  // cask whose inside has given everything is shaved back to clean wood and
+  // charred — a fire hot enough to char, a shaving tool, and the hand of the
+  // trade that made it, read off the vessel's own joints. The coat the fire
+  // lays is the one the kind's BILL names (`refire:`); a kind naming none is
+  // not re-fired.
+  const refireCoat = item.getBill()?.refire;
+  if (
+    refireCoat !== undefined &&
+    MixinApi.isFaced(item) &&
+    item.wallGiveLeft('inside') === 0 &&
+    stillFailed.size === 0
+  ) {
     const refused = await refireGate(item, m);
     if (refused) {
       m.faults.push(unmendable('', 'spent', 'refired', 'the char', '', UNKNOWN_TRADE_BAND, refused.reason, refused.detail));
     } else {
-      if (m.commit) item.refire();
+      if (m.commit) item.refireFace('inside', refireCoat);
       m.faults.push({
         part: '', kind: 'spent', named: 'the char', action: 'refired', discipline: '',
         band: UNKNOWN_TRADE_BAND, mendable: true, result: 'sound', stockKg: 0,

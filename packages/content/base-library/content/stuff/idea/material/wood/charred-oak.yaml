@@ -1,0 +1,27 @@
+# Charred oak — ⭐ the char a cooper's fire leaves on the inside of a cask,
+# as a COAT on its inside face (matter-model-overlaps D11).
+#
+# The heat breaks the lignin down further than raising alone does, so the
+# char gives up far more vanillin and a layer of its own pyrolysis products
+# on top — vanilla and char where a plain oak wall gives oak. That is the
+# whole difference between a charred cask and a plain one: the same oak
+# body, and a coat of this inside it. It is porous, so it seals nothing,
+# and it is spent fill by fill like any wall; a re-fire lays a fresh one
+# (the cask's bill names this row as its `refire:`).
+#
+# ⭐ It `extends:` oak: it IS oak, burnt, and keeps oak's every other figure.
+class: /platform/idea/material/Wood
+extends: /stuff/idea/material/wood/oak
+data:
+  smells: [{ aroma: /base-library/aromas/char, strength: 3 }]
+  name: charred oak
+  keywords: ["charred oak"]
+  appearance: wood burnt to a crocodiled black
+  # Calibrated against the thresholds: vanilla 0.1 mg/L and char 0.3 mg/L,
+  # so 40 and 120 both read clearly; oak at 15 against 0.07 reads faintly.
+  # The fire has taken the plain wood note down and put vanilla and char in
+  # front of it, which is what charring does.
+  imparts:
+    - { type: /base-library/aromas/vanilla, amount: 40 }
+    - { type: /base-library/aromas/char, amount: 120 }
+    - { type: /base-library/aromas/oak, amount: 15 }

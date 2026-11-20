@@ -6,8 +6,9 @@
  * carries a layer list, outermost first — construction's shape for a wall
  * (`EnclosureSpec`: a material and a thickness), so a building's face and a
  * pot's face are one idea. A face's outermost layer decides what meets the
- * contents (the lead leach, `BulkableMixin.reconcileLeach`), whether the
- * body holds water or weeps (`holdsWater`), and how it cleans.
+ * contents (the wall's one exchange, {@link Faced.exchangeWith}: the lead
+ * leach, what the wall's own material gives, what it has absorbed), whether
+ * the body holds water or weeps (`holdsWater`), and how it cleans.
  *
  * A coat is laid WET (`dip`) and FUSED by heat — the glaze's own material
  * says at what heat (its first `kinetics` change's reference) and past what
@@ -54,6 +55,12 @@ import type { PaintMakeup } from './Paint';
 import { BiomeApi } from '../../api/biome';
 import { WorldClockApi } from '../../api/worldclock';
 import { MaterialApi } from '../../api/material';
+import { PerceptionApi } from '../../api/perception';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
+import { Mixins } from '../mixin';
+import { WaterChemistry } from '../supply/WaterChemistry';
+import type { BulkPayload } from '../bulk/Bulkable';
 
 /** Game seconds in a game year (the calendar's 360 days). */
 const GAME_YEAR_S = 360 * 86_400;
@@ -111,6 +118,22 @@ export interface CoatLayer extends EnclosureSpec {
   marks?: string;
   /** The sun this coat has had, `0..1` — a fugitive pigment fades by it (paint D5). */
   faded?: number;
+  /**
+   * ⭐ How much of what this coat's material gives the contents is spent,
+   * `0..1` (matter-model-overlaps D11). Absent until the coat's first fill;
+   * each fill after that spends `faces.wallSpentPerFill`.
+   */
+  spent?: number;
+}
+
+/**
+ * ⭐ What a wall exchanges with: the contents' material, how much there is,
+ * and their payload (matter-model-overlaps D11). The holder's slot passes it.
+ */
+export interface WallContents {
+  material: Material;
+  litres: number;
+  payload: BulkPayload | null;
 }
 
 /**
@@ -276,6 +299,43 @@ export interface Faced {
    */
   isPermeable(): boolean;
   weeps(): boolean;
+  /**
+   * ⭐⭐ Does this wall have anything to exchange with `contents` — a leach
+   * their acid draws, an aroma its giving layer still has to give, or a
+   * memory to learn or give back? The slot asks before it runs its clock, so
+   * a glazed pot of water carries no payload (sparse).
+   */
+  wallExchanges(contents: WallContents): boolean;
+  /**
+   * ⭐⭐ **The one exchange through the inside wall** (matter-model-overlaps
+   * D11), over `dtS` game-seconds; returns the contents' new payload. The
+   * leach of the inside's outermost material always runs; a SEALED inside
+   * stops the rest. Unsealed, the giving layer (an unsealed top coat, else
+   * the body) gives its material's `imparts × (1 − spent)` toward that target
+   * over `faces.wallGiveDays`, and an absorbent or porous body gives back
+   * what it has learned (losing what it gives) and learns
+   * `faces.aromaRetained` of what the contents give a nose.
+   */
+  exchangeWith(contents: WallContents, dtS: number): BulkPayload;
+  /**
+   * The contents arrived in an EMPTY face (the transfer declares it, D2):
+   * the giving layer's first fill is free, every one after spends
+   * `faces.wallSpentPerFill`.
+   */
+  noteFill(face: FaceName): void;
+  /**
+   * What the giving layer of a face has left to give, `0..1` — `null` when
+   * it gives nothing (sealed, or a material that imparts nothing).
+   */
+  wallGiveLeft(face: FaceName): number | null;
+  /** A wash spends what the walls have absorbed by `share` (capped at `faces.washClears`); never the wall's own give. */
+  washAbsorbed(share: number): void;
+  /**
+   * ⭐ The cooper's re-fire: the face is shaved back to clean wood — its
+   * coats, its spent give and its memory go — and a fresh coat of
+   * `coatPath` (the row's bill names it) is laid set.
+   */
+  refireFace(face: FaceName, coatPath: string): void;
   /** The aromas a porous face has kept from what it held (the crock that remembers). */
   absorbedAromas(face: FaceName): readonly AromaTag[];
   /** Record what a porous face keeps — the slot's face exchange writes it. */
@@ -321,6 +381,38 @@ function dial(key: string, fallback: number): number {
 
 function materialAt(path: string): Material | null {
   return MaterialApi.materials().peek(path) ?? null;
+}
+
+/** A re-fired cask's char, m — a couple of millimetres of the stave burnt black. */
+const REFIRE_COAT_M = 0.002;
+
+/** The aromas `m` gives a wall it lines (its `imparts`), `[]` for a material with none. */
+function impartsOf(m: Material | null): readonly AromaTag[] {
+  return m && MixinApi.hasExtraction(m) ? m.getImparts() : [];
+}
+
+/**
+ * ⭐ What a held material gives a nose, as mg/L (D11): each `smells` tag's
+ * strength × its aroma's threshold — the same unit as a dissolved aromatic,
+ * so a wall learns whiskey from whiskey and gives it to the water after.
+ */
+function smellsAsMgPerL(m: Material): Map<string, number> {
+  const out = new Map<string, number>();
+  if (!MixinApi.hasOdor(m)) return out;
+  for (const tag of m.getSmells()) {
+    const threshold = PerceptionApi.aromas().resolve(tag.aroma)?.getThreshold() ?? null;
+    if (threshold === null || !(threshold > 0)) continue;
+    out.set(tag.aroma, (out.get(tag.aroma) ?? 0) + tag.strength * threshold);
+  }
+  return out;
+}
+
+/** The look line for what a wall has left to give, or `null` while it has plenty. */
+function wallGiveLine(left: number, layer: Material | null): string | null {
+  const name = layer?.getName() || 'wood';
+  if (left <= 1e-9) return `The ${name} inside is dull and grey with use — it has given its contents everything it had.`;
+  if (left <= 0.5 + 1e-9) return `The ${name} inside has been filled more than once; it has less left to give.`;
+  return null;
 }
 
 /**
@@ -405,6 +497,14 @@ const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   // rule the evaporative cooling reads too (drive C, run 37: the jar of
   // water read "thoroughly dried" while the thermometer found it cool).
   if (host.weeps()) lines.push('Its outside is damp and beaded where what it holds seeps through.');
+  // ⭐ What the inside wall has left to give (matter-model-overlaps D11) —
+  // the line the retired maturation `characterAugmenter` printed, read off
+  // the giving layer's `spent`.
+  if (host.faces().includes('inside')) {
+    const left = host.wallGiveLeft('inside');
+    const line = left === null ? null : wallGiveLine(left, host.outermost('inside'));
+    if (line !== null) lines.push(line);
+  }
   if (lines.length === 0) return text;
   const all = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
@@ -420,6 +520,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       coats: { persistent: true, authorable: true, runtimeState: true },
       absorbed: { persistent: true, runtimeState: true },
+      wallSpent: { persistent: true, runtimeState: true },
       weatheredToS: { persistent: true, runtimeState: true },
     };
 
@@ -428,12 +529,18 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * are not kept (a staged ship's hull, paint D7). Plain JSON either way.
      */
     static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
-      const self = host as unknown as Faced & { coats: unknown; absorbed: unknown; weatheredToS: unknown };
+      const self = host as unknown as Faced & {
+        coats: unknown;
+        absorbed: unknown;
+        wallSpent: unknown;
+        weatheredToS: unknown;
+      };
       if (!self.persistsCoats()) return { fields: {} };
       return {
         fields: {
           coats: structuredClone(self.coats),
           absorbed: structuredClone(self.absorbed),
+          wallSpent: structuredClone(self.wallSpent),
           weatheredToS: self.weatheredToS,
         },
       };
@@ -529,6 +636,176 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (kept.length > 0) next[face] = kept;
       else delete next[face];
       this.absorbed = next;
+    }
+
+    /**
+     * ⭐ How much of the BODY's own give each face has spent, `0..1` (D11).
+     * `{}` until a wall with something to give is filled; the first fill
+     * writes `0`, each after spends `faces.wallSpentPerFill`. A coat keeps
+     * its own (`CoatLayer.spent`).
+     */
+    public wallSpent: Partial<Record<FaceName, number>> = {};
+
+    /** The layer that gives the contents on `face`: an unsealed top coat, else the body. */
+    private givingLayer(face: FaceName): { material: Material | null; coat: CoatLayer | null } {
+      const top = this.getCoats(face)[0];
+      if (top !== undefined && top.state !== 'crawled') return { material: materialAt(top.material), coat: top };
+      const self = this as unknown as Stuff;
+      return { material: MixinApi.isTangible(self) ? self.getMaterial() : null, coat: null };
+    }
+
+    /** Does the body learn what it holds — absorbent by tag (oak), or porous past holding water bare? */
+    private remembers(face: FaceName): boolean {
+      if (this.isSealed(face)) return false;
+      const self = this as unknown as Stuff;
+      const body = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      if (body?.hasTag('absorbent')) return true;
+      return this.porosity() > dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
+    }
+
+    public wallGiveLeft(face: FaceName): number | null {
+      if (this.isSealed(face)) return null;
+      const layer = this.givingLayer(face);
+      if (impartsOf(layer.material).length === 0) return null;
+      const spent = layer.coat !== null ? (layer.coat.spent ?? 0) : (this.wallSpent[face] ?? 0);
+      return Math.max(0, 1 - Math.min(1, spent));
+    }
+
+    public wallExchanges(contents: WallContents): boolean {
+      const inside = this.outermost('inside');
+      const attack = MixinApi.hasAcidity(contents.material) ? contents.material.acidAttack(contents.payload?.pH) : 0;
+      if (attack > 0 && inside !== null && MixinApi.hasExtraction(inside) && inside.getLeaches().length > 0) return true;
+      if (this.isSealed('inside')) return false;
+      const left = this.wallGiveLeft('inside');
+      if (left !== null && left > 0 && contents.material.hasTag('liquid')) return true;
+      if (!this.remembers('inside')) return false;
+      return (
+        this.absorbedAromas('inside').length > 0 ||
+        (contents.payload?.dissolvedAromatics?.length ?? 0) > 0 ||
+        smellsAsMgPerL(contents.material).size > 0
+      );
+    }
+
+    @CallSecurity(SecurityPolicies.FromMixin(Mixins.Bulkable))
+    public exchangeWith(contents: WallContents, dtS: number): BulkPayload {
+      const payload: BulkPayload = { ...(contents.payload ?? {}) };
+      if (!(dtS > 0) || !(contents.litres > 0)) return payload;
+      const days = dtS / GAME_DAY_S;
+      const { material } = contents;
+      // ── the leach: the inside's outermost material, by the contents' acid.
+      // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
+      // vitriol far more, milk next to nothing, seawater none. ⭐⭐ …and a
+      // water's SOFTNESS (water-supply D8): hard water scales a lead pipe
+      // shut and soft water does not. A payload with no hardness is not a
+      // supply's water and the factor is 1.
+      const dgh = payload.hardnessDgh;
+      const softness =
+        typeof dgh === 'number' && Number.isFinite(dgh) ? new WaterChemistry(7, dgh, 0).softness() : 1;
+      const attack = (MixinApi.hasAcidity(material) ? material.acidAttack(payload.pH) : 0) * softness;
+      const inside = this.outermost('inside');
+      if (inside !== null && MixinApi.hasExtraction(inside) && attack > 0) {
+        const toxins = [...(payload.dissolvedToxins ?? [])];
+        for (const leach of inside.getLeaches()) {
+          const mg = leach.mgPerLPerDay * attack * days;
+          if (!(mg > 0)) continue;
+          const at = toxins.findIndex((t) => t.type === leach.toxin);
+          if (at >= 0) toxins[at] = { ...toxins[at]!, amount: toxins[at]!.amount + mg };
+          else toxins.push({ type: leach.toxin, amount: mg } as never);
+        }
+        if (toxins.length > 0) payload.dissolvedToxins = toxins;
+      }
+      // ⭐ A sealed inside (a glaze, a pitch) stops both sources: only the
+      // coat's own leach, above, reaches the contents.
+      if (this.isSealed('inside')) return payload;
+      const aromas = new Map<string, number>();
+      for (const a of payload.dissolvedAromatics ?? []) aromas.set(a.type, (aromas.get(a.type) ?? 0) + a.amount);
+      // ── the wall's own material: its imparts × what it has left, toward
+      // that target over `faces.wallGiveDays` of contact. Linear and capped,
+      // so a read every minute and one read a month apart land the same.
+      const left = this.wallGiveLeft('inside');
+      if (left !== null && left > 0 && material.hasTag('liquid')) {
+        const giveDays = Math.max(1e-6, dial(AppSettingKeys.facesWallGiveDays, 90));
+        for (const imp of impartsOf(this.givingLayer('inside').material)) {
+          const target = imp.amount * left;
+          const have = aromas.get(imp.type) ?? 0;
+          if (have >= target) continue;
+          aromas.set(imp.type, Math.min(target, have + (target * days) / giveDays));
+        }
+      }
+      // ── what the wall has absorbed: it gives back toward what it holds
+      // and LOSES what it gives (the two meet halfway, approached at a rate
+      // of a game-day), then learns a share of what the contents give a
+      // nose — their dissolved aromatics AND the held material's own smells.
+      if (this.remembers('inside')) {
+        const own = smellsAsMgPerL(material);
+        const kept = new Map<string, number>();
+        for (const k of this.absorbedAromas('inside')) kept.set(k.type, k.amount);
+        const share = (1 - Math.exp(-2 * days)) / 2;
+        for (const [type, store] of kept) {
+          const have = (aromas.get(type) ?? 0) + (own.get(type) ?? 0);
+          if (have >= store) continue;
+          const given = (store - have) * share;
+          aromas.set(type, (aromas.get(type) ?? 0) + given);
+          kept.set(type, store - given);
+        }
+        const retained = dial(AppSettingKeys.facesAromaRetained, 0.1);
+        const offered = new Map(own);
+        for (const [type, amount] of aromas) offered.set(type, (offered.get(type) ?? 0) + amount);
+        for (const [type, amount] of offered) kept.set(type, Math.max(kept.get(type) ?? 0, amount * retained));
+        this.setAbsorbedAromas(
+          'inside',
+          [...kept].map(([type, amount]) => ({ type, amount })),
+        );
+      }
+      if (aromas.size > 0) payload.dissolvedAromatics = [...aromas].map(([type, amount]) => ({ type, amount }));
+      return payload;
+    }
+
+    @CallSecurity(
+      SecurityPolicies.AnyOf(
+        SecurityPolicies.FromMixin(Mixins.Bulkable),
+        SecurityPolicies.FromModule('/platform/idea/api/BulkableLogic#BulkableLogic'),
+      ),
+    )
+    public noteFill(face: FaceName): void {
+      if (this.wallGiveLeft(face) === null) return;
+      const per = dial(AppSettingKeys.facesWallSpentPerFill, 0.34);
+      const top = this.givingLayer(face).coat;
+      if (top !== null) {
+        const next = top.spent === undefined ? 0 : Math.min(1, top.spent + per);
+        const list = (this.coats[face] ?? []).map((c, i) => (i === 0 ? { ...c, spent: next } : c));
+        this.coats = { ...this.coats, [face]: list };
+        return;
+      }
+      const was = this.wallSpent[face];
+      this.wallSpent = { ...this.wallSpent, [face]: was === undefined ? 0 : Math.min(1, was + per) };
+    }
+
+    @CallSecurity(SecurityPolicies.FromMixin(Mixins.Soilable))
+    public washAbsorbed(share: number): void {
+      const cap = dial(AppSettingKeys.facesWashClears, 0.5);
+      const by = Math.min(Math.max(0, share), cap);
+      if (!(by > 0)) return;
+      for (const face of Object.keys(this.absorbed) as FaceName[]) {
+        this.setAbsorbedAromas(
+          face,
+          this.absorbedAromas(face).map((a) => ({ ...a, amount: a.amount * (1 - by) })),
+        );
+      }
+    }
+
+    @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/CraftingLogic#CraftingLogic'))
+    public refireFace(face: FaceName, coatPath: string): void {
+      if (typeof coatPath !== 'string' || coatPath === '') {
+        throw new TypeError('Faced.refireFace: a re-fire needs the coat it lays (the bill names it)');
+      }
+      // Shaved back to clean wood: the old coats, the spent give and what the
+      // wall had soaked up all go with the shavings; then the fire.
+      this.coats = { ...this.coats, [face]: [{ material: coatPath, thicknessM: REFIRE_COAT_M, state: 'set' }] };
+      const spent = { ...this.wallSpent };
+      delete spent[face];
+      this.wallSpent = spent;
+      this.setAbsorbedAromas(face, []);
     }
 
     /** The coats, by face, outermost first. Empty — no coats — is the default. */

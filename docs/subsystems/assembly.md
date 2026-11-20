@@ -523,8 +523,8 @@ competence IS is how tight the hoops are driven:
 `fit cask` by a hand short of proficient is refused naming the band.
 `dryTight` is a new `ClosureLevel` between `open` and `liquidTight`. The
 commons `cask` row is what brewing's `cask` and distilling's `cask` and
-`charred-cask` now `extends:` (brewing states `imparts: []` so its ale is
-unchanged; the charred cask is the plain cask with `charLevel: 1`). ⚠ The
+`charred-cask` now `extends:` (brewing's is pitched inside, so its ale is
+unchanged; the charred cask is the plain cask with a char coat inside). ⚠ The
 fuel pack's oil casks are `Bottle`s and the water-butt is a source; both
 are untouched.
 
@@ -546,13 +546,23 @@ are untouched.
   hoops spill a refill the same way. The mend is `fit stave to cask` (a
   sprung stave is fitted, one at a time; `fit`'s help says so); `repair`
   tightens a slack hoop. `PipeRun.isComplete` reads `jointLeakShare() === 0`.
-- **Character is spent and re-fired** (on `MaturingMixin`, true of every
-  vat): `fillCount`, `fillsSinceRefire`, `impartsSpent` (each fill after
-  the first adds `maturing.impartsSpentPerFill`, ~a third), `charLevel`,
-  and a second authorable profile `charredImparts`. Effective imparts =
-  `(charLevel ? charredImparts : imparts) × (1 − impartsSpent)`.
-  `repair`'s rung 3 re-fires: spent reset, charred — re-firing a plain
-  cask MAKES a charred one.
+- **Character is spent and re-fired** — on the WALL now
+  (matter-model-overlaps D11; it was `MaturingMixin`'s). What a cask gives
+  is its giving layer's material's `imparts`: the oak body's (oak 25,
+  vanilla 3), or a char coat's on its inside face (`charred-oak`: vanilla
+  40, char 120, oak 15). Each layer keeps its own `spent` (`wallSpent` for
+  the body, `CoatLayer.spent` for a coat); the transfer into an empty cask
+  calls `noteFill`, the first fill is free and each after spends
+  `faces.wallSpentPerFill` (0.34), so a fourth gives nothing and `look`
+  says *"it has given its contents everything it had"*. `repair`'s rung 3
+  re-fires a cask whose inside has nothing left (`wallGiveLeft('inside') ===
+  0`): a fire at `crafting.refireHeatK`, a shaving tool and the joint's band,
+  then `Faced.refireFace('inside', bill.refire)` — the commons cask's bill
+  names `refire: /stuff/idea/material/wood/charred-oak`, so re-firing a
+  plain cask MAKES a charred one. Oak is `absorbent`: a cask remembers what
+  it held, and `wash <cask>` (a `Vat` is `Soilable`) spends that memory.
+  The brewing cask is pitched inside — the pitch coat seals, and its ale
+  takes nothing.
 - **The gauger** — `measure capacity <cask>` (`CapacityReading`, a
   coopering `Reading` row + class). ⭐⭐⭐ It answers **anyone**
   (competence resolves detail, never access); a holder of the polity's

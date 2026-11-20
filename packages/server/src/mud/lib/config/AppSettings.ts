@@ -1947,6 +1947,15 @@ export const AppSettingKeys = {
   facesHoldsWaterBelow: "faces.holdsWaterBelow",
   /** Faces — the share of a fill's aromas a porous inside face keeps. */
   facesAromaRetained: "faces.aromaRetained",
+  /** Faces — game-days of contact over which a wall gives its full
+   * `imparts` (matter-model-overlaps D11): the shipped whiskey cask's
+   * length, so a first fill at maturity reads as it always did. */
+  facesWallGiveDays: "faces.wallGiveDays",
+  /** Faces — the share of a wall's own give each fill after the first
+   * spends (a third: a fourth fill gives nothing). */
+  facesWallSpentPerFill: "faces.wallSpentPerFill",
+  /** Faces — the most of what a wall has absorbed one wash clears. */
+  facesWashClears: "faces.washClears",
   /** Faces — liters per hour per liter held, per unit of porosity, that
    * run THROUGH a porous body into a vessel it stands on or in — the
    * ceramic water filter (ceramics S9, W8). A free flow, not a weep. */
@@ -2241,9 +2250,6 @@ export const AppSettingKeys = {
   /** Seasoning — the seasoned fraction (0..1) at or above which wood may
    * be worked without warping (assembly D2). */
   woodSeasonedThreshold: "wood.seasonedThreshold",
-  /** Maturation — how much of a vessel's character each fill after the
-   * first spends (assembly D9): a third, so a fourth fill gives nothing. */
-  maturingImpartsSpentPerFill: "maturing.impartsSpentPerFill",
   /** Assembly — the heat (K) a cooper's re-fire wants reachable: enough to
    * char the inside of a shaved cask. */
   craftingRefireHeatK: "crafting.refireHeatK",
@@ -3108,6 +3114,9 @@ export const AppSettingTiers: Readonly<
   facesCrawlDirt: "B",
   facesHoldsWaterBelow: "B",
   facesAromaRetained: "B",
+  facesWallGiveDays: "B",
+  facesWallSpentPerFill: "B",
+  facesWashClears: "B",
   facesFilterLPerHourPerL: "B",
   facesHoldsLiquidBelowSharePerHour: "B",
   flawsLeakCrackLPerHour: "B",
@@ -3194,7 +3203,6 @@ export const AppSettingTiers: Readonly<
   craftingJointFailedSharePerHour: "B",
   craftingGreenWearFactor: "B",
   woodSeasonedThreshold: "B",
-  maturingImpartsSpentPerFill: "B",
   craftingRefireHeatK: "B",
   lampCrackedGlassFlux: "B",
   caskDryOutDays: "B",

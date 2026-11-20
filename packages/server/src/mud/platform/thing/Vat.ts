@@ -46,6 +46,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin, type JointState } from '../../lib/craft/Assembled';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
 
 /** How far an empty cask's hoops ride loose when it dries out. */
 const DRY_OUT_SLACK = 0.6;
@@ -66,12 +67,17 @@ function caskDial(key: string, fallback: number): number {
 // ferment — see maturation.md). Both apply.
 // Durable beneath Assembled (assembly D8): an assembly's wear has to have
 // somewhere to go, and `repair <cask>` gates on `DurableMixin`.
-const VatBase = AssembledMixin(
-  DurableMixin(
-    VesselKindMixin(
-      MaturingMixin(
-        CraftedMixin(
-          SealableMixin(ThermalMixin(BulkableMixin(Good))),
+// ⭐ Soilable outermost (matter-model-overlaps D11): a working vessel gets
+// dirty and is washed — and `wash <cask>` binds, which is how a cask's wall
+// gives up what it has soaked up.
+const VatBase = SoilableMixin(
+  AssembledMixin(
+    DurableMixin(
+      VesselKindMixin(
+        MaturingMixin(
+          CraftedMixin(
+            SealableMixin(ThermalMixin(BulkableMixin(Good))),
+          ),
         ),
       ),
     ),
