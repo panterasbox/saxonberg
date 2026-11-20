@@ -148,7 +148,7 @@ The reuse ledger for the plan is
 The client, on the platform — no pack. A second zone, realm or pack needs
 **no code**: its rooms' coordinates and its zone's cell size are already
 authored, and what a Locality teaches on a first visit is its own rows.
-The one content change is a name (below).
+The content changes are a name and the Delve's Locality (below).
 
 ## Collisions
 
@@ -173,6 +173,9 @@ The one content change is a name (below).
 - **The affordance menu** (right-click, a mouse hold, a phone's *actions*)
   — a way in the rose or the list gets it, so a shut door can be opened
   and a locked one unlocked from the card.
+- **The Sunken Delve is covered by no Locality**, so walking it writes
+  nothing to your map. It joins the Last Counted Mile beside it, as the
+  steading's rooms already do (content).
 - **Two Localities named "Terminus"** (the realm and the city) — the city's
   row is renamed *Terminus City*, so the crumbs stop reading *Terminus ›
   Terminus*.
@@ -382,21 +385,23 @@ Every step is walked in a browser; steps 16–17 also as a wire drive.
    crumbs, the zone line with `x: · y: · z: 0` and z stressed, the map
    with the vestibule solid, no level control, the rose with the ways it
    can see, and the way back out marked as leaving the zone.
-2. `instant` · player — `look`. The rooms it can see appear outlined; the
-   frontier lens marks the openings not taken.
+2. `instant` · player — `look`. The ways it can see appear as openings
+   into blank space; the frontier lens marks the openings not taken.
 3. `instant` · player — Click a neighboring room on the map. `go
    <direction>` echoes, the character moves, the room turns solid, the map
    follows.
-4. `instant` · player — Walk the diagonal to the vault: drawn corner to
-   corner.
-5. `instant` · player — The rose's *down* lights; go down to the pit. The
-   level control appears — two levels known, yours marked; choose the
-   other level and see what you know of it.
+4. `instant` · player — Walk the third corridor's southeast diagonal to
+   the vault: drawn corner to corner.
+5. `instant` · player — In the second corridor, `search` finds the hidden
+   way *down*; the rose's *down* lights; go down to the pit. The level
+   control appears — two levels known, yours marked; choose the other
+   level and see what you know of it.
 6. `instant` · player — The pit is dark: `look` sees nothing, no neighbor
    appears, the place section says dark, the map shows only what you walked.
    (Light.)
-7. `instant` · player — The cache: absent until `search` finds it; then
-   drawn, and its way's tooltip says *found by searching*.
+7. `instant` · player — The first corridor's hidden northeast way to the
+   vault: absent until `search` finds it; then drawn, and its tooltip says
+   *found by searching*.
 8. `instant` · player — Click a distant known room. The route is drawn with
    its least certain step marked; nobody moves. `route to <room>` draws the
    same.
@@ -406,14 +411,15 @@ Every step is walked in a browser; steps 16–17 also as a wire drive.
 10. `instant` · player — Hover each exit in the rose and the list: the
     preview strip shows where it leads and its state; clicking moves you in
     one click.
-11. `instant` · player — In the lounge, the office's north door is absent;
-    `search` finds it and it appears. A shut door is gold; right-click it
-    and its menu offers *open*; a locked one is red and the refusals lens
-    marks it. Its tooltip has no buttons.
-12. `instant` · player — Put yourself where a way refuses *you* — carry
-    more than its opening passes, or whatever `go` refuses in the Delve's
-    narrow crack: that way turns amber and its tooltip says what stops you,
-    in `go`'s own words; put it right and it clears.
+11. `instant` · player — In the bar, the hidden way north to the office is
+    absent; `search` finds it and it appears. At the Wharfside bank the
+    `pumphouse` way's door is locked: red, the refusals lens marks it, and
+    right-clicking it opens the door's own menu; a shut door elsewhere in
+    Terminus is gold and its menu offers *open*. No tooltip has a button.
+12. `instant` · player — In the steading yard, the low door east into the
+    cottage refuses a standing body: that way is amber and its tooltip says
+    what stops you, in `go`'s own words, and what would let you through;
+    do that and it clears.
 13. `instant` · player — The lounge's occupancy rooms draw as *a space
     through this door, shape unknown*.
 14. `instant` · player — In Rejection, walk a track: drawn as a long way
