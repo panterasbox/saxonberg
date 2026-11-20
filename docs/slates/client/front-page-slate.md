@@ -69,11 +69,12 @@ trying to get people to log in — why bother if they can just watch the stream 
 | **host bar** | the Pantera's Box hex seal · *A Pantera's Box community ↗* → panterasbox.com | static |
 | **identity** | the Saxonberg seal (44 px) and wordmark · *"The platform the Pantera's Box community is building together, run under a written Compact. It isn't finished — you'd be joining before 1.0."* ⚠ **Saxonberg is the platform, never "the world"** — the community is Pantera's Box; the product is Saxonberg (the owner, correcting the first draft) | static |
 | **left · What you're signing up for** | **01 Make** — *Build it with us — places, things, trades, code, and the institutions that run them. Real work, opt-in, and it earns you a say.* + **WANTED: Moderators for the Saxonberg Post** — *the first seats on the paper's staff, and the road to its editor's chair* — with a two-line chart: *Moderators · open · start here* / *Editor-in-Chief · open* | derived openings |
-| | **02 Fund** — *Pay for it. Real money keeps it running and earns a say in its own chamber, and buys nothing else.* ⚠ lawyer's read on this sentence + **FUNDING NOW** — the first open proposal in the Compact's books (*A bigger server — more people in the world at once, and faster answers when you type*), **with dollars**: its monthly cost, running costs, last month's support, and *covered* / *not yet covered*, computed — linking to the public books | **the books** (§ 6) |
+| | **02 Fund** — *Pay for it. Real money keeps it running and earns a say in its own chamber, and buys nothing else.* ⚠ lawyer's read on this sentence + ⭐ **THE BOOKS — always present**: *Running Saxonberg costs $N a month. Support last month: $M — the founder paid the rest* (or *all of it* while support is $0), linking to the books band. + **FUNDING NOW** (only while a proposal is open) — the first open proposal in the Compact's books (*A bigger server — more people in the world at once, and faster answers when you type*), **with dollars**: its monthly cost, running costs, last month's support, and *covered* / *not yet covered*, computed — linking to the public books | **the books** (§ 6) |
 | | **03 Play** — *Live here. Show up and take part. Your say grows from what you actually do, never from what you pay.* + **NOW** — the pinned play item (an event: court day, a founding week) | pinned `chamber: play` release |
 | | **Latest** — three one-line items, each labelled with its publisher | `pressRoom` |
 | **right · Sign in** | the three providers (co-equal, seal red with white rims) · *Look around as a guest* · *A guest keeps nothing, and nobody can find them.* · the live count | shipped; count per § 6 |
 | **right · the show** | a 16:9 grid thumbnail: live = the stream's still, **LIVE** and viewers; offline = the glowing `@` on black and the next show · the founder's avatar (red ring when live), the show title, *Bobalu Smallberries*, *Acting Prime Minister* · *Sign in to watch it inside Saxonberg.* | the show block |
+| **below · The books** | last month from the books: **spent** by account (Claude, Descript, AWS, email) and **running costs**; **paid by** — support (Twitch, YouTube, Kick) and **the founder**; a link to the full ledger in the public source | the books export |
 | **below · Notices and news** | the full feed, each item under its own masthead (an office's seal; the Post's nameplate on paper) | `pressRoom` |
 | **footer** | panterasbox.com · the show on Twitch · YouTube · Kick · Source (AGPL) · Discord · the public record · Privacy | static |
 
@@ -87,6 +88,7 @@ source*, the press room never awaited by sign-in.
 |---|---|
 | identity, sign-in | always present |
 | a chamber's **WANTED / FUNDING NOW / NOW** line | the line does not render; the chamber shows its sentence only |
+| Fund's **books line** | always present once the books exist — running costs and who paid are true every month, even when support is $0 |
 | Latest, Notices and news | the band does not render |
 | the show | offline tile with `show.schedule`; no schedule set → *Offline* alone; the viewer count **omitted** when unavailable, never estimated |
 | the live count | a number, a real zero, or nothing (shipped) |
@@ -148,6 +150,12 @@ A publisher organization (trades and publishes), public, realm `ooc`, path to se
    drop a proposal line and merge it — the books get code review. **Later** the budget committee's
    budget bill writes the proposals; the pen moves, the page does not change. Outside the fiction;
    dollars never touch the game's ledger.
+   ⭐ **What the first books do to the page** ([budget-slate § The first books](../platform/budget-slate.md)):
+   Fund always has a true line — **running costs (~$240 a month: Claude $200 dominates; AWS ~$10)
+   and who paid** — so Fund never needs a proposal to say something honest. **Support reads $0 until
+   the stream starts after New Year**, and the line then says *the founder paid all of it* — the
+   books' `Equity:Founder`, kept apart from support. A proposal (the bigger server) appears beside it
+   only when one is open.
 4. **`/compact/executive` becomes `public`** — a release may narrow its publisher's reach, never
    widen it, so the Office of the Prime Minister's releases cannot reach an anonymous visitor today.
 5. **A new appointing-authority kind: `stakeholders`, with a founder default** (staff holders, then
