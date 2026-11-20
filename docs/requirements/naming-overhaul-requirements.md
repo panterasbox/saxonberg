@@ -98,10 +98,11 @@ every matcher into one of those.
 - **One root.** Every query is the asker's. A thing at a distance is
   reached through a relation the asker has to it — near it, carrying it,
   a list they keep, a holder they can name — or by an **address**: a
-  `/path`, a `#id`, or a **player address** — `@` and the player's id or
-  name (`@abc123`, `@bobalu` — the same player). `@` means a player
-  everywhere: the server's resolution and the client's mentions and
-  typeahead share the meaning, however each spells it.
+  `/path`, a `#id`, or a **player address**, `@` and the player's id
+  (`@abc123`). `@` means a player everywhere — the client's mentions and
+  typeahead will share the meaning. Addressing a player by **name**
+  (`@bobalu`) is out of this build (owner: *just make the player id
+  work*).
   `~/workroom` is a path under your own home (a bare `~` is your home) —
   the shell's meaning — at the start of a query only; `~word` is a
   relation.
@@ -272,7 +273,7 @@ no light step.
 11. *(staged: a contact list "friends" holding a player elsewhere)*
     `dm ~friends:<them> hello` reaches them in another room. `dm <them>`
     with no relation and no player id is refused, saying how to reach
-    them; `dm @<their id> hello` and `dm @<their name> hello` work.
+    them; `dm @<their id> hello` works.
 12. *(staged)* Make a contact list named `inventory` — allowed, with a
     warning; another player's `query @<you>:~inventory` still shows your
     carried things, not the list.

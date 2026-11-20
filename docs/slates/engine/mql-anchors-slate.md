@@ -103,9 +103,10 @@ something like `online` the answer should be very legible."*
     **removable default player aliases**, like `l` — the alias system,
     not the grammar.
 14. **`@` is a player address; `~` is the relation sigil** (owner,
-    2026-11-20 — swapped from the first cut). `@abc123` and `@bobalu`
-    name the same player — an id or a name, exact — and `@` means a
-    player everywhere: the client's mentions and typeahead and the
+    2026-11-20 — swapped from the first cut). `@abc123` names a player by
+    id; `@bobalu` by name is the intent (the same player) but **not built
+    yet** — the first build makes the id work. `@` means a player
+    everywhere: the client's mentions and typeahead and the
     server's resolution share the meaning, however each spells it.
     Relations are `~name` (`me:~friends:iffy`, `book:~ships`, a bare
     `~here`, `thing:~` to list them). ⚠ `~` already means *home* in the
