@@ -262,6 +262,15 @@ install) and `load`: `per-path` · `whole` · `boot` (all three in use).
   the CMS tree, readable only by exact path (stream-token). Explicit, so a
   later trait cannot expose it by accident.
 
+### First consumers of `named` (owner, 2026-11-20)
+
+`recipe`, `form`, `formation`, `operation` and `emote` **stay documents**
+with `named` (formation and emote `unique` — the word dispatches). This
+reverses the earlier "make them keyworded Ideas", made before the trait
+existed. Whether `recipe` is really content is settled later with
+`maturation-profile`, `fraction-schedule` and `archetype` (rule 3's
+finding), not by the naming cleanup.
+
 ## The vocabulary, complete
 
 `shipped` · `catalogued` · `named` · `titled` · `dated` · `filed` ·
