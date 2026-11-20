@@ -6,11 +6,14 @@
 > database operations needed for development? … if it's becoming a problem
 > for test stability or even just wasting time we can reclaim."* Not designed;
 > this records the evidence for that conversation.
-> **Left:** the conversation · a seeded-snapshot restore instead of drop + cold
-> boot · dirty wire files that stage their own consumables · the harness's
-> restart path (shutdown save, the heap flag) · the wire runner's world reuse
-> rules
-> **Size:** a build (probably infra), sequenced after the conversation
+> **Left:** in requirements 2026-11-20 →
+> [test-world-lifecycle-requirements.md](../../requirements/test-world-lifecycle-requirements.md):
+> a seeded-snapshot restore instead of drop + cold boot · one harness-owned
+> restart path (shutdown save, the heap flag, the boot budget) · boot timed by
+> phase. Out: dirty files staging their own stock (→ wire-suite-growth, a
+> census) · selective resets (subsumed) · the live-database snapshot
+> (→ live-instance-testing § 8)
+> **Size:** a build (infra)
 
 ## What it costs today
 
@@ -50,6 +53,27 @@
 4. **Selective resets** instead of whole wipes: reset only the collections a
    run dirties (the `RESET_DISPOSITIONS` table already classifies them per
    collection: [record-layer.md](../../subsystems/record-layer.md)).
+
+## Reuse ledger for the plan (2026-11-20)
+
+Surveyed on master `ace3d9b0a`. Every row is one the plan must account for.
+
+| concept | what already does it | reuse or new |
+|---|---|---|
+| owning / attaching / keeping a world | `packages/wire/src/runner/boot.ts` (`bootOwnedWorld`, `stopOwnedWorld`, `WIRE_KEEP_WORLD`, `WIRE_REUSE`, `kept-world.json`), `global-setup.ts` | **reuse** — the restore runs before the owned boot |
+| a timed stop that reads the shutdown save | `harness/world.ts` `stopWorldWithin`, `lastShutdownReport` (db-performance) | **reuse** — the one restart path is built on it |
+| restart | `harness/world.ts` `restartWorld` + **18 files with their own copy** (preflight + `bootOwnedWorld`, most with the 2 s preflight kill) | **generalize** — one harness path; the copies deleted |
+| the kill graces | `stopOwnedWorld`'s 15 s; `dev-preflight.mjs` `PREFLIGHT_GRACE_MS` (2 s default; six files pass 60–300 s) | **generalize** |
+| the heap flag | nothing: `boot.ts` strips `NODE_OPTIONS` on every owned boot | **new** (a flag kept on the spawned world) |
+| the boot budget | `WIRE_BOOT_TIMEOUT` default 420 s; soak passes none; testing.md says use 900 s after `reset:db` | **generalize** |
+| dropping the worktree DB | `packages/server/scripts/reset-db.ts` (refuses `saxonberg_demo`) | **reuse** its refusal; the restore keeps the same guard |
+| a per-collection reset classification | `RESET_DISPOSITIONS` (generated), `RecordLogic.wipe` | **not reused** — built for a running world (keeps the clock, wipes snapshots under live hosts); the restore replaces the whole DB |
+| a database dump / restore | **nothing** — no `mongodump`/`mongorestore` usage; the tools are not installed (owner ruling: install them) | **genuinely new** |
+| knowing a snapshot is still valid | nothing (no seeded marker, no pack-graph fingerprint) | **genuinely new** |
+| boot timing by phase | only global-setup's "world up in Xs"; server log has no timestamps; `/stats.db` counts ops | **new** (phase marks), reusing `/stats.db` for attribution |
+| the soak lane's world per dirty file | `build/soak-repair` (in flight): `tools/soak` `worlds_of`/`run_world`, `reset:db` before each world | **reuse** — the restore replaces its drop (merge order with soak-repair) |
+| a file staging its own stock | `hand` / `stage` / `arrive` / `stageShip` (`TestAuthRoutes`), `DIRTY_REASON` | **out of scope** — census for wire-suite-growth |
+| the CI wire job | `.gitlab-ci.yml` `wire:` on `node:22`, its own `saxonberg_wire` | **touch** — the tools must be on the image |
 
 ## See also
 
