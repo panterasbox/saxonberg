@@ -8,6 +8,10 @@
  */
 
 import type {
+  NavWay,
+  NavSections,
+  TooltipFact,
+  TooltipSource,
   HelpTopic,
   StuffKind,
   TaggedPath,
@@ -168,16 +172,71 @@ export function termOf(command: string): { kind: "help"; word: string } | { kind
 }
 
 /**
- * A way out's tooltip: its direction, and — where the client holds them —
- * where it leads and what it goes through. More (cost, what you know of
- * the far side) is the navigation build's to add.
+ * ⭐ A way out's tooltip (tooltips D2; grown by the navigation card D12):
+ * its direction, where it leads and what it goes through — and, given the
+ * way the ways section sent, one block per fact key (a pack's portcullis
+ * shows with no client change), one-way, muffled, a track's length, what
+ * stops you and what would work, and a small map of the zone it leads
+ * into. ⛔ No buttons: opening, unlocking and looking through are the
+ * door's menu.
  */
-export function wayDoc(dir: string, command: string, known: { to?: string; through?: string } = {}): TooltipDoc {
-  const facts = [
-    ...(known.to ? [{ label: "to", value: known.to, source: "client" as const }] : []),
+export function wayDoc(
+  dir: string,
+  command: string,
+  known: {
+    to?: string;
+    /** How you know where it leads (your map's channel). */
+    toSource?: TooltipSource;
+    through?: string;
+    way?: NavWay;
+    foundBySearching?: boolean;
+    /** The far place is in another zone your map holds placed claims in. */
+    zoneThumb?: { zone: string; level: number };
+  } = {},
+): TooltipDoc {
+  const way = known.way;
+  const facts: TooltipFact[] = [
+    ...(known.to ? [{ label: "to", value: known.to, source: known.toSource ?? ("client" as const) }] : []),
     ...(known.through ? [{ label: "through", value: known.through, source: "client" as const }] : []),
   ];
-  return { header: { name: dir, kindWord: "way out" }, ...(facts.length ? { facts } : {}), command };
+  if (way) {
+    for (const [key, value] of Object.entries(way.facts ?? {})) {
+      facts.push({ label: WAY_FACT_LABEL[key] ?? key, value: wayFactValue(key, value), source: "seen" });
+    }
+    if (way.oneWay) facts.push({ label: "one way", value: "no way back by it that you know of", source: "seen" });
+    if (way.muffled) facts.push({ label: "sound", value: "muffled through it", source: "seen" });
+    if (way.lengthM !== undefined) facts.push({ label: "length", value: `${Math.round(way.lengthM)} m`, source: "seen" });
+    if (way.crossesZone) facts.push({ label: "leaves", value: "this zone", source: "seen" });
+  }
+  if (known.foundBySearching) facts.push({ label: "found", value: "by searching", source: "searched" });
+  const doc: TooltipDoc = { header: { name: dir, kindWord: "way out" }, ...(facts.length ? { facts } : {}), command };
+  if (way?.take && !way.take.ok) {
+    doc.prose = way.take.reason;
+    if (way.take.works?.command) doc.hint = `${way.take.works.command} would get you through — click tries ${command}.`;
+  } else if (way?.take?.ok && way.take.unseen) {
+    doc.prose = "Open, as far as you know: you cannot see the far side from here.";
+  }
+  if (known.zoneThumb) doc.zoneThumb = known.zoneThumb;
+  return doc;
+}
+
+/** A way's projected fact keys, in words; any other key is shown as itself. */
+const WAY_FACT_LABEL: Record<string, string> = {
+  state: "state",
+  opening: "opening",
+  swingsShut: "swings shut",
+  locked: "locked",
+  keyHeld: "your key",
+  freeHere: "free from this side",
+};
+
+function wayFactValue(key: string, value: string | number | boolean): string {
+  if (typeof value === "boolean") {
+    if (key === "keyHeld") return value ? "you hold its key" : "you hold no key to it";
+    if (key === "freeHere") return value ? "yes" : "no";
+    return value ? "yes" : "no";
+  }
+  return String(value);
 }
 
 /** A described detail of a thing (`look <key>`). */
@@ -219,5 +278,169 @@ export function lensDoc(lens: string, on: boolean, count: number): TooltipDoc {
     prose: `${what[lens] ?? ""}${count === 0 ? " Nothing to draw here yet." : ""}`,
     facts: [{ label: "draws", value: String(count), source: "client" }],
     hint: on ? "click — turn it off" : "click — turn it on",
+  };
+}
+
+// ── Your map (navigation card D12) ─────────────────────────────────────
+//
+// ⚠ A claim's dates are GAME time and the client holds no game "now" (D19),
+// so no map fact carries `at`: sources are listed in the order learned.
+
+/** What a place your map holds is, and how you know it. */
+export interface MapPlaceInput {
+  name: string;
+  /** The place's path — the spoiler block, never prose. */
+  key: string;
+  tier: "walked" | "known";
+  sources: readonly { channel: TooltipSource }[];
+  keywords: readonly string[];
+}
+
+const TIER_WORD = { walked: "a place you have walked", known: "a place you know of" } as const;
+
+/** A place on the map: its tier, every source, what a click does, its path. */
+export function placeDoc(
+  place: MapPlaceInput,
+  opts: { command?: string | null; neighbor?: boolean; disagreements?: readonly string[] } = {},
+): TooltipDoc {
+  const counts = new Map<TooltipSource, number>();
+  for (const s of place.sources) counts.set(s.channel, (counts.get(s.channel) ?? 0) + 1);
+  const facts: TooltipFact[] = [...counts.entries()].map(([channel, n]) => ({
+    label: "known by",
+    value: `${n} record${n === 1 ? "" : "s"}`,
+    source: channel,
+  }));
+  for (const d of opts.disagreements ?? []) facts.push({ label: "disagrees", value: d, source: "client" });
+  const doc: TooltipDoc = {
+    header: { name: place.name, kindWord: TIER_WORD[place.tier] },
+    facts,
+    spoilers: [{ level: 2, label: PATH_LABEL, text: place.key }],
+  };
+  if (opts.command) {
+    doc.command = opts.command;
+    doc.hint = opts.neighbor ? `click — ${opts.command}` : "click — draw the route there";
+  } else if (opts.command === null) {
+    doc.hint = "Your map has no word to route there by — walk there instead.";
+  }
+  return doc;
+}
+
+/** A way your map holds from a place you are not standing in. */
+export function edgeDoc(
+  edge: {
+    dir: string;
+    state?: string;
+    stale: boolean;
+    foundBySearching: boolean;
+    conflict: boolean;
+    shape: string;
+    claims: readonly { channel: TooltipSource }[];
+  },
+  opts: { from: string; to?: string; lengthM?: number; command?: string | null; others?: readonly string[] } = { from: "" },
+): TooltipDoc {
+  const latest = edge.claims[edge.claims.length - 1]?.channel ?? "seen";
+  const facts: TooltipFact[] = [{ label: "from", value: opts.from, source: "client" }];
+  facts.push({ label: "to", value: opts.to ?? (edge.shape === "opening" ? "somewhere you do not know" : "unknown"), source: latest });
+  if (edge.state) facts.push({ label: "last seen", value: edge.state, source: latest });
+  if (edge.foundBySearching) facts.push({ label: "found", value: "by searching", source: "searched" });
+  if (opts.lengthM !== undefined) facts.push({ label: "length", value: `≈ ${Math.round(opts.lengthM)} m`, source: "client" });
+  for (const o of opts.others ?? []) facts.push({ label: "also said to lead", value: o, source: "client" });
+  const doc: TooltipDoc = { header: { name: edge.dir, kindWord: "a way your map holds" }, facts };
+  if (edge.stale) doc.prose = "Not seen the last time you looked at its place.";
+  if (edge.conflict) doc.prose = `${doc.prose ? `${doc.prose} ` : ""}Your map disagrees with itself about where it leads; both are drawn.`;
+  if (opts.command) doc.command = opts.command;
+  return doc;
+}
+
+/** A crumb — a Locality as YOUR map knows it. */
+export function crumbDoc(
+  crumb: { address: string; name?: string; ship?: true },
+  known: {
+    claim?: { channel: TooltipSource; government?: { name: string }; localityKind?: string };
+    claims: number;
+  },
+  civic?: { seats: readonly { seat: string; holder: string | null }[]; resident: boolean; forecast?: string } | null,
+): TooltipDoc {
+  if (crumb.ship) {
+    return { header: { name: crumb.name ?? "the ship", kindWord: "the ship you are aboard" } };
+  }
+  if (!crumb.name || !known.claim) {
+    return {
+      header: { name: "Unnamed", kindWord: "locality" },
+      prose: "You have not learned this place's name: nothing on your map says what it is called.",
+    };
+  }
+  const facts: TooltipFact[] = [
+    { label: "first came", value: CHANNEL_WORD[known.claim.channel] ?? known.claim.channel, source: known.claim.channel },
+    { label: "your map", value: `${known.claims} claim${known.claims === 1 ? "" : "s"} here`, source: "client" },
+  ];
+  if (known.claim.localityKind) facts.push({ label: "kind", value: known.claim.localityKind, source: known.claim.channel });
+  if (known.claim.government) facts.push({ label: "government", value: known.claim.government.name, source: known.claim.channel });
+  if (civic) {
+    facts.push({ label: "you are", value: civic.resident ? "a resident" : "a visitor", source: "seen" });
+    for (const s of civic.seats) facts.push({ label: s.seat, value: s.holder ?? "vacant", source: "seen" });
+    if (civic.forecast) facts.push({ label: "forecast", value: civic.forecast, source: "seen" });
+  }
+  return {
+    header: { name: crumb.name, kindWord: "locality" },
+    facts,
+    command: `map ${crumb.address}`,
+    hint: "click — what your map holds of it",
+  };
+}
+
+const CHANNEL_WORD: Partial<Record<TooltipSource, string>> = {
+  walked: "walked in",
+  seen: "seen",
+  searched: "found by searching",
+  published: "from a published map",
+  charted: "from a chart",
+  told: "told of it",
+};
+
+/** A level button: how much of it you know. */
+export function levelDoc(name: string, places: number, yours: boolean): TooltipDoc {
+  return {
+    header: { name, kindWord: "level" },
+    prose: `${places} place${places === 1 ? "" : "s"} you know on this level.${yours ? " You are on this level." : ""}`,
+    hint: "click — show this level",
+  };
+}
+
+/** A section's summary line. */
+export function sectionDoc(summary: string, open: boolean): TooltipDoc {
+  return {
+    header: { name: summary, kindWord: "section" },
+    hint: open ? "click — fold it; the card remembers you did" : "click — open it; the card remembers you did",
+  };
+}
+
+/** A thing on the horizon. */
+export function sightingDoc(
+  thing: { name: string; landmark: boolean; glance?: { point?: string; closeBy?: boolean; roughMiles?: number } },
+  command: string,
+): TooltipDoc {
+  const g = thing.glance;
+  const where = g?.closeBy ? "close by" : [g?.point, g?.roughMiles !== undefined ? `${g.roughMiles} mi` : null].filter(Boolean).join(", ");
+  return {
+    header: { name: thing.name, kindWord: thing.landmark ? "landmark" : "on the horizon" },
+    ...(where ? { facts: [{ label: "roughly", value: where, source: "seen" as const }] } : {}),
+    command,
+  };
+}
+
+/** The zone you stand in, as the zone section frames it — its path as the spoiler. */
+export function zoneDoc(sections: NavSections, known: { walked: number; known: number; openings: number }): TooltipDoc {
+  const z = sections.zone;
+  const facts: TooltipFact[] = [
+    { label: "walked", value: String(known.walked), source: "walked" },
+    { label: "known", value: String(known.known), source: "client" },
+    { label: "ways not taken", value: String(known.openings), source: "client" },
+  ];
+  if (z?.cellSizeM) facts.push({ label: "a cell", value: `${z.cellSizeM} m`, source: "seen" });
+  return {
+    header: { name: z?.label ?? "This zone", kindWord: "zone" },
+    facts,
+    ...(z?.id ? { spoilers: [{ level: z.id.spoiler, label: PATH_LABEL, text: z.id.path }] } : {}),
   };
 }

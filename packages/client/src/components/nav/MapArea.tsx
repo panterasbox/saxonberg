@@ -15,7 +15,7 @@ import { useStore } from "../../store/index";
 import { zoneView, type ViewEdge, type ViewPlace, type ZoneView } from "../../store/navSelectors";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
-import { controlDoc } from "../doc/docs";
+import { controlDoc, levelDoc } from "../doc/docs";
 import { ZoneMap, ZOOMS, type BoundarySide, type LensName, type Zoom } from "./ZoneMap";
 
 const Root = styled.div`
@@ -62,6 +62,7 @@ export interface MapAreaProps {
     view: ZoneView,
   ) => TooltipDoc | null;
   onCommandPreview?: (command: string | null) => void;
+  ticks?: React.ComponentProps<typeof ZoneMap>["ticks"];
   /** Rendered under the map (the lens row). */
   children?: React.ReactNode;
 }
@@ -119,6 +120,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           {...(props.route ? { route: props.route } : {})}
           {...(props.boundaries ? { boundaries: props.boundaries(view, level) } : {})}
           onZoomStep={step}
+          {...(props.ticks ? { ticks: props.ticks } : {})}
           {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
           {...(props.onPlaceClick ? { onPlaceClick: (p) => props.onPlaceClick!(p, view) } : {})}
           {...(props.onEdgeClick ? { onEdgeClick: (e) => props.onEdgeClick!(e, view) } : {})}
@@ -150,7 +152,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
       {levels.length > 1 ? (
         <Controls data-testid="nav-levels" role="group" aria-label="Levels you know">
           {[...levels].reverse().map((l) => (
-            <Tip key={l} tip={controlDoc(levelName(l), undefined, levelHint(l, here?.level, view))}>
+            <Tip key={l} tip={levelDoc(levelName(l), view.places.filter((p) => p.level === l).length, here?.level === l)}>
               <Btn
                 type="button"
                 data-testid={`nav-level-${l}`}
@@ -185,10 +187,4 @@ function zoomHint(z: Zoom): string {
 export function levelName(l: number): string {
   if (l === 0) return "ground";
   return l > 0 ? `up ${l}` : `down ${-l}`;
-}
-
-function levelHint(l: number, yours: number | undefined, view: ZoneView): string {
-  const n = view.places.filter((p) => p.level === l).length;
-  const mine = yours === l ? " You are on this level." : "";
-  return `${n} place${n === 1 ? "" : "s"} you know on this level.${mine}`;
 }

@@ -1803,12 +1803,22 @@ export type IllustrationShape = 'wide' | 'tall' | 'square';
 // ============================================================================
 
 /**
- * ⭐ Where one tooltip fact came from (tooltips D2). A closed list of the
- * producers this build has; the navigation build's knowledge model adds
- * `walked` / `told` when it lands. `client` = composed from what the client
- * already holds (a control, a frame); `seen` = a perception-gated describe.
+ * ⭐ Where one tooltip fact came from (tooltips D2). `client` = composed
+ * from what the client already holds (a control, a frame); `seen` = a
+ * perception-gated describe, or a map claim on that channel. The other map
+ * channels are your map's own (navigation card D12): `walked` · `searched`
+ * · `published` · `charted` · `told` — the six words a claim is filed on.
  */
-export type TooltipSource = 'seen' | 'help' | 'wiki' | 'client';
+export type TooltipSource =
+  | 'seen'
+  | 'help'
+  | 'wiki'
+  | 'client'
+  | 'walked'
+  | 'searched'
+  | 'published'
+  | 'charted'
+  | 'told';
 
 /** A tooltip's (and a card's) head: icon, name, what kind of thing. */
 export interface TooltipHeader {
@@ -1861,6 +1871,12 @@ export interface TooltipDoc {
   command?: string;
   /** A line said instead of content — *You can't see that now.* */
   miss?: string;
+  /**
+   * ⭐ A small map of a zone you know (navigation card D12) — the zone a way
+   * leads into, drawn from your own map. `zone` is the zone's path, a KEY
+   * the client looks up in its copy; it is never shown.
+   */
+  zoneThumb?: { zone: string; level: number };
 }
 export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
 

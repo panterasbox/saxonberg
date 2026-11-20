@@ -10,6 +10,8 @@ import styled from "styled-components";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
 import { ChangeMark } from "../cards/ChangeMark";
+import { sectionDoc } from "../doc/docs";
+import type { TooltipDoc } from "@saxonberg/types";
 
 const Root = styled.section`
   border-top: 1px solid ${tokens.color.borderMuted};
@@ -63,6 +65,8 @@ export interface NavSectionProps {
   /** The surface name for the change mark (`nav:<section>`). */
   surface?: string;
   bodyRef?: (el: HTMLDivElement | null) => void;
+  /** The summary's tooltip, when the section has its own document (the zone's). */
+  tip?: TooltipDoc;
   children: React.ReactNode;
 }
 
@@ -84,12 +88,7 @@ export function NavSection(props: NavSectionProps): React.ReactElement {
       data-open={props.open ? "true" : "false"}
       data-set={props.set ? "true" : undefined}
     >
-      <Tip
-        tip={{
-          header: { name: props.summary, kindWord: "section" },
-          prose: props.open ? "Fold this section; the card remembers that you did." : "Open this section; the card remembers that you did.",
-        }}
-      >
+      <Tip tip={props.tip ?? sectionDoc(props.summary, props.open)}>
         {head}
       </Tip>
       {props.open ? <Body ref={props.bodyRef}>{props.children}</Body> : null}

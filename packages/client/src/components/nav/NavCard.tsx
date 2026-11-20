@@ -19,11 +19,13 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { NavWay } from "@saxonberg/types";
+import type { NavWay, TooltipDoc } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import {
   boundariesView,
   crumbsView,
+  localityKnowledge,
+  placeByKey,
   neighborDirection,
   placeAt,
   routeCommandFor,
@@ -32,12 +34,13 @@ import {
   type Standing,
   type ViewEdge,
   type ViewPlace,
+  type ZoneView,
 } from "../../store/navSelectors";
 import { readNavCard, setLens, setSection } from "../../store/navCardActions";
 import { escapeTarget, lookCommand, useLinkMode } from "../cards/clickTarget";
 import { ChangeMark } from "../cards/ChangeMark";
 import { tokens } from "../ui";
-import { wayDoc } from "../doc/docs";
+import { crumbDoc, edgeDoc, placeDoc, sightingDoc, wayDoc, zoneDoc } from "../doc/docs";
 import { MapArea } from "./MapArea";
 import { Ways } from "./Ways";
 import { Crumbs, crumbsSummary } from "./Crumbs";
@@ -153,13 +156,75 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     return boundariesView(mapCopy, zv, level).length;
   };
 
+  /** A mark on the map, as your map knows it (D12). */
+  const markTip = (
+    mark: { place?: ViewPlace; edge?: ViewEdge; lens?: LensName; leg?: number },
+    view: ZoneView,
+  ): TooltipDoc | null => {
+    if (mark.place) {
+      const command = commandFor({ place: mark.place });
+      const neighbor = command?.startsWith("go ") ?? false;
+      return placeDoc(mark.place, { command, neighbor });
+    }
+    if (mark.edge) {
+      const e = mark.edge;
+      const from = view.places.find((p) => p.key === e.from);
+      const far = e.to ? placeByKey(mapCopy, e.to) : undefined;
+      const others = view.edges
+        .filter((o) => o.from === e.from && o.dir === e.dir && o.id !== e.id && o.to)
+        .map((o) => placeByKey(mapCopy, o.to!)?.name ?? "somewhere");
+      const lengthM =
+        e.shape === "track" && from && far && sections.zone?.cellSizeM
+          ? Math.hypot(far.x - from.x, far.y - from.y) * sections.zone.cellSizeM
+          : undefined;
+      return edgeDoc(e, {
+        from: from?.name ?? "somewhere",
+        ...(far ? { to: far.name } : {}),
+        ...(lengthM !== undefined ? { lengthM } : {}),
+        command: commandFor({ edge: e }),
+        others,
+      });
+    }
+    if (mark.lens === "route" && mark.leg !== undefined) {
+      const plan = routePlan?.plans[0];
+      const said = plan?.assumptions.filter((a) => a.leg === mark.leg).map((a) => a.text) ?? [];
+      return {
+        header: { name: "the least certain leg", kindWord: "route" },
+        prose: said.length > 0 ? said.join(" ") : "This leg is the least sure of the plan.",
+      };
+    }
+    return null;
+  };
+
+  /** A way from here: what it is, where it leads, what stops you (D12). */
+  const wayTip = (w: NavWay): TooltipDoc => {
+    const to = standing ? wayLeadsTo(mapCopy, standing, w) : undefined;
+    const dir = w.direction.toLowerCase();
+    const mapEdge = herePlace && zv ? zv.edges.find((e) => e.from === herePlace.key && e.dir === dir) : undefined;
+    const far = mapEdge?.to ? placeByKey(mapCopy, mapEdge.to) : undefined;
+    const thumb =
+      far && far.placed && far.zone && far.zone !== sections.zone?.id?.path ? { zone: far.zone, level: far.level } : undefined;
+    return wayDoc(w.direction, `go ${w.direction}`, {
+      ...(to ? { to: to.name, toSource: to.channel } : {}),
+      ...(w.boundary ? { through: `${w.boundary.name}${w.state === "open" ? "" : ` (${w.state})`}` } : {}),
+      way: w,
+      ...(mapEdge?.foundBySearching ? { foundBySearching: true } : {}),
+      ...(thumb ? { zoneThumb: thumb } : {}),
+    });
+  };
+
   const run = (command: string | null): void => {
     if (command) props.onSendCommand(command);
   };
   const leadsTo = (w: NavWay): string | undefined =>
     standing ? wayLeadsTo(mapCopy, standing, w)?.name : w.destination;
 
-  const section = (name: (typeof SECTION_ORDER)[number], body: React.ReactNode, surface?: string): React.ReactNode =>
+  const section = (
+    name: (typeof SECTION_ORDER)[number],
+    body: React.ReactNode,
+    surface?: string,
+    tip?: TooltipDoc,
+  ): React.ReactNode =>
     summaries[name] === null ? null : (
       <NavSection
         key={name}
@@ -173,6 +238,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           else bodies.current.delete(name);
         }}
         {...(surface ? { surface } : {})}
+        {...(tip ? { tip } : {})}
       >
         {body}
       </NavSection>
@@ -189,6 +255,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         <Crumbs
           crumbs={crumbs}
           placeName={sections.place?.name ?? ""}
+          tipFor={(c) => crumbDoc(c, c.ship ? { claims: 0 } : localityKnowledge(mapCopy, c.address))}
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         />,
@@ -205,6 +272,16 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           onPlaceClick={(p) => run(commandFor({ place: p }))}
           onEdgeClick={(e) => run(commandFor({ edge: e }))}
           boundaries={(view, level) => boundariesView(mapCopy, view, level)}
+          tipFor={(mark, view) => markTip(mark, view)}
+          ticks={(sections.horizon?.things ?? [])
+            .filter((t) => t.glance?.point)
+            .map((t) => ({
+              id: t.stuffId,
+              point: t.glance!.point!,
+              name: t.name,
+              doc: sightingDoc(t, lookCommand(t.stuffId, undefined, linkMode)),
+              onClick: () => run(lookCommand(t.stuffId, undefined, linkMode)),
+            }))}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         >
           <LensRow
@@ -214,13 +291,22 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           />
         </MapArea>
       </ChangeMark>
-      {section("zone", sections.zone ? <ZoneBody sections={sections} view={zv} /> : null)}
+      {section(
+        "zone",
+        sections.zone ? <ZoneBody sections={sections} view={zv} /> : null,
+        undefined,
+        zv ? zoneDoc(sections, zv.counts) : undefined,
+      )}
 
       {/* 4 · the horizon */}
       {section(
         "horizon",
         sections.horizon ? (
-          <HorizonBody sections={sections} onLook={(id) => run(lookCommand(id, undefined, linkMode))} />
+          <HorizonBody
+            sections={sections}
+            onLook={(id) => run(lookCommand(id, undefined, linkMode))}
+            lookFor={(id) => lookCommand(id, undefined, linkMode)}
+          />
         ) : null,
         "nav:horizon",
       )}
@@ -237,18 +323,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         <Ways
           ways={sections.ways?.ways ?? []}
           leadsTo={leadsTo}
-          tipFor={(w) => {
-            const to = leadsTo(w);
-            const doc = wayDoc(w.direction, `go ${w.direction}`, {
-              ...(to ? { to } : {}),
-              ...(w.boundary ? { through: `${w.boundary.name}${w.state === "open" ? "" : ` (${w.state})`}` } : {}),
-            });
-            if (w.take && !w.take.ok) {
-              const works = w.take.works?.command;
-              return { ...doc, prose: w.take.reason, ...(works ? { hint: `${works} would get you through.` } : {}) };
-            }
-            return doc;
-          }}
+          tipFor={(w) => wayTip(w)}
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         />

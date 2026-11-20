@@ -24,6 +24,7 @@ import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
 import {
   DIRECTION_VECTORS,
+  longDirection,
   type ViewEdge,
   type ViewPlace,
   type ZoneView,
@@ -61,6 +62,8 @@ export interface ZoneMapProps {
   commandFor?: (mark: { place?: ViewPlace; edge?: ViewEdge }) => string | null;
   tipFor?: (mark: { place?: ViewPlace; edge?: ViewEdge; lens?: LensName; leg?: number }) => TooltipDoc | null;
   onZoomStep?: (direction: 1 | -1) => void;
+  /** Horizon sightings: a tick at the map's edge in their rough direction. */
+  ticks?: readonly { id: string; point: string; name: string; doc?: TooltipDoc; onClick?: () => void }[];
 }
 
 /** Half a place mark, in cells. */
@@ -466,6 +469,30 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
       })
     : [];
 
+  // ── the horizon's ticks ───────────────────────────────────────────────
+  const tickEls = (props.ticks ?? []).flatMap((t) => {
+    const v = DIRECTION_VECTORS[longDirection(t.point)];
+    if (!v || (v[0] === 0 && v[1] === 0)) return [];
+    const cx = vbX + vbW / 2;
+    const cy = vbY + vbH / 2;
+    const len = Math.hypot(v[0], v[1]);
+    const ux = v[0] / len;
+    const uy = -v[1] / len;
+    // To the box's edge along the bearing.
+    const k = Math.min(Math.abs(ux) > 1e-6 ? (vbW / 2) / Math.abs(ux) : Infinity, Math.abs(uy) > 1e-6 ? (vbH / 2) / Math.abs(uy) : Infinity);
+    const ex = cx + ux * k * 0.97;
+    const ey = cy + uy * k * 0.97;
+    return [
+      wrap(
+        t.doc,
+        <g data-testid="nav-tick" {...markProps(t.name, null, t.onClick)}>
+          <line x1={ex - ux * 0.35} y1={ey - uy * 0.35} x2={ex} y2={ey} stroke={tokens.color.fgEmphasis} strokeWidth={3} vectorEffect="non-scaling-stroke" />
+        </g>,
+        `tick${t.id}`,
+      ),
+    ];
+  });
+
   // ── you ───────────────────────────────────────────────────────────────
   const hereEl =
     here && here.level === level ? (
@@ -525,6 +552,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
       <g data-layer="lens-refusals">{refusalEls}</g>
       <g data-layer="lens-frontier">{frontierEls}</g>
       <g data-layer="lens-route">{routeEls}</g>
+      <g data-layer="ticks">{tickEls}</g>
       <g data-layer="here">{hereEl}</g>
     </svg>
   );

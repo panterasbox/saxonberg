@@ -1,0 +1,111 @@
+/**
+ * The map's documents (navigation card D12): sources present, an unknown
+ * fact key becomes a row, no builder output carries a button, the zone
+ * thumbnail renders from your own copy.
+ */
+
+import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import type { NavWay, TooltipDoc } from "@saxonberg/types";
+import { useStore } from "../../../store/index";
+import { DocView } from "../blocks";
+import { crumbDoc, edgeDoc, placeDoc, wayDoc, zoneDoc, PATH_LABEL } from "../docs";
+
+/** ⛔ No action buttons — the spoiler block's own reveal is the one control a document has. */
+const noButton = (doc: TooltipDoc): void => {
+  const { container, unmount } = render(<DocView doc={doc} />);
+  const actions = [...container.querySelectorAll("button")].filter((b) => !b.closest('[data-testid="doc-spoiler"]'));
+  expect(actions).toEqual([]);
+  unmount();
+};
+
+describe("map documents", () => {
+  beforeEach(() => useStore.getState().applyMapSnapshot({ documents: [] }));
+
+  it("placeDoc: tier, every channel it was learned on, the path as the one spoiler, what a click does", () => {
+    const doc = placeDoc(
+      { name: "the vault", key: "/world/newbie-wilds/delve/vault", tier: "known", keywords: ["vault"], sources: [{ channel: "seen" }, { channel: "searched" }] },
+      { command: "route to vault" },
+    );
+    expect(doc.header?.kindWord).toBe("a place you know of");
+    expect(doc.facts?.map((f) => f.source)).toEqual(["seen", "searched"]);
+    expect(doc.spoilers).toEqual([{ level: 2, label: PATH_LABEL, text: "/world/newbie-wilds/delve/vault" }]);
+    expect(doc.command).toBe("route to vault");
+    // No age: claims are dated in game time and the client has no game now.
+    expect(doc.facts?.every((f) => f.at === undefined)).toBe(true);
+    noButton(doc);
+  });
+
+  it("placeDoc: a place with no word to route by says so", () => {
+    const doc = placeDoc({ name: "a stop", key: "/x", tier: "known", keywords: [], sources: [{ channel: "published" }] }, { command: null });
+    expect(doc.command).toBeUndefined();
+    expect(doc.hint).toMatch(/no word to route there by/);
+  });
+
+  it("wayDoc: one row per fact key — a key nobody worded is a plain row; what stops you and what would work", () => {
+    const way: NavWay = {
+      direction: "down",
+      state: "open",
+      crossesZone: false,
+      oneWay: true,
+      facts: { opening: "0.9 × 1.4 m", portcullis: "raised" },
+      take: { ok: false, gate: "exitMode", reason: "You can't walk that way — you'll have to climb.", works: { mode: "climb", command: "climb down" } },
+    };
+    const doc = wayDoc("down", "go down", { to: "the floor of the pit", toSource: "walked", way, foundBySearching: true });
+    const rows = Object.fromEntries((doc.facts ?? []).map((f) => [f.label, [f.value, f.source]]));
+    expect(rows["to"]).toEqual(["the floor of the pit", "walked"]);
+    expect(rows["opening"]).toEqual(["0.9 × 1.4 m", "seen"]);
+    expect(rows["portcullis"]).toEqual(["raised", "seen"]);
+    expect(rows["one way"]).toBeDefined();
+    expect(rows["found"]).toEqual(["by searching", "searched"]);
+    expect(doc.prose).toMatch(/have to climb/);
+    expect(doc.hint).toMatch(/climb down/);
+    noButton(doc);
+  });
+
+  it("edgeDoc: stale and disagreeing ways say so", () => {
+    const doc = edgeDoc(
+      { dir: "north", state: "shut", stale: true, foundBySearching: false, conflict: true, shape: "link", claims: [{ channel: "seen" }] },
+      { from: "the hall", to: "the yard", others: ["the cellar"] },
+    );
+    expect(doc.prose).toMatch(/Not seen the last time you looked/);
+    expect(doc.prose).toMatch(/disagrees with itself/);
+    expect(doc.facts?.find((f) => f.label === "also said to lead")?.value).toBe("the cellar");
+    noButton(doc);
+  });
+
+  it("crumbDoc: from your claim; unnamed without one", () => {
+    const named = crumbDoc(
+      { address: "terminus/city", name: "Terminus City" },
+      { claim: { channel: "walked", government: { name: "the City of Terminus" }, localityKind: "settlement" }, claims: 12 },
+    );
+    expect(named.facts?.map((f) => f.label)).toEqual(["first came", "your map", "kind", "government"]);
+    expect(named.command).toBe("map terminus/city");
+    expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Unnamed");
+    noButton(named);
+  });
+
+  it("zoneDoc: the zone's path rides the spoiler", () => {
+    const doc = zoneDoc({ zone: { v: 1, id: { path: "/world/newbie-wilds/delve", spoiler: 2 }, label: "The Sunken Delve", cellSizeM: 3 } }, { walked: 4, known: 1, openings: 2 });
+    expect(doc.spoilers?.[0]?.text).toBe("/world/newbie-wilds/delve");
+    expect(doc.header?.name).toBe("The Sunken Delve");
+  });
+
+  it("the zone thumbnail block draws from your copy, and is absent when your map has nothing there", () => {
+    const tag = (path: string) => ({ path, spoiler: 2 as const });
+    const first = render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} />);
+    expect(screen.queryByTestId("doc-zone-thumb")).toBeNull();
+    first.unmount();
+    useStore.getState().applyMapSnapshot({
+      documents: [
+        {
+          locality: "last-counted-mile",
+          claims: [{ key: "k", kind: "place", place: tag("/world/wilds/treeline"), name: "treeline", channel: "walked", at: { zone: tag("/world/wilds"), x: 0, y: 0, z: 0, level: 0 }, firstSeen: 1, lastSeen: 1 }],
+        },
+      ],
+    });
+    render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} />);
+    expect(screen.getByTestId("doc-zone-thumb")).toBeTruthy();
+    expect(screen.getByTestId("nav-thumb")).toBeTruthy();
+  });
+});

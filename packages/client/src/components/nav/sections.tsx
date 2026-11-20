@@ -10,6 +10,7 @@ import styled from "styled-components";
 import type { NavSections } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
+import { sightingDoc } from "../doc/docs";
 import type { ViewPlace, ZoneView } from "../../store/navSelectors";
 
 export const Rows = styled.dl`
@@ -124,21 +125,18 @@ export function glanceWords(g?: { point?: string; closeBy?: boolean; roughMiles?
 export function HorizonBody({
   sections,
   onLook,
+  lookFor,
 }: {
   sections: NavSections;
   onLook: (stuffId: string) => void;
+  lookFor: (stuffId: string) => string;
 }): React.ReactElement {
   const h = sections.horizon!;
   return (
     <div data-testid="nav-horizon">
       {h.things.map((t) => (
         <div key={t.stuffId} data-testid="nav-sighting">
-          <Tip
-            tip={{
-              header: { name: t.name, kindWord: t.landmark ? "landmark" : "on the horizon" },
-              ...(t.glance ? { prose: `Roughly${glanceWords(t.glance)} from here.` } : {}),
-            }}
-          >
+          <Tip tip={sightingDoc(t, lookFor(t.stuffId))}>
             <Link type="button" onClick={() => onLook(t.stuffId)}>
               {t.name}
             </Link>

@@ -20,6 +20,8 @@ import { Icon, tokens } from "../ui";
 import { mediaUrl } from "../../config";
 import { useStore } from "../../store/index";
 import { MmlRenderer } from "../MmlRenderer";
+import { zoneView } from "../../store/navSelectors";
+import { ZoneMap } from "../nav/ZoneMap";
 
 // ── The spoiler appetite ────────────────────────────────────────────────
 
@@ -131,6 +133,12 @@ const SOURCE_WORD: Record<TooltipFact["source"], string> = {
   help: "from help",
   wiki: "from the wiki",
   client: "",
+  // Your map's channels (navigation card D12).
+  walked: "walked",
+  searched: "found by searching",
+  published: "from a published map",
+  charted: "from a chart",
+  told: "told",
 };
 
 function sourceLine(f: TooltipFact): string {
@@ -319,8 +327,25 @@ export function DocView({ doc, ...links }: { doc: TooltipDoc } & DocLinkHandlers
         </Row>
       ) : null}
       {doc.facts?.length ? <FactRows facts={doc.facts} /> : null}
+      {doc.zoneThumb ? <ZoneThumb thumb={doc.zoneThumb} /> : null}
       {doc.spoilers?.map((sp) => <SpoilerBlock key={`${sp.level}:${sp.label}`} spoiler={sp} />)}
       <HintFooter doc={doc} />
     </Body>
+  );
+}
+
+/**
+ * ⭐ A small map of a zone you know (navigation card D12): the same
+ * renderer as the card's map, at *whole zone*, with no handlers — drawn
+ * from your own copy. Absent when your map holds nothing placed there.
+ */
+export function ZoneThumb({ thumb }: { thumb: NonNullable<TooltipDoc["zoneThumb"]> }): React.ReactElement | null {
+  const mapCopy = useStore((s) => s.mapCopy);
+  const view = React.useMemo(() => zoneView(mapCopy, thumb.zone), [mapCopy, thumb.zone]);
+  if (!view.places.some((p) => p.level === thumb.level)) return null;
+  return (
+    <div data-testid="doc-zone-thumb">
+      <ZoneMap view={view} level={thumb.level} thumbnail />
+    </div>
   );
 }
