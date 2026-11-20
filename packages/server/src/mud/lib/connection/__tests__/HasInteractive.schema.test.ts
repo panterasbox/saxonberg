@@ -55,6 +55,7 @@ const DECLARED = [
   'console.tabs',
   'cards.views',
   'cards.activeView',
+  'nav.card',
   'console.routing',
   'console.seededViews',
   'console.activeTab',
@@ -91,7 +92,7 @@ const walked = (
 ): ClientStateSchemaEntry[] => host.walkedSchema();
 
 describe('⭐ the client-state schema', () => {
-  it('our client declares exactly the seventeen keys', () => {
+  it('our client declares exactly the eighteen keys', () => {
     expect(walked(makeStuff(() => new ClientHostFixture())).map((e) => e.key).sort()).toEqual(
       [...DECLARED].sort(),
     );
