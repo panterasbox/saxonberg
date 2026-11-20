@@ -99,7 +99,7 @@ describe("Crumbs — your own", () => {
     const shown = screen.getAllByTestId("nav-crumb").map((c) => [c.textContent, c.getAttribute("data-named")]);
     expect(shown).toEqual([
       ["Terminus", "true"],
-      ["a place you have not learned", "false"],
+      ["…", "false"],
       ["The Lounge", "true"],
     ]);
   });
@@ -124,5 +124,18 @@ describe("a section link previews its command (owner, review)", () => {
     expect(onPreview).toHaveBeenLastCalledWith("look");
     fireEvent.mouseLeave(screen.getByTestId("nav-place-look"));
     expect(onPreview).toHaveBeenLastCalledWith(null);
+  });
+});
+
+describe("unlearned crumbs collapse; the structure names what stands here", () => {
+  it("a run of unlearned Localities reads as one …", () => {
+    render(<Crumbs crumbs={[{ address: "a" }, { address: "a/b" }, { address: "a/b/c", name: "Wharfside" }]} placeName="the bank" onSendCommand={() => {}} />);
+    expect(screen.getAllByTestId("nav-crumb").map((c) => c.textContent)).toEqual(["…", "Wharfside"]);
+  });
+  it("outside, the structure summary names what stands here — never a placeholder", () => {
+    expect(structureSummary({ building: { v: 1, landed: [{ name: "the terminal clock tower", landmark: true }] } })).toBe(
+      "Standing here: the terminal clock tower",
+    );
+    expect(structureSummary({ building: { v: 1 } })).toBeNull();
   });
 });

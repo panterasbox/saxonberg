@@ -203,7 +203,9 @@ export function wayDoc(
     for (const [key, value] of Object.entries(way.facts ?? {})) {
       facts.push({ label: WAY_FACT_LABEL[key] ?? key, value: wayFactValue(key, value), source: "seen" });
     }
-    if (way.oneWay) facts.push({ label: "one way", value: "no way back by it that you know of", source: "seen" });
+    // ⚠ `oneWay` is NOT shown: it is an authoring flag (the mutual-exit
+    // check skips the way), set on every way between zones — shown as
+    // "no way back" it told a player they could not return the way they came.
     if (way.muffled) facts.push({ label: "sound", value: "muffled through it", source: "seen" });
     if (way.lengthM !== undefined) facts.push({ label: "length", value: `${Math.round(way.lengthM)} m`, source: "seen" });
     if (way.crossesZone) facts.push({ label: "leaves", value: "this zone", source: "seen" });
@@ -301,29 +303,41 @@ const TIER_WORD = { walked: "a place you have walked", known: "a place you know 
 /** A place on the map: its tier, every source, what a click does, its path. */
 export function placeDoc(
   place: MapPlaceInput,
-  opts: { command?: string | null; neighbor?: boolean; disagreements?: readonly string[] } = {},
+  opts: { command?: string | null; neighbor?: boolean; here?: boolean; disagreements?: readonly string[] } = {},
 ): TooltipDoc {
-  const counts = new Map<TooltipSource, number>();
-  for (const s of place.sources) counts.set(s.channel, (counts.get(s.channel) ?? 0) + 1);
-  const facts: TooltipFact[] = [...counts.entries()].map(([channel, n]) => ({
-    label: "known by",
-    value: `${n} record${n === 1 ? "" : "s"}`,
-    source: channel,
-  }));
+  // How you know it, in the order you learned it — one row, not a count
+  // of "records" a player has no reason to think in.
+  const channels = [...new Set([...place.sources].reverse().map((s) => s.channel))];
+  const facts: TooltipFact[] = channels.length
+    ? [{ label: "how you know it", value: channels.map((c) => HOW_WORD[c] ?? c).join(", then "), source: channels[channels.length - 1]! }]
+    : [];
   for (const d of opts.disagreements ?? []) facts.push({ label: "disagrees", value: d, source: "client" });
   const doc: TooltipDoc = {
-    header: { name: place.name, kindWord: TIER_WORD[place.tier] },
+    header: { name: place.name, kindWord: opts.here ? "where you are" : TIER_WORD[place.tier] },
     facts,
     spoilers: [{ level: 2, label: PATH_LABEL, text: place.key }],
   };
   if (opts.command) {
     doc.command = opts.command;
-    doc.hint = opts.neighbor ? `click — ${opts.command}` : "click — draw the route there";
+    doc.hint = opts.here
+      ? "click — look around"
+      : opts.neighbor
+        ? `click — ${opts.command}`
+        : "click — draw the way there (you will not move)";
   } else if (opts.command === null) {
     doc.hint = "Your map has no word to route there by — walk there instead.";
   }
   return doc;
 }
+
+const HOW_WORD: Partial<Record<TooltipSource, string>> = {
+  walked: "you walked there",
+  seen: "you saw it",
+  searched: "you found it searching",
+  published: "a published map",
+  charted: "a chart",
+  told: "someone told you",
+};
 
 /** A way your map holds from a place you are not standing in. */
 export function edgeDoc(
@@ -358,6 +372,8 @@ export function crumbDoc(
   known: {
     claim?: { channel: TooltipSource; government?: { name: string }; localityKind?: string };
     claims: number;
+    /** Places of your map filed there. */
+    places?: number;
   },
   civic?: { seats: readonly { seat: string; holder: string | null }[]; resident: boolean; forecast?: string } | null,
 ): TooltipDoc {
@@ -366,13 +382,15 @@ export function crumbDoc(
   }
   if (!crumb.name || !known.claim) {
     return {
-      header: { name: "Unnamed", kindWord: "locality" },
-      prose: "You have not learned this place's name: nothing on your map says what it is called.",
+      header: { name: "Somewhere you have not learned", kindWord: "locality" },
+      prose: "You are inside a larger place whose name you have not learned yet — look around somewhere lit and it will be noted.",
     };
   }
   const facts: TooltipFact[] = [
     { label: "first came", value: CHANNEL_WORD[known.claim.channel] ?? known.claim.channel, source: known.claim.channel },
-    { label: "your map", value: `${known.claims} claim${known.claims === 1 ? "" : "s"} here`, source: "client" },
+    ...(known.places !== undefined
+      ? [{ label: "your map", value: `${known.places} place${known.places === 1 ? "" : "s"} you know here`, source: "client" as const }]
+      : []),
   ];
   if (known.claim.localityKind) facts.push({ label: "kind", value: known.claim.localityKind, source: known.claim.channel });
   if (known.claim.government) facts.push({ label: "government", value: known.claim.government.name, source: known.claim.channel });
@@ -411,7 +429,7 @@ export function levelDoc(name: string, places: number, yours: boolean): TooltipD
 export function sectionDoc(summary: string, open: boolean): TooltipDoc {
   return {
     header: { name: summary, kindWord: "section" },
-    hint: open ? "click — fold it; the card remembers you did" : "click — open it; the card remembers you did",
+    hint: "click — open or fold it; the card keeps it the way you leave it",
   };
 }
 
@@ -433,9 +451,9 @@ export function sightingDoc(
 export function zoneDoc(sections: NavSections, known: { walked: number; known: number; openings: number }): TooltipDoc {
   const z = sections.zone;
   const facts: TooltipFact[] = [
-    { label: "walked", value: String(known.walked), source: "walked" },
-    { label: "known", value: String(known.known), source: "client" },
-    { label: "ways not taken", value: String(known.openings), source: "client" },
+    { label: "places you have walked", value: String(known.walked), source: "walked" },
+    { label: "seen, not walked", value: String(known.known), source: "client" },
+    { label: "ways you have not taken", value: String(known.openings), source: "client" },
   ];
   if (z?.cellSizeM) facts.push({ label: "a cell", value: `${z.cellSizeM} m`, source: "seen" });
   return {

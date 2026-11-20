@@ -36,4 +36,20 @@ describe("NavCard", () => {
     fireEvent.click(north);
     expect(send).toHaveBeenCalledWith("go north");
   });
+
+  it("a click on the place you stand in looks around — it never routes you to yourself", () => {
+    const send = vi.fn();
+    render(<NavCard onSendCommand={send} />);
+    fireEvent.click(screen.getAllByTestId("nav-place")[0]!);
+    expect(send).toHaveBeenCalledWith("look");
+  });
+
+  it("a way the ways section says leaves the zone draws as leaving, not as a `?`", () => {
+    useStore.getState().applyMapChanges([
+      { op: "replace", key: "last-counted-mile|e2", fields: { locality: "last-counted-mile", claim: { key: "e2", kind: "edge", place: tag(`${Z}/vestibule`), dir: "south", to: null, toLabel: null, channel: "seen", state: "open", firstSeen: 1, lastSeen: 1 } } },
+    ] as never);
+    render(<NavCard onSendCommand={() => {}} />);
+    const shapes = Object.fromEntries(screen.getAllByTestId("nav-edge").map((e) => [e.getAttribute("data-dir"), e.getAttribute("data-shape")]));
+    expect(shapes).toEqual({ north: "opening", south: "leaves" });
+  });
 });

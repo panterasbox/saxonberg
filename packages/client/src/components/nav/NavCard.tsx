@@ -46,7 +46,7 @@ import { tokens } from "../ui";
 import { crumbDoc, edgeDoc, placeDoc, sightingDoc, wayDoc, zoneDoc } from "../doc/docs";
 import { MapArea } from "./MapArea";
 import { Ways } from "./Ways";
-import { Crumbs, crumbsSummary } from "./Crumbs";
+import { Crumbs } from "./Crumbs";
 import { NavSection } from "./NavSection";
 import { useFillHeight } from "./useFillHeight";
 import { LensRow } from "./LensRow";
@@ -84,7 +84,7 @@ const Here = styled.div`
 /** `look <the building>` — its name as a typed target. */
 const structureLook = (name: string): string => `look ${escapeTarget(name.replace(/^the\s+/i, ""))}`;
 
-export const SECTION_ORDER = ["world", "zone", "horizon", "structure", "place", "you"] as const;
+export const SECTION_ORDER = ["zone", "horizon", "structure", "place", "you"] as const;
 
 export interface NavCardProps {
   onSendCommand: (command: string) => void;
@@ -116,11 +116,10 @@ export function NavCard(props: NavCardProps): React.ReactElement {
 
   // The summaries; a null one is a section that is absent.
   const summaries: Record<(typeof SECTION_ORDER)[number], string | null> = {
-    world: crumbsSummary(crumbs, sections),
     zone: zoneSummary(sections),
     horizon: horizonSummary(sections),
     structure: structureSummary(sections),
-    place: sections.place ? placeSummary(sections, herePlace) : null,
+    place: sections.place ? placeSummary(sections) : null,
     you: youSummary(sections),
   };
   const present = SECTION_ORDER.filter((n) => summaries[n] !== null);
@@ -139,6 +138,8 @@ export function NavCard(props: NavCardProps): React.ReactElement {
   const commandFor = React.useCallback(
     (mark: { place?: ViewPlace; edge?: ViewEdge }): string | null => {
       if (mark.place) {
+        // Where you stand: a click looks around (it once routed you to yourself).
+        if (herePlace && mark.place.key === herePlace.key) return "look";
         const dir = standing ? neighborDirection(mapCopy, standing, mark.place) : undefined;
         return dir ? `go ${dir}` : routeCommandFor(mapCopy, mark.place);
       }
@@ -149,6 +150,12 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       return null;
     },
     [mapCopy, standing, herePlace],
+  );
+
+  /** The ways from here the ways section says leave this zone — never a `?`. */
+  const leavingDirs = React.useMemo(
+    () => new Set((sections.ways?.ways ?? []).filter((w) => w.crossesZone).map((w) => w.direction.toLowerCase())),
+    [sections.ways],
   );
 
   /** How much a lens has to draw on the level you stand on — its tooltip says when it is nothing. */
@@ -169,8 +176,8 @@ export function NavCard(props: NavCardProps): React.ReactElement {
   ): TooltipDoc | null => {
     if (mark.place) {
       const command = commandFor({ place: mark.place });
-      const neighbor = command?.startsWith("go ") ?? false;
-      return placeDoc(mark.place, { command, neighbor });
+      const neighbor = (command?.startsWith("go ") ?? false) || command === "look";
+      return placeDoc(mark.place, { command, neighbor, ...(command === "look" ? { here: true } : {}) });
     }
     if (mark.edge) {
       const e = mark.edge;
@@ -207,7 +214,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
    * asked for only when the tooltip opens (W8).
    */
   const crumbTip = (c: Crumb): TipSpec | TooltipDoc => {
-    const known: { claim?: WireClaim; claims: number } = c.ship ? { claims: 0 } : localityKnowledge(mapCopy, c.address);
+    const known: { claim?: WireClaim; claims: number; places?: number } = c.ship ? { claims: 0 } : localityKnowledge(mapCopy, c.address);
     const doc = crumbDoc(c, known);
     if (c.ship || !c.name || !known.claim) return doc;
     return {
@@ -276,18 +283,16 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       {/* 1 · you are here */}
       <Here data-testid="nav-here-name">{sections.place?.name ?? "Somewhere"}</Here>
 
-      {/* 2 · in the world */}
-      {section(
-        "world",
+      {/* 2 · in the world — always shown: it is the line that says where you are */}
+      <ChangeMark surface="nav:localities">
         <Crumbs
           crumbs={crumbs}
           placeName={sections.place?.name ?? ""}
           tipFor={(c) => crumbTip(c)}
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
-        />,
-        "nav:localities",
-      )}
+        />
+      </ChangeMark>
 
       {/* 3 · the zone, and its map (the map is always shown) */}
       <ChangeMark surface="nav:zone">
@@ -296,6 +301,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           lenses={lenses}
           {...(routePlan ? { route: routePlan.plans } : {})}
           commandFor={commandFor}
+          {...(herePlace ? { leavesFrom: { place: herePlace.key, dirs: leavingDirs } } : {})}
           onPlaceClick={(p) => run(commandFor({ place: p }))}
           onEdgeClick={(e) => run(commandFor({ edge: e }))}
           boundaries={(view, level) => boundariesView(mapCopy, view, level)}

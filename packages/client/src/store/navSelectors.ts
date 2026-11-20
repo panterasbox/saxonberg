@@ -489,6 +489,8 @@ export interface LocalityKnowledge {
   claim?: WireClaim;
   /** Claims filed in documents at or under this address. */
   claims: number;
+  /** Distinct places of your map filed there. */
+  places: number;
 }
 
 export function localityKnowledge(
@@ -497,11 +499,15 @@ export function localityKnowledge(
 ): LocalityKnowledge {
   const idx = indexOf(copy);
   let claims = 0;
+  const places = new Set<string>();
   for (const [doc, list] of idx.byDocument) {
-    if (doc === address || doc.startsWith(`${address}/`)) claims += list.length;
+    if (doc === address || doc.startsWith(`${address}/`)) {
+      claims += list.length;
+      for (const c of list) if (c.kind === "place") places.add(pathOf(c.place) ?? "");
+    }
   }
   const claim = idx.localities.get(address);
-  return { address, ...(claim ? { claim } : {}), claims };
+  return { address, ...(claim ? { claim } : {}), claims, places: places.size };
 }
 
 /** One crumb — named only from YOUR claim. */

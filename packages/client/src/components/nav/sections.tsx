@@ -162,9 +162,15 @@ export function structureSummary(s: NavSections): string | null {
   const b = s.building;
   const aboard = s.localities?.ship;
   if (!b && !aboard) return null;
-  const name = b?.name ?? aboard?.name ?? "A structure";
-  const storey = b?.storey !== undefined && b.storeys ? ` · floor ${b.storey + 1} of ${b.storeys}` : "";
-  return `${name}${storey}`;
+  if (b?.name) {
+    const storey = b.storey !== undefined && b.storeys ? ` · floor ${b.storey + 1} of ${b.storeys}` : "";
+    return `${b.name}${storey}`;
+  }
+  if (aboard) return aboard.name;
+  // Outside: what stands here, by name — never a placeholder.
+  const landed = b?.landed?.map((l) => l.name) ?? [];
+  if (landed.length === 0) return null;
+  return `Standing here: ${landed.join(", ")}`;
 }
 
 export function StructureBody({
@@ -242,14 +248,12 @@ export function StructureBody({
 
 // ── 7 · the place ─────────────────────────────────────────────────────
 
-export function placeSummary(s: NavSections, known?: ViewPlace): string {
+export function placeSummary(s: NavSections): string {
   const p = s.place;
-  const parts = ["Place"];
-  if (p?.dark) parts.push("dark");
-  else if (p?.light) parts.push(p.light);
-  if (known) parts.push(known.tier === "walked" ? "walked" : "known, not walked");
-  else parts.push("not on your map");
-  return parts.join(" · ");
+  // Only what is true of the place right now — whether it is on your map
+  // is the map's to show, and "not walked" of the room you stand in read
+  // as a contradiction.
+  return `Place · ${p?.dark ? "dark" : (p?.light ?? "—")}`;
 }
 
 export function PlaceBody({
@@ -298,11 +302,13 @@ export function PlaceBody({
           <dd>{Math.round(p.elevationM)} m above the sea</dd>
         </>
       ) : null}
-      <dt>your map</dt>
+      <dt>on your map</dt>
       <dd data-testid="nav-place-known">
         {known
           ? [...new Set(known.sources.map((src) => CHANNEL_WORDS[src.channel] ?? src.channel))].join(", ")
-          : "nothing written yet"}
+          : p.dark
+            ? "not yet — too dark to note it"
+            : "not yet"}
       </dd>
       <dt />
       <dd>

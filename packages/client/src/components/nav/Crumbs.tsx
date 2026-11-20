@@ -64,18 +64,22 @@ export function destutter(crumbs: readonly Crumb[], placeName: string): Crumb[] 
 }
 
 export function Crumbs(props: CrumbsProps): React.ReactElement | null {
-  const shown = destutter(props.crumbs, props.placeName);
+  // Runs of Localities you have not learned read as one "…" — a line of
+  // "a place you have not learned" said nothing a newcomer could use.
+  const shown = destutter(props.crumbs, props.placeName).filter(
+    (c, i, all) => c.name !== undefined || i === 0 || all[i - 1]!.name !== undefined,
+  );
   if (shown.length === 0) return null;
   return (
     <Root aria-label="where you are in the world" data-testid="nav-crumbs">
       {shown.map((c, i) => {
         const command = c.ship ? null : `map ${c.address}`;
-        const label = c.name ?? "a place you have not learned";
+        const label = c.name ?? "…";
         const doc =
           props.tipFor?.(c) ??
           (c.name
             ? { header: { name: c.name, kindWord: c.ship ? "the ship you are aboard" : "locality" }, ...(command ? { command } : {}) }
-            : { header: { name: "Unnamed", kindWord: "locality" }, prose: "You have not learned this place's name: nothing on your map says what it is called." });
+            : { header: { name: "Somewhere you have not learned", kindWord: "locality" }, prose: "You are inside a larger place whose name you have not learned yet — look around somewhere lit and it will be noted." });
         return (
           <React.Fragment key={`${c.address}|${i}`}>
             {i > 0 ? <span aria-hidden="true">›</span> : null}

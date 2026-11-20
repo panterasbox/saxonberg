@@ -22,8 +22,8 @@ test.describe('navigation server — the navigator reads the subscription', () =
       await runCommand(page, 'map');
       const nav = page.getByTestId('nav-card');
       await expect(nav).toBeVisible({ timeout: 30_000 });
-      // The navigation card folds sections to fit; open the two read here.
-      for (const name of ['world', 'zone']) {
+      // The navigation card folds sections to fit; open the one read here (the crumbs are always shown).
+      for (const name of ['zone']) {
         const sec = page.getByTestId(`nav-section-${name}`);
         await expect(sec).toBeVisible({ timeout: 30_000 });
         if ((await sec.getAttribute('data-open')) !== 'true') {

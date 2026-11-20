@@ -63,6 +63,12 @@ export interface ZoneMapProps {
   commandFor?: (mark: { place?: ViewPlace; edge?: ViewEdge }) => string | null;
   tipFor?: (mark: { place?: ViewPlace; edge?: ViewEdge; lens?: LensName; leg?: number }) => TooltipDoc | null;
   onZoomStep?: (direction: 1 | -1) => void;
+  /**
+   * The ways from where you stand that the ways section says leave this
+   * zone: drawn as leaving, never as a `?` — a look does not record that a
+   * way crosses into another zone, but standing at it you can see it does.
+   */
+  leavesFrom?: { place: string; dirs: ReadonlySet<string> };
   /** Horizon sightings: a tick at the map's edge in their rough direction. */
   ticks?: readonly { id: string; point: string; name: string; doc?: TooltipDoc; onClick?: () => void }[];
 }
@@ -237,7 +243,11 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
   const refusalEls: React.ReactElement[] = [];
   const namedCount = new Map<string, number>();
 
-  for (const e of edges) {
+  for (const raw of edges) {
+    const e: ViewEdge =
+      raw.shape === "opening" && props.leavesFrom?.place === raw.from && props.leavesFrom.dirs.has(raw.dir)
+        ? { ...raw, shape: "leaves" }
+        : raw;
     const from = placeAtKey.get(e.from)!;
     const far = e.to ? placeAtKey.get(e.to) : undefined;
     const color = STATE_COLOR[e.state ?? "open"] ?? tokens.color.fg;
@@ -494,7 +504,8 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
 
   // ── the horizon's ticks ───────────────────────────────────────────────
   const tickEls = (props.ticks ?? []).flatMap((t) => {
-    const v = DIRECTION_VECTORS[longDirection(t.point)];
+    // `query horizon` says "to the east"; the vector wants the bare word.
+    const v = DIRECTION_VECTORS[longDirection(t.point.replace(/^to the\s+/i, "").trim())];
     if (!v || (v[0] === 0 && v[1] === 0)) return [];
     const cx = vbX + vbW / 2;
     const cy = vbY + vbH / 2;

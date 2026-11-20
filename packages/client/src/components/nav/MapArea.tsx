@@ -63,6 +63,7 @@ export interface MapAreaProps {
   ) => TooltipDoc | null;
   onCommandPreview?: (command: string | null) => void;
   ticks?: React.ComponentProps<typeof ZoneMap>["ticks"];
+  leavesFrom?: React.ComponentProps<typeof ZoneMap>["leavesFrom"];
   /** Rendered under the map (the lens row). */
   children?: React.ReactNode;
 }
@@ -108,8 +109,8 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
 
   return (
     <Root data-testid="nav-map-area">
-      {view.places.length === 0 && !here ? (
-        <Muted data-testid="nav-map-empty">You have not mapped any of this zone yet.</Muted>
+      {view.places.length === 0 ? (
+        <Muted data-testid="nav-map-empty">Nothing of this area on your map yet — walk somewhere and look around, and it draws itself.</Muted>
       ) : (
         <ZoneMap
           view={view}
@@ -121,6 +122,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           {...(props.boundaries ? { boundaries: props.boundaries(view, level) } : {})}
           onZoomStep={step}
           {...(props.ticks ? { ticks: props.ticks } : {})}
+          {...(props.leavesFrom ? { leavesFrom: props.leavesFrom } : {})}
           {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
           {...(props.onPlaceClick ? { onPlaceClick: (p) => props.onPlaceClick!(p, view) } : {})}
           {...(props.onEdgeClick ? { onEdgeClick: (e) => props.onEdgeClick!(e, view) } : {})}
@@ -128,6 +130,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           {...(props.tipFor ? { tipFor: (m) => props.tipFor!(m, view) } : {})}
         />
       )}
+      {view.places.length === 0 ? null : (<>
       <Controls data-testid="nav-zoom">
         {ZOOMS.map((z) => (
           <Tip key={z} tip={controlDoc(`Zoom: ${ZOOM_LABEL[z]}`, undefined, zoomHint(z))}>
@@ -169,6 +172,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
         </Controls>
       ) : null}
       {props.children}
+      </>)}
       {view.unplaced.length > 0 ? (
         <Muted data-testid="nav-unplaced">
           Known, not yet placed: {view.unplaced.map((p) => p.name).join(", ")}

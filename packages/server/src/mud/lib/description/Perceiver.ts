@@ -345,7 +345,17 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ In a copy, the copy's own zone identity (a house of a lot, a ship
       // of a kind — zone instancing), else the zone's path.
       const id = zone.getIdentityPath() ?? zone.getTemplatePath() ?? null;
-      return { v: 0, ...(id ? { id: { path: id, spoiler: 2 as const } } : {}), ...facts };
+      // ⭐ The zone's own NAME is its label (navigation card review): a zone
+      // has no short description, so its presentation read "something" —
+      // a word that told a player nothing. The frame's label stays the
+      // fallback for a zone that names itself another way (a river reach).
+      const name = zone.getName();
+      return {
+        v: 0,
+        ...(id ? { id: { path: id, spoiler: 2 as const } } : {}),
+        ...facts,
+        ...(name ? { label: name } : {}),
+      };
     }
 
     /**

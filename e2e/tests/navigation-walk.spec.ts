@@ -162,7 +162,6 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
 
       // 21 · the status bar's outdoors; 24 · the crumbs are your own.
       await expect(page.getByTestId('status-outdoors')).toBeVisible({ timeout: 30_000 });
-      await openSection(page, 'world');
       const crumbs = page.getByTestId('nav-crumb');
       await expect(crumbs.filter({ hasText: 'Terminus City' })).toHaveCount(1, { timeout: 30_000 });
       const said = await tipText(page, crumbs.filter({ hasText: 'Terminus City' }));
@@ -278,7 +277,6 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
     });
     try {
       await openCard(other.page);
-      await openSection(other.page, 'world');
       await expect(other.page.getByTestId('nav-crumb').filter({ hasText: 'Terminus City' })).toHaveCount(0);
     } finally {
       await other.close();

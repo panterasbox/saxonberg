@@ -30,7 +30,8 @@ describe("map documents", () => {
       { command: "route to vault" },
     );
     expect(doc.header?.kindWord).toBe("a place you know of");
-    expect(doc.facts?.map((f) => f.source)).toEqual(["seen", "searched"]);
+    // One plain row, in the order learned — never a count of "records".
+    expect(doc.facts?.map((f) => [f.label, f.value])).toEqual([["how you know it", "you found it searching, then you saw it"]]);
     expect(doc.spoilers).toEqual([{ level: 2, label: PATH_LABEL, text: "/test/delve/vault" }]);
     expect(doc.command).toBe("route to vault");
     // No age: claims are dated in game time and the client has no game now.
@@ -58,7 +59,8 @@ describe("map documents", () => {
     expect(rows["to"]).toEqual(["the floor of the pit", "walked"]);
     expect(rows["opening"]).toEqual(["0.9 × 1.4 m", "seen"]);
     expect(rows["portcullis"]).toEqual(["raised", "seen"]);
-    expect(rows["one way"]).toBeDefined();
+    // `oneWay` is an authoring flag, never shown as "no way back".
+    expect(rows["one way"]).toBeUndefined();
     expect(rows["found"]).toEqual(["by searching", "searched"]);
     expect(doc.prose).toMatch(/have to climb/);
     expect(doc.hint).toMatch(/climb down/);
@@ -79,11 +81,12 @@ describe("map documents", () => {
   it("crumbDoc: from your claim; unnamed without one", () => {
     const named = crumbDoc(
       { address: "terminus/city", name: "Terminus City" },
-      { claim: { channel: "walked", government: { name: "the City of Terminus" }, localityKind: "settlement" }, claims: 12 },
+      { claim: { channel: "walked", government: { name: "the City of Terminus" }, localityKind: "settlement" }, claims: 12, places: 4 },
     );
     expect(named.facts?.map((f) => f.label)).toEqual(["first came", "your map", "kind", "government"]);
+    expect(named.facts?.find((f) => f.label === "your map")?.value).toBe("4 places you know here");
     expect(named.command).toBe("map terminus/city");
-    expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Unnamed");
+    expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Somewhere you have not learned");
     // W8: the civic facts, when the server answered for a Locality you hold.
     const civic = crumbDoc(
       { address: "terminus/city", name: "Terminus City" },
