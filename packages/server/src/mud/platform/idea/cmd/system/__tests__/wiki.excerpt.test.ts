@@ -21,6 +21,7 @@ import { ShellApi } from '../../../../../api/shell';
 import { StuffApi } from '../../../../../api/stuff';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { WikiApi } from '../../../../../api/wiki';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 import { TemplatePaths } from '../../../../../lib/paths';
 import { Collections } from '../../../../../lib/persistence/Collections';
 import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__tests__/wiki-test-db';
@@ -56,7 +57,7 @@ async function run(
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
