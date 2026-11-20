@@ -2047,6 +2047,22 @@ configured**.
   (`/world/<locality>`) are a **shrinking allowlist**: a listed one
   warns, a new one fails, and a listed path that no longer offends is
   stale and fails too.
+- **`lint:wire-content`** — ⭐ the same rule for the **wire drives**, as a
+  census-then-ratchet (test-world-lifecycle, 2026-11). A drive proves a
+  system whatever the world holds, so it stands in the suite's own scaffold
+  (`/world/testbed`, the test-only `test-fixtures` pack) and names no
+  locality and no firm. The census counts every file under
+  `packages/wire/tests`, `packages/content/*/wire` and the harness whose
+  CODE (comments stripped) names `/world/<x>` other than `testbed`, or
+  `/corpo/<x>`. **120 at the census**; the ceiling may fall, never rise,
+  and build 2 takes it to zero. A file at zero stays there for free —
+  naming a locality in it raises the count. ⭐ A second check at **0**:
+  a test file that carries its own restart (imports the runner's
+  `bootOwnedWorld`/`stopOwnedWorld`, or names `dev-preflight`). The 18
+  copies it replaced killed the world two seconds after asking it to
+  stop, before its shutdown save; `restartWorld()` waits. A separate
+  script from `lint:test-content` because that one is an allowlist of
+  kernel unit tests and this one is a count.
 
 ---
 
