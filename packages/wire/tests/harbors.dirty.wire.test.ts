@@ -59,10 +59,7 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawnSync } from 'child_process';
 import { copyFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import type { CommandResult } from '../src/harness';
 import {
   Session,
@@ -76,8 +73,9 @@ import {
   stageShip,
   hand,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'charters the Hesper and pays her dues and days from a funded player, ' +
@@ -715,17 +713,11 @@ suite('B1 — she keeps across a restart (15)', () => {
     } catch {
       /* no log to keep */
     }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
     // ⭐ A RESTART, not a crash (the sugar soak's precedent): the server gets
     // a minute to capture what it holds. Preflight's default two seconds
     // SIGKILLs it before the shutdown capture — run 1 (2026-11-03) lost the
     // oakum in her hold that way.
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-      env: { ...process.env, PREFLIGHT_GRACE_MS: '60000' },
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     owner = await session(OWNER, YARD);
     second = await session(SECOND, YARD);
     const quay = await look(owner);

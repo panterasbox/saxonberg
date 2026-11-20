@@ -33,7 +33,7 @@
  */
 import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
@@ -44,9 +44,10 @@ import {
   uniqueHandle,
   quietBoxRefusal,
   foreignMeter,
+  restartWorld,
 } from '../src/harness';
 import type { CrowdRecord } from '../src/harness';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../src/runner/boot';
+import { WIRE_PORT } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'thirty characters are created and stand in the market square; probe ' +
@@ -165,31 +166,6 @@ function listenerPid(): number | null {
   const pid = Number(out?.split('\n')[0] ?? '');
   return pid > 0 ? pid : null;
 }
-/** Stop the world (SIGTERM: the CPU profile is written) and boot it again. */
-async function restartWorld(): Promise<void> {
-  const listener = listenerPid();
-  if (listener) {
-    process.kill(listener, 'SIGTERM');
-    const deadline = Date.now() + 180_000;
-    for (;;) {
-      try {
-        process.kill(listener, 0);
-      } catch {
-        break;
-      }
-      if (Date.now() > deadline) break;
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
-  await stopOwnedWorld();
-  const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-    cwd: serverDir,
-    stdio: 'ignore',
-  });
-  process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-}
-
 // ── the record ───────────────────────────────────────────────────────────
 
 /** What the timed steps measure, recorded at W0 and compared after. */

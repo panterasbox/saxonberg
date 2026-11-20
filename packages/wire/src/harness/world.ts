@@ -29,8 +29,16 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { spawnSync } from 'child_process';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../runner/boot';
+import {
+  bootOwnedWorld,
+  describeStop,
+  listenerPid,
+  stopWorldWithin,
+  WIRE_PORT,
+  WIRE_LOG,
+  WIRE_STOP_GRACE,
+  type TimedStop,
+} from '../runner/boot';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { allFiles, currentFile } from './registry';
@@ -573,113 +581,40 @@ export async function stageShip(handle: string, spec: ShipStageSpec): Promise<Sh
   return out as ShipStageResult;
 }
 
+/* ──────────────────────── stop and restart ──────────────────────── */
+
+export { stopWorldWithin, lastShutdownReport, WIRE_STOP_GRACE } from '../runner/boot';
+export type { ShutdownReport, TimedStop } from '../runner/boot';
+
 /**
- * ⭐ Restart the owned world: stop whatever listens on the wire port, reap
- * it, and boot it again — then point the harness at the new one. Every
- * persisted thing must be read back afterwards (review question R4).
- * Lifted from the drives that each carried a copy.
+ * ⭐ Stop the world on the wire port as an operator would: SIGTERM, wait up to
+ * the grace (`WIRE_STOP_GRACE`, default 240 s) for its shutdown save, and kill
+ * only when that runs out — then print how it went. Returns the stop, or
+ * `null` (said) when nothing was listening.
  */
-export async function restartWorld(): Promise<void> {
-  const listener = Number(
-    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-  );
-  if (listener > 0) {
-    process.kill(listener, 'SIGTERM');
-    const deadline = Date.now() + 180_000;
-    for (;;) {
-      try {
-        process.kill(listener, 0);
-      } catch {
-        break;
-      }
-      if (Date.now() > deadline) break;
-      await new Promise((r) => setTimeout(r, 500));
-    }
+export async function stopWorld(opts: { graceMs?: number } = {}): Promise<TimedStop | null> {
+  if (listenerPid() === null) {
+    console.log(`wire: stopWorld — nothing listens on ${WIRE_PORT}`);
+    return null;
   }
-  await stopOwnedWorld();
-  const serverDir = join(REPO_ROOT, 'packages', 'server');
-  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-    cwd: serverDir,
-    stdio: 'ignore',
-  });
+  const stop = await stopWorldWithin(opts.graceMs ?? WIRE_STOP_GRACE);
+  console.log(describeStop(stop));
+  return stop;
+}
+
+/**
+ * ⭐⭐ The one restart: {@link stopWorld} (when something listens), then boot a
+ * world again on the wire port and point the harness at it. Every persisted
+ * thing must be read back afterwards (review question R4). Returns the stop,
+ * so a drive can assert the save was not cut short (`killed === false`).
+ *
+ * ⛔ A drive never carries its own copy — `lint:wire-content` refuses a test
+ * file that imports the runner's boot or stop, or names the preflight.
+ */
+export async function restartWorld(opts: { graceMs?: number } = {}): Promise<TimedStop | null> {
+  const stop = await stopWorld(opts);
   process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-}
-
-/* ──────────────────────── a timed stop ──────────────────────── */
-
-/** What the world's own shutdown said, parsed from its log. */
-export interface ShutdownReport {
-  captured: number;
-  failed: number | null;
-  ms: number | null;
-}
-
-/** How a stop with a grace went. */
-export interface TimedStop {
-  /** Wall ms from SIGTERM to the process gone. */
-  exitedMs: number;
-  /** True when the grace ran out and the process was SIGKILLed. */
-  killed: boolean;
-  /** The `shutdown captured …` line, or `null` when the world never wrote it. */
-  report: ShutdownReport | null;
-}
-
-/**
- * ⭐ Stop the owned world as an operator with a deadline would (db-performance
- * drive step 6): SIGTERM the listener, wait for it to exit, and SIGKILL
- * **that PID** when `graceMs` runs out. Returns how long it took, whether
- * it was killed, and the shutdown's own report from the log — the save a
- * world makes when it stops is what this measures. The world is left
- * stopped; boot it again with {@link restartWorld} (which finds nothing
- * listening and only boots). `restartWorld`'s own wait and the runner's
- * 15 s are not this.
- */
-export async function stopWorldWithin(graceMs: number): Promise<TimedStop> {
-  const pid = Number(
-    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-  );
-  if (!(pid > 0)) throw new Error(`stopWorldWithin: nothing listens on ${WIRE_PORT}`);
-  const alive = (): boolean => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  const t0 = Date.now();
-  process.kill(pid, 'SIGTERM');
-  let killed = false;
-  while (alive()) {
-    if (Date.now() - t0 >= graceMs) {
-      process.kill(pid, 'SIGKILL');
-      killed = true;
-      break;
-    }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  const exitedMs = Date.now() - t0;
-  // Let the log pipe flush, then reap the runner's bookkeeping.
-  await new Promise((r) => setTimeout(r, 500));
-  await stopOwnedWorld();
-  return { exitedMs, killed, report: lastShutdownReport() };
-}
-
-/** The last `shutdown captured …` line in the world's log, parsed. */
-export function lastShutdownReport(): ShutdownReport | null {
-  if (!existsSync(WIRE_LOG)) return null;
-  const all = [
-    ...readFileSync(WIRE_LOG, 'utf8').matchAll(
-      /shutdown captured (\d+) persistable host\(s\)(?: in (\d+) ms)?(?: \((\d+) failed\))?/g,
-    ),
-  ];
-  const m = all[all.length - 1];
-  if (!m) return null;
-  return {
-    captured: Number(m[1]),
-    ms: m[2] !== undefined ? Number(m[2]) : null,
-    failed: m[3] !== undefined ? Number(m[3]) : null,
-  };
+  return stop;
 }
 
 /* ──────────────────────── a long-lived world ──────────────────────── */

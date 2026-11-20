@@ -53,7 +53,9 @@ export {
   forceDocument,
   stageShip,
   restartWorld,
+  stopWorld,
   stopWorldWithin,
+  WIRE_STOP_GRACE,
   lastShutdownReport,
   stageStandingHistory,
 } from './world';

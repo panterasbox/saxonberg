@@ -27,10 +27,7 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawnSync } from 'node:child_process';
 import { copyFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { CommandResult } from '../src/harness';
 import {
   Session,
@@ -40,8 +37,9 @@ import {
   advanceWorldClock,
   worldClockNow,
   stageShip,
+  restartWorld,
 } from '../src/harness';
-import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'buys two Hinkley lots and both smacks on the yard\'s stocks with issued ' +
@@ -591,13 +589,7 @@ suite.skipIf(!isOwnedTestWorld())('stage A — a restart (10, holdings)', () => 
     } catch {
       /* no log to keep */
     }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-      env: { ...process.env, PREFLIGHT_GRACE_MS: '60000' },
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     // Walk back in: the house wakes as its copy.
     const s = await goTo(owner, HINKLEY_LANE);
     open.push(s);

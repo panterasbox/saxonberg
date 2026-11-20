@@ -24,7 +24,7 @@
  * job's mongo service is a throwaway container.
  */
 
-import { spawn, type ChildProcess } from 'child_process';
+import { spawn, spawnSync, type ChildProcess } from 'child_process';
 import { createWriteStream, mkdirSync, openSync, readFileSync, rmSync, writeFileSync, existsSync, renameSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -40,6 +40,28 @@ export const WIRE_PORT = Number(process.env.WIRE_PORT ?? 2012);
 export const WIRE_LOG = join(REPO_ROOT, 'packages', 'wire', '.wire', 'server.log');
 
 let child: ChildProcess | null = null;
+
+/**
+ * ⭐ How long a stop waits for the world's own shutdown save before it kills
+ * (`WIRE_STOP_GRACE`, ms). A loaded world measured ~3.5 min to capture what
+ * it held (test-world-lifecycle-slate § 3), and a kill mid-save loses it — a
+ * failure the harness must never manufacture. Every stop the harness makes
+ * (the runner's teardown, `stopWorld`, `restartWorld`, the preflight it runs
+ * before a boot) uses this one number.
+ */
+export const WIRE_STOP_GRACE = Number(process.env.WIRE_STOP_GRACE ?? 240_000);
+
+/**
+ * ⭐ How long a boot may take before the runner gives up on it
+ * (`WIRE_BOOT_TIMEOUT`, ms). A cold boot against a fresh database measured
+ * 12–13 min on this box; the old 420 s cut a fresh boot off by its own
+ * budget. Both readers (`bootOwnedWorld`, the reuse wait in `global-setup`)
+ * read this constant.
+ */
+export const WIRE_BOOT_BUDGET = Number(process.env.WIRE_BOOT_TIMEOUT ?? 900_000);
+
+/** Where the near-heap-limit snapshot of a world lands (gitignored, CI-excluded). */
+export const WIRE_HEAP_DIR = join(REPO_ROOT, 'packages', 'wire', '.wire', 'heap');
 
 /**
  * The environment the spawned server gets — inherited, then SCRUBBED.
@@ -91,7 +113,36 @@ function serverEnv(): NodeJS.ProcessEnv {
 function serverArgs(): string[] {
   const prof = process.env.WIRE_CPU_PROF;
   const flags = prof ? ['--cpu-prof', `--cpu-prof-dir=${prof}`] : [];
+  // ⭐ The heap diagnostic rides every world this runner starts — owned, kept
+  // and restarted alike all come through here, so none can lose it (the
+  // hand-rolled restarts each did). One snapshot, written near the limit.
+  // `WIRE_HEAP_SNAPSHOT=0` drops it (a runner short of disk).
+  if (process.env.WIRE_HEAP_SNAPSHOT !== '0') {
+    mkdirSync(WIRE_HEAP_DIR, { recursive: true });
+    flags.push('--heapsnapshot-near-heap-limit=1', `--diagnostic-dir=${WIRE_HEAP_DIR}`);
+  }
   return ['exec', 'tsx', ...flags, 'src/preload.js'];
+}
+
+/**
+ * Run the dev preflight on the wire port, with the stop grace: a stale wire
+ * world it finds is given the time to save, never the preflight's 2 s
+ * default (right for `pnpm dev`, wrong for a world holding players).
+ */
+async function preflight(): Promise<void> {
+  await new Promise<void>((done) => {
+    const pre = spawn(
+      'node',
+      [join(SERVER_DIR, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'],
+      {
+        cwd: SERVER_DIR,
+        stdio: 'ignore',
+        env: { ...process.env, PREFLIGHT_GRACE_MS: String(WIRE_STOP_GRACE) },
+      },
+    );
+    pre.on('exit', () => done());
+    pre.on('error', () => done());
+  });
 }
 
 async function answering(url: string): Promise<boolean> {
@@ -106,27 +157,17 @@ async function answering(url: string): Promise<boolean> {
 }
 
 /**
- * Boot a world on {@link WIRE_PORT} and resolve when it answers.
- *
- * The 240s budget is the platform e2e config's, and it is not generous:
- * a cold boot against a freshly dropped database measured 245–251s
- * (docs/testing.md § The boot cost), so CI — which always boots cold —
- * needs the larger budget below.
+ * Boot a world on {@link WIRE_PORT} and resolve when it answers, within
+ * {@link WIRE_BOOT_BUDGET}. ⚠ A test file never calls this: a restart is the
+ * harness's `restartWorld()`, which stops the world with its grace first
+ * (`lint:wire-content` refuses a test file that imports it).
  */
 export async function bootOwnedWorld(): Promise<string> {
   const url = `http://localhost:${WIRE_PORT}`;
   mkdirSync(dirname(WIRE_LOG), { recursive: true });
 
   // Reap a stale wire server on our own port. Never touches 2010/2011.
-  await new Promise<void>((done) => {
-    const pre = spawn(
-      'node',
-      [join(SERVER_DIR, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'],
-      { cwd: SERVER_DIR, stdio: 'ignore' }
-    );
-    pre.on('exit', () => done());
-    pre.on('error', () => done());
-  });
+  await preflight();
 
   // ⚠ The last world's log is the only witness to how it ended: a silent death
   // on 2026-11-07 could not be read back because the next boot overwrote it.
@@ -168,7 +209,7 @@ export async function bootOwnedWorld(): Promise<string> {
   // which is the one place a TRUE reading of the installed packs exists.
   process.env.WIRE_SERVER_LOG = WIRE_LOG;
 
-  const budget = Number(process.env.WIRE_BOOT_TIMEOUT ?? 420_000);
+  const budget = WIRE_BOOT_BUDGET;
   const deadline = Date.now() + budget;
   for (;;) {
     if (await answering(url)) return url;
@@ -195,15 +236,8 @@ export async function bootOwnedWorld(): Promise<string> {
  * world standing at the end may be one this module's `child` never knew.
  */
 export async function reapOwnedPort(): Promise<void> {
-  await new Promise<void>((done) => {
-    const pre = spawn(
-      'node',
-      [join(SERVER_DIR, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'],
-      { cwd: SERVER_DIR, stdio: 'ignore' }
-    );
-    pre.on('exit', () => done());
-    pre.on('error', () => done());
-  });
+  if (listenerPid() !== null) console.log(describeStop(await stopWorldWithin(WIRE_STOP_GRACE)));
+  await preflight();
 }
 
 /**
@@ -237,7 +271,10 @@ export function forgetKeptWorld(): void {
   rmSync(KEPT_WORLD, { force: true });
 }
 
-/** Stop the world this runner started. A no-op if it started none, or kept it. */
+/**
+ * Stop the world this runner started, with the stop grace, and say how it
+ * went. A no-op if it started none, or kept it.
+ */
 export async function stopOwnedWorld(): Promise<void> {
   if (keepWorld()) {
     const kept = keptWorld();
@@ -251,17 +288,109 @@ export async function stopOwnedWorld(): Promise<void> {
     return;
   }
   if (!child || child.exitCode !== null) return;
+  if (listenerPid() !== null) {
+    console.log(describeStop(await stopWorldWithin(WIRE_STOP_GRACE)));
+    return;
+  }
+  // Started, but never came to listen (a boot that died): end the wrapper.
   const dying = child;
   child = null;
   dying.kill('SIGTERM');
-  await new Promise<void>((done) => {
-    const hard = setTimeout(() => {
-      dying.kill('SIGKILL');
-      done();
-    }, 15_000);
-    dying.on('exit', () => {
-      clearTimeout(hard);
-      done();
-    });
-  });
+}
+
+/* ──────────────────────── a timed stop ──────────────────────── */
+
+/** What the world's own shutdown said, parsed from its log. */
+export interface ShutdownReport {
+  captured: number;
+  failed: number | null;
+  ms: number | null;
+}
+
+/** How a stop with a grace went. */
+export interface TimedStop {
+  /** Wall ms from SIGTERM to the process gone. */
+  exitedMs: number;
+  /** True when the grace ran out and the process was SIGKILLed. */
+  killed: boolean;
+  /** The `shutdown captured …` line, or `null` when the world never wrote it. */
+  report: ShutdownReport | null;
+}
+
+/** The pid listening on the wire port, or `null`. */
+export function listenerPid(): number | null {
+  const pid = Number(
+    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
+  );
+  return pid > 0 ? pid : null;
+}
+
+/**
+ * ⭐ The one timed stop: SIGTERM the listener on the wire port, wait for it to
+ * exit, and SIGKILL **that PID** when `graceMs` runs out. Returns how long it
+ * took, whether it was killed, and the shutdown's own report from the log —
+ * the save a world makes when it stops is what this measures. The world is
+ * left stopped. Every other stop in the harness is this with the grace.
+ *
+ * @throws when nothing listens on the wire port.
+ */
+export async function stopWorldWithin(graceMs: number): Promise<TimedStop> {
+  const pid = listenerPid();
+  if (pid === null) throw new Error(`stopWorldWithin: nothing listens on ${WIRE_PORT}`);
+  const alive = (): boolean => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const t0 = Date.now();
+  process.kill(pid, 'SIGTERM');
+  let killed = false;
+  while (alive()) {
+    if (Date.now() - t0 >= graceMs) {
+      process.kill(pid, 'SIGKILL');
+      killed = true;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  const exitedMs = Date.now() - t0;
+  // Let the log pipe flush; the wrapper (pnpm → tsx) follows its child out.
+  await new Promise((r) => setTimeout(r, 500));
+  const wrapper = child;
+  child = null;
+  if (wrapper && wrapper.exitCode === null) wrapper.kill('SIGTERM');
+  return { exitedMs, killed, report: lastShutdownReport() };
+}
+
+/** The line every stop prints: how long, and what the save said — or that it was killed. */
+export function describeStop(stop: TimedStop): string {
+  const s = (stop.exitedMs / 1000).toFixed(1);
+  if (stop.killed) {
+    return `wire: world KILLED at the ${s}s grace; no shutdown report — what it held may be lost`;
+  }
+  if (!stop.report) return `wire: world stopped in ${s}s — it wrote no shutdown report`;
+  return (
+    `wire: world stopped in ${s}s — shutdown captured ${stop.report.captured} host(s), ` +
+    `${stop.report.failed ?? 0} failed`
+  );
+}
+
+/** The last `shutdown captured …` line in the world's log, parsed. */
+export function lastShutdownReport(): ShutdownReport | null {
+  if (!existsSync(WIRE_LOG)) return null;
+  const all = [
+    ...readFileSync(WIRE_LOG, 'utf8').matchAll(
+      /shutdown captured (\d+) persistable host\(s\)(?: in (\d+) ms)?(?: \((\d+) failed\))?/g,
+    ),
+  ];
+  const m = all[all.length - 1];
+  if (!m) return null;
+  return {
+    captured: Number(m[1]),
+    ms: m[2] !== undefined ? Number(m[2]) : null,
+    failed: m[3] !== undefined ? Number(m[3]) : null,
+  };
 }

@@ -46,12 +46,10 @@ import {
   plain,
   dress,
   dressFounder,
+  restartWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { copyFileSync } from 'fs';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'rams, pours and breaks the Rejection foundry\'s flasks and wax block, ' +
@@ -1118,10 +1116,6 @@ suite('⭐⭐ 34 — patterns and bells', () => {
  * are read by THEIR handles; this part checks W7's own.
  */
 suite('⭐⭐⭐ 35 — restart the server', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
-
   it.skipIf(!isOwnedTestWorld())('an impression, a curing case, a screwed press and a cast survive', async () => {
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
@@ -1156,12 +1150,7 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     } catch {
       /* no log to keep */
     }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
 
     const back = await Session.open(handle, { startLocation: FOUNDRY });
     try {

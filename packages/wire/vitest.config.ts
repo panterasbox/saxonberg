@@ -75,7 +75,9 @@ export default defineConfig({
     // A flow is minutes of game, not milliseconds of arithmetic.
     testTimeout: 300_000,
     hookTimeout: 300_000,
-    teardownTimeout: 60_000,
+    // ⭐ The teardown stops the world with its grace (WIRE_STOP_GRACE) and
+    // must be given that long, plus a minute, or vitest cuts the save short.
+    teardownTimeout: Number(process.env.WIRE_STOP_GRACE ?? 240_000) + 60_000,
     // Per-file timings, which the suite is required to print.
     // ⭐ and `.wire/result.json`, the machine-readable record the soak
     // runner (tools/soak) reads — see src/runner/result-reporter.ts.

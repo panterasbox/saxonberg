@@ -27,6 +27,7 @@ import {
   keptWorld,
   reapOwnedPort,
   stopOwnedWorld,
+  WIRE_BOOT_BUDGET,
   WIRE_LOG,
   WIRE_PORT,
 } from './boot';
@@ -103,7 +104,7 @@ export async function setup(): Promise<void> {
         return false;
       }
     };
-    const budget = Number(process.env.WIRE_BOOT_TIMEOUT ?? 420_000);
+    const budget = WIRE_BOOT_BUDGET;
     const deadline = Date.now() + budget;
     let alive = false;
     for (let i = 0; kept && !alive; i++) {

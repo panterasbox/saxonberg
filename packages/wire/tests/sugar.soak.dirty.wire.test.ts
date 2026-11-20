@@ -33,12 +33,8 @@ import {
   worldClockNow,
   isOwnedTestWorld,
   stageShip,
+  restartWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { copyFileSync } from 'fs';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'buys raw sugar and lime off two counters, boils the Sugar House copper ' +
@@ -401,26 +397,6 @@ async function copperTemp(s: Session): Promise<number> {
   return m ? Number(m[1]) : NaN;
 }
 
-/** Restart the owned world (the assembly precedent). */
-async function restartWorld(): Promise<void> {
-  await new Promise((r) => setTimeout(r, 8_000));
-  try {
-    copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
-  } catch {
-    /* no log to keep */
-  }
-  const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-  // ⭐ A RESTART, not a crash: the server gets a minute to capture what
-  // it holds. Preflight's default two seconds SIGKILLed it mid-capture
-  // and the copper came back empty.
-  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-    cwd: serverDir,
-    stdio: 'ignore',
-    env: { ...process.env, PREFLIGHT_GRACE_MS: '60000' },
-  });
-  process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-}
-
 /* ───────────────────────────── the drive ───────────────────────────── */
 
 let boiler: Session;
@@ -654,7 +630,6 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     const wiz = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
     await wiz?.cmd('config employment.unpaidStandGameDays 3').catch(() => undefined);
     wiz?.close();
-    await stopOwnedWorld();
   });
 
   beforeAll(async () => {
