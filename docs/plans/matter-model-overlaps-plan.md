@@ -1414,7 +1414,7 @@ the plan did not make:
   in the drive needs a seed or a stir — the boiler brain does it, a staged
   cone must carry `nucleated` or a piece.
 
-### W6 — one vaporization, and the nose (D16–D18) ✅ done (SHA)
+### W6 — one vaporization, and the nose (D16–D18) ✅ done (ca1e1c780)
 
 - `BiomeApi.vent` / `BiomeLogic.vent`; `Burner.receiveVolatiles`' default
   keeps chamber air; delete `routeVolatile`; move the four callers (and
