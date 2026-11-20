@@ -992,7 +992,7 @@ Each wave ends at one commit, staged by name, pushed. Each runs `pnpm
 test:near`, the touched packs' own vitest and `lint:family` before it
 commits. B4 at every wave: grep `packages/content` for every renamed key.
 
-### W0 — truth and census ✅ done (SHA)
+### W0 — truth and census ✅ done (fc737ae4b)
 
 - Correct `D/maturation.md:179` and
   `docs/slates/trades/libations-slate.md:106` (imparts deplete — true
