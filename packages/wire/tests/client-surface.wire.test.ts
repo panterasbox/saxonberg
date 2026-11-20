@@ -8,29 +8,41 @@
  *
  * Steps 5–8 are staged (a wizard sets the scene); the rest are a player's
  * own acts.
+ *
+ * ⭐ Stands in the scaffold's hall (test-world-lifecycle D8): its shelf of
+ * three like notebooks, its tablet and its three chairs; the NPCs it kills
+ * and fights are stand-in clones it makes (`standInNpc`), never a rostered
+ * one. It used to stand in the lounge bar and kill Sloane, the bartender.
+ * ⚠ Step 7's NAME half — a NAMED NPC's corpse reads as a stranger and does
+ * not answer to her name — needs a named person (a `Cast`), which the
+ * testbed does not ship: that step stays, unchanged, in
+ * `client-surface-content.dirty.wire.test.ts`. Here step 7 reads the
+ * corpse a death mints.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   hand,
   WINTER_COAT,
+  standIn,
+  standInNpc,
+  TESTBED,
+  HALL,
+  EXITS,
   type CapturedEnvelope,
 } from '../src/harness';
 
-export const DIRTY_REASON =
-  'kills a named lounge NPC (Sloane) to make a corpse (step 7); she does ' +
-  'not return until the world reboots';
-
+// ⭐ Runs twice: fresh characters, and the NPCs it harms are its own clones
+// (the purge takes them, and the corpse).
 declareFile({
-  file: 'client-surface.dirty.wire.test.ts',
-  packs: ['saxonberg-lounge', 'trade-hospitality', 'world-seed'],
-  dirtyReason: DIRTY_REASON,
+  file: 'client-surface.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'trade-hospitality', 'generic-objects'],
 });
 
-const BAR = '/world/lounge/location/bar';
+/** The hall: a shelf of three like things, a screen, three seats. */
+const ROOM = HALL;
 const PINT = '/trade/hospitality/thing/pint';
 // (the pint's maker line is quiet on an unused glass — B3 — so step 6
 // reads ownership, which speaks on any good)
@@ -55,8 +67,10 @@ type Card = CapturedEnvelope & {
 };
 
 let a: Session; // the looker
-let b: Session; // another person in the bar
+let b: Session; // another person in the hall
 let c: Session; // a bystander
+/** A wizard on the testbed committee: it stages, and clones the stand-ins. */
+let w: Session;
 /** The room card, as step 1 bound it — step 11 walks out and watches it. */
 let hereCard: Card | undefined;
 
@@ -72,19 +86,14 @@ async function subjectCard(s: Session): Promise<Card> {
 
 const allText = (segs: Seg[] | undefined): string => (segs ?? []).map((g) => g.text).join('\n');
 
-/** A wizard runs `code` against `target` in the bar's parcel (writes are real). */
+/** A wizard runs `code` against `target` in the testbed's parcel (writes are real). */
 async function stage(target: string, code: string): Promise<string> {
-  const f = await Session.open('founder', { startLocation: BAR, wizard: true, committees: ['/world/lounge'] });
-  try {
-    const r = await f.cmd(`eval --parcel /world/lounge --on ${target} return ${code}`);
-    const said = (await r.said()).trim();
-    // A stage that matched nothing must say so, not pass on to a step
-    // that then waits for a card that cannot come.
-    expect(r.status, `stage --on ${target}: ${JSON.stringify(r.notes)} ${said}`).toBe('ok');
-    return said;
-  } finally {
-    f.close();
-  }
+  const r = await w.cmd(`eval --parcel ${TESTBED} --on ${target} return ${code}`);
+  const said = (await r.said()).trim();
+  // A stage that matched nothing must say so, not pass on to a step
+  // that then waits for a card that cannot come.
+  expect(r.status, `stage --on ${target}: ${JSON.stringify(r.notes)} ${said}`).toBe('ok');
+  return said;
 }
 
 async function stuffIdOf(s: Session): Promise<string> {
@@ -93,19 +102,21 @@ async function stuffIdOf(s: Session): Promise<string> {
 }
 
 beforeAll(async () => {
-  a = await Session.open(uniqueHandle('cs-a'), { startLocation: BAR });
-  b = await Session.open(uniqueHandle('cs-b'), { startLocation: BAR });
-  c = await Session.open(uniqueHandle('cs-c'), { startLocation: BAR });
+  a = await standIn(ROOM, 'cs-a');
+  b = await standIn(ROOM, 'cs-b');
+  c = await standIn(ROOM, 'cs-c');
+  w = await standIn(ROOM, 'cs-stage', { wizard: true, committees: [TESTBED] });
 }, 180_000);
 
 afterAll(() => {
   a?.close();
   b?.close();
   c?.close();
+  w?.close();
 });
 
 suite('the room by look (steps 1–4)', () => {
-  it('1 · look in the bar: segments with a shape and a source; light, exits; the room card is the `here` role', async () => {
+  it('1 · look in the hall: segments with a shape and a source; light, exits; the room card is the `here` role', async () => {
     await a.cmd('look');
     const card = await subjectCard(a);
     expect(card.segments?.length, 'segments').toBeGreaterThan(0);
@@ -115,7 +126,7 @@ suite('the room by look (steps 1–4)', () => {
     }
     expect(card.segments!.some((g) => g.shape === 'prose')).toBe(true);
     // A lit room says nothing of its light (`LIGHT_BAND_PHRASE.lit` is null);
-    // where there is a Light segment it is a notice (finalize: the bar was lit).
+    // where there is a Light segment it is a notice (the hall is lamp-lit).
     for (const g of card.segments!.filter((x) => x.sources.some((src) => src.name === 'Light'))) {
       expect(g.shape).toBe('notice');
     }
@@ -123,8 +134,9 @@ suite('the room by look (steps 1–4)', () => {
     hereCard = card;
   });
 
-  it('2 · look back-bar: what is on it arrives as list segments, identical things grouped', async () => {
-    await a.cmd('look back-bar');
+  it('2 · look shelf: what is on it arrives as list segments, identical things grouped', async () => {
+    // The hall shelf holds three like notebooks: one chip, not three.
+    await a.cmd('look shelf');
     const card = await subjectCard(a);
     const lists = (card.segments ?? []).filter((g) => g.shape === 'list');
     expect(lists.length, allText(card.segments)).toBeGreaterThan(0);
@@ -183,7 +195,7 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
     );
     expect(bName.length).toBeGreaterThan(0);
     // B's own pint (handed in step 5 — a fresh good is its holder's), set
-    // down on the bar, with B stamped as its maker and the glass used (an
+    // down on the floor, with B stamped as its maker and the glass used (an
     // unused glass gives no verdict, so no maker line — B3).
     const pint = (await b.queryOne('me:i:pint', ['displayName'])) as { stuffId: string };
     expect((await b.cmd(`drop #${pint.stuffId}`)).status).toBe('ok');
@@ -201,34 +213,32 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
     expect(text).not.toContain(bName);
   });
 
-  it('7 · a named NPC\'s corpse reads as a stranger to A and does not answer to the name', async () => {
-    // Sloane never introduces herself, so A has never met her — and nor
-    // has the founder, so the stage names her by what she looks like.
-    // ⚠ `beginDying` with a one-second window, not `ConditionApi.die`: the
-    // scheduler performs the death OUTSIDE the eval, so the corpse is minted
-    // where the world mints corpses (a death run inside a field-parcel eval
-    // is refused at the corpse's applier and leaves no body at all).
-    await stage('bartender', `(this.beginDying('exsanguination', 1), 'dying')`);
+  it('7 · an NPC\'s death leaves a corpse that A reads as a body', async () => {
+    // A stand-in clone of its own (never a rostered NPC). ⚠ `beginDying`
+    // with a one-second window, not `ConditionApi.die`: the scheduler
+    // performs the death OUTSIDE the eval, so the corpse is minted where
+    // the world mints corpses (a death run inside a field-parcel eval is
+    // refused at the corpse's applier and leaves no body at all).
+    // (The NAME half of this step — a named NPC's corpse is a stranger —
+    // is client-surface-content's: the testbed has no named NPC.)
+    const victim = await standInNpc(w);
+    await stage(`#${victim}`, `(this.beginDying('exsanguination', 1), 'dying')`);
     let found = false;
     for (let i = 0; i < 30 && !found; i++) {
       await new Promise((r) => setTimeout(r, 1_000));
       found = (await a.query('body', { fields: ['displayName'] })).length > 0;
     }
-    expect(found, 'a body in the bar within 30s').toBe(true);
+    expect(found, 'a body in the hall within 30s').toBe(true);
     a.clearCaptures();
     await a.cmd('look body');
     const card = await subjectCard(a);
     const title = String(card.result?.[0]?.displayName ?? '');
     expect(title).toMatch(/body of/);
-    expect(title).not.toMatch(/Sloane/i);
-    a.clearCaptures();
-    const byName = await a.cmd('look sloane');
-    const named = a.lastCard<Card>('card-opened');
-    expect(String(named?.result?.[0]?.displayName ?? ''), `look sloane: ${byName.status}`).not.toMatch(/body/);
   });
 
   it('8 · a fight seen by a bystander: the combat line is there and reads through the fog', async () => {
-    expect((await a.cmd('attack tiefling')).status).toBe('ok');
+    const foe = await standInNpc(w);
+    expect((await a.cmd(`attack #${foe}`)).status).toBe('ok');
     const aId = await stuffIdOf(a);
     c.clearCaptures();
     await c.cmd(`look #${aId}`);
@@ -241,7 +251,7 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
 
 suite('the card registry (steps 9–11)', () => {
   it('9 · a card link by id names exactly that thing, not the first match', async () => {
-    const rows = await a.query('stool', { fields: ['displayName'] });
+    const rows = await a.query('chair', { fields: ['displayName'] });
     expect(rows.length).toBeGreaterThanOrEqual(3);
     const third = (rows[2] as { stuffId: string }).stuffId;
     a.clearCaptures();
@@ -288,7 +298,7 @@ suite('the card registry (steps 9–11)', () => {
     const here = hereCard!;
     expect(here, 'the here card').toBeDefined();
     a.clearCaptures();
-    expect((await a.cmd('south')).status).toBe('ok');
+    expect((await a.cmd(EXITS.hall.plaza)).status).toBe('ok');
     // Arrival runs `look`: the same instance, a new subject.
     const rebound = await a.awaitEnvelope<Card>(
       'card-touched',

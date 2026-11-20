@@ -1,9 +1,9 @@
 /**
  * The work-contract loop, end to end and fully diegetic: a boss funds an
- * account, buys a real torch at the general store, posts a chattel-bound
- * gig at the terminal-hall noticeboard; a fresh worker claims it,
- * carries the torch to the arrival gate, fulfills, hits the unbanked
- * refusal, opens an account, completes, and is paid out of escrow.
+ * account, buys a real notebook at the testbed shop, posts a chattel-bound
+ * gig at the plaza noticeboard; a fresh worker claims it, carries the
+ * notebook down the approach, fulfills, hits the unbanked refusal, opens an
+ * account, completes, and is paid out of escrow.
  *
  * Ported from `e2e/tests/work-drive.spec.ts` — 211 lines of Playwright
  * with **fourteen assertions and not one about the browser**. It drove a
@@ -23,6 +23,17 @@
  * assumption. **`startLocation` is a birth setting, not a teleport.**
  *
  * So: a fresh boss every run, whose position is therefore guaranteed.
+ *
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8). It used to stand in
+ * the Terminus terminal hall and was dirty because its funding — the
+ * Governor's `reserve override` — had no sink. `fundedAccount` stages the
+ * same recorded override, and the run's purge retires every test
+ * account's balance to the reserve (`reserve retire`, D10), so a run
+ * leaves the money supply where it found it. The gig this run posts is
+ * claimed and completed by this run, so the board is left as it was found
+ * (⚠ a run that fails between `job post` and `job complete` leaves its gig
+ * posted — the board still has no expiry). The board is still read by
+ * DIFFING across the post, so a stranger's gig never confuses it.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -31,39 +42,19 @@ import {
   declareFile,
   uniqueHandle,
   expectOk,
-  expectNote,
+  fundedAccount,
+  standIn,
+  PLAZA,
+  APPROACH,
+  EXITS,
 } from '../src/harness';
 
-const HALL = '/world/terminus/terminal/location/hall';
-const GATE = '/world/terminus/terminal/location/arrival-gate';
-
-/**
- * ⭐⭐ **Why this file cannot run twice — and it is the sharpest content
- * finding in the migration.**
- *
- * The boss needs 25 credits of escrow and the price of a torch, and the
- * way a test gets money into a new character is the Governor's
- * `reserve override` — the one hand-typed mint left after the economic
- * bootstrap, recorded on the ledger with its reason. There is no sink.
- * So every run mints money that stays minted, and leaves a funded
- * stranger standing in the terminal hall forever.
- *
- * The original did this unconditionally on every run and called itself
- * repeatable. It is not: it is *runnable* twice, while the realm's money
- * supply climbs each time. A test that needs money and has no way to
- * give it back is telling you the economy has a faucet and no drain —
- * which is a question for whoever owns the reserve, not something a test
- * can paper over.
- */
-export const DIRTY_REASON =
-  'mints conserved money through `reserve override` with no way to return ' +
-  'it, leaves a funded character in the hall every run, and leaves any ' +
-  'unclaimed gig posted forever — the board has no expiry';
+/** Where the gig's notebook must be delivered: next door to the board. */
+const DELIVERY = APPROACH;
 
 declareFile({
-  file: 'work.dirty.wire.test.ts',
-  packs: ['terminus', 'world-seed'],
-  dirtyReason: DIRTY_REASON,
+  file: 'work.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
 
 let b: Session; // the boss
@@ -92,7 +83,7 @@ async function walk(s: Session, dirs: string[]): Promise<void> {
  * very often somebody else's, and claiming it answers
  * `contract-refused`. The id of the gig THIS run posted is therefore
  * taken by DIFFING the board across the post, never by reading position
- * one. (That accumulation is itself a finding; see DIRTY_REASON.)
+ * one. (That accumulation is itself a finding: nothing expires a gig.)
  */
 async function boardIds(s: Session): Promise<Set<string>> {
   const browse = await s.prose('job');
@@ -102,8 +93,12 @@ async function boardIds(s: Session): Promise<Set<string>> {
 }
 
 beforeAll(async () => {
-  b = await Session.open(uniqueHandle('boss'), { startLocation: HALL });
-}, 120_000);
+  // ⭐ Staged: an account at the testbed bank holding 500 (the recorded
+  // override; the purge retires it). The boss then logs in on the plaza.
+  const boss = uniqueHandle('boss');
+  await fundedAccount(boss, 500, 'wire: work funding');
+  b = await Session.open(boss, { startLocation: PLAZA });
+}, 180_000);
 
 afterAll(() => {
   b?.close();
@@ -111,7 +106,7 @@ afterAll(() => {
 });
 
 suite('the boss funds himself and posts a gig', () => {
-  it('the hall has a noticeboard', async () => {
+  it('the plaza has a noticeboard', async () => {
     const rows = await b.query('peers', { fields: ['displayName'] });
     expect(
       rows
@@ -128,49 +123,31 @@ suite('the boss funds himself and posts a gig', () => {
      * Dropping and taking needs no name at all — only that the two of
      * them are in the same room, which `startLocation` guarantees.
      */
-    await walk(b, ['north', 'north', 'west', 'west']);
+    await walk(b, [EXITS.plaza.bank]);
     expectOk(await b.cmd('bank open')); // idempotent, auto-links
-    let bal = await balanceOf(b);
-
-    if ((bal ?? 0) < 25) {
-      // A new account opens at zero, so on a fresh boss this always
-      // runs — see DIRTY_REASON. It is guarded rather than
-      // unconditional so the shape stays honest if a sink ever exists.
-      // The Governor's RECORDED override into the boss's account
-      // (economic bootstrap: the reserve issues no coin by hand).
-      const gov = await Session.open('founder', { startLocation: HALL });
-      try {
-        expectOk(await gov.cmd(`reserve override 500 to ${b.handle} "wire: work funding"`));
-      } finally {
-        gov.close();
-      }
-      bal = await balanceOf(b);
-    }
-
+    const bal = await balanceOf(b);
     expect(bal, 'a readable balance').not.toBeNull();
     expect(bal!).toBeGreaterThanOrEqual(25);
   }, 300_000);
 
-  it('buys a real torch at the general store', async () => {
-    // Retail + settle + chattel, in one act. A prior run's torch is
-    // still in the pack, so the buy is conditional and the ASSERTION is
-    // the postcondition.
-    await walk(b, ['east', 'north']);
+  it('buys a real notebook at the shop', async () => {
+    // Retail + settle + chattel, in one act. The boss is fresh, so he
+    // carries nothing before the buy; the ASSERTION is the postcondition.
+    await walk(b, [EXITS.bank.plaza, EXITS.plaza.shop]);
     const carried = async (): Promise<string> => {
       const rows = await b.query('me:i', { fields: ['displayName'] });
       return rows
         .map((r) => String((r as { displayName?: string }).displayName ?? ''))
         .join(' | ');
     };
-    if (!/torch/i.test(await carried())) {
-      expectOk(await b.cmd('buy torch'));
-    }
-    expect(await carried()).toMatch(/torch/i);
+    expect(await carried()).not.toMatch(/notebook/i);
+    expectOk(await b.cmd('buy notebook'));
+    expect(await carried()).toMatch(/notebook/i);
   }, 180_000);
 
   it('posts a chattel-bound gig, and it appears on the board', async () => {
-    await walk(b, ['south', 'east', 'south', 'south']);
-    const dropped = await b.cmd('drop torch');
+    await walk(b, [EXITS.shop.plaza]);
+    const dropped = await b.cmd('drop notebook');
     expectOk(dropped);
     /*
      * ⭐⭐ **A third shipped drive spec that is red on master.**
@@ -182,7 +159,7 @@ suite('the boss funds himself and posts a gig', () => {
      * and the spec has been unrunnable since, unnoticed.
      */
     const before = await boardIds(b);
-    const posted = await b.cmd(`job post deliver torch to ${GATE} for 25`);
+    const posted = await b.cmd(`job post deliver notebook to ${DELIVERY} for 25`);
     expectOk(posted);
     const after = await boardIds(b);
     const mine = [...after].filter((id) => !before.has(id));
@@ -232,7 +209,7 @@ suite('the boss funds himself and posts a gig', () => {
  */
 suite('a fresh worker claims, delivers and is paid', () => {
   beforeAll(async () => {
-    w = await Session.open(uniqueHandle('worker'), { startLocation: HALL });
+    w = await standIn(PLAZA, 'worker');
   }, 120_000);
 
   it('sees the gig and claims it into escrow', async () => {
@@ -245,10 +222,10 @@ suite('a fresh worker claims, delivers and is paid', () => {
     expect((await claimed.said()).toLowerCase()).toContain('escrow');
   }, 120_000);
 
-  it('carries the torch to the gate and fulfills', async () => {
-    expectOk(await w.cmd('get torch'));
-    expectOk(await w.cmd('north'));
-    expectOk(await w.cmd('drop torch'));
+  it('carries the notebook down the approach and fulfills', async () => {
+    expectOk(await w.cmd('get notebook'));
+    expectOk(await w.cmd(EXITS.plaza.approach));
+    expectOk(await w.cmd('drop notebook'));
     const sealed = await w.cmd('job fulfill');
     expectOk(sealed);
     expect((await sealed.said()).toLowerCase()).toMatch(
@@ -259,15 +236,15 @@ suite('a fresh worker claims, delivers and is paid', () => {
   it('⭐ an unbanked worker is REFUSED the payout', async () => {
     // The refusal that makes the banking layer real: work done is not
     // money earned until there is somewhere to put it.
-    expectOk(await w.cmd('south'));
+    expectOk(await w.cmd(EXITS.approach.plaza));
     const refused = await w.cmd(`job complete ${gigId}`);
     expect((await refused.said()).toLowerCase()).toContain('no account');
   }, 120_000);
 
   it('opens an account, completes, and is paid out of escrow', async () => {
-    await walk(w, ['north', 'north', 'west', 'west']);
+    await walk(w, [EXITS.plaza.bank]);
     expectOk(await w.cmd('bank open'));
-    await walk(w, ['east', 'east', 'south', 'south']);
+    await walk(w, [EXITS.bank.plaza]);
     const paid = await w.cmd(`job complete ${gigId}`);
     expectOk(paid);
     expect((await paid.said()).toLowerCase()).toMatch(/pays out|released from escrow/);
@@ -276,15 +253,15 @@ suite('a fresh worker claims, delivers and is paid', () => {
   it('a closed gig cannot be completed twice, and the money landed', async () => {
     const again = await w.cmd(`job complete ${gigId}`);
     expect((await again.said()).toLowerCase()).toMatch(/closed|no such|isn't done/);
-    await walk(w, ['north', 'north', 'west', 'west']);
+    await walk(w, [EXITS.plaza.bank]);
     expect(await balanceOf(w)).toBe(25);
   }, 300_000);
 
   it('the settled gig comes OFF the board', async () => {
     /*
-     * ⚠ The original asserted the board reads "bare". It cannot: gigs
-     * from earlier runs are still posted, because nothing expires an
-     * unclaimed one. What is true, and what the escrow contract actually
+     * ⚠ The original asserted the board reads "bare". It cannot: another
+     * drive's gig may be posted, because nothing expires an unclaimed
+     * one. What is true, and what the escrow contract actually
      * promises, is that a COMPLETED gig is gone.
      */
     expect([...(await boardIds(b))]).not.toContain(gigId);

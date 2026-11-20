@@ -38,9 +38,10 @@
  *   - a key is minted only by `Lock.issueKeyTo`, which no verb exposes —
  *     `title buy` reaches it, and that is a funded economic flow of its
  *     own;
- *   - the one door a newcomer can walk to is the university gate, and
+ *   - the one door a newcomer could walk to was the university gate, and
  *     it is authored with NO keyway on purpose: *shut, chained, and
- *     locked — the gown's, not the town's.*
+ *     locked — the gown's, not the town's.* (Now the testbed's yard gate,
+ *     which has a keyway and no key for it anywhere.)
  *
  * So the key-holder arm is pinned by unit tests instead, and by name:
  * `lib/boundary/__tests__/Lockable.test.ts § Exit.canTraverse — the
@@ -59,6 +60,13 @@
  * the world after a run is the world before it. The one act that would
  * change state — throwing a bolt — requires the key this file has
  * established it cannot get.
+ *
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8): the yard gate
+ * (locked, keyway `testbed-gate`, no key anywhere) instead of the
+ * university gate on University Avenue. The gate's state is STAGED shut
+ * and locked before the steps, never assumed from how the last drive left
+ * it; the newcomer is a fresh character on the plaza, not the world's
+ * default landing.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -68,35 +76,31 @@ import {
   uniqueHandle,
   plain,
   describe as describeResult,
+  stage,
+  PLAZA,
+  YARD,
+  GATE,
+  EXITS,
   type CommandResult,
 } from '../src/harness';
 
 declareFile({
   file: 'lock-reconciliation.wire.test.ts',
-  packs: [
-    'saxonberg-lounge',
-    'terminus',
-    'eternal-university',
-    'world-seed',
-    'trade-mining',
-    'rejection',
-    'trade-cooking',
-    'generic-objects',
-    'ground',
-  ],
+  // `trade-mining` for `help drift` (step 7); the rest is the platform's.
+  packs: ['platform', 'test-fixtures', 'trade-mining'],
 });
 
-/** University Avenue — its `north` exit carries the one gate a newcomer
- *  can walk to, and that gate is locked with no key in the world. */
-const CROSSING = '/world/terminus/university-avenue/location/crossing';
+/** The yard — its gate is locked with a keyway and no key in the world. */
+const CROSSING = YARD;
+/** The way through the gate, from the yard. */
+const THROUGH = EXITS.yard.shop;
 
 const open: Session[] = [];
 
-async function at(where: string | undefined, tag: string): Promise<Session> {
-  const s = await Session.open(
-    uniqueHandle(`lockrec-${tag}`),
-    where ? { startLocation: where } : {},
-  );
+async function at(where: string, tag: string): Promise<Session> {
+  const s = await Session.open(uniqueHandle(`lockrec-${tag}`), {
+    startLocation: where,
+  });
   open.push(s);
   return s;
 }
@@ -150,11 +154,14 @@ let newcomer: Session;
 let avenue: Session;
 
 beforeAll(async () => {
-  // ⭐ No `startLocation` — a brand-new character in the room everybody
-  // actually opens their eyes in. `lock`/`unlock`/`drive` are conferred
-  // by mixins on the BODY and on the environment, so if the affordance
-  // does not reach a newcomer it does not reach anybody.
-  newcomer = await at(undefined, 'new');
+  // ⭐ Staged: the gate shut and locked, whatever the last drive did.
+  await stage(GATE, 'setOpen', false);
+  await stage(GATE, 'setLocked', true);
+  // ⭐ A brand-new character, on the plaza (no vehicle, no horse).
+  // `lock`/`unlock`/`drive` are conferred by mixins on the BODY and on the
+  // environment, so if the affordance does not reach a newcomer it does
+  // not reach anybody.
+  newcomer = await at(PLAZA, 'new');
   avenue = await at(CROSSING, 'avenue');
   await newcomer.drainProse();
   await avenue.drainProse();
@@ -225,7 +232,7 @@ suite('1–3. three verbs that could not be said', () => {
 
 suite('4–6. the one locked door a newcomer can walk to', () => {
   it('4. the gate is there, and it refuses passage', async () => {
-    const r = await avenue.cmd('go north');
+    const r = await avenue.cmd(`go ${THROUGH}`);
     expect(r.status, `the gate should refuse: ${describeResult(r)}`).not.toBe(
       'ok',
     );
@@ -253,7 +260,7 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     ).toMatch(/locked/);
   }, 120_000);
 
-  it('⭐⭐⭐ 5. `unlock north` answers about the KEY, not about the parser', async () => {
+  it('⭐⭐⭐ 5. `unlock <way>` answers about the KEY, not about the parser', async () => {
     // ⭐ This is the whole build in one checkpoint. Before it, the
     // answer was *"I don't understand 'unlock'"* — a verb that shipped,
     // with a controller and passing unit tests, that no player could
@@ -263,8 +270,8 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     // would have been *"You unlock the university gate."* — for every
     // player alive, with no key, no credential and no title consulted.
     // So `no-key` is not a weak pass; it is the authority existing.
-    const r = await avenue.cmd('unlock north');
-    expectUnderstood(r, 'unlock north');
+    const r = await avenue.cmd(`unlock ${THROUGH}`);
+    expectUnderstood(r, `unlock ${THROUGH}`);
     const reason = reasonOf(r);
     expect(
       reason,
@@ -274,7 +281,7 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     expect(said, 'the sentence names a key').toMatch(/key/);
   }, 120_000);
 
-  it('⭐⭐ 6. `lock north` reports the BOLT, because a bolt is visible', async () => {
+  it('⭐⭐ 6. `lock <way>` reports the BOLT, because a bolt is visible', async () => {
     // ⚠⚠ **This assertion is the inverse of its first version**, and a
     // lens pass is what turned it round. It used to assert that `lock`
     // asks for the key BEFORE reading the bolt, so a stranger learned
@@ -286,15 +293,15 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     //
     // ⭐ So the order is: observable state to anybody, the KEY only when
     // the act would otherwise go through.
-    const r = await avenue.cmd('lock north');
-    expectUnderstood(r, 'lock north');
+    const r = await avenue.cmd(`lock ${THROUGH}`);
+    expectUnderstood(r, `lock ${THROUGH}`);
     expect(
       reasonOf(r),
       `the already-locked bolt is reported, not concealed\n${notesOf(r)}`,
     ).toBe('already-locked');
   }, 120_000);
 
-  it('⭐⭐⭐ `open north` works — a defect that predates this build by years', async () => {
+  it('⭐⭐⭐ `open <way>` works — a defect that predates this build by years', async () => {
     // ⛔⛔ **This is the drive's real find.** Targeting a boundary verb
     // by DIRECTION threw inside MQL — `Converting circular structure to
     // JSON` — because the resolver and `consensusVia` both compared a
@@ -311,8 +318,8 @@ suite('4–6. the one locked door a newcomer can walk to', () => {
     // ⭐ The gate is locked and keyless, so the honest answer is a
     // refusal — what matters is that it is a refusal ABOUT THE DOOR and
     // not an `mql-error` about the query.
-    const r = await avenue.cmd('open north');
-    expectUnderstood(r, 'open north');
+    const r = await avenue.cmd(`open ${THROUGH}`);
+    expectUnderstood(r, `open ${THROUGH}`);
     const bad = (r.notes ?? []).find((n) => n.kind === 'mql-error');
     expect(
       bad,

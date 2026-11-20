@@ -10,6 +10,15 @@
  *
  * Every step is `instant` or `short`; there is no soak drive (nothing in this
  * build waits on the clock). Steps that only a wizard can stage say so.
+ *
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8): the cellar door
+ * between the lit shop and the unlit cellar (its free side) for the
+ * Wharfside pump-house door, the hut's window onto the plaza for the
+ * glazier's hut, and the hall's double doors for Duncan Hall's front doors.
+ * The cellar door is STAGED shut and locked before the steps and put back
+ * so after them; the double doors are left open, as authored. It runs
+ * twice on one world. (Its old dirty reason named a dorm provisioning by
+ * Katie that no step here had done for some time.)
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -23,35 +32,34 @@ import {
   stage,
   advanceWorldClock,
   worldClockNow,
+  SHOP,
+  CELLAR,
+  CELLAR_DOOR,
+  HUT,
+  PLAZA,
+  HALL,
+  EXITS,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
-export const DIRTY_REASON =
-  'unlocks and relocks the shipped pump-house door from inside, leaves the ' +
-  'Duncan Hall front doors open, and has Katie provision a dorm room';
-
 declareFile({
-  file: 'boundary.dirty.wire.test.ts',
-  packs: [
-    'world-seed',
-    'terminus',
-    'eternal-university',
-    'rejection',
-    'residence',
-    'generic-objects',
-    'base-library',
-    'ground',
-    'trade-glass',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'boundary.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
 
-const BANK = '/world/terminus/wharfside/bank';
-const PUMP_HOUSE = '/world/terminus/wharfside/pumphouse/location/house';
-const PUMP_DOOR = '/world/terminus/wharfside/thing/pump-house-door';
-const HUT = '/world/terminus/rejection/location/glaziers-hut';
-const HILLSIDE = '/world/terminus/rejection/location/hillside';
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+/** The lit side of the cellar door (the keyed side). */
+const LIT_SIDE = SHOP;
+/** The unlit side — the door's free side. */
+const FREE_SIDE = CELLAR;
+const DOOR = CELLAR_DOOR;
+/** The cellar door's way from each side. */
+const DOWN = EXITS.shop.cellar;
+const UP = EXITS.cellar.shop;
+/** The hut window's way from each side. */
+const TO_PLAZA = EXITS.hut.plaza;
+const TO_HUT = EXITS.plaza.hut;
+/** The hall's double doors, from inside. */
+const HALL_OUT = EXITS.hall.plaza;
 
 // `plain` pads an inline tag with spaces (`( the oak door , locked)`); close them up.
 const squash = (t: string): string =>
@@ -117,10 +125,10 @@ async function exitsLine(s: Session): Promise<string> {
 }
 
 afterAll(async () => {
-  // Leave the pump-house door as shipped: shut and locked.
+  // Leave the cellar door as authored: shut and locked.
   try {
-    await stage(PUMP_DOOR, 'setOpen', false);
-    await stage(PUMP_DOOR, 'setLocked', true);
+    await stage(DOOR, 'setOpen', false);
+    await stage(DOOR, 'setLocked', true);
   } catch {
     /* a world that never stood it up */
   }
@@ -134,22 +142,24 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
   let inside: Session;
   beforeAll(async () => {
     await toMidday();
-    bank = await session(uniqueHandle('bdbank'), BANK);
-    inside = await session(uniqueHandle('bdhouse'), PUMP_HOUSE);
+    // ⭐ Staged: the cellar door shut and locked, whatever the last drive did.
+    await stage(DOOR, 'setOpen', false);
+    await stage(DOOR, 'setLocked', true);
+    bank = await session(uniqueHandle('bdbank'), LIT_SIDE);
+    inside = await session(uniqueHandle('bdhouse'), FREE_SIDE);
   }, 240_000);
 
-  it('1. [instant · player] the pump-house door is one locked door from both sides', async () => {
-    expect(await exitsLine(bank)).toMatch(/pumphouse \(the pump-house door, locked\)/i);
+  it('1. [instant · player] the cellar door is one locked door from both sides', async () => {
+    expect(await exitsLine(bank)).toMatch(new RegExp(`${DOWN} \\(the cellar door, locked\\)`, 'i'));
     // ⚠ Inside, the door is named only by the light that comes in through
-    // it — the pump house has no lamp of its own, so shut it is *something*
-    // (a content finding for terminus, not this build). The STATE is the
-    // check: the same `locked` from the inside.
-    expect(await exitsLine(inside)).toMatch(/out \((the pump-house door|something), locked\)/i);
-    const shut = await say(bank, 'go pumphouse');
+    // it — the cellar has no lamp of its own, so shut it is *something*.
+    // The STATE is the check: the same `locked` from the inside.
+    expect(await exitsLine(inside)).toMatch(new RegExp(`${UP} \\((the cellar door|something), locked\\)`, 'i'));
+    const shut = await say(bank, `go ${DOWN}`);
     expect(shut.r.status).not.toBe('ok');
     expect(shut.w).toMatch(/locked/i);
     // ⭐ open refuses on the bolt from either side (a locked door does not open).
-    expect((await say(bank, 'open "pump-house door"')).w).toMatch(/locked/i);
+    expect((await say(bank, 'open "cellar door"')).w).toMatch(/locked/i);
     expect((await say(inside, 'open door')).w).toMatch(/locked/i);
   }, 120_000);
 
@@ -157,61 +167,62 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
     // Inside is `freeFrom`: the thumb-turn needs no key.
     expectOk((await say(inside, 'unlock door')).r);
     expectOk((await say(inside, 'open door')).r);
-    // One object — the bank reads the same state.
-    expect(await exitsLine(bank)).toMatch(/pumphouse \(the pump-house door, open\)/i);
-    // A keyless stranger at the bank cannot lock it (it is not their side).
-    expect((await say(bank, 'lock "pump-house door"')).r.status).not.toBe('ok');
+    // One object — the shop reads the same state.
+    expect(await exitsLine(bank)).toMatch(new RegExp(`${DOWN} \\(the cellar door, open\\)`, 'i'));
+    // A keyless stranger in the shop cannot lock it (it is not their side).
+    expect((await say(bank, 'lock "cellar door"')).r.status).not.toBe('ok');
     // ...and can walk in while it stands open.
-    expectOk((await say(bank, 'go pumphouse')).r);
-    expectOk((await say(bank, 'go out')).r);
-    // Shut and bolt it from inside; the bank finds it locked again.
+    expectOk((await say(bank, `go ${DOWN}`)).r);
+    expectOk((await say(bank, `go ${UP}`)).r);
+    // Shut and bolt it from inside; the shop finds it locked again.
     expectOk((await say(inside, 'close door')).r);
     expectOk((await say(inside, 'lock door')).r);
-    expect(await exitsLine(bank)).toMatch(/pumphouse \(the pump-house door, locked\)/i);
-    expect((await say(bank, 'go pumphouse')).r.status).not.toBe('ok');
+    expect(await exitsLine(bank)).toMatch(new RegExp(`${DOWN} \\(the cellar door, locked\\)`, 'i'));
+    expect((await say(bank, `go ${DOWN}`)).r.status).not.toBe('ok');
     // ...and leaving needs no key: from the free side the bolt answers the
     // thumb-turn. (It is a plain door, not a latched one, so it is opened
     // before it is walked through — the shut gate is not the bolt's.)
-    expect((await say(inside, 'go out')).w).toMatch(/closed/i);
+    expect((await say(inside, `go ${UP}`)).w).toMatch(/closed/i);
     expectOk((await say(inside, 'unlock door')).r);
     expectOk((await say(inside, 'open door')).r);
-    expectOk((await say(inside, 'go out')).r);
+    expectOk((await say(inside, `go ${UP}`)).r);
   }, 180_000);
 
-  it('5. [instant · player] the hut window shows the hillside and passes no body', async () => {
+  it('5. [instant · player] the hut window shows the plaza and passes no body', async () => {
     const hut = await session(uniqueHandle('bdhut'), HUT);
     const line = await exitsLine(hut);
-    expect(line).toMatch(/west \(the west window\)/i);
-    expect(line).toMatch(/south/i);
-    const look = await say(hut, 'look west');
+    expect(line).toMatch(new RegExp(`${TO_PLAZA} \\(the hut window\\)`, 'i'));
+    // The doorway — the hut's other way, an open one.
+    expect(line).toMatch(new RegExp(`(^|[,\\s])${EXITS.hut.approach}\\b`, 'i'));
+    const look = await say(hut, `look ${TO_PLAZA}`);
     expect(look.w).toMatch(/window/i);
-    const go = await say(hut, 'go west');
+    const go = await say(hut, `go ${TO_PLAZA}`);
     expect(go.r.status).not.toBe('ok');
     expect(go.w).toMatch(/not a way through/i);
     // The hut is lit — through the window and its doorway — not pitch dark.
     expect(squash(await hut.prose('look'))).not.toMatch(/pitch dark/i);
-    const hill = await session(uniqueHandle('bdhill'), HILLSIDE);
-    expect(await exitsLine(hill)).toMatch(/east \(the west window\)/i);
-    expect((await say(hill, 'go east')).w).toMatch(/not a way through/i);
+    const plaza = await session(uniqueHandle('bdplaza'), PLAZA);
+    expect(await exitsLine(plaza)).toMatch(new RegExp(`${TO_HUT} \\(the hut window\\)`, 'i'));
+    expect((await say(plaza, `go ${TO_HUT}`)).w).toMatch(/not a way through/i);
   }, 180_000);
 
-  it('6. [instant · player] Duncan Hall: the front doors are one way, by name or by direction', async () => {
-    const lobby = await session(uniqueHandle('bdlobby'), HALL_LOBBY);
+  it('6. [instant · player] the hall: the double doors are one way, by name or by direction', async () => {
+    const lobby = await session(uniqueHandle('bdlobby'), HALL);
     const line = await exitsLine(lobby);
-    expect(line).toMatch(/south \(the front doors?, (open|closed|locked)\)/i);
+    expect(line).toMatch(new RegExp(`${HALL_OUT} \\(the double doors, (open|closed|locked)\\)`, 'i'));
     const byName = await say(lobby, 'look doors');
     expect(byName.w).toMatch(/door/i);
-    const byWay = await say(lobby, 'look south');
-    expect(byWay.w).toMatch(/way south, through the front doors/i);
-    // `look south` describes the way from here, never where it leads.
-    expect(byWay.w).not.toMatch(/university avenue|crossing/i);
+    const byWay = await say(lobby, `look ${HALL_OUT}`);
+    expect(byWay.w).toMatch(new RegExp(`way ${HALL_OUT}, through the double doors`, 'i'));
+    // `look <way>` describes the way from here, never where it leads.
+    expect(byWay.w).not.toMatch(/plaza|square/i);
     await say(lobby, 'open doors'); // already open is fine — they are propped
-    expect(await exitsLine(lobby)).toMatch(/south \(the front doors?, open\)/i);
-    expectOk((await say(lobby, 'go south')).r);
+    expect(await exitsLine(lobby)).toMatch(new RegExp(`${HALL_OUT} \\(the double doors, open\\)`, 'i'));
+    expectOk((await say(lobby, `go ${HALL_OUT}`)).r);
   }, 180_000);
 
   it('7. [instant · player] the room card and `look` agree on a way’s state', async () => {
-    const at = await session(uniqueHandle('bdcard'), BANK);
+    const at = await session(uniqueHandle('bdcard'), LIT_SIDE);
     const here = await at.queryOne('here', ['exits']);
     const exits = ((here as unknown as { exits?: unknown })?.exits ??
       (here as unknown as { fields?: { exits?: unknown } })?.fields?.exits) as
@@ -219,23 +230,23 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
       | undefined;
     record.push(`card exits: ${JSON.stringify(exits)?.slice(0, 400)}`);
     expect(Array.isArray(exits)).toBe(true);
-    const pump = exits!.find((e) => e.direction === 'pumphouse');
-    expect(pump?.boundary?.name).toMatch(/pump-house door/i);
+    const pump = exits!.find((e) => e.direction === DOWN);
+    expect(pump?.boundary?.name).toMatch(/cellar door/i);
     // ⭐ The two screens agree, whatever the door's state is now: the card's
     // `state` and `look`'s word for the same way (`shut` is `closed` in prose).
-    const word = /pumphouse \(the pump-house door, (\w+)\)/i.exec(await exitsLine(at))?.[1];
+    const word = new RegExp(`${DOWN} \\(the cellar door, (\\w+)\\)`, 'i').exec(await exitsLine(at))?.[1];
     expect(word).toBeDefined();
     expect(pump?.state).toBe(word === 'closed' ? 'shut' : word);
     // Lock it (staged) and both read `locked`.
-    await stage(PUMP_DOOR, 'setOpen', false);
-    await stage(PUMP_DOOR, 'setLocked', true);
+    await stage(DOOR, 'setOpen', false);
+    await stage(DOOR, 'setLocked', true);
     const again = await at.queryOne('here', ['exits']);
     const again2 = ((again as unknown as { exits?: unknown })?.exits ??
       (again as unknown as { fields?: { exits?: unknown } })?.fields?.exits) as
       | Array<{ direction: string; state: string }>
       | undefined;
-    expect(again2?.find((e) => e.direction === 'pumphouse')?.state).toBe('locked');
-    expect(await exitsLine(at)).toMatch(/pumphouse \(the pump-house door, locked\)/i);
+    expect(again2?.find((e) => e.direction === DOWN)?.state).toBe('locked');
+    expect(await exitsLine(at)).toMatch(new RegExp(`${DOWN} \\(the cellar door, locked\\)`, 'i'));
     // Every record carries the threshold flag.
     for (const e of exits!) expect(typeof e.crossesZone).toBe('boolean');
   }, 120_000);

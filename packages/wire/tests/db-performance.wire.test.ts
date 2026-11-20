@@ -24,9 +24,18 @@
  *   otherwise    → compare with the baseline: timed p95s within 10%; the
  *                  hot paths this build took at most half their round
  *                  trips per command.
+ *
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8). It used to stand in
+ * the lounge bar, the Goodkin banking hall and the Terminus bakery; it now
+ * stands in the testbed hall, bank and shop, with fresh characters on the
+ * testbed committee, the testbed bank's Business as the house that appoints
+ * and pays, and a handed notebook (a platform row) as the consigned good.
+ * ⚠ The baseline's COUNTS and TIMES were recorded on Terminus's cast and the
+ * Goodkin branch: they are not comparable with a reading here, and want
+ * re-recording (`DBP_RECORD=1`, the timed half on a quiet box). Its
+ * decision WORDS (step 7) name nothing of the place and stand.
  */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { spawnSync } from 'child_process';
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   declareFile,
@@ -39,20 +48,25 @@ import {
   stopWorldWithin,
   restartWorld,
   stageStandingHistory,
+  standIn,
+  listenerPidOf,
+  TESTBED,
+  HALL,
+  BANK,
+  SHOP,
+  PLAZA,
+  BANK_BUSINESS,
+  NOTEBOOK,
 } from '../src/harness';
 import type { CrowdRecord, TimedStop } from '../src/harness';
-import { WIRE_PORT } from '../src/runner/boot';
 
-export const DIRTY_REASON =
-  'two hundred past players are appended to the three standing ledgers; ' +
-  'thirty characters are created, appointed tellers, paid, and consign a ' +
-  'watch each to the bakery shelf; a player dies; the world is stopped ' +
-  'and restarted mid-file.';
-
+// ⭐ Runs twice on one world: every character is fresh and the purge takes
+// it (with the one who dies, and what the thirty consign); the standing
+// history it stages is idempotent; the house's payroll money is staged by a
+// recorded override and retired by the purge.
 declareFile({
-  file: 'db-performance.dirty.wire.test.ts',
-  packs: ['platform', 'terminus'],
-  dirtyReason: DIRTY_REASON,
+  file: 'db-performance.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'generic-objects'],
 });
 
 const QUIET = process.env.WIRE_QUIET === '1';
@@ -65,15 +79,15 @@ const TRACE = process.env.DBP_TRACE === '1';
  */
 const WORK = QUIET || process.env.DBP_WORK === '1';
 
-const LOUNGE = '/world/lounge';
-const BAR = '/world/lounge/location/bar';
-const TERMINUS = '/world/terminus';
-const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const BAKERY = '/world/terminus/market/bakery';
-const COUNTING_HOUSES = '/world/terminus/counting-houses/business';
-const WATCH = '/world/terminus/general-store/thing/pocket-watch';
+/** The hall: where the players who act, and die, stand. */
+const ROOM = HALL;
+/** The bank's Business: the house that appoints the thirty and pays them. */
+const HOUSE = BANK_BUSINESS;
+/** What a consignor puts on the shop's shelf (a platform row, handed). */
+const GOOD = NOTEBOOK;
 const RAG = '/stuff/thing/rag';
-const FARM_YARD = '/world/terminus/eternal/campus-farm/location/yard';
+/** The office `reserve override` asks for (`requiresGovernor`). */
+const GOVERNOR = 'central-bank-governor';
 /** The three scoring services' collections: what an idle world must not touch. */
 const SCORING = /^\S+ (participation|participation_events|renown|renown_events|producer|producer_events)$/;
 /** One scheduled scoring pass, and a margin. */
@@ -129,11 +143,7 @@ function p95(xs: number[]): number {
   const s = [...xs].sort((a, b) => a - b);
   return s[Math.min(s.length - 1, Math.ceil(0.95 * s.length) - 1)] ?? 0;
 }
-function listenerPid(): number | null {
-  const out = spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim();
-  const pid = Number(out?.split('\n')[0] ?? '');
-  return pid > 0 ? pid : null;
-}
+const listenerPid = listenerPidOf;
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 // ── the record ───────────────────────────────────────────────────────────
@@ -251,12 +261,21 @@ function writeRecord(): void {
 
 // ── sessions ─────────────────────────────────────────────────────────────
 
+/**
+ * The operator: a wizard on the testbed committee, at the bank. It acts for
+ * step 5, stages the standing history, and appoints and pays in step 3.
+ */
+let op: Session;
+/**
+ * `founder`, only for `config` — the Prime Minister's dial, which the
+ * founder's seat holds by default (step 4's short buckets, restored after).
+ */
 let founder: Session;
 
-/** As `s` (a wizard on the lounge), read one expression's value. */
+/** As `s` (a wizard on the testbed committee), read one expression's value. */
 async function evalSelf(s: Session, expr: string): Promise<string> {
   await s.drainProse();
-  const r = await s.cmd(`eval --parcel ${LOUNGE} return 'DBP[' + (${expr}) + ']DBP'`);
+  const r = await s.cmd(`eval --parcel ${TESTBED} return 'DBP[' + (${expr}) + ']DBP'`);
   const m = /DBP\[([\s\S]*?)\]DBP/.exec(await r.said());
   if (!m) throw new Error(`eval returned no DBP[…]: ${JSON.stringify((await r.said()).slice(0, 400))}`);
   return m[1]!;
@@ -276,16 +295,14 @@ async function standingOf(s: Session): Promise<{ band: string; presence: string;
 }
 
 beforeAll(async () => {
-  founder = await Session.open('founder', {
-    startLocation: BAR,
-    wizard: true,
-    committees: [LOUNGE, TERMINUS, '/corpo/goodkin'],
-  });
+  op = await standIn(BANK, 'dbp-op', { wizard: true, committees: [TESTBED] });
+  founder = await Session.open('founder', { startLocation: PLAZA });
 }, 240_000);
 
 afterAll(async () => {
   await founder?.cmd('config participation.bucketSeconds 600').catch(() => undefined);
   founder?.close();
+  op?.close();
 });
 
 // ── step 5: the operator's view (first: it needs nothing staged) ─────────
@@ -298,7 +315,7 @@ suite('5 — the operator reads the database on /stats', () => {
       expect(typeof a.db!.pool[k], `pool.${k}`).toBe('number');
     }
     expect(a.db!.pool.max).toBeGreaterThan(0);
-    for (let i = 0; i < 10; i++) await founder.cmd(`say the operator counts ${i}`);
+    for (let i = 0; i < 10; i++) await op.cmd(`say the operator counts ${i}`);
     await sleep(2_000); // the frame drain's second
     const b = await stats();
     say(
@@ -315,7 +332,7 @@ suite('5 — the operator reads the database on /stats', () => {
 
 suite('2 — a long-lived, quiet world', () => {
   it('2a — two hundred past players are staged; idle, the scoring services touch the database not at all', async () => {
-    const subjects = await stageStandingHistory(founder, 200);
+    const subjects = await stageStandingHistory(op, 200);
     expect(subjects).toBe(200);
     // Two scheduled passes fold what was staged (a full pass after a start).
     await sleep(2 * PASS_MS);
@@ -344,11 +361,7 @@ suite('2 — a long-lived, quiet world', () => {
   }, 600_000);
 
   it('2b — one player acts across a pass: only that player is re-scored, and reads their own participation', async () => {
-    const p = await Session.open(uniqueHandle('dbp-one'), {
-      startLocation: BAR,
-      wizard: true,
-      committees: [LOUNGE],
-    });
+    const p = await standIn(ROOM, 'dbp-one', { wizard: true, committees: [TESTBED] });
     try {
       const a = await stats();
       await p.cmd('say good evening');
@@ -385,8 +398,8 @@ suite('4 — each person’s own standing, across death', () => {
   let b: Session;
 
   beforeAll(async () => {
-    a = await Session.open(uniqueHandle('dbp-alice'), { startLocation: BAR, wizard: true, committees: [LOUNGE] });
-    b = await Session.open(uniqueHandle('dbp-bram'), { startLocation: BAR, wizard: true, committees: [LOUNGE] });
+    a = await standIn(ROOM, 'dbp-alice', { wizard: true, committees: [TESTBED] });
+    b = await standIn(ROOM, 'dbp-bram', { wizard: true, committees: [TESTBED] });
     // A participation row is one per person per bucket: short buckets, so
     // a death inside the step shows (db-performance D13). Restored in afterAll.
     expect(await founder.prose('config participation.bucketSeconds 2')).toMatch(/participation\.bucketSeconds/);
@@ -413,7 +426,7 @@ suite('4 — each person’s own standing, across death', () => {
 
     // Death: the body's own method through the eval receiver; the scheduler
     // performs the death outside the eval (mortality.spec.ts).
-    await a.cmd(`eval --parcel ${LOUNGE} this.beginDying("exsanguination", 1)`);
+    await a.cmd(`eval --parcel ${TESTBED} this.beginDying("exsanguination", 1)`);
     let shade = false;
     for (let i = 0; i < 45 && !shade; i++) {
       await a.cmd('assess');
@@ -437,7 +450,7 @@ suite('4 — each person’s own standing, across death', () => {
     const handle = a.handle;
     a.close();
     await sleep(3_000);
-    const { session: roster } = await Session.openAtRoster(handle, { wizard: true, committees: [LOUNGE] });
+    const { session: roster } = await Session.openAtRoster(handle, { wizard: true, committees: [TESTBED] });
     try {
       const band = String(roster.rosterCharacters()[0]?.playStanding ?? '?');
       say(`4: roster play band "${band}" vs standing "${aShadeStand.band}"`);
@@ -478,11 +491,7 @@ suite('7 — nothing a check decided changed', () => {
   afterAll(() => checker?.close());
 
   it('7a — a payment past what the payer holds is refused, in the same words', async () => {
-    checker = await Session.open(uniqueHandle('dbp-checker'), {
-      startLocation: BANK_HALL,
-      wizard: true,
-      committees: [LOUNGE, TERMINUS],
-    });
+    checker = await standIn(BANK, 'dbp-checker', { wizard: true, committees: [TESTBED] });
     await checker.cmd('bank open');
     // A draw past the balance: the banking chokepoint's refusal (W5 caches
     // the account reads in front of it; the decision must not move).
@@ -491,21 +500,23 @@ suite('7 — nothing a check decided changed', () => {
     decided('payment refused', `${r.status} ${reason?.reason ?? '-'} ${(await r.said()).slice(0, 240)}`);
   }, 180_000);
 
-  it('7b — a consigned watch: its consignor reclaims it; a third player may not', async () => {
-    const owner = await Session.open(uniqueHandle('dbp-consignor'), { startLocation: BANK_HALL });
+  it('7b — a consigned notebook: its consignor reclaims it; a third player may not', async () => {
+    const owner = await standIn(BANK, 'dbp-consignor');
     await owner.cmd('bank open');
     owner.close();
     await sleep(1_500);
-    const at = await Session.open(owner.handle, { startLocation: BAKERY });
-    const other = await Session.open(uniqueHandle('dbp-other'), { startLocation: BAKERY });
+    const at = await Session.open(owner.handle, { startLocation: SHOP });
+    const other = await standIn(SHOP, 'dbp-other');
     try {
-      const watch = await hand(at, WATCH);
-      const on = await at.cmd(`shelf consign #${watch} --ask 5`);
+      // ⚠ Named by id, not by word: the shop's counter sells notebooks, and
+      // another drive's consignment may share the shelf.
+      const good = await hand(at, GOOD);
+      const on = await at.cmd(`shelf consign #${good} --ask 5`);
       decided('consign', on.status);
-      const theirs = await other.cmd('shelf reclaim watch');
+      const theirs = await other.cmd(`shelf reclaim #${good}`);
       const why = theirs.notes.find((n) => n.kind === 'controller-rejected') as { reason?: string } | undefined;
       decided('reclaim by another', `${theirs.status} ${why?.reason ?? '-'}`);
-      const back = await at.cmd('shelf reclaim watch');
+      const back = await at.cmd(`shelf reclaim #${good}`);
       decided('reclaim by the consignor', back.status);
     } finally {
       at.close();
@@ -556,13 +567,24 @@ suite('7 — nothing a check decided changed', () => {
       thirty = await runCrowd('dbp-30', {
         size: 30,
         during: async (crowd) => {
-          // To the banking hall: the thirty re-enter there.
+          // To the bank: the thirty re-enter there.
           const handles = crowd.map((s) => s.handle);
           for (const s of crowd) s.close();
           await sleep(1_500);
-          for (const h of handles) workers.push(await Session.open(h, { startLocation: BANK_HALL }));
-          await founder.cmd(`goto ${BANK_HALL}`);
-          await founder.cmd(`house appoint me to officer at ${COUNTING_HOUSES}`);
+          for (const h of handles) workers.push(await Session.open(h, { startLocation: BANK }));
+          await op.cmd(`goto ${BANK}`);
+          await op.cmd(`house appoint me to officer at ${HOUSE}`);
+          // ⭐ Staged: the house's payroll money — a recorded override into
+          // the bank Business's account (the purge retires what is left).
+          // The governor's seat moves to a fresh session and is put back.
+          const gov = await standIn(BANK, 'dbp-gov', { offices: [GOVERNOR] });
+          try {
+            const minted = await gov.cmd(`reserve override 500 to ${HOUSE} "wire: db-performance payroll"`);
+            expect(await minted.said(), 'the house is funded for thirty wages').toMatch(/mints/i);
+          } finally {
+            gov.close();
+            await founder.cmd(`office vacate ${GOVERNOR}`);
+          }
           const names = await Promise.all(
             workers.map(async (w) => String((await w.queryOne('me', ['displayName']))?.displayName ?? ''))
           );
@@ -577,8 +599,8 @@ suite('7 — nothing a check decided changed', () => {
           // The house appoints and pays each — the payroll and the venue's
           // account, one paid act per worker.
           for (const n of names) {
-            await timed(founder, `house appoint "${n}" to teller at ${COUNTING_HOUSES}`);
-            await timed(founder, `house payroll "${n}" 5`, paid);
+            await timed(op, `house appoint "${n}" to teller at ${HOUSE}`);
+            await timed(op, `house payroll "${n}" 5`, paid);
           }
           // Everyone at once: draw some, bank it back, read it.
           await Promise.all(workers.map(async (w) => {
@@ -586,24 +608,21 @@ suite('7 — nothing a check decided changed', () => {
             await timed(w, 'bank deposit coins', paid);
             await timed(w, 'bank');
           }));
-          // To the bakery: each consigns a watch and reads their standing,
-          // while the farm hand's consignment beat runs.
+          // To the shop: each consigns a notebook and reads their standing.
+          // ⚠ The Terminus run also fired a farm hand's consignment beat
+          // alongside (an NPC with the shopkeeping `consigns` brain); the
+          // testbed has no such NPC, so that load is not in this reading.
           for (const w of workers) w.close();
           await sleep(1_500);
           workers.length = 0;
-          for (const h of handles) workers.push(await Session.open(h, { startLocation: BAKERY }));
-          const npc = (async () => {
-            await founder.cmd(`goto ${FARM_YARD}`);
-            await founder.cmd(`eval --parcel ${TERMINUS} --on hand return this.fireBeat('/lib/behavior/consigns')`);
-          })();
+          for (const h of handles) workers.push(await Session.open(h, { startLocation: SHOP }));
           await Promise.all(workers.map(async (w) => {
-            const watch = await hand(w, WATCH);
+            const good = await hand(w, GOOD);
             await hand(w, RAG);
-            await timed(w, `shelf consign #${watch} --ask 5`, paid);
+            await timed(w, `shelf consign #${good} --ask 5`, paid);
             await timed(w, 'standing');
             await timed(w, 'look', looks);
           }));
-          await npc;
           await sleep(2_000);
           const b = await stats();
           keepCallers('work', b);

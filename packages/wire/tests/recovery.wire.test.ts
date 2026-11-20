@@ -7,33 +7,39 @@
  * verb no class contributes is dead), and that a real wound sprung from
  * CONTENT (a trap, not a wizard) reads and treats.
  *
- * ⚠ `.dirty.`: it springs the delve's one-shot deadfall (and the
- * pressure-blade beside it), so the next character finds them gone.
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8): the passage's
+ * pressure-plate blade (a one-shot trap, RE-ARMED by the drive before the
+ * walk, so it runs twice on one world) for the delve's corridor-3 deadfall
+ * and blade, and the works' basin for the infirmary ward's. ⚠ The step
+ * that read the WARD's own recovery fixtures (cot, shelf, dressings) is
+ * content and stays, unchanged, in `recovery-content.dirty.wire.test.ts`.
+ * ⚠ The testbed has the blade only — no deadfall — so the fracture step
+ * below is conditional, as it always was.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { Session, declareFile, uniqueHandle, expectOk } from '../src/harness';
-
-export const DIRTY_REASON =
-  'springs the delve corridor-3 deadfall and pressure-blade (one-shot ' +
-  'traps); the next character walks a disarmed corridor';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  expectOk,
+  stage,
+  CELLAR,
+  WORKS,
+  TRAP,
+  EXITS,
+} from '../src/harness';
 
 declareFile({
-  file: 'recovery.dirty.wire.test.ts',
-  packs: [
-    'newbie-wilds',
-    'terminus',
-    'generic-objects',
-    'species-and-names',
-    'trade-medicine',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'recovery.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'trade-medicine'],
 });
 
-// Corridor 2 of the delve — walk NORTH into corridor 3 to spring its traps.
-const CORRIDOR_2 = '/world/newbie-wilds/delve/corridor-2';
-// The infirmary ward — has the basin (water) that affords `wash`/`cool`.
-const WARD = '/world/terminus/infirmary/ward';
+// The cellar — walk EAST into the passage to spring its trap.
+const CORRIDOR_2 = CELLAR;
+const INTO_THE_TRAP = EXITS.cellar.passage;
+// The works — has the basin (water) that affords `wash`/`cool`.
+const WARD = WORKS;
 
 let player: Session;
 let patient: Session;
@@ -45,6 +51,8 @@ function afforded(said: string): boolean {
 }
 
 beforeAll(async () => {
+  // ⭐ Staged: the trap armed, however the last drive left it.
+  await stage(TRAP, 'setHazardState', 'armed');
   player = await Session.open(uniqueHandle('recovery'), {
     startLocation: CORRIDOR_2,
   });
@@ -78,32 +86,25 @@ suite('the medical verbs are AFFORDED — the body affords its own first aid', (
 });
 
 suite('the FIXTURE-afforded verbs answer where the fixture is', () => {
-  it('⭐ bare `wash` and `cool` answer at the infirmary basin (WaterFixture affords them)', async () => {
+  it('⭐ bare `wash` and `cool` answer at the works basin (WaterFixture affords them)', async () => {
     // ⚠ Drive finding: these are NOT self-afforded — `wash`/`cool` in a waterless
     // corridor is correctly "I don't understand" — they ride the
     // WaterFixture's `peers` bucket, so they answer standing at water. The
-    // ward's basin is real water now (recovery build).
+    // works' basin draws on the testbed's cistern.
     // ⭐ Bare `wash` washes your hands here — the old `scrub`, folded in.
     for (const verb of ['wash', 'cool']) {
       const said = await (await patient.cmd(verb)).said();
       expect(afforded(said), `${verb} at the basin: ${said}`).toBe(true);
     }
   }, 60_000);
-
-  it('⭐ the ward stands up with its recovery fixtures', async () => {
-    const said = (await (await patient.cmd('look')).said()).toLowerCase();
-    expect(afforded(said)).toBe(true);
-    // The cot, the basin, the fitting shelf and the dressings are all here.
-    expect(said, `the ward: ${said}`).toMatch(/cot|basin|shelf|bandage|dressing|slate/);
-  }, 60_000);
 });
 
 suite('a real wound, sprung from CONTENT and read', () => {
   it('⭐⭐ walking into the trapped corridor wounds the body', async () => {
     const before = (await (await player.cmd('assess')).said()).toLowerCase();
-    // Walk north into corridor 3 — the deadfall (blunt → a leg fracture)
-    // and the pressure-blade (edge → the legs) both trigger on traversal.
-    const walk = await player.cmd('go north');
+    // Walk east into the passage — the pressure-blade (edge → the feet)
+    // triggers on traversal.
+    const walk = await player.cmd(`go ${INTO_THE_TRAP}`);
     expectOk(walk);
     const after = (await (await player.cmd('assess')).said()).toLowerCase();
     // The body now reads at least one wound it did not have before.
@@ -127,7 +128,7 @@ suite('a real wound, sprung from CONTENT and read', () => {
 
   it('⭐ `treat` names what a fracture wants (setting), if a bone broke', async () => {
     const assess = (await (await player.cmd('assess')).said()).toLowerCase();
-    if (!assess.includes('fracture')) return; // the deadfall may have hit differently — recorded in the plan
+    if (!assess.includes('fracture')) return; // a blade rarely breaks a bone — recorded in the plan
     const said = (await (await player.cmd('treat')).said()).toLowerCase();
     // With a fracture and nothing to hand, `treat` should point at setting
     // (a splint) rather than pretend a bandage helps.

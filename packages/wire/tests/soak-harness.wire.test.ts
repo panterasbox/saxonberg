@@ -18,6 +18,13 @@
  *
  * No span step: every jump here is a day or less (this build follows its
  * own rule; its soak drive is `canary.soak.wire.test.ts`).
+ *
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8): the runner on the
+ * plaza (outdoors, in the testbed Locality, so it has weather), seated on
+ * the testbed committee; the parcel it is refused and then granted is the
+ * annex, the one title a drive may take, which the run's purge hands back.
+ * It used to stand on the Terminus market square and take the title of
+ * `/trade/distribution`, which nothing put back.
  */
 
 import { readFileSync } from 'fs';
@@ -30,27 +37,24 @@ import {
   advanceWorldClock,
   worldClockNow,
   unpinWeather,
+  TESTBED,
+  PLAZA,
+  ANNEX,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
-/**
- * ⚠ Why this file cannot run twice: it TRANSFERS the title of
- * `/trade/distribution` to a test runner (a sold parcel to the pack that
- * claimed it) and scalds the runner's hand.
- */
-export const DIRTY_REASON =
-  'transfers the title of /trade/distribution to a test runner and scalds ' +
-  'a patient — the world puts neither back';
-
+// ⭐ Runs twice: the runner and the patient are fresh characters (the purge
+// takes them), and the annex title the runner is granted is handed back to
+// its claim's holder by the purge.
 declareFile({
-  file: 'soak-harness.dirty.wire.test.ts',
-  packs: ['platform', 'terminus', 'distribution'],
-  dirtyReason: DIRTY_REASON,
+  file: 'soak-harness.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
 
-const SQUARE = '/world/terminus/market/square';
-const TERMINUS = '/world/terminus';
-const UNHELD = '/trade/distribution';
+/** Outdoors, in a Locality: where the weather is pinned. */
+const SQUARE = PLAZA;
+/** A parcel the runner does not hold until it is granted at login. */
+const UNHELD = ANNEX;
 
 let runner: Session;
 let handle = '';
@@ -79,10 +83,10 @@ beforeAll(async () => {
   runner = await Session.open(handle, {
     startLocation: SQUARE,
     wizard: true,
-    // SEATED on Terminus's committee — never `parcels:` here: a grant of a
+    // SEATED on the testbed committee — never `parcels:` here: a grant of a
     // group-held root SELLS it to this character, and every later drive
-    // finds no committee over Terminus (wizard-axis finalize).
-    committees: [TERMINUS],
+    // finds no committee over the testbed (wizard-axis finalize).
+    committees: [TESTBED],
   });
 }, 300_000);
 
@@ -116,17 +120,17 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
     // out across the next clock jumps, it died mid-command, and the reply
     // went to the destroyed body (the drive's first runs).
     const patientHandle = uniqueHandle('patient');
-    // A wizard seated on Terminus, so it stages on itself — its own eval's
+    // A wizard seated on the testbed, so it stages on itself — its own eval's
     // `self` (a handle is not the character's name, so `--on` cannot find it).
     const patient = await Session.open(patientHandle, {
       startLocation: SQUARE,
       wizard: true,
-      committees: [TERMINUS],
+      committees: [TESTBED],
     });
     try {
       const said = await say(
         patient,
-        `eval --parcel ${TERMINUS} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 1500 }) && 'scalded'`,
+        `eval --parcel ${TESTBED} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 1500 }) && 'scalded'`,
       );
       console.log(`  [drive] eval ConditionApi.inflict → ${said}`);
       expect(said, `eval ConditionApi: ${said}`).toMatch(/scalded/);
@@ -146,7 +150,7 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
     runner = await Session.open(handle, {
       startLocation: SQUARE,
       wizard: true,
-      committees: [TERMINUS],
+      committees: [TESTBED],
       parcels: [UNHELD],
     });
     const ran = await say(runner, `eval --parcel ${UNHELD} 1 + 1`);
@@ -165,7 +169,7 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
       },
       (e: unknown) => String(e),
     );
-    expect(err).toMatch(/is not a parcel; the covering parcel is '\/world\/terminus\/market'/);
+    expect(err).toContain(`is not a parcel; the covering parcel is '${TESTBED}'`);
   }, 120_000);
 });
 
@@ -240,7 +244,7 @@ suite.skipIf(!isOwnedTestWorld())('10 · testharness — the clock and the weath
     );
     const pin = await say(
       runner,
-      `eval --parcel ${TERMINUS} (await AddressApi.resolveLocalityFor(self)).setWeatherPin({ type: 'snow', mode: 'frozen' })`,
+      `eval --parcel ${TESTBED} (await AddressApi.resolveLocalityFor(self)).setWeatherPin({ type: 'snow', mode: 'frozen' })`,
     );
     expect(pin, `eval setWeatherPin: ${pin}`).toMatch(/testharness weather-pin|denied|not callable/);
   }, 120_000);
