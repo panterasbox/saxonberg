@@ -7,7 +7,9 @@
 > (listing · vocabulary · directory · entries · holder + `who` · code) · `~/profile` and the `profile`
 > verb · lists of anyone, with recorded provenance · the meaning line, opinion vs fact · the law of
 > published lists and who enforces it · sealed anonymous lists · resolution order, collisions,
-> impersonation, name changes · retiring the IP country.
+> impersonation, name changes · retiring the IP country · the aether exchange as presence's source ·
+> city directories (Terminus's paper: residences and businesses) · every paper a publisher on the same
+> parts · the Schell findings (§ 10a).
 > **Size:** a build (kernel-led: two document kinds, one holder, the `who` and `profile` verbs), with
 > the Post's directory as its first consumer.
 
@@ -132,6 +134,89 @@ open to **every** publisher, or the Post owns the floor and nobody can compete [
 directory deciding which it searches. The tension between a controlled vocabulary and free tagging
 is real in library science and is part of the lesson.
 
+## 3a. How presence reaches a directory — the aether exchange **[LEAN]**
+
+Nobody is put on or taken off a list when they connect. **A directory reads a feed.**
+
+- ⭐ **The fiction is the aether exchange.** A connecting implant registers with the aether, as a
+  phone registers with its network. **Presence belongs to the exchange, not to any paper**; the
+  exchange publishes who is registered, with the player id, because connection data is public. A
+  directory's **present** source is a subscription to that feed, open to every publisher.
+- **Presence means connected** [LEAN — fork 9], with the aether's reach as a separate column (*"out of
+  reach — cannot receive messages"*). Otherwise walking into a town whose aether is off by covenant
+  takes you off `who` — a way to vanish, against *there is no appear offline*. The exchange knows
+  every implant, even one it cannot currently talk to. ⚠ The **paper edition** prints listings as of
+  a day and never presence; where the aether is off, you know who is around by being there.
+- **Commands:** presence needs none. A player's controls are their status and their profile.
+
+### Machine, NPC, or person — one rule
+
+⭐ **A job with no judgment in it is a machine; a job with judgment needs a person; NPCs hold only
+mechanical seats, which are machines with a face.**
+
+| job | judgment? | who |
+|---|---|---|
+| registering connections, publishing presence | none | **the exchange** — a machine |
+| taking a listing request | none | a **clerk** at the paper's counter (a face for walk-ins); `profile submit <directory>` over the aether does the same |
+| refusing a listing under the standards | yes | a **person** — the directory editor |
+| designing the schema and sections | yes | a **person** |
+| curating and annotating | yes | **people** |
+
+**The exchange's epoch ladder:** the inn's register and the town crier → the telegraph office → the
+manual switchboard and its operators → the **automatic exchange** → the network. ⭐ Almon Strowger, a
+Kansas City undertaker, invented the automatic exchange in 1889 — by local legend because the
+operator, a rival undertaker's wife, routed his customers' calls to her husband. **A person in the
+switch is a pen, and a pen can be abused**; the exchange is a machine for the same reason.
+
+## 3b. Every paper is a publisher on the same parts **[DECIDED — the owner]**
+
+*"It's the Terminus Times or whatever their version of the Post is. So this stuff has to work the same
+no matter who the publisher is."* The directory machinery does not know whose it is: the Post in
+Saxonberg, the Terminus Times in Terminus, each locality's paper.
+
+| shared | differs by publisher |
+|---|---|
+| listing · vocabulary · directory document · entries · holder · `who` · the law of published lists · the mirror · provenance · facts vs claims | **which sources it draws on** · its schema and sections · its standards |
+
+**The sources are public feeds, and any publisher may draw on any of them**: **the exchange** (who is
+connected) · **a locality's residency** (derived on read by civics) · **its businesses and rosters**
+(who is on duty, what is offered, who is hiring).
+
+- ⭐⭐ **The Post tracks players only, because players make the government** (the owner): *"the
+  Saxonberg Post shouldn't really concern itself with anything other than the citizens of
+  Saxonberg. It's the seat of government and players make the government, not NPCs, which is why it
+  tracks players at all."* Its register is persons present.
+- ⭐⭐ **A city's paper keeps a city directory** — the classic city directory (R. L. Polk published
+  them for a century): **residences and businesses**, by street and by name. *"NPC tracking may
+  actually be the more common use case, for the city of Terminus … tracking its own residences and
+  businesses, not players specifically."* It draws on residency, the business records, the roster
+  (**on duty is an NPC's equivalent of present** — NPCs do not connect, they clock on), each
+  business's menu and Terms, and the derived help-wanted sign. Nothing about an NPC is authored twice.
+  **Places are the city directory's subject; persons are the Post's.**
+- **Nothing stops a paper drawing on another's sources** — the Terminus Times may run a *who's in
+  town* column by subscribing to the exchange.
+- ⭐ **The directory is every paper's cold-start product.** The Post publishes nothing until people
+  do (*no synthetic floor*), but a directory is mechanical — a feed and a clerk — so **a city's paper
+  can run its directory on day one, before it has a journalist**, and the journalism grows on top.
+- **Each city's paper raises the Post's open questions** (appointing authority, independence,
+  revenue); what is settled for the Post becomes the template every city paper starts from.
+
+### NPCs
+
+- ⛔ **Never on the floor** [LEAN, the Post's *no synthetic floor*]: the floor answers *who else is
+  actually playing right now*; NPCs on it inflate the population — the fake-crowd trick. They are
+  noise there (the owner).
+- **In a city directory they enter through places and seats.** **Extras are roles** (*the teller*) —
+  list the role. **Cast are persons** (*Dave*) with an authored dossier and a durable identity — they
+  may be listed by name, keyed on that identity, never the instance (re-minted on reload); a Cast
+  member's listing is their dossier, the author's content, every field a fact.
+- **Private lists of NPCs: anything goes** — the corrupt guard on a foes list, notify when the
+  merchant comes to town; an NPC cannot be harassed. First-hand provenance cites the act witnessed.
+- ⚠ **Players in a city directory only by publishing their residence** [LEAN]: a home address says
+  where a body sleeps, and **logout is sleep** — a published address of an absent player is a map
+  for ambushing sleeping bodies. NPCs are listed by default; players through a residence field on
+  their profile.
+
 ## 4. The profile — your first document **[DECIDED — the owner]**
 
 The owner: *"I've been looking for a way to introduce players to the concept that they have a home
@@ -249,13 +334,21 @@ communities."*
 1. ⭐ **The listed person controls the facts; the curator controls the words.** Facts come only from
    the floor and the subject's published fields, read live — hidden means gone from every list.
 2. **Every published list carries its curator's name** (or a masthead).
-3. **The mirror** — you can see every published list you are on.
+3. **The mirror** — you can see every published list you are on. ⚠⚠ **Pull, never push**: you can
+   always check `profile listed`, but nothing announces it — a mirror that notifies would deliver a
+   slur-named list straight to its target (Bluesky's lists).
 4. **A right of reply** — one line of your own beside your entry on anyone's list.
 5. ⛔ **No real-life traits anywhere** — the vocabulary has **no field** for them, so no schema can
    express them (a wall); a tag or annotation that says it anyway is a conduct violation.
 6. **Annotations are speech**: a false, damaging claim about a *character* is defamation, a civil
    case in court under the polity's press law (tier C); an annotation restating what the subject hid,
    or targeting the person behind the character, is doxxing or griefing — the conduct track.
+7. **List names and meaning lines** fall under the publisher's standards and the conduct track, the
+   same as annotations.
+8. ⚠ **Aggregate counts must not become a pile-on magnet** — *"on thirty lists"* draws the
+   thirty-first even with sources shown. Open: counts of first-hand entries only, or shown on pull
+   only. A throwaway's list reaches nobody (reach comes from subscribers); a standing floor to
+   *publish* is the harder option.
 
 | layer | catches |
 |---|---|
@@ -305,7 +398,7 @@ you is name collisions, which are very real … names are most explicitly not un
 | **Twitter shared blocklists** (2015–) | subscribing to others' block lists | mistaken inclusion, no stated criteria, no source, no appeal | the meaning line, provenance, the mirror, the right of reply, the court |
 | **Bluesky moderation lists** | public lists anyone makes and subscribes to | lists used for targeting, some named with slurs; seeing and reporting lists you are on came after | the same tools with the mirror and the law built in from the start |
 | **Klout, Peeple** | scoring or rating people | a number on a person nobody stands behind | no score on a person — aggregated reading, never votes |
-| **MySpace Top 8** | a public ranking of your friends | endless drama | ⭐ arguably a success — status (Schell #90) in action; public lists of people will be dramatic |
+| **MySpace Top 8** | a public ranking of your friends | endless drama | ⭐ arguably a success — people cared enormously; public lists of people will be dramatic |
 | **FOAF, XFN** | open social-graph standards | nobody had a reason to maintain the data | the profile is useful on day one — it is how `who` and every directory find you |
 
 **Our advantages:** the record (traceable sources, citable acts) · chosen identities and the
@@ -338,14 +431,52 @@ people who bear the cost legislate; capital cannot buy the outcome and labor can
    standards, appeal = its public editor then the court. The law of lists is consumer-chamber law
    (C); the real-life-trait ban is A. Nobody can be dropped from the floor.
 
-**Schell (3rd ed.)**: **#96 Friendship** — friendships need a way to break the ice and something to
-talk about; "here since" and newcomers' visibility break the ice, the line starts the conversation.
-**#97 Expression** — the slots. **#90 Status** — on a list, status is order and inclusion; the
-Social Register and Top 8 were status. **His Community lens** — serve newcomers, regulars and elders
-differently and make community property: the floor for newcomers, curated lists as elders'
-property. **His Griefing lens** — answered by *the subject controls the facts*. ⭐ **It is lame if it
-is a census; it is good if it is a paper with a society page** — a floor anyone can trust, and above
-it a market of lists people care about getting onto.
+⭐ **It is lame if it is a census; it is good if it is a paper with a society page** — a floor anyone
+can trust, and above it a market of lists people care about getting onto.
+
+### Lens findings, tested against the final design (2026-11-20)
+
+- ⚠ **3a** — the source of presence must be named in the fiction: the aether exchange (§ 3a).
+- ⚠ **5 Continuity** — presence is an aether service; where the aether is off, the floor shows
+  connection with *out of reach*, and the paper edition never prints presence (§ 3a).
+- ⚠ **1 Pedagogy** — the document lesson lands through the receipts, but **nothing yet walks a
+  consumer from `who` to a first search**; information science only teaches if players query.
+- ⚠ **6 Economy** — paid prominence is the revenue, and at launch there are almost no businesses to
+  pay; the directory runs at a loss early (the Post's open endowment question).
+
+## 10a. Schell, tested against the final design (2026-11-20)
+
+- **#96 Friendship** — from our audit of the book: friendships need a way to **break the ice** and
+  **enough to talk about**. The profile and line supply the second. ⚠ **The design barely supplies the
+  first**: a directory finds people, it does not introduce them, and nothing on the floor says *open
+  to talking to anyone* (DND exists; its opposite does not). **The directory is necessary for
+  friendship, not sufficient** — either an *open to talk* status joins the floor, or the slate says
+  plainly that the lounge and the welcome committee are the ice-breakers (open).
+- **#97 Expression** — holds: every profile field is a slot, curation a second slot. ⚠ The risk is
+  the opposite of thin: **too many fields become a form, and nobody fills in forms** — keep the core
+  small and fun to fill.
+- **#90 Status** — ⚠ **corrected**: our audit records #90 as Keith Johnstone's improv status
+  (posture, eye contact, territory, who defers) and *unrelated to renown, despite the name*. Being
+  included on or dropped from a list is a status move, but *"Top 8 is #90 in action"* stretched the
+  lens. The honest claim: public lists will produce status drama, which is human nature, not this
+  lens.
+- **His Community chapter** — *foster friendship*: partly (#96). *Conflict at the heart*: yes, maybe
+  too much (foes lists, rival directories). *Architecture shapes community*: yes — the schema shapes
+  what a community can see of itself. *Community property*: yes — a guild publishes its roster from
+  its own tree. *Self-expression*: the profile. ⭐ *Support three levels*: the strongest fit —
+  newcomers get the floor and the receipts, regulars profiles and lists, elders become curators,
+  publishers and schema designers. *Depend on each other*: weak — only through others' testimony.
+  *Obligation*: yes — the curator's name and the right of reply. *Events*: absent, and not this
+  feature's job.
+- **His Griefing lens** — griefers want **a reaction and an audience**: ⚠⚠ the mirror must be pull,
+  never push (§ 7.3); list names under standards (§ 7.7); aggregate counts must not attract
+  pile-ons (§ 7.8).
+- **Our deck:** **#62 Transparency** — strong (the mirror, provenance, facts vs claims). **#63
+  Feedback** — the receipts are the Swiffer: they show you the dirt. **#64 Juiciness** — ⚠ dry where
+  it could be juicy: publishing a field changes which directories and searches you appear in, and the
+  receipt should say so (*"you now appear in 3 directories' sections"*). **#13 Infinite
+  Inspiration** — borrowed models with real referents (directories, the personals, deed polls, the
+  exchange).
 
 ## 11. Collisions with what shipped
 
@@ -374,3 +505,11 @@ it a market of lists people care about getting onto.
 6. **The core vocabulary's first fields**, and the adoption threshold for promoting a publisher's.
 7. **Where the newcomer flow teaches the profile** (lean: set a line and see it on `who` in the
    newcomer flow; the rest found).
+8. **An *open to talk* status on the floor**, or the lounge named as the ice-breaker (§ 10a).
+9. **Presence = connected**, with the aether's reach a separate column (§ 3a).
+10. **Players in a city directory only by publishing their residence** (§ 3b).
+11. **Every locality with content gets a paper and a city directory by default**, or only those that
+    author one.
+12. **The aggregate-count rule** against pile-ons, and whether publishing a list needs a standing
+    floor (§ 7.8).
+13. **A path from `who` to a first search** — the querying lesson.
