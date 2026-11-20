@@ -27,6 +27,7 @@ import {
   type DocumentKindSpec,
   type DocumentVanishPolicy,
 } from '../../../lib/document/DocumentKinds';
+import { DocumentKind } from '../../../lib/document/DocumentKind';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import { PersistApi } from '../../../api/persist';
@@ -179,6 +180,7 @@ const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<Declared
  * the pack before any write. A kind with no entry is stored as parsed.
  */
 const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: string) => void> = {
+  kind: (d, p) => void new DocumentKind(p.slice(p.lastIndexOf('/') + 1), d),
   emote: (d, p) => void Emote.fromData(d, p),
   recipe: (d, p) => void Recipe.fromData(d, p),
   archetype: (d, p) => void Archetype.fromData(d, p),

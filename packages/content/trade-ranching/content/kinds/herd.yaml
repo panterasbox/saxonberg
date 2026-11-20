@@ -1,0 +1,4 @@
+title: Herd
+traits:
+  keyworded: { leaf: false }
+  titled: { field: name }

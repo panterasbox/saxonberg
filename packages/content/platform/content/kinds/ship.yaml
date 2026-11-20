@@ -1,0 +1,4 @@
+title: Ship register entry
+traits:
+  shipped: { dir: ships, vanish: keep }
+  titled: { field: name }

@@ -1,0 +1,8 @@
+title: Topic
+traits:
+  shipped: { dir: topics }
+  catalogued: { by: /platform/idea/TopicCatalogue, load: whole }
+  keyworded: {}
+  titled: { field: label }
+fields:
+  label: { type: string, required: true }

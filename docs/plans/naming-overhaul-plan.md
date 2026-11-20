@@ -43,6 +43,17 @@ plan is revised in place. Where each landed:
 - The here split is sized at 142 slots in 120 view files, each needing a
   judgment, not a respelling (WB3b).
 
+**Decided by the build (2026-11-20, the two calls left open at handoff):**
+
+- **The building a place is the landing of** is the built-in relation
+  **`~buildings`** (`whose: anyone`; members = `Place.landedStructuresNow()`
+  of the left side) — a table entry in `api/mql/relations.ts`, so no host
+  gains a member and no relation has two faces. It is how WB3b's
+  landing row is spelled (`~here:~buildings`). Lens 2 chose: a slot that
+  could bind the cottage from the lane yesterday still can, in words.
+- **The speech verbs** (`say`, `whisper`, `shout`, `react`) scope their
+  addressee to `["~peers"]` as D-B10's table says.
+
 ---
 
 ## Grounding
@@ -716,6 +727,21 @@ declared by it or a pack it requires).
 `DOCUMENT_KINDS` entry (dir, ext, vanish, catalogue, word and key
 derivations on sample data). Nothing yet reads a declaration for behavior.
 *Commit:* `build(naming-overhaul WA0): kind declarations beside the closed list`.
+
+✅ **Done.** 43 declarations (42 tabled kinds + `venue-eighty-six`) in their
+owning packs; the installer installs them through a temporary `kind` row in
+the closed table (A1 replaces the reader). Decided: a `DocumentKind` is
+built with its **constructor** (`new DocumentKind(name, data)`), not a
+static `fromData` — `lint:lib-statics` counts public static methods on lib
+classes and the caller set (installer, catalogue, scripts) is not author
+surface. `LedgerTrait` is a `mode`-discriminated union (an `in` probe tripped
+`lint:duck-typing`). Runtime-only kinds declare no `shipped` (defect 3 is
+fixed in data already; the reserved-dir derivation flips in A1). The five
+missing catalogues (recipe, archetype, help-concept, blueprint, name-bank)
+and emote's/command-view's services are declared in A1, where they gain
+`forget`. Pack dependency for gate 5 = `package.json`'s
+`@saxonberg/content-*` dependencies (no manifest field exists); platform is
+always reachable.
 
 **A1 — The readers flip; the closed list is deleted.**
 *Decisions:* D-A4, D-A5, D-A6, D-A7, D-A9.

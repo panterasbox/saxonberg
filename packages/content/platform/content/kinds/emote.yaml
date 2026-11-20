@@ -1,0 +1,4 @@
+title: Emote
+traits:
+  shipped: { dir: emotes }
+  keyworded: { unique: true }

@@ -1,0 +1,3 @@
+title: Water right
+traits:
+  titled: { field: name }

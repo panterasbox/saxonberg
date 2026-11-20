@@ -1,0 +1,8 @@
+title: Press release
+traits:
+  shipped: { dir: releases }
+  titled: { field: headline }
+fields:
+  publishedAt: { type: number, index: publishedAt }
+  pinned: { type: boolean, index: pinned, default: false }
+  releaseId: { type: string, index: releaseId }

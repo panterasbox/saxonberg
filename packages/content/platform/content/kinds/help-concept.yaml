@@ -1,0 +1,7 @@
+title: Help concept
+traits:
+  shipped: { dir: concepts }
+  keyworded: {}
+  titled: { field: title }
+fields:
+  title: { type: string, required: true }

@@ -108,6 +108,9 @@ const releaseIdOf: DocumentKeyDerivation = (doc) =>
     : undefined;
 
 export const DOCUMENT_KINDS = {
+  // ⭐ The declaration of every kind (naming overhaul A0): read beside this
+  // table until A1 retires it — `lib/document/DocumentKind.ts`.
+  kind: { kind: 'kind', words: leafWord, catalogue: '/platform/idea/DocumentKindCatalogue', contentDir: 'kinds', ext: 'yaml', onVanish: 'delete' },
   /**
    * `msh` scripts — the language's name is the kind (was `'script'`
    * before wave 2; a boot migration renames the rows once). The stored

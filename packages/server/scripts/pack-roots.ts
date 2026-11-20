@@ -1201,3 +1201,68 @@ export function effectiveDoc(
   if (eff.class !== null) out.class = eff.class;
   return out;
 }
+
+/** One `kind` declaration as shipped in a pack's `content/kinds/`. */
+export interface KindDeclarationFile {
+  /** The declaring pack's id. */
+  pack: string;
+  /** The declaring pack's document root (`/platform`, `/trade/dyeing`). */
+  root: string;
+  /** The kind's name — the file's leaf. */
+  name: string;
+  /** Absolute file path. */
+  file: string;
+  /** The declaration's parsed data. */
+  data: Record<string, unknown>;
+}
+
+/** A pack's id, root and the content packs its `package.json` depends on. */
+export interface PackManifestSummary {
+  id: string;
+  root: string;
+  dir: string;
+  /** Pack ids this pack depends on (`@saxonberg/content-<id>`). */
+  depends: string[];
+}
+
+/** Every pack's manifest summary (root, dependencies). */
+export function packManifests(contentDir: string = CONTENT): PackManifestSummary[] {
+  if (!existsSync(contentDir)) return [];
+  const out: PackManifestSummary[] = [];
+  for (const pack of readdirSync(contentDir).sort()) {
+    const dir = join(contentDir, pack);
+    const manifestFile = join(dir, "pack.yaml");
+    if (!existsSync(manifestFile)) continue;
+    const m = YAML.parse(readFileSync(manifestFile, "utf8")) as Manifest;
+    const pkgFile = join(dir, "package.json");
+    const depends: string[] = [];
+    if (existsSync(pkgFile)) {
+      const pkg = JSON.parse(readFileSync(pkgFile, "utf8")) as { dependencies?: Record<string, string> };
+      for (const d of Object.keys(pkg.dependencies ?? {})) {
+        if (d.startsWith("@saxonberg/content-")) depends.push(d.slice("@saxonberg/content-".length));
+      }
+    }
+    out.push({ id: m.id, root: m.root ?? `/${m.id}`, dir, depends });
+  }
+  return out;
+}
+
+/**
+ * ⭐ Every shipped `kind` declaration (`<pack>/content/kinds/<kind>.yaml`) —
+ * the scripts' reader of the document kinds, parsed by the caller with
+ * `DocumentKind.fromData` (kinds are free text: nothing lists them).
+ */
+export function kindDeclarations(contentDir: string = CONTENT): KindDeclarationFile[] {
+  const out: KindDeclarationFile[] = [];
+  for (const m of packManifests(contentDir)) {
+    const dir = join(m.dir, "content", "kinds");
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
+    for (const f of readdirSync(dir).sort()) {
+      if (!f.endsWith(".yaml")) continue;
+      const file = join(dir, f);
+      const data = (YAML.parse(readFileSync(file, "utf8")) ?? {}) as Record<string, unknown>;
+      out.push({ pack: m.id, root: m.root, name: f.slice(0, -".yaml".length), file, data });
+    }
+  }
+  return out;
+}

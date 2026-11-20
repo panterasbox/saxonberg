@@ -41,6 +41,11 @@ import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 import type { ServesDocuments } from '../lib/document/DocumentCatalogue';
+import type { ApiNeed } from './security';
+import DocumentKindCatalogue from '../platform/idea/DocumentKindCatalogue';
+
+/** Where the kind catalogue stands. */
+const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
 
 /**
  * ⚠⚠ **The release write transport's whole blast radius.** The transport
@@ -162,6 +167,22 @@ function logic(): DocumentLogic {
 }
 
 export class DocumentApi {
+  /**
+   * ⭐ The kind declarations stand at boot: every write and every paper read
+   * asks its kind synchronously (the kernel's own citation — one
+   * `listOfKind('kind')`, never a boot-list entry).
+   */
+  static readonly needs: readonly ApiNeed[] = [() => DocumentApi.kinds().ensureAll()];
+
+  /**
+   * ⭐ The kinds — every document kind's declaration (`<root>/kinds/<kind>`),
+   * served by {@link DocumentKindCatalogue}: `byName(kind)` for the
+   * declared {@link DocumentKind}, `declared()` for the roster.
+   */
+  static kinds(): DocumentKindCatalogue {
+    return StuffApi.singletonSync(KIND_CATALOGUE, () => new DocumentKindCatalogue());
+  }
+
   /** The stored document at `path`, or null. Callers read its getters. */
   static read(path: string): Promise<StoredDocument | null> {
     return logic().read(path);

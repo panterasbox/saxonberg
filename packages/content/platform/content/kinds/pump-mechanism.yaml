@@ -1,0 +1,5 @@
+title: Pump mechanism
+traits:
+  shipped: { dir: pump-mechanisms }
+  catalogued: { by: /platform/idea/PumpMechanismCatalogue, load: per-path }
+  titled: { field: name }

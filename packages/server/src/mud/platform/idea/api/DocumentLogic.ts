@@ -851,6 +851,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'topic':
     case 'standby-reason':
     case 'lower-third-panel':
+    case 'kind':
     case 'stream-token': // ⛔ a credential is never paper
       return null;
     default: {

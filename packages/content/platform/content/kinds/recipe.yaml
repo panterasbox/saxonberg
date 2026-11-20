@@ -1,0 +1,7 @@
+title: Recipe
+traits:
+  shipped: { dir: recipes }
+  keyworded: {}
+  titled: { field: name }
+fields:
+  outputTemplate: { type: string, index: output }

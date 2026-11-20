@@ -1,0 +1,4 @@
+title: Maturation profile
+traits:
+  shipped: { dir: maturation-profiles }
+  catalogued: { by: /platform/idea/MaturationProfileCatalogue, load: whole }

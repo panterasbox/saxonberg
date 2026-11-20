@@ -1,0 +1,4 @@
+title: Aroma
+traits:
+  shipped: { dir: aromas }
+  catalogued: { by: /platform/idea/AromaCatalogue, load: per-path }

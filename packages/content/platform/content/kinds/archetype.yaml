@@ -1,0 +1,5 @@
+title: Archetype
+traits:
+  shipped: { dir: archetypes }
+  keyworded: {}
+  titled: { field: label }

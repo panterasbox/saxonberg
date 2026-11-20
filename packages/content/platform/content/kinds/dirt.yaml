@@ -1,0 +1,4 @@
+title: Dirt kind
+traits:
+  shipped: { dir: dirt }
+  catalogued: { by: /platform/idea/DirtCatalogue, load: per-path }

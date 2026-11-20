@@ -1,0 +1,4 @@
+title: Blueprint
+traits:
+  shipped: { dir: blueprints }
+  titled: { field: name }

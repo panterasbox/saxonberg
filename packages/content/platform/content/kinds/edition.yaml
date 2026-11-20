@@ -1,0 +1,4 @@
+title: Edition
+traits:
+  shipped: { dir: editions, vanish: keep }
+  titled: { field: title }

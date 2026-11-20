@@ -1,0 +1,4 @@
+title: Standby reason
+traits:
+  shipped: { dir: standby-reasons }
+  titled: { field: label }
