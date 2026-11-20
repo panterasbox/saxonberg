@@ -263,8 +263,9 @@ neglected strike sets as a coarse mass and grades lower. The verbs are
 The rate is a sum of the three paths.
 - A hole is a flaw like a crack, with a larger rate. `repair` mends a hole
   and rivets mend a crack.
-- A ship's seams are her joints, and the caulking is the coat that keeps
-  them tight.
+- A ship's seams are her joints. The caulking in them is what `maintain`
+  restores, and the tarred coat outside protects them, as the ship model
+  already has it.
 - "Holds water" means the rate is under a line.
 - Whether a pour into the vessel spills is decided by the same rate.
 - A holding vessel loses its contents over time to wherever its drip goes
