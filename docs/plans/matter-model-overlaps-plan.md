@@ -1058,7 +1058,7 @@ Findings, one each:
   whiskey at ≈23 game-days, finished ≈90; `lint:drive-scripts` only bans
   `scripts/drive-*.ts` (drives live at `packages/wire/tests/<f>(.dirty).wire.test.ts`).
 
-### W1 — the batch is the contents' (D1–D3)
+### W1 — the batch is the contents' (D1–D3) ✅ done (02b48999f)
 
 - `Crafted.ts`: declare `grade`, `craftedAt` on `BulkPayload`.
 - `BulkableLogic.transfer`: the top-up min on the payload; `faceCheckedS`
