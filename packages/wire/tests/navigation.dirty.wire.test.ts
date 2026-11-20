@@ -19,13 +19,15 @@ import {
   declareFile,
   uniqueHandle,
   expectOk,
+  plain,
   isOwnedTestWorld,
   restartWorld,
 } from '../src/harness';
+import type { CommandResult } from '../src/harness';
 import type { WireClaim } from '@saxonberg/types';
 
 export const DIRTY_REASON =
-  'mints fresh characters whose maps it writes, clones each a lantern, ' +
+  'mints fresh characters whose maps it writes, clones each a torch, ' +
   'walks them through the Sunken Delve, writes their navigation card ' +
   'memory, and restarts the world';
 
@@ -47,13 +49,17 @@ declareFile({
 });
 
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
+const BANK = '/world/terminus/wharfside/bank';
 const DELVE_ZONE = '/world/newbie-wilds/delve';
 const VESTIBULE = '/world/newbie-wilds/delve/vestibule';
 const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
-const CORRIDOR_2 = '/world/newbie-wilds/delve/corridor-2';
 const PIT = '/world/newbie-wilds/delve/pit-below';
-const LANTERN_ROW = '/world/terminus/general-store/thing/lantern';
-const DELVE_DOC = 'last-counted-mile/delve';
+const TORCH_ROW = '/world/terminus/general-store/thing/torch';
+/**
+ * The Delve's address is `last-counted-mile/delve`; a claim files in the
+ * covering LOCALITY's document, and the nearest Locality is the Mile.
+ */
+const DELVE_DOC = 'last-counted-mile';
 
 const record: string[] = [];
 const open: Session[] = [];
@@ -77,20 +83,43 @@ async function session(
 ): Promise<{ s: Session; nav: NavClient }> {
   const s = await Session.open(handle, {
     startLocation: start,
-    // A seat over the wilds, only to clone a lantern there (a staged prop;
-    // every assertion below is about what the player's own acts wrote).
-    ...(opts.lamp ? { committees: ['/world/newbie-wilds'] } : {}),
+    // A seat over Terminus, only to clone its general store's torch (the
+    // clone gate is the ROW's title; a torch carries its own fuel, a
+    // lantern clones empty) — a staged prop; every assertion below is
+    // about what the player's own acts wrote.
+    ...(opts.lamp ? { committees: ['/world/terminus'] } : {}),
   });
   open.push(s);
   await s.drainProse();
   if (opts.lamp) {
-    expectOk(await s.cmd(`clone ${LANTERN_ROW}`));
-    expectOk(await s.cmd('light me:i:lantern'));
+    expectOk(await s.cmd(`clone ${TORCH_ROW}`));
+    expectOk(await s.cmd('light me:i:torch'));
     await s.drainProse();
   }
   const nav = await NavClient.attach(s);
   navs.push(nav);
   return { s, nav };
+}
+
+/** Run a command, record what it said, and return the result. */
+async function run(who: { s: Session }, line: string, tag: string): Promise<CommandResult> {
+  const r = await who.s.cmd(line);
+  const said = plain(await r.said()).replace(/\s+/g, ' ').trim();
+  record.push(`${tag}: \`${line}\` → ${r.status}: ${said.slice(0, 220)}`);
+  return r;
+}
+
+/**
+ * Take a way the way the ways section says works: its `take.works.command`
+ * when going plainly would refuse, the verb it `needs` (a climb), else the
+ * bare direction.
+ */
+async function take(who: { s: Session; nav: NavClient }, dir: string, tag: string): Promise<CommandResult> {
+  const way = who.nav.section('ways')?.ways.find((w) => w.direction === dir);
+  record.push(`${tag}: way ${dir} ${JSON.stringify(way)}`);
+  const works = way?.take && !way.take.ok ? way.take.works : undefined;
+  const line = works?.command ?? (way?.needs ? `${way.needs} ${dir}` : dir);
+  return run(who, line, tag);
 }
 
 const placeClaims = (nav: NavClient, path: string): WireClaim[] =>
@@ -132,19 +161,26 @@ suite('navigation card — the wire drive', () => {
     expect(placeClaims(walker.nav, CORRIDOR_1)).toHaveLength(0);
   }, 120_000);
 
-  it('5 · search corridor-2, take the hidden way down: the copy holds two levels', async () => {
-    expectOk(await walker.s.cmd('north'));
-    expectOk(await walker.s.cmd('north'));
+  /**
+   * ⚠ The content's own way down: corridor-2's spike pit springs under a
+   * walker and drops them into the pit below. Once it has sprung (a kept
+   * world), the hidden `down` is searched for and taken instead.
+   */
+  it('5 · into corridor-2 and down to the pit: the copy holds two levels', async () => {
+    expectOk(await run(walker, 'north', '5'));
+    expectOk(await run(walker, 'north', '5'));
     await beat();
-    expectOk(await walker.s.cmd('search'));
-    await beat();
-    const down = walker.nav.claims(
-      (c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === CORRIDOR_2 && c.dir === 'down',
-    );
-    record.push(`5: corridor-2 down ${JSON.stringify(down.map((c) => c.channel))}`);
-    expect(down.some((c) => c.channel === 'searched')).toBe(true);
-    expectOk(await walker.s.cmd('down'));
-    await beat();
+    if (walker.nav.section('place')?.at?.z !== -1) {
+      // The pit has already sprung (a kept world): search for the hidden
+      // way down, and take it.
+      expectOk(await run(walker, 'search', '5'));
+      await expect.poll(async () => {
+        await beat();
+        return walker.nav.section('ways')?.ways.some((w) => w.direction === 'down') ?? false;
+      }, { timeout: 60_000, interval: 1_000 }).toBe(true);
+      expectOk(await take(walker, 'down', '5'));
+      await beat();
+    }
     await expect
       .poll(() => placeClaims(walker.nav, PIT).some((c) => c.channel === 'walked'), { timeout: 15_000 })
       .toBe(true);
@@ -155,21 +191,40 @@ suite('navigation card — the wire drive', () => {
     );
     record.push(`5: levels ${JSON.stringify([...levels])}`);
     expect(levels).toEqual(new Set([0, -1]));
-    expectOk(await walker.s.cmd('up'));
+    expect(walker.nav.section('place')?.at?.z).toBe(-1);
   }, 180_000);
 
-  it('7 · a hidden way found by searching: its first record is `searched`', async () => {
-    expectOk(await walker.s.cmd('south'));
+  it('7 · back up; a hidden way found by searching corridor-1: its first record is `searched`', async () => {
+    expectOk(await take(walker, 'up', '7'));
     await beat();
-    expectOk(await walker.s.cmd('search'));
+    expectOk(await run(walker, 'south', '7'));
     await beat();
-    const ne = walker.nav.claims(
-      (c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === CORRIDOR_1 && c.dir === 'northeast',
-    );
-    record.push(`7: corridor-1 northeast ${JSON.stringify(ne.map((c) => [c.channel, c.firstSeen]))}`);
-    expect(ne.length).toBeGreaterThan(0);
-    const first = [...ne].sort((a, b) => a.firstSeen - b.firstSeen)[0]!;
+    expectOk(await run(walker, 'search', '7'));
+    const ne = (): WireClaim[] =>
+      walker.nav.claims(
+        (c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === CORRIDOR_1 && c.dir === 'northeast',
+      );
+    // A search takes the hands for a while; what it finds lands when it ends.
+    await expect.poll(async () => {
+      await beat();
+      return ne().length > 0;
+    }, { timeout: 60_000, interval: 1_000 }).toBe(true);
+    record.push(`7: corridor-1 northeast ${JSON.stringify(ne().map((c) => [c.channel, c.firstSeen]))}`);
+    const first = [...ne()].sort((a, b) => a.firstSeen - b.firstSeen)[0]!;
     expect(first.channel).toBe('searched');
+  }, 180_000);
+
+  it('11 · the bank\'s locked door is listed by its own name; its menu offers what a door does', async () => {
+    const banker = await session(uniqueHandle('navc-bank'), BANK);
+    await beat();
+    const way = banker.nav.section('ways')?.ways.find((w) => w.direction === 'pumphouse');
+    record.push(`11: pumphouse ${JSON.stringify({ state: way?.state, boundary: way?.boundary, take: way?.take })}`);
+    expect(way?.state).toBe('locked');
+    expect(way?.boundary?.stuffId).toBeTruthy();
+    const menu = await banker.s.affordances(way!.boundary!.stuffId);
+    const verbs = menu.verbs.map((v) => `${v.verb}:${v.state}`);
+    record.push(`11: the door's menu ${verbs.join(', ')}`);
+    expect(menu.verbs.map((v) => v.verb)).toEqual(expect.arrayContaining(['unlock', 'open']));
   }, 120_000);
 
   it('17 · two players, two maps: a second character holds none of the Delve', async () => {
@@ -185,10 +240,10 @@ suite('navigation card — the wire drive', () => {
     await new Promise((r) => setTimeout(r, 800));
     const second = await Session.open(walkerHandle, { startLocation: TREELINE });
     open.push(second);
-    const frames = JSON.stringify(second.allFrames().map((f) => f.payload));
-    const seen = frames.includes('"nav.card"') && frames.includes('"boundaries"');
-    record.push(`19: nav.card on a second session's connect: ${seen}`);
-    expect(seen).toBe(true);
+    // The client-state snapshot rides `connection-established`.
+    const state = second.connectionClientState();
+    record.push(`19: nav.card on a second session's connect: ${JSON.stringify(state?.['nav.card'])}`);
+    expect(state?.['nav.card']).toEqual(value);
   }, 120_000);
 
   it('20 · restart: the copy and the card come back the same — nothing lost, nothing doubled', async () => {

@@ -578,6 +578,15 @@ export class Session {
   }
   private readonly observers = new Set<(frame: Record<string, unknown>, bytes: number) => void>();
 
+  /** The last connection frame (`session.link`) this session received. */
+  private established: Record<string, unknown> | null = null;
+
+  /** The client-state snapshot that rode the last connection frame. */
+  connectionClientState(): Record<string, unknown> | null {
+    const payload = this.established?.payload as { clientState?: Record<string, unknown> } | undefined;
+    return payload?.clientState ?? null;
+  }
+
   private receive(raw: string): void {
     this.lastFrameAt = Date.now();
     for (const frame of splitFrames(raw)) {
@@ -686,6 +695,12 @@ export class Session {
       // as green. Drop only that; `shell.error` and `shell.result` are
       // prose the player reads.
       const topic = typeof frame.topic === 'string' ? frame.topic : '';
+      if (topic === 'session.link') {
+        // ⭐ Kept whole: the connection payload carries the client-state
+        // snapshot the first render reads (your settings, the navigation
+        // card's memory).
+        this.established = frame;
+      }
       if (topic === 'session.identity') {
         this.identity.push(frame);
         this.drain(this.identityWaiters);

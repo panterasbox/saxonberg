@@ -1800,6 +1800,10 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
       // the card's `up` out of the river sends `go up`, which said only
       // "You can't walk that way" beside steps you have to climb).
       const ways = [...new Set(this.media.map((m) => EXIT_MEDIUM_VERB[m]).filter(Boolean))];
+      // ⭐ …and say it as DATA too (navigation card): one way that works is
+      // a mode and a command the card's arm can offer, as the clearance
+      // refusal's lower mode is. Two or more are left to the words.
+      const only = ways.length === 1 ? ways[0]! : null;
       return {
         ok: false,
         gate: 'exitMode',
@@ -1807,6 +1811,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: ways.length > 0
           ? `You can't ${mode} that way — you'll have to ${ways.join(' or ')}.`
           : `You can't ${mode} that way.`,
+        ...(only !== null ? { works: { mode: only, command: `${only} ${this.direction}` } } : {}),
       };
     }
     // ⭐ The way's size against what comes through it (size and carrying
