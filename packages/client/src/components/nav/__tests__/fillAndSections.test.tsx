@@ -5,7 +5,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { vi } from "vitest";
 import type { NavSections } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { fitSections } from "../useFillHeight";
@@ -15,6 +16,7 @@ import {
   youSummary,
   zoneSummary,
   StructureBody,
+  PlaceBody,
 } from "../sections";
 import { Crumbs, destutter } from "../Crumbs";
 import { StatusBar } from "../../frame/StatusBar";
@@ -111,5 +113,16 @@ describe("the status bar's outdoors", () => {
     useStore.getState().applyNavSnapshot({ place: { v: 1, stuffId: "p", name: "the yard", weather: "light rain", season: "early spring", daylight: "night" } });
     rerender(<StatusBar />);
     expect(screen.getByTestId("status-outdoors").textContent).toBe("light rain · early spring · night");
+  });
+});
+
+describe("a section link previews its command (owner, review)", () => {
+  it("look around previews `look` in the status bar", () => {
+    const onPreview = vi.fn();
+    render(<PlaceBody sections={{ place: { v: 1, stuffId: "p", name: "the yard" } }} onLook={() => {}} onPreview={onPreview} />);
+    fireEvent.mouseEnter(screen.getByTestId("nav-place-look"));
+    expect(onPreview).toHaveBeenLastCalledWith("look");
+    fireEvent.mouseLeave(screen.getByTestId("nav-place-look"));
+    expect(onPreview).toHaveBeenLastCalledWith(null);
   });
 });

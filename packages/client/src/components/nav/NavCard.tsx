@@ -81,6 +81,9 @@ const Here = styled.div`
 `;
 
 /** The optional sections, widest first — the order the card opens them in. */
+/** `look <the building>` — its name as a typed target. */
+const structureLook = (name: string): string => `look ${escapeTarget(name.replace(/^the\s+/i, ""))}`;
+
 export const SECTION_ORDER = ["world", "zone", "horizon", "structure", "place", "you"] as const;
 
 export interface NavCardProps {
@@ -330,6 +333,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
             sections={sections}
             onLook={(id) => run(lookCommand(id, undefined, linkMode))}
             lookFor={(id) => lookCommand(id, undefined, linkMode)}
+            {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
           />
         ) : null,
         "nav:horizon",
@@ -338,7 +342,12 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       {/* 5 · the structure */}
       {section(
         "structure",
-        <StructureBody sections={sections} onLook={(name) => run(`look ${escapeTarget(name.replace(/^the\s+/i, ""))}`)} />,
+        <StructureBody
+          sections={sections}
+          onLook={(name) => run(structureLook(name))}
+          lookFor={structureLook}
+          {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
+        />,
         "nav:building",
       )}
 
@@ -361,6 +370,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
             sections={sections}
             {...(herePlace ? { known: herePlace } : {})}
             onLook={() => run("look")}
+            {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
           />
         ) : null,
         "nav:place",

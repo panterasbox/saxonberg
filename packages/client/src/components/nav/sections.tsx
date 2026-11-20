@@ -126,10 +126,12 @@ export function HorizonBody({
   sections,
   onLook,
   lookFor,
+  onPreview,
 }: {
   sections: NavSections;
   onLook: (stuffId: string) => void;
   lookFor: (stuffId: string) => string;
+  onPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const h = sections.horizon!;
   return (
@@ -137,7 +139,12 @@ export function HorizonBody({
       {h.things.map((t) => (
         <div key={t.stuffId} data-testid="nav-sighting">
           <Tip tip={sightingDoc(t, lookFor(t.stuffId))}>
-            <Link type="button" onClick={() => onLook(t.stuffId)}>
+            <Link
+              type="button"
+              onClick={() => onLook(t.stuffId)}
+              onMouseEnter={() => onPreview?.(lookFor(t.stuffId))}
+              onMouseLeave={() => onPreview?.(null)}
+            >
               {t.name}
             </Link>
           </Tip>
@@ -163,9 +170,13 @@ export function structureSummary(s: NavSections): string | null {
 export function StructureBody({
   sections,
   onLook,
+  lookFor,
+  onPreview,
 }: {
   sections: NavSections;
   onLook: (name: string) => void;
+  lookFor?: (name: string) => string;
+  onPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const b = sections.building ?? undefined;
   const outer = sections.localities?.outer;
@@ -175,7 +186,12 @@ export function StructureBody({
         <>
           <dt>you are in</dt>
           <dd>
-            <Link type="button" onClick={() => onLook(b.name!)}>
+            <Link
+              type="button"
+              onClick={() => onLook(b.name!)}
+              onMouseEnter={() => onPreview?.(lookFor?.(b.name!) ?? null)}
+              onMouseLeave={() => onPreview?.(null)}
+            >
               {b.name}
             </Link>
             {b.landmark ? " (a landmark)" : ""}
@@ -240,10 +256,12 @@ export function PlaceBody({
   sections,
   known,
   onLook,
+  onPreview,
 }: {
   sections: NavSections;
   known?: ViewPlace;
   onLook: () => void;
+  onPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const p = sections.place!;
   return (
@@ -288,7 +306,13 @@ export function PlaceBody({
       </dd>
       <dt />
       <dd>
-        <Link type="button" data-testid="nav-place-look" onClick={onLook}>
+        <Link
+          type="button"
+          data-testid="nav-place-look"
+          onClick={onLook}
+          onMouseEnter={() => onPreview?.("look")}
+          onMouseLeave={() => onPreview?.(null)}
+        >
           look around
         </Link>
       </dd>
