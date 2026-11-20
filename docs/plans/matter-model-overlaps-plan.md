@@ -556,7 +556,10 @@ no caulk coat.
 - `WatercourseCatalogue.snagVerdict({ obstruction, sogMps, nowS, lyingIn
   })` returns `'clear' | 'seen' | 'struck'`: the rule now inline in
   `plotPassage`, which calls it. `Propel.stroke` calls it for the stretch
-  the stroke enters: `'seen'` ends the paddling with the snag words,
+  the stroke enters — ⚠ re-planned at W0: `ReachWarren.riverAt` drops
+  `state.stretch` and returns no `obstruction`, so W3 adds the stretch's
+  `obstruction` to `riverAt`'s answer (it is seeded per bend in
+  `RiverLine.ts`, never authored); `Propel.stroke` reads it from there: `'seen'` ends the paddling with the snag words,
   `'struck'` calls `boat.stove(words)`.
 - `Boat.stove(words)`: integrate the bilge to now, `addFlaw('holed',
   true)`, tell the people aboard, end the engagement.
@@ -579,7 +582,16 @@ untouched.**
   build adds nothing to `fit` but one sentence of help.
 - ⚠ `repair` on a ship must not also do `maintain`'s work: the ladder's
   wear rung is skipped for a hull whose fabric `maintain` mends (W0 names
-  the predicate; never a cast).
+  the predicate; never a cast). ⚠ Re-planned at W0: no runtime predicate
+  exists (`Maintainable` is a bare interface; `MaintainController.kept()`
+  is an `instanceof` pair), and `isFaced && bareWearPerDay() > 0` is wrong
+  because D7 gives the BOAT that override while her wear rung IS `repair`.
+  W3 adds the hook `DurableMixin.keptByUpkeep(): boolean` (`@hook`, default
+  false; `Ship` and `Building` answer true) and the ladder skips the wear
+  rung on it. `repair <ship>` binds through `Place.landedStructuresNow()`
+  from the quay (`BerthExit.alongsideNow`) and from an open deck room, NOT
+  from a cabin that holds air — the drive patches from the quay; a
+  `Building` binds the same way from its landing, and the skip covers it.
 
 **D9 — Held contents drain on read, with ONE wake.** The wall's exchange
 (still triggered by a read of the interior, at most once a game-minute)
@@ -605,7 +617,12 @@ hull runs through `Bilge.leakedBetween`, the shipped integrator.
   payload }` (liquid a solid gives up). ⭐ The primitive asks the source
   for its `dripSlots()` itself; no caller passes a chain. It fills each
   slot in order by `transfer`, skips a vessel already holding a different
-  liquor, and puts what is left on the floor. With nowhere at all it
+  liquor, and puts what is left on the floor. ⚠ Re-planned at W0:
+  `transfer` into a floor surface already holding a DIFFERENT liquid
+  declines (`material-mismatch`, applied 0) — so at the floor step `drip`
+  debits the source and reports the rest as soaked into the ground (a note
+  on its result; the puddle that is there stays). Lens 1: a leak never
+  pauses because of what is on the floor. With nowhere at all it
   throws `DetachedError` (the crystals' B105 rule).
 - ⭐ **A leak inside something that is not a vessel** — a jug in a pack, a
   crock in a chest. Decided by **lens 1** (the world is derivable: water
@@ -789,8 +806,14 @@ pour.
 - The boiler brain (`refines.ts`) gains one step after `pour <kettle>
   into <mould>`: `put <piece of sugar> in <mould>` when a piece is in its
   reach, else `stir <mould>`. The boiling floor's `props:` gain sugar to
-  seed with; W0 confirms the brain's `put` binds that prop from the
-  boiler's scope.
+  seed with (⚠ re-planned at W0: `put`'s `item` is `scope: inventory`
+  with `mustBeInInventory`, so a floor prop does NOT bind; the brain says
+  `get <sugar>` first, the `get <mould>` → `put` precedent at
+  `refines.ts:245–247`; the floor has no sugar prop today and gains
+  `/trade/sugar/thing/sugar-piece`). The boiler stands on the boiling
+  floor (its `cast:`), and the brain's lines run through the player
+  dispatcher (`executeCommand`, unforced), so `get` then `put` bind as a
+  player's would.
 
 **D16 — One vaporization, one route.** The two points stay two fields
 (`boilingPoint` for a liquid, `vaporizesAboveK` for a solid — a solid's
@@ -969,7 +992,7 @@ Each wave ends at one commit, staged by name, pushed. Each runs `pnpm
 test:near`, the touched packs' own vitest and `lint:family` before it
 commits. B4 at every wave: grep `packages/content` for every renamed key.
 
-### W0 — truth and census
+### W0 — truth and census ✅ done (SHA)
 
 - Correct `D/maturation.md:179` and
   `docs/slates/trades/libations-slate.md:106` (imparts deplete — true
@@ -992,6 +1015,48 @@ commits. B4 at every wave: grep `packages/content` for every renamed key.
     host check);
   - which reach near the Rejection put-in is snag-choked.
 - **Commit:** `plan(matter-overlaps): W0 — docs say what is true; the two censuses`.
+
+**Build note (W0).** Docs corrected (`D/maturation.md` § `imparts`,
+libations slate). Censuses at `lib/bulk/__tests__/BatchOnHolder.census.test.ts`
+(`BATCH_ON_HOLDER_CEILING` 38 → W1 to 0) and `Receiver.census.test.ts`
+(`DRIP_RECEIVER_CEILING` 16 → W2 to 0; `VAPOR_RECEIVER_CEILING` 6 → W6 to 0),
+counted by code signature with comments stripped; a site W1 keeps because it
+now reads the holder's OWN grade leaves the list with a build-note line.
+Findings, one each:
+- Floor of another liquid: `transfer` declines `material-mismatch`, applied 0
+  → D10 re-planned (the drip soaks the rest into the ground, reported).
+- `riverAt` returns `{currentMps, depthM, roughness, course, km, barSide,
+  widthM}` and drops the stretch — no `obstruction` → D7 re-planned (W3 adds it).
+- `repair <ship>` binds from the quay and an open deck, not an air-holding
+  cabin; no runtime "maintained hull" predicate exists and the Faced
+  `bareWearPerDay` pair would catch the boat → D8 re-planned
+  (`DurableMixin.keptByUpkeep()` hook, Ship + Building true).
+- `/auth/test-hand` needs no change: `dataOverlay` runs the applier's phase 1
+  over every persistent field, and `interiorPayload`, `absorbed`, `coats`,
+  `parts` all are. ⚠ `parts` is bracket-assigned whole and `ensureParts`
+  then leaves `joints` empty — a drive overlaying a stave line's `failed: 1`
+  must overlay `joints` too.
+- `refines.ts`' `put` does NOT bind a floor prop (`item` is `scope:
+  inventory`) → D15 re-planned (`get` first; the floor gains a sugar-piece).
+  ⚠ For W5: `refines.ts:276` `put block in <kettle>` has no `get` before it
+  and the unit test checks only strings — likely a shipped defect.
+- Bulkable composers: 30 direct (17 kernel, 13 packs); 29 hold an interior,
+  1 (`Floor`) is surface-only; slots are per row (`interiorBulk`) → D15
+  stands on `BulkableMixin`, the refusal is the per-instance
+  `hasInteriorBulk()` read.
+- Rejection: no authored `obstruction` anywhere (seeded per bend,
+  `RiverLine.ts:568`); put-in km 60.4 is bend #2 (clear); nearest choked is
+  bend #4 ≈ km 59.2–58.5, then #7 → drive step 11 rewritten (offline hash;
+  W8 confirms live).
+- Not-opened items: `BlendIdentity` is identity only (name/appearance/
+  keywords/discipline) → W1 takes the plan's fallback, `renderVerdict`
+  takes the stamp; `Compounding.ts:321` and `CleanserUse.ts:35` vent by hand
+  → W6 moves them too; maple sap is
+  `trade-forestry/content/stuff/idea/material/food/maple-sap.yaml`; no `look`
+  line names a Vat's maker → step 6 uses `analyze condition`; whiskey
+  (`whiskey-aging.yaml`) has no length field, `ratePerDay` 0.011 —
+  whiskey at ≈23 game-days, finished ≈90; `lint:drive-scripts` only bans
+  `scripts/drive-*.ts` (drives live at `packages/wire/tests/<f>(.dirty).wire.test.ts`).
 
 ### W1 — the batch is the contents' (D1–D3)
 
@@ -1172,7 +1237,9 @@ commits. B4 at every wave: grep `packages/content` for every renamed key.
 ### W6 — one vaporization, and the nose (D16–D18)
 
 - `BiomeApi.vent` / `BiomeLogic.vent`; `Burner.receiveVolatiles`' default
-  keeps chamber air; delete `routeVolatile`; move the four callers;
+  keeps chamber air; delete `routeVolatile`; move the four callers (and
+  W0's two more: `Compounding.ts:321` and `CleanserUse.ts:35` add vapor to
+  the room by hand — census (2) vapor half counts them);
   `chamberVapors` in litres by vapor row; the going-out vent.
 - `BiomeLogic` humidity; `Evaporation`'s saturation read.
 - `SmellModality.ownSmell`; the held-still guard and the restore door on
@@ -1296,7 +1363,7 @@ route gains it in W0.
 | 8 | a sprung stave leaks | short | staged | `hand` a full cask with a `parts` overlay, `failed: 1` on the stave line; one game hour (the level falls, the floor pools); `hand` the player a `/trade/coopering/thing/stave` and a `driving` tool, give them coopering at proficient (`practice coopering hard success`, the assembly drive's way); `fit stave to cask`; a further hour and the level holds |
 | 9 | a cracked glazed crock | short | staged | `hand` a glazed crock, cracked, full |
 | 10 | the crock remembers and washes (the creamery) | short | player | none — the shipped butter crock, emptied, refilled, washed |
-| 11 | a snag holes her; `repair` patches her | short | staged | the rowboat: a clock jump to night and the boat launched on the choked reach W0 named (moved there with `eval --parcel` if none is at the put-in), then PADDLED — the hole is play's; the Hesper: `stageShip` at the city quay's choked stretch, at night, then `course` at speed; each patched with stock of her own material |
+| 11 | a snag holes her; `repair` patches her | short | staged | the rowboat: a clock jump to night and the boat launched at the Rejection put-in (km 60.4, bend #2, clear) and PADDLED downstream to the choked bend #4 (≈ km 59.2–58.5, `obstruction` ≈ 0.52 > `SNAG_CHOKED` 0.5; W0's offline computation of the seeded snag — confirm it on the running world) — the hole is play's; the Hesper: `stageShip` at the city quay's choked stretch, at night, then `course` at speed; each patched with stock of her own material |
 | 12 | salt glazing | staged | player | `stage` the kiln lit and at heat with stoneware in it; the player puts the salt in, smells, reads the air, lets the fire out |
 | 13 | steam and fouled air | short | player | a copper boiled by play; `hand` a retort with no condenser |
 | 14 | rain and glaze (the weathering ground) | short | staged | `pinWeather('rain', …)`; two `hand`ed pots; held moisture read by `eval` (no player reading exists, and none is added); green ware in the hacks |

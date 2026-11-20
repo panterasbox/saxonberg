@@ -103,8 +103,9 @@ no producer. ⚠ The real prize is **`imparts` as a DEPLETING reservoir**:
 a cask's second fill should give less than its first (first-fill vs
 refill is the whole economics of barrel trading), and that is the RGO
 law's reservoir/recharge shape applied to a vessel instead of to ground.
-Today `imparts` does not deplete and the plan recorded it as a known
-coarseness.
+✅ Built by coopering: `imparts` depletes — each fill after the first
+spends `maturing.impartsSpentPerFill` (`impartsSpent`), and a re-fire
+restores it ([maturation.md](../../subsystems/maturation.md) § `imparts`).
 
 **A sherry-seasoned cask** — vessel *history* writing `imparts`. The same
 mechanism as coopering, one step further: what the cask held last changes

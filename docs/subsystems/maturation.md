@@ -174,12 +174,18 @@ character over the course of a batch.* True of every vat — an oak
 fermenter does exactly this — and vacuous when a row authors none, so **no
 guard anywhere re-narrows the host set.**
 
-⚠ Two known coarsenesses, recorded rather than modelled: the figure is
+⚠ One known coarseness, recorded rather than modelled: the figure is
 per litre regardless of **fill level** (a small fill in a big cask ought
-to extract harder), and `imparts` does not **deplete** (a cask's second
-fill reads the same as its first, where a real refill gives less). The
-depleting reservoir is the RGO law's shape and belongs to a coopering
-build.
+to extract harder).
+
+⭐ `imparts` **depletes** (since the coopering build — assembly D9): every
+fill after the first spends `maturing.impartsSpentPerFill` (a third) of
+what the vessel has to give, recorded in `impartsSpent`, so a third fill
+gives little and a fourth nothing (`isSpent()`). `effectiveImparts`
+scales the authored figure by what is left. A cooper's `refire()` restores
+it and chars the inside, after which the vessel gives its
+`charredImparts`. See [assembly.md](./assembly.md) § Coopering and the
+cask.
 
 ⚠ **Idempotence is the trap, not the arithmetic.** The write is
 reconcile-on-read, so without the `impartedFraction` marker the oak would
