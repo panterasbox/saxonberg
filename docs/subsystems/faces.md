@@ -154,6 +154,13 @@ immersed in water evaporates nothing (underwater's immersed branch wins). One
 wet-bulb formula serves the body and the jar
 (`Evaporation.wetBulbK()`).
 
+⭐ **The film has a limit** (matter-model-overlaps D10). The weep wets the
+vessel's own outside up to what that wall can hold (`waterCapacityKg`), and
+what the film cannot hold drips — by the one drip, `BulkableApi.drip`
+([spatial.md](./spatial.md) § What is under it — the drip): into the pack
+it is carried in (wetted up to the pack's own capacity), then onto the
+floor. A jar left long enough on a bare floor stands in its own damp ring.
+
 Porous ware also **keeps** what it held. Grease lodges in a bare porous face,
 and a share of a fill's aromas (`faces.aromaRetained`, 0.1) stays on the
 inside face and goes into the next fill: the crock that remembers the pickles.
@@ -162,13 +169,16 @@ Glazed ware and stoneware keep nothing, which is what *hygienic* means here.
 ## ⭐⭐ The water filter — through, when there is somewhere to go (S9, W8)
 
 The same weep, with one question first: **is there a vessel to run into?**
-`BulkableMixin.seepReceiver()` is the vessel the porous body stands ON (the
-`drainsInto()` rule — its placement host) or, failing that, the vessel it is
-set IN (its container), when either holds liquid in an interior. With a
-receiver the water does not weep onto the body's outside; it runs THROUGH
-the wall into the receiver, at `porosity × faces.filterLPerHourPerL` (5) per
-hour per liter held — a free flow, not an evaporation, so about 250× the weep.
-No receiver, and the body weeps as above.
+The answer is what is under the body (`Containable.dripSlots()`,
+matter-model-overlaps D10): the vessel it is set IN (its container), then
+the vessel it stands ON (its placement host), when either holds liquid in an
+interior and holds nothing but what would come through. With such a vessel
+the water does not weep onto the body's outside; it runs THROUGH the wall
+and on by the one drip (`BulkableApi.drip`, `via: { through: 'pores' }`),
+at `porosity × faces.filterLPerHourPerL` (5) per hour per liter held — a
+free flow, not an evaporation, so about 250× the weep. What the vessel has
+no room for runs on to the floor. No such vessel, and the body weeps as
+above.
 
 ⭐ **What comes through is what the pores let through** — `Material.filteredTo`
 on the liquid's own row, else the liquid itself. The pores of a filter body
@@ -183,11 +193,11 @@ bacterium and far larger than an ion, so:
   solids and hardness go through (folded by volume into what is there); the
   microbial load (`freshness`) stays behind.
 
-A receiver already holding a different liquid takes none of it (the filter
-holds). The choice — **set IN as well as stood ON** — is because a filter
-candle sits in the mouth of a crock, and `ClayVessel` offers no placement; the ON
-rule is the one sugar's cone and the salt pan use, so one predicate serves
-both. ⚠ A weeping jar set in a basin now drips into the basin rather than
+A vessel already holding a different liquid is skipped: the filter does not
+flow into it, and weeps slowly onto its own outside instead. The order —
+**IN, then ON, then the floor** — is because a filter candle sits in the
+mouth of a crock, and `ClayVessel` offers no placement; the ON rule is the
+one sugar's cone and the salt pan use, so one chain serves every drip. ⚠ A weeping jar set in a basin now drips into the basin rather than
 wetting its own outside, which is the physics.
 
 The row: `/trade/ceramics/thing/water-filter` (a `ClayVessel`, 2 L, unglazed —

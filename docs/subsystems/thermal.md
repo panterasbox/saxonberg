@@ -1161,8 +1161,13 @@ sun) or the heat did (alum liquor cooling).
   total crop is the same however often anybody reads the pan. Otherwise it
   is SPENT: its material swaps to `crystallizesTo.residue` (brine →
   bittern; alum and saltpeter liquors name themselves, the mother liquor
-  that goes back to the boil) and, in a mold standing on a vessel
-  (`Mould.drainsInto()`), it drains into that vessel ([mould.md](./mould.md)).
+  that goes back to the boil) and, in a mold, it runs off by the one drip
+  (`BulkableApi.drip`, matter-model-overlaps D10) — into the vessel the mold
+  stands in or on, else to the ground ([mould.md](./mould.md)). ⭐ A spent
+  pan's bittern with nothing under the pan runs to the ground; a pan still
+  concentrating keeps its brine. A mold standing over nothing at all (no
+  vessel, no floor) throws `DetachedError`, checked before the liquor
+  changes.
 - **The rows.** Sea water (`bulk/salt-water`: 0.035 kg/L; 0.316 → 0.329
   kg/L freezing to boiling — salt barely cares about heat, which is why it is
   made by taking the water away); `bulk/bittern`; the saltpeter liquor (0.9

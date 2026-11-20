@@ -122,7 +122,7 @@ fair.
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
 | **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }`, read as a `DrainSetting` value class (`loadRatio`, `ratePerDay`, `moistureAt`, `drainedKg`, `becomesFor` — the cure's `Kinetics` shape, B104) | `MouldMixin.reconcileSetting` integrates it |
 | **curing** | the material's `kinetics:` set (`Kinetics.poolSet()` — a point curve with a ladder) | `MouldMixin.reconcileSetting` — no act, no load; the rate at the mould's temperature |
-| **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
+| **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor runs off by the one drip (`BulkableApi.drip`) |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
 
 ### ⭐⭐ When a set advances — banked at its own changes, finished on its own wake (crowded-rooms D8)
@@ -180,18 +180,31 @@ drinks slower until it dries. In anything that does not drink, slip just
 sits there. The cast is the cavity's kind in clay (`slip`'s `becomes`), at
 leather-hard moisture.
 
-### Where the drainings go — `drainsInto()` (W8)
+### Where the drainings go — the one drip (W8; matter-model-overlaps D10)
 
-`Mould.drainsInto(): (Stuff & Bulkable) | null` is the vessel the mold
-stands ON (its placement host) when that vessel holds liquid in an interior,
-else `null` — what runs out of a mold on a board, a shelf or the floor runs
-away. Sugar's signature and body, shipped first here (D32): a sugar cone on
-its curing pot, and the salt pan on its **bittern tub**.
+What runs out of a mold goes where anything that drips goes: to what is
+under it, by `BulkableApi.drip` over `Containable.dripSlots()` — the vessel
+the mold stands IN, then the vessel it stands ON (its placement host), when
+either holds liquid in an interior, then the surface of the floor
+([spatial.md](./spatial.md) § What is under it — the drip). A vessel
+already holding a different liquid is skipped. ⭐ Nothing runs away any
+more: a hoop on a bare board pools its whey on the floor, a cone lifted off
+its pot pools its molasses there, and a floor already wet with something
+else lets the rest soak into the ground (said on the drip's result). A mold
+standing over nothing at all — no vessel and no floor — throws
+`DetachedError`. Sugar's signature and body, shipped first here (D32): a
+sugar cone on its curing pot, and the salt pan on its **bittern tub**.
+
+⭐ **A mold's foot is open** (`passesDripsThrough() → true`): what drips
+off a thing set IN a mold — molasses off a clayed loaf in its cone — runs
+on to what the mold drips to, never into the mold's own interior.
 
 The crystallize arm ([thermal.md](./thermal.md) § Crystallizing) is the
 first caller: a pan whose brine has set its salt runs the spent liquor —
 swapped to `crystallizesTo.residue`, bittern — down into the tub, up to the
-tub's room; a tub already holding a different liquor takes none of it.
+tub's room; a tub already holding a different liquor is skipped, and what
+the tub cannot take — or all of it, with no tub — runs to the ground. A pan
+still concentrating keeps its brine.
 ⭐ The `/trade/quarrying/thing/SaltPan` (`MaturingMixin` over the kernel
 `Mould`, the evaporative `brine` profile taking the water) stands on a
 `/trade/quarrying/thing/Tub` (`PlacingMixin` over `Vat`) at the Rejection
@@ -386,49 +399,65 @@ bending). Pressing IS moulding, because the cavity is the shared thing (M2).
 A drain set no longer throws away what it drives out. `DrainSetting`
 gains `drains` (what the drained matter IS, e.g. molasses off a sugar
 loaf) and `drainPerBand` (an extra share per grade band below `fine`: a
-poor strike gives up more and keeps less). When the mould stands ON a
-vessel that can take them (`drainsInto()`: the placement host, Bulkable,
-with an interior), the drainings run into it **as the set progresses**:
-each step drains `total × progress`, tracked in `setDrainedKg`, and the
-remainder goes at the set.
+poor strike gives up more and keeps less). The drainings run to what is
+under the mould (the one drip, above) **as the set progresses**: each step
+drains `total × progress`, tracked in `setDrainedKg`, and the remainder goes
+at the set.
 
 ⭐ **The drainings are a transfer through the set** (re-plan R1-D8):
-`BulkableApi.transfer(pool, below, …, { through: 'set', arrivesAs })`, the
-one move ([bulk.md](./bulk.md) § `TransferVia`). The population and the
+`BulkableApi.drip({ from: pool, litres, via: { through: 'set', arrivesAs,
+grade } })`, which is a `transfer` per slot under it, the one move
+([bulk.md](./bulk.md) § `TransferVia`). The population and the
 dissolved go with the liquid, the maker goes with it, the solid's identity
 does not, and the drainings are their own material at its own strength. The
 grade — on the drainings' PAYLOAD (D2) — is one band below what the pool
 sets at (`min(payload.grade, mould grade)`, the cast's own), never above
-what the vessel below already held; `drainPerBand` reads the same grade. What that vessel has no room for — or all of it, when nothing
-is beneath or the vessel holds a different liquor — runs away (a transfer to
-no sink). ⚠ The pool is therefore DEBITED as it sets: the set reads the
+what the vessel below already held (the grade rides `TransferVia.grade`,
+and a top-up takes the lower); `drainPerBand` reads the same grade. What
+that vessel has no room for — or all of it, when nothing is beneath or the
+vessel holds a different liquor — runs on to the floor. ⚠ The pool is
+therefore DEBITED as it sets: the set reads the
 charge it started from as what is in it plus `setDrainedKg` at the
 drainings' density, and the cast's mass is that charge less what drained.
 Consumers: a sugar cone on its curing pot (molasses), and a cheese hoop
 standing on a vessel (both curds author `drains: whey`); a mould on a board
-lets its drainings run away.
+pools its drainings on the floor.
 
 ## ⭐ Percolation — a liquid through a porous solid (sugar, 2026-10)
 
 `PercolatingMixin` (`lib/material/Percolating.ts`) composes on a porous
-SOLID. `receivePercolant(litres)` puts liquid on it. The **reach**
-(`0..1`) advances over the host's `percolationDays()` while liquid is
-working — banked at the heap's own changes (`receivePercolant`, `onMoved`)
-and finished on a game-clock wake at its due time (`percolationWakeAtS`,
-re-armed by `setPercolationWakeAtS`; crowded-rooms D8) — and each advance
-calls the host's
-`@hook onPercolated(from, to)`. `percolatesInto()` names where what
-comes out goes: the vessel below the mould the solid sits in (a loaf in
-its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
+SOLID. Liquid is put on it two ways. ⭐ It is a **pour target**
+(`PourTargetMixin`; matter-model-overlaps D10b): `pour pail onto heap`
+takes the liquid out of the vessel and the heap keeps what it is, its
+`percolant` — `{ material, payload, litres }`, persistent, its material
+loaded by the restoring setter `setPercolant`. One liquid at a time: another
+kind poured on while one is working through answers `mismatch`. Or
+`receivePercolant(litres)` puts on it the liquid it already lies in (a
+hopper's liquor, a lump of wet clay's water) — `material: null`, carried out
+in place by the host. The **reach** (`0..1`) advances over the host's
+`percolationDays()` while liquid is working — banked at the heap's own
+changes (a pour, `receivePercolant`, `onMoved`) and finished on a game-clock
+wake at its due time (`percolationWakeAtS`, re-armed by
+`setPercolationWakeAtS`; crowded-rooms D8) — and each advance calls the
+host's `@hook onPercolated(from, to)`. ⭐ A POURED liquid comes out of the
+bottom as the reach advances — the share of what is left that this stretch
+lets through — as the host says it left (`@hook percolateOut`), by the one
+drip (`BulkableApi.drip({ off: heap, … })`): into the vessel the heap is
+in, else the one it stands on, else onto the floor. A clayed sugar loaf
 is the first consumer: its head washes white past a third of the reach,
 its middle past two-thirds, its foot when the water is through, and
-the molasses it carries out runs into the pot. ⭐ The lye hopper's ash is
-the second consumer (cordage W7): a heap overrides `percolatesInto()` to
-answer the hopper it lies IN, gives up its alkali by reach, and is spent
-ash at the bottom. A vessel's seeper reconcile brings any percolating thing
-in it current when that vessel is deliberately read; a heap comes through
-at its due time on its own wake, read or not (the hopper's `getContents`
-override that reconciled its heaps on every read was retired).
+the molasses it carries out drips — through its cone's open foot into the
+pot below, else onto the floor. ⭐ Ash is the second (cordage W7, potash):
+in a hopper the hopper's own liquor is put on the heaps by amount and each
+heap enriches the liquor it lies in (`dripSlots()[0]`) by reach — unchanged;
+watered where it lies, a heap answers **lye** (`percolateOut`: the row's
+`leachesTo`, carrying the alkali that stretch gave, its `LyeStrength` band as
+`payload.grade`, whose it is decided at the pour by the communal-oven rule —
+`percolantPoured`), and on a bare floor that is a puddle of lye. Either way
+it is spent ash at the bottom, where it lay. A vessel's seeper reconcile
+brings current whatever drips into it — the same chain read from the
+receiver's side — when that vessel is deliberately read; a heap comes
+through at its due time on its own wake, read or not.
 
 ## Deferred
 

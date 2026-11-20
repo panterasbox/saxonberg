@@ -469,6 +469,14 @@ export interface Bulkable {
    * does not exist.
    */
   hasInteriorBulk(): boolean;
+  /**
+   * @hook ⭐ Does what drips off something standing IN this vessel run on
+   * through it, to what the vessel itself drips to — rather than into its
+   * interior (matter-model-overlaps D10)? `false` by default: a drip off a
+   * filter in a crock lands in the crock. A mould answers `true` — its foot
+   * is open, so molasses off a loaf in its cone runs into the pot beneath.
+   */
+  passesDripsThrough(): boolean;
   /** The interior's capacity in litres; `null` = unbounded / not authored. */
   getInteriorCapacity(): Quantity<'L'> | null;
   hasSurfaceBulk(): boolean;
@@ -925,6 +933,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public hasInteriorBulk(): boolean {
       return this.interiorBulk;
     }
+    public passesDripsThrough(): boolean {
+      return false;
+    }
     public hasSurfaceBulk(): boolean {
       return this.surfaceBulk;
     }
@@ -1190,25 +1201,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return 'holds';
     }
 
-    /**
-     * ⭐ (ceramics W8) The vessel a porous body's seep runs INTO, or `null`
-     * (it weeps onto its own outside). The vessel it stands ON — the same
-     * rule as `Mould.drainsInto()`, the sugar cone on its pot — else the
-     * vessel it is set IN (a filter in the mouth of a crock). Either must
-     * hold liquid in an interior.
-     */
-    private seepReceiver(): (Stuff & Bulkable) | null {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isContainable(self)) return null;
-      const on = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
-      const candidates = [on, self.getContainer() as unknown as Stuff | null];
-      for (const c of candidates) {
-        if (c === null || c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
-        return c;
-      }
-      return null;
-    }
-
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
@@ -1222,16 +1214,20 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     private _seepersReconciling = false;
 
     /**
-     * ⭐ Bring current whatever seeps INTO this vessel — a filter set in its
-     * mouth, a body standing on it — before saying what it holds. A seep is
-     * integrated on the SEEPER's read, so a crock looked into while its
-     * filter went unread showed nothing dripped in three hours (the
-     * ceramics drive C, run 37). Load on use: the read that needs the
-     * answer brings the chain current.
+     * ⭐ Bring current whatever drips INTO this vessel — a filter set in its
+     * mouth, a body standing on it, ash lying in it, a loaf in a cone on it —
+     * before saying what it holds. A drip is integrated on the DRIPPER's read,
+     * so a crock looked into while its filter went unread showed nothing
+     * dripped in three hours (the ceramics drive C, run 37). ⭐ The same chain
+     * the drip reads, from the receiver's side (matter-model-overlaps D10):
+     * what stands in or on this vessel — and in an open-footed one on it —
+     * whose `dripSlots()` name this interior. Load on use: the read that
+     * needs the answer brings the chain current.
      */
     private reconcileSeepers(): void {
       if (this._seepersReconciling || this._peeking > 0 || ExecutionContextApi.worldHeldStill) return;
       const self = this as unknown as Stuff;
+      if (!this.interiorBulk) return;
       this._seepersReconciling = true;
       try {
         const near: Stuff[] = [];
@@ -1248,10 +1244,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
               throw err;
             }
         }
+        // An open foot hands its contents' drips on (`passesDripsThrough`).
+        for (const c of [...near]) {
+          if (c !== self && MixinApi.isBulkable(c) && c.passesDripsThrough() && MixinApi.isContainer(c)) {
+            near.push(...(c.getContents() as Stuff[]));
+          }
+        }
         for (const c of near) {
-          if (c === self) continue;
+          if (c === self || !MixinApi.isContainable(c)) continue;
+          if (!c.dripSlots().some((s) => s.getHolder() === self && s.affordance === 'interior')) continue;
           // ⭐ A porous solid a liquid works down through into this vessel —
-          // ash in a hopper, a loaf on its pot — is brought current too
+          // ash in a hopper, a loaf over its pot — is brought current too
           // (cordage W7: the hopper's lye is what its heaps have given up).
           if (MixinApi.isPercolating(c)) c.reconcilePercolation();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
@@ -1402,15 +1405,25 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // The weep.
         let left = litres;
         let seepL = 0;
+        // ⭐ What comes through the wall is what the pores let through
+        // (`Material.filteredTo`), whichever way it goes.
+        const through = MixinApi.hasSolution(material) ? material.getFilteredTo() : '';
+        const arrivesAs = through !== '' ? (MaterialApi.materials().peek(through) ?? null) : null;
         if (weeps) {
           // ⭐⭐ (ceramics S9, W8) **Through, when there is somewhere to go.**
-          // A porous body set ON or IN a vessel that holds liquid does not
-          // weep onto its own outside — the water runs through the wall and
-          // drips into the vessel below, which is the whole of a ceramic
-          // water filter. A free flow, not an evaporation, so it runs at the
-          // faster `faces.filterLPerHourPerL`; and what comes through is
-          // what the pores let through (`Material.filteredTo`).
-          const below = this.seepReceiver();
+          // A porous body set IN or ON a vessel that will take what comes
+          // through does not weep onto its own outside — the water runs
+          // through the wall and drips into the vessel below, which is the
+          // whole of a ceramic water filter. A free flow, not an evaporation,
+          // so it runs at the faster `faces.filterLPerHourPerL`. The vessel is
+          // the first of what is under it (`dripSlots`, D10) that holds
+          // nothing else.
+          const arriving = arrivesAs?.getTemplatePath() ?? this.interiorMaterial;
+          const below =
+            MixinApi.isContainable(self) &&
+            self.dripSlots().some(
+              (s) => s.affordance === 'interior' && (s.isEmpty() || s.getMaterialPath() === arriving),
+            );
           const rate = below
             ? bulkDial(AppSettingKeys.facesFilterLPerHourPerL, 5)
             : bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
@@ -1418,12 +1431,19 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           if (lost > 0 && below) {
             seepL = lost;
           } else if (lost > 0) {
-            left -= lost;
+            // ⭐ With nothing under it the weep wets the vessel's own outside
+            // first — the film and its evaporation ARE the weeping jar
+            // (faces.md) — and what the film cannot hold drips (D10).
+            let filmL = lost;
             if (MixinApi.isWet(self)) {
               const cap = self.waterCapacityKg();
-              const kg = (lost / 1000) * material.getDensity().rawValue();
-              if (cap > 0) self.wet(kg / cap);
+              const density = material.getDensity().rawValue();
+              const freeKg = (1 - self.getWetness()) * cap;
+              filmL = cap > 0 && density > 0 ? Math.min(lost, (Math.max(0, freeKg) / density) * 1000) : 0;
+              if (filmL > 0) self.wet(((filmL / 1000) * density) / cap);
             }
+            left -= filmL;
+            seepL = lost - filmL;
           }
         }
         payload.faceCheckedS = nowS;
@@ -1431,23 +1451,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // The fill stamp is spent: from here the payload's own clock runs.
         this._interiorFilledAtS = null;
         if (left !== litres) this.interiorAmount = Quantity.of(left, BULK_VOLUME_UNIT);
-        // ⭐ Through, into the vessel below — a TRANSFER through pores, the
-        // one primitive (it debits this slot itself): what is dissolved
-        // comes through, what is suspended stays, and the liquid arrives as
-        // the wall's `filteredTo`. Last, once this slot's own reads are
-        // committed, so the move sees the vessel as it now is.
-        const below = seepL > 0 ? this.seepReceiver() : null;
-        if (below !== null) {
-          const through = MixinApi.hasSolution(material) ? material.getFilteredTo() : '';
-          BulkableApi.transfer(
-            this.getBulk('interior'),
-            below.getBulk('interior'),
-            { kind: 'measure', litres: seepL, mode: 'lenient' },
-            {
-              through: 'pores',
-              arrivesAs: through !== '' ? (MaterialApi.materials().peek(through) ?? null) : null,
-            },
-          );
+        // ⭐ Through, to what is under it — the one drip (D10), a TRANSFER
+        // through pores per slot (it debits this slot itself): what is
+        // dissolved comes through, what is suspended stays, and the liquid
+        // arrives as the wall's `filteredTo`. Last, once this slot's own reads
+        // are committed, so the move sees the vessel as it now is.
+        if (seepL > 1e-12) {
+          BulkableApi.drip({
+            from: this.getBulk('interior'),
+            litres: seepL,
+            via: { through: 'pores', arrivesAs },
+          });
         }
       } finally {
         this._faceExchanging = false;

@@ -1123,7 +1123,7 @@ Decisions the plan did not make:
   `controller-liquidity`'s `newMineKinds` sees it only by its title — check
   in the drive. `help pour` gained the D2 sentence.
 
-### W2 — one drip (D10, D10b)
+### W2 — one drip (D10, D10b) ✅ done
 
 - `Containable.dripSlots`; `BulkableApi.drip` / `BulkableLogic.drip`,
   with the non-bulk-container wetting rule.
@@ -1152,6 +1152,34 @@ Decisions the plan did not make:
   feet.
 - **Acceptance:** census (2), drip half, at zero. **Commit:**
   `feat(spatial): one drip — in, then on, then the floor`.
+
+**Build note (W2).** `Containable.dripSlots()` + `BulkableApi.drip` →
+`BulkableLogic.drip` (one `DripMatter` value; `{off}` draws through a
+module-private `GivenUp` slot so every landing is a real `transfer`);
+`floorSurfaceNear` now reads its floor off `dripSlots`; census (2)'s drip half
+is 0. Decisions the plan did not make:
+- ⚠ A loaf sits IN its cone, so "the vessel it is IN" would catch its molasses
+  in the mould. Rather than re-narrow on `isMould`, `Bulkable` gained a hook
+  `passesDripsThrough()` (default false; `Mould` true — an open foot hands on
+  to what the mould drips to). `reconcileSeepers` follows it and keeps only
+  candidates whose `dripSlots()` name this interior.
+- `TransferVia.grade` carries the drainings' one-band drop (a top-up still takes
+  the lower via `lowerGrade`). The weep's filter rate applies when an in/on
+  vessel would TAKE what comes through (empty or same liquid); a crock of
+  something else is skipped and the filter weeps slowly instead (was: held).
+  The weep film is capped at the wall's `waterCapacityKg`; the rest drips.
+- Percolation: `percolant {material|null, payload, litres}` with restoring setter
+  `setPercolant`; `receivePercolant(litres)` stays the in-place form (hopper,
+  clay). New hooks `percolateOut` (ash → lye) and `percolantPoured(by)` (ash
+  titles the lye at the pour, the hopper's communal-oven rule). Non-liquid
+  source → `nothing`; another liquid on a working heap → `mismatch`. `pour`
+  gained the `onto` preposition. Opens 3 decided: the lye path is authored on
+  the Ash row (`leachesTo`, constituent ref) — on `wood-ash.yaml`, naming
+  chandlery's lye from trade-fuel content (fuel cannot depend on chandlery;
+  a cross-pack row reference with no package dependency, recorded).
+- Every drip with nowhere throws `DetachedError` — a spent mould pan checks
+  before its liquor changes. Unit-test rooms that drain now carry a floor
+  (Mould, Mould.drainings, Thermal.crystallize, dairying hoop).
 
 ### W3 — one leak (D4–D9)
 

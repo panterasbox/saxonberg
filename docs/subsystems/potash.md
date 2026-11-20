@@ -29,6 +29,7 @@ founding requirement (2026-10-18) and it is why the ash row lives in
 | burn | `stoke brash into pit`, `light pit`, `draught wide` | the **ash pit** is simply a big Burner (`AshPit extends Firebox`) | trade-potash |
 | rake | `rake pit` (its own verb since controller-liquidity W18; no tool gate) | the grate rule: kg burnt × `ashFraction`, its alkali by `alkaliShare` → heaps of `fire.ash.heapKg` | `Burner.consumeFuel`, `mintAshHeaps` |
 | leach | `put ash in hopper`, `pour pail into hopper` | the liquor PERCOLATES down through the heaps over half a day, each giving up its alkali; heaps leave **spent ash** once it is through; a lye poured back through fresh ash is a second pass | `Ash` (`PercolatingMixin`), `Hopper.leach` |
+| leach where it lies | `pour pail onto ash` (a heap on a bare floor, or over a pot) | ⭐ the heap is a pour target (matter-model-overlaps D10b): it keeps the water poured on it, and as the water works down it comes out of the bottom as **lye** — the row's `leachesTo`, carrying the alkali that share of the heap gave, its strength as its grade — by the one drip: into the pot under it, else a puddle of lye on the floor. The hopper's leach is unchanged | `Ash.percolateOut`, `BulkableApi.drip` |
 | read | `analyze density hopper` (an egg in reach) | the **egg** is the density reading's eye rung; the glass words a lye too | `DensityReading`, `LyeStrength` |
 | boil | `pour pail into pot`, a fire under it | the kernel's latent-heat **plateau**; the pot keeps count of the alkali and casts the cake when dry | `IronPot` |
 | calcine | `put cake in kiln`, `fire kiln` | the black salts' own `calcine` heat transition (ceramics M1 — no recipe); the same cake comes out, made of pearl ash, its potash concentrated | `ThermalMixin` heat-work |
@@ -126,6 +127,9 @@ The chain's goods are titled by the kernel's fresh-good rule
 - **A liquid carries its owner** (`BulkPayload.contentsOwner`). The hopper
   writes it from the heaps' titles; a pour blends it by agreement: untitled
   water makes no claim, and two owners make it nobody's.
+- ⭐ **Water poured on a heap** is titled at the pour by the same rule
+  (`Ash.percolantPoured`): the heap's owner and the water's agree, or the
+  lye is nobody's; nothing titled at all, and it is whoever poured.
 - ⭐ **What is made in somebody else's vessel belongs to whoever owned the
   contents.** Your lye in the ashery's pot makes your cake. When nothing
   titled went in (the ashery's own ash store, rain), it belongs to the

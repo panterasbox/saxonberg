@@ -42,6 +42,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Container } from './Container';
+import type { BulkSlot, Bulkable } from '../bulk/Bulkable';
 import type { Placing } from './Placing';
 import type { VetoResult } from '../errors';
 import type { ActRefusal } from '../craft/ActPlan';
@@ -177,6 +178,21 @@ export interface Containable {
    * me is still `getContainer()` (`me:e`). Controller-liquidity D7.
    */
   getEnclosingPlace(): (Stuff & Container) | null;
+
+  /**
+   * ⭐⭐ **What is under me, for what drips off me** (matter-model-overlaps
+   * D10) — positional and pure, in order: the interior of the vessel I am
+   * IN (a filter in a crock's mouth, ash in its hopper), then of the vessel
+   * I stand ON (a cone on its curing pot, a hoop on its pail), then the
+   * surface of the floor of the place I am in. A vessel counts when it
+   * holds liquid in an interior; one whose foot is open
+   * (`passesDripsThrough` — a mould) hands on to what IT drips to. `[]`
+   * when nothing is under me at all.
+   *
+   * Only WHERE. What lands, and what to skip (a vessel already holding
+   * something else), is `BulkableApi.drip`'s — the one drip.
+   */
+  dripSlots(): BulkSlot[];
 
   /**
    * ⭐ **The chain above me, innermost first** — the one walk up
@@ -561,6 +577,34 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** See the interface docstring (controller-liquidity D7). */
+    dripSlots(): BulkSlot[] {
+      const self = this as unknown as Stuff;
+      const out: BulkSlot[] = [];
+      const catches = (s: Stuff | null): s is Stuff & Bulkable =>
+        s !== null && s !== self && MixinApi.isBulkable(s) && s.hasInteriorBulk();
+      const inside = this.getContainer() as unknown as Stuff | null;
+      if (catches(inside)) {
+        // ⭐ An open foot: what drips off me runs on to what the vessel drips to.
+        if (inside.passesDripsThrough() && MixinApi.isContainable(inside)) return inside.dripSlots();
+        out.push(inside.getBulk('interior'));
+      }
+      const on = (this.getPlacement()?.host ?? null) as unknown as Stuff | null;
+      if (catches(on)) out.push(on.getBulk('interior'));
+      // The floor of the place I am in — at a carrier's feet when I am carried.
+      let cur: Stuff | null = inside;
+      for (let hops = 0; cur !== null && hops < 16; hops++) {
+        if (MixinApi.isAdornable(cur)) {
+          const floor = cur.getFloor();
+          if (floor && floor.hasSurfaceBulk()) {
+            out.push(floor.getBulk('surface'));
+            break;
+          }
+        }
+        cur = MixinApi.isContainable(cur) ? (cur.getContainer() as unknown as Stuff | null) : null;
+      }
+      return out;
+    }
+
     getEnclosingPlace(): (Stuff & Container) | null {
       const first = this.getContainer();
       let cur: Stuff | null = first;

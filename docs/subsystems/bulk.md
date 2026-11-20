@@ -444,6 +444,19 @@ water state or its dissolved-solids strength, which the set is what changed
 that material's own. The payload is a whitelist (`throughSet`), so a field a
 later subsystem declares stays with the solid until it says otherwise.
 
+`grade` on a `TransferVia` is the batch grade what arrives carries as its
+own (`payload.grade`) — how the mould grades its drainings, a band under the
+pool; a top-up still takes the lower of it and what the receiver held.
+
+⭐⭐ **Where a drip goes is not the caller's** (matter-model-overlaps D10):
+the weep and the filter, a mould's drainings, a spent pan's liquor, a
+percolating heap's run-off and a burst pipe's water all leave by
+`BulkableApi.drip(matter)`, which asks the source what is under it
+(`Containable.dripSlots()` — the vessel it is in, then on, then the floor)
+and transfers into each in turn. `{ off: solid, material, litres, payload }`
+is liquid a solid gives up, with no slot behind it. The whole rule is
+[spatial.md](./spatial.md) § What is under it — the drip.
+
 `amount` is a `TransferAmount`: `{ kind: 'all' }` (the whole source,
 clamped to the destination's room — `drink` / `spill` / default `pour`)
 or `{ kind: 'measure'; litres; mode }` (a specific volume — `fill`-to-

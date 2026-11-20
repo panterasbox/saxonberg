@@ -262,15 +262,13 @@ export default class PipeRun extends PipeRunBase {
       }
     }
     if (floor === null) return;
-    const slot = BulkableApi.slotFor(floor, undefined);
-    const water = this.carried();
-    if (slot === null) return;
     // ⭐ The burst's water — what stood in the run and what the main pushed
     // through the split before anybody noticed — lies on the floor until it
-    // dries. What the surface cannot hold soaks away.
+    // dries: the one drip (matter-model-overlaps D10), so it is a TRANSFER
+    // that never mixes into another liquid lying there. What the surface
+    // cannot hold, or a floor already wet with something else, soaks away.
     const litres = Math.max(1, this.lengthM * LITRES_PER_M) * 20;
-    if (slot.isEmpty()) slot.setMaterial(water);
-    slot.setAmount(Quantity.of(slot.getAmount().rawValue() + litres, 'L'));
+    BulkableApi.drip({ off: this as unknown as Stuff, material: this.carried(), litres, payload: null });
   }
 
   /**

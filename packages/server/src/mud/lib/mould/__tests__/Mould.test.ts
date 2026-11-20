@@ -14,6 +14,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
+import Place from '../../stuff/Place';
+import Floor from '../../../platform/thing/Floor';
 import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
@@ -55,9 +57,7 @@ class TestPail extends ThermalMixin(BulkableMixin(Good)) {
 class TestPot extends PlacingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))) {
   static _mixinName = 'TestMouldPot';
 }
-class TestRoom extends ContainerMixin(Good) {
-  static _mixinName = 'TestMouldRoom';
-}
+class TestRoom extends Place {}
 /** A cast that remembers what it was made from — the wheel's duck. */
 class TestCast extends Provision {
   public madeFrom = '';
@@ -132,8 +132,17 @@ function curd(): Syrup {
   });
 }
 
+/** A room with a floor: what a mould drips runs to it when nothing else is under it. */
 function room(): TestRoom {
-  return makeStuff(() => new TestRoom());
+  const r = makeStuff(() => new TestRoom());
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setSurfaceCapacity(Quantity.of(100, 'L'));
+  r.addFixture(floor);
+  return r;
+}
+function floorOf(r: TestRoom): Floor {
+  return r.getFloor() as unknown as Floor;
 }
 
 function fillVessel<T extends Stuff>(v: T, mat: Syrup, litres: number, tempK: number): T {
@@ -378,7 +387,7 @@ describe('moulds — the container decides the shape', () => {
       const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
       if (MixinApi.isGraded(cone)) cone.setGrade(Grade.of('fine'));
       ContainmentApi.move(cone, pot, Placements.ON);
-      expect(cone.drainsInto()).toBe(pot);
+      expect(cone.dripSlots()[0]?.getHolder()).toBe(pot);
 
       cone.reconcileSetting(); // stamps the start
       advanceTo(2 * DAY);
@@ -389,7 +398,6 @@ describe('moulds — the container decides the shape', () => {
       // The drainings' grade is their PAYLOAD's (matter-model-overlaps D2),
       // a band below the pool's; the pot keeps its own making.
       expect(pot.getBulkPayload('interior')?.grade).toBe('fair');
-      expect(MixinApi.isGraded(pot) ? pot.getGrade().getBand() : '').toBe('fair');
 
       advanceTo(5 * DAY);
       cone.reconcileSetting();
@@ -422,16 +430,19 @@ describe('moulds — the container decides the shape', () => {
       expect(matOf(cone)?.getTemplatePath()).toBe(LOAF);
     });
 
-    it('with nothing beneath, the drainings run away — the hoop on its board', async () => {
+    it('⭐ a cone lifted onto the floor pools its drainings there (the one drip, D10)', async () => {
       const r = room();
       const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
       ContainmentApi.move(cone, r);
-      expect(cone.drainsInto()).toBeNull();
+      expect(cone.dripSlots().map((s) => s.affordance)).toEqual(['surface']);
       cone.reconcileSetting();
       advanceTo(5 * DAY);
       cone.reconcileSetting();
       await settle();
       expect(contentsOf(cone)).toHaveLength(1);
+      const floor = floorOf(r);
+      expect(floor.getBulkMaterialPath('surface')).toBe(MOLASSES);
+      expect((floor.getBulkAmount('surface').rawValue() / 1000) * 1400).toBeCloseTo(1.35, 3);
     });
   });
 

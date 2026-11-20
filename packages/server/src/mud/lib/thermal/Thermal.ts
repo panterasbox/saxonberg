@@ -2866,9 +2866,10 @@ async function setLump(
  *    material, so the crop keeps growing as the water keeps leaving and
  *    the total set is the same however often anybody looks;
  *  - otherwise the liquor is SPENT: its material swaps to
- *    `crystallizesTo.residue` (brine's bittern) and, in a mold standing
- *    on a vessel that takes drainings (`Mould.drainsInto()`), it runs
- *    down into that vessel.
+ *    `crystallizesTo.residue` (brine's bittern) and, in a mold, it runs
+ *    off by the one drip (`BulkableApi.drip` — into the vessel the mold
+ *    stands in or on, else to the ground; matter-model-overlaps D10). In
+ *    any other vessel the residue stays, the mother liquor.
  *
  * Returns true when it changed the slot (the caller stops for this read).
  */
@@ -2893,11 +2894,17 @@ function crystallizeIfOver(
   // ⭐ Where the crystals go, checked before the liquor changes (B105): a
   // mould keeps them; any other vessel sets them beside it, and one standing
   // nowhere has no beside — the solids used to leave the liquor and vanish.
+  const host = v as unknown as Stuff;
+  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
   if (!MixinApi.isMould(v)) {
     const at = MixinApi.isContainable(v) ? (v.getContainer() as unknown as Stuff | null) : null;
     if (at === null || !MixinApi.isContainer(at)) {
       throw new DetachedError(`${v.getPresentation()} set crystals standing nowhere: they have no place`);
     }
+  } else if (!concentrating && (!MixinApi.isContainable(v) || v.dripSlots().length === 0)) {
+    // …and a mold's spent liquor runs off to what is under it — one
+    // standing over nothing at all has nowhere for it.
+    throw new DetachedError(`${v.getPresentation()} has spent liquor and nothing under it: it has no place`);
   }
   const excessKg = (held - solubility) * litres;
   // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
@@ -2905,8 +2912,6 @@ function crystallizeIfOver(
   // moves it) — subtracting the crystals' volume made a pan whose window
   // had run ahead of its reads lose its whole liquor to the crop.
   const liquorL = litres;
-  const host = v as unknown as Stuff;
-  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
 
   const liquorPayload: BulkPayload = { ...payload, dissolvedSolidsKgPerL: solubility };
   v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
@@ -2914,11 +2919,10 @@ function crystallizeIfOver(
   if (!concentrating) {
     const residue = MaterialApi.materials().peek(into.residue);
     if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
+    // ⭐ A spent pan's bittern runs to what is under it, and with nothing
+    // under the pan, to the ground (the one drip).
     if (MixinApi.isMould(v) && liquorL > 0) {
-      const below = v.drainsInto();
-      if (below !== null && below !== (v as unknown as Stuff)) {
-        drainLiquorInto(v, aff, below, liquorL);
-      }
+      BulkableApi.drip({ from: v.getBulk(aff), litres: liquorL });
     }
     if (liquorL <= 0) {
       v.setBulkMaterial(aff, null);
@@ -2932,26 +2936,6 @@ function crystallizeIfOver(
     console.error('Thermal: the crystals could not be set', err);
   });
   return true;
-}
-
-/**
- * The spent liquor runs down into the vessel the mold stands on — a
- * TRANSFER, the one primitive, so it carries what the liquor carries and
- * the receiver is asked whether it survives it. What the vessel below has
- * no room for stays in the mould; a different liquor already below is not
- * mixed into (the transfer declines the mismatch).
- */
-function drainLiquorInto(
-  v: Stuff & Bulkable,
-  aff: BulkAffordance,
-  below: Stuff & Bulkable,
-  litres: number,
-): void {
-  BulkableApi.transfer(v.getBulk(aff), below.getBulk('interior'), {
-    kind: 'measure',
-    litres,
-    mode: 'lenient',
-  });
 }
 
 /**

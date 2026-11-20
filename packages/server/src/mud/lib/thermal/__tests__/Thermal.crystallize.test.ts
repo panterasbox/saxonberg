@@ -4,8 +4,9 @@
  * temperature sets the EXCESS: kept in a mould's shape (one crop that grows),
  * or a lump beside any other vessel. The saturated liquor left either STAYS
  * (the vessel is still concentrating it — a pan the sun is working) or is
- * SPENT: its material swaps to `crystallizesTo.residue` and, in a mould
- * standing on a vessel, it drains into that vessel (`Mould.drainsInto()`).
+ * SPENT: its material swaps to `crystallizesTo.residue` and, in a mould, it
+ * runs off by the one drip — into the vessel it stands on, else to the
+ * ground (matter-model-overlaps D10).
  *
  * The clone pipeline needs template rows, so `StuffApi.clone` is stubbed to
  * hand back a fresh tangible and record which template was asked (the
@@ -15,6 +16,9 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
+import Place from '../../stuff/Place';
+import Floor from '../../../platform/thing/Floor';
+import { DetachedError } from '../../errors';
 import Material from '../../material/Material';
 import Water from '../../../platform/idea/material/Water';
 import Salt from '../../../platform/idea/material/Salt';
@@ -47,8 +51,15 @@ class TestTub extends PlacingMixin(ThermalMixin(BulkableMixin(ContainerMixin(Goo
 class TestPot extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'TestCrystalPot';
 }
-class TestRoom extends ContainerMixin(Good) {
-  static _mixinName = 'TestCrystalRoom';
+class TestRoom extends Place {}
+/** A room with a floor that takes a puddle. */
+function floored(): { room: TestRoom; floor: Floor } {
+  const room = makeStuff(() => new TestRoom());
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setSurfaceCapacity(Quantity.of(100, 'L'));
+  room.addFixture(floor);
+  return { room, floor };
 }
 class TestCrystals extends Provision {}
 
@@ -201,7 +212,7 @@ describe('⭐⭐ the crystallize arm', () => {
     ContainmentApi.move(t, r);
     const p = fill(pan(), brine(), 2, 293, 1.0);
     ContainmentApi.move(p, t, Placements.ON);
-    expect(p.drainsInto()).toBe(t);
+    expect(p.dripSlots()[0]?.getHolder()).toBe(t);
 
     p.reconcilePhase();
     await settle();
@@ -222,7 +233,7 @@ describe('⭐⭐ the crystallize arm', () => {
   });
 
   it('⭐ reads while a crop is still minting JOIN it — one cast, not one per read (run 30)', async () => {
-    const r = makeStuff(() => new TestRoom());
+    const { room: r } = floored();
     const p = fill(pan(), brine(), 2, 293, 1.0);
     ContainmentApi.move(p, r);
     // The first read sets a crop; before its cast lands, the liquor is made
@@ -238,6 +249,24 @@ describe('⭐⭐ the crystallize arm', () => {
     expect(crops).toHaveLength(1);
     // Both reads' salt is in it.
     expect(massOf(crops[0]!)).toBeGreaterThan((1.0 - 0.317) * 2);
+  });
+
+  it('⭐ a spent pan with nothing under it: its bittern runs to the ground', async () => {
+    const { room: r, floor } = floored();
+    const p = fill(pan(), brine(), 2, 293, 1.0);
+    ContainmentApi.move(p, r);
+    p.reconcilePhase();
+    await settle();
+    expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+    expect(floor.getBulkMaterialPath('surface')).toBe(BITTERN);
+    expect(floor.getBulkAmount('surface').rawValue()).toBeCloseTo(2, 6);
+  });
+
+  it('a spent pan standing over nothing at all has nowhere for its bittern — it says so', () => {
+    const p = fill(pan(), brine(), 2, 293, 1.0);
+    expect(() => p.reconcilePhase()).toThrow(DetachedError);
+    // Checked before the liquor changed.
+    expect(p.getBulkMaterial('interior')?.getTemplatePath()).toBe(BRINE);
   });
 
   it('⭐⭐ BOILED, brine concentrates — the steam is water, the salt stays — and sets a crop', async () => {

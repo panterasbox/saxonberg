@@ -647,6 +647,36 @@ owner's estate with `placedOn` naming the coat, and pass (6) puts it back. (An o
 version of this doc said the relation reset on restart. That stopped
 being true when the slice learned to record it.)
 
+### ⭐⭐ What is under it — the drip (matter-model-overlaps D10)
+
+`Containable.dripSlots(): BulkSlot[]` answers *what catches what drips off
+me*, positionally and purely, in order: the interior of the vessel the thing
+is IN (its container, when that holds liquid in an interior — a filter in a
+crock's mouth, ash in its hopper), then of the vessel it stands ON (its
+placement host, same test — a cone on its pot, a hoop on its pail), then the
+surface of the floor of the place it is in (walking up past a carrier to its
+feet). A vessel whose foot is open (`Bulkable.passesDripsThrough()` — a
+mould) hands on to what IT drips to, so molasses off a loaf in its cone
+lands in the pot beneath. `[]` when nothing is under it at all.
+`BulkableApi.floorSurfaceNear` reads its floor off this chain.
+
+`BulkableApi.drip(matter)` is the one primitive that uses it — ONE value
+parameter, `{ from: BulkSlot, litres, via? }` (liquid leaving a vessel) or
+`{ off: Stuff, material, litres, payload }` (liquid a solid gives up). ⭐
+No caller passes a chain: the primitive asks the source. It fills each slot
+in order by `transfer`, skips a vessel already holding a different liquid,
+and puts the rest on the floor; a floor already wet with another liquid
+takes none, and the rest soaks into the ground (`soaked` on the result —
+a leak never waits on the floor). ⭐ Inside something that is not a vessel —
+a jug in a pack, a crock in a chest — the drip wets that thing first, up to
+its own water capacity, and only what it cannot hold runs on, to the floor
+of the place it is in: at the carrier's feet when it is carried. A place is
+not wetted, nor a body (what a carried pack does to the back under it is
+textiles' layer rule, deferred). With nowhere at all it throws
+`DetachedError`. Its callers: the weep and the filter's flow, a mould's
+drainings, a spent pan's liquor, a percolating heap's run-off, a burst
+pipe's water — each used to pick its own receiver.
+
 ### ⭐⭐ Two layers of movement, and nothing else
 
 **`ContainmentApi.move(item, dest[, placement])`** is the movement

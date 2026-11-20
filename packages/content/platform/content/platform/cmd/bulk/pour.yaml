@@ -18,6 +18,11 @@ help: |
   keeps its own making: a fine wine in a poor bottle is still fine
   wine. Topping something up with worse makes the whole of it worse.
 
+  Poured onto a heap — `pour pail onto ash` — a liquid works down
+  through it, and what comes out runs to what is under the heap: the
+  pot it stands in or on, else the floor. Water through ash comes out
+  as lye.
+
   ⭐ What you are building takes it differently. Pour into a shaker or a
   mixing glass, or just `pour vermouth` to add to the build you're working
   at, and a pour is one serving of whatever you pour: a measure of gin, a
@@ -37,6 +42,8 @@ examples:
     note: Pour a measured amount
   - cmd: pour gin into shaker
     note: One serving of gin, banked into the build
+  - cmd: pour pail onto ash
+    note: Water a heap; lye runs out under it
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
@@ -61,7 +68,7 @@ args:
     type: object
     required: false
     scope: "reachable"
-    prepositions: [into, in, to]
+    prepositions: [into, in, to, onto]
     # ⭐ Bare `pour` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).

@@ -24,7 +24,7 @@ no controller, no Api**.
 | `pour rennet into vat` | the batch **rekeys** to renneted milk — a firm curd — whatever the order of rennet and starter | profile `soft-curd`'s `transforms` (`maturation.md`) |
 | (wait) | the batch sets: the vat holds whey over a curd whose share derives from the milk's fat and protein | profiles `soft-curd` / `firm-curd`, `leesShare` |
 | `pour vat into pail` | the whey comes off down to the curd; poured into the crock it is next time's starter | the lees split |
-| `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
+| `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer. ⭐ The whey runs to what is under the hoop — a pail it stands on, else a puddle of whey on the floor under a hoop on a bare board — a band under the curd's grade (the one drip, matter-model-overlaps D10) | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
 | `cure wheel` | salt binds water — the hard wheel's second hurdle; the same wheel comes back, still what it was made from | trade-cooking's `cure`, which finds dairying's `salt-wheel` recipe by its item slot |
 | `put wheel on rack` (the cheese room) | the wheel **ripens** by its own temperature: young · coming on · ripe · (soft) over · (too warm) dead | `Wheel` = `RipeningMixin(Provision)` (`maturation.md` § the discrete twin) |
 | `split wheel`, `shelf consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |

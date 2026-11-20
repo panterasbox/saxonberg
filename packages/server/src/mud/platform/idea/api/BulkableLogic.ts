@@ -11,12 +11,12 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type {
-  BulkSlot,
+  Bulkable,
   BulkAffordance,
   BulkPayload,
   ClosureLevel,
 } from '../../../lib/bulk/Bulkable';
-import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
+import { BulkSlot, CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
 import type { CompositionEntry } from '../../../lib/material/Material';
 import '../../../lib/material/Composition';
@@ -39,11 +39,14 @@ import type { Container } from '../../../lib/spatial/Container';
 import { QuantityApi } from '../../../api/quantity';
 import type {
   BulkNote,
+  DripMatter,
+  DripResult,
   TransferAmount,
   TransferResult,
   TransferStatus,
   TransferVia,
 } from '../../../api/bulk';
+import { DetachedError } from '../../../lib/errors';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
 // The `dissolvedSolidsKgPerL` payload field is declared by Thermal's merge.
@@ -536,11 +539,15 @@ export class BulkableLogic extends ApiLogic {
     // whose interior is homogeneous; a fractionating host answers with the
     // span it is actually about to give up.
     const drawnPayload = from.payloadForDraw(applied);
-    const fromPayload = pores
+    const passed = pores
       ? throughPores(drawnPayload)
       : set
         ? throughSet(drawnPayload)
         : drawnPayload;
+    // ⭐ A grade the move names is what arrives carries (a set's drainings,
+    // a band under their pool — D10).
+    const fromPayload: BulkPayload | null =
+      via?.grade !== undefined ? { ...(passed ?? {}), grade: via.grade } : passed;
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -836,22 +843,147 @@ export class BulkableLogic extends ApiLogic {
   /** See {@link BulkableApi.floorSurfaceNear}. */
   @CallSecurity(BulkableApiCallers)
   public floorSurfaceNear(near: Stuff): BulkSlot | null {
-    // Walk up the containment chain — a held vessel's immediate
-    // container is the actor, not the room — until an Adornable host
-    // (the location) carries a bulkable surface fixture (the floor).
-    let cur: Stuff | null = MixinApi.isContainable(near)
-      ? near.getContainer()
-      : null;
-    while (cur !== null) {
-      if (MixinApi.isAdornable(cur)) {
-        const floor = cur.getFloor();
-        if (floor && floor.hasSurfaceBulk()) {
-          return floor.getBulk('surface');
+    // The floor is the last of what is under a thing (`dripSlots` — the one
+    // walk up to the place, past a carrier to its feet); its one surface slot.
+    if (!MixinApi.isContainable(near)) return null;
+    return near.dripSlots().find((s) => s.affordance === 'surface') ?? null;
+  }
+
+  /** See {@link BulkableApi.drip}. */
+  @CallSecurity(BulkableApiCallers)
+  public drip(matter: DripMatter): DripResult {
+    const notes: BulkNote[] = [];
+    const out: DripResult = { drained: 0, caught: 0, wetted: null, soaked: 0, notes };
+    if (!(matter.litres > 0)) return out;
+    // A slot leaving a vessel, or liquid a solid gives up (no slot behind it).
+    const source: BulkSlot =
+      matter.from !== undefined
+        ? matter.from
+        : new GivenUp(matter.off, matter.material, matter.litres, matter.payload);
+    const via = matter.from !== undefined ? matter.via : undefined;
+    const holder = source.getHolder();
+    const slots = MixinApi.isContainable(holder) ? holder.dripSlots() : [];
+    if (slots.length === 0) {
+      throw new DetachedError(`${holder.getPresentation()} drips with nothing under it: it has no place`);
+    }
+    const arriving = via?.arrivesAs ?? source.getMaterial();
+    if (arriving === null) return out;
+    const arrivingPath = arriving.getTemplatePath() ?? source.getMaterialPath();
+    let left = Math.min(matter.litres, source.available());
+
+    // ⭐ Inside something that is not a vessel — a jug in a pack, a crock in a
+    // chest — the drip wets that first, up to what it can hold (lens 1: water
+    // runs down and wets what it passes). A place is not wetted, and neither
+    // is a body this build (textiles' layer rule; a deferred seam).
+    const around = MixinApi.isContainable(holder) ? (holder.getContainer() as unknown as Stuff | null) : null;
+    if (
+      left > 0 &&
+      around !== null &&
+      !MixinApi.isAdornable(around) &&
+      !around.isAgent() &&
+      !(MixinApi.isBulkable(around) && around.hasInteriorBulk()) &&
+      MixinApi.isWet(around)
+    ) {
+      const capKg = around.waterCapacityKg();
+      const density = arriving.getDensity().rawValue();
+      const freeKg = (1 - around.getWetness()) * capKg;
+      if (capKg > 0 && density > 0 && freeKg > 0) {
+        const tookL = Math.min(left, (freeKg / density) * 1000);
+        if (tookL > 0) {
+          source.debit(tookL);
+          around.wet(((tookL / 1000) * density) / capKg);
+          left -= tookL;
+          out.drained += tookL;
+          out.wetted = around;
         }
       }
-      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
     }
+
+    for (const slot of slots) {
+      if (!(left > 1e-12)) break;
+      const floor = slot.affordance === 'surface';
+      const held = slot.isEmpty() ? null : slot.getMaterialPath();
+      if (!floor && held !== null && held !== arrivingPath) continue;
+      const moved = this.transfer(source, slot, { kind: 'measure', litres: left, mode: 'lenient' }, via);
+      notes.push(...moved.notes);
+      left -= moved.applied;
+      out.drained += moved.applied;
+      out.caught += moved.applied;
+      if (floor && left > 1e-12) {
+        // ⭐ The floor holds something else, or is brim-full: the rest soaks
+        // into the ground (W0 re-plan) — a leak never waits on the floor.
+        source.debit(left);
+        out.drained += left;
+        out.soaked += left;
+        left = 0;
+      }
+    }
+    return out;
+  }
+}
+
+/**
+ * ⭐ Liquid a solid gives up (`drip`'s `off` form) as a slot the one
+ * transfer can draw from: the solid's own matter, so long as it lasts, at
+ * the solid's temperature. Nothing is written back to the solid — it has
+ * no interior; what it gave is its host's business.
+ */
+class GivenUp extends BulkSlot {
+  constructor(
+    private readonly solid: Stuff,
+    private readonly matter: Material,
+    private litres: number,
+    private readonly payload: BulkPayload | null,
+  ) {
+    // Every member that would ask the host is overridden below.
+    super(solid as unknown as Stuff & Bulkable, 'interior');
+  }
+  public override getTemperatureK(): number | null {
+    return MixinApi.isThermal(this.solid) ? this.solid.getTemperature().rawValue() : null;
+  }
+  public override whyEmpty(): string | null {
     return null;
+  }
+  public override settle(): Promise<void> {
+    return Promise.resolve();
+  }
+  public override getMaterialPath(): string | null {
+    return this.isEmpty() ? null : this.matter.getTemplatePath();
+  }
+  public override getMaterial(): Material | null {
+    return this.isEmpty() ? null : this.matter;
+  }
+  public override getAmount(): Quantity<'L'> {
+    return Quantity.of(Math.max(0, this.litres), 'L');
+  }
+  public override getCapacity(): Quantity<'L'> | null {
+    return null;
+  }
+  public override getClosure(): ClosureLevel {
+    return 'open';
+  }
+  public override isEmpty(): boolean {
+    return !(this.litres > 0);
+  }
+  public override available(): number {
+    return Math.max(0, this.litres);
+  }
+  public override debit(litres: number): void {
+    this.litres -= litres;
+  }
+  public override remaining(): number {
+    return 0;
+  }
+  public override getPayload(): BulkPayload | null {
+    return this.payload;
+  }
+  public override payloadForDraw(_litres: number): BulkPayload | null {
+    return this.payload;
+  }
+  public override setPayload(_payload: BulkPayload | null): void {}
+  public override setMaterial(_material: Material | null): void {}
+  public override setAmount(amount: Quantity<'L'>): void {
+    this.litres = amount.rawValue();
   }
 }
 

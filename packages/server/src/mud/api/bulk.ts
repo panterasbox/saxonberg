@@ -99,7 +99,42 @@ export type TransferAmount =
 export type TransferVia = {
   through: 'pores' | 'set';
   arrivesAs?: Material | null;
+  /**
+   * The batch grade what arrives carries as its own (`payload.grade`). A
+   * set's drainings fall a band under their pool (`Mould`); a top-up still
+   * takes the lower of this and what the receiver held.
+   */
+  grade?: BulkPayload['grade'];
 };
+
+/**
+ * ⭐⭐ What drips (matter-model-overlaps D10) — ONE value, two shapes:
+ *
+ *   - `{ from, litres, via? }` — liquid leaving a vessel's slot (a weep, a
+ *     filter's flow, a mould's drainings, a spent pan's liquor);
+ *   - `{ off, material, litres, payload }` — liquid a SOLID gives up (lye out
+ *     of a watered heap of ash, molasses out of a clayed loaf, a burst run's
+ *     water) — there is no slot behind it.
+ *
+ * No caller says where it goes: `drip` asks the source (`dripSlots`).
+ */
+export type DripMatter =
+  | { from: BulkSlot; litres: number; via?: TransferVia; off?: never }
+  | { off: Stuff; material: Material; litres: number; payload: BulkPayload | null; from?: never };
+
+/** What came of a drip. */
+export interface DripResult {
+  /** Litres that left the source — caught, wetted into, or soaked away. */
+  drained: number;
+  /** Litres caught in a slot (a vessel, or the floor's puddle). */
+  caught: number;
+  /** The non-vessel the source was in, wetted on the way down, or `null`. */
+  wetted: Stuff | null;
+  /** Litres that soaked into the ground: the floor held another liquid. */
+  soaked: number;
+  /** What each transfer filed. */
+  notes: BulkNote[];
+}
 
 /**
  * Outcome of a `transfer`. `status`:
@@ -377,6 +412,22 @@ export class BulkableApi {
     via?: TransferVia,
   ): TransferResult {
     return logic().transfer(from, to, amount, via);
+  }
+
+  /**
+   * ⭐⭐ **The one drip** (matter-model-overlaps D10): liquid leaving
+   * something runs to what is under it. The SOURCE says where
+   * (`Containable.dripSlots` — the vessel it is in, then the one it stands
+   * on, then the floor); this fills each in order by {@link transfer},
+   * skips a vessel already holding a different liquid, and puts the rest
+   * on the floor. Inside something that is not a vessel (a jug in a pack)
+   * that thing is wetted first, up to what it can hold, and the rest runs
+   * on to the floor. A floor already holding a different liquid takes
+   * none: the rest soaks into the ground, said on the result. With
+   * nowhere at all it throws `DetachedError`.
+   */
+  static drip(matter: DripMatter): DripResult {
+    return logic().drip(matter);
   }
 
   /**

@@ -35,8 +35,8 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-/** ⭐ W2 lowers this to 0; never raise it. */
-const DRIP_RECEIVER_CEILING = 16;
+/** ⭐ Zero since W2 (the one drip); never raise it. */
+const DRIP_RECEIVER_CEILING = 0;
 /** ⭐ W6 lowers this to 0; never raise it. */
 const VAPOR_RECEIVER_CEILING = 6;
 
