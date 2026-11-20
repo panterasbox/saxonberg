@@ -1,8 +1,9 @@
 # Test-world lifecycle — requirements (build 1 of 2)
 
 **Kind:** infra (test tooling) and a test-only content pack
-**Leads from:** kernel and tooling. **First consumer:** the 36 kernel and
-platform wire drives, migrated in this build; build 2 moves the pack drives.
+**Leads from:** kernel and tooling. **First consumer:** the kernel and
+platform wire drives, migrated in this build (30 files, 11 of them as their
+kernel half); build 2 moves the pack drives and the content halves.
 
 A wire drive should prove a SYSTEM, whatever state the world is in, and should
 not care which placeholder content the world happens to hold — that content
@@ -64,18 +65,33 @@ that a drive names no placeholder content.
   run twice in a row — with no database drop between.
 - ⭐ **No kernel or platform drive names placeholder content.** It stands in
   the scaffold, uses engine rows and its own staged state, and is untouched
-  when Terminus (or any locality) is replaced or removed. All 36 are migrated
-  in this build.
+  when Terminus (or any locality) is replaced or removed. Of the 36 drives
+  surveyed as kernel or platform (owner ruling, 2026-11-20, on the planner's
+  per-file reading): **19 migrate whole; 11 are split** — the kernel steps
+  migrate, the steps that assert one pack's own rows move unchanged to a
+  content file for build 2; **6 test specific content** (agent-coordination,
+  identity, consequence, economic-bootstrap, zone-instancing, aether-devices)
+  and move to build 2 whole.
 - **The scaffold is the suite's own, and is never consumed.** A small test
-  locality — rooms joined by exits, lit, walkable — a bank where any test
-  character can open an account, a venue with positions and a seat, a
-  shopfront, and NPCs standing in roles. Drives use it; they do not use it up.
+  locality of about fourteen places — rooms joined by exits, lit and unlit, a
+  locked door with a free side, a window, a hearth, a forge, a trap, a
+  noticeboard, a locality with its own weather, a second parcel — a bank where
+  any test character can open an account, a venue with positions and a seat,
+  a shopfront, and NPCs standing in roles. Every piece is a kernel kind,
+  traced to the drive that stands on it. Drives use it; they do not use it
+  up.
 - **What a drive consumes, it makes.** Stock, money, a seat appointment, a
   ledger's level: staged at runtime by the drive itself, by tools that work
   whatever the world holds.
 - **The fixture pack exists only in test worlds.** It installs in a world
   booted as a test world (the wire runner's, CI's, the soak lane's) and is
   refused, loudly, by any other — the live world can never hold it.
+- **The Governor can retire money to the reserve.** The mirror of the
+  recorded emergency mint: an amount withdrawn from an account back to the
+  reserve, with a reason, through the same banking path as every posting,
+  recorded and visible on the reserve's dashboard and audit, and the holder is
+  told. A real operator act in any world (owner ruling, 2026-11-20); the
+  cleanup uses it to return the money a run minted.
 - **A run cleans up after itself.** The characters, clones, seats and money a
   run made are removed when it ends; what a crashed run left is removed at the
   next start. A world that has hosted a hundred runs holds no more test litter
@@ -196,9 +212,17 @@ should never manufacture.
 5. **Continuity:** the scaffold represents kinds, not an epoch's story; it
    survives a content reset by construction.
 6. **Economy:** the developer's hours and the shared box: no drop, no cold
-   boot per run, no 3 GB world standing through one.
-7. **Governance:** none. The one rule — test-only means never live — is a
-   hard gate, not a judgment.
+   boot per run, no 3 GB world standing through one. ⭐ And the money supply
+   gains a sink: until now the reserve could only mint by override; retiring
+   is the same act reversed, so a supply that was inflated by mistake (or by
+   a test) can be corrected on the record.
+7. **Governance:** ⚠ retiring money takes it from a person's account — it
+   judges a person. **Criterion:** the Governor's own reason, which the act
+   requires and the record keeps. **Appeal:** the act is public on the
+   reserve's audit and the holder is told, so the polity can contest it
+   through the Governor's office like any reserve act. **Entrenchment:**
+   tier B — the code ships the act and its seat, as with the override; the
+   polity cannot widen who may do it. The test-only rule stays a hard gate.
 
 ## The drive
 
@@ -224,6 +248,11 @@ soak drive**, deliberately. It carries a restart (step 6).
 5. **Clean after itself** (`short`, `staged`). After a full run, the world
    holds no test characters, clones, appointments or minted money the run made;
    a run killed partway leaves litter that the next run's start removes.
+5a. **Retiring money** (`instant`, `player` for the holder). The Governor
+   retires an amount from a character's account with a reason: the balance
+   falls by it, the money supply falls by it, the reserve's audit shows the
+   act and its reason, and the holder is told. Retiring more than the account
+   holds is refused.
 6. **A loaded world stops and comes back** (`short`, `player`). With players
    connected in the scaffold and holding things, a drive restarts the world
    through the harness: the stop waits for the save and reports it, nobody is
@@ -241,13 +270,16 @@ None. Nothing here moves with the game clock.
 
 ## Acceptance criteria
 
-- All 36 kernel and platform drives pass on a fresh world, again on the same
-  world without a drop, and after the whole suite — and with Terminus's pack
-  absent.
+- The 19 migrated drives and the 11 kernel halves pass on a fresh world,
+  again on the same world without a drop, and after the whole suite — and with
+  Terminus's pack absent; the 6 content drives and the 11 content halves are
+  recorded for build 2.
 - None of them names placeholder content.
 - The fixture pack installs only in a test world; any other world refuses it.
 - A test character can stand, walk, bank, find work and find NPCs in the
   scaffold.
+- The Governor can retire money from an account to the reserve, with a
+  reason, on the record, and the holder is told.
 - A run leaves no test characters, clones, appointments or minted money; a
   crashed run's leftovers are removed by the next.
 - Every stop and restart waits for the shutdown save and reports it; no drive

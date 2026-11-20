@@ -79,6 +79,13 @@ runtime; content-specific drives live with their pack; two builds.
   installed and never name it.
 - **The 7 locality flows** (farming, farmstead, crafting, cooking, textiles,
   pets, pets-offer) move to their locality's pack unchanged.
+- **The 6 content-specific drives build 1 did not migrate** (owner ruling
+  2026-11-20): agent-coordination, identity, consequence, economic-bootstrap,
+  zone-instancing, aether-devices — each to the pack whose content it tests.
+- **The 11 content halves** build 1 split out (`<name>-content.dirty`) of
+  failure-model, call-security-pass, navigation-server, routing,
+  location-graph, placement, envelope, injury, wizard-axis,
+  nutrition-fitness, trades-and-labor — each to its pack.
 - The placeholder-content count reaches zero; the soak lane's per-dirty-world
   drops go with the last dirty file.
 
