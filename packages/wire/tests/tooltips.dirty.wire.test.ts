@@ -1,6 +1,7 @@
 /**
  * ⭐ The tooltips build's wire drive — requirements step 11, and the server
- * half of steps 5–7 (`docs/requirements/tooltips-requirements.md`).
+ * half of steps 5–7 (the tooltips requirements, retired at the sweep; the
+ * build is documented in `docs/subsystems/tooltips.md`).
  *
  * What it proves over the real socket, asserted on what the CLIENT receives:
  *  (a) a reachable thing in the light: every asked field, `kind` and the

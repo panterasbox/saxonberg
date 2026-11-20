@@ -1,12 +1,16 @@
 # Tooltip slate — one model that carries the informational load
 
-**Status:** slated 2026-11-14, from the navigation-pane conversation; the
-first design is on the owner's design canvas (private) and accepted as a
-starting point (*"this looks good to me to start with — at least we have
-something real now"*). **Requirements drafted 2026-11-18**
-([tooltips-requirements](../../requirements/tooltips-requirements.md)) —
-every open question below is answered there. **Size:** a build — cross-cutting, ahead of the
-navigation build, which is its first big consumer.
+> **Status: PARTIAL** — the model, its three sources, nesting and the
+> retrofit of every native hover string shipped 2026-11-19 (MR !633) →
+> [tooltips.md](../../subsystems/tooltips.md); requirements and plan retired
+> at the sweep. Cut in review: the **pin** (a tooltip opens no card; the
+> click on the thing does).
+> **Left:** map glyph tooltips, breakdowns, action buttons and one block per
+> mixin (the navigation build) · facts from the knowledge model · player
+> words for the interface help a gutter stripe shows · live cards gated by
+> light and reach (spoiler-slate) · the scrollback's link grammar
+> (message-rendering-slate) — see *Left after the build* below.
+> **Size:** a tail
 
 ## The ask **[DECIDED — the owner]**
 
@@ -85,7 +89,7 @@ renders what it has at once and fills C fields as they arrive; a D field
 is simply absent until its server item lands — never a placeholder that
 guesses.
 
-## Open — answered in the requirements (2026-11-18)
+## Open — answered (2026-11-18), built (2026-11-19)
 
 1. **The lock gesture** — dwell time, the key (Shift? middle-click?), and
    whether a locked tooltip follows the pointer at all.
@@ -125,6 +129,26 @@ Every concept the build needs, and what already does it (survey
 | images | `mediaUrl()` (`client/src/config.ts`), `illustrationShape` | reuse |
 | pin → card | the card surface's one birth path: a command pushes (`look`, `help`, `wiki`) | reuse — pin runs the command |
 | native hover strings | ~40 `title=` sites (cards, TabStrip, CommandBar, PromptStrip, ReactionBar, CharGenStage, NavigatorBody, StreamControls, FilterDrawer, MmlRenderer…) | retire — every one becomes a tooltip |
+
+## Left after the build (2026-11-19)
+
+- **Map glyph tooltips, breakdowns, action buttons, one block per mixin** —
+  the navigation build ([navigation-requirements](../../requirements/navigation-requirements.md)).
+- **Facts composed from the knowledge model** (`walked` · `told` sources)
+  — the same build's knowledge-model wave.
+- **Interface help reads as engine docs.** An interface's gutter stripe
+  shows its `mixin.X` help topic, which is API text written for authors
+  (*"Bucket-relative media key …"*), not for players. Two possible fixes:
+  a player-facing summary on the topic, or a different source for the
+  stripe.
+- **Live cards are not light- or reach-gated** —
+  [spoiler-slate § Perception on the projection seam](../platform/spoiler-slate.md).
+- **The scrollback's link grammar** —
+  [message-rendering-slate](./message-rendering-slate.md).
+- **Portrait recognition** on a person's image —
+  [media.md](../../subsystems/media.md)'s deferred gate.
+- **The 74 retrofitted controls keep their old hover wording**
+  (`hoverDoc`); sharpen each at its site as it comes up.
 
 ## Cross-references
 

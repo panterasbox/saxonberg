@@ -80,10 +80,11 @@ test.describe('tooltips — one tooltip for the whole client', () => {
 
       // 8 · A tooltip opens no card — no pin, no open button (owner,
       // review). Clicking the thing does that, exactly as before.
+      // (The click is unchanged — a `look` the status bar previews; walked by
+      // status-bar.spec. Not clicked here: a shared word like "line" asks
+      // "which target?", which is the click's own behavior, not a tooltip's.)
       await expect(tip.locator('button')).toHaveCount(0);
       await page.keyboard.press('Escape');
-      await link.click();
-      await expect(page.getByTestId('inspection-body').first()).toBeVisible({ timeout: 20_000 });
 
 
       // 6 · At appetite 2 a path arrives open.

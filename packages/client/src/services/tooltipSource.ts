@@ -16,7 +16,7 @@
  *
  * Every miss is SAID (*You can't see that now.*, *No help for that.*) —
  * never an empty panel, never a spinner that stays. It generalizes the
- * inspection gutter's `useSummary`, which it replaced.
+ * inspection gutter's old session cache (`useSummary` is a thin hook over it now).
  */
 
 import type { HelpTopic, StuffDetailRecord, TooltipDoc } from "@saxonberg/types";

@@ -152,6 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, the front door + character select, anonymous-guest path, reconnect machine, the honest-state primitives
+  - [tooltips.md](./docs/subsystems/tooltips.md) — one tooltip for the whole client: a small document (header · facts · prose · spoiler), two containers one content with cards and NO pin, three sources (client · help · a gated wiki excerpt) and the server-gated one-shot describe (reach + light), `spoiler.appetite`, gestures, the no-native-title gate
   - [cockpit.md](./docs/subsystems/cockpit.md) — the `cockpit` verb + the non-diegetic `client-layout|card|shelf|style` verbs; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `client-shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register

@@ -164,3 +164,23 @@ ceiling never withholds a path; it is only ever collapsed.
   honest one-shot (reach and light), the gated wiki excerpt,
   `HelpApi.resolveTopic`, the `client` settings mirror and the
   `spoiler.appetite` rename. All 104 native hover strings were retired.
+- 2026-11-19 — review:
+  - **The pin was cut** (owner: *"that is so confusing … take it out"*):
+    it borrowed the card's word and duplicated the click.
+  - **Moving from one link to the next** now keeps the new tooltip; any
+    anchor counts as the pointer staying.
+- 2026-11-20 — the sweep, on a fresh world:
+  - **Full suite:** 56/56 packages (20,386 tests).
+  - **Lint family:** 118/118 gates.
+  - **Wire drive** `tooltips.dirty.wire.test.ts`: 5/5.
+  - **Browser walk** `tooltips-walk.spec.ts`: 5/5.
+  - **Five defects the walk found** were fixed in the build:
+    - a tooltip placed while it still showed "…";
+    - a locked stack stuck open over a re-rendered anchor;
+    - a pin ran an ambiguous keyword;
+    - a red wiki link was read as a term;
+    - help terms had no anchor in the world.
+  - The boundary walk's *hut window* step fails because the glazier's hut
+    stays pitch dark after `toDaylight`. That step, its content and its
+    light were all untouched by this build.
+

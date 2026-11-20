@@ -154,7 +154,9 @@ const HELP_ACTS = new Set(["search"]);
 export function termOf(command: string): { kind: "help"; word: string } | { kind: "wiki"; ref: string } | null {
   const m = /^(help|wiki)\s+(\S+)(?:\s+(.+))?$/.exec(command.trim());
   if (!m) return null;
-  const [, verb, first, rest] = m as unknown as [string, "help" | "wiki", string, string | undefined];
+  const verb = m[1];
+  const first = m[2]!;
+  const rest = m[3];
   if (verb === "wiki") {
     if (first === "read") return rest ? { kind: "wiki", ref: rest.trim() } : null;
     if (WIKI_ACTS.has(first)) return null;
