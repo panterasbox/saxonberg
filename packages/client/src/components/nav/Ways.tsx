@@ -132,87 +132,46 @@ export interface WaysProps {
 }
 
 export function Ways(props: WaysProps): React.ReactElement {
-  const byDir = new Map(props.ways.map((w) => [longDirection(w.direction), w]));
-  const named = props.ways.filter(
-    (w) => !(ROSE_DIRECTIONS as readonly string[]).includes(longDirection(w.direction)),
-  );
-  const [focus, setFocus] = React.useState<NavWay | null>(null);
-
-  const arm = (dir: string, label: string, gridArea?: string): React.ReactElement => {
-    const way = byDir.get(dir);
-    if (!way) {
-      return (
-        <Tip key={dir} tip={{ header: { name: dir, kindWord: "way" }, prose: "No way you know of." }}>
-          <ArmButton
-            type="button"
-            $color={tokens.color.fgMuted}
-            $dim
-            aria-disabled="true"
-            data-testid={`nav-arm-${dir}`}
-            data-state="none"
-            style={gridArea ? { gridArea } : undefined}
-            onClick={(e) => e.preventDefault()}
-          >
-            <Icon name={`dir.${dir}`} label={dir} size={12} decorative />
-          </ArmButton>
-        </Tip>
-      );
-    }
-    return (
-      <WayEntry
-        key={dir}
-        way={way}
-        label={label}
-        gridArea={gridArea}
-        {...props}
-        onFocusWay={setFocus}
-      />
-    );
+  // PROTOTYPE: a destination list — one row per way you can see, in
+  // compass order then the named ones, each saying where it goes. A
+  // newcomer thinks "the bar", not "northeast".
+  const order = (w: NavWay): number => {
+    const i = (ROSE_DIRECTIONS as readonly string[]).indexOf(longDirection(w.direction));
+    return i < 0 ? 100 : i;
   };
-
-  const shown = focus;
+  const ways = [...props.ways].sort((a, b) => order(a) - order(b));
+  const [focus, setFocus] = React.useState<NavWay | null>(null);
+  void focus;
   return (
     <Root data-testid="nav-ways">
-      <Rose data-testid="nav-rose">
-        {arm("northwest", SHORT.northwest!, "1 / 1")}
-        {arm("north", SHORT.north!, "1 / 2")}
-        {arm("northeast", SHORT.northeast!, "1 / 3")}
-        {arm("west", SHORT.west!, "2 / 1")}
-        <You style={{ gridArea: "2 / 2" }}>you</You>
-        {arm("east", SHORT.east!, "2 / 3")}
-        {arm("southwest", SHORT.southwest!, "3 / 1")}
-        {arm("south", SHORT.south!, "3 / 2")}
-        {arm("southeast", SHORT.southeast!, "3 / 3")}
-        {arm("up", SHORT.up!, "1 / 5")}
-        {arm("down", SHORT.down!, "3 / 5")}
-      </Rose>
-      {named.length > 0 ? (
-        <Named data-testid="nav-named">
-          {named.map((w) => (
-            <WayEntry key={w.direction} way={w} label={w.direction} {...props} onFocusWay={setFocus} />
-          ))}
-        </Named>
-      ) : null}
+      <List data-testid="nav-rose">
+        {ways.map((w) => (
+          <WayEntry key={w.direction} way={w} label={w.direction} {...props} onFocusWay={setFocus} row />
+        ))}
+      </List>
       {props.ways.length === 0 ? (
         <span style={{ color: tokens.color.fgMuted, fontStyle: "italic" }}>No way out that you can see.</span>
       ) : null}
-      <Preview data-testid="nav-preview" aria-live="polite">
-        {shown ? (
-          <>
-            <strong>{shown.direction}</strong>
-            {" — "}
-            {props.leadsTo?.(shown) ?? "where it leads, you do not know"}
-            {shown.boundary ? `; through ${shown.boundary.name}` : ""}
-            {`; ${STATE_WORDS[wayLook(shown)]}`}
-            {shown.crossesZone ? "; it leaves this zone" : ""}
-          </>
-        ) : (
-          <span style={{ color: tokens.color.fgMuted }}>Point at a way to see where it leads.</span>
-        )}
-      </Preview>
     </Root>
   );
 }
+
+const List = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const Dest = styled.span`
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: ${tokens.color.fg};
+  font-family: ${tokens.font.family};
+`;
 
 function WayEntry({
   way,
@@ -222,11 +181,14 @@ function WayEntry({
   onSendCommand,
   onCommandPreview,
   onFocusWay,
+  row,
+  leadsTo,
 }: WaysProps & {
   way: NavWay;
   label: string;
   gridArea?: string | undefined;
   onFocusWay: (w: NavWay | null) => void;
+  row?: boolean;
 }): React.ReactElement {
   const look = wayLook(way);
   const mode = look === "mode" ? wayMode(way) : undefined;
@@ -255,7 +217,7 @@ function WayEntry({
         {...(way.crossesZone ? { "data-leaves": "true" } : {})}
         {...(way.boundary ? { "data-boundary": "true" } : {})}
         aria-label={command}
-        style={gridArea ? { gridArea } : undefined}
+        style={gridArea ? { gridArea } : row ? { justifyContent: "flex-start", width: "100%", padding: "3px 6px", gap: 6 } : undefined}
         {...gestures}
         onClick={() => onSendCommand(command)}
         onMouseEnter={() => {
@@ -270,7 +232,8 @@ function WayEntry({
         onBlur={() => onFocusWay(null)}
       >
         {gridArea ? null : <Icon name={bearing} label={way.direction} size={12} decorative />}
-        <span>{label}</span>
+        <span style={row ? { minWidth: "5.5em", textAlign: "left" } : undefined}>{label}</span>
+        {row ? <Dest>{leadsTo?.(way) ?? "somewhere you have not been"}</Dest> : null}
         {glyph ? <Icon name={glyph} label={STATE_WORDS[look]} size={11} decorative /> : null}
         {way.crossesZone ? <Icon name="way.leaves" label="it leaves this zone" size={11} decorative data={{ testid: "nav-leaves-marker" }} /> : null}
       </ArmButton>

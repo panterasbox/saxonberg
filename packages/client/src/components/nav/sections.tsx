@@ -53,9 +53,8 @@ export const CHANNEL_WORDS: Record<string, string> = {
 
 export function zoneSummary(s: NavSections): string | null {
   if (!s.zone) return null;
-  const at = s.place?.at;
-  const coords = at ? ` · x: ${at.x} y: ${at.y} z: ${at.z}` : "";
-  return `${s.zone.label ?? "This zone"}${coords}`;
+  // PROTOTYPE: the area's name only — coordinates are engine facts.
+  return s.zone.label ?? "This area";
 }
 
 export function ZoneBody({ sections, view }: { sections: NavSections; view: ZoneView | null }): React.ReactElement {
@@ -64,42 +63,45 @@ export function ZoneBody({ sections, view }: { sections: NavSections; view: Zone
   const keepers = sections.localities?.jurisdiction ?? [];
   const levels = view?.levels ?? [];
   return (
-    <Rows data-testid="nav-zone">
-      {zone.label ? (
-        <>
-          <dt>zone</dt>
-          <dd>{zone.label}</dd>
-        </>
-      ) : null}
-      {at ? (
-        <>
-          <dt>you</dt>
-          <dd data-testid="nav-coords">
-            x: {at.x} y: {at.y} <strong>z: {at.z}</strong>
-          </dd>
-        </>
-      ) : null}
-      <dt>who keeps it</dt>
-      <dd data-testid="nav-jurisdiction">
-        {keepers.length > 0 ? keepers.map((k) => k.name).join(", then ") : "No government claims this ground."}
-      </dd>
-      {zone.cellSizeM ? (
-        <>
-          <dt>a cell</dt>
-          <dd>{zone.cellSizeM} m</dd>
-        </>
-      ) : null}
-      {view && view.places.length > 0 ? (
-        <>
-          <dt>you know</dt>
-          <dd data-testid="nav-zone-counts">
-            {view.counts.walked} walked, {view.counts.known} known, {view.counts.openings} way{view.counts.openings === 1 ? "" : "s"} not taken
-          </dd>
+    <div data-testid="nav-zone">
+      <Rows>
+        <dt>whose ground</dt>
+        <dd data-testid="nav-jurisdiction">
+          {keepers.length > 0 ? keepers.map((k) => k.name).join(", then ") : "nobody claims it"}
+        </dd>
+        {view && view.places.length > 0 ? (
+          <>
+            <dt>you know</dt>
+            <dd data-testid="nav-zone-counts">
+              {view.counts.walked} place{view.counts.walked === 1 ? "" : "s"} walked
+              {view.counts.openings > 0 ? `, ${view.counts.openings} way${view.counts.openings === 1 ? "" : "s"} still to try` : ""}
+            </dd>
+          </>
+        ) : null}
+      </Rows>
+      {/* PROTOTYPE: the engine's frame behind the reveal, as paths are. */}
+      <details style={{ marginTop: 4 }}>
+        <summary style={{ cursor: "pointer", color: tokens.color.fgMuted }}>What is this, really?</summary>
+        <Rows>
+          {at ? (
+            <>
+              <dt>you</dt>
+              <dd data-testid="nav-coords">
+                x: {at.x} y: {at.y} <strong>z: {at.z}</strong>
+              </dd>
+            </>
+          ) : null}
+          {zone.cellSizeM ? (
+            <>
+              <dt>a cell</dt>
+              <dd>{zone.cellSizeM} m</dd>
+            </>
+          ) : null}
           <dt>levels known</dt>
           <dd>{levels.length}</dd>
-        </>
-      ) : null}
-    </Rows>
+        </Rows>
+      </details>
+    </div>
   );
 }
 
@@ -284,7 +286,7 @@ export function PlaceBody({
           <dd>{p.water}</dd>
         </>
       ) : null}
-      {p.crowd !== undefined ? (
+      {p.crowd !== undefined && p.crowd > 0 ? (
         <>
           <dt>others here</dt>
           <dd>{p.crowd}</dd>
@@ -296,12 +298,7 @@ export function PlaceBody({
           <dd>low</dd>
         </>
       ) : null}
-      {p.elevationM !== undefined ? (
-        <>
-          <dt>elevation</dt>
-          <dd>{Math.round(p.elevationM)} m above the sea</dd>
-        </>
-      ) : null}
+
       <dt>on your map</dt>
       <dd data-testid="nav-place-known">
         {known
@@ -331,12 +328,15 @@ export function PlaceBody({
 export function youSummary(s: NavSections): string | null {
   const y = s.you;
   if (!y) return null;
-  const parts = ["You"];
-  if (y.pace) parts.push(y.pace === "walk" ? "walking" : y.pace);
-  if (y.load) parts.push(y.load);
-  if (y.light) parts.push(y.light);
+  // PROTOTYPE: only what holds you back, or what you are moving with.
+  const parts: string[] = [];
   if (y.fighting) parts.push("fighting");
-  return parts.join(" · ");
+  if (y.bars && y.bars.length > 0) parts.push("held back");
+  if (y.mount) parts.push(`riding ${y.mount}`);
+  if (y.led && y.led.length > 0) parts.push(`leading ${y.led.join(", ")}`);
+  if (y.cart) parts.push(`with ${y.cart}`);
+  if (y.load && !/light/i.test(y.load)) parts.push(y.load);
+  return parts.length > 0 ? `You · ${parts.join(" · ")}` : null;
 }
 
 export function YouBody({ sections }: { sections: NavSections }): React.ReactElement {

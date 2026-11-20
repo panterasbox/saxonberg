@@ -85,6 +85,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
   const here = at ? { x: at.x, y: at.y, level: at.z } : undefined;
 
   const [zoom, setZoom] = React.useState<Zoom>("nearby");
+  const [options, setOptions] = React.useState(false);
   const [shownLevel, setShownLevel] = React.useState<number | null>(null);
   // Reset when the zone changes.
   React.useEffect(() => {
@@ -131,6 +132,32 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
         />
       )}
       {view.places.length === 0 ? null : (<>
+      {/* PROTOTYPE: zoom and lenses folded behind one control. */}
+      <Controls>
+        <Btn type="button" data-testid="nav-map-options" aria-expanded={options} $on={options} onClick={() => setOptions((o) => !o)}>
+          {options ? "▾ map options" : "▸ map options"}
+        </Btn>
+      </Controls>
+      {levels.length > 1 ? (
+        <Controls data-testid="nav-levels" role="group" aria-label="Levels you know">
+          {[...levels].reverse().map((l) => (
+            <Tip key={l} tip={levelDoc(levelName(l), view.places.filter((p) => p.level === l).length, here?.level === l)}>
+              <Btn
+                type="button"
+                data-testid={`nav-level-${l}`}
+                data-yours={here?.level === l ? "true" : undefined}
+                $on={level === l}
+                aria-pressed={level === l}
+                onClick={() => setShownLevel(l)}
+              >
+                {levelName(l)}
+                {here?.level === l ? " •" : ""}
+              </Btn>
+            </Tip>
+          ))}
+        </Controls>
+      ) : null}
+      {options ? (<>
       <Controls data-testid="nav-zoom">
         {ZOOMS.map((z) => (
           <Tip key={z} tip={controlDoc(`Zoom: ${ZOOM_LABEL[z]}`, undefined, zoomHint(z))}>
@@ -152,26 +179,8 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           </Btn>
         </Tip>
       </Controls>
-      {levels.length > 1 ? (
-        <Controls data-testid="nav-levels" role="group" aria-label="Levels you know">
-          {[...levels].reverse().map((l) => (
-            <Tip key={l} tip={levelDoc(levelName(l), view.places.filter((p) => p.level === l).length, here?.level === l)}>
-              <Btn
-                type="button"
-                data-testid={`nav-level-${l}`}
-                data-yours={here?.level === l ? "true" : undefined}
-                $on={level === l}
-                aria-pressed={level === l}
-                onClick={() => setShownLevel(l)}
-              >
-                {levelName(l)}
-                {here?.level === l ? " •" : ""}
-              </Btn>
-            </Tip>
-          ))}
-        </Controls>
-      ) : null}
       {props.children}
+      </>) : null}
       </>)}
       {view.unplaced.length > 0 ? (
         <Muted data-testid="nav-unplaced">

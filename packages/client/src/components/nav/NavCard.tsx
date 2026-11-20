@@ -41,7 +41,6 @@ import { websocketClient } from "../../services/websocket";
 import type { TipSpec } from "../tooltip/useTip";
 import { readNavCard, setLens, setSection } from "../../store/navCardActions";
 import { escapeTarget, lookCommand, useLinkMode } from "../cards/clickTarget";
-import { ChangeMark } from "../cards/ChangeMark";
 import { tokens } from "../ui";
 import { crumbDoc, edgeDoc, placeDoc, sightingDoc, wayDoc, zoneDoc } from "../doc/docs";
 import { MapArea } from "./MapArea";
@@ -284,7 +283,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       <Here data-testid="nav-here-name">{sections.place?.name ?? "Somewhere"}</Here>
 
       {/* 2 · in the world — always shown: it is the line that says where you are */}
-      <ChangeMark surface="nav:localities">
+      <>
         <Crumbs
           crumbs={crumbs}
           placeName={sections.place?.name ?? ""}
@@ -292,10 +291,10 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         />
-      </ChangeMark>
+      </>
 
       {/* 3 · the zone, and its map (the map is always shown) */}
-      <ChangeMark surface="nav:zone">
+      <>
         <MapArea
           sections={sections}
           lenses={lenses}
@@ -323,7 +322,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
             tipFor={(l) => lensDoc(l, lenses.has(l), lensCount(l))}
           />
         </MapArea>
-      </ChangeMark>
+      </>
       {section(
         "zone",
         sections.zone ? <ZoneBody sections={sections} view={zv} /> : null,
@@ -358,7 +357,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       )}
 
       {/* 6 · the ways (always open) */}
-      <ChangeMark surface="nav:ways">
+      <>
         <Ways
           ways={sections.ways?.ways ?? []}
           leadsTo={leadsTo}
@@ -366,7 +365,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         />
-      </ChangeMark>
+      </>
 
       {/* 7 · the place */}
       {section(

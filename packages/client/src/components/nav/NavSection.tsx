@@ -9,7 +9,6 @@ import React from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
-import { ChangeMark } from "../cards/ChangeMark";
 import { sectionDoc } from "../doc/docs";
 import type { TooltipDoc } from "@saxonberg/types";
 
@@ -94,5 +93,7 @@ export function NavSection(props: NavSectionProps): React.ReactElement {
       {props.open ? <Body ref={props.bodyRef}>{props.children}</Body> : null}
     </Root>
   );
-  return props.surface ? <ChangeMark surface={props.surface}>{body}</ChangeMark> : body;
+  // PROTOTYPE: no change marks on the navigation card — on a card that
+  // changes every move, "what changed this" is always "you moved".
+  return body;
 }
