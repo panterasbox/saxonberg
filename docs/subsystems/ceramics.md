@@ -353,8 +353,21 @@ from what is in it (`workVerb`): `knead` a stiff mass, `stir` a runny one,
 and the wrong verb is refused, naming the right one (`wrong-work`,
 controller-liquidity W19). Stirring the temper used to be a two-minute shortcut past the
 kneading. The *vessel* names the glaze — there is no
-dominant-flux naming. Salt glaze is the chamber-vapor path with any salt a
-player brings (the Delight potter is an earthenware potter).
+dominant-flux naming.
+
+⭐ **Salt glaze is a row** (matter-model-overlaps D16 — no longer deferred).
+Salt authors `vaporizesAboveK: 1350` and `vapourMaterial:
+/stuff/idea/material/gas/salt-vapor`; the clay's stoneware firing authors
+`vapor: { …/gas/salt-vapor: /stuff/idea/material/glaze/salt }`. `put salt
+in kiln` while a load fires (the kiln is a Container): at the peak the salt
+becomes salt vapor by the one vapor route (`BiomeApi.vent`), the lit kiln
+keeps nine tenths of it as its own air (`chamberVapors`, litres by vapor
+row), and a body reaching its stoneware rung under it takes the salt glaze
+on its outside. When the fire goes out the kiln vents its air up the flue
+(an `Oven` is `Flued`); a flueless chamber lets it into the room, where
+`smell` finds the salt fume. The Delight potter salts her jugs and mugs
+(`pots`' `salt: { word, forms }`, salt among her shop's props); a player
+can salt anything they fire. The fume as a HARM stays deferred (below).
 
 ### The businesses and the people
 

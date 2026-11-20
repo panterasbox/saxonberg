@@ -44,6 +44,8 @@ interface Fake {
   contents?: Fake[];
   lit?: boolean;
   fuel?: number;
+  /** A kiln's air: litres by vapor row. */
+  vapors?: Record<string, number>;
 }
 
 function good(f: Fake) {
@@ -72,6 +74,7 @@ function good(f: Fake) {
     getContents: () => (f.contents ?? []).map(good),
     isLit: () => f.lit === true,
     fuelRemaining: () => f.fuel ?? 0,
+    getChamberVapors: () => f.vapors ?? {},
   };
 }
 
@@ -331,5 +334,39 @@ describe('pots', () => {
     const w = world(shop([], load), '/bf/shop', []);
     await pots.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['light kiln']);
+  });
+
+  describe('⭐ salt glaze (matter-model-overlaps D16): salt goes into a firing of salted forms', () => {
+    const salted = { ...config, salt: { word: 'salt', forms: ['jug'] } };
+    const SALT_VAPOR = '/stuff/idea/material/gas/salt-vapor';
+    const litShop = (things: Fake[], kilnContents: Fake[], vapors: Record<string, number> = {}): Room[] => [
+      { path: '/bf/shop', things: [good({ tpl: KILN, kw: ['kiln'], lit: true, fuel: 1, contents: kilnContents, vapors }), ...things.map(good)], exits: { west: '/bf/pit' } },
+      { path: '/bf/pit', things: [], exits: { east: '/bf/shop' } },
+    ];
+    const jug = { tpl: '/ware/jug', kw: ['jug'], green: true, fireable: true };
+
+    it('a jug firing: she fetches the salt, then throws it in', async () => {
+      const fetch = world(litShop([{ tpl: '/salt', kw: ['salt'] }], [jug]), '/bf/shop', []);
+      await pots.act(ctxOf(fetch.host, salted));
+      expect(fetch.commands).toEqual(['get salt']);
+      vi.restoreAllMocks();
+      const pitch = world(litShop([], [jug]), '/bf/shop', [{ tpl: '/salt', kw: ['salt'] }]);
+      await pots.act(ctxOf(pitch.host, salted));
+      expect(pitch.commands).toEqual(['put salt in kiln']);
+    });
+
+    it('salt already in the kiln\'s air, or lying in it, or no salted form: nothing to do', async () => {
+      const inAir = world(litShop([], [jug], { [SALT_VAPOR]: 300 }), '/bf/shop', [{ tpl: '/salt', kw: ['salt'] }]);
+      await pots.act(ctxOf(inAir.host, salted));
+      expect(inAir.commands).toEqual([]);
+      vi.restoreAllMocks();
+      const lying = world(litShop([], [jug, { tpl: '/salt', kw: ['salt'] }]), '/bf/shop', [{ tpl: '/salt', kw: ['salt'] }]);
+      await pots.act(ctxOf(lying.host, salted));
+      expect(lying.commands).toEqual([]);
+      vi.restoreAllMocks();
+      const mugs = world(litShop([], [{ tpl: '/ware/mug', kw: ['mug'], green: true, fireable: true }]), '/bf/shop', [{ tpl: '/salt', kw: ['salt'] }]);
+      await pots.act(ctxOf(mugs.host, salted));
+      expect(mugs.commands).toEqual([]);
+    });
   });
 });

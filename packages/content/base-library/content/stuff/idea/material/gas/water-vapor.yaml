@@ -1,0 +1,29 @@
+# Water vapor — ⭐ what a boil gives the air (matter-model-overlaps D16–D17).
+#
+# Water's `vapourMaterial`: the steam off a copper or a kettle is vented into
+# the chamber holding the pot, else the room's air, by the one vapor route
+# (`BiomeApi.vent`). In the room it is HUMIDITY: the tag `water-vapor` is what
+# the humidity read counts, its fraction over what saturates the air at the
+# room's temperature — so a boil in a shut kitchen fogs it, the drying rack
+# by the copper dries nothing, and the room's own air changes take it back
+# down. Nobody authored the steamy kitchen; it falls out.
+#
+# ⭐ `density` is the vapor's at room temperature (18 g a mole over 24 L): a
+# litre of water boiled away is about 1.3 m³ of it — three in a hundred of a
+# small room's air, which is more than that air can hold at 20 °C.
+class: /platform/idea/material/Gas
+data:
+  smells: [{ aroma: /base-library/aromas/damp, strength: 20 }]
+  name: water vapor
+  keywords: [steam, vapor, damp]
+  appearance: a damp haze
+  density: 0.75
+  # It condenses as dew where the air cannot hold it — the dew point, not
+  # this number, and the air-change model does not run it. Honest within the
+  # only comparison it is put to: is it a gas where you stand. It is.
+  boilingPoint: 250
+  # What condensing gives back, J/kg — the same as boiling it cost (water).
+  latentHeatOfVaporization: 2260000
+  thermalConductivity: 0.018
+  electricalConductivity: 1.0e-14
+  tags: [gas, water-vapor]

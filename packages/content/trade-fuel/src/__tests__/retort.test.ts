@@ -28,6 +28,7 @@ import FuelGas from '@saxonberg/server/mud/platform/idea/material/FuelGas';
 import CoatingOil from '@saxonberg/server/mud/platform/idea/material/CoatingOil';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Location from '@saxonberg/server/mud/lib/location/Location';
+import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { KineticChange, type KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -204,10 +205,26 @@ describe('the retort', () => {
   describe('⭐⭐ the chamber routes what leaves the charge', () => {
     it('with NO condenser the retort takes nothing — and the kernel puts the tar in the AIR, which is the lesson', () => {
       // ⭐ B105: the retort answers the kernel's `Burner.receiveVolatiles`
-      // with what its receivers took; what nothing took, the thermal
-      // transition routes into the room (proved in Thermal.heatwork).
+      // with what its receivers took (it keeps no air of its own — it is all
+      // pipe); what nothing took, the one vapor route (`BiomeApi.vent`,
+      // matter-model-overlaps D16) puts into the room.
       const r = retort();
       expect(r.receiveVolatiles(TAR, 10)).toBe(0);
+      expect(airOf(TAR)).toBe(0);
+      const charge = makeStuff(() => new Good());
+      ContainmentApi.move(charge as never, r as never);
+      expect(BiomeApi.vent({ from: charge, material: TAR, litres: 10 })).toEqual({ chamber: 0, room: 10, sky: 0 });
+      expect(airOf(TAR)).toBeGreaterThan(0);
+    });
+
+    it('⭐ the vent hands what leaves a charge to the condenser on the head — none of it reaches the room', () => {
+      const r = retort();
+      const c = condenser();
+      ContainmentApi.move(c as never, r as never, Placements.ON);
+      const charge = makeStuff(() => new Good());
+      ContainmentApi.move(charge as never, r as never);
+      expect(BiomeApi.vent({ from: charge, material: TAR, litres: 10 }).chamber).toBeCloseTo(10);
+      expect(c.getBulkAmount('interior').rawValue()).toBeCloseTo(10);
       expect(airOf(TAR)).toBe(0);
     });
 

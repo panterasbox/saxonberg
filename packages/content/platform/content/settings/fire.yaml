@@ -80,6 +80,14 @@ settings:
   - key: fire.air.achLeak
     value: "0.1"
 
+  # ⭐ The vapor route (matter-model-overlaps D16): a vapor offered to a lit
+  # chamber — salt thrown into a kiln, a firing's tar — stays as the
+  # chamber's own air, all but this share, which escapes into the room at
+  # once. The rest goes up the flue when the fire goes out (into the room
+  # when there is no flue).
+  - key: fire.chamber.leakShare
+    value: "0.1"
+
   # Exhaust. A kg of wood burns to about 1.8 kg of carbon dioxide, which is
   # ~950 L at room temperature. ⭐ This is the conservation leg and it is
   # emitted whether the fire is running well or badly — a clean fire is not

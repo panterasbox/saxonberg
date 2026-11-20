@@ -70,7 +70,6 @@ import type {
 import { KineticRecord } from "../material/KineticRecord";
 import type { Fusion } from "../material/Fusion";
 import type { MarkupAugmenter } from "../../api/mml";
-import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
 import type { Composition } from "../material/Composition";
 import { Grade } from "../craft/Grade";
 import { Evaporation } from "../material/Evaporation";
@@ -1691,14 +1690,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.integrateKinetics(source, kinetics.changes(), nowS);
     }
 
-    /** Vaporize into the chamber holding this body, if hot enough there. */
+    /**
+     * Vaporize into the chamber holding this body, if hot enough there: the
+     * body becomes its material's VAPOR row (`vapourMaterial` — salt → salt
+     * vapor), vented by the one route (D16), which keeps it as the lit
+     * chamber's air. ⚠ A material that vaporizes and names no vapor (or a
+     * vapor with no density) is a row defect and throws.
+     */
     private vaporizeIfHot(mat: Material): boolean {
-      const above = MixinApi.hasVolatility(mat) ? mat.getVaporizesAboveK() : 0;
+      if (!MixinApi.hasVolatility(mat)) return false;
+      const above = mat.getVaporizesAboveK();
       if (!(above > 0) || !(this.stampedTemperatureK >= above)) return false;
       const self = this.thermalHost;
       const holder = self.getContainer() as unknown as Stuff | null;
       if (holder === null || !MixinApi.isBurner(holder) || !holder.isLit()) return false;
-      holder.addChamberVapor(mat.getTemplatePath() ?? "", self.getMass().rawValue());
+      const litres = vaporLitres(mat, self.getMass().rawValue());
+      if (litres === null) {
+        throw new TypeError(
+          `Thermal: ${mat.getTemplatePath() ?? mat.getName()} vaporizes above ${above} K but names no vapor with a density (vapourMaterial)`,
+        );
+      }
+      BiomeApi.vent({ from: self as unknown as Stuff, material: mat.getVapourMaterial(), litres });
       void StuffApi.destruct(self as unknown as Stuff);
       return true;
     }
@@ -1789,8 +1801,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         const dDegree = conv.extent - prev.extent;
         if (dDegree > 0) {
           for (const v of c.getVolatiles()) {
-            routeVolatile(self as unknown as Stuff, v.material,
-              v.litresPerKg * (rec.data.originMassKg ?? 0) * dDegree);
+            BiomeApi.vent({
+              from: self as unknown as Stuff,
+              material: v.material,
+              litres: v.litresPerKg * (rec.data.originMassKg ?? 0) * dDegree,
+            });
           }
         }
         rec.data.changes[key] = conv;
@@ -2291,36 +2306,31 @@ function thermalDial(key: string, fallback: number): number {
 }
 
 /**
- * ⭐⭐ **The volatiles — the third product of a firing.** What leaves a
- * converting piece goes to whatever HOLDS it: a chamber takes what it can
- * (`Burner.receiveVolatiles` — a retort hands its tar to the condenser on
- * its head), and the rest goes into the air of the place it stands in,
- * which is why a retort with no condenser makes the room smell of tar.
- * Moved here from `FireController` (ceramics W0): the transition, not the
- * verb, makes the tar.
+ * ⭐ Litres of `mat`'s VAPOR row that `kg` of it becomes (D16) — `kg` over the
+ * vapor's density — or `null` when it names no vapor (or one with no
+ * density). The vapor row loads with the material (`vapourMaterial` is a
+ * constituent), so this is a sync read.
  */
-function routeVolatile(from: Stuff, materialPath: string, litres: number): void {
-  if (!(litres > 0)) return;
-  const holder = MixinApi.isContainable(from)
-    ? (from.getContainer() as unknown as Stuff | null)
-    : null;
-  let left = litres;
-  if (holder !== null && MixinApi.isBurner(holder)) {
-    left -= Math.max(0, Math.min(left, holder.receiveVolatiles(materialPath, left)));
-  }
-  if (!(left > 0)) return;
-  let at: Stuff | null = holder ?? from;
-  let depth = AIR_SCOPE_DEPTH_CAP;
-  while (at !== null && depth-- > 0) {
-    if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
-      const air = at as unknown as AtmosphericScope;
-      if (air.getVolume() !== null) {
-        air.addAtmosphereContent(materialPath, left);
-        return;
-      }
-    }
-    at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
-  }
+function vaporLitres(mat: Material, kg: number): number | null {
+  if (!MixinApi.hasVolatility(mat)) return null;
+  const path = mat.getVapourMaterial();
+  if (path === "") return null;
+  const density = MaterialApi.materials().need(path).getDensity().rawValue();
+  if (!(density > 0)) return null;
+  return (Math.max(0, kg) / density) * 1000;
+}
+
+/**
+ * ⭐ The STEAM of a boil goes somewhere (D16): `boiledL` litres of liquid
+ * left the pot, at `kgPerL`, as its material's vapor row — into the chamber
+ * the pot is in, else the room's air, by the one route. A liquid that names
+ * no vapor gives the air nothing it keeps (authored, not silent).
+ */
+function ventBoiled(v: Stuff, mat: Material, boiledL: number, kgPerL: number): void {
+  if (!(boiledL > 0) || !(kgPerL > 0)) return;
+  const litres = vaporLitres(mat, boiledL * kgPerL);
+  if (litres === null || !(litres > 0) || !MixinApi.hasVolatility(mat)) return;
+  BiomeApi.vent({ from: v, material: mat.getVapourMaterial(), litres });
 }
 
 /**
@@ -2819,6 +2829,7 @@ function reconcileBulkPhase(
         // left to give: it never boils away (its `burnt` arrow, if it
         // authors one, is what ends it).
         const keptL = Math.max(left, floorL);
+        ventBoiled(v, mat, amount - keptL, kgPerL);
         v.setBulkAmount(aff, Quantity.of(keptL, 'L'));
         if (solids > 0) {
           v.setBulkPayload(aff, {
@@ -2834,6 +2845,7 @@ function reconcileBulkPhase(
       }
     }
     // Boiled dry (or no plateau to hold) — the liquid is gone to steam.
+    ventBoiled(v, mat, amount, kgPerL);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     return;

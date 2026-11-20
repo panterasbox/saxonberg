@@ -55,6 +55,7 @@ import type { ActDone, ActPlan } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
 import type { KneadBegin, KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel, KneadWork } from '../craft/KneadVessel';
 import type { StirRequest } from '../craft/StirTarget';
+import { BiomeApi } from '../../api/biome';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
@@ -318,10 +319,9 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
       const held = self.getBulkMaterial('interior');
       if (held === null || !MixinApi.hasVolatility(held) || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
-      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
-      if (room === null || !MixinApi.isAtmospheric(room)) return;
       const litres = self.getBulkAmount('interior').rawValue();
-      room.addAtmosphereContent(held.getVapourMaterial(), litres * held.getVapourLPerLPerHour() * 0.25);
+      // The one vapor route (D16): a chamber holding it, else the room.
+      BiomeApi.vent({ from: self, material: held.getVapourMaterial(), litres: litres * held.getVapourLPerLPerHour() * 0.25 });
     }
 
     public payloadFor(_charge: readonly BuildContribution[]): BulkPayload | null {

@@ -10,6 +10,7 @@
 import type { WashCleanser } from './Soilable';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
+import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
 import { Quantity } from '../quantity';
 
@@ -28,11 +29,14 @@ export class CleanserUse {
         if (slot && !slot.isEmpty()) {
           // ⭐ (cleanliness D22) A volatile cleanser spent in a wash goes into
           // the room as vapour — naphtha by the hearth is a fire.
+          // The one vapor route (D16) walks out past the washer to the air.
           const m = slot.getMaterial();
-          const room = MixinApi.isContainable(src) ? src.getContainer() : null;
-          const outer = room && room.isAgent() && MixinApi.isContainable(room) ? room.getContainer() : room;
-          if (m && MixinApi.hasVolatility(m) && m.getVapourMaterial() && outer && MixinApi.isAtmospheric(outer)) {
-            outer.addAtmosphereContent(m.getVapourMaterial(), Math.min(per, slot.getAmount().rawValue()) * m.getVapourLPerLPerHour());
+          if (m && MixinApi.hasVolatility(m) && m.getVapourMaterial()) {
+            BiomeApi.vent({
+              from: src,
+              material: m.getVapourMaterial(),
+              litres: Math.min(per, slot.getAmount().rawValue()) * m.getVapourLPerLPerHour(),
+            });
           }
           const left = Math.max(0, slot.getAmount().rawValue() - per);
           slot.setAmount(Quantity.of(left, "L"));

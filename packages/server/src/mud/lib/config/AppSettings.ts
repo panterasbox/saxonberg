@@ -2044,6 +2044,9 @@ export const AppSettingKeys = {
   fireAirAchLeak: "fire.air.achLeak",
   /** Fire — litres of carbon dioxide a fire puts into its scope per kg of
    * fuel burnt (every fire, complete or not — this is the conservation leg). */
+  /** Fire — the share of a vapor offered to a lit chamber that escapes into
+   * the room at once rather than staying as the chamber's air (D16). */
+  fireChamberLeakShare: "fire.chamber.leakShare",
   fireExhaustLitresPerKg: "fire.exhaust.litresPerKg",
   /** Fire — litres of SMOKE per kg burnt, additionally, while combustion is
    * incomplete. ⭐ Soot is what an air-starved fire makes instead of heat. */
@@ -3145,6 +3148,7 @@ export const AppSettingTiers: Readonly<
   fireAirAchPerOpening: "B",
   fireAirAchInterior: "B",
   fireAirAchLeak: "B",
+  fireChamberLeakShare: "B",
   fireExhaustLitresPerKg: "B",
   fireExhaustSmokeLitresPerKg: "B",
   fireExhaustSmokeMaterial: "B",

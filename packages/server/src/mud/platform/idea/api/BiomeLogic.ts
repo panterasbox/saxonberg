@@ -36,6 +36,8 @@ import {
   type ClimateSite,
 } from '../../../lib/weather/WeatherType';
 import { AppApi } from '../../../api/app';
+import { MaterialApi } from '../../../api/material';
+import type { VentMatter, VentResult } from '../../../api/biome';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
 /**
@@ -262,7 +264,7 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff,
     detailKey?: string
   ): Promise<Quantity<'%'>> {
-    return resolveQuantityFor<'%'>(
+    const base = await resolveQuantityFor<'%'>(
       scope,
       detailKey,
       'humidity',
@@ -270,6 +272,11 @@ export class BiomeLogic extends ApiLogic {
       (a, k) => readDetailMap<Quantity<'%'>>(a._detailHumidities, k),
       (a) => a._humidity,
     );
+    // ⭐ D17: the water vapor IN the air counts (a boil fogs a shut room).
+    const vapor = waterVaporFractionOf(scope);
+    if (!(vapor > 0)) return base;
+    const tempK = (await this.resolveTemperatureFor(scope)).rawValue();
+    return Quantity.of(new Evaporation(base.rawValue(), 0, tempK).withVapor(vapor).humidityPct, '%');
   }
 
   /** See {@link BiomeApi.localHumidityFor}. */
@@ -282,9 +289,12 @@ export class BiomeLogic extends ApiLogic {
       (a, k) => readDetailMap<Quantity<'%'>>(a._detailHumidities, k),
       (a) => a._humidity,
     );
-    if (hit !== null) return hit.value.rawValue();
-    const universal = rootBiome().getDefaultHumidity();
-    return universal === null ? null : universal.rawValue();
+    const universal = hit !== null ? null : rootBiome().getDefaultHumidity();
+    const base = hit !== null ? hit.value.rawValue() : universal === null ? null : universal.rawValue();
+    // ⭐ D17: the water vapor IN the air counts, here as in the full read.
+    const vapor = waterVaporFractionOf(scope);
+    if (!(vapor > 0)) return base;
+    return new Evaporation(base ?? 0, 0, localAir(scope).tempK).withVapor(vapor).humidityPct;
   }
 
   /** See {@link BiomeApi.resolveWindFor}. */
@@ -561,13 +571,58 @@ export class BiomeLogic extends ApiLogic {
     return exposureWalk(scope);
   }
 
+  // ---------- the vapor route ----------
+
+  /** See {@link BiomeApi.vent}. */
+  @CallSecurity(BiomeApiCallers)
+  public vent(matter: VentMatter): VentResult {
+    const out: VentResult = { chamber: 0, room: 0, sky: 0 };
+    const { from, material, litres } = matter;
+    if (!(litres > 0) || typeof material !== 'string' || material === '') return out;
+    // The act's door: the vapor's row loads with what made it, so a read of
+    // the air (smell, humidity) can peek it. Never rejects (the
+    // `ensureConstituent` contract); a row that will not stand warns there.
+    MaterialApi.materials()
+      .ensureCited([material])
+      ?.catch((err: unknown) => console.warn(`BiomeApi.vent: '${material}' did not load`, err));
+    const holder = MixinApi.isContainable(from) ? (from.getContainer() as unknown as Stuff | null) : null;
+    let left = litres;
+    // (1)–(2) The chamber holding it: its head, else its own air.
+    if (holder !== null && MixinApi.isBurner(holder)) {
+      const taken = Math.max(0, Math.min(left, holder.receiveVolatiles(material, left)));
+      out.chamber = taken;
+      left -= taken;
+    }
+    if (!(left > 0)) return out;
+    // (3) The air of the place: the first scope with a volume. Open to the
+    // sky it takes none — the sink.
+    let at: Stuff | null = holder ?? from;
+    let depth = CONTAINMENT_DEPTH_CAP;
+    while (at !== null && depth-- > 0) {
+      if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
+        const air = at as Stuff & Atmospheric;
+        if (air.getVolume() !== null) {
+          out.room = air.addAtmosphereContent(material, left);
+          out.sky = Math.max(0, left - out.room);
+          return out;
+        }
+      }
+      at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
+    }
+    out.sky = left;
+    return out;
+  }
+
   // ---------- the evaporation reads (SYNC) ----------
 
   /** See {@link BiomeApi.airFor}. */
   @CallSecurity(BiomeApiCallers)
   public airFor(scope: Stuff): Evaporation {
     const base = localAir(scope);
-    if (!WeatherApi.isActive() || !airIsOutside(scope)) return base;
+    // ⭐ D17: indoors, the water vapor in the room's air is part of its
+    // humidity — a steamy kitchen dries nothing. (Under the sky nothing
+    // accumulates, so the weather arm below has none to add.)
+    if (!WeatherApi.isActive() || !airIsOutside(scope)) return base.withVapor(waterVaporFractionOf(scope));
     // The climate substitutes for the universe constant whether or not a
     // Locality is known — a sky with no weather is still a sky with a
     // season. The weather's deviation needs the Locality (null until the
@@ -1722,6 +1777,24 @@ function resolveContentsFor(scope: Stuff): Concentrate[] {
   }
   return [];
 }
+
+/**
+ * ⭐ The share of the air at `scope` that is water vapor (D17): its air
+ * contents whose material is tagged `water-vapor`. A row nothing has loaded
+ * is not read here (no load from a read); the vent and the restore door
+ * load the rows the air cites.
+ */
+function waterVaporFractionOf(scope: Stuff): number {
+  let sum = 0;
+  for (const c of resolveContentsFor(scope)) {
+    const m = MaterialApi.materials().peek(c.type);
+    if (m !== null && m.hasTag(WATER_VAPOR_TAG)) sum += c.amount;
+  }
+  return sum;
+}
+
+/** The material tag a water vapor carries — what humidity counts. */
+const WATER_VAPOR_TAG = 'water-vapor';
 
 /** The two lists folded into one, summed by material path. */
 function sumByType(

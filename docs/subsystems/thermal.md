@@ -219,10 +219,17 @@ For each dose-law change:
   material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
   (1 − massRetained))`, and its prose is restamped (the old material's name
   swapped, or the rung's `describes` word put in front — never stacked);
-- **volatiles** leave as the degree rises: the holding `Burner` takes what
-  it can (`receiveVolatiles`, a `@hook` returning the litres taken, `0` by
-  default — a retort hands them to its receivers; B105, it was a duck
-  probe), and the rest goes into the air of the place;
+- **volatiles** leave as the degree rises, by the ONE vapor route
+  (`BiomeApi.vent`, matter-model-overlaps D16; `routeVolatile` is gone):
+  the holding `Burner` takes what it can (`receiveVolatiles`, a `@hook`
+  returning the litres taken — a retort hands them to its receivers, B105;
+  any other LIT chamber keeps them as its own air less
+  `fire.chamber.leakShare`), and the rest goes into the air of the place.
+  ⭐ A solid past its material's `vaporizesAboveK` in a lit chamber
+  (`vaporizeIfHot`) becomes its `vapourMaterial` row by the same route —
+  litres = kg ÷ the vapor row's density — and a material that vaporizes but
+  names no vapor throws (a row defect). The kinetic `vapor:` map is keyed
+  by the VAPOR row the chamber's air carries (salt-vapor → salt glaze);
 - standing in a `Mould` that is not its own cast, the piece instead hands
   the mould a pool at the rung (`castInto`) and is destructed once the cast
   exists (B105 — a cast that cannot be made leaves the charge, and is
@@ -956,9 +963,9 @@ for a `metal`-tagged material, else `/stuff/thing/Casting`; water authors
 [glass.md](./glass.md) for composition vs temper), mass stamped always,
 material/prose only when the clone authored none.
 
-⚠ **Boil is still a flip** — no boiling feature rides this build, so steam
-is a disappearance (the pool clears; no steam cloud / burn / pressure). The
-asymmetry is deliberate and noted; `thermal-slate` carries boil-as-a-plateau.
+⚠ The boil became a plateau in the silk build, and its STEAM goes into the
+air since matter-model-overlaps D16 (see § The bath, and the boil). Still
+no steam burn and no pressure.
 
 ⭐ **Freezing RUINS some materials.** `Material.ruinedByFreezing` (blood):
 at the solidify edge no cast is minted — the pool stays liquid at `mp`, its
@@ -1080,6 +1087,20 @@ passes under it.
   heat above the boil now turns liquid to steam at that latent heat and
   the liquid HOLDS at the boil while it lasts (the boil twin of
   `reconcileMelt`); a material with no latent heat still flashes.
+- ⭐⭐ **The steam goes somewhere** (matter-model-overlaps D16–D17). What
+  boils off leaves as the material's `vapourMaterial` row (water →
+  `/stuff/idea/material/gas/water-vapor`), litres = boiled kg ÷ the vapor's
+  density, by the one vapor route (`BiomeApi.vent`): into the chamber the
+  pot stands IN when it is a lit one, else the room's air — where, tagged
+  `water-vapor`, it is HUMIDITY (`BiomeApi.resolveHumidityFor` /
+  `localHumidityFor` / `airFor` add its fraction over the air's saturation
+  share at its temperature, `Evaporation.withVapor`, capped at 100 %). A
+  boil in a shut kitchen fogs it and the drying rack by the copper dries
+  nothing; the room's air changes take it back down. ⚠ A pot ON a fire
+  stands in the room (its container is the room), so its steam is the
+  room's. A liquid that names no vapor gives the air nothing it keeps —
+  solutions (a sugar liquor, brine) author none yet, so a sugar pan's steam
+  is still not the boiling floor's humidity (a row each, no code).
 - ⭐⭐ **A boil concentrates** (ceramics, 2026-10-22). The steam is water,
   so what is dissolved stays behind: each boiled-off step scales the
   bulk's `dissolvedSolidsKgPerL` (or the material's own `solidsKgPerL`)

@@ -1414,7 +1414,7 @@ the plan did not make:
   in the drive needs a seed or a stir — the boiler brain does it, a staged
   cone must carry `nucleated` or a piece.
 
-### W6 — one vaporization, and the nose (D16–D18)
+### W6 — one vaporization, and the nose (D16–D18) ✅ done (SHA)
 
 - `BiomeApi.vent` / `BiomeLogic.vent`; `Burner.receiveVolatiles`' default
   keeps chamber air; delete `routeVolatile`; move the four callers (and
@@ -1439,6 +1439,34 @@ the plan did not make:
   air changes take it down; smell finds a gas in the air and the fold
   writes nothing.
 - **Commit:** `feat(biome): one vapor route, and smell reads the air`.
+
+**Build note (W6).** `BiomeApi.vent({from, material, litres})` → `BiomeLogic.vent`
+returns `{chamber, room, sky}`; all six receiver sites moved (census (2) vapor
+half 6 → 0); `Burner.addChamberVapor` deleted (`receiveVolatiles` is the door,
+default keeps 0.9 when lit); `ventChamberAir` on `_goOut`/`_setLit(false)`
+(Flued → sky, else `vent` into the room). Decisions the plan did not make:
+- "Enclosed" = the chamber HOLDS the source (a pot ON a fire sits in the room) and
+  is lit; `flameEnclosed` (the safety lamp's gauze) is unrelated. Litres for a kg
+  source = kg ÷ the vapor row's density; `vapourMaterial` became `ref:
+  identity:constituent` (the `chillsTo` precedent) so the vapor row loads with the
+  material; `vaporizesAboveK` with no vapor row THROWS. A boil vents only when the
+  material names a vapor — solutions (sugar liquor, brine) author none, so the
+  boiling floor's steam is not yet humidity (a row each).
+- Humidity also folds into `airFor` (drying sees a steamy room) but NOT
+  `airSegmentsFor` (past windows). Restore door is `set_atmosphereContents` (the
+  `Locality.set_*` precedent). Smell skips an air row nothing loaded (`peek`), and
+  `Olfactory.sourceOf` never pins a smell on the air (like the ground).
+- Retort predicate: trade-fuel `lib/VolatileReceiver.ts` (`VolatileReceiverMixin`,
+  composed by Condenser + Gasometer; Retort and Condenser narrow by name) —
+  `lint:duck-typing` 469 → 467. `Condenser.emitIntoScope` stays its own exhaust walk
+  (through `vent` it would hand gas back to the retort). New aromas `damp`,
+  `salt-fume`. The two gas rows added 10 material-kinds gaps; filled with real values
+  (both vapors' and ammonia/SO₂/CO₂/naphtha-vapour latent heats, salt's
+  `formula`/`molarMass`) — ceiling 5950 held. The salting step is `salt: { word,
+  forms }` on `pots`; salt is `/stuff/thing/salt-crystals` ×3 in the shop.
+- No pinned smell value moved in the touched suites (no shipped smell test had
+  air contents). For W8: `put salt in kiln` binds the kiln as a Container (not
+  exercised live); an Oven defaults `lit: true`, so a cold-chamber test douses it.
 
 ### W7 — one water for porous bodies (D19)
 

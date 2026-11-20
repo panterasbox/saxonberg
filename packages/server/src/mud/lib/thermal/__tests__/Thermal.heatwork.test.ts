@@ -19,6 +19,8 @@ import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
 import Stone from '../../../platform/idea/material/Stone';
+import Gas from '../../../platform/idea/material/Gas';
+import EdibleSalt from '../../../platform/idea/material/EdibleSalt';
 import type { KineticSpec } from '../../material/Kinetics';
 import { ThermalMixin } from '../Thermal';
 import Oven from '../../../platform/thing/Oven';
@@ -220,9 +222,11 @@ describe('pyrolysis — a flame needs air', () => {
     expect(retort.caught['/stuff/idea/material/bulk/wood-tar'] ?? 0).toBeGreaterThan(0.25);
   });
 
-  it('⭐ a starved chamber that takes NOTHING lets the tar into the air of its place (B105)', async () => {
-    // `Burner.receiveVolatiles` answers 0 for an ordinary oven: what left the
-    // charge is the room's (it was a duck-probe for a retort's method).
+  it('⭐ an ordinary lit chamber keeps the tar as its air, and its leak share reaches the place (D16)', async () => {
+    // `Burner.receiveVolatiles`' default: a lit oven keeps what left the
+    // charge as its own air, less `fire.chamber.leakShare` (0.1), which goes
+    // into the air of its place at once (it was a duck-probe for a retort's
+    // method, then the whole of it went to the room).
     const zone = makeStuff(() => new CartesianZone());
     const yard = makeStuff(() => new Location());
     zone.addLocation(yard, 0, 0, 0);
@@ -240,6 +244,10 @@ describe('pyrolysis — a flame needs air', () => {
     const tar = BiomeApi.resolveAtmosphereContentsFor(yard as unknown as Stuff & Container)
       .find((c) => c.type === '/stuff/idea/material/bulk/wood-tar');
     expect(tar?.amount ?? 0).toBeGreaterThan(0);
+    const kept = oven.getChamberVapors()['/stuff/idea/material/bulk/wood-tar'] ?? 0;
+    const roomL = (tar?.amount ?? 0) * (yard.getVolume()!.rawValue() * 1000);
+    // Nine parts kept to one let out.
+    expect(kept / roomL).toBeCloseTo(9, 0);
   });
 
   it('in an open chamber the same wood banks nothing — it is a fire’s, not a kiln’s', async () => {
@@ -301,7 +309,7 @@ describe('vapor in the chamber’s air', () => {
     const glaze = material('salt glaze', {
       transitions: [{ key: 'fuse', rate: { referenceK: 1300, zK: 30, fullDoseS: 3600 }, ladder: [{ atDegree: 1, becomes: '/x' }] }],
     });
-    const salt = material('salt');
+    const saltVapor = '/stuff/idea/material/gas/_heatwork-salt-vapor';
     const stone = material('stoneware');
     const clay = material('clay', {
       transitions: [
@@ -309,12 +317,13 @@ describe('vapor in the chamber’s air', () => {
           key: 'stoneware',
           rate: { referenceK: 1350, zK: 30, fullDoseS: 3600 },
           ladder: [{ atDegree: 1, becomes: stone.getTemplatePath()! }],
-          vapor: { [salt.getTemplatePath()!]: glaze.getTemplatePath()! },
+          vapor: { [saltVapor]: glaze.getTemplatePath()! },
         },
       ],
     });
     const kiln = await litChamber(() => new Oven(), 1450);
-    kiln.addChamberVapor(salt.getTemplatePath()!, 1);
+    // The chamber's air is keyed by the VAPOR row (D16).
+    expect(kiln.receiveVolatiles(saltVapor, 100)).toBeCloseTo(90);
     const pot = lumpOf(clay);
     await load(kiln, pot);
     advance(6 * 3600);
@@ -323,5 +332,33 @@ describe('vapor in the chamber’s air', () => {
     const coat = pot.getCoats('outside')[0];
     expect(coat?.material).toBe(glaze.getTemplatePath());
     expect(coat?.state).toBe('set');
+  });
+
+  it('⭐ a lump of salt at the peak becomes salt vapor in the kiln\'s air — litres by the vapor row (D16)', async () => {
+    const vaporPath = '/stuff/idea/material/gas/_heatwork-salt-vapor-2';
+    makeStuffAtPath(() => {
+      const g = new Gas();
+      g.setName('salt vapor');
+      g.setDensity(Quantity.of(2.6, 'kg/m³'));
+      return g;
+    }, vaporPath);
+    const saltRow = makeStuffAtPath(() => {
+      const m = new EdibleSalt();
+      m.setName('salt');
+      m.setSpecificHeat(Quantity.of(880, 'J/(kg·K)'));
+      m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
+      m.setDensity(Quantity.of(2160, 'kg/m³'));
+      m.setVaporizesAboveK(1350);
+      m.setVapourMaterial(vaporPath);
+      return m;
+    }, `/stuff/idea/material/_heatwork/salt-${++seq}`) as unknown as Material;
+    const kiln = await litChamber(() => new Oven(), 1500);
+    const lump = lumpOf(saltRow, 1.3);
+    await load(kiln, lump);
+    advance(3 * 3600);
+    lump.getTemperature();
+    expect(lump.isDestroyed()).toBe(true);
+    // 1.3 kg at 2.6 kg/m³ is 500 L of vapor; the kiln keeps nine tenths.
+    expect(kiln.getChamberVapors()[vaporPath] ?? 0).toBeCloseTo(450, 0);
   });
 });

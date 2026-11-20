@@ -619,7 +619,11 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
   `wetness.referenceHumidityPct` (50) and 20 °C, so ordinary indoor drying
   is the material rate itself — × the air reach of what it hangs on.
   Saturated air dries NOTHING; something shut in a chest or pack dries
-  nothing; worn or carried it is in its bearer's air.
+  nothing; worn or carried it is in its bearer's air. ⭐ Indoors the air's
+  humidity counts the water vapor in it (matter-model-overlaps D17): a boil's
+  steam in a shut room raises it toward saturation, so the rack by the copper
+  dries nothing until the room's air changes take the steam away
+  ([biome.md](./biome.md)).
   `Wet.dryingHours()` is the closed form of that same rate, so the `dry`
   verb's forecast (*"in this air it will take about …"*) can never
   disagree with the drying.

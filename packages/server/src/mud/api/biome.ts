@@ -200,6 +200,28 @@ export interface MediumRead {
   readonly roughness?: number;
 }
 
+/**
+ * ⭐⭐ What vents (matter-model-overlaps D16) — ONE value: `litres` of the
+ * VAPOR row `material` leaving `from` (a lump of salt at a kiln's peak, a
+ * firing's tar, a pot's steam, naphtha off an open dish, a solvent rag).
+ * No caller says where it goes: `vent` walks `from`'s holders outward.
+ */
+export interface VentMatter {
+  readonly from: Stuff;
+  readonly material: string;
+  readonly litres: number;
+}
+
+/** Where a vent's litres went. */
+export interface VentResult {
+  /** Litres a holding chamber took — its head's receivers, or its own air. */
+  chamber: number;
+  /** Litres the air of the place took. */
+  room: number;
+  /** Litres gone to the sky: open to it, no air to take them, or no headroom. */
+  sky: number;
+}
+
 export class BiomeApi {
   /**
    * Singleton path lookup. Returns `null` when no template is
@@ -599,6 +621,23 @@ export class BiomeApi {
    */
   public static restampThermalContentsOf(room: Stuff & Container): void {
     logic().restampThermalContentsOf(room);
+  }
+
+  // ---------- the vapor route ----------
+
+  /**
+   * ⭐⭐ **The one vapor route** (matter-model-overlaps D16). Walking
+   * `from`'s holders outward: (1) a holding `Burner`'s `receiveVolatiles` —
+   * a retort's head hands it to its receivers, (2) any other lit chamber
+   * keeps it as its own air less `fire.chamber.leakShare`; (3) the rest goes
+   * into the first `Atmospheric` scope with a volume, and a scope open to the
+   * sky takes none — the sky is the sink. (4) is the chamber's own: when
+   * its fire goes out it vents its air up the flue, or here when it has
+   * none. Room air leaves by its air changes. The vapor's row loads with
+   * the act.
+   */
+  public static vent(matter: VentMatter): VentResult {
+    return logic().vent(matter);
   }
 
   // ---------- the evaporation reads (SYNC) ----------

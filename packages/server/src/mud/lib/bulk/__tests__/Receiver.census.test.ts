@@ -37,8 +37,8 @@ import { dirname, join } from 'path';
 
 /** ⭐ Zero since W2 (the one drip); never raise it. */
 const DRIP_RECEIVER_CEILING = 0;
-/** ⭐ W6 lowers this to 0; never raise it. */
-const VAPOR_RECEIVER_CEILING = 6;
+/** ⭐ Zero since W6 (the one vent, `BiomeApi.vent`); never raise it. */
+const VAPOR_RECEIVER_CEILING = 0;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MUD = join(HERE, '..', '..', '..');

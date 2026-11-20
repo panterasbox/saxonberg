@@ -36,7 +36,9 @@ export function VolatilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
       latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
       vapourLPerLPerHour: { persistent: true, spoiler: 1, spoilerName: 0 },
-      vapourMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
+      // ⭐ A constituent (the `chillsTo` precedent): the vapor row loads with
+      // the material, so the one vapor route (D16) reads its density sync.
+      vapourMaterial: { persistent: true, spoiler: 1, spoilerName: 0, ref: 'identity:constituent' },
       vaporizesAboveK: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     };
 
@@ -88,8 +90,9 @@ export function VolatilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     protected vapourLPerLPerHour = 0;
 
     /**
-     * ⭐ The VAPOUR this liquid gives off — the gas row its evaporation
-     * becomes (naphtha → naphtha vapour). `''` = none.
+     * ⭐ The VAPOUR this material gives off — the gas row its evaporation,
+     * its boil or its vaporizing becomes (naphtha → naphtha vapour, water →
+     * water vapor, salt → salt vapor). `''` = none.
      */
     protected vapourMaterial = '';
     /** Litres of vapour per litre per game-hour from an open vessel. */

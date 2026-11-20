@@ -611,6 +611,19 @@ already composes. There is no stored emission and no smell mixin on things.
 | a living animal | `Species.smells` | OU of one kilogram |
 | a fire | `burningNotes()`: the fuel's `burning`, lit only | `× sqrt(bed kg)` |
 | the ground | the floor's material | at 100 kg |
+| ⭐ the air (D18) | each air content of an `Atmospheric` scope with its own volume: the gas row's `smells` | at `kg` = fraction × volume (m³) × the row's density |
+
+⭐ **The air is a source** (matter-model-overlaps D18). `SmellModality.ownSmell(loc)`
+folds what the air of `loc` carries — naphtha off a dish after the dish is gone,
+smoke from a fire, a flueless kiln's salt fume — as sources at `loc`, so it hops on
+to the next room like anything else. Only a scope with its OWN volume counts (one
+with none passes its air outward, and counting it there too would count the next
+room twice). Two guards keep the fold honest: it reads by `peek`, never loading a
+row (`Atmospheric.set_atmosphereContents` is the restore door that loads the rows
+the air cites, and `BiomeApi.vent` loads a vapor's row with the act), and
+`reconcileAtmosphereContents` returns at once while a walk holds the world still,
+so the fold writes nothing — the air decays at the next deliberate read. The air is
+never a thing a smell is pinned on (`Olfactory.sourceOf`), any more than the ground.
 
 Four rules apply throughout. **Amount** is compressive (`sqrt(kg)`: 10 g and 100 kg
 are two bands apart). **Heat** doubles per 10 K, for anything with a temperature. A

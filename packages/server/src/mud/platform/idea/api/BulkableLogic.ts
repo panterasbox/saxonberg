@@ -784,7 +784,7 @@ export class BulkableLogic extends ApiLogic {
     }
 
     // ⭐ (cleanliness D22) A VOLATILE liquid poured into the open gives off
-    // its vapour into the room as it goes in — naphtha in a dish, spirit
+    // its vapour into the air as it goes in — naphtha in a dish, spirit
     // in a bowl. The quarter-hour of evaporation the pour exposes.
     if (
       applied > 0 &&
@@ -795,13 +795,12 @@ export class BulkableLogic extends ApiLogic {
       material.getVapourMaterial() !== '' &&
       to.getClosure() === 'open'
     ) {
-      const room = MixinApi.isContainable(toHolder) ? toHolder.getContainer() : null;
-      if (room && MixinApi.isAtmospheric(room)) {
-        room.addAtmosphereContent(
-          material.getVapourMaterial(),
-          applied * material.getVapourLPerLPerHour() * 0.25,
-        );
-      }
+      // The one vapor route (D16): the vessel's chamber, else the room.
+      BiomeApi.vent({
+        from: toHolder,
+        material: material.getVapourMaterial(),
+        litres: applied * material.getVapourLPerLPerHour() * 0.25,
+      });
     }
 
     // 6. Thermal coupling (gated). Same material both sides (enforced at
