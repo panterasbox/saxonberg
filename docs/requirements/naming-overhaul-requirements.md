@@ -119,7 +119,7 @@ every matcher into one of those.
   removable default player aliases.
 - **`online` goes**, and with it every view scoped to it; a stranger is
   reached by their player id or by getting a relation first.
-- **`:members` retires** into `@` relations.
+- **`:members` retires** into `~` relations.
 - **The affordance selector is `source::verb`** — `glass::drink cocktail`,
   `me:i:watch::wind` — freeing `@` for player addresses.
 - **Notify policies apply to MQL relations** (`~friends`, `~party`);
@@ -133,7 +133,7 @@ every matcher into one of those.
   learned all of them: articles, case, word starts, plurals, ordinals,
   quoted phrases, a prompt on a tie, a refusal that says what was there.
 - **Every matcher goes to its place** (one-resolution-rule-slate § 7):
-  real objects through MQL; a set a thing keeps through `@`; documents
+  real objects through MQL; a set a thing keeps through `~`; documents
   a player names by their keywords; Ideas a player names by their
   keywords (never a proper name a generic thing does not have); a shop's
   inventory as the real goods on its counter; lists of things not yet
@@ -259,7 +259,7 @@ no light step.
 7. *(staged)* A pack with a template folder named `maps/` installs its
    templates (no longer silently skipped).
 8. *(staged)* Change a kind's declaration so existing documents no longer
-   satisfy it (make `formation` words unique while two share one) —
+   satisfy it (make `form` words unique while two forms share one) —
    refused, naming the documents. Remove a declaration that filed records
    still use — refused.
 9. `ls` where stream tokens live shows nothing.
@@ -277,7 +277,7 @@ no light step.
 12. *(staged)* Make a contact list named `inventory` — allowed, with a
     warning; another player's `query @<you>:~inventory` still shows your
     carried things, not the list.
-13. At the Terminus harbor: `look harbor-book:~` lists `~ships`;
+13. At the Terminus harbor: `query harbor-book:~` lists `~ships`;
     `charter hesper` (the view scoping to that book's `~ships`) charters
     her.
 14. `glass::drink` style: `watch::wind` winds a carried watch;
