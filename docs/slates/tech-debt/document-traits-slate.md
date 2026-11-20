@@ -91,7 +91,7 @@ metadata; restate it in trait terms. Flagged as possibly Ideas: `herd`,
   such thing" refusal, `ls`. Retires `pagesOf`'s `name|title|what|headline|key`
   guess and `callUp`'s headline guess. No title → the leaf.
 
-### `named` — what words find it
+### `keyworded` — what words find it (was `named`; renamed so it is never read as `NamedMixin`)
 
 - **Declares:** `keywords` — which data field holds extra keywords
   (default `keywords`; placement → `prepositions`, emote → `searchTerms`);

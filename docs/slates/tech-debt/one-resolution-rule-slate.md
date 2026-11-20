@@ -270,3 +270,42 @@ below is one the plan must account for.
 | the census gate | `lint:controller-resolution` (counts self-resolution only), the `lint:*` family's census-then-ratchet | **generalize** — a census of hand-rolled matchers (the § *The ratchet* sketch), ceiling today's count, driven to 0 |
 | searches | `HelpCatalogue.search`/`typeaheadMatch`, `WhoController --country` | **untouched** — a search is not a name |
 | fixed vocabularies (on/off, up/down, draught, posture, directions, dip faces) | the controllers' word sets; `type: enum` args | **out** — a setting, not an entry |
+
+---
+
+## 7. The matcher half, re-cut (owner, 2026-11-20)
+
+The § 6 ledger's census stands; its *direction* was wrong — it put a
+`listed` scope in MQL. MQL is a query over runtime Stuff only (memory:
+*MQL finds runtime Stuff only*). The re-cut, family by family, as settled
+so far:
+
+- **Real objects in reach** → plain MQL.
+- **Real objects out of reach** → an existing MQL form where one exists
+  (`bob:inventory`, `here:exits:to:i`, …); a set a **holder keeps** (a
+  harbor or charter book's ships, a travel card's nodes, a device's
+  offered apps, a contact list's people) → `:members`, generalized into a
+  holder protocol ([mql-anchors-slate](../engine/mql-anchors-slate.md));
+  **hearing range** (hail, call) → the act's own audience, not MQL.
+- **The naming rule** — MQL's scorer lifted to a shared home (likely
+  `GrammarApi`) that MQL and every non-Stuff matcher call.
+- **Documents a player names** → the document-traits `keyworded` trait
+  (+ `titled`): recipe, form, formation, operation, emote stay documents
+  ([document-traits-slate](./document-traits-slate.md)).
+- **Ideas a player names by word** → `PerceptibleMixin` keywords, held
+  live by their catalogue (the Material pattern): Spell (its catalogue
+  stops holding descriptors), Reading, Condition, Lane, Species, App.
+  ⛔ **Never `NamedMixin` for this** — Named is for proper names only.
+- **Brand, Locality, Organization compose `NamedMixin`** — so an instance
+  *may* carry a proper name ("Terminus", "Aevex", "Dave's Bar"); one that
+  has none is described by its short description ("a forest clearing",
+  "the general store") and leaves the name empty. Found by Perceptible
+  keywords either way.
+- **Organizations are reached by relation** (the premises you stand in,
+  a business you belong to), else by path as an address. No global name
+  search.
+
+Still open: records held inside objects (stock lines, hull slots, part
+lines, mine faces, positions…), collection records (channels, forum
+subjects, groups, parties), player-owned labels, herd/water-right/receipt
+as possible Ideas, durations and `defaulted`.
