@@ -938,6 +938,12 @@ export interface FieldDefinition {
    */
   onFiltered?: OnFilteredPolicy;
   /**
+   * ⭐ `relations` — the slot accepts a relation listing (`thing:~`, naming
+   * overhaul D-B4) and is handed it as `relations` on the bound set; any
+   * other slot refuses one with `names-relations`. Only `query`'s.
+   */
+  lists?: 'relations';
+  /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
    * a friendly error pointing at the offending property.

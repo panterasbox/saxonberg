@@ -69,9 +69,12 @@ import type {
   MqlMatchVia,
   PronounNode,
   QueryNode,
+  RelationInfo,
+  RelationTie,
   SublistNode,
   ValueNode,
 } from './types';
+import { BUILTIN_RELATIONS, avatarOfPlayer, builtinRelations } from './relations';
 // Loads the `detailPath` augmentation onto `MqlMatchVia`.
 import './via-augment';
 
@@ -130,25 +133,47 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
 export function resolveWithQuantity(
   query: string,
   ctx: MqlContext,
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } {
+): {
+  matches: MqlMatch[];
+  quantity?: MqlQuantity;
+  scan?: RegistryScan;
+  isSet?: true;
+  ordinal?: number;
+  relations?: RelationInfo[];
+  relationTie?: RelationTie;
+} {
   // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
   // read, so whoever was entitled to read it can be told. It lives for
   // exactly one synchronous run; save/restore rather than assign/clear,
   // because a predicate can re-enter `MqlApi.resolveMany` and the outer
   // run's record must survive the nested one.
   const outerScan = registryScan;
+  const outerListing = relationListing;
+  const outerTie = relationTie;
   registryScan = null;
+  relationListing = null;
+  relationTie = null;
   try {
     return resolveInner(query, ctx);
   } finally {
     registryScan = outerScan;
+    relationListing = outerListing;
+    relationTie = outerTie;
   }
 }
 
 function resolveInner(
   query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } {
+): {
+  matches: MqlMatch[];
+  quantity?: MqlQuantity;
+  scan?: RegistryScan;
+  isSet?: true;
+  ordinal?: number;
+  relations?: RelationInfo[];
+  relationTie?: RelationTie;
+} {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -159,8 +184,17 @@ function resolveInner(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan; isSet?: true; ordinal?: number } =
-    { matches: finalized };
+  const out: {
+    matches: MqlMatch[];
+    quantity?: MqlQuantity;
+    scan?: RegistryScan;
+    isSet?: true;
+    ordinal?: number;
+    relations?: RelationInfo[];
+    relationTie?: RelationTie;
+  } = { matches: finalized };
+  if (relationListing) out.relations = relationListing;
+  if (relationTie) out.relationTie = relationTie;
   if (quantity) out.quantity = quantity;
   if (desugared.ordinal !== undefined) out.ordinal = desugared.ordinal;
   if (registryScan) out.scan = registryScan;
@@ -187,7 +221,8 @@ function namesASet(ast: QueryNode): boolean {
     // One referent is not a set: `here`, `me`, `it` and an id each name
     // ONE thing (a bare `look` is the room, not a list of it). `them` is.
     if (el.kind === 'pronoun') return el.name === 'them';
-    if (el.kind === 'stuffId') return false;
+    if (el.kind === 'stuffId' || el.kind === 'player' || el.kind === 'homePath') return false;
+    if (el.kind === 'relation' || el.kind === 'relations') return true;
     if (el.kind !== 'keywords') return true;
     if (el.words.length !== 1) return false;
     const w = el.words[0]!.toLowerCase();
@@ -197,7 +232,10 @@ function namesASet(ast: QueryNode): boolean {
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
-    (el.kind === 'pronoun' && el.name !== 'them') || el.kind === 'stuffId';
+    (el.kind === 'pronoun' && el.name !== 'them') ||
+    el.kind === 'stuffId' ||
+    el.kind === 'player' ||
+    el.kind === 'homePath';
   const chainIsSet = (c: ChainNode): boolean =>
     (isSetStep(c.head, true) || (oneReferent(c.head) && c.rest.length > 0)) &&
     c.rest.every((op) => isSetStep(op.element, false));
@@ -341,6 +379,14 @@ function mayReadWorld(): boolean {
 let registryScan: RegistryScan | null = null;
 
 /**
+ * ⭐ The relation facts one synchronous run gathered — `thing:~`'s listing
+ * and a name two of one holder's sets share — like `registryScan`, saved
+ * and restored around a run so a nested resolve keeps the outer's.
+ */
+let relationListing: RelationInfo[] | null = null;
+let relationTie: RelationTie | null = null;
+
+/**
  * The refusal every ordinary caller gets. ⚠ It names the alternatives:
  * a refusal that only says no turns a working query into a dead end,
  * and the alternatives are the whole reason this is affordable.
@@ -405,6 +451,21 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return matchesFromStash(ctx, 'last');
     case 'group':
       return resolveQuery(node.query, ctx);
+    case 'player': {
+      // ⭐ `@<id>` — the loaded avatar of that player (D17's identity).
+      const avatar = avatarOfPlayer(node.id);
+      return avatar ? matchesFromStuff([avatar]) : [];
+    }
+    case 'homePath': {
+      // `~` / `~/x` — the asker's home branch (`cd ~/x`).
+      const giver = requireGiver(ctx, "a home path ('~')");
+      const key = giver.getIdentityPath()?.split('/').filter(Boolean).pop();
+      if (!key) return [];
+      return resolveSeed({ kind: 'path', pattern: `/home/${key}${node.rest}` }, ctx);
+    }
+    case 'relation':
+    case 'relations':
+      throw new MqlResolveError(`'~' at the head of a query names one of YOUR relations — write it '~name'`);
     case 'transform':
     case 'ordinal':
     case 'bracket-ordinal':
@@ -726,6 +787,20 @@ function candidatesForScopePart(
   part: string,
   ctx: MqlContext
 ): ScopeCandidate[] | null {
+  // ⭐ A relation or a player address in a view's `scope:` is an MQL query
+  // whose MATCHES are the candidates (D-B3) — `~here` contributes the
+  // place, `~reachable:[class.CharterBook]:~ships` the ships, and nothing
+  // else; no neighborhood walk.
+  if (part.startsWith('~') || part.startsWith('@')) {
+    let matches: MqlMatch[];
+    try {
+      matches = resolve(part, { commandGiver: ctx.commandGiver, scope: 'reachable' });
+    } catch {
+      // @quiet a scope that does not resolve contributes nothing; the binder says "you don't see that".
+      return [];
+    }
+    return matches.map((m) => ({ ...candidateFor(m.stuff, ctx.commandGiver), ...(m.via ? { via: m.via } : {}) }));
+  }
   const lower = part.toLowerCase();
   if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
   if (lower === 'inventory') {
@@ -888,6 +963,14 @@ function applyColon(
     }
     case 'literal':
       return filterByLiteral(input, el.value);
+    case 'relation':
+      return flatMapRelation(input, el.name, ctx);
+    case 'relations':
+      listRelations(input, ctx);
+      return [];
+    case 'player':
+    case 'homePath':
+      throw new MqlResolveError(`'${describeKind(el.kind)}' is only valid at the start of a query`);
     case 'pronoun':
     case 'path':
     case 'stuffId':
@@ -960,6 +1043,61 @@ function intersectWithSeed(
  * self-reachable matches. So `(bob, joe):reachable` keeps bob and
  * joe in the result, while `(bob, joe):peers` excludes them.
  */
+/**
+ * ⭐ `:~name` — the set each prior element keeps under `name` (D-B5):
+ * a built-in first (it can never be masked), else the element's own sets
+ * if it composes `RelatingMixin`. A `self` built-in asked of anyone but
+ * the asker answers nothing. Several things on the left: ask each, union,
+ * dedupe by `(stuff, set)`. Every match carries `via.relation`.
+ */
+function flatMapRelation(input: MqlMatch[], name: string, ctx: MqlContext): MqlMatch[] {
+  const asker = ctx.commandGiver;
+  const builtin = BUILTIN_RELATIONS.get(name);
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  const push = (stuff: Stuff, score: number, holder: Stuff, meaning: string, via?: MqlMatchVia): void => {
+    const key = `${stuff.stuffId}|${meaning}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ stuff, score, via: { ...(via ?? {}), relation: { holder, name, meaning } } });
+  };
+  for (const m of input) {
+    if (builtin !== undefined) {
+      if (builtin.whose === 'self' && m.stuff !== asker) continue;
+      for (const c of builtin.members(m.stuff, ctx)) push(c.stuff, m.score, m.stuff, builtin.meaning, c.via);
+      continue;
+    }
+    if (!MixinApi.isRelating(m.stuff)) continue;
+    const sets = m.stuff.relatedBy(name, asker);
+    if (sets.length > 1) relationTie = { name, sets: sets.map((s) => s.meaning) };
+    for (const set of sets) for (const s of set.members) push(s, m.score, m.stuff, set.meaning);
+  }
+  return out;
+}
+
+/**
+ * `:~` — record what each prior element answers to the asker (the
+ * built-ins that apply, then its own sets) for `query` to print. Binds
+ * nothing.
+ */
+function listRelations(input: MqlMatch[], ctx: MqlContext): void {
+  const asker = ctx.commandGiver;
+  const listing: RelationInfo[] = relationListing ?? [];
+  for (const m of input) {
+    const holder = nameOf(m.stuff);
+    for (const b of builtinRelations()) {
+      if (b.whose === 'self' && m.stuff !== asker) continue;
+      listing.push({ holder, name: b.name, meaning: b.meaning, builtin: true });
+    }
+    if (MixinApi.isRelating(m.stuff)) {
+      for (const r of m.stuff.relationsFor(asker)) {
+        listing.push({ holder, name: r.name, meaning: r.meaning, builtin: false });
+      }
+    }
+  }
+  relationListing = listing;
+}
+
 /**
  * `:members` — the keyed-member locator (residences D16): expand each
  * prior element that is a `Warren` (an institution — or a holding

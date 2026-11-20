@@ -179,8 +179,16 @@ class Parser {
   // ----- chain ---------------------------------------------------------
 
   private parseChain(): ChainNode {
-    const head = this.parseSeed();
     const rest: ChainOp[] = [];
+    let head: ChainElement;
+    if (this.peekKind('tilde') && this.peekKind('bareword', 1)) {
+      // ⭐ A head `~name` is `me:~name` (D-B1): every query is the asker's.
+      this.advance();
+      head = { kind: 'pronoun', name: 'me' };
+      rest.push({ op: ':', element: { kind: 'relation', name: this.advance().value } });
+    } else {
+      head = this.parseSeed();
+    }
     while (this.peekKind('colon')) {
       this.advance();
       rest.push({ op: ':', element: this.parseChainElement() });
@@ -233,6 +241,16 @@ class Parser {
       case 'dollardollar':
         this.advance();
         return { kind: 'lastResult' };
+      case 'playerId':
+        this.advance();
+        return { kind: 'player', id: t.value };
+      case 'homePath':
+        this.advance();
+        return { kind: 'homePath', rest: t.value };
+      case 'tilde':
+        // A bare `~` at the head: your home (`~name` was taken above).
+        this.advance();
+        return { kind: 'homePath', rest: '' };
       case 'lparen':
         return this.parseGroup();
       case 'lbracket':
@@ -340,6 +358,21 @@ class Parser {
         return this.parseBracket();
       case 'lbrace':
         return this.parseQuantity();
+      case 'tilde':
+        // `:~name` asks the left side for a set; `:~` lists what it answers.
+        this.advance();
+        if (this.peekKind('bareword')) return { kind: 'relation', name: this.advance().value };
+        return { kind: 'relations' };
+      case 'homePath':
+        throw new MqlParseError(
+          `a home path ('~${t.value}') is only valid at the start of a query`,
+          t.start
+        );
+      case 'playerId':
+        throw new MqlParseError(
+          `a player address ('@${t.value}') is only valid at the start of a query`,
+          t.start
+        );
       default:
         throw new MqlParseError(
           `expected a chain element after ':' but got ${describe(t)}`,
@@ -622,5 +655,7 @@ function describe(t: Token): string {
   if (t.kind === 'int') return `integer '${t.value}'`;
   if (t.kind === 'hashId') return `'#${t.value}'`;
   if (t.kind === 'hashInt') return `'#${t.value}'`;
+  if (t.kind === 'playerId') return `'@${t.value}'`;
+  if (t.kind === 'homePath') return `'~${t.value}'`;
   return `'${t.value}'`;
 }

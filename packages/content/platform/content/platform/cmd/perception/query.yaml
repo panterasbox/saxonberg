@@ -28,6 +28,10 @@ help: |
     query all brass    every brass thing in reach
     query bob:i        what Bob wears and holds (never his pockets)
     query me:i         everything you have
+    query me:~         what you can ask yourself for — the built-in
+                       relations (~here, ~peers, ~all …), your contact
+                       lists, your groups — each with what it means
+    query book:~       what a book (or any holder) keeps that you can ask for
 
   Options change how the list is SHOWN, never what is in it:
 
@@ -76,6 +80,9 @@ args:
     required: true
     scope: ["reachable"]
     requires: any
+    # ⭐ `query thing:~` lists what you can ask that thing for (naming
+    # overhaul D-B4) — this is the one slot a listing binds.
+    lists: relations
 options:
   ledger:
     type: boolean

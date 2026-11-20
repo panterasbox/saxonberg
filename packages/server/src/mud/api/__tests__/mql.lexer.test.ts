@@ -408,7 +408,9 @@ describe('MQL lexer', () => {
 
   describe('error cases', () => {
     it('throws on unrecognized characters', () => {
-      expect(() => lex('@')).toThrow(/unexpected character '@'/);
+      expect(() => lex('^')).toThrow(/unexpected character '\^'/);
+      // ⭐ `@` is a player address now (naming overhaul D-B1); a bare one is refused.
+      expect(() => lex('@')).toThrow(/bare '@'/);
     });
   });
 

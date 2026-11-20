@@ -919,6 +919,24 @@ holders unions and dedupes; a `'self'` built-in asked of another answers
 empty.
 *Commit:* `build(naming-overhaul WB1): relations — one table, one protocol`.
 
+✅ **Done.** The lexer gains `tilde`, `homePath` (`~/x`) and `playerId`
+(`@id`); the desugar pass leaves any query with `~`/`@` alone. A head
+`~name` parses as `me:~name`; a bare head `~` is the home; `:~` is the
+listing; a home path or player id after a `:` is a parse error. The
+built-in table (`api/mql/relations.ts`) has **here, inventory, peers,
+reachable, person, horizon, buildings, all, it, them, him, her, last** —
+`~buildings` is the build's decision for the landing row. `via.relation`
+carries `{ holder, name, meaning }` (the meaning tells two sets of one name
+apart for the tie prompt). Facts ride a save/restore side channel like
+`registryScan` and surface on `MqlOne`/`MqlMany`. A view `scope:` part
+starting `~`/`@` resolves as a query whose matches ARE the candidates. The
+listing reaches only a slot declaring **`lists: relations`** (a new view
+key — `query`'s `set`); every other slot, and every option, refuses
+`names-relations` — the binder detects the listing syntactically (a
+trailing `:~`). `RelatingMixin` (`lib/relation/Relating.ts`) is the base of
+the chain; holders arrive in B2. The legacy seed words and the scope word
+`here` are untouched (B3a/B3b).
+
 **B2 — The holders answer.**
 *Decisions:* D-B5, D-B6.
 *Decisions also:* D-B11.

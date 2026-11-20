@@ -186,6 +186,10 @@ export type MqlQuantityHint = MqlQuantity;
  */
 export interface MqlOne {
   stuff: Stuff | null;
+  /** `thing:~` — the relations asked for (the query binds nothing). */
+  relations?: RelationInfo[];
+  /** A relation name two of one holder's sets share (D-B11). */
+  relationTie?: RelationTie;
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
   /** Present only when the run walked the registry — see {@link RegistryScan}. */
@@ -211,6 +215,10 @@ export interface MqlOne {
  */
 export interface MqlMany {
   stuff: Stuff[];
+  /** `thing:~` — the relations asked for (the query binds nothing). */
+  relations?: RelationInfo[];
+  /** A relation name two of one holder's sets share (D-B11). */
+  relationTie?: RelationTie;
   /** What the resolve read, when `ctx.trackTouched` asked (crowded-rooms N2). */
   touched?: Stuff[];
   via?: MqlMatchVia;
@@ -341,6 +349,25 @@ export interface MqlManyResult extends MqlMany {
  */
 export type PronounName = 'me' | 'here' | 'it' | 'them' | 'him' | 'her';
 
+/** One relation a holder answers, as `thing:~` lists it. */
+export interface RelationInfo {
+  /** The holder asked (its display name, for the listing). */
+  holder: string;
+  /** The relation's name, without the sigil. */
+  name: string;
+  /** Its one-line meaning. */
+  meaning: string;
+  /** Whether it is a built-in (always wins) rather than the holder's own set. */
+  builtin: boolean;
+}
+
+/** A name two of one holder's sets share — the binder asks which. */
+export interface RelationTie {
+  name: string;
+  /** The sets' meanings, in the order their members were matched. */
+  sets: string[];
+}
+
 /** Top-level node — the whole query, possibly a comma-union. */
 export interface QueryNode {
   kind: 'query';
@@ -394,7 +421,11 @@ export type ChainElement =
   | OrdinalNode
   | BracketNode
   | GroupNode
-  | QuantityNode;
+  | QuantityNode
+  | RelationNode
+  | RelationsNode
+  | PlayerNode
+  | HomePathNode;
 
 export interface PronounNode {
   kind: 'pronoun';
@@ -496,6 +527,35 @@ export interface GroupNode {
  * `docs/mql-grammar.md § Formal quantity` (user-facing surface), and
  * `docs/subsystems/stacks.md § MQL touchpoints` (runtime hookup).
  */
+/**
+ * ⭐ `:~name` — the set the left side keeps under `name` (naming overhaul
+ * D-B1). A built-in relation answers first and can never be masked; a
+ * holder that composes `RelatingMixin` answers the rest. A head `~name` is
+ * `me:~name`.
+ */
+export interface RelationNode {
+  kind: 'relation';
+  name: string;
+}
+
+/** `:~` — list the relations the left side answers to the asker; binds nothing. */
+export interface RelationsNode {
+  kind: 'relations';
+}
+
+/** `@<id>` — a player address: the loaded avatar of that player id (head only). */
+export interface PlayerNode {
+  kind: 'player';
+  id: string;
+}
+
+/** `~` / `~/x` at the head of a query — a path under the asker's home. */
+export interface HomePathNode {
+  kind: 'homePath';
+  /** The path below the home (`/workroom`), or '' for the home itself. */
+  rest: string;
+}
+
 export interface QuantityNode {
   kind: 'quantity';
   value: MqlQuantityValue;
