@@ -10,6 +10,8 @@
 > portfolios beyond booze · numeric tuning · ⭐ (2026-11-18, at the end) the public face and hidden hand ·
 > the conviction tally on every corpo seat, constituency by form · no corporate personhood · charters
 > renewed by bill · player companies in the five forms
+> ⏸ **Parked 2026-11-20 (at the end):** who runs the banks and how players come to lead corpos —
+> what was agreed, what was proposed, and where to pick it up.
 > **Size:** a build
 
 > ⭐ **2026-09-18 — the roster's LORE is superseded by
@@ -342,3 +344,93 @@ popularity contest?"*
 5. **Which corpos carry the TPA's routes.**
 6. **A seat's conviction period** — how long before a challenger can win.
 7. **Each hidden hand's content** — a content session.
+
+## ⏸ Parked 2026-11-20 — who runs the banks, and how players come to lead corpos
+
+A long conversation (2026-11-19 → 20) that the owner parked for fresh eyes: *"we'll figure out how to
+bootstrap the corpo leadership from the player base while still giving each corpo a distinct
+personality in a later discussion. I feel like we might be chasing the rabbit's tail here maybe … if
+they're run by players don't they just get the personality of the players? I know the answer to that
+is actually complicated and there's institutional culture and stuff but anyway that's where we can
+pick things up later."*
+
+**Pick it up here:** does a player-run corpo keep a personality of its own, or take its players'? —
+institutional culture is the complicated answer. ⚠ **Start from the problem, not from org charts**:
+*the game needs trusted players running banks that compete*; everything about corpo forms is a layer
+on top of that, and the conversation drifted when it designed forms first and looked for people to
+fit them.
+
+### Agreed with the owner
+
+- ⭐⭐ **A bank lends to whom it wants.** A private bank is *a hand at the wheel, or it is nothing* —
+  otherwise the central bank would skip it. The shipped mechanical gate
+  ([credit.md](../../subsystems/credit.md) § *The ladder*, *"nobody judges"*) is **the empty-seat
+  autopilot**, not the policy a seated person must follow.
+- ⭐⭐ **The money is public; the banking is private.** Custody, settlement, the mint and account data
+  stay the Compact's ([banking.md](../../subsystems/banking.md)); a bank risks its own capital, never
+  depositors'. The old *"never player banks"* survives in its true meaning: **nobody but the Compact
+  holds custody**, so a corpo may fail as a government but never as money.
+- ⭐ **The launch dynamic** (the owner): seed capital is the scarcest thing at launch, the banks
+  control it, the corpos control the banks — so the smart player chases corpo seats, and the corpos
+  and the executive (which controls the reserve they depend on) stand opposite each other.
+- **The Governor is an executive officer** — money is an executive function; the open question is only
+  whether the seat serves at the PM's pleasure or holds a term removable for cause. **Window terms
+  are the same for every bank**: the executive judges how much money flows, never to which bank.
+- ⭐⭐ **Content bounties from the treasury are the main early pipe** (the owner): they capitalize the
+  players who make the world worth staying in.
+- ⭐⭐⭐ **The pen, again** (the owner): a corpo's ownership story means nothing beyond its grants.
+  Until someone else holds them, **the founder of the game is playing every corpo** through its
+  autopilot. Three pens — code (the charter's rules), content (the corpo's extent, lore and purpose,
+  under its title), data (operations: lending, Terms, prices, hiring, the purse). A seat can only
+  ever hold data operations and a purse. **The part is written; the actor is cast.**
+- **The crowdsourced capitalization** (the owner, liked): new players get a balance that must be
+  invested in a corpo, playing *whatever role capitalizes it* — *"the player supplies the
+  performance and the role playing and the platform supplies the zorkmids and the capital … like an
+  improviser who gets a suggestion from the audience."*
+- **Corpos as twisted Compacts** (the owner, liked): each runs a version of the Compact with one
+  safeguard broken, so its characteristic failure proves why the Compact has it.
+
+### Proposed, not decided
+
+1. **Recourse at the window.** Today a defaulted rung-1 loan's window advance is **written off** (the
+   central bank eats it). With discretion that is *a faucet with a guest list*; the window should
+   lend to the bank with recourse, so the bank's own capital absorbs defaults. ⚠ A code change.
+2. **A basic account and payment neutrality** as charter conditions — a bank may refuse a loan,
+   never cut someone out of the money system.
+3. **Guards on the launch race:** acquiring control of a chartered bank needs the polity's approval
+   (the Change in Bank Control Act pattern); no bank lends against bank shares (Russia's 1995
+   loans-for-shares); no interlocking seats across competing banks (Clayton Act § 8); related-party
+   loans disclosed and capped (the Regulation O pattern).
+4. **Money entering by three channels** — labor (content bounties), the consumer's choice (the
+   directed endowment), capital (bank credit). Open: the endowment one-time or an allowance per
+   active member; one per account; votes vesting with participation; whether a stake can be resold.
+5. **The twisted Compacts** (a first cut): Veshko — shares are the only weight; Goodkin — one member
+   one vote by simple majority; Vionne — a closed circle; Hollis — absent votes count for the
+   incumbent (broker voting); Aevex — measures its users and hides the measurement.
+6. **Authors who consume their own work** (guilds and corpos): **enjoy** it always · **score** from it
+   never · **profit** through it only via governance · **no exemption** (the author enters by the
+   same door as anyone). Two consequences proposed: ⚠ amend
+   [standing-mint-slate](./standing-mint-slate.md) Part 11's conflict rule so **presence counts as
+   presence, never as use** (today pen-holders earn no consumer standing in their own extent, which
+   punishes guild authors who play there); and **the pen over a corpo's levers never sits with a
+   stakeholder in it**. Also: only persons may confer regard on a player — ⚠ verify in code that NPC
+   reactions never feed a player's renown.
+7. **The triangle:** every institution as a point among capital, labor and consumer weights, with
+   the Compact at the center and guilds at the labor corner.
+
+### Explored and set aside
+
+- **One conviction tally on every corpo seat** — made all five the same model with different words
+  for the voters.
+- **Five corporate mechanics** — sale (Aevex), consent of partners (Vionne), first refusal (Veshko),
+  open market (Hollis), one head one vote (Goodkin). The partnership raised *why would anyone dilute
+  themselves*; the answer (presence across time zones, the shared checkbook, retirement) held only
+  if human lending judgment beats the autopilot. A **foundation-owned house** (Rolex's Hans Wilsdorf
+  Foundation) was offered for Vionne. The owner: this had drifted far from the problem.
+- ⭐ **The last proposal, for fresh eyes:** *the lending limit follows the track record* — the
+  proprietary trading desk's model. Anyone may lend for a bank with a small limit; repaid loans grow
+  it, defaults shrink it, a first-loss stake of the lender's own, a share of the interest as pay.
+  Unseating is automatic (the protocol writes limits from the record), borrowers and lenders climb
+  one trust ladder, banks compete for lenders, borrowers and endowment capital, and each corpo's
+  ethos is its **lending rules** rather than a governance system. ⚠ Requires the autopilot formula to
+  stay narrow enough that human judgment beats it.
