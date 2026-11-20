@@ -10,12 +10,14 @@
 import { describe as suite, it, expect, afterAll } from 'vitest';
 import { Session, declareFile, uniqueHandle, plain, advanceWorldClock } from '../src/harness';
 
-export const DIRTY_REASON = 'mints a new character and spends game days of the world clock';
-
+// ⭐ Clean (test-world-lifecycle D8): the two characters are minted fresh
+// through char-gen each run (the default landing on purpose — nothing here
+// asserts where they stand) and the run's purge takes them; a clock jump
+// consumes nothing the world does not regenerate. The phone is the starting
+// kit's (generic-objects), so no locality is named.
 declareFile({
-  file: 'aether-devices.soak.dirty.wire.test.ts',
-  packs: ['base-library', 'generic-objects', 'expression', 'eternal-university', 'terminus', 'world-seed', 'energy', 'arcana'],
-  dirtyReason: DIRTY_REASON,
+  file: 'aether-devices.soak.wire.test.ts',
+  packs: ['platform', 'base-library', 'generic-objects', 'expression', 'energy', 'arcana'],
 });
 
 suite('aether devices — a session\'s battery (soak)', () => {

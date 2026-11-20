@@ -62,30 +62,17 @@ import {
 } from '../src/harness';
 
 /*
- * ⚠ Kept honest against what the steps ACTUALLY do. An earlier version
- * of this string claimed a shelf pin and a circle crossing; step 4 was
- * rewritten (the door is unreachable) and the shelf pin went with it,
- * so both had become false. A dirty reason nobody re-reads is how a
- * reset gets owed for the wrong thing.
+ * ⭐ Clean (test-world-lifecycle D8). The reason this file used to carry
+ * was stale twice over: it claimed a bank account (step 8 never opens
+ * one — the read surface is unreachable, see the step) and it called the
+ * minted characters unrecoverable. Every character here is a `wire-`
+ * handle the run's purge takes, char-gen lands them by the world's
+ * default on purpose (nothing asserts where), and the bedroom is the
+ * generic-objects archetype row, named by no locality.
  */
-export const DIRTY_REASON =
-  'mints four characters (two through char-gen) and leaves them in the ' +
-  'world; opens a bank account for one and names another as its ' +
-  'beneficiary — none of it produced again. ⭐ No circle is consumed: ' +
-  'the crossing step cannot reach a door (see the file header).';
-
 declareFile({
-  file: 'avatar-family.dirty.wire.test.ts',
-  packs: [
-    'platform',
-    'wiki-starter',
-    'generic-objects',
-    'terminus',
-    'world-seed',
-    'eternal-university',
-    'saxonberg-lounge',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'avatar-family.wire.test.ts',
+  packs: ['platform', 'wiki-starter', 'generic-objects'],
 });
 
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an

@@ -24,14 +24,17 @@ import { fileURLToPath } from 'node:url';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   expectOk,
   expectNote,
+  standIn,
+  PLAZA,
 } from '../src/harness';
 
+// Stands in the testbed (test-world-lifecycle D8). The founder stays: its
+// seat is the title over the platform the verbs check.
 declareFile({
   file: 'typecheck.wire.test.ts',
-  packs: ['platform'],
+  packs: ['platform', 'test-fixtures'],
 });
 
 const PROBE_CLASS = '/platform/thing/WireTypecheckProbe';
@@ -53,8 +56,8 @@ let player: Session;
 beforeAll(async () => {
   rmSync(PROBE_FILE, { force: true });
   writeFileSync(PROBE_FILE, CLEAN);
-  founder = await Session.open('founder');
-  player = await Session.open(uniqueHandle('tc'));
+  founder = await Session.open('founder', { startLocation: PLAZA });
+  player = await standIn(PLAZA, 'tc');
 }, 120_000);
 
 afterAll(() => {

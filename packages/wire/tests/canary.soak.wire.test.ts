@@ -20,8 +20,9 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   expectOk,
+  standIn,
+  PLAZA,
   advanceWorldClock,
   worldClockNow,
   isOwnedTestWorld,
@@ -29,7 +30,7 @@ import {
 
 declareFile({
   file: 'canary.soak.wire.test.ts',
-  packs: ['platform'],
+  packs: ['platform', 'test-fixtures'],
 });
 
 const DAY = 86_400;
@@ -37,7 +38,8 @@ const DAY = 86_400;
 let player: Session;
 
 beforeAll(async () => {
-  player = await Session.open(uniqueHandle('canary'));
+  // Stands in the testbed (test-world-lifecycle D8), never the default landing.
+  player = await standIn(PLAZA, 'canary');
 }, 120_000);
 
 afterAll(() => {

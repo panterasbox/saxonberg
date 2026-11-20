@@ -50,28 +50,26 @@
  * birth-only, and what the instance will remember from a source the row
  * never mentions. None of that was answerable before.
  *
- * ⚠ DIRTY only because a wizard session exists; it writes no content.
- * (The file keeps the `.dirty.` name and a reason rather than claiming
- * to be clean on a technicality — a wizard in the world is a fact the
- * next run can see.)
+ * ⭐ Clean (test-world-lifecycle D8). The file used to be `.dirty.`
+ * because "a wizard session exists" — stale: the reader is an ordinary
+ * author (`cat` is every character's), it writes nothing, and its
+ * characters are `wire-` handles the run's purge takes. The regression
+ * step stands in the testbed's hall rather than a lounge room.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   plain,
+  standIn,
+  PLAZA,
+  HALL,
 } from '../src/harness';
 
-export const DIRTY_REASON =
-  'opens a wizard session (a character with code trust in the world); ' +
-  'writes no content';
-
 declareFile({
-  file: 'hydration.dirty.wire.test.ts',
-  packs: ['saxonberg-lounge', 'terminus', 'generic-objects', 'world-seed'],
-  dirtyReason: DIRTY_REASON,
+  file: 'hydration.wire.test.ts',
+  packs: ['platform', 'generic-objects', 'test-fixtures'],
 });
 
 const open: Session[] = [];
@@ -84,7 +82,7 @@ async function say(s: Session, cmd: string): Promise<string> {
 beforeAll(async () => {
   // ⭐ An author, not a wizard: `cat` is every character's (the workspace
   // verbs) and reading is open (wizard-axis D14) — nothing here types code.
-  wiz = await Session.open(uniqueHandle('hyd-wiz'));
+  wiz = await standIn(PLAZA, 'hyd-wiz');
   open.push(wiz);
 });
 
@@ -131,19 +129,27 @@ suite('step 2 — an author reads what will fill a row in', () => {
 });
 
 suite('the regression step — nothing about an ordinary clone moved', () => {
-  it('⭐ a lounge room still arrives with its authored prose and its floor', async () => {
+  it('⭐ an authored room still arrives with its authored prose and its floor', async () => {
     // 1,528 rows lost a line in this build. The cheapest honest check
     // that the content step still runs is that an ordinary authored room
     // still reads as itself — its `data` applied, its floor minted by
     // `Location.onCreate`, both through the renamed applier.
-    const player = await Session.open(uniqueHandle('hyd-play'), {
-      startLocation: '/world/lounge/location/bar',
-    });
+    //
+    // ⚠ The testbed hall's long description names its own fixtures, so a
+    // fixture name in `look` would pass on the prose alone. The prose
+    // proves the room's `data` applied; the two fixtures are read off the
+    // room's CONTENTS (`here:i`), which only its `props:` put there.
+    const player = await standIn(HALL, 'hyd-play');
     open.push(player);
     const said = (await say(player, 'look')).toLowerCase();
     expect(said.length).toBeGreaterThan(40);
-    for (const fixture of ['back-bar', 'rack']) {
-      expect(said, fixture).toContain(fixture);
+    expect(said.replace(/\s+/g, ' '), 'the authored long description').toContain('a plain hall, lit by a lamp');
+    const contents = (await player.query('here:i', { fields: ['displayName'] }))
+      .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+      .join(' | ')
+      .toLowerCase();
+    for (const fixture of ['house tablet', 'wooden chair']) {
+      expect(contents, fixture).toContain(fixture);
     }
     // The floor: a place with no floor is a place you cannot stand.
     const floor = (await say(player, 'look floor')).toLowerCase();

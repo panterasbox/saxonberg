@@ -30,20 +30,26 @@ import {
   plain,
   SERVER_URL,
   expectOk,
+  standIn,
+  HALL,
+  PLAZA,
   type CapturedEnvelope,
 } from '../src/harness';
 
-export const DIRTY_REASON =
-  'issues stream tokens that persist as documents, and adds two characters ' +
-  'to the streamers group';
-
+/*
+ * ⭐ Clean (test-world-lifecycle D8): it stands in the testbed's hall, and
+ * every character is a fresh `wire-` handle — the run's purge takes them
+ * and their streamers-group rows. The tokens it issues are rows keyed on
+ * those characters; nothing a later run reads, since a later run's
+ * streamers are new characters with tokens of their own.
+ */
 declareFile({
-  file: 'broadcast-ready.dirty.wire.test.ts',
-  packs: ['saxonberg-lounge', 'world-seed'],
-  dirtyReason: DIRTY_REASON,
+  file: 'broadcast-ready.wire.test.ts',
+  packs: ['platform', 'test-fixtures'],
 });
 
-const BAR = '/world/lounge/location/bar';
+/** Where the streamer and the guest stand: a lit room with a door. */
+const ROOM = HALL;
 
 interface Show {
   phase: string;
@@ -146,15 +152,15 @@ async function issueToken(s: Session, control = false): Promise<string> {
 let hostHandle: string;
 let hostName: string; // the streamer's character name, as others address them
 let host: Session; // the founder, streaming
-let guest: Session; // another player in the bar
+let guest: Session; // another player in the room
 let second: Session; // a second streamer
 let feed: TokenSocket; // the founder's overlay
 let deck: TokenSocket; // the founder's Stream Deck (pblive)
 
 beforeAll(async () => {
   hostHandle = uniqueHandle('br-host');
-  host = await Session.open(hostHandle, { startLocation: BAR, streamer: true });
-  guest = await Session.open(uniqueHandle('br-guest'), { startLocation: BAR });
+  host = await Session.open(hostHandle, { startLocation: ROOM, streamer: true });
+  guest = await standIn(ROOM, 'br-guest');
   // Address the streamer by stuffId (`#id`): a test character's name is
   // its handle, which no keyword match reads.
   const me = await host.queryOne('me', 'ref');
@@ -251,7 +257,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     const mark = feed.heard.length;
     host.close();
     await new Promise((r) => setTimeout(r, 1_500));
-    host = await Session.open(hostHandle, { startLocation: BAR, streamer: true });
+    host = await Session.open(hostHandle, { startLocation: ROOM, streamer: true });
     // A reloaded body is a new Stuff: re-read the id others address.
     hostName = `#${String(((await host.queryOne('me', 'ref')) as { stuffId?: string } | null)?.stuffId ?? '')}`;
     const back = await feed.show((s) => s.phase === 'standby', mark);
@@ -297,7 +303,9 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
   }, 30_000);
 
   it('step 10 — a second streamer’s Away does not move the founder’s overlay', async () => {
-    second = await Session.open(uniqueHandle('br-second'), { streamer: true });
+    // Another room: a second streamer on air in the founder's room would
+    // put the room line there for a reason this step is not about.
+    second = await standIn(PLAZA, 'br-second', { streamer: true });
     const theirs = await TokenSocket.open('broadcast', await issueToken(second));
     try {
       const mark = feed.heard.length;

@@ -29,37 +29,35 @@ import {
   expectOk,
   expectNote,
   describe as describeResult,
+  standIn,
+  PLAZA,
+  BANK,
+  SHOP,
+  HALL,
+  EXITS,
 } from '../src/harness';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 
-/**
- * ⚠ **Why `.dirty.`** — the seat-handoff step moves the Prime Minister's
- * office to a throwaway character and hands it back in `afterAll`. Even
- * restored, that is a write to the realm's constitutional state rather
- * than something the world regenerates, and a crashed run leaves the
- * seat somewhere it should not be. It is also the one step that cannot
- * be proved any other way: the whole point of deriving authority from an
- * office is that it moves.
+/*
+ * ⭐ Clean (test-world-lifecycle D8). It used to be `.dirty.` because the
+ * seat-handoff step moves the Prime Minister's office to a throwaway
+ * character — restored in a `finally`, and now also by the run's purge,
+ * which hands any office a `wire-` character holds back to the founder
+ * default, so a crashed run no longer leaves the seat moved. The
+ * "standing subscription left registered" half was never true here: both
+ * `world:` subscriptions are REFUSED (steps 3 and 5), and a socket's
+ * subscriptions close with it.
+ *
+ * It stands in the testbed: the plaza (a door to the hall, a walkable way
+ * to the shop), the bank's teller counter and the shop's stock counter.
+ * The founder stays — steps 4 and 14 are ABOUT its seat.
  */
-export const DIRTY_REASON =
-  'moves the prime-minister seat to a throwaway character and hands it ' +
-  'back — restored on success, but a crashed run leaves the seat moved; ' +
-  'also opens a standing subscription that is left registered';
-
 declareFile({
-  file: 'world-scan.dirty.wire.test.ts',
-  // Pack zero, plus the content the plumbing half walks: a shop and a
-  // bank (terminus), a dorm to log back into (eternal-university), and
-  // the residence substrate both of those stand on.
-  packs: [
-    'platform',
-    'world-seed',
-    'terminus',
-    'eternal-university',
-    'residence',
-    'wiki-starter',
-  ],
-  dirtyReason: DIRTY_REASON,
+  file: 'world-scan.wire.test.ts',
+  // Pack zero, the testbed (a door, a walkable way, a bank, a shop
+  // counter — the counter's class is shopkeeping's), and the wiki the
+  // plumbing half lists.
+  packs: ['platform', 'test-fixtures', 'trade-shopkeeping', 'wiki-starter'],
 });
 
 let player: Session;
@@ -82,10 +80,10 @@ function expectWorldRefusal(result: Awaited<ReturnType<Session['cmd']>>): void {
 }
 
 beforeAll(async () => {
-  player = await Session.open(uniqueHandle('scan'));
+  player = await standIn(PLAZA, 'scan');
   // The founder holds the PM seat by founder default — the authority
   // obtained the way production obtains it, never a test-only grant.
-  founder = await Session.open('founder');
+  founder = await Session.open('founder', { startLocation: PLAZA });
 }, 180_000);
 
 afterAll(() => {
@@ -238,44 +236,26 @@ suite('the plumbing', () => {
       `\`walk\` must be a verb this game understands: ${why(walked)}`,
     ).toBe(false);
 
-    // ⛔⛔ **And the start room's `out` is gated against locomotion** —
-    // `{gate: "exit-mode"}`, for `go` as well as `walk`. The bar's way
-    // out is *"wired imperatively by the Warren and not declared here"*
-    // (this room's own exits comment), so it carries no authored `media`
-    // and the stored edge admits no mode. ⚠ The old vacuous `if` had been
-    // hiding that too: a `declined` is not an `error`, so the companion
-    // loop below passed over it for as long as it has existed.
+    // ⭐ The checkpoint proves what it SAYS — that walking moves you — by
+    // walking the testbed's own way east from the plaza to the shop, named
+    // by the scaffold (test-world-lifecycle D8), rather than trying a fixed
+    // list of directions until one opens.
     //
-    // Not fixed here — the exits are the residence/holding substrate's
-    // and the edge media are the location-graph build's.
-    // → `base-class-narrowing-slate` § L9.
-    //
-    // ⭐ So the checkpoint proves what it SAYS — that walking moves you —
-    // by walking whatever way out this room actually offers, and fails
-    // with every refusal collected if there is none.
+    // ⚠ History: the lounge bar this stood in had an `out` gated against
+    // locomotion (`{gate: "exit-mode"}` — a Warren-wired way with no
+    // authored `media`), which the old vacuous `if` hid. That is the
+    // residence substrate's, tracked at `base-class-narrowing-slate` § L9.
     const before = await player.queryOne('here', ['displayName']);
-    const tried: string[] = [];
-    let moved = false;
-    for (const dir of ['out', 'north', 'south', 'east', 'west', 'up', 'down']) {
-      const r = await player.cmd(`walk ${dir}`);
-      expect(
-        (r.notes ?? []).some(
-          (n) =>
-            n.kind === 'command-rejected' &&
-            (n as { reason?: string }).reason === 'unknown-verb',
-        ),
-        `\`walk\` stopped being a verb: ${why(r)}`,
-      ).toBe(false);
-      if (r.status === 'ok') {
-        moved = true;
-        break;
-      }
-      tried.push(`${dir}: ${describeResult(r)}`);
-    }
+    const r = await player.cmd(`walk ${EXITS.plaza.shop}`);
     expect(
-      moved,
-      `nothing in this room could be WALKED through:\n  ${tried.join('\n  ')}`,
-    ).toBe(true);
+      (r.notes ?? []).some(
+        (n) =>
+          n.kind === 'command-rejected' &&
+          (n as { reason?: string }).reason === 'unknown-verb',
+      ),
+      `\`walk\` stopped being a verb: ${why(r)}`,
+    ).toBe(false);
+    expect(r.status, `walking the plaza's way east: ${why(r)}`).toBe('ok');
     const after = await player.queryOne('here', ['displayName']);
     expect(after, 'the walk did not move the player').not.toEqual(before);
 
@@ -332,19 +312,34 @@ suite('the plumbing', () => {
 
   it('11. a bank branch and a shop counter are reachable', async () => {
     // `branchOf` (the custodian read) and `businessAt` (the operator
-    // lookup) are both keyed reads now.
-    const bank = await player.cmd('bank');
-    expect(bank.status, why(bank)).not.toBe('error');
-    const buy = await player.cmd('buy nothing-in-particular');
-    expect(buy.status, why(buy)).not.toBe('error');
+    // lookup) are both keyed reads now. Each asked where its counter is:
+    // the testbed's bank and its shop.
+    const teller = await standIn(BANK, 'scan-bank');
+    try {
+      const bank = await teller.cmd('bank');
+      expect(bank.status, why(bank)).not.toBe('error');
+    } finally {
+      teller.close();
+    }
+    const shopper = await standIn(SHOP, 'scan-shop');
+    try {
+      const buy = await shopper.cmd('buy nothing-in-particular');
+      expect(buy.status, why(buy)).not.toBe('error');
+    } finally {
+      shopper.close();
+    }
   });
 
   it('12. ⭐ you log back in where you logged out', async () => {
     // `CirculationWarren.admitFor` — the residence roster's first consumer,
     // and the one whose failure a player notices immediately: a wrong
     // answer here puts you outside your own front door.
+    // The first login stands the character in the testbed's hall; the
+    // second names NO place, so where it lands is the re-login's answer
+    // (D7's one sanctioned default landing — it asserts sameness, never
+    // where).
     const handle = uniqueHandle('scan-return');
-    const first = await Session.open(handle);
+    const first = await Session.open(handle, { startLocation: HALL });
     const before = await first.queryOne('here', ['displayName']);
     first.close();
 
