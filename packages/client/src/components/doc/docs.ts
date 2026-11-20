@@ -202,3 +202,22 @@ export function hoverDoc(text: string | null | undefined): TooltipDoc | null {
   if (text.length <= 48) return { header: { name: text } };
   return { prose: text.replace(/&/g, "&amp;").replace(/</g, "&lt;") };
 }
+
+/**
+ * ⭐ A map lens (navigation card D11): what it draws, the channel it owns,
+ * and — when it has nothing to draw — that it has nothing to draw.
+ */
+export function lensDoc(lens: string, on: boolean, count: number): TooltipDoc {
+  const what: Record<string, string> = {
+    frontier: "Marks every way you know of but have not taken — the edge of your map.",
+    route: "Draws the plan your last route answered with; the least certain leg is marked.",
+    refusals: "Rings every way you saw shut or locked across the zone.",
+    boundaries: "Draws a border where your map says one government's ground meets another's.",
+  };
+  return {
+    header: { name: `${lens} lens`, kindWord: on ? "on" : "off" },
+    prose: `${what[lens] ?? ""}${count === 0 ? " Nothing to draw here yet." : ""}`,
+    facts: [{ label: "draws", value: String(count), source: "client" }],
+    hint: on ? "click — turn it off" : "click — turn it on",
+  };
+}

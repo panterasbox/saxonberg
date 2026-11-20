@@ -22,6 +22,7 @@ import styled from "styled-components";
 import type { NavWay } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import {
+  boundariesView,
   crumbsView,
   neighborDirection,
   placeAt,
@@ -32,7 +33,7 @@ import {
   type ViewEdge,
   type ViewPlace,
 } from "../../store/navSelectors";
-import { readNavCard, setSection } from "../../store/navCardActions";
+import { readNavCard, setLens, setSection } from "../../store/navCardActions";
 import { escapeTarget, lookCommand, useLinkMode } from "../cards/clickTarget";
 import { ChangeMark } from "../cards/ChangeMark";
 import { tokens } from "../ui";
@@ -42,6 +43,8 @@ import { Ways } from "./Ways";
 import { Crumbs, crumbsSummary } from "./Crumbs";
 import { NavSection } from "./NavSection";
 import { useFillHeight } from "./useFillHeight";
+import { LensRow } from "./LensRow";
+import { lensDoc } from "../doc/docs";
 import type { LensName } from "./ZoneMap";
 import {
   HorizonBody,
@@ -139,6 +142,17 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     [mapCopy, standing, herePlace],
   );
 
+  /** How much a lens has to draw on the level you stand on — its tooltip says when it is nothing. */
+  const lensCount = (l: LensName): number => {
+    if (!zv) return 0;
+    const level = sections.place?.at?.z ?? 0;
+    const onLevel = (key: string): boolean => zv.places.some((p) => p.key === key && p.level === level);
+    if (l === "frontier") return zv.edges.filter((e) => onLevel(e.from) && (e.shape === "opening" || (e.shape === "vertical" && !e.farKnown))).length;
+    if (l === "route") return routePlan?.plans[0]?.legs.length ?? 0;
+    if (l === "refusals") return zv.edges.filter((e) => onLevel(e.from) && (e.state === "locked" || e.state === "shut")).length;
+    return boundariesView(mapCopy, zv, level).length;
+  };
+
   const run = (command: string | null): void => {
     if (command) props.onSendCommand(command);
   };
@@ -190,8 +204,15 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           commandFor={commandFor}
           onPlaceClick={(p) => run(commandFor({ place: p }))}
           onEdgeClick={(e) => run(commandFor({ edge: e }))}
+          boundaries={(view, level) => boundariesView(mapCopy, view, level)}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
-        />
+        >
+          <LensRow
+            on={lenses}
+            onToggle={(l, on) => setLens(l, on)}
+            tipFor={(l) => lensDoc(l, lenses.has(l), lensCount(l))}
+          />
+        </MapArea>
       </ChangeMark>
       {section("zone", sections.zone ? <ZoneBody sections={sections} view={zv} /> : null)}
 

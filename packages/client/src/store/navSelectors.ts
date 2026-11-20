@@ -645,3 +645,57 @@ export function wayLeadsTo(
   }
   return way.destination ? { name: way.destination, channel: "seen" } : undefined;
 }
+
+// ---------------------------------------------------------------------------
+// The boundaries lens (D11)
+// ---------------------------------------------------------------------------
+
+/** A cell side the boundaries lens draws a border on. */
+export interface BorderSide {
+  x: number;
+  y: number;
+  side: "north" | "south" | "east" | "west";
+}
+
+/**
+ * ⭐ Whose ground each placed place is on, as YOUR map knows it: the place's
+ * Locality document → the nearest covering `locality` claim that names a
+ * government. A border is drawn where two adjacent cells you know differ,
+ * and on a way that leaves the zone. Nothing is drawn from the live world.
+ */
+export function boundariesView(
+  copy: Record<string, CopyClaim>,
+  view: ZoneView,
+  level: number,
+): BorderSide[] {
+  const idx = indexOf(copy);
+  const govOf = (doc: string): string => {
+    let best: { len: number; key: string } | null = null;
+    for (const [address, claim] of idx.localities) {
+      if (!claim.government) continue;
+      if (doc === address || doc.startsWith(`${address}/`)) {
+        if (!best || address.length > best.len) best = { len: address.length, key: claim.government.key };
+      }
+    }
+    return best?.key ?? "";
+  };
+  const onLevel = view.places.filter((p) => p.level === level);
+  const at = new Map(onLevel.map((p) => [`${p.x},${p.y}`, p]));
+  const gov = new Map(onLevel.map((p) => [p.key, govOf(p.locality)]));
+  const out: BorderSide[] = [];
+  for (const p of onLevel) {
+    const east = at.get(`${p.x + 1},${p.y}`);
+    if (east && gov.get(east.key) !== gov.get(p.key)) out.push({ x: p.x, y: p.y, side: "east" });
+    const north = at.get(`${p.x},${p.y + 1}`);
+    if (north && gov.get(north.key) !== gov.get(p.key)) out.push({ x: p.x, y: p.y, side: "north" });
+  }
+  for (const e of view.edges) {
+    if (e.shape !== "leaves") continue;
+    const from = view.places.find((p) => p.key === e.from);
+    const vec = DIRECTION_VECTORS[e.dir];
+    if (!from || from.level !== level || !vec || (vec[0] !== 0 && vec[1] !== 0)) continue;
+    const side = vec[0] === 1 ? "east" : vec[0] === -1 ? "west" : vec[1] === 1 ? "north" : "south";
+    out.push({ x: from.x, y: from.y, side });
+  }
+  return out;
+}

@@ -53,7 +53,7 @@ export interface MapAreaProps {
   sections: NavSections;
   lenses: ReadonlySet<LensName>;
   route?: readonly WireRoutePlan[];
-  boundaries?: (view: ZoneView) => BoundarySide[];
+  boundaries?: (view: ZoneView, level: number) => BoundarySide[];
   onPlaceClick?: (place: ViewPlace, view: ZoneView) => void;
   onEdgeClick?: (edge: ViewEdge, view: ZoneView) => void;
   commandFor?: (mark: { place?: ViewPlace; edge?: ViewEdge }, view: ZoneView) => string | null;
@@ -117,7 +117,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           zoom={zoom}
           lenses={props.lenses}
           {...(props.route ? { route: props.route } : {})}
-          {...(props.boundaries ? { boundaries: props.boundaries(view) } : {})}
+          {...(props.boundaries ? { boundaries: props.boundaries(view, level) } : {})}
           onZoomStep={step}
           {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
           {...(props.onPlaceClick ? { onPlaceClick: (p) => props.onPlaceClick!(p, view) } : {})}
