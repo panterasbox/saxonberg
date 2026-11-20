@@ -1095,7 +1095,7 @@ export class NavigationLogic extends ApiLogic {
    * (navigation-server D6). A Locality claim's `place` is an address.
    */
   private static wireClaim(claim: MapClaim): WireClaim {
-    const tag = (path: string): TaggedPath => ({ path, spoiler: 1 });
+    const tag = (path: string): TaggedPath => ({ path, spoiler: 2 });
     const c = claim;
     const at = c.at;
     return {

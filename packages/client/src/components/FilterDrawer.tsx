@@ -29,6 +29,8 @@ import {
 } from '../store/consoleActions';
 import { FacetFilterPanel } from './FacetFilterPanel';
 import type { TopicDescriptor } from '@saxonberg/types';
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 const DrawerPanel = styled.div<{ $inline?: boolean }>`
   ${(p) =>
@@ -255,9 +257,7 @@ export function FilterDrawer({ onClose, inline = false }: FilterDrawerProps) {
             {group.leaves.map((d) => {
               const leafCount = mutedSinceSessionStart[d.topic] ?? 0;
               return (
-                <LeafRow
-                  key={d.topic}
-                  title={d.topic}
+                <Tip key={d.topic} tip={hoverDoc(d.topic)}><LeafRow
                   data-testid={`leaf-${d.topic}`}
                 >
                   <input
@@ -272,7 +272,7 @@ export function FilterDrawer({ onClose, inline = false }: FilterDrawerProps) {
                       {leafCount}
                     </Badge>
                   )}
-                </LeafRow>
+                </LeafRow></Tip>
               );
             })}
           </div>

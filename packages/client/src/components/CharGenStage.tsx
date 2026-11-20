@@ -43,6 +43,8 @@ import { CommandBar } from "./CommandBar";
 import { StatusBar } from "./frame/StatusBar";
 import { Seal } from "./frame/Seal";
 import type { Frame } from "../store/index";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 /* --- Layout primitives -------------------------------------------- */
 
@@ -719,12 +721,10 @@ export function CharGenStage({
         {opts.map((opt) => {
           const isOn = opt.value === selected || opt.label === selected;
           return (
-            <Chip
-              key={opt.value}
+            <Tip key={opt.value} tip={hoverDoc(opt.description)}><Chip
               data-testid={`chargen-option-${opt.value}`}
               $selected={isOn}
               aria-pressed={isOn}
-              title={opt.description}
               onClick={() => setField(f.field, opt.value)}
               onMouseEnter={() => {
                 setFocused({ field: f.field, value: opt.value });
@@ -736,7 +736,7 @@ export function CharGenStage({
               }}
             >
               {opt.label}
-            </Chip>
+            </Chip></Tip>
           );
         })}
       </ChipRow>

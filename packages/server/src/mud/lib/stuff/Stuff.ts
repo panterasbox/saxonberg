@@ -62,7 +62,7 @@ type AnyClassRef = abstract new (...args: never[]) => unknown;
 import type { SpatialZone } from '../zone/SpatialZone';
 import { CallSecurity, Unshadowable, Final } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import type { SegmentItem } from '@saxonberg/types';
+import type { SegmentItem, StuffKind, TaggedPath } from '@saxonberg/types';
 
 /**
  * Metadata for destroyed objects (used for debugging).
@@ -225,6 +225,27 @@ export abstract class Stuff {
       // wearer, so it is a fire on the wearer (crowded-rooms D2).
       dependsOnFields: ['name', 'shortDescription', 'occupants'],
       changes: [{ on: ShadowChangedEvent, by: 'target' }],
+    },
+    {
+      // ⭐ Which branch — the kind icon on a card's head and a tooltip's
+      // (tooltips D6). Universal and fixed for the object's life.
+      name: 'kind',
+      read: (stuff): StuffKind => stuff.stuffKind(),
+      static: true,
+    },
+    {
+      // ⭐ What it is, really: the TEMPLATE path, always a spoiler at level 2
+      // (spoiler-slate § Paths are a spoiler; tooltips D6). Never the
+      // identity path — that would put a player's id on every viewer's
+      // wire. A sight field: naming what a thing really is, of a thing you
+      // cannot make out, is the leak.
+      name: 'path',
+      sense: 'vision',
+      read: (stuff): TaggedPath | undefined => {
+        const path = stuff.getTemplatePath();
+        return path ? { path, spoiler: 2 } : undefined;
+      },
+      static: true,
     },
   ];
 
@@ -1380,6 +1401,19 @@ export abstract class Stuff {
    */
   public isPlace(): this is Place {
     return false;
+  }
+
+  /**
+   * Which branch am I on — `location` · `agent` · `idea` · `thing`. The
+   * branches are the one classification that is total, closed and never
+   * changes, so this is answered by the four predicates above and nothing
+   * else (it replaced `CardRegistry`'s private `subjectKindOf`).
+   */
+  public stuffKind(): StuffKind {
+    if (this.isPlace()) return 'location';
+    if (this.isAgent()) return 'agent';
+    if (this.isIdea()) return 'idea';
+    return 'thing';
   }
 
   /**

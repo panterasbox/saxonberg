@@ -29,6 +29,8 @@ import {
 import { tokens } from "../ui";
 import { COMPACT_QUERY } from "../../lib/style/useIsCompact";
 import { SURFACE_CHIP, SURFACE_HUE } from "./surfaces";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Rail = styled.nav`
   display: flex;
@@ -207,9 +209,9 @@ export const SubjectRail: React.FC<SubjectRailProps> = ({
               {s.grain === "topic" ? s.title.split("/").pop() : s.title}
             </span>
             {s.openObjections > 0 && (
-              <OpenCount title="objections with nothing answering them">
+              <Tip tip={hoverDoc("objections with nothing answering them")}><OpenCount>
                 {s.openObjections}
-              </OpenCount>
+              </OpenCount></Tip>
             )}
           </TitleLine>
           <Chips>

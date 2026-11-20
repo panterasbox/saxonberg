@@ -24,6 +24,9 @@
  */
 
 import React from "react";
+import { Tip } from "../tooltip/Tip";
+import { thingTip } from "../../services/tooltipSource";
+import { commandDoc } from "../doc/docs";
 import styled from "styled-components";
 import { tokens } from "./tokens";
 import { useStore } from "../../store/index";
@@ -60,11 +63,6 @@ interface EntityNameProps {
    * screen reader announces, what a plain-text log captures.
    */
   label: string;
-  /**
-   * Browser tooltip text — typically previews the command this
-   * affordance will send (`Click to send: look brass thermometer`).
-   */
-  title?: string;
   /**
    * The command this affordance will send when clicked. When
    * provided together with `onPreview`, mousing onto the
@@ -113,7 +111,6 @@ const LONG_PRESS_MS = 450;
 export function EntityName({
   stuffId,
   label,
-  title,
   command,
   onPreview,
   onClick,
@@ -135,10 +132,15 @@ export function EntityName({
 
   React.useEffect(() => cancelPress, [cancelPress]);
 
+  // ⭐ Its tooltip (tooltips W6): a named thing's live describe; a name with
+  // no subject, the command it runs. A touch long press opens THAT (the
+  // sheet carries an "actions" button to the radial); a mouse hold and a
+  // right-click still open the radial.
+  const tip = stuffId ? thingTip(stuffId, command) : command ? commandDoc(command, label) : null;
   return (
+    <Tip tip={tip}>
     <NameButton
       data-stuff-id={stuffId}
-      title={title}
       onClick={onClick}
       // Right-click on a pointer device, long-press on a touch one.
       // Both are "tell me about this" rather than "do the default
@@ -154,7 +156,8 @@ export function EntityName({
       }
       onPointerDown={
         stuffId
-          ? () => {
+          ? (e: React.PointerEvent) => {
+              if (e.pointerType !== "mouse") return;
               cancelPress();
               pressTimer.current = setTimeout(openRadial, LONG_PRESS_MS);
             }
@@ -171,5 +174,6 @@ export function EntityName({
     >
       {label}
     </NameButton>
+    </Tip>
   );
 }

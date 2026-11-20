@@ -28,6 +28,12 @@ import { escapeTarget } from './cards/clickTarget';
 import { parseMml, type MmlNode } from '../lib/mml/parseMml';
 import { FACE_STACKS } from '../styles/faces';
 import { tokens } from './ui';
+import { useSpoilerOpen } from './doc/blocks';
+import { Tip } from './tooltip/Tip';
+import type { TipSpec } from './tooltip/useTip';
+import { thingTip, termTip } from '../services/tooltipSource';
+import { commandDoc, detailDoc, wayDoc } from './doc/docs';
+import type { TooltipDoc } from '@saxonberg/types';
 
 /**
  * Friendly color names → palette tokens, so authored prose can write
@@ -108,6 +114,12 @@ interface MmlRendererProps {
    * treatment.
    */
   viewerStuffId?: string;
+  /**
+   * ⭐ Rendering inside a document (a tooltip's prose). Links draw the
+   * tooltip grammar — a term dotted, a thing underlined, a command boxed —
+   * which the scrollback does not (tooltips D8).
+   */
+  inDoc?: boolean;
 }
 
 /**
@@ -188,7 +200,31 @@ function labelOf(node: MmlNode): string {
  * step is the palette's higher-contrast one in every theme (lighter on
  * ink, darker on marble); hover goes to full text.
  */
-const ClickableSpan = styled.span<{ $tint?: string }>`
+/**
+ * ⭐ The tooltip a clickable tag carries (tooltips W5/W6): a thing, person
+ * or place → its live describe; a term (a `help`/`wiki` link) → its
+ * glossary tooltip; a way, a detail, a plain command → what a click runs.
+ * The click is unchanged — the tooltip only informs.
+ */
+function tipFor(node: Extract<MmlNode, { kind: 'tag' }>, cmd: string): TipSpec | TooltipDoc {
+  const stuffId = node.attrs['stuff-id'];
+  if (stuffId && ['thing', 'location', 'player', 'npc'].includes(node.tag)) {
+    return thingTip(stuffId, cmd);
+  }
+  if (node.tag === 'exit') return wayDoc(node.attrs.dir ?? labelOf(node), cmd);
+  if (node.tag === 'detail') return detailDoc(node.attrs.key ?? labelOf(node), cmd);
+  if (node.tag === 'link') return termTip(cmd) ?? commandDoc(cmd);
+  return commandDoc(cmd, labelOf(node));
+}
+
+/** Which of the tooltip grammar's three link kinds a tag is, inside a document. */
+type Grammar = 'term' | 'thing' | 'command';
+function grammarFor(node: Extract<MmlNode, { kind: 'tag' }>, cmd: string): Grammar {
+  if (node.attrs['stuff-id']) return 'thing';
+  return /^(help|wiki)\s/.test(cmd) ? 'term' : 'command';
+}
+
+const ClickableSpan = styled.span<{ $tint?: string; $grammar?: Grammar }>`
   color: ${(p) => p.$tint ?? tokens.color.accentHover};
   cursor: pointer;
   text-decoration: underline;
@@ -205,6 +241,17 @@ const ClickableSpan = styled.span<{ $tint?: string }>`
   &:active {
     color: ${(p) => p.$tint ?? tokens.color.fg};
   }
+
+  /* ⭐ Inside a tooltip only (tooltips D8): a term dotted, a thing
+     underlined, a command boxed. The scrollback keeps its own look. */
+  ${(p) =>
+    p.$grammar === 'term'
+      ? `color: ${tokens.color.info}; text-decoration-style: dotted;`
+      : p.$grammar === 'thing'
+        ? `color: ${tokens.color.fgEmphasis}; text-decoration-style: solid;`
+        : p.$grammar === 'command'
+          ? `text-decoration: none; font-family: ${tokens.font.mono}; font-size: 0.9em; border: 1px solid ${tokens.color.border}; border-radius: ${tokens.radius.sm}; padding: 0 3px;`
+          : ''}
 `;
 
 /**
@@ -223,6 +270,25 @@ function copyCommand(cmd: string): void {
  * command un-moded (preview equals send). Centralized so both clickable
  * sites share the gesture model.
  */
+/**
+ * ⭐ A link is reachable by keyboard without a tab stop each (tooltips D8):
+ * `role="link"`, focusable by script (the scrollback's arrow keys move
+ * among them — one tab stop for the whole transcript), and Enter runs it.
+ * Focus opens its tooltip (`useTip`).
+ */
+function linkKeys(cmd: string, onCommandClick: (command: string) => void) {
+  return {
+    role: 'link',
+    tabIndex: -1,
+    'data-tip-link': '',
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      onCommandClick(cmd);
+    },
+  } as const;
+}
+
 function handleAffordanceClick(
   e: React.MouseEvent,
   cmd: string,
@@ -401,13 +467,17 @@ function Spoiler({
   level: string | undefined;
   children: React.ReactNode;
 }): React.ReactElement {
-  const [revealed, setRevealed] = React.useState(false);
+  // ⭐ The level is honored now (tooltips W5): a spoiler at or under the
+  // reader's appetite arrives open — the same rule as every other spoiler.
+  const n = Number(level ?? '1');
+  const [revealed, reveal] = useSpoilerOpen(Number.isFinite(n) ? n : 1);
   return (
     <SpoilerSpan
       $revealed={revealed}
       data-spoiler-level={level ?? '1'}
-      title={revealed ? undefined : 'Hidden — click to reveal'}
-      onClick={() => setRevealed(true)}
+      data-open={revealed ? 'true' : 'false'}
+      aria-label={revealed ? undefined : 'hidden — click to reveal'}
+      onClick={reveal}
     >
       {children}
     </SpoilerSpan>
@@ -441,6 +511,8 @@ interface RenderCtx {
    * the chat templates' inline text flow is unaffected.
    */
   listDepth?: number;
+  /** Inside a tooltip's prose — see {@link MmlRendererProps.inDoc}. */
+  inDoc?: boolean;
 }
 
 function renderNode(
@@ -583,19 +655,21 @@ function renderNode(
         return <InertLinkSpan key={key}>{children}</InertLinkSpan>;
       }
       return (
-        <ClickableSpan
-          key={key}
-          onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            copyCommand(cmd);
-          }}
-          onMouseEnter={() => ctx.onCommandPreview(cmd)}
-          onMouseLeave={() => ctx.onCommandPreview(null)}
-          title={`Click to send: ${cmd} · shift-click to copy`}
-        >
-          {children}
-        </ClickableSpan>
+        <Tip key={key} tip={tipFor(node, cmd)}>
+          <ClickableSpan
+            $grammar={ctx.inDoc ? grammarFor(node, cmd) : undefined}
+            onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              copyCommand(cmd);
+            }}
+            onMouseEnter={() => ctx.onCommandPreview(cmd)}
+            onMouseLeave={() => ctx.onCommandPreview(null)}
+            {...linkKeys(cmd, ctx.onCommandClick)}
+          >
+            {children}
+          </ClickableSpan>
+        </Tip>
       );
     }
   }
@@ -612,22 +686,24 @@ function renderNode(
   // attribute (a boosted room occupant) — tint the span through the same
   // palette as the notification queue, keeping the click/preview behavior.
   return (
-    <ClickableSpan
-      key={key}
-      // A noun names a thing: it answers a "Ring what?" prompt (PickMode).
-      data-stuff-id={node.attrs['stuff-id'] || undefined}
-      $tint={paletteFor(node.attrs.color)}
-      onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        copyCommand(cmd);
-      }}
-      onMouseEnter={() => ctx.onCommandPreview(cmd)}
-      onMouseLeave={() => ctx.onCommandPreview(null)}
-      title={`Click to send: ${cmd} · shift-click to copy`}
-    >
-      {children}
-    </ClickableSpan>
+    <Tip key={key} tip={tipFor(node, cmd)}>
+      <ClickableSpan
+        // A noun names a thing: it answers a "Ring what?" prompt (PickMode).
+        data-stuff-id={node.attrs['stuff-id'] || undefined}
+        $tint={paletteFor(node.attrs.color)}
+        $grammar={ctx.inDoc ? grammarFor(node, cmd) : undefined}
+        onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          copyCommand(cmd);
+        }}
+        onMouseEnter={() => ctx.onCommandPreview(cmd)}
+        onMouseLeave={() => ctx.onCommandPreview(null)}
+        {...linkKeys(cmd, ctx.onCommandClick)}
+      >
+        {children}
+      </ClickableSpan>
+    </Tip>
   );
 }
 
@@ -636,6 +712,7 @@ export function MmlRenderer({
   onCommandClick,
   onCommandPreview,
   viewerStuffId,
+  inDoc,
 }: MmlRendererProps) {
   const tree = React.useMemo(() => parseMml(text), [text]);
 
@@ -645,6 +722,7 @@ export function MmlRenderer({
         onCommandClick,
         onCommandPreview,
         viewerStuffId,
+        ...(inDoc ? { inDoc } : {}),
       })}
     </>
   );

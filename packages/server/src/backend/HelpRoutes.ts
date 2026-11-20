@@ -7,6 +7,8 @@
  *   GET /api/help/index           → HelpApi.index()      → HelpIndexResult
  *   GET /api/help/kind?kind=<k>   → HelpApi.listKind(k)  → HelpKindListResult  (400 bad kind)
  *   GET /api/help/topic?id=<id>   → HelpApi.fullTopic(id)→ HelpTopicResult      (404 miss)
+ *   GET /api/help/topic?word=<w>  → HelpApi.resolveTopic(w) — what `help <w>`
+ *                                   shows (a tooltip's glossary term)
  *   GET /api/help/search?q=<q>    → HelpApi.search(q)    → HelpSearchResult
  *
  * Structural sibling of {@link CmsRoutes}, but **read-only** — no CSRF, no
@@ -64,13 +66,14 @@ export class HelpRoutes {
 
     app.get("/api/help/topic", requireAuth, async (req, res) => {
       const id = String(req.query.id ?? "").trim();
-      if (id.length === 0) {
-        sendError(res, 400, "invalid", "missing topic id");
+      const word = String(req.query.word ?? "").trim();
+      if (id.length === 0 && word.length === 0) {
+        sendError(res, 400, "invalid", "missing topic id or word");
         return;
       }
-      const topic = HelpApi.fullTopic(id);
+      const topic = id.length > 0 ? HelpApi.fullTopic(id) : HelpApi.resolveTopic(word);
       if (!topic) {
-        sendError(res, 404, "not-found", `no help topic: ${id}`);
+        sendError(res, 404, "not-found", `no help topic: ${id || word}`);
         return;
       }
       res.json({ topic });

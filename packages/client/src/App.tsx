@@ -42,6 +42,7 @@ import { useOnAirClient } from "./lib/stream/onAir";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
+import { TooltipLayer } from "./components/tooltip/TooltipLayer";
 import { ALL_VIEW } from "@saxonberg/types";
 import type {
   ConsoleTab,
@@ -674,157 +675,168 @@ function App() {
   // the roster; `char-gen` → the dedicated creation stage;
   // `in-world` → the cockpit. The phase is driven by auth + the
   // char-gen wire frames in the store (see store/index.ts).
-  switch (connectionPhase) {
-    case "unauthenticated":
-      return <StartScreen />;
+  // ⭐ The tooltip layer sits beside EVERY screen (the start screen and
+  // character select have tooltips too), so the screen is chosen first
+  // and the layer is mounted once around whichever it is.
+  const screen = ((): React.ReactElement | null => {
+    switch (connectionPhase) {
+      case "unauthenticated":
+        return <StartScreen />;
 
-    case "connecting":
-      return <Splash>Connecting…</Splash>;
+      case "connecting":
+        return <Splash>Connecting…</Splash>;
 
-    case "character-select":
-      return <CharacterSelect onSendCommand={sendCommand} />;
+      case "character-select":
+        return <CharacterSelect onSendCommand={sendCommand} />;
 
-    case "char-gen":
-      return (
-        <CharGenStage
-          onSendCommand={sendCommand}
-          frames={visibleFrames}
-          onSendPromptResponse={sendPromptResponse}
-          onCancelPrompt={cancelPrompt}
-          onCommandClick={handleCommandClick}
-          onCommandPreview={handleCommandPreview}
-        />
-      );
+      case "char-gen":
+        return (
+          <CharGenStage
+            onSendCommand={sendCommand}
+            frames={visibleFrames}
+            onSendPromptResponse={sendPromptResponse}
+            onCancelPrompt={cancelPrompt}
+            onCommandClick={handleCommandClick}
+            onCommandPreview={handleCommandPreview}
+          />
+        );
 
-    case "in-world":
-    default: {
-      // Show game UI when authenticated and the avatar is in-world. The
-      // active layout is server-authoritative (`cockpit.layout`); the
-      // registry resolves it to a component, falling back to `world`.
-      const layoutProps: LayoutProps = {
-        frames: visibleFrames,
-        onSendCommand: sendCommand,
-        onSendPromptResponse: sendPromptResponse,
-        onCancelPrompt: cancelPrompt,
-        onCommandClick: handleCommandClick,
-        onCommandPreview: handleCommandPreview,
-        onCommandSend: sendDirect,
-        resultDisplay: effectiveResultDisplay,
-      };
-      const ActiveLayout = resolved.def.Component;
-      return (
-        <AppContainer $compact={isCompact}>
-          {/* Always-on chrome (the matte): bus-health + identity + the
-              Views layout switcher + settings, same place every layout —
-              then the reconnect banner.
+      case "in-world":
+      default: {
+        // Show game UI when authenticated and the avatar is in-world. The
+        // active layout is server-authoritative (`cockpit.layout`); the
+        // registry resolves it to a component, falling back to `world`.
+        const layoutProps: LayoutProps = {
+          frames: visibleFrames,
+          onSendCommand: sendCommand,
+          onSendPromptResponse: sendPromptResponse,
+          onCancelPrompt: cancelPrompt,
+          onCommandClick: handleCommandClick,
+          onCommandPreview: handleCommandPreview,
+          onCommandSend: sendDirect,
+          resultDisplay: effectiveResultDisplay,
+        };
+        const ActiveLayout = resolved.def.Component;
+        return (
+          <AppContainer $compact={isCompact}>
+            {/* Always-on chrome (the matte): bus-health + identity + the
+                Views layout switcher + settings, same place every layout —
+                then the reconnect banner.
 
-              ⭐ A JS switch, not a media query hiding one of two: the
-              mobile bar is a different COMPOSITION (two rows, a
-              pull-down, no status bar), and rendering both would put
-              two `StatusBar`s in the tree and make "exactly one renders
-              above the breakpoint" unassertable. */}
-          {isCompact ? (
-            <>
-              <MobileFrame
-                mode={resolved.mode}
-                arrangement={resolved.arrangement}
-                onCommandClick={handleCommandClick}
-                onCommandPreview={handleCommandPreview}
-                settingsActive={summonedPanel === "settings"}
-                onToggleSettings={() =>
-                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
-                }
-              />
-              <ReconnectBanner />
-              {/* ⭐ The phone is its own shape (client-surface W6): chat
-                  first, explore with a button bar, watch with the video
-                  over the terminal. */}
-              <ContentRow $compact>
-                <PhoneShell
-                  {...layoutProps}
-                  storedMode={(clientState["cockpit.mode"] as CockpitMode | null | undefined) ?? null}
-                />
-                {summonedPanel === "settings" ? (
-                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
-                ) : null}
-              </ContentRow>
-            </>
-          ) : (
-            /*
-             * The desktop frame: master's top bar (seal, connection,
-             * account, the shelf, Views, Settings) across the top, the mode
-             * rail on the left, the stage beside it, the status bar below.
-             */
-            <>
-              <Frame
-                mode={resolved.mode}
-                arrangement={resolved.arrangement}
-                onCommandClick={handleCommandClick}
-                onCommandPreview={handleCommandPreview}
-                settingsActive={summonedPanel === "settings"}
-                onToggleSettings={() =>
-                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
-                }
-              />
-              <ReconnectBanner />
-              <ContentRow>
-                <Rail
+                ⭐ A JS switch, not a media query hiding one of two: the
+                mobile bar is a different COMPOSITION (two rows, a
+                pull-down, no status bar), and rendering both would put
+                two `StatusBar`s in the tree and make "exactly one renders
+                above the breakpoint" unassertable. */}
+            {isCompact ? (
+              <>
+                <MobileFrame
                   mode={resolved.mode}
+                  arrangement={resolved.arrangement}
                   onCommandClick={handleCommandClick}
                   onCommandPreview={handleCommandPreview}
+                  settingsActive={summonedPanel === "settings"}
+                  onToggleSettings={() =>
+                    summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                  }
                 />
-                <StageColumn>
-                  {resolved.fallbackFrom ? (
-                    <FallbackNotice data-testid="mode-fallback-notice">
-                      {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
-                      {resolved.mode}
-                    </FallbackNotice>
+                <ReconnectBanner />
+                {/* ⭐ The phone is its own shape (client-surface W6): chat
+                    first, explore with a button bar, watch with the video
+                    over the terminal. */}
+                <ContentRow $compact>
+                  <PhoneShell
+                    {...layoutProps}
+                    storedMode={(clientState["cockpit.mode"] as CockpitMode | null | undefined) ?? null}
+                  />
+                  {summonedPanel === "settings" ? (
+                    <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
                   ) : null}
-                  <ActiveLayout {...layoutProps} />
-                </StageColumn>
-                {summonedPanel === "settings" ? (
-                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
-                ) : null}
-              </ContentRow>
-            </>
-          )}
-          {/* The Social / Notifications card (master's notify surface),
-              opened from the AccountMenu — independent of the summoned
-              settings card above. */}
-          {socialPanelOpen && (
-            <SocialNotificationsPanel
-              onClose={() => setSocialPanelOpen(false)}
-              onSendCommand={sendCommand}
-              onCommandPreview={handleCommandPreview}
-              onCommandClick={handleCommandClick}
-            />
-          )}
-          {/* The status bar — the one preview surface. Affordance
-              previews + post-action flash, browser-style along the
-              bottom of the window.
+                </ContentRow>
+              </>
+            ) : (
+              /*
+               * The desktop frame: master's top bar (seal, connection,
+               * account, the shelf, Views, Settings) across the top, the mode
+               * rail on the left, the stage beside it, the status bar below.
+               */
+              <>
+                <Frame
+                  mode={resolved.mode}
+                  arrangement={resolved.arrangement}
+                  onCommandClick={handleCommandClick}
+                  onCommandPreview={handleCommandPreview}
+                  settingsActive={summonedPanel === "settings"}
+                  onToggleSettings={() =>
+                    summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                  }
+                />
+                <ReconnectBanner />
+                <ContentRow>
+                  <Rail
+                    mode={resolved.mode}
+                    onCommandClick={handleCommandClick}
+                    onCommandPreview={handleCommandPreview}
+                  />
+                  <StageColumn>
+                    {resolved.fallbackFrom ? (
+                      <FallbackNotice data-testid="mode-fallback-notice">
+                        {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
+                        {resolved.mode}
+                      </FallbackNotice>
+                    ) : null}
+                    <ActiveLayout {...layoutProps} />
+                  </StageColumn>
+                  {summonedPanel === "settings" ? (
+                    <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
+                  ) : null}
+                </ContentRow>
+              </>
+            )}
+            {/* The Social / Notifications card (master's notify surface),
+                opened from the AccountMenu — independent of the summoned
+                settings card above. */}
+            {socialPanelOpen && (
+              <SocialNotificationsPanel
+                onClose={() => setSocialPanelOpen(false)}
+                onSendCommand={sendCommand}
+                onCommandPreview={handleCommandPreview}
+                onCommandClick={handleCommandClick}
+              />
+            )}
+            {/* The status bar — the one preview surface. Affordance
+                previews + post-action flash, browser-style along the
+                bottom of the window.
 
-              ⚠ Absent below the breakpoint, and not merely hidden: a
-              phone has no hover, so it would have nothing to report,
-              and it would cost a row the feed needs. What replaces it
-              is the command sheet — the tap that names its command
-              before it sends. */}
-          {isCompact ? null : (
-            <StatusBar
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-            />
-          )}
-          {/* The command sheet — the phone's replacement for hover.
-              Rendered unconditionally: it paints only when the store
-              holds a command, and only the compact branch of
-              `handleCommandClick` ever puts one there. */}
-          <CommandSheet onSend={sendDirect} />
-          {/* While a "Ring what?" prompt is open, any noun on screen answers it. */}
-          <PickMode />
-        </AppContainer>
-      );
+                ⚠ Absent below the breakpoint, and not merely hidden: a
+                phone has no hover, so it would have nothing to report,
+                and it would cost a row the feed needs. What replaces it
+                is the command sheet — the tap that names its command
+                before it sends. */}
+            {isCompact ? null : (
+              <StatusBar
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+              />
+            )}
+            {/* The command sheet — the phone's replacement for hover.
+                Rendered unconditionally: it paints only when the store
+                holds a command, and only the compact branch of
+                `handleCommandClick` ever puts one there. */}
+            <CommandSheet onSend={sendDirect} />
+            {/* While a "Ring what?" prompt is open, any noun on screen answers it. */}
+            <PickMode />
+          </AppContainer>
+        );
+      }
     }
-  }
+  })();
+  return (
+    <>
+      {screen}
+      <TooltipLayer onCommandClick={handleCommandClick} onCommandPreview={handleCommandPreview} />
+    </>
+  );
 }
 
 export default App;

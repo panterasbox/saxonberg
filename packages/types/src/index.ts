@@ -1376,13 +1376,15 @@ export interface WayRecord {
 
 /**
  * ⭐ A path on the wire, among the spoiler levels (navigation-server D6):
- * level 1, the lowest non-open one — appetite, one click, never a
- * capability. Every identity or template path the navigation sources send
- * is one of these; a Locality ADDRESS is not a path and travels bare.
+ * level **2** (tooltips requirements — was 1) — appetite, one click, never a
+ * capability. The appetite defaults to 0, so a path arrives collapsed until
+ * a reader raises theirs to 2. Every identity or template path the
+ * navigation sources and a thing's `path` field send is one of these; a
+ * Locality ADDRESS is not a path and travels bare.
  */
 export interface TaggedPath {
   path: string;
-  spoiler: 1;
+  spoiler: 2;
 }
 
 /** What kind of Locality, by address depth: 1 realm, 2 settlement, 3+ district. */
@@ -1795,6 +1797,71 @@ export type ProseSegment = LookSegment & { shape: 'prose' | 'state' };
 
 /** The declared shape of an illustration; the client never crops it. */
 export type IllustrationShape = 'wide' | 'tall' | 'square';
+
+// ============================================================================
+// Tooltips — a small document that previews something you can open
+// ============================================================================
+
+/**
+ * ⭐ Where one tooltip fact came from (tooltips D2). A closed list of the
+ * producers this build has; the navigation build's knowledge model adds
+ * `walked` / `told` when it lands. `client` = composed from what the client
+ * already holds (a control, a frame); `seen` = a perception-gated describe.
+ */
+export type TooltipSource = 'seen' | 'help' | 'wiki' | 'client';
+
+/** A tooltip's (and a card's) head: icon, name, what kind of thing. */
+export interface TooltipHeader {
+  /** An icon-map name (`kind.thing`, `card.pin`…); absent = no icon. */
+  icon?: string;
+  kind?: StuffKind;
+  name: string;
+  /** The kind in words — *thing*, *help*, *wiki page*, *control*. */
+  kindWord?: string;
+}
+
+/** One fact row: a label, a value, and where and when it was learned. */
+export interface TooltipFact {
+  label: string;
+  value: string;
+  source: TooltipSource;
+  /** Epoch ms the fact was taken; absent for timeless facts. */
+  at?: number;
+}
+
+/**
+ * ⭐ The one spoiler block (spoiler-slate § Paths are a spoiler). The
+ * client opens it iff `level <= appetite`; otherwise it is collapsed under
+ * `label`, one click open. Never withheld — the capability ceiling deletes
+ * before anything reaches a tooltip.
+ */
+export interface TooltipSpoiler {
+  level: 0 | 1 | 2 | 3;
+  label: string;
+  text: string;
+}
+
+/**
+ * ⭐⭐ A tooltip is a small document, not a string (tooltips D2). The same
+ * blocks render a card's head, facts and spoiler — two containers, one
+ * content. A tooltip is a SNAPSHOT: nothing updates an open one. It opens
+ * no card: clicking the thing it is attached to does that, as it always did
+ * (the owner, review — the "pin" button was cut).
+ */
+export interface TooltipDoc {
+  header?: TooltipHeader;
+  facts?: TooltipFact[];
+  /** MML — carries identity links and term links. */
+  prose?: string;
+  image?: { key: string; shape?: IllustrationShape };
+  spoilers?: TooltipSpoiler[];
+  /** The footer hint — what a click does. */
+  hint?: string;
+  /** What a click on the anchor runs. */
+  command?: string;
+  /** A line said instead of content — *You can't see that now.* */
+  miss?: string;
+}
 export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
 
 /**
@@ -1989,6 +2056,29 @@ export interface ReactionExpandMessage {
   commandId: string;
 }
 
+/** Ask for a wiki page's opening section — see {@link WikiExcerptResultEnvelope}. */
+export interface WikiExcerptMessage {
+  type: 'wiki-excerpt';
+  requestId: string;
+  /** A page handle — what `wiki <handle>` takes. */
+  ref: string;
+}
+
+/**
+ * ⭐ Ask for a wiki page's opening section at tooltip size (tooltips D4).
+ * Rendered through the wiki's own gate for the acting character: the
+ * capability ceiling deletes, the appetite collapses — exactly as `wiki
+ * <page>` would. One answer (`doc: null`) for *no such page* and *nothing
+ * you may read*.
+ */
+export interface WikiExcerptResultEnvelope {
+  type: 'wiki-excerpt-result';
+  frameId: number;
+  requestId: string;
+  ref: string;
+  doc: TooltipDoc | null;
+}
+
 /**
  * Ask the server what a viewer can do with one object, right now —
  * the request behind the radial menu. Correlated by `requestId`; the
@@ -2135,6 +2225,13 @@ export interface PromptCancelMessage {
 export interface StuffRefRecord {
   stuffId: string;
   displayName: string;
+  /** Which branch this Stuff is on — the kind icon. Asked for by name. */
+  kind?: StuffKind;
+  /**
+   * ⭐ The thing's template path — what it is, really. Always a spoiler
+   * (the client collapses it below appetite 2); a sight field.
+   */
+  path?: TaggedPath;
   quantity?: number;
   primaryKeyword?: string;
   /**
@@ -2372,6 +2469,12 @@ export interface MqlQueryResultEnvelope {
   frameId: number;
   queryId: string;
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+  /**
+   * ⭐ The viewer's place is too dark to see by (tooltips D3): every field
+   * a descriptor marks `sense: 'vision'` was dropped from the records. Said
+   * once, here — a fact about the viewer's place, not about each subject.
+   */
+  dark?: true;
 }
 
 /**
@@ -3154,6 +3257,7 @@ export type Envelope =
   | ReactionExpandResultEnvelope
   | AffordanceResultEnvelope
   | AffordanceErrorEnvelope
+  | WikiExcerptResultEnvelope
   | StreamStateEnvelope
   | StreamEventEnvelope
   | ControlResultEnvelope
@@ -3181,6 +3285,7 @@ export type EnvelopeTemplate =
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<AffordanceResultEnvelope, 'frameId'>
   | Omit<AffordanceErrorEnvelope, 'frameId'>
+  | Omit<WikiExcerptResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
   | Omit<StreamEventEnvelope, 'frameId'>
   | Omit<ControlResultEnvelope, 'frameId'>
@@ -4218,21 +4323,6 @@ export interface ConnectionEstablishedPayload {
     /** `social.react.muteChannels` — no reaction widgets on chat lines. */
     muteChannels: boolean;
   };
-  /**
-   * ⭐ **Where a structured command result appears — BOTH answers, so
-   * the client can pick.**
-   *
-   * `shell.result` is one setting with an optional per-form-factor
-   * override, resolved server-side into the two values it can take.
-   * The server ships both because **it cannot know a viewport**: a
-   * `cockpit.formFactor` key would be a fake fact. Two stored
-   * preferences assert nothing about which is in force — the server
-   * owns what is SHOWN, the client (which genuinely knows its own
-   * width) picks which applies. Same split as `cockpit.shelf`.
-   *
-   * Optional on the wire; the client falls back to `card` when absent.
-   */
-  resultDisplay?: Record<FormFactor, ResultDisplay>;
   /**
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its

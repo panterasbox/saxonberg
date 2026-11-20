@@ -66,6 +66,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { tokens } from './tokens';
 import { UnbuiltGround } from './UnbuiltGround';
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 /**
  * Which honest state a figure is in. Discriminated on `state`, and
@@ -288,8 +290,10 @@ export function Figure({
   // chip the tooltip is the only place either one's reason surfaces.
   // Reading the same builder as the accessible name is what stops the
   // two descriptions drifting again.
-  const titled =
-    variant === 'chip' && figure.state !== 'live' ? { title: ariaLabel } : {};
+  // ⭐ The reason, said by the tooltip rather than native hover text
+  // (tooltips W7) — the same builder as the accessible name.
+  const tip =
+    variant === 'chip' && figure.state !== 'live' ? hoverDoc(ariaLabel) : null;
 
   const glyph =
     figure.state === 'live'
@@ -299,12 +303,12 @@ export function Figure({
         : UNWIRED_GLYPH;
 
   return (
+    <Tip tip={tip}>
     <Container
       role="group"
       aria-label={ariaLabel}
       data-figure-state={figure.state}
       data-figure-variant={variant}
-      {...titled}
       {...(className !== undefined ? { className } : {})}
     >
       <Label>{label}</Label>
@@ -329,5 +333,6 @@ export function Figure({
         <Reason aria-hidden="true">{figure.reason}</Reason>
       )}
     </Container>
+    </Tip>
   );
 }

@@ -25,6 +25,8 @@ import styled, { keyframes } from "styled-components";
 import { useStore } from "../../store/index";
 import type { Frame } from "../../store/index";
 import { tokens } from "../ui";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 /** How long the glow lasts, and how long the mark stays to be asked. */
 const GLOW_MS = 1500;
@@ -147,13 +149,12 @@ export function ChangeMark({ surface, children }: ChangeMarkProps): React.ReactE
     <Wrap $glowing={glowing} data-testid={`change-${surface}`} data-changed={marked ? "true" : undefined}>
       {children}
       {said ? (
-        <Mark
+        <Tip tip={hoverDoc(said.text)}><Mark
           type="button"
           aria-label="what changed this"
-          title={said.text}
           data-testid={`change-mark-${surface}`}
           onClick={() => setOpen((o) => !o)}
-        />
+        /></Tip>
       ) : null}
       {said && open ? (
         <Pop role="status" data-testid={`change-why-${surface}`}>

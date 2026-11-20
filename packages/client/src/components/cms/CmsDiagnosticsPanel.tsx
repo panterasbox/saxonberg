@@ -14,6 +14,8 @@ import styled from "styled-components";
 import { tokens } from "../ui";
 import { cmsClient } from "./cmsClient";
 import type { DiagnosticDoc, DiagnosticSeverity } from "@saxonberg/types";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const POLL_MS = 8000;
 
@@ -138,22 +140,20 @@ export const CmsDiagnosticsPanel: React.FC = () => {
   return (
     <Root>
       <Bar>
-        <Toggle
+        <Tip tip={hoverDoc("Only diagnostics in content you authored")}><Toggle
           type="button"
           $active={mine}
           onClick={() => setMine(true)}
-          title="Only diagnostics in content you authored"
         >
           Mine
-        </Toggle>
-        <Toggle
+        </Toggle></Tip>
+        <Tip tip={hoverDoc("All channels you can see")}><Toggle
           type="button"
           $active={!mine}
           onClick={() => setMine(false)}
-          title="All channels you can see"
         >
           All
-        </Toggle>
+        </Toggle></Tip>
         <Meta>
           {rows.length} diagnostic{rows.length === 1 ? "" : "s"}
           {error ? ` · ${error}` : ""}
@@ -172,7 +172,7 @@ export const CmsDiagnosticsPanel: React.FC = () => {
           rows.map((r, i) => (
             <Row key={r._id ?? i}>
               <Sev $sev={r.severity}>{r.severity}</Sev>
-              <Channel title={r.channel}>{r.channel}</Channel>
+              <Tip tip={hoverDoc(r.channel)}><Channel>{r.channel}</Channel></Tip>
               <Body>
                 {r.path ? (
                   <Where>

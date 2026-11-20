@@ -6,14 +6,16 @@
  * color is derived from the frame's topic family (hashed → hue;
  * fixed S/L) so leaves under the same family cluster visually.
  *
- * Hover (>250ms) → floating tooltip with the friendly label, raw
- * dotted path, description, and timestamp. Click → action popover
- * with mute / solo / open-new-tab / mute-family. No right-click
+ * Hover → the frame's tooltip (`frameDoc`: the friendly label, the raw
+ * dotted topic, description, and time — tooltips W1). Click → action
+ * popover with mute / solo / open-new-tab / mute-family, placed by the
+ * one positioner (`useFloat`). No right-click
  * handler is bound; the gutter IS the inspection surface, per the
  * slate's gesture-reservation rule.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
@@ -23,8 +25,9 @@ import {
   setActiveTab,
 } from '../store/consoleActions';
 import type { TopicDescriptor } from '@saxonberg/types';
-
-const HOVER_DELAY_MS = 250;
+import { Tip } from './tooltip/Tip';
+import { useFloat } from './tooltip/useFloat';
+import { frameDoc } from './doc/docs';
 
 const StripeContainer = styled.span`
   display: inline-block;
@@ -37,40 +40,7 @@ const StripeContainer = styled.span`
   flex-shrink: 0;
 `;
 
-const Tooltip = styled.div`
-  position: absolute;
-  top: 0;
-  left: 8px;
-  background: ${tokens.color.surface};
-  color: ${tokens.color.fg};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  border-radius: ${tokens.radius.md};
-  padding: ${tokens.space.md};
-  font-family: ${tokens.font.family};
-  font-size: ${tokens.font.small};
-  min-width: 14rem;
-  max-width: 28rem;
-  z-index: 20;
-  pointer-events: none;
-  white-space: normal;
-`;
-
-const TooltipRow = styled.div`
-  margin-bottom: ${tokens.space.xs};
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const RowLabel = styled.span`
-  color: ${tokens.color.fgMuted};
-  margin-right: ${tokens.space.sm};
-`;
-
 const Popover = styled.div`
-  position: absolute;
-  top: 0;
-  left: 8px;
   background: ${tokens.color.surface};
   color: ${tokens.color.fg};
   border: 1px solid ${tokens.color.borderEmphasis};
@@ -81,7 +51,7 @@ const Popover = styled.div`
   gap: ${tokens.space.xs};
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.small};
-  z-index: 30;
+  z-index: 80;
   white-space: nowrap;
 `;
 
@@ -138,49 +108,15 @@ export function GutterStripe({ topic, timestamp }: GutterStripeProps) {
   const getDescriptor = useStore((s) => s.getTopicDescriptor);
   const descriptor: TopicDescriptor = getDescriptor(topic);
   const color = colorForTopic(descriptor.family || topic);
-  const [hoveringTip, setHoveringTip] = useState(false);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [showPopover, setShowPopover] = useState(false);
-  const hoverTimerRef = useRef<number | null>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimerRef.current !== null) {
-        window.clearTimeout(hoverTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!showPopover) return;
-    const onMouseDown = (e: MouseEvent) => {
-      if (popoverRef.current && popoverRef.current.contains(e.target as Node)) {
-        return;
-      }
-      setShowPopover(false);
-    };
-    window.addEventListener('mousedown', onMouseDown);
-    return () => window.removeEventListener('mousedown', onMouseDown);
-  }, [showPopover]);
-
-  function onMouseEnter() {
-    if (showPopover) return;
-    hoverTimerRef.current = window.setTimeout(() => {
-      setHoveringTip(true);
-    }, HOVER_DELAY_MS);
-  }
-
-  function onMouseLeave() {
-    if (hoverTimerRef.current !== null) {
-      window.clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setHoveringTip(false);
-  }
+  const float = useFloat(showPopover ? anchor : null, {
+    placement: 'right-start',
+    onDismiss: () => setShowPopover(false),
+  });
 
   function onClick(e: React.MouseEvent) {
     e.stopPropagation();
-    setHoveringTip(false);
     setShowPopover((v) => !v);
   }
 
@@ -235,33 +171,18 @@ export function GutterStripe({ topic, timestamp }: GutterStripeProps) {
   }
 
   return (
+    <Tip tip={showPopover ? null : frameDoc(descriptor, timestamp)}>
     <StripeContainer
+      ref={setAnchor}
       data-testid="gutter-stripe"
       data-topic={topic}
       style={{ background: color }}
       onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
-      {hoveringTip && !showPopover && (
-        <Tooltip data-testid="gutter-tooltip">
-          <TooltipRow>
-            <strong>{descriptor.label}</strong>
-          </TooltipRow>
-          <TooltipRow>
-            <RowLabel>topic</RowLabel>
-            <code>{descriptor.topic}</code>
-          </TooltipRow>
-          <TooltipRow>{descriptor.description}</TooltipRow>
-          <TooltipRow>
-            <RowLabel>at</RowLabel>
-            {new Date(timestamp).toLocaleTimeString()}
-          </TooltipRow>
-        </Tooltip>
-      )}
-      {showPopover && (
+      {showPopover && anchor && createPortal(
         <Popover
-          ref={popoverRef}
+          ref={float.ref}
+          style={float.style}
           data-testid="gutter-popover"
           onClick={(e) => e.stopPropagation()}
         >
@@ -286,8 +207,10 @@ export function GutterStripe({ topic, timestamp }: GutterStripeProps) {
           >
             Mute family
           </PopoverButton>
-        </Popover>
+        </Popover>,
+        anchor.ownerDocument.body,
       )}
     </StripeContainer>
+    </Tip>
   );
 }

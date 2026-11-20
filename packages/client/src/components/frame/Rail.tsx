@@ -14,6 +14,8 @@ import React from "react";
 import styled from "styled-components";
 import { COCKPIT_MODES, type CockpitMode } from "@saxonberg/types";
 import { tokens } from "../ui";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Column = styled.nav`
   flex: none;
@@ -134,15 +136,13 @@ export function Rail({
         <>
           <Divider aria-hidden="true" />
           {panelCards.map((c) => (
-            <PanelIcon
-              key={c.instanceId}
+            <Tip key={c.instanceId} tip={hoverDoc(c.title)}><PanelIcon
               type="button"
-              title={c.title}
               data-testid="rail-panel-card"
               onClick={onOpenPanel}
             >
               {c.title}
-            </PanelIcon>
+            </PanelIcon></Tip>
           ))}
         </>
       ) : null}

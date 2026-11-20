@@ -20,6 +20,8 @@ import styled from "styled-components";
 import type { Whereabouts, WhereaboutsExit } from "../../store/navSlice";
 import { tokens } from "../ui";
 import { ChangeMark } from "./ChangeMark";
+import { Tip } from "../tooltip/Tip";
+import { wayDoc } from "../doc/docs";
 
 interface NavigatorBodyProps {
   where: Whereabouts;
@@ -131,24 +133,31 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
     // ⭐ One wire shape (`WayRecord`, boundary build): the way's state and
     // what stands in it. A window shows the far side and is never a way a
     // body takes, so its arm does not send `go`.
+    // What the way goes through, said as a fact on its tooltip.
     const through = exit.boundary
-      ? ` — through ${exit.boundary.name}${exit.state === "open" ? "" : ` (${exit.state})`}`
-      : exit.state === "locked" ? " (locked)" : "";
+      ? `${exit.boundary.name}${exit.state === "open" ? "" : ` (${exit.state})`}`
+      : exit.state === "locked" ? "locked" : "";
     return (
-      <Arm
+      <Tip
         key={exit.direction}
-        type="button"
-        disabled={exit.state === "window"}
-        $door={exit.state !== "open"}
-        data-testid={`nav-exit-${exit.direction}`}
-        title={`${command}${exit.destination ? ` → ${exit.destination}` : ""}${through}`}
-        aria-label={command}
-        onClick={() => onSendCommand(command)}
-        onMouseEnter={() => preview(command)}
-        onMouseLeave={() => preview(null)}
+        tip={wayDoc(exit.direction, command, {
+          ...(exit.destination ? { to: exit.destination } : {}),
+          ...(through ? { through } : {}),
+        })}
       >
-        {label}
-      </Arm>
+        <Arm
+          type="button"
+          disabled={exit.state === "window"}
+          $door={exit.state !== "open"}
+          data-testid={`nav-exit-${exit.direction}`}
+          aria-label={command}
+          onClick={() => onSendCommand(command)}
+          onMouseEnter={() => preview(command)}
+          onMouseLeave={() => preview(null)}
+        >
+          {label}
+        </Arm>
+      </Tip>
     );
   };
 
@@ -168,7 +177,9 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
       <Crumbs aria-label="where you are" data-testid="nav-crumbs">
         {crumbs.map((l) => (
           <React.Fragment key={l.address}>
-            <span title={l.address}>{l.name}</span>
+            <Tip tip={{ header: { name: l.name, kindWord: "locality" }, facts: [{ label: "address", value: l.address, source: "client" }] }}>
+              <span>{l.name}</span>
+            </Tip>
             <span aria-hidden="true">›</span>
           </React.Fragment>
         ))}
@@ -189,9 +200,16 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
           {ROSE.map((dir, i) => {
             if (dir === null) {
               return (
-                <You key="you" title={where.coords ? `cell ${where.coords.x}, ${where.coords.y}, ${where.coords.z}` : undefined}>
-                  you
-                </You>
+                <Tip
+                  key="you"
+                  tip={
+                    where.coords
+                      ? { header: { name: "you", kindWord: "here" }, facts: [{ label: "cell", value: `${where.coords.x}, ${where.coords.y}, ${where.coords.z}`, source: "client" }] }
+                      : null
+                  }
+                >
+                  <You>you</You>
+                </Tip>
               );
             }
             const exit = inZone.get(dir);

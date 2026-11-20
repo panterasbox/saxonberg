@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@floating-ui/react-dom": "2.1.9",
     "@monaco-editor/react": "^4.6.0",
     "@saxonberg/types": "workspace:*",
     "lucide-react": "0.454.0",
