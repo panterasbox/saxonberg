@@ -305,7 +305,23 @@ so far:
   a business you belong to), else by path as an address. No global name
   search.
 
-Still open: records held inside objects (stock lines, hull slots, part
-lines, mine faces, positions…), collection records (channels, forum
+- **A shop's inventory is real objects** — already true (*"the shelf is
+  always instances"*, retail.md; `Stock` is a `Vessel`). `buy loaf` targets
+  the counter's contents like any container: plain MQL. `lineForWord` /
+  `pricedKeyFor` retire: a sold-out kind is the shop's refusal in its own
+  words (no word matched against nothing); bring-up to order asks the
+  store, whose pooled lines keep real exemplars.
+- **Lists of things that do not exist yet** — a tariff's services, a
+  yard's hulls to order, a carcass's cuts, an assembly's missing parts, a
+  menu's recipes — are the **holder's own device**: it exposes its entries
+  and matches the word by the shared rule against their authored words (a
+  kind's row keywords; a recipe's keyworded document). ⛔ Nothing is made
+  `Visible` to carry a description — the holder describes its own entries.
+- **A holder's own parts** — mine faces (direction words), ice patches
+  (kind words), quarry bands (their Material's keywords), plat lots
+  (their number), a business's positions (title + keywords) — the holder
+  resolves them by the shared rule. No new machinery.
+
+Still open: collection records (channels, forum
 subjects, groups, parties), player-owned labels, herd/water-right/receipt
 as possible Ideas, durations and `defaulted`.
