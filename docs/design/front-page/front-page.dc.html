@@ -116,9 +116,10 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 <div style="flex: 1 1 300px; max-width: 360px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
 <section aria-labelledby="fp-signin" style="box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px">
 <h2 id="fp-signin" style="margin: 0; font-family: Spectral, serif; font-weight: 500; font-size: 13px; letter-spacing: .19em; text-transform: uppercase">Sign in</h2>
-<a href="#" style="display: flex; align-items: center; gap: 9px; min-height: 44px; box-sizing: border-box; padding: 9px 14px; border-radius: 3px; border: 1px solid #FFFFFF; background: #BF0A30; color: #FFFFFF; font-weight: 600; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.29 6.16-4.29z"></path></svg>Continue with Google</a>
-<a href="#" style="display: flex; align-items: center; gap: 9px; min-height: 44px; box-sizing: border-box; padding: 9px 14px; border-radius: 3px; border: 1px solid #FFFFFF; background: #BF0A30; color: #FFFFFF; font-weight: 600; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M4.3 3 3 6.5v12.2h4.2V21h2.3l2.2-2.3h3.4L20 14.5V3H4.3zm14.2 10.7-2.6 2.6h-3.9l-2.2 2.2v-2.2H6.5V4.6h12v9.1zM15 7.7v4.6h-1.6V7.7H15zm-4.2 0v4.6H9.2V7.7h1.6z"></path></svg>Continue with Twitch</a>
-<a href="#" style="display: flex; align-items: center; gap: 9px; min-height: 44px; box-sizing: border-box; padding: 9px 14px; border-radius: 3px; border: 1px solid #FFFFFF; background: #BF0A30; color: #FFFFFF; font-weight: 600; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M3 3h5.4v5.4h2.7V5.7h2.7V3h5.4v8.1h-2.7v1.8h2.7V21h-5.4v-2.7h-2.7v-2.7H8.4V21H3V3z"></path></svg>Continue with Kick</a>
+<sc-if value="{{hasOrigin}}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 12.5px; color: var(--fg-dim)">{{originNote}}</p></sc-if>
+<sc-for list="{{providers}}" as="pv" hint-placeholder-count="3">
+<a href="#" style="display: flex; align-items: center; gap: 9px; min-height: 44px; box-sizing: border-box; padding: 9px 14px; border-radius: 3px; border: 1px solid #FFFFFF; background: #BF0A30; color: #FFFFFF; font-weight: 600; text-decoration: none; margin-bottom: {{pv.gap}}"><sc-if value="{{pv.google}}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.29 6.16-4.29z"></path></svg></sc-if><sc-if value="{{pv.twitch}}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M4.3 3 3 6.5v12.2h4.2V21h2.3l2.2-2.3h3.4L20 14.5V3H4.3zm14.2 10.7-2.6 2.6h-3.9l-2.2 2.2v-2.2H6.5V4.6h12v9.1zM15 7.7v4.6h-1.6V7.7H15zm-4.2 0v4.6H9.2V7.7h1.6z"></path></svg></sc-if><sc-if value="{{pv.kick}}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M3 3h5.4v5.4h2.7V5.7h2.7V3h5.4v8.1h-2.7v1.8h2.7V21h-5.4v-2.7h-2.7v-2.7H8.4V21H3V3z"></path></svg></sc-if>{{pv.label}}</a>
+</sc-for>
 <button type="button" style="min-height: 44px; box-sizing: border-box; padding: 9px 14px; border-radius: 3px; border: 1px solid var(--line); background: transparent; color: var(--fg); font: inherit; font-weight: 500; text-align: left; cursor: pointer">Look around as a guest</button>
 <p style="margin: 0; font-size: 12px; color: var(--fg-mute)">A guest keeps nothing, and nobody can find them.</p>
 <sc-if value="{{presenceCount}}" hint-placeholder-val="{{ true }}">
@@ -134,7 +135,7 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 <a href="#" style="display: block; text-decoration: none; color: var(--fg)">
 <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border: 1px solid var(--line); border-radius: 3px; overflow: hidden">
 <sc-if value="{{live}}" hint-placeholder-val="{{ true }}">
-<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0a0f1a; color: #9fb0cc; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em; text-align: center; padding: 12px">[ still thumbnail from the stream ]</div>
+<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0a0f1a; color: #9fb0cc; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em; text-align: center; padding: 12px">[ still thumbnail from the {{tilePlatform}} stream ]</div>
 <span style="position: absolute; top: 8px; left: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; background: #BF0A30; color: #FFFFFF; border: 1px solid #FFFFFF; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase">Live</span>
 <span style="position: absolute; bottom: 8px; left: 8px; padding: 1px 6px; background: rgba(0,0,0,.72); color: #FFFFFF; border-radius: 3px; font-size: 11px; font-family: 'IBM Plex Mono', monospace">42 viewers</span>
 </sc-if>
@@ -159,7 +160,7 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 </div>
 </div>
 </a>
-<p style="margin: 6px 0 0; font-size: 12px; color: var(--fg-mute)">Sign in to watch it inside Saxonberg.</p>
+<p style="margin: 6px 0 0; font-size: 12px; color: var(--fg-mute)">{{tileAction}}</p>
 </section>
 </div>
 </div>
@@ -225,7 +226,7 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["ink","marble"],"default":"ink"},"presence":{"editor":"enum","options":["count","zero","unknown"],"default":"count"},"live":{"editor":"boolean","default":true},"feedEmpty":{"editor":"boolean","default":false},"fundPinned":{"editor":"boolean","default":true},"hasDemand":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":3000}}'>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["ink","marble"],"default":"ink"},"presence":{"editor":"enum","options":["count","zero","unknown"],"default":"count"},"live":{"editor":"boolean","default":true},"feedEmpty":{"editor":"boolean","default":false},"fundPinned":{"editor":"boolean","default":true},"hasDemand":{"editor":"boolean","default":true},"cameFrom":{"editor":"enum","options":["none","twitch","youtube","kick"],"default":"none"},"$preview":{"width":1440,"height":3000}}'>
 class Component extends DCLogic {
   renderVals() {
     const theme = this.props.theme ?? 'ink';
@@ -234,6 +235,19 @@ class Component extends DCLogic {
     const presence = this.props.presence ?? 'count';
     const live = this.props.live ?? true;
     const feedEmpty = this.props.feedEmpty ?? false;
+    const cameFrom = this.props.cameFrom ?? 'none';
+    const google = { key: 'google', label: 'Continue with Google', google: true, twitch: false, kick: false };
+    const twitch = { key: 'twitch', label: 'Continue with Twitch', google: false, twitch: true, kick: false };
+    const kick = { key: 'kick', label: 'Continue with Kick', google: false, twitch: false, kick: true };
+    let order = [google, twitch, kick];
+    if (cameFrom === 'twitch') order = [twitch, google, kick];
+    if (cameFrom === 'kick') order = [kick, google, twitch];
+    const providers = order.map((p, i) => Object.assign({}, p, { gap: i === 0 && cameFrom !== 'none' ? '6px' : '0' }));
+    const notes = { twitch: 'You came from Twitch.', youtube: 'You came from YouTube \u2014 sign in with the Google account you watch on.', kick: 'You came from Kick.' };
+    const originNote = notes[cameFrom] || '';
+    const tilePlatform = cameFrom === 'youtube' ? 'YouTube' : (cameFrom === 'kick' ? 'Kick' : 'Twitch');
+    const via = { twitch: 'Twitch', youtube: 'Google', kick: 'Kick' };
+    const tileAction = cameFrom === 'none' ? 'Sign in to watch it inside Saxonberg.' : 'Sign in with ' + via[cameFrom] + ' and keep watching inside Saxonberg.';
     return {
       rootStyle: theme === 'marble' ? marble : ink,
       presenceCount: presence === 'count',
@@ -246,6 +260,11 @@ class Component extends DCLogic {
       feedHasItems: !feedEmpty,
       fundPinned: this.props.fundPinned ?? true,
       hasDemand: this.props.hasDemand ?? true,
+      hasOrigin: cameFrom !== 'none',
+      originNote: originNote,
+      providers: providers,
+      tilePlatform: tilePlatform,
+      tileAction: tileAction,
       demand: [
         { kind: 'Hiring', what: 'Two hands for the ropewalk', where: 'Wharfside' },
         { kind: 'Buying', what: 'Flour, by the sack', where: 'the bakery on University Avenue' },

@@ -83,6 +83,37 @@ trying to get people to log in — why bother if they can just watch the stream 
 **Kept from today:** full-bleed bands, the honest live count, co-equal providers, *every claim has a
 source*, the press room never awaited by sign-in.
 
+## 4a. Where you came from **[DECIDED — the owner]**
+
+The owner: *"we can detect if they already have a twitch/youtube/kick session right? might be good to
+emphasize if we already know their preference and also change what preview shows … we want it to log
+you into saxonberg using the login method you prefer based on your viewing preferences."*
+
+- ⛔ **Another site's session cannot be read**, and the page does not try: browsers keep one site's
+  cookies from another, and login-probing tricks are privacy leaks browsers keep closing. (Google's
+  own sign-in prompt may offer a visitor their Google account — Google showing it, not us reading it.)
+- ⭐ **The origin is known three clean ways**, in order:
+  1. **a `from` parameter on every link we post** — Twitch panels, the chat relay's messages,
+     YouTube descriptions, Kick (`mud.panterasbox.com/?from=twitch`); exact, and ours;
+  2. **the referring site** the browser passes (`twitch.tv`, `youtube.com`, `kick.com` — the
+     origin, not the page), for untagged links;
+  3. **the visitor's last sign-in method**, remembered in their own browser on our domain — a
+     first-party convenience.
+- **When it is known:**
+  - **the show tile shows that platform's thumbnail**;
+  - ⭐ **clicking the tile signs in through the matching provider** — Twitch → Twitch, **YouTube →
+    Google** (a YouTube account is a Google account), Kick → Kick — and the follow-up action opens the
+    same stream inside the game on the carrier they were watching. The tile reads *"Sign in with
+    Twitch and keep watching inside Saxonberg."*;
+  - **their provider moves to the top of the sign-in panel**, with a plain note: *"You came from
+    Twitch."* / *"You came from YouTube — sign in with the Google account you watch on."*
+- ⚠ **A refinement of the co-equal providers rule**, written into it rather than overriding it: the
+  start screen gives every provider the same treatment because favouring one *"states a partnership
+  that does not exist."* Ordering by **the visitor's own origin** states their choice, not ours, so it
+  keeps the rule's reason. **With no signal, the order is neutral** (Google · Twitch · Kick, as today)
+  and every button keeps the same look.
+- The prototype's Tweaks carry `cameFrom` (none · twitch · youtube · kick) to show each state.
+
 ## 5. The empty rules — real or absent
 
 | band | when its source is empty |
@@ -175,6 +206,9 @@ A publisher organization (trades and publishes), public, realm `ooc`, path to se
 9. **The sign-in follow-up** — the show tile links to sign-in carrying a follow-up action through
    OAuth (the deep-links slate); after entering, the client runs `watch` on the founder's stream.
    Offered only while live.
+9a. **The origin signal** (§ 4a) — the `from` parameter, the referrer fallback and the remembered
+   last method, resolved client-side; the tile's thumbnail and sign-in link follow it, and the
+   sign-in panel orders by it. Tag every link the chat relay and the stream panels post.
 10. **The live count reads the wire** (directory-slate § 3b), so silent sessions are excluded —
     follows the directory build.
 11. **The client:** rebuild `StartScreen` to § 4, the `PressRoom` becoming Latest and the full feed;
