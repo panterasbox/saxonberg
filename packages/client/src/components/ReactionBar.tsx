@@ -30,6 +30,8 @@ import { expandReactors } from "../store/reactionActions";
 import { EmotePicker } from "./social/EmotePicker";
 import { composeReactCommand, quickRow } from "./social/reactCommand";
 import { ensureEmoteCatalogue } from "../store/emoteCatalogue";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 /**
  * Whether a frame is a reactable act.
@@ -418,26 +420,21 @@ export function ReactionBar({
          *
          * ⚠ Both numbers are the server's `total`; nothing here sums.
          */
-        <Counter
+        <Tip tip={hoverDoc(isSelfAct
+              ? "Reactions to your act — the per-reaction lines are suppressed above the threshold"
+              : "Reactions on this act")}><Counter
           $pulse={pulsing}
           $intensity={prefs.intensity}
-          title={
-            isSelfAct
-              ? "Reactions to your act — the per-reaction lines are suppressed above the threshold"
-              : "Reactions on this act"
-          }
         >
           ✦ {total} {isSelfAct ? "reactions to yours" : "reactions"}
-        </Counter>
+        </Counter></Tip>
       )}
 
       {buckets.map((b) => (
-        <Chip
-          key={b.tag}
+        <Tip key={b.tag} tip={hoverDoc(chipTitle(b, isMine(b.emote)))}><Chip
           $pulse={pulsing}
           $intensity={prefs.intensity}
           $mine={isMine(b.emote)}
-          title={chipTitle(b, isMine(b.emote))}
           onClick={() => send(b.emote)}
           onMouseEnter={() => preview(b.emote)}
           onMouseLeave={() => preview(null)}
@@ -445,7 +442,7 @@ export function ReactionBar({
           onBlur={() => preview(null)}
         >
           {b.emoji ?? b.emote} {b.count}
-        </Chip>
+        </Chip></Tip>
       ))}
 
       {sample.length > 0 && (
@@ -458,15 +455,14 @@ export function ReactionBar({
       )}
 
       {aggregated && (
-        <MiniButton
+        <Tip tip={hoverDoc("Show everyone who reacted")}><MiniButton
           onClick={() =>
             commandId &&
             expandReactors(commandId, `exp-${commandId}-${Date.now()}`)
           }
-          title="Show everyone who reacted"
         >
           expand
-        </MiniButton>
+        </MiniButton></Tip>
       )}
 
       {expanded && expanded.length > 0 && (
@@ -475,15 +471,14 @@ export function ReactionBar({
 
       {gutter !== undefined && (quick.length > 0 || catalogueState !== "loaded") && (
         <AddWrap className="reaction-add" $open={open}>
-          <MiniButton
+          <Tip tip={hoverDoc("React")}><MiniButton
             onClick={() => {
               setOpen((o) => !o);
               setFull(false);
             }}
-            title="React"
           >
             ＋
-          </MiniButton>
+          </MiniButton></Tip>
           {open &&
             (full ? (
               /*
@@ -522,25 +517,22 @@ export function ReactionBar({
                   <PaletteNote>no emotes authored yet</PaletteNote>
                 )}
                 {quick.map((q) => (
-                  <PaletteBtn
-                    key={q.verb}
+                  <Tip key={q.verb} tip={hoverDoc(q.verb)}><PaletteBtn
                     onClick={() => send(q.verb)}
                     onMouseEnter={() => preview(q.verb)}
                     onMouseLeave={() => preview(null)}
                     onFocus={() => preview(q.verb)}
                     onBlur={() => preview(null)}
-                    title={q.verb}
                   >
                     {q.emoji}
-                  </PaletteBtn>
+                  </PaletteBtn></Tip>
                 ))}
                 {quick.length > 0 && (
-                  <PaletteBtn
+                  <Tip tip={hoverDoc("the full palette, with slots")}><PaletteBtn
                     onClick={() => setFull(true)}
-                    title="the full palette, with slots"
                   >
                     all
-                  </PaletteBtn>
+                  </PaletteBtn></Tip>
                 )}
               </Palette>
             ))}

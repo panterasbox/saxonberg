@@ -24,7 +24,6 @@ export default class SettingsUnsetController extends SettingsControllerBase {
     } catch (err) {
       return SettingsControllerBase.fail(context, (err as Error).message, 'unset-failed');
     }
-    SettingsControllerBase.pushResultDisplay(avatar, key);
     SettingsControllerBase.send(
       context,
       Mml.fromMarkup(`\n${key} cleared (default applies).\n`),

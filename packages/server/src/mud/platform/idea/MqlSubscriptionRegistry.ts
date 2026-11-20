@@ -246,6 +246,7 @@ function projectStuffInto(
   fields: FieldSet,
   viewer: Stuff & Sensor,
   detailKey: string | undefined,
+  oneShot?: { dark: boolean },
 ): RecordValue {
   // ⭐ A live card's projection is the room's own reading: it holds the
   // world still (crowded-rooms D9).
@@ -259,7 +260,14 @@ function projectStuffInto(
     for (const name of fields) {
       const d = descriptors.get(name);
       if (!d || !d.read) continue;
-      const value = d.read(stuff, viewer);
+      // ⭐ Too dark to see by: what sight would have told is absent, never
+      // blanked; the envelope says `dark` once (tooltips D3).
+      if (oneShot?.dark && d.sense === 'vision') continue;
+      // A one-shot (a tooltip's describe) names the subject as THIS viewer
+      // perceives it — the same `describeFor` the prose and `projectFields`
+      // use (*something* in the dark, the believed name for a stranger).
+      const value =
+        oneShot && name === 'displayName' ? stuff.describeFor(viewer) : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;
     }
@@ -723,7 +731,16 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
         const ctx = { commandGiver: giver, scope: expandedQuery };
         // ⭐ What the viewer perceives, then the head ordinal (D23).
         const many = MqlApi.resolveMany(expandedQuery, ctx);
-        const seen = PerceptionApi.perceived(giver, many.stuff, many.ordinal);
+        // ⭐⭐ Reach is the SERVER's to enforce, not the query text's
+        // (tooltips D3 — perception gates are binding; MQL names, the act
+        // observes). An id names a thing anywhere in the world; a one-shot
+        // describes only what `look` could reach — its own `reachable`
+        // scope — whatever query arrived. Outside it: nothing.
+        const reach = new Set(
+          MqlApi.resolveMany('reachable', { commandGiver: giver, scope: 'reachable' }).stuff,
+        );
+        const near = many.stuff.filter((s) => reach.has(s));
+        const seen = PerceptionApi.perceived(giver, near, many.ordinal);
         stuffList = cardinality === 'one' ? seen.slice(0, 1) : seen;
       } catch (err) {
         const reason: MqlSubscriptionErrorReason =
@@ -737,12 +754,17 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
         return;
       }
 
-      const result: RecordValue[] = [];
+    const result: RecordValue[] = [];
     const release = PerceptionApi.holdLightSteady();
-      try {
+    let dark = false;
+    try {
+      // ⭐ The band `look` renders by, read WITHOUT looking (no discovery,
+      // no tracking — a hover must learn nothing): too dark, and every
+      // sight field is dropped (tooltips D3).
+      const place = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+      dark = place ? (PerceptionApi.lightBandFor(viewer, place)?.dark ?? false) : false;
       for (const stuff of stuffList) {
-        const rec = projectStuffInto(stuff, fields, viewer, detailKey);
-        result.push(rec);
+        result.push(projectStuffInto(stuff, fields, viewer, detailKey, { dark }));
       }
     } finally {
       release();
@@ -752,6 +774,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       type: 'mql-query-result',
       queryId,
       result,
+      ...(dark ? { dark: true as const } : {}),
     };
     viewer.onEnvelope(template);
   }

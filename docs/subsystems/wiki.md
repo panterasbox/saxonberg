@@ -251,7 +251,7 @@ rung was. A signed-in player sat at 0, which made `spoiler="1"` mean
 for. Two axes, one of them structurally dead.
 
 Level 1 is therefore **ordinary reader content a reader may choose not
-to be shown**: collapsed for a reader whose `wiki.spoilerAppetite` is
+to be shown**: collapsed for a reader whose `spoiler.appetite` is
 0, one click to open, plain for a reader who asked for everything.
 Levels 2 and 3 are unchanged and stay authority-gated, so opening 1 to
 everybody does not open the levels above it.
@@ -471,7 +471,7 @@ the chemical identity anyone could look up) stays open; what it
 *measures* is the reward for working with it, and a panel that hands
 over every constant makes the material science a lookup instead of a
 subject. At level 1 it is a **default about presentation, not a lock**:
-one click, or `settings set wiki.spoilerAppetite 1` once and never
+one click, or `settings set spoiler.appetite 1` once and never
 again.
 
 #### ⭐ What else is level 1, and the line that decides it
@@ -805,6 +805,16 @@ server-side, so that is a round trip per keystroke; it belongs to the
 shared viewer substrate in the client-shell slate. The client here is
 scoped to "read a page, follow a link, submit an edit" — rudimentary by
 decision, not omission.
+
+⭐ **A tooltip's wiki term** (tooltips W3, [tooltips.md](./tooltips.md)) is
+the second reader, and it goes **through the same gate**:
+- The `wiki-excerpt` message reaches `WikiApi.excerpt` →
+  `WikiRegistry.excerptFor`.
+- It renders the page's opening section with the same setup the verb uses
+  (`WikiRegistry.renderFor`, moved off the controller), for the acting
+  character.
+- The ceiling deletes, and the appetite (`spoiler.appetite`) collapses.
+- A missing page and a page you may not read return one answer, `null`.
 
 ---
 

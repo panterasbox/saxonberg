@@ -216,6 +216,32 @@ export function Terminal({
         data-testid={strip ? "terminal-strip" : "terminal"}
         $strip={strip}
         onScroll={onScroll}
+        // ⭐ ONE tab stop for the whole transcript (tooltips D8): tabbing in
+        // lands on the newest link; ↑/↓ (Home/End) move among the links,
+        // each opening its tooltip as it takes focus. Hundreds of links
+        // must not each sit in the tab order.
+        tabIndex={0}
+        aria-label="transcript"
+        onFocus={(e) => {
+          if (e.target !== e.currentTarget) return;
+          const links = e.currentTarget.querySelectorAll<HTMLElement>("[data-tip-link]");
+          links[links.length - 1]?.focus();
+        }}
+        onKeyDown={(e) => {
+          if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+          const links = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("[data-tip-link]"));
+          if (links.length === 0) return;
+          const at = links.indexOf(document.activeElement as HTMLElement);
+          const last = links.length - 1;
+          const next =
+            e.key === "Home" ? 0
+            : e.key === "End" ? last
+            : at < 0 ? last
+            : e.key === "ArrowUp" ? Math.max(0, at - 1)
+            : Math.min(last, at + 1);
+          e.preventDefault();
+          links[next]!.focus();
+        }}
       >
         <Measure data-testid="terminal-measure">
           {(strip ? frames.slice(-4) : frames).map((frame) => (

@@ -48,6 +48,8 @@ import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
 import { actionCommand, useLinkMode } from "./clickTarget";
 import { tokens } from "../ui";
+import { Tip } from "../tooltip/Tip";
+import { commandDoc } from "../doc/docs";
 
 /** The four fixed slots. Order is the render order, not a ranking. */
 export type RadialSlot = "north" | "east" | "west" | "south";
@@ -326,25 +328,25 @@ export function AffordanceRadial({
         // ⭐ The server's own command (#91) — see `clickTarget.ts`.
         const command = actionCommand(entry, stuffId, mode);
         return (
-          <VerbButton
-            key={entry.verb}
-            $state={entry.state}
-            data-verb={entry.verb}
-            data-state={entry.state}
-            title={`Click to send: ${command}`}
-            disabled={entry.state === "disabled"}
-            onClick={() => onSendCommand(command)}
-            onMouseEnter={() => preview(command)}
-            onMouseLeave={() => preview(null)}
-          >
-            {entry.verb}
-            {entry.state === "disabled" && entry.reason && (
-              <Reason>{entry.reason}</Reason>
-            )}
-            {entry.state === "pending-operand" && entry.operand && (
-              <Reason>needs {entry.operand}</Reason>
-            )}
-          </VerbButton>
+          <Tip key={entry.verb} tip={commandDoc(command)}>
+            <VerbButton
+              $state={entry.state}
+              data-verb={entry.verb}
+              data-state={entry.state}
+              disabled={entry.state === "disabled"}
+              onClick={() => onSendCommand(command)}
+              onMouseEnter={() => preview(command)}
+              onMouseLeave={() => preview(null)}
+            >
+              {entry.verb}
+              {entry.state === "disabled" && entry.reason && (
+                <Reason>{entry.reason}</Reason>
+              )}
+              {entry.state === "pending-operand" && entry.operand && (
+                <Reason>needs {entry.operand}</Reason>
+              )}
+            </VerbButton>
+          </Tip>
         );
       })}
       {hidden > 0 && (

@@ -26,6 +26,8 @@ import React from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 /**
  * The tokens `prompt.format`'s context exposes.
@@ -138,16 +140,14 @@ export function PromptFormatBar({
         TOKENS.map((token) => {
           const command = commandForToken(current, token);
           return (
-            <Chip
-              key={token}
-              title={`Click to send: ${command}`}
+            <Tip key={token} tip={hoverDoc(`Click to send: ${command}`)}><Chip
               aria-label={command}
               onClick={() => onSendCommand(command)}
               onMouseEnter={() => preview(command)}
               onMouseLeave={() => preview(null)}
             >
               {token}
-            </Chip>
+            </Chip></Tip>
           );
         })}
     </Bar>

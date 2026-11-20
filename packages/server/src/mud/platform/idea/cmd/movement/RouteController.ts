@@ -433,7 +433,7 @@ export default class RouteController extends CommandController<RouteModel> {
    * path, and the least certain leg the plan names.
    */
   private static wirePlan(plan: RoutePlan, known: readonly Known[], ashoreFrom: string | null): WireRoutePlan {
-    const tag = (path: string): TaggedPath => ({ path, spoiler: 1 });
+    const tag = (path: string): TaggedPath => ({ path, spoiler: 2 });
     return {
       ...(ashoreFrom !== null ? { ashoreFrom } : {}),
       nodes: plan.nodes.map((n) => ({ place: tag(n), name: RouteController.nameOf(n, known) })),

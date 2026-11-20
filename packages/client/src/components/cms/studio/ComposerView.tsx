@@ -26,6 +26,8 @@ import { MonacoLazy } from "../MonacoLazy";
 import { WarningBanner } from "./WarningBanner";
 import { signatureFromParts } from "../../../store/studioSlice";
 import { tokens } from "../../ui";
+import { Tip } from "../../tooltip/Tip";
+import { hoverDoc } from "../../doc/docs";
 
 const Screen = styled.div`
   display: flex;
@@ -430,11 +432,9 @@ const OrderedMixins: React.FC<{
       {ordered.map((name, i) => {
         const summary = summaryOf(name);
         return (
-        <OrderedRow
-          key={name}
+        <Tip key={name} tip={hoverDoc(summary ? mixinHelpText(name, summary) : name)}><OrderedRow
           $dragging={dragging === i}
           draggable
-          title={summary ? mixinHelpText(name, summary) : name}
           onMouseEnter={() => onFocusMixin(name)}
           onFocus={() => onFocusMixin(name)}
           onDragStart={() => setDragging(i)}
@@ -448,33 +448,30 @@ const OrderedMixins: React.FC<{
         >
           <Grip aria-hidden>⠿</Grip>
           <OrderName>{name}</OrderName>
-          <IconButton
+          <Tip tip={hoverDoc("Move up")}><IconButton
             type="button"
             disabled={i === 0}
             aria-label={`Move ${name} up`}
-            title="Move up"
             onClick={() => reorder(i, i - 1)}
           >
             ↑
-          </IconButton>
-          <IconButton
+          </IconButton></Tip>
+          <Tip tip={hoverDoc("Move down")}><IconButton
             type="button"
             disabled={i === ordered.length - 1}
             aria-label={`Move ${name} down`}
-            title="Move down"
             onClick={() => reorder(i, i + 1)}
           >
             ↓
-          </IconButton>
-          <IconButton
+          </IconButton></Tip>
+          <Tip tip={hoverDoc("Remove")}><IconButton
             type="button"
             aria-label={`Remove ${name}`}
-            title="Remove"
             onClick={() => remove(name)}
           >
             ×
-          </IconButton>
-        </OrderedRow>
+          </IconButton></Tip>
+        </OrderedRow></Tip>
         );
       })}
     </>
@@ -537,31 +534,27 @@ const ScaffoldEditor: React.FC<{
   return (
     <>
       <Toolbar>
-        <PathLabel title={`source:${target}`}>source:{target}</PathLabel>
+        <Tip tip={hoverDoc(`source:${target}`)}><PathLabel>source:{target}</PathLabel></Tip>
         <Spacer />
-        <GhostButton
+        <Tip tip={hoverDoc("Regenerate the source from the current composition (discards hand-edits)")}><GhostButton
           type="button"
           disabled={busy || !csrf}
-          title="Regenerate the source from the current composition (discards hand-edits)"
           onClick={onRegenerate}
         >
           Regenerate from composition
-        </GhostButton>
-        <GhostButton type="button" title="Discard this scaffold" onClick={() => reset()}>
+        </GhostButton></Tip>
+        <Tip tip={hoverDoc("Discard this scaffold")}><GhostButton type="button" onClick={() => reset()}>
           Discard
-        </GhostButton>
-        <PrimaryButton
+        </GhostButton></Tip>
+        <Tip tip={hoverDoc(isWizard
+              ? `Commit ${target} (publish the class to source)`
+              : "Save — a non-wizard commit will be declined (server-gated)")}><PrimaryButton
           type="button"
           disabled={busy || !csrf}
-          title={
-            isWizard
-              ? `Commit ${target} (publish the class to source)`
-              : "Save — a non-wizard commit will be declined (server-gated)"
-          }
           onClick={() => csrf && void commit(csrf)}
         >
           {busy ? "Committing…" : "Commit"}
-        </PrimaryButton>
+        </PrimaryButton></Tip>
       </Toolbar>
 
       {disposition && (
@@ -571,13 +564,12 @@ const ScaffoldEditor: React.FC<{
           ) : reloaded ? (
             <>
               <span>Committed and live{message ? ` · ${message}` : ""}.</span>
-              <GhostButton
+              <Tip tip={hoverDoc(`Create a template instantiating ${livePath}`)}><GhostButton
                 type="button"
-                title={`Create a template instantiating ${livePath}`}
                 onClick={followOn}
               >
                 Create a template from this class →
-              </GhostButton>
+              </GhostButton></Tip>
             </>
           ) : (
             <span>
@@ -969,13 +961,12 @@ export const ComposerView: React.FC = () => {
   return (
     <Screen>
       <BackBar>
-        <GhostButton
+        <Tip tip={hoverDoc("Back to the kinds catalogue")}><GhostButton
           type="button"
-          title="Back to the kinds catalogue"
           onClick={() => goCatalogue()}
         >
           ← Back to catalogue
-        </GhostButton>
+        </GhostButton></Tip>
         <Spacer />
         <WarningBanner />
       </BackBar>
@@ -983,18 +974,16 @@ export const ComposerView: React.FC = () => {
       <Columns>
         <LeftColumn>
           <SectionLabel>Name</SectionLabel>
-          <NameInput
+          <Tip tip={hoverDoc("The new backing class name (PascalCase)")}><NameInput
             value={composer.name}
             placeholder="PascalCaseName"
             spellCheck={false}
-            title="The new backing class name (PascalCase)"
             onChange={(e) => setName(e.target.value)}
-          />
+          /></Tip>
 
           <SectionLabel>Base class</SectionLabel>
-          <Select
+          <Tip tip={hoverDoc("The base class the mixins are applied over")}><Select
             value={composer.base.name}
-            title="The base class the mixins are applied over"
             onChange={(e) => setBase(e.target.value)}
           >
             {isArbitraryBase && (
@@ -1010,7 +999,7 @@ export const ComposerView: React.FC = () => {
                 {b.name}
               </option>
             ))}
-          </Select>
+          </Select></Tip>
           {isArbitraryBase && (
             <BaseNote>
               extends <strong>{composer.base.name}</strong> (from blueprint) —
@@ -1029,19 +1018,15 @@ export const ComposerView: React.FC = () => {
                 {composer.base.impliedMixins.map((m) => {
                   const summary = summaryOf(m);
                   return (
-                    <InheritedRow
-                      key={m}
-                      title={
-                        summary
+                    <Tip key={m} tip={hoverDoc(summary
                           ? mixinHelpText(m, summary)
-                          : `${m} is composed by ${composer.base.name}`
-                      }
+                          : `${m} is composed by ${composer.base.name}`)}><InheritedRow
                       tabIndex={0}
                       onMouseEnter={() => inspect(m)}
                       onFocus={() => inspect(m)}
                     >
                       {m}
-                    </InheritedRow>
+                    </InheritedRow></Tip>
                   );
                 })}
               </>
@@ -1066,12 +1051,10 @@ export const ComposerView: React.FC = () => {
                     ? `${m.name} is already in the composition`
                     : `Add ${m.name}`;
               return (
-                <Chip
-                  key={m.name}
+                <Tip key={m.name} tip={hoverDoc(title)}><Chip
                   type="button"
                   $on={on}
                   disabled={implied}
-                  title={title}
                   onMouseEnter={() => inspect(m.name)}
                   onFocus={() => inspect(m.name)}
                   onClick={() => addMixin(m.name)}
@@ -1079,7 +1062,7 @@ export const ComposerView: React.FC = () => {
                   {m.kind === "protocol" && m.verbs && m.verbs.length > 0
                     ? `${m.name} · answers ${m.verbs.join(" · ")}`
                     : m.name}
-                </Chip>
+                </Chip></Tip>
               );
             })}
           </PaletteList>
@@ -1101,13 +1084,12 @@ export const ComposerView: React.FC = () => {
                   {exact.map((bp) => (
                     <MatchCard key={bp.blueprintId}>
                       <MatchName>{bp.name}</MatchName>
-                      <UseLink
+                      <Tip tip={hoverDoc(`Open ${bp.name}`)}><UseLink
                         type="button"
-                        title={`Open ${bp.name}`}
                         onClick={() => selectBlueprint(bp)}
                       >
                         Use this blueprint →
-                      </UseLink>
+                      </UseLink></Tip>
                     </MatchCard>
                   ))}
                 </DedupCallout>
@@ -1118,13 +1100,12 @@ export const ComposerView: React.FC = () => {
                   {superset.map((bp) => (
                     <MatchCard key={bp.blueprintId}>
                       <MatchName>{bp.name}</MatchName>
-                      <UseLink
+                      <Tip tip={hoverDoc(`Open ${bp.name}`)}><UseLink
                         type="button"
-                        title={`Open ${bp.name}`}
                         onClick={() => selectBlueprint(bp)}
                       >
                         Use this blueprint →
-                      </UseLink>
+                      </UseLink></Tip>
                     </MatchCard>
                   ))}
                 </>

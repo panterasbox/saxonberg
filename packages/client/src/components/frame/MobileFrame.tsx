@@ -251,7 +251,7 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
        */}
       {link === "connected" ? (
         <FactsRow data-testid="mobile-facts-row">
-          <Seal size={20} title="Saxonberg" />
+          <Seal size={20} label="Saxonberg" />
           <ConnectionChip />
           <AccountMenu {...(extras ? { extras } : {})} />
         </FactsRow>

@@ -47,6 +47,8 @@ import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { tokens, Icon } from "../ui";
 import { KindMark } from "../cards/KindMark";
+import { Tip } from "../tooltip/Tip";
+import { controlDoc } from "../doc/docs";
 
 /** A card key as a command argument: quoted when it has a space or a quote. */
 function quoteKey(key: string): string {
@@ -193,25 +195,28 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
           {tray.map((c) => {
             const cmd = `client-card restore ${quoteKey(c.key)}`;
             return (
-              <TrayIcon
+              <Tip
                 key={c.instanceId}
-                type="button"
-                data-testid="tray-card"
-                // ⭐ An ICON in the tray (the kind's mark; a plain square for
-                // a card about no one thing), the name on hover — and the
-                // click is the real `restore`, previewed.
-                title={`${c.title ?? (c.records[0]?.displayName as string | undefined) ?? c.cardId} — click to bring it back`}
-                aria-label={cmd}
-                onClick={() => onCommandClick(cmd)}
-                onMouseEnter={() => onCommandPreview?.(cmd)}
-                onMouseLeave={() => onCommandPreview?.(null)}
+                tip={controlDoc(`${c.title ?? (c.records[0]?.displayName as string | undefined) ?? c.cardId} — bring it back`, cmd)}
               >
-                {c.subjectKind ? (
-                  <KindMark kind={c.subjectKind} size={14} />
-                ) : (
-                  <Icon name="card.tray" label="a card" size={14} decorative />
-                )}
-              </TrayIcon>
+                <TrayIcon
+                  type="button"
+                  data-testid="tray-card"
+                  // ⭐ An ICON in the tray (the kind's mark; a plain square for
+                  // a card about no one thing), the name on hover — and the
+                  // click is the real `restore`, previewed.
+                  aria-label={cmd}
+                  onClick={() => onCommandClick(cmd)}
+                  onMouseEnter={() => onCommandPreview?.(cmd)}
+                  onMouseLeave={() => onCommandPreview?.(null)}
+                >
+                  {c.subjectKind ? (
+                    <KindMark kind={c.subjectKind} size={14} />
+                  ) : (
+                    <Icon name="card.tray" label="a card" size={14} decorative />
+                  )}
+                </TrayIcon>
+              </Tip>
             );
           })}
         </Tray>

@@ -11,6 +11,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
+import { tipOf } from '../../tooltip/__tests__/tipOf';
 import { Figure, type FigureState } from '../Figure';
 
 /** Digit-free labels, so `not.toMatch(/\d/)` measures the value. */
@@ -201,8 +202,10 @@ describe('the chip tooltip is the accessible name, not a second copy', () => {
       <Figure label={LABEL} figure={figure} variant="chip" />,
     );
     const el = container.firstElementChild!;
+    // ⭐ The reason is the tooltip's now (tooltips W7), never native text.
+    expect(el.getAttribute('title')).toBeNull();
     return {
-      title: el.getAttribute('title'),
+      title: tipOf(el)?.text ?? null,
       aria: el.getAttribute('aria-label'),
     };
   }

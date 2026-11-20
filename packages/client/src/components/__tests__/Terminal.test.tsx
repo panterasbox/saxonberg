@@ -159,3 +159,24 @@ describe('Terminal — the measure and the scroll rule (client-surface D9, #54)'
     expect(el.scrollTop).toBe(1000);
   });
 });
+
+describe('⭐ one tab stop for the transcript (tooltips D8)', () => {
+  it('tabbing in lands on the newest link; ↑/↓ move among links, Home/End jump', () => {
+    const r = renderTerminal([
+      frame({ topic: 'speech.vocal', id: 'a', body: '<link href="mudcmd:look one">one</link>' }),
+      frame({ topic: 'speech.vocal', id: 'b', body: '<link href="mudcmd:look two">two</link> <link href="mudcmd:look three">three</link>' }),
+    ]);
+    const term = r.getByTestId('terminal');
+    expect(term.getAttribute('tabindex')).toBe('0');
+    const links = Array.from(term.querySelectorAll('[data-tip-link]'));
+    expect(links.every((l) => l.getAttribute('tabindex') === '-1')).toBe(true);
+    term.focus();
+    expect(document.activeElement?.textContent).toBe('three');
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' });
+    expect(document.activeElement?.textContent).toBe('two');
+    fireEvent.keyDown(document.activeElement!, { key: 'Home' });
+    expect(document.activeElement?.textContent).toBe('one');
+    fireEvent.keyDown(document.activeElement!, { key: 'End' });
+    expect(document.activeElement?.textContent).toBe('three');
+  });
+});

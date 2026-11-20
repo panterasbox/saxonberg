@@ -37,7 +37,6 @@ export default class SettingsSetController extends SettingsControllerBase {
     } catch (err) {
       return SettingsControllerBase.fail(context, (err as Error).message, 'set-failed');
     }
-    SettingsControllerBase.pushResultDisplay(avatar, key);
     SettingsControllerBase.send(
       context,
       Mml.fromMarkup(`\n${key} set to ${SettingsControllerBase.formatValue(coerced)}.\n`),

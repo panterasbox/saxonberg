@@ -16,6 +16,8 @@ import styled from "styled-components";
 import type { BlueprintSummary } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { tokens } from "../../ui";
+import { Tip } from "../../tooltip/Tip";
+import { hoverDoc } from "../../doc/docs";
 
 const Wrap = styled.div`
   display: flex;
@@ -208,23 +210,21 @@ const CatalogueCard: React.FC<{ bp: BlueprintSummary }> = ({ bp }) => {
   return (
     <Card $blessed={bp.blessed}>
       <CardHead>
-        <Chevron
+        <Tip tip={hoverDoc(open ? "Hide mixin lineage" : "Show mixin lineage")}><Chevron
           type="button"
           $open={open}
           aria-expanded={open}
-          title={open ? "Hide mixin lineage" : "Show mixin lineage"}
           onClick={() => setOpen((o) => !o)}
         >
           ▶
-        </Chevron>
-        {bp.blessed && <Star title="Blessed (curated)">★</Star>}
-        <NameButton
+        </Chevron></Tip>
+        {bp.blessed && <Tip tip={hoverDoc("Blessed (curated)")}><Star>★</Star></Tip>}
+        <Tip tip={hoverDoc(`Open ${bp.name} · ${bp.classPath ?? bp.baseClass}`)}><NameButton
           type="button"
-          title={`Open ${bp.name} · ${bp.classPath ?? bp.baseClass}`}
           onClick={() => select(bp)}
         >
           {bp.name}
-        </NameButton>
+        </NameButton></Tip>
         <Badge $concrete={bp.kind === "concrete"}>{bp.kind}</Badge>
       </CardHead>
       {open && (
@@ -262,13 +262,12 @@ export const CatalogueView: React.FC = () => {
           aria-label="Search blueprints"
           onChange={(e) => setSearch(e.target.value)}
         />
-        <NewButton
+        <Tip tip={hoverDoc("Author a new kind (compose a new backing class)")}><NewButton
           type="button"
-          title="Author a new kind (compose a new backing class)"
           onClick={() => beginComposer()}
         >
           ＋ Author a new kind
-        </NewButton>
+        </NewButton></Tip>
       </TopBar>
       <Body>
         {error && <Status>Could not load blueprints: {error}</Status>}

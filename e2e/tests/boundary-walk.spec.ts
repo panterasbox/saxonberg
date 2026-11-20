@@ -1,6 +1,6 @@
 import { test, expect, request } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { openWorldAs, runCommand } from './helpers';
+import { openWorldAs, runCommand, tipText } from './helpers';
 
 /**
  * ⭐⭐ **The boundary build's live walk** — the half the wire drive cannot see
@@ -84,10 +84,11 @@ test.describe('the boundary build, in a browser', () => {
       // ⚠ The room card's exit chips are hidden while the navigator is
       // docked (it IS the exits view then), so the navigator is the card a
       // person reads here; the chips' wording is the client suite's.
-      // The navigator's arm says it in its title.
+      // The navigator's arm says it in its tooltip.
       await sayAwaiting(page, 'map', /\S/);
       const arm = page.getByTestId('nav-exit-pumphouse');
-      await expect(arm).toHaveAttribute('title', /through the pump-house door \(locked\)/i, { timeout: 30_000 });
+      await expect(arm).toBeVisible({ timeout: 30_000 });
+      expect(await tipText(page, arm)).toMatch(/through\s+the pump-house door \(locked\)/i);
       // The words parse and refuse on the bolt.
       const refused = await sayAwaiting(page, 'go pumphouse', /locked/i);
       expect(refused).not.toMatch(NOT_UNDERSTOOD);
@@ -97,7 +98,9 @@ test.describe('the boundary build, in a browser', () => {
       await stage(PUMP_DOOR, 'setOpen', true);
       const after = squash(await sayAwaiting(page, 'look here', /Obvious exits/));
       expect(after).toMatch(/pumphouse \(the pump-house door, open\)/i);
-      await expect(arm).toHaveAttribute('title', /through the pump-house door(?! \()/i, { timeout: 30_000 });
+      await expect
+        .poll(async () => tipText(page, arm), { timeout: 30_000 })
+        .toMatch(/through\s+the pump-house door(?! \()/i);
     } finally {
       await w.close();
     }

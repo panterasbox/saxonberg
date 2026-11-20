@@ -49,6 +49,8 @@ import {
   type PromptEntry,
 } from '../store/index';
 import { tokens } from './ui/tokens';
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 interface CommandBarProps {
   /**
@@ -1017,21 +1019,18 @@ export function CommandBar({
                     server could not say who asked, the label says so
                     rather than naming something it never claimed.
                   */}
-                  <XButton
+                  <Tip tip={hoverDoc(p.askedBy
+                        ? `Cancelling abandons \`${p.askedBy}\` — not just this card.`
+                        : 'Cancelling abandons the command that asked — not just this card.')}><XButton
                     aria-label={
                       p.askedBy
                         ? `cancel — abandons ${p.askedBy}`
                         : 'cancel — abandons the command that asked'
                     }
-                    title={
-                      p.askedBy
-                        ? `Cancelling abandons \`${p.askedBy}\` — not just this card.`
-                        : 'Cancelling abandons the command that asked — not just this card.'
-                    }
                     onClick={() => onCancelPrompt(p.promptId)}
                   >
                     ✕ {p.askedBy ?? 'cancel'}
-                  </XButton>
+                  </XButton></Tip>
                 </SlotRow>
               ))}
             </SlotDropdown>
@@ -1039,12 +1038,11 @@ export function CommandBar({
         </PickerAnchor>
 
         {showPrefix && !promptMode ? (
-          <Prefix
-            title="Esc or ✕ to clear this bar's mode"
+          <Tip tip={hoverDoc("Esc or ✕ to clear this bar's mode")}><Prefix
             onClick={() => inputRef.current?.focus()}
           >
             {modePrefix}{' '}
-          </Prefix>
+          </Prefix></Tip>
         ) : null}
 
         {activeEntry && activeEntry.kind === 'compose' ? (

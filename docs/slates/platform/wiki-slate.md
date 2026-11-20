@@ -137,7 +137,7 @@ deferred](../../subsystems/wiki.md).*
 ## The spoiler model — two axes
 
 *Shipped → [wiki.md](../../subsystems/wiki.md) § The reveal model — two
-axes, one gate (capability DELETES, appetite TAGS; `wiki.spoilerAppetite`),
+axes, one gate (capability DELETES, appetite TAGS; `spoiler.appetite`),
 § The capability ladder (wizard · owner · editor-or-player · guest — no
 `teacher` group), § What reveal does NOT answer (reader identity, never
 progress). Still open:*
@@ -178,6 +178,17 @@ guest floor, § What this build does NOT do (the rejections). The pre-login
 **web** read is Q5 below.*
 
 ---
+
+## Finding — title links do not resolve *(tooltips walk, 2026-11-19)*
+
+The shipped material pages link by **title**, e.g. `[[Mineral]]`, but a page
+resolves by **handle** (`material-kind-mineral`), so almost every link in
+them renders as a red *create this page* link (`mudcmd:wiki create
+Mineral`). Two possible fixes:
+- links that name the handle;
+- resolving a title as an alias.
+
+A tooltip shows a red link as the command it is, never as a term.
 
 ## Open questions
 

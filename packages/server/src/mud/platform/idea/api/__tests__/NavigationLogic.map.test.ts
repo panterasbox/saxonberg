@@ -304,8 +304,8 @@ describe('⭐ what a claim knows (navigation-server D2, D4)', () => {
     expect(hint.ownerKey).toBe(VIEWER);
     expect(hint.locality).toBe(LOCALITY);
     expect(hint.claims).toHaveLength(1);
-    expect(hint.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
-    expect(hint.claims[0]!.label).toEqual({ path: '/test/map/zone/hall', spoiler: 1 });
+    expect(hint.claims[0]!.place).toEqual({ path: HALL, spoiler: 2 });
+    expect(hint.claims[0]!.label).toEqual({ path: '/test/map/zone/hall', spoiler: 2 });
     expect(typeof hint.claims[0]!.key).toBe('string');
   });
 });
@@ -315,7 +315,7 @@ describe('⭐ the copy reads through the Api (the drive found the self-call)', (
     await NavigationApi.recordPlace(VIEWER, LOCALITY, [claim()]);
     const copy = await NavigationApi.readMapCopy(VIEWER, '');
     expect(copy.documents).toHaveLength(1);
-    expect(copy.documents[0]!.claims[0]!.place).toEqual({ path: HALL, spoiler: 1 });
+    expect(copy.documents[0]!.claims[0]!.place).toEqual({ path: HALL, spoiler: 2 });
   });
 });
 

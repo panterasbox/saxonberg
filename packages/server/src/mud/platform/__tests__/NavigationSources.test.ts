@@ -233,7 +233,7 @@ describe('MapCopySource — the copy follows the map', () => {
   const claim = (place: string): WireClaim => ({
     key: `place|${place}`,
     kind: 'place',
-    place: { path: place, spoiler: 1 },
+    place: { path: place, spoiler: 2 },
     channel: 'walked',
     firstSeen: 1,
     lastSeen: 2,
@@ -259,7 +259,7 @@ describe('MapCopySource — the copy follows the map', () => {
       fields: { locality: string; claim: { key: string; place: unknown } };
     };
     expect(change.key).toBe(`newbie-wilds|${change.fields.claim.key}`);
-    expect(change.fields.claim.place).toEqual({ path: '/test/place/vestibule', spoiler: 1 });
+    expect(change.fields.claim.place).toEqual({ path: '/test/place/vestibule', spoiler: 2 });
     expect(theirs.filter((e) => e.type === 'subscription-delta')).toHaveLength(0);
   });
 

@@ -167,3 +167,12 @@ Still open:
 Channel-stylesheet distribution, the generic-class-hook details, and the
 rest of the layout tag vocabulary (`<box>`/`<rule>`/`<indent>`/
 `<columns>`) wait for their own waves.
+
+## From the tooltips build (2026-11-19)
+
+Inside a tooltip, links follow a three-part grammar: a **term** is dotted
+(it opens a nested tooltip), a **thing** is underlined (its tooltip, and a
+click opens its card), and a **command** is boxed. The scrollback keeps its
+own single link style. Whether the scrollback should adopt the grammar
+(`MmlRenderer`'s `inDoc` flag) is this slate's question.
+

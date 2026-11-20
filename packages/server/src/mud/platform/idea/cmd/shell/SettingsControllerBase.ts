@@ -31,9 +31,6 @@ import type {
   Environment,
   SettingsSchemaEntry,
 } from '../../../../lib/shell/Environment';
-import { ShellApi } from '../../../../api/shell';
-import type { ClientState } from '../../../../lib/connection/ClientState';
-import type { ResultDisplay } from '@saxonberg/types';
 
 export type EnvHost = Stuff & Environment;
 
@@ -51,42 +48,6 @@ export abstract class SettingsControllerBase extends CommandController<SettingsM
       throw new Error('SettingsController: command giver has no environment');
     }
     return giver;
-  }
-
-  /**
-   * ⭐ Push `shell.result`'s two resolved answers when either changes,
-   * so the filter takes effect **without a reconnect**.
-   *
-   * ⚠ Both values, always — the server cannot know a viewport, so it
-   * ships what each width would resolve to and the client picks. The
-   * `social.rules` projection is the precedent: a server→client push,
-   * not a persisted client-state key.
-   *
-   * ⚠ Keyed on the BASE setting, so a write to `shell.result.mobile`
-   * re-pushes too. A per-factor override that only took effect after a
-   * reconnect would be indistinguishable from one that did not work.
-   */
-  protected static pushResultDisplay(avatar: EnvHost, key: string): void {
-    if (key !== 'shell.result' && !key.startsWith('shell.result.')) return;
-    if (!MixinApi.isClientState(avatar)) return;
-    const host = avatar as unknown as Stuff;
-    (avatar as unknown as ClientState).pushClientStateUpdate(
-      'shell.result',
-      {
-        desktop:
-          ShellApi.resolveSetting<ResultDisplay>(
-            host,
-            'shell.result',
-            'desktop',
-          ) ?? 'card',
-        mobile:
-          ShellApi.resolveSetting<ResultDisplay>(
-            host,
-            'shell.result',
-            'mobile',
-          ) ?? 'card',
-      },
-    );
   }
 
   protected static fail(
