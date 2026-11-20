@@ -48,7 +48,12 @@ import {
 // whose 13 gaps are exactly linen's own unauthored fields less the three the oil
 // changes (smells, wetStrength, ashFraction). A new material, not a regression:
 // no consumer reads a kind, and each gap is one its parent already carries.
-export const DATA_GAP_CEILING = 6067; // was 6054 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
+// matter-model-overlaps W4: −105 — `leaches` moved off `ToxicityMixin` onto
+// `ExtractionMixin`, which only the four wall kinds compose (Wood, ToxicMetal,
+// ToxicAlloy, PigmentPaint): every food, water, acid, oil, lye and gas row
+// stopped carrying an unauthorable `leaches` gap, and the wall kinds gained
+// `imparts`.
+export const DATA_GAP_CEILING = 5962; // was 6067 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
 
 const GATE = 'check-material-kinds';
 const LIB = join(MUD, 'lib', 'material');

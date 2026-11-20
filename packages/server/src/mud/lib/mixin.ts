@@ -444,6 +444,8 @@ export const Mixins = {
   Porosity: 'PorosityMixin',
   Edibility: 'EdibilityMixin',
   Toxicity: 'ToxicityMixin',
+  // What a wall of it gives what it holds — a leach, an aroma (matter-model-overlaps D11).
+  Extraction: 'ExtractionMixin',
   Perishability: 'PerishabilityMixin',
   Acidity: 'AcidityMixin',
   Solution: 'SolutionMixin',

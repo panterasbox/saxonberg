@@ -1523,7 +1523,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         MixinApi.hasAcidity(material) &&
         material.acidAttack(payloadPh) > 0 &&
         insideFace !== null &&
-        MixinApi.hasToxicity(insideFace) &&
+        MixinApi.hasExtraction(insideFace) &&
         insideFace.getLeaches().length > 0;
       const porousInside = faced && !self.holdsWater('inside');
       const remembers =
@@ -1592,7 +1592,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
             ? new WaterChemistry(7, dgh, 0).softness()
             : 1;
         const attack = (MixinApi.hasAcidity(material) ? material.acidAttack(payload.pH) : 0) * softness;
-        if (inside !== null && MixinApi.hasToxicity(inside) && attack > 0) {
+        if (inside !== null && MixinApi.hasExtraction(inside) && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {
             const mg = leach.mgPerLPerDay * attack * days;

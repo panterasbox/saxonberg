@@ -186,6 +186,7 @@ import type { Solidity } from '../lib/material/Solidity';
 import type { Porosity } from '../lib/material/Porosity';
 import type { Edibility } from '../lib/material/Edibility';
 import type { Toxicity } from '../lib/material/Toxicity';
+import type { Extraction } from '../lib/material/Extraction';
 import type { Perishability } from '../lib/material/Perishability';
 import type { Acidity } from '../lib/material/Acidity';
 import type { Solution } from '../lib/material/Solution';
@@ -2031,6 +2032,11 @@ export class MixinApi {
 
   public static hasToxicity(obj: Stuff): obj is Stuff & Toxicity {
     return this.hasMixin(obj, Mixins.Toxicity);
+  }
+
+  /** What a wall of this material gives what it holds (a leach, an aroma). */
+  public static hasExtraction(obj: Stuff): obj is Stuff & Extraction {
+    return this.hasMixin(obj, Mixins.Extraction);
   }
 
   public static hasPerishability(obj: Stuff): obj is Stuff & Perishability {
