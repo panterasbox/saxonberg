@@ -8,7 +8,7 @@ chandlery hopper, and the boats and ships.
 
 The engine answers seven questions about matter twice or more. In each
 case, two models that are both partly right disagree about what players
-can see. A cracked cask doesn't leak. Molasses with nothing under the loaf
+can see. A cask with a sprung stave keeps what it already holds. Molasses with nothing under the loaf
 vanishes. A glazed pot gets as wet in the rain as terracotta. Whiskey is
 credited to the cooper who made the cask. Maple sugar never sets. Nothing
 in the game ever stoves a hole in a boat. This build picks the model that
@@ -112,8 +112,9 @@ already produces.
 
 - **One leak.** Whether a vessel holds liquid, and how fast it loses it,
   comes from one read that adds three paths: its pores (body and coat), its
-  flaws (cracks, holes) and its joints (staves, seams). A cracked cask
-  leaks. A crack in glazed stoneware leaks through the crack, not at the
+  flaws (cracks, holes) and its joints (staves, seams). A cask with a
+  sprung stave leaks what it holds, and `fit` mends it one stave at a
+  time, as the assembly model already says. A crack in glazed stoneware leaks through the crack, not at the
   rate of its pores. A leaking vessel loses what it already holds, not only
   what is poured into it.
 - **A hole is a flaw.** A boat or ship that strikes a snag is holed by a
@@ -207,7 +208,8 @@ already produces.
 - **The estuary mouth's salt pan, and the circle's brine pan.** Salt
   crystallizes as it does today, plus the nucleation hold. A pan exposed to
   air nucleates on its own as its edges dry, so salt makers notice no
-  change.
+  change while working. A pan's spent bittern with nothing under it runs
+  onto the ground, where it used to stay in the pan.
 - **Crowsfoot's casks.** Plain and charred. The distiller's cellar work is
   unchanged. A refilled cask now carries the last spirit's memory.
 - **Hearts Delight.**
@@ -218,9 +220,10 @@ already produces.
     real. The potter, who fires the updraft kiln, learns to salt it.
   - The weathering ground and its green bricks: green ware soaks rain in by
     exposure.
-- **Wharfside chandlery, and the Rejection lean-to.** The ash hopper's lye
-  still runs into its pot. With nothing under it, the lye pools instead of
-  vanishing.
+- **Wharfside chandlery, and the Rejection lean-to.** The ash lies in the
+  hopper and its lye runs into the hopper itself, which players draw off
+  with `pour`; that is unchanged. A wet heap of ash on bare floor pools
+  its lye there instead of keeping it.
 - **Ships and boats.**
   - The Rejection put-in's rowboat, the *Ostrander*'s boat and the
     *Hesper*'s dinghy are all holed by flaws now, as is the *Hesper*
@@ -423,9 +426,9 @@ verbs and tools only. `staged` means wizard setup is fine.
 7. **A poor mould lowers a cast, and a bottle does not**
    (staged anywhere) · `staged` · `staged`. A fine pour into a poor mould
    casts poor. A fine wine in a poor bottle stays fine.
-8. **A cracked cask leaks** (Crowsfoot) · `short` · `staged`. Stage a
-   crack in a full cask. Over an hour its contents fall and the floor
-   pools. A riveted crack stops it.
+8. **A sprung stave leaks** (Crowsfoot) · `short` · `staged`. Stage one
+   sprung stave in a full cask. Over an hour its contents fall and the
+   floor pools. A player fits a new stave and the fall stops.
 9. **A crack in glazed stoneware leaks through the crack** (Hearts
    Delight potter's shop) · `short` · `staged`. A cracked glazed crock
    loses water at the crack's rate, not at zero.
@@ -455,14 +458,15 @@ verbs and tools only. `staged` means wizard setup is fine.
     held water rises (a staged read: no player reading reports a body's
     held moisture today, and none is added). Green ware under the
     hack cover takes none.
-15. **The potash hopper** (Wharfside chandlery) · `short` · `player`. Lye
-    still runs into the pot. With the pot taken away, it pools on the
-    floor.
+15. **Lye goes where the ash lies** (Wharfside chandlery) · `short` ·
+    `player`. Ash in the hopper, watered, gives lye in the hopper, and
+    `pour hopper into pail` draws it as today. Ash heaped on the floor
+    and watered pools its lye on the floor.
 16. **Restart** · `instant` · `staged`. Restart the world and read back
     each of these:
     - the cask's memory;
     - the crock's memory after its wash;
-    - the cracked cask's level and the puddle;
+    - the leaking cask's level and the puddle;
     - the *Hesper*'s patched state;
     - the contents' grade and maker against the cask's own;
     - the salt-glazed pot's coat;
@@ -486,7 +490,8 @@ shipped, lit place.
 
 ## Acceptance criteria
 
-- A cracked cask, a cracked glazed crock and a holed boat each lose their
+- A cask with a sprung stave, a cracked glazed crock and a holed boat each
+  lose their
   contents (or take on water) at a rate a player can watch fall. A sound
   one doesn't.
 - Nothing that drips or drains disappears. It is in the vessel under it or
