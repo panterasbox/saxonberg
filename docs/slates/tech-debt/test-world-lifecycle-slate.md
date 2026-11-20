@@ -108,8 +108,17 @@ runtime; content-specific drives live with their pack; two builds.
     reader's, or an unplaced mint by in-jurisdiction work is in it.
   - **A handed Book is not titled to its holder** (`shelf consign` answers
     "isn't yours to sell"; a handed rope or rag is). Chattel / paper.
-  - **`tend` with nothing tendable in sight asks "Tend what?" with an empty
-    list** — a prompt a player cannot usefully answer. The binder.
+  - **`tend` / `lock` with nothing in reach ask "Tend what?" / "Lock
+    what?" with an empty list** — a prompt a player cannot usefully answer.
+    The binder.
+  - **An unknown option is silently ignored** (`reload --strict`, renamed
+    `--force`, swapped broken code in). The command def predicts everything;
+    an option it does not declare should refuse. The binder.
+  - **An overcast sky does not dim moonlight** — an open lane under a
+    waxing moon reads "enough to work by" with the weather pinned overcast.
+    Light / weather.
+  - **`wallet beneficiary <name>` only resolves a member who is present** —
+    naming an absent heir answers `no-such-member`. Estate.
 - **Stale paths in other builds' retained plans** (`envelope-plan`,
   `location-graph-plan`, `client-surface-plan`, `sandbox-overlay-plan`) still
   name the drives' old `.dirty.` filenames; they are history and were left.
