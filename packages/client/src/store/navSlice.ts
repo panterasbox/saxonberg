@@ -9,9 +9,8 @@
  * that answers the replayed subscribe — the slice is overwritten, never
  * patched across a gap.
  *
- * ⭐ The map copy is held and rendered by nothing yet (the pane ships
- * later). The navigator card reads the sections through
- * {@link whereaboutsOf}, which builds the shape its body always read.
+ * ⭐ The navigation card (`components/nav/NavCard`) draws both — and reads
+ * the copy only through the views in `navSelectors.ts`, never directly.
  */
 
 import type {
@@ -20,7 +19,6 @@ import type {
   NavSectionName,
   NavSections,
   SubscriptionChange,
-  WayRecord,
   WireClaim,
 } from "@saxonberg/types";
 
@@ -91,43 +89,3 @@ export const createNavSlice = (
       return { mapCopy };
     }),
 });
-
-/**
- * ⭐ Where you are, at zone level — the navigator card's body, the shape it
- * has always read. Built from the sections; `null` until the place
- * section has arrived. Every field is what the server sent; an absent one
- * says it is not known rather than showing a guess.
- */
-export interface Whereabouts {
-  place: { stuffId: string; name: string };
-  structure?: { name: string };
-  /** The covering Localities, OUTERMOST first. */
-  localities: { name: string; address: string }[];
-  coords?: { x: number; y: number; z: number };
-  exits: WhereaboutsExit[];
-  conditions: { weather?: string; season?: string; daylight?: "day" | "night" };
-  /** The innermost government whose ground this is; null = none claims it. */
-  jurisdiction: string | null;
-}
-
-/** A whereabouts exit — a {@link WayRecord}. */
-export type WhereaboutsExit = WayRecord;
-
-export function whereaboutsOf(sections: NavSections): Whereabouts | null {
-  const place = sections.place;
-  if (!place) return null;
-  const loc = sections.localities;
-  return {
-    place: { stuffId: place.stuffId, name: place.name },
-    ...(sections.building?.name ? { structure: { name: sections.building.name } } : {}),
-    localities: loc?.chain.map((c) => ({ name: c.name, address: c.address })) ?? [],
-    ...(place.at ? { coords: place.at } : {}),
-    exits: sections.ways?.ways ?? [],
-    conditions: {
-      ...(place.weather ? { weather: place.weather } : {}),
-      ...(place.season ? { season: place.season } : {}),
-      ...(place.daylight ? { daylight: place.daylight } : {}),
-    },
-    jurisdiction: loc?.jurisdiction[0]?.name ?? null,
-  };
-}
