@@ -1224,4 +1224,35 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**Wire drive** — `packages/wire/tests/navigation.dirty.wire.test.ts` on
+build-2's own world (`WIRE_PORT=2013`), 2026-11-20:
+
+| step | result | what it read |
+|---|---|---|
+| 1 into the Delve | ✔ | vestibule `walked` + `seen`, zone `/world/newbie-wilds/delve`, cell 0,0, level 0, filed under `last-counted-mile` |
+| 2 a look | ✔ | `north`, `south` edges, `to: null`; no far room written |
+| 5 the pit | ✔ | corridor-2's trap drops the walker; levels {0, −1}. On a kept world (sprung): `search`, the way down refuses *"you'll have to climb"* with **no** `works` (nothing to climb by), the walker staged with `goto` |
+| 7 found by searching | ✔ | corridor-1 `northeast`, first claim `searched` |
+| 11 the locked door | ✔ | `pumphouse` `locked`, boundary *the pump-house door*; its radial offers `unlock` and `open` |
+| 16 / 24 first visit; civic facts | ✔ | locality claims *Terminus*, *Terminus City*, *Wharfside*; Terminus City: the City of Terminus, Magistrate *Odile*, three vacant seats, visitor, sky *stratus*; `null` for a stranger and for `narnia` |
+| 17 two maps | ✔ | a second character holds none of the Delve |
+| 19 remembers | ✔ | `nav.card` back on a second session's connection |
+| 20 restart | ✔ | copy 36 → 36, nothing doubled |
+
+**Found by the drives, fixed on the branch:** D18 (twice — the first cut
+offered `climb down` with nothing to climb by); the map's edges had no
+hit area (a straight line is a zero-width box); a way's hit band took a
+place's click (layers reordered).
+
+**Browser walk** — `e2e/tests/navigation-walk.spec.ts`: **4/4** (the
+Delve: walked tier, openings and the frontier, an opening clicked is
+`go`, the pit and the level control, a distant click draws the route
+and nobody moves, found by searching, tooltips and the preview strip;
+the bank's locked door and its radial, Terminus City's crumb tooltip
+with visitor; the steading's low door; a track at whole zone, the
+Hesper, the Hush's placeholder; 22 rem at 2048 px, fill and fold,
+a hand-set section across a reload, two players two maps).
+
+**Full suite** (`tools/suite`, at code-complete): all 56 packages pass (42 min). **`lint:family`**: 118/118 after one fix (client fixtures moved to `/test` paths).
+
+**Soak drive:** none — every step is `instant` or `short`.
