@@ -16,7 +16,7 @@
 > [mql.md § Match-quality scoring](../../subsystems/mql.md), § exits are candidates,
 > [perception.md § The room listing is one query](../../subsystems/perception.md). Still open below:
 > § 3 row 9's slow path and the implicit tract candidate (§ 5 row 3).
-> **In requirements (2026-11-20):** the matcher half → [listing-resolution](../../requirements/listing-resolution-requirements.md) (§ 6 is its ledger). The `look` half waits for a look design conversation after the client work, with [carded-prose](../client/carded-prose-slate.md).
+> **In requirements (2026-11-20):** the matcher half → [naming-overhaul](../../requirements/naming-overhaul-requirements.md), Stage C (§§ 6–7). The `look` half waits for a look design conversation after the client work, with [carded-prose](../client/carded-prose-slate.md).
 > **Left:** `look` renders what MQL bound and nothing else — the class-specific appends moved onto
 > their objects behind an async augmenter pass (§ 2 rows 5, 11, 13, 14, 17, 20, 24–27) · a
 > `defaulted` fact on a bound result (which retires `buy`'s raw-text sniff; § 1 row 3) · ⭐ one
@@ -247,7 +247,7 @@ shape exits now have. Rows 5–7 dissolve under § 4's decision.
 
 ## 6. Reuse ledger for the plan — the matcher half (2026-11-20)
 
-Seeds [listing-resolution-requirements](../../requirements/listing-resolution-requirements.md).
+Seeds [naming-overhaul-requirements](../../requirements/naming-overhaul-requirements.md) (Stage C).
 The census was retaken this cycle (HEAD `ace3d9b0a`): **~71 entity-set matchers, ~14 exact-key
 lookups, ~10 `.raw` re-reads, nineteen word rules** — the 11 of § 1 were a sample. Every row
 below is one the plan must account for.

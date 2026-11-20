@@ -5,6 +5,7 @@
 > **Left:** retiring the closed
 > `DOCUMENT_KINDS` list and everything that enumerates it · the five
 > defects below.
+> **In requirements (2026-11-20):** [naming-overhaul](../../requirements/naming-overhaul-requirements.md), Stage A.
 > **Size:** a build.
 
 ## Terms (conversation only — nothing is renamed)
@@ -294,7 +295,7 @@ security path).
 
 - [one-resolution-rule-slate](./one-resolution-rule-slate.md) §§ 1, 6 — the
   matchers this serves.
-- [listing-resolution requirements](../../requirements/listing-resolution-requirements.md)
-  — ⚠ written before this conversation; to be rewritten.
+- [naming-overhaul requirements](../../requirements/naming-overhaul-requirements.md)
+  — Stage A is this slate.
 - [documents-path-identity-slate](./documents-path-identity-slate.md) — the
   pass that made Ideas into documents.

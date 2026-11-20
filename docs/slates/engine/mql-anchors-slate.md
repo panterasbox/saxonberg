@@ -5,6 +5,7 @@
 > **Left:** the player-id prefix's character · `@reachable`'s shape (it
 > stays, as a built-in relation of `me`) · every view `scope:` and typed
 > seed moves to `@` · the 23 views that scope to `online`.
+> **In requirements (2026-11-20):** [naming-overhaul](../../requirements/naming-overhaul-requirements.md), Stage B.
 > **Size:** a build.
 
 ## What MQL is (owner, 2026-11-20)
