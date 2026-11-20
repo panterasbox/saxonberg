@@ -181,17 +181,27 @@ suite('1–3. three verbs that could not be said', () => {
     // Bare, with no target: the honest answer is *lock what?* — a
     // controller asking for a target, which is a verb that EXISTS.
     // Before this build the answer was `unknown-verb`.
-    const r = await newcomer.cmd('lock');
-    expectUnderstood(r, 'lock');
-    expect(
-      reasonOf(r),
-      'bare `lock` should ask for a target, not die at dispatch',
-    ).not.toBe('unknown-verb');
+    // ⚠ Since the binder learned to ASK for a missing target, bare `lock`
+    // raises a "Lock what?" prompt (empty here: nothing lockable in reach —
+    // a binder finding recorded in the slate) rather than a controller's
+    // refusal. A prompt is the verb existing; it is cancelled, not left
+    // hanging the session.
+    const { result: r, prompt } = await newcomer.cmdOrPrompt('lock');
+    if (prompt) {
+      expect(JSON.stringify(prompt.outcome)).toMatch(/lock what/i);
+    } else {
+      expectUnderstood(r, 'lock');
+      expect(
+        reasonOf(r),
+        'bare `lock` should ask for a target, not die at dispatch',
+      ).not.toBe('unknown-verb');
+    }
   }, 120_000);
 
   it('⭐⭐⭐ 2. `unlock` is a word this game knows', async () => {
-    const r = await newcomer.cmd('unlock');
-    expectUnderstood(r, 'unlock');
+    const { result: r, prompt } = await newcomer.cmdOrPrompt('unlock');
+    if (prompt) expect(JSON.stringify(prompt.outcome)).toMatch(/unlock what/i);
+    else expectUnderstood(r, 'unlock');
   }, 120_000);
 
   it('⭐⭐ 3. the `drive`/`drift` collision is gone — one claimant each', async () => {

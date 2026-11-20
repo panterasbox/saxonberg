@@ -515,6 +515,7 @@ suite('7 — nothing a check decided changed', () => {
       // another drive's consignment may share the shelf.
       const good = await hand(at, GOOD);
       const on = await at.cmd(`shelf consign #${good} --ask 5`);
+      if (on.status !== 'ok') say(`7 consign refused: ${JSON.stringify(on.notes)} ${await on.said()}`);
       decided('consign', on.status);
       const theirs = await other.cmd(`shelf reclaim #${good}`);
       const why = theirs.notes.find((n) => n.kind === 'controller-rejected') as { reason?: string } | undefined;

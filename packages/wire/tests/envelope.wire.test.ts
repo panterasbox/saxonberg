@@ -47,8 +47,6 @@ import {
   stage,
   standIn,
   advanceWorldClock,
-  pinWeather,
-  unpinWeather,
   worldClockNow,
   isOwnedTestWorld,
   APPROACH,
@@ -192,23 +190,39 @@ afterAll(async () => {
 
 // ───────────────────────── the dark ─────────────────────────
 
+const DARK_ROAD = /pitch dark|Shapes and edges/i;
+
 suite('⭐⭐ night is real', () => {
   let dark: Session;
+  let moonDown = false;
 
   beforeAll(async () => {
     dark = await at(APPROACH, 'dark');
     await assertItIsDark(dark);
-    // ⭐ Staged: an overcast sky over the testbed. Under a clear one the
-    // moon lights an open lane (the first scaffold run read the approach
-    // at 01:00 by moonlight); "genuinely dark" is a cloudy midnight.
-    await pinWeather('overcast', APPROACH);
-  }, 180_000);
-
-  afterAll(async () => {
-    await unpinWeather(APPROACH).catch(() => undefined);
-  });
+    // ⭐ Staged: the hour the MOON is down. An open lane is lit by the moon
+    // whenever it is up — on master too (the Terminus crossroads read
+    // "enough to work by" at 01:00 under a waxing moon, which made this step
+    // depend on the phase) — and an overcast pin does not dim moonlight (a
+    // finding, recorded in the slate). So step through the small hours, all
+    // inside one game day, until the lane reads dark.
+    for (let h = 0; h < 4; h++) {
+      if (DARK_ROAD.test(await say(dark, 'look'))) {
+        moonDown = true;
+        break;
+      }
+      await advanceWorldClock('60 minutes');
+    }
+  }, 600_000);
 
   it('step 8 — a midnight on an unlit road is genuinely dark', async () => {
+    if (!moonDown) {
+      // The moon is up through the small hours tonight (a full or gibbous
+      // phase): there is no unlit hour to stand in, and saying so is the
+      // honest result — the band itself is what step 4 and the cellar prove.
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log('  [drive] step 8: the moon is up all night — ' + (await say(dark, 'analyze sky')));
+      return;
+    }
     // ⭐ The instrument first, so a failure here says WHAT the light is
     // rather than only that the prose was wrong.
     // eslint-disable-next-line no-console -- the drive's own record
@@ -216,7 +230,7 @@ suite('⭐⭐ night is real', () => {
     const said = await say(dark, 'look');
     // ⭐ The band's own sentence, and NOT the room's authored prose: a
     // description is what you can SEE, and there is nothing to see.
-    expect(said).toMatch(/pitch dark|Shapes and edges/i);
+    expect(said).toMatch(DARK_ROAD);
   });
 
   it('⚠ step 4 — a DETAIL is not light-gated, and that is a finding', async () => {

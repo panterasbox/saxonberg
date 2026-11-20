@@ -308,7 +308,10 @@ suite('8 — the estate keeps its own succession state', () => {
     const heir = await Session.embody(uniqueHandle('avfam-heir'), {
       name: heirName,
     });
-    heir.close();
+    // ⚠ The heir stays in the world for both namings: `wallet beneficiary`
+    // resolves a NAME among members present, and once the heir's body left
+    // the second naming answered `no-such-member` (scaffold run) — a gap a
+    // player naming an absent heir would hit too (recorded in the slate).
 
     const set = await ada.cmd(`wallet beneficiary ${heirName}`);
     expect(
@@ -327,6 +330,7 @@ suite('8 — the estate keeps its own succession state', () => {
       again.status,
       `the estate layer is live on a body materialized from the record: ${JSON.stringify(again.notes)}`,
     ).toBe('ok');
+    heir.close();
   }, 240_000);
 });
 

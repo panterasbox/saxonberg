@@ -65,6 +65,8 @@ const GYM = WORKS;
 const CLIMB = SHAFT_HEAD;
 /** What the drive hands — pack rows, never a locality's stock. */
 const BARBELL = '/trade/smithing/thing/barbell';
+/** The id of the bar this drive was handed. */
+let bar = '';
 const COAT = '/stuff/thing/armor/padded-gambeson';
 const ORANGE = '/trade/farming/thing/orange';
 /** The seat the dials ask for (`config`). */
@@ -261,13 +263,16 @@ suite('6 · a season of work (H), and a season of nothing (L)', () => {
     // half's; a bar of the smithy's own row is handed here.
     H.close();
     H = await Session.open(hName, { startLocation: GYM });
-    await hand(H, BARBELL);
+    // ⚠ This drive's own bar, by id from here on: an earlier run may have
+    // left a bar on the works floor, and `get barbell` then binds whichever
+    // (first scaffold runs: H walked to the lane carrying nothing).
+    bar = await hand(H, BARBELL);
     const carried = await H.query('me:i', { fields: ['displayName'] });
     expect(JSON.stringify(carried)).toMatch(/barbell/i);
   }, 240_000);
 
   it('⭐⭐ a bar on the FLOOR makes the room meet the gym’s load slot — no code, no second archetype', async () => {
-    expectOk(await H.cmd('drop barbell'));
+    expectOk(await H.cmd(`drop #${bar}`));
     const said = await H.prose('analyze rooms');
     expect(said).toMatch(/a gym/i);
     expect(said).toMatch(/load \(/i);
@@ -316,11 +321,11 @@ suite('7 · heat', () => {
     // ⚠ Out on the lane: a room with a lit forge has a wet-bulb over the
     // ceiling where sweat cannot shed heat, and the model's cue is honest
     // about it — nothing. H takes the bar out to the lane.
-    expectOk(await H.cmd('get barbell'));
+    expectOk(await H.cmd(`get #${bar}`));
     H.close();
     H = await Session.open(hName, { startLocation: LANE });
     await hand(H, COAT);
-    expectOk(await H.cmd('drop barbell'));
+    expectOk(await H.cmd(`drop #${bar}`));
     // Donning is an engagement (three kilos of wool take a moment);
     // the hands are busy until it lands.
     const donning = await H.cmd('wear gambeson');
