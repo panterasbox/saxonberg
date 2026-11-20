@@ -680,6 +680,25 @@ titled; drive step 1 passes, including `look` in every place in its own light
 the pack drive. Commit: `feat(test-fixtures): the testbed scaffold, and
 drives found in packs`.
 
+> ✅ **W3 + W4 done** (`82054f9e6`, one commit: the constants and the
+> helpers share `scaffold.ts`). Every D2 piece shipped; none moved to build
+> 2 — the low door is an `opening:` on the way and the climb is the kernel
+> `Ladder`. Forced deviations: the building's rooms sit under
+> `/world/testbed/building/…` (a Building takes members by prefix); the
+> cellar is `down`/`up` (a named exit within one zone throws); the passage
+> is a dead end off the cellar (an open way passes full light); cellar and
+> shaft foot are `Hall`s. Lit rooms use a `PortableLight` lamp (an oil lamp
+> burns down); a cistern + the title's `waterSource` make the basin run;
+> the shop sells the platform's notebook and rope; no `boot:` entry (the
+> roster tick did not need one). `stockCounter` NOT built — the counter
+> restocks to par and no migrated drive asked for another good.
+> `lint:test-content` gained the `/world/testbed` exemption.
+> **First live run (8/10)** found: the end purge looked up every pack row
+> as a singleton (two stand-in clones broke it — only places are hosts
+> now); the low door is crossed with `stoop`; the open yard at 01:00 reads
+> by moonlight (recorded, not asserted). The heap-flag and restart checks
+> of W0 are drive step 6.
+
 **W4 — Staging helpers.** D3. Files: `harness/scaffold.ts`,
 `harness/index.ts`, `harness/crowd.ts`, additions to the pack drive proving
 each helper twice in a row on one world. Acceptance: `fundedAccount`,
@@ -725,6 +744,20 @@ each commit. ⚠ `call-security-performance.baseline.json`,
 standing in Terminus: re-record on a quiet box per testing.md § The quiet box
 and say so in the commit; never loosen a bound to pass.
 
+> ✅ **W6 + W7 done** (`32abc1266`…`` the W7 commits), written by four
+> agents over disjoint files, committed by name. All 19 "whole" files
+> migrated, two of them (client-surface, recovery) with one step split to
+> `-content` (a NAMED corpse's privacy — the testbed ships only unnamed
+> Extras; the infirmary ward's furnishings). All 11 splits done; identity's
+> generic step is `identity-kernel.wire.test.ts`. The census fell **120 →
+> 110** (the `-content` halves and the 6 reclassified stay counted). Every
+> migrated file dropped `.dirty.`. `founder` stays only where a step is
+> about its seat (pack status, typecheck titles, world-scan's and
+> wizard-axis's PM seat, db-performance's participation dial). Owed: the
+> CSP, db-performance and crowd-timing baselines re-recorded on a quiet box
+> (`CSP_RECORD=1`, `DBP_RECORD=1`) — they move for a reason that is not the
+> code. The six reclassified files needed no restart touch beyond W0.
+
 **W7 — Migrations, split files (11) and the six restart-only touches.** D8.
 One commit per file: the split, then the kernel half's migration. Acceptance
 as W6, plus the `-content` half still green on a full world.
@@ -740,6 +773,10 @@ the retired advice to drop the database before a dirty run),
 `docs/subsystems/content-packs.md` (the `testOnly` key, the pack in the
 shipped list), `docs/lint-family.md`. Index files (`CLAUDE.md`,
 `workflow.md`, `roadmap.md`, `slates/README.md`) are left to the sweep.
+
+> ✅ **W9 done** — testing.md § The scaffold and § One stop, one restart,
+> one budget (the old fresh-DB budget section replaced); content-packs.md §
+> A test-only pack and the shipped-packs row; lint-family.md's entry.
 
 ## Reachability wiring
 
