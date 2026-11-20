@@ -28,6 +28,7 @@ import {
   TipDepthContext,
   cancelTipGrace,
   insideTip,
+  onTipAnchor,
   openTipNow,
   scheduleTipGrace,
 } from "./useTip";
@@ -329,7 +330,11 @@ export function TooltipLayer({ onCommandClick, onCommandPreview }: TooltipLayerP
         return;
       }
       if (root.touch) return;
-      if (insideTip(e.target) || root.anchor.contains(e.target as Node | null)) cancelTipGrace();
+      // ⭐ Over any anchor is staying (owner, review): moving from one link to
+      // the next must not let the old stack's grace close the new tooltip.
+      if (insideTip(e.target) || onTipAnchor(e.target) || root.anchor.contains(e.target as Node | null)) {
+        cancelTipGrace();
+      }
       else if (st.tipStack.some((t) => t.locked)) scheduleTipGrace();
     };
     window.addEventListener("keydown", onKey, true);

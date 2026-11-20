@@ -191,4 +191,30 @@ describe("TooltipLayer", () => {
     fireEvent.mouseEnter(screen.getByTestId("anchor"));
     expect(previews).toEqual(["look lamp"]);
   });
+
+  it("⭐ moving from one locked tooltip's link to the next opens the next and KEEPS it (owner, review)", () => {
+    const second: TooltipDoc = { header: { name: "a mana line" }, command: "look line" };
+    render(
+      <>
+        <Tip tip={thing}><button data-testid="a">terminal</button></Tip>
+        <Tip tip={second}><button data-testid="b">mana line</button></Tip>
+        <TooltipLayer onCommandClick={() => {}} onCommandPreview={() => {}} />
+      </>,
+    );
+    const a = screen.getByTestId("a");
+    const b = screen.getByTestId("b");
+    fireEvent.mouseEnter(a);
+    advance(TIP_OPEN_MS + 10);
+    advance(TIP_LOCK_MS + 10);
+    expect(screen.getByTestId("tooltip").getAttribute("data-locked")).toBe("true");
+    // The pointer crosses to the next link: leave, enter, and moves over it.
+    fireEvent.mouseLeave(a, { relatedTarget: b });
+    fireEvent.mouseEnter(b);
+    fireEvent.pointerMove(b);
+    // …and then the pointer RESTS on it: no further moves.
+    advance(TIP_OPEN_MS + 10);
+    expect(screen.getByTestId("tooltip").textContent).toContain("a mana line");
+    advance(TIP_GRACE_MS * 3);
+    expect(screen.getByTestId("tooltip").textContent).toContain("a mana line");
+  });
 });

@@ -232,7 +232,7 @@ export function SpoilerBlock({ spoiler }: { spoiler: TooltipSpoiler }): React.Re
   const [open, setOpened] = useSpoilerOpen(spoiler.level);
   return open ? (
     <SpoilerOpen data-testid="doc-spoiler" data-spoiler-level={spoiler.level} data-open="true">
-      {spoiler.label}: <code>{spoiler.text}</code>
+      {/[?!.:]$/.test(spoiler.label) ? spoiler.label : `${spoiler.label}:`} <code>{spoiler.text}</code>
     </SpoilerOpen>
   ) : (
     <SpoilerShut

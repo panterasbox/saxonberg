@@ -88,6 +88,15 @@ export function openTipNow(
   }
 }
 
+/**
+ * Is this element (or an ancestor) a tooltip anchor? The pointer over ANY
+ * anchor is the pointer staying: it is about to open that anchor's tooltip,
+ * and the stack it is leaving must not be closed out from under it.
+ */
+export function onTipAnchor(el: EventTarget | null): boolean {
+  return el instanceof Element && el.closest("[data-tip-anchor]") !== null;
+}
+
 /** Is this element inside any open tooltip (or the phone's tip sheet)? */
 export function insideTip(el: EventTarget | null): boolean {
   return el instanceof Element && el.closest("[data-tip-panel]") !== null;
@@ -109,7 +118,10 @@ export interface AnchorHandlers {
  * Handlers for one anchor. `spec` null = no tooltip (handlers pass through
  * to `own`). Merge-safe: every handler of `own` still runs.
  */
-export function useTip(spec: TipSpec | null, own: AnchorHandlers = {}): Required<AnchorHandlers> {
+export function useTip(
+  spec: TipSpec | null,
+  own: AnchorHandlers = {},
+): Required<AnchorHandlers> & { "data-tip-anchor"?: "" } {
   const parent = React.useContext(TipDepthContext);
   const depth = parent + 1;
   const specRef = React.useRef(spec);
@@ -126,6 +138,7 @@ export function useTip(spec: TipSpec | null, own: AnchorHandlers = {}): Required
   }, spec !== null);
 
   return {
+    ...(spec ? { "data-tip-anchor": "" as const } : {}),
     onMouseEnter: (e) => {
       own.onMouseEnter?.(e);
       const s = specRef.current;
